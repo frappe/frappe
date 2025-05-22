@@ -10,6 +10,7 @@ from poplib import error_proto
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.frappemail import FrappeMail
@@ -568,20 +569,15 @@ class EmailAccount(Document):
 			return
 		self.db_set("enable_incoming", 0)
 
-		for user in get_system_managers(only_name=True):
-			try:
-				assign_to.add(
-					{
-						"assign_to": [user],
-						"doctype": self.doctype,
-						"name": self.name,
-						"description": description,
-						"priority": "High",
-						"notify": 1,
-					}
-				)
-			except assign_to.DuplicateToDoError:
-				pass
+		users = get_system_managers(only_name=True)
+		notification = {
+			"type": "Alert",
+			"document_type": self.doctype,
+			"document_name": self.name,
+			"subject": description,
+			"from_user": "Administrator",
+		}
+		enqueue_create_notification(users, notification)
 
 	def set_failed_attempts_count(self, value):
 		frappe.cache.set_value(
