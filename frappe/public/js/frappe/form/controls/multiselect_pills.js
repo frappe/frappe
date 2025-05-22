@@ -164,10 +164,26 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
 		} else {
 			data = super.get_data();
 		}
+
+		// Remove duplicates from the data array itself
+		if (data) {
+			const uniqueValues = new Set();
+			data = data.filter((item) => {
+				const value = item.value || item;
+				if (uniqueValues.has(value)) {
+					return false;
+				}
+				uniqueValues.add(value);
+				return true;
+			});
+		}
+
 		const values = this.get_values() || [];
 
 		// return values which are not already selected
-		if (data) data.filter((d) => !values.includes(d));
+		if (data) {
+			data = data.filter((d) => !values.includes(d.value || d));
+		}
 		return data;
 	}
 };
