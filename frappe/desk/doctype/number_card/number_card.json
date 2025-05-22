@@ -226,7 +226,7 @@
  "modified": "2025-09-17 21:00:11.351605",
 =======
    "default": "0",
-   "description": "Check to show full numeric value (e.g. 1,234,567 instead of 1.2M)",
+   "description": "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M).",
    "fieldname": "show_full_number",
    "fieldtype": "Check",
    "label": "Show Full Number"
