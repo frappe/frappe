@@ -97,8 +97,7 @@ select.form-control {
 /* multiselect list */
 .multiselect-list {
 	.status-text {
-		position: absolute;
-		top: 4px;
+		position: unset;
 	}
 
 	.dropdown-menu {
