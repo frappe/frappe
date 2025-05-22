@@ -25,7 +25,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
+	if frappe.flags.in_install or not frappe.is_setup_complete():
 		return out
 
 	config = get_notification_config()
