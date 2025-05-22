@@ -2656,7 +2656,7 @@ User {0} cannot be deleted,ഉപയോക്താവ് {0} ഇല്ലാ
 User {0} cannot be disabled,ഉപയോക്താവ് {0} പ്രവർത്തനരഹിതമാകും കഴിയില്ല,
 User {0} cannot be renamed,ഉപയോക്താവ് {0} പുനർനാമകരണം ചെയ്യാൻ കഴിയില്ല,
 User {0} does not have access to this document,ഉപയോക്താവിന് {0} ഈ പ്രമാണത്തിലേക്ക് ആക്സസ് ഇല്ല,
-User {0} does not have doctype access via role permission for document {1},{0 document ഉപയോക്താവിന് document 1 document പ്രമാണത്തിനുള്ള റോൾ അനുമതി വഴി ഡോക്‍ടൈപ്പ് ആക്‌സസ് ഇല്ല,
+User {0} does not have doctype access via role permission for document {1},{0} document ഉപയോക്താവിന് document {1} document പ്രമാണത്തിനുള്ള റോൾ അനുമതി വഴി ഡോക്‍ടൈപ്പ് ആക്‌സസ് ഇല്ല,
 Username,ഉപയോക്തൃനാമം,
 Username {0} already exists,ഉപയോക്തൃനാമം {0} ഇതിനകം നിലവിലുണ്ട്,
 Users with role {0}:,പങ്ക് {0} ഉപയോഗിച്ച് ഉപയോക്താക്കൾ:,
