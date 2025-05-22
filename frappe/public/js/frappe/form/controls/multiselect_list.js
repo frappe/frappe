@@ -5,18 +5,21 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	make_input() {
 		let template = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer input-xs" data-toggle="dropdown" tabindex=0>
+				<div class="form-control cursor-pointer" data-toggle="dropdown" tabindex=0>
 					<div class="status-text ellipsis"></div>
 				</div>
 				<ul class="dropdown-menu">
 					<li class="dropdown-input-wrapper">
-						<input type="text" class="form-control input-xs">
+						<input type="text" class="form-control input-xs" placeholder="${__("Search...")}">
 					</li>
 					<div class="selectable-items">
 					</div>
 					<li class="text-right">
+						<button class="btn btn-default btn-xs select-all text-nowrap">
+							${__("Select All")}
+						</button>
 						<button class="btn btn-primary btn-xs clear-selections text-nowrap">
-							Clear All
+							${__("Clear All")}
     					</button>
 					</li>
 				</ul>
@@ -29,6 +32,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.has_input = true;
 		this.$list_wrapper.prependTo(this.input_area);
 		this.$filter_input = this.$list_wrapper.find("input");
+
+		// Add tooltip functionality
+		this.$list_wrapper.find(".form-control").attr("title", "");
+		this.$list_wrapper.find(".form-control").on("mouseenter", () => {
+			this.update_tooltip();
+		});
+
 		this.values = [];
 		this._options = [];
 		this._selected_values = [];
@@ -38,6 +48,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		});
 		this.$list_wrapper.on("click", ".clear-selections", (e) => {
 			this.clear_all_selections();
+		});
+		this.$list_wrapper.on("click", ".select-all", (e) => {
+			this.select_all_items();
 		});
 		this.$list_wrapper.on("click", ".selectable-item", (e) => {
 			let $target = $(e.currentTarget);
@@ -64,7 +77,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					let options = this._selected_values
 						.concat(filtered_options)
 						.uniqBy((opt) => opt.value);
-					this.set_selectable_items(options);
+					this.set_selectable_items(options, txt);
 				});
 			}, 300)
 		);
@@ -188,6 +201,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 
 	update_status() {
 		let text;
+
 		if (this.values.length === 0) {
 			text = this.get_placeholder_text();
 		} else if (this.values.length === 1) {
@@ -198,6 +212,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			text = __("{0} values selected", [this.values.length]);
 		}
 		this.set_status(text);
+		this.update_tooltip();
 	}
 
 	get_placeholder_text() {
@@ -244,15 +259,24 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		return promise;
 	}
 
-	set_selectable_items(options) {
+	set_selectable_items(options, search_text = "") {
 		let html = options
 			.map((option) => {
 				let encoded_value = encodeURIComponent(option.value);
 				let selected = this.values.includes(option.value) ? "selected" : "";
+				let label = option.label;
+
+				// Highlight search text if present
+				if (search_text) {
+					const escaped_search = search_text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+					const regex = new RegExp(`(${escaped_search})`, "gi");
+					label = label.replace(regex, "<mark>$1</mark>");
+				}
+
 				return `<li class="selectable-item ${selected}" data-value="${encoded_value}">
 				<div>
-					<strong>${option.label}</strong>
-					<div class="small">${option.description}</div>
+					<strong>${label}</strong>
+					<div class="small">${option.description || option.value}</div>
 				</div>
 				<div class="multiselect-check">${frappe.utils.icon("tick", "xs")}</div>
 			</li>`;
@@ -296,5 +320,33 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		} else {
 			$item.parentNode.scrollTop = $item.offsetTop - $item.parentNode.offsetTop;
 		}
+	}
+
+	update_tooltip() {
+		if (this.values.length === 0) {
+			this.$list_wrapper.find(".form-control").attr("title", "");
+			return;
+		}
+
+		let tooltip_text = this.values
+			.map((value) => {
+				let option = this._options.find((opt) => opt.value === value);
+				return option ? option.label : value;
+			})
+			.join("\n");
+
+		this.$list_wrapper.find(".form-control").attr("title", tooltip_text);
+	}
+
+	select_all_items() {
+		this._options.forEach((option) => {
+			if (!this.values.includes(option.value)) {
+				this.values.push(option.value);
+				this.update_selected_values(option.value);
+			}
+		});
+		this.parse_validate_and_set_in_model("");
+		this.update_status();
+		this.set_selectable_items(this._options);
 	}
 };
