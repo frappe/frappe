@@ -72,6 +72,12 @@
 							:options="doctypeFields"
 							:multiple="true"
 						/>
+						<FormControl
+							label="Limit"
+							type="number"
+							placeholder="Number of records to fetch (default: 20)"
+							v-model="newResource.limit"
+						/>
 						<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					</template>
 
@@ -177,6 +183,7 @@ const emptyResource: NewResource = {
 	fetch_document_using_filters: false,
 	fields: [],
 	filters: {},
+	limit: null,
 	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",
@@ -209,6 +216,7 @@ async function getResourceToEdit() {
 		resource_name: props.resource?.resource_name,
 		filters: filters,
 		fields: JSON.parse(props.resource?.fields || "[]"),
+		limit: props.resource?.limit || null,
 		whitelisted_methods: JSON.parse(props.resource?.whitelisted_methods || "[]"),
 	} as Resource
 }

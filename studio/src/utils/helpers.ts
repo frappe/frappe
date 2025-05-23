@@ -480,6 +480,7 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
 				filters: getEvaluatedFilters(resource.filters, context),
+				pageLength: resource.limit || 0,
 				auto: true,
 				...getTransforms(resource),
 			})

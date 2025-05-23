@@ -10,6 +10,7 @@
   "resource_type",
   "fields",
   "filters",
+  "limit",
   "document_resource_section",
   "document_type",
   "column_break_mkdu",
@@ -101,6 +102,12 @@
    "fieldtype": "JSON",
    "label": "Filters",
    "max_height": "100px"
+  },
+  {
+   "depends_on": "eval:doc.resource_type=='Document List'",
+   "fieldname": "limit",
+   "fieldtype": "Int",
+   "label": "Limit"
   },
   {
    "fieldname": "section_break_jlam",
