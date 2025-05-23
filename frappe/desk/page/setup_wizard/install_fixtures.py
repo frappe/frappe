@@ -19,7 +19,6 @@ def install():
 	update_genders()
 	update_salutations()
 	update_global_search_doctypes()
-	setup_email_linking()
 	sync_dashboards()
 	add_unsubscribe()
 
@@ -54,12 +53,6 @@ def update_salutations():
 		doc = frappe.new_doc("Salutation")
 		doc.salutation = salutation
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-
-def setup_email_linking():
-	doc = frappe.new_doc("Email Account")
-	doc.email_id = "email_linking@example.com"
-	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 def add_unsubscribe():

@@ -37,12 +37,13 @@ export default class QuickListWidget extends Widget {
 
 		this.add_new_button.appendTo(this.action_area);
 		this.add_new_button.on("click", () => {
-			frappe.set_route(
-				frappe.utils.generate_route({
-					type: "doctype",
-					name: this.document_type,
-					doc_view: "New",
-				})
+			frappe.ui.form.make_quick_entry(
+				this.document_type,
+				// Callback to ensure no redirection after insert
+				() => {
+					this.body.empty();
+					this.set_body(); // Refresh the quicklist
+				}
 			);
 		});
 	}

@@ -13,7 +13,7 @@
 				<div class="text-center">
 					{{ __("Drag and drop files here or upload from") }}
 				</div>
-				<div class="mt-2 text-center">
+				<div class="mt-3 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg
 							width="30"
@@ -150,7 +150,7 @@
 						<div class="mt-1">{{ __("Camera") }}</div>
 					</button>
 					<button
-						v-if="google_drive_settings.enabled"
+						v-if="allow_google_drive && google_drive_settings.enabled"
 						class="btn btn-file-upload"
 						@click="show_google_drive_picker"
 					>
@@ -164,7 +164,7 @@
 						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium text-center">
+				<div class="mt-3 text-center" v-if="upload_notes">
 					{{ upload_notes }}
 				</div>
 			</div>
@@ -288,6 +288,9 @@ const props = defineProps({
 	allow_toggle_optimize: {
 		default: true,
 	},
+	allow_google_drive: {
+		default: true,
+	},
 });
 
 // variables
@@ -315,7 +318,7 @@ if (props.allow_take_photo) {
 	allow_take_photo.value = window.navigator.mediaDevices;
 }
 
-if (frappe.user_id !== "Guest") {
+if (frappe.user_id !== "Guest" && props.allow_google_drive) {
 	frappe.call({
 		// method only available after login
 		method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
