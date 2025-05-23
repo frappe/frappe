@@ -878,7 +878,7 @@ from {tables}
 				fallback = "''"
 
 			elif f.fieldname == "name":
-				value = f.value
+				value = f.value if f.value is not None else ""
 				fallback = "''"
 
 			elif (
