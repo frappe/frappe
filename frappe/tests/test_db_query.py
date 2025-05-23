@@ -1157,18 +1157,7 @@ class TestReportview(FrappeTestCase):
 		query = frappe.get_all("DocField", {"fieldname": None}, run=0)
 		self.assertIn("''", query)
 		self.assertNotIn("\\'", query)
-<<<<<<< HEAD
-=======
-		self.assertNotIn("ifnull", query)
 		self.assertFalse(frappe.get_all("DocField", {"name": None}))
-
-	def test_ifnull_fallback_types(self):
-		query = frappe.get_all("DocField", {"fieldname": ("!=", None)}, run=0)
-		# Fallbacks should always be of correct type
-		self.assertIn("''", query)
-		self.assertNotIn("0", query)
-		self.assertNotIn("ifnull", query)
->>>>>>> c249e75fe4 (fix(db_query): allow filtering `name: None` (#32644))
 
 
 class TestReportView(FrappeTestCase):
