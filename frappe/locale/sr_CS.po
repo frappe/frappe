@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-22 08:51\n"
+"PO-Revision-Date: 2025-05-23 09:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -9901,7 +9901,7 @@ msgstr "Neuspešno dobijanje informacija o sajtu"
 
 #: frappe/model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
-msgstr "Neuspešan pokušaj uvoza virtuelnog doctype {}, da lije fajl kontrolera prisutan?"
+msgstr "Neuspešan pokušaj uvoza virtuelnog doctype {}, da li je fajl kontrolera prisutan?"
 
 #: frappe/utils/image.py:75
 msgid "Failed to optimize image: {0}"
@@ -27643,7 +27643,7 @@ msgstr "Ukloni dodeljivanje uslova"
 
 #: frappe/app.py:383
 msgid "Uncaught Exception"
-msgstr "Neočekivani izuzetak"
+msgstr "Neuhvaćeni izuzetak"
 
 #: frappe/public/js/frappe/form/toolbar.js:103
 msgid "Unchanged"
@@ -30646,7 +30646,7 @@ msgstr "nonce"
 #. Label of the notified (Check) field in DocType 'Reminder'
 #: frappe/automation/doctype/reminder/reminder.json
 msgid "notified"
-msgstr "obvešten"
+msgstr "obavešten"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:25
 msgid "now"
