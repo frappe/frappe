@@ -43,12 +43,31 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 			frappe.utils.map_defaults.zoom
 		);
 
-		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
-			this.map
+		this.streetLayer = L.tileLayer(
+			frappe.utils.map_defaults.tiles.defaultTile.url,
+			frappe.utils.map_defaults.tiles.defaultTile.options
+		);
+		this.satelliteLayer = L.tileLayer(
+			frappe.utils.map_defaults.tiles.sattelliteTail.url,
+			frappe.utils.map_defaults.tiles.sattelliteTail.options
+		);
+		this.labelsLayer = L.tileLayer(
+			frappe.utils.map_defaults.tiles.labelsTail.url,
+			frappe.utils.map_defaults.tiles.labelsTail.options
+		);
+		this.terrainLayer = L.tileLayer(
+			frappe.utils.map_defaults.tiles.terrainLinesTail.url,
+			frappe.utils.map_defaults.tiles.terrainLinesTail.options
 		);
 
+		this.streetLayer.addTo(this.map)
+
+		this.bind_leaflet_layers_control()
 		this.bind_leaflet_locate_control();
 		L.control.scale().addTo(this.map);
+		if (!this.bound_event_listeners) {
+			this.bind_leaflet_event_listeners();
+		}
 	}
 
 	render() {
@@ -140,9 +159,65 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}
 	}
 
+	bind_leaflet_layers_control() {
+		// Add layers control for switching between map types
+		// Define base and overlay layers as properties of the class instance for access in other methods
+
+		const baseLayers = {
+			"Default": this.streetLayer,
+			"Satellite": this.satelliteLayer
+		};
+		const overlays = {
+			"Labels": this.labelsLayer,
+			"Terrain": this.terrainLayer
+		};
+
+		L.control.layers(baseLayers, overlays).addTo(this.map);
+		this.display_leaflet_overlays_control('none')
+
+	}
+
 	bind_leaflet_locate_control() {
 		// To request location update and set location, sets current geolocation on load
 		this.locate_control = L.control.locate({ position: "topright" });
 		this.locate_control.addTo(this.map);
 	}
+
+	display_leaflet_overlays_control(display = '') {
+		const layerControlContainer = document.querySelector('.leaflet-control-layers-overlays');
+		const separator = document.querySelector('.leaflet-control-layers-separator');
+		if (layerControlContainer) {
+			layerControlContainer.style.display = display;
+		}
+		if (separator) {
+			separator.style.display = display;
+		}
+	}
+
+	bind_leaflet_event_listeners() {
+		this.bound_event_listeners = true;
+		// Remove overlays and overlays options when selecting the default view
+		this.map.on("baselayerchange", (e) => {
+			if (e.name === "Satellite") {
+				// Show overlays options and separator only in Satellite view
+				this.display_leaflet_overlays_control()
+			} else {
+				// Hide overlays options and separator in other views
+				this.display_leaflet_overlays_control('none')
+				// Remove all overlays
+				Object.values(this.map._layers).forEach(layer => {
+					if (
+						layer instanceof L.TileLayer &&
+						(
+							layer._url === frappe.utils.map_defaults.tiles.labelsTail.url ||
+							layer._url === frappe.utils.map_defaults.tiles.terrainLinesTail.url
+						)
+					) {
+						this.map.removeLayer(layer);
+					}
+				});
+			}
+		});
+	}
+
 };
