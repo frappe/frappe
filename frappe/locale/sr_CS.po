@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-23 09:34\n"
+"PO-Revision-Date: 2025-05-25 10:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -1736,7 +1736,7 @@ msgstr "Svi zapisi"
 
 #: frappe/public/js/frappe/form/form.js:2222
 msgid "All Submissions"
-msgstr "Svi podneti podaci"
+msgstr "Sve podneseno"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:452
 msgid "All customizations will be removed. Please confirm."
