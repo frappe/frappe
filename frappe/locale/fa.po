@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-21 07:30\n"
+"PO-Revision-Date: 2025-05-25 10:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3509,7 +3509,7 @@ msgstr "پرش کرد"
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand"
-msgstr "نام تجاری"
+msgstr "برند"
 
 #. Label of the brand_html (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3519,7 +3519,7 @@ msgstr "HTML برند"
 #. Label of the banner_image (Attach Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand Image"
-msgstr "تصویر نام تجاری"
+msgstr "تصویر برند"
 
 #. Label of the brand_logo (Attach Image) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -3530,7 +3530,7 @@ msgstr "لوگوی برند"
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr "نام تجاری همان چیزی است که در سمت چپ بالای نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
+msgstr "برند همان چیزی است که در سمت چپ بالای نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
 "دارای پس‌زمینه شفاف است و از تگ &lt;img /&gt; استفاده کنید. اندازه را 200×30 پیکسل نگه دارید"
 
 #. Label of the breadcrumbs (Code) field in DocType 'Web Form'
@@ -16231,7 +16231,7 @@ msgstr "نظر جدید در مورد {0}: {1}"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:3
 msgid "New Contact"
-msgstr "تماس جدید"
+msgstr "مخاطب جدید"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
