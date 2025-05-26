@@ -122,7 +122,7 @@ def get_context(context):
 		body = get_html(
 			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
 		)
-		body += trigger_print_script
+		body += trigger_print_script()
 	else:
 		body = get_rendered_template(
 			doc,
@@ -332,7 +332,7 @@ def get_rendered_template(
 	html = frappe.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
 
 	if cint(trigger_print):
-		html += trigger_print_script
+		html += trigger_print_script()
 
 	return html
 
