@@ -34,3 +34,17 @@
 
 1. `permission_query_conditions:[doctype]` - method to return additional query conditions at time of report / list etc.
 1. `has_permission:[doctype]` - method to call permissions to check at individual level
+
+#### Javascript Events (Client-side Hooks)
+
+- `frappe.attachment_added` — Triggered when an attachment is added via the form sidebar.
+- `frappe.attachment_removed` — Triggered when an attachment is removed via the form sidebar.
+
+Example usage:
+```js
+$(document).on("frappe.attachment_added", function(e, data) {
+    // data.attachment, data.frm
+});
+$(document).on("frappe.attachment_removed", function(e, data) {
+    // data.fileid, data.frm
+});

@@ -219,6 +219,12 @@ frappe.ui.form.Attachments = class Attachments {
 				me.remove_fileid(fileid);
 				me.frm.sidebar.reload_docinfo();
 				if (callback) callback();
+
+				// Trigger a custom event for attachment removed
+				$(document).trigger("frappe.attachment_removed", {
+					frm: me.frm,
+					fileid: fileid
+				});
 			},
 		});
 	}
@@ -261,6 +267,12 @@ frappe.ui.form.Attachments = class Attachments {
 		if (this.fieldname) {
 			this.frm.set_value(this.fieldname, attachment.file_url);
 		}
+
+		// Trigger a custom event for attachment added
+		$(document).trigger("frappe.attachment_added", {
+			frm: this.frm,
+			attachment: attachment
+		});
 	}
 	update_attachment(attachment) {
 		if (attachment.name) {
