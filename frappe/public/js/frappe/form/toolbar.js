@@ -455,7 +455,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			cint(this.frm.doc.docstatus) != 1 &&
 			!this.frm.doc.__islocal &&
 			!frappe.model.is_single(this.frm.doctype) &&
-			frappe.model.can_delete(this.frm.doctype)
+			frappe.model.can_delete(this.frm.doctype) &&
+			this.frm.perm[0].delete
 		) {
 			this.page.add_menu_item(
 				__("Delete"),
