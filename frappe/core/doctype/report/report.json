@@ -19,6 +19,7 @@
   "prepared_report",
   "add_translate_data",
   "timeout",
+  "threshold",
   "filters_section",
   "filters",
   "columns_section",
@@ -191,18 +192,13 @@
    "fieldname": "timeout",
    "fieldtype": "Int",
    "label": "Timeout (In Seconds)"
-  },
-  {
-   "default": "0",
-   "fieldname": "add_translate_data",
-   "fieldtype": "Check",
-   "label": "Add Translate Data"
   }
  ],
+ "grid_page_length": 50,
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-12 17:08:09.629411",
+ "modified": "2025-05-26 09:41:50.013765",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

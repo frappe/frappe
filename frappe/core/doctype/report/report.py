@@ -47,8 +47,8 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		threshold: DF.Int
 		timeout: DF.Int
-
 	# end: auto-generated types
 	def validate(self):
 		"""only administrator can save standard report"""
@@ -155,7 +155,7 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 15
+		threshold = self.threshold if self.threshold else 15
 		res = []
 
 		start_time = datetime.datetime.now()
