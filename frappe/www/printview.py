@@ -539,7 +539,7 @@ def format_address_detail_to_print(text):
 	address2 = address2.strip() if address2 else None
 	zip_code = zip_code.strip() if zip_code else None
 	city = city.strip() if city else None
-	country = country.strip() if country else None
+	country = _(country.strip()) if country else None
 	
 	address_parts = []
 	if address:
