@@ -1876,7 +1876,7 @@ def bulk_insert(
 	doctype: str,
 	documents: Iterable["Document"],
 	ignore_duplicates: bool = False,
-	chunk_size=10_000,
+	chunk_size=1_000,
 ):
 	"""Insert simple Documents objects to database in bulk.
 
