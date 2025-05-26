@@ -555,9 +555,13 @@ class ShortcutDialog extends WidgetDialog {
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
 
 		if (data.url) {
-			!validate_url(data.url) &&
+			let _url = data.url;
+			if (data.url.startsWith("/")) {
+				_url = frappe.urllib.get_base_url() + data.url;
+			}
+			!validate_url(_url) &&
 				frappe.throw({
-					message: __("<b>{0}</b> is not a valid URL", [data.url]),
+					message: __("<b>{0}</b> is not a valid URL", [_url]),
 					title: __("Invalid URL"),
 					indicator: "red",
 				});
