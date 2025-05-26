@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
+import itertools
 import json
 import time
 from collections.abc import Generator, Iterable
@@ -1876,7 +1877,8 @@ def bulk_insert(
 	doctype: str,
 	documents: Iterable["Document"],
 	ignore_duplicates: bool = False,
-	chunk_size=1_000,
+	chunk_size=1000,
+	commit_chunks=False,
 ):
 	"""Insert simple Documents objects to database in bulk.
 
@@ -1887,31 +1889,36 @@ def bulk_insert(
 	"""
 
 	doctype_meta = frappe.get_meta(doctype)
-	documents = list(documents)
 
 	valid_column_map = {
 		doctype: doctype_meta.get_valid_columns(),
 	}
-	values_map = {
-		doctype: _document_values_generator(documents, valid_column_map[doctype]),
-	}
 
-	for child_table in doctype_meta.get_table_fields():
-		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
-		values_map[child_table.options] = _document_values_generator(
-			[
-				ch_doc
-				for ch_doc in (
-					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
-				)
-			],
-			valid_column_map[child_table.options],
-		)
+	child_table_fields = doctype_meta.get_table_fields()
 
-	for dt, docs in values_map.items():
-		frappe.db.bulk_insert(
-			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
-		)
+	documents = iter(documents)
+	while document_batch := list(itertools.islice(documents, chunk_size)):
+		values_map = {
+			doctype: _document_values_generator(document_batch, valid_column_map[doctype]),
+		}
+
+		for child_table in child_table_fields:
+			valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+			values_map[child_table.options] = _document_values_generator(
+				[
+					ch_doc
+					for ch_doc in (
+						child_docs for doc in document_batch for child_docs in doc.get(child_table.fieldname)
+					)
+				],
+				valid_column_map[child_table.options],
+			)
+
+		for dt, docs in values_map.items():
+			frappe.db.bulk_insert(dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates)
+
+		if commit_chunks:
+			frappe.db.commit()
 
 
 def _document_values_generator(

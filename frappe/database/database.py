@@ -1447,7 +1447,7 @@ class Database:
 		values: Iterable[Sequence[Any]],
 		ignore_duplicates=False,
 		*,
-		chunk_size=10_000,
+		chunk_size=1000,
 	):
 		"""
 		Insert multiple records at a time
