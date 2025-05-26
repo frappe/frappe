@@ -101,7 +101,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { createListResource, Dialog } from "frappe-ui"
+import { createListResource, Dialog, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import CodeEditor from "@/components/CodeEditor.vue"
@@ -109,7 +109,6 @@ import { StudioPage } from "@/types/Studio/StudioPage"
 import { SelectOption } from "@/types"
 import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
-import FormControl from "frappe-ui/src/components/FormControl.vue"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 
