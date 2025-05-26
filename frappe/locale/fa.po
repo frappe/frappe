@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-25 03:42\n"
+"PO-Revision-Date: 2025-05-26 04:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -15997,7 +15997,7 @@ msgstr "نظر جدید در مورد {0}: {1}"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:90
 msgid "New Contact"
-msgstr "تماس جدید"
+msgstr "مخاطب جدید"
 
 #: frappe/printing/page/print/print.js:295
 #: frappe/printing/page/print/print.js:342
