@@ -1895,6 +1895,8 @@ def bulk_insert(
 	}
 
 	child_table_fields = doctype_meta.get_table_fields()
+	for child_table in child_table_fields:
+		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
 
 	documents = iter(documents)
 	while document_batch := list(itertools.islice(documents, chunk_size)):
@@ -1903,7 +1905,6 @@ def bulk_insert(
 		}
 
 		for child_table in child_table_fields:
-			valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
 			values_map[child_table.options] = _document_values_generator(
 				[
 					ch_doc
