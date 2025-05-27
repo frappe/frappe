@@ -1699,6 +1699,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
 	update_actions_menu() {
+		const doctype = frappe.get_route()[1];
+		if (!frappe.model.has_workflow(doctype)) return;
 		const me = this;
 		let cancelled_docs = [];
 		let workflow_docs = [];
