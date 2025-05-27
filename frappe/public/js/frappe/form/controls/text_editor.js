@@ -1,5 +1,5 @@
 import Quill from "quill";
-import ImageResize from "quill-image-resize";
+import ImageResize from "frappe-quill-image-resize";
 import MagicUrl from "quill-magic-url";
 
 Quill.register("modules/imageResize", ImageResize);
@@ -7,6 +7,14 @@ Quill.register("modules/magicUrl", MagicUrl);
 const CodeBlockContainer = Quill.import("formats/code-block-container");
 CodeBlockContainer.tagName = "PRE";
 Quill.register(CodeBlockContainer, true);
+const Embed = Quill.import("blots/embed");
+const Delta = Quill.import("delta");
+
+class BreakBlot extends Embed {}
+BreakBlot.blotName = "Break";
+BreakBlot.tagName = "br";
+
+Quill.register(BreakBlot);
 
 // font size
 let font_sizes = [
@@ -51,7 +59,27 @@ Quill.register(Table, true);
 
 // link without href
 var Link = Quill.import("formats/link");
+var Image = Quill.import("formats/image");
 
+class MyImage extends Image {
+	static create(value) {
+		let node = super.create(value);
+		let attrs = ["style", "align", "src"];
+		attrs.forEach((a) => {
+			if (value[a]) node.setAttribute(a, value[a]);
+		});
+		return node;
+	}
+	static value(node) {
+		return {
+			align: node.align,
+			style: node.style.cssText,
+			src: node.src,
+		};
+	}
+}
+
+Quill.register(MyImage, true);
 class MyLink extends Link {
 	static create(value) {
 		let node = super.create(value);
@@ -69,7 +97,7 @@ Quill.register(MyLink, true);
 
 // image uploader
 const Uploader = Quill.import("modules/uploader");
-Uploader.DEFAULTS.mimetypes.push("image/gif");
+Uploader.DEFAULTS.mimetypes.push("image/gif", "image/webp");
 
 // inline style
 const BackgroundStyle = Quill.import("attributors/style/background");
@@ -126,6 +154,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		const toolbar = this.quill.getModule("toolbar");
 		toolbar.addHandler("table", this.handle_table_actions);
 	}
+
 	handle_table_actions(value) {
 		const table = this.quill.getModule("table");
 
@@ -199,6 +228,9 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				imageResize: {},
 				magicUrl: true,
 				mention: this.get_mention_options(),
+				keyboard: {
+					bindings: this.get_keyboard_bindings(),
+				},
 			},
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled,
@@ -299,7 +331,12 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}
 
 		// set html without triggering a focus
-		const delta = this.quill.clipboard.convert({ html: value, text: "" });
+		const delta = this.quill.clipboard.convert(
+			{ html: value, text: "" },
+			{
+				image: MyImage,
+			}
+		);
 		this.quill.setContents(delta);
 	}
 
@@ -349,5 +386,36 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 
 	set_focus() {
 		this.quill.focus();
+	}
+
+	get_keyboard_bindings() {
+		let bindings = {
+			"table enter": {
+				key: "Enter",
+				formats: ["table"],
+				handler: function (range) {
+					this.quill.updateContents(
+						new Delta()
+							.retain(range.index)
+							.delete(range.length)
+							.insert({ Break: true })
+					);
+
+					if (!this.quill.getLeaf(range.index + 1)[0].next) {
+						this.quill.updateContents(
+							new Delta()
+								.retain(range.index + 1)
+								.delete(0)
+								.insert({ Break: true }),
+							"user"
+						);
+					}
+
+					this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+					return false; // dont call other handlers
+				},
+			},
+		};
+		return bindings;
 	}
 };

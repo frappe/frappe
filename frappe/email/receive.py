@@ -448,7 +448,7 @@ class Email:
 	def decode_email(email: bytes | str | None) -> str | None:
 		if not email:
 			return
-		email = frappe.as_unicode(email).replace('"', " ").replace("'", " ")
+		email = frappe.as_unicode(email)
 		try:
 			parts = decode_header(email)
 		except HeaderParseError:
@@ -899,8 +899,8 @@ class InboundMail(Email):
 			"sent_or_received": "Received",
 			"sender_full_name": self.from_real_name,
 			"sender": self.from_email,
-			"recipients": self.mail.get("To"),
-			"cc": self.mail.get("CC"),
+			"recipients": self.decode_email(self.mail.get("To") or ""),
+			"cc": self.decode_email(self.mail.get("CC") or ""),
 			"email_account": self.email_account.name,
 			"communication_medium": "Email",
 			"uid": self.uid,

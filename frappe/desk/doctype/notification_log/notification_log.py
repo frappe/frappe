@@ -153,7 +153,7 @@ def get_email_header(doc, language: str | None = None):
 		"Share": _("New Document Shared {0}", lang=language).format(docname),
 	}
 	if not doc.email_header:
-		doc.email_header = header_map[doc.type or "default"]
+		doc.email_header = header_map[doc.type or "Default"]
 	return doc.email_header
 
 

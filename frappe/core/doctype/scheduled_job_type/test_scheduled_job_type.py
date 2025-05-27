@@ -117,7 +117,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		sjt = frappe.new_doc(
 			"Scheduled Job Type",
 			frequency="Hourly Maintenance",
-			last_execution=get_datetime("2019-01-01 00:00:00"),
+			last_execution=get_datetime("2019-01-01 23:59:00"),
 		)
 		# Should be within one hour
 		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)

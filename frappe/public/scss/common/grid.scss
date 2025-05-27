@@ -24,9 +24,11 @@
 		border-top-left-radius: var(--border-radius-md);
 		border-top-right-radius: var(--border-radius-md);
 
-		.row-check,
+		.row-check {
+			border-top-left-radius: var(--border-radius-md);
+		}
 		.row .col:last-child {
-			border-radius: var(--border-radius-md);
+			border-top-right-radius: var(--border-radius-md);
 		}
 	}
 
@@ -412,11 +414,6 @@
 	background-color: var(--fg-color);
 
 	@include transition(0.2s);
-	// REDESIGN TODO: Fix border bottom for last item
-	&:last-child {
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
-	}
 
 	td {
 		vertical-align: top;

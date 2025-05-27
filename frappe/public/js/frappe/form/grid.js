@@ -87,6 +87,10 @@ export default class Grid {
 								data-action="delete_rows">
 								${__("Delete")}
 							</button>
+							<button type="button" class="btn btn-xs btn-secondary grid-remove-rows hidden"
+								data-action="duplicate_rows">
+								${__("Duplicate Row")}
+							</button>
 							<button type="button" class="btn btn-xs btn-danger grid-remove-all-rows hidden"
 								data-action="delete_all_rows">
 								${__("Delete All")}
@@ -232,6 +236,14 @@ export default class Grid {
 			row.select(checked);
 			row.row_check?.find(".grid-row-check").prop("checked", checked);
 		}
+	}
+
+	duplicate_rows() {
+		let selected_children = this.get_selected_children();
+		selected_children.forEach((doc) => {
+			this.add_new_row(null, null, false, doc, false);
+			this.check_range(doc.name, doc.name, false);
+		});
 	}
 
 	delete_rows() {

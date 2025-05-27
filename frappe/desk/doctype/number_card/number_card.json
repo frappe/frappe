@@ -21,6 +21,7 @@
   "report_function",
   "is_public",
   "currency",
+  "show_full_number",
   "custom_configuration_section",
   "filters_config",
   "stats_section",
@@ -31,7 +32,9 @@
   "dynamic_filters_section",
   "dynamic_filters_json",
   "section_break_16",
-  "color"
+  "color",
+  "column_break_xtre",
+  "background_color"
  ],
  "fields": [
   {
@@ -207,10 +210,26 @@
    "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_xtre",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Color",
+   "label": "Background Color"
+  },
+  {
+   "default": "0",
+   "description": "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M).",
+   "fieldname": "show_full_number",
+   "fieldtype": "Check",
+   "label": "Show Full Number"
   }
  ],
  "links": [],
- "modified": "2025-01-28 18:22:27.268239",
+ "modified": "2025-05-21 17:33:04.908518",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
@@ -250,6 +269,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "label, document_type",
  "sort_field": "creation",
  "sort_order": "DESC",
