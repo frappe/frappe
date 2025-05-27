@@ -158,11 +158,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_actions_menu_items() {
-		this.actions_menu_items = this.get_actions_menu_items();
+		this.actions_menu_items = this.actions_menu_items || this.get_actions_menu_items();
 		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
 		this.workflow_action_items = {};
-
 		const actions = this.actions_menu_items.concat(this.workflow_action_menu_items);
+		this.page.actions.empty();
 		actions.forEach((item) => {
 			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
@@ -1695,9 +1695,41 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$list_head_subject.hide();
 		}
 		this.update_checkbox();
+		this.update_actions_menu();
 		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
+	update_actions_menu() {
+		const me = this;
+		let cancelled_docs = [];
+		let workflow_docs = [];
+		let checked_items = this.get_checked_items(true);
+		if (checked_items.length == 0) return;
+		me.data.forEach((d) => {
+			if (checked_items.includes(d.name)) {
+				if (d.status === "Cancelled" || d.docstatus == 2) {
+					cancelled_docs.push(d);
+				} else if (d.workflow_state) {
+					workflow_docs.push(d);
+				}
+			}
+		});
+		let bulk_delete = this.get_bulk_delete();
+		let is_delete_in_actions = this.actions_menu_items.filter((a) => a.label == "Delete");
+		if (cancelled_docs.length > 0 && is_delete_in_actions.length == 0) {
+			this.actions_menu_items.push(bulk_delete);
+		} else if (
+			(cancelled_docs.length <= 0 || workflow_docs.length > 0) &&
+			is_delete_in_actions.length > 0
+		) {
+			this.actions_menu_items.splice(
+				this.actions_menu_items.indexOf(is_delete_in_actions[0]),
+				1
+			);
+		}
 
+		this.toggle_workflow_actions();
+		this.set_actions_menu_items();
+	}
 	toggle_tags() {
 		this.$result.find(".tag-col").toggleClass("hide");
 		const preview_label = this.tags_shown ? __("Hide Tags") : __("Show Tags");
@@ -1912,8 +1944,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_actions_menu_items() {
 		const doctype = this.doctype;
 		const actions_menu_items = [];
-		const bulk_operations = new BulkOperations({ doctype: this.doctype });
-
+		const bulk_operations = (this.bulk_operations = new BulkOperations({
+			doctype: this.doctype,
+		}));
 		const is_field_editable = (field_doc) => {
 			return (
 				field_doc.fieldname &&
@@ -2021,37 +2054,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
-		const bulk_delete = () => {
-			return {
-				label: __("Delete", null, "Button in list view actions menu"),
-				action: () => {
-					const docnames = this.get_checked_items(true).map((docname) =>
-						docname.toString()
-					);
-					let message = __(
-						"Delete {0} item permanently?",
-						[docnames.length],
-						"Title of confirmation dialog"
-					);
-					if (docnames.length > 1) {
-						message = __(
-							"Delete {0} items permanently?",
-							[docnames.length],
-							"Title of confirmation dialog"
-						);
-					}
-					frappe.confirm(message, () => {
-						this.disable_list_update = true;
-						bulk_operations.delete(docnames, () => {
-							this.disable_list_update = false;
-							this.clear_checked_items();
-							this.refresh();
-						});
-					});
-				},
-				standard: true,
-			};
-		};
+		const bulk_delete = this.get_bulk_delete();
 
 		const bulk_cancel = () => {
 			return {
@@ -2178,12 +2181,41 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// bulk delete
 		if (frappe.model.can_delete(doctype) && !frappe.model.has_workflow(doctype)) {
-			actions_menu_items.push(bulk_delete());
+			actions_menu_items.push(bulk_delete);
 		}
 
 		return actions_menu_items;
 	}
 
+	get_bulk_delete() {
+		return {
+			label: __("Delete", null, "Button in list view actions menu"),
+			action: () => {
+				const docnames = this.get_checked_items(true).map((docname) => docname.toString());
+				let message = __(
+					"Delete {0} item permanently?",
+					[docnames.length],
+					"Title of confirmation dialog"
+				);
+				if (docnames.length > 1) {
+					message = __(
+						"Delete {0} items permanently?",
+						[docnames.length],
+						"Title of confirmation dialog"
+					);
+				}
+				frappe.confirm(message, () => {
+					this.disable_list_update = true;
+					this.bulk_operations.delete(docnames, () => {
+						this.disable_list_update = false;
+						this.clear_checked_items();
+						this.refresh();
+					});
+				});
+			},
+			standard: true,
+		};
+	}
 	parse_filters_from_route_options() {
 		const filters = [];
 

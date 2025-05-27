@@ -338,6 +338,8 @@ def get_common_transition_actions(docs, doctype):
 		for i, doc in enumerate(docs, 1):
 			if not doc.get("doctype"):
 				doc["doctype"] = doctype
+			if doc.get("status") == "Cancelled" or doc.get("docstatus") == 2:
+				return []
 			actions = [
 				t.get("action")
 				for t in get_transitions(doc, raise_exception=True)
