@@ -447,14 +447,13 @@ def has_controller_permissions(doc, ptype, permissions, user=None, debug=False) 
 		controller_permission = frappe.call(
 			method, doc=doc, ptype=ptype, permissions=permissions, user=user, debug=debug
 		)
+		if permissions != org_permissions:
+			for key, value in permissions.items():
+				if org_permissions.get(key) == 0 and value == 1:
+					permissions[key] = 0
 		debug and _debug_log(f"Controller permission check from {method}: {controller_permission}")
 		if not controller_permission:
 			return bool(controller_permission)
-
-	if permissions != org_permissions:
-		for key, value in permissions.items():
-			if org_permissions.get(key) == 0 and value == 1:
-				permissions[key] = 0
 
 	return True
 
