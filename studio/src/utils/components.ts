@@ -37,8 +37,9 @@ function getComponentProps(componentName: string) {
 		})
 		return propsConfig
 	} else {
-		const componentDefinitions = getComponentDefinitions(componentName)
-		const componentSchema = componentDefinitions?.[`${componentName}Props`]
+		let folderName = componentFolders[componentName] || componentName
+		const componentDefinitions = getComponentDefinitions(folderName)
+		const componentSchema = componentDefinitions?.[`${folderName}Props`]
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
@@ -134,8 +135,7 @@ function getPropEnums(properties: Record<string, any>, componentDefinitions: Rec
 function getComponentDefinitions(componentName: string) {
 	// fetches component type definitions object from JSON types (converted from TS)
 	// e.g.: Button.json > definitions
-	let fileName = componentFolders[componentName] || componentName
-	return componentTypes?.[fileName]?.definitions
+	return componentTypes?.[componentName]?.definitions
 }
 
 function getSinglePropType(propTypes: string | string[]) {
