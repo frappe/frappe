@@ -37,19 +37,13 @@
           "type": "string"
         },
         "icon": {
-          "type": [
-            "string"
-          ]
+          "type": "string"
         },
         "iconLeft": {
-          "type": [
-            "string"
-          ]
+          "type": "string"
         },
         "iconRight": {
-          "type": [
-            "string"
-          ]
+           "type": "string"
         },
         "loading": {
           "type": "boolean"

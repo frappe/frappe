@@ -160,11 +160,11 @@ async function getComponentTemplate(componentName: string): Promise<string> {
 			// ?raw to get raw content of a file as string
 			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
 		} catch (error) {
-			let componentFolder = componentFolders[componentName] || componentName
+			let folderName = componentFolders[componentName] || componentName
 			try {
 				// try finding the vue file inside component folder
 				rawTemplate = await import(
-					`../../../node_modules/frappe-ui/src/components/${componentFolder}/${componentName}.vue?raw`
+					`../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue?raw`
 				)
 			} catch (error) {
 				console.error(`Error loading component template ${componentName}:`, error)
