@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CardListProps",
   "definitions": {
     "CardListProps": {
       "type": "object",
@@ -10,7 +11,27 @@
         "cards": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/AvatarCardProps"
+            "type": "object",
+            "properties": {
+              "imageURL": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "subtitle": {
+                "type": "string"
+              },
+              "route": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "imageURL",
+              "title",
+              "subtitle"
+            ],
+            "additionalProperties": false
           }
         },
         "rowKey": {
@@ -20,33 +41,6 @@
       "required": [
         "cards"
       ],
-      "additionalProperties": false
-    },
-    "AvatarCardProps": {
-      "type": "object",
-      "properties": {
-        "imageURL": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "subtitle": {
-          "type": "string"
-        },
-        "route": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "imageURL",
-        "title",
-        "subtitle"
-      ],
-      "additionalProperties": false
-    },
-    "CardListEmits": {
-      "type": "object",
       "additionalProperties": false
     }
   }

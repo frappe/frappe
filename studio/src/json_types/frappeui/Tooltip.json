@@ -12,7 +12,13 @@
           "type": "number"
         },
         "placement": {
-          "$ref": "#/definitions/Side",
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
           "description": "The preferred side of the trigger to render against when open. Will be reversed when collisions occur and avoidCollisions is enabled."
         },
         "arrowClass": {},
@@ -21,15 +27,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "Side": {
-      "type": "string",
-      "enum": [
-        "top",
-        "right",
-        "bottom",
-        "left"
-      ]
     }
   }
 }

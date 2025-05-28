@@ -1,7 +1,70 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TreeProps",
   "definitions": {
-    "TreeNode": {
+    "TreeProps": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+              }
+            }
+          },
+          "required": [
+            "label",
+            "children"
+          ],
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+                }
+              }
+            ]
+          }
+        },
+        "nodeKey": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "rowHeight": {
+              "type": "string"
+            },
+            "indentWidth": {
+              "type": "string"
+            },
+            "showIndentationGuides": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "node",
+        "nodeKey"
+      ],
+      "additionalProperties": false
+    },
+    "alias-1572818682-0-219-1572818682-0-420": {
       "type": "object",
       "properties": {
         "label": {
@@ -10,7 +73,7 @@
         "children": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/TreeNode"
+            "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
           }
         }
       },
@@ -29,45 +92,11 @@
           {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/TreeNode"
+              "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
             }
           }
         ]
       }
-    },
-    "TreeOptions": {
-      "type": "object",
-      "properties": {
-        "rowHeight": {
-          "type": "string"
-        },
-        "indentWidth": {
-          "type": "string"
-        },
-        "showIndentationGuides": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "TreeProps": {
-      "type": "object",
-      "properties": {
-        "node": {
-          "$ref": "#/definitions/TreeNode"
-        },
-        "nodeKey": {
-          "type": "string"
-        },
-        "options": {
-          "$ref": "#/definitions/TreeOptions"
-        }
-      },
-      "required": [
-        "node",
-        "nodeKey"
-      ],
-      "additionalProperties": false
     }
   }
 }

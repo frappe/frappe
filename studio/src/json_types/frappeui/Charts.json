@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "*": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "xAxis": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "category",
+                "time",
+                "value"
+              ]
+            },
+            "timeGrain": {
+              "type": "string",
+              "enum": [
+                "second",
+                "minute",
+                "hour",
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "title": {
+              "type": "string"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "key",
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "yAxis": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "yMin": {
+              "type": "number"
+            },
+            "yMax": {
+              "type": "number"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "y2Axis": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "yMin": {
+              "type": "number"
+            },
+            "yMax": {
+              "type": "number"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "swapXY": {
+          "type": "boolean"
+        },
+        "stacked": {
+          "type": "boolean"
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "bar"
+                  },
+                  "stackName": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "axis": {
+                    "type": "string",
+                    "enum": [
+                      "y",
+                      "y2"
+                    ]
+                  },
+                  "showDataLabels": {
+                    "type": "boolean"
+                  },
+                  "echartOptions": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "line"
+                  },
+                  "lineType": {
+                    "type": "string",
+                    "enum": [
+                      "solid",
+                      "dashed",
+                      "dotted"
+                    ]
+                  },
+                  "lineWidth": {
+                    "type": "number"
+                  },
+                  "showDataPoints": {
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "axis": {
+                    "type": "string",
+                    "enum": [
+                      "y",
+                      "y2"
+                    ]
+                  },
+                  "showDataLabels": {
+                    "type": "boolean"
+                  },
+                  "echartOptions": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "area"
+                  },
+                  "showDataPoints": {
+                    "type": "boolean"
+                  },
+                  "fillOpacity": {
+                    "type": "number"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "axis": {
+                    "type": "string",
+                    "enum": [
+                      "y",
+                      "y2"
+                    ]
+                  },
+                  "showDataLabels": {
+                    "type": "boolean"
+                  },
+                  "echartOptions": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
+              }
+            ]
+          }
+        },
+        "echartOptions": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "data",
+        "title",
+        "xAxis",
+        "yAxis",
+        "series"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
