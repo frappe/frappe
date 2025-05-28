@@ -209,6 +209,49 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
 		frappe.set_user("Administrator")
 
+	def test_user_perm_for_nested_document_specifically_for_applicable_doctype(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		user = create_user("parent_user@example.com")
+		if not frappe.db.exists("Doctype", "Person"):
+			doc = new_doctype(
+				"Person",
+				fields=[{"label": "Person Name", "fieldname": "person_name", "field_type": "Data"}],
+				unique=0,
+			)
+			doc.is_tree = 1
+			doc.insert()
+
+		parent_record = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
+		child_record = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Child", "is_group": 0, "parent_person": parent_record.name}
+		).insert()
+
+		add_user_permissions(get_params(user, "Person", parent_record.name))
+
+		if not frappe.db.exists("Doctype", "Secret"):
+			secret_doc = new_doctype(
+				"Secret",
+				fields=[
+					{"label": "Person", "fieldname": "person", "field_type": "Link"},
+					{"label": "Person Secret", "fieldname": "person_secret", "field_type": "Data"},
+				],
+			)
+			secret_doc.insert()
+
+		child_secret = frappe.get_doc(
+			{"doctype": "Secret", "person": child_record.name, "person_secret": "Top Secret"}
+		).insert()
+
+		add_user_permissions(
+			get_params(user, "Person", parent_record.name, applicable=["Secret"], hide_descendants=1)
+		)
+
+		# passes as it should
+		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+		# doesn't: is this not how permissions supposed to work?
+		self.assertFalse(has_user_permission(frappe.get_doc("Secret", child_secret.name), user.name))
+
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
 		frappe.set_user("Administrator")
