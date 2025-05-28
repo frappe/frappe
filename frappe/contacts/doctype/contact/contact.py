@@ -349,7 +349,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 		return []
 
 	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
+	link_name = filters.pop("link_name", None)
 
 	return frappe.db.sql(
 		f"""select
