@@ -1,73 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CircularProgressBarProps",
   "definitions": {
-    "Variant": {
-      "type": "string",
-      "enum": [
-        "solid",
-        "outline"
-      ]
-    },
-    "Theme": {
-      "type": "string",
-      "enum": [
-        "black",
-        "red",
-        "green",
-        "blue",
-        "orange"
-      ]
-    },
-    "ThemeProps": {
-      "type": "object",
-      "properties": {
-        "primary": {
-          "type": "string"
-        },
-        "secondary": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "primary",
-        "secondary"
-      ],
-      "additionalProperties": false
-    },
-    "Size": {
-      "type": "string",
-      "enum": [
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl"
-      ]
-    },
-    "SizeProps": {
-      "type": "object",
-      "properties": {
-        "ringSize": {
-          "type": "string"
-        },
-        "ringBarWidth": {
-          "type": "string"
-        },
-        "innerTextFontSize": {
-          "type": "string"
-        },
-        "checkIconSize": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "ringSize",
-        "ringBarWidth",
-        "innerTextFontSize",
-        "checkIconSize"
-      ],
-      "additionalProperties": false
-    },
     "CircularProgressBarProps": {
       "type": "object",
       "properties": {
@@ -81,20 +15,51 @@
           "type": "boolean"
         },
         "variant": {
-          "$ref": "#/definitions/Variant"
+          "type": "string",
+          "enum": [
+            "solid",
+            "outline"
+          ]
         },
         "theme": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Theme"
+              "type": "string",
+              "enum": [
+                "black",
+                "red",
+                "green",
+                "blue",
+                "orange"
+              ]
             },
             {
-              "$ref": "#/definitions/ThemeProps"
+              "type": "object",
+              "properties": {
+                "primary": {
+                  "type": "string"
+                },
+                "secondary": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "primary",
+                "secondary"
+              ],
+              "additionalProperties": false
             }
           ]
         },
         "size": {
-          "$ref": "#/definitions/Size"
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ]
         },
         "themeComplete": {
           "type": "string"

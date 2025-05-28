@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ErrorMessageProps",
+  "definitions": {
+    "ErrorMessageProps": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

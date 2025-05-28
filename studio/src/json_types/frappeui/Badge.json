@@ -33,9 +33,17 @@
           ]
         },
         "label": {
-          "type": [
-            "string",
-            "number"
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
           ]
         }
       },

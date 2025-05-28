@@ -43,8 +43,7 @@
         },
         "required": {
           "type": "boolean"
-        },
-        "modelValue": {}
+        }
       },
       "additionalProperties": false
     }

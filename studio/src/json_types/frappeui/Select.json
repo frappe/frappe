@@ -1,32 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SelectProps",
   "definitions": {
-    "SelectOption": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "label": {
-              "type": "string"
-            },
-            "value": {
-              "type": "string"
-            },
-            "disabled": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "label",
-            "value"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    },
     "SelectProps": {
       "type": "object",
       "properties": {
@@ -64,7 +39,30 @@
         "options": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SelectOption"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ],
+                "additionalProperties": false
+              }
+            ]
           }
         }
       },

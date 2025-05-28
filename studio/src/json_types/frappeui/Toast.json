@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ToastProps",
+  "definitions": {
+    "ToastProps": {
+      "type": "object",
+      "properties": {
+        "open": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "info",
+            "success",
+            "warning",
+            "error"
+          ]
+        },
+        "duration": {
+          "type": "number"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "closable": {
+          "type": "boolean"
+        },
+        "action": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "altText": {
+              "type": "string"
+            },
+            "onClick": {
+              "$comment": "() => void"
+            }
+          },
+          "required": [
+            "label",
+            "onClick"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "open"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

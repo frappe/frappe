@@ -1,164 +1,186 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DropdownProps",
   "definitions": {
-    "DropdownOption": {
-      "type": "object",
-      "properties": {
-        "label": {
-          "type": "string"
-        },
-        "icon": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "component": {},
-        "onClick": {
-          "$comment": "() => void"
-        },
-        "route": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "object"
-            }
-          ],
-          "description": "Route Location the link should navigate to when clicked on."
-        },
-        "condition": {
-          "$comment": "() => boolean"
-        }
-      },
-      "required": [
-        "label"
-      ],
-      "additionalProperties": false
-    },
-    "DropdownGroupOption": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "number"
-        },
-        "group": {
-          "type": "string"
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DropdownOption"
-          }
-        },
-        "hideLabel": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "group",
-        "items"
-      ],
-      "additionalProperties": false
-    },
-    "DropdownOptions": {
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "$ref": "#/definitions/DropdownOption"
-          },
-          {
-            "$ref": "#/definitions/DropdownGroupOption"
-          }
-        ]
-      }
-    },
     "DropdownProps": {
       "type": "object",
       "properties": {
         "button": {
-          "$ref": "#/definitions/ButtonProps"
-        },
-        "options": {
-          "$ref": "#/definitions/DropdownOptions"
-        },
-        "placement": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "ButtonProps": {
-      "type": "object",
-      "properties": {
-        "theme": {
-          "type": "string",
-          "enum": [
-            "gray",
-            "blue",
-            "green",
-            "red"
-          ]
-        },
-        "size": {
-          "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "2xl"
-          ]
-        },
-        "variant": {
-          "type": "string",
-          "enum": [
-            "solid",
-            "subtle",
-            "outline",
-            "ghost"
-          ]
-        },
-        "label": {
-          "type": "string"
-        },
-        "icon": {
-          "type": [
-            "string"
-          ]
-        },
-        "iconLeft": {
-          "type": [
-            "string"
-          ]
-        },
-        "iconRight": {
-          "type": [
-            "string"
-          ]
-        },
-        "loading": {
-          "type": "boolean"
-        },
-        "loadingText": {
-          "type": "string"
-        },
-        "disabled": {
-          "type": "boolean"
-        },
-        "route": {
-          "anyOf": [
-            {
+          "type": "object",
+          "properties": {
+            "theme": {
+              "type": "string",
+              "enum": [
+                "gray",
+                "blue",
+                "green",
+                "red"
+              ]
+            },
+            "size": {
+              "type": "string",
+              "enum": [
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "2xl"
+              ]
+            },
+            "variant": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "subtle",
+                "outline",
+                "ghost"
+              ]
+            },
+            "label": {
               "type": "string"
             },
-            {
-              "type": "object"
+            "icon": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconLeft": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconRight": {
+              "type": [
+                "string"
+              ]
+            },
+            "loading": {
+              "type": "boolean"
+            },
+            "loadingText": {
+              "type": "string"
+            },
+            "disabled": {
+              "type": "boolean"
+            },
+            "route": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "link": {
+              "type": "string"
             }
-          ]
+          },
+          "additionalProperties": false
         },
-        "link": {
+        "options": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "component": {},
+                  "onClick": {
+                    "$comment": "() => void"
+                  },
+                  "route": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ],
+                    "description": "Route Location the link should navigate to when clicked on."
+                  },
+                  "condition": {
+                    "$comment": "() => boolean"
+                  }
+                },
+                "required": [
+                  "label"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "number"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "icon": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "component": {},
+                        "onClick": {
+                          "$comment": "() => void"
+                        },
+                        "route": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object"
+                            }
+                          ],
+                          "description": "Route Location the link should navigate to when clicked on."
+                        },
+                        "condition": {
+                          "$comment": "() => boolean"
+                        }
+                      },
+                      "required": [
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "hideLabel": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "group",
+                  "items"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "placement": {
           "type": "string"
         }
       },

@@ -43,7 +43,7 @@
           "type": "string"
         },
         "iconRight": {
-          "type": "string"
+           "type": "string"
         },
         "loading": {
           "type": "boolean"

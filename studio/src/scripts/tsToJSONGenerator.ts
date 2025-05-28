@@ -4,14 +4,16 @@ import path from "path"
 
 const configMap: Record<string, any> = {
 	frappeui: {
-		typesFolder: "../node_modules/frappe-ui/src/components/types",
+		typesFolder: "../node_modules/frappe-ui/src/components",
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.json",
+		isFrappeUI: true,
 	},
 	studio: {
 		typesFolder: "src/types/studio_components",
 		destFolder: "src/json_types/studio",
 		tsconfigPath: "tsconfig.json",
+		isFrappeUI: false,
 	},
 }
 
@@ -24,8 +26,8 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { typesFolder, destFolder, tsconfigPath } = configMap[moduleName]
-tsToJSON(typesFolder, destFolder, tsconfigPath)
+const { typesFolder, destFolder, tsconfigPath, isFrappeUI } = configMap[moduleName]
+tsToJSON(typesFolder, destFolder, tsconfigPath, isFrappeUI)
 
 /* 2. Update index file */
 const indexFilePath = "src/json_types/index.ts"
