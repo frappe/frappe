@@ -825,6 +825,8 @@ class BaseDocument:
 				return True
 			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
 				return True
+			elif df.fieldtype == "Check":
+				return True  # Checkboxes can't be mandatory, they're 0 by default
 			else:
 				return has_text_content
 
