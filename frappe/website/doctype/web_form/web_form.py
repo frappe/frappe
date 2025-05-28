@@ -296,6 +296,8 @@ def get_context(context):
 			"Camera",
 			"Set all private",
 			"Upload",
+			"Missing Values Required:Error message in web form",
+			"Following fields have missing values::Error message in web form",
 			self.title,
 			self.introduction_text,
 			self.success_title,
