@@ -12,6 +12,11 @@ interface ComponentTypes {
 }
 const componentTypes = jsonTypes as ComponentTypes
 
+const componentFolders = {
+	DateTimePicker: "DatePicker",
+	DateRangePicker: "DatePicker",
+}
+
 function getComponentProps(componentName: string) {
 	const props = components.getProps(componentName)
 	if (!props) return {}
@@ -129,7 +134,8 @@ function getPropEnums(properties: Record<string, any>, componentDefinitions: Rec
 function getComponentDefinitions(componentName: string) {
 	// fetches component type definitions object from JSON types (converted from TS)
 	// e.g.: Button.json > definitions
-	return componentTypes?.[componentName]?.definitions
+	let fileName = componentFolders[componentName] || componentName
+	return componentTypes?.[fileName]?.definitions
 }
 
 function getSinglePropType(propTypes: string | string[]) {
@@ -154,10 +160,11 @@ async function getComponentTemplate(componentName: string): Promise<string> {
 			// ?raw to get raw content of a file as string
 			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
 		} catch (error) {
+			let componentFolder = componentFolders[componentName] || componentName
 			try {
 				// try finding the vue file inside component folder
 				rawTemplate = await import(
-					`../../../node_modules/frappe-ui/src/components/${componentName}/${componentName}.vue?raw`
+					`../../../node_modules/frappe-ui/src/components/${componentFolder}/${componentName}.vue?raw`
 				)
 			} catch (error) {
 				console.error(`Error loading component template ${componentName}:`, error)
