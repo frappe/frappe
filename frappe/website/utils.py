@@ -565,23 +565,32 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 
 
 def set_content_type(response, data, path):
-	if isinstance(data, dict):
-		response.mimetype = "application/json"
-		data = json.dumps(data)
-		return data
+    if isinstance(data, dict):
+        response.mimetype = "application/json"
+        data = json.dumps(data)
 
-	response.mimetype = "text/html"
+        return data
+    response.mimetype = "text/html"
 
-	# ignore paths ending with .com to avoid unnecessary download
-	# https://bugs.python.org/issue22347
-	if "." in path and not path.endswith(".com"):
-		content_type, encoding = mimetypes.guess_type(path)
-		if content_type:
-			response.mimetype = content_type
-			if encoding:
-				response.charset = encoding
+    # Only apply mimetype guessing to static file paths, not dynamic routes
+    # Dynamic routes might contain email addresses with file extensions
+    if (
+        "." in path
+        and not path.endswith(".com")
+        and (
+            path.startswith("/assets/")
+            or path.startswith("/files/")
+            or "/" not in path
+            or path.count("/") == 1
+        )
+    ):  # Simple static files
+        content_type, encoding = mimetypes.guess_type(path)
+        if content_type:
+            response.mimetype = content_type
+            if encoding:
+                response.charset = encoding
 
-	return data
+    return data
 
 
 def add_preload_for_bundled_assets(response):
