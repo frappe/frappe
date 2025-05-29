@@ -29,6 +29,9 @@ ignore_doctypes = {
 }
 
 
+LINK_COUNT_BUFFER_SIZE = 256
+
+
 def notify_link_count(doctype, name):
 	"""updates link count for given document"""
 
@@ -50,13 +53,18 @@ def flush_local_link_count():
 
 	link_count = frappe.cache.get_value("_link_count") or {}
 
+	flush = False
 	for key, value in new_links.items():
 		if key in link_count:
 			link_count[key] += value
-		else:
+		elif len(link_count) < LINK_COUNT_BUFFER_SIZE:
 			link_count[key] = value
+		else:
+			continue
+		flush = True
 
-	frappe.cache.set_value("_link_count", link_count)
+	if flush:
+		frappe.cache.set_value("_link_count", link_count)
 	new_links.clear()
 
 
