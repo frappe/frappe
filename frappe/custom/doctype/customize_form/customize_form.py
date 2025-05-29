@@ -44,6 +44,7 @@ class CustomizeForm(Document):
 		allow_copy: DF.Check
 		allow_import: DF.Check
 		autoname: DF.Data | None
+		date_based_on: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
 		default_view: DF.Literal[None]
@@ -61,16 +62,7 @@ class CustomizeForm(Document):
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
-		naming_rule: DF.Literal[
-			"",
-			"Set by user",
-			"By fieldname",
-			'By "Naming Series" field',
-			"Expression",
-			"Expression (old style)",
-			"Random",
-			"By script",
-		]
+		naming_rule: DF.Literal["", "Set by user", "By fieldname", "By \"Naming Series\" field", "Expression", "Expression (old style)", "Random", "By script"]
 		protect_attached_files: DF.Check
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
@@ -224,6 +216,14 @@ class CustomizeForm(Document):
 	def save_customization(self):
 		if not self.doc_type:
 			return
+	
+		if self.date_based_on:
+			meta = frappe.get_meta(self.doc_type)
+			date_based_on_field = meta.get_field(self.date_based_on)
+			if not date_based_on_field:
+				frappe.throw(_("Entered field '{0}' doesn't exist in {1}").format(self.date_based_on, self.doc_type))
+			if date_based_on_field.fieldtype not in ["Date", "Datetime"]:
+				frappe.throw(_("Field '{0}' in {1} is not of type Date/Datetime").format(self.date_based_on, self.doc_type))
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
@@ -740,6 +740,7 @@ doctype_properties = {
 	"subject_field": "Data",
 	"sender_field": "Data",
 	"naming_rule": "Data",
+	"date_based_on": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 	"is_calendar_and_gantt": "Check",

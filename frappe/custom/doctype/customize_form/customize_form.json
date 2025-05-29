@@ -27,6 +27,7 @@
   "naming_section",
   "naming_rule",
   "autoname",
+  "date_based_on",
   "form_settings_section",
   "image_field",
   "max_attachments",
@@ -415,6 +416,12 @@
    "fieldname": "protect_attached_files",
    "fieldtype": "Check",
    "label": "Protect Attached Files"
+  },
+  {
+   "description": "The date value of the field/attribute entered here will be used to populate the date elements(DD,MM,YYYY) in the naming of the document, instead of current date.",
+   "fieldname": "date_based_on",
+   "fieldtype": "Data",
+   "label": "Date Based On"
   }
  ],
  "hide_toolbar": 1,
@@ -423,7 +430,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-27 18:22:32.618603",
+ "modified": "2025-05-28 12:29:14.663808",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

@@ -19,6 +19,7 @@
   "sb1",
   "naming_rule",
   "autoname",
+  "date_based_on",
   "column_break_nexu",
   "title_field",
   "allow_rename",
@@ -706,6 +707,11 @@
    "fieldtype": "Int",
    "label": "Rows Threshold for Grid Search",
    "non_negative": 1
+  },
+  {
+   "fieldname": "date_based_on",
+   "fieldtype": "Data",
+   "label": "Date Based On"
   }
  ],
  "grid_page_length": 50,
@@ -784,7 +790,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2025-05-21 21:58:59.947374",
+ "modified": "2025-05-27 15:23:38.452930",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

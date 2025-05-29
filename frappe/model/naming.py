@@ -16,7 +16,7 @@ from frappe import _
 from frappe.model import log_types
 from frappe.monitor import get_trace_id
 from frappe.query_builder import DocType
-from frappe.utils import cint, cstr, now_datetime
+from frappe.utils import cint, cstr, now_datetime, get_datetime, getdate
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -339,8 +339,12 @@ def parse_naming_series(
 	if not number_generator:
 		number_generator = getseries
 
+	date_source = now_datetime()
+	if date_based_on := frappe.get_meta(doc.doctype).date_based_on:
+		date_source = get_datetime(doc.get(date_based_on))
+
 	series_set = False
-	today = now_datetime()
+
 	for e in parts:
 		if not e:
 			continue
@@ -352,19 +356,19 @@ def parse_naming_series(
 				part = number_generator(name, digits)
 				series_set = True
 		elif e == "YY":
-			part = today.strftime("%y")
+			part = date_source.strftime("%y")
 		elif e == "MM":
-			part = today.strftime("%m")
+			part = date_source.strftime("%m")
 		elif e == "DD":
-			part = today.strftime("%d")
+			part = date_source.strftime("%d")
 		elif e == "YYYY":
-			part = today.strftime("%Y")
+			part = date_source.strftime("%Y")
 		elif e == "JJJ":
-			part = today.strftime("%j")
+			part = date_source.strftime("%j")
 		elif e == "WW":
-			part = determine_consecutive_week_number(today)
+			part = determine_consecutive_week_number(date_source)
 		elif e == "timestamp":
-			part = str(today)
+			part = str(date_source)
 		elif doc and (e.startswith("{") or doc.get(e, _sentinel) is not _sentinel):
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)

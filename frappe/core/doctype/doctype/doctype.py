@@ -110,6 +110,7 @@ class DocType(Document):
 		beta: DF.Check
 		color: DF.Data | None
 		custom: DF.Check
+		date_based_on: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
 		default_view: DF.Literal[None]
@@ -140,18 +141,7 @@ class DocType(Document):
 		max_attachments: DF.Int
 		migration_hash: DF.Data | None
 		module: DF.Link
-		naming_rule: DF.Literal[
-			"",
-			"Set by user",
-			"Autoincrement",
-			"By fieldname",
-			'By "Naming Series" field',
-			"Expression",
-			"Expression (old style)",
-			"Random",
-			"UUID",
-			"By script",
-		]
+		naming_rule: DF.Literal["", "Set by user", "Autoincrement", "By fieldname", "By \"Naming Series\" field", "Expression", "Expression (old style)", "Random", "UUID", "By script"]
 		nsm_parent_field: DF.Data | None
 		permissions: DF.Table[DocPerm]
 		protect_attached_files: DF.Check
@@ -193,6 +183,7 @@ class DocType(Document):
 		- Check if links point to valid fieldnames"""
 
 		self.check_developer_mode()
+		self.validate_date_based_on()
 
 		self.validate_name()
 
@@ -226,6 +217,17 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
+
+	def validate_date_based_on(self):
+		if not self.date_based_on:
+			return
+
+		from frappe.core.utils import find
+		date_based_on_field = find(self.fields, lambda d: d.fieldname == self.date_based_on)
+		if not date_based_on_field:
+			frappe.throw(_("Entered field '{0}' doesn't exist in {1}").format(self.date_based_on, self.name))
+		if date_based_on_field.fieldtype not in ["Date", "Datetime"]:
+			frappe.throw(_("Field '{0}' in {1} is not of type Date/Datetime").format(self.date_based_on, self.name))
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""

@@ -26,7 +26,7 @@ from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
 from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.utils import get_table_name
+from frappe.utils import get_table_name, now_datetime, get_datetime
 
 
 class UnitTestDoctype(UnitTestCase):
@@ -836,6 +836,51 @@ class TestDocType(IntegrationTestCase):
 		self.assertEqual(get_format(compressed_dt), "COMPRESSED")
 		self.assertEqual(get_format(dynamic_dt), "DYNAMIC")
 
+	def test_date_based_on(self):
+		# create a doctype with a date field
+		fields = [
+			{
+				"label": "Posting Date",
+				"fieldtype": "Date",
+				"fieldname": "posting_date",
+				"reqd": 1
+			}
+		]
+
+		dt = new_doctype(
+			name="Date Based On Test",
+			fields=fields,
+			naming_rule="Expression (old style)",
+			autoname="DT-TEST-.YY.-.MM.-.DD.//.#",
+			date_based_on="posting_date"
+		)
+		dt.insert()
+
+		# set date_based_on for that doctype
+
+		# set naming series for that doctype as "DT-TEST-.YY.-.MM.-.DD."
+
+		# create a new record in that doctype (not doctype list) with date as 2025/05/29
+		# asset that documents name is DT-TEST-25-05-29
+		record1 = frappe.get_doc(
+			{
+				"doctype": "Date Based On Test",
+				"posting_date": "2025-05-29"
+			}
+		)
+		record1.insert()
+		self.assertEqual(record1.name.split("//")[0], "DT-TEST-25-05-29")
+
+		# create a new record in that doctype (not doctype list) with date as 2026/12/17
+		# asset that documents name is DT-TEST-26-12-17
+		record2 = frappe.get_doc(
+			{
+				"doctype": "Date Based On Test",
+				"posting_date": "2026-12-17"
+			}
+		)
+		record2.insert()
+		self.assertEqual(record2.name.split("//")[0], "DT-TEST-26-12-17")
 
 def new_doctype(
 	name: str | None = None,
