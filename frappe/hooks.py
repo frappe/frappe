@@ -209,6 +209,7 @@ scheduler_events = {
 			"frappe.utils.global_search.sync_global_search",
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
+			"frappe.model.utils.link_count.update_link_count",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -231,7 +232,6 @@ scheduler_events = {
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
 	"hourly_maintenance": [
-		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.desk.form.document_follow.send_hourly_updates",
