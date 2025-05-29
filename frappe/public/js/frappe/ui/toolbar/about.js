@@ -14,12 +14,12 @@ frappe.ui.misc.about = function () {
 				<p>
 					<i class='fa fa-globe fa-fw'></i>
 					${__("Website")}:
-					<a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a>
+					<a href='https://frappe.io/' target='_blank'>https://frappe.io/</a>
 				</p>
 
 				<p>
 					<i class='fa fa-github fa-fw'></i>
-					${__("Source")}:
+					${__("Source Code")}:
 					<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a>
 				</p>
 
@@ -31,7 +31,7 @@ frappe.ui.misc.about = function () {
 
 				<p>
 					<i class='fa fa-file-text fa-fw'></i>
-					${__("Frappe Blogs")}:
+					${__("Frappe Blog")}:
 					<a href='https://frappe.io/blog' target='_blank'>https://frappe.io/blog</a>
 				</p>
 
@@ -43,7 +43,7 @@ frappe.ui.misc.about = function () {
 
 				<p>
 					<i class='fa fa-linkedin fa-fw'></i>
-					${__("Linkedin")}:
+					${__("LinkedIn")}:
 					<a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a>
 				</p>
 
@@ -51,8 +51,8 @@ frappe.ui.misc.about = function () {
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="14" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 18 16">
 						<path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
 					</svg>
-					${__("Twitter")}:
-					<a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a>
+					X:
+					<a href='https://x.com/frappetech' target='_blank'>https://x.com/frappetech</a>
 				</p>
 
 				<p>
