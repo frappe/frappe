@@ -293,6 +293,7 @@ watch(
 		target.value = getComponentRoot(componentRef)
 		if (target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
+			target.value?.setAttribute("data-breakpoint", props.breakpoint)
 		}
 		isComponentReady.value = true
 	},

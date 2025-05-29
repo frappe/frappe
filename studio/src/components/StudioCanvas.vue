@@ -175,7 +175,7 @@ const history = ref(null) as Ref<null> | CanvasHistory
 
 // block hover & selection
 const hoveredBlock = ref<string | null>(null)
-const hoveredBreakpoint = ref<string | null>(null)
+const hoveredBreakpoint = ref<string | null>("desktop")
 const activeBreakpoint = ref<string | null>("desktop")
 
 function setHoveredBlock(blockId: string | null) {
