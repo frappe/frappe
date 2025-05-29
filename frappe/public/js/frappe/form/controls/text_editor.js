@@ -1,5 +1,5 @@
 import Quill from "quill";
-import ImageResize from "quill-image-resize";
+import ImageResize from "frappe-quill-image-resize";
 import MagicUrl from "quill-magic-url";
 
 Quill.register("modules/imageResize", ImageResize);
@@ -7,6 +7,14 @@ Quill.register("modules/magicUrl", MagicUrl);
 const CodeBlockContainer = Quill.import("formats/code-block-container");
 CodeBlockContainer.tagName = "PRE";
 Quill.register(CodeBlockContainer, true);
+const Embed = Quill.import("blots/embed");
+const Delta = Quill.import("delta");
+
+class BreakBlot extends Embed {}
+BreakBlot.blotName = "Break";
+BreakBlot.tagName = "br";
+
+Quill.register(BreakBlot);
 
 // font size
 let font_sizes = [
@@ -146,6 +154,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		const toolbar = this.quill.getModule("toolbar");
 		toolbar.addHandler("table", this.handle_table_actions);
 	}
+
 	handle_table_actions(value) {
 		const table = this.quill.getModule("table");
 
@@ -219,6 +228,9 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				imageResize: {},
 				magicUrl: true,
 				mention: this.get_mention_options(),
+				keyboard: {
+					bindings: this.get_keyboard_bindings(),
+				},
 			},
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled,
@@ -374,5 +386,36 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 
 	set_focus() {
 		this.quill.focus();
+	}
+
+	get_keyboard_bindings() {
+		let bindings = {
+			"table enter": {
+				key: "Enter",
+				formats: ["table"],
+				handler: function (range) {
+					this.quill.updateContents(
+						new Delta()
+							.retain(range.index)
+							.delete(range.length)
+							.insert({ Break: true })
+					);
+
+					if (!this.quill.getLeaf(range.index + 1)[0].next) {
+						this.quill.updateContents(
+							new Delta()
+								.retain(range.index + 1)
+								.delete(0)
+								.insert({ Break: true }),
+							"user"
+						);
+					}
+
+					this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+					return false; // dont call other handlers
+				},
+			},
+		};
+		return bindings;
 	}
 };

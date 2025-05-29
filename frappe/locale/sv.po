@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-19 07:02\n"
+"PO-Revision-Date: 2025-05-26 10:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -8299,12 +8299,12 @@ msgstr "Rullgardin Meny"
 #. Label of the date (Date) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Due Date"
-msgstr "Förfallodatum"
+msgstr "Förfallo Datum"
 
 #. Label of the due_date_based_on (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Due Date Based On"
-msgstr "Förfallodatum Baserad På"
+msgstr "Förfallo Datum Baserad På"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 #: frappe/public/js/frappe/form/toolbar.js:419
@@ -9631,7 +9631,7 @@ msgstr "Förfallo Avisering Aktiverad"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Expired"
-msgstr "Utgången"
+msgstr "Utgått"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -18262,7 +18262,7 @@ msgstr "Outlook.com"
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
-msgstr "Utgång"
+msgstr "Utdata"
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
@@ -30299,7 +30299,7 @@ msgstr "Roll "
 #. Label of the profile (Code) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "cProfile Output"
-msgstr "cProfil Utgång"
+msgstr "cProfil Utdata"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:286
 msgid "calendar"

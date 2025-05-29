@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-19 07:02\n"
+"PO-Revision-Date: 2025-05-25 10:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -5169,7 +5169,7 @@ msgstr "每小时评论限制"
 
 #: frappe/desk/form/utils.py:75
 msgid "Comment publicity can only be updated by the original author or a System Manager."
-msgstr ""
+msgstr "评论公开状态仅可由原作者或系统管理员修改。"
 
 #: frappe/model/meta.py:57 frappe/public/js/frappe/form/controls/comment.js:9
 #: frappe/public/js/frappe/model/meta.js:209
@@ -6413,7 +6413,7 @@ msgstr "每日长格式"
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Daily Maintenance"
-msgstr ""
+msgstr "日常维护"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -8755,7 +8755,7 @@ msgstr "电子邮件组成员"
 #. Label of the email_header (Data) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Email Header"
-msgstr ""
+msgstr "邮件标头"
 
 #. Label of the email_id (Data) field in DocType 'Contact Email'
 #. Label of the email_id (Data) field in DocType 'User Email'
@@ -8905,7 +8905,7 @@ msgstr "未通过{0}验证的电子邮件"
 
 #: frappe/email/doctype/email_queue/email_queue.js:19
 msgid "Email queue is currently suspended. Resume to automatically send other emails."
-msgstr ""
+msgstr "邮件队列已暂停。恢复后系统将自动发送其他邮件。"
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -12186,7 +12186,7 @@ msgstr "每小时长格式"
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Hourly Maintenance"
-msgstr ""
+msgstr "按小时维护"
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
@@ -14221,11 +14221,11 @@ msgstr "最近10个活跃用户"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:627
 msgid "Last 14 Days"
-msgstr ""
+msgstr "过去14天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:631
 msgid "Last 30 Days"
-msgstr ""
+msgstr "过去30天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:651
 msgid "Last 6 Months"
@@ -14233,11 +14233,11 @@ msgstr "过去6个月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:623
 msgid "Last 7 Days"
-msgstr ""
+msgstr "过去7天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:635
 msgid "Last 90 Days"
-msgstr ""
+msgstr "过去90天"
 
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -16667,11 +16667,11 @@ msgstr "下一步"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:683
 msgid "Next 14 Days"
-msgstr ""
+msgstr "未来 14 天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:687
 msgid "Next 30 Days"
-msgstr ""
+msgstr "未来30天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:703
 msgid "Next 6 Months"
@@ -16679,7 +16679,7 @@ msgstr "未来6个月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:679
 msgid "Next 7 Days"
-msgstr ""
+msgstr "未来 7 天"
 
 #. Label of the next_action_email_template (Link) field in DocType 'Workflow
 #. Document State'
@@ -18580,7 +18580,7 @@ msgstr "父项是数据将被添加到的文档名称"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:251
 msgid "Parent-to-child or child-to-parent grouping is not allowed."
-msgstr ""
+msgstr "禁止父子层级互相嵌套的分组方式。"
 
 #: frappe/permissions.py:798
 msgid "Parentfield not specified in {0}: {1}"
@@ -23525,7 +23525,7 @@ msgstr "此站点未启用服务器脚本功能"
 
 #: frappe/public/js/frappe/request.js:254
 msgid "Server failed to process this request because of a concurrent conflicting request. Please try again."
-msgstr ""
+msgstr "因并发请求冲突，服务器未能处理本请求。请稍后重试。"
 
 #: frappe/public/js/frappe/request.js:246
 msgid "Server was too busy to process this request. Please try again."
@@ -26414,7 +26414,7 @@ msgstr "该文件已关联至受保护文档，不可删除。"
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:76
 msgid "This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-msgstr ""
+msgstr "本文件为公开文件，无需登录即可访问。请设为私有以限制访问权限。"
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -26926,7 +26926,7 @@ msgstr "导出此步骤为JSON需关联到入职文档并保存"
 
 #: frappe/email/doctype/email_account/email_account.js:126
 msgid "To generate password click {0}"
-msgstr ""
+msgstr "生成密码请点击{0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:857
 msgid "To get the updated report, click on {0}."
@@ -26934,7 +26934,7 @@ msgstr "获取更新后的报表请点击{0}"
 
 #: frappe/email/doctype/email_account/email_account.js:139
 msgid "To know more click {0}"
-msgstr ""
+msgstr "了解更多请点击{0}"
 
 #. Description of the 'Console' (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -28831,7 +28831,7 @@ msgstr "可见性"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:40
 msgid "Visible to website/portal users."
-msgstr ""
+msgstr "对网站/门户用户可见。"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -29578,11 +29578,11 @@ msgstr "工作区"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:731
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
-msgstr ""
+msgstr "是否确认发布本评论？发布后网站/门户用户可见。"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:735
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
-msgstr ""
+msgstr "是否确认取消发布本评论？取消后网站/门户用户将不可见。"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:35
 msgid "Wrapping up"

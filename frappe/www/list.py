@@ -155,8 +155,11 @@ def prepare_filters(doctype, controller, kwargs):
 				filters[key] = val
 
 	# filter the filters to include valid fields only
+	from frappe.model.meta import DEFAULT_FIELD_LABELS
+
 	for fieldname in list(filters.keys()):
-		if not meta.has_field(fieldname):
+		# add a check for default fields, as they are not present in meta.fields
+		if not meta.has_field(fieldname) and fieldname not in DEFAULT_FIELD_LABELS.keys():
 			del filters[fieldname]
 
 	return filters

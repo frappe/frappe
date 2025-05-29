@@ -1,4 +1,5 @@
 import "./alt_keyboard_shortcuts";
+import { DropdownConsole } from "./dropdown_console";
 
 frappe.provide("frappe.ui.keys.handlers");
 
@@ -347,3 +348,20 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+
+frappe.ui.keys.add_shortcut({
+	shortcut: "shift+t",
+	action: function (e) {
+		if (!frappe.model.can_write("System Console")) {
+			return;
+		}
+		if (cur_dialog?.is_minimized) {
+			cur_dialog.toggle_minimize();
+			cur_dialog.focus_on_first_input();
+		} else {
+			let dropdown_console = new DropdownConsole();
+			dropdown_console.show();
+		}
+	},
+	description: __("Open console"),
+});

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-19 07:02\n"
+"PO-Revision-Date: 2025-05-26 10:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -115,7 +115,7 @@ msgstr "+ افزودن / حذف فیلدها"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr "0 - پیش‌نویس؛ 1 - ارسال شده 2 - لغو شد"
+msgstr "0 - پیش‌نویس؛ 1 - ارسال شده؛ 2 - لغو شده"
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -584,7 +584,7 @@ msgstr "یک {0} {1} تکرارشونده از طریق تکرار خودکار 
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "A symbol for this currency. For e.g. $"
-msgstr "ن برای این ارز. به عنوان مثال $"
+msgstr "نمادی برای این ارز. مثلاً $"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
@@ -1153,7 +1153,7 @@ msgstr "افزودن یک نقش جدید"
 
 #: frappe/public/js/frappe/form/form_tour.js:211
 msgid "Add a Row"
-msgstr ""
+msgstr "افزودن یک ردیف"
 
 #: frappe/templates/includes/comments/comments.html:30
 #: frappe/templates/includes/comments/comments.html:47
@@ -2138,7 +2138,7 @@ msgstr "افزودن به می‌تواند یکی از {0} باشد"
 #. Description of the 'Append To' (Link) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype."
-msgstr "به عنوان ارتباط در مقابل این DocType اضافه شود (باید دارای فیلدهای: \"فرستنده\" و \"موضوع\"). این فیلدها را می‌توان در قسمت تنظیمات ایمیل از doctype ضمیمه شده تعریف کرد."
+msgstr "به عنوان ارتباط در مقابل این DocType اضافه شود (باید دارای فیلدهای: \"فرستنده\" و \"موضوع\"). این فیلدها را می‌توان در قسمت تنظیمات ایمیل از doctype پیوست شده تعریف کرد."
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:105
 msgid "Applicable Document Types"
@@ -2524,7 +2524,7 @@ msgstr "پیوست"
 
 #: frappe/public/js/frappe/views/communication.js:152
 msgid "Attach Document Print"
-msgstr "ضمیمه چاپ سند"
+msgstr "پیوست چاپ سند"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2560,7 +2560,7 @@ msgstr "فایل ها / آدرس ها را پیوست کنید و در جدول 
 #. Label of the attached_file (Code) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Attached File"
-msgstr "فایل ضمیمه شده"
+msgstr "فایل پیوست شده"
 
 #. Label of the attached_to_doctype (Link) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -3509,7 +3509,7 @@ msgstr "پرش کرد"
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand"
-msgstr "نام تجاری"
+msgstr "برند"
 
 #. Label of the brand_html (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3519,7 +3519,7 @@ msgstr "HTML برند"
 #. Label of the banner_image (Attach Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand Image"
-msgstr "تصویر نام تجاری"
+msgstr "تصویر برند"
 
 #. Label of the brand_logo (Attach Image) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -3530,7 +3530,7 @@ msgstr "لوگوی برند"
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr "نام تجاری همان چیزی است که در سمت چپ بالای نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
+msgstr "برند همان چیزی است که در سمت چپ بالای نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
 "دارای پس‌زمینه شفاف است و از تگ &lt;img /&gt; استفاده کنید. اندازه را 200×30 پیکسل نگه دارید"
 
 #. Label of the breadcrumbs (Code) field in DocType 'Web Form'
@@ -13912,7 +13912,7 @@ msgstr "LDAP فعال نیست."
 #. Label of the ldap_search_path_group (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP search path for Groups"
-msgstr "مسیر جستجوی LDAP برای گروه ها"
+msgstr "مسیر جستجوی LDAP برای گروه‌ها"
 
 #. Label of the ldap_search_path_user (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -16231,7 +16231,7 @@ msgstr "نظر جدید در مورد {0}: {1}"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:3
 msgid "New Contact"
-msgstr "تماس جدید"
+msgstr "مخاطب جدید"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
@@ -17384,7 +17384,7 @@ msgstr "تعداد بک آپ های DB نمی‌تواند کمتر از 1 با�
 #. Label of the number_of_groups (Int) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Number of Groups"
-msgstr "تعداد گروه ها"
+msgstr "تعداد گروه‌ها"
 
 #. Label of the number_of_queries (Int) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -20425,11 +20425,11 @@ msgstr "دلیل"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:889
 msgid "Rebuild"
-msgstr "بازسازی کنید"
+msgstr "بازسازی"
 
 #: frappe/public/js/frappe/views/treeview.js:509
 msgid "Rebuild Tree"
-msgstr "درخت را بازسازی کنید"
+msgstr "بازسازی درخت"
 
 #: frappe/utils/nestedset.py:177
 msgid "Rebuilding of tree is not supported for {}"
@@ -21021,7 +21021,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
 msgid "Reopen"
-msgstr "دوباره باز کنید"
+msgstr "باز کردن دوباره"
 
 #: frappe/public/js/frappe/form/toolbar.js:544
 msgid "Repeat"
@@ -21402,7 +21402,7 @@ msgstr "نیاز به گواهی مورد اعتماد"
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
-msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه ها،dc=example,dc=com"
+msgstr "به هر مسیر fdn معتبر نیاز دارد. یعنی ou=گروه‌ها،dc=example,dc=com"
 
 #. Description of the 'LDAP search path for Users' (Data) field in DocType
 #. 'LDAP Settings'
@@ -27774,7 +27774,7 @@ msgstr "استفاده از POST"
 #. Label of the use_report_chart (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr "از نمودار گزارش استفاده کنید"
+msgstr "استفاده از نمودار گزارش"
 
 #. Label of the use_ssl (Check) field in DocType 'Email Account'
 #. Label of the use_ssl_for_outgoing (Check) field in DocType 'Email Account'

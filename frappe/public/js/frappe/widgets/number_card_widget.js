@@ -230,16 +230,14 @@ export default class NumberCardWidget extends Widget {
 			const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 			number_parts = shortened_number.split(" ");
 		}
-
+		const symbol = number_parts[1] || "";
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
 			this.formatted_number =
-				format_currency(number_parts[0], this.card_doc.currency) +
-				" " +
-				__(number_parts[1]);
+				format_currency(number_parts[0], this.card_doc.currency) + " " + symbol;
 			return;
 		}
-		const symbol = number_parts[1] || "";
+
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
 		const formatted_number = frappe.format(number_parts[0], df, null, doc);
 		this.formatted_number =

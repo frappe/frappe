@@ -1445,6 +1445,15 @@ frappe-gantt@^0.6.0:
   resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.6.1.tgz#57ae0b5f024101fc7cd5ba92f605de97dba9c9a1"
   integrity sha512-1cSU9vLbwypjzaxnCfnEE03Xr3HlAV2S8dRtjxw62o+amkx1A8bBIFd2jp84mcDdTCM77Ij4LzZBslAKZB8oMg==
 
+frappe-quill-image-resize@^3.0.9:
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/frappe-quill-image-resize/-/frappe-quill-image-resize-3.0.9.tgz#35e1d94aca458328be0db03ac25b58171af8c194"
+  integrity sha512-2g38/Z/jbi3gbkCgHRgDe9MVskcjJrUioB3RXhQGhjpGKRgBznyVOLmHAZ1a8sBKAHBfuVz9BRdQulkJUrKg0g==
+  dependencies:
+    lodash "^4.17.4"
+    quill "^1.2.2"
+    raw-loader "^0.5.1"
+
 fs-exists-sync@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/fs-exists-sync/-/fs-exists-sync-0.1.0.tgz#982d6893af918e72d08dec9e8673ff2b5a8d6add"
@@ -2729,15 +2738,6 @@ quill-delta@^5.1.0:
     fast-diff "^1.3.0"
     lodash.clonedeep "^4.5.0"
     lodash.isequal "^4.5.0"
-
-quill-image-resize@^3.0.9:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/quill-image-resize/-/quill-image-resize-3.0.9.tgz#5677fb6257560bff951153ddbdb836758e49f804"
-  integrity sha512-5Dk0nixhbFsCwSWtPU9qqqtfM2gURfaP+pbBhQvAoMJoF4p99xbAibfAI3gsZJkbWUodoK2iAPf1V5oTSpv9ww==
-  dependencies:
-    lodash "^4.17.4"
-    quill "^1.2.2"
-    raw-loader "^0.5.1"
 
 quill-magic-url@^3.0.0:
   version "3.0.2"

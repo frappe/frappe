@@ -36,6 +36,10 @@ frappe.ui.form.on("System Console", {
 			frm.set_value("type", "Python"); // defaults don't work on singles on old sites.
 		}
 		frm.trigger("load_completions");
+
+		frm.page.add_inner_message(
+			`${__("Tip: Try the new dropdown console using")} <kbd>⇧+T</kbd>`
+		);
 	},
 
 	type: function (frm) {
