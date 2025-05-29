@@ -120,16 +120,14 @@ frappe.ui.misc.about = function () {
 			}
 		}
 
-		$.each(Object.keys(versions), function (_, key) {
-			app = versions[key];
-
-			const title = `${key}: ${app.branch_version || app.version}`;
+		for (const app_name in versions) {
+			app = versions[app_name];
+			const title = `${app_name}: ${app.branch_version || app.version}`;
 			const text = `<p class='app-version' role='button' title='${title}'>
 							<b>${app.title}:</b> ${get_version_text(app)}
 						</p>`;
-
 			$(text).appendTo($wrap);
-		});
+		}
 
 		frappe.versions = versions;
 
