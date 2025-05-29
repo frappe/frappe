@@ -5,6 +5,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		return "Dashboard";
 	}
 
+	static no_sidebar = true;
+
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
 			this.page_title = __("{0} Dashboard", [__(this.doctype)]);
@@ -16,7 +18,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	render() {}
 
 	setup_page() {
-		this.hide_sidebar = true;
 		this.hide_page_form = true;
 		this.hide_filters = true;
 		this.hide_sort_selector = true;

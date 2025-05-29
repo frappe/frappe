@@ -111,9 +111,6 @@ class LoginManager:
 			if self.login() is False:
 				return
 			self.resume = False
-
-			# run login triggers
-			self.run_trigger("on_session_creation")
 		else:
 			try:
 				self.resume = True
@@ -199,8 +196,7 @@ class LoginManager:
 			frappe.response["full_name"] = self.full_name
 
 		# redirect information
-		redirect_to = frappe.cache.hget("redirect_after_login", self.user)
-		if redirect_to:
+		if not resume and (redirect_to := frappe.cache.hget("redirect_after_login", self.user)):
 			frappe.local.response["redirect_to"] = redirect_to
 			frappe.cache.hdel("redirect_after_login", self.user)
 
@@ -228,6 +224,8 @@ class LoginManager:
 		self.user = frappe.local.session_obj.user
 		frappe.local.session = frappe.local.session_obj.data
 		self.clear_active_sessions()
+		if not resume:
+			self.run_trigger("on_session_creation")
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
@@ -483,7 +481,10 @@ def validate_ip_address(user):
 		if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
 			return
 
-	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)
+	frappe.throw(
+		_("Access not allowed from this IP Address") + f": {frappe.local.request_ip}",
+		frappe.AuthenticationError,
+	)
 
 
 def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
@@ -696,16 +697,18 @@ def validate_auth_via_api_keys(authorization_header):
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	doctype = frappe_authorization_source or "User"
-	doc = frappe.db.get_value(doctype=doctype, filters={"api_key": api_key}, fieldname=["name"])
-	if not doc:
+	docname = frappe.db.get_value(
+		doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
+	)
+	if not docname:
 		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict
-	doc_secret = get_decrypted_password(doctype, doc, fieldname="api_secret")
+	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret")
 	if api_secret == doc_secret:
 		if doctype == "User":
 			user = frappe.db.get_value(doctype="User", filters={"api_key": api_key}, fieldname=["name"])
 		else:
-			user = frappe.db.get_value(doctype, doc, "user")
+			user = frappe.db.get_value(doctype, docname, "user")
 		if frappe.local.login_manager.user in ("", "Guest"):
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict

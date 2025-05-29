@@ -16,6 +16,7 @@
   "avoid_status_override",
   "next_action_email_template",
   "allow_edit",
+  "send_email",
   "section_break_9",
   "message",
   "workflow_builder_id"
@@ -105,12 +106,19 @@
    "fieldname": "avoid_status_override",
    "fieldtype": "Check",
    "label": "Don't Override Status"
+  },
+  {
+   "default": "1",
+   "description": "Send email when document transitions to the state.",
+   "fieldname": "send_email",
+   "fieldtype": "Check",
+   "label": "Send Email On State"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-13 18:27:08.633239",
+ "modified": "2025-04-01 23:35:56.203734",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Document State",

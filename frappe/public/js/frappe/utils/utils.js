@@ -171,16 +171,12 @@ Object.assign(frappe.utils, {
 	is_html: function (txt) {
 		if (!txt) return false;
 
-		if (
-			txt.indexOf("<br>") == -1 &&
-			txt.indexOf("<p") == -1 &&
-			txt.indexOf("<img") == -1 &&
-			txt.indexOf("<div") == -1 &&
-			!txt.includes("<span")
-		) {
-			return false;
-		}
-		return true;
+		const doc = new DOMParser().parseFromString(txt, "text/html");
+		const nodes = doc.body.childNodes || [];
+
+		// check if any of the nodes are element nodes
+		// Ref: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+		return [...nodes].some((node) => node.nodeType === 1);
 	},
 	is_mac: function () {
 		return window.navigator.platform === "MacIntel";
@@ -1251,7 +1247,7 @@ Object.assign(frappe.utils, {
 				chart_args[key] = custom_options[key];
 			}
 		}
-
+		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
 	},
 
@@ -1259,7 +1255,11 @@ Object.assign(frappe.utils, {
 		const default_country = frappe.sys_defaults.country;
 		return frappe.utils.shorten_number(label, country || default_country, 3);
 	},
-
+	set_space_label_ratio(chart_args) {
+		if (chart_args.data.labels.length > 10) {
+			chart_args["axisOptions"]["seriesLabelSpaceRatio"] = 0.9;
+		}
+	},
 	generate_route(item) {
 		const type = item.type.toLowerCase();
 		if (type === "doctype") {
@@ -1314,7 +1314,7 @@ Object.assign(frappe.utils, {
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 				} else {
-					route = "/report/" + item.name;
+					route = "report/" + item.name;
 				}
 			} else if (type === "page") {
 				route = item.name;
@@ -1689,9 +1689,6 @@ Object.assign(frappe.utils, {
 
 	debug: {
 		watch_property(obj, prop, callback = console.trace) {
-			if (!frappe.boot.developer_mode) {
-				return;
-			}
 			console.warn("Adding property watcher, make sure to remove it after debugging.");
 
 			// Adapted from https://stackoverflow.com/a/11658693

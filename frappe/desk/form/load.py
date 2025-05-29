@@ -12,7 +12,7 @@ import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import get_doc_permissions
+from frappe.permissions import check_doctype_permission, get_doc_permissions
 from frappe.utils.data import cstr
 
 if typing.TYPE_CHECKING:
@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def getdoc(doctype, name, user=None):
+def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requries "doctype", "name" as form variables.
@@ -33,14 +33,21 @@ def getdoc(doctype, name, user=None):
 	try:
 		doc = frappe.get_doc(doctype, name)
 	except frappe.DoesNotExistError:
+		check_doctype_permission(doctype)
 		frappe.clear_last_message()
 		return []
 
 	if not doc.has_permission("read"):
+		check_doctype_permission(doctype)
 		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
 			frappe.bold(_(doctype) + " " + name)
 		)
 		raise frappe.PermissionError(("read", doctype, name))
+
+	# Replace cache if stale one exists
+	# PERF: This should be eventually removed completely when we are sure about caching correctness
+	if (key := frappe.can_cache_doc((doctype, name))) and frappe.cache.exists(key):
+		frappe._set_document_in_cache(key, doc)
 
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
@@ -148,7 +155,7 @@ def add_comments(doc, docinfo):
 
 	comments = frappe.get_all(
 		"Comment",
-		fields=["name", "creation", "content", "owner", "comment_type"],
+		fields=["name", "creation", "content", "owner", "comment_type", "published"],
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
 
@@ -177,7 +184,7 @@ def get_milestones(doctype, name):
 	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
-		filters=dict(reference_type=doctype, reference_name=name),
+		filters=dict(reference_type=doctype, reference_name=str(name)),
 	)
 
 
@@ -185,7 +192,7 @@ def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
 		fields=["name", "file_name", "file_url", "is_private"],
-		filters={"attached_to_name": dn, "attached_to_doctype": dt},
+		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
 
 
@@ -325,7 +332,7 @@ def get_communication_data(
 	""".format(part1=part1, part2=part2, group_by=(group_by or "")),
 		dict(
 			doctype=doctype,
-			name=name,
+			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
 		),
@@ -339,7 +346,7 @@ def get_assignments(dt, dn):
 		fields=["name", "allocated_to as owner", "description", "status"],
 		filters={
 			"reference_type": dt,
-			"reference_name": dn,
+			"reference_name": str(dn),
 			"status": ("not in", ("Cancelled", "Closed")),
 			"allocated_to": ("is", "set"),
 		},
@@ -360,7 +367,7 @@ def get_view_logs(doc: "Document") -> list[dict]:
 		"View Log",
 		filters={
 			"reference_doctype": doc.doctype,
-			"reference_name": doc.name,
+			"reference_name": str(doc.name),
 		},
 		fields=["name", "creation", "owner"],
 		order_by="creation desc",
@@ -370,7 +377,7 @@ def get_view_logs(doc: "Document") -> list[dict]:
 def get_tags(doctype: str, name: str) -> str:
 	tags = frappe.get_all(
 		"Tag Link",
-		filters={"document_type": doctype, "document_name": name},
+		filters={"document_type": doctype, "document_name": str(name)},
 		fields=["tag"],
 		pluck="tag",
 	)
@@ -428,8 +435,8 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
 
-		meta = frappe.get_meta(doctype)
-		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+		meta = frappe.get_meta(doctype) if doctype else None
+		if not meta or not meta.title_field or not meta.show_title_field_in_link:
 			continue
 
 		link_title = frappe.db.get_value(doctype, link_docname, meta.title_field, cache=True, order_by=None)

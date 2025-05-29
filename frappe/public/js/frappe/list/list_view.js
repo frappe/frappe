@@ -108,25 +108,33 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return f;
 			});
 		}
-		this.add_recent_filter_on_large_tables();
 
 		if (this.view_name == "List") this.toggle_paging = true;
 
 		this.patch_refresh_and_load_lib();
-		return this.get_list_view_settings();
+		return this.get_list_view_settings().then(() => this.add_recent_filter_on_large_tables());
 	}
 
 	add_recent_filter_on_large_tables() {
-		if (!this.is_large_table) {
+		if (!this.is_large_table || this.list_view_settings?.disable_automatic_recency_filters) {
 			return;
 		}
 		// Note: versions older than v16 should use "modified" here.
 		const recency_field = "modified";
 
-		if (this.filters.filter((arr) => arr?.includes(recency_field)).length) {
+		if (this.filters.length) {
 			return;
 		}
 		this.filters.push([this.doctype, recency_field, "Timespan", "last 90 days"]);
+		frappe.show_alert(
+			{
+				message: __(
+					"Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
+				),
+				indicator: "yellow",
+			},
+			3
+		);
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -300,8 +308,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	make_new_doc() {
 		const doctype = this.doctype;
 		const options = {};
+		const allowed_filter_types = [
+			"=",
+			"descendants of (inclusive)",
+			"descendants of",
+			"ancestors of",
+		];
 		this.filter_area.get().forEach((f) => {
-			if (f[2] === "=" && frappe.model.is_non_std_field(f[1])) {
+			if (allowed_filter_types.includes(f[2]) && frappe.model.is_non_std_field(f[1])) {
 				options[f[1]] = f[3];
 			}
 		});
@@ -540,11 +554,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
-			if (!this.filters.length || window.location.search) {
-				// Add recency filters if route options are not used
-				// Route options are internally used in connections to filter for specific documents.
-				this.add_recent_filter_on_large_tables();
-			}
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {
@@ -642,7 +651,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
-		if (this.list_view_settings.disable_count) return;
+		if (this.list_view_settings?.disable_count) {
+			return;
+		}
 
 		let me = this;
 		let $count = this.get_count_element();
@@ -1739,7 +1750,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		items.push({
 			label: __("Toggle Sidebar", null, "Button in list view menu"),
 			action: () => this.toggle_side_bar(),
-			condition: () => !this.hide_sidebar,
+			condition: () => !this.page.disable_sidebar_toggle,
 			standard: true,
 			shortcut: "Ctrl+K",
 		});
@@ -2109,9 +2120,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	parse_filters_from_route_options() {
 		const filters = [];
 
-		for (let field in frappe.route_options) {
+		let params = new URLSearchParams(window.location.search);
+		if (!params.toString() && frappe.route_options) {
+			params = new Map(Object.entries(frappe.route_options));
+		}
+
+		params.forEach((value, field) => {
 			let doctype = null;
-			let value = frappe.route_options[field];
 
 			let value_array;
 			if ($.isArray(value) && value[0].startsWith("[") && value[0].endsWith("]")) {
@@ -2153,7 +2168,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					filters.push([doctype, field, "=", value]);
 				}
 			}
-		}
+		});
 
 		return filters;
 	}

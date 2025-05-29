@@ -12,6 +12,7 @@ import rq
 
 import frappe
 from frappe.utils.data import cint
+from frappe.utils.synchronization import filelock
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
@@ -84,7 +85,7 @@ class Monitor:
 			self.data.job.scheduled = True
 
 		if job := rq.get_current_job():
-			self.data.uuid = job.id
+			self.data.job_id = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=pytz.UTC)
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
@@ -123,15 +124,15 @@ class Monitor:
 
 
 def flush():
-	try:
-		# Fetch all the logs without removing from cache
-		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
-		if logs:
-			logs = list(map(frappe.safe_decode, logs))
-			with open(log_file(), "a") as f:
-				f.write("\n".join(logs))
-				f.write("\n")
-			# Remove fetched entries from cache
-			frappe.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
-	except Exception:
-		traceback.print_exc()
+	logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
+	if not logs:
+		return
+
+	logs = list(map(frappe.safe_decode, logs))
+	with filelock("monitor_flush", is_global=True, timeout=5):
+		with open(log_file(), "a") as f:
+			f.write("\n".join(logs))
+			f.write("\n")
+
+	# Remove fetched entries from cache
+	frappe.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)

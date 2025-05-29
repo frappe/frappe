@@ -23,10 +23,10 @@ class TestScheduledJobType(FrappeTestCase):
 		daily_job = frappe.get_doc(
 			"Scheduled Job Type", dict(method="frappe.desk.notifications.clear_notifications")
 		)
-		self.assertEqual(daily_job.frequency, "Daily")
+		self.assertEqual(daily_job.frequency, "Daily Maintenance")
 
 		# check if cron jobs are synced
-		cron_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.oauth.delete_oauth2_data"))
+		cron_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.deferred_insert.save_to_db"))
 		self.assertEqual(cron_job.frequency, "Cron")
 		self.assertEqual(cron_job.cron_format, "0/15 * * * *")
 
@@ -38,7 +38,8 @@ class TestScheduledJobType(FrappeTestCase):
 
 	def test_daily_job(self):
 		job = frappe.get_doc(
-			"Scheduled Job Type", dict(method="frappe.desk.notifications.clear_notifications")
+			"Scheduled Job Type",
+			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts"),
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-02 00:00:06")))
@@ -66,13 +67,29 @@ class TestScheduledJobType(FrappeTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-31 23:59:59")))
 
 	def test_cron_job(self):
-		# runs every 15 mins
-		job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.oauth.delete_oauth2_data"))
+		# runs every 10 mins
+		job = frappe.get_doc(
+			"Scheduled Job Type", dict(method="frappe.email.doctype.email_account.email_account.pull")
+		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
-		self.assertEqual(job.next_execution, get_datetime("2019-01-01 00:15:00"))
-		self.assertTrue(job.is_event_due(get_datetime("2019-01-01 00:15:01")))
+		self.assertEqual(job.next_execution, get_datetime("2019-01-01 00:10:00"))
+		self.assertTrue(job.is_event_due(get_datetime("2019-01-01 00:10:01")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:05:06")))
-		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:14:59")))
+		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:09:59")))
+
+	def test_maintenance_jobs(self):
+		sjt = frappe.new_doc(
+			"Scheduled Job Type",
+			frequency="Hourly Maintenance",
+			last_execution=get_datetime("2019-01-01 23:59:00"),
+		)
+		# Should be within one hour
+		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)
+		self.assertGreater(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+
+		# Next should be exactly one hour away
+		sjt.last_execution = sjt.next_execution
+		self.assertEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
 
 	def test_cold_start(self):
 		now = now_datetime()

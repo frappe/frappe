@@ -66,7 +66,7 @@ class Comment(Document):
 
 	def on_update(self):
 		update_comment_in_doc(self)
-		if self.is_new():
+		if not self.is_new():
 			self.notify_change("update")
 
 	def on_trash(self):

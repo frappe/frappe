@@ -550,23 +550,12 @@ def list_apps(context, format):
 @pass_context
 def add_db_index(context, doctype, column):
 	"Adds a new DB index and creates a property setter to persist it."
-	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 	columns = column  # correct naming
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
-			if len(columns) == 1:
-				make_property_setter(
-					doctype,
-					columns[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()

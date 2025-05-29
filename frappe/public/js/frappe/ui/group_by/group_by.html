@@ -10,11 +10,14 @@
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
 					{% for (var val of group_by_conditions[parent_doctype]) { %}
+						{% field_name = val.label || val.fieldname %}
+						{% if(val.parent && doctype != val.parent) field_name += " ("+parent_doctype+")"  %}
 						<option
 							data-doctype="{{parent_doctype}}"
 							value="{{val.fieldname}}"
+							data-parent-doctype="{{doctype}}"
 						>
-							{{ __(val.label || val.fieldname, null, val.parent ) }}
+							{{ __(field_name, null, val.parent ) }}
 						</option>
 					{% } %}
 				{% } %}

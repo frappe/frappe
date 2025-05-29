@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+UNSEEN_NOTES_KEY = "unseen_notes::"
+
 
 class Note(Document):
 	# begin: auto-generated types
@@ -62,3 +64,40 @@ def get_permission_query_conditions(user):
 
 def has_permission(doc, user):
 	return doc.public or doc.owner == user
+
+
+def get_unseen_notes():
+	return (
+		frappe.cache.get_value(
+			f"{UNSEEN_NOTES_KEY}{frappe.session.user}",
+		)
+		or []
+	)
+
+
+@frappe.whitelist()
+def reset_notes():
+	frappe.cache.set_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}", [])
+	return frappe.cache.get_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}")
+
+
+def _get_unseen_notes():
+	from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
+
+	note = frappe.qb.DocType("Note")
+	nsb = frappe.qb.DocType("Note Seen By").as_("nsb")
+
+	results = (
+		frappe.qb.from_(note)
+		.select(note.name, note.title, note.content, note.notify_on_every_login)
+		.where(
+			(note.notify_on_login == 1)
+			& (note.expire_notification_on > frappe.utils.now())
+			& (
+				ParameterizedValueWrapper(frappe.session.user).notin(
+					SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
+				)
+			)
+		)
+	).run(as_dict=1)
+	frappe.cache.set_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}", results)

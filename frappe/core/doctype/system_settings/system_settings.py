@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
@@ -70,6 +71,7 @@ class SystemSettings(Document):
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
 		minimum_password_score: DF.Literal["2", "3", "4"]
+		max_report_rows: DF.Int
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -219,3 +221,8 @@ def load():
 			defaults[df.fieldname] = all_defaults.get(df.fieldname)
 
 	return {"timezones": get_all_timezones(), "defaults": defaults}
+
+
+def sync_system_settings():
+	if frappe.db.get_single_value("System Settings", "currency") is None:
+		frappe.db.set_single_value("System Settings", "currency", frappe.defaults.get_defaults()["currency"])

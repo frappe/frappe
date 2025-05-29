@@ -86,6 +86,7 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
+on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
 on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # PDF
@@ -197,9 +198,6 @@ scheduler_events = {
 	"cron": {
 		# 15 minutes
 		"0/15 * * * *": [
-			"frappe.oauth.delete_oauth2_data",
-			"frappe.website.doctype.web_page.web_page.check_publish_status",
-			"frappe.twofactor.delete_all_barcodes_for_users",
 			"frappe.email.doctype.email_account.email_account.notify_unreplied",
 			"frappe.utils.global_search.sync_global_search",
 			"frappe.deferred_insert.save_to_db",
@@ -210,43 +208,50 @@ scheduler_events = {
 			"frappe.email.doctype.email_account.email_account.pull",
 		],
 		# Hourly but offset by 30 minutes
-		"30 * * * *": [
-			"frappe.core.doctype.prepared_report.prepared_report.expire_stalled_report",
-		],
+		"30 * * * *": [],
 		# Daily but offset by 45 minutes
-		"45 0 * * *": [
-			"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
-		],
+		"45 0 * * *": [],
 	},
 	"all": [
 		"frappe.email.queue.flush",
 		"frappe.monitor.flush",
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
 	"hourly": [
+		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
+	],
+	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
+	# Use these for when you don't care about when the job runs but just need some guarantee for
+	# frequency.
+	"hourly_maintenance": [
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.desk.form.document_follow.send_hourly_updates",
-		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
+		"frappe.core.doctype.prepared_report.prepared_report.expire_stalled_report",
+		"frappe.twofactor.delete_all_barcodes_for_users",
+		"frappe.oauth.delete_oauth2_data",
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
 	],
 	"daily": [
-		"frappe.desk.notifications.clear_notifications",
 		"frappe.desk.doctype.event.event.send_event_digest",
-		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
-		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
-		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
-		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
-		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 	],
-	"daily_long": [
+	"daily_long": [],
+	"daily_maintenance": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
-		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
+		"frappe.desk.notifications.clear_notifications",
+		"frappe.sessions.clear_expired_sessions",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
+		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
+		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
+		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -445,7 +450,6 @@ after_job = [
 	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
-	"frappe.utils.background_jobs.flush_telemetry",
 ]
 
 extend_bootinfo = [

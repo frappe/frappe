@@ -1195,6 +1195,20 @@ class TestDBQuery(FrappeTestCase):
 		self.assertEqual(count[0], frappe.db.count("Language"))
 		self.assertEqual(count[1], frappe.db.count("Language"))
 
+	def test_ifnull_none(self):
+		query = frappe.get_all("DocField", {"fieldname": None}, run=0)
+		self.assertIn("''", query)
+		self.assertNotIn("\\'", query)
+		self.assertNotIn("ifnull", query)
+		self.assertFalse(frappe.get_all("DocField", {"name": None}))
+
+	def test_ifnull_fallback_types(self):
+		query = frappe.get_all("DocField", {"fieldname": ("!=", None)}, run=0)
+		# Fallbacks should always be of correct type
+		self.assertIn("''", query)
+		self.assertNotIn("0", query)
+		self.assertNotIn("ifnull", query)
+
 
 class TestReportView(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
@@ -1408,6 +1422,20 @@ class TestReportView(FrappeTestCase):
 			)
 			response = execute_cmd("frappe.desk.reportview.get")
 			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
+
+	def test_db_filter_not_set(self):
+		"""
+		Test if the 'not set' filter always translates correctly with/without qb under the hood.
+		"""
+		frappe.get_doc({"doctype": "ToDo", "description": "filter test"}).insert()
+		frappe.get_doc({"doctype": "ToDo", "description": "filter test", "reference_name": ""}).insert()
+
+		# `get_all` does not use QueryBuilder while `count` does. Both should return the same result.
+		# `not set` must consider empty strings and NULL values both.
+		self.assertEqual(
+			len(frappe.get_all("ToDo", filters={"reference_name": ["is", "not set"]})),
+			frappe.db.count("ToDo", {"reference_name": ["is", "not set"]}),
+		)
 
 
 def add_child_table_to_blog_post():

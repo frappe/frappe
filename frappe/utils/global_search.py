@@ -197,7 +197,7 @@ def get_children_data(doctype, meta):
 			child_records = frappe.get_all(
 				child.options,
 				fields=child_fieldnames,
-				filters={"docstatus": ["!=", 1], "parenttype": doctype},
+				filters={"docstatus": ["!=", 2], "parenttype": doctype},
 			)
 
 			for record in child_records:
@@ -489,10 +489,11 @@ def search(text, start=0, limit=20, doctype=""):
 			continue
 
 		global_search = frappe.qb.Table("__global_search")
-		rank = Match(global_search.content).Against(word).as_("rank")
+		rank = Match(global_search.content).Against(word)
 		query = (
 			frappe.qb.from_(global_search)
-			.select(global_search.doctype, global_search.name, global_search.content, rank)
+			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
+			.where(rank)
 			.orderby("rank", order=frappe.qb.desc)
 			.limit(limit)
 		)

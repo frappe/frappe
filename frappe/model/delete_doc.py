@@ -55,7 +55,7 @@ def delete_doc(
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
 			if not ignore_missing:
-				raise frappe.DoesNotExistError
+				raise frappe.DoesNotExistError(doctype=doctype)
 			else:
 				return False
 
@@ -107,7 +107,7 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except frappe.QueryTimeoutError:
+			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
