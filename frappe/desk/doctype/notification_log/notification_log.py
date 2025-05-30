@@ -30,7 +30,7 @@ class NotificationLog(Document):
 		link: DF.SmallText | None
 		read: DF.Check
 		subject: DF.Text | None
-		type: DF.Literal["", "Mention", "Energy Point", "Assignment", "Share", "Alert"]
+		type: DF.Literal["", "Mention", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
 
 	def after_insert(self):
