@@ -87,7 +87,6 @@ class PreparedReport(Document):
 		if attachments := get_attachments(self.doctype, self.name):
 			attachment = None
 			for f in attachments or []:
-				print(f.file_url.endswith(".gz"), "ends with .json.gz")
 				if f.file_url.endswith(".gz"):
 					attachment = f
 					break
