@@ -11,6 +11,7 @@ from rq import get_current_job
 import frappe
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
+from frappe.desk.notifications import enqueue_create_notification
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
@@ -355,11 +356,18 @@ def convert_json_to_csv(prepared_report_name):
 		)
 		_file.save(ignore_permissions=True)
 
-		frappe.publish_realtime(
-			event="csv_ready_notification",
-			message={"message": "Your CSV file is ready. Click to download.", "file_url": _file.file_url},
-			user=frappe.session.user,
-		)
+		frappe.get_doc(
+			{
+				"doctype": "Notification Log",
+				"subject": "Your CSV file is ready for download",
+				"email_content": f'Click <a href="{_file.file_url}" target="_blank">here</a> to download the file.',
+				"for_user": frappe.session.user,
+				"type": "Alert",
+				"document_type": "File",
+				"document_name": _file.name,
+				"link": _file.file_url,
+			}
+		).insert(ignore_permissions=True)
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), f"Failed CSV conversion for {prepared_report_name}")

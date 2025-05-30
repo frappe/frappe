@@ -58,14 +58,6 @@ frappe.ui.form.on("Prepared Report", {
 									"Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
 								)
 							);
-
-							frappe.realtime.on("csv_ready_notification", (data) => {
-								frappe.msgprint(
-									__(
-										`${data.message} <a href="${data.file_url}" target="_blank">Download CSV</a>`
-									)
-								);
-							});
 						},
 					});
 				});
