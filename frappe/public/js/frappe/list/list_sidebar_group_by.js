@@ -1,12 +1,20 @@
 frappe.provide("frappe.views");
 
 frappe.views.ListGroupBy = class ListGroupBy {
+
+	get_default_group_by_fields() {
+		// Check if DocType supports assignments (exclude virtual DocTypes)
+		const meta = frappe.get_meta(this.doctype);
+		const supports_assignments = meta && !meta.is_virtual;
+		return supports_assignments ? ["assigned_to", "owner"] : ["owner"];
+	}
+
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make_wrapper();
 
 		this.user_settings = frappe.get_user_settings(this.doctype);
-		this.group_by_fields = ["assigned_to", "owner"];
+		this.group_by_fields = this.get_default_group_by_fields();
 		if (this.user_settings.group_by_fields) {
 			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
 		}
@@ -29,8 +37,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				group_by_fields || null
 			);
 			this.group_by_fields = group_by_fields
-				? ["assigned_to", "owner", ...group_by_fields]
-				: ["assigned_to", "owner"];
+				? this.get_default_group_by_fields().concat(group_by_fields)
+				: this.get_default_group_by_fields();
 			this.render_group_by_items();
 			this.setup_dropdown();
 			d.hide();
