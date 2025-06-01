@@ -42,7 +42,7 @@ class WebForm(WebsiteGenerator):
 		breadcrumbs: DF.Code | None
 		button_label: DF.Data | None
 		client_script: DF.Code | None
-		condition: DF.Code | None
+		condition_json: DF.JSON | None
 		custom_css: DF.Code | None
 		doc_type: DF.Link
 		introduction_text: DF.TextEditor | None
@@ -109,7 +109,7 @@ class WebForm(WebsiteGenerator):
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def reset_field_parent(self):
-		"""Convert link fields to select with names as options"""
+		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 
