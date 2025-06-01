@@ -1,12 +1,12 @@
-# Copyright (c) 2013, Frappe Technologies and contributors
+# Copyright (c) 2013, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from datetime import datetime
 
-import frappe
-from frappe.query_builder.functions import Coalesce, Count
-from frappe.utils import getdate
-from frappe.utils.dateutils import get_dates_from_timegrain
+import nts
+from nts.query_builder.functions import Coalesce, Count
+from nts.utils import getdate
+from nts.utils.dateutils import get_dates_from_timegrain
 
 
 def execute(filters=None):
@@ -15,18 +15,18 @@ def execute(filters=None):
 
 class WebsiteAnalytics:
 	def __init__(self, filters=None):
-		self.filters = frappe._dict(filters or {})
+		self.filters = nts._dict(filters or {})
 
 		if not self.filters.to_date:
 			self.filters.to_date = datetime.now()
 
 		if not self.filters.from_date:
-			self.filters.from_date = frappe.utils.add_days(self.filters.to_date, -7)
+			self.filters.from_date = nts.utils.add_days(self.filters.to_date, -7)
 
 		if not self.filters.range:
 			self.filters.range = "Daily"
 
-		self.filters.to_date = frappe.utils.add_days(self.filters.to_date, 1)
+		self.filters.to_date = nts.utils.add_days(self.filters.to_date, 1)
 		self.query_filters = {"creation": ["between", [self.filters.from_date, self.filters.to_date]]}
 		self.group_by = self.filters.group_by
 
@@ -39,7 +39,7 @@ class WebsiteAnalytics:
 		return columns, data[:250], None, chart, summary
 
 	def get_columns(self):
-		meta = frappe.get_meta("Web Page View")
+		meta = nts.get_meta("Web Page View")
 		group_by = meta.get_field(self.group_by)
 		return [
 			{
@@ -54,19 +54,19 @@ class WebsiteAnalytics:
 		]
 
 	def get_data(self):
-		WebPageView = frappe.qb.DocType("Web Page View")
+		WebPageView = nts.qb.DocType("Web Page View")
 		count_all = Count("*").as_("count")
-		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
+		case = nts.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
 		count_is_unique = Count(case).as_("unique_count")
 
 		return (
-			frappe.qb.from_(WebPageView)
+			nts.qb.from_(WebPageView)
 			.select(self.group_by, count_all, count_is_unique)
 			.where(
 				Coalesce(WebPageView.creation, "0001-01-01")[self.filters.from_date : self.filters.to_date]
 			)
 			.groupby(self.group_by)
-			.orderby("count", order=frappe.qb.desc)
+			.orderby("count", order=nts.qb.desc)
 		).run()
 
 	def _get_query_for_mariadb(self):
@@ -122,14 +122,14 @@ class WebsiteAnalytics:
 		return query, values
 
 	def get_chart_data(self):
-		current_dialect = frappe.db.db_type or "mariadb"
+		current_dialect = nts.db.db_type or "mariadb"
 
 		if current_dialect == "mariadb":
 			query, values = self._get_query_for_mariadb()
 		else:
 			query, values = self._get_query_for_postgres()
 
-		self.chart_data = frappe.db.sql(query, values=values, as_dict=1)
+		self.chart_data = nts.db.sql(query, values=values, as_dict=1)
 
 		return self.prepare_chart_data(self.chart_data)
 
@@ -138,7 +138,7 @@ class WebsiteAnalytics:
 			self.filters.from_date, self.filters.to_date, self.filters.range
 		)
 		if self.filters.range == "Monthly":
-			date_range = [frappe.utils.add_days(dd, 1) for dd in date_range]
+			date_range = [nts.utils.add_days(dd, 1) for dd in date_range]
 
 		labels = []
 		total_dataset = []

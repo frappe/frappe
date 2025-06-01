@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.Share = class Share {
+nts.ui.form.Share = class Share {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.shares = this.parent.find(".shares");
@@ -32,7 +32,7 @@ frappe.ui.form.Share = class Share {
 		}
 
 		this.shares.show();
-		let avatar_group = frappe.avatar_group(shared_users, 5, { align: "left", overlap: true });
+		let avatar_group = nts.avatar_group(shared_users, 5, { align: "left", overlap: true });
 		avatar_group.on("click", () => {
 			this.frm.share_doc();
 		});
@@ -41,7 +41,7 @@ frappe.ui.form.Share = class Share {
 	}
 	show() {
 		var me = this;
-		var d = new frappe.ui.Dialog({
+		var d = new nts.ui.Dialog({
 			title: __("Share {0} with", [this.frm.doc.name]),
 		});
 
@@ -50,8 +50,8 @@ frappe.ui.form.Share = class Share {
 
 		$(d.body).html('<p class="text-muted">' + __("Loading...") + "</p>");
 
-		frappe.call({
-			method: "frappe.share.get_users",
+		nts.call({
+			method: "nts.share.get_users",
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
@@ -82,14 +82,14 @@ frappe.ui.form.Share = class Share {
 		});
 
 		$(
-			frappe.render_template("set_sharing", {
+			nts.render_template("set_sharing", {
 				frm: this.frm,
 				shared: this.shared,
 				everyone: everyone,
 			})
 		).appendTo(d.body);
 
-		if (frappe.model.can_share(null, this.frm)) {
+		if (nts.model.can_share(null, this.frm)) {
 			this.make_user_input();
 			this.add_share_button();
 			this.set_edit_share_events();
@@ -100,7 +100,7 @@ frappe.ui.form.Share = class Share {
 	}
 	make_user_input() {
 		// make add-user input
-		this.dialog.share_with = frappe.ui.form.make_control({
+		this.dialog.share_with = nts.ui.form.make_control({
 			parent: $(this.dialog.body).find(".input-wrapper-add-share"),
 			df: {
 				fieldtype: "Link",
@@ -109,7 +109,7 @@ frappe.ui.form.Share = class Share {
 				options: "User",
 				filters: {
 					user_type: "System User",
-					name: ["!=", frappe.session.user],
+					name: ["!=", nts.session.user],
 				},
 			},
 			only_input: true,
@@ -126,8 +126,8 @@ frappe.ui.form.Share = class Share {
 				if (!user) {
 					return;
 				}
-				frappe.call({
-					method: "frappe.share.add",
+				nts.call({
+					method: "nts.share.add",
 					args: {
 						doctype: me.frm.doctype,
 						name: me.frm.doc.name,
@@ -165,8 +165,8 @@ frappe.ui.form.Share = class Share {
 					property = $(this).attr("name"),
 					everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
 
-				frappe.call({
-					method: "frappe.share.set_permission",
+				nts.call({
+					method: "nts.share.set_permission",
 					args: {
 						doctype: me.frm.doctype,
 						name: me.frm.doc.name,

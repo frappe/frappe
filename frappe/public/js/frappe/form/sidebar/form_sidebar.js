@@ -7,16 +7,16 @@ import "./user_image";
 import "./form_sidebar_users";
 import { get_user_link, get_user_message } from "../footer/version_timeline_content_builder";
 
-frappe.ui.form.Sidebar = class {
+nts.ui.form.Sidebar = class {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
 
 	make() {
-		var sidebar_content = frappe.render_template("form_sidebar", {
+		var sidebar_content = nts.render_template("form_sidebar", {
 			doctype: this.frm.doctype,
 			frm: this.frm,
-			can_write: frappe.model.can_write(this.frm.doctype, this.frm.docname),
+			can_write: nts.model.can_write(this.frm.doctype, this.frm.docname),
 		});
 
 		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
@@ -39,7 +39,7 @@ frappe.ui.form.Sidebar = class {
 		this.bind_events();
 		this.setup_keyboard_shortcuts();
 		this.show_auto_repeat_status();
-		frappe.ui.form.setup_user_image_event(this.frm);
+		nts.ui.form.setup_user_image_event(this.frm);
 
 		this.refresh();
 	}
@@ -49,11 +49,11 @@ frappe.ui.form.Sidebar = class {
 
 		// scroll to comments
 		this.comments.on("click", function () {
-			frappe.utils.scroll_to(me.frm.footer.wrapper.find(".comment-box"), true);
+			nts.utils.scroll_to(me.frm.footer.wrapper.find(".comment-box"), true);
 		});
 
 		this.like_icon.on("click", function () {
-			frappe.ui.toggle_like(me.like_wrapper, me.frm.doctype, me.frm.doc.name, function () {
+			nts.ui.toggle_like(me.like_wrapper, me.frm.doctype, me.frm.doc.name, function () {
 				me.refresh_like();
 			});
 		});
@@ -62,7 +62,7 @@ frappe.ui.form.Sidebar = class {
 	setup_keyboard_shortcuts() {
 		// add assignment shortcut
 		let assignment_link = this.sidebar.find(".add-assignment");
-		frappe.ui.keys.get_shortcut_group(this.page).add(assignment_link);
+		nts.ui.keys.get_shortcut_group(this.page).add(assignment_link);
 	}
 
 	refresh() {
@@ -78,9 +78,9 @@ frappe.ui.form.Sidebar = class {
 
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
-			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
+			if (this.frm.doc.route && cint(nts.boot.website_tracking_enabled)) {
 				let route = this.frm.doc.route;
-				frappe.utils.get_page_view_count(route).then((res) => {
+				nts.utils.get_page_view_count(route).then((res) => {
 					this.sidebar
 						.find(".pageview-count")
 						.html(__("{0} Web page views", [String(res.message).bold()]));
@@ -113,15 +113,15 @@ frappe.ui.form.Sidebar = class {
 			this.refresh_like();
 			this.refresh_follow();
 			this.refresh_comments_count();
-			frappe.ui.form.set_user_image(this.frm);
+			nts.ui.form.set_user_image(this.frm);
 		}
 	}
 
 	show_auto_repeat_status() {
 		if (this.frm.meta.allow_auto_repeat && this.frm.doc.auto_repeat) {
 			const me = this;
-			frappe.call({
-				method: "frappe.client.get_value",
+			nts.call({
+				method: "nts.client.get_value",
 				args: {
 					doctype: "Auto Repeat",
 					filters: {
@@ -134,7 +134,7 @@ frappe.ui.form.Sidebar = class {
 						.find(".auto-repeat-status")
 						.html(__("Repeats {0}", [__(res.message.frequency)]));
 					me.sidebar.find(".auto-repeat-status").on("click", function () {
-						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
+						nts.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
 					});
 				},
 			});
@@ -149,7 +149,7 @@ frappe.ui.form.Sidebar = class {
 
 		let tags_parent = this.sidebar.find(".form-tags");
 
-		this.frm.tags = new frappe.ui.TagEditor({
+		this.frm.tags = new nts.ui.TagEditor({
 			parent: tags_parent,
 			add_button: tags_parent.find(".add-tags-btn"),
 			frm: this.frm,
@@ -161,21 +161,21 @@ frappe.ui.form.Sidebar = class {
 
 	make_attachments() {
 		var me = this;
-		this.frm.attachments = new frappe.ui.form.Attachments({
+		this.frm.attachments = new nts.ui.form.Attachments({
 			parent: me.sidebar.find(".form-attachments"),
 			frm: me.frm,
 		});
 	}
 
 	make_assignments() {
-		this.frm.assign_to = new frappe.ui.form.AssignTo({
+		this.frm.assign_to = new nts.ui.form.AssignTo({
 			parent: this.sidebar.find(".form-assignments"),
 			frm: this.frm,
 		});
 	}
 
 	make_shared() {
-		this.frm.shared = new frappe.ui.form.Share({
+		this.frm.shared = new nts.ui.form.Share({
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared"),
 		});
@@ -199,7 +199,7 @@ frappe.ui.form.Sidebar = class {
 		this.like_wrapper = this.sidebar.find(".liked-by");
 		this.like_icon = this.sidebar.find(".liked-by .like-icon");
 		this.like_count = this.sidebar.find(".liked-by .like-count");
-		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
+		nts.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
 	}
 
 	make_follow() {
@@ -207,14 +207,14 @@ frappe.ui.form.Sidebar = class {
 
 		this.follow_button.on("click", () => {
 			let is_followed = this.frm.get_docinfo().is_document_followed;
-			frappe
-				.call("frappe.desk.form.document_follow.update_follow", {
+			nts
+				.call("nts.desk.form.document_follow.update_follow", {
 					doctype: this.frm.doctype,
 					doc_name: this.frm.doc.name,
 					following: !is_followed,
 				})
 				.then(() => {
-					frappe.model.set_docinfo(
+					nts.model.set_docinfo(
 						this.frm.doctype,
 						this.frm.doc.name,
 						"is_document_followed",
@@ -238,7 +238,7 @@ frappe.ui.form.Sidebar = class {
 		}
 
 		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
-		const liked = frappe.ui.is_liked(this.frm.doc);
+		const liked = nts.ui.is_liked(this.frm.doc);
 		this.like_wrapper
 			.toggleClass("not-liked", !liked)
 			.toggleClass("liked", liked)
@@ -257,8 +257,8 @@ frappe.ui.form.Sidebar = class {
 
 	make_review() {
 		const review_wrapper = this.sidebar.find(".form-reviews");
-		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
-			this.frm.reviews = new frappe.ui.form.Review({
+		if (nts.boot.energy_points_enabled && !this.frm.is_new()) {
+			this.frm.reviews = new nts.ui.form.Review({
 				parent: review_wrapper,
 				frm: this.frm,
 			});
@@ -268,8 +268,8 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	reload_docinfo(callback) {
-		frappe.call({
-			method: "frappe.desk.form.load.get_docinfo",
+		nts.call({
+			method: "nts.desk.form.load.get_docinfo",
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.docname,

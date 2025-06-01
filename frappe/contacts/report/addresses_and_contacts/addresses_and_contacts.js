@@ -1,7 +1,7 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Addresses And Contacts"] = {
+nts.query_reports["Addresses And Contacts"] = {
 	filters: [
 		{
 			reqd: 1,
@@ -22,9 +22,9 @@ frappe.query_reports["Addresses And Contacts"] = {
 			label: __("Entity Name"),
 			fieldtype: "Dynamic Link",
 			get_options: function () {
-				let reference_doctype = frappe.query_report.get_filter_value("reference_doctype");
+				let reference_doctype = nts.query_report.get_filter_value("reference_doctype");
 				if (!reference_doctype) {
-					frappe.throw(__("Please select Entity Type first"));
+					nts.throw(__("Please select Entity Type first"));
 				}
 				return reference_doctype;
 			},

@@ -1,8 +1,8 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.set_value("Currency", "USD", "smallest_currency_fraction_value", "0.01")
+	nts.db.set_value("Currency", "USD", "smallest_currency_fraction_value", "0.01")

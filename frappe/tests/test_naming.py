@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import time
@@ -6,9 +6,9 @@ import unittest
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.model.naming import (
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.model.naming import (
 	InvalidNamingSeriesError,
 	NamingSeries,
 	append_number_if_name_exists,
@@ -18,18 +18,18 @@ from frappe.model.naming import (
 	parse_naming_series,
 	revert_series_if_last,
 )
-from frappe.query_builder.utils import db_type_is
-from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import now_datetime, nowdate, nowtime
+from nts.query_builder.utils import db_type_is
+from nts.tests.test_query_builder import run_only_if
+from nts.tests.utils import ntsTestCase, patch_hooks
+from nts.utils import now_datetime, nowdate, nowtime
 
 
-class TestNaming(FrappeTestCase):
+class TestNaming(ntsTestCase):
 	def setUp(self):
-		frappe.db.delete("Note")
+		nts.db.delete("Note")
 
 	def tearDown(self):
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def test_append_number_if_name_exists(self):
 		"""
@@ -42,13 +42,13 @@ class TestNaming(FrappeTestCase):
 		TITLE = "Bottle"
 		DOCTYPE = "Note"
 
-		note = frappe.get_doc({"doctype": DOCTYPE, "title": TITLE}).insert()
+		note = nts.get_doc({"doctype": DOCTYPE, "title": TITLE}).insert()
 
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, note.name), f"{note.name}-1")
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
 	def test_field_autoname_name_sync(self):
-		country = frappe.get_last_doc("Country")
+		country = nts.get_last_doc("Country")
 		original_name = country.name
 		country.country_name = "Not a country"
 		country.save()
@@ -70,9 +70,9 @@ class TestNaming(FrappeTestCase):
 			],
 		).insert()
 
-		name = frappe.generate_hash(length=10)
+		name = nts.generate_hash(length=10)
 
-		doc = frappe.new_doc(dt_with_child_autoname.name)
+		doc = nts.new_doc(dt_with_child_autoname.name)
 		doc.append("table_with_naming", {"some_fieldname": name})
 		doc.save()
 		self.assertEqual(doc.table_with_naming[0].name, name)
@@ -96,7 +96,7 @@ class TestNaming(FrappeTestCase):
 
 		description = "Format"
 
-		doc = frappe.new_doc(doctype.name)
+		doc = nts.new_doc(doctype.name)
 		doc.some_fieldname = description
 		doc.insert()
 
@@ -110,7 +110,7 @@ class TestNaming(FrappeTestCase):
 		doctype = new_doctype(autoname="format:TODO-{field}-{##}").insert()
 
 		for field in [now_datetime(), nowdate(), nowtime()]:
-			doc = frappe.new_doc(doctype.name)
+			doc = nts.new_doc(doctype.name)
 			doc.field = field
 			doc.insert()
 
@@ -125,13 +125,13 @@ class TestNaming(FrappeTestCase):
 		"""
 		doctype = "ToDo"
 
-		todo_doctype = frappe.get_doc("DocType", doctype)
+		todo_doctype = nts.get_doc("DocType", doctype)
 		todo_doctype.autoname = "format:TODO-{WW}-{##}"
 		todo_doctype.save()
 
 		description = "Format"
 
-		todo = frappe.new_doc(doctype)
+		todo = nts.new_doc(doctype)
 		todo.description = description
 		todo.insert()
 
@@ -154,69 +154,69 @@ class TestNaming(FrappeTestCase):
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-"
 		name = f"TEST-{year}-00001"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
+		nts.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
 		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
+		current_index = nts.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
 		)[0]
 
 		self.assertEqual(current_index.get("current"), 0)
-		frappe.db.delete("Series", {"name": series})
+		nts.db.delete("Series", {"name": series})
 
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-.#####"
 		name = f"TEST-{year}-00002"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
+		nts.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
 		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
+		current_index = nts.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
 		)[0]
 
 		self.assertEqual(current_index.get("current"), 1)
-		frappe.db.delete("Series", {"name": series})
+		nts.db.delete("Series", {"name": series})
 
 		series = "TEST-"
 		key = "TEST-"
 		name = "TEST-00003"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		nts.db.delete("Series", {"name": series})
+		nts.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
+		current_index = nts.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
 		)[0]
 
 		self.assertEqual(current_index.get("current"), 2)
-		frappe.db.delete("Series", {"name": series})
+		nts.db.delete("Series", {"name": series})
 
 		series = "TEST1-"
 		key = "TEST1-.#####.-2021-22"
 		name = "TEST1-00003-2021-22"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		nts.db.delete("Series", {"name": series})
+		nts.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
+		current_index = nts.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
 		)[0]
 
 		self.assertEqual(current_index.get("current"), 2)
-		frappe.db.delete("Series", {"name": series})
+		nts.db.delete("Series", {"name": series})
 
 		series = ""
 		key = ".#####.-2021-22"
 		name = "00003-2021-22"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		nts.db.delete("Series", {"name": series})
+		nts.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
+		current_index = nts.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
 		)[0]
 
 		self.assertEqual(current_index.get("current"), 2)
 
-		frappe.db.delete("Series", {"name": series})
+		nts.db.delete("Series", {"name": series})
 
 	def test_naming_for_cancelled_and_amended_doc(self):
-		submittable_doctype = frappe.get_doc(
+		submittable_doctype = nts.get_doc(
 			{
 				"doctype": "DocType",
 				"module": "Core",
@@ -227,7 +227,7 @@ class TestNaming(FrappeTestCase):
 			}
 		).insert(ignore_if_duplicate=True)
 
-		doc = frappe.new_doc("Submittable Doctype")
+		doc = nts.new_doc("Submittable Doctype")
 		doc.save()
 		original_name = doc.name
 
@@ -236,7 +236,7 @@ class TestNaming(FrappeTestCase):
 		cancelled_name = doc.name
 		self.assertEqual(cancelled_name, original_name)
 
-		amended_doc = frappe.copy_doc(doc)
+		amended_doc = nts.copy_doc(doc)
 		amended_doc.docstatus = 0
 		amended_doc.amended_from = doc.name
 		amended_doc.save()
@@ -274,36 +274,36 @@ class TestNaming(FrappeTestCase):
 	def test_naming_validations(self):
 		# case 1: check same name as doctype
 		# set name via prompt
-		tag = frappe.get_doc({"doctype": "Tag", "__newname": "Tag"})
-		self.assertRaises(frappe.NameError, tag.insert)
+		tag = nts.get_doc({"doctype": "Tag", "__newname": "Tag"})
+		self.assertRaises(nts.NameError, tag.insert)
 
 		# set by passing set_name as ToDo
-		self.assertRaises(frappe.NameError, make_invalid_todo)
+		self.assertRaises(nts.NameError, make_invalid_todo)
 
 		# name (via title field) cannot be the same as the doctype
-		note = frappe.get_doc({"doctype": "Currency", "currency_name": "Currency"})
-		self.assertRaises(frappe.NameError, note.insert)
+		note = nts.get_doc({"doctype": "Currency", "currency_name": "Currency"})
+		self.assertRaises(nts.NameError, note.insert)
 
 		# case 2: set name with "New ---"
-		tag = frappe.get_doc({"doctype": "Tag", "__newname": "New Tag"})
-		self.assertRaises(frappe.NameError, tag.insert)
+		tag = nts.get_doc({"doctype": "Tag", "__newname": "New Tag"})
+		self.assertRaises(nts.NameError, tag.insert)
 
 		# case 3: set name with special characters
-		tag = frappe.get_doc({"doctype": "Tag", "__newname": "Tag<>"})
-		self.assertRaises(frappe.NameError, tag.insert)
+		tag = nts.get_doc({"doctype": "Tag", "__newname": "Tag<>"})
+		self.assertRaises(nts.NameError, tag.insert)
 
 		# case 4: no name specified
-		tag = frappe.get_doc({"doctype": "Tag", "__newname": ""})
-		self.assertRaises(frappe.ValidationError, tag.insert)
+		tag = nts.get_doc({"doctype": "Tag", "__newname": ""})
+		self.assertRaises(nts.ValidationError, tag.insert)
 
 	def test_autoincremented_naming(self):
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from nts.core.doctype.doctype.test_doctype import new_doctype
 
-		doctype = "autoinc_doctype" + frappe.generate_hash(length=5)
+		doctype = "autoinc_doctype" + nts.generate_hash(length=5)
 		dt = new_doctype(doctype, autoname="autoincrement").insert(ignore_permissions=True)
 
 		for i in range(1, 20):
-			self.assertEqual(frappe.new_doc(doctype).save(ignore_permissions=True).name, i)
+			self.assertEqual(nts.new_doc(doctype).save(ignore_permissions=True).name, i)
 
 		dt.delete(ignore_permissions=True)
 
@@ -323,7 +323,7 @@ class TestNaming(FrappeTestCase):
 			self.assertEqual(prefix, NamingSeries(series).get_prefix())
 
 	def test_naming_series_validation(self):
-		dns = frappe.get_doc("Document Naming Settings")
+		dns = nts.get_doc("Document Naming Settings")
 		exisiting_series = dns.get_transactions_and_prefixes()["prefixes"]
 		valid = ["SINV-", "SI-.{field}.", "SI-#.###", "", *exisiting_series]
 		invalid = ["$INV-", r"WINDOWS\NAMING"]
@@ -339,7 +339,7 @@ class TestNaming(FrappeTestCase):
 			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
 	def test_naming_using_fields(self):
-		webhook = frappe.new_doc("Webhook")
+		webhook = nts.new_doc("Webhook")
 		webhook.webhook_docevent = "on_update"
 		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
 		self.assertTrue(
@@ -349,7 +349,7 @@ class TestNaming(FrappeTestCase):
 	def test_naming_with_empty_part(self):
 		# check naming with empty part (duplicate dots)
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = nts.new_doc("Webhook")
 		webhook.webhook_docevent = "on_update"
 
 		series = "KOOH-..{webhook_docevent}.-.####"
@@ -362,7 +362,7 @@ class TestNaming(FrappeTestCase):
 	def test_naming_with_unsupported_part(self):
 		# check naming with empty part (duplicate dots)
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = nts.new_doc("Webhook")
 		webhook.webhook_docevent = {"dict": "not supported"}
 
 		series = "KOOH-..{webhook_docevent}.-.####"
@@ -373,7 +373,7 @@ class TestNaming(FrappeTestCase):
 	def test_naming_with_empty_field(self):
 		# check naming with empty field value
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = nts.new_doc("Webhook")
 		series = "KOOH-.{request_structure}.-.request_structure.-.####"
 
 		name = parse_naming_series(series, doc=webhook)
@@ -382,22 +382,22 @@ class TestNaming(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_hash_collision(self):
 		doctype = new_doctype(autoname="hash").insert().name
-		name = frappe.generate_hash()
+		name = nts.generate_hash()
 		for _ in range(10):
-			frappe.flags.in_import = True
-			frappe.new_doc(doctype).update({"name": name}).insert()
-		frappe.flags.pop("in_import", None)
+			nts.flags.in_import = True
+			nts.new_doc(doctype).update({"name": name}).insert()
+		nts.flags.pop("in_import", None)
 
 	def test_custom_parser(self):
 		# check naming with custom parser
-		todo = frappe.new_doc("ToDo")
+		todo = nts.new_doc("ToDo")
 		series = "TODO-.PM.-.####"
 
-		frappe.clear_cache()
+		nts.clear_cache()
 		with patch_hooks(
 			{
 				"naming_series_variables": {
-					"PM": ["frappe.tests.test_naming.parse_naming_series_variable"],
+					"PM": ["nts.tests.test_naming.parse_naming_series_variable"],
 				},
 			},
 		):
@@ -426,4 +426,4 @@ def parse_naming_series_variable(doc, variable):
 
 
 def make_invalid_todo():
-	frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert(set_name="ToDo")
+	nts.get_doc({"doctype": "ToDo", "description": "Test"}).insert(set_name="ToDo")

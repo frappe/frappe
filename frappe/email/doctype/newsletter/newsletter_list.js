@@ -1,4 +1,4 @@
-frappe.listview_settings["Newsletter"] = {
+nts.listview_settings["Newsletter"] = {
 	add_fields: ["subject", "email_sent", "schedule_sending"],
 	get_indicator: function (doc) {
 		if (doc.email_sent) {

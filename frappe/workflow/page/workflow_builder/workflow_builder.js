@@ -1,36 +1,36 @@
-frappe.pages["workflow-builder"].on_page_load = function (wrapper) {
-	frappe.ui.make_app_page({
+nts.pages["workflow-builder"].on_page_load = function (wrapper) {
+	nts.ui.make_app_page({
 		parent: wrapper,
 		title: __("Workflow Builder"),
 		single_column: true,
 	});
 
 	// hot reload in development
-	if (frappe.boot.developer_mode) {
-		frappe.hot_update = frappe.hot_update || [];
-		frappe.hot_update.push(() => load_workflow_builder(wrapper));
+	if (nts.boot.developer_mode) {
+		nts.hot_update = nts.hot_update || [];
+		nts.hot_update.push(() => load_workflow_builder(wrapper));
 	}
 };
 
-frappe.pages["workflow-builder"].on_page_show = function (wrapper) {
+nts.pages["workflow-builder"].on_page_show = function (wrapper) {
 	load_workflow_builder(wrapper);
 };
 
 function load_workflow_builder(wrapper) {
-	let route = frappe.get_route();
+	let route = nts.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
 	$parent.empty();
 
 	if (route.length > 1) {
-		frappe.require("workflow_builder.bundle.js").then(() => {
-			frappe.workflow_builder = new frappe.ui.WorkflowBuilder({
+		nts.require("workflow_builder.bundle.js").then(() => {
+			nts.workflow_builder = new nts.ui.WorkflowBuilder({
 				wrapper: $parent,
 				page: wrapper.page,
 				workflow: route[1],
 			});
 		});
 	} else {
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("Create or Edit Workflow"),
 			fields: [
 				{
@@ -55,7 +55,7 @@ function load_workflow_builder(wrapper) {
 						istable: 0,
 					},
 					reqd: 1,
-					default: frappe.route_options ? frappe.route_options.doctype : null,
+					default: nts.route_options ? nts.route_options.doctype : null,
 				},
 				{
 					label: __("New Workflow Name"),
@@ -84,17 +84,17 @@ function load_workflow_builder(wrapper) {
 			primary_action_label: __("Edit"),
 			primary_action({ action, doctype, workflow, workflow_name }) {
 				if (action === "Edit") {
-					frappe.set_route("workflow-builder", workflow);
+					nts.set_route("workflow-builder", workflow);
 				} else if (action === "Create") {
 					d.get_primary_btn().prop("disabled", true);
-					frappe.db
+					nts.db
 						.insert({
 							doctype: "Workflow",
 							workflow_name: workflow_name,
 							document_type: doctype,
 						})
 						.then((doc) => {
-							frappe.set_route("workflow-builder", doc.name);
+							nts.set_route("workflow-builder", doc.name);
 						})
 						.finally(() => {
 							d.get_primary_btn().prop("disabled", false);

@@ -1,7 +1,7 @@
-// Copyright (c) 2018, Frappe Technologies and contributors
+// Copyright (c) 2018, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Energy Point Rule", {
+nts.ui.form.on("Energy Point Rule", {
 	validate(frm) {
 		frm.set_df_property("user_field", "reqd", !frm.doc.for_assigned_users);
 		frm.set_df_property("condition", "reqd", frm.doc.for_doc_event === "Custom");
@@ -23,11 +23,11 @@ frappe.ui.form.on("Energy Point Rule", {
 		const reference_doctype = frm.doc.reference_doctype;
 		if (!reference_doctype) return;
 
-		frappe.model.with_doctype(reference_doctype, () => {
+		nts.model.with_doctype(reference_doctype, () => {
 			const map_for_options = (df) => ({ label: df.label, value: df.fieldname });
-			const fields = frappe.meta
+			const fields = nts.meta
 				.get_docfields(frm.doc.reference_doctype)
-				.filter(frappe.model.is_value_type);
+				.filter(nts.model.is_value_type);
 
 			const fields_to_check = fields.map(map_for_options);
 

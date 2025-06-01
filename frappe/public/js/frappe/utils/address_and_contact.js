@@ -1,6 +1,6 @@
-frappe.provide("frappe.contacts");
+nts.provide("nts.contacts");
 
-$.extend(frappe.contacts, {
+$.extend(nts.contacts, {
 	clear_address_and_contact: function (frm) {
 		$(frm.fields_dict["address_html"].wrapper).html("");
 		frm.fields_dict["contact_html"] && $(frm.fields_dict["contact_html"].wrapper).html("");
@@ -10,7 +10,7 @@ $.extend(frappe.contacts, {
 		// render address
 		if (frm.fields_dict["address_html"] && "addr_list" in frm.doc.__onload) {
 			$(frm.fields_dict["address_html"].wrapper)
-				.html(frappe.render_template("address_list", frm.doc.__onload))
+				.html(nts.render_template("address_list", frm.doc.__onload))
 				.find(".btn-address")
 				.on("click", () => new_record("Address", frm.doc));
 		}
@@ -18,13 +18,13 @@ $.extend(frappe.contacts, {
 		// render contact
 		if (frm.fields_dict["contact_html"] && "contact_list" in frm.doc.__onload) {
 			$(frm.fields_dict["contact_html"].wrapper)
-				.html(frappe.render_template("contact_list", frm.doc.__onload))
+				.html(nts.render_template("contact_list", frm.doc.__onload))
 				.find(".btn-contact")
 				.on("click", () => new_record("Contact", frm.doc));
 		}
 	},
 	get_last_doc: function (frm) {
-		const reverse_routes = frappe.route_history.slice().reverse();
+		const reverse_routes = nts.route_history.slice().reverse();
 		const last_route = reverse_routes.find((route) => {
 			return route[0] === "Form" && route[1] !== frm.doctype;
 		});
@@ -51,8 +51,8 @@ $.extend(frappe.contacts, {
 			return;
 		}
 
-		frappe
-			.xcall("frappe.contacts.doctype.address.address.get_address_display", {
+		nts
+			.xcall("nts.contacts.doctype.address.address.get_address_display", {
 				address_dict: frm.doc[_address_field],
 			})
 			.then((address_display) => frm.set_value(_display_field, address_display));
@@ -60,11 +60,11 @@ $.extend(frappe.contacts, {
 });
 
 function new_record(doctype, source_doc) {
-	frappe.dynamic_link = {
+	nts.dynamic_link = {
 		doctype: source_doc.doctype,
 		doc: source_doc,
 		fieldname: "name",
 	};
 
-	return frappe.new_doc(doctype);
+	return nts.new_doc(doctype);
 }

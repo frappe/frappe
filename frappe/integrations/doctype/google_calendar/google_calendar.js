@@ -1,7 +1,7 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Google Calendar", {
+nts.ui.form.on("Google Calendar", {
 	refresh: function (frm) {
 		if (frm.is_new()) {
 			frm.dashboard.set_headline(
@@ -11,7 +11,7 @@ frappe.ui.form.on("Google Calendar", {
 			);
 		}
 
-		frappe.realtime.on("import_google_calendar", (data) => {
+		nts.realtime.on("import_google_calendar", (data) => {
 			if (data.progress) {
 				frm.dashboard.show_progress(
 					"Syncing Google Calendar",
@@ -26,20 +26,20 @@ frappe.ui.form.on("Google Calendar", {
 
 		if (frm.doc.refresh_token) {
 			frm.add_custom_button(__("Sync Calendar"), function () {
-				frappe.show_alert({
+				nts.show_alert({
 					indicator: "green",
 					message: __("Syncing"),
 				});
-				frappe
+				nts
 					.call({
-						method: "frappe.integrations.doctype.google_calendar.google_calendar.sync",
+						method: "nts.integrations.doctype.google_calendar.google_calendar.sync",
 						args: {
 							g_calendar: frm.doc.name,
 						},
 					})
 					.then((r) => {
-						frappe.hide_progress();
-						frappe.msgprint(r.message);
+						nts.hide_progress();
+						nts.msgprint(r.message);
 					});
 			});
 		}
@@ -50,8 +50,8 @@ frappe.ui.form.on("Google Calendar", {
 			reauthorize = 1;
 		}
 
-		frappe.call({
-			method: "frappe.integrations.doctype.google_calendar.google_calendar.authorize_access",
+		nts.call({
+			method: "nts.integrations.doctype.google_calendar.google_calendar.authorize_access",
 			args: {
 				g_calendar: frm.doc.name,
 				reauthorize: reauthorize,

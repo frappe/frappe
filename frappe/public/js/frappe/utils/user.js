@@ -1,77 +1,77 @@
-frappe.user_info = function (uid) {
-	if (!uid) uid = frappe.session.user;
+nts.user_info = function (uid) {
+	if (!uid) uid = nts.session.user;
 
 	let user_info;
-	if (!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
+	if (!(nts.boot.user_info && nts.boot.user_info[uid])) {
 		user_info = { fullname: uid || "Unknown" };
 	} else {
-		user_info = frappe.boot.user_info[uid];
+		user_info = nts.boot.user_info[uid];
 	}
 
-	user_info.abbr = frappe.get_abbr(user_info.fullname);
-	user_info.color = frappe.get_palette(user_info.fullname);
+	user_info.abbr = nts.get_abbr(user_info.fullname);
+	user_info.color = nts.get_palette(user_info.fullname);
 
 	return user_info;
 };
 
-frappe.update_user_info = function (user_info) {
+nts.update_user_info = function (user_info) {
 	for (let user in user_info) {
-		if (frappe.boot.user_info[user]) {
-			Object.assign(frappe.boot.user_info[user], user_info[user]);
+		if (nts.boot.user_info[user]) {
+			Object.assign(nts.boot.user_info[user], user_info[user]);
 		} else {
-			frappe.boot.user_info[user] = user_info[user];
+			nts.boot.user_info[user] = user_info[user];
 		}
 	}
 };
 
-frappe.provide("frappe.user");
+nts.provide("nts.user");
 
-$.extend(frappe.user, {
+$.extend(nts.user, {
 	name: "Guest",
 	full_name: function (uid) {
-		return uid === frappe.session.user
+		return uid === nts.session.user
 			? __(
 					"You",
 					null,
 					"Name of the current user. For example: You edited this 5 hours ago."
 			  )
-			: frappe.user_info(uid).fullname;
+			: nts.user_info(uid).fullname;
 	},
 	image: function (uid) {
-		return frappe.user_info(uid).image;
+		return nts.user_info(uid).image;
 	},
 	abbr: function (uid) {
-		return frappe.user_info(uid).abbr;
+		return nts.user_info(uid).abbr;
 	},
 	has_role: function (rl) {
 		if (typeof rl == "string") rl = [rl];
 		for (var i in rl) {
-			if ((frappe.boot ? frappe.boot.user.roles : ["Guest"]).indexOf(rl[i]) != -1)
+			if ((nts.boot ? nts.boot.user.roles : ["Guest"]).indexOf(rl[i]) != -1)
 				return true;
 		}
 	},
 	get_desktop_items: function () {
 		// hide based on permission
-		var modules_list = $.map(frappe.boot.allowed_modules, function (icon) {
+		var modules_list = $.map(nts.boot.allowed_modules, function (icon) {
 			var m = icon.module_name;
-			var type = frappe.modules[m] && frappe.modules[m].type;
+			var type = nts.modules[m] && nts.modules[m].type;
 
-			if (frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
+			if (nts.boot.user.allow_modules.indexOf(m) === -1) return null;
 
 			var ret = null;
 			if (type === "module") {
-				if (frappe.boot.user.allow_modules.indexOf(m) != -1 || frappe.modules[m].is_help)
+				if (nts.boot.user.allow_modules.indexOf(m) != -1 || nts.modules[m].is_help)
 					ret = m;
 			} else if (type === "page") {
-				if (frappe.boot.allowed_pages.indexOf(frappe.modules[m].link) != -1) ret = m;
+				if (nts.boot.allowed_pages.indexOf(nts.modules[m].link) != -1) ret = m;
 			} else if (type === "list") {
-				if (frappe.model.can_read(frappe.modules[m]._doctype)) ret = m;
+				if (nts.model.can_read(nts.modules[m]._doctype)) ret = m;
 			} else if (type === "view") {
 				ret = m;
 			} else if (type === "setup") {
 				if (
-					frappe.user.has_role("System Manager") ||
-					frappe.user.has_role("Administrator")
+					nts.user.has_role("System Manager") ||
+					nts.user.has_role("Administrator")
 				)
 					ret = m;
 			} else {
@@ -85,11 +85,11 @@ $.extend(frappe.user, {
 	},
 
 	is_report_manager: function () {
-		return frappe.user.has_role(["Administrator", "System Manager", "Report Manager"]);
+		return nts.user.has_role(["Administrator", "System Manager", "Report Manager"]);
 	},
 
 	get_formatted_email: function (email) {
-		var fullname = frappe.user.full_name(email);
+		var fullname = nts.user.full_name(email);
 
 		if (!fullname) {
 			return email;
@@ -112,29 +112,29 @@ $.extend(frappe.user, {
 	},
 
 	get_emails: () => {
-		return Object.keys(frappe.boot.user_info).map((key) => frappe.boot.user_info[key].email);
+		return Object.keys(nts.boot.user_info).map((key) => nts.boot.user_info[key].email);
 	},
 
-	/* Normally frappe.user is an object
+	/* Normally nts.user is an object
 	 * having properties and methods.
 	 * But in the following case
 	 *
-	 * if (frappe.user === 'Administrator')
+	 * if (nts.user === 'Administrator')
 	 *
-	 * frappe.user will cast to a string
-	 * returning frappe.user.name
+	 * nts.user will cast to a string
+	 * returning nts.user.name
 	 */
 	toString: function () {
 		return this.name;
 	},
 });
 
-frappe.session_alive = true;
+nts.session_alive = true;
 $(document).bind("mousemove", function () {
-	if (frappe.session_alive === false) {
+	if (nts.session_alive === false) {
 		$(document).trigger("session_alive");
 	}
-	frappe.session_alive = true;
-	if (frappe.session_alive_timeout) clearTimeout(frappe.session_alive_timeout);
-	frappe.session_alive_timeout = setTimeout("frappe.session_alive=false;", 30000);
+	nts.session_alive = true;
+	if (nts.session_alive_timeout) clearTimeout(nts.session_alive_timeout);
+	nts.session_alive_timeout = setTimeout("nts.session_alive=false;", 30000);
 });

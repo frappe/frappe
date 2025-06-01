@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Actions
         uses: actions/checkout@v4
         with:
-          repository: "frappe/backport"
+          repository: "nts/backport"
           path: ./actions
           ref: develop
       - name: Install Actions

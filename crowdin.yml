@@ -1,6 +1,6 @@
 files:
-  - source: /frappe/locale/main.pot
-    translation: /frappe/locale/%two_letters_code%.po
+  - source: /nts/locale/main.pot
+    translation: /nts/locale/%two_letters_code%.po
 pull_request_title: "fix: sync translations from crowdin"
 pull_request_labels:
   - translation

@@ -1,10 +1,10 @@
 import time
 from unittest.mock import MagicMock
 
-import frappe
-from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.caching import redis_cache, request_cache, site_cache
+import nts
+from nts.tests.test_api import ntsAPITestCase
+from nts.tests.utils import ntsTestCase
+from nts.utils.caching import redis_cache, request_cache, site_cache
 
 CACHE_TTL = 4
 external_service = MagicMock(return_value=30)
@@ -20,29 +20,29 @@ def request_specific_api(a: list | tuple | dict | int, b: int) -> int:
 	return a**b * todays_value
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 @site_cache
 def ping() -> str:
-	register_with_external_service(frappe.local.site)
-	return frappe.local.site
+	register_with_external_service(nts.local.site)
+	return nts.local.site
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 @site_cache(ttl=CACHE_TTL)
 def ping_with_ttl() -> str:
-	register_with_external_service(frappe.local.site)
-	return frappe.local.site
+	register_with_external_service(nts.local.site)
+	return nts.local.site
 
 
-class TestCachingUtils(FrappeTestCase):
+class TestCachingUtils(ntsTestCase):
 	def test_request_cache(self):
 		retval = []
 		acceptable_args = [
 			[1, 2, 3, 4],
 			range(10),
 			{"abc": "test-key"},
-			frappe.get_last_doc("DocType"),
-			frappe._dict(),
+			nts.get_last_doc("DocType"),
+			nts._dict(),
 		]
 
 		def same_output_received():
@@ -77,7 +77,7 @@ class TestCachingUtils(FrappeTestCase):
 		self.assertTrue(same_output_received())
 
 
-class TestSiteCache(FrappeAPITestCase):
+class TestSiteCache(ntsAPITestCase):
 	def test_site_cache(self):
 		module = __name__
 		api_with_ttl = f"{module}.ping_with_ttl"
@@ -93,7 +93,7 @@ class TestSiteCache(FrappeAPITestCase):
 		self.assertEqual(register_with_external_service.call_count, 3)
 
 
-class TestRedisCache(FrappeAPITestCase):
+class TestRedisCache(ntsAPITestCase):
 	def test_redis_cache(self):
 		function_call_count = 0
 
@@ -180,7 +180,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(function_call_count, 1)
 
 		# This is supposed to clear cache for the active site
-		frappe.clear_cache()
+		nts.clear_cache()
 		calculate_area(10)
 		self.assertEqual(function_call_count, 2)
 
@@ -192,7 +192,7 @@ class TestRedisCache(FrappeAPITestCase):
 		@redis_cache(user=True)
 		def calculate_area(radius: float) -> float:
 			nonlocal function_call_count
-			PI_APPROX = ENGINEERING_PI if frappe.session.user == "Engineer" else PI
+			PI_APPROX = ENGINEERING_PI if nts.session.user == "Engineer" else PI
 			function_call_count += 1
 			return PI_APPROX * radius**2
 
@@ -213,63 +213,63 @@ class TestRedisCache(FrappeAPITestCase):
 			self.assertEqual(function_call_count, 2)
 
 
-class TestDocumentCache(FrappeAPITestCase):
+class TestDocumentCache(ntsAPITestCase):
 	TEST_DOCTYPE = "User"
 	TEST_DOCNAME = "Administrator"
 	TEST_FIELD = "middle_name"
 
 	def setUp(self) -> None:
-		self.test_value = frappe.generate_hash()
+		self.test_value = nts.generate_hash()
 
 	def test_caching(self):
-		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		doc = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		with self.assertQueryCount(0):
-			doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+			doc = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		doc.db_set(self.TEST_FIELD, self.test_value)
-		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		new_doc = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
-		self.assertIsNot(doc, new_doc)  # Shouldn't be same object from frappe.local
+		self.assertIsNot(doc, new_doc)  # Shouldn't be same object from nts.local
 		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)  # Cache invalidated and fetched
-		frappe.db.rollback()
+		nts.db.rollback()
 
-		doc_after_rollback = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		doc_after_rollback = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 		self.assertIsNot(new_doc, doc_after_rollback)
 		# Cache invalidated after rollback
 		self.assertNotEqual(doc_after_rollback.get(self.TEST_FIELD), self.test_value)
 
 		with self.assertQueryCount(0):
-			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+			nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 	def test_cache_invalidation_set_value(self):
-		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		doc = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
-		frappe.db.set_value(
+		nts.db.set_value(
 			self.TEST_DOCTYPE,
 			{"name": ("like", "%Admin%")},
 			self.TEST_FIELD,
 			self.test_value,
 		)
 
-		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		new_doc = nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 		self.assertIsNot(doc, new_doc)
 		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)
 
 		with self.assertQueryCount(0):
-			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+			nts.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 
-class TestRedisWrapper(FrappeAPITestCase):
+class TestRedisWrapper(ntsAPITestCase):
 	def test_delete_keys(self):
 		prefix = "test_del_"
 
 		for i in range(5):
-			frappe.cache.set_value(f"{prefix}{i}", 1)
+			nts.cache.set_value(f"{prefix}{i}", 1)
 
-		self.assertEqual(len(frappe.cache.get_keys(prefix)), 5)
-		frappe.cache.delete_keys(prefix)
-		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
+		self.assertEqual(len(nts.cache.get_keys(prefix)), 5)
+		nts.cache.delete_keys(prefix)
+		self.assertEqual(len(nts.cache.get_keys(prefix)), 0)
 
 	def test_backward_compat_cache(self):
-		self.assertEqual(frappe.cache, frappe.cache())
+		self.assertEqual(nts.cache, nts.cache())

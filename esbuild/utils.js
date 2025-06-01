@@ -2,11 +2,11 @@ const path = require("path");
 const fs = require("fs");
 const chalk = require("chalk");
 let bench_path;
-if (process.env.FRAPPE_BENCH_ROOT) {
-	bench_path = process.env.FRAPPE_BENCH_ROOT;
+if (process.env.nts_BENCH_ROOT) {
+	bench_path = process.env.nts_BENCH_ROOT;
 } else {
-	const frappe_path = path.resolve(__dirname, "..");
-	bench_path = path.resolve(frappe_path, "..", "..");
+	const nts_path = path.resolve(__dirname, "..");
+	bench_path = path.resolve(nts_path, "..", "..");
 }
 
 const apps_path = path.resolve(bench_path, "apps");

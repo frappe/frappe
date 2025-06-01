@@ -156,7 +156,7 @@
 					>
 						<svg width="30" height="30">
 							<image
-								href="/assets/frappe/icons/social/google_drive.svg"
+								href="/assets/nts/icons/social/google_drive.svg"
 								width="30"
 								height="30"
 							/>
@@ -318,10 +318,10 @@ if (props.allow_take_photo) {
 	allow_take_photo.value = window.navigator.mediaDevices;
 }
 
-if (frappe.user_id !== "Guest" && props.allow_google_drive) {
-	frappe.call({
+if (nts.user_id !== "Guest" && props.allow_google_drive) {
+	nts.call({
 		// method only available after login
-		method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+		method: "nts.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
 		callback: (resp) => {
 			if (!resp.exc) {
 				google_drive_settings.value = resp.message;
@@ -330,12 +330,12 @@ if (frappe.user_id !== "Guest" && props.allow_google_drive) {
 	});
 }
 if (props.restrictions.max_file_size == null) {
-	frappe.call("frappe.core.api.file.get_max_file_size").then((res) => {
+	nts.call("nts.core.api.file.get_max_file_size").then((res) => {
 		props.restrictions.max_file_size = Number(res.message);
 	});
 }
 if (props.restrictions.max_number_of_files == null && props.doctype) {
-	props.restrictions.max_number_of_files = frappe.get_meta(props.doctype)?.max_attachments;
+	props.restrictions.max_number_of_files = nts.get_meta(props.doctype)?.max_attachments;
 }
 
 // methods
@@ -396,7 +396,7 @@ function show_max_files_number_warning(file) {
 			max_number_of_files,
 		]);
 	}
-	frappe.show_alert({
+	nts.show_alert({
 		message: MSG,
 		indicator: "orange",
 	});
@@ -474,14 +474,14 @@ function check_restrictions(file) {
 
 	if (!is_correct_type) {
 		console.warn("File skipped because of invalid file type", file);
-		frappe.show_alert({
+		nts.show_alert({
 			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
 			indicator: "orange",
 		});
 	}
 	if (!valid_file_size) {
 		console.warn("File skipped because of invalid file size", file.size, file);
-		frappe.show_alert({
+		nts.show_alert({
 			message: __('File "{0}" was skipped because size exceeds {1} MB', [
 				file.name,
 				max_file_size / (1024 * 1024),
@@ -503,19 +503,19 @@ function upload_files(dialog) {
 		return return_as_dataurl();
 	}
 	if (!files.value.length) {
-		frappe.msgprint(__("Please select a file first."));
+		nts.msgprint(__("Please select a file first."));
 		return Promise.reject();
 	}
 
 	dialog?.get_primary_btn().prop("disabled", true);
 	dialog?.get_secondary_btn().prop("disabled", true);
 
-	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
+	return nts.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
 }
 function upload_via_file_browser() {
 	let selected_file = file_browser.value.selected_node;
 	if (!selected_file.value) {
-		frappe.msgprint(__("Click on a file to select it."));
+		nts.msgprint(__("Click on a file to select it."));
 		close_dialog.value = true;
 		return Promise.reject();
 	}
@@ -527,7 +527,7 @@ function upload_via_file_browser() {
 function upload_via_web_link() {
 	let file_url = web_link.value.url;
 	if (!file_url) {
-		frappe.msgprint(__("Invalid URL"));
+		nts.msgprint(__("Invalid URL"));
 		close_dialog.value = true;
 		return Promise.reject();
 	}
@@ -539,7 +539,7 @@ function upload_via_web_link() {
 }
 function return_as_dataurl() {
 	let promises = files.value.map((file) =>
-		frappe.dom.file_to_base64(file.file_obj).then((dataurl) => {
+		nts.dom.file_to_base64(file.file_obj).then((dataurl) => {
 			file.dataurl = dataurl;
 			props.on_success && props.on_success(file);
 		})
@@ -628,13 +628,13 @@ function upload_file(file, i) {
 					} catch (e) {
 						// pass
 					}
-					frappe.request.cleanup({}, error);
+					nts.request.cleanup({}, error);
 				}
 			}
 		};
 		xhr.open("POST", "/api/method/upload_file", true);
 		xhr.setRequestHeader("Accept", "application/json");
-		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+		xhr.setRequestHeader("X-nts-CSRF-Token", nts.csrf_token);
 
 		let form_data = new FormData();
 		if (file.file_obj) {
@@ -680,14 +680,14 @@ function upload_file(file, i) {
 	});
 }
 function capture_image() {
-	const capture = new frappe.ui.Capture({
+	const capture = new nts.ui.Capture({
 		animate: false,
 		error: true,
 	});
 	capture.show();
 	capture.submit((data_urls) => {
 		data_urls.forEach((data_url) => {
-			let filename = `capture_${frappe.datetime
+			let filename = `capture_${nts.datetime
 				.now_datetime()
 				.replaceAll(/[: -]/g, "_")}.png`;
 			url_to_file(data_url, filename, "image/png").then((file) => add_files([file]));

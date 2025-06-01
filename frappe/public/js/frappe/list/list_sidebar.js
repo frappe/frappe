@@ -1,21 +1,21 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import ListFilter from "./list_filter";
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
 // opts:
 // stats = list of fields
 // doctype
 // parent
 
-frappe.views.ListSidebar = class ListSidebar {
+nts.views.ListSidebar = class ListSidebar {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
 	}
 
 	make() {
-		var sidebar_content = frappe.render_template("list_sidebar", { doctype: this.doctype });
+		var sidebar_content = nts.render_template("list_sidebar", { doctype: this.doctype });
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
@@ -39,7 +39,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			});
 		}
 
-		if (frappe.user.has_role("System Manager")) {
+		if (nts.user.has_role("System Manager")) {
 			this.add_insights_banner();
 			this.add_crm_banner();
 			this.add_helpdesk_banner();
@@ -49,25 +49,25 @@ frappe.views.ListSidebar = class ListSidebar {
 	setup_views() {
 		var show_list_link = false;
 
-		if (frappe.views.calendar[this.doctype]) {
+		if (nts.views.calendar[this.doctype]) {
 			this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
 			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass("hide");
 			show_list_link = true;
 		}
 		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass("hide");
-		if (this.doctype === "Communication" && frappe.boot.email_accounts.length) {
+		if (this.doctype === "Communication" && nts.boot.email_accounts.length) {
 			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass("hide");
 			show_list_link = true;
 		}
 
-		if (frappe.treeview_settings[this.doctype] || frappe.get_meta(this.doctype).is_tree) {
+		if (nts.treeview_settings[this.doctype] || nts.get_meta(this.doctype).is_tree) {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
 
 		this.current_view = "List";
-		var route = frappe.get_route();
-		if (route.length > 2 && frappe.views.view_modes.includes(route[2])) {
+		var route = nts.get_route();
+		if (route.length > 2 && nts.views.view_modes.includes(route[2])) {
 			this.current_view = route[2];
 
 			if (this.current_view === "Kanban") {
@@ -153,7 +153,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		// Sort reports alphabetically
 		var reports =
-			Object.values(frappe.boot.user.all_reports).sort((a, b) =>
+			Object.values(nts.boot.user.all_reports).sort((a, b) =>
 				a.title.localeCompare(b.title)
 			) || [];
 
@@ -171,17 +171,17 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_kanban_boards() {
 		const $dropdown = this.page.sidebar.find(".kanban-dropdown");
-		frappe.views.KanbanView.setup_dropdown_in_sidebar(this.doctype, $dropdown);
+		nts.views.KanbanView.setup_dropdown_in_sidebar(this.doctype, $dropdown);
 	}
 
 	setup_keyboard_shortcuts() {
 		this.sidebar.find(".list-link > a, .list-link > .btn-group > a").each((i, el) => {
-			frappe.ui.keys.get_shortcut_group(this.page).add($(el));
+			nts.ui.keys.get_shortcut_group(this.page).add($(el));
 		});
 	}
 
 	setup_list_group_by() {
-		this.list_group_by = new frappe.views.ListGroupBy({
+		this.list_group_by = new nts.views.ListGroupBy({
 			doctype: this.doctype,
 			sidebar: this,
 			list_view: this.list_view,
@@ -195,8 +195,8 @@ frappe.views.ListSidebar = class ListSidebar {
 		let dropdown_options = me.sidebar.find(".list-stats-dropdown .stat-result");
 		this.set_loading_state(dropdown_options);
 
-		frappe.call({
-			method: "frappe.desk.reportview.get_sidebar_stats",
+		nts.call({
+			method: "nts.desk.reportview.get_sidebar_stats",
 			type: "GET",
 			args: {
 				stats: me.stats,
@@ -211,7 +211,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				let stats = (r.message.stats || {})["_user_tags"] || [];
 				me.render_stat(stats);
 				let stats_dropdown = me.sidebar.find(".list-stats-dropdown");
-				frappe.utils.setup_search(stats_dropdown, ".stat-link", ".stat-label");
+				nts.utils.setup_search(stats_dropdown, ".stat-link", ".stat-label");
 			},
 		});
 	}
@@ -230,7 +230,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			label: __("Tags"),
 		};
 
-		let tag_list = $(frappe.render_template("list_sidebar_stat", args)).on(
+		let tag_list = $(nts.render_template("list_sidebar_stat", args)).on(
 			"click",
 			".stat-link",
 			(e) => {
@@ -280,8 +280,8 @@ frappe.views.ListSidebar = class ListSidebar {
 		}
 
 		const message = __("Get more insights with");
-		const link = "https://frappe.io/s/insights";
-		const cta = "Frappe Insights";
+		const link = "https://nts.io/s/insights";
+		const cta = "nts Insights";
 		this.add_banner(message, link, cta);
 	}
 
@@ -292,8 +292,8 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		const message = "";
 		const link =
-			"https://frappe.io/crm?utm_source=crm-sidebar&utm_medium=sidebar&utm_campaign=frappe-ad";
-		const cta = __("Switch to Frappe CRM for smarter sales");
+			"https://nts.io/crm?utm_source=crm-sidebar&utm_medium=sidebar&utm_campaign=nts-ad";
+		const cta = __("Switch to nts CRM for smarter sales");
 		this.add_banner(message, link, cta);
 	}
 
@@ -304,8 +304,8 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		const message = "";
 		const link =
-			"https://frappe.io/helpdesk?utm_source=support-sidebar&utm_medium=sidebar&utm_campaign=frappe-ad";
-		const cta = __("Upgrade your support experience with Frappe Helpdesk");
+			"https://nts.io/helpdesk?utm_source=support-sidebar&utm_medium=sidebar&utm_campaign=nts-ad";
+		const cta = __("Upgrade your support experience with nts Helpdesk");
 		this.add_banner(message, link, cta);
 	}
 };

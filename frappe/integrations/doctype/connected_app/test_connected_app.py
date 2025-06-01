@@ -1,18 +1,18 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 from urllib.parse import urljoin
 
 import requests
 
-import frappe
-from frappe.integrations.doctype.social_login_key.test_social_login_key import (
+import nts
+from nts.integrations.doctype.social_login_key.test_social_login_key import (
 	create_or_update_social_login_key,
 )
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
 
 def get_user(usr, pwd):
-	user = frappe.new_doc("User")
+	user = nts.new_doc("User")
 	user.email = usr
 	user.enabled = 1
 	user.first_name = "_Test"
@@ -26,8 +26,8 @@ def get_user(usr, pwd):
 
 def get_connected_app():
 	doctype = "Connected App"
-	connected_app = frappe.new_doc(doctype)
-	connected_app.provider_name = "frappe"
+	connected_app = nts.new_doc(doctype)
+	connected_app.provider_name = "nts"
 	connected_app.scopes = []
 	connected_app.append("scopes", {"scope": "all"})
 	connected_app.insert()
@@ -36,7 +36,7 @@ def get_connected_app():
 
 
 def get_oauth_client():
-	oauth_client = frappe.new_doc("OAuth Client")
+	oauth_client = nts.new_doc("OAuth Client")
 	oauth_client.app_name = "_Test Connected App"
 	oauth_client.redirect_uris = "to be replaced"
 	oauth_client.default_redirect_uri = "to be replaced"
@@ -48,16 +48,16 @@ def get_oauth_client():
 	return oauth_client
 
 
-class TestConnectedApp(FrappeTestCase):
+class TestConnectedApp(ntsTestCase):
 	def setUp(self):
 		"""Set up a Connected App that connects to our own oAuth provider.
 
-		Frappe comes with it's own oAuth2 provider that we can test against. The
+		nts comes with it's own oAuth2 provider that we can test against. The
 		client credentials can be obtained from an "OAuth Client". All depends
 		on "Social Login Key" so we create one as well.
 
 		The redirect URIs from "Connected App" and "OAuth Client" have to match.
-		Frappe's "Authorization URL" and "Access Token URL" (actually they're
+		nts's "Authorization URL" and "Access Token URL" (actually they're
 		just endpoints) are stored in "Social Login Key" so we get them from
 		there.
 		"""
@@ -70,7 +70,7 @@ class TestConnectedApp(FrappeTestCase):
 		social_login_key = create_or_update_social_login_key()
 		self.base_url = social_login_key.get("base_url")
 
-		frappe.db.commit()
+		nts.db.commit()
 		self.connected_app.reload()
 		self.oauth_client.reload()
 
@@ -88,7 +88,7 @@ class TestConnectedApp(FrappeTestCase):
 		)
 		self.connected_app.save()
 
-		frappe.db.commit()
+		nts.db.commit()
 		self.connected_app.reload()
 		self.oauth_client.reload()
 
@@ -119,7 +119,7 @@ class TestConnectedApp(FrappeTestCase):
 		self.assertNotEqual(token, None)
 
 		oauth2_session = self.connected_app.get_oauth2_session(self.user_name)
-		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"))
+		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/nts.auth.get_logged_user"))
 		self.assertEqual(resp.json().get("message"), self.user_name)
 
 	def tearDown(self):
@@ -128,23 +128,23 @@ class TestConnectedApp(FrappeTestCase):
 			if doc:
 				doc.delete(force=True)
 
-		frappe.db.commit()  # Avoid snapshot violation issues
+		nts.db.commit()  # Avoid snapshot violation issues
 
 		delete_if_exists("token_cache")
 		delete_if_exists("connected_app")
 
 		if getattr(self, "oauth_client", None):
-			tokens = frappe.get_all("OAuth Bearer Token", filters={"client": self.oauth_client.name})
+			tokens = nts.get_all("OAuth Bearer Token", filters={"client": self.oauth_client.name})
 			for token in tokens:
-				doc = frappe.get_doc("OAuth Bearer Token", token.name)
+				doc = nts.get_doc("OAuth Bearer Token", token.name)
 				doc.delete()
 
-			codes = frappe.get_all("OAuth Authorization Code", filters={"client": self.oauth_client.name})
+			codes = nts.get_all("OAuth Authorization Code", filters={"client": self.oauth_client.name})
 			for code in codes:
-				doc = frappe.get_doc("OAuth Authorization Code", code.name)
+				doc = nts.get_doc("OAuth Authorization Code", code.name)
 				doc.delete()
 
 		delete_if_exists("user")
 		delete_if_exists("oauth_client")
 
-		frappe.db.commit()
+		nts.db.commit()

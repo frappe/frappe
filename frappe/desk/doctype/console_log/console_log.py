@@ -1,8 +1,8 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class ConsoleLog(Document):
@@ -12,7 +12,7 @@ class ConsoleLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		committed: DF.Check
 		script: DF.Code | None
@@ -21,4 +21,4 @@ class ConsoleLog(Document):
 
 	def after_delete(self):
 		# because on_trash can be bypassed
-		frappe.throw(frappe._("Console Logs can not be deleted"))
+		nts.throw(nts._("Console Logs can not be deleted"))

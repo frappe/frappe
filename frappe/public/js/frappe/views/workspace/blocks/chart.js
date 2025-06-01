@@ -3,7 +3,7 @@ export default class Chart extends Block {
 	static get toolbox() {
 		return {
 			title: "Chart",
-			icon: frappe.utils.icon("chart", "sm"),
+			icon: nts.utils.icon("chart", "sm"),
 		};
 	}
 

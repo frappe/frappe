@@ -1,14 +1,14 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from urllib import robotparser
 from urllib.parse import quote
 
-import frappe
-from frappe.model.document import get_controller
-from frappe.utils import get_url, nowdate
-from frappe.utils.caching import redis_cache
-from frappe.website.router import get_doctypes_with_web_view, get_pages
+import nts
+from nts.model.document import get_controller
+from nts.utils import get_url, nowdate
+from nts.utils.caching import redis_cache
+from nts.website.router import get_doctypes_with_web_view, get_pages
 
 no_cache = 1
 base_template_path = "www/sitemap.xml"
@@ -41,13 +41,13 @@ def get_public_pages_from_doctypes():
 	doctypes_with_web_view = get_doctypes_with_web_view()
 
 	robot_parser_instance = None
-	if robots_txt := frappe.db.get_single_value("Website Settings", "robots_txt"):
+	if robots_txt := nts.db.get_single_value("Website Settings", "robots_txt"):
 		robot_parser_instance = robotparser.RobotFileParser()
 		robot_parser_instance.parse(robots_txt.splitlines())
 
 	for doctype in doctypes_with_web_view:
 		controller = get_controller(doctype)
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 
 		if not meta.allow_guest_to_view:
 			continue
@@ -58,13 +58,13 @@ def get_public_pages_from_doctypes():
 			continue
 
 		try:
-			res = frappe.get_all(
+			res = nts.get_all(
 				doctype,
 				fields=["route", "name", "modified"],
 				filters={condition_field: True},
 			)
 		except Exception as e:
-			if not frappe.db.is_missing_column(e):
+			if not nts.db.is_missing_column(e):
 				raise e
 
 		for r in res:

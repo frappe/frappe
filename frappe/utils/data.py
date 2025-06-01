@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import base64
@@ -23,8 +23,8 @@ from dateutil import parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
 
-import frappe
-from frappe.desk.utils import slug
+import nts
+from nts.desk.utils import slug
 
 DateTimeLikeObject = str | datetime.date | datetime.datetime
 NumericType = int | float
@@ -66,7 +66,7 @@ class Weekday(Enum):
 
 
 def get_first_day_of_the_week() -> str:
-	return frappe.get_system_settings("first_day_of_the_week") or "Sunday"
+	return nts.get_system_settings("first_day_of_the_week") or "Sunday"
 
 
 def get_start_of_week_index() -> int:
@@ -100,9 +100,9 @@ def getdate(
 	try:
 		return parser.parse(string_date, dayfirst=parse_day_first).date()
 	except ParserError:
-		frappe.throw(
-			frappe._("{} is not a valid date string.").format(frappe.bold(string_date)),
-			title=frappe._("Invalid Date"),
+		nts.throw(
+			nts._("{} is not a valid date string.").format(nts.bold(string_date)),
+			title=nts._("Invalid Date"),
 		)
 
 
@@ -254,7 +254,7 @@ def add_to_date(
 		try:
 			date = get_datetime(date)
 		except ParserError:
-			frappe.throw(frappe._("Please select a valid date filter"), title=frappe._("Invalid Date"))
+			nts.throw(nts._("Please select a valid date filter"), title=nts._("Invalid Date"))
 
 	date = date + relativedelta(
 		years=years, months=months, weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds
@@ -325,7 +325,7 @@ def get_eta(from_time, percent_complete):
 
 def get_system_timezone() -> str:
 	"""Return the system timezone."""
-	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
+	return nts.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
@@ -351,9 +351,9 @@ def convert_utc_to_system_timezone(utc_timestamp):
 
 def now() -> str:
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
-	if frappe.flags.current_date:
+	if nts.flags.current_date:
 		return (
-			getdate(frappe.flags.current_date).strftime(DATE_FORMAT)
+			getdate(nts.flags.current_date).strftime(DATE_FORMAT)
 			+ " "
 			+ now_datetime().strftime(TIME_FORMAT)
 		)
@@ -536,10 +536,10 @@ def get_time_str(timedelta_obj) -> str:
 
 def get_user_date_format() -> str:
 	"""Get the current user date format. The result will be cached."""
-	if getattr(frappe.local, "user_date_format", None) is None:
-		frappe.local.user_date_format = frappe.db.get_default("date_format")
+	if getattr(nts.local, "user_date_format", None) is None:
+		nts.local.user_date_format = nts.db.get_default("date_format")
 
-	return frappe.local.user_date_format or "yyyy-mm-dd"
+	return nts.local.user_date_format or "yyyy-mm-dd"
 
 
 get_user_format = get_user_date_format  # for backwards compatibility
@@ -547,10 +547,10 @@ get_user_format = get_user_date_format  # for backwards compatibility
 
 def get_user_time_format() -> str:
 	"""Get the current user time format. The result will be cached."""
-	if getattr(frappe.local, "user_time_format", None) is None:
-		frappe.local.user_time_format = frappe.db.get_default("time_format")
+	if getattr(nts.local, "user_time_format", None) is None:
+		nts.local.user_time_format = nts.db.get_default("time_format")
 
-	return frappe.local.user_time_format or "HH:mm:ss"
+	return nts.local.user_time_format or "HH:mm:ss"
 
 
 def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
@@ -575,7 +575,7 @@ def format_date(string_date=None, format_string: str | None = None, parse_day_fi
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
 	try:
 		formatted_date = babel.dates.format_date(
-			date, format_string, locale=(frappe.local.lang or "").replace("-", "_")
+			date, format_string, locale=(nts.local.lang or "").replace("-", "_")
 		)
 	except (UnknownLocaleError, ValueError):
 		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
@@ -606,7 +606,7 @@ def format_time(time_string=None, format_string: str | None = None) -> str:
 		format_string = get_user_time_format()
 	try:
 		formatted_time = babel.dates.format_time(
-			time_, format_string, locale=(frappe.local.lang or "").replace("-", "_")
+			time_, format_string, locale=(nts.local.lang or "").replace("-", "_")
 		)
 	except (UnknownLocaleError, ValueError):
 		formatted_time = time_.strftime("%H:%M:%S")
@@ -634,7 +634,7 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 
 	try:
 		formatted_datetime = babel.dates.format_datetime(
-			datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_")
+			datetime, format_string, locale=(nts.local.lang or "").replace("-", "_")
 		)
 	except (UnknownLocaleError, ValueError):
 		formatted_datetime = datetime.strftime("%Y-%m-%d %H:%M:%S")
@@ -709,8 +709,8 @@ def duration_to_seconds(duration):
 
 def validate_duration_format(duration):
 	if not DURATION_PATTERN.match(duration):
-		frappe.throw(
-			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
+		nts.throw(
+			nts._("Value {0} must be in the valid duration format: d h m s").format(nts.bold(duration))
 		)
 
 
@@ -839,7 +839,7 @@ def global_date_format(date, format="long"):
 	import babel.dates
 
 	date = getdate(date)
-	return babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
+	return babel.dates.format_date(date, locale=(nts.local.lang or "en").replace("-", "_"), format=format)
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
@@ -850,8 +850,8 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 def cast_fieldtype(fieldtype, value, show_warning=True):
 	if show_warning:
 		message = (
-			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
-			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
+			"Function `nts.utils.data.cast_fieldtype` has been deprecated in favour"
+			" of `nts.utils.data.cast`. Use the newer util for safer type casting."
 		)
 		secho(message, fg="yellow")
 
@@ -886,11 +886,11 @@ def cast_fieldtype(fieldtype, value, show_warning=True):
 
 
 def cast(fieldtype, value=None):
-	"""Cast the value to the Python native object of the Frappe fieldtype provided.
+	"""Cast the value to the Python native object of the nts fieldtype provided.
 	If value is None, the first/lowest value of the `fieldtype` will be returned.
 	If value can't be cast as fieldtype due to an invalid input, None will be returned.
 
-	Mapping of Python types => Frappe types:
+	Mapping of Python types => nts types:
 	        * str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
 	        * float => ("Currency", "Float", "Percent")
 	        * int => ("Int", "Check")
@@ -972,7 +972,7 @@ def flt(s: NumericType | str, precision: int | None = None, rounding_method: str
 		if precision is not None:
 			num = rounded(num, precision, rounding_method)
 	except Exception as e:
-		if isinstance(e, frappe.InvalidRoundingMethod):
+		if isinstance(e, nts.InvalidRoundingMethod):
 			raise
 		num = 0.0
 
@@ -1048,7 +1048,7 @@ def ceil(s):
 
 
 def cstr(s, encoding="utf-8"):
-	return frappe.as_unicode(s, encoding)
+	return nts.as_unicode(s, encoding)
 
 
 def sbool(x: str) -> bool | Any:
@@ -1080,7 +1080,7 @@ def rounded(num, precision=0, rounding_method=None):
 	precision = cint(precision)
 
 	rounding_method = (
-		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
+		rounding_method or nts.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
 	)
 
 	if rounding_method == "Banker's Rounding":
@@ -1090,9 +1090,9 @@ def rounded(num, precision=0, rounding_method=None):
 	elif rounding_method == "Commercial Rounding":
 		return _round_away_from_zero(num, precision)
 	else:
-		frappe.throw(
-			frappe._("Unknown Rounding Method: {}").format(rounding_method),
-			exc=frappe.InvalidRoundingMethod,
+		nts.throw(
+			nts._("Unknown Rounding Method: {}").format(rounding_method),
+			exc=nts.InvalidRoundingMethod,
 		)
 
 
@@ -1188,7 +1188,7 @@ def safe_div(numerator: NumericType, denominator: NumericType, precision: int = 
 
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	smallest_currency_fraction_value = flt(
-		frappe.db.get_value("Currency", currency, "smallest_currency_fraction_value", cache=True)
+		nts.db.get_value("Currency", currency, "smallest_currency_fraction_value", cache=True)
 	)
 
 	if smallest_currency_fraction_value:
@@ -1238,9 +1238,9 @@ def fmt_money(
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
+	number_format = format or nts.db.get_default("number_format") or "#,###.##"
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		precision = cint(nts.db.get_default("currency_precision")) or None
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
@@ -1265,7 +1265,7 @@ def fmt_money(
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
-					fraction = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
+					fraction = nts.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
 					precision = number_format_precision
@@ -1304,14 +1304,14 @@ def fmt_money(
 	if amount != "0":
 		amount = minus + amount
 
-	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
-		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
-		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
+	if currency and nts.defaults.get_global_default("hide_currency_symbol") != "Yes":
+		symbol = nts.db.get_value("Currency", currency, "symbol", cache=True) or currency
+		symbol_on_right = nts.db.get_value("Currency", currency, "symbol_on_right", cache=True)
 
 		if symbol_on_right:
-			amount = f"{amount} {frappe._(symbol)}"
+			amount = f"{amount} {nts._(symbol)}"
 		else:
-			amount = f"{frappe._(symbol)} {amount}"
+			amount = f"{nts._(symbol)} {amount}"
 
 	return amount
 
@@ -1346,9 +1346,9 @@ def money_in_words(
 	"""
 	Returns string in words with currency and fraction currency.
 	"""
-	from frappe.utils import get_defaults
+	from nts.utils import get_defaults
 
-	_ = frappe._
+	_ = nts._
 
 	try:
 		# note: `flt` returns 0 for invalid input and we don't want that
@@ -1364,13 +1364,13 @@ def money_in_words(
 	if not main_currency:
 		main_currency = d.get("currency", "INR")
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
+		fraction_currency = nts.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
 			"Cent"
 		)
 
 	number_format = (
-		frappe.db.get_value("Currency", main_currency, "number_format", cache=True)
-		or frappe.db.get_default("number_format")
+		nts.db.get_value("Currency", main_currency, "number_format", cache=True)
+		or nts.db.get_default("number_format")
 		or "#,###.##"
 	)
 
@@ -1414,7 +1414,7 @@ def in_words(integer: int, in_million=True) -> str:
 	"""
 	from num2words import num2words
 
-	locale = "en_IN" if not in_million else frappe.local.lang
+	locale = "en_IN" if not in_million else nts.local.lang
 	integer = int(integer)
 	try:
 		ret = num2words(integer, lang=locale)
@@ -1444,11 +1444,11 @@ def get_thumbnail_base64_for_image(src):
 
 	from PIL import Image
 
-	from frappe import cache, safe_decode
-	from frappe.core.doctype.file.utils import get_local_image
+	from nts import cache, safe_decode
+	from nts.core.doctype.file.utils import get_local_image
 
 	if not src:
-		frappe.throw(f"Invalid source for image: {src}")
+		nts.throw(f"Invalid source for image: {src}")
 
 	if not src.startswith("/files") or ".." in src:
 		return
@@ -1457,7 +1457,7 @@ def get_thumbnail_base64_for_image(src):
 		return
 
 	def _get_base64():
-		file_path = frappe.get_site_path("public", src.lstrip("/"))
+		file_path = nts.get_site_path("public", src.lstrip("/"))
 		if not file_exists(file_path):
 			return
 
@@ -1491,7 +1491,7 @@ def image_to_base64(image, extn: str) -> bytes:
 
 
 def pdf_to_base64(filename: str) -> bytes | None:
-	from frappe.utils.file_manager import get_file_path
+	from nts.utils.file_manager import get_file_path
 
 	if "../" in filename or filename.rsplit(".")[-1] not in ["pdf", "PDF"]:
 		return
@@ -1544,16 +1544,16 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	if isinstance(iso_datetime, str):
 		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
 	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
-	locale = frappe.local.lang.replace("-", "_") if frappe.local.lang else None
+	locale = nts.local.lang.replace("-", "_") if nts.local.lang else None
 	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
 
 
 def comma_or(some_list, add_quotes=True):
-	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
+	return comma_sep(some_list, nts._("{0} or {1}"), add_quotes)
 
 
 def comma_and(some_list, add_quotes=True):
-	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
+	return comma_sep(some_list, nts._("{0} and {1}"), add_quotes)
 
 
 def comma_sep(some_list, pattern, add_quotes=True):
@@ -1566,7 +1566,7 @@ def comma_sep(some_list, pattern, add_quotes=True):
 			return some_list[0]
 		else:
 			some_list = ["'%s'" % s for s in some_list] if add_quotes else ["%s" % s for s in some_list]
-			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
+			return pattern.format(", ".join(nts._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
 
@@ -1597,7 +1597,7 @@ def get_url(
 	allow_header_override: bool = True,
 ) -> str:
 	"""Get app url from request."""
-	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
+	host_name = nts.local.conf.host_name or nts.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
 		return uri
@@ -1608,25 +1608,25 @@ def get_url(
 		if request_host_name and allow_header_override:
 			host_name = request_host_name
 
-		elif frappe.local.site:
+		elif nts.local.site:
 			protocol = "http://"
 
-			if frappe.local.conf.ssl_certificate:
+			if nts.local.conf.ssl_certificate:
 				protocol = "https://"
 
-			elif frappe.local.conf.wildcard:
-				domain = frappe.local.conf.wildcard.get("domain")
+			elif nts.local.conf.wildcard:
+				domain = nts.local.conf.wildcard.get("domain")
 				if (
 					domain
-					and frappe.local.site.endswith(domain)
-					and frappe.local.conf.wildcard.get("ssl_certificate")
+					and nts.local.site.endswith(domain)
+					and nts.local.conf.wildcard.get("ssl_certificate")
 				):
 					protocol = "https://"
 
-			host_name = protocol + frappe.local.site
+			host_name = protocol + nts.local.site
 
 		else:
-			host_name = frappe.db.get_single_value("Website Settings", "subdomain")
+			host_name = nts.db.get_single_value("Website Settings", "subdomain")
 
 			if not host_name:
 				host_name = "http://127.0.0.1"
@@ -1635,12 +1635,12 @@ def get_url(
 		host_name = "http://" + host_name
 
 	if not uri and full_address:
-		uri = frappe.get_request_header("REQUEST_URI", "")
+		uri = nts.get_request_header("REQUEST_URI", "")
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = nts.conf.http_port or nts.conf.webserver_port
 
 	if (
-		not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update)
+		not (nts.conf.restart_supervisor_on_update or nts.conf.restart_systemd_on_update)
 		and host_name
 		and not url_contains_port(host_name)
 		and port
@@ -1651,9 +1651,9 @@ def get_url(
 
 
 def get_host_name_from_request() -> str:
-	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		return protocol + frappe.local.request.host
+	if hasattr(nts.local, "request") and nts.local.request and nts.local.request.host:
+		protocol = "https://" if "https" == nts.get_request_header("X-Forwarded-Proto", "") else "http://"
+		return protocol + nts.local.request.host
 
 
 def url_contains_port(url: str) -> bool:
@@ -1758,7 +1758,7 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 	elif pattern == "not set":
 		return not is_set()
 	else:
-		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
+		nts.throw(nts._(f"Invalid argument for operator 'IS': {pattern}"))
 
 
 def filter_operator_timespan(value: str, pattern: str) -> bool:
@@ -1819,7 +1819,7 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	return False
 
 
-def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
+def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "nts._dict":
 	"""Returns a _dict like
 
 	{
@@ -1830,26 +1830,26 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	        "fieldtype":
 	}
 	"""
-	from frappe.database.utils import NestedSetHierarchy
-	from frappe.model import child_table_fields, default_fields, optional_fields
+	from nts.database.utils import NestedSetHierarchy
+	from nts.model import child_table_fields, default_fields, optional_fields
 
 	if isinstance(f, dict):
 		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, list | tuple):
-		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
+		nts.throw(nts._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
 	elif len(f) > 4:
 		f = f[0:4]
 	elif len(f) != 4:
-		frappe.throw(
-			frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f))
+		nts.throw(
+			nts._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f))
 		)
 
-	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
+	f = nts._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
 	f.fieldname = sanitize_column(f.fieldname)
 
@@ -1881,21 +1881,21 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		valid_operators = tuple(set(valid_operators + tuple(additional_operators)))
 
 	if f.operator.lower() not in valid_operators:
-		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
+		nts.throw(nts._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 	if f.doctype and (f.fieldname not in default_fields + optional_fields + child_table_fields):
 		# verify fieldname belongs to the doctype
-		meta = frappe.get_meta(f.doctype)
+		meta = nts.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
 			# try and match the doctype name from child tables
 			for df in meta.get_table_fields():
-				if frappe.get_meta(df.options).has_field(f.fieldname):
+				if nts.get_meta(df.options).has_field(f.fieldname):
 					f.doctype = df.options
 					break
 
 	try:
-		df = frappe.get_meta(f.doctype).get_field(f.fieldname) if f.doctype else None
-	except frappe.exceptions.DoesNotExistError:
+		df = nts.get_meta(f.doctype).get_field(f.fieldname) if f.doctype else None
+	except nts.exceptions.DoesNotExistError:
 		df = None
 
 	f.fieldtype = df.fieldtype if df else None
@@ -1915,7 +1915,7 @@ def make_filter_dict(filters):
 	"""convert this [[doctype, key, operator, value], ..]
 	to this { key: (operator, value), .. }
 	"""
-	_filter = frappe._dict()
+	_filter = nts._dict()
 	for f in filters:
 		_filter[f[1]] = (f[2], f[3])
 
@@ -1923,14 +1923,14 @@ def make_filter_dict(filters):
 
 
 def sanitize_column(column_name: str) -> str:
-	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
+	return _sanitize_column(column_name, (nts.db and nts.db.db_type) or None)
 
 
 @lru_cache(maxsize=1024)
 def _sanitize_column(column_name: str, db_type: str) -> str:
 	import sqlparse
 
-	from frappe import _
+	from nts import _
 
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
 	if db_type == "mariadb":
@@ -1950,7 +1950,7 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 	]
 
 	def _raise_exception():
-		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
+		nts.throw(_("Invalid field name {0}").format(column_name), nts.DataError)
 
 	regex = re.compile("^.*[,'();\n].*")
 	if "ifnull" in column_name:
@@ -2042,7 +2042,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 def to_markdown(html: str) -> str:
 	from html.parser import HTMLParser
 
-	from frappe.core.utils import html2text
+	from nts.core.utils import html2text
 
 	try:
 		return html2text(html or "")
@@ -2079,7 +2079,7 @@ def is_subset(list_a: list, list_b: list) -> bool:
 
 
 def generate_hash(*args, **kwargs) -> str:
-	return frappe.generate_hash(*args, **kwargs)
+	return nts.generate_hash(*args, **kwargs)
 
 
 def sha256_hash(input: str | bytes) -> str:
@@ -2183,7 +2183,7 @@ def validate_json_string(string: str) -> None:
 	try:
 		json.loads(string)
 	except (TypeError, ValueError):
-		raise frappe.ValidationError
+		raise nts.ValidationError
 
 
 class _UserInfo(typing.TypedDict):
@@ -2194,11 +2194,11 @@ class _UserInfo(typing.TypedDict):
 
 def get_user_info_for_avatar(user_id: str) -> _UserInfo:
 	try:
-		user = frappe.get_cached_doc("User", user_id)
+		user = nts.get_cached_doc("User", user_id)
 		return {"email": user.email, "image": user.user_image, "name": user.full_name}
 
-	except frappe.DoesNotExistError:
-		frappe.clear_last_message()
+	except nts.DoesNotExistError:
+		nts.clear_last_message()
 		return {"email": user_id, "image": "", "name": user_id}
 
 
@@ -2219,16 +2219,16 @@ def validate_python_code(string: str, fieldname: str | None = None, is_expressio
 		line_no = se.lineno - 1 or 0
 		offset = se.offset - 1 or 0
 		error_line = string if is_expression else string.split("\n")[line_no]
-		msg = frappe._("{} Invalid python code on line {}").format(
+		msg = nts._("{} Invalid python code on line {}").format(
 			fieldname + ":" if fieldname else "", line_no + 1
 		)
 		msg += f"<br><pre>{error_line}</pre>"
 		msg += f"<pre>{' ' * offset}^</pre>"
 
-		frappe.throw(msg, title=frappe._("Syntax Error"))
+		nts.throw(msg, title=nts._("Syntax Error"))
 	except Exception as e:
-		frappe.msgprint(
-			frappe._("{} Possibly invalid python code. <br>{}").format(fieldname + ": " or "", str(e)),
+		nts.msgprint(
+			nts._("{} Possibly invalid python code. <br>{}").format(fieldname + ": " or "", str(e)),
 			indicator="orange",
 		)
 
@@ -2241,7 +2241,7 @@ class UnicodeWithAttrs(str):
 
 def format_timedelta(o: datetime.timedelta | str) -> str:
 	# MariaDB allows a wide range - https://mariadb.com/kb/en/time/
-	# but Frappe doesn't - I think via babel : only allows 0..23 range for hour
+	# but nts doesn't - I think via babel : only allows 0..23 range for hour
 	if isinstance(o, datetime.timedelta):
 		total_seconds = o.total_seconds()
 	else:
@@ -2296,7 +2296,7 @@ def is_site_link(link: str) -> bool:
 		return False
 	if link.startswith("/"):
 		return True
-	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
+	return urlparse(link).netloc == urlparse(nts.utils.get_url()).netloc
 
 
 def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:

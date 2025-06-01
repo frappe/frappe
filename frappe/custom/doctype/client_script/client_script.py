@@ -1,7 +1,7 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class ClientScript(Document):
@@ -11,7 +11,7 @@ class ClientScript(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		dt: DF.Link
 		enabled: DF.Check
@@ -21,7 +21,7 @@ class ClientScript(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		frappe.clear_cache(doctype=self.dt)
+		nts.clear_cache(doctype=self.dt)
 
 	def on_trash(self):
-		frappe.clear_cache(doctype=self.dt)
+		nts.clear_cache(doctype=self.dt)

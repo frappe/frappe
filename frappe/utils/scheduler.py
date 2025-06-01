@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 Events:
@@ -16,10 +16,10 @@ from typing import NoReturn
 from croniter import CroniterBadCronError
 from filelock import FileLock, Timeout
 
-import frappe
-from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
-from frappe.utils.background_jobs import set_niceness
-from frappe.utils.caching import redis_cache
+import nts
+from nts.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
+from nts.utils.background_jobs import set_niceness
+from nts.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -46,7 +46,7 @@ def start_scheduler() -> NoReturn:
 		lock = FileLock(lock_path)
 		lock.acquire(blocking=False)
 	except Timeout:
-		frappe.logger("scheduler").debug("Scheduler already running")
+		nts.logger("scheduler").debug("Scheduler already running")
 		return
 
 	while True:
@@ -76,7 +76,7 @@ def is_schduler_process_running() -> bool:
 def enqueue_events_for_all_sites() -> None:
 	"""Loop through sites and enqueue events that are not already queued"""
 
-	with frappe.init_site():
+	with nts.init_site():
 		sites = get_sites()
 
 	# Sites are sorted in alphabetical order, shuffle to randomize priorities
@@ -86,58 +86,58 @@ def enqueue_events_for_all_sites() -> None:
 		try:
 			enqueue_events_for_site(site=site)
 		except Exception:
-			frappe.logger("scheduler").debug(f"Failed to enqueue events for site: {site}", exc_info=True)
+			nts.logger("scheduler").debug(f"Failed to enqueue events for site: {site}", exc_info=True)
 
 
 def enqueue_events_for_site(site: str) -> None:
 	def log_exc():
-		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
+		nts.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
-		frappe.init(site=site)
-		frappe.connect()
+		nts.init(site=site)
+		nts.connect()
 		if is_scheduler_inactive():
 			return
 
 		enqueue_events(site=site)
 
-		frappe.logger("scheduler").debug(f"Queued events for site {site}")
+		nts.logger("scheduler").debug(f"Queued events for site {site}")
 	except Exception as e:
-		if frappe.db.is_access_denied(e):
-			frappe.logger("scheduler").debug(f"Access denied for site {site}")
+		if nts.db.is_access_denied(e):
+			nts.logger("scheduler").debug(f"Access denied for site {site}")
 		log_exc()
 
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 def enqueue_events(site: str) -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+		all_jobs = nts.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
-			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
+			job_type = nts.get_doc(doctype="Scheduled Job Type", **job_type)
 			try:
 				if job_type.enqueue():
 					enqueued_jobs.append(job_type.method)
 			except CroniterBadCronError:
-				frappe.logger("scheduler").error(
-					f"Invalid Job on {frappe.local.site} - {job_type.name}", exc_info=True
+				nts.logger("scheduler").error(
+					f"Invalid Job on {nts.local.site} - {job_type.name}", exc_info=True
 				)
 
 		return enqueued_jobs
 
 
 def is_scheduler_inactive(verbose=True) -> bool:
-	if frappe.local.conf.maintenance_mode:
+	if nts.local.conf.maintenance_mode:
 		if verbose:
-			cprint(f"{frappe.local.site}: Maintenance mode is ON")
+			cprint(f"{nts.local.site}: Maintenance mode is ON")
 		return True
 
-	if frappe.local.conf.pause_scheduler:
+	if nts.local.conf.pause_scheduler:
 		if verbose:
-			cprint(f"{frappe.local.site}: frappe.conf.pause_scheduler is SET")
+			cprint(f"{nts.local.site}: nts.conf.pause_scheduler is SET")
 		return True
 
 	if is_scheduler_disabled(verbose=verbose):
@@ -147,22 +147,22 @@ def is_scheduler_inactive(verbose=True) -> bool:
 
 
 def is_scheduler_disabled(verbose=True) -> bool:
-	if frappe.conf.disable_scheduler:
+	if nts.conf.disable_scheduler:
 		if verbose:
-			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
+			cprint(f"{nts.local.site}: nts.conf.disable_scheduler is SET")
 		return True
 
-	scheduler_disabled = not frappe.utils.cint(
-		frappe.db.get_single_value("System Settings", "enable_scheduler")
+	scheduler_disabled = not nts.utils.cint(
+		nts.db.get_single_value("System Settings", "enable_scheduler")
 	)
 	if scheduler_disabled:
 		if verbose:
-			cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
+			cprint(f"{nts.local.site}: SystemSettings.enable_scheduler is UNSET")
 	return scheduler_disabled
 
 
 def toggle_scheduler(enable):
-	frappe.db.set_single_value("System Settings", "enable_scheduler", int(enable))
+	nts.db.set_single_value("System Settings", "enable_scheduler", int(enable))
 
 
 def enable_scheduler():
@@ -196,16 +196,16 @@ def schedule_jobs_based_on_activity(check_time=None):
 
 @redis_cache(ttl=60 * 60)
 def is_dormant(check_time=None):
-	from frappe.utils.frappecloud import on_frappecloud
+	from nts.utils.ntscloud import on_ntscloud
 
-	if frappe.conf.developer_mode or not on_frappecloud():
+	if nts.conf.developer_mode or not on_ntscloud():
 		return False
 
-	threshold = cint(frappe.get_system_settings("dormant_days")) * 86400
+	threshold = cint(nts.get_system_settings("dormant_days")) * 86400
 	if not threshold:
 		return False
 
-	last_activity = frappe.db.get_value(
+	last_activity = nts.db.get_value(
 		"User", filters={}, fieldname="last_active", order_by="last_active desc"
 	)
 
@@ -217,27 +217,27 @@ def is_dormant(check_time=None):
 
 
 def _get_last_modified_timestamp(doctype):
-	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
+	timestamp = nts.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
 	if timestamp:
 		return get_datetime(timestamp)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def activate_scheduler():
-	from frappe.installer import update_site_config
+	from nts.installer import update_site_config
 
-	frappe.only_for("Administrator")
+	nts.only_for("Administrator")
 
-	if frappe.local.conf.maintenance_mode:
-		frappe.throw(frappe._("Scheduler can not be re-enabled when maintenance mode is active."))
+	if nts.local.conf.maintenance_mode:
+		nts.throw(nts._("Scheduler can not be re-enabled when maintenance mode is active."))
 
 	if is_scheduler_disabled():
 		enable_scheduler()
-	if frappe.conf.pause_scheduler:
+	if nts.conf.pause_scheduler:
 		update_site_config("pause_scheduler", 0)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_scheduler_status():
 	if is_scheduler_inactive():
 		return {"status": "inactive"}
@@ -245,4 +245,4 @@ def get_scheduler_status():
 
 
 def get_scheduler_tick() -> int:
-	return cint(frappe.get_conf().scheduler_tick_interval) or 60
+	return cint(nts.get_conf().scheduler_tick_interval) or 60

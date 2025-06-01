@@ -1,10 +1,10 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ready(function() {
+nts.ready(function() {
 
-	if(frappe.utils.get_url_arg('subject')) {
-	  $('[name="subject"]').val(frappe.utils.get_url_arg('subject'));
+	if(nts.utils.get_url_arg('subject')) {
+	  $('[name="subject"]').val(nts.utils.get_url_arg('subject'));
 	}
 
 	$('.btn-send').off("click").on("click", function() {
@@ -12,20 +12,20 @@ frappe.ready(function() {
 		var message = $('[name="message"]').val();
 
 		if(!(email && message)) {
-			frappe.msgprint('{{ _("Please enter both your email and message so that we can get back to you. Thanks!") }}');
+			nts.msgprint('{{ _("Please enter both your email and message so that we can get back to you. Thanks!") }}');
 			return false;
 		}
 
 		if(!validate_email(email)) {
-			frappe.msgprint('{{ _("You seem to have written your name instead of your email. Please enter a valid email address so that we can get back.") }}');
+			nts.msgprint('{{ _("You seem to have written your name instead of your email. Please enter a valid email address so that we can get back.") }}');
 			$('[name="email"]').focus();
 			return false;
 		}
 
 		$("#contact-alert").toggle(false);
-		frappe.call({
+		nts.call({
 			type: "POST",
-			method: "frappe.www.contact.send_message",
+			method: "nts.www.contact.send_message",
 			args: {
 				subject: $('[name="subject"]').val(),
 				sender: email,
@@ -33,7 +33,7 @@ frappe.ready(function() {
 			},
 			callback: function(r) {
 				if (!r.exc) {
-					frappe.msgprint('{{ _("Thank you for your message") }}', '{{ _("Message Sent") }}');
+					nts.msgprint('{{ _("Thank you for your message") }}', '{{ _("Message Sent") }}');
 				}
 				$(':input').val('');
 			},

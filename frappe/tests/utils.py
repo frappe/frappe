@@ -9,16 +9,16 @@ from unittest.mock import patch
 
 import pytz
 
-import frappe
-from frappe.model.base_document import BaseDocument, get_controller
-from frappe.utils import cint
-from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
+import nts
+from nts.model.base_document import BaseDocument, get_controller
+from nts.utils import cint
+from nts.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
 
-class FrappeTestCase(unittest.TestCase):
-	"""Base test class for Frappe tests.
+class ntsTestCase(unittest.TestCase):
+	"""Base test class for nts tests.
 
 
 	If you specify `setUpClass` then make sure to call `super().setUpClass`
@@ -32,17 +32,17 @@ class FrappeTestCase(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
-		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
-		cls._primary_connection = frappe.local.db
+		cls.TEST_SITE = getattr(nts.local, "site", None) or cls.TEST_SITE
+		cls.ADMIN_PASSWORD = nts.get_conf(cls.TEST_SITE).admin_password
+		cls._primary_connection = nts.local.db
 		cls._secondary_connection = None
 		# flush changes done so far to avoid flake
-		frappe.db.commit()
+		nts.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
-			frappe.db.before_commit.add(_commit_watcher)
+			nts.db.before_commit.add(_commit_watcher)
 
 		# enqueue teardown actions (executed in LIFO order)
-		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
+		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(nts.local.flags))
 		cls.addClassCleanup(_rollback_db)
 
 		return super().setUpClass()
@@ -51,7 +51,7 @@ class FrappeTestCase(unittest.TestCase):
 		"""Assert that `expected` is a subset of `actual`."""
 		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
-	# --- Frappe Framework specific assertions
+	# --- nts Framework specific assertions
 	def assertDocumentEqual(self, expected, actual):
 		"""Compare a (partial) expected document with actual Document."""
 
@@ -100,25 +100,25 @@ class FrappeTestCase(unittest.TestCase):
 
 		This is used for simulating multiple users performing actions by simulating two DB connections"""
 		try:
-			current_conn = frappe.local.db
-			frappe.local.db = self._primary_connection
+			current_conn = nts.local.db
+			nts.local.db = self._primary_connection
 			yield
 		finally:
-			frappe.local.db = current_conn
+			nts.local.db = current_conn
 
 	@contextmanager
 	def secondary_connection(self):
 		"""Switch to secondary DB connection."""
 		if self._secondary_connection is None:
-			frappe.connect()  # get second connection
-			self._secondary_connection = frappe.local.db
+			nts.connect()  # get second connection
+			self._secondary_connection = nts.local.db
 
 		try:
-			current_conn = frappe.local.db
-			frappe.local.db = self._secondary_connection
+			current_conn = nts.local.db
+			nts.local.db = self._secondary_connection
 			yield
 		finally:
-			frappe.local.db = current_conn
+			nts.local.db = current_conn
 			self.addCleanup(self._rollback_connections)
 
 	def _rollback_connections(self):
@@ -138,12 +138,12 @@ class FrappeTestCase(unittest.TestCase):
 			return ret
 
 		try:
-			orig_sql = frappe.db.__class__.sql
-			frappe.db.__class__.sql = _sql_with_count
+			orig_sql = nts.db.__class__.sql
+			nts.db.__class__.sql = _sql_with_count
 			yield
 			self.assertLessEqual(len(queries), count, msg="Queries executed: \n" + "\n\n".join(queries))
 		finally:
-			frappe.db.__class__.sql = orig_sql
+			nts.db.__class__.sql = orig_sql
 
 	@contextmanager
 	def assertRedisCallCounts(self, count):
@@ -158,14 +158,14 @@ class FrappeTestCase(unittest.TestCase):
 			return ret
 
 		try:
-			orig_execute = frappe.cache.execute_command
-			frappe.cache.execute_command = execute_command_and_count
+			orig_execute = nts.cache.execute_command
+			nts.cache.execute_command = execute_command_and_count
 			yield
 			self.assertLessEqual(
 				len(commands), count, msg="commands executed: \n" + "\n".join(str(c) for c in commands)
 			)
 		finally:
-			frappe.cache.execute_command = orig_execute
+			nts.cache.execute_command = orig_execute
 
 	@contextmanager
 	def assertRowsRead(self, count):
@@ -176,24 +176,24 @@ class FrappeTestCase(unittest.TestCase):
 
 			ret = orig_sql(*args, **kwargs)
 			# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
-			rows_read += cint(frappe.db._cursor.rowcount)
+			rows_read += cint(nts.db._cursor.rowcount)
 			return ret
 
 		try:
-			orig_sql = frappe.db.sql
-			frappe.db.sql = _sql_with_count
+			orig_sql = nts.db.sql
+			nts.db.sql = _sql_with_count
 			yield
 			self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
 		finally:
-			frappe.db.sql = orig_sql
+			nts.db.sql = orig_sql
 
 	@classmethod
 	def enable_safe_exec(cls) -> None:
 		"""Enable safe exec and disable them after test case is completed."""
-		from frappe.installer import update_site_config
-		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+		from nts.installer import update_site_config
+		from nts.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
 
-		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		cls._common_conf = os.path.join(nts.local.sites_path, "common_site_config.json")
 		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
 
 		cls.addClassCleanup(
@@ -205,11 +205,11 @@ class FrappeTestCase(unittest.TestCase):
 	@contextmanager
 	def set_user(self, user: str):
 		try:
-			old_user = frappe.session.user
-			frappe.set_user(user)
+			old_user = nts.session.user
+			nts.set_user(user)
 			yield
 		finally:
-			frappe.set_user(old_user)
+			nts.set_user(old_user)
 
 	@contextmanager
 	def switch_site(self, site: str):
@@ -217,13 +217,13 @@ class FrappeTestCase(unittest.TestCase):
 		Note: Drops current site connection completely."""
 
 		try:
-			old_site = frappe.local.site
-			frappe.init(site, force=True)
-			frappe.connect()
+			old_site = nts.local.site
+			nts.init(site, force=True)
+			nts.connect()
 			yield
 		finally:
-			frappe.init(old_site, force=True)
-			frappe.connect()
+			nts.init(old_site, force=True)
+			nts.connect()
 
 	@contextmanager
 	def freeze_time(self, time_to_freeze, *args, **kwargs):
@@ -237,7 +237,7 @@ class FrappeTestCase(unittest.TestCase):
 			yield
 
 
-class MockedRequestTestCase(FrappeTestCase):
+class MockedRequestTestCase(ntsTestCase):
 	def setUp(self):
 		import responses
 
@@ -258,22 +258,22 @@ def _commit_watcher():
 
 
 def _rollback_db():
-	frappe.db.value_cache = {}
-	frappe.db.rollback()
+	nts.db.value_cache = {}
+	nts.db.rollback()
 
 
 def _restore_thread_locals(flags):
-	frappe.local.flags = flags
-	frappe.local.error_log = []
-	frappe.local.message_log = []
-	frappe.local.debug_log = []
-	frappe.local.conf = frappe._dict(frappe.get_site_config())
-	frappe.local.cache = {}
-	frappe.local.lang = "en"
-	frappe.local.preload_assets = {"style": [], "script": [], "icons": []}
+	nts.local.flags = flags
+	nts.local.error_log = []
+	nts.local.message_log = []
+	nts.local.debug_log = []
+	nts.local.conf = nts._dict(nts.get_site_config())
+	nts.local.cache = {}
+	nts.local.lang = "en"
+	nts.local.preload_assets = {"style": [], "script": [], "icons": []}
 
-	if hasattr(frappe.local, "request"):
-		delattr(frappe.local, "request")
+	if hasattr(nts.local, "request"):
+		delattr(nts.local, "request")
 
 
 @contextmanager
@@ -298,7 +298,7 @@ def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
 		settings_dict = settings
 
 	try:
-		settings = frappe.get_doc(doctype)
+		settings = nts.get_doc(doctype)
 		# remember setting
 		previous_settings = copy.deepcopy(settings_dict)
 		for key in previous_settings:
@@ -309,19 +309,19 @@ def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
 			setattr(settings, key, value)
 		settings.save(ignore_permissions=True)
 		# singles are cached by default, clear to avoid flake
-		frappe.db.value_cache[settings] = {}
+		nts.db.value_cache[settings] = {}
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 		yield  # yield control to calling function
 
 	finally:
 		# restore settings
-		settings = frappe.get_doc(doctype)
+		settings = nts.get_doc(doctype)
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
 		settings.save(ignore_permissions=True)
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 
 
 def timeout(seconds=30, error_message="Test timed out."):
@@ -357,21 +357,21 @@ def timeout(seconds=30, error_message="Test timed out."):
 
 @contextmanager
 def patch_hooks(overridden_hoooks):
-	get_hooks = frappe.get_hooks
+	get_hooks = nts.get_hooks
 
 	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		if hook in overridden_hoooks:
 			return overridden_hoooks[hook]
 		return get_hooks(hook, default, app_name)
 
-	with patch.object(frappe, "get_hooks", patched_hooks):
+	with patch.object(nts, "get_hooks", patched_hooks):
 		yield
 
 
 def check_orpahned_doctypes():
 	"""Check that all doctypes in DB actually exist after patch test"""
 
-	doctypes = frappe.get_all("DocType", {"custom": 0}, pluck="name")
+	doctypes = nts.get_all("DocType", {"custom": 0}, pluck="name")
 	orpahned_doctypes = []
 
 	for doctype in doctypes:
@@ -381,6 +381,6 @@ def check_orpahned_doctypes():
 			orpahned_doctypes.append(doctype)
 
 	if orpahned_doctypes:
-		frappe.throw(
+		nts.throw(
 			"Following doctypes exist in DB without controller.\n {}".format("\n".join(orpahned_doctypes))
 		)

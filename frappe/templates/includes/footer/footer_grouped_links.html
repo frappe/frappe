@@ -2,7 +2,7 @@
 	<div class="row">
 		{% for group in footer_items if group.child_items %}
 		{# 2 columns to every 5 links, so 5 links get 2 columns, 5-10 links get 4 columns, and so on #}
-		{%- set cols = frappe.utils.ceil((group.child_items | len) / 5) * 2 -%}
+		{%- set cols = nts.utils.ceil((group.child_items | len) / 5) * 2 -%}
 		<div class="col-sm-{{ cols }} footer-group">
 			<div data-label="{{ group.label }}">
 				<h5 class="footer-group-label">

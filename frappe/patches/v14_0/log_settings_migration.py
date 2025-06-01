@@ -1,4 +1,4 @@
-import frappe
+import nts
 
 
 def execute():
@@ -8,10 +8,10 @@ def execute():
 		"Email Queue": get_current_setting("clear_email_queue_after"),
 	}
 
-	frappe.reload_doc("core", "doctype", "Logs To Clear")
-	frappe.reload_doc("core", "doctype", "Log Settings")
+	nts.reload_doc("core", "doctype", "Logs To Clear")
+	nts.reload_doc("core", "doctype", "Log Settings")
 
-	log_settings = frappe.get_doc("Log Settings")
+	log_settings = nts.get_doc("Log Settings")
 	log_settings.add_default_logtypes()
 
 	for doctype, retention in old_settings.items():
@@ -23,7 +23,7 @@ def execute():
 
 def get_current_setting(fieldname):
 	try:
-		return frappe.db.get_single_value("Log Settings", fieldname)
+		return nts.db.get_single_value("Log Settings", fieldname)
 	except Exception:
 		# Field might be gone if patch is reattempted
 		pass

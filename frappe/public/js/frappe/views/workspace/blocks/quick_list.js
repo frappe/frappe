@@ -3,7 +3,7 @@ export default class QuickList extends Block {
 	static get toolbox() {
 		return {
 			title: "Quick List",
-			icon: frappe.utils.icon("list", "sm"),
+			icon: nts.utils.icon("list", "sm"),
 		};
 	}
 

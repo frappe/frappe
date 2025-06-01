@@ -1,33 +1,33 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 from functools import wraps
 from os.path import join
 
-import frappe
-from frappe import _
-from frappe.modules.import_file import import_file_by_path
-from frappe.utils import cint, get_link_to_form
+import nts
+from nts import _
+from nts.modules.import_file import import_file_by_path
+from nts.utils import cint, get_link_to_form
 
 
 def cache_source(function):
 	@wraps(function)
 	def wrapper(*args, **kwargs):
 		if kwargs.get("chart_name"):
-			chart = frappe.get_doc("Dashboard Chart", kwargs.get("chart_name"))
+			chart = nts.get_doc("Dashboard Chart", kwargs.get("chart_name"))
 		else:
 			chart = kwargs.get("chart")
 		no_cache = kwargs.get("no_cache")
 		if no_cache:
 			return function(chart=chart, no_cache=no_cache)
-		chart_name = frappe.parse_json(chart).name
+		chart_name = nts.parse_json(chart).name
 		cache_key = f"chart-data:{chart_name}"
 		if int(kwargs.get("refresh") or 0):
 			results = generate_and_cache_results(kwargs, function, cache_key, chart)
 		else:
-			cached_results = frappe.cache.get_value(cache_key)
+			cached_results = nts.cache.get_value(cache_key)
 			if cached_results:
-				results = frappe.parse_json(frappe.safe_decode(cached_results))
+				results = nts.parse_json(nts.safe_decode(cached_results))
 			else:
 				results = generate_and_cache_results(kwargs, function, cache_key, chart)
 		return results
@@ -37,7 +37,7 @@ def cache_source(function):
 
 def generate_and_cache_results(args, function, cache_key, chart):
 	try:
-		args = frappe._dict(args)
+		args = nts._dict(args)
 		results = function(
 			chart_name=args.chart_name,
 			filters=args.filters or None,
@@ -53,8 +53,8 @@ def generate_and_cache_results(args, function, cache_key, chart):
 			#
 			# Note: Do not try to find the right way of doing this because
 			# it results in an inelegant & inefficient solution
-			# ref: https://github.com/frappe/frappe/pull/9403
-			frappe.throw(
+			# ref: https://github.com/nts/nts/pull/9403
+			nts.throw(
 				_("Please check the filter values set for Dashboard Chart: {}").format(
 					get_link_to_form(chart.doctype, chart.name)
 				),
@@ -64,9 +64,9 @@ def generate_and_cache_results(args, function, cache_key, chart):
 		else:
 			raise
 
-	if not frappe.flags.read_only:
-		frappe.db.set_value(
-			"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
+	if not nts.flags.read_only:
+		nts.db.set_value(
+			"Dashboard Chart", args.chart_name, "last_synced_on", nts.utils.now(), update_modified=False
 		)
 	return results
 
@@ -75,29 +75,29 @@ def get_dashboards_with_link(docname, doctype):
 	links = []
 
 	if doctype == "Dashboard Chart":
-		links = frappe.get_all("Dashboard Chart Link", fields=["parent"], filters={"chart": docname})
+		links = nts.get_all("Dashboard Chart Link", fields=["parent"], filters={"chart": docname})
 	elif doctype == "Number Card":
-		links = frappe.get_all("Number Card Link", fields=["parent"], filters={"card": docname})
+		links = nts.get_all("Number Card Link", fields=["parent"], filters={"card": docname})
 
 	return [link.parent for link in links]
 
 
 def sync_dashboards(app=None):
 	"""Import, overwrite dashboards from `[app]/[app]_dashboard`"""
-	apps = [app] if app else frappe.get_installed_apps()
+	apps = [app] if app else nts.get_installed_apps()
 
 	for app_name in apps:
 		print(f"Updating Dashboard for {app_name}")
-		for module_name in frappe.local.app_modules.get(app_name) or []:
-			frappe.flags.in_import = True
+		for module_name in nts.local.app_modules.get(app_name) or []:
+			nts.flags.in_import = True
 			make_records_in_module(app_name, module_name)
-			frappe.flags.in_import = False
+			nts.flags.in_import = False
 
 
 def make_records_in_module(app, module):
-	dashboards_path = frappe.get_module_path(module, f"{module}_dashboard")
-	charts_path = frappe.get_module_path(module, "dashboard chart")
-	cards_path = frappe.get_module_path(module, "number card")
+	dashboards_path = nts.get_module_path(module, f"{module}_dashboard")
+	charts_path = nts.get_module_path(module, "dashboard chart")
+	cards_path = nts.get_module_path(module, "number card")
 
 	paths = [dashboards_path, charts_path, cards_path]
 	for path in paths:

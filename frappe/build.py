@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 import re
@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 import click
 from semantic_version import Version
 
-import frappe
+import nts
 
 timestamps = {}
 app_paths = None
@@ -49,18 +49,18 @@ def build_missing_files():
 	current_asset_files = []
 
 	for type in ["css", "js"]:
-		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
+		folder = os.path.join(sites_path, "assets", "nts", "dist", type)
 		current_asset_files.extend(os.listdir(folder))
 
-	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	development = nts.local.conf.developer_mode or nts.local.dev_server
 	build_mode = "development" if development else "production"
 
-	assets_json = frappe.read_file("assets/assets.json")
+	assets_json = nts.read_file("assets/assets.json")
 	if assets_json:
-		assets_json = frappe.parse_json(assets_json)
+		assets_json = nts.parse_json(assets_json)
 
 		for bundle_file, output_file in assets_json.items():
-			if not output_file.startswith("/assets/frappe"):
+			if not output_file.startswith("/assets/nts"):
 				continue
 
 			if os.path.basename(output_file) not in current_asset_files:
@@ -68,44 +68,44 @@ def build_missing_files():
 
 		if missing_assets:
 			click.secho("\nBuilding missing assets...\n", fg="yellow")
-			files_to_build = ["frappe/" + name for name in missing_assets]
+			files_to_build = ["nts/" + name for name in missing_assets]
 			bundle(build_mode, files=files_to_build)
 	else:
 		# no assets.json, run full build
-		bundle(build_mode, apps="frappe")
+		bundle(build_mode, apps="nts")
 
 
-def get_assets_link(frappe_head) -> str:
+def get_assets_link(nts_head) -> str:
 	import requests
 
 	tag = getoutput(
-		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
-		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
+		r"cd ../apps/nts && git show-ref --tags -d | grep %s | sed -e 's,.*"
+		r" refs/tags/,,' -e 's/\^{}//'" % nts_head
 	)
 
 	if tag:
 		# if tag exists, download assets from github release
-		url = f"https://github.com/frappe/frappe/releases/download/{tag}/assets.tar.gz"
+		url = f"https://github.com/nts/nts/releases/download/{tag}/assets.tar.gz"
 	else:
-		url = f"http://assets.frappeframework.com/{frappe_head}.tar.gz"
+		url = f"http://assets.ntsframework.com/{nts_head}.tar.gz"
 
 	if not requests.head(url):
-		reference = f"Release {tag}" if tag else f"Commit {frappe_head}"
+		reference = f"Release {tag}" if tag else f"Commit {nts_head}"
 		raise AssetsDontExistError(f"Assets for {reference} don't exist")
 
 	return url
 
 
-def fetch_assets(url, frappe_head):
+def fetch_assets(url, nts_head):
 	click.secho("Retrieving assets...", fg="yellow")
 
-	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
+	prefix = mkdtemp(prefix="nts-assets-", suffix=nts_head)
 	assets_archive = download_file(url, prefix)
 
 	if not assets_archive:
 		raise AssetsNotDownloadedError(f"Assets could not be retrived from {url}")
 
-	click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
+	click.echo(click.style("✔", fg="green") + f" Downloaded nts assets from {url}")
 
 	return assets_archive
 
@@ -119,7 +119,7 @@ def setup_assets(assets_archive):
 	with tarfile.open(assets_archive) as tar:
 		for file in tar:
 			if not file.isdir():
-				dest = "." + file.name.replace("./frappe-bench/sites", "")
+				dest = "." + file.name.replace("./nts-bench/sites", "")
 				asset_directory = os.path.dirname(dest)
 				show = dest.replace("./assets/", "")
 
@@ -134,19 +134,19 @@ def setup_assets(assets_archive):
 	return directories_created
 
 
-def download_frappe_assets(verbose=True):
-	"""Downloads and sets up Frappe assets if they exist based on the current
+def download_nts_assets(verbose=True):
+	"""Downloads and sets up nts assets if they exist based on the current
 	commit HEAD.
 	Returns True if correctly setup else returns False.
 	"""
-	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
+	nts_head = getoutput("cd ../apps/nts && git rev-parse HEAD")
 
-	if not frappe_head:
+	if not nts_head:
 		return False
 
 	try:
-		url = get_assets_link(frappe_head)
-		assets_archive = fetch_assets(url, frappe_head)
+		url = get_assets_link(nts_head)
+		assets_archive = fetch_assets(url, nts_head)
 		setup_assets(assets_archive)
 		build_missing_files()
 		return True
@@ -181,7 +181,7 @@ def symlink(target, link_name, overwrite=False):
 
 	# Create link to target with temporary filename
 	while True:
-		temp_link_name = f"tmp{frappe.generate_hash()}"
+		temp_link_name = f"tmp{nts.generate_hash()}"
 
 		# os.* functions mimic as closely as possible system functions
 		# The POSIX symlink() returns EEXIST if link_name already exists
@@ -211,13 +211,13 @@ def setup():
 	global app_paths, assets_path
 
 	pymodules = []
-	for app in frappe.get_all_apps(True):
+	for app in nts.get_all_apps(True):
 		try:
-			pymodules.append(frappe.get_module(app))
+			pymodules.append(nts.get_module(app))
 		except ImportError:
 			pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	assets_path = os.path.join(nts.local.sites_path, "assets")
 
 
 def bundle(
@@ -225,7 +225,7 @@ def bundle(
 	apps=None,
 	hard_link=False,
 	verbose=False,
-	skip_frappe=False,
+	skip_nts=False,
 	files=None,
 	save_metafiles=False,
 ):
@@ -239,8 +239,8 @@ def bundle(
 	if apps:
 		command += f" --apps {apps}"
 
-	if skip_frappe:
-		command += " --skip_frappe"
+	if skip_nts:
+		command += " --skip_nts"
 
 	if files:
 		command += " --files {files}".format(files=",".join(files))
@@ -251,11 +251,11 @@ def bundle(
 		command += " --save-metafiles"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_source_path("frappe")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
+	nts_app_path = nts.get_app_source_path("nts")
+	nts.commands.popen(command, cwd=nts_app_path, env=get_node_env(), raise_err=True)
 
 	with suppress(Exception):
-		frappe.cache.flushall()
+		nts.cache.flushall()
 
 
 def watch(apps=None):
@@ -266,14 +266,14 @@ def watch(apps=None):
 	if apps:
 		command += f" --apps {apps}"
 
-	live_reload = frappe.utils.cint(os.environ.get("LIVE_RELOAD", frappe.conf.live_reload))
+	live_reload = nts.utils.cint(os.environ.get("LIVE_RELOAD", nts.conf.live_reload))
 
 	if live_reload:
 		command += " --live-reload"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_source_path("frappe")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	nts_app_path = nts.get_app_source_path("nts")
+	nts.commands.popen(command, cwd=nts_app_path, env=get_node_env())
 
 
 def check_node_executable():
@@ -309,10 +309,10 @@ def get_safe_max_old_space_size():
 def generate_assets_map():
 	symlinks = {}
 
-	for app_name in frappe.get_all_apps():
+	for app_name in nts.get_all_apps():
 		app_doc_path = None
 
-		pymodule = frappe.get_module(app_name)
+		pymodule = nts.get_module(app_name)
 		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
 		app_public_path = os.path.join(app_base_path, "public")
 		app_node_modules_path = os.path.join(app_base_path, "..", "node_modules")
@@ -418,7 +418,7 @@ def scrub_html_template(content):
 
 
 def html_to_js_template(path, content):
-	"""returns HTML template content as Javascript code, adding it to `frappe.templates`"""
-	return """frappe.templates["{key}"] = '{content}';\n""".format(
+	"""returns HTML template content as Javascript code, adding it to `nts.templates`"""
+	return """nts.templates["{key}"] = '{content}';\n""".format(
 		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)
 	)

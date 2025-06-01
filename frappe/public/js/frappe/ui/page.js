@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 /**
@@ -11,21 +11,21 @@
  * @param {string} [opts.title] Page title
  * @param {Object} [opts.make_page]
  *
- * @returns {frappe.ui.Page}
+ * @returns {nts.ui.Page}
  */
 
 /**
- * @typedef {Object} frappe.ui.Page
+ * @typedef {Object} nts.ui.Page
  */
 
-frappe.ui.make_app_page = function (opts) {
-	opts.parent.page = new frappe.ui.Page(opts);
+nts.ui.make_app_page = function (opts) {
+	opts.parent.page = new nts.ui.Page(opts);
 	return opts.parent.page;
 };
 
-frappe.ui.pages = {};
+nts.ui.pages = {};
 
-frappe.ui.Page = class Page {
+nts.ui.Page = class Page {
 	constructor(opts) {
 		$.extend(this, opts);
 
@@ -35,7 +35,7 @@ frappe.ui.Page = class Page {
 		this.views = {};
 
 		this.make();
-		frappe.ui.pages[frappe.get_route_str()] = this;
+		nts.ui.pages[nts.get_route_str()] = this;
 	}
 
 	make() {
@@ -48,7 +48,7 @@ frappe.ui.Page = class Page {
 	setup_scroll_handler() {
 		let last_scroll = 0;
 		$(window).scroll(
-			frappe.utils.throttle(() => {
+			nts.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
 				if (current_scroll > 0 && last_scroll <= current_scroll) {
@@ -77,11 +77,11 @@ frappe.ui.Page = class Page {
 	}
 
 	load_lib(callback) {
-		frappe.require(this.required_libs, callback);
+		nts.require(this.required_libs, callback);
 	}
 
 	add_main_section() {
-		$(frappe.render_template("page", {})).appendTo(this.wrapper);
+		$(nts.render_template("page", {})).appendTo(this.wrapper);
 		if (this.single_column) {
 			// nesting under col-sm-12 for consistency
 			this.add_view(
@@ -148,17 +148,17 @@ frappe.ui.Page = class Page {
 			this.make_page();
 		}
 
-		this.card_layout && this.main.addClass("frappe-card");
+		this.card_layout && this.main.addClass("nts-card");
 
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn.attr("title", __("Menu")).tooltip({ delay: { show: 600, hide: 100 } });
-		frappe.ui.keys
+		nts.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(menu_btn, menu_btn.find(".menu-btn-group-label"));
 
 		let action_btn = this.actions_btn_group.find("button");
-		frappe.ui.keys
+		nts.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(action_btn, action_btn.find(".actions-btn-group-label"));
 
@@ -190,7 +190,7 @@ frappe.ui.Page = class Page {
 			sidebar_toggle.last().remove();
 			this.wrapper.addClass("no-list-sidebar");
 		} else {
-			if (!frappe.is_mobile()) {
+			if (!nts.is_mobile()) {
 				sidebar_toggle.attr("title", __("Toggle Sidebar"));
 			}
 			sidebar_toggle.attr("aria-label", __("Toggle Sidebar"));
@@ -199,7 +199,7 @@ frappe.ui.Page = class Page {
 				trigger: "hover",
 			});
 			sidebar_toggle.click(() => {
-				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+				if (nts.utils.is_xs() || nts.utils.is_sm()) {
 					this.setup_overlay_sidebar();
 				} else {
 					sidebar_wrapper.toggle();
@@ -236,7 +236,7 @@ frappe.ui.Page = class Page {
 		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
 		sidebar_toggle_icon.html(
-			frappe.utils.icon(
+			nts.utils.icon(
 				is_sidebar_visible ? "es-line-sidebar-collapse" : "es-line-sidebar-expand",
 				"md"
 			)
@@ -250,7 +250,7 @@ frappe.ui.Page = class Page {
 	add_action_icon(icon, click, css_class = "", tooltip_label) {
 		const button = $(`
 			<button class="text-muted btn btn-default ${css_class} icon-btn">
-				${frappe.utils.icon(icon)}
+				${nts.utils.icon(icon)}
 			</button>
 		`);
 		// ideally, we should pass tooltip_label this is just safe gaurd.
@@ -260,7 +260,7 @@ frappe.ui.Page = class Page {
 				icon = icon.replace("es-solid-", "");
 				icon = icon.replace("es-small-", "");
 			}
-			tooltip_label = frappe.unscrub(icon);
+			tooltip_label = nts.unscrub(icon);
 		}
 
 		button.appendTo(this.icon_group.removeClass("hide"));
@@ -285,7 +285,7 @@ frappe.ui.Page = class Page {
 			icon_name = icon.icon;
 			size = icon.size || "xs";
 		}
-		return `${icon ? frappe.utils.icon(icon_name, size) : ""} <span class="hidden-xs"> ${__(
+		return `${icon ? nts.utils.icon(icon_name, size) : ""} <span class="hidden-xs"> ${__(
 			label
 		)} </span>`;
 	}
@@ -313,7 +313,7 @@ frappe.ui.Page = class Page {
 
 		// alt shortcuts
 		let text_span = btn.find("span");
-		frappe.ui.keys.get_shortcut_group(this).add(btn, text_span.length ? text_span : btn);
+		nts.ui.keys.get_shortcut_group(this).add(btn, text_span.length ? text_span : btn);
 	}
 
 	set_primary_action(label, click, icon, working_label) {
@@ -472,7 +472,7 @@ frappe.ui.Page = class Page {
 		let $icon = ``;
 
 		if (icon) {
-			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+			$icon = `<span class="menu-item-icon">${nts.utils.icon(icon)}</span>`;
 		}
 
 		if (shortcut) {
@@ -488,7 +488,7 @@ frappe.ui.Page = class Page {
 					</a>
 				</li>
 			`);
-			frappe.ui.keys.add_shortcut(shortcut_obj);
+			nts.ui.keys.add_shortcut(shortcut_obj);
 		} else {
 			$li = $(`
 				<li>
@@ -502,7 +502,7 @@ frappe.ui.Page = class Page {
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
-				frappe.open_in_new_tab = true;
+				nts.open_in_new_tab = true;
 			}
 			return click();
 		});
@@ -520,7 +520,7 @@ frappe.ui.Page = class Page {
 		}
 
 		// alt shortcut
-		frappe.ui.keys
+		nts.ui.keys
 			.get_shortcut_group(parent.get(0))
 			.add($link, $link.find(".menu-item-label"));
 
@@ -536,7 +536,7 @@ frappe.ui.Page = class Page {
 			shortcut_obj = shortcut;
 		}
 		// label
-		if (frappe.utils.is_mac()) {
+		if (nts.utils.is_mac()) {
 			shortcut_obj.shortcut_label = shortcut_obj.shortcut
 				.replace("Ctrl", "⌘")
 				.replace("Alt", "⌥");
@@ -596,7 +596,7 @@ frappe.ui.Page = class Page {
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
 					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
-						${frappe.utils.icon("select", "xs")}
+						${nts.utils.icon("select", "xs")}
 					</button>
 					<div role="menu" class="dropdown-menu"></div>
 				</div>`
@@ -748,9 +748,9 @@ frappe.ui.Page = class Page {
 			title = strip_html(title);
 		}
 		this.title = title;
-		frappe.utils.set_title(tab_title || title);
+		nts.utils.set_title(tab_title || title);
 		if (icon) {
-			title = `${frappe.utils.icon(icon)} ${title}`;
+			title = `${nts.utils.icon(icon)} ${title}`;
 		}
 		let title_wrapper = this.$title_area.find(".title-text");
 		title_wrapper.html(title);
@@ -781,7 +781,7 @@ frappe.ui.Page = class Page {
 		if (!opts) opts = {};
 		let button = $(`<button
 			class="btn ${opts.btn_class || "btn-default"} ${opts.btn_size || "btn-sm"} ellipsis">
-				${opts.icon ? frappe.utils.icon(opts.icon) : ""}
+				${opts.icon ? nts.utils.icon(opts.icon) : ""}
 				${label}
 		</button>`);
 		// Add actions as menu item in Mobile View (similar to "add_custom_button" in forms.js)
@@ -798,17 +798,17 @@ frappe.ui.Page = class Page {
 	add_custom_button_group(label, icon, parent) {
 		let dropdown_label = `<span class="hidden-xs">
 			<span class="custom-btn-group-label">${__(label)}</span>
-			${frappe.utils.icon("select", "xs")}
+			${nts.utils.icon("select", "xs")}
 		</span>`;
 
 		if (icon) {
 			dropdown_label = `<span class="hidden-xs">
-				${frappe.utils.icon(icon)}
+				${nts.utils.icon(icon)}
 				<span class="custom-btn-group-label">${__(label)}</span>
-				${frappe.utils.icon("select", "xs")}
+				${nts.utils.icon("select", "xs")}
 			</span>
 			<span class="visible-xs">
-				${frappe.utils.icon(icon)}
+				${nts.utils.icon(icon)}
 			</span>`;
 		}
 
@@ -828,7 +828,7 @@ frappe.ui.Page = class Page {
 	}
 
 	add_dropdown_button(parent, label, click, icon) {
-		frappe.ui.toolbar.add_dropdown_button(parent, label, click, icon);
+		nts.ui.toolbar.add_dropdown_button(parent, label, click, icon);
 	}
 
 	// page::form
@@ -868,7 +868,7 @@ frappe.ui.Page = class Page {
 
 		df.input_class = "input-xs";
 
-		var f = frappe.ui.form.make_control({
+		var f = nts.ui.form.make_control({
 			df: df,
 			parent: parent || this.page_form,
 			only_input: df.fieldtype == "Check" ? false : true,

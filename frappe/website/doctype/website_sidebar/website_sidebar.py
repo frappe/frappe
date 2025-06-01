@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class WebsiteSidebar(Document):
@@ -12,15 +12,15 @@ class WebsiteSidebar(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.website_sidebar_item.website_sidebar_item import WebsiteSidebarItem
+		from nts.types import DF
+		from nts.website.doctype.website_sidebar_item.website_sidebar_item import WebsiteSidebarItem
 
 		sidebar_items: DF.Table[WebsiteSidebarItem]
 		title: DF.Data
 
 	# end: auto-generated types
 	def get_items(self):
-		items = frappe.get_all(
+		items = nts.get_all(
 			"Website Sidebar Item",
 			filters={"parent": self.name},
 			fields=["title", "route", "group"],

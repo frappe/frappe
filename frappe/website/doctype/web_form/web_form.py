@@ -1,21 +1,21 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import json
 import os
 
-import frappe
-from frappe import _, scrub
-from frappe.core.api.file import get_max_file_size
-from frappe.core.doctype.file.utils import remove_file_by_url
-from frappe.desk.form.meta import get_code_files_via_hooks
-from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.permissions import check_doctype_permission
-from frappe.rate_limiter import rate_limit
-from frappe.utils import dict_with_keys, strip_html
-from frappe.utils.caching import redis_cache
-from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
-from frappe.website.website_generator import WebsiteGenerator
+import nts
+from nts import _, scrub
+from nts.core.api.file import get_max_file_size
+from nts.core.doctype.file.utils import remove_file_by_url
+from nts.desk.form.meta import get_code_files_via_hooks
+from nts.modules.utils import export_module_json, get_doc_module
+from nts.permissions import check_doctype_permission
+from nts.rate_limiter import rate_limit
+from nts.utils import dict_with_keys, strip_html
+from nts.utils.caching import redis_cache
+from nts.website.utils import get_boot_data, get_comment_list, get_sidebar_items
+from nts.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
@@ -25,9 +25,9 @@ class WebForm(WebsiteGenerator):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.web_form_field.web_form_field import WebFormField
-		from frappe.website.doctype.web_form_list_column.web_form_list_column import WebFormListColumn
+		from nts.types import DF
+		from nts.website.doctype.web_form_field.web_form_field import WebFormField
+		from nts.website.doctype.web_form_list_column.web_form_list_column import WebFormListColumn
 
 		allow_comments: DF.Check
 		allow_delete: DF.Check
@@ -68,37 +68,37 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
-	website = frappe._dict(no_cache=1)
+	website = nts._dict(no_cache=1)
 
 	def validate(self):
 		super().validate()
 
 		if not self.module:
-			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
+			self.module = nts.db.get_value("DocType", self.doc_type, "module")
 
 		in_user_env = not (
-			frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.flags.in_test
-			or frappe.flags.in_fixtures
+			nts.flags.in_install
+			or nts.flags.in_patch
+			or nts.flags.in_test
+			or nts.flags.in_fixtures
 		)
-		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
+		if in_user_env and self.is_standard and not nts.conf.developer_mode:
 			# only published can be changed for standard web forms
 			if self.has_value_changed("published"):
 				published_value = self.published
 				self.reload()
 				self.published = published_value
 			else:
-				frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+				nts.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
-		if not frappe.flags.in_import:
+		if not nts.flags.in_import:
 			self.validate_fields()
 
 	def validate_fields(self):
 		"""Validate all fields are present"""
-		from frappe.model import no_value_fields
+		from nts.model import no_value_fields
 
-		meta = frappe.get_meta(self.doc_type)
+		meta = nts.get_meta(self.doc_type)
 		missing = [
 			df.fieldname
 			for df in self.web_form_fields
@@ -106,7 +106,7 @@ class WebForm(WebsiteGenerator):
 		]
 
 		if missing:
-			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+			nts.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options"""
@@ -126,7 +126,7 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.ready(function() {
+						"""nts.ready(function() {
 	// bind events here
 })"""
 					)
@@ -135,7 +135,7 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".py"):
 				with open(path + ".py", "w") as f:
 					f.write(
-						"""import frappe
+						"""import nts
 
 def get_context(context):
 	# do your magic here
@@ -148,82 +148,82 @@ def get_context(context):
 		context.in_edit_mode = False
 		context.in_view_mode = False
 
-		if frappe.form_dict.is_list:
+		if nts.form_dict.is_list:
 			context.template = "website/doctype/web_form/templates/web_list.html"
 		else:
 			context.template = "website/doctype/web_form/templates/web_form.html"
 
 		# check permissions
-		if frappe.form_dict.name:
-			assert isinstance(frappe.form_dict.name, str | int)
+		if nts.form_dict.name:
+			assert isinstance(nts.form_dict.name, str | int)
 
-			if frappe.session.user == "Guest":
-				frappe.throw(
+			if nts.session.user == "Guest":
+				nts.throw(
 					_("You need to be logged in to access this {0}.").format(self.doc_type),
-					frappe.PermissionError,
+					nts.PermissionError,
 				)
 
-			if not frappe.db.exists(self.doc_type, frappe.form_dict.name):
+			if not nts.db.exists(self.doc_type, nts.form_dict.name):
 				check_doctype_permission(self.doc_type)
-				raise frappe.PageDoesNotExistError()
+				raise nts.PageDoesNotExistError()
 
-			if not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
+			if not self.has_web_form_permission(self.doc_type, nts.form_dict.name):
 				check_doctype_permission(self.doc_type)
-				frappe.throw(
-					_("You don't have the permissions to access this document"), frappe.PermissionError
+				nts.throw(
+					_("You don't have the permissions to access this document"), nts.PermissionError
 				)
 
-		if frappe.local.path == self.route:
+		if nts.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
-			frappe.redirect(path)
+			nts.redirect(path)
 
-		if frappe.form_dict.is_list and not self.show_list:
-			frappe.redirect(f"/{self.route}/new")
+		if nts.form_dict.is_list and not self.show_list:
+			nts.redirect(f"/{self.route}/new")
 
-		if frappe.form_dict.is_edit and not self.allow_edit:
+		if nts.form_dict.is_edit and not self.allow_edit:
 			context.in_view_mode = True
-			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
+			nts.redirect(f"/{self.route}/{nts.form_dict.name}")
 
-		if frappe.form_dict.is_edit:
+		if nts.form_dict.is_edit:
 			context.in_edit_mode = True
 
-		if frappe.form_dict.is_read:
+		if nts.form_dict.is_read:
 			context.in_view_mode = True
 
 		if (
-			not frappe.form_dict.is_edit
-			and not frappe.form_dict.is_read
+			not nts.form_dict.is_edit
+			and not nts.form_dict.is_read
 			and self.allow_edit
-			and frappe.form_dict.name
+			and nts.form_dict.name
 		):
 			context.in_edit_mode = True
-			frappe.redirect(f"/{frappe.local.path}/edit")
+			nts.redirect(f"/{nts.local.path}/edit")
 
 		if (
-			frappe.session.user != "Guest"
+			nts.session.user != "Guest"
 			and self.login_required
 			and not self.allow_multiple
-			and not frappe.form_dict.name
-			and not frappe.form_dict.is_list
+			and not nts.form_dict.name
+			and not nts.form_dict.is_list
 		):
 			condition_json = json.loads(self.condition_json) if self.condition_json else []
-			condition_json.append(["owner", "=", frappe.session.user])
-			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
+			condition_json.append(["owner", "=", nts.session.user])
+			names = nts.get_all(self.doc_type, filters=condition_json, pluck="name")
 			if names:
 				context.in_view_mode = True
-				frappe.redirect(f"/{self.route}/{names[0]}")
+				nts.redirect(f"/{self.route}/{names[0]}")
 
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		route_to_new = frappe.session.user == "Guest" or not self.login_required
-		if not frappe.form_dict.is_new and route_to_new:
-			frappe.redirect(f"/{self.route}/new")
+		route_to_new = nts.session.user == "Guest" or not self.login_required
+		if not nts.form_dict.is_new and route_to_new:
+			nts.redirect(f"/{self.route}/new")
 
 		self.reset_field_parent()
 
 		# add keys from form_dict to context
-		context.update(dict_with_keys(frappe.form_dict, ["is_list", "is_new", "is_edit", "is_read"]))
+		context.update(dict_with_keys(nts.form_dict, ["is_list", "is_new", "is_edit", "is_read"]))
 
 		for df in self.web_form_fields:
 			if df.fieldtype == "Column Break":
@@ -239,7 +239,7 @@ def get_context(context):
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
-		if frappe.form_dict.is_list:
+		if nts.form_dict.is_list:
 			self.load_list_data(context)
 		else:
 			self.load_form_data(context)
@@ -249,7 +249,7 @@ def get_context(context):
 		self.add_metatags(context)
 
 		context.boot = get_boot_data()
-		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
+		context.boot["link_title_doctypes"] = nts.boot.get_link_title_doctypes()
 
 		context.webform_banner_image = self.banner_image
 		context.pop("banner_image", None)
@@ -350,7 +350,7 @@ def get_context(context):
 
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
-		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
+		context.translated_messages = nts.as_json({message: _(message) for message in messages if message})
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -371,17 +371,17 @@ def get_context(context):
 		context.parents = self.get_parents(context)
 
 		if self.breadcrumbs:
-			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
+			context.parents = nts.safe_eval(self.breadcrumbs, {"_": _})
 
-		if self.show_list and frappe.form_dict.is_new:
+		if self.show_list and nts.form_dict.is_new:
 			context.title = _("New {0}").format(context.title)
 
-		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
-			frappe.session.user != "Guest" or not self.login_required
+		context.has_header = (nts.form_dict.name or nts.form_dict.is_new) and (
+			nts.session.user != "Guest" or not self.login_required
 		)
 
 		if context.success_message:
-			context.success_message = frappe.db.escape(context.success_message.replace("\n", "<br>")).strip(
+			context.success_message = nts.db.escape(context.success_message.replace("\n", "<br>")).strip(
 				"'"
 			)
 
@@ -402,9 +402,9 @@ def get_context(context):
 		context.reference_doc = {}
 
 		# load reference doc
-		if frappe.form_dict.name:
-			context.doc_name = frappe.form_dict.name
-			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
+		if nts.form_dict.name:
+			context.doc_name = nts.form_dict.name
+			context.reference_doc = nts.get_doc(self.doc_type, context.doc_name)
 			context.web_form_title = context.title
 			context.title = (
 				strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
@@ -435,10 +435,10 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(web_form_module.__file__), scrub(self.name) + ".js")
 			if os.path.exists(js_path):
-				script = frappe.render_template(open(js_path).read(), context)
+				script = nts.render_template(open(js_path).read(), context)
 
 				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
-					custom_js = frappe.render_template(open(path).read(), context)
+					custom_js = nts.render_template(open(path).read(), context)
 					script = "\n\n".join([script, custom_js])
 
 				context.script = script
@@ -467,7 +467,7 @@ def get_context(context):
 		"""Validate mandatory web form fields"""
 		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
 		if missing:
-			frappe.throw(
+			nts.throw(
 				_("Mandatory Information missing:")
 				+ "<br><br>"
 				+ "<br>".join(f"{d.label} ({d.fieldtype})" for d in missing)
@@ -477,17 +477,17 @@ def get_context(context):
 		return False
 
 	def has_web_form_permission(self, doctype, name, ptype="read"):
-		if frappe.session.user == "Guest":
+		if nts.session.user == "Guest":
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
+			return nts.get_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
-		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
+		elif nts.db.get_value(doctype, name, "owner") == nts.session.user:
 			return True
 
-		elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
+		elif nts.has_website_permission(name, ptype=ptype, doctype=doctype):
 			return True
 
 		elif check_webform_perm(doctype, name):
@@ -501,7 +501,7 @@ def get_context(context):
 		Returns permitted attachments for the webform.
 		NOTE: At this point, `self.login_required` is True.
 		"""
-		from frappe.core.doctype.file.file import has_permission as has_file_permission
+		from nts.core.doctype.file.file import has_permission as has_file_permission
 
 		def _add_attachment(attachment):
 			"""Add attachment to the list."""
@@ -511,7 +511,7 @@ def get_context(context):
 				"file_size": attachment.file_size,
 			}
 
-		attachments = frappe.get_all(
+		attachments = nts.get_all(
 			"File",
 			filters={
 				"attached_to_name": context.reference_name,
@@ -547,34 +547,34 @@ def get_web_form_module(doc):
 		return get_doc_module(doc.module, doc.doctype, doc.name)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
-	data = frappe._dict(json.loads(data))
+	data = nts._dict(json.loads(data))
 
 	files = []
 	files_to_delete = []
 
-	web_form = frappe.get_doc("Web Form", web_form)
+	web_form = nts.get_doc("Web Form", web_form)
 	doctype = web_form.doc_type
-	user = frappe.session.user
+	user = nts.session.user
 
-	if web_form.anonymous and frappe.session.user != "Guest":
-		frappe.session.user = "Guest"
+	if web_form.anonymous and nts.session.user != "Guest":
+		nts.session.user = "Guest"
 
 	if data.name and not web_form.allow_edit:
-		frappe.throw(_("You are not allowed to update this Web Form Document"))
+		nts.throw(_("You are not allowed to update this Web Form Document"))
 
-	frappe.flags.in_web_form = True
-	meta = frappe.get_meta(doctype)
+	nts.flags.in_web_form = True
+	meta = nts.get_meta(doctype)
 
 	if data.name:
 		# update
-		doc = frappe.get_doc(doctype, data.name)
+		doc = nts.get_doc(doctype, data.name)
 	else:
 		# insert
-		doc = frappe.new_doc(doctype)
+		doc = nts.new_doc(doctype)
 
 	# set values
 	for field in web_form.web_form_fields:
@@ -603,8 +603,8 @@ def accept(web_form, data):
 
 	else:
 		# insert
-		if web_form.login_required and frappe.session.user == "Guest":
-			frappe.throw(_("You must login to submit this form"))
+		if web_form.login_required and nts.session.user == "Guest":
+			nts.throw(_("You must login to submit this form"))
 
 		ignore_mandatory = True if files else False
 
@@ -621,7 +621,7 @@ def accept(web_form, data):
 
 			# save new file
 			filename, dataurl = filedata.split(",", 1)
-			_file = frappe.get_doc(
+			_file = nts.get_doc(
 				{
 					"doctype": "File",
 					"file_name": filename,
@@ -643,27 +643,27 @@ def accept(web_form, data):
 			if f:
 				remove_file_by_url(f, doctype=doctype, name=doc.name)
 
-	if web_form.anonymous and frappe.session.user == "Guest" and user:
-		frappe.session.user = user
+	if web_form.anonymous and nts.session.user == "Guest" and user:
+		nts.session.user = user
 
-	frappe.flags.web_form_doc = doc
+	nts.flags.web_form_doc = doc
 	return doc
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def delete(web_form_name: str, docname: str | int):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = nts.get_doc("Web Form", web_form_name)
 
-	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
-	if frappe.session.user == owner and web_form.allow_delete:
-		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
+	owner = nts.db.get_value(web_form.doc_type, docname, "owner")
+	if nts.session.user == owner and web_form.allow_delete:
+		nts.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 	else:
-		raise frappe.PermissionError("Not Allowed")
+		raise nts.PermissionError("Not Allowed")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def delete_multiple(web_form_name: str, docnames):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = nts.get_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
 
@@ -673,53 +673,53 @@ def delete_multiple(web_form_name: str, docnames):
 	for docname in docnames:
 		assert isinstance(docname, str | int)
 
-		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
-		if frappe.session.user == owner and web_form.allow_delete:
+		owner = nts.db.get_value(web_form.doc_type, docname, "owner")
+		if nts.session.user == owner and web_form.allow_delete:
 			allowed_docnames.append(docname)
 		else:
 			restricted_docnames.append(docname)
 
 	for docname in allowed_docnames:
-		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
+		nts.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 
 	if restricted_docnames:
-		raise frappe.PermissionError(
+		raise nts.PermissionError(
 			"You do not have permisssion to delete " + ", ".join(restricted_docnames)
 		)
 
 
 def check_webform_perm(doctype, name):
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():
 			return True
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_web_form_filters(web_form_name: str):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = nts.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = nts.get_doc("Web Form", web_form_name)
 
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+	if web_form.login_required and nts.session.user == "Guest":
+		nts.throw(_("Not Permitted"), nts.PermissionError)
 
-	out = frappe._dict()
+	out = nts._dict()
 	out.web_form = web_form
 
-	if frappe.session.user != "Guest" and not docname and not web_form.allow_multiple:
-		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
+	if nts.session.user != "Guest" and not docname and not web_form.allow_multiple:
+		docname = nts.db.get_value(doctype, {"owner": nts.session.user}, "name")
 
 	if docname:
-		doc = frappe.get_doc(doctype, docname)
+		doc = nts.get_doc(doctype, docname)
 		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
 			out.doc = doc
 		else:
-			frappe.throw(_("Not permitted"), frappe.PermissionError)
+			nts.throw(_("Not permitted"), nts.PermissionError)
 
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
@@ -736,9 +736,9 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 	return out
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_in_list_view_fields(doctype):
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	fields = []
 
 	if meta.title_field:
@@ -760,29 +760,29 @@ def get_in_list_view_fields(doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form: WebForm = nts.get_doc("Web Form", web_form_name)
 
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if web_form.login_required and nts.session.user == "Guest":
+		nts.throw(_("You must be logged in to use this form."), nts.PermissionError)
 
 	if not web_form.published or not any(f for f in web_form.web_form_fields if f.options == doctype):
-		frappe.throw(
-			_("You don't have permission to access the {0} DocType.").format(doctype), frappe.PermissionError
+		nts.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype), nts.PermissionError
 		)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
-		filters = {"owner": frappe.session.user}
+		filters = {"owner": nts.session.user}
 
 	fields = ["name as value"]
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	show_title_field = meta.title_field and meta.show_title_field_in_link
 
 	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
-	link_options = frappe.get_all(doctype, filters, fields)
+	link_options = nts.get_all(doctype, filters, fields)
 
 	if show_title_field:
 		if meta.translated_doctype:
@@ -801,4 +801,4 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	return nts.get_all("Web Form", ["name", "route", "modified"], {"published": 1})

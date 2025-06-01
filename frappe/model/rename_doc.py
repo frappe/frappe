@@ -1,24 +1,24 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from types import NoneType
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe import _, bold
-from frappe.model.document import Document
-from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import validate_name
-from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
-from frappe.query_builder import Field
-from frappe.utils.data import sbool
-from frappe.utils.password import rename_password
-from frappe.utils.scheduler import is_scheduler_inactive
+import nts
+from nts import _, bold
+from nts.model.document import Document
+from nts.model.dynamic_links import get_dynamic_link_map
+from nts.model.naming import validate_name
+from nts.model.utils.user_settings import sync_user_settings, update_user_settings_data
+from nts.query_builder import Field
+from nts.utils.data import sbool
+from nts.utils.password import rename_password
+from nts.utils.scheduler import is_scheduler_inactive
 
 if TYPE_CHECKING:
-	from frappe.model.meta import Meta
+	from nts.model.meta import Meta
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_document_title(
 	*,
 	doctype: str,
@@ -45,17 +45,17 @@ def update_document_title(
 	updated_title = kwargs.get("new_title") or title
 	updated_name = kwargs.get("new_name") or name
 
-	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
+	# TODO: omit this after runtime type checking (ref: https://github.com/nts/nts/pull/14927)
 	for obj in [docname, updated_title, updated_name]:
 		if not isinstance(obj, str | NoneType):
-			frappe.throw(f"{obj=} must be of type str or None")
+			nts.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages
 	merge = sbool(merge)
 	enqueue = sbool(enqueue)
 	action_enqueued = enqueue and not is_scheduler_inactive()
 
-	doc = frappe.get_doc(doctype, docname)
+	doc = nts.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
 
 	title_field = doc.meta.get_title_field()
@@ -92,8 +92,8 @@ def update_document_title(
 
 	if title_updated:
 		if action_enqueued and name_updated:
-			frappe.enqueue(
-				"frappe.client.set_value",
+			nts.enqueue(
+				"nts.client.set_value",
 				doctype=doc.doctype,
 				name=updated_name,
 				fieldname=title_field,
@@ -103,13 +103,13 @@ def update_document_title(
 			try:
 				setattr(doc, title_field, updated_title)
 				doc.save()
-				frappe.msgprint(_("Saved"), alert=True, indicator="green")
+				nts.msgprint(_("Saved"), alert=True, indicator="green")
 			except Exception as e:
-				if frappe.db.is_duplicate_entry(e):
-					frappe.throw(
-						_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
+				if nts.db.is_duplicate_entry(e):
+					nts.throw(
+						_("{0} {1} already exists").format(doctype, nts.bold(docname)),
 						title=_("Duplicate Name"),
-						exc=frappe.DuplicateEntryError,
+						exc=nts.DuplicateEntryError,
 					)
 				raise
 
@@ -148,17 +148,17 @@ def rename_doc(
 
 	if not (new_usage_style or old_usage_style):
 		raise TypeError(
-			"{doctype, old, new} or {doc, new} are required arguments for frappe.model.rename_doc"
+			"{doctype, old, new} or {doc, new} are required arguments for nts.model.rename_doc"
 		)
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
 	force = sbool(force)
 	merge = sbool(merge)
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	if validate:
-		old_doc = doc or frappe.get_doc(doctype, old)
+		old_doc = doc or nts.get_doc(doctype, old)
 		out = old_doc.run_method("before_rename", old, new, merge) or {}
 		new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 		new = validate_rename(
@@ -198,7 +198,7 @@ def rename_doc(
 	rename_eps_records(doctype, old, new)
 
 	# call after_rename
-	new_doc = frappe.get_doc(doctype, new)
+	new_doc = nts.get_doc(doctype, new)
 
 	if validate:
 		# copy any flags if required
@@ -210,20 +210,20 @@ def rename_doc(
 		rename_password(doctype, old, new)
 
 	if merge:
-		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
+		new_doc.add_comment("Edit", _("merged {0} into {1}").format(nts.bold(old), nts.bold(new)))
 	else:
-		new_doc.add_comment("Edit", _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
+		new_doc.add_comment("Edit", _("renamed from {0} to {1}").format(nts.bold(old), nts.bold(new)))
 
 	if merge:
-		frappe.delete_doc(doctype, old)
+		nts.delete_doc(doctype, old)
 
 	new_doc.clear_cache()
-	frappe.clear_cache()
+	nts.clear_cache()
 	if rebuild_search:
-		frappe.enqueue("frappe.utils.global_search.rebuild_for_doctype", doctype=doctype)
+		nts.enqueue("nts.utils.global_search.rebuild_for_doctype", doctype=doctype)
 
 	if show_alert:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Document renamed from {0} to {1}").format(bold(old), bold(new)),
 			alert=True,
 			indicator="green",
@@ -233,13 +233,13 @@ def rename_doc(
 
 
 def update_assignments(old: str, new: str, doctype: str) -> None:
-	old_assignments = frappe.parse_json(frappe.db.get_value(doctype, old, "_assign")) or []
-	new_assignments = frappe.parse_json(frappe.db.get_value(doctype, new, "_assign")) or []
+	old_assignments = nts.parse_json(nts.db.get_value(doctype, old, "_assign")) or []
+	new_assignments = nts.parse_json(nts.db.get_value(doctype, new, "_assign")) or []
 	common_assignments = list(set(old_assignments).intersection(new_assignments))
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.get_all(
+		todos = nts.get_all(
 			"ToDo",
 			{
 				"owner": user,
@@ -250,10 +250,10 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 		)
 
 		for todo in todos:
-			frappe.delete_doc("ToDo", todo.name)
+			nts.delete_doc("ToDo", todo.name)
 
 	unique_assignments = list(set(old_assignments + new_assignments))
-	frappe.db.set_value(doctype, new, "_assign", frappe.as_json(unique_assignments, indent=0))
+	nts.db.set_value(doctype, new, "_assign", nts.as_json(unique_assignments, indent=0))
 
 
 def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
@@ -269,10 +269,10 @@ def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 
 	# find the user settings for the linked doctypes
 	linked_doctypes = {d.parent for d in link_fields if not d.issingle}
-	UserSettings = frappe.qb.Table("__UserSettings")
+	UserSettings = nts.qb.Table("__UserSettings")
 
 	user_settings_details = (
-		frappe.qb.from_(UserSettings)
+		nts.qb.from_(UserSettings)
 		.select("user", "doctype", "data")
 		.where(UserSettings.data.like(old) & UserSettings.doctype.isin(linked_doctypes))
 		.run(as_dict=True)
@@ -296,36 +296,36 @@ def update_user_settings(old: str, new: str, link_fields: list[dict]) -> None:
 
 
 def update_customizations(old: str, new: str) -> None:
-	frappe.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
+	nts.db.set_value("Custom DocPerm", {"parent": old}, "parent", new, update_modified=False)
 
 
 def update_attachments(doctype: str, old: str, new: str) -> None:
 	if doctype != "DocType":
-		File = frappe.qb.DocType("File")
+		File = nts.qb.DocType("File")
 
-		frappe.qb.update(File).set(File.attached_to_name, new).where(
+		nts.qb.update(File).set(File.attached_to_name, new).where(
 			(File.attached_to_name == old) & (File.attached_to_doctype == doctype)
 		).run()
 
 
 def rename_versions(doctype: str, old: str, new: str) -> None:
-	Version = frappe.qb.DocType("Version")
+	Version = nts.qb.DocType("Version")
 
-	frappe.qb.update(Version).set(Version.docname, new).where(
+	nts.qb.update(Version).set(Version.docname, new).where(
 		(Version.docname == old) & (Version.ref_doctype == doctype)
 	).run()
 
 
 def rename_eps_records(doctype: str, old: str, new: str) -> None:
-	EPL = frappe.qb.DocType("Energy Point Log")
+	EPL = nts.qb.DocType("Energy Point Log")
 
-	frappe.qb.update(EPL).set(EPL.reference_name, new).where(
+	nts.qb.update(EPL).set(EPL.reference_name, new).where(
 		(EPL.reference_doctype == doctype) & (EPL.reference_name == old)
 	).run()
 
 
 def rename_parent_and_child(doctype: str, old: str, new: str, meta: "Meta") -> None:
-	frappe.qb.update(doctype).set("name", new).where(Field("name") == old).run()
+	nts.qb.update(doctype).set("name", new).where(Field("name") == old).run()
 
 	update_autoname_field(doctype, new, meta)
 	update_child_docs(old, new, meta)
@@ -336,7 +336,7 @@ def update_autoname_field(doctype: str, new: str, meta: "Meta") -> None:
 	if meta.get("autoname"):
 		field = meta.get("autoname").split(":")
 		if field and field[0] == "field":
-			frappe.qb.update(doctype).set(field[1], new).where(Field("name") == new).run()
+			nts.qb.update(doctype).set(field[1], new).where(Field("name") == new).run()
 
 
 def validate_rename(
@@ -353,55 +353,55 @@ def validate_rename(
 ) -> str:
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	if save_point:
-		_SAVE_POINT = f"validate_rename_{frappe.generate_hash(length=8)}"
-		frappe.db.savepoint(_SAVE_POINT)
+		_SAVE_POINT = f"validate_rename_{nts.generate_hash(length=8)}"
+		nts.db.savepoint(_SAVE_POINT)
 
-	exists = frappe.qb.from_(doctype).where(Field("name") == new).for_update().select("name").run(pluck=True)
+	exists = nts.qb.from_(doctype).where(Field("name") == new).for_update().select("name").run(pluck=True)
 	exists = exists[0] if exists else None
 
-	if not frappe.db.exists(doctype, old):
-		frappe.throw(_("Can't rename {0} to {1} because {0} doesn't exist.").format(old, new))
+	if not nts.db.exists(doctype, old):
+		nts.throw(_("Can't rename {0} to {1} because {0} doesn't exist.").format(old, new))
 
 	if old == new:
-		frappe.throw(_("No changes made because old and new name are the same.").format(old, new))
+		nts.throw(_("No changes made because old and new name are the same.").format(old, new))
 
 	if exists and exists != new:
 		# for fixing case, accents
 		exists = None
 
 	if merge and not exists:
-		frappe.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
+		nts.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
 
 	if not merge and exists and not ignore_if_exists:
-		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
+		nts.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
 	kwargs = {"doctype": doctype, "ptype": "write", "raise_exception": False}
 	if old_doc:
 		kwargs["doc"] = old_doc
 
-	if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
-		frappe.throw(_("You need write permission on {0} {1} to rename").format(doctype, old))
+	if not (ignore_permissions or nts.permissions.has_permission(**kwargs)):
+		nts.throw(_("You need write permission on {0} {1} to rename").format(doctype, old))
 
 	if merge:
-		kwargs["doc"] = frappe.get_doc(doctype, new)
-		if not (ignore_permissions or frappe.permissions.has_permission(**kwargs)):
-			frappe.throw(_("You need write permission on {0} {1} to merge").format(doctype, new))
+		kwargs["doc"] = nts.get_doc(doctype, new)
+		if not (ignore_permissions or nts.permissions.has_permission(**kwargs)):
+			nts.throw(_("You need write permission on {0} {1} to merge").format(doctype, new))
 
 	if not (force or ignore_permissions) and not meta.allow_rename:
-		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
+		nts.throw(_("{0} not allowed to be renamed").format(_(doctype)))
 
 	# validate naming like it's done in doc.py
 	new = validate_name(doctype, new)
 
 	if save_point:
-		frappe.db.rollback(save_point=_SAVE_POINT)
+		nts.db.rollback(save_point=_SAVE_POINT)
 
 	return new
 
 
 def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change options for fieldtype Table, Table MultiSelect and Link
-	fields_with_options = ("Link", *frappe.model.table_fields)
+	fields_with_options = ("Link", *nts.model.table_fields)
 
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)
@@ -414,7 +414,7 @@ def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
 	for df in meta.get_table_fields():
 		(
-			frappe.qb.update(df.options)
+			nts.qb.update(df.options)
 			.set("parent", new)
 			.where((Field("parent") == old) & (Field("parenttype") == meta.name))
 		).run()
@@ -424,7 +424,7 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 	for field in link_fields:
 		if field["issingle"]:
 			try:
-				single_doc = frappe.get_doc(field["parent"])
+				single_doc = nts.get_doc(field["parent"])
 				if single_doc.get(field["fieldname"]) == old:
 					single_doc.set(field["fieldname"], new)
 					# update single docs using ORM rather then query
@@ -450,7 +450,7 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
+			nts.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
 
 		# update cached link_fields as per new
 		if doctype == "DocType" and field["parent"] == old:
@@ -459,36 +459,36 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 
 def get_link_fields(doctype: str) -> list[dict]:
 	# get link fields from tabDocField
-	if not frappe.flags.link_fields:
-		frappe.flags.link_fields = {}
+	if not nts.flags.link_fields:
+		nts.flags.link_fields = {}
 
-	if doctype not in frappe.flags.link_fields:
-		dt = frappe.qb.DocType("DocType")
-		df = frappe.qb.DocType("DocField")
-		cf = frappe.qb.DocType("Custom Field")
-		ps = frappe.qb.DocType("Property Setter")
+	if doctype not in nts.flags.link_fields:
+		dt = nts.qb.DocType("DocType")
+		df = nts.qb.DocType("DocField")
+		cf = nts.qb.DocType("Custom Field")
+		ps = nts.qb.DocType("Property Setter")
 
 		standard_fields_query = (
-			frappe.qb.from_(df)
+			nts.qb.from_(df)
 			.inner_join(dt)
 			.on(df.parent == dt.name)
 			.select(df.parent, df.fieldname, dt.issingle.as_("issingle"))
 			.where((df.options == doctype) & (df.fieldtype == "Link"))
 		)
 
-		if frappe.db.has_column("DocField", "is_virtual"):
+		if nts.db.has_column("DocField", "is_virtual"):
 			standard_fields_query = standard_fields_query.where(df.is_virtual == 0)
 
 		virtual_doctypes = []
-		if frappe.db.has_column("DocType", "is_virtual"):
-			virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
+		if nts.db.has_column("DocType", "is_virtual"):
+			virtual_doctypes = nts.get_all("DocType", {"is_virtual": 1}, pluck="name")
 			standard_fields_query = standard_fields_query.where(dt.is_virtual == 0)
 
 		standard_fields = standard_fields_query.run(as_dict=True)
 
-		cf_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
+		cf_issingle = nts.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
 		custom_fields = (
-			frappe.qb.from_(cf)
+			nts.qb.from_(cf)
 			.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
 			.where((cf.options == doctype) & (cf.fieldtype == "Link"))
 		)
@@ -496,9 +496,9 @@ def get_link_fields(doctype: str) -> list[dict]:
 			custom_fields = custom_fields.where(cf.dt.notin(virtual_doctypes))
 		custom_fields = custom_fields.run(as_dict=True)
 
-		ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
+		ps_issingle = nts.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 		property_setter_fields = (
-			frappe.qb.from_(ps)
+			nts.qb.from_(ps)
 			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
 			.where((ps.property == "options") & (ps.value == doctype) & (ps.field_name.notnull()))
 		)
@@ -506,21 +506,21 @@ def get_link_fields(doctype: str) -> list[dict]:
 			property_setter_fields = property_setter_fields.where(ps.doc_type.notin(virtual_doctypes))
 		property_setter_fields = property_setter_fields.run(as_dict=True)
 
-		frappe.flags.link_fields[doctype] = standard_fields + custom_fields + property_setter_fields
+		nts.flags.link_fields[doctype] = standard_fields + custom_fields + property_setter_fields
 
-	return frappe.flags.link_fields[doctype]
+	return nts.flags.link_fields[doctype]
 
 
 def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
-	CustomField = frappe.qb.DocType("Custom Field")
-	PropertySetter = frappe.qb.DocType("Property Setter")
+	CustomField = nts.qb.DocType("Custom Field")
+	PropertySetter = nts.qb.DocType("Property Setter")
 
-	if frappe.conf.developer_mode:
-		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
+	if nts.conf.developer_mode:
+		for name in nts.get_all("DocField", filters={"options": old}, pluck="parent"):
 			if name in (old, new):
 				continue
 
-			doctype = frappe.get_doc("DocType", name)
+			doctype = nts.get_doc("DocType", name)
 			save = False
 			for f in doctype.fields:
 				if f.options == old:
@@ -529,16 +529,16 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 			if save:
 				doctype.save()
 
-	DocField = frappe.qb.DocType("DocField")
-	frappe.qb.update(DocField).set(DocField.options, new).where(
+	DocField = nts.qb.DocType("DocField")
+	nts.qb.update(DocField).set(DocField.options, new).where(
 		(DocField.fieldtype == fieldtype) & (DocField.options == old)
 	).run()
 
-	frappe.qb.update(CustomField).set(CustomField.options, new).where(
+	nts.qb.update(CustomField).set(CustomField.options, new).where(
 		(CustomField.fieldtype == fieldtype) & (CustomField.options == old)
 	).run()
 
-	frappe.qb.update(PropertySetter).set(PropertySetter.value, new).where(
+	nts.qb.update(PropertySetter).set(PropertySetter.value, new).where(
 		(PropertySetter.property == "options") & (PropertySetter.value == old)
 	).run()
 
@@ -548,15 +548,15 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	get select type fields where doctype's name is hardcoded as
 	new line separated list
 	"""
-	df = frappe.qb.DocType("DocField")
-	dt = frappe.qb.DocType("DocType")
-	cf = frappe.qb.DocType("Custom Field")
-	ps = frappe.qb.DocType("Property Setter")
+	df = nts.qb.DocType("DocField")
+	dt = nts.qb.DocType("DocType")
+	cf = nts.qb.DocType("Custom Field")
+	ps = nts.qb.DocType("Property Setter")
 
 	# get link fields from tabDocField
-	st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
+	st_issingle = nts.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
 	standard_fields = (
-		frappe.qb.from_(df)
+		nts.qb.from_(df)
 		.select(df.parent, df.fieldname, st_issingle)
 		.where(
 			(df.parent != new)
@@ -568,18 +568,18 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	)
 
 	# get link fields from tabCustom Field
-	cf_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
+	cf_issingle = nts.qb.from_(dt).select(dt.issingle).where(dt.name == cf.dt).as_("issingle")
 	custom_select_fields = (
-		frappe.qb.from_(cf)
+		nts.qb.from_(cf)
 		.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
 		.where((cf.dt != new) & (cf.fieldtype == "Select") & (cf.options.like(f"%{old}%")))
 		.run(as_dict=True)
 	)
 
 	# remove fields whose options have been changed using property setter
-	ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
+	ps_issingle = nts.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 	property_setter_select_fields = (
-		frappe.qb.from_(ps)
+		nts.qb.from_(ps)
 		.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
 		.where(
 			(ps.doc_type != new)
@@ -594,25 +594,25 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 
 
 def update_select_field_values(old: str, new: str):
-	from frappe.query_builder.functions import Replace
+	from nts.query_builder.functions import Replace
 
-	DocField = frappe.qb.DocType("DocField")
-	CustomField = frappe.qb.DocType("Custom Field")
-	PropertySetter = frappe.qb.DocType("Property Setter")
+	DocField = nts.qb.DocType("DocField")
+	CustomField = nts.qb.DocType("Custom Field")
+	PropertySetter = nts.qb.DocType("Property Setter")
 
-	frappe.qb.update(DocField).set(DocField.options, Replace(DocField.options, old, new)).where(
+	nts.qb.update(DocField).set(DocField.options, Replace(DocField.options, old, new)).where(
 		(DocField.fieldtype == "Select")
 		& (DocField.parent != new)
 		& (DocField.options.like(f"%\n{old}%") | DocField.options.like(f"%{old}\n%"))
 	).run()
 
-	frappe.qb.update(CustomField).set(CustomField.options, Replace(CustomField.options, old, new)).where(
+	nts.qb.update(CustomField).set(CustomField.options, Replace(CustomField.options, old, new)).where(
 		(CustomField.fieldtype == "Select")
 		& (CustomField.dt != new)
 		& (CustomField.options.like(f"%\n{old}%") | CustomField.options.like(f"%{old}\n%"))
 	).run()
 
-	frappe.qb.update(PropertySetter).set(PropertySetter.value, Replace(PropertySetter.value, old, new)).where(
+	nts.qb.update(PropertySetter).set(PropertySetter.value, Replace(PropertySetter.value, old, new)).where(
 		(PropertySetter.property == "options")
 		& (PropertySetter.field_name.notnull())
 		& (PropertySetter.doc_type != new)
@@ -621,22 +621,22 @@ def update_select_field_values(old: str, new: str):
 
 
 def update_parenttype_values(old: str, new: str):
-	child_doctypes = frappe.get_all(
+	child_doctypes = nts.get_all(
 		"DocField",
 		fields=["options", "fieldname"],
-		filters={"parent": new, "fieldtype": ["in", frappe.model.table_fields]},
+		filters={"parent": new, "fieldtype": ["in", nts.model.table_fields]},
 	)
 
-	custom_child_doctypes = frappe.get_all(
+	custom_child_doctypes = nts.get_all(
 		"Custom Field",
 		fields=["options", "fieldname"],
-		filters={"dt": new, "fieldtype": ["in", frappe.model.table_fields]},
+		filters={"dt": new, "fieldtype": ["in", nts.model.table_fields]},
 	)
 
 	child_doctypes += custom_child_doctypes
 	fields = [d["fieldname"] for d in child_doctypes]
 
-	property_setter_child_doctypes = frappe.get_all(
+	property_setter_child_doctypes = nts.get_all(
 		"Property Setter",
 		filters={"doc_type": new, "property": "options", "field_name": ("in", fields)},
 		pluck="value",
@@ -645,28 +645,28 @@ def update_parenttype_values(old: str, new: str):
 	child_doctypes = set(list(d["options"] for d in child_doctypes) + property_setter_child_doctypes)
 
 	for doctype in child_doctypes:
-		table = frappe.qb.DocType(doctype)
-		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
+		table = nts.qb.DocType(doctype)
+		nts.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
 
 
 def rename_dynamic_links(doctype: str, old: str, new: str):
-	Singles = frappe.qb.DocType("Singles")
+	Singles = nts.qb.DocType("Singles")
 	for df in get_dynamic_link_map().get(doctype, []):
 		# dynamic link in single, just one value to check
-		meta = frappe.get_meta(df.parent)
+		meta = nts.get_meta(df.parent)
 		if meta.is_virtual:
 			continue
 		if meta.issingle:
-			refdoc = frappe.db.get_singles_dict(df.parent)
+			refdoc = nts.db.get_singles_dict(df.parent)
 			if refdoc.get(df.options) == doctype and refdoc.get(df.fieldname) == old:
-				frappe.qb.update(Singles).set(Singles.value, new).where(
+				nts.qb.update(Singles).set(Singles.value, new).where(
 					(Singles.field == df.fieldname) & (Singles.doctype == df.parent) & (Singles.value == old)
 				).run()
 		else:
 			# because the table hasn't been renamed yet!
 			parent = df.parent if df.parent != new else old
 
-			frappe.qb.update(parent).set(df.fieldname, new).where(
+			nts.qb.update(parent).set(df.fieldname, new).where(
 				(Field(df.options) == doctype) & (Field(df.fieldname) == old)
 			).run()
 
@@ -677,12 +677,12 @@ def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool 
 	:param doctype: DocType to be renamed
 	:param rows: list of documents as `((oldname, newname, merge(optional)), ..)`"""
 	if not rows:
-		frappe.throw(_("Please select a valid csv file with data"))
+		nts.throw(_("Please select a valid csv file with data"))
 
 	if not via_console:
 		max_rows = 500
 		if len(rows) > max_rows:
-			frappe.throw(_("Maximum {0} rows allowed").format(max_rows))
+			nts.throw(_("Maximum {0} rows allowed").format(max_rows))
 
 	rename_log = []
 	for row in rows:
@@ -692,12 +692,12 @@ def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool 
 			try:
 				if rename_doc(doctype, row[0], row[1], merge=merge, rebuild_search=False):
 					msg = _("Successful: {0} to {1}").format(row[0], row[1])
-					frappe.db.commit()
+					nts.db.commit()
 				else:
 					msg = None
 			except Exception as e:
 				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
-				frappe.db.rollback()
+				nts.db.rollback()
 
 			if msg:
 				if via_console:
@@ -705,7 +705,7 @@ def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool 
 				else:
 					rename_log.append(msg)
 
-	frappe.enqueue("frappe.utils.global_search.rebuild_for_doctype", doctype=doctype)
+	nts.enqueue("nts.utils.global_search.rebuild_for_doctype", doctype=doctype)
 
 	if not via_console:
 		return rename_log

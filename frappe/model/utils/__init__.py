@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
 
-import frappe
-from frappe import _
-from frappe.build import html_to_js_template
-from frappe.utils import cstr
-from frappe.utils.caching import site_cache
+import nts
+from nts import _
+from nts.build import html_to_js_template
+from nts.utils import cstr
+from nts.utils.caching import site_cache
 
 STANDARD_FIELD_CONVERSION_MAP = {
 	"name": "Link",
@@ -27,9 +27,9 @@ INCLUDE_DIRECTIVE_PATTERN = re.compile(r"""{% include\s['"](.*)['"]\s%}""")
 def set_default(doc, key):
 	"""Set is_default property of given doc and unset all others filtered by given key."""
 	if not doc.is_default:
-		frappe.db.set(doc, "is_default", 1)
+		nts.db.set(doc, "is_default", 1)
 
-	frappe.db.sql(
+	nts.db.sql(
 		"""update `tab{}` set `is_default`=0
 		where `{}`={} and name!={}""".format(doc.doctype, key, "%s", "%s"),
 		(doc.get(key), doc.name),
@@ -39,8 +39,8 @@ def set_default(doc, key):
 def set_field_property(filters, key, value):
 	"""utility set a property in all fields of a particular type"""
 	docs = [
-		frappe.get_doc("DocType", d.parent)
-		for d in frappe.get_all("DocField", fields=["parent"], filters=filters)
+		nts.get_doc("DocType", d.parent)
+		for d in nts.get_all("DocField", fields=["parent"], filters=filters)
 	]
 
 	for d in docs:
@@ -48,10 +48,10 @@ def set_field_property(filters, key, value):
 		d.save()
 		print(f"Updated {d.name}")
 
-	frappe.db.commit()
+	nts.db.commit()
 
 
-class InvalidIncludePath(frappe.ValidationError):
+class InvalidIncludePath(nts.ValidationError):
 	pass
 
 
@@ -65,11 +65,11 @@ def render_include(content):
 		if "{% include" in content:
 			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:
-				frappe.throw(_("Invalid include path"), InvalidIncludePath)
+				nts.throw(_("Invalid include path"), InvalidIncludePath)
 
 			for path in paths:
 				app, app_path = path.split("/", 1)
-				with open(frappe.get_app_path(app, app_path), encoding="utf-8") as f:
+				with open(nts.get_app_path(app, app_path), encoding="utf-8") as f:
 					include = f.read()
 					if path.endswith(".html"):
 						include = html_to_js_template(path, include)
@@ -92,8 +92,8 @@ def get_fetch_values(doctype, fieldname, value):
 	:param value: Value selected
 	"""
 
-	result = frappe._dict()
-	meta = frappe.get_meta(doctype)
+	result = nts._dict()
+	meta = nts.get_meta(doctype)
 
 	# fieldname in target doctype: fieldname in source doctype
 	fields_to_fetch = {
@@ -112,7 +112,7 @@ def get_fetch_values(doctype, fieldname, value):
 	if not value:
 		return result
 
-	db_values = frappe.db.get_value(
+	db_values = nts.db.get_value(
 		meta.get_options(fieldname),  # source doctype
 		value,
 		tuple(set(fields_to_fetch.values())),  # unique source fieldnames
@@ -131,16 +131,16 @@ def get_fetch_values(doctype, fieldname, value):
 
 @site_cache()
 def is_virtual_doctype(doctype: str):
-	if frappe.db.has_column("DocType", "is_virtual"):
-		return frappe.db.get_value("DocType", doctype, "is_virtual")
+	if nts.db.has_column("DocType", "is_virtual"):
+		return nts.db.get_value("DocType", doctype, "is_virtual")
 	return False
 
 
 @site_cache()
 def is_single_doctype(doctype: str) -> bool:
-	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+	from nts.model.base_document import DOCTYPES_FOR_DOCTYPE
 
 	if doctype in DOCTYPES_FOR_DOCTYPE:
 		return False
 
-	return frappe.db.get_value("DocType", doctype, "issingle")
+	return nts.db.get_value("DocType", doctype, "issingle")

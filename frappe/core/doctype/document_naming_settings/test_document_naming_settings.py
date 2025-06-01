@@ -1,17 +1,17 @@
-# Copyright (c) 2022, Frappe Technologies and Contributors
+# Copyright (c) 2022, nts Technologies and Contributors
 # See license.txt
 
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.core.doctype.document_naming_settings.document_naming_settings import (
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.core.doctype.document_naming_settings.document_naming_settings import (
 	DocumentNamingSettings,
 )
-from frappe.model.naming import NamingSeries, get_default_naming_series
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import cint
+from nts.model.naming import NamingSeries, get_default_naming_series
+from nts.tests.utils import ntsTestCase
+from nts.utils import cint
 
 
-class TestNamingSeries(FrappeTestCase):
+class TestNamingSeries(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -22,7 +22,7 @@ class TestNamingSeries(FrappeTestCase):
 						"label": "Series",
 						"fieldname": "naming_series",
 						"fieldtype": "Select",
-						"options": f"\n{frappe.generate_hash()}-.###",
+						"options": f"\n{nts.generate_hash()}-.###",
 					}
 				],
 				autoname="naming_series:",
@@ -33,10 +33,10 @@ class TestNamingSeries(FrappeTestCase):
 		)
 
 	def setUp(self):
-		self.dns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
+		self.dns: DocumentNamingSettings = nts.get_doc("Document Naming Settings")
 
 	def tearDown(self):
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def get_valid_serieses(self):
 		VALID_SERIES = ["SINV-", "SI-.{field}.", "SI-#.###", ""]
@@ -57,7 +57,7 @@ class TestNamingSeries(FrappeTestCase):
 		naming_info = self.dns.get_transactions_and_prefixes()
 		self.assertIn(self.ns_doctype, naming_info["transactions"])
 
-		existing_naming_series = frappe.get_meta(self.ns_doctype).get_field("naming_series").options
+		existing_naming_series = nts.get_meta(self.ns_doctype).get_field("naming_series").options
 
 		for series in existing_naming_series.split("\n"):
 			self.assertIn(NamingSeries(series).get_prefix(), naming_info["prefixes"])
@@ -70,7 +70,7 @@ class TestNamingSeries(FrappeTestCase):
 		test_series = "KOOHBEW.###"
 		self.dns.naming_series_options = self.dns.get_options() + "\n" + test_series
 		self.dns.update_series()
-		self.assertIn(test_series, frappe.get_meta(self.ns_doctype).get_naming_series_options())
+		self.assertIn(test_series, nts.get_meta(self.ns_doctype).get_naming_series_options())
 
 	def test_update_series_counter(self):
 		for series in self.get_valid_serieses():
@@ -88,12 +88,12 @@ class TestNamingSeries(FrappeTestCase):
 		self.dns.default_amend_naming = "Amend Counter"
 		self.dns.update_amendment_rule()
 
-		submittable_doc = frappe.get_doc(
+		submittable_doc = nts.get_doc(
 			dict(doctype=self.ns_doctype, some_fieldname="test doc with submit")
 		).submit()
 		submittable_doc.cancel()
 
-		amended_doc = frappe.get_doc(
+		amended_doc = nts.get_doc(
 			dict(
 				doctype=self.ns_doctype,
 				some_fieldname="test doc with submit",
@@ -107,7 +107,7 @@ class TestNamingSeries(FrappeTestCase):
 		self.dns.default_amend_naming = "Default Naming"
 		self.dns.update_amendment_rule()
 
-		new_amended_doc = frappe.get_doc(
+		new_amended_doc = nts.get_doc(
 			dict(
 				doctype=self.ns_doctype,
 				some_fieldname="test doc with submit",

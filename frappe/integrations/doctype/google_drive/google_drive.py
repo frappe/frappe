@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import os
@@ -7,18 +7,18 @@ from urllib.parse import quote
 from apiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 
-import frappe
-from frappe import _
-from frappe.integrations.google_oauth import GoogleOAuth
-from frappe.integrations.offsite_backup_utils import (
+import nts
+from nts import _
+from nts.integrations.google_oauth import GoogleOAuth
+from nts.integrations.offsite_backup_utils import (
 	get_latest_backup_file,
 	send_email,
 	validate_file_size,
 )
-from frappe.model.document import Document
-from frappe.utils import get_backups_path, get_bench_path
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.backups import new_backup
+from nts.model.document import Document
+from nts.utils import get_backups_path, get_bench_path
+from nts.utils.background_jobs import enqueue
+from nts.utils.backups import new_backup
 
 
 class GoogleDrive(Document):
@@ -28,7 +28,7 @@ class GoogleDrive(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		authorization_code: DF.Data | None
 		backup_folder_id: DF.Data | None
@@ -49,8 +49,8 @@ class GoogleDrive(Document):
 
 	def get_access_token(self):
 		if not self.refresh_token:
-			button_label = frappe.bold(_("Allow Google Drive Access"))
-			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
+			button_label = nts.bold(_("Allow Google Drive Access"))
+			raise nts.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
 		oauth_obj = GoogleOAuth("drive")
 		r = oauth_obj.refresh_access_token(
@@ -60,19 +60,19 @@ class GoogleDrive(Document):
 		return r.get("access_token")
 
 
-@frappe.whitelist(methods=["POST"])
+@nts.whitelist(methods=["POST"])
 def authorize_access(reauthorize=False, code=None):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
 
-	oauth_code = frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
+	oauth_code = nts.db.get_single_value("Google Drive", "authorization_code") if not code else code
 	oauth_obj = GoogleOAuth("drive")
 
 	if not oauth_code or reauthorize:
 		if reauthorize:
-			frappe.db.set_single_value("Google Drive", "backup_folder_id", "")
+			nts.db.set_single_value("Google Drive", "backup_folder_id", "")
 		return oauth_obj.get_authentication_url(
 			{
 				"redirect": f"/app/Form/{quote('Google Drive')}",
@@ -80,7 +80,7 @@ def authorize_access(reauthorize=False, code=None):
 		)
 
 	r = oauth_obj.authorize(oauth_code)
-	frappe.db.set_single_value(
+	nts.db.set_single_value(
 		"Google Drive",
 		{"authorization_code": oauth_code, "refresh_token": r.get("refresh_token")},
 	)
@@ -90,7 +90,7 @@ def get_google_drive_object():
 	"""
 	Returns an object of Google Drive.
 	"""
-	account = frappe.get_doc("Google Drive")
+	account = nts.get_doc("Google Drive")
 	oauth_obj = GoogleOAuth("drive")
 
 	google_drive = oauth_obj.get_google_service_object(
@@ -112,10 +112,10 @@ def check_for_folder_in_google_drive():
 
 		try:
 			folder = google_drive.files().create(body=file_metadata, fields="id").execute()
-			frappe.db.set_single_value("Google Drive", "backup_folder_id", folder.get("id"))
-			frappe.db.commit()
+			nts.db.set_single_value("Google Drive", "backup_folder_id", folder.get("id"))
+			nts.db.commit()
 		except HttpError as e:
-			frappe.throw(
+			nts.throw(
 				_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e)
 			)
 
@@ -131,12 +131,12 @@ def check_for_folder_in_google_drive():
 			google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'").execute()
 		)
 	except HttpError as e:
-		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
+		nts.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
 
 	for f in google_drive_folders.get("files"):
 		if f.get("name") == account.backup_folder_name:
-			frappe.db.set_single_value("Google Drive", "backup_folder_id", f.get("id"))
-			frappe.db.commit()
+			nts.db.set_single_value("Google Drive", "backup_folder_id", f.get("id"))
+			nts.db.commit()
 			backup_folder_exists = True
 			break
 
@@ -144,15 +144,15 @@ def check_for_folder_in_google_drive():
 		_create_folder_in_google_drive(google_drive, account)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to Google Drive"""
 	enqueue(
-		"frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
+		"nts.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
 		queue="long",
 		timeout=1500,
 	)
-	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+	nts.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
 def upload_system_backup_to_google_drive():
@@ -168,7 +168,7 @@ def upload_system_backup_to_google_drive():
 
 	validate_file_size()
 
-	if frappe.flags.create_new_backup:
+	if nts.flags.create_new_backup:
 		set_progress(1, _("Backing up Data."))
 		backup = new_backup()
 		file_urls = []
@@ -192,7 +192,7 @@ def upload_system_backup_to_google_drive():
 				get_absolute_path(filename=fileurl), mimetype="application/gzip", resumable=True
 			)
 		except OSError as e:
-			frappe.throw(_("Google Drive - Could not locate - {0}").format(e))
+			nts.throw(_("Google Drive - Could not locate - {0}").format(e))
 
 		try:
 			set_progress(2, _("Uploading backup to Google Drive."))
@@ -201,19 +201,19 @@ def upload_system_backup_to_google_drive():
 			send_email(False, "Google Drive", "Google Drive", "email", error_status=e)
 
 	set_progress(3, _("Uploading successful."))
-	frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
+	nts.db.set_single_value("Google Drive", "last_backup_on", nts.utils.now_datetime())
 	send_email(True, "Google Drive", "Google Drive", "email")
 	return _("Google Drive Backup Successful.")
 
 
 def daily_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
+	drive_settings = nts.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Daily":
 		upload_system_backup_to_google_drive()
 
 
 def weekly_backup():
-	drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
+	drive_settings = nts.db.get_singles_dict("Google Drive", cast=True)
 	if drive_settings.enable and drive_settings.frequency == "Weekly":
 		upload_system_backup_to_google_drive()
 
@@ -224,8 +224,8 @@ def get_absolute_path(filename):
 
 
 def set_progress(progress, message):
-	frappe.publish_realtime(
+	nts.publish_realtime(
 		"upload_to_google_drive",
 		dict(progress=progress, total=3, message=message),
-		user=frappe.session.user,
+		user=nts.session.user,
 	)

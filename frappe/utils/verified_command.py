@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
 import hmac
 from urllib.parse import urlencode
 
-import frappe
-import frappe.utils
-from frappe import _
+import nts
+import nts.utils
+from nts import _
 
 
 def get_signed_params(params):
@@ -21,15 +21,15 @@ def get_signed_params(params):
 
 
 def get_secret():
-	from frappe.utils.password import get_encryption_key
+	from nts.utils.password import get_encryption_key
 
-	return frappe.local.conf.get("secret") or get_encryption_key()
+	return nts.local.conf.get("secret") or get_encryption_key()
 
 
 def verify_request():
 	"""Verify if the incoming signed request if it is correct."""
-	query_string = frappe.safe_decode(
-		frappe.local.flags.signed_query_string or getattr(frappe.request, "query_string", None)
+	query_string = nts.safe_decode(
+		nts.local.flags.signed_query_string or getattr(nts.request, "query_string", None)
 	)
 
 	signature_string = "&_signature="
@@ -38,13 +38,13 @@ def verify_request():
 
 		computed_signature = _sign_message(params)
 		valid_signature = hmac.compare_digest(given_signature, computed_signature)
-		valid_method = frappe.request.method == "GET"
-		valid_request_data = not (frappe.request.form or frappe.request.data)
+		valid_method = nts.request.method == "GET"
+		valid_request_data = not (nts.request.form or nts.request.data)
 
 		if valid_signature and valid_method and valid_request_data:
 			return True
 
-	frappe.respond_as_web_page(
+	nts.respond_as_web_page(
 		_("Invalid Link"),
 		_("This link is invalid or expired. Please make sure you have pasted correctly."),
 	)
@@ -61,13 +61,13 @@ def get_url(cmd, params, nonce=None, secret=None):
 		nonce = params
 	signature = get_signature(params, nonce, secret)
 	params["signature"] = signature
-	return frappe.utils.get_url("".join(["api/method/", cmd, "?", urlencode(params)]))
+	return nts.utils.get_url("".join(["api/method/", cmd, "?", urlencode(params)]))
 
 
 def get_signature(params, nonce, secret=None):
-	params = "".join(frappe.utils.cstr(p) for p in params.values())
+	params = "".join(nts.utils.cstr(p) for p in params.values())
 	if not secret:
-		secret = frappe.local.conf.get("secret") or "secret"
+		secret = nts.local.conf.get("secret") or "secret"
 
 	signature = hmac.new(str(nonce), digestmod=hashlib.md5)
 	signature.update(secret)

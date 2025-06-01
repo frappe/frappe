@@ -3,8 +3,8 @@ import re
 
 from bleach_allowlist import bleach_allowlist
 
-import frappe
-from frappe.utils.data import escape_html
+import nts
+from nts.utils.data import escape_html
 
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
@@ -139,7 +139,7 @@ def clean_script_and_style(html):
 	soup = BeautifulSoup(html, "html5lib")
 	for s in soup(["script", "style"]):
 		s.decompose()
-	return frappe.as_unicode(soup)
+	return nts.as_unicode(soup)
 
 
 def sanitize_html(html, linkify=False, always_sanitize=False):
@@ -201,7 +201,7 @@ def is_json(text):
 
 
 def get_icon_html(icon, small=False):
-	from frappe.utils import is_image
+	from nts.utils import is_image
 
 	icon = icon or ""
 

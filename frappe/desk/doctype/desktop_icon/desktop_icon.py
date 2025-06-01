@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import json
 import random
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils.user import UserPermissions
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils.user import UserPermissions
 
 
 class DesktopIcon(Document):
@@ -17,7 +17,7 @@ class DesktopIcon(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		_doctype: DF.Link | None
 		_report: DF.Link | None
@@ -48,15 +48,15 @@ class DesktopIcon(Document):
 
 
 def after_doctype_insert():
-	frappe.db.add_unique("Desktop Icon", ("module_name", "owner", "standard"))
+	nts.db.add_unique("Desktop Icon", ("module_name", "owner", "standard"))
 
 
 def get_desktop_icons(user=None):
 	"""Return desktop icons for user"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	user_icons = frappe.cache.hget("desktop_icons", user)
+	user_icons = nts.cache.hget("desktop_icons", user)
 
 	if not user_icons:
 		fields = [
@@ -79,9 +79,9 @@ def get_desktop_icons(user=None):
 			"blocked",
 		]
 
-		active_domains = frappe.get_active_domains()
+		active_domains = nts.get_active_domains()
 
-		blocked_doctypes = frappe.get_all(
+		blocked_doctypes = nts.get_all(
 			"DocType",
 			filters={"ifnull(restrict_to_domain, '')": ("not in", ",".join(active_domains))},
 			fields=["name"],
@@ -89,7 +89,7 @@ def get_desktop_icons(user=None):
 
 		blocked_doctypes = [d.get("name") for d in blocked_doctypes]
 
-		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
+		standard_icons = nts.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
 
 		standard_map = {}
 		for icon in standard_icons:
@@ -97,7 +97,7 @@ def get_desktop_icons(user=None):
 				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
-		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
+		user_icons = nts.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
 
 		# update hidden property
 		for icon in user_icons:
@@ -132,7 +132,7 @@ def get_desktop_icons(user=None):
 
 				user_icons.append(standard_icon)
 
-		user_blocked_modules = frappe.get_doc("User", user).get_blocked_modules()
+		user_blocked_modules = nts.get_doc("User", user).get_blocked_modules()
 		for icon in user_icons:
 			if icon.module_name in user_blocked_modules:
 				icon.hidden = 1
@@ -145,12 +145,12 @@ def get_desktop_icons(user=None):
 			if d.label:
 				d.label = _(d.label, context=d.parent)
 
-		frappe.cache.hset("desktop_icons", user, user_icons)
+		nts.cache.hset("desktop_icons", user, user_icons)
 
 	return user_icons
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", standard=0):
 	"""Add a new user desktop icon to the desktop"""
 
@@ -160,33 +160,33 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 		link = f"List/{_doctype}"
 
 	# find if a standard icon exists
-	icon_name = frappe.db.exists(
-		"Desktop Icon", {"standard": standard, "link": link, "owner": frappe.session.user}
+	icon_name = nts.db.exists(
+		"Desktop Icon", {"standard": standard, "link": link, "owner": nts.session.user}
 	)
 
 	if icon_name:
-		if frappe.db.get_value("Desktop Icon", icon_name, "hidden"):
+		if nts.db.get_value("Desktop Icon", icon_name, "hidden"):
 			# if it is hidden, unhide it
-			frappe.db.set_value("Desktop Icon", icon_name, "hidden", 0)
+			nts.db.set_value("Desktop Icon", icon_name, "hidden", 0)
 			clear_desktop_icons_cache()
 
 	else:
 		idx = (
-			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][0]
-			or frappe.db.sql("select count(*) from `tabDesktop Icon` where standard=1")[0][0]
+			nts.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", nts.session.user)[0][0]
+			or nts.db.sql("select count(*) from `tabDesktop Icon` where standard=1")[0][0]
 		)
 
-		if not frappe.db.get_value("Report", _report):
+		if not nts.db.get_value("Report", _report):
 			_report = None
-			userdefined_icon = frappe.db.get_value(
+			userdefined_icon = nts.db.get_value(
 				"DocType", _doctype, ["icon", "color", "module"], as_dict=True
 			)
 		else:
-			userdefined_icon = frappe.db.get_value(
+			userdefined_icon = nts.db.get_value(
 				"Report", _report, ["icon", "color", "module"], as_dict=True
 			)
 
-		module_icon = frappe.get_value(
+		module_icon = nts.get_value(
 			"Desktop Icon",
 			{"standard": 1, "module_name": userdefined_icon.module},
 			["name", "icon", "color", "reverse"],
@@ -194,13 +194,13 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 		)
 
 		if not module_icon:
-			module_icon = frappe._dict()
+			module_icon = nts._dict()
 			opts = random.choice(palette)
 			module_icon.color = opts[0]
 			module_icon.reverse = 0 if (len(opts) > 1) else 1
 
 		try:
-			new_icon = frappe.get_doc(
+			new_icon = nts.get_doc(
 				{
 					"doctype": "Desktop Icon",
 					"label": label,
@@ -221,15 +221,15 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 			icon_name = new_icon.name
 
-		except frappe.UniqueValidationError:
-			frappe.throw(_("Desktop Icon already exists"))
+		except nts.UniqueValidationError:
+			nts.throw(_("Desktop Icon already exists"))
 		except Exception as e:
 			raise e
 
 	return icon_name
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def set_order(new_order, user=None):
 	"""set new order by duplicating user icons (if user is set) or set global order"""
 	if isinstance(new_order, str):
@@ -239,13 +239,13 @@ def set_order(new_order, user=None):
 			if user:
 				icon = get_user_copy(module_name, user)
 			else:
-				name = frappe.db.get_value("Desktop Icon", {"standard": 1, "module_name": module_name})
+				name = nts.db.get_value("Desktop Icon", {"standard": 1, "module_name": module_name})
 				if name:
-					icon = frappe.get_doc("Desktop Icon", name)
+					icon = nts.get_doc("Desktop Icon", name)
 				else:
 					# standard icon missing, create one for DocType
 					name = add_user_icon(module_name, standard=1)
-					icon = frappe.get_doc("Desktop Icon", name)
+					icon = nts.get_doc("Desktop Icon", name)
 
 			icon.db_set("idx", i)
 
@@ -258,28 +258,28 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	an icon for the doctype"""
 
 	# clear all custom only if setup is not complete
-	if not int(frappe.defaults.get_defaults().setup_complete or 0):
-		frappe.db.delete("Desktop Icon", {"standard": 0})
+	if not int(nts.defaults.get_defaults().setup_complete or 0):
+		nts.db.delete("Desktop Icon", {"standard": 0})
 
 	# set standard as blocked and hidden if setting first active domain
-	if not frappe.flags.keep_desktop_icons:
-		frappe.db.sql("update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1")
+	if not nts.flags.keep_desktop_icons:
+		nts.db.sql("update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1")
 
 	# set as visible if present, or add icon
 	for module_name in list(visible_list):
-		name = frappe.db.get_value("Desktop Icon", {"module_name": module_name})
+		name = nts.db.get_value("Desktop Icon", {"module_name": module_name})
 		if name:
-			frappe.db.set_value("Desktop Icon", name, "hidden", 0)
+			nts.db.set_value("Desktop Icon", name, "hidden", 0)
 		else:
-			if frappe.db.exists("DocType", module_name):
+			if nts.db.exists("DocType", module_name):
 				try:
 					add_user_icon(module_name, standard=1)
-				except frappe.UniqueValidationError as e:
+				except nts.UniqueValidationError as e:
 					if not ignore_duplicate:
 						raise e
 					else:
 						visible_list.remove(module_name)
-						frappe.clear_last_message()
+						nts.clear_last_message()
 
 	# set the order
 	set_order(visible_list)
@@ -305,7 +305,7 @@ def set_hidden_list(hidden_list, user=None):
 	if user:
 		clear_desktop_icons_cache()
 	else:
-		frappe.clear_cache()
+		nts.clear_cache()
 
 
 def set_hidden(module_name, user=None, hidden=1):
@@ -315,13 +315,13 @@ def set_hidden(module_name, user=None, hidden=1):
 		icon = get_user_copy(module_name, user)
 
 		if hidden and icon.custom:
-			frappe.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
+			nts.delete_doc(icon.doctype, icon.name, ignore_permissions=True)
 			return
 
 		# hidden by user
 		icon.db_set("hidden", hidden)
 	else:
-		icon = frappe.get_doc("Desktop Icon", {"standard": 1, "module_name": module_name})
+		icon = nts.get_doc("Desktop Icon", {"standard": 1, "module_name": module_name})
 
 		# blocked is globally hidden
 		icon.db_set("blocked", hidden)
@@ -329,13 +329,13 @@ def set_hidden(module_name, user=None, hidden=1):
 
 def get_all_icons():
 	return [
-		d.module_name for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
+		d.module_name for d in nts.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
 	]
 
 
 def clear_desktop_icons_cache(user=None):
-	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
-	frappe.cache.hdel("bootinfo", user or frappe.session.user)
+	nts.cache.hdel("desktop_icons", user or nts.session.user)
+	nts.cache.hdel("bootinfo", user or nts.session.user)
 
 
 def get_user_copy(module_name, user=None):
@@ -345,28 +345,28 @@ def get_user_copy(module_name, user=None):
 	:param user: User for which the copy is required (optional)
 	"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	desktop_icon_name = frappe.db.get_value(
+	desktop_icon_name = nts.db.get_value(
 		"Desktop Icon", {"module_name": module_name, "owner": user, "standard": 0}
 	)
 
 	if desktop_icon_name:
-		return frappe.get_doc("Desktop Icon", desktop_icon_name)
+		return nts.get_doc("Desktop Icon", desktop_icon_name)
 	else:
 		return make_user_copy(module_name, user)
 
 
 def make_user_copy(module_name, user):
 	"""Insert and return the user copy of a standard Desktop Icon"""
-	standard_name = frappe.db.get_value("Desktop Icon", {"module_name": module_name, "standard": 1})
+	standard_name = nts.db.get_value("Desktop Icon", {"module_name": module_name, "standard": 1})
 
 	if not standard_name:
-		frappe.throw(_("{0} not found").format(module_name), frappe.DoesNotExistError)
+		nts.throw(_("{0} not found").format(module_name), nts.DoesNotExistError)
 
-	original = frappe.get_doc("Desktop Icon", standard_name)
+	original = nts.get_doc("Desktop Icon", standard_name)
 
-	desktop_icon = frappe.get_doc(
+	desktop_icon = nts.get_doc(
 		{"doctype": "Desktop Icon", "standard": 0, "owner": user, "module_name": module_name}
 	)
 
@@ -393,14 +393,14 @@ def make_user_copy(module_name, user):
 
 def sync_desktop_icons():
 	"""Sync desktop icons from all apps"""
-	for app in frappe.get_installed_apps():
+	for app in nts.get_installed_apps():
 		sync_from_app(app)
 
 
 def sync_from_app(app):
 	"""Sync desktop icons from app. To be called during install"""
 	try:
-		modules = frappe.get_attr(app + ".config.desktop.get_data")() or {}
+		modules = nts.get_attr(app + ".config.desktop.get_data")() or {}
 	except ImportError:
 		return []
 
@@ -413,14 +413,14 @@ def sync_from_app(app):
 		modules_list = modules
 
 	for i, m in enumerate(modules_list):
-		desktop_icon_name = frappe.db.get_value(
+		desktop_icon_name = nts.db.get_value(
 			"Desktop Icon", {"module_name": m["module_name"], "app": app, "standard": 1}
 		)
 		if desktop_icon_name:
-			desktop_icon = frappe.get_doc("Desktop Icon", desktop_icon_name)
+			desktop_icon = nts.get_doc("Desktop Icon", desktop_icon_name)
 		else:
 			# new icon
-			desktop_icon = frappe.get_doc(
+			desktop_icon = nts.get_doc(
 				{"doctype": "Desktop Icon", "idx": i, "standard": 1, "app": app, "owner": "Administrator"}
 			)
 
@@ -430,47 +430,47 @@ def sync_from_app(app):
 		desktop_icon.update(m)
 		try:
 			desktop_icon.save()
-		except frappe.exceptions.UniqueValidationError:
+		except nts.exceptions.UniqueValidationError:
 			pass
 
 	return modules_list
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_icons(hidden_list, user=None):
 	"""update modules"""
 	if not user:
-		frappe.only_for("System Manager")
+		nts.only_for("System Manager")
 
 	set_hidden_list(hidden_list, user)
-	frappe.msgprint(frappe._("Updated"), indicator="green", title=_("Success"), alert=True)
+	nts.msgprint(nts._("Updated"), indicator="green", title=_("Success"), alert=True)
 
 
 def get_context(context):
-	context.icons = get_user_icons(frappe.session.user)
-	context.user = frappe.session.user
+	context.icons = get_user_icons(nts.session.user)
+	context.user = nts.session.user
 
-	if "System Manager" in frappe.get_roles():
-		context.users = frappe.get_all(
+	if "System Manager" in nts.get_roles():
+		context.users = nts.get_all(
 			"User",
 			filters={"user_type": "System User", "enabled": 1},
 			fields=["name", "first_name", "last_name"],
 		)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_module_icons(user=None):
-	if user != frappe.session.user:
-		frappe.only_for("System Manager")
+	if user != nts.session.user:
+		nts.only_for("System Manager")
 
 	if not user:
-		icons = frappe.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
+		icons = nts.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
 	else:
-		frappe.cache.hdel("desktop_icons", user)
+		nts.cache.hdel("desktop_icons", user)
 		icons = get_user_icons(user)
 
 	for icon in icons:
-		icon.value = frappe.db.escape(_(icon.label or icon.module_name))
+		icon.value = nts.db.escape(_(icon.label or icon.module_name))
 
 	return {"icons": icons, "user": user}
 
@@ -480,7 +480,7 @@ def get_user_icons(user):
 	user_perms = UserPermissions(user)
 	user_perms.build_permissions()
 
-	from frappe.boot import get_allowed_pages
+	from nts.boot import get_allowed_pages
 
 	allowed_pages = get_allowed_pages()
 
@@ -558,10 +558,10 @@ palette = (
 )
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def hide(name, user=None):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	try:
 		set_hidden(name, user, hidden=1)

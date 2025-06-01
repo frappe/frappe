@@ -1,18 +1,18 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_to_date, get_link_to_form, today
-from frappe.utils.data import is_html
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import add_to_date, get_link_to_form, today
+from nts.utils.data import is_html
 
-# test_records = frappe.get_test_records('Auto Email Report')
+# test_records = nts.get_test_records('Auto Email Report')
 
 
-class TestAutoEmailReport(FrappeTestCase):
+class TestAutoEmailReport(ntsTestCase):
 	def test_auto_email(self):
-		frappe.delete_doc("Auto Email Report", "Permitted Documents For User")
+		nts.delete_doc("Auto Email Report", "Permitted Documents For User")
 
 		auto_email_report = get_auto_email_report()
 
@@ -44,8 +44,8 @@ class TestAutoEmailReport(FrappeTestCase):
 
 
 def get_auto_email_report():
-	if not frappe.db.exists("Auto Email Report", "Permitted Documents For User"):
-		auto_email_report = frappe.get_doc(
+	if not nts.db.exists("Auto Email Report", "Permitted Documents For User"):
+		auto_email_report = nts.get_doc(
 			dict(
 				doctype="Auto Email Report",
 				report="Permitted Documents For User",
@@ -59,6 +59,6 @@ def get_auto_email_report():
 			)
 		).insert()
 	else:
-		auto_email_report = frappe.get_doc("Auto Email Report", "Permitted Documents For User")
+		auto_email_report = nts.get_doc("Auto Email Report", "Permitted Documents For User")
 
 	return auto_email_report

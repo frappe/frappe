@@ -1,19 +1,19 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.on("Website Theme", {
+nts.ui.form.on("Website Theme", {
 	onload_post_render(frm) {
 		frm.events.make_app_theme_selector(frm);
 	},
 
 	refresh(frm) {
 		frm.clear_custom_buttons();
-		frm.toggle_display(["module", "custom"], frappe.boot.developer_mode);
+		frm.toggle_display(["module", "custom"], nts.boot.developer_mode);
 
 		frm.trigger("set_default_theme_button_and_indicator");
 		frm.trigger("make_app_theme_selector");
 
-		if (!frm.doc.custom && !frappe.boot.developer_mode) {
+		if (!frm.doc.custom && !nts.boot.developer_mode) {
 			frm.set_read_only();
 			frm.disable_save();
 		} else {
@@ -23,7 +23,7 @@ frappe.ui.form.on("Website Theme", {
 	},
 
 	set_default_theme_button_and_indicator(frm) {
-		frappe.db.get_single_value("Website Settings", "website_theme").then((value) => {
+		nts.db.get_single_value("Website Settings", "website_theme").then((value) => {
 			if (value === frm.doc.name) {
 				frm.page.set_indicator(__("Default Theme"), "green");
 			} else {
@@ -55,7 +55,7 @@ frappe.ui.form.on("Website Theme", {
 		let ignored_apps = (frm.doc.ignored_apps || []).map((d) => d.app);
 		frm.events.get_installed_apps(frm).then((apps) => {
 			if (frm.app_theme_selector) return;
-			let form = new frappe.ui.FieldGroup({
+			let form = new nts.ui.FieldGroup({
 				fields: [
 					{
 						label: __("Include Theme from Apps"),

@@ -139,7 +139,7 @@
 								}
 							}
 
-							.frappe-control {
+							.nts-control {
 								position: relative;
 
 								@include media-breakpoint-down(sm) {
@@ -439,7 +439,7 @@
 						margin: 1.25rem 0;
 						gap: 10px;
 
-						.form-group.frappe-control {
+						.form-group.nts-control {
 							min-width: 145px;
 							padding: 0px;
 							margin: 0px;

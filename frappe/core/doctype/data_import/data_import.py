@@ -1,19 +1,19 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import os
 
 from rq.timeouts import JobTimeoutException
 
-import frappe
-from frappe import _
-from frappe.core.doctype.data_import.exporter import Exporter
-from frappe.core.doctype.data_import.importer import Importer
-from frappe.model import CORE_DOCTYPES
-from frappe.model.document import Document
-from frappe.modules.import_file import import_file_by_path
-from frappe.utils.background_jobs import enqueue, is_job_enqueued
-from frappe.utils.csvutils import validate_google_sheets_url
+import nts
+from nts import _
+from nts.core.doctype.data_import.exporter import Exporter
+from nts.core.doctype.data_import.importer import Importer
+from nts.model import CORE_DOCTYPES
+from nts.model.document import Document
+from nts.modules.import_file import import_file_by_path
+from nts.utils.background_jobs import enqueue, is_job_enqueued
+from nts.utils.csvutils import validate_google_sheets_url
 
 BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
 
@@ -25,7 +25,7 @@ class DataImport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		google_sheets_url: DF.Data | None
 		import_file: DF.Attach | None
@@ -57,7 +57,7 @@ class DataImport(Document):
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
-			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
+			nts.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
 
 	def validate_import_file(self):
 		if self.import_file:
@@ -75,7 +75,7 @@ class DataImport(Document):
 			payloads = i.import_file.get_payloads_for_import()
 			self.payload_count = len(payloads)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
 		if import_file:
 			self.import_file = import_file
@@ -90,11 +90,11 @@ class DataImport(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
-		from frappe.utils.scheduler import is_scheduler_inactive
+		from nts.utils.scheduler import is_scheduler_inactive
 
-		run_now = frappe.flags.in_test or frappe.conf.developer_mode
+		run_now = nts.flags.in_test or nts.conf.developer_mode
 		if is_scheduler_inactive() and not run_now:
-			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
+			nts.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 
 		job_id = f"data_import::{self.name}"
 
@@ -122,45 +122,45 @@ class DataImport(Document):
 		return Importer(self.reference_doctype, data_import=self)
 
 	def on_trash(self):
-		frappe.db.delete("Data Import Log", {"data_import": self.name})
+		nts.db.delete("Data Import Log", {"data_import": self.name})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_preview_from_template(
 	data_import: str, import_file: str | None = None, google_sheets_url: str | None = None
 ):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
+	di: DataImport = nts.get_doc("Data Import", data_import)
 	di.check_permission("read")
 	return di.get_preview_from_template(import_file, google_sheets_url)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def form_start_import(data_import: str):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
+	di: DataImport = nts.get_doc("Data Import", data_import)
 	di.check_permission("write")
 	return di.start_import()
 
 
 def start_import(data_import):
 	"""This method runs in background job"""
-	data_import = frappe.get_doc("Data Import", data_import)
+	data_import = nts.get_doc("Data Import", data_import)
 	try:
 		i = Importer(data_import.reference_doctype, data_import=data_import)
 		i.import_data()
 	except JobTimeoutException:
-		frappe.db.rollback()
+		nts.db.rollback()
 		data_import.db_set("status", "Timed Out")
 	except Exception:
-		frappe.db.rollback()
+		nts.db.rollback()
 		data_import.db_set("status", "Error")
 		data_import.log_error("Data import failed")
 	finally:
-		frappe.flags.in_import = False
+		nts.flags.in_import = False
 
-	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	nts.publish_realtime("data_import_refresh", {"data_import": data_import.name})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
 	"""
 	Download template from Exporter
@@ -170,10 +170,10 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 	        :param export_filters: Filter dict
 	        :param file_type: File type to export into
 	"""
-	frappe.has_permission(doctype, "read", throw=True)
+	nts.has_permission(doctype, "read", throw=True)
 
-	export_fields = frappe.parse_json(export_fields)
-	export_filters = frappe.parse_json(export_filters)
+	export_fields = nts.parse_json(export_fields)
+	export_filters = nts.parse_json(export_filters)
 	export_data = export_records != "blank_template"
 
 	e = Exporter(
@@ -187,27 +187,27 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 	e.build_response()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_errored_template(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = nts.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 	data_import.export_errored_rows()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_import_log(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = nts.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 	data_import.download_import_log()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_import_status(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = nts.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 
 	import_status = {"status": data_import.status}
-	logs = frappe.get_all(
+	logs = nts.get_all(
 		"Data Import Log",
 		fields=["count(*) as count", "success"],
 		filters={"data_import": data_import_name},
@@ -227,12 +227,12 @@ def get_import_status(data_import_name: str):
 	return import_status
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_import_logs(data_import: str):
-	doc = frappe.get_doc("Data Import", data_import)
+	doc = nts.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 
-	return frappe.get_all(
+	return nts.get_all(
 		"Data Import Log",
 		fields=["success", "docname", "messages", "exception", "row_indexes"],
 		filters={"data_import": data_import},
@@ -252,7 +252,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	:param console: Set to true if this is to be used from command line. Will print errors or progress to stdout.
 	"""
 
-	data_import = frappe.new_doc("Data Import")
+	data_import = nts.new_doc("Data Import")
 	data_import.submit_after_import = submit_after_import
 	data_import.import_type = (
 		"Insert New Records" if import_type.lower() == "insert" else "Update Existing Records"
@@ -270,12 +270,12 @@ def import_doc(path, pre_process=None):
 
 	for f in files:
 		if f.endswith(".json"):
-			frappe.flags.mute_emails = True
+			nts.flags.mute_emails = True
 			import_file_by_path(
 				f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True
 			)
-			frappe.flags.mute_emails = False
-			frappe.db.commit()
+			nts.flags.mute_emails = False
+			nts.db.commit()
 		else:
 			raise NotImplementedError("Only .json files can be imported")
 
@@ -301,11 +301,11 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 
 	out = []
 	if name:
-		out.append(frappe.get_doc(doctype, name).as_dict())
-	elif frappe.db.get_value("DocType", doctype, "issingle"):
-		out.append(frappe.get_doc(doctype).as_dict())
+		out.append(nts.get_doc(doctype, name).as_dict())
+	elif nts.db.get_value("DocType", doctype, "issingle"):
+		out.append(nts.get_doc(doctype).as_dict())
 	else:
-		for doc in frappe.get_all(
+		for doc in nts.get_all(
 			doctype,
 			fields=["name"],
 			filters=filters,
@@ -313,7 +313,7 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 			limit_page_length=0,
 			order_by=order_by,
 		):
-			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+			out.append(nts.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
 
 	dirname = os.path.dirname(path)
@@ -321,12 +321,12 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 		path = os.path.join("..", path)
 
 	with open(path, "w") as outfile:
-		outfile.write(frappe.as_json(out, ensure_ascii=False))
+		outfile.write(nts.as_json(out, ensure_ascii=False))
 
 
 def export_csv(doctype, path):
-	from frappe.core.doctype.data_export.exporter import export_data
+	from nts.core.doctype.data_export.exporter import export_data
 
 	with open(path, "wb") as csvfile:
 		export_data(doctype=doctype, all_doctypes=True, template=True, with_data=True)
-		csvfile.write(frappe.response.result.encode("utf-8"))
+		csvfile.write(nts.response.result.encode("utf-8"))

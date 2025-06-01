@@ -1,4 +1,4 @@
-{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+{% from "nts/templates/includes/avatar_macro.html" import avatar %}
 
 {%- set post = doc -%}
 <div class="blog-card col-sm-12 {{ 'col-md-8' if post.featured else 'col-md-4' }}">
@@ -32,7 +32,7 @@
 				<div class="text-muted">
 					<a href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
 					<div class="small">
-						{{ frappe.format_date(post.published_on) }}
+						{{ nts.format_date(post.published_on) }}
 						{% if post.read_time %} &middot; {{ post.read_time }} {{ _('min read') }} {% endif %}
 					</div>
 				</div>

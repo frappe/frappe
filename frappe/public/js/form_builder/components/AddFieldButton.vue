@@ -59,9 +59,9 @@ const selected = computed(() => {
 const show = ref(false);
 const autocomplete_value = ref("");
 const fields = computed(() => {
-	let fields = frappe.model.all_fieldtypes
+	let fields = nts.model.all_fieldtypes
 		.filter((df) => {
-			if (in_list(frappe.model.layout_fields, df)) {
+			if (in_list(nts.model.layout_fields, df)) {
 				return false;
 			}
 			return true;

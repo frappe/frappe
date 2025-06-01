@@ -5,10 +5,10 @@ import pymysql
 from pymysql.constants import ER, FIELD_TYPE
 from pymysql.converters import conversions, escape_string
 
-import frappe
-from frappe.database.database import Database
-from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+import nts
+from nts.database.database import Database
+from nts.database.mariadb.schema import MariaDBTable
+from nts.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
@@ -141,14 +141,14 @@ class MariaDBConnectionUtil:
 		if self.password:
 			conn_settings["password"] = self.password
 
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
+		if nts.conf.local_infile:
+			conn_settings["local_infile"] = nts.conf.local_infile
 
-		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+		if nts.conf.db_ssl_ca and nts.conf.db_ssl_cert and nts.conf.db_ssl_key:
 			conn_settings["ssl"] = {
-				"ca": frappe.conf.db_ssl_ca,
-				"cert": frappe.conf.db_ssl_cert,
-				"key": frappe.conf.db_ssl_key,
+				"ca": nts.conf.db_ssl_ca,
+				"cert": nts.conf.db_ssl_cert,
+				"key": nts.conf.db_ssl_key,
 			}
 		return conn_settings
 
@@ -232,11 +232,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
-		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
+		# Also, given we're promoting use of the PyPika builder via nts.qb, the use
 		# of this method should be limited.
 
 		# pymysql expects unicode argument to escape_string with Python 3
-		s = frappe.as_unicode(escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
+		s = nts.as_unicode(escape_string(nts.as_unicode(s)), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
@@ -278,7 +278,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		table_name = get_table_name(doctype)
 
-		frappe.db.sql_ddl(
+		nts.db.sql_ddl(
 			f"""ALTER TABLE `{table_name}`
 				CHANGE COLUMN `{old_column_name}`
 				`{new_column_name}`
@@ -354,11 +354,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	def get_column_type(self, doctype, column):
 		"""Returns column type from database."""
-		information_schema = frappe.qb.Schema("information_schema")
+		information_schema = nts.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
 		return (
-			frappe.qb.from_(information_schema.columns)
+			nts.qb.from_(information_schema.columns)
 			.select(information_schema.columns.column_type)
 			.where(
 				(information_schema.columns.table_name == table)
@@ -373,7 +373,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			WHERE Key_name='{index_name}'"""
 		)
 
-	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> nts._dict | None:
 		"""Check if column exists for a specific fields in specified order.
 
 		This differs from db.has_index because it doesn't rely on index name but columns inside an
@@ -406,7 +406,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
-		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		from nts.custom.doctype.property_setter.property_setter import make_property_setter
 
 		index_name = index_name or self.get_index_name(fields)
 		table_name = get_table_name(doctype)
@@ -418,7 +418,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			)
 			# Ensure that DB migration doesn't clear this index, assuming this is manually added
 			# via code or console.
-			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
+			if len(fields) == 1 and not (nts.flags.in_install or nts.flags.in_migrate):
 				make_property_setter(
 					doctype,
 					fields[0],
@@ -471,19 +471,19 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		to_query = not cached
 
 		if cached:
-			tables = frappe.cache.get_value("db_tables")
+			tables = nts.cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
-			information_schema = frappe.qb.Schema("information_schema")
+			information_schema = nts.qb.Schema("information_schema")
 
 			tables = (
-				frappe.qb.from_(information_schema.tables)
+				nts.qb.from_(information_schema.tables)
 				.select(information_schema.tables.table_name)
-				.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+				.where(information_schema.tables.table_schema == nts.db.cur_db_name)
 				.run(pluck=True)
 			)
-			frappe.cache.set_value("db_tables", tables)
+			nts.cache.set_value("db_tables", tables)
 
 		return tables
 
@@ -494,7 +494,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		# Modification: get values for particular table instead of full summary.
 		# Reference: https://mariadb.com/kb/en/data-type-storage-requirements/
 
-		est_row_size = frappe.db.sql(
+		est_row_size = nts.db.sql(
 			"""
 			SELECT SUM(col_sizes.col_size) AS EST_MAX_ROW_SIZE
 			FROM (
@@ -557,7 +557,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	def estimate_count(self, doctype: str):
 		"""Get estimated count of total rows in a table."""
-		from frappe.utils.data import cint
+		from nts.utils.data import cint
 
 		table = get_table_name(doctype)
 

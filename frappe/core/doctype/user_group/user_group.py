@@ -1,10 +1,10 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
-# import frappe
-from frappe.model.document import Document
+# import nts
+from nts.model.document import Document
 
 
 class UserGroup(Document):
@@ -14,14 +14,14 @@ class UserGroup(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.user_group_member.user_group_member import UserGroupMember
-		from frappe.types import DF
+		from nts.core.doctype.user_group_member.user_group_member import UserGroupMember
+		from nts.types import DF
 
 		user_group_members: DF.TableMultiSelect[UserGroupMember]
 
 	# end: auto-generated types
 	def after_insert(self):
-		frappe.cache.delete_key("user_groups")
+		nts.cache.delete_key("user_groups")
 
 	def on_trash(self):
-		frappe.cache.delete_key("user_groups")
+		nts.cache.delete_key("user_groups")

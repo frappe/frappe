@@ -1,8 +1,8 @@
 import socket
 from urllib.parse import urlparse
 
-from frappe import get_conf
-from frappe.exceptions import UrlSchemeNotSupported
+from nts import get_conf
+from nts.exceptions import UrlSchemeNotSupported
 
 REDIS_KEYS = ("redis_cache", "redis_queue")
 

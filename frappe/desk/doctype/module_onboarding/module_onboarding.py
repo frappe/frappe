@@ -1,10 +1,10 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.modules.export_file import export_to_files
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.modules.export_file import export_to_files
 
 
 class ModuleOnboarding(Document):
@@ -14,9 +14,9 @@ class ModuleOnboarding(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.desk.doctype.onboarding_permission.onboarding_permission import OnboardingPermission
-		from frappe.desk.doctype.onboarding_step_map.onboarding_step_map import OnboardingStepMap
-		from frappe.types import DF
+		from nts.desk.doctype.onboarding_permission.onboarding_permission import OnboardingPermission
+		from nts.desk.doctype.onboarding_step_map.onboarding_step_map import OnboardingStepMap
+		from nts.types import DF
 
 		allow_roles: DF.TableMultiSelect[OnboardingPermission]
 		documentation_url: DF.Data
@@ -29,14 +29,14 @@ class ModuleOnboarding(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		if frappe.conf.developer_mode:
+		if nts.conf.developer_mode:
 			export_to_files(record_list=[["Module Onboarding", self.name]], record_module=self.module)
 
 			for step in self.steps:
 				export_to_files(record_list=[["Onboarding Step", step.step]], record_module=self.module)
 
 	def get_steps(self):
-		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
+		return [nts.get_doc("Onboarding Step", step.step) for step in self.steps]
 
 	def get_allowed_roles(self):
 		all_roles = [role.role for role in self.allow_roles]
@@ -58,7 +58,7 @@ class ModuleOnboarding(Document):
 
 		return False
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def reset_progress(self):
 		self.db_set("is_complete", 0)
 
@@ -66,13 +66,13 @@ class ModuleOnboarding(Document):
 			step.db_set("is_complete", 0)
 			step.db_set("is_skipped", 0)
 
-		frappe.msgprint(_("Module onboarding progress reset"), alert=True)
+		nts.msgprint(_("Module onboarding progress reset"), alert=True)
 
 	def before_export(self, doc):
 		doc.is_complete = 0
 
 	def reset_onboarding(self):
-		frappe.only_for("Administrator")
+		nts.only_for("Administrator")
 
 		self.is_complete = 0
 		steps = self.get_steps()

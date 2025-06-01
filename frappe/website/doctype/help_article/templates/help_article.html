@@ -7,7 +7,7 @@
 {% block page_content %}
 <article itemscope itemtype="http://schema.org/BlogPosting">
 	<div>
-		<h6 class='text-muted'>By {{ author }} on {{ frappe.format_date(creation) }}</h6>
+		<h6 class='text-muted'>By {{ author }} on {{ nts.format_date(creation) }}</h6>
 		<span class="indicator {{ level_class }}">{{ level }}</span>
 	</div>
 
@@ -40,17 +40,17 @@
 	{% include 'templates/includes/comments/comments.html' %}
 </div>
 <script>
-frappe.ready(function() {
-	frappe.set_search_path("/kb");
+nts.ready(function() {
+	nts.set_search_path("/kb");
 	$(".feedback").click(function() {
 		let args = {
 			article: "{{ reference_name or name }}",
 			helpful: this.getAttribute("data-value"),
 		}
 
-		frappe.call({
+		nts.call({
 			btn: this,
-			method: "frappe.website.doctype.help_article.help_article.add_feedback",
+			method: "nts.website.doctype.help_article.help_article.add_feedback",
 			args: args,
 			callback: function(r) {
 				$(".feedback")[0].classList.add("hidden");

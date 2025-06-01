@@ -1,7 +1,7 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Notification Log", {
+nts.ui.form.on("Notification Log", {
 	refresh: function (frm) {
 		if (frm.doc.attached_file) {
 			frm.trigger("set_attachment");
@@ -12,12 +12,12 @@ frappe.ui.form.on("Notification Log", {
 
 	open_reference_document: function (frm) {
 		if (frm.doc?.link) {
-			frappe.set_route(frm.doc.link);
+			nts.set_route(frm.doc.link);
 			return;
 		}
 		const dt = frm.doc.document_type;
 		const dn = frm.doc.document_name;
-		frappe.set_route("Form", dt, dn);
+		nts.set_route("Form", dt, dn);
 	},
 
 	set_attachment: function (frm) {
@@ -35,14 +35,14 @@ frappe.ui.form.on("Notification Log", {
 
 		$wrapper.find(".attached-file-link").click(() => {
 			const w = window.open(
-				frappe.urllib.get_full_url(`/api/method/frappe.utils.print_format.download_pdf?
+				nts.urllib.get_full_url(`/api/method/nts.utils.print_format.download_pdf?
 					doctype=${encodeURIComponent(attachment.doctype)}
 					&name=${encodeURIComponent(attachment.name)}
 					&format=${encodeURIComponent(attachment.print_format)}
 					&lang=${encodeURIComponent(attachment.lang)}`)
 			);
 			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
+				nts.msgprint(__("Please enable pop-ups"));
 			}
 		});
 	},

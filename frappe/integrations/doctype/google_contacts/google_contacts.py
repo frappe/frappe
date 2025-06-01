@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 
@@ -6,10 +6,10 @@ from urllib.parse import quote
 
 from googleapiclient.errors import HttpError
 
-import frappe
-from frappe import _
-from frappe.integrations.google_oauth import GoogleOAuth
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.integrations.google_oauth import GoogleOAuth
+from nts.model.document import Document
 
 
 class GoogleContacts(Document):
@@ -19,7 +19,7 @@ class GoogleContacts(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		authorization_code: DF.Password | None
 		email_id: DF.Data
@@ -32,13 +32,13 @@ class GoogleContacts(Document):
 
 	# end: auto-generated types
 	def validate(self):
-		if not frappe.db.get_single_value("Google Settings", "enable"):
-			frappe.throw(_("Enable Google API in Google Settings."))
+		if not nts.db.get_single_value("Google Settings", "enable"):
+			nts.throw(_("Enable Google API in Google Settings."))
 
 	def get_access_token(self):
 		if not self.refresh_token:
-			button_label = frappe.bold(_("Allow Google Contacts Access"))
-			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
+			button_label = nts.bold(_("Allow Google Contacts Access"))
+			raise nts.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
 		oauth_obj = GoogleOAuth("contacts")
 		r = oauth_obj.refresh_access_token(
@@ -48,13 +48,13 @@ class GoogleContacts(Document):
 		return r.get("access_token")
 
 
-@frappe.whitelist(methods=["POST"])
+@nts.whitelist(methods=["POST"])
 def authorize_access(g_contact, reauthorize=False, code=None):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
-	contact = frappe.get_doc("Google Contacts", g_contact)
+	contact = nts.get_doc("Google Contacts", g_contact)
 	contact.check_permission("write")
 
 	oauth_code = code or contact.get_password("authorization_code", raise_exception=False)
@@ -78,7 +78,7 @@ def get_google_contacts_object(g_contact):
 	"""
 	Returns an object of Google Calendar along with Google Calendar doc.
 	"""
-	account = frappe.get_doc("Google Contacts", g_contact)
+	account = nts.get_doc("Google Contacts", g_contact)
 	oauth_obj = GoogleOAuth("contacts")
 
 	google_contacts = oauth_obj.get_google_service_object(
@@ -89,14 +89,14 @@ def get_google_contacts_object(g_contact):
 	return google_contacts, account
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def sync(g_contact=None):
 	filters = {"enable": 1}
 
 	if g_contact:
 		filters.update({"name": g_contact})
 
-	google_contacts = frappe.get_list("Google Contacts", filters=filters)
+	google_contacts = nts.get_list("Google Contacts", filters=filters)
 
 	for g in google_contacts:
 		return sync_contacts_from_google_contacts(g.name)
@@ -116,7 +116,7 @@ def sync_contacts_from_google_contacts(g_contact):
 	contacts_updated = 0
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-	contacts = frappe._dict()
+	contacts = nts._dict()
 
 	while True:
 		try:
@@ -135,7 +135,7 @@ def sync_contacts_from_google_contacts(g_contact):
 			)
 
 		except HttpError as err:
-			frappe.throw(
+			nts.throw(
 				_(
 					"Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
 				).format(account.name, err.resp.status)
@@ -144,27 +144,27 @@ def sync_contacts_from_google_contacts(g_contact):
 		results.extend(contact for contact in contacts.get("connections", []))
 		if not contacts.get("nextPageToken"):
 			if contacts.get("nextSyncToken"):
-				frappe.db.set_value(
+				nts.db.set_value(
 					"Google Contacts", account.name, "next_sync_token", contacts.get("nextSyncToken")
 				)
-				frappe.db.commit()
+				nts.db.commit()
 			break
 
-	frappe.db.set_value("Google Contacts", account.name, "last_sync_on", frappe.utils.now_datetime())
+	nts.db.set_value("Google Contacts", account.name, "last_sync_on", nts.utils.now_datetime())
 
 	for idx, connection in enumerate(results):
-		frappe.publish_realtime(
-			"import_google_contacts", dict(progress=idx + 1, total=len(results)), user=frappe.session.user
+		nts.publish_realtime(
+			"import_google_contacts", dict(progress=idx + 1, total=len(results)), user=nts.session.user
 		)
 		# Work-around to fix
-		# https://github.com/frappe/frappe/issues/22648
+		# https://github.com/nts/nts/issues/22648
 		if not connection.get("names"):
 			continue
 
 		for name in connection.get("names"):
 			if name.get("metadata").get("primary"):
 				contacts_updated += 1
-				contact = frappe.get_doc(
+				contact = nts.get_doc(
 					{
 						"doctype": "Contact",
 						"first_name": name.get("givenName") or "",
@@ -204,7 +204,7 @@ def insert_contacts_to_google_contacts(doc, method=None):
 	https://developers.google.com/people/api/rest/v1/people/createContact
 	"""
 	if (
-		not frappe.db.exists("Google Contacts", {"name": doc.google_contacts})
+		not nts.db.exists("Google Contacts", {"name": doc.google_contacts})
 		or doc.pulled_from_google_contacts
 		or not doc.sync_with_google_contacts
 	):
@@ -228,9 +228,9 @@ def insert_contacts_to_google_contacts(doc, method=None):
 			)
 			.execute()
 		)
-		frappe.db.set_value("Contact", doc.name, "google_contacts_id", contact.get("resourceName"))
+		nts.db.set_value("Contact", doc.name, "google_contacts_id", contact.get("resourceName"))
 	except HttpError as err:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.").format(
 				account.name, err.resp.status
 			)
@@ -245,7 +245,7 @@ def update_contacts_to_google_contacts(doc, method=None):
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
 	if (
-		not frappe.db.exists("Google Contacts", {"name": doc.google_contacts})
+		not nts.db.exists("Google Contacts", {"name": doc.google_contacts})
 		or doc.modified == doc.creation
 		or not doc.sync_with_google_contacts
 	):
@@ -290,9 +290,9 @@ def update_contacts_to_google_contacts(doc, method=None):
 			},
 			updatePersonFields="names,emailAddresses,organizations,phoneNumbers",
 		).execute()
-		frappe.msgprint(_("Contact Synced with Google Contacts."))
+		nts.msgprint(_("Contact Synced with Google Contacts."))
 	except HttpError as err:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.").format(
 				account.name, err.resp.status
 			)

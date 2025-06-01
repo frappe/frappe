@@ -122,9 +122,9 @@ export default class GridPagination {
 		return $(`<button class="btn btn-secondary btn-xs first-page"">
 				<span>${__("First")}</span>
 			</button>
-			<button class="btn btn-secondary btn-xs prev-page">${frappe.utils.icon("left", "xs")}</button>
+			<button class="btn btn-secondary btn-xs prev-page">${nts.utils.icon("left", "xs")}</button>
 			${page_text_html}
-			<button class="btn btn-secondary btn-xs next-page">${frappe.utils.icon("right", "xs")}</button>
+			<button class="btn btn-secondary btn-xs next-page">${nts.utils.icon("right", "xs")}</button>
 			<button class="btn btn-secondary btn-xs last-page">
 				<span>${__("Last")}</span>
 			</button>`);
@@ -168,7 +168,7 @@ export default class GridPagination {
 		let page_length = this.page_length;
 		if (this.grid.data.length == page_length * total_pages) {
 			this.go_to_page(total_pages + 1);
-			frappe.utils.scroll_to(this.wrapper);
+			nts.utils.scroll_to(this.wrapper);
 		} else if (this.page_index == this.total_pages) {
 			return;
 		} else {

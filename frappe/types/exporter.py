@@ -16,8 +16,8 @@ import tokenize
 from keyword import iskeyword
 from pathlib import Path
 
-import frappe
-from frappe.types import DF
+import nts
+from nts.types import DF
 
 field_template = "{field}: {type}"
 
@@ -51,13 +51,13 @@ non_nullable_types = {
 
 class TypeExporter:
 	def __init__(self, doc):
-		from frappe.model.base_document import get_controller
+		from nts.model.base_document import get_controller
 
 		self.doc = doc
 		self.doctype = doc.name
 		self.field_types = {}
 
-		self.imports = {"from frappe.types import DF"}
+		self.imports = {"from nts.types import DF"}
 		self.indent = "\t"
 		self.controller_path = Path(inspect.getfile(get_controller(self.doctype)))
 
@@ -130,7 +130,7 @@ class TypeExporter:
 		return "\n".join(sorted(self.imports))
 
 	def _get_doctype_imports(self, doctype):
-		from frappe.model.base_document import get_controller
+		from nts.model.base_document import get_controller
 
 		doctype_module = get_controller(doctype)
 
@@ -186,12 +186,12 @@ class TypeExporter:
 
 	@staticmethod
 	def _validate_code(code) -> bool:
-		"""Make sure whatever code Frappe adds dynamically is valid python."""
+		"""Make sure whatever code nts adds dynamically is valid python."""
 		try:
 			ast.parse(code)
 			return True
 		except Exception:
-			frappe.msgprint(frappe._("Failed to export python type hints"), alert=True)
+			nts.msgprint(nts._("Failed to export python type hints"), alert=True)
 			return False
 
 	def _guess_indentation(

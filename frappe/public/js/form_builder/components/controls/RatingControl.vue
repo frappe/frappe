@@ -8,7 +8,7 @@ let rating_control = computed(() => {
 	if (!rating.value) return;
 	rating.value.innerHTML = "";
 
-	return frappe.ui.form.make_control({
+	return nts.ui.form.make_control({
 		parent: rating.value,
 		df: { ...props.df, hidden: 0 },
 		disabled: true,

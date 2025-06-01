@@ -2,26 +2,26 @@ import glob
 import json
 import os
 
-import frappe
-from frappe.query_builder import DocType as _DocType
+import nts
+from nts.query_builder import DocType as _DocType
 
 
 def execute():
 	"""Resetting creation datetimes for DocTypes"""
 	DocType = _DocType("DocType")
-	doctype_jsons = glob.glob(os.path.join("..", "apps", "frappe", "frappe", "**", "doctype", "**", "*.json"))
+	doctype_jsons = glob.glob(os.path.join("..", "apps", "nts", "nts", "**", "doctype", "**", "*.json"))
 
-	frappe_modules = frappe.get_all("Module Def", filters={"app_name": "frappe"}, pluck="name")
-	site_doctypes = frappe.get_all(
+	nts_modules = nts.get_all("Module Def", filters={"app_name": "nts"}, pluck="name")
+	site_doctypes = nts.get_all(
 		"DocType",
-		filters={"module": ("in", frappe_modules), "custom": False},
+		filters={"module": ("in", nts_modules), "custom": False},
 		fields=["name", "creation"],
 	)
 
 	for dt_path in doctype_jsons:
 		with open(dt_path) as f:
 			try:
-				file_schema = frappe._dict(json.load(f))
+				file_schema = nts._dict(json.load(f))
 			except Exception:
 				continue
 
@@ -33,6 +33,6 @@ def execute():
 				continue
 
 			if file_schema.creation != _site_schema[0].creation:
-				frappe.qb.update(DocType).set(DocType.creation, file_schema.creation).where(
+				nts.qb.update(DocType).set(DocType.creation, file_schema.creation).where(
 					DocType.name == file_schema.name
 				).run()

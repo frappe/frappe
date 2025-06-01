@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
 import json
@@ -8,25 +8,25 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from werkzeug.exceptions import NotFound
 
-import frappe
-from frappe import _, is_whitelisted, msgprint
-from frappe.core.doctype.file.utils import relink_mismatched_files
-from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
-from frappe.desk.form.document_follow import follow_document
-from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.model import optional_fields, table_fields
-from frappe.model.base_document import BaseDocument, get_controller
-from frappe.model.docstatus import DocStatus
-from frappe.model.naming import set_new_name, validate_name
-from frappe.model.utils import is_virtual_doctype
-from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.types import DF
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
-from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
-from frappe.utils.global_search import update_global_search
+import nts
+from nts import _, is_whitelisted, msgprint
+from nts.core.doctype.file.utils import relink_mismatched_files
+from nts.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from nts.desk.form.document_follow import follow_document
+from nts.integrations.doctype.webhook import run_webhooks
+from nts.model import optional_fields, table_fields
+from nts.model.base_document import BaseDocument, get_controller
+from nts.model.docstatus import DocStatus
+from nts.model.naming import set_new_name, validate_name
+from nts.model.utils import is_virtual_doctype
+from nts.model.workflow import set_workflow_state_on_action, validate_workflow
+from nts.types import DF
+from nts.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
+from nts.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
+from nts.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.docfield.docfield import DocField
+	from nts.core.doctype.docfield.docfield import DocField
 
 
 DOCUMENT_LOCK_EXPIRTY = 3 * 60 * 60  # All locks expire in 3 hours automatically
@@ -34,7 +34,7 @@ DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
 
 
 def get_doc(*args, **kwargs):
-	"""returns a frappe.model.Document object.
+	"""returns a nts.model.Document object.
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
@@ -92,7 +92,7 @@ class Document(BaseDocument):
 
 	doctype: DF.Data
 	name: DF.Data | None
-	flags: frappe._dict[str, Any]
+	flags: nts._dict[str, Any]
 	owner: DF.Link
 	creation: DF.Datetime
 	modified: DF.Datetime
@@ -110,7 +110,7 @@ class Document(BaseDocument):
 		"""
 		self.doctype = None
 		self.name = None
-		self.flags = frappe._dict()
+		self.flags = nts._dict()
 
 		if args and args[0]:
 			if isinstance(args[0], str):
@@ -156,9 +156,9 @@ class Document(BaseDocument):
 		from fields"""
 		self.flags.ignore_children = True
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
-			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
+			single_doc = nts.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
-				single_doc = frappe.new_doc(self.doctype, as_dict=True)
+				single_doc = nts.new_doc(self.doctype, as_dict=True)
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
@@ -171,14 +171,14 @@ class Document(BaseDocument):
 			if not isinstance(self.name, dict | list):
 				get_value_kwargs["order_by"] = None
 
-			d = frappe.db.get_value(
+			d = nts.db.get_value(
 				doctype=self.doctype, filters=self.name, fieldname="*", **get_value_kwargs
 			)
 
 			if not d:
-				frappe.throw(
+				nts.throw(
 					_("{0} {1} not found").format(_(self.doctype), self.name),
-					frappe.DoesNotExistError(doctype=self.doctype),
+					nts.DoesNotExistError(doctype=self.doctype),
 				)
 
 			super().__init__(d)
@@ -186,14 +186,14 @@ class Document(BaseDocument):
 
 		for df in self._get_table_fields():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
-			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
-			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
+			# During nts is installed, the property "is_virtual" is not available in tabDocType, so
+			# we need to filter those cases for the access to nts.db.get_value() as it would crash otherwise.
 			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
 				self.set(df.fieldname, [])
 				continue
 
 			children = (
-				frappe.db.get_values(
+				nts.db.get_values(
 					df.options,
 					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": df.fieldname},
 					"*",
@@ -223,13 +223,13 @@ class Document(BaseDocument):
 		return self._doc_before_save
 
 	def check_permission(self, permtype="read", permlevel=None):
-		"""Raise `frappe.PermissionError` if not permitted"""
+		"""Raise `nts.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
 			self._handle_permission_failure(permtype)
 
 	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
-		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
+		Call `nts.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
 		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
 		"""
@@ -237,26 +237,26 @@ class Document(BaseDocument):
 		if self.flags.ignore_permissions:
 			return True
 
-		import frappe.permissions
+		import nts.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
+		return nts.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
 
 	def _handle_permission_failure(self, perm_type):
-		from frappe.permissions import check_doctype_permission
+		from nts.permissions import check_doctype_permission
 
 		check_doctype_permission(self.doctype, perm_type)
 		self.raise_no_permission_to(perm_type)
 
 	def raise_no_permission_to(self, perm_type):
-		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = _(
+		"""Raise `nts.PermissionError`."""
+		nts.flags.error_message = _(
 			"You need the '{0}' permission on {1} {2} to perform this action."
 		).format(
 			_(perm_type),
-			frappe.bold(_(self.doctype)),
+			nts.bold(_(self.doctype)),
 			self.name or "",
 		)
-		raise frappe.PermissionError
+		raise nts.PermissionError
 
 	def insert(
 		self,
@@ -342,9 +342,9 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
-		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
-			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-				follow_document(self.doctype, self.name, frappe.session.user)
+		if not (nts.flags.in_migrate or nts.local.flags.in_install or nts.flags.in_setup_wizard):
+			if nts.get_cached_value("User", nts.session.user, "follow_created_documents"):
+				follow_document(self.doctype, self.name, nts.session.user)
 		return self
 
 	def check_if_locked(self):
@@ -356,7 +356,7 @@ class Document(BaseDocument):
 		if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
 			primary_action = {
 				"label": "Force Unlock",
-				"server_action": "frappe.model.document.unlock_document",
+				"server_action": "nts.model.document.unlock_document",
 				"hide_on_success": True,
 				"args": {
 					"doctype": self.doctype,
@@ -364,13 +364,13 @@ class Document(BaseDocument):
 				},
 			}
 
-		frappe.throw(
+		nts.throw(
 			_(
 				"This document is currently locked and queued for execution. Please try again after some time."
 			),
 			title=_("Document Queued"),
 			primary_action=primary_action,
-			exc=frappe.DocumentLockedError,
+			exc=nts.DocumentLockedError,
 		)
 
 	def save(self, *args, **kwargs):
@@ -394,7 +394,7 @@ class Document(BaseDocument):
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
+		self.flags.ignore_version = nts.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
@@ -437,20 +437,20 @@ class Document(BaseDocument):
 		return self
 
 	def validate_amended_from(self):
-		if frappe.db.get_value(self.doctype, self.get("amended_from"), "docstatus") != 2:
+		if nts.db.get_value(self.doctype, self.get("amended_from"), "docstatus") != 2:
 			message = _(
 				"{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
-			).format(frappe.utils.get_link_to_form(self.doctype, self.get("amended_from")))
-			frappe.throw(message, title=_("Amendment Not Allowed"))
+			).format(nts.utils.get_link_to_form(self.doctype, self.get("amended_from")))
+			nts.throw(message, title=_("Amendment Not Allowed"))
 
 	def copy_attachments_from_amended_from(self):
 		"""Copy attachments from `amended_from`"""
-		from frappe.desk.form.load import get_attachments
+		from nts.desk.form.load import get_attachments
 
 		# loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 			# save attachments to new doc
-			_file = frappe.get_doc(
+			_file = nts.get_doc(
 				{
 					"doctype": "File",
 					"file_url": attach_item.file_url,
@@ -477,13 +477,13 @@ class Document(BaseDocument):
 		# if the doctype isn't in ignore_children_type flag and isn't virtual
 		if not (
 			df.options in (self.flags.ignore_children_type or ())
-			or frappe.get_meta(df.options).is_virtual == 1
+			or nts.get_meta(df.options).is_virtual == 1
 		):
 			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-			tbl = frappe.qb.DocType(df.options)
+			tbl = nts.qb.DocType(df.options)
 			qry = (
-				frappe.qb.from_(tbl)
+				nts.qb.from_(tbl)
 				.where(tbl.parent == str(self.name))
 				.where(tbl.parenttype == self.doctype)
 				.where(tbl.parentfield == fieldname)
@@ -525,9 +525,9 @@ class Document(BaseDocument):
 		return previous_value != current_value
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
-		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
+		"""Calls `nts.naming.set_new_name` for parent and child docs."""
 
-		if (frappe.flags.api_name_set or self.flags.name_set) and not force:
+		if (nts.flags.api_name_set or self.flags.name_set) and not force:
 			return
 
 		autoname = self.meta.autoname or ""
@@ -576,27 +576,27 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.delete("Singles", {"doctype": self.doctype})
+		nts.db.delete("Singles", {"doctype": self.doctype})
 		for field, value in d.items():
 			if field != "doctype":
-				frappe.db.sql(
+				nts.db.sql(
 					"""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""",
 					(self.doctype, field, value),
 				)
 
-		if self.doctype in frappe.db.value_cache:
-			del frappe.db.value_cache[self.doctype]
+		if self.doctype in nts.db.value_cache:
+			del nts.db.value_cache[self.doctype]
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
-		self.modified_by = frappe.session.user
+		self.modified_by = nts.session.user
 
 		# We'd probably want the creation and owner to be set via API
 		# or Data import at some point, that'd have to be handled here
 		if self.is_new() and not (
-			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
+			nts.flags.in_install or nts.flags.in_patch or nts.flags.in_migrate
 		):
 			self.creation = self.modified
 			self.owner = self.modified_by
@@ -609,7 +609,7 @@ class Document(BaseDocument):
 			if not d.creation:
 				d.creation = self.creation
 
-		frappe.flags.currently_saving.append((self.doctype, self.name))
+		nts.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
 		# docstatus property automatically sets a docstatus if not set
@@ -654,15 +654,15 @@ class Document(BaseDocument):
 		def get_msg(df):
 			if self.get("parentfield"):
 				return "{} {} #{}: {} {}".format(
-					frappe.bold(_(self.doctype)),
+					nts.bold(_(self.doctype)),
 					_("Row"),
 					self.idx,
 					_("Value cannot be negative for"),
-					frappe.bold(_(df.label, context=df.parent)),
+					nts.bold(_(df.label, context=df.parent)),
 				)
 			else:
 				return _("Value cannot be negative for {0}: {1}").format(
-					_(df.parent), frappe.bold(_(df.label, context=df.parent))
+					_(df.parent), nts.bold(_(df.label, context=df.parent))
 				)
 
 		for df in self.meta.get(
@@ -670,7 +670,7 @@ class Document(BaseDocument):
 		):
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
-				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
+				nts.throw(msg, nts.NonNegativeError, title=_("Negative Value"))
 
 	def _fix_rating_value(self):
 		for field in self.meta.get("fields", {"fieldtype": "Rating"}):
@@ -683,7 +683,7 @@ class Document(BaseDocument):
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
-		if frappe.flags.in_install == "frappe":
+		if nts.flags.in_install == "nts":
 			return
 		workflow = self.meta.get_workflow()
 		if workflow:
@@ -710,11 +710,11 @@ class Document(BaseDocument):
 					fail = value != original_value
 
 				if fail:
-					frappe.throw(
+					nts.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(self.meta.get_label(field.fieldname))
+							nts.bold(self.meta.get_label(field.fieldname))
 						),
-						exc=frappe.CannotChangeConstantError,
+						exc=nts.CannotChangeConstantError,
 					)
 
 		return False
@@ -746,12 +746,12 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		"""Remove values the user is not allowed to read."""
-		if frappe.session.user == "Administrator":
+		if nts.session.user == "Administrator":
 			return
 
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields():
-			all_fields += frappe.get_meta(table_field.options).fields or []
+			all_fields += nts.get_meta(table_field.options).fields or []
 
 		if all(df.permlevel == 0 for df in all_fields):
 			return
@@ -767,7 +767,7 @@ class Document(BaseDocument):
 					continue
 
 		for table_field in self.meta.get_table_fields():
-			for df in frappe.get_meta(table_field.options).fields or []:
+			for df in nts.get_meta(table_field.options).fields or []:
 				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
 						if hasattr(child, df.fieldname):
@@ -775,10 +775,10 @@ class Document(BaseDocument):
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
-		if self.flags.ignore_permissions or frappe.flags.in_install:
+		if self.flags.ignore_permissions or nts.flags.in_install:
 			return
 
-		if frappe.session.user == "Administrator":
+		if nts.session.user == "Administrator":
 			return
 
 		has_access_to = self.get_permlevel_access()
@@ -793,14 +793,14 @@ class Document(BaseDocument):
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
+			high_permlevel_fields = nts.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type="write"):
 		allowed_permlevels = []
-		roles = frappe.get_roles()
+		roles = nts.get_roles()
 
 		for perm in self.get_permissions():
 			if perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels:
@@ -817,23 +817,23 @@ class Document(BaseDocument):
 	def get_permissions(self):
 		if self.meta.istable:
 			# use parent permissions
-			permissions = frappe.get_meta(self.parenttype).permissions
+			permissions = nts.get_meta(self.parenttype).permissions
 		else:
 			permissions = self.meta.permissions
 
 		return permissions
 
 	def _set_defaults(self):
-		if frappe.flags.in_import:
+		if nts.flags.in_import:
 			return
 
 		if self.is_new():
-			new_doc = frappe.new_doc(self.doctype, as_dict=True)
+			new_doc = nts.new_doc(self.doctype, as_dict=True)
 			self.update_if_missing(new_doc)
 
 		# children
 		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options, parent_doc=self, parentfield=df.fieldname, as_dict=True)
+			new_doc = nts.new_doc(df.options, parent_doc=self, parentfield=df.fieldname, as_dict=True)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
@@ -860,11 +860,11 @@ class Document(BaseDocument):
 			return
 
 		if cstr(previous.modified) != cstr(self._original_modified):
-			frappe.msgprint(
+			nts.msgprint(
 				_("Error: Document has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
 				+ _("Please refresh to get the latest document."),
-				raise_exception=frappe.TimestampMismatchError,
+				raise_exception=nts.TimestampMismatchError,
 			)
 
 		if not self.meta.issingle:
@@ -887,11 +887,11 @@ class Document(BaseDocument):
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
-				raise frappe.DocstatusTransitionError(
+				raise nts.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise nts.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif to_docstatus == DocStatus.SUBMITTED:
 			if self.docstatus.is_submitted():
@@ -901,14 +901,14 @@ class Document(BaseDocument):
 				self._action = "cancel"
 				self.check_permission("cancel")
 			elif self.docstatus.is_draft():
-				raise frappe.DocstatusTransitionError(
+				raise nts.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise nts.ValidationError(_("Invalid docstatus"), self.docstatus)
 
 		elif to_docstatus == DocStatus.CANCELLED:
-			raise frappe.ValidationError(_("Cannot edit cancelled document"))
+			raise nts.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
@@ -950,10 +950,10 @@ class Document(BaseDocument):
 		for idx, msg in missing:  # noqa: B007
 			msgprint(msg)
 
-		if frappe.flags.print_messages:
+		if nts.flags.print_messages:
 			print(self.as_json().encode("utf-8"))
 
-		raise frappe.MandatoryError(
+		raise nts.MandatoryError(
 			"[{doctype}, {name}]: {fields}".format(
 				fields=", ".join(each[0] for each in missing), doctype=self.doctype, name=self.name
 			)
@@ -972,11 +972,11 @@ class Document(BaseDocument):
 
 		if invalid_links:
 			msg = ", ".join(each[2] for each in invalid_links)
-			frappe.throw(_("Could not find {0}").format(msg), frappe.LinkValidationError)
+			nts.throw(_("Could not find {0}").format(msg), nts.LinkValidationError)
 
 		if cancelled_links:
 			msg = ", ".join(each[2] for each in cancelled_links)
-			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
+			nts.throw(_("Cannot link cancelled document: {0}").format(msg), nts.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
@@ -1018,29 +1018,29 @@ class Document(BaseDocument):
 	def run_notifications(self, method):
 		"""Run notifications for this method"""
 		if (
-			(frappe.flags.in_import and frappe.flags.mute_emails)
-			or frappe.flags.in_patch
-			or frappe.flags.in_install
+			(nts.flags.in_import and nts.flags.mute_emails)
+			or nts.flags.in_patch
+			or nts.flags.in_install
 		):
 			return
 
 		if self.flags.notifications_executed is None:
 			self.flags.notifications_executed = []
 
-		from frappe.email.doctype.notification.notification import evaluate_alert
+		from nts.email.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
 
 			def _get_notifications():
 				"""returns enabled notifications for the current doctype"""
 
-				return frappe.get_all(
+				return nts.get_all(
 					"Notification",
 					fields=["name", "event", "method"],
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
 
-			self.flags.notifications = frappe.cache.hget("notifications", self.doctype, _get_notifications)
+			self.flags.notifications = nts.cache.hget("notifications", self.doctype, _get_notifications)
 
 		if not self.flags.notifications:
 			return
@@ -1081,30 +1081,30 @@ class Document(BaseDocument):
 		return self.save()
 
 	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
-		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
-		from frappe.model.rename_doc import rename_doc
+		"""Rename the document. Triggers nts.rename_doc, then reloads."""
+		from nts.model.rename_doc import rename_doc
 
 		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
 		self.reload()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def rename(self, name: str, merge=False, force=False, validate_rename=True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
-		return frappe.delete_doc(
+		return nts.delete_doc(
 			self.doctype,
 			self.name,
 			ignore_permissions=ignore_permissions,
@@ -1154,12 +1154,12 @@ class Document(BaseDocument):
 			return
 
 		try:
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
-		except frappe.DoesNotExistError:
+			self._doc_before_save = nts.get_doc(self.doctype, self.name, for_update=True)
+		except nts.DoesNotExistError:
 			if raise_exception:
 				raise
 
-			frappe.clear_last_message()
+			nts.clear_last_message()
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:
@@ -1191,11 +1191,11 @@ class Document(BaseDocument):
 
 		self.run_method("on_change")
 
-		if (self.doctype, self.name) in frappe.flags.currently_saving:
-			frappe.flags.currently_saving.remove((self.doctype, self.name))
+		if (self.doctype, self.name) in nts.flags.currently_saving:
+			nts.flags.currently_saving.remove((self.doctype, self.name))
 
 	def clear_cache(self):
-		frappe.clear_document_cache(self.doctype, self.name)
+		nts.clear_document_cache(self.doctype, self.name)
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
@@ -1204,16 +1204,16 @@ class Document(BaseDocument):
 			and not getattr(self.meta, "issingle", False)
 			and not self.is_new()
 		):
-			frappe.db.set_value(
-				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
+			nts.db.set_value(
+				self.doctype, self.name, "_seen", json.dumps([nts.session.user]), update_modified=False
 			)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
-		if frappe.flags.in_patch:
+		if nts.flags.in_patch:
 			return
 
-		frappe.publish_realtime(
+		nts.publish_realtime(
 			"doc_update",
 			{"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype,
@@ -1222,8 +1222,8 @@ class Document(BaseDocument):
 		)
 
 		if not self.meta.get("read_only") and not self.meta.get("issingle") and not self.meta.get("istable"):
-			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
-			frappe.publish_realtime("list_update", data, after_commit=True)
+			data = {"doctype": self.doctype, "name": self.name, "user": nts.session.user}
+			nts.publish_realtime("list_update", data, after_commit=True)
 
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		"""Set a value in the document object, update the timestamp and update the database.
@@ -1235,18 +1235,18 @@ class Document(BaseDocument):
 		:param value: value of the property to be updated
 		:param update_modified: default True. updates the `modified` and `modified_by` properties
 		:param notify: default False. run doc.notify_update() to send updates via socketio
-		:param commit: default False. run frappe.db.commit()
+		:param commit: default False. run nts.db.commit()
 		"""
 		if isinstance(fieldname, dict):
 			self.update(fieldname)
 		else:
 			self.set(fieldname, value)
 
-		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
+		if update_modified and (self.doctype, self.name) not in nts.flags.currently_saving:
 			# don't update modified timestamp if called from post save methods
 			# like on_update or on_submit
 			self.set("modified", now())
-			self.set("modified_by", frappe.session.user)
+			self.set("modified_by", nts.session.user)
 
 		# load but do not reload doc_before_save because before_change or on_change might expect it
 		if not self.get_doc_before_save():
@@ -1259,7 +1259,7 @@ class Document(BaseDocument):
 			return
 
 		if self.meta.issingle:
-			frappe.db.set_single_value(
+			nts.db.set_single_value(
 				self.doctype,
 				fieldname,
 				value,
@@ -1268,7 +1268,7 @@ class Document(BaseDocument):
 				update_modified=update_modified,
 			)
 		else:
-			frappe.db.set_value(
+			nts.db.set_value(
 				self.doctype,
 				self.name,
 				fieldname,
@@ -1284,15 +1284,15 @@ class Document(BaseDocument):
 			self.notify_update()
 
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 
 	def db_get(self, fieldname):
 		"""get database value for this fieldname"""
-		return frappe.db.get_value(self.doctype, self.name, fieldname)
+		return nts.db.get_value(self.doctype, self.name, fieldname)
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
-		from frappe.model.delete_doc import check_if_doc_is_dynamically_linked, check_if_doc_is_linked
+		from nts.model.delete_doc import check_if_doc_is_dynamically_linked, check_if_doc_is_linked
 
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
@@ -1306,23 +1306,23 @@ class Document(BaseDocument):
 			not getattr(self.meta, "track_changes", False)
 			or self.doctype == "Version"
 			or self.flags.ignore_version
-			or frappe.flags.in_install
-			or (not self._doc_before_save and frappe.flags.in_patch)
+			or nts.flags.in_install
+			or (not self._doc_before_save and nts.flags.in_patch)
 		):
 			return
 
 		doc_to_compare = self._doc_before_save
 		if not doc_to_compare and (amended_from := self.get("amended_from")):
-			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
+			doc_to_compare = nts.get_doc(self.doctype, amended_from)
 
-		version = frappe.new_doc("Version")
+		version = nts.new_doc("Version")
 		if version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
-			if not frappe.flags.in_migrate:
+			if not nts.flags.in_migrate:
 				# follow since you made a change?
-				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-					follow_document(self.doctype, self.name, frappe.session.user)
+				if nts.get_cached_value("User", nts.session.user, "follow_created_documents"):
+					follow_document(self.doctype, self.name, nts.session.user)
 
 	@staticmethod
 	def hook(f):
@@ -1357,11 +1357,11 @@ class Document(BaseDocument):
 		def composer(self, *args, **kwargs):
 			hooks = []
 			method = f.__name__
-			doc_events = frappe.get_doc_hooks()
+			doc_events = nts.get_doc_hooks()
 			for handler in doc_events.get(self.doctype, {}).get(method, []) + doc_events.get("*", {}).get(
 				method, []
 			):
-				hooks.append(frappe.get_attr(handler))
+				hooks.append(nts.get_attr(handler))
 
 			composed = compose(f, *hooks)
 			return composed(self, method, *args, **kwargs)
@@ -1411,8 +1411,8 @@ class Document(BaseDocument):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
 			label = self.meta.get_label(parentfield)
-			frappe.throw(
-				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
+			nts.throw(
+				_("Table {0} cannot be empty").format(label), raise_exception or nts.EmptyTableError
 			)
 
 	def round_floats_in(self, doc, fieldnames=None):
@@ -1427,7 +1427,7 @@ class Document(BaseDocument):
 			)
 
 		# PERF: flt internally has to resolve this if we don't specify it.
-		rounding_method = frappe.get_system_settings("rounding_method")
+		rounding_method = nts.get_system_settings("rounding_method")
 		for fieldname in fieldnames:
 			doc.set(
 				fieldname,
@@ -1442,7 +1442,7 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def add_comment(
 		self,
 		comment_type="Comment",
@@ -1454,11 +1454,11 @@ class Document(BaseDocument):
 
 		:param comment_type: e.g. `Comment`. See Communication for more info."""
 
-		return frappe.get_doc(
+		return nts.get_doc(
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
-				"comment_email": comment_email or frappe.session.user,
+				"comment_email": comment_email or nts.session.user,
 				"comment_by": comment_by,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
@@ -1469,31 +1469,31 @@ class Document(BaseDocument):
 	def add_seen(self, user=None):
 		"""add the given/current user to list of users who have seen this document (_seen)"""
 		if not user:
-			user = frappe.session.user
+			user = nts.session.user
 
-		if self.meta.track_seen and not frappe.flags.read_only and not self.meta.issingle:
+		if self.meta.track_seen and not nts.flags.read_only and not self.meta.issingle:
 			_seen = self.get("_seen") or []
-			_seen = frappe.parse_json(_seen)
+			_seen = nts.parse_json(_seen)
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(
+				nts.db.set_value(
 					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
 				)
-				frappe.local.flags.commit = True
+				nts.local.flags.commit = True
 
 	def add_viewed(self, user=None, force=False, unique_views=False):
 		"""add log to communication when a user views a document"""
 		if not user:
-			user = frappe.session.user
+			user = nts.session.user
 
-		if unique_views and frappe.db.exists(
+		if unique_views and nts.db.exists(
 			"View Log", {"reference_doctype": self.doctype, "reference_name": self.name, "viewed_by": user}
 		):
 			return
 
 		if (hasattr(self.meta, "track_views") and self.meta.track_views) or force:
-			view_log = frappe.get_doc(
+			view_log = nts.get_doc(
 				{
 					"doctype": "View Log",
 					"viewed_by": user,
@@ -1501,17 +1501,17 @@ class Document(BaseDocument):
 					"reference_name": self.name,
 				}
 			)
-			if frappe.flags.read_only:
+			if nts.flags.read_only:
 				view_log.deferred_insert()
 			else:
 				view_log.insert(ignore_permissions=True)
-				frappe.local.flags.commit = True
+				nts.local.flags.commit = True
 
 			return view_log
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""
-		return frappe.log_error(
+		return nts.log_error(
 			message=message, title=title, reference_doctype=self.doctype, reference_name=self.name
 		)
 
@@ -1523,7 +1523,7 @@ class Document(BaseDocument):
 		if no_expiry:
 			expires_on = None
 
-		existing_key = frappe.db.exists(
+		existing_key = nts.db.exists(
 			"Document Share Key",
 			{
 				"reference_doctype": self.doctype,
@@ -1532,9 +1532,9 @@ class Document(BaseDocument):
 			},
 		)
 		if existing_key:
-			doc = frappe.get_doc("Document Share Key", existing_key)
+			doc = nts.get_doc("Document Share Key", existing_key)
 		else:
-			doc = frappe.new_doc("Document Share Key")
+			doc = nts.new_doc("Document Share Key")
 			doc.reference_doctype = self.doctype
 			doc.reference_docname = self.name
 			doc.expires_on = expires_on
@@ -1552,12 +1552,12 @@ class Document(BaseDocument):
 
 	def set_onload(self, key, value):
 		if not self.get("__onload"):
-			self.set("__onload", frappe._dict())
+			self.set("__onload", nts._dict())
 		self.get("__onload")[key] = value
 
 	def get_onload(self, key=None):
 		if not key:
-			return self.get("__onload", frappe._dict())
+			return self.get("__onload", nts._dict())
 
 		return self.get("__onload")[key]
 
@@ -1567,7 +1567,7 @@ class Document(BaseDocument):
 		# call _submit instead of submit, so you can override submit to call
 		# run_delayed based on some action
 		# See: Stock Reconciliation
-		from frappe.utils.background_jobs import enqueue
+		from nts.utils.background_jobs import enqueue
 
 		if hasattr(self, f"_{action}"):
 			action = f"_{action}"
@@ -1580,7 +1580,7 @@ class Document(BaseDocument):
 			enqueue_after_commit = True
 
 		return enqueue(
-			"frappe.model.document.execute_action",
+			"nts.model.document.execute_action",
 			__doctype=self.doctype,
 			__name=self.name,
 			__action=action,
@@ -1606,15 +1606,15 @@ class Document(BaseDocument):
 						lock_exists = False
 						break
 			if lock_exists:
-				raise frappe.DocumentLockedError
+				raise nts.DocumentLockedError
 		file_lock.create_lock(signature)
-		frappe.local.locked_documents.append(self)
+		nts.local.locked_documents.append(self)
 
 	def unlock(self):
 		"""Delete the lock file for this document"""
 		file_lock.delete_lock(self.get_signature())
-		if self in frappe.local.locked_documents:
-			frappe.local.locked_documents.remove(self)
+		if self in nts.local.locked_documents:
+			nts.local.locked_documents.remove(self)
 
 	def validate_from_to_dates(self, from_date_field: str, to_date_field: str) -> None:
 		"""Validate that the value of `from_date_field` is not later than the value of `to_date_field`."""
@@ -1627,21 +1627,21 @@ class Document(BaseDocument):
 			table_row = ""
 			if self.meta.istable:
 				table_row = _("{0} row #{1}: ").format(
-					_(frappe.unscrub(self.parentfield)),
+					_(nts.unscrub(self.parentfield)),
 					self.idx,
 				)
 
-			frappe.throw(
+			nts.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field))),
-					frappe.bold(_(self.meta.get_label(from_date_field))),
+					nts.bold(_(self.meta.get_label(to_date_field))),
+					nts.bold(_(self.meta.get_label(from_date_field))),
 				),
-				frappe.exceptions.InvalidDates,
+				nts.exceptions.InvalidDates,
 			)
 
 	def get_assigned_users(self):
-		assigned_users = frappe.get_all(
+		assigned_users = nts.get_all(
 			"ToDo",
 			fields=["allocated_to"],
 			filters={
@@ -1656,19 +1656,19 @@ class Document(BaseDocument):
 
 	def add_tag(self, tag):
 		"""Add a Tag to this document"""
-		from frappe.desk.doctype.tag.tag import DocTags
+		from nts.desk.doctype.tag.tag import DocTags
 
 		DocTags(self.doctype).add(self.name, tag)
 
 	def remove_tag(self, tag):
 		"""Remove a Tag to this document"""
-		from frappe.desk.doctype.tag.tag import DocTags
+		from nts.desk.doctype.tag.tag import DocTags
 
 		DocTags(self.doctype).remove(self.name, tag)
 
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""
-		from frappe.desk.doctype.tag.tag import DocTags
+		from nts.desk.doctype.tag.tag import DocTags
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
@@ -1679,7 +1679,7 @@ class Document(BaseDocument):
 		before data is flushed to database.
 		"""
 
-		from frappe.deferred_insert import deferred_insert
+		from nts.deferred_insert import deferred_insert
 
 		self.set_user_and_timestamp()
 
@@ -1704,18 +1704,18 @@ class Document(BaseDocument):
 
 def execute_action(__doctype, __name, __action, **kwargs):
 	"""Execute an action on a document (called by background worker)"""
-	doc = frappe.get_doc(__doctype, __name)
+	doc = nts.get_doc(__doctype, __name)
 	doc.unlock()
 	try:
 		getattr(doc, __action)(**kwargs)
 	except Exception:
-		frappe.db.rollback()
+		nts.db.rollback()
 
 		# add a comment (?)
-		if frappe.message_log:
-			msg = frappe.message_log[-1].get("message")
+		if nts.message_log:
+			msg = nts.message_log[-1].get("message")
 		else:
-			msg = "<pre><code>" + frappe.get_traceback() + "</pre></code>"
+			msg = "<pre><code>" + nts.get_traceback() + "</pre></code>"
 
 		doc.add_comment("Comment", _("Action Failed") + "<br><br>" + msg)
 	doc.notify_update()
@@ -1735,7 +1735,7 @@ def bulk_insert(
 	        - Documents can be any iterable / generator containing Document objects
 	"""
 
-	doctype_meta = frappe.get_meta(doctype)
+	doctype_meta = nts.get_meta(doctype)
 	documents = list(documents)
 
 	valid_column_map = {
@@ -1746,7 +1746,7 @@ def bulk_insert(
 	}
 
 	for child_table in doctype_meta.get_table_fields():
-		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+		valid_column_map[child_table.options] = nts.get_meta(child_table.options).get_valid_columns()
 		values_map[child_table.options] = _document_values_generator(
 			[
 				ch_doc
@@ -1758,7 +1758,7 @@ def bulk_insert(
 		)
 
 	for dt, docs in values_map.items():
-		frappe.db.bulk_insert(
+		nts.db.bulk_insert(
 			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
 		)
 
@@ -1769,7 +1769,7 @@ def _document_values_generator(
 ) -> Generator[tuple[Any], None, None]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
-		doc.owner = doc.modified_by = frappe.session.user
+		doc.owner = doc.modified_by = nts.session.user
 		doc_values = doc.get_valid_dict(
 			convert_dates_to_str=True,
 			ignore_nulls=True,
@@ -1778,12 +1778,12 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
 	# Backward compatibility
 	if not doctype and not name and args:
 		args = json.loads(args)
 		doctype = str(args["doctype"])
 		name = str(args["name"])
-	frappe.get_doc(doctype, name).unlock()
-	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+	nts.get_doc(doctype, name).unlock()
+	nts.msgprint(nts._("Document Unlocked"), alert=True)

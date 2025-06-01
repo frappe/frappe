@@ -22,7 +22,7 @@ The inherent terms or specefic classes of pypika builder are handled and declare
 
 ### Raw Query Generation Examples
 
-Check out some examples [here](https://frappeframework.com/docs/v14/user/en/api/query-builder)
+Check out some examples [here](https://ntsframework.com/docs/v14/user/en/api/query-builder)
 
 <H2 align="center">Query</H2>
 
@@ -37,32 +37,32 @@ select `name` from `tabUser`
 ### 1. Direct SQL (Boring / Unsafe / inconsistent)
 
 ```python
-frappe.db.sql("select `name` from `tabUser`")
+nts.db.sql("select `name` from `tabUser`")
 ```
 
 ### 2. SQL through direct Query Builder objects
 
 ```python
-from frappe.query_builder import Field
+from nts.query_builder import Field
 
-frappe.qb.from_("User").select(Field("name"))
+nts.qb.from_("User").select(Field("name"))
 
 ```
 
 ### 3. Through the database API (Which performs the second method under the hood)
 
 ```python
-frappe.db.get_values("User", fieldname="name", filters={})
+nts.db.get_values("User", fieldname="name", filters={})
 ```
 
-This module is used to support the 3rd way of query generation in frappe.
+This module is used to support the 3rd way of query generation in nts.
 The database module is completely powered by this query module.
 This module is also where the query `Engine` resides which is the class responsible for the handling of various filter & field notations.
 
 - Interating with the existing Database API.
   - The old database API was running on raw sql generation in order to bridge the gap between the added new support and raw sql strings this intermediate module was added.
 
-This module supports almost all the features present in db_query which powers `frappe.get_all` and `frappe.get_list`
+This module supports almost all the features present in db_query which powers `nts.get_all` and `nts.get_list`
 
 Supporting all the features with the previous filter notations and the field notations few features were added -:
 
@@ -71,16 +71,16 @@ Supporting all the features with the previous filter notations and the field not
    - To support this
 
    ```python
-       frappe.db.get_values("ToDo", fieldname="name", filters={"description": "Something Random"})
+       nts.db.get_values("ToDo", fieldname="name", filters={"description": "Something Random"})
    ```
 
    and many other possible caveats to the dict representation such as
 
    ```python
-      frappe.db.get_values("User", fieldname="name",
+      nts.db.get_values("User", fieldname="name",
       filters={"name": ("like", "admin%")})
 
-      frappe.db.get_values("ToDo", fieldname="name", filters={"description": ("in", ["somso%", "someome"])})
+      nts.db.get_values("ToDo", fieldname="name", filters={"description": ("in", ["somso%", "someome"])})
    ```
 
 2. Misc Query
@@ -88,7 +88,7 @@ Supporting all the features with the previous filter notations and the field not
    - To support this
 
      ```python
-     frappe.db.get_values("ToDo", fieldname="name", filters=["description", "=", "someone"])
+     nts.db.get_values("ToDo", fieldname="name", filters=["description", "=", "someone"])
      ```
 
    Along with other possible list filter use cases including implicit joins
@@ -98,9 +98,9 @@ Supporting all the features with the previous filter notations and the field not
    - To support Inherent Query Builder objects
 
    ```python
-   from frappe.query_builder import Field
+   from nts.query_builder import Field
 
-   frappe.db.get_values("User", fieldname="name", filters=Field("name") == "Administrator")
+   nts.db.get_values("User", fieldname="name", filters=Field("name") == "Administrator")
 
    ```
 
@@ -112,6 +112,6 @@ Supporting all the features with the previous filter notations and the field not
 
 As of now query builder has no concept of permissions and moving towards a singular database API this needs to be added in the `Engine`.
 
-### 2. Implementing the missing features which are present in `frappe.get_list` and `frappe.get_all` (do we even need so much magic?)
+### 2. Implementing the missing features which are present in `nts.get_list` and `nts.get_all` (do we even need so much magic?)
 
 Moving to a singular Database API (database.py + db_query.py) all the support present in `get_list` and `get_all` needs to be present in the new `Engine` as well however this creates alot of security cracks, so moving the a *new and more restrictive version* of the database API with backward compatibility perhaps would be the right way to go?

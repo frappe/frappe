@@ -5,7 +5,7 @@ from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
-from frappe.utils.data import format_time, format_timedelta
+from nts.utils.data import format_time, format_timedelta
 
 
 class NamedParameterWrapper:

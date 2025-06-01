@@ -1,6 +1,6 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("workflow", "doctype", "workflow_transition")
-	frappe.db.sql("update `tabWorkflow Transition` set allow_self_approval=1")
+	nts.reload_doc("workflow", "doctype", "workflow_transition")
+	nts.db.sql("update `tabWorkflow Transition` set allow_self_approval=1")

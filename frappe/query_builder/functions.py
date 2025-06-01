@@ -4,9 +4,9 @@ from enum import Enum
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
 
-import frappe
-from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
-from frappe.query_builder.utils import ImportMapper, db_type_is
+import nts
+from nts.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
+from nts.query_builder.utils import ImportMapper, db_type_is
 
 from .utils import PseudoColumn
 
@@ -102,7 +102,7 @@ UnixTimestamp = ImportMapper(
 
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):
-		if frappe.db.db_type == "mariadb" and (
+		if nts.db.db_type == "mariadb" and (
 			(hasattr(as_type, "get_sql") and as_type.get_sql().lower() == "varchar")
 			or str(as_type).lower() == "varchar"
 		):
@@ -129,7 +129,7 @@ class Cast_(Function):
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
-		frappe.qb.get_query(dt, filters=filters, fields=[function(PseudoColumn(fieldname))]).run(**kwargs)[0][
+		nts.qb.get_query(dt, filters=filters, fields=[function(PseudoColumn(fieldname))]).run(**kwargs)[0][
 			0
 		]
 		or 0

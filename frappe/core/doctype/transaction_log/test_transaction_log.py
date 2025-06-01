@@ -1,16 +1,16 @@
-# Copyright (c) 2018, Frappe Technologies and Contributors
+# Copyright (c) 2018, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import hashlib
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 test_records = []
 
 
-class TestTransactionLog(FrappeTestCase):
+class TestTransactionLog(ntsTestCase):
 	def test_validate_chaining(self):
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Transaction Log",
 				"reference_doctype": "Test Doctype",
@@ -19,7 +19,7 @@ class TestTransactionLog(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		second_log = frappe.get_doc(
+		second_log = nts.get_doc(
 			{
 				"doctype": "Transaction Log",
 				"reference_doctype": "Test Doctype",
@@ -28,7 +28,7 @@ class TestTransactionLog(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		third_log = frappe.get_doc(
+		third_log = nts.get_doc(
 			{
 				"doctype": "Transaction Log",
 				"reference_doctype": "Test Doctype",
@@ -39,8 +39,8 @@ class TestTransactionLog(FrappeTestCase):
 
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(third_log.transaction_hash))
-			+ frappe.safe_encode(str(second_log.chaining_hash))
+			nts.safe_encode(str(third_log.transaction_hash))
+			+ nts.safe_encode(str(second_log.chaining_hash))
 		)
 
 		self.assertEqual(sha.hexdigest(), third_log.chaining_hash)

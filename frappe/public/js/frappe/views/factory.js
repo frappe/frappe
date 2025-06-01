@@ -1,22 +1,22 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.pages");
-frappe.provide("frappe.views");
+nts.provide("nts.pages");
+nts.provide("nts.views");
 
-frappe.views.Factory = class Factory {
+nts.views.Factory = class Factory {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
 
 	show() {
-		this.route = frappe.get_route();
-		this.page_name = frappe.get_route_str();
+		this.route = nts.get_route();
+		this.page_name = nts.get_route_str();
 
 		if (this.before_show && this.before_show() === false) return;
 
-		if (frappe.pages[this.page_name]) {
-			frappe.container.change_to(this.page_name);
+		if (nts.pages[this.page_name]) {
+			nts.container.change_to(this.page_name);
 			if (this.on_show) {
 				this.on_show();
 			}
@@ -24,29 +24,29 @@ frappe.views.Factory = class Factory {
 			if (this.route[1]) {
 				this.make(this.route);
 			} else {
-				frappe.show_not_found(this.route);
+				nts.show_not_found(this.route);
 			}
 		}
 	}
 
 	make_page(double_column, page_name, hide_sidebar) {
-		return frappe.make_page(double_column, page_name, hide_sidebar);
+		return nts.make_page(double_column, page_name, hide_sidebar);
 	}
 };
 
-frappe.make_page = function (double_column, page_name, disable_sidebar_toggle) {
+nts.make_page = function (double_column, page_name, disable_sidebar_toggle) {
 	if (!page_name) {
-		page_name = frappe.get_route_str();
+		page_name = nts.get_route_str();
 	}
 
-	const page = frappe.container.add_page(page_name);
+	const page = nts.container.add_page(page_name);
 
-	frappe.ui.make_app_page({
+	nts.ui.make_app_page({
 		parent: page,
 		single_column: !double_column,
 		disable_sidebar_toggle: disable_sidebar_toggle,
 	});
 
-	frappe.container.change_to(page_name);
+	nts.container.change_to(page_name);
 	return page;
 };

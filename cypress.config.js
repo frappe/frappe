@@ -3,7 +3,7 @@ const { defineConfig } = require("cypress");
 module.exports = defineConfig({
 	projectId: "92odwv",
 	adminPassword: "admin",
-	testUser: "frappe@example.com",
+	testUser: "nts@example.com",
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
 	video: true,

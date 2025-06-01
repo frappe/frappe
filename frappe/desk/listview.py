@@ -1,43 +1,43 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model import is_default_field
-from frappe.query_builder import Order
-from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import SubQuery
-from frappe.query_builder.utils import DocType
+import nts
+from nts.model import is_default_field
+from nts.query_builder import Order
+from nts.query_builder.functions import Count
+from nts.query_builder.terms import SubQuery
+from nts.query_builder.utils import DocType
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_list_settings(doctype):
 	try:
-		return frappe.get_cached_doc("List View Settings", doctype)
-	except frappe.DoesNotExistError:
-		frappe.clear_messages()
+		return nts.get_cached_doc("List View Settings", doctype)
+	except nts.DoesNotExistError:
+		nts.clear_messages()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def set_list_settings(doctype, values):
 	try:
-		doc = frappe.get_doc("List View Settings", doctype)
-	except frappe.DoesNotExistError:
-		doc = frappe.new_doc("List View Settings")
+		doc = nts.get_doc("List View Settings", doctype)
+	except nts.DoesNotExistError:
+		doc = nts.new_doc("List View Settings")
 		doc.name = doctype
-		frappe.clear_messages()
-	doc.update(frappe.parse_json(values))
+		nts.clear_messages()
+	doc.update(nts.parse_json(values))
 	doc.save()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[dict]:
-	current_filters = frappe.parse_json(current_filters)
+	current_filters = nts.parse_json(current_filters)
 
 	if field == "assigned_to":
 		ToDo = DocType("ToDo")
 		User = DocType("User")
 		count = Count("*").as_("count")
-		filtered_records = frappe.qb.get_query(
+		filtered_records = nts.qb.get_query(
 			doctype,
 			filters=current_filters,
 			fields=["name"],
@@ -45,7 +45,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		)
 
 		return (
-			frappe.qb.from_(ToDo)
+			nts.qb.from_(ToDo)
 			.from_(User)
 			.select(ToDo.allocated_to.as_("name"), count)
 			.where(
@@ -60,10 +60,10 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			.run(as_dict=True)
 		)
 
-	if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
+	if not nts.get_meta(doctype).has_field(field) and not is_default_field(field):
 		raise ValueError("Field does not belong to doctype")
 
-	data = frappe.get_list(
+	data = nts.get_list(
 		doctype,
 		filters=current_filters,
 		group_by=f"`tab{doctype}`.{field}",
@@ -75,7 +75,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		owner_idx = None
 
 		for idx, item in enumerate(data):
-			if item.name == frappe.session.user:
+			if item.name == nts.session.user:
 				owner_idx = idx
 				break
 

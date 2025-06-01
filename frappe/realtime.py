@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 from contextlib import suppress
 
 import redis
 
-import frappe
-from frappe.utils.data import cstr
+import nts
+from nts.utils.data import cstr
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None):
 	publish_realtime(
 		"progress",
 		{"percent": percent, "title": title, "description": description},
-		user=None if doctype and docname else frappe.session.user,
+		user=None if doctype and docname else nts.session.user,
 		doctype=doctype,
 		docname=docname,
 		task_id=task_id,
@@ -42,13 +42,13 @@ def publish_realtime(
 	if message is None:
 		message = {}
 
-	if not task_id and hasattr(frappe.local, "task_id"):
-		task_id = frappe.local.task_id
+	if not task_id and hasattr(nts.local, "task_id"):
+		task_id = nts.local.task_id
 
 	if event is None:
 		event = "task_progress" if task_id else "global"
 	elif event == "msgprint" and not user:
-		user = frappe.session.user
+		user = nts.session.user
 	elif event == "list_update":
 		doctype = doctype or message.get("doctype")
 		room = get_doctype_room(doctype)
@@ -71,28 +71,28 @@ def publish_realtime(
 			room = get_site_room()
 
 	if after_commit:
-		if not hasattr(frappe.local, "_realtime_log"):
-			frappe.local._realtime_log = []
-			frappe.db.after_commit.add(flush_realtime_log)
-			frappe.db.after_rollback.add(clear_realtime_log)
+		if not hasattr(nts.local, "_realtime_log"):
+			nts.local._realtime_log = []
+			nts.db.after_commit.add(flush_realtime_log)
+			nts.db.after_rollback.add(clear_realtime_log)
 
 		params = [event, message, room]
-		if params not in frappe.local._realtime_log:
-			frappe.local._realtime_log.append(params)
+		if params not in nts.local._realtime_log:
+			nts.local._realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)
 
 
 def flush_realtime_log():
-	for args in frappe.local._realtime_log:
-		frappe.realtime.emit_via_redis(*args)
+	for args in nts.local._realtime_log:
+		nts.realtime.emit_via_redis(*args)
 
 	clear_realtime_log()
 
 
 def clear_realtime_log():
-	if hasattr(frappe.local, "_realtime_log"):
-		del frappe.local._realtime_log
+	if hasattr(nts.local, "_realtime_log"):
+		del nts.local._realtime_log
 
 
 def emit_via_redis(event, message, room):
@@ -101,42 +101,42 @@ def emit_via_redis(event, message, room):
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
-	from frappe.utils.background_jobs import get_redis_connection_without_auth
+	from nts.utils.background_jobs import get_redis_connection_without_auth
 
 	with suppress(redis.exceptions.ConnectionError):
 		r = get_redis_connection_without_auth()
 		r.publish(
 			"events",
-			frappe.as_json(
-				{"event": event, "message": message, "room": room, "namespace": frappe.local.site}
+			nts.as_json(
+				{"event": event, "message": message, "room": room, "namespace": nts.local.site}
 			),
 		)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def can_subscribe_doc(doctype: str, docname: str) -> bool:
-	frappe.has_permission(doctype, doc=docname, throw=True)
+	nts.has_permission(doctype, doc=docname, throw=True)
 	return True
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def can_subscribe_doctype(doctype: str) -> bool:
-	from frappe.exceptions import PermissionError
+	from nts.exceptions import PermissionError
 
-	if not frappe.has_permission(doctype=doctype, ptype="read"):
+	if not nts.has_permission(doctype=doctype, ptype="read"):
 		raise PermissionError()
 
 	return True
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_user_info():
-	user_type = frappe.session.data.user_type
+	user_type = nts.session.data.user_type
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
-		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
+		user_type = nts.get_cached_value("User", nts.session.user, "user_type")
 	return {
-		"user": frappe.session.user,
+		"user": nts.session.user,
 		"user_type": user_type,
 	}
 

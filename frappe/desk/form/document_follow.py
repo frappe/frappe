@@ -1,23 +1,23 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-import frappe.utils
-from frappe import _
-from frappe.model import log_types
-from frappe.query_builder import DocType
-from frappe.utils import get_url_to_form
+import nts
+import nts.utils
+from nts import _
+from nts.model import log_types
+from nts.query_builder import DocType
+from nts.utils import get_url_to_form
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
-		return follow_document(doctype, doc_name, frappe.session.user)
+		return follow_document(doctype, doc_name, nts.session.user)
 	else:
-		return unfollow_document(doctype, doc_name, frappe.session.user)
+		return unfollow_document(doctype, doc_name, nts.session.user)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def follow_document(doctype, doc_name, user):
 	"""
 	param:
@@ -44,29 +44,29 @@ def follow_document(doctype, doc_name, user):
 	):
 		return
 
-	if (not frappe.get_meta(doctype).track_changes) or user == "Administrator":
+	if (not nts.get_meta(doctype).track_changes) or user == "Administrator":
 		return
 
-	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
+	if not nts.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
 		return
 
 	if not is_document_followed(doctype, doc_name, user):
-		doc = frappe.new_doc("Document Follow")
+		doc = nts.new_doc("Document Follow")
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
 		doc.save()
 		return doc
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def unfollow_document(doctype, doc_name, user):
-	doc = frappe.get_all(
+	doc = nts.get_all(
 		"Document Follow",
 		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
 		fields=["name"],
 		limit=1,
 	)
 	if doc:
-		frappe.delete_doc("Document Follow", doc[0].name)
+		nts.delete_doc("Document Follow", doc[0].name)
 		return 1
 	return 0
 
@@ -80,7 +80,7 @@ def get_message(doc_name, doctype, frequency, user):
 
 def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
-		frappe.sendmail(
+		nts.sendmail(
 			subject=_("Document Follow Notification"),
 			recipients=[receiver],
 			template="document_follow",
@@ -111,14 +111,14 @@ def send_document_follow_mails(frequency):
 			send_email_alert(user, valid_document_follows, message)
 			# send an email if we have already spent resources creating	the message
 			# nosemgrep
-			frappe.db.commit()
+			nts.db.commit()
 
 
 def get_user_list(frequency):
 	DocumentFollow = DocType("Document Follow")
 	User = DocType("User")
 	return (
-		frappe.qb.from_(DocumentFollow)
+		nts.qb.from_(DocumentFollow)
 		.join(User)
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == 1)
@@ -153,7 +153,7 @@ def get_document_followed_by_user(user):
 	DocumentFollow = DocType("Document Follow")
 	# at max 20 documents are sent for each user
 	return (
-		frappe.qb.from_(DocumentFollow)
+		nts.qb.from_(DocumentFollow)
 		.where(DocumentFollow.user == user)
 		.select(DocumentFollow.ref_doctype, DocumentFollow.ref_docname)
 		.orderby(DocumentFollow.modified)
@@ -163,7 +163,7 @@ def get_document_followed_by_user(user):
 
 def get_version(doctype, doc_name, frequency, user):
 	timeline = []
-	version = frappe.get_all(
+	version = nts.get_all(
 		"Version",
 		filters=[
 			["ref_doctype", "=", doctype],
@@ -174,8 +174,8 @@ def get_version(doctype, doc_name, frequency, user):
 	)
 	if version:
 		for v in version:
-			change = frappe.parse_json(v.data)
-			time = frappe.utils.format_datetime(v.modified, "hh:mm a")
+			change = nts.parse_json(v.data)
+			time = nts.utils.format_datetime(v.modified, "hh:mm a")
 			timeline_items = []
 			if change.changed:
 				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v)
@@ -190,10 +190,10 @@ def get_version(doctype, doc_name, frequency, user):
 
 
 def get_comments(doctype, doc_name, frequency, user):
-	from frappe.core.utils import html2text
+	from nts.core.utils import html2text
 
 	timeline = []
-	comments = frappe.get_all(
+	comments = nts.get_all(
 		"Comment",
 		filters=[
 			["reference_doctype", "=", doctype],
@@ -210,7 +210,7 @@ def get_comments(doctype, doc_name, frequency, user):
 		else:
 			by = ""
 
-		time = frappe.utils.format_datetime(comment.modified, "hh:mm a")
+		time = nts.utils.format_datetime(comment.modified, "hh:mm a")
 		timeline.append(
 			{
 				"time": comment.modified,
@@ -224,20 +224,20 @@ def get_comments(doctype, doc_name, frequency, user):
 
 
 def is_document_followed(doctype, doc_name, user):
-	return frappe.db.exists(
+	return nts.db.exists(
 		"Document Follow", {"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user}
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_follow_users(doctype, doc_name):
-	return frappe.get_all(
+	return nts.get_all(
 		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
 	)
 
 
 def get_row_changed(row_changed, time, doctype, doc_name, v):
-	from frappe.core.utils import html2text
+	from nts.core.utils import html2text
 
 	items = []
 	for d in row_changed:
@@ -279,7 +279,7 @@ def get_added_row(added, time, doctype, doc_name, v):
 
 
 def get_field_changed(changed, time, doctype, doc_name, v):
-	from frappe.core.utils import html2text
+	from nts.core.utils import html2text
 
 	items = []
 	for d in changed:
@@ -323,20 +323,20 @@ def _get_filters(frequency, user):
 
 	if frequency == "Weekly":
 		filters += [
-			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(), -7)],
-			["modified", "<", frappe.utils.nowdate()],
+			["modified", ">", nts.utils.add_days(nts.utils.nowdate(), -7)],
+			["modified", "<", nts.utils.nowdate()],
 		]
 
 	elif frequency == "Daily":
 		filters += [
-			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(), -1)],
-			["modified", "<", frappe.utils.nowdate()],
+			["modified", ">", nts.utils.add_days(nts.utils.nowdate(), -1)],
+			["modified", "<", nts.utils.nowdate()],
 		]
 
 	elif frequency == "Hourly":
 		filters += [
-			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-1)],
-			["modified", "<", frappe.utils.now_datetime()],
+			["modified", ">", nts.utils.add_to_date(nts.utils.now_datetime(), hours=-1)],
+			["modified", "<", nts.utils.now_datetime()],
 		]
 
 	return filters

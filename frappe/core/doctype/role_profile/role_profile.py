@@ -1,10 +1,10 @@
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2017, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from collections import defaultdict
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class RoleProfile(Document):
@@ -14,8 +14,8 @@ class RoleProfile(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.types import DF
+		from nts.core.doctype.has_role.has_role import HasRole
+		from nts.types import DF
 
 		role_profile: DF.Data
 		roles: DF.Table[HasRole]
@@ -29,17 +29,17 @@ class RoleProfile(Document):
 		self.clear_cache()
 		self.queue_action(
 			"update_all_users",
-			now=frappe.flags.in_test or frappe.flags.in_install,
+			now=nts.flags.in_test or nts.flags.in_install,
 			enqueue_after_commit=True,
 		)
 
 	def update_all_users(self):
 		"""Changes in role_profile reflected across all its user"""
-		has_role = frappe.qb.DocType("Has Role")
-		user = frappe.qb.DocType("User")
+		has_role = nts.qb.DocType("Has Role")
+		user = nts.qb.DocType("User")
 
 		all_current_roles = (
-			frappe.qb.from_(user)
+			nts.qb.from_(user)
 			.join(has_role)
 			.on(user.name == has_role.parent)
 			.where(user.role_profile_name == self.name)
@@ -53,6 +53,6 @@ class RoleProfile(Document):
 		role_profile_roles = {role.role for role in self.roles}
 		for user, roles in user_roles.items():
 			if roles != role_profile_roles:
-				user = frappe.get_doc("User", user)
+				user = nts.get_doc("User", user)
 				user.roles = []
 				user.add_roles(*role_profile_roles)

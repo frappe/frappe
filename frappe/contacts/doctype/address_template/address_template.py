@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils.jinja import validate_template
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils.jinja import validate_template
 
 
 class AddressTemplate(Document):
@@ -14,7 +14,7 @@ class AddressTemplate(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		country: DF.Link
 		is_default: DF.Check
@@ -29,22 +29,22 @@ class AddressTemplate(Document):
 
 		if not self.is_default and not self._get_previous_default():
 			self.is_default = 1
-			if frappe.db.get_single_value("System Settings", "setup_complete"):
-				frappe.msgprint(_("Setting this Address Template as default as there is no other default"))
+			if nts.db.get_single_value("System Settings", "setup_complete"):
+				nts.msgprint(_("Setting this Address Template as default as there is no other default"))
 
 	def on_update(self):
 		if self.is_default and (previous_default := self._get_previous_default()):
-			frappe.db.set_value("Address Template", previous_default, "is_default", 0)
+			nts.db.set_value("Address Template", previous_default, "is_default", 0)
 
 	def on_trash(self):
 		if self.is_default:
-			frappe.throw(_("Default Address Template cannot be deleted"))
+			nts.throw(_("Default Address Template cannot be deleted"))
 
 	def _get_previous_default(self) -> str | None:
-		return frappe.db.get_value("Address Template", {"is_default": 1, "name": ("!=", self.name)})
+		return nts.db.get_value("Address Template", {"is_default": 1, "name": ("!=", self.name)})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_default_address_template() -> str:
 	"""Return the default address template."""
 	from pathlib import Path

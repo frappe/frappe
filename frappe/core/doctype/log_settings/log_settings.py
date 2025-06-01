@@ -1,14 +1,14 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from typing import Protocol, runtime_checkable
 
-import frappe
-from frappe import _
-from frappe.model.base_document import get_controller
-from frappe.model.document import Document
-from frappe.utils import cint
-from frappe.utils.caching import site_cache
+import nts
+from nts import _
+from nts.model.base_document import get_controller
+from nts.model.document import Document
+from nts.utils import cint
+from nts.utils.caching import site_cache
 
 
 @runtime_checkable
@@ -36,8 +36,8 @@ class LogSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.logs_to_clear.logs_to_clear import LogsToClear
-		from frappe.types import DF
+		from nts.core.doctype.logs_to_clear.logs_to_clear import LogsToClear
+		from nts.types import DF
 
 		logs_to_clear: DF.Table[LogsToClear]
 
@@ -52,10 +52,10 @@ class LogSettings(Document):
 			if _supports_log_clearing(entry.ref_doctype):
 				continue
 
-			msg = _("{} does not support automated log clearing.").format(frappe.bold(entry.ref_doctype))
-			if frappe.conf.developer_mode:
+			msg = _("{} does not support automated log clearing.").format(nts.bold(entry.ref_doctype))
+			if nts.conf.developer_mode:
 				msg += "<br>" + _("Implement `clear_old_logs` method to enable auto error clearing.")
-			frappe.msgprint(msg, title=_("DocType not supported by Log Settings."))
+			nts.msgprint(msg, title=_("DocType not supported by Log Settings."))
 			self.remove(entry)
 
 	def _deduplicate_entries(self):
@@ -68,18 +68,18 @@ class LogSettings(Document):
 	def add_default_logtypes(self):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 		added_logtypes = set()
-		default_logtypes_retention = frappe.get_hooks("default_log_clearing_doctypes", {})
+		default_logtypes_retention = nts.get_hooks("default_log_clearing_doctypes", {})
 
 		for logtype, retentions in default_logtypes_retention.items():
 			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
-				if not frappe.db.exists("DocType", logtype):
+				if not nts.db.exists("DocType", logtype):
 					continue
 
 				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(retentions[-1])})
 				added_logtypes.add(logtype)
 
 		if added_logtypes:
-			frappe.msgprint(_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True)
+			nts.msgprint(_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True)
 
 	def clear_logs(self):
 		"""
@@ -94,9 +94,9 @@ class LogSettings(Document):
 
 			# Only pass what the method can handle, this is considering any
 			# future addition that might happen to the required interface.
-			kwargs = frappe.get_newargs(func, {"days": entry.days})
+			kwargs = nts.get_newargs(func, {"days": entry.days})
 			func(**kwargs)
-			frappe.db.commit()
+			nts.db.commit()
 
 	def register_doctype(self, doctype: str, days=30):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
@@ -111,16 +111,16 @@ class LogSettings(Document):
 
 
 def run_log_clean_up():
-	doc = frappe.get_doc("Log Settings")
+	doc = nts.get_doc("Log Settings")
 	doc.remove_unsupported_doctypes()
 	doc.add_default_logtypes()
 	doc.save()
 	doc.clear_logs()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def has_unseen_error_log():
-	if frappe.get_all("Error Log", filters={"seen": 0}, limit=1):
+	if nts.get_all("Error Log", filters={"seen": 0}, limit=1):
 		return {
 			"show_alert": True,
 			"message": _("You have unseen {0}").format(
@@ -129,8 +129,8 @@ def has_unseen_error_log():
 		}
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	filters = filters or {}
 
@@ -141,7 +141,7 @@ def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
 			["name", "like", f"%%{txt}%%"],
 		]
 	)
-	doctypes = frappe.get_list("DocType", filters=filters, pluck="name")
+	doctypes = nts.get_list("DocType", filters=filters, pluck="name")
 
 	supported_doctypes = [(d,) for d in doctypes if _supports_log_clearing(d)]
 
@@ -165,28 +165,28 @@ def clear_log_table(doctype, days=90):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
-	from frappe.utils import get_table_name
+	from nts.utils import get_table_name
 
 	if doctype not in LOG_DOCTYPES:
-		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+		raise nts.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 	original = get_table_name(doctype)
 	temporary = f"{original} temp_table"
 	backup = f"{original} backup_table"
 
 	try:
-		frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+		nts.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
 
 		# Copy all recent data to new table
-		frappe.db.sql(
+		nts.db.sql(
 			f"""INSERT INTO `{temporary}`
 				SELECT * FROM `{original}`
 				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
 		)
-		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+		nts.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:
-		frappe.db.rollback()
-		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
+		nts.db.rollback()
+		nts.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
-		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
+		nts.db.sql_ddl(f"DROP TABLE `{backup}`")

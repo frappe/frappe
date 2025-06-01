@@ -1,15 +1,15 @@
-# Copyright (c) 2018, Frappe Technologies and Contributors
+# Copyright (c) 2018, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestViewLog(FrappeTestCase):
+class TestViewLog(ntsTestCase):
 	def tearDown(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_if_user_is_added(self):
-		ev = frappe.get_doc(
+		ev = nts.get_doc(
 			{
 				"doctype": "Event",
 				"subject": "test event for view logs",
@@ -18,13 +18,13 @@ class TestViewLog(FrappeTestCase):
 			}
 		).insert()
 
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 
-		from frappe.desk.form.load import getdoc
+		from nts.desk.form.load import getdoc
 
 		# load the form
 		getdoc("Event", ev.name)
-		a = frappe.get_value(
+		a = nts.get_value(
 			doctype="View Log",
 			filters={"reference_doctype": "Event", "reference_name": ev.name},
 			fieldname=["viewed_by"],

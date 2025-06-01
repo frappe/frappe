@@ -57,9 +57,9 @@ context("Realtime updates", () => {
 		cy.spy(handler, "handle").as("callback");
 
 		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				frappe.realtime.on(event, () => handler.handle());
+			.its("nts")
+			.then((nts) => {
+				nts.realtime.on(event, () => handler.handle());
 			});
 
 		publish_realtime({ event }).then(() => {
@@ -69,12 +69,12 @@ context("Realtime updates", () => {
 
 	it("Progress bar", { scrollBehavior: false }, () => {
 		const title = "RealTime Progress";
-		cy.call("frappe.tests.ui_test_helpers.publish_progress", { title }).then(() => {
+		cy.call("nts.tests.ui_test_helpers.publish_progress", { title }).then(() => {
 			cy.contains(title).should("be.visible");
 		});
 	});
 });
 
 function publish_realtime(args) {
-	return cy.call("frappe.tests.ui_test_helpers.publish_realtime", args);
+	return cy.call("nts.tests.ui_test_helpers.publish_realtime", args);
 }

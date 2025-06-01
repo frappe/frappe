@@ -1,4 +1,4 @@
-frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.ControlData {
+nts.ui.form.ControlAttach = class ControlAttach extends nts.ui.form.ControlData {
 	make_input() {
 		let me = this;
 		this.$input = $('<button class="btn btn-default btn-sm btn-attach">')
@@ -15,7 +15,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
-				${frappe.utils.icon("es-line-link", "sm")}
+				${nts.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div>
@@ -30,12 +30,12 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.set_input_attributes();
 		this.has_input = true;
 
-		frappe.utils.bind_actions_with_object(this.$value, this);
+		nts.utils.bind_actions_with_object(this.$value, this);
 		this.toggle_reload_button();
 	}
 	clear_attachment() {
 		let me = this;
-		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
+		nts.confirm(__("Are you sure you want to delete the attachment?"), function () {
 			if (me.frm) {
 				me.parse_validate_and_set_in_model(null);
 				me.refresh();
@@ -60,12 +60,12 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	on_attach_click() {
 		this.set_upload_options();
-		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
+		this.file_uploader = new nts.ui.FileUploader(this.upload_options);
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
 		this.upload_options.restrictions.allowed_file_types = ["image/*"];
-		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
+		this.file_uploader = new nts.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {
 		let options = {

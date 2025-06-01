@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import functools
@@ -14,29 +14,29 @@ from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import ClosingIterator
 
-import frappe
-import frappe.api
-import frappe.handler
-import frappe.monitor
-import frappe.rate_limiter
-import frappe.recorder
-import frappe.utils.response
-from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
-from frappe.middlewares import StaticDataMiddleware
-from frappe.permissions import handle_does_not_exist_error
-from frappe.utils import CallbackManager, cint, get_site_name
-from frappe.utils.data import escape_html
-from frappe.utils.deprecations import deprecation_warning
-from frappe.utils.error import log_error_snapshot
-from frappe.website.serve import get_response
+import nts
+import nts.api
+import nts.handler
+import nts.monitor
+import nts.rate_limiter
+import nts.recorder
+import nts.utils.response
+from nts import _
+from nts.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from nts.middlewares import StaticDataMiddleware
+from nts.permissions import handle_does_not_exist_error
+from nts.utils import CallbackManager, cint, get_site_name
+from nts.utils.data import escape_html
+from nts.utils.deprecations import deprecation_warning
+from nts.utils.error import log_error_snapshot
+from nts.website.serve import get_response
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
-if frappe._tune_gc:
+if nts._tune_gc:
 	import gettext
 
 	import babel
@@ -45,26 +45,26 @@ if frappe._tune_gc:
 	import num2words
 	import pydantic
 
-	import frappe.boot
-	import frappe.client
-	import frappe.core.doctype.file.file
-	import frappe.core.doctype.user.user
-	import frappe.database.mariadb.database  # Load database related utils
-	import frappe.database.query
-	import frappe.desk.desktop  # workspace
-	import frappe.desk.form.save
-	import frappe.model.db_query
-	import frappe.query_builder
-	import frappe.utils.background_jobs  # Enqueue is very common
-	import frappe.utils.data  # common utils
-	import frappe.utils.jinja  # web page rendering
-	import frappe.utils.jinja_globals
-	import frappe.utils.redis_wrapper  # Exact redis_wrapper
-	import frappe.utils.safe_exec
-	import frappe.utils.typing_validations  # any whitelisted method uses this
-	import frappe.website.path_resolver  # all the page types and resolver
-	import frappe.website.router  # Website router
-	import frappe.website.website_generator  # web page doctypes
+	import nts.boot
+	import nts.client
+	import nts.core.doctype.file.file
+	import nts.core.doctype.user.user
+	import nts.database.mariadb.database  # Load database related utils
+	import nts.database.query
+	import nts.desk.desktop  # workspace
+	import nts.desk.form.save
+	import nts.model.db_query
+	import nts.query_builder
+	import nts.utils.background_jobs  # Enqueue is very common
+	import nts.utils.data  # common utils
+	import nts.utils.jinja  # web page rendering
+	import nts.utils.jinja_globals
+	import nts.utils.redis_wrapper  # Exact redis_wrapper
+	import nts.utils.safe_exec
+	import nts.utils.typing_validations  # any whitelisted method uses this
+	import nts.website.path_resolver  # all the page types and resolver
+	import nts.website.router  # Website router
+	import nts.website.website_generator  # web page doctypes
 
 # end: module pre-loading
 
@@ -79,10 +79,10 @@ def after_response_wrapper(app):
 		return ClosingIterator(
 			app(environ, start_response),
 			(
-				frappe.rate_limiter.update,
-				frappe.recorder.dump,
-				frappe.request.after_response.run,
-				frappe.destroy,
+				nts.rate_limiter.update,
+				nts.recorder.dump,
+				nts.request.after_response.run,
+				nts.destroy,
 			),
 		)
 
@@ -104,21 +104,21 @@ def application(request: Request):
 		if request.method == "OPTIONS":
 			response = Response()
 
-		elif frappe.form_dict.cmd:
+		elif nts.form_dict.cmd:
 			deprecation_warning(
-				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
+				f"{nts.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
 			)
-			frappe.handler.handle()
-			response = frappe.utils.response.build_response("json")
+			nts.handler.handle()
+			response = nts.utils.response.build_response("json")
 
 		elif request.path.startswith("/api/"):
-			response = frappe.api.handle(request)
+			response = nts.api.handle(request)
 
 		elif request.path.startswith("/backups"):
-			response = frappe.utils.response.download_backup(request.path)
+			response = nts.utils.response.download_backup(request.path)
 
 		elif request.path.startswith("/private/files/"):
-			response = frappe.utils.response.download_private_file(request.path)
+			response = nts.utils.response.download_private_file(request.path)
 
 		elif request.method in ("GET", "HEAD", "POST"):
 			response = get_response()
@@ -140,14 +140,14 @@ def application(request: Request):
 		# this function *must* always return a response, hence any exception thrown outside of
 		# try..catch block like this finally block needs to be handled appropriately.
 
-		if rollback and request.method in UNSAFE_HTTP_METHODS and frappe.db:
-			frappe.db.rollback()
+		if rollback and request.method in UNSAFE_HTTP_METHODS and nts.db:
+			nts.db.rollback()
 
 		try:
 			run_after_request_hooks(request, response)
 		except Exception:
 			# We can not handle exceptions safely here.
-			frappe.logger().error("Failed to run after request hook", exc_info=True)
+			nts.logger().error("Failed to run after request hook", exc_info=True)
 
 		log_request(request, response)
 		process_response(response)
@@ -156,47 +156,47 @@ def application(request: Request):
 
 
 def run_after_request_hooks(request, response):
-	if not getattr(frappe.local, "initialised", False):
+	if not getattr(nts.local, "initialised", False):
 		return
 
-	for after_request_task in frappe.get_hooks("after_request"):
-		frappe.call(after_request_task, response=response, request=request)
+	for after_request_task in nts.get_hooks("after_request"):
+		nts.call(after_request_task, response=response, request=request)
 
 
 def init_request(request):
-	frappe.local.request = request
-	frappe.local.request.after_response = CallbackManager()
+	nts.local.request = request
+	nts.local.request.after_response = CallbackManager()
 
-	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
+	nts.local.is_ajax = nts.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
-	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path, force=True)
+	site = _site or request.headers.get("X-nts-Site-Name") or get_site_name(request.host)
+	nts.init(site=site, sites_path=_sites_path, force=True)
 
-	if not (frappe.local.conf and frappe.local.conf.db_name):
+	if not (nts.local.conf and nts.local.conf.db_name):
 		# site does not exist
 		raise NotFound
 
-	if frappe.local.conf.maintenance_mode:
-		frappe.connect()
-		if frappe.local.conf.allow_reads_during_maintenance:
+	if nts.local.conf.maintenance_mode:
+		nts.connect()
+		if nts.local.conf.allow_reads_during_maintenance:
 			setup_read_only_mode()
 		else:
-			raise frappe.SessionStopped("Session Stopped")
+			raise nts.SessionStopped("Session Stopped")
 	else:
-		frappe.connect(set_admin_as_user=False)
+		nts.connect(set_admin_as_user=False)
 	if request.path.startswith("/api/method/upload_file"):
-		from frappe.core.api.file import get_max_file_size
+		from nts.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()
 	else:
-		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
+		request.max_content_length = cint(nts.local.conf.get("max_file_size")) or 25 * 1024 * 1024
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
-		frappe.local.http_request = HTTPRequest()
+		nts.local.http_request = HTTPRequest()
 
-	for before_request_task in frappe.get_hooks("before_request"):
-		frappe.call(before_request_task)
+	for before_request_task in nts.get_hooks("before_request"):
+		nts.call(before_request_task)
 
 
 def setup_read_only_mode():
@@ -208,23 +208,23 @@ def setup_read_only_mode():
 	    - Connecting to read replica if one exists
 	    - Or setting up read only SQL transactions.
 	"""
-	frappe.flags.read_only = True
+	nts.flags.read_only = True
 
 	# If replica is available then just connect replica, else setup read only transaction.
-	if frappe.conf.read_from_replica:
-		frappe.connect_replica()
+	if nts.conf.read_from_replica:
+		nts.connect_replica()
 	else:
-		frappe.db.begin(read_only=True)
+		nts.db.begin(read_only=True)
 
 
 def log_request(request, response):
-	if hasattr(frappe.local, "conf") and frappe.local.conf.enable_frappe_logger:
-		frappe.logger("frappe.web", allow_site=frappe.local.site).info(
+	if hasattr(nts.local, "conf") and nts.local.conf.enable_nts_logger:
+		nts.logger("nts.web", allow_site=nts.local.site).info(
 			{
 				"site": get_site_name(request.host),
 				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 				"pid": os.getpid(),
-				"user": getattr(frappe.local.session, "user", "NOTFOUND"),
+				"user": getattr(nts.local.session, "user", "NOTFOUND"),
 				"base_url": getattr(request, "base_url", "NOTFOUND"),
 				"full_path": getattr(request, "full_path", "NOTFOUND"),
 				"method": getattr(request, "method", "NOTFOUND"),
@@ -239,25 +239,25 @@ def process_response(response):
 		return
 
 	# set cookies
-	if hasattr(frappe.local, "cookie_manager"):
-		frappe.local.cookie_manager.flush_cookies(response=response)
+	if hasattr(nts.local, "cookie_manager"):
+		nts.local.cookie_manager.flush_cookies(response=response)
 
 	# rate limiter headers
-	if hasattr(frappe.local, "rate_limiter"):
-		response.headers.extend(frappe.local.rate_limiter.headers())
+	if hasattr(nts.local, "rate_limiter"):
+		response.headers.extend(nts.local.rate_limiter.headers())
 
-	if trace_id := frappe.monitor.get_trace_id():
-		response.headers.extend({"X-Frappe-Request-Id": trace_id})
+	if trace_id := nts.monitor.get_trace_id():
+		response.headers.extend({"X-nts-Request-Id": trace_id})
 
 	# CORS headers
-	if hasattr(frappe.local, "conf"):
+	if hasattr(nts.local, "conf"):
 		set_cors_headers(response)
 
 
 def set_cors_headers(response):
 	if not (
-		(allowed_origins := frappe.conf.allow_cors)
-		and (request := frappe.local.request)
+		(allowed_origins := nts.conf.allow_cors)
+		and (request := nts.local.request)
 		and (origin := request.headers.get("Origin"))
 	):
 		return
@@ -283,7 +283,7 @@ def set_cors_headers(response):
 			cors_headers["Access-Control-Allow-Headers"] = allowed_headers
 
 		# allow browsers to cache preflight requests for upto a day
-		if not frappe.conf.developer_mode:
+		if not nts.conf.developer_mode:
 			cors_headers["Access-Control-Max-Age"] = "86400"
 
 	response.headers.extend(cors_headers)
@@ -301,13 +301,13 @@ def make_form_dict(request: Request):
 		args.update(request.form or {})
 
 	if isinstance(args, dict):
-		frappe.local.form_dict = frappe._dict(args)
+		nts.local.form_dict = nts._dict(args)
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
-		frappe.local.form_dict.pop("_", None)
+		nts.local.form_dict.pop("_", None)
 	elif isinstance(args, list):
-		frappe.local.form_dict["data"] = args
+		nts.local.form_dict["data"] = args
 	else:
-		frappe.throw(_("Invalid request arguments"))
+		nts.throw(_("Invalid request arguments"))
 
 
 @handle_does_not_exist_error
@@ -315,38 +315,38 @@ def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
-	accept_header = frappe.get_request_header("Accept") or ""
+	accept_header = nts.get_request_header("Accept") or ""
 	respond_as_json = (
-		frappe.get_request_header("Accept")
-		and (frappe.local.is_ajax or "application/json" in accept_header)
-		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
+		nts.get_request_header("Accept")
+		and (nts.local.is_ajax or "application/json" in accept_header)
+		or (nts.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
+	allow_traceback = nts.get_system_settings("allow_error_traceback") if nts.db else False
 
-	if not frappe.session.user:
+	if not nts.session.user:
 		# If session creation fails then user won't be unset. This causes a lot of code that
 		# assumes presence of this to fail. Session creation fails => guest or expired login
 		# usually.
-		frappe.session.user = "Guest"
+		nts.session.user = "Guest"
 
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
-		response = frappe.utils.response.report_error(http_status_code)
+		response = nts.utils.response.report_error(http_status_code)
 
-	elif isinstance(e, frappe.SessionStopped):
-		response = frappe.utils.response.handle_session_stopped()
+	elif isinstance(e, nts.SessionStopped):
+		response = nts.utils.response.handle_session_stopped()
 
 	elif (
 		http_status_code == 500
-		and (frappe.db and isinstance(e, frappe.db.InternalError))
-		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))
+		and (nts.db and isinstance(e, nts.db.InternalError))
+		and (nts.db and (nts.db.is_deadlocked(e) or nts.db.is_timedout(e)))
 	):
 		http_status_code = 508
 
 	elif http_status_code == 401:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Session Expired"),
 			_("Your session has expired, please login again to continue."),
 			http_status_code=http_status_code,
@@ -355,7 +355,7 @@ def handle_exception(e):
 		return_as_message = True
 
 	elif http_status_code == 403:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Not Permitted"),
 			_("You do not have enough permissions to complete the action"),
 			http_status_code=http_status_code,
@@ -364,7 +364,7 @@ def handle_exception(e):
 		return_as_message = True
 
 	elif http_status_code == 404:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Not Found"),
 			_("The resource you are looking for is not available"),
 			http_status_code=http_status_code,
@@ -373,22 +373,22 @@ def handle_exception(e):
 		return_as_message = True
 
 	elif http_status_code == 429:
-		response = frappe.rate_limiter.respond()
+		response = nts.rate_limiter.respond()
 
 	else:
-		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
+		traceback = "<pre>" + escape_html(nts.get_traceback()) + "</pre>"
 		# disable traceback in production if flag is set
-		if frappe.local.flags.disable_traceback or not allow_traceback and not frappe.local.dev_server:
+		if nts.local.flags.disable_traceback or not allow_traceback and not nts.local.dev_server:
 			traceback = ""
 
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			"Server Error", traceback, http_status_code=http_status_code, indicator_color="red", width=640
 		)
 		return_as_message = True
 
-	if e.__class__ == frappe.AuthenticationError:
-		if hasattr(frappe.local, "login_manager"):
-			frappe.local.login_manager.clear_cookies()
+	if e.__class__ == nts.AuthenticationError:
+		if hasattr(nts.local, "login_manager"):
+			nts.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
 		log_error_snapshot(e)
@@ -396,24 +396,24 @@ def handle_exception(e):
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)
 
-	if frappe.conf.get("developer_mode") and not respond_as_json:
+	if nts.conf.get("developer_mode") and not respond_as_json:
 		# don't fail silently for non-json response errors
-		print(frappe.get_traceback())
+		print(nts.get_traceback())
 
 	return response
 
 
 def sync_database(rollback: bool) -> bool:
 	# if HTTP method would change server state, commit if necessary
-	if frappe.db and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS):
-		frappe.db.commit()
+	if nts.db and (nts.local.flags.commit or nts.local.request.method in UNSAFE_HTTP_METHODS):
+		nts.db.commit()
 		rollback = False
-	elif frappe.db:
-		frappe.db.rollback()
+	elif nts.db:
+		nts.db.rollback()
 		rollback = False
 
 	# update session
-	if session := getattr(frappe.local, "session_obj", None):
+	if session := getattr(nts.local, "session_obj", None):
 		if session.update():
 			rollback = False
 
@@ -421,7 +421,7 @@ def sync_database(rollback: bool) -> bool:
 
 
 # Always initialize sentry SDK if the DSN is sent
-if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+if sentry_dsn := os.getenv("nts_SENTRY_DSN"):
 	import sentry_sdk
 	from sentry_sdk.integrations.argv import ArgvIntegration
 	from sentry_sdk.integrations.atexit import AtexitIntegration
@@ -430,7 +430,7 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 	from sentry_sdk.integrations.modules import ModulesIntegration
 	from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware
 
-	from frappe.utils.sentry import FrappeIntegration, before_send
+	from nts.utils.sentry import ntsIntegration, before_send
 
 	integrations = [
 		AtexitIntegration(),
@@ -444,7 +444,7 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
-		integrations.append(FrappeIntegration())
+		integrations.append(ntsIntegration())
 		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
@@ -458,7 +458,7 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		dsn=sentry_dsn,
 		before_send=before_send,
 		attach_stacktrace=True,
-		release=frappe.__version__,
+		release=nts.__version__,
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
@@ -534,7 +534,7 @@ re.purge()
 # Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
 # doesn't mutate `PyGC_Head`
 #
-# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
-if frappe._tune_gc:
+# Refer to issue for more info: https://github.com/nts/nts/issues/18927
+if nts._tune_gc:
 	gc.collect()  # clean up any garbage created so far before freeze
 	gc.freeze()

@@ -1,16 +1,16 @@
-frappe.provide("frappe.data_import");
+nts.provide("nts.data_import");
 
-frappe.data_import.DataExporter = class DataExporter {
+nts.data_import.DataExporter = class DataExporter {
 	constructor(doctype, exporting_for) {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
-		frappe.model.with_doctype(doctype, () => {
+		nts.model.with_doctype(doctype, () => {
 			this.make_dialog();
 		});
 	}
 
 	make_dialog() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("Export Data"),
 			fields: [
 				{
@@ -69,7 +69,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					options: this.get_multicheck_options(this.doctype),
 					sort_options: false,
 				},
-				...frappe.meta.get_table_fields(this.doctype).map((df) => {
+				...nts.meta.get_table_fields(this.doctype).map((df) => {
 					let doctype = df.options;
 					let child_fieldname = df.fieldname;
 					let label = df.reqd
@@ -102,7 +102,7 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	export_records() {
-		let method = "/api/method/frappe.core.doctype.data_import.data_import.download_template";
+		let method = "/api/method/nts.core.doctype.data_import.data_import.download_template";
 
 		let multicheck_fields = this.dialog.fields
 			.filter((df) => df.fieldtype === "MultiCheck")
@@ -132,7 +132,7 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_filter_area() {
-		this.filter_group = new frappe.ui.FilterGroup({
+		this.filter_group = new nts.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
 			doctype: this.doctype,
 			on_change: () => {
@@ -164,7 +164,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				</button>
 			</div>
 		`);
-		frappe.utils.bind_actions_with_object($select_all_buttons, this);
+		nts.utils.bind_actions_with_object($select_all_buttons, this);
 		this.dialog.get_field("select_all_buttons").$wrapper.html($select_all_buttons);
 	}
 
@@ -173,7 +173,7 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	select_mandatory() {
-		let mandatory_table_fields = frappe.meta
+		let mandatory_table_fields = nts.meta
 			.get_table_fields(this.doctype)
 			.filter((df) => df.reqd)
 			.map((df) => df.fieldname);
@@ -209,9 +209,9 @@ frappe.data_import.DataExporter = class DataExporter {
 	update_record_count_message() {
 		let export_records = this.dialog.get_value("export_records");
 		let count_method = {
-			all: () => frappe.db.count(this.doctype),
+			all: () => nts.db.count(this.doctype),
 			by_filter: () =>
-				frappe.db.count(this.doctype, {
+				nts.db.count(this.doctype, {
 					filters: this.get_filters(),
 				}),
 			blank_template: () => Promise.resolve(0),
@@ -265,10 +265,10 @@ frappe.data_import.DataExporter = class DataExporter {
 		}
 
 		let autoname_field = null;
-		let meta = frappe.get_meta(doctype);
+		let meta = nts.get_meta(doctype);
 		if (meta.autoname && meta.autoname.startsWith("field:")) {
 			let fieldname = meta.autoname.slice("field:".length);
-			autoname_field = frappe.meta.get_field(doctype, fieldname);
+			autoname_field = nts.meta.get_field(doctype, fieldname);
 		}
 
 		let fields = child_fieldname ? this.column_map[child_fieldname] : this.column_map[doctype];
@@ -310,7 +310,7 @@ export function get_columns_for_picker(doctype) {
 
 	const exportable_fields = (df) => {
 		let keep = true;
-		if (frappe.model.no_value_type.includes(df.fieldtype)) {
+		if (nts.model.no_value_type.includes(df.fieldtype)) {
 			keep = false;
 		}
 		if (["lft", "rgt"].includes(df.fieldname)) {
@@ -323,7 +323,7 @@ export function get_columns_for_picker(doctype) {
 	};
 
 	// parent
-	let doctype_fields = frappe.meta.get_docfields(doctype).filter(exportable_fields);
+	let doctype_fields = nts.meta.get_docfields(doctype).filter(exportable_fields);
 
 	out[doctype] = [
 		{
@@ -335,10 +335,10 @@ export function get_columns_for_picker(doctype) {
 	].concat(doctype_fields);
 
 	// children
-	const table_fields = frappe.meta.get_table_fields(doctype);
+	const table_fields = nts.meta.get_table_fields(doctype);
 	table_fields.forEach((df) => {
 		const cdt = df.options;
-		const child_table_fields = frappe.meta.get_docfields(cdt).filter(exportable_fields);
+		const child_table_fields = nts.meta.get_docfields(cdt).filter(exportable_fields);
 
 		out[df.fieldname] = [
 			{

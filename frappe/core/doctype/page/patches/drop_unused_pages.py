@@ -1,6 +1,6 @@
-import frappe
+import nts
 
 
 def execute():
 	for name in ("desktop", "space"):
-		frappe.delete_doc("Page", name)
+		nts.delete_doc("Page", name)

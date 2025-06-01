@@ -1,9 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 import "./datatype";
 
-if (!window.frappe) window.frappe = {};
+if (!window.nts) window.nts = {};
 
 function flt(v, decimals, number_format, rounding_method) {
 	if (v == null || v == "") return 0;
@@ -74,7 +74,7 @@ function convert_old_to_new_number_format(v, old_number_format, new_number_forma
 	return v;
 }
 
-frappe.number_format_info = {
+nts.number_format_info = {
 	"#,###.##": { decimal_str: ".", group_sep: "," },
 	"#.###,##": { decimal_str: ",", group_sep: "." },
 	"# ###.##": { decimal_str: ".", group_sep: " " },
@@ -90,7 +90,7 @@ frappe.number_format_info = {
 window.format_number = function (v, format, decimals) {
 	if (!format) {
 		format = get_number_format();
-		if (decimals == null) decimals = cint(frappe.defaults.get_default("float_precision")) || 3;
+		if (decimals == null) decimals = cint(nts.defaults.get_default("float_precision")) || 3;
 	}
 
 	var info = get_number_format_info(format);
@@ -146,10 +146,10 @@ function format_currency(v, currency, decimals) {
 	const format = get_number_format(currency);
 	const symbol = get_currency_symbol(currency);
 	const show_symbol_on_right =
-		frappe.model.get_value(":Currency", currency, "symbol_on_right") ?? false;
+		nts.model.get_value(":Currency", currency, "symbol_on_right") ?? false;
 
 	if (decimals === undefined) {
-		decimals = frappe.boot.sysdefaults.currency_precision || null;
+		decimals = nts.boot.sysdefaults.currency_precision || null;
 	}
 
 	if (symbol) {
@@ -163,32 +163,32 @@ function format_currency(v, currency, decimals) {
 }
 
 function get_currency_symbol(currency) {
-	if (frappe.boot) {
-		if (frappe.boot.sysdefaults && frappe.boot.sysdefaults.hide_currency_symbol == "Yes")
+	if (nts.boot) {
+		if (nts.boot.sysdefaults && nts.boot.sysdefaults.hide_currency_symbol == "Yes")
 			return null;
 
-		if (!currency) currency = frappe.boot.sysdefaults.currency;
+		if (!currency) currency = nts.boot.sysdefaults.currency;
 
-		return frappe.model.get_value(":Currency", currency, "symbol") || currency;
+		return nts.model.get_value(":Currency", currency, "symbol") || currency;
 	} else {
 		// load in template
-		return frappe.currency_symbols[currency];
+		return nts.currency_symbols[currency];
 	}
 }
 
 function get_number_format(currency) {
-	let sysdefaults = frappe?.boot?.sysdefaults;
+	let sysdefaults = nts?.boot?.sysdefaults;
 	return (
 		(cint(sysdefaults?.use_number_format_from_currency) &&
 			currency &&
-			frappe.model.get_value(":Currency", currency, "number_format")) ||
+			nts.model.get_value(":Currency", currency, "number_format")) ||
 		sysdefaults.number_format ||
 		"#,###.##"
 	);
 }
 
 function get_number_format_info(format) {
-	var info = frappe.number_format_info[format];
+	var info = nts.number_format_info[format];
 
 	if (!info) {
 		info = { decimal_str: ".", group_sep: "," };
@@ -202,7 +202,7 @@ function get_number_format_info(format) {
 
 function _round(num, precision, rounding_method) {
 	rounding_method =
-		rounding_method || frappe.boot.sysdefaults.rounding_method || "Banker's Rounding (legacy)";
+		rounding_method || nts.boot.sysdefaults.rounding_method || "Banker's Rounding (legacy)";
 
 	let is_negative = num < 0 ? true : false;
 
@@ -264,11 +264,11 @@ function roundNumber(num, precision) {
 function precision(fieldname, doc) {
 	if (cur_frm) {
 		if (!doc) doc = cur_frm.doc;
-		var df = frappe.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
+		var df = nts.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
 		if (!df) console.log(fieldname + ": could not find docfield in method precision()");
-		return frappe.meta.get_field_precision(df, doc);
+		return nts.meta.get_field_precision(df, doc);
 	} else {
-		return frappe.boot.sysdefaults.float_precision;
+		return nts.boot.sysdefaults.float_precision;
 	}
 }
 
@@ -291,7 +291,7 @@ function remainder(numerator, denominator, precision) {
 
 function round_based_on_smallest_currency_fraction(value, currency, precision) {
 	var smallest_currency_fraction_value = flt(
-		frappe.model.get_value(":Currency", currency, "smallest_currency_fraction_value")
+		nts.model.get_value(":Currency", currency, "smallest_currency_fraction_value")
 	);
 
 	if (smallest_currency_fraction_value) {

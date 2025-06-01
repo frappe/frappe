@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Website Sidebar')
+# test_records = nts.get_test_records('Website Sidebar')
 
 
-class TestWebsiteSidebar(FrappeTestCase):
+class TestWebsiteSidebar(ntsTestCase):
 	pass

@@ -1,18 +1,18 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.custom.doctype.custom_field.custom_field import (
+import nts
+from nts.custom.doctype.custom_field.custom_field import (
 	create_custom_field,
 	create_custom_fields,
 	rename_fieldname,
 )
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Custom Field")
+test_records = nts.get_test_records("Custom Field")
 
 
-class TestCustomField(FrappeTestCase):
+class TestCustomField(ntsTestCase):
 	def test_create_custom_fields(self):
 		create_custom_fields(
 			{
@@ -35,11 +35,11 @@ class TestCustomField(FrappeTestCase):
 			}
 		)
 
-		frappe.db.commit()
+		nts.db.commit()
 
-		self.assertTrue(frappe.db.exists("Custom Field", "Address-_test_custom_field_1"))
-		self.assertTrue(frappe.db.exists("Custom Field", "Address-_test_custom_field_2"))
-		self.assertTrue(frappe.db.exists("Custom Field", "Contact-_test_custom_field_2"))
+		self.assertTrue(nts.db.exists("Custom Field", "Address-_test_custom_field_1"))
+		self.assertTrue(nts.db.exists("Custom Field", "Address-_test_custom_field_2"))
+		self.assertTrue(nts.db.exists("Custom Field", "Contact-_test_custom_field_2"))
 
 	def test_custom_field_sorting(self):
 		try:
@@ -54,7 +54,7 @@ class TestCustomField(FrappeTestCase):
 
 			create_custom_fields(custom_fields, ignore_validate=True)
 
-			fields = frappe.get_meta("ToDo", cached=False).fields
+			fields = nts.get_meta("ToDo", cached=False).fields
 
 			for i, field in enumerate(fields):
 				if field.fieldname == "b_test_field":
@@ -66,7 +66,7 @@ class TestCustomField(FrappeTestCase):
 			self.assertEqual(fields[-1].fieldname, "c_test_field")
 
 		finally:
-			frappe.db.delete(
+			nts.db.delete(
 				"Custom Field",
 				{
 					"dt": "ToDo",
@@ -84,23 +84,23 @@ class TestCustomField(FrappeTestCase):
 
 			# undo changes commited by DDL
 			# nosemgrep
-			frappe.db.commit()
+			nts.db.commit()
 
 	def test_custom_field_renaming(self):
 		def gen_fieldname():
-			return "test_" + frappe.generate_hash()
+			return "test_" + nts.generate_hash()
 
 		field = create_custom_field("ToDo", {"label": gen_fieldname()}, is_system_generated=False)
 		old = field.fieldname
 		new = gen_fieldname()
-		data = frappe.generate_hash()
-		doc = frappe.get_doc({"doctype": "ToDo", old: data, "description": "Something"}).insert()
+		data = nts.generate_hash()
+		doc = nts.get_doc({"doctype": "ToDo", old: data, "description": "Something"}).insert()
 
 		rename_fieldname(field.name, new)
 		field.reload()
 		self.assertEqual(field.fieldname, new)
 
-		doc = frappe.get_doc("ToDo", doc.name)  # doc.reload doesn't clear old fields.
+		doc = nts.get_doc("ToDo", doc.name)  # doc.reload doesn't clear old fields.
 		self.assertEqual(doc.get(new), data)
 		self.assertFalse(doc.get(old))
 

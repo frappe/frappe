@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Note")
+test_records = nts.get_test_records("Note")
 
 
-class TestNote(FrappeTestCase):
+class TestNote(ntsTestCase):
 	def insert_note(self):
-		frappe.db.delete("Version")
-		frappe.db.delete("Note")
-		frappe.db.delete("Note Seen By")
+		nts.db.delete("Version")
+		nts.db.delete("Note")
+		nts.db.delete("Note Seen By")
 
-		return frappe.get_doc(dict(doctype="Note", title="test note", content="test note content")).insert()
+		return nts.get_doc(dict(doctype="Note", title="test note", content="test note content")).insert()
 
 	def test_version(self):
 		note = self.insert_note()
@@ -21,7 +21,7 @@ class TestNote(FrappeTestCase):
 		note.content = "1"
 		note.save(ignore_version=False)
 
-		version = frappe.get_doc("Version", dict(docname=note.name))
+		version = nts.get_doc("Version", dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertTrue(("title", "test note", "test note 1"), data["changed"])
@@ -34,7 +34,7 @@ class TestNote(FrappeTestCase):
 		note.append("seen_by", {"user": "Administrator"})
 		note.save(ignore_version=False)
 
-		version = frappe.get_doc("Version", dict(docname=note.name))
+		version = nts.get_doc("Version", dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("added")), 1)
@@ -49,7 +49,7 @@ class TestNote(FrappeTestCase):
 		note.seen_by[0].user = "Guest"
 		note.save(ignore_version=False)
 
-		version = frappe.get_doc("Version", dict(docname=note.name))
+		version = nts.get_doc("Version", dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("row_changed")), 1)
@@ -63,7 +63,7 @@ class TestNote(FrappeTestCase):
 		note.seen_by = []
 		note.save(ignore_version=False)
 
-		version = frappe.get_doc("Version", dict(docname=note.name))
+		version = nts.get_doc("Version", dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("removed")), 1)

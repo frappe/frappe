@@ -1,6 +1,6 @@
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.Sidebar = class Sidebar {
+nts.ui.Sidebar = class Sidebar {
 	constructor({ wrapper, css_class }) {
 		this.wrapper = wrapper;
 		this.css_class = css_class;

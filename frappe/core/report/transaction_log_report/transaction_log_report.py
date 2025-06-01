@@ -1,11 +1,11 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import hashlib
 
-import frappe
-from frappe import _
-from frappe.utils import format_datetime
+import nts
+from nts import _
+from nts.utils import format_datetime
 
 
 def execute(filters=None):
@@ -16,12 +16,12 @@ def execute(filters=None):
 
 def get_data(filters=None):
 	result = []
-	logs = frappe.get_all("Transaction Log", fields=["*"], order_by="creation desc")
+	logs = nts.get_all("Transaction Log", fields=["*"], order_by="creation desc")
 
 	for l in logs:
 		row_index = int(l.row_index)
 		if row_index > 1:
-			previous_hash = frappe.get_all(
+			previous_hash = nts.get_all(
 				"Transaction Log",
 				fields=["chaining_hash"],
 				filters={"row_index": row_index - 1},

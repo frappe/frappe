@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import imaplib
@@ -6,11 +6,11 @@ import poplib
 import smtplib
 from functools import wraps
 
-import frappe
-from frappe import _
-from frappe.email.utils import get_port
-from frappe.model.document import Document
-from frappe.utils import cint
+import nts
+from nts import _
+from nts.email.utils import get_port
+from nts.model.document import Document
+from nts.utils import cint
 
 EMAIL_DOMAIN_FIELDS = [
 	"email_server",
@@ -42,7 +42,7 @@ def handle_error(event):
 			try:
 				fn(*args, **kwargs)
 			except Exception as e:
-				frappe.throw(
+				nts.throw(
 					title=err_title,
 					msg=err_message.format(e=e),
 				)
@@ -59,7 +59,7 @@ class EmailDomain(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		append_emails_to_sent_folder: DF.Check
 		attachment_limit: DF.Int
@@ -79,7 +79,7 @@ class EmailDomain(Document):
 	def validate(self):
 		"""Validate POP3/IMAP and SMTP connections."""
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test or frappe.local.flags.in_install:
+		if nts.local.flags.in_patch or nts.local.flags.in_test or nts.local.flags.in_install:
 			return
 
 		self.validate_incoming_server_conn()
@@ -87,15 +87,15 @@ class EmailDomain(Document):
 
 	def on_update(self):
 		"""update all email accounts using this domain"""
-		for email_account in frappe.get_all("Email Account", filters={"domain": self.name}):
+		for email_account in nts.get_all("Email Account", filters={"domain": self.name}):
 			try:
-				email_account = frappe.get_doc("Email Account", email_account.name)
+				email_account = nts.get_doc("Email Account", email_account.name)
 				for attr in EMAIL_DOMAIN_FIELDS:
 					email_account.set(attr, self.get(attr, default=0))
 				email_account.save()
 
 			except Exception as e:
-				frappe.msgprint(
+				nts.msgprint(
 					_("Error has occurred in {0}").format(email_account.name), raise_exception=e.__class__
 				)
 

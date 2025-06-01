@@ -94,7 +94,7 @@ onConnect((edge) => {
 	if (error) {
 		endConnection();
 		nextTick(() =>
-			frappe.throw({
+			nts.throw({
 				title: "Invalid Transition",
 				message: error,
 			})

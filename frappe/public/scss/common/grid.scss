@@ -216,7 +216,7 @@
 			padding: 0px !important;
 		}
 
-		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
+		.nts-control[data-fieldtype="Select"].form-group .select-icon {
 			top: 9px;
 		}
 
@@ -314,7 +314,7 @@
 
 @media (max-width: 767px) {
 	// lesser padding for controls
-	.editable-row .frappe-control {
+	.editable-row .nts-control {
 		padding-top: 0px !important;
 		padding-bottom: 0px !important;
 		margin-left: -1px !important;
@@ -345,7 +345,7 @@
 		margin-bottom: var(--margin-xs);
 	}
 
-	.frappe-control {
+	.nts-control {
 		margin-bottom: 0px;
 		position: relative;
 	}

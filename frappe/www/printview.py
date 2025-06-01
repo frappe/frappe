@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import copy
@@ -7,16 +7,16 @@ import os
 import re
 from typing import TYPE_CHECKING, Optional
 
-import frappe
-from frappe import _, cstr, get_module_path
-from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, escape_html, strip_html
-from frappe.utils.jinja_globals import is_rtl
+import nts
+from nts import _, cstr, get_module_path
+from nts.core.doctype.access_log.access_log import make_access_log
+from nts.core.doctype.document_share_key.document_share_key import is_expired
+from nts.utils import cint, escape_html, strip_html
+from nts.utils.jinja_globals import is_rtl
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
-	from frappe.printing.doctype.print_format.print_format import PrintFormat
+	from nts.model.document import Document
+	from nts.printing.doctype.print_format.print_format import PrintFormat
 
 no_cache = 1
 
@@ -25,35 +25,35 @@ standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
 	"""Build context for print"""
-	if not ((frappe.form_dict.doctype and frappe.form_dict.name) or frappe.form_dict.doc):
+	if not ((nts.form_dict.doctype and nts.form_dict.name) or nts.form_dict.doc):
 		return {
 			"body": f"""
 				<h1>Error</h1>
 				<p>Parameters doctype and name required</p>
-				<pre>{escape_html(frappe.as_json(frappe.form_dict, indent=2))}</pre>
+				<pre>{escape_html(nts.as_json(nts.form_dict, indent=2))}</pre>
 				"""
 		}
 
-	if frappe.form_dict.doc:
-		doc = frappe.form_dict.doc
+	if nts.form_dict.doc:
+		doc = nts.form_dict.doc
 	else:
-		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doc = nts.get_doc(nts.form_dict.doctype, nts.form_dict.name)
 
 	set_link_titles(doc)
 
-	settings = frappe.parse_json(frappe.form_dict.settings)
+	settings = nts.parse_json(nts.form_dict.settings)
 
-	letterhead = frappe.form_dict.letterhead or None
+	letterhead = nts.form_dict.letterhead or None
 
-	meta = frappe.get_meta(doc.doctype)
+	meta = nts.get_meta(doc.doctype)
 
 	print_format = get_print_format_doc(None, meta=meta)
 
 	if print_format and print_format.get("print_format_builder_beta"):
-		from frappe.utils.weasyprint import get_html
+		from nts.utils.weasyprint import get_html
 
 		body = get_html(
-			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
+			doctype=nts.form_dict.doctype, name=nts.form_dict.name, print_format=print_format.name
 		)
 		body += trigger_print_script
 	else:
@@ -61,8 +61,8 @@ def get_context(context):
 			doc,
 			print_format=print_format,
 			meta=meta,
-			trigger_print=frappe.form_dict.trigger_print,
-			no_letterhead=frappe.form_dict.no_letterhead,
+			trigger_print=nts.form_dict.trigger_print,
+			no_letterhead=nts.form_dict.no_letterhead,
 			letterhead=letterhead,
 			settings=settings,
 		)
@@ -71,8 +71,8 @@ def get_context(context):
 	print_format_name = getattr(print_format, "name", "Standard")
 
 	make_access_log(
-		doctype=frappe.form_dict.doctype,
-		document=frappe.form_dict.name,
+		doctype=nts.form_dict.doctype,
+		document=nts.form_dict.name,
 		file_type="PDF",
 		method="Print",
 		page=f"Print Format: {print_format_name}",
@@ -80,32 +80,32 @@ def get_context(context):
 
 	return {
 		"body": body,
-		"print_style": get_print_style(frappe.form_dict.style, print_format),
-		"comment": frappe.session.user,
-		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
-		"lang": frappe.local.lang,
+		"print_style": get_print_style(nts.form_dict.style, print_format),
+		"comment": nts.session.user,
+		"title": nts.utils.strip_html(cstr(doc.get_title() or doc.name)),
+		"lang": nts.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
-		"doctype": frappe.form_dict.doctype,
-		"name": frappe.form_dict.name,
-		"key": frappe.form_dict.get("key"),
+		"doctype": nts.form_dict.doctype,
+		"name": nts.form_dict.name,
+		"key": nts.form_dict.get("key"),
 		"print_format": print_format_name,
 		"letterhead": letterhead,
-		"no_letterhead": frappe.form_dict.no_letterhead,
-		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
+		"no_letterhead": nts.form_dict.no_letterhead,
+		"pdf_generator": nts.form_dict.get("pdf_generator", "wkhtmltopdf"),
 	}
 
 
 def get_print_format_doc(print_format_name, meta):
 	"""Returns print format document"""
 	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+		print_format_name = nts.form_dict.format or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
 	else:
 		try:
-			return frappe.get_doc("Print Format", print_format_name)
-		except frappe.DoesNotExistError:
+			return nts.get_doc("Print Format", print_format_name)
+		except nts.DoesNotExistError:
 			# if old name, return standard!
 			return None
 
@@ -119,10 +119,10 @@ def get_rendered_template(
 	trigger_print: bool = False,
 	settings: dict | None = None,
 ) -> str:
-	if not frappe.flags.ignore_print_permissions:
+	if not nts.flags.ignore_print_permissions:
 		validate_print_permission(doc)
 
-	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings = nts.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
 	if isinstance(no_letterhead, str):
@@ -136,10 +136,10 @@ def get_rendered_template(
 
 	if doc.meta.is_submittable:
 		if doc.docstatus.is_draft() and not cint(print_settings.allow_print_for_draft):
-			frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
+			nts.throw(_("Not allowed to print draft documents"), nts.PermissionError)
 
 		if doc.docstatus.is_cancelled() and not cint(print_settings.allow_print_for_cancelled):
-			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
+			nts.throw(_("Not allowed to print cancelled documents"), nts.PermissionError)
 
 	doc.run_method("before_print", print_settings)
 
@@ -149,9 +149,9 @@ def get_rendered_template(
 		doc.sub_heading = None
 
 	if not meta:
-		meta = frappe.get_meta(doc.doctype)
+		meta = nts.get_meta(doc.doctype)
 
-	jenv = frappe.get_jenv()
+	jenv = nts.get_jenv()
 	format_data, format_data_map = [], {}
 
 	# determine template
@@ -165,8 +165,8 @@ def get_rendered_template(
 			return jenv.from_string(get_print_format(doc.doctype, print_format))
 
 		template = None
-		if hook_func := frappe.get_hooks("get_print_format_template"):
-			template = frappe.call(hook_func[-1], jenv=jenv, print_format=print_format)
+		if hook_func := nts.get_hooks("get_print_format_template"):
+			template = nts.call(hook_func[-1], jenv=jenv, print_format=print_format)
 
 		if template:
 			pass
@@ -199,10 +199,10 @@ def get_rendered_template(
 	if template == "standard":
 		template = jenv.get_template(standard_format)
 
-	letter_head = frappe._dict(get_letter_head(doc, no_letterhead, letterhead) or {})
+	letter_head = nts._dict(get_letter_head(doc, no_letterhead, letterhead) or {})
 
 	if letter_head.content:
-		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
+		letter_head.content = nts.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
@@ -211,7 +211,7 @@ def get_rendered_template(
 			"""
 
 	if letter_head.footer:
-		letter_head.footer = frappe.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()})
+		letter_head.footer = nts.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()})
 		if letter_head.footer_script:
 			letter_head.footer += f"""
 				<script>
@@ -229,7 +229,7 @@ def get_rendered_template(
 	args.update(
 		{
 			"doc": doc,
-			"meta": frappe.get_meta(doc.doctype),
+			"meta": nts.get_meta(doc.doctype),
 			"layout": make_layout(doc, meta, format_data),
 			"no_letterhead": no_letterhead,
 			"trigger_print": cint(trigger_print),
@@ -238,8 +238,8 @@ def get_rendered_template(
 			"print_settings": print_settings,
 		}
 	)
-	hook_func = frappe.get_hooks("pdf_body_html")
-	html = frappe.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
+	hook_func = nts.get_hooks("pdf_body_html")
+	html = nts.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
 
 	if cint(trigger_print):
 		html += trigger_print_script
@@ -252,7 +252,7 @@ def set_link_titles(doc):
 	if not doc.get("__link_titles"):
 		setattr(doc, "__link_titles", {})
 
-	meta = frappe.get_meta(doc.doctype)
+	meta = nts.get_meta(doc.doctype)
 	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
 	set_title_values_for_table_and_multiselect_fields(meta, doc)
 
@@ -271,11 +271,11 @@ def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None
 		# If dynamic link field, then get doctype from dependent field
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
 
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 		if not meta or not (meta.title_field and meta.show_title_field_in_link):
 			continue
 
-		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
+		link_title = nts.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
 		if parent_doc:
 			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
 		elif doc:
@@ -287,7 +287,7 @@ def set_title_values_for_table_and_multiselect_fields(meta, doc):
 		if not doc.get(field.fieldname):
 			continue
 
-		_meta = frappe.get_meta(field.options)
+		_meta = nts.get_meta(field.options)
 		for value in doc.get(field.fieldname):
 			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
 
@@ -298,10 +298,10 @@ def convert_markdown(doc: "Document"):
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
-				doc.set(field.fieldname, frappe.utils.md_to_html(value))
+				doc.set(field.fieldname, nts.utils.md_to_html(value))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_html_and_style(
 	doc: str,
 	name: str | None = None,
@@ -315,9 +315,9 @@ def get_html_and_style(
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = nts.get_doc(doc, name)
 	else:
-		document = frappe.get_doc(json.loads(doc))
+		document = nts.get_doc(json.loads(doc))
 
 	document.check_permission()
 
@@ -332,31 +332,31 @@ def get_html_and_style(
 			no_letterhead=no_letterhead,
 			letterhead=letterhead,
 			trigger_print=trigger_print,
-			settings=frappe.parse_json(settings),
+			settings=nts.parse_json(settings),
 		)
-	except frappe.TemplateNotFoundError:
-		frappe.clear_last_message()
+	except nts.TemplateNotFoundError:
+		nts.clear_last_message()
 		html = None
 
 	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None):
 	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = nts.get_doc(doc, name)
 	else:
-		document = frappe.get_doc(json.loads(doc))
+		document = nts.get_doc(json.loads(doc))
 
 	document.check_permission()
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
 	if not print_format or (print_format and not print_format.raw_printing):
-		frappe.throw(
-			_("{0} is not a raw printing format.").format(print_format), frappe.TemplateNotFoundError
+		nts.throw(
+			_("{0} is not a raw printing format.").format(print_format), nts.TemplateNotFoundError
 		)
 
 	return {
@@ -366,32 +366,32 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 
 def validate_print_permission(doc):
 	for ptype in ("read", "print"):
-		if frappe.has_permission(doc.doctype, ptype, doc):
+		if nts.has_permission(doc.doctype, ptype, doc):
 			return
 
-	if frappe.has_website_permission(doc):
+	if nts.has_website_permission(doc):
 		return
 
-	if (key := frappe.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:
+	if (key := nts.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:
 		return
 
 	doc._handle_permission_failure("print")
 
 
 def validate_key(key, doc):
-	document_key_expiry = frappe.get_cached_value(
+	document_key_expiry = nts.get_cached_value(
 		"Document Share Key",
 		{"reference_doctype": doc.doctype, "reference_docname": doc.name, "key": key},
 		["expires_on"],
 	)
 	if document_key_expiry is not None:
 		if is_expired(document_key_expiry[0]):
-			raise frappe.exceptions.LinkExpired
+			raise nts.exceptions.LinkExpired
 		else:
 			return
 
 	# TODO: Deprecate this! kept it for backward compatibility
-	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
+	if nts.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
 
 	return False
@@ -403,7 +403,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 
 	letterhead_name = letterhead or doc.get("letter_head")
 	if letterhead_name:
-		return frappe.db.get_value(
+		return nts.db.get_value(
 			"Letter Head",
 			letterhead_name,
 			["content", "footer", "header_script", "footer_script"],
@@ -411,7 +411,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		)
 	else:
 		return (
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Letter Head",
 				{"is_default": 1},
 				["content", "footer", "header_script", "footer_script"],
@@ -423,17 +423,17 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 
 def get_print_format(doctype, print_format):
 	if print_format.disabled:
-		frappe.throw(_("Print Format {0} is disabled").format(print_format.name), frappe.DoesNotExistError)
+		nts.throw(_("Print Format {0} is disabled").format(print_format.name), nts.DoesNotExistError)
 
 	# server, find template
-	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
+	module = print_format.module or nts.db.get_value("DocType", doctype, "module")
 
-	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
+	is_custom_module = nts.get_cached_value("Module Def", module, "custom")
 
 	if not is_custom_module:
 		path = os.path.join(
 			get_module_path(module, "Print Format", print_format.name),
-			frappe.scrub(print_format.name) + ".html",
+			nts.scrub(print_format.name) + ".html",
 		)
 		if os.path.exists(path):
 			with open(path) as pffile:
@@ -444,7 +444,7 @@ def get_print_format(doctype, print_format):
 	if print_format.html:
 		return print_format.html
 
-	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
+	nts.throw(_("No template found at path: {0}").format(path), nts.TemplateNotFoundError)
 
 
 def make_layout(doc, meta, format_data=None):
@@ -468,7 +468,7 @@ def make_layout(doc, meta, format_data=None):
 	for df in format_data or meta.fields:
 		if format_data:
 			# embellish df with original properties
-			df = frappe._dict(df)
+			df = nts._dict(df)
 			if df.fieldname:
 				original = meta.get_field(df.fieldname)
 				if original:
@@ -503,7 +503,7 @@ def make_layout(doc, meta, format_data=None):
 			doc.set(df.fieldname, True)  # show this field
 
 		if df.fieldtype == "Signature" and not doc.get(df.fieldname):
-			placeholder_image = "/assets/frappe/images/signature-placeholder.png"
+			placeholder_image = "/assets/nts/images/signature-placeholder.png"
 			doc.set(df.fieldname, placeholder_image)
 
 		if is_visible(df, doc) and has_value(df, doc):
@@ -570,7 +570,7 @@ def has_value(df, doc):
 def get_print_style(
 	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
 ):
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = nts.get_doc("Print Settings")
 
 	if not style:
 		style = print_settings.print_style or ""
@@ -581,10 +581,10 @@ def get_print_style(
 		"font": get_font(print_settings, print_format, for_legacy),
 	}
 
-	css = frappe.get_template("templates/styles/standard.css").render(context)
+	css = nts.get_template("templates/styles/standard.css").render(context)
 
-	if style and frappe.db.exists("Print Style", style):
-		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+	if style and nts.db.exists("Print Style", style):
+		css = css + "\n" + nts.db.get_value("Print Style", style, "css")
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
@@ -622,7 +622,7 @@ def get_font(print_settings, print_format=None, for_legacy=False):
 def get_visible_columns(data, table_meta, df):
 	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
-	doc = data[0] or frappe.new_doc(df.options)
+	doc = data[0] or nts.new_doc(df.options)
 
 	hide_in_print_layout = df.get("hide_in_print_layout") or []
 

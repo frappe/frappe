@@ -3,10 +3,10 @@ from importlib.machinery import all_suffixes
 
 import click
 
-import frappe
-from frappe.website.page_renderers.base_template_page import BaseTemplatePage
-from frappe.website.router import get_base_template, get_page_info
-from frappe.website.utils import (
+import nts
+from nts.website.page_renderers.base_template_page import BaseTemplatePage
+from nts.website.router import get_base_template, get_page_info
+from nts.website.utils import (
 	cache_html,
 	extract_comment_tag,
 	extract_title,
@@ -50,8 +50,8 @@ class TemplatePage(BaseTemplatePage):
 		and /templates/pages folders and sets path if match is found
 		"""
 		folders = get_start_folders()
-		for app in reversed(frappe.get_installed_apps()):
-			app_path = frappe.get_app_path(app)
+		for app in reversed(nts.get_installed_apps()):
+			app_path = nts.get_app_path(app)
 
 			for dirname in folders:
 				search_path = os.path.join(app_path, dirname, self.path)
@@ -77,7 +77,7 @@ class TemplatePage(BaseTemplatePage):
 	@staticmethod
 	def get_index_path_options(search_path):
 		return (
-			frappe.as_unicode(f"{search_path}{d}") for d in ("", ".html", ".md", "/index.html", "/index.md")
+			nts.as_unicode(f"{search_path}{d}") for d in ("", ".html", ".md", "/index.html", "/index.md")
 		)
 
 	def render(self):
@@ -154,10 +154,10 @@ class TemplatePage(BaseTemplatePage):
 
 	def update_context(self):
 		self.set_page_properties()
-		self.context.build_version = frappe.utils.get_build_version()
+		self.context.build_version = nts.utils.get_build_version()
 
 		if self.pymodule_name:
-			self.pymodule = frappe.get_module(self.pymodule_name)
+			self.pymodule = nts.get_module(self.pymodule_name)
 			self.set_pymodule_properties()
 
 			data = self.run_pymodule_method("get_context")
@@ -166,7 +166,7 @@ class TemplatePage(BaseTemplatePage):
 				self.context.update(data)
 			# TODO: self.context.children = self.run_pymodule_method('get_children')
 
-		self.context.developer_mode = frappe.conf.developer_mode
+		self.context.developer_mode = nts.conf.developer_mode
 		if self.context.http_status_code:
 			self.http_status_code = self.context.http_status_code
 
@@ -233,7 +233,7 @@ class TemplatePage(BaseTemplatePage):
 			else:
 				safe_render = True
 
-			html = frappe.render_template(self.source, self.context, safe_render=safe_render)
+			html = nts.render_template(self.source, self.context, safe_render=safe_render)
 
 		return html
 
@@ -243,7 +243,7 @@ class TemplatePage(BaseTemplatePage):
 		)
 
 	def get_raw_template(self):
-		return frappe.get_jloader().get_source(frappe.get_jenv(), self.context.template)[0]
+		return nts.get_jloader().get_source(nts.get_jenv(), self.context.template)[0]
 
 	def load_colocated_files(self):
 		"""load co-located css/js files with the same name"""
@@ -274,7 +274,7 @@ class TemplatePage(BaseTemplatePage):
 
 	def convert_from_markdown(self):
 		if self.template_path.endswith(".md"):
-			self.source = frappe.utils.md_to_html(self.source)
+			self.source = nts.utils.md_to_html(self.source)
 			self.context.page_toc_html = self.source.toc_html
 
 			if not self.context.show_sidebar:
@@ -290,8 +290,8 @@ class TemplatePage(BaseTemplatePage):
 		return html
 
 	def set_standard_path(self, path):
-		self.app = "frappe"
-		self.app_path = frappe.get_app_path("frappe")
+		self.app = "nts"
+		self.app_path = nts.get_app_path("nts")
 		self.path = path
 		self.template_path = f"www/{path}.html"
 
@@ -301,13 +301,13 @@ class TemplatePage(BaseTemplatePage):
 		self.context.docs_base_url = "/docs"
 
 	def set_user_info(self):
-		from frappe.utils.user import get_fullname_and_avatar
+		from nts.utils.user import get_fullname_and_avatar
 
-		info = get_fullname_and_avatar(frappe.session.user)
+		info = get_fullname_and_avatar(nts.session.user)
 		self.context["fullname"] = info.fullname
 		self.context["user_image"] = info.avatar
 		self.context["user"] = info.name
 
 
 def get_start_folders():
-	return frappe.local.flags.web_pages_folders or ("www", "templates/pages")
+	return nts.local.flags.web_pages_folders or ("www", "templates/pages")

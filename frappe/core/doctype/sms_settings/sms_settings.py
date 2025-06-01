@@ -1,10 +1,10 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _, msgprint, throw
-from frappe.model.document import Document
-from frappe.utils import nowdate
+import nts
+from nts import _, msgprint, throw
+from nts.model.document import Document
+from nts.utils import nowdate
 
 
 class SMSSettings(Document):
@@ -14,8 +14,8 @@ class SMSSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.sms_parameter.sms_parameter import SMSParameter
-		from frappe.types import DF
+		from nts.core.doctype.sms_parameter.sms_parameter import SMSParameter
+		from nts.types import DF
 
 		message_parameter: DF.Data
 		parameters: DF.Table[SMSParameter]
@@ -44,10 +44,10 @@ def validate_receiver_nos(receiver_list):
 	return validated_receiver_list
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_contact_number(contact_name, ref_doctype, ref_name):
 	"returns mobile number of the contact"
-	number = frappe.db.sql(
+	number = nts.db.sql(
 		"""select mobile_no, phone from tabContact
 		where name=%s
 			and exists(
@@ -60,7 +60,7 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 	return number and (number[0][0] or number[0][1]) or ""
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 	import json
 
@@ -73,22 +73,22 @@ def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 
 	arg = {
 		"receiver_list": receiver_list,
-		"message": frappe.safe_decode(msg).encode("utf-8"),
+		"message": nts.safe_decode(msg).encode("utf-8"),
 		"success_msg": success_msg,
 	}
 
-	if frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
+	if nts.db.get_single_value("SMS Settings", "sms_gateway_url"):
 		send_via_gateway(arg)
 	else:
 		msgprint(_("Please Update SMS Settings"))
 
 
 def send_via_gateway(arg):
-	ss = frappe.get_doc("SMS Settings", "SMS Settings")
+	ss = nts.get_doc("SMS Settings", "SMS Settings")
 	headers = get_headers(ss)
 	use_json = headers.get("Content-Type") == "application/json"
 
-	message = frappe.safe_decode(arg.get("message"))
+	message = nts.safe_decode(arg.get("message"))
 	args = {ss.message_parameter: message}
 	for d in ss.get("parameters"):
 		if not d.header:
@@ -106,12 +106,12 @@ def send_via_gateway(arg):
 		args.update(arg)
 		create_sms_log(args, success_list)
 		if arg.get("success_msg"):
-			frappe.msgprint(_("SMS sent successfully"))
+			nts.msgprint(_("SMS sent successfully"))
 
 
 def get_headers(sms_settings=None):
 	if not sms_settings:
-		sms_settings = frappe.get_doc("SMS Settings", "SMS Settings")
+		sms_settings = nts.get_doc("SMS Settings", "SMS Settings")
 
 	headers = {"Accept": "text/plain, text/html, */*"}
 	for d in sms_settings.get("parameters"):
@@ -146,7 +146,7 @@ def send_request(gateway_url, params, headers=None, use_post=False, use_json=Fal
 # Create SMS Log
 # =========================================================
 def create_sms_log(args, sent_to):
-	sl = frappe.new_doc("SMS Log")
+	sl = nts.new_doc("SMS Log")
 	sl.sent_on = nowdate()
 	sl.message = args["message"].decode("utf-8")
 	sl.no_of_requested_sms = len(args["receiver_list"])

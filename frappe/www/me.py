@@ -1,16 +1,16 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-import frappe.www.list
-from frappe import _
+import nts
+import nts.www.list
+from nts import _
 
 no_cache = 1
 
 
 def get_context(context):
-	if frappe.session.user == "Guest":
-		frappe.throw(_("You need to be logged in to access this page"), frappe.PermissionError)
+	if nts.session.user == "Guest":
+		nts.throw(_("You need to be logged in to access this page"), nts.PermissionError)
 
-	context.current_user = frappe.get_doc("User", frappe.session.user)
+	context.current_user = nts.get_doc("User", nts.session.user)
 	context.show_sidebar = True

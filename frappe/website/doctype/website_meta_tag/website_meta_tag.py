@@ -1,8 +1,8 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class WebsiteMetaTag(Document):
@@ -12,7 +12,7 @@ class WebsiteMetaTag(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		key: DF.Data
 		parent: DF.Data
@@ -29,6 +29,6 @@ class WebsiteMetaTag(Document):
 		return {self.key: self.get_content()}
 
 	def set_in_context(self, context):
-		context.setdefault("metatags", frappe._dict({}))
+		context.setdefault("metatags", nts._dict({}))
 		context.metatags[self.key] = self.get_content()
 		return context

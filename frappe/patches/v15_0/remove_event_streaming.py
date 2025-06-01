@@ -1,11 +1,11 @@
-import frappe
+import nts
 
 
 def execute():
-	if "event_streaming" in frappe.get_installed_apps():
+	if "event_streaming" in nts.get_installed_apps():
 		return
 
-	frappe.delete_doc_if_exists("Module Def", "Event Streaming", force=True)
+	nts.delete_doc_if_exists("Module Def", "Event Streaming", force=True)
 
 	for doc in [
 		"Event Consumer Document Type",
@@ -19,4 +19,4 @@ def execute():
 		"Event Update Log Consumer",
 		"Event Sync Log",
 	]:
-		frappe.delete_doc_if_exists("DocType", doc, force=True)
+		nts.delete_doc_if_exists("DocType", doc, force=True)

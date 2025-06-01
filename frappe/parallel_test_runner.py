@@ -10,7 +10,7 @@ import unittest
 import click
 import requests
 
-import frappe
+import nts
 
 from .test_runner import SLOW_TEST_THRESHOLD, make_test_records
 
@@ -23,31 +23,31 @@ class ParallelTestRunner:
 	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
 		self.app = app
 		self.site = site
-		self.build_number = frappe.utils.cint(build_number) or 1
-		self.total_builds = frappe.utils.cint(total_builds)
+		self.build_number = nts.utils.cint(build_number) or 1
+		self.total_builds = nts.utils.cint(total_builds)
 		self.dry_run = dry_run
 		self.setup_test_site()
 		self.run_tests()
 
 	def setup_test_site(self):
-		frappe.init(site=self.site)
-		if not frappe.db:
-			frappe.connect()
+		nts.init(site=self.site)
+		if not nts.db:
+			nts.connect()
 
 		if self.dry_run:
 			return
 
-		frappe.flags.in_test = True
-		frappe.clear_cache()
-		frappe.utils.scheduler.disable_scheduler()
+		nts.flags.in_test = True
+		nts.clear_cache()
+		nts.utils.scheduler.disable_scheduler()
 		self.before_test_setup()
 
 	def before_test_setup(self):
 		start_time = time.monotonic()
-		for fn in frappe.get_hooks("before_tests", app_name=self.app):
-			frappe.get_attr(fn)()
+		for fn in nts.get_hooks("before_tests", app_name=self.app):
+			nts.get_attr(fn)()
 
-		test_module = frappe.get_module(f"{self.app}.tests")
+		test_module = nts.get_module(f"{self.app}.tests")
 
 		if hasattr(test_module, "global_test_dependencies"):
 			for doctype in test_module.global_test_dependencies:
@@ -73,7 +73,7 @@ class ParallelTestRunner:
 			print("running tests from", "/".join(file_info))
 			return
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
 		self.create_test_dependency_records(module, path, filename)
@@ -98,7 +98,7 @@ class ParallelTestRunner:
 					make_test_records(doctype, commit=True)
 
 	def get_module(self, path, filename):
-		app_path = frappe.get_app_path(self.app)
+		app_path = nts.get_app_path(self.app)
 		relative_path = os.path.relpath(path, app_path)
 		if relative_path == ".":
 			module_name = self.app
@@ -107,7 +107,7 @@ class ParallelTestRunner:
 			module_name = os.path.splitext(filename)[0]
 			module_name = f"{self.app}.{relative_path}.{module_name}"
 
-		return frappe.get_module(module_name)
+		return nts.get_module(module_name)
 
 	def print_result(self):
 		# XXX: Added to debug tests getting stuck AFTER completion
@@ -223,7 +223,7 @@ class ParallelTestResult(unittest.TextTestResult):
 
 def get_all_tests(app):
 	test_file_list = []
-	for path, folders, files in os.walk(frappe.get_app_path(app)):
+	for path, folders, files in os.walk(nts.get_app_path(app)):
 		for dontwalk in ("locals", ".git", "public", "__pycache__"):
 			if dontwalk in folders:
 				folders.remove(dontwalk)
@@ -259,11 +259,11 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		self.orchestrator_url = os.environ.get("ORCHESTRATOR_URL")
 		if not self.orchestrator_url:
 			click.echo("ORCHESTRATOR_URL environment variable not found!")
-			click.echo("Pass public URL after hosting https://github.com/frappe/test-orchestrator")
+			click.echo("Pass public URL after hosting https://github.com/nts/test-orchestrator")
 			sys.exit(1)
 
 		self.ci_build_id = os.environ.get("CI_BUILD_ID")
-		self.ci_instance_id = os.environ.get("CI_INSTANCE_ID") or frappe.generate_hash(length=10)
+		self.ci_instance_id = os.environ.get("CI_INSTANCE_ID") or nts.generate_hash(length=10)
 		if not self.ci_build_id:
 			click.echo("CI_BUILD_ID environment variable not found!")
 			sys.exit(1)

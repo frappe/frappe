@@ -160,10 +160,10 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot | json }};
-		frappe._messages = {{ translated_messages }};
-		frappe.web_form_doc = {{ web_form_doc | json }};
-		frappe.reference_doc = {{ reference_doc | json }};
+		nts.boot = {{ boot | json }};
+		nts._messages = {{ translated_messages }};
+		nts.web_form_doc = {{ web_form_doc | json }};
+		nts.reference_doc = {{ reference_doc | json }};
 		function in_iframe() {
 			try {
 				return window.self !== window.top;
@@ -186,7 +186,7 @@
 
 	<script>
 		{% if client_script %}
-			frappe.init_client_script = () => {
+			nts.init_client_script = () => {
 				try {
 					{{ client_script }}
 				} catch(e) {

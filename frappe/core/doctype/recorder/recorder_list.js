@@ -1,28 +1,28 @@
-frappe.listview_settings["Recorder"] = {
+nts.listview_settings["Recorder"] = {
 	hide_name_column: true,
 
 	onload(listview) {
 		listview.page.sidebar.remove();
-		if (!has_common(frappe.user_roles, ["Administrator", "System Manager"])) return;
+		if (!has_common(nts.user_roles, ["Administrator", "System Manager"])) return;
 
 		if (listview.list_view_settings) {
 			listview.list_view_settings.disable_comment_count = true;
 		}
 
 		listview.page.add_button(__("Clear"), () => {
-			frappe.xcall("frappe.recorder.delete").then(listview.refresh);
+			nts.xcall("nts.recorder.delete").then(listview.refresh);
 		});
 
 		listview.page.add_menu_item(__("Import"), () => {
-			new frappe.ui.FileUploader({
+			new nts.ui.FileUploader({
 				folder: this.current_folder,
 				on_success: (file) => {
 					if (cur_list.data.length > 0) {
 						// don't replace existing capture
 						return;
 					}
-					frappe.call({
-						method: "frappe.recorder.import_data",
+					nts.call({
+						method: "nts.recorder.import_data",
 						args: {
 							file: file.file_url,
 						},
@@ -35,8 +35,8 @@ frappe.listview_settings["Recorder"] = {
 		});
 
 		listview.page.add_menu_item(__("Export"), () => {
-			frappe.call({
-				method: "frappe.recorder.export_data",
+			nts.call({
+				method: "nts.recorder.export_data",
 				callback: function (r) {
 					const data = r.message;
 					const filename = `${data[0]["uuid"]}..${data[data.length - 1]["uuid"]}.json`;
@@ -58,7 +58,7 @@ frappe.listview_settings["Recorder"] = {
 			}
 			if (!listview.enabled) return;
 
-			const route = frappe.get_route() || [];
+			const route = nts.get_route() || [];
 			if (route[0] != "List" || "Recorder" != route[1]) {
 				return;
 			}
@@ -77,7 +77,7 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	fetch_recorder_status(listview) {
-		return frappe.xcall("frappe.recorder.status").then((status) => {
+		return nts.xcall("nts.recorder.status").then((status) => {
 			listview.enabled = Boolean(status);
 		});
 	},
@@ -95,7 +95,7 @@ frappe.listview_settings["Recorder"] = {
 
 	stop_recorder(listview) {
 		let me = this;
-		frappe.xcall("frappe.recorder.stop", {}).then(() => {
+		nts.xcall("nts.recorder.stop", {}).then(() => {
 			listview.refresh();
 			listview.enabled = false;
 			me.refresh_controls(listview);
@@ -104,7 +104,7 @@ frappe.listview_settings["Recorder"] = {
 
 	start_recorder(listview) {
 		let me = this;
-		frappe.prompt(
+		nts.prompt(
 			[
 				{
 					fieldtype: "Section Break",
@@ -191,7 +191,7 @@ frappe.listview_settings["Recorder"] = {
 				},
 			],
 			(values) => {
-				frappe.xcall("frappe.recorder.start", values).then(() => {
+				nts.xcall("nts.recorder.start", values).then(() => {
 					listview.refresh();
 					listview.enabled = true;
 					me.refresh_controls(listview);

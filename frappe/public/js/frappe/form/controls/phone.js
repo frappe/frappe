@@ -1,7 +1,7 @@
 import localforage from "localforage";
 import PhonePicker from "../../phone_picker/phone_picker";
 
-frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlData {
+nts.ui.form.ControlPhone = class ControlPhone extends nts.ui.form.ControlData {
 	async make_input() {
 		await this.setup_country_codes();
 		super.make_input();
@@ -15,7 +15,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		if (data) {
 			this.country_codes = data;
 		} else {
-			const data = await frappe.xcall("frappe.geo.country_info.get_country_timezone_info");
+			const data = await nts.xcall("nts.geo.country_info.get_country_timezone_info");
 			this.country_codes = data?.country_info;
 			localforage.setItem(key, this.country_codes);
 		}
@@ -24,7 +24,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	input_events() {
 		this.$input.keydown((e) => {
 			const key_code = e.keyCode;
-			if ([frappe.ui.keyCode.BACKSPACE].includes(key_code)) {
+			if ([nts.ui.keyCode.BACKSPACE].includes(key_code)) {
 				if (this.$input.val().length == 0) {
 					this.country_code_picker.reset();
 				}
@@ -115,7 +115,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		let input_value = this.get_input_value();
 		if (!this.selected_icon.length) {
 			this.selected_icon = $(
-				`<div class="selected-phone">${frappe.utils.icon("down", "sm")}</div>`
+				`<div class="selected-phone">${nts.utils.icon("down", "sm")}</div>`
 			);
 			this.selected_icon.insertAfter(this.$input);
 			this.selected_icon.append($(`<span class= "country"></span>`));
@@ -209,7 +209,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	get_country_flag(country) {
 		const country_codes = this.country_codes;
 		let code = country_codes[country].code;
-		return frappe.utils.flag(code);
+		return nts.utils.flag(code);
 	}
 
 	update_padding() {

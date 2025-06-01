@@ -3,7 +3,7 @@
 
 class BroadcastManager {
 	constructor() {
-		this.channel = new BroadcastChannel("frappe");
+		this.channel = new BroadcastChannel("nts");
 		this._event_handlers = {};
 		this.channel.onmessage = (message) => {
 			let { data, event } = message.data;
@@ -38,4 +38,4 @@ class BroadcastManager {
 	}
 }
 
-frappe.broadcast = new BroadcastManager();
+nts.broadcast = new BroadcastManager();

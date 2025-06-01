@@ -1,13 +1,13 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // for license information please see license.txt
 
-frappe.provide("frappe.form.formatters");
+nts.provide("nts.form.formatters");
 
-frappe.form.link_formatters = {};
+nts.form.link_formatters = {};
 
-frappe.form.formatters = {
+nts.form.formatters = {
 	_right: function (value, options) {
 		if (options && (options.inline || options.only_value)) {
 			return value;
@@ -18,15 +18,15 @@ frappe.form.formatters = {
 	_apply_custom_formatter: function (value, df) {
 		/* you can add a custom formatter in df.formatter
 		example:
-			frappe.meta.docfield_map[df.parent][df.fieldname].formatter = (value) => {
+			nts.meta.docfield_map[df.parent][df.fieldname].formatter = (value) => {
 				if (value==='Test') return '😜';
 			}
 		*/
 
 		if (df) {
 			const std_df =
-				frappe.meta.docfield_map[df.parent] &&
-				frappe.meta.docfield_map[df.parent][df.fieldname];
+				nts.meta.docfield_map[df.parent] &&
+				nts.meta.docfield_map[df.parent][df.fieldname];
 			if (std_df && std_df.formatter && typeof std_df.formatter === "function") {
 				value = std_df.formatter(value, df);
 			}
@@ -40,13 +40,13 @@ frappe.form.formatters = {
 		}
 		value = value == null ? "" : value;
 
-		return frappe.form.formatters._apply_custom_formatter(value, df);
+		return nts.form.formatters._apply_custom_formatter(value, df);
 	},
 	Autocomplete: function (value, df) {
-		return __(frappe.form.formatters["Data"](value, df));
+		return __(nts.form.formatters["Data"](value, df));
 	},
 	Select: function (value, df) {
-		return __(frappe.form.formatters["Data"](value, df));
+		return __(nts.form.formatters["Data"](value, df));
 	},
 	Float: function (value, docfield, options, doc) {
 		if (value === null) {
@@ -56,12 +56,12 @@ frappe.form.formatters = {
 		// don't allow 0 precision for Floats, hence or'ing with null
 		var precision =
 			docfield.precision ||
-			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
+			cint(nts.boot.sysdefaults && nts.boot.sysdefaults.float_precision) ||
 			null;
 		if (docfield.options && docfield.options.trim()) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
-			return frappe.form.formatters.Currency(value, docfield, options, doc);
+			return nts.form.formatters.Currency(value, docfield, options, doc);
 		} else {
 			// show 1.000000 as 1
 			if (!(options || {}).always_show_decimals && !is_null(value)) {
@@ -73,7 +73,7 @@ frappe.form.formatters = {
 
 			value = value == null || value === "" ? "" : value;
 
-			return frappe.form.formatters._right(format_number(value, null, precision), options);
+			return nts.form.formatters._right(format_number(value, null, precision), options);
 		}
 	},
 	Int: function (value, docfield, options) {
@@ -82,9 +82,9 @@ frappe.form.formatters = {
 		}
 
 		if (cstr(docfield.options).trim() === "File Size") {
-			return frappe.form.formatters.FileSize(value);
+			return nts.form.formatters.FileSize(value);
 		}
-		return frappe.form.formatters._right(value == null ? "" : cint(value), options);
+		return nts.form.formatters._right(value == null ? "" : cint(value), options);
 	},
 	Percent: function (value, docfield, options) {
 		if (value === null) {
@@ -93,9 +93,9 @@ frappe.form.formatters = {
 
 		const precision =
 			docfield.precision ||
-			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
+			cint(nts.boot.sysdefaults && nts.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(flt(value, precision) + "%", options);
+		return nts.form.formatters._right(flt(value, precision) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
@@ -121,14 +121,14 @@ frappe.form.formatters = {
 			return "";
 		}
 
-		var currency = frappe.meta.get_field_currency(docfield, doc);
+		var currency = nts.meta.get_field_currency(docfield, doc);
 
 		let precision;
 		if (typeof docfield.precision == "number") {
 			precision = docfield.precision;
 		} else {
 			precision = cint(
-				docfield.precision || frappe.boot.sysdefaults.currency_precision || 2
+				docfield.precision || nts.boot.sysdefaults.currency_precision || 2
 			);
 		}
 
@@ -139,7 +139,7 @@ frappe.form.formatters = {
 
 			if (decimals.length < 3 || decimals.length < precision) {
 				const fraction =
-					frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
+					nts.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
 
 				if (decimals.length < cstr(fraction).length) {
 					precision = cstr(fraction).length - 1;
@@ -153,7 +153,7 @@ frappe.form.formatters = {
 		if (options && options.only_value) {
 			return value;
 		} else {
-			return frappe.form.formatters._right(value, options);
+			return nts.form.formatters._right(value, options);
 		}
 	},
 	Check: function (value) {
@@ -163,7 +163,7 @@ frappe.form.formatters = {
 	Link: function (value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		let link_title = frappe.utils.get_link_title(doctype, value);
+		let link_title = nts.utils.get_link_title(doctype, value);
 
 		if (link_title === value) {
 			link_title = null;
@@ -177,10 +177,10 @@ frappe.form.formatters = {
 			return link_title || value;
 		}
 
-		if (frappe.form.link_formatters[doctype]) {
+		if (nts.form.link_formatters[doctype]) {
 			// don't apply formatters in case of composite (parent field of same type)
 			if (doc && doctype !== doc.doctype) {
-				value = frappe.form.link_formatters[doctype](value, doc, docfield);
+				value = nts.form.link_formatters[doctype](value, doc, docfield);
 			}
 		}
 
@@ -196,10 +196,10 @@ frappe.form.formatters = {
 				value: value,
 			});
 		} else if (docfield && doctype) {
-			if (frappe.model.can_read(doctype)) {
+			if (nts.model.can_read(doctype)) {
 				const a = document.createElement("a");
 				a.href = `/app/${encodeURIComponent(
-					frappe.router.slug(doctype)
+					nts.router.slug(doctype)
 				)}/${encodeURIComponent(original_value)}`;
 				a.dataset.doctype = doctype;
 				a.dataset.name = original_value;
@@ -214,11 +214,11 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function (value) {
-		if (!frappe.datetime.str_to_user) {
+		if (!nts.datetime.str_to_user) {
 			return value;
 		}
 		if (value) {
-			value = frappe.datetime.str_to_user(value, false, true);
+			value = nts.datetime.str_to_user(value, false, true);
 			// handle invalid date
 			if (value === "Invalid date") {
 				value = null;
@@ -230,8 +230,8 @@ frappe.form.formatters = {
 	DateRange: function (value) {
 		if (Array.isArray(value)) {
 			return __("{0} to {1}", [
-				frappe.datetime.str_to_user(value[0]),
-				frappe.datetime.str_to_user(value[1]),
+				nts.datetime.str_to_user(value[0]),
+				nts.datetime.str_to_user(value[1]),
 			]);
 		} else {
 			return value || "";
@@ -239,10 +239,10 @@ frappe.form.formatters = {
 	},
 	Datetime: function (value) {
 		if (value) {
-			return moment(frappe.datetime.convert_to_user_tz(value)).format(
-				frappe.boot.sysdefaults.date_format.toUpperCase() +
+			return moment(nts.datetime.convert_to_user_tz(value)).format(
+				nts.boot.sysdefaults.date_format.toUpperCase() +
 					" " +
-					(frappe.boot.sysdefaults.time_format || "HH:mm:ss")
+					(nts.boot.sysdefaults.time_format || "HH:mm:ss")
 			);
 		} else {
 			return "";
@@ -261,23 +261,23 @@ frappe.form.formatters = {
 			}
 
 			if (!match) {
-				value = frappe.utils.replace_newlines(value);
+				value = nts.utils.replace_newlines(value);
 			}
 		}
 
-		return frappe.form.formatters.Data(value, df);
+		return nts.form.formatters.Data(value, df);
 	},
 	Time: function (value) {
 		if (value) {
-			value = frappe.datetime.str_to_user(value, true);
+			value = nts.datetime.str_to_user(value, true);
 		}
 
 		return value || "";
 	},
 	Duration: function (value, docfield) {
 		if (value) {
-			let duration_options = frappe.utils.get_duration_options(docfield);
-			value = frappe.utils.get_formatted_duration(value, duration_options);
+			let duration_options = nts.utils.get_duration_options(docfield);
+			value = nts.utils.get_formatted_duration(value, duration_options);
 		}
 
 		return value || "0s";
@@ -285,7 +285,7 @@ frappe.form.formatters = {
 	LikedBy: function (value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function (i, v) {
-			if (v) html += frappe.avatar(v);
+			if (v) html += nts.avatar(v);
 		});
 		return html;
 	},
@@ -320,10 +320,10 @@ frappe.form.formatters = {
 		return html;
 	},
 	SmallText: function (value) {
-		return frappe.form.formatters.Text(value);
+		return nts.form.formatters.Text(value);
 	},
 	TextEditor: function (value) {
-		let formatted_value = frappe.form.formatters.Text(value);
+		let formatted_value = nts.form.formatters.Text(value);
 		// to use ql-editor styles
 		try {
 			if (
@@ -342,7 +342,7 @@ frappe.form.formatters = {
 		return "<pre>" + (value == null ? "" : $("<div>").text(value).html()) + "</pre>";
 	},
 	WorkflowState: function (value) {
-		var workflow_state = frappe.get_doc("Workflow State", value);
+		var workflow_state = nts.get_doc("Workflow State", value);
 		if (workflow_state) {
 			return repl(
 				"<span class='label label-%(style)s' \
@@ -373,12 +373,12 @@ frappe.form.formatters = {
 	},
 	TableMultiSelect: function (rows, df, options) {
 		rows = rows || [];
-		const meta = frappe.get_meta(df.options);
+		const meta = nts.get_meta(df.options);
 		const link_field = meta.fields.find((df) => df.fieldtype === "Link");
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
 			return `<span class="text-nowrap">
-				${frappe.format(value, link_field, options, row)}
+				${nts.format(value, link_field, options, row)}
 			</span>`;
 		});
 		return formatted_values.join(", ");
@@ -394,7 +394,7 @@ frappe.form.formatters = {
 	Icon: (value) => {
 		return value
 			? `<div>
-			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
+			<div class="selected-icon">${nts.utils.icon(value, "md")}</div>
 			<span class="icon-value">${value}</span>
 		</div>`
 			: "";
@@ -407,12 +407,12 @@ function format_attachment_url(url) {
 	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
 }
 
-frappe.form.get_formatter = function (fieldtype) {
+nts.form.get_formatter = function (fieldtype) {
 	if (!fieldtype) fieldtype = "Data";
-	return frappe.form.formatters[fieldtype.replace(/ /g, "")] || frappe.form.formatters.Data;
+	return nts.form.formatters[fieldtype.replace(/ /g, "")] || nts.form.formatters.Data;
 };
 
-frappe.format = function (value, df, options, doc) {
+nts.format = function (value, df, options, doc) {
 	if (!df) df = { fieldtype: "Data" };
 	if (df.fieldname == "_user_tags") df = { ...df, fieldtype: "Tag" };
 	var fieldtype = df.fieldtype || "Data";
@@ -423,30 +423,30 @@ frappe.format = function (value, df, options, doc) {
 		df._options = doc ? doc[df.options] : null;
 	}
 
-	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+	var formatter = df.formatter || nts.form.get_formatter(fieldtype);
 
 	var formatted = formatter(value, df, options, doc);
 
-	if (typeof formatted == "string") formatted = frappe.dom.remove_script_and_style(formatted);
+	if (typeof formatted == "string") formatted = nts.dom.remove_script_and_style(formatted);
 
 	return formatted;
 };
 
-frappe.get_format_helper = function (doc) {
+nts.get_format_helper = function (doc) {
 	var helper = {
 		get_formatted: function (fieldname) {
-			var df = frappe.meta.get_docfield(doc.doctype, fieldname);
+			var df = nts.meta.get_docfield(doc.doctype, fieldname);
 			if (!df) {
 				console.log("fieldname not found: " + fieldname);
 			}
-			return frappe.format(doc[fieldname], df, { inline: 1 }, doc);
+			return nts.format(doc[fieldname], df, { inline: 1 }, doc);
 		},
 	};
 	$.extend(helper, doc);
 	return helper;
 };
 
-frappe.form.link_formatters["User"] = function (value, doc, docfield) {
+nts.form.link_formatters["User"] = function (value, doc, docfield) {
 	let full_name = doc && (doc.full_name || (docfield && doc[`${docfield.fieldname}_full_name`]));
 	return full_name || value;
 };

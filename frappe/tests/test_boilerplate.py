@@ -11,9 +11,9 @@ from unittest.mock import patch
 import git
 import yaml
 
-import frappe
-from frappe.modules.patch_handler import get_all_patches, parse_as_configfile
-from frappe.utils.boilerplate import (
+import nts
+from nts.modules.patch_handler import get_all_patches, parse_as_configfile
+from nts.utils.boilerplate import (
 	PatchCreator,
 	_create_app_boilerplate,
 	_get_user_inputs,
@@ -25,7 +25,7 @@ class TestBoilerPlate(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.default_hooks = frappe._dict(
+		cls.default_hooks = nts._dict(
 			{
 				"app_name": "test_app",
 				"app_title": "Test App",
@@ -37,7 +37,7 @@ class TestBoilerPlate(unittest.TestCase):
 			}
 		)
 
-		cls.default_user_input = frappe._dict(
+		cls.default_user_input = nts._dict(
 			{
 				"title": "Test App",
 				"description": "This app's description contains 'single quotes' and \"double quotes\".",
@@ -50,7 +50,7 @@ class TestBoilerPlate(unittest.TestCase):
 			}
 		)
 
-		cls.bench_path = frappe.utils.get_bench_path()
+		cls.bench_path = nts.utils.get_bench_path()
 		cls.apps_dir = os.path.join(cls.bench_path, "apps")
 		cls.gitignore_file = ".gitignore"
 		cls.git_folder = ".git"
@@ -114,12 +114,12 @@ class TestBoilerPlate(unittest.TestCase):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
 	@unittest.skipUnless(
-		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+		os.access(nts.get_app_path("nts"), os.W_OK), "Only run if nts app paths is writable"
 	)
 	def test_create_app(self):
 		app_name = "test_app"
 
-		hooks = frappe._dict(
+		hooks = nts._dict(
 			{
 				"app_name": app_name,
 				"app_title": "Test App",
@@ -148,12 +148,12 @@ class TestBoilerPlate(unittest.TestCase):
 		self.assertEqual(parse_as_configfile(patches_file), [])
 
 	@unittest.skipUnless(
-		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+		os.access(nts.get_app_path("nts"), os.W_OK), "Only run if nts app paths is writable"
 	)
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
-		hooks = frappe._dict(
+		hooks = nts._dict(
 			{
 				"app_name": app_name,
 				"app_title": "Test App",
@@ -195,18 +195,18 @@ class TestBoilerPlate(unittest.TestCase):
 					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
 
 	@unittest.skipUnless(
-		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+		os.access(nts.get_app_path("nts"), os.W_OK), "Only run if nts app paths is writable"
 	)
 	def test_new_patch_util(self):
 		user_inputs = {
-			"app_name": "frappe",
+			"app_name": "nts",
 			"doctype": "User",
 			"docstring": "Delete all users",
 			"file_name": "",  # Accept default
 			"patch_folder_confirmation": "Y",
 		}
 
-		patches_txt = pathlib.Path(pathlib.Path(frappe.get_app_path("frappe", "patches.txt")))
+		patches_txt = pathlib.Path(pathlib.Path(nts.get_app_path("nts", "patches.txt")))
 		original_patches = patches_txt.read_text()
 
 		with patch("sys.stdin", self.get_user_input_stream(user_inputs)):
@@ -215,7 +215,7 @@ class TestBoilerPlate(unittest.TestCase):
 			patch_creator.create_patch_file()
 
 		patches = get_all_patches()
-		expected_patch = "frappe.core.doctype.user.patches.delete_all_users"
+		expected_patch = "nts.core.doctype.user.patches.delete_all_users"
 		self.assertIn(expected_patch, patches)
 
 		self.assertTrue(patch_creator.patch_file.exists())

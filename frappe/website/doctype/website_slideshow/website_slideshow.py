@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class WebsiteSlideshow(Document):
@@ -15,8 +15,8 @@ class WebsiteSlideshow(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.website_slideshow_item.website_slideshow_item import (
+		from nts.types import DF
+		from nts.website.doctype.website_slideshow_item.website_slideshow_item import (
 			WebsiteSlideshowItem,
 		)
 
@@ -30,7 +30,7 @@ class WebsiteSlideshow(Document):
 
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
-		from frappe.website.utils import clear_cache
+		from nts.website.utils import clear_cache
 
 		clear_cache()
 
@@ -38,16 +38,16 @@ class WebsiteSlideshow(Document):
 		"""atleast one image file should be public for slideshow"""
 		files = map(lambda row: row.image, self.slideshow_items)
 		if files:
-			result = frappe.get_all("File", filters={"file_url": ("in", list(files))}, fields="is_private")
+			result = nts.get_all("File", filters={"file_url": ("in", list(files))}, fields="is_private")
 			if any(file.is_private for file in result):
-				frappe.throw(_("All Images attached to Website Slideshow should be public"))
+				nts.throw(_("All Images attached to Website Slideshow should be public"))
 
 
 def get_slideshow(doc):
 	if not doc.slideshow:
 		return {}
 
-	slideshow = frappe.get_doc("Website Slideshow", doc.slideshow)
+	slideshow = nts.get_doc("Website Slideshow", doc.slideshow)
 
 	return {
 		"slides": slideshow.get({"doctype": "Website Slideshow Item"}),

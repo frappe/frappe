@@ -12,7 +12,7 @@
 					{% var display_emails_len = Math.min(emails.length, 3) %}
 
 					{% for (var i=0, len=display_emails_len; i<len; i++) { var email = emails[i]; %}
-						{{ frappe.user_info(email).fullname || email }}
+						{{ nts.user_info(email).fullname || email }}
 						{% if (len > i+1) { %}
 							{{ "," }}
 						{% } %}
@@ -28,8 +28,8 @@
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-					{{ frappe.avatar(doc.owner, "avatar-medium") }}
-					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
+					{{ nts.avatar(doc.owner, "avatar-medium") }}
+					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || nts.user.full_name(doc.owner) }}</span>
 					<span class="text-muted">{{ __("commented") }}</span>
 					<span> · </span>
 					<span class="text-muted">
@@ -44,10 +44,10 @@
 				</span>
 			{% } else { %}
 				<span class="margin-right">
-					{{ frappe.avatar(doc.owner, "avatar-medium") }}
+					{{ nts.avatar(doc.owner, "avatar-medium") }}
 				</span>
 				<div>
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
+					{{ doc.user_full_name || nts.user.full_name(doc.owner) }}
 					<span> · </span>
 					<span class="text-muted">
 						{{ comment_when(doc.communication_date || doc.creation) }}

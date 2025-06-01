@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class AboutUsSettings(Document):
@@ -14,9 +14,9 @@ class AboutUsSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.about_us_team_member.about_us_team_member import AboutUsTeamMember
-		from frappe.website.doctype.company_history.company_history import CompanyHistory
+		from nts.types import DF
+		from nts.website.doctype.about_us_team_member.about_us_team_member import AboutUsTeamMember
+		from nts.website.doctype.company_history.company_history import CompanyHistory
 
 		company_history: DF.Table[CompanyHistory]
 		company_history_heading: DF.Data | None
@@ -29,11 +29,11 @@ class AboutUsSettings(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		from frappe.website.utils import clear_cache
+		from nts.website.utils import clear_cache
 
 		clear_cache("about")
 
 
 def get_args():
-	obj = frappe.get_doc("About Us Settings")
+	obj = nts.get_doc("About Us Settings")
 	return {"obj": obj}

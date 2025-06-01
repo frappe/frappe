@@ -28,13 +28,13 @@ body {
 	}
 }
 
-.frappe-card {
+.nts-card {
 	@include card();
 	box-shadow: none;
 	border: 1px solid var(--gray-300);
 }
 
-.frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
+.nts-control[data-fieldtype="Select"].nts-control[data-fieldname="color"] {
 	.color-select {
 		padding-left: 40px;
 	}
@@ -50,8 +50,8 @@ body {
 	}
 }
 
-.frappe-control[data-fieldtype="Select"] .control-input,
-.frappe-control[data-fieldtype="Select"].form-group {
+.nts-control[data-fieldtype="Select"] .control-input,
+.nts-control[data-fieldtype="Select"].form-group {
 	position: relative;
 
 	select {

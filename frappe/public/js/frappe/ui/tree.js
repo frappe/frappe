@@ -1,9 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.Tree = class {
+nts.ui.Tree = class {
 	constructor({
 		parent,
 		label,
@@ -30,9 +30,9 @@ frappe.ui.Tree = class {
 
 		if (!icon_set) {
 			this.icon_set = {
-				open: frappe.utils.icon("folder-open", "md"),
-				closed: frappe.utils.icon("folder-normal", "md"),
-				leaf: frappe.utils.icon("primitive-dot", "xs"),
+				open: nts.utils.icon("folder-open", "md"),
+				closed: nts.utils.icon("folder-normal", "md"),
+				leaf: nts.utils.icon("primitive-dot", "xs"),
 			};
 		}
 
@@ -45,7 +45,7 @@ frappe.ui.Tree = class {
 		args.is_root = is_root;
 
 		return new Promise((resolve) => {
-			frappe.call({
+			nts.call({
 				method: this.method,
 				args: args,
 				callback: (r) => {
@@ -65,8 +65,8 @@ frappe.ui.Tree = class {
 		args.tree_method = this.method;
 
 		return new Promise((resolve) => {
-			frappe.call({
-				method: "frappe.desk.treeview.get_all_nodes",
+			nts.call({
+				method: "nts.desk.treeview.get_all_nodes",
 				args: args,
 				callback: (r) => {
 					this.on_get_node && this.on_get_node(r.message, true);
@@ -160,12 +160,12 @@ frappe.ui.Tree = class {
 			is_root = node.is_root;
 
 		return deep
-			? frappe.run_serially([
+			? nts.run_serially([
 					() => this.get_all_nodes(value, is_root, node.label),
 					(data_list) => this.render_children_of_all_nodes(data_list),
 					() => this.set_selected_node(node),
 			  ])
-			: frappe.run_serially([
+			: nts.run_serially([
 					() => this.get_nodes(value, is_root),
 					(data_set) => this.render_node_children(node, data_set),
 					() => this.set_selected_node(node),
@@ -194,7 +194,7 @@ frappe.ui.Tree = class {
 
 	on_node_click(node) {
 		this.expand_node(node);
-		frappe.dom.activate(this.wrapper, node.$tree_link, "tree-link");
+		nts.dom.activate(this.wrapper, node.$tree_link, "tree-link");
 		if (node.$toolbar) this.show_toolbar(node);
 	}
 

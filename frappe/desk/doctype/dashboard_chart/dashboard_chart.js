@@ -1,9 +1,9 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.provide("frappe.dashboards.chart_sources");
+nts.provide("nts.dashboards.chart_sources");
 
-frappe.ui.form.on("Dashboard Chart", {
+nts.ui.form.on("Dashboard Chart", {
 	setup: function (frm) {
 		// fetch timeseries from source
 		frm.add_fetch("source", "timeseries", "timeseries");
@@ -12,7 +12,7 @@ frappe.ui.form.on("Dashboard Chart", {
 	before_save: function (frm) {
 		let dynamic_filters = JSON.parse(frm.doc.dynamic_filters_json || "null");
 		let static_filters = JSON.parse(frm.doc.filters_json || "null");
-		static_filters = frappe.dashboard_utils.remove_common_static_filter_values(
+		static_filters = nts.dashboard_utils.remove_common_static_filter_values(
 			static_filters,
 			dynamic_filters
 		);
@@ -23,7 +23,7 @@ frappe.ui.form.on("Dashboard Chart", {
 
 	refresh: function (frm) {
 		frm.chart_filters = null;
-		frm.is_disabled = !frappe.boot.developer_mode && frm.doc.is_standard;
+		frm.is_disabled = !nts.boot.developer_mode && frm.doc.is_standard;
 
 		if (frm.is_disabled) {
 			!frm.doc.custom_options && frm.set_df_property("chart_options_section", "hidden", 1);
@@ -32,14 +32,14 @@ frappe.ui.form.on("Dashboard Chart", {
 
 		if (!frm.is_new()) {
 			frm.add_custom_button("Add Chart to Dashboard", () => {
-				const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+				const dialog = nts.dashboard_utils.get_add_to_dashboard_dialog(
 					frm.doc.name,
 					"Dashboard Chart",
-					"frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard"
+					"nts.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard"
 				);
 
 				if (!frm.doc.chart_name) {
-					frappe.msgprint(__("Please create chart first"));
+					nts.msgprint(__("Please create chart first"));
 				} else {
 					dialog.show();
 				}
@@ -66,7 +66,7 @@ frappe.ui.form.on("Dashboard Chart", {
 	},
 
 	is_standard: function (frm) {
-		if (frappe.boot.developer_mode && frm.doc.is_standard) {
+		if (nts.boot.developer_mode && frm.doc.is_standard) {
 			frm.trigger("render_dynamic_filters_table");
 		} else {
 			frm.set_df_property("dynamic_filters_section", "hidden", 1);
@@ -79,12 +79,12 @@ frappe.ui.form.on("Dashboard Chart", {
 
 	set_heatmap_year_options: function (frm) {
 		if (frm.doc.type == "Heatmap") {
-			frappe.db.get_doc("System Settings").then((doc) => {
+			nts.db.get_doc("System Settings").then((doc) => {
 				const creation_date = doc.creation;
 				frm.set_df_property(
 					"heatmap_year",
 					"options",
-					frappe.dashboard_utils.get_years_since_creation(creation_date)
+					nts.dashboard_utils.get_years_since_creation(creation_date)
 				);
 			});
 		}
@@ -146,10 +146,10 @@ frappe.ui.form.on("Dashboard Chart", {
 				frm.trigger("show_filters");
 				frm.trigger("set_chart_field_options");
 			} else {
-				frappe.report_utils.get_report_filters(report_name).then((filters) => {
+				nts.report_utils.get_report_filters(report_name).then((filters) => {
 					if (filters) {
 						frm.chart_filters = filters;
-						let filter_values = frappe.report_utils.get_filter_values(filters);
+						let filter_values = nts.report_utils.get_filter_values(filters);
 						frm.set_value("filters_json", JSON.stringify(filter_values));
 					}
 					frm.trigger("show_filters");
@@ -166,10 +166,10 @@ frappe.ui.form.on("Dashboard Chart", {
 	set_chart_field_options: function (frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
 		if (frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2) {
-			filters = frappe.dashboard_utils.get_all_filters(frm.doc);
+			filters = nts.dashboard_utils.get_all_filters(frm.doc);
 		}
-		frappe
-			.xcall("frappe.desk.query_report.run", {
+		nts
+			.xcall("nts.desk.query_report.run", {
 				report_name: frm.doc.report_name,
 				filters: filters,
 				ignore_prepared_report: 1,
@@ -182,7 +182,7 @@ frappe.ui.form.on("Dashboard Chart", {
 
 				if (!frm.doc.use_report_chart) {
 					if (data.result.length) {
-						frm.field_options = frappe.report_utils.get_field_options_from_report(
+						frm.field_options = nts.report_utils.get_field_options_from_report(
 							data.columns,
 							data
 						);
@@ -192,11 +192,11 @@ frappe.ui.form.on("Dashboard Chart", {
 							frm.field_options.non_numeric_fields
 						);
 						if (!frm.field_options.numeric_fields.length) {
-							frappe.msgprint(
+							nts.msgprint(
 								__("Report has no numeric fields, please change the Report Name")
 							);
 						} else {
-							let y_field_df = frappe.meta.get_docfield(
+							let y_field_df = nts.meta.get_docfield(
 								"Dashboard Chart Field",
 								"y_field",
 								frm.doc.name
@@ -204,7 +204,7 @@ frappe.ui.form.on("Dashboard Chart", {
 							y_field_df.options = frm.field_options.numeric_fields;
 						}
 					} else {
-						frappe.msgprint(
+						nts.msgprint(
 							__(
 								"Report has no data, please modify the filters or change the Report Name"
 							)
@@ -258,9 +258,9 @@ frappe.ui.form.on("Dashboard Chart", {
 		};
 
 		if (doctype) {
-			frappe.model.with_doctype(doctype, () => {
+			nts.model.with_doctype(doctype, () => {
 				// get all date and datetime fields
-				frappe.get_meta(doctype).fields.map((df) => {
+				nts.get_meta(doctype).fields.map((df) => {
 					if (["Date", "Datetime"].includes(df.fieldtype)) {
 						date_fields.push({ label: df.label, value: df.fieldname });
 					}
@@ -284,13 +284,13 @@ frappe.ui.form.on("Dashboard Chart", {
 
 	show_filters: function (frm) {
 		frm.chart_filters = [];
-		frappe.dashboard_utils.get_filters_for_chart_type(frm.doc).then((filters) => {
+		nts.dashboard_utils.get_filters_for_chart_type(frm.doc).then((filters) => {
 			if (filters) {
 				frm.chart_filters = filters;
 			}
 			frm.trigger("render_filters_table");
 
-			if (frappe.boot.developer_mode && frm.doc.is_standard) {
+			if (nts.boot.developer_mode && frm.doc.is_standard) {
 				frm.trigger("render_dynamic_filters_table");
 			}
 		});
@@ -375,9 +375,9 @@ frappe.ui.form.on("Dashboard Chart", {
 		}
 
 		table.on("click", () => {
-			frm.is_disabled && frappe.throw(__("Cannot edit filters for standard charts"));
+			frm.is_disabled && nts.throw(__("Cannot edit filters for standard charts"));
 
-			let dialog = new frappe.ui.Dialog({
+			let dialog = new nts.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields.filter((f) => !is_dynamic_filter(f)),
 				primary_action: function () {
@@ -399,10 +399,10 @@ frappe.ui.form.on("Dashboard Chart", {
 				},
 				primary_action_label: __("Set"),
 			});
-			frappe.dashboards.filters_dialog = dialog;
+			nts.dashboards.filters_dialog = dialog;
 
 			if (is_document_type) {
-				frm.filter_group = new frappe.ui.FilterGroup({
+				frm.filter_group = new nts.ui.FilterGroup({
 					parent: dialog.get_field("filter_area").$wrapper,
 					doctype: frm.doc.document_type,
 					parent_doctype: frm.doc.parent_document_type,
@@ -416,12 +416,12 @@ frappe.ui.form.on("Dashboard Chart", {
 
 			if (frm.doc.chart_type == "Report") {
 				//Set query report object so that it can be used while fetching filter values in the report
-				frappe.query_report = new frappe.views.QueryReport({
+				nts.query_report = new nts.views.QueryReport({
 					filters: dialog.fields_list,
 				});
-				frappe.query_reports[frm.doc.report_name] &&
-					frappe.query_reports[frm.doc.report_name].onload &&
-					frappe.query_reports[frm.doc.report_name].onload(frappe.query_report);
+				nts.query_reports[frm.doc.report_name] &&
+					nts.query_reports[frm.doc.report_name].onload &&
+					nts.query_reports[frm.doc.report_name].onload(nts.query_report);
 			}
 
 			dialog.set_values(filters);
@@ -456,14 +456,14 @@ frappe.ui.form.on("Dashboard Chart", {
 
 		let filters = JSON.parse(frm.doc.filters_json || "[]");
 
-		let fields = frappe.dashboard_utils.get_fields_for_dynamic_filter_dialog(
+		let fields = nts.dashboard_utils.get_fields_for_dynamic_filter_dialog(
 			is_document_type,
 			filters,
 			frm.dynamic_filters
 		);
 
 		frm.dynamic_filter_table.on("click", () => {
-			let dialog = new frappe.ui.Dialog({
+			let dialog = new nts.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,
 				primary_action: () => {
@@ -533,13 +533,13 @@ frappe.ui.form.on("Dashboard Chart", {
 			frm.set_df_property("parent_document_type", "hidden", 1);
 			return;
 		}
-		frappe.model.with_doctype(document_type, async () => {
-			let doc_is_table = frappe.get_meta(document_type).istable;
+		nts.model.with_doctype(document_type, async () => {
+			let doc_is_table = nts.get_meta(document_type).istable;
 			frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
 
 			if (doc_is_table) {
-				let parents = await frappe.xcall(
-					"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
+				let parents = await nts.xcall(
+					"nts.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
 					{ child_type: document_type }
 				);
 

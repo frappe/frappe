@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -8,19 +8,19 @@ from contextlib import suppress
 
 from semantic_version import SimpleSpec, Version
 
-import frappe
-from frappe import _, safe_decode
-from frappe.utils import cstr
-from frappe.utils.caching import redis_cache
-from frappe.utils.frappecloud import on_frappecloud
+import nts
+from nts import _, safe_decode
+from nts.utils import cstr
+from nts.utils.caching import redis_cache
+from nts.utils.ntscloud import on_ntscloud
 
 
 def get_change_log(user=None):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	last_known_versions = frappe._dict(
-		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
+	last_known_versions = nts._dict(
+		json.loads(nts.db.get_value("User", user, "last_known_versions") or "{}")
 	)
 	current_versions = get_versions()
 
@@ -48,17 +48,17 @@ def get_change_log(user=None):
 				)
 
 	for app, opts in current_versions.items():
-		if app != "frappe":
+		if app != "nts":
 			set_in_change_log(app, opts, change_log)
 
-	if "frappe" in current_versions:
-		set_in_change_log("frappe", current_versions["frappe"], change_log)
+	if "nts" in current_versions:
+		set_in_change_log("nts", current_versions["nts"], change_log)
 
 	return change_log
 
 
 def get_change_log_for_app(app, from_version, to_version):
-	change_log_folder = os.path.join(frappe.get_app_path(app), "change_log")
+	change_log_folder = os.path.join(nts.get_app_path(app), "change_log")
 	if not os.path.exists(change_log_folder):
 		return
 
@@ -77,7 +77,7 @@ def get_change_log_for_app(app, from_version, to_version):
 
 				if from_version < version <= to_version:
 					file_path = os.path.join(change_log_folder, folder, file)
-					content = frappe.read_file(file_path)
+					content = nts.read_file(file_path)
 					app_change_log.append([version, content])
 
 	app_change_log = sorted(app_change_log, key=lambda d: d[0], reverse=True)
@@ -86,32 +86,32 @@ def get_change_log_for_app(app, from_version, to_version):
 	return [[cstr(d[0]), d[1]] for d in app_change_log]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_last_known_versions():
-	frappe.db.set_value(
+	nts.db.set_value(
 		"User",
-		frappe.session.user,
+		nts.session.user,
 		"last_known_versions",
 		json.dumps(get_versions()),
 		update_modified=False,
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_versions():
 	"""Get versions of all installed apps.
 
 	Example:
 
 	        {
-	                "frappe": {
-	                        "title": "Frappe Framework",
+	                "nts": {
+	                        "title": "nts Framework",
 	                        "version": "5.0.0"
 	                }
 	        }"""
 	versions = {}
-	for app in frappe.get_installed_apps(_ensure_on_bench=True):
-		app_hooks = frappe.get_hooks(app_name=app)
+	for app in nts.get_installed_apps(_ensure_on_bench=True):
+		app_hooks = nts.get_hooks(app_name=app)
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],
 			"description": app_hooks.get("app_description")[0],
@@ -124,7 +124,7 @@ def get_versions():
 				versions[app]["branch_version"] = branch_version[0] + f" ({get_app_last_commit_ref(app)})"
 
 		try:
-			versions[app]["version"] = frappe.get_attr(app + ".__version__")
+			versions[app]["version"] = nts.get_attr(app + ".__version__")
 		except AttributeError:
 			versions[app]["version"] = "0.0.1"
 
@@ -165,10 +165,10 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
-	if frappe.get_system_settings("disable_system_update_notification"):
+	if nts.get_system_settings("disable_system_update_notification"):
 		return
 
-	updates = frappe._dict(major=[], minor=[], patch=[])
+	updates = nts._dict(major=[], minor=[], patch=[])
 	apps = get_versions()
 
 	for app in apps:
@@ -197,7 +197,7 @@ def check_for_update():
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
 				updates[update_type].append(
-					frappe._dict(
+					nts._dict(
 						current_version=str(instance_version),
 						available_version=str(github_version),
 						org_name=org_name,
@@ -215,7 +215,7 @@ def check_for_update():
 
 
 def has_app_update_notifications() -> bool:
-	return bool(frappe.cache.sismember("changelog-update-user-set", frappe.session.user))
+	return bool(nts.cache.sismember("changelog-update-user-set", nts.session.user))
 
 
 def parse_latest_non_beta_release(response: list, current_version: Version) -> list | None:
@@ -275,7 +275,7 @@ def security_issues_count(owner: str, repo: str, current_version: Version, targe
 				if (
 					current_version in vulnerable_range
 					and target_version not in vulnerable_range
-					# XXX: this is not 100% correct, but works for frappe
+					# XXX: this is not 100% correct, but works for nts
 					and current_version.major == patch_version.major
 				):
 					return True
@@ -330,19 +330,19 @@ def get_source_url(app: str) -> str | None:
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
 	# "changelog-update-user-set" will be a set of users
-	frappe.cache.set_value("changelog-update-info", json.dumps(update_json))
-	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
-	system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]
-	frappe.cache.sadd("changelog-update-user-set", *system_managers)
+	nts.cache.set_value("changelog-update-info", json.dumps(update_json))
+	user_list = [x.name for x in nts.get_all("User", filters={"enabled": True})]
+	system_managers = [user for user in user_list if "System Manager" in nts.get_roles(user)]
+	nts.cache.sadd("changelog-update-user-set", *system_managers)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def show_update_popup():
-	if frappe.get_system_settings("disable_system_update_notification"):
+	if nts.get_system_settings("disable_system_update_notification"):
 		return
-	user = frappe.session.user
+	user = nts.session.user
 
-	update_info = frappe.cache.get_value("changelog-update-info")
+	update_info = nts.cache.get_value("changelog-update-info")
 	if not update_info:
 		return
 
@@ -350,11 +350,11 @@ def show_update_popup():
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
-	if frappe.cache.sismember("changelog-update-user-set", user):
+	if nts.cache.sismember("changelog-update-user-set", user):
 		for update_type in updates:
 			release_links = ""
 			for app in updates[update_type]:
-				app = frappe._dict(app)
+				app = nts._dict(app)
 				security_msg = ""
 				if app.security_issues:
 					security_msg = (
@@ -362,7 +362,7 @@ def show_update_popup():
 						if app.security_issues > 1
 						else _("Contains {0} security fix")
 					)
-					security_msg = security_msg.format(frappe.bold(app.security_issues))
+					security_msg = security_msg.format(nts.bold(app.security_issues))
 					security_msg = f"""( <a href='https://github.com/{app.org_name}/{app.app_name}/security/advisories'
 						 target='_blank'>{security_msg}</a> )"""
 				release_links += f"""
@@ -381,27 +381,27 @@ def show_update_popup():
 				)
 
 	primary_action = None
-	if on_frappecloud():
+	if on_ntscloud():
 		primary_action = {
-			"label": _("Update from Frappe Cloud"),
+			"label": _("Update from nts Cloud"),
 			"client_action": "window.open",
-			"args": f"https://frappecloud.com/dashboard/sites/{frappe.local.site}",
+			"args": f"https://ntscloud.com/dashboard/sites/{nts.local.site}",
 		}
 
 	if update_message:
-		frappe.msgprint(
+		nts.msgprint(
 			update_message,
 			title=_("New updates are available"),
 			indicator="green",
 			primary_action=primary_action,
 		)
-		frappe.cache.srem("changelog-update-user-set", user)
+		nts.cache.srem("changelog-update-user-set", user)
 
 
 def get_pyproject(app: str) -> dict | None:
 	from tomli import load
 
-	pyproject_path = frappe.get_app_path(app, "..", "pyproject.toml")
+	pyproject_path = nts.get_app_path(app, "..", "pyproject.toml")
 
 	if not os.path.exists(pyproject_path):
 		return None

@@ -1,35 +1,35 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.views.list_view");
+nts.provide("nts.views.list_view");
 
 window.cur_list = null;
-frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
+nts.views.ListFactory = class ListFactory extends nts.views.Factory {
 	make(route) {
 		const me = this;
 		const doctype = route[1];
 
 		// List / Gantt / Kanban / etc
-		let view_name = frappe.utils.to_title_case(route[2] || "List");
+		let view_name = nts.utils.to_title_case(route[2] || "List");
 
 		// File is a special view
 		if (doctype == "File" && !["Report", "Dashboard"].includes(view_name)) {
 			view_name = "File";
 		}
 
-		let view_class = frappe.views[view_name + "View"];
-		if (!view_class) view_class = frappe.views.ListView;
+		let view_class = nts.views[view_name + "View"];
+		if (!view_class) view_class = nts.views.ListView;
 
 		if (view_class && view_class.load_last_view && view_class.load_last_view()) {
 			// view can have custom routing logic
 			return;
 		}
 
-		frappe.provide("frappe.views.list_view." + doctype);
+		nts.provide("nts.views.list_view." + doctype);
 
-		const hide_sidebar = view_class.no_sidebar || !frappe.boot.desk_settings.list_sidebar;
+		const hide_sidebar = view_class.no_sidebar || !nts.boot.desk_settings.list_sidebar;
 
-		frappe.views.list_view[me.page_name] = new view_class({
+		nts.views.list_view[me.page_name] = new view_class({
 			doctype: doctype,
 			parent: me.make_page(true, me.page_name, hide_sidebar),
 		});
@@ -52,11 +52,11 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 
 	re_route_to_view() {
 		const doctype = this.route[1];
-		const last_route = frappe.route_history.slice(-2)[0];
+		const last_route = nts.route_history.slice(-2)[0];
 		if (
 			this.route[0] === "List" &&
 			this.route.length === 2 &&
-			frappe.views.list_view[doctype] &&
+			nts.views.list_view[doctype] &&
 			last_route &&
 			last_route[0] === "List" &&
 			last_route[1] === doctype
@@ -76,21 +76,21 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	set_module_breadcrumb() {
-		if (frappe.route_history.length > 1) {
-			const prev_route = frappe.route_history[frappe.route_history.length - 2];
+		if (nts.route_history.length > 1) {
+			const prev_route = nts.route_history[nts.route_history.length - 2];
 			if (prev_route[0] === "modules") {
 				const doctype = this.route[1],
 					module = prev_route[1];
-				if (frappe.module_links[module] && frappe.module_links[module].includes(doctype)) {
+				if (nts.module_links[module] && nts.module_links[module].includes(doctype)) {
 					// save the last page from the breadcrumb was accessed
-					frappe.breadcrumbs.set_doctype_module(doctype, module);
+					nts.breadcrumbs.set_doctype_module(doctype, module);
 				}
 			}
 		}
 	}
 
 	set_cur_list() {
-		cur_list = frappe.views.list_view[this.page_name];
+		cur_list = nts.views.list_view[this.page_name];
 		if (cur_list && cur_list.doctype !== this.route[1]) {
 			// changing...
 			window.cur_list = null;

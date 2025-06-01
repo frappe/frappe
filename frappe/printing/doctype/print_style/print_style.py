@@ -1,8 +1,8 @@
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2017, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class PrintStyle(Document):
@@ -12,7 +12,7 @@ class PrintStyle(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		css: DF.Code
 		disabled: DF.Check
@@ -24,16 +24,16 @@ class PrintStyle(Document):
 	def validate(self):
 		if (
 			self.standard == 1
-			and not frappe.local.conf.get("developer_mode")
-			and not (frappe.flags.in_import or frappe.flags.in_test)
+			and not nts.local.conf.get("developer_mode")
+			and not (nts.flags.in_import or nts.flags.in_test)
 		):
-			frappe.throw(frappe._("Standard Print Style cannot be changed. Please duplicate to edit."))
+			nts.throw(nts._("Standard Print Style cannot be changed. Please duplicate to edit."))
 
 	def on_update(self):
 		self.export_doc()
 
 	def export_doc(self):
 		# export
-		from frappe.modules.utils import export_module_json
+		from nts.modules.utils import export_module_json
 
 		export_module_json(self, self.standard == 1, "Printing")

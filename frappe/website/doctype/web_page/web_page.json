@@ -304,7 +304,7 @@
    "label": "Context"
   },
   {
-   "description": "<p>Set context before rendering a template. Example:</p><p>\n</p><div><pre><code>\ncontext.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n</code></pre></div>",
+   "description": "<p>Set context before rendering a template. Example:</p><p>\n</p><div><pre><code>\ncontext.project = nts.get_doc(\"Project\", nts.form_dict.name)\n</code></pre></div>",
    "fieldname": "context_script",
    "fieldtype": "Code",
    "label": "Context Script",

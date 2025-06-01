@@ -1,9 +1,9 @@
-frappe.ModuleEditor = class ModuleEditor {
+nts.ModuleEditor = class ModuleEditor {
 	constructor(frm, wrapper) {
 		this.frm = frm;
 		this.wrapper = wrapper;
 		const block_modules = this.frm.doc.block_modules.map((row) => row.module);
-		this.multicheck = frappe.ui.form.make_control({
+		this.multicheck = nts.ui.form.make_control({
 			parent: wrapper,
 			df: {
 				fieldname: "block_modules",
@@ -41,13 +41,13 @@ frappe.ModuleEditor = class ModuleEditor {
 
 		block_modules.map((module_doc) => {
 			if (!unchecked_options.includes(module_doc.module)) {
-				frappe.model.clear_doc(module_doc.doctype, module_doc.name);
+				nts.model.clear_doc(module_doc.doctype, module_doc.name);
 			}
 		});
 
 		unchecked_options.map((module) => {
 			if (!block_modules.find((d) => d.module === module)) {
-				let module_doc = frappe.model.add_child(
+				let module_doc = nts.model.add_child(
 					this.frm.doc,
 					"Block Module",
 					"block_modules"

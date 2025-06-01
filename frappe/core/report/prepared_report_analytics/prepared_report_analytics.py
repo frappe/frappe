@@ -1,12 +1,12 @@
-# Copyright (c) 2024, Frappe Technologies and contributors
+# Copyright (c) 2024, nts Technologies and contributors
 # For license information, please see license.txt
 
 from pypika import Order
 
-import frappe
-from frappe import _, qb
-from frappe.query_builder import Criterion
-from frappe.utils import add_months, nowdate
+import nts
+from nts import _, qb
+from nts.query_builder import Criterion
+from nts.utils import add_months, nowdate
 
 
 def execute(filters: dict | None = None):

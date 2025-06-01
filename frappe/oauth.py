@@ -9,18 +9,18 @@ import jwt
 import pytz
 from oauthlib.openid import RequestValidator
 
-import frappe
-from frappe.auth import LoginManager
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+import nts
+from nts.auth import LoginManager
+from nts.utils.data import cstr, get_system_timezone, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
 	# Pre- and post-authorization.
 	def validate_client_id(self, client_id, request, *args, **kwargs):
 		# Simple validity check, does client exist? Not banned?
-		cli_id = frappe.db.get_value("OAuth Client", {"name": client_id})
+		cli_id = nts.db.get_value("OAuth Client", {"name": client_id})
 		if cli_id:
-			client = frappe.get_doc("OAuth Client", client_id)
+			client = nts.get_doc("OAuth Client", client_id)
 			if client.user_has_allowed_role():
 				request.client = client.as_dict()
 				return True
@@ -31,7 +31,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# the client previously registered this EXACT redirect uri.
 
 		redirect_uris = (
-			cstr(frappe.db.get_value("OAuth Client", client_id, "redirect_uris"))
+			cstr(nts.db.get_value("OAuth Client", client_id, "redirect_uris"))
 			.strip()
 			.split(get_url_delimiter())
 		)
@@ -45,7 +45,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# The redirect used if none has been supplied.
 		# Prefer your clients to pre register a redirect uri rather than
 		# supplying one on each authorization request.
-		return frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
+		return nts.db.get_value("OAuth Client", client_id, "default_redirect_uri")
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
@@ -77,7 +77,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def save_authorization_code(self, client_id, code, request, *args, **kwargs):
 		cookie_dict = get_cookie_dict_from_headers(request)
 
-		oac = frappe.new_doc("OAuth Authorization Code")
+		oac = nts.new_doc("OAuth Authorization Code")
 		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
@@ -92,34 +92,34 @@ class OAuthWebRequestValidator(RequestValidator):
 			oac.code_challenge_method = request.code_challenge_method.lower()
 
 		oac.save(ignore_permissions=True)
-		frappe.db.commit()
+		nts.db.commit()
 
 	def authenticate_client(self, request, *args, **kwargs):
 		# Get ClientID in URL
 		if request.client_id:
-			oc = frappe.get_doc("OAuth Client", request.client_id)
+			oc = nts.get_doc("OAuth Client", request.client_id)
 		else:
 			# Extract token, instantiate OAuth Bearer Token and use clientid from there.
-			if "refresh_token" in frappe.form_dict:
-				oc = frappe.get_doc(
+			if "refresh_token" in nts.form_dict:
+				oc = nts.get_doc(
 					"OAuth Client",
-					frappe.db.get_value(
+					nts.db.get_value(
 						"OAuth Bearer Token",
-						{"refresh_token": frappe.form_dict["refresh_token"]},
+						{"refresh_token": nts.form_dict["refresh_token"]},
 						"client",
 					),
 				)
-			elif "token" in frappe.form_dict:
-				oc = frappe.get_doc(
+			elif "token" in nts.form_dict:
+				oc = nts.get_doc(
 					"OAuth Client",
-					frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], "client"),
+					nts.db.get_value("OAuth Bearer Token", nts.form_dict["token"], "client"),
 				)
 			else:
-				oc = frappe.get_doc(
+				oc = nts.get_doc(
 					"OAuth Client",
-					frappe.db.get_value(
+					nts.db.get_value(
 						"OAuth Bearer Token",
-						frappe.get_request_header("Authorization").split(" ")[1],
+						nts.get_request_header("Authorization").split(" ")[1],
 						"client",
 					),
 				)
@@ -130,40 +130,40 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		cookie_dict = get_cookie_dict_from_headers(request)
 		user_id = unquote(cookie_dict.get("user_id").value) if "user_id" in cookie_dict else "Guest"
-		return frappe.session.user == user_id
+		return nts.session.user == user_id
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
-		cli_id = frappe.db.get_value("OAuth Client", client_id, "name")
+		cli_id = nts.db.get_value("OAuth Client", client_id, "name")
 		if not cli_id:
 			# Don't allow public (non-authenticated) clients
 			return False
 		else:
-			request["client"] = frappe.get_doc("OAuth Client", cli_id)
+			request["client"] = nts.get_doc("OAuth Client", cli_id)
 			return True
 
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
 		# Validate the code belongs to the client. Add associated scopes,
 		# state and user to request.scopes and request.user.
 
-		validcodes = frappe.get_all(
+		validcodes = nts.get_all(
 			"OAuth Authorization Code",
 			filters={"client": client_id, "validity": "Valid"},
 		)
 
 		if code in [vcode["name"] for vcode in validcodes]:
-			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, "scopes").split(
+			request.scopes = nts.db.get_value("OAuth Authorization Code", code, "scopes").split(
 				get_url_delimiter()
 			)
-			request.user = frappe.db.get_value("OAuth Authorization Code", code, "user")
-			code_challenge_method = frappe.db.get_value(
+			request.user = nts.db.get_value("OAuth Authorization Code", code, "user")
+			code_challenge_method = nts.db.get_value(
 				"OAuth Authorization Code", code, "code_challenge_method"
 			)
-			code_challenge = frappe.db.get_value("OAuth Authorization Code", code, "code_challenge")
+			code_challenge = nts.db.get_value("OAuth Authorization Code", code, "code_challenge")
 
 			if code_challenge and not request.code_verifier:
-				if frappe.db.exists("OAuth Authorization Code", code):
-					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True)
-					frappe.db.commit()
+				if nts.db.exists("OAuth Authorization Code", code):
+					nts.delete_doc("OAuth Authorization Code", code, ignore_permissions=True)
+					nts.db.commit()
 				return False
 
 			if code_challenge_method == "s256":
@@ -183,9 +183,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		return False
 
 	def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
-		saved_redirect_uri = frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
+		saved_redirect_uri = nts.db.get_value("OAuth Client", client_id, "default_redirect_uri")
 
-		redirect_uris = frappe.db.get_value("OAuth Client", client_id, "redirect_uris")
+		redirect_uris = nts.db.get_value("OAuth Client", client_id, "redirect_uris")
 
 		if redirect_uris:
 			redirect_uris = redirect_uris.split(get_url_delimiter())
@@ -205,44 +205,44 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access_token and the refresh_token and set expiration for the
 		# access_token to now + expires_in seconds.
 
-		otoken = frappe.new_doc("OAuth Bearer Token")
+		otoken = nts.new_doc("OAuth Bearer Token")
 		otoken.client = request.client["name"]
 		try:
 			otoken.user = (
 				request.user
 				if request.user
-				else frappe.db.get_value(
+				else nts.db.get_value(
 					"OAuth Bearer Token",
 					{"refresh_token": request.body.get("refresh_token")},
 					"user",
 				)
 			)
 		except Exception:
-			otoken.user = frappe.session.user
+			otoken.user = nts.session.user
 
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token["access_token"]
 		otoken.refresh_token = token.get("refresh_token")
 		otoken.expires_in = token["expires_in"]
 		otoken.save(ignore_permissions=True)
-		frappe.db.commit()
+		nts.db.commit()
 
-		return frappe.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
+		return nts.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
 
 	def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
 		# Authorization codes are use once, invalidate it when a Bearer token
 		# has been acquired.
 
-		frappe.db.set_value("OAuth Authorization Code", code, "validity", "Invalid")
-		frappe.db.commit()
+		nts.db.set_value("OAuth Authorization Code", code, "validity", "Invalid")
+		nts.db.commit()
 
 	# Protected resource request
 
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
-		otoken = frappe.get_doc("OAuth Bearer Token", token)
+		otoken = nts.get_doc("OAuth Bearer Token", token)
 		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
-		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
+		client_scopes = nts.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
 		are_scopes_valid = True
@@ -258,7 +258,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# return its scopes, these will be passed on to the refreshed
 		# access token if the client did not specify a scope during the
 		# request.
-		obearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token})
+		obearer_token = nts.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token})
 		return obearer_token.scopes
 
 	def revoke_token(self, token, token_type_hint, request, *args, **kwargs):
@@ -272,12 +272,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Revocation Endpoint
 		"""
 		if token_type_hint == "access_token":
-			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
+			nts.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
 		elif token_type_hint == "refresh_token":
-			frappe.db.set_value("OAuth Bearer Token", {"refresh_token": token}, "status", "Revoked")
+			nts.db.set_value("OAuth Bearer Token", {"refresh_token": token}, "status", "Revoked")
 		else:
-			frappe.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
-		frappe.db.commit()
+			nts.db.set_value("OAuth Bearer Token", token, "status", "Revoked")
+		nts.db.commit()
 
 	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
 		"""Ensure the Bearer token is valid and authorized access to scopes.
@@ -296,7 +296,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
+		otoken = nts.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
 
 		if not otoken:
 			return False
@@ -306,10 +306,10 @@ class OAuthWebRequestValidator(RequestValidator):
 	# OpenID Connect
 
 	def finalize_id_token(self, id_token, token, token_handler, request):
-		# Check whether frappe server URL is set
+		# Check whether nts server URL is set
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
-		user = frappe.get_doc("User", request.user)
+		user = nts.get_doc("User", request.user)
 
 		if request.nonce:
 			id_token["nonce"] = request.nonce
@@ -331,16 +331,16 @@ class OAuthWebRequestValidator(RequestValidator):
 			headers=id_token_header,
 		)
 
-		return frappe.safe_decode(id_token_encoded)
+		return nts.safe_decode(id_token_encoded)
 
 	def get_authorization_code_nonce(self, client_id, code, redirect_uri, request):
-		if frappe.get_value("OAuth Authorization Code", code, "validity") == "Valid":
-			return frappe.get_value("OAuth Authorization Code", code, "nonce")
+		if nts.get_value("OAuth Authorization Code", code, "validity") == "Valid":
+			return nts.get_value("OAuth Authorization Code", code, "nonce")
 
 		return None
 
 	def get_authorization_code_scopes(self, client_id, code, redirect_uri, request):
-		scope = frappe.get_value("OAuth Client", client_id, "scopes")
+		scope = nts.get_value("OAuth Client", client_id, "scopes")
 		if not scope:
 			scope = []
 		else:
@@ -359,12 +359,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		return self.finalize_id_token(id_token, token, token_handler, request)
 
 	def get_userinfo_claims(self, request):
-		user = frappe.get_doc("User", frappe.session.user)
+		user = nts.get_doc("User", nts.session.user)
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
 		try:
-			id_token = frappe.get_doc("OAuth Bearer Token", token)
+			id_token = nts.get_doc("OAuth Bearer Token", token)
 			if id_token.status == "Active":
 				return True
 		except Exception:
@@ -374,7 +374,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_jwt_bearer_token(self, token, scopes, request):
 		try:
-			jwt = frappe.get_doc("OAuth Bearer Token", token)
+			jwt = nts.get_doc("OAuth Bearer Token", token)
 			if jwt.status == "Active":
 				return True
 		except Exception:
@@ -419,7 +419,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		- OpenIDConnectImplicit
 		- OpenIDConnectHybrid
 		"""
-		if frappe.session.user == "Guest" or request.prompt.lower() == "login":
+		if nts.session.user == "Guest" or request.prompt.lower() == "login":
 			return False
 		else:
 			return True
@@ -452,19 +452,19 @@ class OAuthWebRequestValidator(RequestValidator):
 						"verify_aud": False,
 					},
 				)
-				client_id, client_secret = frappe.get_value(
+				client_id, client_secret = nts.get_value(
 					"OAuth Client",
 					payload.get("aud"),
 					["client_id", "client_secret"],
 				)
 
 				if payload.get("sub") and client_id and client_secret:
-					user = frappe.db.get_value(
+					user = nts.db.get_value(
 						"User Social Login",
-						{"userid": payload.get("sub"), "provider": "frappe"},
+						{"userid": payload.get("sub"), "provider": "nts"},
 						"parent",
 					)
-					user = frappe.get_doc("User", user)
+					user = nts.get_doc("User", user)
 					verified_payload = jwt.decode(
 						id_token_hint,
 						key=client_secret,
@@ -476,12 +476,12 @@ class OAuthWebRequestValidator(RequestValidator):
 					)
 
 					if verified_payload:
-						return user.name == frappe.session.user
+						return user.name == nts.session.user
 
 			except Exception:
 				return False
 
-		elif frappe.session.user != "Guest":
+		elif nts.session.user != "Guest":
 			return True
 
 		return False
@@ -532,31 +532,31 @@ def calculate_at_hash(access_token, hash_alg):
 
 
 def delete_oauth2_data():
-	frappe.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
-	frappe.db.delete("OAuth Bearer Token", {"status": "Revoked"})
+	nts.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
+	nts.db.delete("OAuth Bearer Token", {"status": "Revoked"})
 
 
 def get_client_scopes(client_id):
-	scopes_string = frappe.db.get_value("OAuth Client", client_id, "scopes")
+	scopes_string = nts.db.get_value("OAuth Client", client_id, "scopes")
 	return scopes_string.split()
 
 
 def get_userinfo(user):
 	picture = None
-	frappe_server_url = get_server_url()
+	nts_server_url = get_server_url()
 	valid_url_schemes = ("http", "https", "ftp", "ftps")
 
 	if user.user_image:
-		if frappe.utils.validate_url(user.user_image, valid_schemes=valid_url_schemes):
+		if nts.utils.validate_url(user.user_image, valid_schemes=valid_url_schemes):
 			picture = user.user_image
 		else:
-			picture = urljoin(frappe_server_url, user.user_image)
+			picture = urljoin(nts_server_url, user.user_image)
 
-	return frappe._dict(
+	return nts._dict(
 		{
-			"sub": frappe.db.get_value(
+			"sub": nts.db.get_value(
 				"User Social Login",
-				{"parent": user.name, "provider": "frappe"},
+				{"parent": user.name, "provider": "nts"},
 				"userid",
 			),
 			"name": " ".join(filter(None, [user.first_name, user.last_name])),
@@ -564,8 +564,8 @@ def get_userinfo(user):
 			"family_name": user.last_name,
 			"email": user.email,
 			"picture": picture,
-			"roles": frappe.get_roles(user.name),
-			"iss": frappe_server_url,
+			"roles": nts.get_roles(user.name),
+			"iss": nts_server_url,
 		}
 	)
 
@@ -576,20 +576,20 @@ def get_url_delimiter(separator_character=" "):
 
 def generate_json_error_response(e):
 	if not e:
-		e = frappe._dict({})
+		e = nts._dict({})
 
-	frappe.local.response = frappe._dict(
+	nts.local.response = nts._dict(
 		{
 			"description": getattr(e, "description", "Internal Server Error"),
 			"status_code": getattr(e, "status_code", 500),
 			"error": getattr(e, "error", "internal_server_error"),
 		}
 	)
-	frappe.local.response["http_status_code"] = getattr(e, "status_code", 500)
+	nts.local.response["http_status_code"] = getattr(e, "status_code", 500)
 	return
 
 
 def get_server_url():
-	request_url = urlparse(frappe.request.url)
+	request_url = urlparse(nts.request.url)
 	request_url = f"{request_url.scheme}://{request_url.netloc}"
-	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+	return nts.get_value("Social Login Key", "nts", "base_url") or request_url

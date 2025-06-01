@@ -1,25 +1,25 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.doctype.web_form.web_form import accept
-from frappe.website.serve import get_response_content
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import set_request
+from nts.website.doctype.web_form.web_form import accept
+from nts.website.serve import get_response_content
 
 test_dependencies = ["Web Form"]
 
 
-class TestWebForm(FrappeTestCase):
+class TestWebForm(ntsTestCase):
 	def setUp(self):
-		frappe.conf.disable_website_cache = True
+		nts.conf.disable_website_cache = True
 
 	def tearDown(self):
-		frappe.conf.disable_website_cache = False
+		nts.conf.disable_website_cache = False
 
 	def test_accept(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 		doc = {
 			"doctype": "Event",
@@ -30,7 +30,7 @@ class TestWebForm(FrappeTestCase):
 
 		accept(web_form="manage-events", data=json.dumps(doc))
 
-		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
+		self.event_name = nts.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
 
 	def test_edit(self):
@@ -45,12 +45,12 @@ class TestWebForm(FrappeTestCase):
 		}
 
 		self.assertNotEqual(
-			frappe.db.get_value("Event", self.event_name, "description"), doc.get("description")
+			nts.db.get_value("Event", self.event_name, "description"), doc.get("description")
 		)
 
 		accept("manage-events", json.dumps(doc))
 
-		self.assertEqual(frappe.db.get_value("Event", self.event_name, "description"), doc.get("description"))
+		self.assertEqual(nts.db.get_value("Event", self.event_name, "description"), doc.get("description"))
 
 	def test_webform_render(self):
 		set_request(method="GET", path="manage-events/new")
@@ -73,6 +73,6 @@ class TestWebForm(FrappeTestCase):
 			content,
 		)
 		self.assertIn(
-			self.normalize_html('<meta property="og:image" content="https://frappe.io/files/frappe.png">'),
+			self.normalize_html('<meta property="og:image" content="https://nts.io/files/nts.png">'),
 			content,
 		)

@@ -1,15 +1,15 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from functools import partial
 from itertools import chain
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.rate_limiter import rate_limit
-from frappe.utils.safe_exec import (
-	FrappeTransformer,
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.rate_limiter import rate_limit
+from nts.utils.safe_exec import (
+	ntsTransformer,
 	get_keys_for_autocomplete,
 	get_safe_globals,
 	is_safe_exec_enabled,
@@ -24,7 +24,7 @@ class ServerScript(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		allow_guest: DF.Check
 		api_method: DF.Data | None
@@ -72,7 +72,7 @@ class ServerScript(Document):
 
 	# end: auto-generated types
 	def validate(self):
-		frappe.only_for("Script Manager", True)
+		nts.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
 		self.clear_scheduled_events()
 		self.check_if_compilable_in_restricted_context()
@@ -81,21 +81,21 @@ class ServerScript(Document):
 		self.sync_scheduler_events()
 
 	def clear_cache(self):
-		frappe.cache.delete_value("server_script_map")
+		nts.cache.delete_value("server_script_map")
 		return super().clear_cache()
 
 	def on_trash(self):
-		frappe.cache.delete_value("server_script_map")
+		nts.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
-				frappe.delete_doc("Scheduled Job Type", job.name)
+				nts.delete_doc("Scheduled Job Type", job.name)
 
 	def get_code_fields(self):
 		return {"script": "py"}
 
 	@property
 	def scheduled_jobs(self) -> list[dict[str, str]]:
-		return frappe.get_all(
+		return nts.get_all(
 			"Scheduled Job Type",
 			filters={"server_script": self.name},
 			fields=["name", "stopped"],
@@ -108,7 +108,7 @@ class ServerScript(Document):
 
 		for scheduled_job in self.scheduled_jobs:
 			if bool(scheduled_job.stopped) != bool(self.disabled):
-				job = frappe.get_doc("Scheduled Job Type", scheduled_job.name)
+				job = nts.get_doc("Scheduled Job Type", scheduled_job.name)
 				job.stopped = self.disabled
 				job.save()
 
@@ -127,26 +127,26 @@ class ServerScript(Document):
 			and (self.has_value_changed("event_frequency") or self.has_value_changed("cron_format"))
 		) or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event"):
 			for scheduled_job in self.scheduled_jobs:
-				frappe.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
+				nts.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
 
 	def check_if_compilable_in_restricted_context(self):
 		"""Check compilation errors and send them back as warnings."""
 		from RestrictedPython import compile_restricted
 
 		try:
-			compile_restricted(self.script, policy=FrappeTransformer)
+			compile_restricted(self.script, policy=ntsTransformer)
 		except Exception as e:
-			frappe.msgprint(str(e), title=_("Compilation warning"))
+			nts.msgprint(str(e), title=_("Compilation warning"))
 
 	def execute_method(self) -> dict:
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
-		        frappe.DoesNotExistError: If self.script_type is not API
-		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user
+		        nts.DoesNotExistError: If self.script_type is not API
+		        nts.PermissionError: If self.allow_guest is unset for API accessed by Guest user
 
 		Returns:
-		        dict: Evaluates self.script with frappe.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
+		        dict: Evaluates self.script with nts.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
 		"""
 
 		if self.enable_rate_limit:
@@ -177,10 +177,10 @@ class ServerScript(Document):
 		"""Specific to Scheduled Jobs via Server Scripts
 
 		Raises:
-		        frappe.DoesNotExistError: If script type is not a scheduler event
+		        nts.DoesNotExistError: If script type is not a scheduler event
 		"""
 		if self.script_type != "Scheduler Event":
-			raise frappe.DoesNotExistError
+			raise nts.DoesNotExistError
 
 		safe_exec(self.script, script_filename=self.name)
 
@@ -198,17 +198,17 @@ class ServerScript(Document):
 		if locals["conditions"]:
 			return locals["conditions"]
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def get_autocompletion_items(self):
 		"""Generates a list of a autocompletion strings from the context dict
 		that is used while executing a Server Script.
 
 		Returns:
 		        list: Returns list of autocompletion items.
-		        For e.g., ["frappe.utils.cint", "frappe.get_all", ...]
+		        For e.g., ["nts.utils.cint", "nts.get_all", ...]
 		"""
 
-		return frappe.cache.get_value(
+		return nts.cache.get_value(
 			"server_script_autocompletion_items",
 			generator=lambda: list(
 				chain.from_iterable(
@@ -224,13 +224,13 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 
 	Args:
 	        script_name (str): Name of the Server Script document
-	        frequency (str): Event label compatible with the Frappe scheduler
+	        frequency (str): Event label compatible with the nts scheduler
 	"""
-	method = frappe.scrub(f"{script_name}-{frequency}")
-	scheduled_script = frappe.db.get_value("Scheduled Job Type", {"method": method})
+	method = nts.scrub(f"{script_name}-{frequency}")
+	scheduled_script = nts.db.get_value("Scheduled Job Type", {"method": method})
 
 	if not scheduled_script:
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Scheduled Job Type",
 				"method": method,
@@ -240,10 +240,10 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 			}
 		).insert()
 
-		frappe.msgprint(_("Enabled scheduled execution for script {0}").format(script_name))
+		nts.msgprint(_("Enabled scheduled execution for script {0}").format(script_name))
 
 	else:
-		doc = frappe.get_doc("Scheduled Job Type", scheduled_script)
+		doc = nts.get_doc("Scheduled Job Type", scheduled_script)
 
 		if doc.frequency == frequency:
 			return
@@ -252,7 +252,7 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 		doc.cron_format = cron_format
 		doc.save()
 
-		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
+		nts.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
 
 
 def execute_api_server_script(script=None, *args, **kwargs):
@@ -261,19 +261,19 @@ def execute_api_server_script(script=None, *args, **kwargs):
 	del kwargs
 
 	if script.script_type != "API":
-		raise frappe.DoesNotExistError
+		raise nts.DoesNotExistError
 
 	# validate if guest is allowed
-	if frappe.session.user == "Guest" and not script.allow_guest:
-		raise frappe.PermissionError
+	if nts.session.user == "Guest" and not script.allow_guest:
+		raise nts.PermissionError
 
 	# output can be stored in flags
 	_globals, _locals = safe_exec(script.script, script_filename=script.name)
 
-	return _globals.frappe.flags
+	return _globals.nts.flags
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def enabled() -> bool | None:
-	if frappe.has_permission("Server Script"):
+	if nts.has_permission("Server Script"):
 		return is_safe_exec_enabled()

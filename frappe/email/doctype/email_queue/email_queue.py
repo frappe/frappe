@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from __future__ import annotations
@@ -11,18 +11,18 @@ from email.parser import Parser
 from email.policy import SMTP
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe import _, safe_encode, task
-from frappe.core.utils import html2text
-from frappe.database.database import savepoint
-from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.email.email_body import add_attachment, get_email, get_formatted_html
-from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
-from frappe.email.smtp import SMTPServer
-from frappe.model.document import Document
-from frappe.query_builder import DocType, Interval
-from frappe.query_builder.functions import Now
-from frappe.utils import (
+import nts
+from nts import _, safe_encode, task
+from nts.core.utils import html2text
+from nts.database.database import savepoint
+from nts.email.doctype.email_account.email_account import EmailAccount
+from nts.email.email_body import add_attachment, get_email, get_formatted_html
+from nts.email.queue import get_unsubcribed_url, get_unsubscribe_message
+from nts.email.smtp import SMTPServer
+from nts.model.document import Document
+from nts.query_builder import DocType, Interval
+from nts.query_builder.functions import Now
+from nts.utils import (
 	add_days,
 	cint,
 	cstr,
@@ -34,8 +34,8 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
-from frappe.utils.deprecations import deprecated
-from frappe.utils.verified_command import get_signed_params
+from nts.utils.deprecations import deprecated
+from nts.utils.verified_command import get_signed_params
 
 if TYPE_CHECKING:
 	from typing import Literal
@@ -48,8 +48,8 @@ class EmailQueue(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.email_queue_recipient.email_queue_recipient import EmailQueueRecipient
-		from frappe.types import DF
+		from nts.email.doctype.email_queue_recipient.email_queue_recipient import EmailQueueRecipient
+		from nts.types import DF
 
 		add_unsubscribe_link: DF.Check
 		attachments: DF.Code | None
@@ -82,13 +82,13 @@ class EmailQueue(Document):
 		self.prevent_email_queue_delete()
 
 	def prevent_email_queue_delete(self):
-		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can delete Email Queue"))
+		if nts.session.user != "Administrator":
+			nts.throw(_("Only Administrator can delete Email Queue"))
 
 	def get_duplicate(self, recipients):
 		values = self.as_dict()
 		del values["name"]
-		duplicate = frappe.get_doc(values)
+		duplicate = nts.get_doc(values)
 		duplicate.set_recipients(recipients)
 		return duplicate
 
@@ -99,7 +99,7 @@ class EmailQueue(Document):
 			return
 
 		recipients = data.pop("recipients")
-		doc = frappe.new_doc(cls.DOCTYPE)
+		doc = nts.new_doc(cls.DOCTYPE)
 		doc.update(data)
 		doc.set_recipients(recipients)
 		doc.insert(ignore_permissions=ignore_permissions)
@@ -107,22 +107,22 @@ class EmailQueue(Document):
 
 	@classmethod
 	def find(cls, name) -> EmailQueue:
-		return frappe.get_doc(cls.DOCTYPE, name)
+		return nts.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
 	def find_one_by_filters(cls, **kwargs):
-		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
+		name = nts.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
 	def update_db(self, commit=False, **kwargs):
-		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
+		nts.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 
 	def update_status(self, status, commit=False, **kwargs):
 		self.update_db(status=status, commit=commit, **kwargs)
 		if self.communication:
-			communication_doc = frappe.get_doc("Communication", self.communication)
+			communication_doc = nts.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
 
 	@property
@@ -139,7 +139,7 @@ class EmailQueue(Document):
 
 	def get_email_account(self, raise_error=False):
 		if self.email_account:
-			return frappe.get_cached_doc("Email Account", self.email_account)
+			return nts.get_cached_doc("Email Account", self.email_account)
 
 		return EmailAccount.find_outgoing(
 			match_by_email=self.sender, match_by_doctype=self.reference_doctype, _raise_error=raise_error
@@ -150,9 +150,9 @@ class EmailQueue(Document):
 
 	def can_send_now(self):
 		if (
-			frappe.are_emails_muted()
+			nts.are_emails_muted()
 			or not self.is_to_be_sent()
-			or cint(frappe.db.get_default("suspend_email_queue")) == 1
+			or cint(nts.db.get_default("suspend_email_queue")) == 1
 		):
 			return False
 
@@ -174,7 +174,7 @@ class EmailQueue(Document):
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
 				else:
-					if not frappe.flags.in_test or frappe.flags.testing_email:
+					if not nts.flags.in_test or nts.flags.testing_email:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
 							to_addrs=recipient.recipient,
@@ -183,8 +183,8 @@ class EmailQueue(Document):
 
 				ctx.update_recipient_status_to_sent(recipient)
 
-			if frappe.flags.in_test and not frappe.flags.testing_email:
-				frappe.flags.sent_mail = message
+			if nts.flags.in_test and not nts.flags.testing_email:
+				nts.flags.sent_mail = message
 				return
 
 			if ctx.email_account_doc.append_emails_to_sent_folder:
@@ -196,24 +196,24 @@ class EmailQueue(Document):
 		Note: Used separate query to avoid deadlock
 		"""
 		days = days or 31
-		email_queue = frappe.qb.DocType("Email Queue")
-		email_recipient = frappe.qb.DocType("Email Queue Recipient")
+		email_queue = nts.qb.DocType("Email Queue")
+		email_recipient = nts.qb.DocType("Email Queue Recipient")
 
 		# Delete queue table
 		(
-			frappe.qb.from_(email_queue).delete().where(email_queue.modified < (Now() - Interval(days=days)))
+			nts.qb.from_(email_queue).delete().where(email_queue.modified < (Now() - Interval(days=days)))
 		).run()
 
 		# delete child tables, note that this has potential to leave some orphan
 		# child table behind if modified time was later than parent doc (rare).
 		# But it's safe since child table doesn't contain links.
 		(
-			frappe.qb.from_(email_recipient)
+			nts.qb.from_(email_recipient)
 			.delete()
 			.where(email_recipient.modified < (Now() - Interval(days=days)))
 		).run()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def retry_sending(self):
 		if self.status == "Error":
 			self.status = "Not Sent"
@@ -255,7 +255,7 @@ class SendMailContext:
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		if exc_type:
-			update_fields = {"error": frappe.get_traceback()}
+			update_fields = {"error": nts.get_traceback()}
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
@@ -277,7 +277,7 @@ class SendMailContext:
 		subject = Parser(policy=SMTP).parsestr(self.queue_doc.message)["Subject"]
 
 		# Construct the notification
-		notification = frappe.new_doc("Notification Log")
+		notification = nts.new_doc("Notification Log")
 		notification.for_user = self.queue_doc.owner
 		notification.set("type", "Alert")
 		notification.from_user = self.queue_doc.owner
@@ -337,7 +337,7 @@ class SendMailContext:
 			and self.email_account_doc.track_email_status
 			and self.queue_doc.communication
 		):
-			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+			tracker_url = f"{get_url()}/api/method/nts.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
 
 		if tracker_url:
 			tracker_url_html = f'<img src="{tracker_url}"/>'
@@ -386,7 +386,7 @@ class SendMailContext:
 				file_filters["file_url"] = attachment.get("file_url")
 
 			if file_filters:
-				_file = frappe.get_doc("File", file_filters)
+				_file = nts.get_doc("File", file_filters)
 				fcontent = _file.get_content()
 				attachment.update({"fname": _file.file_name, "fcontent": fcontent, "parent": message_obj})
 				attachment.pop("fid", None)
@@ -395,7 +395,7 @@ class SendMailContext:
 
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
-				print_format_file = frappe.attach_print(**attachment)
+				print_format_file = nts.attach_print(**attachment)
 				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
 				print_format_file.update({"parent": message_obj})
 				add_attachment(**print_format_file)
@@ -403,10 +403,10 @@ class SendMailContext:
 		return safe_encode(message_obj.as_string())
 
 	def _store_file(self, file_name, content):
-		if not frappe.get_system_settings("store_attached_pdf_document"):
+		if not nts.get_system_settings("store_attached_pdf_document"):
 			return
 
-		file_data = frappe._dict(file_name=file_name, is_private=1)
+		file_data = nts._dict(file_name=file_name, is_private=1)
 
 		# Store on communication if available, else email queue doc
 		if self.queue_doc.communication:
@@ -416,17 +416,17 @@ class SendMailContext:
 			file_data.attached_to_doctype = self.queue_doc.doctype
 			file_data.attached_to_name = self.queue_doc.name
 
-		if frappe.db.exists("File", file_data):
+		if nts.db.exists("File", file_data):
 			return
 
-		file = frappe.new_doc("File", **file_data)
+		file = nts.new_doc("File", **file_data)
 		file.content = content
 		file.insert()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def bulk_retry(queues):
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 
 	if isinstance(queues, str):
 		queues = json.loads(queues)
@@ -434,18 +434,18 @@ def bulk_retry(queues):
 	if not queues:
 		return
 
-	frappe.msgprint(
+	nts.msgprint(
 		_("Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."),
 		_("Processing..."),
 	)
 
-	email_queue = frappe.qb.DocType("Email Queue")
-	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
-		email_queue.modified_by, frappe.session.user
+	email_queue = nts.qb.DocType("Email Queue")
+	nts.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
+		email_queue.modified_by, nts.session.user
 	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def send_now(name, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
@@ -453,21 +453,21 @@ def send_now(name, force_send: bool = False):
 		record.send(force_send=force_send)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def toggle_sending(enable):
-	frappe.only_for("System Manager")
-	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
+	nts.only_for("System Manager")
+	nts.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
-	frappe.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
+	nts.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
 
-	frappe.db.add_index("Email Queue", ["message_id(140)"])
+	nts.db.add_index("Email Queue", ["message_id(140)"])
 
 
 def get_email_retry_limit():
-	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
+	return cint(nts.db.get_system_setting("email_retry_limit")) or 3
 
 
 class QueueBuilder:
@@ -516,7 +516,7 @@ class QueueBuilder:
 		:param reference_doctype: Reference DocType of caller document.
 		:param reference_name: Reference name of caller document.
 		:param send_priority: Priority for Email Queue, default 1.
-		:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.queue.unsubscribe`.
+		:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/nts.email.queue.unsubscribe`.
 		:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
 		:param attachments: Attachments to be sent.
 		:param reply_to: Reply to be captured here (default inbox)
@@ -570,7 +570,7 @@ class QueueBuilder:
 
 	@property
 	def unsubscribe_method(self):
-		return self._unsubscribe_method or "/api/method/frappe.email.queue.unsubscribe"
+		return self._unsubscribe_method or "/api/method/nts.email.queue.unsubscribe"
 
 	def _get_emails_list(self, emails=None):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
@@ -655,7 +655,7 @@ class QueueBuilder:
 
 		if len(all_ids) > 0:
 			unsubscribed = (
-				frappe.qb.from_(EmailUnsubscribe)
+				nts.qb.from_(EmailUnsubscribe)
 				.select(EmailUnsubscribe.email)
 				.where(
 					EmailUnsubscribe.email.isin(all_ids)
@@ -692,7 +692,7 @@ class QueueBuilder:
 					attachments.append(att)
 				elif att.get("print_format_attachment") == 1:
 					if not att.get("lang", None):
-						att["lang"] = frappe.local.lang
+						att["lang"] = nts.local.lang
 					att["print_letterhead"] = self.print_letterhead
 					attachments.append(att)
 		return attachments
@@ -748,15 +748,15 @@ class QueueBuilder:
 			if send_now and len(final_recipients) >= 1000:
 				# force queueing if there are too many recipients to avoid timeouts
 				send_now = False
-			for recipients in frappe.utils.create_batch(final_recipients, 1000):
-				frappe.enqueue(
+			for recipients in nts.utils.create_batch(final_recipients, 1000):
+				nts.enqueue(
 					self.send_emails,
 					queue_data=queue_data,
 					final_recipients=recipients,
-					job_name=frappe.utils.get_job_name(
+					job_name=nts.utils.get_job_name(
 						"send_bulk_emails_for", self.reference_doctype, self.reference_name
 					),
-					now=frappe.flags.in_test or send_now,
+					now=nts.flags.in_test or send_now,
 					queue="long",
 				)
 
@@ -783,9 +783,9 @@ class QueueBuilder:
 		mail = self.prepare_email_content()
 		try:
 			mail_to_string = cstr(mail.as_string())
-		except frappe.InvalidEmailAddressError:
+		except nts.InvalidEmailAddressError:
 			# bad Email Address - don't add to queue
-			frappe.log_error(
+			nts.log_error(
 				title="Invalid email address",
 				message="Invalid email address Sender: {}, Recipients: {}, \nTraceback: {} ".format(
 					self.sender, ", ".join(self.final_recipients()), traceback.format_exc()

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import contextlib
@@ -14,7 +14,7 @@ import click
 import git
 import requests
 
-import frappe
+import nts
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -25,16 +25,16 @@ def make_boilerplate(dest, app_name, no_git=False):
 		return
 
 	# app_name should be in snake_case
-	app_name = frappe.scrub(app_name)
+	app_name = nts.scrub(app_name)
 	hooks = _get_user_inputs(app_name)
 	_create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
 def _get_user_inputs(app_name):
 	"""Prompt user for various inputs related to new app and return config."""
-	app_name = frappe.scrub(app_name)
+	app_name = nts.scrub(app_name)
 
-	hooks = frappe._dict()
+	hooks = nts._dict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
 
@@ -124,27 +124,27 @@ def get_license_text(license_name: str) -> str:
 	return license_name
 
 
-def copy_from_frappe(rel_path: str, new_app_path: str):
-	"""Copy files from frappe app to new app."""
-	src = Path(frappe.get_app_path("frappe", "..")) / rel_path
+def copy_from_nts(rel_path: str, new_app_path: str):
+	"""Copy files from nts app to new app."""
+	src = Path(nts.get_app_path("nts", "..")) / rel_path
 	target = Path(new_app_path) / rel_path
 	Path(target).write_text(Path(src).read_text())
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
-	frappe.create_folder(
-		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
+	nts.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, nts.scrub(hooks.app_title)),
 		with_init=True,
 	)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
-	frappe.create_folder(
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
+	nts.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "pages"), with_init=True
 	)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "includes"))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "includes"))
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
+	nts.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
 
 	# add .gitkeep file so that public folder is committed to git
 	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
@@ -152,20 +152,20 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		f.write("")
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
-		f.write(frappe.as_unicode(init_template))
+		f.write(nts.as_unicode(init_template))
 
 	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
-		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
+		f.write(nts.as_unicode(pyproject_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, ".pre-commit-config.yaml"), "w") as f:
-		f.write(frappe.as_unicode(precommit_template.format(**hooks)))
+		f.write(nts.as_unicode(precommit_template.format(**hooks)))
 
 	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode(license_body))
+		f.write(nts.as_unicode(license_body))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(frappe.as_unicode(hooks.app_title))
+		f.write(nts.as_unicode(hooks.app_title))
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
@@ -173,15 +173,15 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
-		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
+		f.write(nts.as_unicode(hooks_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"), "w") as f:
-		f.write(frappe.as_unicode(patches_template.format(**hooks)))
+		f.write(nts.as_unicode(patches_template.format(**hooks)))
 
 	app_directory = os.path.join(dest, hooks.app_name)
 
-	copy_from_frappe(".editorconfig", app_directory)
-	copy_from_frappe(".eslintrc", app_directory)
+	copy_from_nts(".editorconfig", app_directory)
+	copy_from_nts(".eslintrc", app_directory)
 
 	if hooks.create_github_workflow:
 		_create_github_workflow_files(dest, hooks)
@@ -190,11 +190,11 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		hooks.readme_ci_section = ""
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write(frappe.as_unicode(readme_template.format(**hooks)))
+		f.write(nts.as_unicode(readme_template.format(**hooks)))
 
 	if not no_git:
 		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
+			f.write(nts.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
 		# initialize git repository
 		app_repo = git.Repo.init(app_directory, initial_branch="develop")
@@ -219,7 +219,7 @@ def _create_github_workflow_files(dest, hooks):
 
 PATCH_TEMPLATE = textwrap.dedent(
 	'''
-	import frappe
+	import nts
 
 	def execute():
 		"""{docstring}"""
@@ -232,7 +232,7 @@ PATCH_TEMPLATE = textwrap.dedent(
 
 class PatchCreator:
 	def __init__(self):
-		self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
+		self.all_apps = nts.get_all_apps(sites_path=".", with_internal_apps=False)
 
 		self.app = None
 		self.app_dir = None
@@ -248,7 +248,7 @@ class PatchCreator:
 
 	def _ask_app_name(self):
 		self.app = click.prompt("Select app for new patch", type=click.Choice(self.all_apps))
-		self.app_dir = pathlib.Path(frappe.get_app_path(self.app))
+		self.app_dir = pathlib.Path(nts.get_app_path(self.app))
 
 	def _ask_doctype_name(self):
 		def _doctype_name(filename):
@@ -269,7 +269,7 @@ class PatchCreator:
 
 	def _ask_patch_meta_info(self):
 		self.docstring = click.prompt("Describe what this patch does", type=str)
-		default_filename = frappe.scrub(self.docstring) + ".py"
+		default_filename = nts.scrub(self.docstring) + ".py"
 
 		def _valid_filename(name):
 			if not name:
@@ -337,7 +337,7 @@ requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    # "frappe~=15.0.0" # Installed and managed by bench.
+    # "nts~=15.0.0" # Installed and managed by bench.
 ]
 
 [build-system]
@@ -377,7 +377,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
 ]
-typing-modules = ["frappe.types.DF"]
+typing-modules = ["nts.types.DF"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -496,7 +496,7 @@ app_license = "{app_license}"
 
 # Desk Notifications
 # ------------------
-# See frappe.core.notifications.get_notification_config
+# See nts.core.notifications.get_notification_config
 
 # notification_config = "{app_name}.notifications.get_notification_config"
 
@@ -505,11 +505,11 @@ app_license = "{app_license}"
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {{
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+# 	"Event": "nts.desk.doctype.event.event.get_permission_query_conditions",
 # }}
 #
 # has_permission = {{
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
+# 	"Event": "nts.desk.doctype.event.event.has_permission",
 # }}
 
 # DocType Class
@@ -562,12 +562,12 @@ app_license = "{app_license}"
 # ------------------------------
 #
 # override_whitelisted_methods = {{
-# 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
+# 	"nts.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
-# along with any modifications made in other Frappe apps
+# along with any modifications made in other nts apps
 # override_doctype_dashboards = {{
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
@@ -722,13 +722,13 @@ jobs:
 
       - name: Setup
         run: |
-          pip install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
+          pip install nts-bench
+          bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/nts-bench
           mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
           mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
       - name: Install
-        working-directory: /home/runner/frappe-bench
+        working-directory: /home/runner/nts-bench
         run: |
           bench get-app {app_name} $GITHUB_WORKSPACE
           bench setup requirements --dev
@@ -739,7 +739,7 @@ jobs:
           CI: 'Yes'
 
       - name: Run Tests
-        working-directory: /home/runner/frappe-bench
+        working-directory: /home/runner/nts-bench
         run: |
           bench --site test_site set-config allow_tests true
           bench --site test_site run-tests --app {app_name}
@@ -749,7 +749,7 @@ jobs:
 
 patches_template = """[pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
-# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+# Read docs to understand patches: https://ntsframework.com/docs/v14/user/en/database-migrations
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated"""
@@ -842,7 +842,7 @@ concurrency:
 
 jobs:
   linter:
-    name: 'Frappe Linter'
+    name: 'nts Linter'
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -855,12 +855,12 @@ jobs:
       - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
-        run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
+        run: git clone --depth 1 https://github.com/nts/semgrep-rules.git nts-semgrep-rules
 
       - name: Run Semgrep rules
         run: |
           pip install semgrep
-          semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+          semgrep ci --config ./nts-semgrep-rules/rules --config r/python.lang.correctness
 
   deps-vulnerable-check:
     name: 'Vulnerable Dependency Check'
@@ -895,7 +895,7 @@ readme_template = """### {app_title}
 
 ### Installation
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+You can install this app using the [bench](https://github.com/nts/bench) CLI:
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
@@ -930,6 +930,6 @@ readme_ci_section = """
 This app can use GitHub Actions for CI. The following workflows are configured:
 
 - CI: Installs this app and runs unit tests on every push to `develop` branch.
-- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
+- Linters: Runs [nts Semgrep Rules](https://github.com/nts/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
 
 """

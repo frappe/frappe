@@ -1,6 +1,6 @@
 // bind events
 
-frappe.ui.form.on("ToDo", {
+nts.ui.form.on("ToDo", {
 	onload: function (frm) {
 		frm.set_query("reference_type", function (txt) {
 			return {
@@ -13,7 +13,7 @@ frappe.ui.form.on("ToDo", {
 	refresh: function (frm) {
 		if (frm.doc.reference_type && frm.doc.reference_name) {
 			frm.add_custom_button(__(frm.doc.reference_name), function () {
-				frappe.set_route("Form", frm.doc.reference_type, frm.doc.reference_name);
+				nts.set_route("Form", frm.doc.reference_type, frm.doc.reference_name);
 			});
 		}
 
@@ -25,7 +25,7 @@ frappe.ui.form.on("ToDo", {
 						frm.set_value("status", "Closed");
 						frm.save(null, function () {
 							// back to list
-							frappe.set_route("List", "ToDo");
+							nts.set_route("List", "ToDo");
 						});
 					},
 					"fa fa-check",
@@ -45,7 +45,7 @@ frappe.ui.form.on("ToDo", {
 			frm.add_custom_button(
 				__("New"),
 				function () {
-					frappe.new_doc("ToDo");
+					nts.new_doc("ToDo");
 				},
 				null,
 				"btn-default"

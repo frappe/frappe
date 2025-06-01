@@ -1,11 +1,11 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class SessionDefaultSettings(Document):
@@ -15,38 +15,38 @@ class SessionDefaultSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.session_default.session_default import SessionDefault
-		from frappe.types import DF
+		from nts.core.doctype.session_default.session_default import SessionDefault
+		from nts.types import DF
 
 		session_defaults: DF.Table[SessionDefault]
 	# end: auto-generated types
 	pass
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_session_default_values():
-	settings = frappe.get_single("Session Default Settings")
+	settings = nts.get_single("Session Default Settings")
 	fields = []
 	for default_values in settings.session_defaults:
-		reference_doctype = frappe.scrub(default_values.ref_doctype)
+		reference_doctype = nts.scrub(default_values.ref_doctype)
 		fields.append(
 			{
 				"fieldname": reference_doctype,
 				"fieldtype": "Link",
 				"options": default_values.ref_doctype,
 				"label": _("Default {0}").format(_(default_values.ref_doctype)),
-				"default": frappe.defaults.get_user_default(reference_doctype),
+				"default": nts.defaults.get_user_default(reference_doctype),
 			}
 		)
 	return json.dumps(fields)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def set_session_default_values(default_values):
-	default_values = frappe.parse_json(default_values)
+	default_values = nts.parse_json(default_values)
 	for entry in default_values:
 		try:
-			frappe.defaults.set_user_default(entry, default_values.get(entry))
+			nts.defaults.set_user_default(entry, default_values.get(entry))
 		except Exception:
 			return
 	return "success"
@@ -54,6 +54,6 @@ def set_session_default_values(default_values):
 
 # called on hook 'on_logout' to clear defaults for the session
 def clear_session_defaults():
-	settings = frappe.get_single("Session Default Settings").session_defaults
+	settings = nts.get_single("Session Default Settings").session_defaults
 	for entry in settings:
-		frappe.defaults.clear_user_default(frappe.scrub(entry.ref_doctype))
+		nts.defaults.clear_user_default(nts.scrub(entry.ref_doctype))

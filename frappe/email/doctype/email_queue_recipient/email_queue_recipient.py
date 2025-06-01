@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class EmailQueueRecipient(Document):
@@ -12,7 +12,7 @@ class EmailQueueRecipient(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		error: DF.Code | None
 		parent: DF.Data
@@ -30,11 +30,11 @@ class EmailQueueRecipient(Document):
 		return self.status == "Sent"
 
 	def update_db(self, commit=False, **kwargs):
-		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
+		nts.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 
 
 def on_doctype_update():
 	"""Index required for log clearing, modified is not indexed on child table by default"""
-	frappe.db.add_index("Email Queue Recipient", ["modified"])
+	nts.db.add_index("Email Queue Recipient", ["modified"])

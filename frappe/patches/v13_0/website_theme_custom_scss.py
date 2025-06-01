@@ -1,13 +1,13 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("website", "doctype", "website_theme_ignore_app")
-	frappe.reload_doc("website", "doctype", "color")
-	frappe.reload_doc("website", "doctype", "website_theme", force=True)
+	nts.reload_doc("website", "doctype", "website_theme_ignore_app")
+	nts.reload_doc("website", "doctype", "color")
+	nts.reload_doc("website", "doctype", "website_theme", force=True)
 
-	for theme in frappe.get_all("Website Theme"):
-		doc = frappe.get_doc("Website Theme", theme.name)
+	for theme in nts.get_all("Website Theme"):
+		doc = nts.get_doc("Website Theme", theme.name)
 		setup_color_record(doc)
 		if not doc.get("custom_scss") and doc.theme_scss:
 			# move old theme to new theme
@@ -26,10 +26,10 @@ def setup_color_record(doc):
 
 	for color_field in color_fields:
 		color_code = doc.get(color_field)
-		if not color_code or frappe.db.exists("Color", color_code):
+		if not color_code or nts.db.exists("Color", color_code):
 			continue
 
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Color",
 				"__newname": color_code,

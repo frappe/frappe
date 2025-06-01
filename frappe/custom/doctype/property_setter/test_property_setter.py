@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Property Setter')
+# test_records = nts.get_test_records('Property Setter')
 
 
-class TestPropertySetter(FrappeTestCase):
+class TestPropertySetter(ntsTestCase):
 	pass

@@ -2,7 +2,7 @@
 
 {%- block value -%}
 <div class="value">
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
+	{{ nts.utils.md_to_html(doc.get(df.fieldname)) }}
 </div>
 {%- endblock -%}
 

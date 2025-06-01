@@ -1,14 +1,14 @@
-# Copyright (c) 2023, Frappe Technologies and Contributors
+# Copyright (c) 2023, nts Technologies and Contributors
 # See license.txt
 
-import frappe
-from frappe.automation.doctype.reminder.reminder import create_new_reminder, send_reminders
-from frappe.desk.doctype.notification_log.notification_log import get_notification_logs
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_to_date, now_datetime
+import nts
+from nts.automation.doctype.reminder.reminder import create_new_reminder, send_reminders
+from nts.desk.doctype.notification_log.notification_log import get_notification_logs
+from nts.tests.utils import ntsTestCase
+from nts.utils import add_to_date, now_datetime
 
 
-class TestReminder(FrappeTestCase):
+class TestReminder(ntsTestCase):
 	def test_reminder(self):
 		description = "TEST_REMINDER"
 

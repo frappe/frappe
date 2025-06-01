@@ -1,5 +1,5 @@
-frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
-	frappe.ui.form.ControlLink
+nts.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
+	nts.ui.form.ControlLink
 ) {
 	make_input() {
 		super.make_input();
@@ -38,11 +38,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			frappe.set_route("Form", link_field.options, value);
+			nts.set_route("Form", link_field.options, value);
 		});
 		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
-			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
+			if (e.keyCode == nts.ui.keyCode.BACKSPACE && e.target.value === "") {
 				this.rows = this.rows.slice(0, this.rows.length - 1);
 				this.parse_validate_and_set_in_model("");
 			}
@@ -60,7 +60,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 		if (value) {
 			if (this.frm) {
-				const new_row = frappe.model.add_child(
+				const new_row = nts.model.add_child(
 					this.frm.doc,
 					this.df.options,
 					this.df.fieldname
@@ -72,7 +72,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 					[link_field.fieldname]: value,
 				});
 			}
-			frappe.utils.add_link_title(link_field.options, value, label);
+			nts.utils.add_link_title(link_field.options, value, label);
 		}
 		this._rows_list = this.rows.map((row) => row[link_field.fieldname]);
 		return this.rows;
@@ -134,11 +134,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	get_pill_html(value) {
 		const link_field = this.get_link_field();
 		const encoded_value = encodeURIComponent(value);
-		const pill_name = frappe.utils.get_link_title(link_field.options, value) || value;
+		const pill_name = nts.utils.get_link_title(link_field.options, value) || value;
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(pill_name)}</span>
-				<span class="btn-remove">${frappe.utils.icon("close")}</span>
+				<span class="btn-remove">${nts.utils.icon("close")}</span>
 			</button>
 		`;
 	}
@@ -147,7 +147,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	}
 	get_link_field() {
 		if (!this._link_field) {
-			const meta = frappe.get_meta(this.df.options);
+			const meta = nts.get_meta(this.df.options);
 			this._link_field = meta?.fields?.find((df) => df.fieldtype === "Link");
 			if (!this._link_field) {
 				throw new Error("Table MultiSelect requires a Table with atleast one Link field");

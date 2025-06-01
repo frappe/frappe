@@ -1,4 +1,4 @@
-frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.ControlData {
+nts.ui.form.ControlSignature = class ControlSignature extends nts.ui.form.ControlData {
 	make() {
 		var me = this;
 		this.saving = false;
@@ -10,7 +10,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		}
 		this.set_doc_url();
 
-		frappe.require("/assets/frappe/js/lib/jSignature.min.js").then(() => {
+		nts.require("/assets/nts/js/lib/jSignature.min.js").then(() => {
 			// make jSignature field
 			me.body = $('<div class="signature-field"></div>').prependTo(me.$input_wrapper);
 
@@ -19,7 +19,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">
-				${frappe.utils.icon("restriction", "md")}</i>
+				${nts.utils.icon("restriction", "md")}</i>
 			</div></div>`).prependTo(this.$input_wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper)
@@ -43,7 +43,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 			this.$reset_button_wrapper = $(`
 					<div class="signature-btn-row">
 						<a href="#" type="button" class="signature-reset btn icon-btn">
-							${frappe.utils.icon("es-line-reload", "sm")}
+							${nts.utils.icon("es-line-reload", "sm")}
 						</a>
 					</div>
 				`)

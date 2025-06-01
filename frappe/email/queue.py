@@ -1,11 +1,11 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _, msgprint
-from frappe.utils import cint, cstr, get_url, now_datetime
-from frappe.utils.data import getdate
-from frappe.utils.verified_command import get_signed_params, verify_request
+import nts
+from nts import _, msgprint
+from nts.utils import cint, cstr, get_url, now_datetime
+from nts.utils.data import getdate
+from nts.utils.verified_command import get_signed_params, verify_request
 
 # After this percent of failures in every batch, entire batch is aborted.
 # This usually indicates a systemic failure so we shouldn't keep trying to send emails.
@@ -30,7 +30,7 @@ def get_emails_sent_this_month(email_account=None):
 	if email_account:
 		filters["email_account"] = email_account
 
-	return frappe.db.count("Email Queue", filters=filters)
+	return nts.db.count("Email Queue", filters=filters)
 
 
 def get_emails_sent_today(email_account=None):
@@ -59,10 +59,10 @@ def get_emails_sent_today(email_account=None):
 		else:
 			q += " AND (email_account is null OR email_account='')"
 
-	return frappe.db.sql(q, q_args)[0][0]
+	return nts.db.sql(q, q_args)[0][0]
 
 
-def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str) -> "frappe._dict[str, str]":
+def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str) -> "nts._dict[str, str]":
 	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
 	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
 	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
@@ -77,7 +77,7 @@ def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str) ->
 	if expose_recipients == "footer":
 		text = f"\n<!--cc_message-->{text}"
 
-	return frappe._dict(html=html, text=text)
+	return nts._dict(html=html, text=text)
 
 
 def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_method, unsubscribe_params):
@@ -92,14 +92,14 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def unsubscribe(doctype, name, email):
 	# unsubsribe from comments and communications
-	if not frappe.flags.in_test and not verify_request():
+	if not nts.flags.in_test and not verify_request():
 		return
 
 	try:
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Email Unsubscribe",
 				"email": email,
@@ -108,17 +108,17 @@ def unsubscribe(doctype, name, email):
 			}
 		).insert(ignore_permissions=True)
 
-	except frappe.DuplicateEntryError:
-		frappe.db.rollback()
+	except nts.DuplicateEntryError:
+		nts.db.rollback()
 
 	else:
-		frappe.db.commit()
+		nts.db.commit()
 
 	return_unsubscribed_page(email, doctype, name)
 
 
 def return_unsubscribed_page(email, doctype, name):
-	frappe.respond_as_web_page(
+	nts.respond_as_web_page(
 		_("Unsubscribed"),
 		_("{0} has left the conversation in {1} {2}").format(email, _(doctype), name),
 		indicator_color="green",
@@ -130,13 +130,13 @@ def flush():
 
 	This should not be called outside of background jobs.
 	"""
-	from frappe.email.doctype.email_queue.email_queue import EmailQueue
+	from nts.email.doctype.email_queue.email_queue import EmailQueue
 
 	# To avoid running jobs inside unit tests
-	if frappe.are_emails_muted():
+	if nts.are_emails_muted():
 		msgprint(_("Emails are muted"))
 
-	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
+	if cint(nts.db.get_default("suspend_email_queue")) == 1:
 		return
 
 	email_queue_batch = get_queue()
@@ -146,10 +146,10 @@ def flush():
 	failed_email_queues = []
 	for row in email_queue_batch:
 		try:
-			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name)
+			email_queue: EmailQueue = nts.get_doc("Email Queue", row.name)
 			email_queue.send()
 		except Exception:
-			frappe.get_doc("Email Queue", row.name).log_error()
+			nts.get_doc("Email Queue", row.name).log_error()
 			failed_email_queues.append(row.name)
 
 			if (
@@ -157,13 +157,13 @@ def flush():
 				> EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT
 				and len(failed_email_queues) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT
 			):
-				frappe.throw(_("Email Queue flushing aborted due to too many failures."))
+				nts.throw(_("Email Queue flushing aborted due to too many failures."))
 
 
 def get_queue():
-	batch_size = cint(frappe.conf.email_queue_batch_size) or 500
+	batch_size = cint(nts.conf.email_queue_batch_size) or 500
 
-	return frappe.db.sql(
+	return nts.db.sql(
 		f"""select
 			name, sender
 		from

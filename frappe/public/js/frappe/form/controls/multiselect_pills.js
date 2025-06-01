@@ -1,7 +1,7 @@
 import Awesomplete from "awesomplete";
 
-frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
-	frappe.ui.form.ControlAutocomplete
+nts.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
+	nts.ui.form.ControlAutocomplete
 ) {
 	make_input() {
 		super.make_input();
@@ -32,7 +32,7 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
 
 		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
-			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
+			if (e.keyCode == nts.ui.keyCode.BACKSPACE && e.target.value === "") {
 				this.rows = this.rows.slice(0, this.rows.length - 1);
 				this.parse_validate_and_set_in_model("");
 			}
@@ -91,8 +91,8 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
 		const encoded_value = encodeURIComponent(value);
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
-				<span class="btn-link-to-form">${__(label || frappe.utils.escape_html(value))}</span>
-				<span class="btn-remove">${frappe.utils.icon("close")}</span>
+				<span class="btn-link-to-form">${__(label || nts.utils.escape_html(value))}</span>
+				<span class="btn-remove">${nts.utils.icon("close")}</span>
 			</button>
 		`;
 	}

@@ -1,20 +1,20 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import datetime
 import json
 
-import frappe
-from frappe import _
-from frappe.boot import get_allowed_report_names
-from frappe.config import get_modules_from_all_apps_for_user
-from frappe.model.document import Document
-from frappe.model.naming import append_number_if_name_exists
-from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, get_datetime, getdate, has_common, now_datetime, nowdate
-from frappe.utils.dashboard import cache_source
-from frappe.utils.data import format_date
-from frappe.utils.dateutils import (
+import nts
+from nts import _
+from nts.boot import get_allowed_report_names
+from nts.config import get_modules_from_all_apps_for_user
+from nts.model.document import Document
+from nts.model.naming import append_number_if_name_exists
+from nts.modules.export_file import export_to_files
+from nts.utils import cint, get_datetime, getdate, has_common, now_datetime, nowdate
+from nts.utils.dashboard import cache_source
+from nts.utils.data import format_date
+from nts.utils.dateutils import (
 	get_dates_from_timegrain,
 	get_from_date_from_timespan,
 	get_period,
@@ -24,12 +24,12 @@ from frappe.utils.dateutils import (
 
 def get_permission_query_conditions(user):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if user == "Administrator":
 		return
 
-	roles = frappe.get_roles(user)
+	roles = nts.get_roles(user)
 	if "System Manager" in roles:
 		return None
 
@@ -37,10 +37,10 @@ def get_permission_query_conditions(user):
 	report_condition = False
 	module_condition = False
 
-	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
+	allowed_doctypes = [nts.db.escape(doctype) for doctype in nts.permissions.get_doctypes_with_read()]
+	allowed_reports = [nts.db.escape(report) for report in get_allowed_report_names()]
 	allowed_modules = [
-		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
+		nts.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
 
 	if allowed_doctypes:
@@ -67,7 +67,7 @@ def get_permission_query_conditions(user):
 
 
 def has_permission(doc, ptype, user):
-	roles = frappe.get_roles(user)
+	roles = nts.get_roles(user)
 	if "System Manager" in roles:
 		return True
 
@@ -79,14 +79,14 @@ def has_permission(doc, ptype, user):
 		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
-		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
+		allowed_doctypes = nts.permissions.get_doctypes_with_read()
 		if doc.document_type in allowed_doctypes:
 			return True
 
 	return False
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @cache_source
 def get(
 	chart_name=None,
@@ -101,9 +101,9 @@ def get(
 	refresh=None,
 ):
 	if chart_name:
-		chart: DashboardChart = frappe.get_doc("Dashboard Chart", chart_name)
+		chart: DashboardChart = nts.get_doc("Dashboard Chart", chart_name)
 	else:
-		chart = frappe._dict(frappe.parse_json(chart))
+		chart = nts._dict(nts.parse_json(chart))
 
 	heatmap_year = heatmap_year or chart.heatmap_year
 	timespan = timespan or chart.timespan
@@ -120,7 +120,7 @@ def get(
 			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
-	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
+	filters = nts.parse_json(filters) or nts.parse_json(chart.filters_json)
 	if not filters:
 		filters = []
 
@@ -138,49 +138,49 @@ def get(
 	return chart_config
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def create_dashboard_chart(args):
-	args = frappe.parse_json(args)
-	doc = frappe.new_doc("Dashboard Chart")
+	args = nts.parse_json(args)
+	doc = nts.new_doc("Dashboard Chart")
 
 	doc.update(args)
 
 	if args.get("custom_options"):
 		doc.custom_options = json.dumps(args.get("custom_options"))
 
-	if frappe.db.exists("Dashboard Chart", args.chart_name):
+	if nts.db.exists("Dashboard Chart", args.chart_name):
 		args.chart_name = append_number_if_name_exists("Dashboard Chart", args.chart_name)
 		doc.chart_name = args.chart_name
 	doc.insert(ignore_permissions=True)
 	return doc
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def create_report_chart(args):
 	doc = create_dashboard_chart(args)
-	args = frappe.parse_json(args)
+	args = nts.parse_json(args)
 	args.chart_name = doc.chart_name
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add_chart_to_dashboard(args):
-	args = frappe.parse_json(args)
+	args = nts.parse_json(args)
 
-	dashboard = frappe.get_doc("Dashboard", args.dashboard)
-	dashboard_link = frappe.new_doc("Dashboard Chart Link")
+	dashboard = nts.get_doc("Dashboard", args.dashboard)
+	dashboard_link = nts.new_doc("Dashboard Chart Link")
 	dashboard_link.chart = args.chart_name or args.name
 
 	if args.set_standard and dashboard.is_standard:
-		chart = frappe.get_doc("Dashboard Chart", dashboard_link.chart)
+		chart = nts.get_doc("Dashboard Chart", dashboard_link.chart)
 		chart.is_standard = 1
 		chart.module = dashboard.module
 		chart.save()
 
 	dashboard.append("charts", dashboard_link)
 	dashboard.save()
-	frappe.db.commit()
+	nts.db.commit()
 
 
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
@@ -199,7 +199,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	filters.append([doctype, datefield, ">=", from_date, False])
 	filters.append([doctype, datefield, "<=", to_date, False])
 
-	data = frappe.get_list(
+	data = nts.get_list(
 		doctype,
 		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
@@ -234,13 +234,13 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	filters.append([doctype, datefield, ">", f"{year_start_date}", False])
 	filters.append([doctype, datefield, "<", f"{next_year_start_date}", False])
 
-	if frappe.db.db_type == "mariadb":
+	if nts.db.db_type == "mariadb":
 		timestamp_field = f"unix_timestamp({datefield})"
 	else:
 		timestamp_field = f"extract(epoch from timestamp {datefield})"
 
 	data = dict(
-		frappe.get_all(
+		nts.get_all(
 			doctype,
 			fields=[
 				timestamp_field,
@@ -266,7 +266,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 	group_by_field = chart.group_by_based_on
 	doctype = chart.document_type
 
-	data = frappe.get_list(
+	data = nts.get_list(
 		doctype,
 		fields=[
 			f"{group_by_field} as name",
@@ -314,11 +314,11 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 	return result
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
-	or_filters = {"owner": frappe.session.user, "is_public": 1}
-	return frappe.db.get_list(
+	or_filters = {"owner": nts.session.user, "is_public": 1}
+	return nts.db.get_list(
 		"Dashboard Chart", fields=["name"], filters=filters, or_filters=or_filters, as_list=1
 	)
 
@@ -330,9 +330,9 @@ class DashboardChart(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.desk.doctype.dashboard_chart_field.dashboard_chart_field import DashboardChartField
-		from frappe.types import DF
+		from nts.core.doctype.has_role.has_role import HasRole
+		from nts.desk.doctype.dashboard_chart_field.dashboard_chart_field import DashboardChartField
+		from nts.types import DF
 
 		aggregate_function_based_on: DF.Literal[None]
 		based_on: DF.Literal[None]
@@ -369,13 +369,13 @@ class DashboardChart(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		frappe.cache.delete_key(f"chart-data:{self.name}")
-		if frappe.conf.developer_mode and self.is_standard:
+		nts.cache.delete_key(f"chart-data:{self.name}")
+		if nts.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Dashboard Chart", self.name]], record_module=self.module)
 
 	def validate(self):
-		if not frappe.conf.developer_mode and self.is_standard:
-			frappe.throw(_("Cannot edit Standard charts"))
+		if not nts.conf.developer_mode and self.is_standard:
+			nts.throw(_("Cannot edit Standard charts"))
 		if self.chart_type != "Custom" and self.chart_type != "Report":
 			self.check_required_field()
 			self.check_document_type()
@@ -384,49 +384,49 @@ class DashboardChart(Document):
 
 	def check_required_field(self):
 		if not self.document_type:
-			frappe.throw(_("Document type is required to create a dashboard chart"))
+			nts.throw(_("Document type is required to create a dashboard chart"))
 
 		if (
 			self.document_type
-			and frappe.get_meta(self.document_type).istable
+			and nts.get_meta(self.document_type).istable
 			and not self.parent_document_type
 		):
-			frappe.throw(_("Parent document type is required to create a dashboard chart"))
+			nts.throw(_("Parent document type is required to create a dashboard chart"))
 
 		if self.chart_type == "Group By":
 			if not self.group_by_based_on:
-				frappe.throw(_("Group By field is required to create a dashboard chart"))
+				nts.throw(_("Group By field is required to create a dashboard chart"))
 			if self.group_by_type in ["Sum", "Average"] and not self.aggregate_function_based_on:
-				frappe.throw(_("Aggregate Function field is required to create a dashboard chart"))
+				nts.throw(_("Aggregate Function field is required to create a dashboard chart"))
 		else:
 			if not self.based_on:
-				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+				nts.throw(_("Time series based on is required to create a dashboard chart"))
 
 	def check_document_type(self):
-		if frappe.get_meta(self.document_type).issingle:
-			frappe.throw(_("You cannot create a dashboard chart from single DocTypes"))
+		if nts.get_meta(self.document_type).issingle:
+			nts.throw(_("You cannot create a dashboard chart from single DocTypes"))
 
 	def validate_custom_options(self):
 		if self.custom_options:
 			try:
 				json.loads(self.custom_options)
 			except ValueError as error:
-				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+				nts.throw(_("Invalid json added in the custom options: {0}").format(error))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_parent_doctypes(child_type: str) -> list[str]:
 	"""Get all parent doctypes that have the child doctype."""
 	assert isinstance(child_type, str)
 
-	standard = frappe.get_all(
+	standard = nts.get_all(
 		"DocField",
 		fields="parent",
 		filters={"fieldtype": "Table", "options": child_type},
 		pluck="parent",
 	)
 
-	custom = frappe.get_all(
+	custom = nts.get_all(
 		"Custom Field",
 		fields="dt",
 		filters={"fieldtype": "Table", "options": child_type},

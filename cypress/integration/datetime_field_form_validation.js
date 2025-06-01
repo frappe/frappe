@@ -9,8 +9,8 @@
 
 // 	it('datetime field form validation', () => {
 // 		// validating datetime field value when value is set from backend and get validated on form load.
-// 		cy.window().its('frappe').then(frappe => {
-// 			return frappe.xcall("frappe.tests.ui_test_helpers.create_communication_record");
+// 		cy.window().its('nts').then(nts => {
+// 			return nts.xcall("nts.tests.ui_test_helpers.create_communication_record");
 // 		}).then(doc => {
 // 			cy.visit(`/app/communication/${doc.name}`);
 // 			cy.get('.indicator-pill').should('contain', 'Open').should('have.class', 'red');

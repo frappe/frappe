@@ -1,4 +1,4 @@
-frappe.ui.form.on("Note", {
+nts.ui.form.on("Note", {
 	refresh: function (frm) {
 		if (!frm.is_new()) {
 			frm.is_note_editable = false;
@@ -39,7 +39,7 @@ frappe.ui.form.on("Note", {
 	},
 });
 
-frappe.tour["Note"] = [
+nts.tour["Note"] = [
 	{
 		fieldname: "title",
 		title: "Title of the Note",

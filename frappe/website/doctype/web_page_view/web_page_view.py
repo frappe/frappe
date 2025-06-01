@@ -1,11 +1,11 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from urllib.parse import urlparse
 
-import frappe
-import frappe.utils
-from frappe.model.document import Document
+import nts
+import nts.utils
+from nts.model.document import Document
 
 
 class WebPageView(Document):
@@ -15,7 +15,7 @@ class WebPageView(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		browser: DF.Data | None
 		browser_version: DF.Data | None
@@ -32,14 +32,14 @@ class WebPageView(Document):
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=180):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Web Page View")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Web Page View")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def make_view_log(
 	referrer=None,
 	browser=None,
@@ -54,14 +54,14 @@ def make_view_log(
 		return
 
 	# real path
-	path = frappe.request.headers.get("Referer")
+	path = nts.request.headers.get("Referer")
 
-	if not frappe.utils.is_site_link(path):
+	if not nts.utils.is_site_link(path):
 		return
 
 	path = urlparse(path).path
 
-	request_dict = frappe.request.__dict__
+	request_dict = nts.request.__dict__
 	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
 
 	if referrer:
@@ -73,9 +73,9 @@ def make_view_log(
 	if path.startswith(("api/", "app/", "assets/", "private/files/")):
 		return
 
-	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
+	is_unique = visitor_id and not bool(nts.db.exists("Web Page View", {"visitor_id": visitor_id}))
 
-	view = frappe.new_doc("Web Page View")
+	view = nts.new_doc("Web Page View")
 	view.path = path
 	view.referrer = referrer
 	view.browser = browser
@@ -89,18 +89,18 @@ def make_view_log(
 	view.visitor_id = visitor_id
 
 	try:
-		if frappe.flags.read_only:
+		if nts.flags.read_only:
 			view.deferred_insert()
 		else:
 			view.insert(ignore_permissions=True)
 	except Exception:
-		frappe.clear_last_message()
+		nts.clear_last_message()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_page_view_count(path):
-	return frappe.db.count("Web Page View", filters={"path": path})
+	return nts.db.count("Web Page View", filters={"path": path})
 
 
 def is_tracking_enabled():
-	return frappe.db.get_single_value("Website Settings", "enable_view_tracking")
+	return nts.db.get_single_value("Website Settings", "enable_view_tracking")

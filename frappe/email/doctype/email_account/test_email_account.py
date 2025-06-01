@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import email
@@ -7,34 +7,34 @@ import unittest
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import frappe
-from frappe.core.doctype.communication.email import make
-from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.email_account import notify_unreplied
-from frappe.email.email_body import get_message_id
-from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.communication.email import make
+from nts.desk.form.load import get_attachments
+from nts.email.doctype.email_account.email_account import notify_unreplied
+from nts.email.email_body import get_message_id
+from nts.email.receive import Email, InboundMail, SentEmailInInboxError
+from nts.tests.utils import ntsTestCase
 
 
-class TestEmailAccount(FrappeTestCase):
+class TestEmailAccount(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		email_account.db_set("enable_auto_reply", 1)
 		email_account.db_set("use_imap", 1)
 
 	@classmethod
 	def tearDownClass(cls):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 0)
 
 	def setUp(self):
-		frappe.flags.mute_emails = False
-		frappe.flags.sent_mail = None
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Unhandled Email")
+		nts.flags.mute_emails = False
+		nts.flags.sent_mail = None
+		nts.db.delete("Email Queue")
+		nts.db.delete("Unhandled Email")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname)) as f:
@@ -52,18 +52,18 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
 		# check if todo is created
-		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
+		self.assertTrue(nts.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
 
 	def test_unread_notification(self):
-		todo = frappe.get_last_doc("ToDo")
+		todo = nts.get_last_doc("ToDo")
 
-		comm = frappe.new_doc(
+		comm = nts.new_doc(
 			"Communication",
 			sender="test_sender@example.com",
 			subject="test unread reminder",
@@ -75,10 +75,10 @@ class TestEmailAccount(FrappeTestCase):
 		comm.insert()
 		comm.db_set("creation", datetime.now() - timedelta(seconds=30 * 60))
 
-		frappe.db.delete("Email Queue")
+		nts.db.delete("Email Queue")
 		notify_unreplied()
 		self.assertTrue(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Email Queue",
 				{
 					"reference_doctype": comm.reference_doctype,
@@ -90,8 +90,8 @@ class TestEmailAccount(FrappeTestCase):
 	def test_incoming_with_attach(self):
 		cleanup("test_sender@example.com")
 
-		existing_file = frappe.get_doc({"doctype": "File", "file_name": "erpnext-conf-14.png"})
-		frappe.delete_doc("File", existing_file.name)
+		existing_file = nts.get_doc({"doctype": "File", "file_name": "erpnext-conf-14.png"})
+		nts.delete_doc("File", existing_file.name)
 
 		messages = {
 			# append_to = ToDo
@@ -102,10 +102,10 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
 
 		# check attachment
@@ -113,8 +113,8 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertTrue("erpnext-conf-14.png" in [f.file_name for f in attachments])
 
 		# cleanup
-		existing_file = frappe.get_doc({"doctype": "File", "file_name": "erpnext-conf-14.png"})
-		frappe.delete_doc("File", existing_file.name)
+		existing_file = nts.get_doc({"doctype": "File", "file_name": "erpnext-conf-14.png"})
+		nts.delete_doc("File", existing_file.name)
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		cleanup("test_sender@example.com")
@@ -128,10 +128,10 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
@@ -149,10 +149,10 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
@@ -167,11 +167,11 @@ class TestEmailAccount(FrappeTestCase):
 			sender="test_sender@example.com",
 		)
 
-		mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
+		mail = email.message_from_string(nts.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
-		frappe.sendmail(
+		nts.sendmail(
 			sender="test_sender@example.com",
 			recipients="test_recipient@example.com",
 			content="test mail 001",
@@ -179,7 +179,7 @@ class TestEmailAccount(FrappeTestCase):
 			delayed=False,
 		)
 
-		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
+		sent_mail = email.message_from_string(nts.safe_decode(nts.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
@@ -194,7 +194,7 @@ class TestEmailAccount(FrappeTestCase):
 			send_email=True,
 		)
 
-		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
+		sent_mail = email.message_from_string(nts.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
@@ -207,11 +207,11 @@ class TestEmailAccount(FrappeTestCase):
 			recipients="test_receiver@example.com",
 			sender="test@example.com",
 			doctype="ToDo",
-			name=frappe.get_last_doc("ToDo").name,
+			name=nts.get_last_doc("ToDo").name,
 			send_email=True,
 		)["name"]
 
-		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
+		sent_mail = email.message_from_string(nts.get_last_doc("Email Queue").message)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw")) as f:
 			raw = f.read()
@@ -223,12 +223,12 @@ class TestEmailAccount(FrappeTestCase):
 			'"INBOX"': {"latest_messages": [raw], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		sent = frappe.get_doc("Communication", sent_name)
+		sent = nts.get_doc("Communication", sent_name)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertEqual(comm.reference_doctype, sent.reference_doctype)
 		self.assertEqual(comm.reference_name, sent.reference_name)
 
@@ -251,10 +251,10 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm_list = frappe.get_all(
+		comm_list = nts.get_all(
 			"Communication",
 			filters={"sender": "test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"],
@@ -265,13 +265,13 @@ class TestEmailAccount(FrappeTestCase):
 
 	def test_threading_by_message_id(self):
 		cleanup()
-		frappe.db.delete("Email Queue")
+		nts.db.delete("Email Queue")
 
 		# reference document for testing
-		event = frappe.get_doc(dict(doctype="Event", subject="test-message")).insert()
+		event = nts.get_doc(dict(doctype="Event", subject="test-message")).insert()
 
 		# send a mail against this
-		frappe.sendmail(
+		nts.sendmail(
 			recipients="test@example.com",
 			subject="test message for threading",
 			message="testing",
@@ -279,7 +279,7 @@ class TestEmailAccount(FrappeTestCase):
 			reference_name=event.name,
 		)
 
-		last_mail = frappe.get_doc("Email Queue", dict(reference_name=event.name))
+		last_mail = nts.get_doc("Email Queue", dict(reference_name=event.name))
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw")) as f:
@@ -295,10 +295,10 @@ class TestEmailAccount(FrappeTestCase):
 			}
 
 		# pull the mail
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm_list = frappe.get_all(
+		comm_list = nts.get_all(
 			"Communication",
 			filters={"sender": "test_sender@example.com"},
 			fields=["name", "reference_doctype", "reference_name"],
@@ -320,12 +320,12 @@ class TestEmailAccount(FrappeTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = nts.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Email Queue",
 				{"reference_doctype": comm.reference_doctype, "reference_name": comm.reference_name},
 			)
@@ -335,22 +335,22 @@ class TestEmailAccount(FrappeTestCase):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).mail.get("Message-ID")
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
-		self.assertTrue(frappe.db.get_value("Unhandled Email", {"message_id": message_id}))
+		self.assertTrue(nts.db.get_value("Unhandled Email", {"message_id": message_id}))
 
 	def test_handle_bad_encoding(self):
 		"""If the email has invalid encoding, it should still be saved as an Unhandled Email."""
 		uid = "test invalid encoding"
 		mail_content = b"\x80"  # invalid byte
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
-		self.assertTrue(frappe.db.get_value("Unhandled Email", {"uid": uid}))
+		self.assertTrue(nts.db.get_value("Unhandled Email", {"uid": uid}))
 
 	def test_imap_folder(self):
 		# assert tests if imap_folder >= 1 and imap is checked
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 
 		self.assertTrue(email_account.use_imap)
 		self.assertTrue(email_account.enable_incoming)
@@ -358,14 +358,14 @@ class TestEmailAccount(FrappeTestCase):
 
 	def test_imap_folder_missing(self):
 		# Test the Exception in validate() that verifies the imap_folder list
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.imap_folder = []
 
 		with self.assertRaises(Exception):
 			email_account.validate()
 
 	def test_append_to(self):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
 
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
@@ -373,7 +373,7 @@ class TestEmailAccount(FrappeTestCase):
 		# the append_to for the email is set to ToDO in "_Test Email Account 1"
 		self.assertEqual(communication.reference_doctype, "ToDo")
 		self.assertTrue(communication.reference_name)
-		self.assertTrue(frappe.db.exists(communication.reference_doctype, communication.reference_name))
+		self.assertTrue(nts.db.exists(communication.reference_doctype, communication.reference_name))
 
 	@unittest.skip("poorly written and flaky")
 	def test_append_to_with_imap_folders(self):
@@ -396,7 +396,7 @@ class TestEmailAccount(FrappeTestCase):
 			},
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		mails = TestEmailAccount.mocked_get_inbound_mails(email_account, messages)
 		self.assertEqual(len(mails), 3)
 
@@ -410,7 +410,7 @@ class TestEmailAccount(FrappeTestCase):
 				self.assertEqual(communication.reference_doctype, "ToDo")
 				self.assertTrue(communication.reference_name)
 				self.assertTrue(
-					frappe.db.exists(communication.reference_doctype, communication.reference_name)
+					nts.db.exists(communication.reference_doctype, communication.reference_name)
 				)
 			else:
 				test_folder_mails += 1
@@ -419,12 +419,12 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertEqual(inbox_mails, 2)
 		self.assertEqual(test_folder_mails, 1)
 
-	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
-	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	@patch("nts.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("nts.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
 		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
 	):
-		from frappe.email.receive import EmailServer
+		from nts.email.receive import EmailServer
 
 		if messages is None:
 			messages = {}
@@ -437,8 +437,8 @@ class TestEmailAccount(FrappeTestCase):
 
 		return mails
 
-	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
-	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
+	@patch("nts.email.receive.EmailServer.select_imap_folder", return_value=True)
+	@patch("nts.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(
 		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
 	):
@@ -448,35 +448,35 @@ class TestEmailAccount(FrappeTestCase):
 		def get_mocked_messages(**kwargs):
 			return messages.get(kwargs["folder"], {})
 
-		from frappe.email.receive import EmailServer
+		from nts.email.receive import EmailServer
 
 		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
 			email_account.receive()
 
 
-class TestInboundMail(FrappeTestCase):
+class TestInboundMail(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 
 	@classmethod
 	def tearDownClass(cls):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 0)
 
 	def setUp(self):
 		cleanup()
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("ToDo")
+		nts.db.delete("Email Queue")
+		nts.db.delete("ToDo")
 
 	def get_test_mail(self, fname):
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", fname)) as f:
 			return f.read()
 
 	def new_doc(self, doctype, **data):
-		doc = frappe.new_doc(doctype)
+		doc = nts.new_doc(doctype)
 		for field, value in data.items():
 			setattr(doc, field, value)
 		doc.insert()
@@ -500,7 +500,7 @@ class TestInboundMail(FrappeTestCase):
 	def test_self_sent_mail(self):
 		"""Check that we raise SentEmailInInboxError if the inbound mail is self sent mail."""
 		mail_content = self.get_test_mail(fname="incoming-self-sent.raw")
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 1, 1)
 		with self.assertRaises(SentEmailInInboxError):
 			inbound_mail.process()
@@ -512,7 +512,7 @@ class TestInboundMail(FrappeTestCase):
 		# Create new communication record in DB
 		communication = self.new_communication(message_id=message_id)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		new_communication = inbound_mail.process()
 
@@ -529,7 +529,7 @@ class TestInboundMail(FrappeTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_queue = inbound_mail.parent_email_queue()
 		self.assertEqual(queue_record.name, parent_queue.name)
@@ -549,7 +549,7 @@ class TestInboundMail(FrappeTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertEqual(parent_communication.name, communication.name)
@@ -562,7 +562,7 @@ class TestInboundMail(FrappeTestCase):
 		message_id = "new-message-id"
 		mail_content = self.get_test_mail(fname="reply-4.raw").replace("{{ message_id }}", message_id)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertFalse(parent_communication)
@@ -576,10 +576,10 @@ class TestInboundMail(FrappeTestCase):
 		"""Incase of header contains parent communication name"""
 		communication = self.new_communication()
 		mail_content = self.get_test_mail(fname="reply-4.raw").replace(
-			"{{ message_id }}", f"<{communication.name}@{frappe.local.site}>"
+			"{{ message_id }}", f"<{communication.name}@{nts.local.site}>"
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertEqual(parent_communication.name, communication.name)
@@ -593,7 +593,7 @@ class TestInboundMail(FrappeTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -606,7 +606,7 @@ class TestInboundMail(FrappeTestCase):
 			"{{ subject }}", f"RE: (#{todo.name})"
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -618,7 +618,7 @@ class TestInboundMail(FrappeTestCase):
 		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
 			"{{ subject }}", f"RE: {subject}"
 		)
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -632,7 +632,7 @@ class TestInboundMail(FrappeTestCase):
 			.replace("{{ subject }}", f"RE: {subject}")
 			.encode("utf-8")
 		)  # note: encode to bytes because that's what triggered the error
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -640,7 +640,7 @@ class TestInboundMail(FrappeTestCase):
 	def test_create_communication_from_mail(self):
 		# Create email queue record
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		communication = inbound_mail.process()
 		self.assertTrue(communication._attachments)
@@ -651,7 +651,7 @@ def cleanup(sender=None):
 	if sender:
 		filters.update({"sender": sender})
 
-	names = frappe.get_list("Communication", filters=filters, fields=["name"])
+	names = nts.get_list("Communication", filters=filters, fields=["name"])
 	for name in names:
-		frappe.delete_doc_if_exists("Communication", name.name)
-		frappe.delete_doc_if_exists("Communication Link", {"parent": name.name})
+		nts.delete_doc_if_exists("Communication", name.name)
+		nts.delete_doc_if_exists("Communication Link", {"parent": name.name})

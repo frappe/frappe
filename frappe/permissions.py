@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import copy
 import functools
 
-import frappe
-import frappe.share
-from frappe import _, msgprint
-from frappe.query_builder import DocType
-from frappe.utils import cint, cstr
+import nts
+import nts.share
+from nts import _, msgprint
+from nts.query_builder import DocType
+from nts.utils import cint, cstr
 
 rights = (
 	"select",
@@ -41,34 +41,34 @@ def print_has_permission_check_logs(func):
 	@functools.wraps(func)
 	def inner(*args, **kwargs):
 		raise_exception = kwargs.get("raise_exception", True)
-		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
+		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == nts.session.user
 
 		if raise_exception:
-			frappe.flags["has_permission_check_logs"] = []
+			nts.flags["has_permission_check_logs"] = []
 
 		result = func(*args, **kwargs)
 
 		# print only if access denied
 		# and if user is checking his own permission
 		if not result and self_perm_check and raise_exception:
-			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
+			msgprint(("<br>").join(nts.flags.get("has_permission_check_logs", [])))
 
 		if raise_exception:
-			frappe.flags.pop("has_permission_check_logs", None)
+			nts.flags.pop("has_permission_check_logs", None)
 		return result
 
 	return inner
 
 
 def _debug_log(log: str):
-	if not hasattr(frappe.local, "permission_debug_log"):
-		frappe.local.permission_debug_log = []
-	frappe.local.permission_debug_log.append(log)
+	if not hasattr(nts.local, "permission_debug_log"):
+		nts.local.permission_debug_log = []
+	nts.local.permission_debug_log.append(log)
 
 
 def _pop_debug_log() -> list[str]:
-	if log := getattr(frappe.local, "permission_debug_log", None):
-		del frappe.local.permission_debug_log
+	if log := getattr(nts.local, "permission_debug_log", None):
+		del nts.local.permission_debug_log
 		return log
 	return []
 
@@ -94,7 +94,7 @@ def has_permission(
 	:param user: User to check permission for. Defaults to current user.
 	:param raise_exception:
 	        DOES NOT raise an exception.
-	        If not False, will display a message using frappe.msgprint
+	        If not False, will display a message using nts.msgprint
 	                which explains why the permission check failed.
 
 	:param parent_doctype:
@@ -102,13 +102,13 @@ def has_permission(
 	"""
 
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if user == "Administrator":
 		debug and _debug_log("Allowed everything because user is Administrator")
 		return True
 
-	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+	if ptype == "share" and nts.get_system_settings("disable_document_sharing"):
 		debug and _debug_log("User can't share because sharing is disabled globally from system settings")
 		return False
 
@@ -117,21 +117,21 @@ def has_permission(
 		doc = doctype
 		doctype = doc.doctype
 
-	if frappe.is_table(doctype):
+	if nts.is_table(doctype):
 		return has_child_permission(doctype, ptype, doc, user, raise_exception, parent_doctype, debug=debug)
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	if doc:
 		if isinstance(doc, str | int):
-			doc = frappe.get_doc(meta.name, doc)
+			doc = nts.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype, debug=debug).get(ptype)
 		if not perm:
 			debug and _debug_log(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
-			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
-			if frappe.has_permission(doc.doctype):
+			msg = _("User {0} does not have access to this document").format(nts.bold(user))
+			if nts.has_permission(doc.doctype):
 				msg += f": {_(doc.doctype)} - {doc.name}"
 			push_perm_check_log(msg, debug=debug)
 	else:
@@ -146,7 +146,7 @@ def has_permission(
 		role_permissions = get_role_permissions(meta, user=user, debug=debug)
 		debug and _debug_log(
 			"User has following permissions using role permission system: "
-			+ frappe.as_json(role_permissions, indent=8)
+			+ nts.as_json(role_permissions, indent=8)
 		)
 
 		perm = role_permissions.get(ptype)
@@ -154,7 +154,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-					frappe.bold(user), frappe.bold(_(doctype))
+					nts.bold(user), nts.bold(_(doctype))
 				),
 				debug=debug,
 			)
@@ -168,7 +168,7 @@ def has_permission(
 
 		if doc:
 			doc_name = get_doc_name(doc)
-			shared = frappe.share.get_shared(
+			shared = nts.share.get_shared(
 				doctype,
 				user,
 				rights=rights,
@@ -178,7 +178,7 @@ def has_permission(
 			debug and _debug_log(f"Document is shared with user for {ptype}? {bool(shared)}")
 			return bool(shared)
 
-		elif frappe.share.get_shared(doctype, user, rights=rights, limit=1):
+		elif nts.share.get_shared(doctype, user, rights=rights, limit=1):
 			# if atleast one shared doc of that type, then return True
 			# this is used in db_query to check if permission on DocType
 			debug and _debug_log(f"At least one document is shared with user with perm: {rights}")
@@ -196,9 +196,9 @@ def has_permission(
 def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 	"""Return a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	meta = frappe.get_meta(doc.doctype)
+	meta = nts.get_meta(doc.doctype)
 
 	def is_user_owner():
 		return (doc.get("owner") or "").lower() == user.lower()
@@ -211,7 +211,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 
 	debug and _debug_log(
 		"User has following permissions using role permission system: "
-		+ frappe.as_json(permissions, indent=8)
+		+ nts.as_json(permissions, indent=8)
 	)
 
 	if not cint(meta.is_submittable):
@@ -227,7 +227,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 		# eg. everyone might have read access but only owner can delete
 		permissions.update(permissions.get("if_owner", {}))
 		debug and _debug_log(
-			"User is owner of document, so permissions are updated to: " + frappe.as_json(permissions)
+			"User is owner of document, so permissions are updated to: " + nts.as_json(permissions)
 		)
 
 	if not has_user_permission(doc, user, debug=debug):
@@ -243,7 +243,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 
 	debug and _debug_log(
 		"Final applicable permissions after evaluating user permissions: "
-		+ frappe.as_json(permissions, indent=8)
+		+ nts.as_json(permissions, indent=8)
 	)
 	return permissions
 
@@ -263,10 +263,10 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 	        }
 	"""
 	if isinstance(doctype_meta, str):
-		doctype_meta = frappe.get_meta(doctype_meta)  # assuming doctype name was passed
+		doctype_meta = nts.get_meta(doctype_meta)  # assuming doctype name was passed
 
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	cache_key = (doctype_meta.name, user, bool(is_owner))
 
@@ -274,10 +274,10 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 		debug and _debug_log("all permissions granted because user is Administrator")
 		return allow_everything()
 
-	if not frappe.local.role_permissions.get(cache_key) or debug:
-		perms = frappe._dict(if_owner={})
+	if not nts.local.role_permissions.get(cache_key) or debug:
+		perms = nts._dict(if_owner={})
 
-		roles = frappe.get_roles(user)
+		roles = nts.get_roles(user)
 		debug and _debug_log("User has following roles: " + str(roles))
 
 		def is_perm_applicable(perm):
@@ -306,20 +306,20 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 				# (and the documents will be filtered based on owner sin further checks)
 				perms[ptype] = 1 if ptype in ("select", "read") else 0
 
-		frappe.local.role_permissions[cache_key] = perms
+		nts.local.role_permissions[cache_key] = perms
 
-	return frappe.local.role_permissions[cache_key]
+	return nts.local.role_permissions[cache_key]
 
 
 def get_user_permissions(user):
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from nts.core.doctype.user_permission.user_permission import get_user_permissions
 
 	return get_user_permissions(user)
 
 
 def has_user_permission(doc, user=None, debug=False):
 	"""Return True if User is allowed to view considering User Permissions."""
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	from nts.core.doctype.user_permission.user_permission import get_user_permissions
 
 	user_permissions = get_user_permissions(user)
 
@@ -330,7 +330,7 @@ def has_user_permission(doc, user=None, debug=False):
 
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
 	apply_strict_user_permissions = (
-		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
+		False if doc.meta.issingle else nts.get_system_settings("apply_strict_user_permissions")
 	)
 	if apply_strict_user_permissions:
 		debug and _debug_log("Strict user permissions will be applied")
@@ -366,7 +366,7 @@ def has_user_permission(doc, user=None, debug=False):
 		#
 		# called for both parent and child records
 
-		meta = frappe.get_meta(d.get("doctype"))
+		meta = nts.get_meta(d.get("doctype"))
 
 		# check all link fields for user permissions
 		for field in meta.get_link_fields():
@@ -432,13 +432,13 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	Controllers can only deny permission, they can not explicitly grant any permission that wasn't
 	already present."""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	hooks = frappe.get_hooks("has_permission")
+	hooks = nts.get_hooks("has_permission")
 	methods = hooks.get(doc.doctype, []) + hooks.get("*", [])
 
 	for method in reversed(methods):
-		controller_permission = frappe.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
+		controller_permission = nts.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
 		debug and _debug_log(f"Controller permission check from {method}: {controller_permission}")
 		if controller_permission is not None:
 			return bool(controller_permission)
@@ -471,9 +471,9 @@ def get_valid_perms(doctype=None, user=None):
 
 def get_all_perms(role):
 	"""Returns valid permissions for a given role"""
-	perms = frappe.get_all("DocPerm", fields="*", filters=dict(role=role))
-	custom_perms = frappe.get_all("Custom DocPerm", fields="*", filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
+	perms = nts.get_all("DocPerm", fields="*", filters=dict(role=role))
+	custom_perms = nts.get_all("Custom DocPerm", fields="*", filters=dict(role=role))
+	doctypes_with_custom_perms = nts.get_all("Custom DocPerm", pluck="parent", distinct=True)
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
@@ -484,18 +484,18 @@ def get_all_perms(role):
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if user == "Guest" or not user:
 		return [GUEST_ROLE]
 
 	def get():
 		if user == "Administrator":
-			return frappe.get_all("Role", pluck="name")  # return all available roles
+			return nts.get_all("Role", pluck="name")  # return all available roles
 		else:
 			table = DocType("Has Role")
 			roles = (
-				frappe.qb.from_(table)
+				nts.qb.from_(table)
 				.where(
 					(table.parenttype == "User")
 					& (table.parent == user)
@@ -509,7 +509,7 @@ def get_roles(user=None, with_standard=True):
 				roles.append(SYSTEM_USER_ROLE)
 			return roles
 
-	roles = frappe.cache.hget("roles", user, get)
+	roles = nts.cache.hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:
@@ -520,20 +520,20 @@ def get_roles(user=None, with_standard=True):
 
 def get_doctype_roles(doctype, access_type="read"):
 	"""Returns a list of roles that are allowed to access passed doctype."""
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	return [d.role for d in meta.get("permissions") if d.get(access_type)]
 
 
 def get_perms_for(roles, perm_doctype="DocPerm"):
 	"""Get perms for given roles"""
 	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
-	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
+	return nts.get_all(perm_doctype, fields=["*"], filters=filters)
 
 
 def get_doctypes_with_custom_docperms():
 	"""Returns all the doctypes with Custom Docperms"""
 
-	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
+	doctypes = nts.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
 
 
@@ -547,13 +547,13 @@ def add_user_permission(
 	hide_descendants=0,
 ):
 	"""Add user permission"""
-	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
+	from nts.core.doctype.user_permission.user_permission import user_permission_exists
 
 	if not user_permission_exists(user, doctype, name, applicable_for):
-		if not frappe.db.exists(doctype, name):
-			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
+		if not nts.db.exists(doctype, name):
+			nts.throw(_("{0} {1} not found").format(_(doctype), name), nts.DoesNotExistError)
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="User Permission",
 				user=user,
@@ -568,38 +568,38 @@ def add_user_permission(
 
 
 def remove_user_permission(doctype, name, user):
-	user_permission_name = frappe.db.get_value(
+	user_permission_name = nts.db.get_value(
 		"User Permission", dict(user=user, allow=doctype, for_value=name)
 	)
-	frappe.delete_doc("User Permission", user_permission_name)
+	nts.delete_doc("User Permission", user_permission_name)
 
 
 def clear_user_permissions_for_doctype(doctype, user=None):
 	filters = {"allow": doctype}
 	if user:
 		filters["user"] = user
-	user_permissions_for_doctype = frappe.get_all("User Permission", filters=filters)
+	user_permissions_for_doctype = nts.get_all("User Permission", filters=filters)
 	for d in user_permissions_for_doctype:
-		frappe.delete_doc("User Permission", d.name)
+		nts.delete_doc("User Permission", d.name)
 
 
 def can_import(doctype, raise_exception=False):
-	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
+	if not ("System Manager" in nts.get_roles() or has_permission(doctype, "import")):
 		if raise_exception:
-			raise frappe.PermissionError(f"You are not allowed to import: {doctype}")
+			raise nts.PermissionError(f"You are not allowed to import: {doctype}")
 		else:
 			return False
 	return True
 
 
 def can_export(doctype, raise_exception=False, is_owner=False):
-	if "System Manager" in frappe.get_roles():
+	if "System Manager" in nts.get_roles():
 		return True
 	else:
-		role_permissions = frappe.permissions.get_role_permissions(doctype, is_owner=is_owner)
+		role_permissions = nts.permissions.get_role_permissions(doctype, is_owner=is_owner)
 		has_access = role_permissions.get("export") or role_permissions.get("if_owner").get("export")
 		if not has_access and raise_exception:
-			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+			raise nts.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 		return has_access
 
 
@@ -613,15 +613,15 @@ def update_permission_property(
 	if_owner=0,
 ):
 	"""Update a property in Custom Perm"""
-	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	from nts.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.db.get_value(
+	name = nts.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=if_owner)
 	)
 	table = DocType("Custom DocPerm")
-	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
+	nts.qb.update(table).set(ptype, value).where(table.name == name).run()
 
 	if validate:
 		validate_permissions_for_doctype(doctype)
@@ -631,7 +631,7 @@ def update_permission_property(
 
 def setup_custom_perms(parent):
 	"""if custom permssions are not setup for the current doctype, set them up"""
-	if not frappe.db.exists("Custom DocPerm", dict(parent=parent)):
+	if not nts.db.exists("Custom DocPerm", dict(parent=parent)):
 		copy_perms(parent)
 		return True
 
@@ -639,14 +639,14 @@ def setup_custom_perms(parent):
 def add_permission(doctype, role, permlevel=0, ptype=None):
 	"""Add a new permission rule to the given doctype
 	for the given Role and Permission Level"""
-	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	from nts.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
 	setup_custom_perms(doctype)
 
-	if frappe.db.get_value(
+	if nts.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
 	):
-		frappe.msgprint(
+		nts.msgprint(
 			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
 				doctype,
 			),
@@ -657,7 +657,7 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if not ptype:
 		ptype = "read"
 
-	custom_docperm = frappe.get_doc(
+	custom_docperm = nts.get_doc(
 		{
 			"doctype": "Custom DocPerm",
 			"__islocal": 1,
@@ -678,22 +678,22 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 
 def copy_perms(parent):
 	"""Copy all DocPerm in to Custom DocPerm for the given document"""
-	for d in frappe.get_all("DocPerm", fields="*", filters=dict(parent=parent)):
-		custom_perm = frappe.new_doc("Custom DocPerm")
+	for d in nts.get_all("DocPerm", fields="*", filters=dict(parent=parent)):
+		custom_perm = nts.new_doc("Custom DocPerm")
 		custom_perm.update(d)
 		custom_perm.insert(ignore_permissions=True)
 
 
 def reset_perms(doctype):
 	"""Reset permissions for given doctype."""
-	from frappe.desk.notifications import delete_notification_count_for
+	from nts.desk.notifications import delete_notification_count_for
 
 	delete_notification_count_for(doctype)
-	frappe.db.delete("Custom DocPerm", {"parent": doctype})
+	nts.db.delete("Custom DocPerm", {"parent": doctype})
 
 
 def get_linked_doctypes(dt: str) -> list:
-	meta = frappe.get_meta(dt)
+	meta = nts.get_meta(dt)
 	linked_doctypes = [dt] + [
 		d.options
 		for d in meta.get(
@@ -741,10 +741,10 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 
 def push_perm_check_log(log, debug=False):
 	debug and _debug_log(log)
-	if frappe.flags.get("has_permission_check_logs") is None:
+	if nts.flags.get("has_permission_check_logs") is None:
 		return
 
-	frappe.flags.get("has_permission_check_logs").append(log)
+	nts.flags.get("has_permission_check_logs").append(log)
 
 
 def has_child_permission(
@@ -759,7 +759,7 @@ def has_child_permission(
 ) -> bool:
 	debug and _debug_log("This doctype is a child table, permissions will be checked on parent.")
 	if isinstance(child_doc, str):
-		child_doc = frappe.db.get_value(
+		child_doc = nts.db.get_value(
 			child_doctype,
 			child_doc,
 			("parent", "parenttype", "parentfield"),
@@ -771,12 +771,12 @@ def has_child_permission(
 
 	if not parent_doctype:
 		push_perm_check_log(
-			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype)),
+			_("Please specify a valid parent DocType for {0}").format(nts.bold(child_doctype)),
 			debug=debug,
 		)
 		return False
 
-	parent_meta = frappe.get_meta(parent_doctype)
+	parent_meta = nts.get_meta(parent_doctype)
 
 	if parent_meta.istable or not (
 		valid_parentfields := [
@@ -785,7 +785,7 @@ def has_child_permission(
 	):
 		push_perm_check_log(
 			_("{0} is not a valid parent DocType for {1}").format(
-				frappe.bold(parent_doctype), frappe.bold(child_doctype)
+				nts.bold(parent_doctype), nts.bold(child_doctype)
 			),
 			debug=debug,
 		)
@@ -796,7 +796,7 @@ def has_child_permission(
 		if not parentfield:
 			push_perm_check_log(
 				_("Parentfield not specified in {0}: {1}").format(
-					frappe.bold(child_doctype), frappe.bold(child_doc.name)
+					nts.bold(child_doctype), nts.bold(child_doc.name)
 				),
 				debug=debug,
 			)
@@ -805,7 +805,7 @@ def has_child_permission(
 		if parentfield not in valid_parentfields:
 			push_perm_check_log(
 				_("{0} is not a valid parentfield for {1}").format(
-					frappe.bold(parentfield), frappe.bold(child_doctype)
+					nts.bold(parentfield), nts.bold(child_doctype)
 				),
 				debug=debug,
 			)
@@ -815,7 +815,7 @@ def has_child_permission(
 		accessible_permlevels = parent_meta.get_permlevel_access(ptype, user=user)
 		if permlevel > 0 and permlevel not in accessible_permlevels:
 			push_perm_check_log(
-				_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype)), debug=debug
+				_("Insufficient Permission Level for {0}").format(nts.bold(parent_doctype)), debug=debug
 			)
 			debug and _debug_log(
 				f"This table is perm level {permlevel} but user only has access to {accessible_permlevels}"
@@ -833,7 +833,7 @@ def has_child_permission(
 
 
 def is_system_user(user: str | None = None) -> bool:
-	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
+	return nts.get_cached_value("User", user or nts.session.user, "user_type") == "System User"
 
 
 def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
@@ -842,15 +842,15 @@ def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
 	Ignores share permissions.
 	"""
 
-	_message_log = frappe.local.message_log
-	frappe.local.message_log = []
+	_message_log = nts.local.message_log
+	nts.local.message_log = []
 	try:
-		frappe.has_permission(doctype, ptype, throw=True, ignore_share_permissions=True)
-	except frappe.PermissionError:
-		frappe.flags.disable_traceback = True
+		nts.has_permission(doctype, ptype, throw=True, ignore_share_permissions=True)
+	except nts.PermissionError:
+		nts.flags.disable_traceback = True
 		raise
 
-	frappe.local.message_log = _message_log
+	nts.local.message_log = _message_log
 
 
 def handle_does_not_exist_error(fn):
@@ -861,10 +861,10 @@ def handle_does_not_exist_error(fn):
 
 	@functools.wraps(fn)
 	def wrapper(e, *args, **kwargs):
-		if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+		if isinstance(e, nts.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
 			try:
 				check_doctype_permission(doctype)
-			except frappe.PermissionError as _e:
+			except nts.PermissionError as _e:
 				return fn(_e, *args, **kwargs)
 
 		return fn(e, *args, **kwargs)

@@ -1,24 +1,24 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.cache_manager import clear_defaults_cache, common_default_keys
-from frappe.query_builder import DocType
-from frappe.utils.data import cstr
+import nts
+from nts.cache_manager import clear_defaults_cache, common_default_keys
+from nts.query_builder import DocType
+from nts.utils.data import cstr
 
 # Note: DefaultValue records are identified by parent (e.g. __default, __global)
 
 
 def set_user_default(key, value, user=None, parenttype=None):
-	set_default(key, value, user or frappe.session.user, parenttype)
+	set_default(key, value, user or nts.session.user, parenttype)
 
 
 def add_user_default(key, value, user=None, parenttype=None):
-	add_default(key, value, user or frappe.session.user, parenttype)
+	add_default(key, value, user or nts.session.user, parenttype)
 
 
 def get_user_default(key, user=None):
-	user_defaults = get_defaults(user or frappe.session.user)
+	user_defaults = get_defaults(user or nts.session.user)
 	d = user_defaults.get(key, None)
 
 	if is_a_user_permission_key(key):
@@ -26,7 +26,7 @@ def get_user_default(key, user=None):
 			# Use User Permission value when only when it has a single value
 			d = d[0]
 		else:
-			d = user_defaults.get(frappe.scrub(key), None)
+			d = user_defaults.get(nts.scrub(key), None)
 			user_permission_default = get_user_permission_default(key, user_defaults)
 			if not d:
 				# If no default value is found, use the User Permission value
@@ -58,7 +58,7 @@ def get_user_permission_default(key, defaults):
 
 
 def get_user_default_as_list(key, user=None):
-	user_defaults = get_defaults(user or frappe.session.user)
+	user_defaults = get_defaults(user or nts.session.user)
 	d = user_defaults.get(key, None)
 
 	if is_a_user_permission_key(key):
@@ -67,7 +67,7 @@ def get_user_default_as_list(key, user=None):
 			d = [d[0]]
 
 		else:
-			d = user_defaults.get(frappe.scrub(key), None)
+			d = user_defaults.get(nts.scrub(key), None)
 
 	d = list(filter(None, (not isinstance(d, list | tuple)) and [d] or d))
 
@@ -76,13 +76,13 @@ def get_user_default_as_list(key, user=None):
 
 
 def is_a_user_permission_key(key):
-	return ":" not in key and key != frappe.scrub(key)
+	return ":" not in key and key != nts.scrub(key)
 
 
 def not_in_user_permission(key, value, user=None):
 	# returns true or false based on if value exist in user permission
-	user = user or frappe.session.user
-	user_permission = get_user_permissions(user).get(frappe.unscrub(key)) or []
+	user = user or nts.session.user
+	user_permission = get_user_permissions(user).get(nts.unscrub(key)) or []
 
 	for perm in user_permission:
 		# doc found in user permission
@@ -94,11 +94,11 @@ def not_in_user_permission(key, value, user=None):
 
 
 def get_user_permissions(user=None):
-	from frappe.core.doctype.user_permission.user_permission import (
+	from nts.core.doctype.user_permission.user_permission import (
 		get_user_permissions as _get_user_permissions,
 	)
 
-	"""Return frappe.core.doctype.user_permissions.user_permissions._get_user_permissions (kept for backward compatibility)"""
+	"""Return nts.core.doctype.user_permissions.user_permissions._get_user_permissions (kept for backward compatibility)"""
 	return _get_user_permissions(user)
 
 
@@ -106,7 +106,7 @@ def get_defaults(user=None):
 	global_defaults = get_defaults_for()
 
 	if not user:
-		user = frappe.session.user if frappe.session else "Guest"
+		user = nts.session.user if nts.session else "Guest"
 
 	if not user:
 		return global_defaults
@@ -119,7 +119,7 @@ def get_defaults(user=None):
 
 
 def clear_user_default(key, user=None):
-	clear_default(key, parent=user or frappe.session.user)
+	clear_default(key, parent=user or nts.session.user)
 
 
 # Global
@@ -156,7 +156,7 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param parenttype: [optional] default is `__default`."""
 	table = DocType("DefaultValue")
 	current_value = (
-		frappe.qb.from_(table)
+		nts.qb.from_(table)
 		.where((table.defkey == key) & (table.parent == parent))
 		.select(table.defvalue)
 		.for_update()
@@ -166,7 +166,7 @@ def set_default(key, value, parent, parenttype="__default"):
 		if current_value[0].defvalue == cstr(value):
 			# Nothing has changed
 			return
-		frappe.db.delete("DefaultValue", {"defkey": key, "parent": parent})
+		nts.db.delete("DefaultValue", {"defkey": key, "parent": parent})
 	if value is not None:
 		add_default(key, value, parent)
 	else:
@@ -174,7 +174,7 @@ def set_default(key, value, parent, parenttype="__default"):
 
 
 def add_default(key, value, parent, parenttype=None):
-	d = frappe.get_doc(
+	d = nts.get_doc(
 		{
 			"doctype": "DefaultValue",
 			"parent": parent,
@@ -224,27 +224,27 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	if not filters:
 		raise Exception("[clear_default] No key specified.")
 
-	frappe.db.delete("DefaultValue", filters)
+	nts.db.delete("DefaultValue", filters)
 
 	_clear_cache(parent)
 
 
 def get_defaults_for(parent="__default"):
 	"""get all defaults"""
-	defaults = frappe.cache.hget("defaults", parent)
+	defaults = nts.cache.hget("defaults", parent)
 
 	if defaults is None:
 		# sort descending because first default must get precedence
 		table = DocType("DefaultValue")
 		res = (
-			frappe.qb.from_(table)
+			nts.qb.from_(table)
 			.where(table.parent == parent)
 			.select(table.defkey, table.defvalue)
 			.orderby("creation")
 			.run(as_dict=True)
 		)
 
-		defaults = frappe._dict()
+		defaults = nts._dict()
 		for d in res:
 			if d.defkey in defaults:
 				# listify
@@ -257,12 +257,12 @@ def get_defaults_for(parent="__default"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 
-		frappe.cache.hset("defaults", parent, defaults)
+		nts.cache.hset("defaults", parent, defaults)
 
 	return defaults
 
 
 def _clear_cache(parent):
-	if frappe.flags.in_install:
+	if nts.flags.in_install:
 		return
-	frappe.clear_cache(user=parent if parent not in common_default_keys else None)
+	nts.clear_cache(user=parent if parent not in common_default_keys else None)

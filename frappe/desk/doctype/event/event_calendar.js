@@ -1,4 +1,4 @@
-frappe.views.calendar["Event"] = {
+nts.views.calendar["Event"] = {
 	field_map: {
 		start: "starts_on",
 		end: "ends_on",
@@ -12,5 +12,5 @@ frappe.views.calendar["Event"] = {
 		Public: "success",
 		Private: "info",
 	},
-	get_events_method: "frappe.desk.doctype.event.event.get_events",
+	get_events_method: "nts.desk.doctype.event.event.get_events",
 };

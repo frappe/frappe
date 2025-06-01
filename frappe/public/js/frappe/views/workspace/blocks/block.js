@@ -8,13 +8,13 @@ export default class Block {
 	make(block, block_name, widget_type = block) {
 		let block_data = this.config.page_data[block + "s"].items.find((obj) => {
 			return (
-				frappe.utils.unescape_html(obj.label) == frappe.utils.unescape_html(__(block_name))
+				nts.utils.unescape_html(obj.label) == nts.utils.unescape_html(__(block_name))
 			);
 		});
 		if (!block_data) return false;
 		this.wrapper.innerHTML = "";
 		block_data.in_customize_mode = !this.readOnly;
-		this.block_widget = new frappe.widget.SingleWidgetGroup({
+		this.block_widget = new nts.widget.SingleWidgetGroup({
 			container: this.wrapper,
 			type: widget_type,
 			class_name: block == "chart" ? "widget-charts" : "",
@@ -100,7 +100,7 @@ export default class Block {
 			type: widget_type,
 			primary_action: (widget) => {
 				widget.in_customize_mode = 1;
-				this.block_widget = frappe.widget.make_widget({
+				this.block_widget = nts.widget.make_widget({
 					...widget,
 					widget_type: widget_type,
 					container: this.wrapper,
@@ -140,7 +140,7 @@ export default class Block {
 
 	add_new_block_button() {
 		let $new_button = $(`
-			<div class="new-block-button">${frappe.utils.icon("add-round", "lg")}</div>
+			<div class="new-block-button">${nts.utils.icon("add-round", "lg")}</div>
 		`);
 
 		$new_button.appendTo(this.wrapper);
@@ -159,31 +159,31 @@ export default class Block {
 			{
 				label: "Delete",
 				title: "Delete Block",
-				icon: frappe.utils.icon("delete-active", "sm"),
+				icon: nts.utils.icon("delete-active", "sm"),
 				action: () => this.api.blocks.delete(),
 			},
 			{
 				label: "Expand",
 				title: "Expand Block",
-				icon: frappe.utils.icon("expand-alt", "sm"),
+				icon: nts.utils.icon("expand-alt", "sm"),
 				action: () => this.increase_width(),
 			},
 			{
 				label: "Shrink",
 				title: "Shrink Block",
-				icon: frappe.utils.icon("shrink", "sm"),
+				icon: nts.utils.icon("shrink", "sm"),
 				action: () => this.decrease_width(),
 			},
 			{
 				label: "Move Up",
 				title: "Move Up",
-				icon: frappe.utils.icon("up-arrow", "sm"),
+				icon: nts.utils.icon("up-arrow", "sm"),
 				action: () => this.move_block("up"),
 			},
 			{
 				label: "Move Down",
 				title: "Move Down",
-				icon: frappe.utils.icon("down-arrow", "sm"),
+				icon: nts.utils.icon("down-arrow", "sm"),
 				action: () => this.move_block("down"),
 			},
 		];
@@ -193,7 +193,7 @@ export default class Block {
 		let $button = $(`
 			<div class="dropdown-btn">
 				<button class="btn btn-secondary btn-xs setting-btn" title="${__("Setting")}">
-					${frappe.utils.icon("dot-horizontal", "xs")}
+					${nts.utils.icon("dot-horizontal", "xs")}
 				</button>
 				<div class="dropdown-list hidden"></div>
 			</div>

@@ -1,18 +1,18 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // add a new dom element
-frappe.provide("frappe.dom");
+nts.provide("nts.dom");
 
-frappe.dom = {
+nts.dom = {
 	id_count: 0,
 	freeze_count: 0,
 	by_id: function (id) {
 		return document.getElementById(id);
 	},
 	get_unique_id: function () {
-		const id = "unique-" + frappe.dom.id_count;
-		frappe.dom.id_count++;
+		const id = "unique-" + nts.dom.id_count;
+		nts.dom.id_count++;
 		return id;
 	},
 	set_unique_id: function (ele) {
@@ -20,9 +20,9 @@ frappe.dom = {
 		if ($ele.attr("id")) {
 			return $ele.attr("id");
 		}
-		var id = "unique-" + frappe.dom.id_count;
+		var id = "unique-" + nts.dom.id_count;
 		$ele.attr("id", id);
-		frappe.dom.id_count++;
+		nts.dom.id_count++;
 		return id;
 	},
 	eval: function (txt) {
@@ -104,7 +104,7 @@ frappe.dom = {
 		return se;
 	},
 	add: function (parent, newtag, className, cs, innerHTML, onclick) {
-		if (parent && parent.substr) parent = frappe.dom.by_id(parent);
+		if (parent && parent.substr) parent = nts.dom.by_id(parent);
 		var c = document.createElement(newtag);
 		if (parent) parent.appendChild(c);
 
@@ -113,7 +113,7 @@ frappe.dom = {
 			if (newtag.toLowerCase() == "img") c.src = className;
 			else c.className = className;
 		}
-		if (cs) frappe.dom.css(c, cs);
+		if (cs) nts.dom.css(c, cs);
 		if (innerHTML) c.innerHTML = innerHTML;
 		if (onclick) c.onclick = onclick;
 		return c;
@@ -158,12 +158,12 @@ frappe.dom = {
 			$("#freeze").addClass(css_class);
 		}
 
-		frappe.dom.freeze_count++;
+		nts.dom.freeze_count++;
 	},
 	unfreeze: function () {
-		if (!frappe.dom.freeze_count) return; // anything open?
-		frappe.dom.freeze_count--;
-		if (!frappe.dom.freeze_count) {
+		if (!nts.dom.freeze_count) return; // anything open?
+		nts.dom.freeze_count--;
+		if (!nts.dom.freeze_count) {
 			var freeze = $("#freeze").removeClass("in").remove();
 		}
 	},
@@ -228,7 +228,7 @@ frappe.dom = {
 					// opens the section
 					section.click();
 				}
-				frappe.ui.scroll(section.parent().parent());
+				nts.ui.scroll(section.parent().parent());
 			}
 		}, 200);
 	},
@@ -246,7 +246,7 @@ frappe.dom = {
 	},
 };
 
-frappe.ellipsis = function (text, max) {
+nts.ellipsis = function (text, max) {
 	if (!max) max = 20;
 	text = cstr(text);
 	if (text.length > max) {
@@ -255,7 +255,7 @@ frappe.ellipsis = function (text, max) {
 	return text;
 };
 
-frappe.run_serially = function (tasks) {
+nts.run_serially = function (tasks) {
 	var result = Promise.resolve();
 	tasks.forEach((task) => {
 		if (task) {
@@ -265,7 +265,7 @@ frappe.run_serially = function (tasks) {
 	return result;
 };
 
-frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
+nts.load_image = (src, onload, onerror, preprocess = () => {}) => {
 	var tester = new Image();
 	tester.onload = function () {
 		onload(this);
@@ -276,21 +276,21 @@ frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
 	tester.src = src;
 };
 
-frappe.timeout = (seconds) => {
+nts.timeout = (seconds) => {
 	return new Promise((resolve) => {
 		setTimeout(() => resolve(), seconds * 1000);
 	});
 };
 
-frappe.scrub = function (text, spacer = "_") {
+nts.scrub = function (text, spacer = "_") {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
-frappe.unscrub = function (txt) {
-	return frappe.model.unscrub(txt);
+nts.unscrub = function (txt) {
+	return nts.model.unscrub(txt);
 };
 
-frappe.get_data_pill = (
+nts.get_data_pill = (
 	label,
 	target_id = null,
 	remove_action = null,
@@ -300,7 +300,7 @@ frappe.get_data_pill = (
 	let color = "",
 		style = "";
 	if (colored) {
-		color = frappe.get_palette(label);
+		color = nts.get_palette(label);
 	}
 	style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	let data_pill_wrapper = $(`
@@ -314,7 +314,7 @@ frappe.get_data_pill = (
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon("close", "sm")}
+				${nts.utils.icon("close", "sm")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {
@@ -327,7 +327,7 @@ frappe.get_data_pill = (
 	return data_pill_wrapper;
 };
 
-frappe.get_modal = function (title, content) {
+nts.get_modal = function (title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -338,10 +338,10 @@ frappe.get_modal = function (title, content) {
 					</div>
 					<div class="modal-actions">
 						<button class="btn btn-modal-minimize btn-link hide">
-							${frappe.utils.icon("collapse")}
+							${nts.utils.icon("collapse")}
 						</button>
 						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
-							${frappe.utils.icon("close-alt", "sm", "close-alt")}
+							${nts.utils.icon("close-alt", "sm", "close-alt")}
 						</button>
 					</div>
 				</div>
@@ -361,8 +361,8 @@ frappe.get_modal = function (title, content) {
 	</div>`);
 };
 
-frappe.is_online = function () {
-	if (frappe.boot.developer_mode == 1) {
+nts.is_online = function () {
+	if (nts.boot.developer_mode == 1) {
 		// always online in developer_mode
 		return true;
 	}
@@ -372,8 +372,8 @@ frappe.is_online = function () {
 	return true;
 };
 
-frappe.create_shadow_element = function (wrapper, html, css, js) {
-	let random_id = "custom-block-" + frappe.utils.get_random(5).toLowerCase();
+nts.create_shadow_element = function (wrapper, html, css, js) {
+	let random_id = "custom-block-" + nts.utils.get_random(5).toLowerCase();
 
 	class CustomBlock extends HTMLElement {
 		constructor() {
@@ -381,12 +381,12 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 
 			// html
 			let div = document.createElement("div");
-			div.innerHTML = frappe.dom.remove_script_and_style(html);
+			div.innerHTML = nts.dom.remove_script_and_style(html);
 
 			// link global desk css
 			let link = document.createElement("link");
 			link.rel = "stylesheet";
-			link.href = frappe.assets.bundled_asset("desk.bundle.css");
+			link.href = nts.assets.bundled_asset("desk.bundle.css");
 
 			// css
 			let style = document.createElement("style");
@@ -419,7 +419,7 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 // bind online/offline events
 $(window).on("online", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
+	nts.show_alert({
 		indicator: "green",
 		message: __("You are connected to internet."),
 	});
@@ -427,7 +427,7 @@ $(window).on("online", function () {
 
 $(window).on("offline", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
+	nts.show_alert({
 		indicator: "orange",
 		message: __("Connection lost. Some features might not work."),
 	});

@@ -1,47 +1,47 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.meta.docfield_map");
-frappe.provide("frappe.meta.docfield_copy");
-frappe.provide("frappe.meta.docfield_list");
-frappe.provide("frappe.meta.doctypes");
-frappe.provide("frappe.meta.precision_map");
+nts.provide("nts.meta.docfield_map");
+nts.provide("nts.meta.docfield_copy");
+nts.provide("nts.meta.docfield_list");
+nts.provide("nts.meta.doctypes");
+nts.provide("nts.meta.precision_map");
 
-frappe.get_meta = function (doctype) {
+nts.get_meta = function (doctype) {
 	return locals["DocType"] ? locals["DocType"][doctype] : null;
 };
 
-$.extend(frappe.meta, {
+$.extend(nts.meta, {
 	sync: function (doc) {
 		$.each(doc.fields, function (i, df) {
-			frappe.meta.add_field(df);
+			nts.meta.add_field(df);
 		});
-		frappe.meta.sync_messages(doc);
-		if (doc.__print_formats) frappe.model.sync(doc.__print_formats);
-		if (doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
+		nts.meta.sync_messages(doc);
+		if (doc.__print_formats) nts.model.sync(doc.__print_formats);
+		if (doc.__workflow_docs) nts.model.sync(doc.__workflow_docs);
 	},
 
 	// build docfield_map and docfield_list
 	add_field: function (df) {
-		frappe.provide("frappe.meta.docfield_map." + df.parent);
-		frappe.meta.docfield_map[df.parent][df.fieldname || df.label] = df;
+		nts.provide("nts.meta.docfield_map." + df.parent);
+		nts.meta.docfield_map[df.parent][df.fieldname || df.label] = df;
 
-		if (!frappe.meta.docfield_list[df.parent]) frappe.meta.docfield_list[df.parent] = [];
+		if (!nts.meta.docfield_list[df.parent]) nts.meta.docfield_list[df.parent] = [];
 
 		// check for repeat
-		for (var i in frappe.meta.docfield_list[df.parent]) {
-			var d = frappe.meta.docfield_list[df.parent][i];
+		for (var i in nts.meta.docfield_list[df.parent]) {
+			var d = nts.meta.docfield_list[df.parent][i];
 			if (df.fieldname == d.fieldname) return; // no repeat
 		}
-		frappe.meta.docfield_list[df.parent].push(df);
+		nts.meta.docfield_list[df.parent].push(df);
 	},
 
 	make_docfield_copy_for: function (doctype, docname, docfield_list = null) {
-		var c = frappe.meta.docfield_copy;
+		var c = nts.meta.docfield_copy;
 		if (!c[doctype]) c[doctype] = {};
 		if (!c[doctype][docname]) c[doctype][docname] = {};
 
-		docfield_list = docfield_list || frappe.meta.docfield_list[doctype] || [];
+		docfield_list = docfield_list || nts.meta.docfield_list[doctype] || [];
 		for (var i = 0, j = docfield_list.length; i < j; i++) {
 			var df = docfield_list[i];
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
@@ -49,11 +49,11 @@ $.extend(frappe.meta, {
 	},
 
 	get_field: function (doctype, fieldname, name) {
-		var out = frappe.meta.get_docfield(doctype, fieldname, name);
+		var out = nts.meta.get_docfield(doctype, fieldname, name);
 
 		// search in standard fields
 		if (!out) {
-			frappe.model.std_fields.every(function (d) {
+			nts.model.std_fields.every(function (d) {
 				if (d.fieldname === fieldname) {
 					out = d;
 					return false;
@@ -66,16 +66,16 @@ $.extend(frappe.meta, {
 	},
 
 	get_docfield: function (doctype, fieldname, name) {
-		var fields_dict = frappe.meta.get_docfield_copy(doctype, name);
+		var fields_dict = nts.meta.get_docfield_copy(doctype, name);
 		return fields_dict ? fields_dict[fieldname] : null;
 	},
 
 	set_formatter: function (doctype, fieldname, name, formatter) {
-		frappe.meta.get_docfield(doctype, fieldname, name).formatter = formatter;
+		nts.meta.get_docfield(doctype, fieldname, name).formatter = formatter;
 	},
 
 	set_indicator_formatter: function (doctype, fieldname, name, get_text, get_color) {
-		frappe.meta.get_docfield(doctype, fieldname, name).formatter = function (
+		nts.meta.get_docfield(doctype, fieldname, name).formatter = function (
 			value,
 			df,
 			options,
@@ -89,25 +89,25 @@ $.extend(frappe.meta, {
 	},
 
 	get_docfields: function (doctype, name, filters) {
-		var docfield_map = frappe.meta.get_docfield_copy(doctype, name);
+		var docfield_map = nts.meta.get_docfield_copy(doctype, name);
 
-		var docfields = frappe.meta.sort_docfields(docfield_map);
+		var docfields = nts.meta.sort_docfields(docfield_map);
 
 		if (filters) {
-			docfields = frappe.utils.filter_dict(docfields, filters);
+			docfields = nts.utils.filter_dict(docfields, filters);
 		}
 
 		return docfields;
 	},
 
 	get_linked_fields: function (doctype) {
-		return $.map(frappe.get_meta(doctype).fields, function (d) {
+		return $.map(nts.get_meta(doctype).fields, function (d) {
 			return d.fieldtype == "Link" ? d.options : null;
 		});
 	},
 
 	get_fields_to_check_permissions: function (doctype) {
-		var fields = $.map(frappe.meta.get_docfields(doctype, name), function (df) {
+		var fields = $.map(nts.meta.get_docfields(doctype, name), function (df) {
 			return df.fieldtype === "Link" && df.ignore_user_permissions !== 1 ? df : null;
 		});
 		fields = fields.concat({ label: "ID", fieldname: name, options: doctype });
@@ -123,18 +123,18 @@ $.extend(frappe.meta, {
 	},
 
 	get_docfield_copy: function (doctype, name) {
-		if (!name) return frappe.meta.docfield_map[doctype];
+		if (!name) return nts.meta.docfield_map[doctype];
 
-		if (!(frappe.meta.docfield_copy[doctype] && frappe.meta.docfield_copy[doctype][name])) {
-			frappe.meta.make_docfield_copy_for(doctype, name);
+		if (!(nts.meta.docfield_copy[doctype] && nts.meta.docfield_copy[doctype][name])) {
+			nts.meta.make_docfield_copy_for(doctype, name);
 		}
 
-		return frappe.meta.docfield_copy[doctype][name];
+		return nts.meta.docfield_copy[doctype][name];
 	},
 
 	get_fieldnames: function (doctype, name, filters) {
 		return $.map(
-			frappe.utils.filter_dict(frappe.meta.docfield_map[doctype], filters),
+			nts.utils.filter_dict(nts.meta.docfield_map[doctype], filters),
 			function (df) {
 				return df.fieldname;
 			}
@@ -142,29 +142,29 @@ $.extend(frappe.meta, {
 	},
 
 	has_field: function (dt, fn) {
-		let docfield_map = frappe.meta.docfield_map[dt];
+		let docfield_map = nts.meta.docfield_map[dt];
 		return docfield_map && docfield_map[fn];
 	},
 
 	get_table_fields: function (dt) {
-		return $.map(frappe.meta.docfield_list[dt], function (d) {
-			return frappe.model.table_fields.includes(d.fieldtype) ? d : null;
+		return $.map(nts.meta.docfield_list[dt], function (d) {
+			return nts.model.table_fields.includes(d.fieldtype) ? d : null;
 		});
 	},
 
 	get_doctype_for_field: function (doctype, key) {
 		var out = null;
-		if (frappe.model.std_fields_list.includes(key)) {
+		if (nts.model.std_fields_list.includes(key)) {
 			// standard
 			out = doctype;
-		} else if (frappe.meta.has_field(doctype, key)) {
+		} else if (nts.meta.has_field(doctype, key)) {
 			// found in parent
 			out = doctype;
 		} else {
-			frappe.meta.get_table_fields(doctype).every(function (d) {
+			nts.meta.get_table_fields(doctype).every(function (d) {
 				if (
-					frappe.meta.has_field(d.options, key) ||
-					frappe.model.child_table_field_list.includes(key)
+					nts.meta.has_field(d.options, key) ||
+					nts.model.child_table_field_list.includes(key)
 				) {
 					out = d.options;
 					return false;
@@ -185,8 +185,8 @@ $.extend(frappe.meta, {
 	},
 
 	get_parentfield: function (parent_dt, child_dt) {
-		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(
-			(df) => frappe.model.table_fields.includes(df.fieldtype) && df.options === child_dt
+		var df = (nts.get_doc("DocType", parent_dt).fields || []).filter(
+			(df) => nts.model.table_fields.includes(df.fieldtype) && df.options === child_dt
 		);
 		if (!df.length) throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;
@@ -253,11 +253,11 @@ $.extend(frappe.meta, {
 	get_print_formats: function (doctype) {
 		var print_format_list = ["Standard"];
 		var default_print_format = locals.DocType[doctype].default_print_format;
-		let enable_raw_printing = frappe.model.get_doc(
+		let enable_raw_printing = nts.model.get_doc(
 			":Print Settings",
 			"Print Settings"
 		).enable_raw_printing;
-		var print_formats = frappe
+		var print_formats = nts
 			.get_list("Print Format", { doc_type: doctype })
 			.sort(function (a, b) {
 				return a > b ? 1 : -1;
@@ -283,12 +283,12 @@ $.extend(frappe.meta, {
 
 	sync_messages: function (doc) {
 		if (doc.__messages) {
-			$.extend(frappe._messages, doc.__messages);
+			$.extend(nts._messages, doc.__messages);
 		}
 	},
 
 	get_field_currency: function (df, doc) {
-		var currency = frappe.boot.sysdefaults.currency || "USD";
+		var currency = nts.boot.sysdefaults.currency || "USD";
 		if (!doc && cur_frm) doc = cur_frm.doc;
 
 		if (df && df.options) {
@@ -304,11 +304,11 @@ $.extend(frappe.meta, {
 						}
 					} else {
 						// Try to get default value, useful for cases like Company overridden in session defaults
-						docname = frappe.defaults.get_user_default(options[1]);
+						docname = nts.defaults.get_user_default(options[1]);
 					}
 					currency =
-						frappe.model.get_value(options[0], docname, options[2]) ||
-						frappe.model.get_value(":" + options[0], docname, options[2]) ||
+						nts.model.get_value(options[0], docname, options[2]) ||
+						nts.model.get_value(":" + options[0], docname, options[2]) ||
 						currency;
 				}
 			} else if (doc && doc[df.options]) {
@@ -325,14 +325,14 @@ $.extend(frappe.meta, {
 		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if (df && df.fieldtype === "Currency") {
-			precision = cint(frappe.defaults.get_default("currency_precision"));
+			precision = cint(nts.defaults.get_default("currency_precision"));
 			if (!precision) {
 				var number_format = get_number_format();
 				var number_format_info = get_number_format_info(number_format);
 				precision = number_format_info.precision;
 			}
 		} else {
-			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
+			precision = cint(nts.defaults.get_default("float_precision")) || 3;
 		}
 		return precision;
 	},

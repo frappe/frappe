@@ -1,4 +1,4 @@
-frappe.listview_settings["Workflow"] = {
+nts.listview_settings["Workflow"] = {
 	add_fields: ["is_active"],
 	get_indicator: function (doc) {
 		if (doc.is_active) {
@@ -12,15 +12,15 @@ frappe.listview_settings["Workflow"] = {
 			return doc.name;
 		},
 		get_label() {
-			return frappe.utils.icon("workflow", "sm");
+			return nts.utils.icon("workflow", "sm");
 		},
 		get_description(doc) {
 			return __("Build {0}", [`${doc.name}`]);
 		},
 		action(doc) {
-			frappe.set_route("workflow-builder", doc.name);
+			nts.set_route("workflow-builder", doc.name);
 		},
 	},
 };
 
-frappe.help.youtube_id["Workflow"] = "yObJUg9FxFs";
+nts.help.youtube_id["Workflow"] = "yObJUg9FxFs";

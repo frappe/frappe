@@ -1,15 +1,15 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
-import frappe
-import frappe.email.smtp
-from frappe import _
-from frappe.email.email_body import get_message_id
-from frappe.utils import (
+import nts
+import nts.email.smtp
+from nts import _
+from nts.email.email_body import get_message_id
+from nts.utils import (
 	cint,
 	get_datetime,
 	get_formatted_email,
@@ -21,10 +21,10 @@ from frappe.utils import (
 )
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.communication.communication import Communication
+	from nts.core.doctype.communication.communication import Communication
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def make(
 	doctype=None,
 	name=None,
@@ -70,16 +70,16 @@ def make(
 	:param send_after: Send after the given datetime.
 	"""
 	if kwargs:
-		from frappe.utils.commands import warn
+		from nts.utils.commands import warn
 
 		warn(
-			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
+			f"Options {kwargs} used in nts.core.doctype.communication.email.make "
 			"are deprecated or unsupported",
 			category=DeprecationWarning,
 		)
 
 	if doctype and name:
-		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
+		nts.has_permission(doctype, doc=name, ptype="email", throw=True)
 
 	return _make(
 		doctype=doctype,
@@ -137,12 +137,12 @@ def _make(
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
-	sender = sender or get_formatted_email(frappe.session.user)
+	sender = sender or get_formatted_email(nts.session.user)
 	recipients = list_to_str(recipients) if isinstance(recipients, list) else recipients
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm: "Communication" = frappe.get_doc(
+	comm: "Communication" = nts.get_doc(
 		{
 			"doctype": "Communication",
 			"subject": subject,
@@ -175,11 +175,11 @@ def _make(
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
-			frappe.throw(
+			nts.throw(
 				_(
 					"Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 				),
-				exc=frappe.OutgoingEmailError,
+				exc=nts.OutgoingEmailError,
 			)
 
 		comm.send_email(
@@ -217,7 +217,7 @@ def validate_email(doc: "Communication") -> None:
 
 
 def set_incoming_outgoing_accounts(doc):
-	from frappe.email.doctype.email_account.email_account import EmailAccount
+	from nts.email.doctype.email_account.email_account import EmailAccount
 
 	incoming_email_account = EmailAccount.find_incoming(
 		match_by_email=doc.sender, match_by_doctype=doc.reference_doctype
@@ -241,13 +241,13 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, str):
-			attach = frappe.db.get_value("File", {"name": a}, ["file_url", "is_private"], as_dict=1)
+			attach = nts.db.get_value("File", {"name": a}, ["file_url", "is_private"], as_dict=1)
 			file_args = {
 				"file_url": attach.file_url,
 				"is_private": attach.is_private,
 			}
 		elif isinstance(a, dict) and "fcontent" in a and "fname" in a:
-			# dict returned by frappe.attach_print()
+			# dict returned by nts.attach_print()
 			file_args = {
 				"file_name": a["fname"],
 				"content": a["fcontent"],
@@ -264,36 +264,36 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 			}
 		)
 
-		_file = frappe.new_doc("File")
+		_file = nts.new_doc("File")
 		_file.update(file_args)
 		_file.save(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=True, methods=("GET",))
+@nts.whitelist(allow_guest=True, methods=("GET",))
 def mark_email_as_seen(name: str | None = None):
-	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
-	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+	nts.request.after_response.add(lambda: _mark_email_as_seen(name))
+	nts.response.update(nts.utils.get_imaginary_pixel_response())
 
 
 def _mark_email_as_seen(name):
 	try:
 		update_communication_as_read(name)
 	except Exception:
-		frappe.log_error("Unable to mark as seen", None, "Communication", name)
+		nts.log_error("Unable to mark as seen", None, "Communication", name)
 
-	frappe.db.commit()  # nosemgrep: after_response requires explicit commit
+	nts.db.commit()  # nosemgrep: after_response requires explicit commit
 
 
 def update_communication_as_read(name):
 	if not name or not isinstance(name, str):
 		return
 
-	communication = frappe.db.get_value("Communication", name, "read_by_recipient", as_dict=True)
+	communication = nts.db.get_value("Communication", name, "read_by_recipient", as_dict=True)
 
 	if not communication or communication.read_by_recipient:
 		return
 
-	frappe.db.set_value(
+	nts.db.set_value(
 		"Communication",
 		name,
 		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": get_datetime()},

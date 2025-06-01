@@ -1,7 +1,7 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class WebsiteRouteMeta(Document):
@@ -11,8 +11,8 @@ class WebsiteRouteMeta(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.website_meta_tag.website_meta_tag import WebsiteMetaTag
+		from nts.types import DF
+		from nts.website.doctype.website_meta_tag.website_meta_tag import WebsiteMetaTag
 
 		meta_tags: DF.Table[WebsiteMetaTag]
 

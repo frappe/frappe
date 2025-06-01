@@ -1,14 +1,14 @@
-frappe.provide("frappe.ui");
-frappe.provide("frappe.web_form");
-import EventEmitterMixin from "../../frappe/event_emitter";
+nts.provide("nts.ui");
+nts.provide("nts.web_form");
+import EventEmitterMixin from "../../nts/event_emitter";
 
-export default class WebForm extends frappe.ui.FieldGroup {
+export default class WebForm extends nts.ui.FieldGroup {
 	constructor(opts) {
 		super();
 		Object.assign(this, opts);
-		frappe.web_form = this;
-		frappe.web_form.events = {};
-		Object.assign(frappe.web_form.events, EventEmitterMixin);
+		nts.web_form = this;
+		nts.web_form.events = {};
+		Object.assign(nts.web_form.events, EventEmitterMixin);
 		this.current_section = 0;
 		this.is_multi_step_form = false;
 	}
@@ -34,9 +34,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.toggle_section();
 
 		// webform client script
-		frappe.init_client_script && frappe.init_client_script();
+		nts.init_client_script && nts.init_client_script();
 		this.setup_listeners();
-		frappe.web_form.events.trigger("after_load");
+		nts.web_form.events.trigger("after_load");
 		this.after_load && this.after_load();
 	}
 
@@ -62,7 +62,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make_form_dirty() {
-		frappe.form_dirty = true;
+		nts.form_dirty = true;
 		$(".indicator-pill.orange").removeClass("hide");
 	}
 
@@ -160,7 +160,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				defaults[df.fieldname] = df.default;
 			}
 		}
-		let values = frappe.utils.get_query_params();
+		let values = nts.utils.get_query_params();
 		delete values.new;
 		Object.assign(defaults, values);
 		this.set_values(values);
@@ -179,8 +179,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// remove new or edit after last / from url
 		path = path.substring(0, path.lastIndexOf("/"));
 
-		if (frappe.form_dirty) {
-			frappe.warn(
+		if (nts.form_dirty) {
+			nts.warn(
 				__("Discard?"),
 				__("Are you sure you want to discard the changes?"),
 				() => (window.location.href = path),
@@ -236,7 +236,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 
 		if (invalid_values.length || errors.length) {
-			frappe.msgprint({
+			nts.msgprint({
 				title: __("Error", null, "Title of error message in web form"),
 				message: message,
 				indicator: "orange",
@@ -279,7 +279,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		for (let i = 0; i <= this.page_breaks.length; i++) {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${nts.utils.icon("tick", "xs")}</div>
 			</div>`).attr({ "data-step-id": i });
 
 			if (i < this.current_section) {
@@ -307,7 +307,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (section + 1 > this.page_breaks.length + 1) return true;
 
 		let _page = $(`${this.get_page(section + 1)}`);
-		let visible_controls = _page.find(".frappe-control:not(.hide-control)");
+		let visible_controls = _page.find(".nts-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
@@ -316,7 +316,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (section - 1 > this.page_breaks.length + 1) return true;
 
 		let _page = $(`${this.get_page(section - 1)}`);
-		let visible_controls = _page.find(".frappe-control:not(.hide-control)");
+		let visible_controls = _page.find(".nts-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
@@ -355,7 +355,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let is_new = this.is_new;
 		let valid = this.validate && this.validate();
 		if (!valid && valid !== undefined) {
-			frappe.msgprint(
+			nts.msgprint(
 				__("Couldn't save, please check the data you have entered"),
 				__("Validation Error")
 			);
@@ -377,11 +377,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// Save
 		window.saving = true;
-		frappe.form_dirty = false;
+		nts.form_dirty = false;
 
-		frappe.call({
+		nts.call({
 			type: "POST",
-			method: "frappe.website.doctype.web_form.web_form.accept",
+			method: "nts.website.doctype.web_form.web_form.accept",
 			args: {
 				data: this.doc,
 				web_form: this.name,
@@ -394,13 +394,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (!response.exc) {
 					// Success
 					this.handle_success(response.message);
-					frappe.web_form.events.trigger("after_save");
+					nts.web_form.events.trigger("after_save");
 					this.after_save && this.after_save();
 					// args doctype and docname added to link doctype in file manager
 					if (is_new && (response.message.attachment || response.message.file)) {
-						frappe.call({
+						nts.call({
 							type: "POST",
-							method: "frappe.handler.upload_file",
+							method: "nts.handler.upload_file",
 							args: {
 								file_url: response.message.attachment || response.message.file,
 								doctype: response.message.doctype,
@@ -432,7 +432,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".success-page").removeClass("hide");
 
 		if (this.success_url) {
-			frappe.utils.setup_timer(5, 0, $(".time"));
+			nts.utils.setup_timer(5, 0, $(".time"));
 			setTimeout(() => {
 				window.location.href = this.success_url;
 			}, 5000);

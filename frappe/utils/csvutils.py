@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import csv
 import json
@@ -6,13 +6,13 @@ from io import StringIO
 
 import requests
 
-import frappe
-from frappe import _, msgprint
-from frappe.utils import cint, comma_or, cstr, flt
+import nts
+from nts import _, msgprint
+from nts.utils import cint, comma_or, cstr, flt
 
 
 def read_csv_content_from_attached_file(doc):
-	fileid = frappe.get_all(
+	fileid = nts.get_all(
 		"File",
 		fields=["name"],
 		filters={"attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
@@ -27,11 +27,11 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		_file = frappe.get_doc("File", fileid)
+		_file = nts.get_doc("File", fileid)
 		fcontent = _file.get_content()
 		return read_csv_content(fcontent)
 	except Exception:
-		frappe.throw(
+		nts.throw(
 			_("Unable to open attached file. Did you export it as CSV?"), title=_("Invalid CSV Format")
 		)
 
@@ -48,12 +48,12 @@ def read_csv_content(fcontent):
 				continue
 
 		if not decoded:
-			frappe.msgprint(
+			nts.msgprint(
 				_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True
 			)
 
 	fcontent = fcontent.encode("utf-8")
-	content = [frappe.safe_decode(line) for line in fcontent.splitlines(True)]
+	content = [nts.safe_decode(line) for line in fcontent.splitlines(True)]
 
 	try:
 		rows = []
@@ -74,20 +74,20 @@ def read_csv_content(fcontent):
 		return rows
 
 	except Exception:
-		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
+		nts.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
 		raise
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def send_csv_to_client(args):
 	if isinstance(args, str):
 		args = json.loads(args)
 
-	args = frappe._dict(args)
+	args = nts._dict(args)
 
-	frappe.response["result"] = cstr(to_csv(args.data))
-	frappe.response["doctype"] = args.filename
-	frappe.response["type"] = "csv"
+	nts.response["result"] = cstr(to_csv(args.data))
+	nts.response["doctype"] = args.filename
+	nts.response["type"] = "csv"
 
 
 def to_csv(data):
@@ -99,9 +99,9 @@ def to_csv(data):
 
 
 def build_csv_response(data, filename):
-	frappe.response["result"] = cstr(to_csv(data))
-	frappe.response["doctype"] = filename
-	frappe.response["type"] = "csv"
+	nts.response["result"] = cstr(to_csv(data))
+	nts.response["doctype"] = filename
+	nts.response["type"] = "csv"
 
 
 class UnicodeWriter:
@@ -119,20 +119,20 @@ class UnicodeWriter:
 
 def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
-	from frappe.utils.dateutils import parse_date
+	from nts.utils.dateutils import parse_date
 
-	doc = frappe.get_doc(d)
+	doc = nts.get_doc(d)
 
 	for key in d:
 		docfield = doc.meta.get_field(key)
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val == "" or val is None):
-				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
+				nts.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype == "Select" and val and docfield.options:
 				if val not in docfield.options.split("\n"):
-					frappe.throw(
+					nts.throw(
 						_("{0} must be one of {1}").format(
 							_(docfield.label, context=docfield.parent), comma_or(docfield.options.split("\n"))
 						)
@@ -148,9 +148,9 @@ def check_record(d):
 
 def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
 	"""import main (non child) document"""
-	if d.get("name") and frappe.db.exists(doctype, d["name"]):
+	if d.get("name") and nts.db.exists(doctype, d["name"]):
 		if overwrite:
-			doc = frappe.get_doc(doctype, d["name"])
+			doc = nts.get_doc(doctype, d["name"])
 			doc.flags.ignore_links = ignore_links
 			doc.update(d)
 			if d.get("docstatus") == 1:
@@ -163,7 +163,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 		else:
 			return "Ignored row (#%d) %s (exists)" % (row_idx + 1, getlink(doctype, d["name"]))
 	else:
-		doc = frappe.get_doc(d)
+		doc = nts.get_doc(d)
 		doc.flags.ignore_links = ignore_links
 		doc.insert()
 
@@ -197,12 +197,12 @@ def get_csv_content_from_google_sheets(url):
 		# if it returns html, it couldn't find the CSV content
 		# because of invalid url or no access
 		if response.text.strip().endswith("</html>"):
-			frappe.throw(
+			nts.throw(
 				_("Google Sheets URL is invalid or not publicly accessible."), title=_("Invalid URL")
 			)
 		return response.content
 	elif response.status_code == 400:
-		frappe.throw(
+		nts.throw(
 			_(
 				'Google Sheets URL must end with "gid={number}". Copy and paste the URL from the browser address bar and try again.'
 			),
@@ -217,7 +217,7 @@ def validate_google_sheets_url(url):
 
 	u = urlparse(url)
 	if u.scheme != "https" or u.netloc != "docs.google.com" or "/spreadsheets/" not in u.path:
-		frappe.throw(
+		nts.throw(
 			_('"{0}" is not a valid Google Sheets URL').format(url),
 			title=_("Invalid URL"),
 		)

@@ -90,7 +90,7 @@ export function create_default_layout(meta, print_format) {
 
 export function get_table_columns(df) {
 	let table_columns = [];
-	let table_fields = frappe.get_meta(df.options).fields;
+	let table_fields = nts.get_meta(df.options).fields;
 	let total_width = 0;
 	for (let tf of table_fields) {
 		if (

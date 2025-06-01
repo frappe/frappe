@@ -1,22 +1,22 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Contact", {
+nts.ui.form.on("Contact", {
 	onload(frm) {
 		frm.email_field = "email_id";
 	},
 	refresh: function (frm) {
 		if (frm.doc.__islocal) {
-			const last_doc = frappe.contacts.get_last_doc(frm);
+			const last_doc = nts.contacts.get_last_doc(frm);
 			if (
-				frappe.dynamic_link &&
-				frappe.dynamic_link.doc &&
-				frappe.dynamic_link.doc.name == last_doc.docname
+				nts.dynamic_link &&
+				nts.dynamic_link.doc &&
+				nts.dynamic_link.doc.name == last_doc.docname
 			) {
 				frm.set_value("links", "");
 				frm.add_child("links", {
-					link_doctype: frappe.dynamic_link.doctype,
-					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname],
+					link_doctype: nts.dynamic_link.doctype,
+					link_name: nts.dynamic_link.doc[nts.dynamic_link.fieldname],
 				});
 			}
 		}
@@ -25,11 +25,11 @@ frappe.ui.form.on("Contact", {
 			!frm.doc.user &&
 			!frm.is_new() &&
 			frm.perm[0].write &&
-			frappe.boot.user.can_create.includes("User")
+			nts.boot.user.can_create.includes("User")
 		) {
 			frm.add_custom_button(__("Invite as User"), function () {
-				return frappe.call({
-					method: "frappe.contacts.doctype.contact.contact.invite_user",
+				return nts.call({
+					method: "nts.contacts.doctype.contact.contact.invite_user",
 					args: {
 						contact: frm.doc.name,
 					},
@@ -41,7 +41,7 @@ frappe.ui.form.on("Contact", {
 		}
 		frm.set_query("link_doctype", "links", function () {
 			return {
-				query: "frappe.contacts.address_and_contact.filter_dynamic_link_doctypes",
+				query: "nts.contacts.address_and_contact.filter_dynamic_link_doctypes",
 				filters: {
 					fieldtype: "HTML",
 					fieldname: "contact_html",
@@ -51,12 +51,12 @@ frappe.ui.form.on("Contact", {
 		frm.refresh_field("links");
 
 		let numbers = frm.doc.phone_nos;
-		if (numbers && numbers.length && frappe.phone_call.handler) {
+		if (numbers && numbers.length && nts.phone_call.handler) {
 			frm.add_custom_button(__("Call"), () => {
 				numbers = frm.doc.phone_nos
 					.sort((prev, next) => next.is_primary_mobile_no - prev.is_primary_mobile_no)
 					.map((d) => d.phone);
-				frappe.phone_call.handler(numbers);
+				nts.phone_call.handler(numbers);
 			});
 		}
 
@@ -66,8 +66,8 @@ frappe.ui.form.on("Contact", {
 			);
 
 			if (filtered_links.length > 0) {
-				frappe.call({
-					method: "frappe.contacts.doctype.contact.contact.address_query",
+				nts.call({
+					method: "nts.contacts.doctype.contact.contact.address_query",
 					args: { links: filtered_links },
 					callback: function (r) {
 						if (r && r.message) {
@@ -87,7 +87,7 @@ frappe.ui.form.on("Contact", {
 				frm.add_custom_button(
 					__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]),
 					function () {
-						frappe.set_route("Form", link.link_doctype, link.link_name);
+						nts.set_route("Form", link.link_doctype, link.link_name);
 					},
 					__("Links")
 				);
@@ -97,7 +97,7 @@ frappe.ui.form.on("Contact", {
 		if (!frm.is_dirty()) {
 			frm.page.add_menu_item(__("Download vCard"), function () {
 				window.open(
-					`/api/method/frappe.contacts.doctype.contact.contact.download_vcard?contact=${encodeURIComponent(
+					`/api/method/nts.contacts.doctype.contact.contact.download_vcard?contact=${encodeURIComponent(
 						frm.doc.name
 					)}`,
 					"_blank"
@@ -109,19 +109,19 @@ frappe.ui.form.on("Contact", {
 		// clear linked customer / supplier / sales partner on saving...
 		if (frm.doc.links) {
 			frm.doc.links.forEach(function (d) {
-				frappe.model.remove_from_locals(d.link_doctype, d.link_name);
+				nts.model.remove_from_locals(d.link_doctype, d.link_name);
 			});
 		}
 	},
 	after_save: function (frm) {
-		frappe.run_serially([
-			() => frappe.timeout(1),
+		nts.run_serially([
+			() => nts.timeout(1),
 			() => {
-				const last_doc = frappe.contacts.get_last_doc(frm);
+				const last_doc = nts.contacts.get_last_doc(frm);
 				if (
-					frappe.dynamic_link &&
-					frappe.dynamic_link.doc &&
-					frappe.dynamic_link.doc.name == last_doc.docname
+					nts.dynamic_link &&
+					nts.dynamic_link.doc &&
+					nts.dynamic_link.doc.name == last_doc.docname
 				) {
 					for (let i in frm.doc.links) {
 						let link = frm.doc.links[i];
@@ -129,7 +129,7 @@ frappe.ui.form.on("Contact", {
 							last_doc.doctype == link.link_doctype &&
 							last_doc.docname == link.link_name
 						) {
-							frappe.set_route("Form", last_doc.doctype, last_doc.docname);
+							nts.set_route("Form", last_doc.doctype, last_doc.docname);
 						}
 					}
 				}
@@ -138,9 +138,9 @@ frappe.ui.form.on("Contact", {
 	},
 	sync_with_google_contacts: function (frm) {
 		if (frm.doc.sync_with_google_contacts) {
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Google Contacts",
-				{ email_id: frappe.session.user },
+				{ email_id: nts.session.user },
 				"name",
 				(r) => {
 					if (r && r.name) {
@@ -152,18 +152,18 @@ frappe.ui.form.on("Contact", {
 	},
 });
 
-frappe.ui.form.on("Dynamic Link", {
+nts.ui.form.on("Dynamic Link", {
 	link_name: function (frm, cdt, cdn) {
 		var child = locals[cdt][cdn];
 		if (child.link_name) {
-			frappe.model.with_doctype(child.link_doctype, function () {
-				var title_field = frappe.get_meta(child.link_doctype).title_field || "name";
-				frappe.model.get_value(
+			nts.model.with_doctype(child.link_doctype, function () {
+				var title_field = nts.get_meta(child.link_doctype).title_field || "name";
+				nts.model.get_value(
 					child.link_doctype,
 					child.link_name,
 					title_field,
 					function (r) {
-						frappe.model.set_value(cdt, cdn, "link_title", r[title_field]);
+						nts.model.set_value(cdt, cdn, "link_title", r[title_field]);
 					}
 				);
 			});

@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.breadcrumbs = {
+nts.breadcrumbs = {
 	all: {},
 
 	preferred: {
@@ -40,16 +40,16 @@ frappe.breadcrumbs = {
 				type: type,
 			};
 		}
-		this.all[frappe.breadcrumbs.current_page()] = obj;
+		this.all[nts.breadcrumbs.current_page()] = obj;
 		this.update();
 	},
 
 	current_page() {
-		return frappe.get_route_str();
+		return nts.get_route_str();
 	},
 
 	update() {
-		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
+		var breadcrumbs = this.all[nts.breadcrumbs.current_page()];
 
 		this.clear();
 		if (!breadcrumbs) return this.toggle(false);
@@ -61,7 +61,7 @@ frappe.breadcrumbs = {
 			this.set_workspace_breadcrumb(breadcrumbs);
 
 			// form / print
-			let view = frappe.get_route()[0];
+			let view = nts.get_route()[0];
 			view = view ? view.toLowerCase() : null;
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
@@ -91,7 +91,7 @@ frappe.breadcrumbs = {
 	},
 
 	get last_route() {
-		return frappe.route_history.slice(-2)[0];
+		return nts.route_history.slice(-2)[0];
 	},
 
 	set_workspace_breadcrumb(breadcrumbs) {
@@ -108,13 +108,13 @@ frappe.breadcrumbs = {
 		if (
 			breadcrumbs.module_info &&
 			(breadcrumbs.module_info.blocked ||
-				!frappe.visible_modules.includes(breadcrumbs.module_info.module))
+				!nts.visible_modules.includes(breadcrumbs.module_info.module))
 		) {
 			return;
 		}
 
 		this.append_breadcrumb_element(
-			`/app/${frappe.router.slug(breadcrumbs.workspace)}`,
+			`/app/${nts.router.slug(breadcrumbs.workspace)}`,
 			__(breadcrumbs.workspace)
 		);
 	},
@@ -139,7 +139,7 @@ frappe.breadcrumbs = {
 
 			if (
 				breadcrumbs.module &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
+				nts.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
 			) {
 				breadcrumbs.workspace = last_workspace;
 				return;
@@ -151,31 +151,31 @@ frappe.breadcrumbs = {
 				breadcrumbs.module = this.module_map[breadcrumbs.module];
 			}
 
-			breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
+			breadcrumbs.module_info = nts.get_module(breadcrumbs.module);
 
 			// set workspace
 			if (
 				breadcrumbs.module_info &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]
+				nts.boot.module_wise_workspaces[breadcrumbs.module]
 			) {
-				breadcrumbs.workspace = frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
+				breadcrumbs.workspace = nts.boot.module_wise_workspaces[breadcrumbs.module][0];
 			}
 		}
 	},
 
 	set_list_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		const doctype_meta = frappe.get_doc("DocType", doctype);
+		const doctype_meta = nts.get_doc("DocType", doctype);
 		if (
-			(doctype === "User" && !frappe.user.has_role("System Manager")) ||
+			(doctype === "User" && !nts.user.has_role("System Manager")) ||
 			doctype_meta?.issingle
 		) {
 			// no user listview for non-system managers and single doctypes
 		} else {
 			let route;
-			const doctype_route = frappe.router.slug(frappe.router.doctype_layout || doctype);
+			const doctype_route = nts.router.slug(nts.router.doctype_layout || doctype);
 			if (doctype_meta?.is_tree) {
-				let view = frappe.model.user_settings[doctype].last_view || "Tree";
+				let view = nts.model.user_settings[doctype].last_view || "Tree";
 				route = `${doctype_route}/view/${view}`;
 			} else {
 				route = doctype_route;
@@ -186,14 +186,14 @@ frappe.breadcrumbs = {
 
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
-		let docname = frappe.get_route().slice(2).join("/");
+		let docname = nts.get_route().slice(2).join("/");
 		let docname_title;
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
 			docname_title = __("New {0}", [__(doctype)]);
 		} else {
 			docname_title = __(docname);
 		}
-		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
+		let form_route = `/app/${nts.router.slug(doctype)}/${encodeURIComponent(docname)}`;
 		this.append_breadcrumb_element(form_route, docname_title);
 
 		if (view === "form") {
@@ -202,21 +202,21 @@ frappe.breadcrumbs = {
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();
-				frappe.utils.copy_to_clipboard(last_crumb.text());
+				nts.utils.copy_to_clipboard(last_crumb.text());
 			});
 		}
 	},
 
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route()[1];
-		let dashboard_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
+		const docname = nts.get_route()[1];
+		let dashboard_route = `/app/${nts.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${dashboard_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
 	},
 
 	setup_modules() {
-		if (!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
+		if (!nts.visible_modules) {
+			nts.visible_modules = $.map(nts.boot.allowed_workspaces, (m) => {
 				return m.module;
 			});
 		}
@@ -226,7 +226,7 @@ frappe.breadcrumbs = {
 		var old_route_str = ["Form", doctype, old_name].join("/");
 		var new_route_str = ["Form", doctype, new_name].join("/");
 		this.all[new_route_str] = this.all[old_route_str];
-		delete frappe.breadcrumbs.all[old_route_str];
+		delete nts.breadcrumbs.all[old_route_str];
 		this.update();
 	},
 

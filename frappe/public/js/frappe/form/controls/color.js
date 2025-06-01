@@ -1,6 +1,6 @@
 import Picker from "../../color_picker/color_picker";
 
-frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlData {
+nts.ui.form.ControlColor = class ControlColor extends nts.ui.form.ControlData {
 	make_input() {
 		this.df.placeholder = this.df.placeholder || __("Choose a color");
 		super.make_input();

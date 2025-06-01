@@ -1,10 +1,10 @@
 import os
 
-import frappe
+import nts
 
 
 def execute():
-	file_names_with_url = frappe.get_all(
+	file_names_with_url = nts.get_all(
 		"File",
 		filters={"is_folder": 0, "file_name": ["like", "%/%"]},
 		fields=["name", "file_name", "file_url"],
@@ -19,7 +19,7 @@ def execute():
 		try:
 			if not file_exists(f.file_url):
 				continue
-			frappe.db.set_value(
+			nts.db.set_value(
 				"File", f.name, {"file_name": filename, "file_url": f.file_url}, update_modified=False
 			)
 		except Exception:
@@ -27,7 +27,7 @@ def execute():
 
 
 def file_exists(file_path):
-	file_path = frappe.utils.get_files_path(
+	file_path = nts.utils.get_files_path(
 		file_path.rsplit("/", 1)[-1], is_private=file_path.startswith("/private")
 	)
 	return os.path.exists(file_path)

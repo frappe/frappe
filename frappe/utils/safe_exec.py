@@ -15,25 +15,25 @@ import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
 
-import frappe
-import frappe.exceptions
-import frappe.integrations.utils
-import frappe.utils
-import frappe.utils.data
-from frappe import _
-from frappe.core.utils import html2text
-from frappe.frappeclient import FrappeClient
-from frappe.handler import execute_cmd
-from frappe.model.delete_doc import delete_doc
-from frappe.model.mapper import get_mapped_doc
-from frappe.model.rename_doc import rename_doc
-from frappe.modules import scrub
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.website.utils import get_next_link, get_toc
-from frappe.www.printview import get_visible_columns
+import nts
+import nts.exceptions
+import nts.integrations.utils
+import nts.utils
+import nts.utils.data
+from nts import _
+from nts.core.utils import html2text
+from nts.ntsclient import ntsClient
+from nts.handler import execute_cmd
+from nts.model.delete_doc import delete_doc
+from nts.model.mapper import get_mapped_doc
+from nts.model.rename_doc import rename_doc
+from nts.modules import scrub
+from nts.utils.background_jobs import enqueue, get_jobs
+from nts.website.utils import get_next_link, get_toc
+from nts.www.printview import get_visible_columns
 
 
-class ServerScriptNotEnabled(frappe.PermissionError):
+class ServerScriptNotEnabled(nts.PermissionError):
 	pass
 
 
@@ -43,7 +43,7 @@ SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
 
-class NamespaceDict(frappe._dict):
+class NamespaceDict(nts._dict):
 	"""Raise AttributeError if function not found in namespace"""
 
 	def __getattr__(self, key):
@@ -57,7 +57,7 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
-class FrappeTransformer(RestrictingNodeTransformer):
+class ntsTransformer(RestrictingNodeTransformer):
 	def check_name(self, node, name, *args, **kwargs):
 		if name == "_dict":
 			return
@@ -65,19 +65,19 @@ class FrappeTransformer(RestrictingNodeTransformer):
 		return super().check_name(node, name, *args, **kwargs)
 
 
-class FrappePrintCollector(PrintCollector):
+class ntsPrintCollector(PrintCollector):
 	"""Collect written text, and return it when called."""
 
 	def _call_print(self, *objects, **kwargs):
 		output = io.StringIO()
 		print(*objects, file=output, **kwargs)
-		frappe.log(output.getvalue().strip())
+		nts.log(output.getvalue().strip())
 		output.close()
 
 
 def is_safe_exec_enabled() -> bool:
 	# server scripts can only be enabled via common_site_config.json
-	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
+	return bool(nts.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
 
 def safe_exec(
@@ -91,8 +91,8 @@ def safe_exec(
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
 		docs_cta = _("Read the documentation to know more")
-		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
-		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
+		msg += f"<br><a href='https://ntsframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		nts.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals
 	exec_globals = get_safe_globals()
@@ -101,18 +101,18 @@ def safe_exec(
 
 	if restrict_commit_rollback:
 		# prevent user from using these in docevents
-		exec_globals.frappe.db.pop("commit", None)
-		exec_globals.frappe.db.pop("rollback", None)
-		exec_globals.frappe.db.pop("add_index", None)
+		exec_globals.nts.db.pop("commit", None)
+		exec_globals.nts.db.pop("rollback", None)
+		exec_globals.nts.db.pop("add_index", None)
 
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
-		filename += f": {frappe.scrub(script_filename)}"
+		filename += f": {nts.scrub(script_filename)}"
 
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
 		exec(
-			compile_restricted(script, filename=filename, policy=FrappeTransformer),
+			compile_restricted(script, filename=filename, policy=ntsTransformer),
 			exec_globals,
 			_locals,
 		)
@@ -134,7 +134,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
 	return eval(
-		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+		compile_restricted(code, filename="<safe_eval>", policy=ntsTransformer, mode="eval"),
 		eval_globals,
 		eval_locals,
 	)
@@ -151,142 +151,142 @@ def _validate_safe_eval_syntax(code):
 
 @contextmanager
 def safe_exec_flags():
-	if not frappe.flags.in_safe_exec:
-		frappe.flags.in_safe_exec = 0
+	if not nts.flags.in_safe_exec:
+		nts.flags.in_safe_exec = 0
 
-	frappe.flags.in_safe_exec += 1
+	nts.flags.in_safe_exec += 1
 
 	try:
 		yield
 	finally:
 		# Always ensure that the flag is decremented
-		frappe.flags.in_safe_exec -= 1
+		nts.flags.in_safe_exec -= 1
 
 
 def get_safe_globals():
-	datautils = frappe._dict()
+	datautils = nts._dict()
 
-	if frappe.db:
-		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
-		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
+	if nts.db:
+		date_format = nts.db.get_default("date_format") or "yyyy-mm-dd"
+		time_format = nts.db.get_default("time_format") or "HH:mm:ss"
 	else:
 		date_format = "yyyy-mm-dd"
 		time_format = "HH:mm:ss"
 
 	add_data_utils(datautils)
 
-	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
+	form_dict = getattr(nts.local, "form_dict", nts._dict())
 
 	if "_" in form_dict:
-		del frappe.local.form_dict["_"]
+		del nts.local.form_dict["_"]
 
-	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+	user = getattr(nts.local, "session", None) and nts.local.session.user or "Guest"
 
 	out = NamespaceDict(
-		# make available limited methods of frappe
+		# make available limited methods of nts
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
-		as_json=frappe.as_json,
+		as_json=nts.as_json,
 		dict=dict,
-		log=frappe.log,
-		_dict=frappe._dict,
+		log=nts.log,
+		_dict=nts._dict,
 		args=form_dict,
-		frappe=NamespaceDict(
+		nts=NamespaceDict(
 			call=call_whitelisted_function,
-			flags=frappe._dict(),
-			format=frappe.format_value,
-			format_value=frappe.format_value,
+			flags=nts._dict(),
+			format=nts.format_value,
+			format_value=nts.format_value,
 			date_format=date_format,
 			time_format=time_format,
-			format_date=frappe.utils.data.global_date_format,
+			format_date=nts.utils.data.global_date_format,
 			form_dict=form_dict,
-			bold=frappe.bold,
-			copy_doc=frappe.copy_doc,
-			errprint=frappe.errprint,
-			qb=frappe.qb,
-			get_meta=frappe.get_meta,
-			new_doc=frappe.new_doc,
-			get_doc=frappe.get_doc,
+			bold=nts.bold,
+			copy_doc=nts.copy_doc,
+			errprint=nts.errprint,
+			qb=nts.qb,
+			get_meta=nts.get_meta,
+			new_doc=nts.new_doc,
+			get_doc=nts.get_doc,
 			get_mapped_doc=get_mapped_doc,
-			get_last_doc=frappe.get_last_doc,
-			get_cached_doc=frappe.get_cached_doc,
-			get_list=frappe.get_list,
-			get_all=frappe.get_all,
-			get_system_settings=frappe.get_system_settings,
+			get_last_doc=nts.get_last_doc,
+			get_cached_doc=nts.get_cached_doc,
+			get_list=nts.get_list,
+			get_all=nts.get_all,
+			get_system_settings=nts.get_system_settings,
 			rename_doc=rename_doc,
 			delete_doc=delete_doc,
 			utils=datautils,
-			get_url=frappe.utils.get_url,
-			render_template=frappe.render_template,
-			msgprint=frappe.msgprint,
-			throw=frappe.throw,
-			sendmail=frappe.sendmail,
-			get_print=frappe.get_print,
-			attach_print=frappe.attach_print,
+			get_url=nts.utils.get_url,
+			render_template=nts.render_template,
+			msgprint=nts.msgprint,
+			throw=nts.throw,
+			sendmail=nts.sendmail,
+			get_print=nts.get_print,
+			attach_print=nts.attach_print,
 			user=user,
-			get_fullname=frappe.utils.get_fullname,
-			get_gravatar=frappe.utils.get_gravatar_url,
-			full_name=frappe.local.session.data.full_name
-			if getattr(frappe.local, "session", None)
+			get_fullname=nts.utils.get_fullname,
+			get_gravatar=nts.utils.get_gravatar_url,
+			full_name=nts.local.session.data.full_name
+			if getattr(nts.local, "session", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
-			session=frappe._dict(
+			request=getattr(nts.local, "request", {}),
+			session=nts._dict(
 				user=user,
-				csrf_token=frappe.local.session.data.csrf_token
-				if getattr(frappe.local, "session", None)
+				csrf_token=nts.local.session.data.csrf_token
+				if getattr(nts.local, "session", None)
 				else "",
 			),
-			make_get_request=frappe.integrations.utils.make_get_request,
-			make_post_request=frappe.integrations.utils.make_post_request,
-			make_put_request=frappe.integrations.utils.make_put_request,
-			make_patch_request=frappe.integrations.utils.make_patch_request,
-			make_delete_request=frappe.integrations.utils.make_delete_request,
-			socketio_port=frappe.conf.socketio_port,
+			make_get_request=nts.integrations.utils.make_get_request,
+			make_post_request=nts.integrations.utils.make_post_request,
+			make_put_request=nts.integrations.utils.make_put_request,
+			make_patch_request=nts.integrations.utils.make_patch_request,
+			make_delete_request=nts.integrations.utils.make_delete_request,
+			socketio_port=nts.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
-			sanitize_html=frappe.utils.sanitize_html,
-			log_error=frappe.log_error,
-			log=frappe.log,
+			sanitize_html=nts.utils.sanitize_html,
+			log_error=nts.log_error,
+			log=nts.log,
 			db=NamespaceDict(
-				get_list=frappe.get_list,
-				get_all=frappe.get_all,
-				get_value=frappe.db.get_value,
-				set_value=frappe.db.set_value,
-				get_single_value=frappe.db.get_single_value,
-				get_default=frappe.db.get_default,
-				exists=frappe.db.exists,
-				count=frappe.db.count,
-				escape=frappe.db.escape,
+				get_list=nts.get_list,
+				get_all=nts.get_all,
+				get_value=nts.db.get_value,
+				set_value=nts.db.set_value,
+				get_single_value=nts.db.get_single_value,
+				get_default=nts.db.get_default,
+				exists=nts.db.exists,
+				count=nts.db.count,
+				escape=nts.db.escape,
 				sql=read_sql,
-				commit=frappe.db.commit,
-				rollback=frappe.db.rollback,
-				after_commit=frappe.db.after_commit,
-				before_commit=frappe.db.before_commit,
-				after_rollback=frappe.db.after_rollback,
-				before_rollback=frappe.db.before_rollback,
-				add_index=frappe.db.add_index,
+				commit=nts.db.commit,
+				rollback=nts.db.rollback,
+				after_commit=nts.db.after_commit,
+				before_commit=nts.db.before_commit,
+				after_rollback=nts.db.after_rollback,
+				before_rollback=nts.db.before_rollback,
+				add_index=nts.db.add_index,
 			),
-			lang=getattr(frappe.local, "lang", "en"),
+			lang=getattr(nts.local, "lang", "en"),
 		),
-		FrappeClient=FrappeClient,
-		style=frappe._dict(border_color="#d1d8dd"),
+		ntsClient=ntsClient,
+		style=nts._dict(border_color="#d1d8dd"),
 		get_toc=get_toc,
 		get_next_link=get_next_link,
-		_=frappe._,
+		_=nts._,
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=frappe.local.dev_server,
+		dev_server=nts.local.dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
 	)
 
 	add_module_properties(
-		frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
+		nts.exceptions, out.nts, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
 	)
 
-	if frappe.response:
-		out.frappe.response = frappe.response
+	if nts.response:
+		out.nts.response = nts.response
 
 	out.update(safe_globals)
 
@@ -296,7 +296,7 @@ def get_safe_globals():
 	out._getattr_ = _getattr_for_safe_exec
 
 	# Allow using `print()` calls with `safe_exec()`
-	out._print_ = FrappePrintCollector
+	out._print_ = ntsPrintCollector
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -360,7 +360,7 @@ def is_job_queued(job_name, queue="default"):
 	:param queue: should be either long, default or short
 	"""
 
-	site = frappe.local.site
+	site = nts.local.site
 	queued_jobs = get_jobs(site=site, queue=queue, key="job_name").get(site)
 	return queued_jobs and job_name in queued_jobs
 
@@ -368,13 +368,13 @@ def is_job_queued(job_name, queue="default"):
 def safe_enqueue(function, **kwargs):
 	"""
 	Enqueue function to be executed using a background worker
-	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
+	Accepts nts.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
 	:param function: whitelisted function or API Method set in Server Script
 	"""
 
-	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
+	return enqueue("nts.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
 
 
 def call_whitelisted_function(function, **kwargs):
@@ -386,32 +386,32 @@ def call_whitelisted_function(function, **kwargs):
 def run_script(script, **kwargs):
 	"""run another server script"""
 
-	return call_with_form_dict(lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs)
+	return call_with_form_dict(lambda: nts.get_doc("Server Script", script).execute_method(), kwargs)
 
 
 def call_with_form_dict(function, kwargs):
 	# temporarily update form_dict, to use inside below call
-	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
+	form_dict = getattr(nts.local, "form_dict", nts._dict())
 	if kwargs:
-		frappe.local.form_dict = form_dict.copy().update(kwargs)
+		nts.local.form_dict = form_dict.copy().update(kwargs)
 
 	try:
 		return function()
 	finally:
-		frappe.local.form_dict = form_dict
+		nts.local.form_dict = form_dict
 
 
 @contextmanager
 def patched_qb():
-	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
+	require_patching = isinstance(nts.qb.terms, types.ModuleType)
 	try:
 		if require_patching:
-			_terms = frappe.qb.terms
-			frappe.qb.terms = _flatten(frappe.qb.terms)
+			_terms = nts.qb.terms
+			nts.qb.terms = _flatten(nts.qb.terms)
 		yield
 	finally:
 		if require_patching:
-			frappe.qb.terms = _terms
+			nts.qb.terms = _terms
 
 
 @lru_cache
@@ -445,15 +445,15 @@ def get_python_builtins():
 
 
 def get_hooks(hook=None, default=None, app_name=None):
-	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
+	hooks = nts.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
 
 
 def read_sql(query, *args, **kwargs):
-	"""a wrapper for frappe.db.sql to allow reads"""
+	"""a wrapper for nts.db.sql to allow reads"""
 	query = str(query)
 	check_safe_sql_query(query)
-	return frappe.db.sql(query, *args, **kwargs)
+	return nts.db.sql(query, *args, **kwargs)
 
 
 def check_safe_sql_query(query: str, throw: bool = True) -> bool:
@@ -468,15 +468,15 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	whitelisted_statements = ("select", "explain")
 
 	if query.startswith(whitelisted_statements) or (
-		query.startswith("with") and frappe.db.db_type == "mariadb"
+		query.startswith("with") and nts.db.db_type == "mariadb"
 	):
 		return True
 
 	if throw:
-		frappe.throw(
+		nts.throw(
 			_("Query must be of SELECT or read-only WITH type."),
 			title=_("Unsafe SQL query"),
-			exc=frappe.PermissionError,
+			exc=nts.PermissionError,
 		)
 
 	return False
@@ -566,7 +566,7 @@ def _write(obj):
 
 
 def add_data_utils(data):
-	for key, obj in frappe.utils.data.__dict__.items():
+	for key, obj in nts.utils.data.__dict__.items():
 		if key in VALID_UTILS:
 			data[key] = obj
 

@@ -27,8 +27,8 @@
 					</button>
 				</div>
 			</div>
-			{% if frappe.form_dict.scope %}
-				<input type="text" hidden name="scope" value="{{ frappe.utils.escape_html(frappe.form_dict.scope) }}">
+			{% if nts.form_dict.scope %}
+				<input type="text" hidden name="scope" value="{{ nts.utils.escape_html(nts.form_dict.scope) }}">
 			{% endif %}
 		</form>
 	</div>

@@ -1,6 +1,6 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["ToDo"] = {
+nts.query_reports["ToDo"] = {
 	filters: [],
 };

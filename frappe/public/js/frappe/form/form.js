@@ -1,5 +1,5 @@
-frappe.provide("frappe.ui.form");
-frappe.provide("frappe.model.docinfo");
+nts.provide("nts.ui.form");
+nts.provide("nts.model.docinfo");
 
 import "./quick_entry";
 import "./toolbar";
@@ -15,13 +15,13 @@ import "./footer/footer";
 import "./form_tour";
 import { UndoManager } from "./undo_manager";
 
-frappe.ui.form.Controller = class FormController {
+nts.ui.form.Controller = class FormController {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
 };
 
-frappe.ui.form.Form = class FrappeForm {
+nts.ui.form.Form = class ntsForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {
 		this.docname = "";
 		this.doctype = doctype;
@@ -34,14 +34,14 @@ frappe.ui.form.Form = class FrappeForm {
 		this.custom_buttons = {};
 		this.sections = [];
 		this.grids = [];
-		this.cscript = new frappe.ui.form.Controller({ frm: this });
+		this.cscript = new nts.ui.form.Controller({ frm: this });
 		this.events = {};
 		this.fetch_dict = {};
 		this.parent = parent;
-		this.doctype_layout = frappe.get_doc("DocType Layout", doctype_layout_name);
+		this.doctype_layout = nts.get_doc("DocType Layout", doctype_layout_name);
 		this.undo_manager = new UndoManager({ frm: this });
 		this.setup_meta(doctype);
-		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
+		this.debounced_reload_doc = nts.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
 			event.preventDefault();
@@ -52,13 +52,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_meta() {
-		this.meta = frappe.get_doc("DocType", this.doctype);
+		this.meta = nts.get_doc("DocType", this.doctype);
 
 		if (this.meta.istable) {
 			this.meta.in_dialog = 1;
 		}
 
-		this.perm = frappe.perm.get_perm(this.doctype); // for create
+		this.perm = nts.perm.get_perm(this.doctype); // for create
 		this.action_perm_type_map = {
 			Create: "create",
 			Save: "write",
@@ -73,7 +73,7 @@ frappe.ui.form.Form = class FrappeForm {
 	setup() {
 		this.fields = [];
 		this.fields_dict = {};
-		this.state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
+		this.state_fieldname = nts.workflow.get_state_fieldname(this.doctype);
 
 		// wrapper
 		this.wrapper = this.parent;
@@ -81,7 +81,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let is_single_column = this.doctype === "DocType" ? true : this.meta.hide_toolbar;
 
-		frappe.ui.make_app_page({
+		nts.ui.make_app_page({
 			parent: this.wrapper,
 			single_column: is_single_column,
 		});
@@ -92,12 +92,12 @@ frappe.ui.form.Form = class FrappeForm {
 			this.script_manager.trigger("on_hide");
 		});
 
-		this.toolbar = new frappe.ui.form.Toolbar({
+		this.toolbar = new nts.ui.form.Toolbar({
 			frm: this,
 			page: this.page,
 		});
 
-		this.viewers = new frappe.ui.form.FormViewers({
+		this.viewers = new nts.ui.form.FormViewers({
 			frm: this,
 			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.page.page_actions),
 		});
@@ -109,19 +109,19 @@ frappe.ui.form.Form = class FrappeForm {
 		this.setup_std_layout();
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
-		this.script_manager = new frappe.ui.form.ScriptManager({
+		this.script_manager = new nts.ui.form.ScriptManager({
 			frm: this,
 		});
 		this.script_manager.setup();
 		this.watch_model_updates();
 
-		if (!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
-			// this.footer_tab = new frappe.ui.form.Tab(this.layout, {
+		if (!this.meta.hide_toolbar && nts.boot.desk_settings.timeline) {
+			// this.footer_tab = new nts.ui.form.Tab(this.layout, {
 			// 	label: __("Activity"),
 			// 	fieldname: 'timeline'
 			// });
 
-			this.footer = new frappe.ui.form.Footer({
+			this.footer = new nts.ui.form.Footer({
 				frm: this,
 				parent: $("<div>").appendTo(this.page.main.parent()),
 			});
@@ -136,7 +136,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_form_keyboard_shortcuts() {
 		// Navigate to next record
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+>",
 			action: () => this.navigate_records(0),
 			page: this.page,
@@ -146,7 +146,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		// Navigate to previous record
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+<",
 			action: () => this.navigate_records(1),
 			page: this.page,
@@ -156,18 +156,18 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		// Alternate for redo, main shortcut are present in toolbar.js
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+z",
 			action: () => this.undo_manager.redo(),
 			page: this.page,
 			description: __("Redo last action"),
 			condition: () => !this.is_form_builder(),
 		});
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "ctrl+p",
 			action: () => this.print_doc(),
 			description: __("Print document"),
-			condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
+			condition: () => nts.model.can_print(this.doctype, this) && !this.meta.issingle,
 		});
 
 		let grid_shortcut_keys = [
@@ -210,7 +210,7 @@ frappe.ui.form.Form = class FrappeForm {
 		];
 
 		grid_shortcut_keys.forEach((row) => {
-			frappe.ui.keys.add_shortcut({
+			nts.ui.keys.add_shortcut({
 				shortcut: row.shortcut,
 				page: this.page,
 				description: __(row.description),
@@ -228,7 +228,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.meta.section_style = "Simple"; // always simple!
 
 		// layout
-		this.layout = new frappe.ui.form.Layout({
+		this.layout = new nts.ui.form.Layout({
 			parent: this.body,
 			doctype: this.doctype,
 			doctype_layout: this.doctype_layout,
@@ -261,14 +261,14 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.wrapper.find(".form-page").prepend(dashboard_parent);
 		}
 
-		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
+		this.dashboard = new nts.ui.form.Dashboard(dashboard_parent, this);
 
-		this.tour = new frappe.ui.form.FormTour({
+		this.tour = new nts.ui.form.FormTour({
 			frm: this,
 		});
 
 		// workflow state
-		this.states = new frappe.ui.form.States({
+		this.states = new nts.ui.form.States({
 			frm: this,
 		});
 	}
@@ -278,7 +278,7 @@ frappe.ui.form.Form = class FrappeForm {
 		var me = this;
 
 		// on main doc
-		frappe.model.on(
+		nts.model.on(
 			me.doctype,
 			"*",
 			function (fieldname, value, doc, skip_dirty_trigger = false) {
@@ -305,13 +305,13 @@ frappe.ui.form.Form = class FrappeForm {
 		);
 
 		// on table fields
-		var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
-			fieldtype: ["in", frappe.model.table_fields],
+		var table_fields = nts.get_children("DocType", me.doctype, "fields", {
+			fieldtype: ["in", nts.model.table_fields],
 		});
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function (i, df) {
-			frappe.model.on(df.options, "*", function (fieldname, value, doc) {
+			nts.model.on(df.options, "*", function (fieldname, value, doc) {
 				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
 					me.dirty();
 					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
@@ -339,11 +339,11 @@ frappe.ui.form.Form = class FrappeForm {
 			e.preventDefault();
 
 			if (me.doc.__islocal) {
-				frappe.msgprint(__("Please save before attaching."));
+				nts.msgprint(__("Please save before attaching."));
 				throw "attach error";
 			}
 
-			new frappe.ui.FileUploader({
+			new nts.ui.FileUploader({
 				doctype: me.doctype,
 				docname: me.docname,
 				frm: me,
@@ -362,7 +362,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.set_df_property(field.df.fieldname, "autocompletions", () => {
 					let attachments = this.attachments.get_attachments();
 					return attachments
-						.filter((file) => frappe.utils.is_image_file(file.file_url))
+						.filter((file) => nts.utils.is_image_file(file.file_url))
 						.map((file) => {
 							return {
 								caption: "image: " + file.file_name,
@@ -394,12 +394,12 @@ frappe.ui.form.Form = class FrappeForm {
 			// document to show
 			this.save_disabled = false;
 			// set the doc
-			this.doc = frappe.get_doc(this.doctype, this.docname);
+			this.doc = nts.get_doc(this.doctype, this.docname);
 
 			// check permissions
 			this.fetch_permissions();
 			if (!this.has_read_permission()) {
-				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
+				nts.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
 
@@ -409,7 +409,7 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 
 			// read only (workflow)
-			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
+			this.read_only = nts.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
 				this.set_read_only();
 			}
@@ -448,7 +448,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.show_conflict_message();
 			this.show_submission_queue_banner();
 
-			if (frappe.boot.read_only) {
+			if (nts.boot.read_only) {
 				this.disable_form();
 			}
 		}
@@ -459,7 +459,7 @@ frappe.ui.form.Form = class FrappeForm {
 	setup_doctype_actions() {
 		if (this.meta.actions) {
 			for (let action of this.meta.actions) {
-				frappe.ui.form.on(this.doctype, "refresh", () => {
+				nts.ui.form.on(this.doctype, "refresh", () => {
 					if (!this.is_new()) {
 						if (!action.hidden) {
 							this.add_custom_button(
@@ -488,26 +488,26 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			if (typeof action === "string") {
-				frappe.throw(`Action ${action} not found`);
+				nts.throw(`Action ${action} not found`);
 			}
 		}
 		if (action.action_type === "Server Action") {
-			return frappe.xcall(action.action, { doc: this.doc }).then((doc) => {
+			return nts.xcall(action.action, { doc: this.doc }).then((doc) => {
 				if (doc.doctype) {
 					// document is returned by the method,
 					// apply the changes locally and refresh
-					frappe.model.sync(doc);
+					nts.model.sync(doc);
 					this.refresh();
 				}
 
 				// feedback
-				frappe.msgprint({
+				nts.msgprint({
 					message: __("{} Complete", [__(action.label)]),
 					alert: true,
 				});
 			});
 		} else if (action.action_type === "Route") {
-			return frappe.set_route(action.action);
+			return nts.set_route(action.action);
 		}
 	}
 
@@ -518,7 +518,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// reset page number to 1
 			grid_obj.grid.grid_pagination.go_to_page(1, true);
 		});
-		frappe.ui.form.close_grid_form();
+		nts.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
 		this.setup_docinfo_change_listener();
@@ -565,11 +565,11 @@ frappe.ui.form.Form = class FrappeForm {
 			me.opendocs[me.docname] = true;
 			me.render_form();
 
-			frappe.after_ajax(function () {
+			nts.after_ajax(function () {
 				me.trigger_link_fields();
 			});
 
-			frappe.breadcrumbs.add(me.meta.module, me.doctype);
+			nts.breadcrumbs.add(me.meta.module, me.doctype);
 		});
 
 		// update seen
@@ -583,8 +583,8 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.doc = this.doc;
 			this.layout.attach_doc_and_docfields();
 
-			if (frappe.boot.desk_settings.form_sidebar) {
-				this.sidebar = new frappe.ui.form.Sidebar({
+			if (nts.boot.desk_settings.form_sidebar) {
+				this.sidebar = new nts.ui.form.Sidebar({
 					frm: this,
 					page: this.page,
 				});
@@ -594,7 +594,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// clear layout message
 			this.layout.show_message();
 
-			frappe.run_serially([
+			nts.run_serially([
 				// header must be refreshed before client methods
 				// because add_custom_button
 				() => this.refresh_header(switched),
@@ -622,7 +622,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.$wrapper.trigger("render_complete");
 
-		frappe.after_ajax(() => {
+		nts.after_ajax(() => {
 			$(document).ready(() => {
 				this.scroll_to_element();
 			});
@@ -649,9 +649,9 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	run_after_load_hook() {
-		if (frappe.route_hooks.after_load) {
-			let route_callback = frappe.route_hooks.after_load;
-			delete frappe.route_hooks.after_load;
+		if (nts.route_hooks.after_load) {
+			let route_callback = nts.route_hooks.after_load;
+			delete nts.route_hooks.after_load;
 
 			route_callback(this);
 		}
@@ -705,7 +705,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// set title
 		// main title
 		if (!this.meta.in_dialog || this.in_form) {
-			frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
+			nts.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 		}
 
 		// show / hide buttons
@@ -718,7 +718,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
-		frappe.breadcrumbs.update();
+		nts.breadcrumbs.update();
 
 		this.show_submit_message();
 		this.clear_custom_buttons();
@@ -742,7 +742,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let me = this;
 		return new Promise((resolve, reject) => {
 			btn && $(btn).prop("disabled", true);
-			frappe.ui.form.close_grid_form();
+			nts.ui.form.close_grid_form();
 			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
 			.then(() => {
@@ -763,14 +763,14 @@ frappe.ui.form.Form = class FrappeForm {
 			history.replaceState(null, null, " ");
 			if (!r.exc) {
 				if (["Save", "Update", "Amend"].indexOf(save_action) !== -1) {
-					frappe.utils.play_sound("click");
+					nts.utils.play_sound("click");
 				}
 
 				me.script_manager.trigger("after_save");
 
-				if (frappe.route_hooks.after_save) {
-					let route_callback = frappe.route_hooks.after_save;
-					delete frappe.route_hooks.after_save;
+				if (nts.route_hooks.after_save) {
+					let route_callback = nts.route_hooks.after_save;
+					delete nts.route_hooks.after_save;
 
 					route_callback(me);
 				}
@@ -802,23 +802,23 @@ frappe.ui.form.Form = class FrappeForm {
 
 		if (save_action != "Update") {
 			// validate
-			frappe.validated = true;
-			frappe
+			nts.validated = true;
+			nts
 				.run_serially([
 					() => this.script_manager.trigger("validate"),
 					() => this.script_manager.trigger("before_save"),
 					() => {
-						if (!frappe.validated) {
+						if (!nts.validated) {
 							fail();
 							return;
 						}
 
-						frappe.ui.form.save(me, save_action, after_save, btn);
+						nts.ui.form.save(me, save_action, after_save, btn);
 					},
 				])
 				.catch(fail);
 		} else {
-			frappe.ui.form.save(me, save_action, after_save, btn);
+			nts.ui.form.save(me, save_action, after_save, btn);
 		}
 	}
 
@@ -826,12 +826,12 @@ frappe.ui.form.Form = class FrappeForm {
 		var me = this;
 		return new Promise((resolve) => {
 			this.validate_form_action("Submit");
-			frappe.confirm(
+			nts.confirm(
 				__("Permanently Submit {0}?", [this.docname]),
 				function () {
-					frappe.validated = true;
+					nts.validated = true;
 					me.script_manager.trigger("before_submit").then(function () {
-						if (!frappe.validated) {
+						if (!nts.validated) {
 							return me.handle_save_fail(btn, on_error);
 						}
 
@@ -841,16 +841,16 @@ frappe.ui.form.Form = class FrappeForm {
 								if (r.exc) {
 									me.handle_save_fail(btn, on_error);
 								} else {
-									frappe.utils.play_sound("submit");
+									nts.utils.play_sound("submit");
 									callback && callback();
 									me.script_manager
 										.trigger("on_submit")
 										.then(() => resolve(me))
 										.then(() => {
-											if (frappe.route_hooks.after_submit) {
+											if (nts.route_hooks.after_submit) {
 												let route_callback =
-													frappe.route_hooks.after_submit;
-												delete frappe.route_hooks.after_submit;
+													nts.route_hooks.after_submit;
+												delete nts.route_hooks.after_submit;
 												route_callback(me);
 											}
 										});
@@ -871,9 +871,9 @@ frappe.ui.form.Form = class FrappeForm {
 		const me = this;
 		this.validate_form_action("Cancel");
 		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
-		frappe
+		nts
 			.call({
-				method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
+				method: "nts.desk.form.linked_with.get_submitted_linked_docs",
 				args: {
 					doctype: me.doc.doctype,
 					name: me.doc.name,
@@ -909,7 +909,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
 				let docnames = links
 					.filter((link) => link.doctype == doctype)
-					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+					.map((link) => nts.utils.get_form_link(link.doctype, link.name, true))
 					.join(", ");
 				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
 			}
@@ -922,7 +922,7 @@ frappe.ui.form.Form = class FrappeForm {
 			links_text,
 		]);
 
-		let can_cancel = links.every((link) => frappe.model.can_cancel(link.doctype));
+		let can_cancel = links.every((link) => nts.model.can_cancel(link.doctype));
 		if (can_cancel) {
 			confirm_message += __("Do you want to cancel all linked documents?");
 		} else {
@@ -930,13 +930,13 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// generate dialog box to cancel all linked docs
-		let d = new frappe.ui.Dialog(
+		let d = new nts.ui.Dialog(
 			{
 				title: __("Cancel All Documents"),
 				fields: [
 					{
 						fieldtype: "HTML",
-						options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
+						options: `<p class="nts-confirm-message">${confirm_message}</p>`,
 					},
 				],
 			},
@@ -947,8 +947,8 @@ frappe.ui.form.Form = class FrappeForm {
 		if (can_cancel) {
 			d.set_primary_action(__("Cancel All"), () => {
 				d.hide();
-				frappe.call({
-					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+				nts.call({
+					method: "nts.desk.form.linked_with.cancel_all_linked_docs",
 					args: {
 						docs: links,
 						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
@@ -970,9 +970,9 @@ frappe.ui.form.Form = class FrappeForm {
 	_cancel(btn, callback, on_error, skip_confirm) {
 		const me = this;
 		const cancel_doc = () => {
-			frappe.validated = true;
+			nts.validated = true;
 			me.script_manager.trigger("before_cancel").then(() => {
-				if (!frappe.validated) {
+				if (!nts.validated) {
 					return me.handle_save_fail(btn, on_error);
 				}
 
@@ -980,20 +980,20 @@ frappe.ui.form.Form = class FrappeForm {
 					if (r.exc) {
 						me.handle_save_fail(btn, on_error);
 					} else {
-						frappe.utils.play_sound("cancel");
+						nts.utils.play_sound("cancel");
 						me.refresh();
 						callback && callback();
 						me.script_manager.trigger("after_cancel");
 					}
 				};
-				frappe.ui.form.save(me, "cancel", after_cancel, btn);
+				nts.ui.form.save(me, "cancel", after_cancel, btn);
 			});
 		};
 
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(
+			nts.confirm(
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
 				me.handle_save_fail(btn, on_error)
@@ -1003,25 +1003,25 @@ frappe.ui.form.Form = class FrappeForm {
 
 	savetrash() {
 		this.validate_form_action("Delete");
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
+		nts.model.delete_doc(this.doctype, this.docname, function () {
 			window.history.back();
 		});
 	}
 
 	amend_doc() {
 		if (!this.fields_dict["amended_from"]) {
-			frappe.msgprint(__('"amended_from" field must be present to do an amendment.'));
+			nts.msgprint(__('"amended_from" field must be present to do an amendment.'));
 			return;
 		}
 
-		frappe
-			.xcall("frappe.client.is_document_amended", {
+		nts
+			.xcall("nts.client.is_document_amended", {
 				doctype: this.doc.doctype,
 				docname: this.doc.name,
 			})
 			.then((is_amended) => {
 				if (is_amended) {
-					frappe.throw(
+					nts.throw(
 						__("This document is already amended, you cannot ammend it again")
 					);
 				}
@@ -1030,25 +1030,25 @@ frappe.ui.form.Form = class FrappeForm {
 				var fn = function (newdoc) {
 					newdoc.amended_from = me.docname;
 					if (me.fields_dict && me.fields_dict["amendment_date"])
-						newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
+						newdoc.amendment_date = nts.datetime.obj_to_str(new Date());
 				};
 				this.copy_doc(fn, 1);
-				frappe.utils.play_sound("click");
+				nts.utils.play_sound("click");
 			});
 	}
 
 	validate_form_action(action, resolve) {
 		var perm_to_check = this.action_perm_type_map[action];
 		var allowed_for_workflow = false;
-		var perms = frappe.perm.get_perm(this.doc.doctype)[0];
+		var perms = nts.perm.get_perm(this.doc.doctype)[0];
 
 		// Allow submit, write, cancel and create permissions for read only documents that are assigned by
 		// workflows if the user already have those permissions. This is to allow for users to
 		// continue through the workflow states and to allow execution of functions like Duplicate.
 		if (
-			(frappe.workflow.is_read_only(this.doctype, this.docname) &&
+			(nts.workflow.is_read_only(this.doctype, this.docname) &&
 				(perms["write"] || perms["create"] || perms["submit"] || perms["cancel"])) ||
-			!frappe.workflow.is_read_only(this.doctype, this.docname)
+			!nts.workflow.is_read_only(this.doctype, this.docname)
 		) {
 			allowed_for_workflow = true;
 		}
@@ -1059,7 +1059,7 @@ frappe.ui.form.Form = class FrappeForm {
 				resolve();
 			}
 
-			frappe.throw(
+			nts.throw(
 				__(
 					"No permission to '{0}' {1}",
 					[__(action), __(this.doc.doctype)],
@@ -1138,7 +1138,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.perm[0].submit &&
 			!this.is_dirty() &&
 			!this.is_new() &&
-			!frappe.model.has_workflow(this.doctype) && // show only if no workflow
+			!nts.model.has_workflow(this.doctype) && // show only if no workflow
 			this.doc.docstatus === 0
 		) {
 			this.dashboard.add_comment(__("Submit this document to confirm"), "blue", true);
@@ -1164,7 +1164,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	fetch_permissions() {
 		let dt = this.parent_doctype ? this.parent_doctype : this.doctype;
-		this.perm = frappe.perm.get_perm(dt, this.doc);
+		this.perm = nts.perm.get_perm(dt, this.doc);
 	}
 
 	has_read_permission() {
@@ -1176,15 +1176,15 @@ frappe.ui.form.Form = class FrappeForm {
 
 	check_doctype_conflict(docname) {
 		if (this.doctype == "DocType" && docname == "DocType") {
-			frappe.msgprint(__("Allowing DocType, DocType. Be careful!"));
+			nts.msgprint(__("Allowing DocType, DocType. Be careful!"));
 		} else if (this.doctype == "DocType") {
-			if (frappe.views.formview[docname] || frappe.pages["List/" + docname]) {
+			if (nts.views.formview[docname] || nts.pages["List/" + docname]) {
 				window.location.reload();
 			}
 		} else {
 			if (
-				frappe.views.formview.DocType &&
-				frappe.views.formview.DocType.frm.opendocs[this.doctype]
+				nts.views.formview.DocType &&
+				nts.views.formview.DocType.frm.opendocs[this.doctype]
 			) {
 				window.location.reload();
 			}
@@ -1201,10 +1201,10 @@ frappe.ui.form.Form = class FrappeForm {
 		else return;
 
 		// cleanup
-		if (this && this.opendocs[old] && frappe.meta.docfield_copy[dt]) {
+		if (this && this.opendocs[old] && nts.meta.docfield_copy[dt]) {
 			// delete docfield copy
-			frappe.meta.docfield_copy[dt][name] = frappe.meta.docfield_copy[dt][old];
-			delete frappe.meta.docfield_copy[dt][old];
+			nts.meta.docfield_copy[dt][name] = nts.meta.docfield_copy[dt][old];
+			delete nts.meta.docfield_copy[dt][old];
 		}
 
 		delete this.opendocs[old];
@@ -1214,17 +1214,17 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 
-		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(
-			frappe.router.slug(this.doctype)
+		nts.re_route[nts.router.get_sub_path()] = `${encodeURIComponent(
+			nts.router.slug(this.doctype)
 		)}/${encodeURIComponent(name)}`;
-		!frappe._from_link && frappe.set_route("Form", this.doctype, name);
+		!nts._from_link && nts.set_route("Form", this.doctype, name);
 	}
 
 	// ACTIONS
 
 	print_doc() {
 		if (this.is_dirty()) {
-			frappe.toast({
+			nts.toast({
 				message: __(
 					"This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
 				),
@@ -1232,21 +1232,21 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		}
 
-		frappe.route_options = {
+		nts.route_options = {
 			frm: this,
 		};
-		frappe.set_route("print", this.doctype, this.doc.name);
+		nts.set_route("print", this.doctype, this.doc.name);
 	}
 
 	navigate_records(prev) {
 		let filters, sort_field, sort_order;
-		let list_view = frappe.get_list_view(this.doctype);
+		let list_view = nts.get_list_view(this.doctype);
 		if (list_view) {
 			filters = list_view.get_filters_for_args();
 			sort_field = list_view.sort_by;
 			sort_order = list_view.sort_order;
 		} else {
-			let list_settings = frappe.get_user_settings(this.doctype)["List"];
+			let list_settings = nts.get_user_settings(this.doctype)["List"];
 			if (list_settings) {
 				filters = list_settings.filters;
 				sort_field = list_settings.sort_by;
@@ -1263,16 +1263,16 @@ frappe.ui.form.Form = class FrappeForm {
 			prev,
 		};
 
-		frappe.call("frappe.desk.form.utils.get_next", args).then((r) => {
+		nts.call("nts.desk.form.utils.get_next", args).then((r) => {
 			if (r.message) {
-				frappe.set_route("Form", this.doctype, r.message);
+				nts.set_route("Form", this.doctype, r.message);
 				this.focus_on_first_input();
 			}
 		});
 	}
 
 	rename_doc() {
-		frappe.model.rename_doc(this.doctype, this.docname, () => this.refresh_header());
+		nts.model.rename_doc(this.doctype, this.docname, () => this.refresh_header());
 	}
 
 	share_doc() {
@@ -1280,7 +1280,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	email_doc(message) {
-		new frappe.views.CommunicationComposer({
+		new nts.views.CommunicationComposer({
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,
@@ -1292,22 +1292,22 @@ frappe.ui.form.Form = class FrappeForm {
 
 	copy_doc(onload, from_amend) {
 		this.validate_form_action("Create");
-		var newdoc = frappe.model.copy_doc(this.doc, from_amend);
+		var newdoc = nts.model.copy_doc(this.doc, from_amend);
 
 		newdoc.idx = null;
 		newdoc.__run_link_triggers = false;
 		if (onload) {
 			onload(newdoc);
 		}
-		frappe.set_route("Form", newdoc.doctype, newdoc.name);
+		nts.set_route("Form", newdoc.doctype, newdoc.name);
 	}
 
 	reload_doc() {
 		this.check_doctype_conflict(this.docname);
 
 		if (!this.doc.__islocal) {
-			frappe.model.remove_from_locals(this.doctype, this.docname);
-			return frappe.model.with_doc(this.doctype, this.docname, () => {
+			nts.model.remove_from_locals(this.doctype, this.docname);
+			return nts.model.with_doc(this.doctype, this.docname, () => {
 				this.refresh();
 			});
 		}
@@ -1342,19 +1342,19 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	has_perm(ptype) {
-		return frappe.perm.has_perm(this.doctype, 0, ptype, this.doc);
+		return nts.perm.has_perm(this.doctype, 0, ptype, this.doc);
 	}
 
 	dirty() {
 		this.doc.__unsaved = 1;
 		this.$wrapper.trigger("dirty");
-		if (!frappe.boot.developer_mode) {
+		if (!nts.boot.developer_mode) {
 			addEventListener("beforeunload", this.beforeUnloadListener, { capture: true });
 		}
 	}
 
 	get_docinfo() {
-		return frappe.model.docinfo[this.doctype][this.docname];
+		return nts.model.docinfo[this.doctype][this.docname];
 	}
 
 	is_dirty() {
@@ -1381,7 +1381,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_footnote(txt) {
-		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
+		this.footnote_area = nts.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
 	add_custom_button(label, fn, group) {
@@ -1417,9 +1417,9 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	scroll_to_element() {
-		if (frappe.route_options && frappe.route_options.scroll_to) {
-			var scroll_to = frappe.route_options.scroll_to;
-			delete frappe.route_options.scroll_to;
+		if (nts.route_options && nts.route_options.scroll_to) {
+			var scroll_to = nts.route_options.scroll_to;
+			delete nts.route_options.scroll_to;
 
 			var selector = [];
 			for (var key in scroll_to) {
@@ -1429,11 +1429,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 			selector = $(selector.join(" "));
 			if (selector.length) {
-				frappe.utils.scroll_to(selector);
+				nts.utils.scroll_to(selector);
 			}
 		} else if (window.location.hash) {
 			if ($(window.location.hash).length) {
-				frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+				nts.utils.scroll_to(window.location.hash, true, 200, null, null, true);
 			} else {
 				this.scroll_to_field(window.location.hash.replace("#", "")) &&
 					history.replaceState(null, null, " ");
@@ -1442,11 +1442,11 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	show_success_action() {
-		const route = frappe.get_route();
+		const route = nts.get_route();
 		if (route[0] !== "Form") return;
 		if (this.meta.is_submittable && this.doc.docstatus !== 1) return;
 
-		const success_action = new frappe.ui.form.SuccessAction(this);
+		const success_action = new nts.ui.form.SuccessAction(this);
 		success_action.show();
 	}
 
@@ -1464,7 +1464,7 @@ frappe.ui.form.Form = class FrappeForm {
 		var grid_field_label_map = {};
 
 		$.each(fields_list, function (i, fname) {
-			var docfield = frappe.meta.docfield_map[doctype][fname];
+			var docfield = nts.meta.docfield_map[doctype][fname];
 			if (docfield) {
 				var label = __(docfield.label || "", null, docfield.parent).replace(
 					/\([^\)]*\)/g,
@@ -1499,7 +1499,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		for (var i = 0, l = fnames.length; i < l; i++) {
 			var fieldname = fnames[i];
-			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
+			var field = nts.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if (field) {
 				fn(field);
 				this.refresh_field(fieldname);
@@ -1511,10 +1511,10 @@ frappe.ui.form.Form = class FrappeForm {
 		if (fieldname2) {
 			// for child
 			var doctype = this.get_docfield(fieldname1).options;
-			return frappe.meta.get_docfield(doctype, fieldname2, this.docname);
+			return nts.meta.get_docfield(doctype, fieldname2, this.docname);
 		} else {
 			// for parent
-			return frappe.meta.get_docfield(this.doctype, fieldname1, this.docname);
+			return nts.meta.get_docfield(this.doctype, fieldname1, this.docname);
 		}
 	}
 
@@ -1525,11 +1525,11 @@ frappe.ui.form.Form = class FrappeForm {
 			df = this.get_docfield(fieldname);
 		} else {
 			const grid = this.fields_dict[fieldname].grid;
-			const filtered_fields = frappe.utils.filter_dict(grid.docfields, {
+			const filtered_fields = nts.utils.filter_dict(grid.docfields, {
 				fieldname: table_field,
 			});
 			if (filtered_fields.length) {
-				df = frappe.meta.get_docfield(
+				df = nts.meta.get_docfield(
 					filtered_fields[0].parent,
 					table_field,
 					table_row_name
@@ -1572,7 +1572,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	get_files() {
 		return this.attachments
-			? frappe.utils.sort(this.attachments.get_attachments(), "file_name", "string")
+			? nts.utils.sort(this.attachments.get_attachments(), "file_name", "string")
 			: [];
 	}
 
@@ -1591,13 +1591,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	clear_table(fieldname) {
-		frappe.model.clear_table(this.doc, fieldname);
+		nts.model.clear_table(this.doc, fieldname);
 	}
 
 	add_child(fieldname, values) {
-		var doc = frappe.model.add_child(
+		var doc = nts.model.add_child(
 			this.doc,
-			frappe.meta.get_docfield(this.doctype, fieldname).options,
+			nts.meta.get_docfield(this.doctype, fieldname).options,
 			fieldname
 		);
 		if (values) {
@@ -1621,20 +1621,20 @@ frappe.ui.form.Form = class FrappeForm {
 		var _set = function (f, v) {
 			var fieldobj = me.fields_dict[f];
 			if (fieldobj) {
-				if (!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
+				if (!if_missing || !nts.model.has_value(me.doctype, me.doc.name, f)) {
 					if (
-						frappe.model.table_fields.includes(fieldobj.df.fieldtype) &&
+						nts.model.table_fields.includes(fieldobj.df.fieldtype) &&
 						$.isArray(v)
 					) {
 						// set entire child table from specified array as value
-						frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
+						nts.model.clear_table(me.doc, fieldobj.df.fieldname);
 
 						const standard_fields = [
-							...frappe.model.std_fields_list,
-							...frappe.model.child_table_field_list,
+							...nts.model.std_fields_list,
+							...nts.model.child_table_field_list,
 						];
 						v.forEach((d, idx) => {
-							let child = frappe.model.add_child(
+							let child = nts.model.add_child(
 								me.doc,
 								fieldobj.df.options,
 								fieldobj.df.fieldname,
@@ -1652,7 +1652,7 @@ frappe.ui.form.Form = class FrappeForm {
 						me.refresh_field(f);
 						return Promise.resolve();
 					} else {
-						return frappe.model.set_value(
+						return nts.model.set_value(
 							me.doctype,
 							me.doc.name,
 							f,
@@ -1663,7 +1663,7 @@ frappe.ui.form.Form = class FrappeForm {
 					}
 				}
 			} else {
-				frappe.msgprint(__("Field {0} not found.", [f]));
+				nts.msgprint(__("Field {0} not found.", [f]));
 				throw "frm.set_value";
 			}
 		};
@@ -1678,7 +1678,7 @@ frappe.ui.form.Form = class FrappeForm {
 					tasks.push(() => _set(f, v));
 				}
 			}
-			return frappe.run_serially(tasks);
+			return nts.run_serially(tasks);
 		}
 	}
 
@@ -1695,7 +1695,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		if (!opts.doc) {
 			if (opts.method.indexOf(".") === -1)
-				opts.method = frappe.model.get_server_module_name(me.doctype) + "." + opts.method;
+				opts.method = nts.model.get_server_module_name(me.doctype) + "." + opts.method;
 			opts.original_callback = opts.callback;
 			opts.callback = function (r) {
 				if ($.isPlainObject(r.message)) {
@@ -1705,8 +1705,8 @@ frappe.ui.form.Form = class FrappeForm {
 						// if child row is deleted, don't update
 						if (opts.child) {
 							var std_field_list = ["doctype"]
-								.concat(frappe.model.std_fields_list)
-								.concat(frappe.model.child_table_field_list);
+								.concat(nts.model.std_fields_list)
+								.concat(nts.model.child_table_field_list);
 							for (var key in r.message) {
 								if (std_field_list.indexOf(key) === -1) {
 									opts.child[key] = r.message[key];
@@ -1730,7 +1730,7 @@ frappe.ui.form.Form = class FrappeForm {
 				opts.original_callback && opts.original_callback(r);
 			};
 		}
-		return frappe.call(opts);
+		return nts.call(opts);
 	}
 
 	get_field(field) {
@@ -1738,7 +1738,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_read_only() {
-		const docperms = frappe.perm.get_perm(this.doc.doctype);
+		const docperms = nts.perm.get_perm(this.doc.doctype);
 		this.perm = docperms.map((p) => {
 			return {
 				read: p.read,
@@ -1755,16 +1755,16 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	get_formatted(fieldname) {
-		return frappe.format(
+		return nts.format(
 			this.doc[fieldname],
-			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
+			nts.meta.get_docfield(this.doctype, fieldname, this.docname),
 			{ no_icon: true },
 			this.doc
 		);
 	}
 
 	open_grid_row() {
-		return frappe.ui.form.get_open_grid_form();
+		return nts.ui.form.get_open_grid_form();
 	}
 
 	get_title() {
@@ -1779,7 +1779,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// returns list of children that are selected. returns [parentfield, name] for each
 		var selected = {},
 			me = this;
-		frappe.meta.get_table_fields(this.doctype).forEach(function (df) {
+		nts.meta.get_table_fields(this.doctype).forEach(function (df) {
 			// handle TableMultiselect child fields
 			let _selected = [];
 
@@ -1797,11 +1797,11 @@ frappe.ui.form.Form = class FrappeForm {
 	set_indicator_formatter(fieldname, get_color, get_text) {
 		// get doctype from parent
 		var doctype;
-		if (frappe.meta.docfield_map[this.doctype][fieldname]) {
+		if (nts.meta.docfield_map[this.doctype][fieldname]) {
 			doctype = this.doctype;
 		} else {
-			frappe.meta.get_table_fields(this.doctype).every(function (df) {
-				if (frappe.meta.docfield_map[df.options][fieldname]) {
+			nts.meta.get_table_fields(this.doctype).every(function (df) {
+				if (nts.meta.docfield_map[df.options][fieldname]) {
 					doctype = df.options;
 					return false;
 				} else {
@@ -1810,7 +1810,7 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		}
 
-		frappe.meta.docfield_map[doctype][fieldname].formatter = function (
+		nts.meta.docfield_map[doctype][fieldname].formatter = function (
 			value,
 			df,
 			options,
@@ -1820,8 +1820,8 @@ frappe.ui.form.Form = class FrappeForm {
 				var label;
 				if (get_text) {
 					label = get_text(doc);
-				} else if (frappe.form.link_formatters[df.options]) {
-					label = frappe.form.link_formatters[df.options](value, doc, df);
+				} else if (nts.form.link_formatters[df.options]) {
+					label = nts.form.link_formatters[df.options](value, doc, df);
 				} else {
 					label = value;
 				}
@@ -1830,9 +1830,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				return `
 						<a class="indicator ${get_color(doc || {})}"
-							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
+							href="/app/${nts.router.slug(df.options)}/${escaped_name}"
 							data-doctype="${df.options}"
-							data-name="${frappe.utils.escape_html(value)}">
+							data-name="${nts.utils.escape_html(value)}">
 							${label}
 						</a>
 					`;
@@ -1846,7 +1846,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// return true or false if the user can make a particlar doctype
 		// will check permission, `can_make_methods` if exists, or will decided on
 		// basis of whether the document is submittable
-		if (!frappe.model.can_create(doctype)) {
+		if (!nts.model.can_create(doctype)) {
 			return false;
 		}
 
@@ -1878,21 +1878,21 @@ frappe.ui.form.Form = class FrappeForm {
 		} else if (this.custom_make_buttons && this.custom_make_buttons[doctype]) {
 			this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger("click");
 		} else {
-			frappe.model.with_doctype(doctype, function () {
-				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
+			nts.model.with_doctype(doctype, function () {
+				let new_doc = nts.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
 				me.set_link_field(doctype, new_doc);
 
-				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
-				// frappe.set_route('Form', doctype, new_doc.name);
+				nts.ui.form.make_quick_entry(doctype, null, null, new_doc);
+				// nts.set_route('Form', doctype, new_doc.name);
 			});
 		}
 	}
 
 	set_link_field(doctype, new_doc) {
 		let me = this;
-		frappe.get_meta(doctype).fields.forEach(function (df) {
+		nts.get_meta(doctype).fields.forEach(function (df) {
 			if (df.fieldtype === "Link" && df.options === me.doctype) {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && me.doc[df.fieldname]) {
@@ -1910,11 +1910,11 @@ frappe.ui.form.Form = class FrappeForm {
 		// Do not overwrite existing values.
 		if (value === undefined) return;
 
-		frappe.model
+		nts.model
 			.get_children(this.doc, table_fieldname)
-			.filter((child) => !frappe.model.has_value(child.doctype, child.name, fieldname))
+			.filter((child) => !nts.model.has_value(child.doctype, child.name, fieldname))
 			.forEach((child) =>
-				frappe.model.set_value(child.doctype, child.name, fieldname, value)
+				nts.model.set_value(child.doctype, child.name, fieldname, value)
 			);
 	}
 
@@ -1943,7 +1943,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el, true, 15);
+		nts.utils.scroll_to($el, true, 15);
 
 		// focus if text field
 		if (focus) {
@@ -1953,7 +1953,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// highlight control inside field
-		let control_element = $el.closest(".frappe-control");
+		let control_element = $el.closest(".nts-control");
 		control_element.addClass("highlight");
 		setTimeout(() => {
 			control_element.removeClass("highlight");
@@ -1966,10 +1966,10 @@ frappe.ui.form.Form = class FrappeForm {
 		let docname = this.docname;
 
 		if (this.doc && !this.is_new()) {
-			frappe.realtime.doc_subscribe(doctype, docname);
+			nts.realtime.doc_subscribe(doctype, docname);
 		}
-		frappe.realtime.off("docinfo_update");
-		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
+		nts.realtime.off("docinfo_update");
+		nts.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
 			if (
 				!doc.reference_doctype ||
 				!doc.reference_name ||
@@ -1978,20 +1978,20 @@ frappe.ui.form.Form = class FrappeForm {
 			) {
 				return;
 			}
-			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
+			let doc_list = nts.model.docinfo[doctype][docname][key] || [];
 			let docindex = doc_list.findIndex((old_doc) => {
 				return old_doc.name === doc.name;
 			});
 
 			if (action === "add") {
-				frappe.model.docinfo[doctype][docname][key].push(doc);
+				nts.model.docinfo[doctype][docname][key].push(doc);
 			}
 			if (docindex > -1) {
 				if (action === "update") {
-					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1, doc);
+					nts.model.docinfo[doctype][docname][key].splice(docindex, 1, doc);
 				}
 				if (action === "delete") {
-					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1);
+					nts.model.docinfo[doctype][docname][key].splice(docindex, 1);
 				}
 			}
 			// no need to update timeline of owner of comment
@@ -2000,7 +2000,7 @@ frappe.ui.form.Form = class FrappeForm {
 				!(
 					["add", "update"].includes(action) &&
 					doc.doctype === "Comment" &&
-					doc.owner === frappe.session.user
+					doc.owner === nts.session.user
 				)
 			) {
 				this.timeline && this.timeline.refresh();
@@ -2020,8 +2020,8 @@ frappe.ui.form.Form = class FrappeForm {
 		let options = default_options || [];
 		if (!filter_function) filter_function = (f) => f;
 		return new Promise((resolve) => {
-			frappe.model.with_doctype(reference_doctype, () => {
-				frappe.get_meta(reference_doctype).fields.map((df) => {
+			nts.model.with_doctype(reference_doctype, () => {
+				nts.get_meta(reference_doctype).fields.map((df) => {
 					filter_function(df) &&
 						options.push({ label: df.label || df.fieldname, value: df.fieldname });
 				});
@@ -2068,7 +2068,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		return involved_users
 			.uniqBy((u) => u)
-			.filter((user) => !["Administrator", frappe.session.user].includes(user))
+			.filter((user) => !["Administrator", nts.session.user].includes(user))
 			.filter(Boolean);
 	}
 
@@ -2092,9 +2092,9 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.wrapper.prepend(wrapper);
 		}
 
-		frappe
+		nts
 			.call({
-				method: "frappe.core.doctype.submission_queue.submission_queue.get_latest_submissions",
+				method: "nts.core.doctype.submission_queue.submission_queue.get_latest_submissions",
 				args: { doctype: this.doctype, docname: this.docname },
 			})
 			.then((r) => {
@@ -2152,9 +2152,9 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.dashboard) {
 			_show_read_only_banner();
 		} else {
-			frappe.after_ajax(_show_read_only_banner);
+			nts.after_ajax(_show_read_only_banner);
 		}
 	}
 };
 
-frappe.validated = 0;
+nts.validated = 0;

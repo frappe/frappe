@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class DocField(Document):
@@ -12,7 +12,7 @@ class DocField(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
@@ -131,7 +131,7 @@ class DocField(Document):
 		if self.fieldtype == "Table MultiSelect":
 			table_doctype = self.options
 
-			return frappe.db.get_value(
+			return nts.db.get_value(
 				"DocField",
 				{
 					"fieldtype": "Link",

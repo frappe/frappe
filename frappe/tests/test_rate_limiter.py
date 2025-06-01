@@ -1,49 +1,49 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import time
 
 from werkzeug.wrappers import Response
 
-import frappe
-import frappe.rate_limiter
-from frappe.rate_limiter import RateLimiter
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import cint
+import nts
+import nts.rate_limiter
+from nts.rate_limiter import RateLimiter
+from nts.tests.utils import ntsTestCase
+from nts.utils import cint
 
 
-class TestRateLimiter(FrappeTestCase):
+class TestRateLimiter(ntsTestCase):
 	def test_apply_with_limit(self):
-		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
-		frappe.rate_limiter.apply()
+		nts.conf.rate_limit = {"window": 86400, "limit": 1}
+		nts.rate_limiter.apply()
 
-		self.assertTrue(hasattr(frappe.local, "rate_limiter"))
-		self.assertIsInstance(frappe.local.rate_limiter, RateLimiter)
+		self.assertTrue(hasattr(nts.local, "rate_limiter"))
+		self.assertIsInstance(nts.local.rate_limiter, RateLimiter)
 
-		frappe.cache.delete(frappe.local.rate_limiter.key)
-		delattr(frappe.local, "rate_limiter")
+		nts.cache.delete(nts.local.rate_limiter.key)
+		delattr(nts.local, "rate_limiter")
 
 	def test_apply_without_limit(self):
-		frappe.conf.rate_limit = None
-		frappe.rate_limiter.apply()
+		nts.conf.rate_limit = None
+		nts.rate_limiter.apply()
 
-		self.assertFalse(hasattr(frappe.local, "rate_limiter"))
+		self.assertFalse(hasattr(nts.local, "rate_limiter"))
 
 	def test_respond_over_limit(self):
 		limiter = RateLimiter(1, 86400)
 		time.sleep(1)
 		limiter.update()
 
-		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
-		self.assertRaises(frappe.TooManyRequestsError, frappe.rate_limiter.apply)
-		frappe.rate_limiter.update()
+		nts.conf.rate_limit = {"window": 86400, "limit": 1}
+		self.assertRaises(nts.TooManyRequestsError, nts.rate_limiter.apply)
+		nts.rate_limiter.update()
 
-		response = frappe.rate_limiter.respond()
+		response = nts.rate_limiter.respond()
 
 		self.assertIsInstance(response, Response)
 		self.assertEqual(response.status_code, 429)
 
-		headers = frappe.local.rate_limiter.headers()
+		headers = nts.local.rate_limiter.headers()
 		self.assertIn("Retry-After", headers)
 		self.assertIn("X-RateLimit-Reset", headers)
 		self.assertIn("X-RateLimit-Limit", headers)
@@ -52,33 +52,33 @@ class TestRateLimiter(FrappeTestCase):
 		self.assertEqual(int(headers["X-RateLimit-Limit"]), 1000000)
 		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 0)
 
-		frappe.cache.delete(limiter.key)
-		frappe.cache.delete(frappe.local.rate_limiter.key)
-		delattr(frappe.local, "rate_limiter")
+		nts.cache.delete(limiter.key)
+		nts.cache.delete(nts.local.rate_limiter.key)
+		delattr(nts.local, "rate_limiter")
 
 	def test_respond_under_limit(self):
-		frappe.conf.rate_limit = {"window": 86400, "limit": 0.01}
-		frappe.rate_limiter.apply()
-		frappe.rate_limiter.update()
-		response = frappe.rate_limiter.respond()
+		nts.conf.rate_limit = {"window": 86400, "limit": 0.01}
+		nts.rate_limiter.apply()
+		nts.rate_limiter.update()
+		response = nts.rate_limiter.respond()
 		self.assertEqual(response, None)
 
-		frappe.cache.delete(frappe.local.rate_limiter.key)
-		delattr(frappe.local, "rate_limiter")
+		nts.cache.delete(nts.local.rate_limiter.key)
+		delattr(nts.local, "rate_limiter")
 
 	def test_headers_under_limit(self):
-		frappe.conf.rate_limit = {"window": 86400, "limit": 1}
-		frappe.rate_limiter.apply()
-		frappe.rate_limiter.update()
-		headers = frappe.local.rate_limiter.headers()
+		nts.conf.rate_limit = {"window": 86400, "limit": 1}
+		nts.rate_limiter.apply()
+		nts.rate_limiter.update()
+		headers = nts.local.rate_limiter.headers()
 		self.assertNotIn("Retry-After", headers)
 		self.assertIn("X-RateLimit-Reset", headers)
 		self.assertTrue(int(headers["X-RateLimit-Reset"] < 86400))
 		self.assertEqual(int(headers["X-RateLimit-Limit"]), 1000000)
 		self.assertEqual(int(headers["X-RateLimit-Remaining"]), 1000000)
 
-		frappe.cache.delete(frappe.local.rate_limiter.key)
-		delattr(frappe.local, "rate_limiter")
+		nts.cache.delete(nts.local.rate_limiter.key)
+		delattr(nts.local, "rate_limiter")
 
 	def test_reject_over_limit(self):
 		limiter = RateLimiter(0.01, 86400)
@@ -86,9 +86,9 @@ class TestRateLimiter(FrappeTestCase):
 		limiter.update()
 
 		limiter = RateLimiter(0.01, 86400)
-		self.assertRaises(frappe.TooManyRequestsError, limiter.apply)
+		self.assertRaises(nts.TooManyRequestsError, limiter.apply)
 
-		frappe.cache.delete(limiter.key)
+		nts.cache.delete(limiter.key)
 
 	def test_do_not_reject_under_limit(self):
 		limiter = RateLimiter(0.01, 86400)
@@ -98,22 +98,22 @@ class TestRateLimiter(FrappeTestCase):
 		limiter = RateLimiter(0.02, 86400)
 		self.assertEqual(limiter.apply(), None)
 
-		frappe.cache.delete(limiter.key)
+		nts.cache.delete(limiter.key)
 
 	def test_update_method(self):
 		limiter = RateLimiter(0.01, 86400)
 		time.sleep(0.01)
 		limiter.update()
 
-		self.assertEqual(limiter.duration, cint(frappe.cache.get(limiter.key)))
+		self.assertEqual(limiter.duration, cint(nts.cache.get(limiter.key)))
 
-		frappe.cache.delete(limiter.key)
+		nts.cache.delete(limiter.key)
 
 	def test_window_expires(self):
 		limiter = RateLimiter(1000, 1)
-		self.assertTrue(frappe.cache.exists(limiter.key, shared=True))
+		self.assertTrue(nts.cache.exists(limiter.key, shared=True))
 		limiter.update()
-		self.assertTrue(frappe.cache.exists(limiter.key, shared=True))
+		self.assertTrue(nts.cache.exists(limiter.key, shared=True))
 		time.sleep(1.1)
-		self.assertFalse(frappe.cache.exists(limiter.key, shared=True))
-		frappe.cache.delete(limiter.key)
+		self.assertFalse(nts.cache.exists(limiter.key, shared=True))
+		nts.cache.delete(limiter.key)

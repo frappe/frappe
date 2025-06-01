@@ -1,6 +1,6 @@
 import re
 
-import frappe
+import nts
 
 TRANSLATE_PATTERN = re.compile(
 	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
@@ -35,15 +35,15 @@ def extract_messages_from_code(code):
 	"""
 	from jinja2 import TemplateError
 
-	from frappe.model.utils import InvalidIncludePath, render_include
+	from nts.model.utils import InvalidIncludePath, render_include
 
 	try:
-		code = frappe.as_unicode(render_include(code))
+		code = nts.as_unicode(render_include(code))
 
 	# Exception will occur when it encounters John Resig's microtemplating code
 	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
-		if isinstance(e, InvalidIncludePath) and hasattr(frappe.local, "message_log"):
-			frappe.clear_last_message()
+		if isinstance(e, InvalidIncludePath) and hasattr(nts.local, "message_log"):
+			nts.clear_last_message()
 	except RuntimeError:
 		# code depends on locals
 		pass

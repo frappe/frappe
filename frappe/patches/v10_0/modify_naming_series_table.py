@@ -3,8 +3,8 @@
     to generate long Naming Series
 
 """
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.sql(""" ALTER TABLE `tabSeries` MODIFY current BIGINT """)
+	nts.db.sql(""" ALTER TABLE `tabSeries` MODIFY current BIGINT """)

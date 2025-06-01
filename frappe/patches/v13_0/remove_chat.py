@@ -1,19 +1,19 @@
 import click
 
-import frappe
+import nts
 
 
 def execute():
-	frappe.delete_doc_if_exists("DocType", "Chat Message")
-	frappe.delete_doc_if_exists("DocType", "Chat Message Attachment")
-	frappe.delete_doc_if_exists("DocType", "Chat Profile")
-	frappe.delete_doc_if_exists("DocType", "Chat Token")
-	frappe.delete_doc_if_exists("DocType", "Chat Room User")
-	frappe.delete_doc_if_exists("DocType", "Chat Room")
-	frappe.delete_doc_if_exists("Module Def", "Chat")
+	nts.delete_doc_if_exists("DocType", "Chat Message")
+	nts.delete_doc_if_exists("DocType", "Chat Message Attachment")
+	nts.delete_doc_if_exists("DocType", "Chat Profile")
+	nts.delete_doc_if_exists("DocType", "Chat Token")
+	nts.delete_doc_if_exists("DocType", "Chat Room User")
+	nts.delete_doc_if_exists("DocType", "Chat Room")
+	nts.delete_doc_if_exists("Module Def", "Chat")
 
 	click.secho(
-		"Chat Module is moved to a separate app and is removed from Frappe in version-13.\n"
-		"Please install the app to continue using the chat feature: https://github.com/frappe/chat",
+		"Chat Module is moved to a separate app and is removed from nts in version-13.\n"
+		"Please install the app to continue using the chat feature: https://github.com/nts/chat",
 		fg="yellow",
 	)

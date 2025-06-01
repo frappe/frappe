@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe import _
-from frappe.model.document import Document, get_controller
-from frappe.utils import cint, quoted
-from frappe.website.path_resolver import resolve_path
+import nts
+from nts import _
+from nts.model.document import Document, get_controller
+from nts.utils import cint, quoted
+from nts.website.path_resolver import resolve_path
 
 no_cache = 1
 
@@ -15,17 +15,17 @@ no_cache = 1
 def get_context(context, **dict_params):
 	"""Returns context for a list standard list page.
 	Will also update `get_list_context` from the doctype module file"""
-	frappe.local.form_dict.update(dict_params)
-	doctype = frappe.local.form_dict.doctype
+	nts.local.form_dict.update(dict_params)
+	doctype = nts.local.form_dict.doctype
 	context.parents = [{"route": "me", "title": _("My Account")}]
-	context.meta = frappe.get_meta(doctype)
+	context.meta = nts.get_meta(doctype)
 	context.update(get_list_context(context, doctype) or {})
 	context.doctype = doctype
-	context.txt = frappe.local.form_dict.txt
-	context.update(get(**frappe.local.form_dict))
+	context.txt = nts.local.form_dict.txt
+	context.update(get(**nts.local.form_dict))
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
@@ -34,8 +34,8 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	if show_more:
 		raw_result = raw_result[:-1]
 
-	meta = frappe.get_meta(doctype)
-	list_context = frappe.flags.list_context
+	meta = nts.get_meta(doctype)
+	list_context = nts.flags.list_context
 
 	if not raw_result:
 		return {"result": []}
@@ -49,21 +49,21 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 
 	for doc in raw_result:
 		doc.doctype = doctype
-		new_context = frappe._dict(doc=doc, meta=meta, list_view_fields=list_view_fields)
+		new_context = nts._dict(doc=doc, meta=meta, list_view_fields=list_view_fields)
 
 		if not list_context.get_list and not isinstance(new_context.doc, Document):
-			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+			new_context.doc = nts.get_doc(doc.doctype, doc.name)
 			new_context.update(new_context.doc.as_dict())
 
-		if not frappe.flags.in_test:
-			pathname = pathname or frappe.local.request.path
+		if not nts.flags.in_test:
+			pathname = pathname or nts.local.request.path
 			new_context["pathname"] = pathname.strip("/ ")
 		new_context.update(list_context)
 		set_route(new_context)
-		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
+		rendered_row = nts.render_template(row_template, new_context, is_path=True)
 		result.append(rendered_row)
 
-	from frappe.utils.response import json_handler
+	from nts.utils.response import json_handler
 
 	return {
 		"raw_result": json.dumps(raw_result, default=json_handler),
@@ -73,25 +73,25 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_list_data(
 	doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, web_form_name=None, **kwargs
 ):
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 
-	if frappe.is_table(doctype):
-		frappe.throw(_("Child DocTypes are not allowed"), title=_("Invalid DocType"))
+	if nts.is_table(doctype):
+		nts.throw(_("Child DocTypes are not allowed"), title=_("Invalid DocType"))
 
-	if not txt and frappe.form_dict.search:
-		txt = frappe.form_dict.search
-		del frappe.form_dict["search"]
+	if not txt and nts.form_dict.search:
+		txt = nts.form_dict.search
+		del nts.form_dict["search"]
 
 	controller = get_controller(doctype)
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+	list_context = get_list_context(nts._dict(), doctype, web_form_name)
 	list_context.title_field = getattr(controller, "website", {}).get(
 		"page_title_field", meta.title_field or "name"
 	)
@@ -117,7 +117,7 @@ def get_list_data(
 	raw_result = _get_list(**kwargs)
 
 	# list context to be used if called as rendered list
-	frappe.flags.list_context = list_context
+	nts.flags.list_context = list_context
 
 	return raw_result
 
@@ -138,8 +138,8 @@ def prepare_filters(doctype, controller, kwargs):
 			kwargs[key] = json.loads(kwargs[key])
 		except ValueError:
 			pass
-	filters = frappe._dict(kwargs)
-	meta = frappe.get_meta(doctype)
+	filters = nts._dict(kwargs)
+	meta = nts.get_meta(doctype)
 
 	if hasattr(controller, "website") and controller.website.get("condition_field"):
 		filters[controller.website["condition_field"]] = 1
@@ -149,7 +149,7 @@ def prepare_filters(doctype, controller, kwargs):
 	if filters.pathname:
 		# resolve additional filters from path
 		resolve_path(filters.pathname)
-		for key, val in frappe.local.form_dict.items():
+		for key, val in nts.local.form_dict.items():
 			if key not in filters and key != "flags":
 				filters[key] = val
 
@@ -162,17 +162,17 @@ def prepare_filters(doctype, controller, kwargs):
 
 
 def get_list_context(context, doctype, web_form_name=None):
-	from frappe.modules import load_doctype_module
-	from frappe.website.doctype.web_form.web_form import get_web_form_module
+	from nts.modules import load_doctype_module
+	from nts.website.doctype.web_form.web_form import get_web_form_module
 
-	list_context = context or frappe._dict()
-	meta = frappe.get_meta(doctype)
+	list_context = context or nts._dict()
+	meta = nts.get_meta(doctype)
 
 	def update_context_from_module(module, list_context):
 		# call the user defined method `get_list_context`
 		# from the python module
 		if hasattr(module, "get_list_context"):
-			out = frappe._dict(module.get_list_context(list_context) or {})
+			out = nts._dict(module.get_list_context(list_context) or {})
 			if out:
 				list_context = out
 		return list_context
@@ -185,15 +185,15 @@ def get_list_context(context, doctype, web_form_name=None):
 
 	# get context for custom webform
 	if meta.custom and web_form_name:
-		webform_list_contexts = frappe.get_hooks("webform_list_context")
-		if webform_list_contexts and not frappe.get_doc("Module Def", meta.module).custom:
-			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
+		webform_list_contexts = nts.get_hooks("webform_list_context")
+		if webform_list_contexts and not nts.get_doc("Module Def", meta.module).custom:
+			out = nts._dict(nts.get_attr(webform_list_contexts[0])(meta.module) or {})
 			if out:
 				list_context = out
 
 	# get context from web form module
 	if web_form_name:
-		web_form = frappe.get_doc("Web Form", web_form_name)
+		web_form = nts.get_doc("Web Form", web_form_name)
 		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
 
 	# get path from '/templates/' folder of the doctype
@@ -216,7 +216,7 @@ def get_list(
 	fields=None,
 	order_by=None,
 ):
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	if not filters:
 		filters = []
 
@@ -238,7 +238,7 @@ def get_list(
 			else:
 				filters.append([doctype, "name", "like", "%" + txt + "%"])
 
-	return frappe.get_list(
+	return nts.get_list(
 		doctype,
 		fields=fields,
 		filters=filters,

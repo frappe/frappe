@@ -1,11 +1,11 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.model.document import Document
-from frappe.utils.safe_exec import read_sql, safe_exec
+import nts
+from nts.model.document import Document
+from nts.utils.safe_exec import read_sql, safe_exec
 
 
 class SystemConsole(Document):
@@ -15,7 +15,7 @@ class SystemConsole(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		commit: DF.Check
 		console: DF.Code | None
@@ -25,40 +25,40 @@ class SystemConsole(Document):
 
 	# end: auto-generated types
 	def run(self):
-		frappe.only_for("System Manager")
+		nts.only_for("System Manager")
 		try:
-			frappe.local.debug_log = []
+			nts.local.debug_log = []
 			if self.type == "Python":
 				safe_exec(self.console, script_filename="System Console")
-				self.output = "\n".join(frappe.debug_log)
+				self.output = "\n".join(nts.debug_log)
 			elif self.type == "SQL":
-				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
+				self.output = nts.as_json(read_sql(self.console, as_dict=1))
 		except Exception:
 			self.commit = False
-			self.output = frappe.get_traceback()
+			self.output = nts.get_traceback()
 
 		if self.commit:
-			frappe.db.commit()
+			nts.db.commit()
 		else:
-			frappe.db.rollback()
-		frappe.get_doc(
+			nts.db.rollback()
+		nts.get_doc(
 			dict(doctype="Console Log", script=self.console, type=self.type, committed=self.commit)
 		).insert()
-		frappe.db.commit()
+		nts.db.commit()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def execute_code(doc):
-	console = frappe.get_doc(json.loads(doc))
+	console = nts.get_doc(json.loads(doc))
 	console.run()
 	return console.as_dict()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def show_processlist():
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 
-	return frappe.db.multisql(
+	return nts.db.multisql(
 		{
 			"postgres": """
 			SELECT pid AS "Id",

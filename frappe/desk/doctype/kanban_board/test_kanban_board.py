@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Kanban Board')
+# test_records = nts.get_test_records('Kanban Board')
 
 
-class TestKanbanBoard(FrappeTestCase):
+class TestKanbanBoard(ntsTestCase):
 	pass

@@ -1,8 +1,8 @@
 import "../form/layout";
 
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
+nts.ui.FieldGroup = class FieldGroup extends nts.ui.form.Layout {
 	constructor(opts) {
 		super(opts);
 		this.dirty = false;
@@ -27,7 +27,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 					let def_value = field.df["default"];
 
 					if (def_value == "Today" && field.df["fieldtype"] == "Date") {
-						def_value = frappe.datetime.get_today();
+						def_value = nts.datetime.get_today();
 					}
 
 					field.set_input(def_value);
@@ -44,8 +44,8 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				.find("input, select")
 				.on("change awesomplete-selectcomplete", () => {
 					this.dirty = true;
-					frappe.run_serially([
-						() => frappe.timeout(0.1),
+					nts.run_serially([
+						() => nts.timeout(0.1),
 						() => me.refresh_dependency(),
 					]);
 				});
@@ -114,7 +114,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		}
 
 		if (errors.length && !ignore_errors) {
-			frappe.msgprint({
+			nts.msgprint({
 				title: __("Missing Values Required"),
 				message:
 					__("Following fields have missing values:") +
@@ -127,7 +127,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		}
 
 		if (invalid.length && check_invalid) {
-			frappe.msgprint({
+			nts.msgprint({
 				title: __("Invalid Values"),
 				message:
 					__("Following fields have invalid values:") +

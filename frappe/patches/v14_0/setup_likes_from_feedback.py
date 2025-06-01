@@ -1,15 +1,15 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doctype("Comment")
+	nts.reload_doctype("Comment")
 
-	if frappe.db.count("Feedback") > 20000:
-		frappe.db.auto_commit_on_many_writes = True
+	if nts.db.count("Feedback") > 20000:
+		nts.db.auto_commit_on_many_writes = True
 
-	for feedback in frappe.get_all("Feedback", fields=["*"]):
+	for feedback in nts.get_all("Feedback", fields=["*"]):
 		if feedback.like:
-			new_comment = frappe.new_doc("Comment")
+			new_comment = nts.new_doc("Comment")
 			new_comment.comment_type = "Like"
 			new_comment.comment_email = feedback.owner
 			new_comment.content = "Liked by: " + feedback.owner
@@ -22,11 +22,11 @@ def execute():
 			new_comment.ip_address = feedback.ip_address
 			new_comment.db_insert()
 
-	if frappe.db.auto_commit_on_many_writes:
-		frappe.db.auto_commit_on_many_writes = False
+	if nts.db.auto_commit_on_many_writes:
+		nts.db.auto_commit_on_many_writes = False
 
 	# clean up
-	frappe.db.delete("Feedback")
-	frappe.db.commit()
+	nts.db.delete("Feedback")
+	nts.db.commit()
 
-	frappe.delete_doc("DocType", "Feedback")
+	nts.delete_doc("DocType", "Feedback")

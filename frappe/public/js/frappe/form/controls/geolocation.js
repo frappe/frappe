@@ -1,6 +1,6 @@
-frappe.provide("frappe.utils");
+nts.provide("nts.utils");
 
-frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.form.ControlData {
+nts.ui.form.ControlGeolocation = class ControlGeolocation extends nts.ui.form.ControlData {
 	static horizontal = false;
 
 	async make() {
@@ -14,7 +14,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			return;
 		}
 
-		this.map_id = frappe.dom.get_unique_id();
+		this.map_id = nts.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
 				<div id="${this.map_id}" style="min-height: 400px; z-index: 1; max-width:100%"></div>
@@ -28,7 +28,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		if (this.frm) {
 			this.make_map(value);
 		} else {
-			$(document).on("frappe.ui.Dialog:shown", () => {
+			$(document).on("nts.ui.Dialog:shown", () => {
 				this.make_map();
 			});
 		}
@@ -138,14 +138,14 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			},
 		});
 
-		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
+		L.Icon.Default.imagePath = nts.utils.map_defaults.image_path;
 	}
 
 	bind_leaflet_map() {
 		this.map = L.map(this.map_id);
-		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
+		this.map.setView(nts.utils.map_defaults.center, nts.utils.map_defaults.zoom);
 
-		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
+		L.tileLayer(nts.utils.map_defaults.tiles, nts.utils.map_defaults.options).addTo(
 			this.map
 		);
 
@@ -160,7 +160,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	bind_leaflet_draw_control() {
 		if (
-			!frappe.perm.has_perm(this.doctype, this.df.permlevel, "write", this.doc) ||
+			!nts.perm.has_perm(this.doctype, this.df.permlevel, "write", this.doc) ||
 			this.df.read_only
 		) {
 			return;
@@ -176,18 +176,18 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			draw: {
 				polyline: {
 					shapeOptions: {
-						color: frappe.ui.color.get("blue"),
+						color: nts.ui.color.get("blue"),
 						weight: 10,
 					},
 				},
 				polygon: {
 					allowIntersection: false, // Restricts shapes to simple polygons
 					drawError: {
-						color: frappe.ui.color.get("orange"), // Color the shape will turn when intersects
+						color: nts.ui.color.get("orange"), // Color the shape will turn when intersects
 						message: "<strong>Oh snap!<strong> you can't draw that!", // Message that will show when intersect
 					},
 					shapeOptions: {
-						color: frappe.ui.color.get("blue"),
+						color: nts.ui.color.get("blue"),
 					},
 				},
 				circle: true,

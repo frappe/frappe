@@ -1,17 +1,17 @@
-# Copyright (c) 2020, Frappe Technologies and Contributors
+# Copyright (c) 2020, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestWorkspace(FrappeTestCase):
+class TestWorkspace(ntsTestCase):
 	def setUp(self):
 		create_module("Test Module")
 
 	def tearDown(self):
-		frappe.db.delete("Workspace", {"module": "Test Module"})
-		frappe.db.delete("DocType", {"module": "Test Module"})
-		frappe.delete_doc("Module Def", "Test Module")
+		nts.db.delete("Workspace", {"module": "Test Module"})
+		nts.db.delete("DocType", {"module": "Test Module"})
+		nts.delete_doc("Module Def", "Test Module")
 
 	# TODO: FIX ME - flaky test!!!
 	# def test_workspace_with_cards_specific_to_a_country(self):
@@ -23,22 +23,22 @@ class TestWorkspace(FrappeTestCase):
 
 	# 	cards = workspace.get_link_groups()
 
-	# 	if frappe.get_system_settings('country') == "France":
+	# 	if nts.get_system_settings('country') == "France":
 	# 		self.assertEqual(len(cards), 2)
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
 
 def create_module(module_name):
-	module = frappe.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"})
+	module = nts.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "nts"})
 	module.insert(ignore_if_duplicate=True)
 
 	return module
 
 
 def create_workspace(**args):
-	workspace = frappe.new_doc("Workspace")
-	args = frappe._dict(args)
+	workspace = nts.new_doc("Workspace")
+	args = nts._dict(args)
 
 	workspace.name = args.name or "Test Workspace"
 	workspace.label = args.label or "Test Workspace"
@@ -78,7 +78,7 @@ def insert_card(workspace, card_label, doctype1, doctype2, country=None):
 
 
 def create_doctype(doctype_name, module):
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": doctype_name,

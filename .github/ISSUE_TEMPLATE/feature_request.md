@@ -1,15 +1,15 @@
 ---
 name: Feature request
-about: Suggest an idea to improve Frappe
+about: Suggest an idea to improve nts
 labels: feature-request
 ---
 
 <!--
-Welcome to the Frappe Framework issue tracker! Before creating an issue, please heed the following:
+Welcome to the nts Framework issue tracker! Before creating an issue, please heed the following:
 
-1. This tracker should only be used to report bugs and request features / enhancements to Frappe
-    - For questions and general support, refer to https://stackoverflow.com/questions/tagged/frappe
-    - For documentation issues, use https://frappeframework.com/docs/user/en or the developer cheetsheet https://frappeframework.com/docs/user/en/bench/resources/bench-commands-cheatsheet
+1. This tracker should only be used to report bugs and request features / enhancements to nts
+    - For questions and general support, refer to https://stackoverflow.com/questions/tagged/nts
+    - For documentation issues, use https://ntsframework.com/docs/user/en or the developer cheetsheet https://ntsframework.com/docs/user/en/bench/resources/bench-commands-cheatsheet
 2. Use the search function before creating a new issue. Duplicates will be closed and directed to
    the original discussion.
 3. When making a feature request, make sure to be as verbose as possible. The better you convey your message, the     greater the drive to make it happen.

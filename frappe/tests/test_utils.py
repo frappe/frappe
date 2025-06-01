@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import io
@@ -17,11 +17,11 @@ from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
 
-import frappe
-from frappe.installer import parse_app_name
-from frappe.model.document import Document
-from frappe.tests.utils import FrappeTestCase, MockedRequestTestCase, change_settings
-from frappe.utils import (
+import nts
+from nts.installer import parse_app_name
+from nts.model.document import Document
+from nts.tests.utils import ntsTestCase, MockedRequestTestCase, change_settings
+from nts.utils import (
 	ceil,
 	dict_to_str,
 	execute_in_shell,
@@ -45,11 +45,11 @@ from frappe.utils import (
 	validate_phone_number_with_country_code,
 	validate_url,
 )
-from frappe.utils.change_log import (
+from nts.utils.change_log import (
 	get_source_url,
 	parse_github_url,
 )
-from frappe.utils.data import (
+from nts.utils.data import (
 	add_to_date,
 	add_years,
 	cast,
@@ -73,13 +73,13 @@ from frappe.utils.data import (
 	to_timedelta,
 	validate_python_code,
 )
-from frappe.utils.dateutils import get_dates_from_timegrain
-from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
-from frappe.utils.identicon import Identicon
-from frappe.utils.image import optimize_image, strip_exif_data
-from frappe.utils.make_random import can_make, get_random, how_many
-from frappe.utils.response import json_handler
-from frappe.utils.synchronization import LockTimeoutError, filelock
+from nts.utils.dateutils import get_dates_from_timegrain
+from nts.utils.diff import _get_value_from_version, get_version_diff, version_query
+from nts.utils.identicon import Identicon
+from nts.utils.image import optimize_image, strip_exif_data
+from nts.utils.make_random import can_make, get_random, how_many
+from nts.utils.response import json_handler
+from nts.utils.synchronization import LockTimeoutError, filelock
 
 
 class Capturing(list):
@@ -95,7 +95,7 @@ class Capturing(list):
 		sys.stdout = self._stdout
 
 
-class TestFilters(FrappeTestCase):
+class TestFilters(ntsTestCase):
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
 		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
@@ -224,7 +224,7 @@ class TestFilters(FrappeTestCase):
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
 
-class TestMoney(FrappeTestCase):
+class TestMoney(ntsTestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
 			(5000, "BHD Five Thousand only."),
@@ -257,7 +257,7 @@ class TestMoney(FrappeTestCase):
 			)
 
 
-class TestDataManipulation(FrappeTestCase):
+class TestDataManipulation(ntsTestCase):
 	def test_scrub_urls(self):
 		html = """
 			<p>You have a new message from: <b>John</b></p>
@@ -266,9 +266,9 @@ class TestDataManipulation(FrappeTestCase):
 				<a href="http://test.com">Test link 1</a>
 				<a href="/about">Test link 2</a>
 				<a href="login">Test link 3</a>
-				<img src="/assets/frappe/test.jpg">
+				<img src="/assets/nts/test.jpg">
 			</div>
-			<div style="background-image: url('/assets/frappe/bg.jpg')">
+			<div style="background-image: url('/assets/nts/bg.jpg')">
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>
 		"""
@@ -279,12 +279,12 @@ class TestDataManipulation(FrappeTestCase):
 		self.assertTrue('<a href="http://test.com">Test link 1</a>' in html)
 		self.assertTrue(f'<a href="{url}/about">Test link 2</a>' in html)
 		self.assertTrue(f'<a href="{url}/login">Test link 3</a>' in html)
-		self.assertTrue(f'<img src="{url}/assets/frappe/test.jpg">' in html)
-		self.assertTrue(f"style=\"background-image: url('{url}/assets/frappe/bg.jpg') !important\"" in html)
+		self.assertTrue(f'<img src="{url}/assets/nts/test.jpg">' in html)
+		self.assertTrue(f"style=\"background-image: url('{url}/assets/nts/bg.jpg') !important\"" in html)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
 
-class TestFieldCasting(FrappeTestCase):
+class TestFieldCasting(ntsTestCase):
 	def test_str_types(self):
 		STR_TYPES = (
 			"Data",
@@ -331,7 +331,7 @@ class TestFieldCasting(FrappeTestCase):
 		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 
-class TestMathUtils(FrappeTestCase):
+class TestMathUtils(ntsTestCase):
 	def test_floor(self):
 		from decimal import Decimal
 
@@ -353,9 +353,9 @@ class TestMathUtils(FrappeTestCase):
 		self.assertEqual(ceil(Decimal(29.45)), 30)
 
 
-class TestHTMLUtils(FrappeTestCase):
+class TestHTMLUtils(ntsTestCase):
 	def test_clean_email_html(self):
-		from frappe.utils.html_utils import clean_email_html
+		from nts.utils.html_utils import clean_email_html
 
 		sample = """<script>a=b</script><h1>Hello</h1><p>Para</p>"""
 		clean = clean_email_html(sample)
@@ -373,14 +373,14 @@ class TestHTMLUtils(FrappeTestCase):
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
 
 	def test_sanitize_html(self):
-		from frappe.utils.html_utils import sanitize_html
+		from nts.utils.html_utils import sanitize_html
 
 		clean = sanitize_html("<ol data-list='ordered' unknown_attr='xyz'></ol>")
 		self.assertIn("ordered", clean)
 		self.assertNotIn("xyz", clean)
 
 
-class TestValidationUtils(FrappeTestCase):
+class TestValidationUtils(ntsTestCase):
 	def test_valid_url(self):
 		# Edge cases
 		self.assertFalse(validate_url(""))
@@ -388,21 +388,21 @@ class TestValidationUtils(FrappeTestCase):
 
 		# Valid URLs
 		self.assertTrue(validate_url("https://google.com"))
-		self.assertTrue(validate_url("http://frappe.io", throw=True))
+		self.assertTrue(validate_url("http://nts.io", throw=True))
 
 		# Invalid URLs without throw
 		self.assertFalse(validate_url("google.io"))
 		self.assertFalse(validate_url("google.io"))
 
 		# Invalid URL with throw
-		self.assertRaises(frappe.ValidationError, validate_url, "frappe", throw=True)
+		self.assertRaises(nts.ValidationError, validate_url, "nts", throw=True)
 
 		# Scheme validation
 		self.assertFalse(validate_url("https://google.com", valid_schemes="http"))
-		self.assertTrue(validate_url("ftp://frappe.cloud", valid_schemes=["https", "ftp"]))
-		self.assertFalse(validate_url("bolo://frappe.io", valid_schemes=("http", "https", "ftp", "ftps")))
+		self.assertTrue(validate_url("ftp://nts.cloud", valid_schemes=["https", "ftp"]))
+		self.assertFalse(validate_url("bolo://nts.io", valid_schemes=("http", "https", "ftp", "ftps")))
 		self.assertRaises(
-			frappe.ValidationError, validate_url, "gopher://frappe.io", valid_schemes="https", throw=True
+			nts.ValidationError, validate_url, "gopher://nts.io", valid_schemes="https", throw=True
 		)
 
 	def test_valid_email(self):
@@ -411,23 +411,23 @@ class TestValidationUtils(FrappeTestCase):
 		self.assertFalse(validate_email_address(None))
 
 		# Valid addresses
-		self.assertTrue(validate_email_address("someone@frappe.com"))
-		self.assertTrue(validate_email_address("someone@frappe.com, anyone@frappe.io"))
-		self.assertTrue(validate_email_address("test%201@frappe.com"))
+		self.assertTrue(validate_email_address("someone@nts.com"))
+		self.assertTrue(validate_email_address("someone@nts.com, anyone@nts.io"))
+		self.assertTrue(validate_email_address("test%201@nts.com"))
 
 		# Invalid address
 		self.assertFalse(validate_email_address("someone"))
 		self.assertFalse(validate_email_address("someone@----.com"))
-		self.assertFalse(validate_email_address("test 1@frappe.com"))
+		self.assertFalse(validate_email_address("test 1@nts.com"))
 		self.assertFalse(validate_email_address("test@example.com test2@example.com,undisclosed-recipient"))
 
 		# Invalid with throw
-		self.assertRaises(frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True)
+		self.assertRaises(nts.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True)
 
-		self.assertEqual(validate_email_address("Some%20One@frappe.com"), "Some%20One@frappe.com")
+		self.assertEqual(validate_email_address("Some%20One@nts.com"), "Some%20One@nts.com")
 		self.assertEqual(
-			validate_email_address("erp+Job%20Applicant=JA00004@frappe.com"),
-			"erp+Job%20Applicant=JA00004@frappe.com",
+			validate_email_address("erp+Job%20Applicant=JA00004@nts.com"),
+			"erp+Job%20Applicant=JA00004@nts.com",
 		)
 
 	def test_valid_phone(self):
@@ -436,7 +436,7 @@ class TestValidationUtils(FrappeTestCase):
 		for phone in valid_phones:
 			validate_phone_number_with_country_code(phone, "field")
 		self.assertRaises(
-			frappe.InvalidPhoneNumberError,
+			nts.InvalidPhoneNumberError,
 			validate_phone_number_with_country_code,
 			"+420 1234567890",
 			"field",
@@ -449,14 +449,14 @@ class TestValidationUtils(FrappeTestCase):
 
 		invalid_names = ["asd$wat", "asasd/ads"]
 		for name in invalid_names:
-			self.assertRaises(frappe.InvalidNameError, validate_name, name, True)
+			self.assertRaises(nts.InvalidNameError, validate_name, name, True)
 
 
-class TestImage(FrappeTestCase):
+class TestImage(ntsTestCase):
 	def test_strip_exif_data(self):
-		original_image = Image.open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"))
+		original_image = Image.open(nts.get_app_path("nts", "tests", "data", "exif_sample_image.jpg"))
 		original_image_content = open(
-			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), mode="rb"
+			nts.get_app_path("nts", "tests", "data", "exif_sample_image.jpg"), mode="rb"
 		).read()
 
 		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
@@ -466,7 +466,7 @@ class TestImage(FrappeTestCase):
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
 	def test_optimize_image(self):
-		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image_file_path = nts.get_app_path("nts", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
 		original_content = open(image_file_path, mode="rb").read()
 
@@ -479,7 +479,7 @@ class TestImage(FrappeTestCase):
 		self.assertLess(len(optimized_content), len(original_content))
 
 
-class TestPythonExpressions(FrappeTestCase):
+class TestPythonExpressions(ntsTestCase):
 	def test_validation_for_good_python_expression(self):
 		valid_expressions = [
 			"foo == bar",
@@ -503,14 +503,14 @@ class TestPythonExpressions(FrappeTestCase):
 			"oops = forgot_equals",
 		]
 		for expr in invalid_expressions:
-			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
+			self.assertRaises(nts.ValidationError, validate_python_code, expr)
 
 
-class TestDiffUtils(FrappeTestCase):
+class TestDiffUtils(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
+		cls.doc = nts.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
 		cls.doc.insert()
 		cls.doc.script = "2;"
 		cls.doc.save(ignore_version=False)
@@ -548,28 +548,28 @@ class TestDiffUtils(FrappeTestCase):
 		self.assertIn("+42;", diff)
 
 
-class TestDateUtils(FrappeTestCase):
+class TestDateUtils(ntsTestCase):
 	def test_first_day_of_week(self):
 		# Monday as start of the week
-		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+		with patch.object(nts.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			self.assertEqual(
-				frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-21")
+				nts.utils.get_first_day_of_week("2020-12-25"), nts.utils.getdate("2020-12-21")
 			)
 			self.assertEqual(
-				frappe.utils.get_first_day_of_week("2020-12-20"), frappe.utils.getdate("2020-12-14")
+				nts.utils.get_first_day_of_week("2020-12-20"), nts.utils.getdate("2020-12-14")
 			)
 
 		# Sunday as start of the week
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-20"))
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"), frappe.utils.getdate("2020-12-20"))
+		self.assertEqual(nts.utils.get_first_day_of_week("2020-12-25"), nts.utils.getdate("2020-12-20"))
+		self.assertEqual(nts.utils.get_first_day_of_week("2020-12-21"), nts.utils.getdate("2020-12-20"))
 
 	def test_last_day_of_week(self):
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-24"), frappe.utils.getdate("2020-12-26"))
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02"))
+		self.assertEqual(nts.utils.get_last_day_of_week("2020-12-24"), nts.utils.getdate("2020-12-26"))
+		self.assertEqual(nts.utils.get_last_day_of_week("2020-12-28"), nts.utils.getdate("2021-01-02"))
 
 	def test_is_last_day_of_the_month(self):
-		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
-		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
+		self.assertEqual(nts.utils.is_last_day_of_the_month("2020-12-24"), False)
+		self.assertEqual(nts.utils.is_last_day_of_the_month("2020-12-31"), True)
 
 	def test_get_time(self):
 		datetime_input = now_datetime()
@@ -656,7 +656,7 @@ class TestDateUtils(FrappeTestCase):
 		self.assertEqual(parsed, original)
 
 	def test_pretty_date(self):
-		from frappe import _
+		from nts import _
 
 		# differnt cases
 		now = get_datetime()
@@ -706,7 +706,7 @@ class TestDateUtils(FrappeTestCase):
 			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
 
 
-class TestResponse(FrappeTestCase):
+class TestResponse(ntsTestCase):
 	def test_json_handler(self):
 		class TEST(Enum):
 			ABC = "!@)@)!"
@@ -725,7 +725,7 @@ class TestResponse(FrappeTestCase):
 				Decimal(29.21),
 			],
 			"doc": [
-				frappe.get_doc("System Settings"),
+				nts.get_doc("System Settings"),
 			],
 			"iter": [
 				{1, 2, 3},
@@ -747,7 +747,7 @@ class TestResponse(FrappeTestCase):
 			json.dumps(BAD_OBJECT, default=json_handler)
 
 
-class TestTimeDeltaUtils(FrappeTestCase):
+class TestTimeDeltaUtils(ntsTestCase):
 	def test_format_timedelta(self):
 		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
@@ -764,21 +764,21 @@ class TestTimeDeltaUtils(FrappeTestCase):
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
 
 
-class TestXlsxUtils(FrappeTestCase):
+class TestXlsxUtils(ntsTestCase):
 	def test_unescape(self):
-		from frappe.utils.xlsxutils import handle_html
+		from nts.utils.xlsxutils import handle_html
 
 		val = handle_html("<p>html data &gt;</p>")
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
 
 
-class TestLinkTitle(FrappeTestCase):
+class TestLinkTitle(ntsTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
 		"""
 		Test that doctypes are added to link_title_map in boot_info
 		"""
-		custom_doctype = frappe.get_doc(
+		custom_doctype = nts.get_doc(
 			{
 				"doctype": "DocType",
 				"module": "Core",
@@ -798,7 +798,7 @@ class TestLinkTitle(FrappeTestCase):
 		)
 		custom_doctype.insert()
 
-		prop_setter = frappe.get_doc(
+		prop_setter = nts.get_doc(
 			{
 				"doctype": "Property Setter",
 				"doc_type": "User",
@@ -809,7 +809,7 @@ class TestLinkTitle(FrappeTestCase):
 			}
 		).insert()
 
-		from frappe.boot import get_link_title_doctypes
+		from nts.boot import get_link_title_doctypes
 
 		link_title_doctypes = get_link_title_doctypes()
 		self.assertTrue("User" in link_title_doctypes)
@@ -822,7 +822,7 @@ class TestLinkTitle(FrappeTestCase):
 		"""
 		Test that link titles are added to the doctype on getdoc
 		"""
-		prop_setter = frappe.get_doc(
+		prop_setter = nts.get_doc(
 			{
 				"doctype": "Property Setter",
 				"doc_type": "User",
@@ -833,7 +833,7 @@ class TestLinkTitle(FrappeTestCase):
 			}
 		).insert()
 
-		user = frappe.get_doc(
+		user = nts.get_doc(
 			{
 				"doctype": "User",
 				"user_type": "Website User",
@@ -843,7 +843,7 @@ class TestLinkTitle(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			{
 				"doctype": "ToDo",
 				"description": "test-link-title-on-getdoc",
@@ -851,10 +851,10 @@ class TestLinkTitle(FrappeTestCase):
 			}
 		).insert()
 
-		from frappe.desk.form.load import getdoc
+		from nts.desk.form.load import getdoc
 
 		getdoc("ToDo", todo.name)
-		link_titles = frappe.local.response["_link_titles"]
+		link_titles = nts.local.response["_link_titles"]
 
 		self.assertTrue(f"{user.doctype}::{user.name}" in link_titles)
 		self.assertEqual(link_titles[f"{user.doctype}::{user.name}"], user.full_name)
@@ -868,20 +868,20 @@ class TestAppParser(MockedRequestTestCase):
 	def test_app_name_parser(self):
 		self.responses.add(
 			"HEAD",
-			"https://api.github.com/repos/frappe/healthcare",
+			"https://api.github.com/repos/nts/healthcare",
 			status=200,
 			json={},
 		)
 		bench_path = get_bench_path()
-		frappe_app = os.path.join(bench_path, "apps", "frappe")
-		self.assertEqual("frappe", parse_app_name(frappe_app))
+		nts_app = os.path.join(bench_path, "apps", "nts")
+		self.assertEqual("nts", parse_app_name(nts_app))
 		self.assertEqual("healthcare", parse_app_name("healthcare"))
-		self.assertEqual("healthcare", parse_app_name("https://github.com/frappe/healthcare.git"))
-		self.assertEqual("healthcare", parse_app_name("git@github.com:frappe/healthcare.git"))
-		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))
+		self.assertEqual("healthcare", parse_app_name("https://github.com/nts/healthcare.git"))
+		self.assertEqual("healthcare", parse_app_name("git@github.com:nts/healthcare.git"))
+		self.assertEqual("healthcare", parse_app_name("nts/healthcare@develop"))
 
 
-class TestIntrospectionMagic(FrappeTestCase):
+class TestIntrospectionMagic(ntsTestCase):
 	"""Test utils that inspect live objects"""
 
 	def test_get_newargs(self):
@@ -890,24 +890,24 @@ class TestIntrospectionMagic(FrappeTestCase):
 			pass
 
 		safe_kwargs = {"company": "Wind Power", "b": 1}
-		self.assertEqual(frappe.get_newargs(f, safe_kwargs), safe_kwargs)
+		self.assertEqual(nts.get_newargs(f, safe_kwargs), safe_kwargs)
 
 		unsafe_args = dict(safe_kwargs)
 		unsafe_args.update({"ignore_permissions": True, "flags": {"ignore_mandatory": True}})
-		self.assertEqual(frappe.get_newargs(f, unsafe_args), safe_kwargs)
+		self.assertEqual(nts.get_newargs(f, unsafe_args), safe_kwargs)
 
 	def test_strip_off_kwargs_when_not_supported(self):
 		def f(a, b=2):
 			pass
 
 		args = {"company": "Wind Power", "b": 1}
-		self.assertEqual(frappe.get_newargs(f, args), {"b": 1})
+		self.assertEqual(nts.get_newargs(f, args), {"b": 1})
 
 		# No args
-		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+		self.assertEqual(nts.get_newargs(lambda: None, args), {})
 
 
-class TestMakeRandom(FrappeTestCase):
+class TestMakeRandom(ntsTestCase):
 	def test_get_random(self):
 		self.assertIsInstance(get_random("DocType", doc=True), Document)
 		self.assertIsInstance(get_random("DocType"), str)
@@ -919,30 +919,30 @@ class TestMakeRandom(FrappeTestCase):
 		self.assertIsInstance(how_many("User"), int)
 
 
-class TestLazyLoader(FrappeTestCase):
+class TestLazyLoader(ntsTestCase):
 	def test_lazy_import_module(self):
-		from frappe.utils.lazy_loader import lazy_import
+		from nts.utils.lazy_loader import lazy_import
 
 		with Capturing() as output:
-			ls = lazy_import("frappe.tests.data.load_sleep")
+			ls = lazy_import("nts.tests.data.load_sleep")
 		self.assertEqual(output, [])
 
 		with Capturing() as output:
 			ls.time
-		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
+		self.assertEqual(["Module `nts.tests.data.load_sleep` loaded"], output)
 
 
-class TestIdenticon(FrappeTestCase):
+class TestIdenticon(ntsTestCase):
 	def test_get_gravatar(self):
-		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
-		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
+		# developers@nts.io has a gravatar linked so str URL will be returned
+		nts.flags.in_test = False
+		gravatar_url = get_gravatar("developers@nts.io")
+		nts.flags.in_test = True
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("http"))
 
 		# random email will require Identicon to be generated, which will be a base64 string
-		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
+		gravatar_url = get_gravatar(f"developers{random_string(6)}@nts.io")
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
 
@@ -957,7 +957,7 @@ class TestIdenticon(FrappeTestCase):
 		self.assertTrue(identicon_bs64.startswith("data:image/png;base64,"))
 
 
-class TestContainerUtils(FrappeTestCase):
+class TestContainerUtils(ntsTestCase):
 	def test_dict_to_str(self):
 		self.assertEqual(dict_to_str({"a": "b"}), "a=b")
 
@@ -968,7 +968,7 @@ class TestContainerUtils(FrappeTestCase):
 		self.assertEqual(a["c"], "d")
 
 
-class TestLocks(FrappeTestCase):
+class TestLocks(ntsTestCase):
 	def test_locktimeout(self):
 		lock_name = "test_lock"
 		with filelock(lock_name):
@@ -984,7 +984,7 @@ class TestLocks(FrappeTestCase):
 					self.fail("Global locks not working")
 
 
-class TestMiscUtils(FrappeTestCase):
+class TestMiscUtils(ntsTestCase):
 	def test_get_file_timestamp(self):
 		self.assertIsInstance(get_file_timestamp(__file__), str)
 
@@ -993,13 +993,13 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertIn("apps", cstr(out))
 
 	def test_get_all_sites(self):
-		self.assertIn(frappe.local.site, get_sites())
+		self.assertIn(nts.local.site, get_sites())
 
 	def test_get_site_info(self):
 		info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
-		self.assertIn("frappe", installed_apps)
+		self.assertIn("nts", installed_apps)
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_safe_json_load(self):
@@ -1023,15 +1023,15 @@ class TestMiscUtils(FrappeTestCase):
 			self.assertEqual(output, expand_relative_urls(input))
 
 
-class TestTypingValidations(FrappeTestCase):
+class TestTypingValidations(ntsTestCase):
 	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		@frappe.whitelist()
+		@nts.whitelist()
 		def simple(string: str, number: int):
 			return
 
-		@frappe.whitelist()
+		@nts.whitelist()
 		def varkw(string: str, **kwargs):
 			return
 
@@ -1041,13 +1041,13 @@ class TestTypingValidations(FrappeTestCase):
 		]
 
 		for fn, args, kwargs in test_cases:
-			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			with self.assertRaisesRegex(nts.ntsTypeError, self.ERR_REGEX):
 				fn(*args, **kwargs)
 
 	def test_validate_whitelisted_doc_method(self):
-		report = frappe.get_last_doc("Report")
+		report = nts.get_last_doc("Report")
 
-		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+		with self.assertRaisesRegex(nts.ntsTypeError, self.ERR_REGEX):
 			report.toggle_disable(["disable"])
 
 		current_value = report.disabled
@@ -1057,22 +1057,22 @@ class TestTypingValidations(FrappeTestCase):
 		report.toggle_disable(current_value)
 
 
-class TestTBSanitization(FrappeTestCase):
+class TestTBSanitization(ntsTestCase):
 	def test_traceback_sanitzation(self):
 		try:
-			password = frappe.generate_hash()
+			password = nts.generate_hash()
 			args = {"password": "42", "pwd": password, "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
+			args = nts._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			traceback = nts.get_traceback(with_context=True)
 			self.assertNotIn(password, traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)
 
 
-class TestRounding(FrappeTestCase):
+class TestRounding(ntsTestCase):
 	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	def test_normal_rounding(self):
 		self.assertEqual(flt("what"), 0)
@@ -1221,7 +1221,7 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
 	def test_default_rounding(self):
-		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
+		self.assertEqual(nts.get_system_settings("rounding_method"), "Banker's Rounding")
 
 	@given(
 		st.floats(min_value=-(2**32) - 1, max_value=2**32 + 1),
@@ -1233,10 +1233,10 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(cint(str(floating_point)), int(floating_point))
 
 
-class TestArgumentTypingValidations(FrappeTestCase):
+class TestArgumentTypingValidations(ntsTestCase):
 	def test_validate_argument_types(self):
-		from frappe.core.doctype.doctype.doctype import DocType
-		from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
+		from nts.core.doctype.doctype.doctype import DocType
+		from nts.utils.typing_validations import ntsTypeError, validate_argument_types
 
 		@validate_argument_types
 		def test_simple_types(a: int, b: float, c: bool):
@@ -1254,9 +1254,9 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		self.assertEqual(test_simple_types(1, 2, 1), (1, 2.0, True))
 		self.assertEqual(test_simple_types(1.0, 2, 1), (1, 2.0, True))
 		self.assertEqual(test_simple_types(1, 2, "1"), (1, 2.0, True))
-		with self.assertRaises(FrappeTypeError):
+		with self.assertRaises(ntsTypeError):
 			test_simple_types(1, 2, "a")
-		with self.assertRaises(FrappeTypeError):
+		with self.assertRaises(ntsTypeError):
 			test_simple_types(1, 2, None)
 
 		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": 1}), ("a", [{"a": 1}], {"a": 1}))
@@ -1264,32 +1264,32 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		self.assertEqual(test_sequence("a", [{"a": 1}], None), ("a", [{"a": 1}], None))
 		self.assertEqual(test_sequence("a", None, {"a": 1}), ("a", None, {"a": 1}))
 		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": "1.0"}), ("a", [{"a": 1}], {"a": 1}))
-		with self.assertRaises(FrappeTypeError):
+		with self.assertRaises(ntsTypeError):
 			test_sequence("a", [{"a": 1}], True)
 
-		doctype = frappe.get_last_doc("DocType")
+		doctype = nts.get_last_doc("DocType")
 		self.assertEqual(test_doctypes(doctype), doctype)
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
-		with self.assertRaises(FrappeTypeError):
+		with self.assertRaises(ntsTypeError):
 			test_doctypes("a")
 
 
-class TestChangeLog(FrappeTestCase):
+class TestChangeLog(ntsTestCase):
 	def test_get_remote_url(self):
-		self.assertIsInstance(get_source_url("frappe"), str)
+		self.assertIsInstance(get_source_url("nts"), str)
 
 	def test_parse_github_url(self):
 		# using erpnext as repo in order to be different from the owner
-		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
-		self.assertEqual(owner, "frappe")
+		owner, repo = parse_github_url("https://github.com/nts/erpnext.git")
+		self.assertEqual(owner, "nts")
 		self.assertEqual(repo, "erpnext")
 
-		owner, repo = parse_github_url("https://github.com/frappe/erpnext")
-		self.assertEqual(owner, "frappe")
+		owner, repo = parse_github_url("https://github.com/nts/erpnext")
+		self.assertEqual(owner, "nts")
 		self.assertEqual(repo, "erpnext")
 
-		owner, repo = parse_github_url("git@github.com:frappe/erpnext.git")
-		self.assertEqual(owner, "frappe")
+		owner, repo = parse_github_url("git@github.com:nts/erpnext.git")
+		self.assertEqual(owner, "nts")
 		self.assertEqual(repo, "erpnext")
 
 		owner, repo = parse_github_url("https://gitlab.com/gitlab-org/gitlab")
@@ -1299,7 +1299,7 @@ class TestChangeLog(FrappeTestCase):
 		self.assertRaises(ValueError, parse_github_url, remote_url=None)
 
 
-class TestCrypto(FrappeTestCase):
+class TestCrypto(ntsTestCase):
 	def test_hashing(self):
 		self.assertEqual(sha256_hash(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 		self.assertEqual(

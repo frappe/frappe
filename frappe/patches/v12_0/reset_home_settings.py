@@ -1,9 +1,9 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("core", "doctype", "user")
-	frappe.db.sql(
+	nts.reload_doc("core", "doctype", "user")
+	nts.db.sql(
 		"""
 		UPDATE `tabUser`
 		SET `home_settings` = ''

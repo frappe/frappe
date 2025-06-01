@@ -99,7 +99,7 @@ jobs:
       - name: Install Dependencies
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-          pip install frappe-bench
+          pip install nts-bench
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -109,14 +109,14 @@ jobs:
 
       - name: Run Patch Tests
         run: |
-          cd ~/frappe-bench/
+          cd ~/nts-bench/
           sed -i 's/^worker:/# worker:/g' Procfile
-          wget https://frappeframework.com/files/v13-frappe.sql.gz
-          bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
+          wget https://ntsframework.com/files/v13-nts.sql.gz
+          bench --site test_site --force restore ~/nts-bench/v13-nts.sql.gz
 
           source env/bin/activate
-          cd apps/frappe/
-          git remote set-url upstream https://github.com/frappe/frappe.git
+          cd apps/nts/
+          git remote set-url upstream https://github.com/nts/nts.git
 
           function update_to_version() {
             version=$1
@@ -128,9 +128,9 @@ jobs:
 
             pgrep honcho | xargs kill
             sleep 3
-            rm -rf ~/frappe-bench/env
+            rm -rf ~/nts-bench/env
             bench -v setup env
-            bench start &>> ~/frappe-bench/bench_start.log &
+            bench start &>> ~/nts-bench/bench_start.log &
 
             bench --site test_site migrate
           }
@@ -140,17 +140,17 @@ jobs:
           echo "Updating to last commit"
           pgrep honcho | xargs kill
           sleep 3
-          rm -rf ~/frappe-bench/env
+          rm -rf ~/nts-bench/env
           git checkout -q -f "$GITHUB_SHA"
           bench -v setup env
-          bench start &>> ~/frappe-bench/bench_start.log &
+          bench start &>> ~/nts-bench/bench_start.log &
           bench --site test_site migrate
-          bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+          bench --site test_site execute nts.tests.utils.check_orpahned_doctypes
 
       - name: Show bench output
         if: ${{ always() }}
         run: |
-          cd ~/frappe-bench
+          cd ~/nts-bench
           cat bench_start.log || true
           cd logs
           for f in ./*.log*; do

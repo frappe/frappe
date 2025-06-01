@@ -1,5 +1,5 @@
-import frappe
-from frappe.model.naming import is_autoincremented
+import nts
+from nts.model.naming import is_autoincremented
 
 possible_log_types = (
 	"Version",
@@ -27,14 +27,14 @@ def execute():
 	"""
 	for doctype in possible_log_types:
 		if (
-			frappe.db.exists("DocType", doctype)
+			nts.db.exists("DocType", doctype)
 			and _is_implicit_int_pk(doctype)
 			and not is_autoincremented(doctype)
 		):
-			frappe.db.change_column_type(
+			nts.db.change_column_type(
 				doctype,
 				"name",
-				type=f"varchar({frappe.db.VARCHAR_LEN})",
+				type=f"varchar({nts.db.VARCHAR_LEN})",
 				nullable=True,
 			)
 
@@ -42,9 +42,9 @@ def execute():
 def _is_implicit_int_pk(doctype: str) -> bool:
 	query = f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}'"""
 	values = ()
-	if frappe.db.db_type == "mariadb":
+	if nts.db.db_type == "mariadb":
 		query += " and table_schema = %s"
-		values = (frappe.db.cur_db_name,)
+		values = (nts.db.cur_db_name,)
 
-	col_type = frappe.db.sql(query, values)
+	col_type = nts.db.sql(query, values)
 	return bool(col_type and col_type[0][0] == "bigint")

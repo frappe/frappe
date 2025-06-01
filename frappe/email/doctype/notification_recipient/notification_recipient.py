@@ -1,7 +1,7 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2018, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class NotificationRecipient(Document):
@@ -11,7 +11,7 @@ class NotificationRecipient(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		bcc: DF.Code | None
 		cc: DF.Code | None

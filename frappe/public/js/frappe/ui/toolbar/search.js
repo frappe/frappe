@@ -1,13 +1,13 @@
-frappe.provide("frappe.search");
+nts.provide("nts.search");
 
-frappe.search.SearchDialog = class {
+nts.search.SearchDialog = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
 	}
 
 	make() {
-		this.search_dialog = new frappe.ui.Dialog({
+		this.search_dialog = new nts.ui.Dialog({
 			minimizable: true,
 			size: "large",
 		});
@@ -27,7 +27,7 @@ frappe.search.SearchDialog = class {
 					<input type="text" class="form-control search-input">
 				</div>
 				<span class="search-icon">
-					${frappe.utils.icon("search")}
+					${nts.utils.icon("search")}
 				</span>`
 			);
 	}
@@ -52,8 +52,8 @@ frappe.search.SearchDialog = class {
 				get_results: (keywords, callback) => {
 					let start = 0,
 						limit = 100;
-					let results = frappe.search.utils.get_nav_results(keywords);
-					frappe.search.utils.get_global_results(keywords, start, limit).then(
+					let results = nts.search.utils.get_nav_results(keywords);
+					nts.search.utils.get_global_results(keywords, start, limit).then(
 						(global_results) => {
 							results = results.concat(global_results);
 							callback(results, keywords);
@@ -70,8 +70,8 @@ frappe.search.SearchDialog = class {
 				no_results_status: (keyword) =>
 					"<div>" + __("No documents found tagged with {0}", [keyword]) + "</div>",
 				get_results: (keywords, callback) => {
-					var results = frappe.search.utils.get_nav_results(keywords);
-					frappe.tags.utils.get_tag_results(keywords).then(
+					var results = nts.search.utils.get_nav_results(keywords);
+					nts.tags.utils.get_tag_results(keywords).then(
 						(global_results) => {
 							results = results.concat(global_results);
 							callback(results, keywords);
@@ -101,7 +101,7 @@ frappe.search.SearchDialog = class {
 		var $placeholder = $(`<div class="row search-results hide">
 			<div class="empty-state">
 				<div class="text-center">
-					<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
+					<img src="/assets/nts/images/ui-states/search-empty-state.svg"
 						alt="Generic Empty State"
 						class="null-state"
 					>
@@ -168,7 +168,7 @@ frappe.search.SearchDialog = class {
 			const fetch_type = $el.attr("data-search");
 			var current_count = this.$body.find(".result").length;
 			if (fetch_type === "Global") {
-				frappe.search.utils
+				nts.search.utils
 					.get_global_results(this.current_keyword, current_count, this.more_count, type)
 					.then(
 						(doctype_results) => {
@@ -233,7 +233,7 @@ frappe.search.SearchDialog = class {
 	}
 
 	render_data(result_sets) {
-		let $search_results = $(frappe.render_template("search")).addClass("hide");
+		let $search_results = $(nts.render_template("search")).addClass("hide");
 		let $sidebar = $search_results.find(".search-sidebar").empty();
 		let sidebar_item_html =
 			'<li class="search-sidebar-item standard-sidebar-item list-link" data-category="{0}">' +
@@ -317,7 +317,7 @@ frappe.search.SearchDialog = class {
 	get_link(result) {
 		let link = "";
 		if (result.route) {
-			link = `href="${frappe.router.make_url(result.route)}"`;
+			link = `href="${nts.router.make_url(result.route)}"`;
 		} else if (result.data_path) {
 			link = `data-path=${result.data_path}"`;
 		}
@@ -327,7 +327,7 @@ frappe.search.SearchDialog = class {
 	render_result(type, result) {
 		let image_html = "";
 		if (result.image !== undefined) {
-			let avatar_html = frappe.get_avatar("avatar-medium", result.label, result.image);
+			let avatar_html = nts.get_avatar("avatar-medium", result.label, result.image);
 			image_html = `<a ${this.get_link(result)}>
 				<div class="result-image">
 					${avatar_html}
@@ -361,7 +361,7 @@ frappe.search.SearchDialog = class {
 
 	handle_result_click(result, $result) {
 		if (result.route_options) {
-			frappe.route_options = result.route_options;
+			nts.route_options = result.route_options;
 		}
 		$result.on("click", () => {
 			// this.toggle_minimize();
@@ -369,10 +369,10 @@ frappe.search.SearchDialog = class {
 				result.onclick(result.match);
 			} else {
 				var previous_hash = window.location.hash;
-				frappe.set_route(result.route);
+				nts.set_route(result.route);
 				// hashchange didn't fire!
 				if (window.location.hash == previous_hash) {
-					frappe.router.route();
+					nts.router.route();
 				}
 			}
 		});

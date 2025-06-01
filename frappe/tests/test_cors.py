@@ -1,10 +1,10 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from werkzeug.wrappers import Response
 
-import frappe
-from frappe.app import process_response
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.app import process_response
+from nts.tests.utils import ntsTestCase
 
 HEADERS = (
 	"Access-Control-Allow-Origin",
@@ -15,7 +15,7 @@ HEADERS = (
 )
 
 
-class TestCORS(FrappeTestCase):
+class TestCORS(ntsTestCase):
 	def make_request_and_test(self, origin="http://example.com", absent=False):
 		self.origin = origin
 
@@ -27,7 +27,7 @@ class TestCORS(FrappeTestCase):
 				"Access-Control-Request-Headers": "X-Test-Header",
 			}
 
-		frappe.utils.set_request(method="OPTIONS", headers=headers)
+		nts.utils.set_request(method="OPTIONS", headers=headers)
 
 		self.response = Response()
 		process_response(self.response)
@@ -42,26 +42,26 @@ class TestCORS(FrappeTestCase):
 					self.assertIn(header, self.response.headers)
 
 	def test_cors_disabled(self):
-		frappe.conf.allow_cors = None
+		nts.conf.allow_cors = None
 		self.make_request_and_test("http://example.com", True)
 
 	def test_request_without_origin(self):
-		frappe.conf.allow_cors = "http://example.com"
+		nts.conf.allow_cors = "http://example.com"
 		self.make_request_and_test(None, True)
 
 	def test_valid_origin(self):
-		frappe.conf.allow_cors = "http://example.com"
+		nts.conf.allow_cors = "http://example.com"
 		self.make_request_and_test()
 
-		frappe.conf.allow_cors = "*"
+		nts.conf.allow_cors = "*"
 		self.make_request_and_test()
 
-		frappe.conf.allow_cors = ["http://example.com", "https://example.com"]
+		nts.conf.allow_cors = ["http://example.com", "https://example.com"]
 		self.make_request_and_test()
 
 	def test_invalid_origin(self):
-		frappe.conf.allow_cors = "http://example1.com"
+		nts.conf.allow_cors = "http://example1.com"
 		self.make_request_and_test(absent=True)
 
-		frappe.conf.allow_cors = ["http://example1.com", "https://example.com"]
+		nts.conf.allow_cors = ["http://example1.com", "https://example.com"]
 		self.make_request_and_test(absent=True)

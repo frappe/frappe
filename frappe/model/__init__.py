@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # model __init__.py
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 data_fieldtypes = (
 	"Currency",
@@ -165,14 +165,14 @@ def delete_fields(args_dict, delete=0):
 	* If single, deletes record from `tabSingles`
 	args_dict = { dt: [field names] }
 	"""
-	import frappe.utils
+	import nts.utils
 
 	for dt in args_dict:
 		fields = args_dict[dt]
 		if not fields:
 			continue
 
-		frappe.db.delete(
+		nts.db.delete(
 			"DocField",
 			{
 				"parent": dt,
@@ -184,8 +184,8 @@ def delete_fields(args_dict, delete=0):
 		if not delete:
 			continue
 
-		if frappe.db.get_value("DocType", dt, "issingle"):
-			frappe.db.delete(
+		if nts.db.get_value("DocType", dt, "issingle"):
+			nts.db.delete(
 				"Singles",
 				{
 					"doctype": dt,
@@ -193,24 +193,24 @@ def delete_fields(args_dict, delete=0):
 				},
 			)
 		else:
-			existing_fields = frappe.db.describe(dt)
+			existing_fields = nts.db.describe(dt)
 			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
 			fields_need_to_delete = set(fields) & set(existing_fields)
 			if not fields_need_to_delete:
 				continue
 
-			if frappe.db.db_type == "mariadb":
+			if nts.db.db_type == "mariadb":
 				# mariadb implicitly commits before DDL, make it explicit
-				frappe.db.commit()
+				nts.db.commit()
 
 			query = "ALTER TABLE `tab%s` " % dt + ", ".join(
 				"DROP COLUMN `%s`" % f for f in fields_need_to_delete
 			)
-			frappe.db.sql(query)
+			nts.db.sql(query)
 
-		if frappe.db.db_type == "postgres":
+		if nts.db.db_type == "postgres":
 			# commit the results to db
-			frappe.db.commit()
+			nts.db.commit()
 
 
 def get_permitted_fields(
@@ -221,7 +221,7 @@ def get_permitted_fields(
 	*,
 	ignore_virtual=False,
 ) -> list[str]:
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
 	if doctype in CORE_DOCTYPES:
@@ -232,7 +232,7 @@ def get_permitted_fields(
 		return valid_columns
 
 	if permission_type is None:
-		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
+		permission_type = "select" if nts.only_has_select_perm(doctype, user=user) else "read"
 
 	permitted_fields = meta.get_permitted_fieldnames(
 		parenttype=parenttype,

@@ -1,20 +1,20 @@
 import * as Sentry from "@sentry/browser";
 
 Sentry.init({
-	dsn: frappe.boot.sentry_dsn,
-	release: frappe?.boot?.versions?.frappe,
+	dsn: nts.boot.sentry_dsn,
+	release: nts?.boot?.versions?.nts,
 	autoSessionTracking: false,
 	initialScope: {
-		// don't use frappe.session.user, it's set much later and will fail because of async loading
-		user: { id: frappe.boot.sitename },
-		tags: { frappe_user: frappe.boot.user.name ?? "Unidentified" },
+		// don't use nts.session.user, it's set much later and will fail because of async loading
+		user: { id: nts.boot.sitename },
+		tags: { nts_user: nts.boot.user.name ?? "Unidentified" },
 	},
 	beforeSend(event, hint) {
-		// Check if it was caused by frappe.throw()
+		// Check if it was caused by nts.throw()
 		if (
 			hint.originalException instanceof Error &&
 			hint.originalException.stack &&
-			hint.originalException.stack.includes("frappe.throw")
+			hint.originalException.stack.includes("nts.throw")
 		) {
 			return null;
 		}

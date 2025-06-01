@@ -1,30 +1,30 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from email.utils import formataddr
 from typing import TYPE_CHECKING
 
-import frappe
-import frappe.share
-from frappe import _dict
-from frappe.boot import get_allowed_reports
-from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
-from frappe.query_builder import DocType, Order
-from frappe.query_builder.functions import Concat_ws
+import nts
+import nts.share
+from nts import _dict
+from nts.boot import get_allowed_reports
+from nts.core.doctype.domain_settings.domain_settings import get_active_modules
+from nts.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
+from nts.query_builder import DocType, Order
+from nts.query_builder.functions import Concat_ws
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.user.user import User
+	from nts.core.doctype.user.user import User
 
 
 class UserPermissions:
 	"""
-	A user permission object can be accessed as `frappe.get_user()`
+	A user permission object can be accessed as `nts.get_user()`
 	"""
 
 	def __init__(self, name=""):
 		self.defaults = None
-		self.name = name or frappe.session.get("user")
+		self.name = name or nts.session.get("user")
 		self.roles = []
 
 		self.all_read = []
@@ -49,20 +49,20 @@ class UserPermissions:
 		def get_user_doc():
 			user = None
 			try:
-				user = frappe.get_doc("User", self.name).as_dict()
-			except frappe.DoesNotExistError:
+				user = nts.get_doc("User", self.name).as_dict()
+			except nts.DoesNotExistError:
 				pass
 			except Exception as e:
 				# install boo-boo
-				if not frappe.db.is_table_missing(e):
+				if not nts.db.is_table_missing(e):
 					raise
 
 			return user
 
-		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
+		if not nts.flags.in_install_db and not nts.flags.in_test:
+			user_doc = nts.cache.hget("user_doc", self.name, get_user_doc)
 			if user_doc:
-				self.doc = frappe.get_doc(user_doc)
+				self.doc = nts.get_doc(user_doc)
 
 	def get_roles(self):
 		"""get list of roles"""
@@ -74,8 +74,8 @@ class UserPermissions:
 		"""build map of special doctype properties"""
 		self.doctype_map = {}
 
-		active_domains = frappe.get_active_domains()
-		all_doctypes = frappe.get_all(
+		active_domains = nts.get_active_domains()
+		all_doctypes = nts.get_all(
 			"DocType",
 			fields=[
 				"name",
@@ -101,7 +101,7 @@ class UserPermissions:
 			if dt not in self.perm_map:
 				self.perm_map[dt] = {}
 
-			for k in frappe.permissions.rights:
+			for k in nts.permissions.rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 
@@ -113,7 +113,7 @@ class UserPermissions:
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
-		user_shared = frappe.share.get_shared_doctypes()
+		user_shared = nts.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = get_active_modules() or []
 		for dt in self.doctype_map:
@@ -172,7 +172,7 @@ class UserPermissions:
 		self.can_write += self.in_create
 		self.can_read += self.can_write
 
-		self.shared = frappe.get_all(
+		self.shared = nts.get_all(
 			"DocShare", {"user": self.name, "read": 1}, distinct=True, pluck="share_doctype"
 		)
 		self.can_read = list(set(self.can_read + self.shared))
@@ -183,19 +183,19 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import += frappe.get_all("DocType", {"allow_import": 1}, pluck="name")
-			self.can_import += frappe.get_all(
+			self.can_import += nts.get_all("DocType", {"allow_import": 1}, pluck="name")
+			self.can_import += nts.get_all(
 				"Property Setter",
 				pluck="doc_type",
 				filters={"property": "allow_import", "value": "1"},
 			)
 
-		frappe.cache.hset("can_import", frappe.session.user, self.can_import)
+		nts.cache.hset("can_import", nts.session.user, self.can_import)
 
 	def get_defaults(self):
-		import frappe.defaults
+		import nts.defaults
 
-		self.defaults = frappe.defaults.get_defaults(self.name)
+		self.defaults = nts.defaults.get_defaults(self.name)
 		return self.defaults
 
 	def _get(self, key):
@@ -210,7 +210,7 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.get_value(
+		d = nts.db.get_value(
 			"User",
 			self.name,
 			[
@@ -235,7 +235,7 @@ class UserPermissions:
 			self.build_permissions()
 
 		if d.get("default_workspace"):
-			workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+			workspace = nts.get_cached_doc("Workspace", d.default_workspace)
 			d.default_workspace = {
 				"name": workspace.name,
 				"public": workspace.public,
@@ -243,7 +243,7 @@ class UserPermissions:
 			}
 
 		d.name = self.name
-		d.onboarding_status = frappe.parse_json(d.onboarding_status)
+		d.onboarding_status = nts.parse_json(d.onboarding_status)
 		d.roles = self.get_roles()
 		d.defaults = self.get_defaults()
 		for key in (
@@ -276,7 +276,7 @@ class UserPermissions:
 def get_user_fullname(user: str) -> str:
 	user_doctype = DocType("User")
 	return (
-		frappe.get_value(
+		nts.get_value(
 			user_doctype,
 			filters={"name": user},
 			fieldname=Concat_ws(" ", user_doctype.first_name, user_doctype.last_name),
@@ -286,7 +286,7 @@ def get_user_fullname(user: str) -> str:
 
 
 def get_fullname_and_avatar(user: str) -> _dict:
-	first_name, last_name, avatar, name = frappe.db.get_value(
+	first_name, last_name, avatar, name = nts.db.get_value(
 		"User", user, ["first_name", "last_name", "user_image", "name"], order_by=None
 	)
 	return _dict(
@@ -309,7 +309,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 		fields = [User.full_name, User.name]
 
 	system_managers = (
-		frappe.qb.from_(User)
+		nts.qb.from_(User)
 		.join(HasRole)
 		.on(HasRole.parent == User.name)
 		.where(
@@ -317,7 +317,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 			& (User.enabled == 1)
 			& (HasRole.role == "System Manager")
 			& (User.docstatus < 2)
-			& (User.name.notin(frappe.STANDARD_USERS))
+			& (User.name.notin(nts.STANDARD_USERS))
 		)
 		.select(*fields)
 		.orderby(User.creation, order=Order.desc)
@@ -331,7 +331,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 
 
 def add_role(user: str, role: str) -> None:
-	frappe.get_doc("User", user).add_roles(role)
+	nts.get_doc("User", user).add_roles(role)
 
 
 def add_system_manager(
@@ -342,7 +342,7 @@ def add_system_manager(
 	password: str | None = None,
 ) -> "User":
 	# add user
-	user = frappe.new_doc("User")
+	user = nts.new_doc("User")
 	user.update(
 		{
 			"name": email,
@@ -358,7 +358,7 @@ def add_system_manager(
 	user.insert()
 
 	# add roles
-	roles = frappe.get_all(
+	roles = nts.get_all(
 		"Role",
 		fields=["name"],
 		filters={"name": ["not in", AUTOMATIC_ROLES]},
@@ -367,14 +367,14 @@ def add_system_manager(
 	user.add_roles(*roles)
 
 	if password:
-		from frappe.utils.password import update_password
+		from nts.utils.password import update_password
 
 		update_password(user=user.name, pwd=password)
 	return user
 
 
 def get_enabled_system_users() -> list[dict]:
-	return frappe.get_all(
+	return nts.get_all(
 		"User",
 		fields=["email", "language", "name"],
 		filters={
@@ -386,16 +386,16 @@ def get_enabled_system_users() -> list[dict]:
 
 
 def is_website_user(username: str | None = None) -> str | None:
-	return frappe.db.get_value("User", username or frappe.session.user, "user_type") == "Website User"
+	return nts.db.get_value("User", username or nts.session.user, "user_type") == "Website User"
 
 
 def is_system_user(username: str | None = None) -> str | None:
 	# TODO: Depracate this. Inefficient, incorrect. This function is meant to be used in emails only.
 	# Problem: Filters on email instead of PK, implicitly filters out disabled users.
-	return frappe.db.get_value(
+	return nts.db.get_value(
 		"User",
 		{
-			"email": username or frappe.session.user,
+			"email": username or nts.session.user,
 			"enabled": 1,
 			"user_type": "System User",
 		},
@@ -404,7 +404,7 @@ def is_system_user(username: str | None = None) -> str | None:
 
 
 def get_users() -> list[dict]:
-	from frappe.core.doctype.user.user import get_system_users
+	from nts.core.doctype.user.user import get_system_users
 
 	system_managers = get_system_managers(only_name=True)
 
@@ -423,7 +423,7 @@ def get_users_with_role(role: str) -> list[str]:
 	HasRole = DocType("Has Role")
 
 	return (
-		frappe.qb.from_(HasRole)
+		nts.qb.from_(HasRole)
 		.from_(User)
 		.where(
 			(HasRole.role == role)

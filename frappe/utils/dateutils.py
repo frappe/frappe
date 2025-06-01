@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import datetime
 
-import frappe
-import frappe.defaults
-from frappe.utils import add_to_date, get_datetime, getdate
-from frappe.utils.data import (
+import nts
+import nts.defaults
+from nts.utils import add_to_date, get_datetime, getdate
+from nts.utils.data import (
 	get_first_day,
 	get_first_day_of_week,
 	get_last_day,
@@ -74,10 +74,10 @@ def parse_date(date):
 
 
 def get_user_date_format():
-	if getattr(frappe.local, "user_date_format", None) is None:
-		frappe.local.user_date_format = frappe.defaults.get_global_default("date_format") or "yyyy-mm-dd"
+	if getattr(nts.local, "user_date_format", None) is None:
+		nts.local.user_date_format = nts.defaults.get_global_default("date_format") or "yyyy-mm-dd"
 
-	return frappe.local.user_date_format
+	return nts.local.user_date_format
 
 
 def datetime_in_user_format(date_time):
@@ -85,7 +85,7 @@ def datetime_in_user_format(date_time):
 		return ""
 	if isinstance(date_time, str):
 		date_time = get_datetime(date_time)
-	from frappe.utils import formatdate
+	from nts.utils import formatdate
 
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
 

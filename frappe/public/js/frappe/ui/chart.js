@@ -1,13 +1,13 @@
-import { Chart } from "frappe-charts/dist/frappe-charts.esm";
+import { Chart } from "nts-charts/dist/nts-charts.esm";
 
-frappe.provide("frappe.ui");
-frappe.Chart = Chart;
+nts.provide("nts.ui");
+nts.Chart = Chart;
 
-frappe.ui.RealtimeChart = class RealtimeChart extends frappe.Chart {
+nts.ui.RealtimeChart = class RealtimeChart extends nts.Chart {
 	constructor(element, socketEvent, maxLabelPoints = 8, data) {
 		super(element, data);
 		if (data.data.datasets[0].values.length > maxLabelPoints) {
-			frappe.throw(
+			nts.throw(
 				__(
 					"Length of passed data array is greater than value of maximum allowed label points!"
 				)
@@ -18,13 +18,13 @@ frappe.ui.RealtimeChart = class RealtimeChart extends frappe.Chart {
 		this.maxLabelPoints = maxLabelPoints;
 
 		this.start_updating = function () {
-			frappe.realtime.on(this.socketEvent, (data) => {
+			nts.realtime.on(this.socketEvent, (data) => {
 				this.update_chart(data.label, data.points);
 			});
 		};
 
 		this.stop_updating = function () {
-			frappe.realtime.off(this.socketEvent);
+			nts.realtime.off(this.socketEvent);
 		};
 
 		this.update_chart = function (label, data) {

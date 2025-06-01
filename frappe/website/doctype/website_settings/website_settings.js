@@ -1,4 +1,4 @@
-frappe.ui.form.on("Website Settings", {
+nts.ui.form.on("Website Settings", {
 	setup(frm) {
 		frm.set_query("navbar_template", () => ({
 			filters: {
@@ -20,7 +20,7 @@ frappe.ui.form.on("Website Settings", {
 
 	set_banner_from_image: function (frm) {
 		if (!frm.doc.banner_image) {
-			frappe.msgprint(__("Select a Brand Image first."));
+			nts.msgprint(__("Select a Brand Image first."));
 		}
 		frm.set_value("brand_html", "<img src='" + frm.doc.banner_image + "'>");
 	},
@@ -46,8 +46,8 @@ frappe.ui.form.on("Website Settings", {
 	},
 
 	authorize_api_indexing_access: function (frm) {
-		frappe.call({
-			method: "frappe.website.doctype.website_settings.google_indexing.authorize_access",
+		nts.call({
+			method: "nts.website.doctype.website_settings.google_indexing.authorize_access",
 			args: {
 				reauthorize: frm.doc.indexing_authorization_code ? 1 : 0,
 			},
@@ -61,11 +61,11 @@ frappe.ui.form.on("Website Settings", {
 	},
 
 	enable_view_tracking: function (frm) {
-		frappe.boot.website_tracking_enabled = frm.doc.enable_view_tracking;
+		nts.boot.website_tracking_enabled = frm.doc.enable_view_tracking;
 	},
 
 	set_parent_options: function (frm, doctype, name) {
-		var item = frappe.get_doc(doctype, name);
+		var item = nts.get_doc(doctype, name);
 		if (item.parentfield === "top_bar_items") {
 			frm.trigger("set_parent_label_options");
 		} else if (item.parentfield === "footer_items") {
@@ -97,7 +97,7 @@ frappe.ui.form.on("Website Settings", {
 		let values_field = template_field + "_values";
 		let template = frm.doc[template_field];
 		if (!template) {
-			frappe.show_alert(__("Please select {0}", [frm.get_docfield(template_field).label]));
+			nts.show_alert(__("Please select {0}", [frm.get_docfield(template_field).label]));
 			return;
 		}
 		let values = JSON.parse(frm.doc[values_field] || "{}");
@@ -107,13 +107,13 @@ frappe.ui.form.on("Website Settings", {
 	},
 });
 
-frappe.ui.form.on("Top Bar Item", {
+nts.ui.form.on("Top Bar Item", {
 	top_bar_items_delete(frm) {
 		frm.events.set_parent_label_options(frm);
 	},
 
 	footer_items_add(frm, cdt, cdn) {
-		frappe.model.set_value(cdt, cdn, "right", 0);
+		nts.model.set_value(cdt, cdn, "right", 0);
 	},
 
 	footer_items_delete(frm) {
@@ -133,7 +133,7 @@ frappe.ui.form.on("Top Bar Item", {
 	},
 });
 
-frappe.tour["Website Settings"] = [
+nts.tour["Website Settings"] = [
 	{
 		fieldname: "enable_view_tracking",
 		title: __("Enable Tracking Page Views"),

@@ -1,15 +1,15 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 test_dependencies = ["User", "Connected App", "Token Cache"]
 
 
-class TestTokenCache(FrappeTestCase):
+class TestTokenCache(ntsTestCase):
 	def setUp(self):
-		self.token_cache = frappe.get_last_doc("Token Cache")
-		self.token_cache.update({"connected_app": frappe.get_last_doc("Connected App").name})
+		self.token_cache = nts.get_last_doc("Token Cache")
+		self.token_cache.update({"connected_app": nts.get_last_doc("Connected App").name})
 		self.token_cache.save(ignore_permissions=True)
 
 	def test_get_auth_header(self):

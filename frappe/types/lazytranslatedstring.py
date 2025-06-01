@@ -1,6 +1,6 @@
 import functools
 
-from frappe import _
+from nts import _
 
 
 @functools.total_ordering

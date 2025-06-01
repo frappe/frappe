@@ -12,7 +12,7 @@
 		<tr>
 			<td>{{ schedule_details[i].reference_document }}</td>
 			<td> {{ __(schedule_details[i].frequency) }} </td>
-			<td> {{ frappe.datetime.str_to_user(schedule_details[i].next_scheduled_date) }} </td>
+			<td> {{ nts.datetime.str_to_user(schedule_details[i].next_scheduled_date) }} </td>
 		</tr>
 	{% } %}
 	</tbody>

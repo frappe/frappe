@@ -1,18 +1,18 @@
-// Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2017, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.color = {
+nts.ui.color = {
 	get: function (color_name, shade) {
 		if (color_name && shade) return this.get_color_shade(color_name, shade);
 		if (color_name) return this.get_color_shade(color_name, "default");
-		return frappe.ui.color_map;
+		return nts.ui.color_map;
 	},
 	get_color: function (color_name) {
-		const color_names = Object.keys(frappe.ui.color_map);
+		const color_names = Object.keys(nts.ui.color_map);
 		if (color_names.includes(color_name)) {
-			return frappe.ui.color_map[color_name];
+			return nts.ui.color_map[color_name];
 		} else {
 			console.warn(`'color_name' can be one of ${color_names} and not ${color_name}`);
 		}
@@ -55,10 +55,10 @@ frappe.ui.color = {
 		}
 	},
 	all: function () {
-		return Object.values(frappe.ui.color_map).reduce((acc, curr) => acc.concat(curr), []);
+		return Object.values(nts.ui.color_map).reduce((acc, curr) => acc.concat(curr), []);
 	},
 	names: function () {
-		return Object.keys(frappe.ui.color_map);
+		return Object.keys(nts.ui.color_map);
 	},
 	is_standard: function (color_name) {
 		if (!color_name) return false;
@@ -68,8 +68,8 @@ frappe.ui.color = {
 		return this.names().includes(color_name);
 	},
 	get_color_name: function (hex) {
-		for (const key in frappe.ui.color_map) {
-			const colors = frappe.ui.color_map[key];
+		for (const key in nts.ui.color_map) {
+			const colors = nts.ui.color_map[key];
 			if (colors.includes(hex)) return key;
 		}
 	},
@@ -139,4 +139,4 @@ frappe.ui.color = {
 	},
 };
 
-frappe.ui.color_map = frappe.ui.color.get_color_map();
+nts.ui.color_map = nts.ui.color.get_color_map();

@@ -1,7 +1,7 @@
 [project]
-name = "frappe"
+name = "nts"
 authors = [
-    { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
+    { name = "nts Technologies Pvt Ltd", email = "developers@nts.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
 requires-python = ">=3.10,<3.14"
@@ -38,7 +38,7 @@ dependencies = [
     "cryptography~=44.0.1",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-    "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
+    "gunicorn @ git+https://github.com/nts/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
     "ipython~=8.15.0",
     "ldap3~=2.9",
@@ -90,9 +90,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://frappeframework.com/"
-Repository = "https://github.com/frappe/frappe.git"
-"Bug Reports" = "https://github.com/frappe/frappe/issues"
+Homepage = "https://ntsframework.com/"
+Repository = "https://github.com/nts/nts.git"
+"Bug Reports" = "https://github.com/nts/nts/issues"
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
@@ -137,7 +137,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
 ]
-typing-modules = ["frappe.types.DF"]
+typing-modules = ["nts.types.DF"]
 
 [tool.ruff.format]
 quote-style = "double"

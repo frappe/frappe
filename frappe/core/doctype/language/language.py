@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 import re
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class Language(Document):
@@ -16,7 +16,7 @@ class Language(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		based_on: DF.Link | None
 		enabled: DF.Check
@@ -32,14 +32,14 @@ class Language(Document):
 		validate_with_regex(new, "Name")
 
 	def on_update(self):
-		frappe.cache.delete_value("languages_with_name")
-		frappe.cache.delete_value("languages")
+		nts.cache.delete_value("languages_with_name")
+		nts.cache.delete_value("languages")
 
 
 def validate_with_regex(name, label):
 	pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
 	if not pattern.match(name):
-		frappe.throw(
+		nts.throw(
 			_(
 				"""{0} must begin and end with a letter and can only contain letters,
 				hyphen or underscore."""
@@ -49,23 +49,23 @@ def validate_with_regex(name, label):
 
 def export_languages_json():
 	"""Export list of all languages"""
-	languages = frappe.get_all("Language", fields=["name", "language_name"])
+	languages = nts.get_all("Language", fields=["name", "language_name"])
 	languages = [{"name": d.language_name, "code": d.name} for d in languages]
 
 	languages.sort(key=lambda a: a["code"])
 
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "w") as f:
-		f.write(frappe.as_json(languages))
+	with open(nts.get_app_path("nts", "geo", "languages.json"), "w") as f:
+		f.write(nts.as_json(languages))
 
 
 def sync_languages():
-	"""Sync frappe/geo/languages.json with Language"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
+	"""Sync nts/geo/languages.json with Language"""
+	with open(nts.get_app_path("nts", "geo", "languages.json")) as f:
 		data = json.loads(f.read())
 
 	for l in data:
-		if not frappe.db.exists("Language", l["code"]):
-			frappe.get_doc(
+		if not nts.db.exists("Language", l["code"]):
+			nts.get_doc(
 				{
 					"doctype": "Language",
 					"language_code": l["code"],
@@ -76,9 +76,9 @@ def sync_languages():
 
 
 def update_language_names():
-	"""Update frappe/geo/languages.json names (for use via patch)"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
+	"""Update nts/geo/languages.json names (for use via patch)"""
+	with open(nts.get_app_path("nts", "geo", "languages.json")) as f:
 		data = json.loads(f.read())
 
 	for l in data:
-		frappe.db.set_value("Language", l["code"], "language_name", l["name"])
+		nts.db.set_value("Language", l["code"], "language_name", l["name"])

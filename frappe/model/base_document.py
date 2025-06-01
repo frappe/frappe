@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
 import json
@@ -6,9 +6,9 @@ import weakref
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
-import frappe
-from frappe import _, _dict
-from frappe.model import (
+import nts
+from nts import _, _dict
+from nts.model import (
 	child_table_fields,
 	datetime_fields,
 	default_fields,
@@ -17,12 +17,12 @@ from frappe.model import (
 	get_permitted_fields,
 	table_fields,
 )
-from frappe.model.docstatus import DocStatus
-from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
-from frappe.model.naming import set_new_name
-from frappe.model.utils.link_count import notify_link_count
-from frappe.modules import load_doctype_module
-from frappe.utils import (
+from nts.model.docstatus import DocStatus
+from nts.model.dynamic_links import invalidate_distinct_link_doctypes
+from nts.model.naming import set_new_name
+from nts.model.utils.link_count import notify_link_count
+from nts.modules import load_doctype_module
+from nts.utils import (
 	cast_fieldtype,
 	cint,
 	compare,
@@ -33,10 +33,10 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
-from frappe.utils.html_utils import unescape_html
+from nts.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
 D = TypeVar("D", bound="Document")
 
@@ -58,15 +58,15 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 def get_controller(doctype):
 	"""
 	Returns the locally cached **class** object of the given DocType.
-	For `custom` type, returns `frappe.model.document.Document`.
+	For `custom` type, returns `nts.model.document.Document`.
 
 	:param doctype: DocType name as string.
 	"""
 
-	if frappe.local.dev_server or frappe.flags.in_migrate:
+	if nts.local.dev_server or nts.flags.in_migrate:
 		return import_controller(doctype)
 
-	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
+	site_controllers = nts.controllers.setdefault(nts.local.site, {})
 	if doctype not in site_controllers:
 		site_controllers[doctype] = import_controller(doctype)
 
@@ -74,23 +74,23 @@ def get_controller(doctype):
 
 
 def import_controller(doctype):
-	from frappe.model.document import Document
-	from frappe.utils.nestedset import NestedSet
+	from nts.model.document import Document
+	from nts.utils.nestedset import NestedSet
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		doctype_info = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
+		doctype_info = nts.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
 		if doctype_info:
 			if doctype_info.custom:
 				return NestedSet if doctype_info.is_tree else Document
 			module_name = doctype_info.module
 
 	module_path = None
-	class_overrides = frappe.get_hooks("override_doctype_class")
+	class_overrides = nts.get_hooks("override_doctype_class")
 	if class_overrides and class_overrides.get(doctype):
 		import_path = class_overrides[doctype][-1]
 		module_path, classname = import_path.rsplit(".", 1)
-		module = frappe.get_module(module_path)
+		module = nts.get_module(module_path)
 
 	else:
 		module = load_doctype_module(doctype, module_name)
@@ -140,7 +140,7 @@ class BaseDocument:
 
 	@cached_property
 	def meta(self):
-		return frappe.get_meta(self.doctype)
+		return nts.get_meta(self.doctype)
 
 	@cached_property
 	def permitted_fieldnames(self) -> set[str]:
@@ -202,7 +202,7 @@ class BaseDocument:
 				self.set(key, value)
 
 	def get_db_value(self, key):
-		return frappe.db.get_value(self.doctype, self.name, key)
+		return nts.db.get_value(self.doctype, self.name, key)
 
 	def get(self, key, filters=None, limit=None, default=None):
 		if isinstance(key, dict):
@@ -380,16 +380,16 @@ class BaseDocument:
 						value = getattr(self, fieldname)
 
 					elif options := getattr(df, "options", None):
-						from frappe.utils.safe_exec import get_safe_globals
+						from nts.utils.safe_exec import get_safe_globals
 
-						value = frappe.safe_eval(
+						value = nts.safe_eval(
 							code=options,
 							eval_globals=get_safe_globals(),
 							eval_locals={"doc": self},
 						)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
-					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
+					nts.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if df.fieldtype == "Check":
 					value = 1 if cint(value) else 0
@@ -446,17 +446,17 @@ class BaseDocument:
 				self.__dict__[key] = None
 
 	def get_valid_columns(self) -> list[str]:
-		if self.doctype not in frappe.local.valid_columns:
+		if self.doctype not in nts.local.valid_columns:
 			if self.doctype in DOCTYPES_FOR_DOCTYPE:
-				from frappe.model.meta import get_table_columns
+				from nts.model.meta import get_table_columns
 
 				valid = get_table_columns(self.doctype)
 			else:
 				valid = self.meta.get_valid_columns()
 
-			frappe.local.valid_columns[self.doctype] = valid
+			nts.local.valid_columns[self.doctype] = valid
 
-		return frappe.local.valid_columns[self.doctype]
+		return nts.local.valid_columns[self.doctype]
 
 	def is_new(self) -> bool:
 		return self.get("__islocal")
@@ -527,7 +527,7 @@ class BaseDocument:
 		return doc
 
 	def as_json(self):
-		return frappe.as_json(self.as_dict())
+		return nts.as_json(self.as_dict())
 
 	def get_table_field_doctype(self, fieldname):
 		try:
@@ -557,12 +557,12 @@ class BaseDocument:
 		conflict_handler = ""
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
-		if ignore_if_duplicate and frappe.db.db_type == "postgres":
+		if ignore_if_duplicate and nts.db.db_type == "postgres":
 			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
-			self.owner = self.modified_by = frappe.session.user
+			self.owner = self.modified_by = nts.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
 		d = self.get_valid_dict(
@@ -573,7 +573,7 @@ class BaseDocument:
 
 		columns = list(d)
 		try:
-			frappe.db.sql(
+			nts.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values}) {conflict_handler}""".format(
 					doctype=self.doctype,
@@ -584,7 +584,7 @@ class BaseDocument:
 				list(d.values()),
 			)
 		except Exception as e:
-			if frappe.db.is_primary_key_violation(e):
+			if nts.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
 					self.flags.retry_count = (self.flags.retry_count or 0) + 1
@@ -595,14 +595,14 @@ class BaseDocument:
 					return
 
 				if not ignore_if_duplicate:
-					frappe.msgprint(
-						_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+					nts.msgprint(
+						_("{0} {1} already exists").format(_(self.doctype), nts.bold(self.name)),
 						title=_("Duplicate Name"),
 						indicator="red",
 					)
-					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+					raise nts.DuplicateEntryError(self.doctype, self.name, e)
 
-			elif frappe.db.is_unique_key_violation(e):
+			elif nts.db.is_unique_key_violation(e):
 				# unique constraint
 				self.show_unique_validation_message(e)
 
@@ -629,7 +629,7 @@ class BaseDocument:
 		columns = list(d)
 
 		try:
-			frappe.db.sql(
+			nts.db.sql(
 				"""UPDATE `tab{doctype}`
 				SET {values} WHERE `name`=%s""".format(
 					doctype=self.doctype, values=", ".join("`" + c + "`=%s" for c in columns)
@@ -637,7 +637,7 @@ class BaseDocument:
 				[*list(d.values()), name],
 			)
 		except Exception as e:
-			if frappe.db.is_unique_key_violation(e):
+			if nts.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
 			else:
 				raise
@@ -651,7 +651,7 @@ class BaseDocument:
 				doc.db_update()
 
 	def show_unique_validation_message(self, e):
-		if frappe.db.db_type != "postgres":
+		if nts.db.db_type != "postgres":
 			fieldname = str(e).split("'")[-2]
 			label = None
 
@@ -663,10 +663,10 @@ class BaseDocument:
 
 			label = self.get_label_from_fieldname(fieldname)
 
-			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
+			nts.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
-		raise frappe.UniqueValidationError(self.doctype, self.name, e)
+		raise nts.UniqueValidationError(self.doctype, self.name, e)
 
 	def get_field_name_by_key_name(self, key_name):
 		"""MariaDB stores a mapping between `key_name` and `column_name`.
@@ -681,7 +681,7 @@ class BaseDocument:
 		Returns:
 		        str: The column name associated with the key.
 		"""
-		return frappe.db.sql(
+		return nts.db.sql(
 			f"""
 			SHOW
 				INDEX
@@ -713,9 +713,9 @@ class BaseDocument:
 		"""Update modified timestamp"""
 		self.set("modified", now())
 		if getattr(self.meta, "issingle", False):
-			frappe.db.set_single_value(self.doctype, "modified", self.modified, update_modified=False)
+			nts.db.set_single_value(self.doctype, "modified", self.modified, update_modified=False)
 		else:
-			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
+			nts.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
@@ -745,7 +745,7 @@ class BaseDocument:
 			elif self.get("parentfield"):
 				return "{}: {} {} #{}: {}: {}".format(
 					_("Error"),
-					frappe.bold(_(self.doctype)),
+					nts.bold(_(self.doctype)),
 					_("Row"),
 					self.idx,
 					_("Value missing for"),
@@ -801,11 +801,11 @@ class BaseDocument:
 				if df.fieldtype == "Link":
 					doctype = df.options
 					if not doctype:
-						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
+						nts.throw(_("Options not set for link field {0}").format(df.fieldname))
 				else:
 					doctype = self.get(df.options)
 					if not doctype:
-						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
+						nts.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 					invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
@@ -814,7 +814,7 @@ class BaseDocument:
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
 
-				meta = frappe.get_meta(doctype)
+				meta = nts.get_meta(doctype)
 				fields_to_fetch = [
 					_df
 					for _df in self.meta.get_fields_to_fetch(df.fieldname)
@@ -824,20 +824,20 @@ class BaseDocument:
 				if not meta.get("is_virtual"):
 					if not fields_to_fetch:
 						# cache a single value type
-						values = _dict(name=frappe.db.get_value(doctype, docname, "name", cache=True))
+						values = _dict(name=nts.db.get_value(doctype, docname, "name", cache=True))
 					else:
 						values_to_fetch = ["name"] + [
 							_df.fetch_from.split(".")[-1] for _df in fields_to_fetch
 						]
 
 						# don't cache if fetching other values too
-						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+						values = nts.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
 
 				if getattr(meta, "issingle", 0):
 					values.name = doctype
 
 				if meta.get("is_virtual"):
-					values = frappe.get_doc(doctype, docname).as_dict()
+					values = nts.get_doc(doctype, docname).as_dict()
 
 				if values:
 					if not df.get("is_virtual"):
@@ -856,8 +856,8 @@ class BaseDocument:
 					elif (
 						df.fieldname != "amended_from"
 						and (is_submittable or self.meta.is_submittable)
-						and frappe.get_meta(doctype).is_submittable
-						and DocStatus(frappe.db.get_value(doctype, docname, "docstatus") or 0).is_cancelled()
+						and nts.get_meta(doctype).is_submittable
+						and DocStatus(nts.db.get_value(doctype, docname, "docstatus") or 0).is_cancelled()
 					):
 						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
@@ -867,16 +867,16 @@ class BaseDocument:
 		fetch_from_fieldname = df.fetch_from.split(".")[-1]
 		value = values[fetch_from_fieldname]
 		if df.fieldtype in ["Small Text", "Text", "Data"]:
-			from frappe.model.meta import get_default_df
+			from nts.model.meta import get_default_df
 
-			fetch_from_df = get_default_df(fetch_from_fieldname) or frappe.get_meta(doctype).get_field(
+			fetch_from_df = get_default_df(fetch_from_fieldname) or nts.get_meta(doctype).get_field(
 				fetch_from_fieldname
 			)
 
 			if not fetch_from_df:
-				frappe.throw(
+				nts.throw(
 					_('Please check the value of "Fetch From" set for field {0}').format(
-						frappe.bold(df.label)
+						nts.bold(df.label)
 					),
 					title=_("Wrong Fetch From value"),
 				)
@@ -887,7 +887,7 @@ class BaseDocument:
 		setattr(self, df.fieldname, value)
 
 	def _validate_selects(self):
-		if frappe.flags.in_import:
+		if nts.flags.in_import:
 			return
 
 		for df in self.meta.get_select_fields():
@@ -904,23 +904,23 @@ class BaseDocument:
 			self.set(df.fieldname, cstr(self.get(df.fieldname)).strip())
 			value = self.get(df.fieldname)
 
-			if value not in options and not (frappe.flags.in_test and value.startswith("_T-")):
+			if value not in options and not (nts.flags.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
 				label = _(self.meta.get_label(df.fieldname))
 				comma_options = '", "'.join(_(each) for each in options)
 
-				frappe.throw(
+				nts.throw(
 					_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
 						prefix, label, value, comma_options
 					)
 				)
 
 	def _validate_data_fields(self):
-		# data_field options defined in frappe.model.data_field_options
+		# data_field options defined in nts.model.data_field_options
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			frappe.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			nts.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
 
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
@@ -931,30 +931,30 @@ class BaseDocument:
 				continue
 
 			if data_field_options == "Email":
-				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
+				if (self.owner in nts.STANDARD_USERS) and (data in nts.STANDARD_USERS):
 					continue
-				for email_address in frappe.utils.split_emails(data):
-					frappe.utils.validate_email_address(email_address, throw=True)
+				for email_address in nts.utils.split_emails(data):
+					nts.utils.validate_email_address(email_address, throw=True)
 
 			if data_field_options == "Name":
-				frappe.utils.validate_name(data, throw=True)
+				nts.utils.validate_name(data, throw=True)
 
 			if data_field_options == "Phone":
-				frappe.utils.validate_phone_number(data, throw=True)
+				nts.utils.validate_phone_number(data, throw=True)
 
 			if data_field_options == "URL":
 				if not data:
 					continue
 
-				frappe.utils.validate_url(data, throw=True)
+				nts.utils.validate_url(data, throw=True)
 
 	def _validate_constants(self):
-		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
+		if nts.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
 
 		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ("=", 1)})]
 		if constants:
-			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
+			values = nts.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
 		for fieldname in constants:
 			df = self.meta.get_field(fieldname)
@@ -967,20 +967,20 @@ class BaseDocument:
 				value = values.get(fieldname)
 
 			if self.get(fieldname) != value:
-				frappe.throw(
+				nts.throw(
 					_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
-					frappe.CannotChangeConstantError,
+					nts.CannotChangeConstantError,
 				)
 
 	def _validate_length(self):
-		if frappe.flags.in_install:
+		if nts.flags.in_install:
 			return
 
 		if getattr(self.meta, "issingle", 0):
 			# single doctype value type is mediumtext
 			return
 
-		type_map = frappe.db.type_map
+		type_map = nts.db.type_map
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			df = self.meta.get_field(fieldname)
@@ -1013,10 +1013,10 @@ class BaseDocument:
 			language = field.get("options")
 
 			if language == "Python":
-				frappe.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
+				nts.utils.validate_python_code(code_string, fieldname=field.label, is_expression=False)
 
 			elif language == "PythonExpression":
-				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+				nts.utils.validate_python_code(code_string, fieldname=field.label)
 
 	def _sync_autoname_field(self):
 		"""Keep autoname field in sync with `name`"""
@@ -1033,17 +1033,17 @@ class BaseDocument:
 		else:
 			reference = f"{_(self.doctype)} {self.name}"
 
-		frappe.throw(
+		nts.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
+				reference, nts.bold(_(df.label, context=df.parent)), max_length, value
 			),
-			frappe.CharacterLengthExceededError,
+			nts.CharacterLengthExceededError,
 			title=_("Value too big"),
 		)
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
-		db_values = frappe.get_doc(self.doctype, self.name).as_dict()
+		db_values = nts.get_doc(self.doctype, self.name).as_dict()
 
 		for key in self.as_dict():
 			df = self.meta.get_field(key)
@@ -1067,14 +1067,14 @@ class BaseDocument:
 						microseconds=db_value.microsecond,
 					)
 				if self_value != db_value:
-					frappe.throw(
+					nts.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
 							f"Row #{self.idx}:" if self.get("parent") else "",
-							frappe.bold(_(df.label, context=df.parent)),
-							frappe.bold(db_value),
-							frappe.bold(self_value),
+							nts.bold(_(df.label, context=df.parent)),
+							nts.bold(db_value),
+							nts.bold(self_value),
 						),
-						frappe.UpdateAfterSubmitError,
+						nts.UpdateAfterSubmitError,
 						title=_("Cannot Update After Submit"),
 					)
 
@@ -1085,14 +1085,14 @@ class BaseDocument:
 		"""
 		from bs4 import BeautifulSoup
 
-		if frappe.flags.in_install:
+		if nts.flags.in_install:
 			return
 
 		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
 			if not value or not isinstance(value, str):
 				continue
 
-			value = frappe.as_unicode(value)
+			value = nts.as_unicode(value)
 
 			if "<" not in value and ">" not in value:
 				# doesn't look like html so no need
@@ -1122,7 +1122,7 @@ class BaseDocument:
 
 	def _save_passwords(self):
 		"""Save password field values in __Auth table"""
-		from frappe.utils.password import remove_encrypted_password, set_encrypted_password
+		from nts.utils.password import remove_encrypted_password, set_encrypted_password
 
 		if self.flags.ignore_save_passwords is True:
 			return
@@ -1143,7 +1143,7 @@ class BaseDocument:
 				self.set(df.fieldname, "*" * len(new_password))
 
 	def get_password(self, fieldname="password", raise_exception=True):
-		from frappe.utils.password import get_decrypted_password
+		from nts.utils.password import get_decrypted_password
 
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
@@ -1158,7 +1158,7 @@ class BaseDocument:
 
 		:param fieldname: Fieldname for which precision is required.
 		:param parentfield: If fieldname is in child table."""
-		from frappe.model.meta import get_field_precision
+		from nts.model.meta import get_field_precision
 
 		if parentfield and not isinstance(parentfield, str) and parentfield.get("parentfield"):
 			parentfield = parentfield.parentfield
@@ -1175,7 +1175,7 @@ class BaseDocument:
 			self._precision[cache_key][fieldname] = None
 
 			doctype = self.meta.get_field(parentfield).options if parentfield else self.doctype
-			df = frappe.get_meta(doctype).get_field(fieldname)
+			df = nts.get_meta(doctype).get_field(fieldname)
 
 			if df.fieldtype in ("Currency", "Float", "Percent"):
 				self._precision[cache_key][fieldname] = get_field_precision(df, self)
@@ -1185,11 +1185,11 @@ class BaseDocument:
 	def get_formatted(
 		self, fieldname, doc=None, currency=None, absolute_value=False, translated=False, format=None
 	):
-		from frappe.utils.formatters import format_value
+		from nts.utils.formatters import format_value
 
 		df = self.meta.get_field(fieldname)
 		if not df:
-			from frappe.model.meta import get_default_df
+			from nts.model.meta import get_default_df
 
 			df = get_default_df(fieldname)
 
@@ -1200,7 +1200,7 @@ class BaseDocument:
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))
 		):
-			currency = frappe.db.get_value("Currency", currency_value, cache=True)
+			currency = nts.db.get_value("Currency", currency_value, cache=True)
 
 		val = self.get(fieldname)
 
@@ -1269,7 +1269,7 @@ class BaseDocument:
 		if to_reset:
 			if self.is_new():
 				# if new, set default value
-				ref_doc = frappe.new_doc(self.doctype)
+				ref_doc = nts.new_doc(self.doctype)
 			else:
 				# get values from old doc
 				if self.parent_doc:
@@ -1294,7 +1294,7 @@ class BaseDocument:
 		return cast_fieldtype(df.fieldtype, value, show_warning=False)
 
 	def _extract_images_from_text_editor(self):
-		from frappe.core.doctype.file.utils import extract_images_from_doc
+		from nts.core.doctype.file.utils import extract_images_from_doc
 
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):

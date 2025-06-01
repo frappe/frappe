@@ -2,9 +2,9 @@ from collections import defaultdict
 
 from rq import Connection, Worker
 
-import frappe.utils
-from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
-from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
+import nts.utils
+from nts.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
+from nts.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 
 
 def get_workers():
@@ -106,7 +106,7 @@ def doctor(site=None):
 	"""
 	Prints diagnostic information for the scheduler
 	"""
-	with frappe.init_site(site):
+	with nts.init_site(site):
 		workers_online = check_number_of_workers()
 		jobs_per_queue, job_count = get_jobs_by_queue(site)
 
@@ -114,25 +114,25 @@ def doctor(site=None):
 	if site:
 		sites = [site]
 	else:
-		sites = frappe.utils.get_sites()
+		sites = nts.utils.get_sites()
 
 	for s in sites:
-		frappe.init(s)
-		frappe.connect()
+		nts.init(s)
+		nts.connect()
 
 		if is_scheduler_disabled():
 			print("Scheduler disabled for", s)
 
-		if frappe.local.conf.maintenance_mode:
+		if nts.local.conf.maintenance_mode:
 			print("Maintenance mode on for", s)
 
-		if frappe.local.conf.pause_scheduler:
+		if nts.local.conf.pause_scheduler:
 			print("Scheduler paused for", s)
 
 		if is_scheduler_inactive():
 			print("Scheduler inactive for", s)
 
-		frappe.destroy()
+		nts.destroy()
 
 	# TODO improve this
 	print("Workers online:", workers_online)

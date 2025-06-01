@@ -1,23 +1,23 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import base64
 
 import requests
 
-import frappe
-from frappe.core.doctype.user.user import generate_keys
-from frappe.frappeclient import FrappeClient, FrappeException
-from frappe.model import default_fields
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.data import get_url
+import nts
+from nts.core.doctype.user.user import generate_keys
+from nts.ntsclient import ntsClient, ntsException
+from nts.model import default_fields
+from nts.tests.utils import ntsTestCase
+from nts.utils.data import get_url
 
 
-class TestFrappeClient(FrappeTestCase):
-	PASSWORD = frappe.conf.admin_password or "admin"
+class TestntsClient(ntsTestCase):
+	PASSWORD = nts.conf.admin_password or "admin"
 
 	def test_insert_many(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert_many(
 			[
 				{"doctype": "Note", "title": "Sing"},
@@ -37,7 +37,7 @@ class TestFrappeClient(FrappeTestCase):
 		self.assertIn("sixpence", records)
 
 	def test_create_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		response = server.insert({"doctype": "Note", "title": "test_create"})
 
 		for field in default_fields:
@@ -47,7 +47,7 @@ class TestFrappeClient(FrappeTestCase):
 		self.assertEqual(response.get("title"), "test_create")
 
 	def test_list_docs(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		doc_list = server.get_list("Note")
 
 		self.assertTrue(len(doc_list))
@@ -56,7 +56,7 @@ class TestFrappeClient(FrappeTestCase):
 		USER = "Administrator"
 		TITLE = "get_this"
 		DOCTYPE = "Note"
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 
 		NAME = server.insert({"doctype": DOCTYPE, "title": TITLE}).get("name")
 		doc = server.get_doc(DOCTYPE, NAME)
@@ -71,24 +71,24 @@ class TestFrappeClient(FrappeTestCase):
 
 	def test_get_value_by_filters(self):
 		CONTENT = "test get value"
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert({"doctype": "Note", "title": "get_value", "content": CONTENT}).get("name")
 
 		self.assertEqual(server.get_value("Note", "content", {"title": "get_value"}).get("content"), CONTENT)
 
 	def test_get_value_by_name(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		CONTENT = "test get value"
 		NAME = server.insert({"doctype": "Note", "title": "get_value", "content": CONTENT}).get("name")
 
 		self.assertEqual(server.get_value("Note", "content", NAME).get("content"), CONTENT)
 
 	def test_get_value_with_malicious_query(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert({"doctype": "Note", "title": "get_value"})
 
 		self.assertRaises(
-			FrappeException,
+			ntsException,
 			server.get_value,
 			"Note",
 			"(select (password) from(__Auth) order by name desc limit 1)",
@@ -96,7 +96,7 @@ class TestFrappeClient(FrappeTestCase):
 		)
 
 	def test_get_single(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.set_value("Website Settings", "Website Settings", "title_prefix", "test-prefix")
 		self.assertEqual(
 			server.get_value("Website Settings", "title_prefix", "Website Settings").get("title_prefix"),
@@ -105,12 +105,12 @@ class TestFrappeClient(FrappeTestCase):
 		self.assertEqual(
 			server.get_value("Website Settings", "title_prefix").get("title_prefix"), "test-prefix"
 		)
-		frappe.db.rollback()  # Clear snapshot isolation
-		frappe.db.set_single_value("Website Settings", "title_prefix", "")
-		frappe.db.commit()
+		nts.db.rollback()  # Clear snapshot isolation
+		nts.db.set_single_value("Website Settings", "title_prefix", "")
+		nts.db.commit()
 
 	def test_update_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		resp = server.insert({"doctype": "Note", "title": "Sing"})
 		doc = server.get_doc("Note", resp.get("name"))
 
@@ -120,14 +120,14 @@ class TestFrappeClient(FrappeTestCase):
 		self.assertTrue(doc["content"] == CONTENT)
 
 	def test_update_child_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
-		frappe.db.delete("Contact", {"first_name": "George", "last_name": "Steevens"})
-		frappe.db.delete("Contact", {"first_name": "William", "last_name": "Shakespeare"})
-		frappe.db.delete("Communication", {"reference_doctype": "Event"})
-		frappe.db.delete("Communication Link", {"link_doctype": "Contact"})
-		frappe.db.delete("Event", {"subject": "Sing a song of sixpence"})
-		frappe.db.delete("Event Participants", {"reference_doctype": "Contact"})
-		frappe.db.commit()
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		nts.db.delete("Contact", {"first_name": "George", "last_name": "Steevens"})
+		nts.db.delete("Contact", {"first_name": "William", "last_name": "Shakespeare"})
+		nts.db.delete("Communication", {"reference_doctype": "Event"})
+		nts.db.delete("Communication Link", {"link_doctype": "Contact"})
+		nts.db.delete("Event", {"subject": "Sing a song of sixpence"})
+		nts.db.delete("Event Participants", {"reference_doctype": "Contact"})
+		nts.db.commit()
 
 		# create multiple contacts
 		server.insert_many(
@@ -159,25 +159,25 @@ class TestFrappeClient(FrappeTestCase):
 
 		# the change should run the parent document's validations and
 		# create a Communication record with the new contact
-		self.assertTrue(frappe.db.exists("Communication Link", {"link_name": "William Shakespeare"}))
+		self.assertTrue(nts.db.exists("Communication Link", {"link_name": "William Shakespeare"}))
 
 	def test_delete_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server = ntsClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		NAME_TO_DELETE = server.insert({"doctype": "Note", "title": "Sing"}).get("name")
 		server.delete("Note", NAME_TO_DELETE)
-		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
+		self.assertFalse(nts.db.get_value("Note", NAME_TO_DELETE))
 
 	def test_auth_via_api_key_secret(self):
 		# generate API key and API secret for administrator
 		keys = generate_keys("Administrator")
-		frappe.db.commit()
-		generated_secret = frappe.utils.password.get_decrypted_password(
+		nts.db.commit()
+		generated_secret = nts.utils.password.get_decrypted_password(
 			"User", "Administrator", fieldname="api_secret"
 		)
 
-		api_key = frappe.db.get_value("User", "Administrator", "api_key")
+		api_key = nts.db.get_value("User", "Administrator", "api_key")
 		header = {"Authorization": f"token {api_key}:{generated_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/nts.auth.get_logged_user", headers=header)
 
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
@@ -185,22 +185,22 @@ class TestFrappeClient(FrappeTestCase):
 
 		header = {
 			"Authorization": "Basic {}".format(
-				base64.b64encode(frappe.safe_encode(f"{api_key}:{generated_secret}")).decode()
+				base64.b64encode(nts.safe_encode(f"{api_key}:{generated_secret}")).decode()
 			)
 		}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/nts.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/nts.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
-		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/nts.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)

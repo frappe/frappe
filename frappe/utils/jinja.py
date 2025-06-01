@@ -1,25 +1,25 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 def get_jenv():
-	import frappe
+	import nts
 
-	if not getattr(frappe.local, "jenv", None):
+	if not getattr(nts.local, "jenv", None):
 		from jinja2 import DebugUndefined
 		from jinja2.sandbox import SandboxedEnvironment
 
-		from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES, get_safe_globals
+		from nts.utils.safe_exec import UNSAFE_ATTRIBUTES, get_safe_globals
 
 		UNSAFE_ATTRIBUTES = UNSAFE_ATTRIBUTES - {"format", "format_map"}
 
-		class FrappeSandboxedEnvironment(SandboxedEnvironment):
+		class ntsSandboxedEnvironment(SandboxedEnvironment):
 			def is_safe_attribute(self, obj, attr, *args, **kwargs):
 				if attr in UNSAFE_ATTRIBUTES:
 					return False
 
 				return super().is_safe_attribute(obj, attr, *args, **kwargs)
 
-		# frappe will be loaded last, so app templates will get precedence
-		jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
+		# nts will be loaded last, so app templates will get precedence
+		jenv = ntsSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
@@ -28,9 +28,9 @@ def get_jenv():
 		jenv.globals.update(methods or {})
 		jenv.filters.update(filters or {})
 
-		frappe.local.jenv = jenv
+		nts.local.jenv = jenv
 
-	return frappe.local.jenv
+	return nts.local.jenv
 
 
 def get_template(path):
@@ -58,7 +58,7 @@ def validate_template(html):
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	from jinja2 import TemplateSyntaxError
 
-	import frappe
+	import nts
 
 	if not html:
 		return
@@ -66,7 +66,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
-		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
+		nts.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
 def render_template(template, context=None, is_path=None, safe_render=True):
@@ -80,7 +80,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 
 	from jinja2 import TemplateError
 
-	from frappe import _, get_traceback, throw
+	from nts import _, get_traceback, throw
 
 	if not template:
 		return ""
@@ -114,39 +114,39 @@ def guess_is_path(template):
 
 
 def get_jloader():
-	import frappe
+	import nts
 
-	if not getattr(frappe.local, "jloader", None):
+	if not getattr(nts.local, "jloader", None):
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		apps = frappe.get_hooks("template_apps")
+		apps = nts.get_hooks("template_apps")
 		if not apps:
 			apps = list(
 				reversed(
-					frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True)
+					nts.local.flags.web_pages_apps or nts.get_installed_apps(_ensure_on_bench=True)
 				)
 			)
 
-		if "frappe" not in apps:
-			apps.append("frappe")
+		if "nts" not in apps:
+			apps.append("nts")
 
-		frappe.local.jloader = ChoiceLoader(
+		nts.local.jloader = ChoiceLoader(
 			# search for something like app/templates/...
 			[PrefixLoader({app: PackageLoader(app, ".") for app in apps})]
 			# search for something like templates/...
 			+ [PackageLoader(app, ".") for app in apps]
 		)
 
-	return frappe.local.jloader
+	return nts.local.jloader
 
 
 def set_filters(jenv):
-	import frappe
-	from frappe.utils import cint, cstr, flt
+	import nts
+	from nts.utils import cint, cstr, flt
 
 	jenv.filters.update(
 		{
-			"json": frappe.as_json,
+			"json": nts.as_json,
 			"len": len,
 			"int": cint,
 			"str": cstr,
@@ -157,9 +157,9 @@ def set_filters(jenv):
 
 def get_jinja_hooks():
 	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
-	import frappe
+	import nts
 
-	if not getattr(frappe.local, "site", None):
+	if not getattr(nts.local, "site", None):
 		return (None, None)
 
 	from inspect import getmembers, isfunction
@@ -169,9 +169,9 @@ def get_jinja_hooks():
 		out = {}
 		for obj_path in object_paths:
 			try:
-				obj = frappe.get_module(obj_path)
+				obj = nts.get_module(obj_path)
 			except ModuleNotFoundError:
-				obj = frappe.get_attr(obj_path)
+				obj = nts.get_attr(obj_path)
 
 			if isinstance(obj, ModuleType):
 				functions = getmembers(obj, isfunction)
@@ -182,7 +182,7 @@ def get_jinja_hooks():
 				out[function_name] = obj
 		return out
 
-	values = frappe.get_hooks("jinja")
+	values = nts.get_hooks("jinja")
 	methods, filters = values.get("methods", []), values.get("filters", [])
 
 	method_dict = get_obj_dict_from_paths(methods)

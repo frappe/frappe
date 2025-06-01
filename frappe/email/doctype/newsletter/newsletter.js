@@ -1,10 +1,10 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-frappe.ui.form.on("Newsletter", {
+nts.ui.form.on("Newsletter", {
 	refresh(frm) {
 		let doc = frm.doc;
-		let can_write = frappe.boot.user.can_write.includes(doc.doctype);
+		let can_write = nts.boot.user.can_write.includes(doc.doctype);
 		if (!frm.is_new() && !frm.is_dirty() && !doc.email_sent && can_write) {
 			frm.add_custom_button(
 				__("Send a test email"),
@@ -46,7 +46,7 @@ frappe.ui.form.on("Newsletter", {
 				__("Send now"),
 				() => {
 					if (frm.doc.schedule_send) {
-						frappe.confirm(
+						nts.confirm(
 							__(
 								"This newsletter was scheduled to send on a later date. Are you sure you want to send it now?"
 							),
@@ -56,7 +56,7 @@ frappe.ui.form.on("Newsletter", {
 						);
 						return;
 					}
-					frappe.confirm(
+					nts.confirm(
 						__("Are you sure you want to send this newsletter now?"),
 						() => {
 							frm.events.send_emails(frm);
@@ -78,7 +78,7 @@ frappe.ui.form.on("Newsletter", {
 		frm.events.update_sending_status(frm);
 
 		if (frm.is_new() && !doc.sender_email) {
-			let { fullname, email } = frappe.user_info(doc.owner);
+			let { fullname, email } = nts.user_info(doc.owner);
 			frm.set_value("sender_email", email);
 			frm.set_value("sender_name", fullname);
 		}
@@ -87,22 +87,22 @@ frappe.ui.form.on("Newsletter", {
 	},
 
 	send_emails(frm) {
-		frappe.dom.freeze(__("Queuing emails..."));
+		nts.dom.freeze(__("Queuing emails..."));
 		frm.call("send_emails").then(() => {
 			frm.refresh();
-			frappe.dom.unfreeze();
-			frappe.show_alert(
-				__("Queued {0} emails", [frappe.utils.shorten_number(frm.doc.total_recipients)])
+			nts.dom.unfreeze();
+			nts.show_alert(
+				__("Queued {0} emails", [nts.utils.shorten_number(frm.doc.total_recipients)])
 			);
 		});
 	},
 
 	schedule_send_dialog(frm) {
-		let hours = frappe.utils.range(24);
+		let hours = nts.utils.range(24);
 		let time_slots = hours.map((hour) => {
 			return `${(hour + "").padStart(2, "0")}:00`;
 		});
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("Schedule Newsletter"),
 			fields: [
 				{
@@ -149,7 +149,7 @@ frappe.ui.form.on("Newsletter", {
 	},
 
 	send_test_email(frm) {
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("Send Test Email"),
 			fields: [
 				{
@@ -218,7 +218,7 @@ frappe.ui.form.on("Newsletter", {
 
 	update_schedule_message(frm) {
 		if (!frm.doc.email_sent && frm.doc.schedule_send) {
-			let datetime = frappe.datetime.global_date_format(frm.doc.schedule_send);
+			let datetime = nts.datetime.global_date_format(frm.doc.schedule_send);
 			frm.dashboard.set_headline_alert(
 				__("This newsletter is scheduled to be sent on {0}", [datetime.bold()])
 			);

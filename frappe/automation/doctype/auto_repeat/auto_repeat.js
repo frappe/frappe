@@ -1,12 +1,12 @@
-// Copyright (c) 2018, Frappe Technologies and contributors
+// Copyright (c) 2018, nts Technologies and contributors
 // For license information, please see license.txt
-frappe.provide("frappe.auto_repeat");
+nts.provide("nts.auto_repeat");
 
-frappe.ui.form.on("Auto Repeat", {
+nts.ui.form.on("Auto Repeat", {
 	setup: function (frm) {
 		frm.fields_dict["reference_doctype"].get_query = function () {
 			return {
-				query: "frappe.automation.doctype.auto_repeat.auto_repeat.get_auto_repeat_doctypes",
+				query: "nts.automation.doctype.auto_repeat.auto_repeat.get_auto_repeat_doctypes",
 			};
 		};
 
@@ -42,12 +42,12 @@ frappe.ui.form.on("Auto Repeat", {
 		if (!frm.is_dirty()) {
 			let label = __("View {0}", [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(label, () =>
-				frappe.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
+				nts.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
 			);
 		}
 
 		// auto repeat schedule
-		frappe.auto_repeat.render_schedule(frm);
+		nts.auto_repeat.render_schedule(frm);
 
 		frm.trigger("toggle_submit_on_creation");
 	},
@@ -59,8 +59,8 @@ frappe.ui.form.on("Auto Repeat", {
 	toggle_submit_on_creation: function (frm) {
 		// submit on creation checkbox
 		if (frm.doc.reference_doctype) {
-			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
-				let meta = frappe.get_meta(frm.doc.reference_doctype);
+			nts.model.with_doctype(frm.doc.reference_doctype, () => {
+				let meta = nts.get_meta(frm.doc.reference_doctype);
 				frm.toggle_display("submit_on_creation", meta.is_submittable);
 			});
 		}
@@ -68,8 +68,8 @@ frappe.ui.form.on("Auto Repeat", {
 
 	template: function (frm) {
 		if (frm.doc.template) {
-			frappe.model.with_doc("Email Template", frm.doc.template, () => {
-				let email_template = frappe.get_doc("Email Template", frm.doc.template);
+			nts.model.with_doc("Email Template", frm.doc.template, () => {
+				let email_template = nts.get_doc("Email Template", frm.doc.template);
 				frm.set_value("subject", email_template.subject);
 				let message_value = email_template.response;
 				if (email_template.use_html) message_value = email_template.response_html;
@@ -86,8 +86,8 @@ frappe.ui.form.on("Auto Repeat", {
 
 	preview_message: function (frm) {
 		if (frm.doc.message) {
-			frappe.call({
-				method: "frappe.automation.doctype.auto_repeat.auto_repeat.generate_message_preview",
+			nts.call({
+				method: "nts.automation.doctype.auto_repeat.auto_repeat.generate_message_preview",
 				args: {
 					reference_dt: frm.doc.reference_doctype,
 					reference_doc: frm.doc.reference_document,
@@ -96,22 +96,22 @@ frappe.ui.form.on("Auto Repeat", {
 				},
 				callback: function (r) {
 					if (r.message) {
-						frappe.msgprint(r.message.message, r.message.subject);
+						nts.msgprint(r.message.message, r.message.subject);
 					}
 				},
 			});
 		} else {
-			frappe.msgprint(__("Please setup a message first"), __("Message not setup"));
+			nts.msgprint(__("Please setup a message first"), __("Message not setup"));
 		}
 	},
 });
 
-frappe.auto_repeat.render_schedule = function (frm) {
+nts.auto_repeat.render_schedule = function (frm) {
 	if (!frm.is_dirty() && frm.doc.status !== "Disabled") {
 		frm.call("get_auto_repeat_schedule").then((r) => {
 			frm.dashboard.reset();
 			frm.dashboard.add_section(
-				frappe.render_template("auto_repeat_schedule", {
+				nts.render_template("auto_repeat_schedule", {
 					schedule_details: r.message || [],
 				}),
 				__("Auto Repeat Schedule")

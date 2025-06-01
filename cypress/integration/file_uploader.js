@@ -10,9 +10,9 @@ context("FileUploader", () => {
 
 	function open_upload_dialog() {
 		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				new frappe.ui.FileUploader();
+			.its("nts")
+			.then((nts) => {
+				new nts.ui.FileUploader();
 			});
 		cy.wait(1000);
 	}

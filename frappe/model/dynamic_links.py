@@ -1,7 +1,7 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 # select doctypes that are accessed by the user (not read_only) first, so that the
 # the validation message shows the user-facing doctype first.
@@ -32,11 +32,11 @@ def get_dynamic_link_map(for_delete=False):
 
 	Note: Will not map single doctypes
 	"""
-	if getattr(frappe.local, "dynamic_link_map", None) is None or frappe.flags.in_test:
+	if getattr(nts.local, "dynamic_link_map", None) is None or nts.flags.in_test:
 		# Build from scratch
 		dynamic_link_map = {}
 		for df in get_dynamic_links():
-			meta = frappe.get_meta(df.parent)
+			meta = nts.get_meta(df.parent)
 			if meta.issingle:
 				# always check in Single DocTypes
 				dynamic_link_map.setdefault(meta.name, []).append(df)
@@ -45,11 +45,11 @@ def get_dynamic_link_map(for_delete=False):
 					links = fetch_distinct_link_doctypes(df.parent, df.options)
 					for doctype in links:
 						dynamic_link_map.setdefault(doctype, []).append(df)
-				except frappe.db.TableMissingError:
+				except nts.db.TableMissingError:
 					pass
 
-		frappe.local.dynamic_link_map = dynamic_link_map
-	return frappe.local.dynamic_link_map
+		nts.local.dynamic_link_map = dynamic_link_map
+	return nts.local.dynamic_link_map
 
 
 def get_dynamic_links():
@@ -57,7 +57,7 @@ def get_dynamic_links():
 	Uses cache if possible"""
 	df = []
 	for query in dynamic_link_queries:
-		df += frappe.db.sql(query, as_dict=True)
+		df += nts.db.sql(query, as_dict=True)
 	return df
 
 
@@ -75,11 +75,11 @@ def fetch_distinct_link_doctypes(doctype: str, fieldname: str):
 	"""
 
 	key = _dynamic_link_map_key(doctype, fieldname)
-	doctypes = frappe.cache.get_value(key)
+	doctypes = nts.cache.get_value(key)
 
 	if doctypes is None:
-		doctypes = frappe.db.sql(f"""select distinct `{fieldname}` from `tab{doctype}`""", pluck=True)
-		frappe.cache.set_value(key, doctypes, expires_in_sec=12 * 60 * 60)
+		doctypes = nts.db.sql(f"""select distinct `{fieldname}` from `tab{doctype}`""", pluck=True)
+		nts.cache.set_value(key, doctypes, expires_in_sec=12 * 60 * 60)
 
 	return doctypes
 
@@ -88,12 +88,12 @@ def invalidate_distinct_link_doctypes(doctype: str, fieldname: str, linked_docty
 	"""If new linked doctype is discovered for a dynamic link then cache is evicted."""
 
 	key = _dynamic_link_map_key(doctype, fieldname)
-	doctypes = frappe.cache.get_value(key)
+	doctypes = nts.cache.get_value(key)
 
 	if doctypes is None or not isinstance(doctypes, list):
 		return
 
 	if linked_doctype not in doctypes:
 		# Note: Do NOT "update" cache because it can lead to concurrency bugs.
-		frappe.cache.delete_value(key)
-		frappe.db.after_commit.add(lambda: frappe.cache.delete_value(key))
+		nts.cache.delete_value(key)
+		nts.db.after_commit.add(lambda: nts.cache.delete_value(key))

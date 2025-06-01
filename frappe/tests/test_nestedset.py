@@ -1,15 +1,15 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from unittest.mock import patch
 
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.query_builder import Field
-from frappe.query_builder.functions import Max
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import random_string
-from frappe.utils.nestedset import (
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.query_builder import Field
+from nts.query_builder.functions import Max
+from nts.tests.utils import ntsTestCase
+from nts.utils import random_string
+from nts.utils.nestedset import (
 	NestedSetChildExistsError,
 	NestedSetInvalidMergeError,
 	NestedSetRecursionError,
@@ -56,33 +56,33 @@ TEST_DOCTYPE = "Test Tree DocType"
 
 class NestedSetTestUtil:
 	def setup_test_doctype(self):
-		frappe.db.delete("DocType", TEST_DOCTYPE)
-		frappe.db.sql_ddl(f"drop table if exists `tab{TEST_DOCTYPE}`")
+		nts.db.delete("DocType", TEST_DOCTYPE)
+		nts.db.sql_ddl(f"drop table if exists `tab{TEST_DOCTYPE}`")
 
 		self.tree_doctype = new_doctype(TEST_DOCTYPE, is_tree=True, autoname="field:some_fieldname")
 		self.tree_doctype.insert()
 
 		for record in records:
-			d = frappe.new_doc(TEST_DOCTYPE)
+			d = nts.new_doc(TEST_DOCTYPE)
 			d.update(record)
 			d.insert()
 
 	def teardown_test_doctype(self):
 		self.tree_doctype.delete()
-		frappe.db.sql_ddl(f"drop table if exists `{TEST_DOCTYPE}`")
+		nts.db.sql_ddl(f"drop table if exists `{TEST_DOCTYPE}`")
 
 	def move_it_back(self):
-		parent_1 = frappe.get_doc(TEST_DOCTYPE, "Parent 1")
+		parent_1 = nts.get_doc(TEST_DOCTYPE, "Parent 1")
 		parent_1.parent_test_tree_doctype = "Root Node"
 		parent_1.save()
 
 	def get_no_of_children(self, record_name: str) -> int:
 		if not record_name:
-			return frappe.db.count(TEST_DOCTYPE)
+			return nts.db.count(TEST_DOCTYPE)
 		return len(get_descendants_of(TEST_DOCTYPE, record_name, ignore_permissions=True))
 
 
-class TestNestedSet(FrappeTestCase):
+class TestNestedSet(ntsTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.nsu = NestedSetTestUtil()
@@ -95,23 +95,23 @@ class TestNestedSet(FrappeTestCase):
 		super().tearDownClass()
 
 	def setUp(self) -> None:
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def test_basic_tree(self):
 		global records
 
 		min_lft = 1
-		max_rgt = frappe.qb.from_(TEST_DOCTYPE).select(Max(Field("rgt"))).run(pluck=True)[0]
+		max_rgt = nts.qb.from_(TEST_DOCTYPE).select(Max(Field("rgt"))).run(pluck=True)[0]
 
 		for record in records:
-			lft, rgt, parent_test_tree_doctype = frappe.db.get_value(
+			lft, rgt, parent_test_tree_doctype = nts.db.get_value(
 				TEST_DOCTYPE,
 				record["some_fieldname"],
 				["lft", "rgt", "parent_test_tree_doctype"],
 			)
 
 			if parent_test_tree_doctype:
-				parent_lft, parent_rgt = frappe.db.get_value(
+				parent_lft, parent_rgt = nts.db.get_value(
 					TEST_DOCTYPE, parent_test_tree_doctype, ["lft", "rgt"]
 				)
 			else:
@@ -138,7 +138,7 @@ class TestNestedSet(FrappeTestCase):
 			self.assertTrue(parent_rgt == (parent_lft + 1 + (2 * no_of_children)))
 
 	def test_recursion(self):
-		leaf_node = frappe.get_doc(TEST_DOCTYPE, {"some_fieldname": "Parent 2"})
+		leaf_node = nts.get_doc(TEST_DOCTYPE, {"some_fieldname": "Parent 2"})
 		leaf_node.parent_test_tree_doctype = "Child 3"
 		self.assertRaises(NestedSetRecursionError, leaf_node.save)
 		leaf_node.reload()
@@ -148,9 +148,9 @@ class TestNestedSet(FrappeTestCase):
 		self.test_basic_tree()
 
 	def test_move_group_into_another(self):
-		old_lft, old_rgt = frappe.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
+		old_lft, old_rgt = nts.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
 
-		parent_1 = frappe.get_doc(TEST_DOCTYPE, "Parent 1")
+		parent_1 = nts.get_doc(TEST_DOCTYPE, "Parent 1")
 		lft, rgt = parent_1.lft, parent_1.rgt
 
 		parent_1.parent_test_tree_doctype = "Parent 2"
@@ -158,7 +158,7 @@ class TestNestedSet(FrappeTestCase):
 		self.test_basic_tree()
 
 		# after move
-		new_lft, new_rgt = frappe.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
+		new_lft, new_rgt = nts.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
 
 		# lft should reduce
 		self.assertEqual(old_lft - new_lft, rgt - lft + 1)
@@ -170,10 +170,10 @@ class TestNestedSet(FrappeTestCase):
 		self.test_basic_tree()
 
 	def test_move_leaf_into_another_group(self):
-		child_2 = frappe.get_doc(TEST_DOCTYPE, "Child 2")
+		child_2 = nts.get_doc(TEST_DOCTYPE, "Child 2")
 
 		# assert that child 2 is not already under parent 1
-		parent_lft_old, parent_rgt_old = frappe.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
+		parent_lft_old, parent_rgt_old = nts.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
 		self.assertTrue((parent_lft_old > child_2.lft) and (parent_rgt_old > child_2.rgt))
 
 		child_2.parent_test_tree_doctype = "Parent 2"
@@ -181,20 +181,20 @@ class TestNestedSet(FrappeTestCase):
 		self.test_basic_tree()
 
 		# assert that child 2 is under parent 1
-		parent_lft_new, parent_rgt_new = frappe.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
+		parent_lft_new, parent_rgt_new = nts.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
 		self.assertFalse((parent_lft_new > child_2.lft) and (parent_rgt_new > child_2.rgt))
 
 	def test_delete_leaf(self):
 		global records
 		el = {"some_fieldname": "Child 1", "parent_test_tree_doctype": "Parent 1", "is_group": 0}
 
-		child_1 = frappe.get_doc(TEST_DOCTYPE, "Child 1")
+		child_1 = nts.get_doc(TEST_DOCTYPE, "Child 1")
 		child_1.delete()
 		records.remove(el)
 
 		self.test_basic_tree()
 
-		n = frappe.new_doc(TEST_DOCTYPE)
+		n = nts.new_doc(TEST_DOCTYPE)
 		n.update(el)
 		n.insert()
 		records.append(el)
@@ -204,7 +204,7 @@ class TestNestedSet(FrappeTestCase):
 	def test_delete_group(self):
 		# cannot delete group with child, but can delete leaf
 		with self.assertRaises(NestedSetChildExistsError):
-			frappe.delete_doc(TEST_DOCTYPE, "Parent 1")
+			nts.delete_doc(TEST_DOCTYPE, "Parent 1")
 
 	def test_remove_subtree(self):
 		remove_subtree(TEST_DOCTYPE, "Parent 2")
@@ -214,12 +214,12 @@ class TestNestedSet(FrappeTestCase):
 		doctype = new_doctype(is_tree=True).insert()
 
 		# Rename doctype
-		frappe.rename_doc("DocType", doctype.name, "Test " + random_string(10), force=True)
+		nts.rename_doc("DocType", doctype.name, "Test " + random_string(10), force=True)
 
 	def test_merge_groups(self):
 		global records
 		el = {"some_fieldname": "Parent 2", "parent_test_tree_doctype": "Root Node", "is_group": 1}
-		frappe.rename_doc(TEST_DOCTYPE, "Parent 2", "Parent 1", merge=True)
+		nts.rename_doc(TEST_DOCTYPE, "Parent 2", "Parent 1", merge=True)
 		records.remove(el)
 		self.test_basic_tree()
 
@@ -227,7 +227,7 @@ class TestNestedSet(FrappeTestCase):
 		global records
 		el = {"some_fieldname": "Child 3", "parent_test_tree_doctype": "Parent 2", "is_group": 0}
 
-		frappe.rename_doc(
+		nts.rename_doc(
 			TEST_DOCTYPE,
 			"Child 3",
 			"Child 2",
@@ -238,28 +238,28 @@ class TestNestedSet(FrappeTestCase):
 
 	def test_merge_leaf_into_group(self):
 		with self.assertRaises(NestedSetInvalidMergeError):
-			frappe.rename_doc(TEST_DOCTYPE, "Child 1", "Parent 1", merge=True)
+			nts.rename_doc(TEST_DOCTYPE, "Child 1", "Parent 1", merge=True)
 
 	def test_merge_group_into_leaf(self):
 		with self.assertRaises(NestedSetInvalidMergeError):
-			frappe.rename_doc(TEST_DOCTYPE, "Parent 1", "Child 1", merge=True)
+			nts.rename_doc(TEST_DOCTYPE, "Parent 1", "Child 1", merge=True)
 
 	def test_root_deletion(self):
 		for doc in ["Child 3", "Child 2", "Child 1", "Parent 2", "Parent 1"]:
-			frappe.delete_doc(TEST_DOCTYPE, doc)
+			nts.delete_doc(TEST_DOCTYPE, doc)
 
-		root_node = frappe.get_doc(TEST_DOCTYPE, "Root Node")
+		root_node = nts.get_doc(TEST_DOCTYPE, "Root Node")
 
 		# root deletion with allow_root_deletion
 		# patched as delete_doc create a new instance of Root Node (using get_doc)
 		root_node.allow_root_deletion = False
-		with patch("frappe.get_doc", return_value=root_node):
-			with self.assertRaises(frappe.ValidationError):
+		with patch("nts.get_doc", return_value=root_node):
+			with self.assertRaises(nts.ValidationError):
 				root_node.delete()
 
 		# root deletion without allow_root_deletion
 		root_node.delete()
-		self.assertFalse(frappe.db.exists(TEST_DOCTYPE, "Root Node"))
+		self.assertFalse(nts.db.exists(TEST_DOCTYPE, "Root Node"))
 
 	def test_desc_filters(self):
 		linked_doctype = (
@@ -284,14 +284,14 @@ class TestNestedSet(FrappeTestCase):
 		inclusive_link = {"link_field": ("descendants of (inclusive)", record)}
 
 		# db_query
-		self.assertNotIn(record, frappe.get_all(TEST_DOCTYPE, exclusive_filter, run=0))
-		self.assertIn(record, frappe.get_all(TEST_DOCTYPE, inclusive_filter, run=0))
-		self.assertNotIn(record, frappe.get_all(linked_doctype, exclusive_link, run=0))
-		self.assertIn(record, frappe.get_all(linked_doctype, inclusive_link, run=0))
+		self.assertNotIn(record, nts.get_all(TEST_DOCTYPE, exclusive_filter, run=0))
+		self.assertIn(record, nts.get_all(TEST_DOCTYPE, inclusive_filter, run=0))
+		self.assertNotIn(record, nts.get_all(linked_doctype, exclusive_link, run=0))
+		self.assertIn(record, nts.get_all(linked_doctype, inclusive_link, run=0))
 
 		# QB
-		self.assertNotIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=exclusive_filter)))
-		self.assertIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=inclusive_filter)))
+		self.assertNotIn(record, str(nts.qb.get_query(TEST_DOCTYPE, filters=exclusive_filter)))
+		self.assertIn(record, str(nts.qb.get_query(TEST_DOCTYPE, filters=inclusive_filter)))
 
-		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
-		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
+		self.assertNotIn(record, str(nts.qb.get_query(table=linked_doctype, filters=exclusive_link)))
+		self.assertIn(record, str(nts.qb.get_query(table=linked_doctype, filters=inclusive_link)))

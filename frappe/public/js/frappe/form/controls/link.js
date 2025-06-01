@@ -5,9 +5,9 @@
 // custom queries
 // add_fetches
 import Awesomplete from "awesomplete";
-frappe.ui.form.recent_link_validations = {};
+nts.ui.form.recent_link_validations = {};
 
-frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlData {
+nts.ui.form.ControlLink = class ControlLink extends nts.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
 		var me = this;
@@ -15,10 +15,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
 				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
-					${frappe.utils.icon("close", "xs", "es-icon")}
+					${nts.utils.icon("close", "xs", "es-icon")}
 				</a>
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
-					${frappe.utils.icon("arrow-right", "xs")}
+					${nts.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>
 		</div>`).prependTo(this.input_area);
@@ -72,7 +72,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const doctype = this.get_options();
 			const name = this.get_input_value();
 			this.$link.toggle(true);
-			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
+			this.$link_open.attr("href", nts.utils.get_form_link(doctype, name));
 			this.$link_clear.toggle(true);
 		}
 	}
@@ -89,8 +89,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// this is used to get the context in which link field is loaded
 		if (this.doctype) return this.doctype;
 		else {
-			return frappe.get_route && frappe.get_route()[0] === "List"
-				? frappe.get_route()[1]
+			return nts.get_route && nts.get_route()[0] === "List"
+				? nts.get_route()[1]
 				: null;
 		}
 	}
@@ -112,10 +112,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.is_translatable() ? __(value) : value;
 	}
 	is_translatable() {
-		return (frappe.boot?.translated_doctypes || []).includes(this.get_options());
+		return (nts.boot?.translated_doctypes || []).includes(this.get_options());
 	}
 	is_title_link() {
-		return (frappe.boot?.link_title_doctypes || []).includes(this.get_options());
+		return (nts.boot?.link_title_doctypes || []).includes(this.get_options());
 	}
 	async set_link_title(value) {
 		const doctype = this.get_options();
@@ -126,8 +126,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		const link_title =
-			frappe.utils.get_link_title(doctype, value) ||
-			(await frappe.utils.fetch_link_title(doctype, value));
+			nts.utils.get_link_title(doctype, value) ||
+			(await nts.utils.fetch_link_title(doctype, value));
 
 		this.translate_and_set_input_value(link_title, value);
 	}
@@ -141,7 +141,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (this.parse) value = this.parse(value, label);
 		if (label) {
 			this.label = this.get_translated(label);
-			frappe.utils.add_link_title(this.df.options, value, label);
+			nts.utils.add_link_title(this.df.options, value, label);
 		}
 
 		return this.validate_and_set_in_model(value, e);
@@ -165,7 +165,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	open_advanced_search() {
 		var doctype = this.get_options();
 		if (!doctype) return;
-		new frappe.ui.form.LinkSelector({
+		new nts.ui.form.LinkSelector({
 			doctype: doctype,
 			target: this,
 			txt: this.get_input_value(),
@@ -185,19 +185,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 		// set values to fill in the new document
 		if (df && df.get_route_options_for_new_doc) {
-			frappe.route_options = df.get_route_options_for_new_doc(this);
+			nts.route_options = df.get_route_options_for_new_doc(this);
 		} else {
-			frappe.route_options = {};
+			nts.route_options = {};
 		}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_label_value();
+		nts.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
-		frappe._from_link = frappe.utils.deep_clone(this);
-		frappe._from_link_scrollY = $(document).scrollTop();
+		nts._from_link = nts.utils.deep_clone(this);
+		nts._from_link_scrollY = $(document).scrollTop();
 
-		frappe.ui.form.make_quick_entry(doctype, (doc) => {
+		nts.ui.form.make_quick_entry(doctype, (doc) => {
 			return me.set_value(doc.name);
 		});
 
@@ -251,7 +251,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					})
 					.data("item.autocomplete", d)
 					.prop("aria-selected", "false")
-					.html(`<p title="${frappe.utils.escape_html(_label)}">${html}</p>`)
+					.html(`<p title="${nts.utils.escape_html(_label)}">${html}</p>`)
 					.get(0);
 			},
 			sort: function () {
@@ -263,7 +263,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on(
 			"input",
-			frappe.utils.debounce(function (e) {
+			nts.utils.debounce(function (e) {
 				var doctype = me.get_options();
 				if (!doctype) return;
 				if (!me.$input.cache[doctype]) {
@@ -281,14 +281,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					doctype: doctype,
 					ignore_user_permissions: me.df.ignore_user_permissions,
 					reference_doctype: me.get_reference_doctype() || "",
-					page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
+					page_length: cint(nts.boot.sysdefaults?.link_field_results_limit) || 10,
 				};
 
 				me.set_custom_query(args);
 
-				frappe.call({
+				nts.call({
 					type: "POST",
-					method: "frappe.desk.search.search_link",
+					method: "nts.desk.search.search_link",
 					no_spinner: true,
 					args: args,
 					callback: function (r) {
@@ -312,7 +312,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						}
 
 						if (!me.df.only_select) {
-							if (frappe.model.can_create(doctype)) {
+							if (nts.model.can_create(doctype)) {
 								// new item
 								r.message.push({
 									html:
@@ -328,8 +328,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 							//custom link actions
 							let custom__link_options =
-								frappe.ui.form.ControlLink.link_options &&
-								frappe.ui.form.ControlLink.link_options(me);
+								nts.ui.form.ControlLink.link_options &&
+								nts.ui.form.ControlLink.link_options(me);
 
 							if (custom__link_options) {
 								r.message = r.message.concat(custom__link_options);
@@ -354,7 +354,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						me.awesomplete.list = me.$input.cache[doctype][term];
 						me.toggle_href(doctype);
 						r.message.forEach((item) => {
-							frappe.utils.add_link_title(doctype, item.value, item.label);
+							nts.utils.add_link_title(doctype, item.value, item.label);
 						});
 					},
 				});
@@ -419,7 +419,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			// to defaults so you do not need to set it again
 			// unless it is changed.
 			if (me.df.remember_last_selected_value) {
-				frappe.boot.user.last_selected_values[me.df.options] = item.value;
+				nts.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
 			me.parse_validate_and_set_in_model(item.value, null, item.label);
@@ -456,7 +456,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	toggle_href(doctype) {
-		if (frappe.model.can_select(doctype) && !frappe.model.can_read(doctype)) {
+		if (nts.model.can_select(doctype) && !nts.model.can_read(doctype)) {
 			// remove href from link field as user has only select perm
 			this.$input_area.find(".link-btn").addClass("hide");
 		} else {
@@ -469,8 +469,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let filter_array = [];
 		let meta = null;
 
-		frappe.model.with_doctype(doctype, () => {
-			meta = frappe.get_meta(doctype);
+		nts.model.with_doctype(doctype, () => {
+			meta = nts.get_meta(doctype);
 		});
 
 		// convert object style to array
@@ -497,8 +497,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		function get_filter_description(filter) {
 			let doctype = filter[0];
 			let fieldname = filter[1];
-			let docfield = frappe.meta.get_docfield(doctype, fieldname);
-			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
+			let docfield = nts.meta.get_docfield(doctype, fieldname);
+			let label = docfield ? docfield.label : nts.model.unscrub(fieldname);
 
 			if (docfield && docfield.fieldtype === "Check") {
 				filter[3] = filter[3] ? __("Yes") : __("No");
@@ -525,7 +525,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (value) return true;
 			// check if empty value is valid
 			if (this.frm) {
-				let field = frappe.meta.get_docfield(this.frm.doctype, key);
+				let field = nts.meta.get_docfield(this.frm.doctype, key);
 				// empty value link fields is invalid
 				return !field || !["Link", "Dynamic Link"].includes(field.fieldtype);
 			} else {
@@ -630,9 +630,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				let context = {
 					doc: this.doc,
 					parent: this.doc.parenttype ? this.frm.doc : null,
-					frappe,
+					nts,
 				};
-				value = frappe.utils.eval(value, context);
+				value = nts.utils.eval(value, context);
 			}
 			filters[fieldname] = [operator, value];
 		});
@@ -670,7 +670,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				if (this.layout?.set_value) {
 					this.layout.set_value(target_field, field_value);
 				} else if (this.frm) {
-					frappe.model.set_value(
+					nts.model.set_value(
 						this.df.parent,
 						this.docname,
 						target_field,
@@ -683,8 +683,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		// to avoid unnecessary request
 		if (value) {
-			return frappe
-				.xcall("frappe.client.validate_link", {
+			return nts
+				.xcall("nts.client.validate_link", {
 					doctype: options,
 					docname: value,
 					fields: columns_to_fetch,

@@ -1,14 +1,14 @@
-# Copyright (c) 2017, Frappe Technologies and Contributors
+# Copyright (c) 2017, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.contacts.doctype.contact.contact import get_full_name
-from frappe.email import get_contact_list
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.contacts.doctype.contact.contact import get_full_name
+from nts.email import get_contact_list
+from nts.tests.utils import ntsTestCase
 
 test_dependencies = ["Contact", "Salutation"]
 
 
-class TestContact(FrappeTestCase):
+class TestContact(ntsTestCase):
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
@@ -60,7 +60,7 @@ class TestContact(FrappeTestCase):
 
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):
-	doc = frappe.get_doc(
+	doc = nts.get_doc(
 		{"doctype": "Contact", "first_name": name, "status": "Open", "salutation": salutation}
 	)
 

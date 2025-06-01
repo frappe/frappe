@@ -1,9 +1,9 @@
 # Copyright (c) 2021, FOSS United and Contributors
 # See license.txt
 
-# import frappe
-from frappe.tests.utils import FrappeTestCase
+# import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestDiscussionReply(FrappeTestCase):
+class TestDiscussionReply(ntsTestCase):
 	pass

@@ -4,7 +4,7 @@ from pypika.functions import DistinctOptionFunction
 from pypika.terms import Term
 from pypika.utils import builder, format_alias_sql, format_quotes
 
-import frappe
+import nts
 
 
 class GROUP_CONCAT(DistinctOptionFunction):
@@ -44,7 +44,7 @@ class MATCH(DistinctOptionFunction):
 		s = super(DistinctOptionFunction, self).get_function_sql(**kwargs)
 
 		if self._Against:
-			return f"{s} AGAINST ({frappe.db.escape(f'+{self._Against}*')} IN BOOLEAN MODE)"
+			return f"{s} AGAINST ({nts.db.escape(f'+{self._Against}*')} IN BOOLEAN MODE)"
 		raise Exception("Chain the `Against()` method with match to complete the query")
 
 	@builder
@@ -71,7 +71,7 @@ class TO_TSVECTOR(DistinctOptionFunction):
 	def get_function_sql(self, **kwargs):
 		s = super(DistinctOptionFunction, self).get_function_sql(**kwargs)
 		if self._PLAINTO_TSQUERY:
-			return f"{s} @@ PLAINTO_TSQUERY({frappe.db.escape(self._PLAINTO_TSQUERY)})"
+			return f"{s} @@ PLAINTO_TSQUERY({nts.db.escape(self._PLAINTO_TSQUERY)})"
 		return s
 
 	@builder

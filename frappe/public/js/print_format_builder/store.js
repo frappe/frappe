@@ -15,11 +15,11 @@ export function getStore(print_format_name) {
 	// methods
 	function fetch() {
 		return new Promise((resolve) => {
-			frappe.model.clear_doc("Print Format", print_format_name);
-			frappe.model.with_doc("Print Format", print_format_name, () => {
-				let _print_format = frappe.get_doc("Print Format", print_format_name);
-				frappe.model.with_doctype(_print_format.doc_type, () => {
-					meta.value = frappe.get_meta(_print_format.doc_type);
+			nts.model.clear_doc("Print Format", print_format_name);
+			nts.model.with_doc("Print Format", print_format_name, () => {
+				let _print_format = nts.get_doc("Print Format", print_format_name);
+				nts.model.with_doctype(_print_format.doc_type, () => {
+					meta.value = nts.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
 					layout.value = get_layout();
 					nextTick(() => (dirty.value = false));
@@ -33,7 +33,7 @@ export function getStore(print_format_name) {
 		print_format.value[fieldname] = value;
 	}
 	function save_changes() {
-		frappe.dom.freeze(__("Saving..."));
+		nts.dom.freeze(__("Saving..."));
 
 		layout.value.sections = layout.value.sections
 			.filter((section) => !section.remove)
@@ -71,14 +71,14 @@ export function getStore(print_format_name) {
 
 		print_format.value.format_data = JSON.stringify(layout.value);
 
-		frappe
-			.call("frappe.client.save", {
+		nts
+			.call("nts.client.save", {
 				doc: print_format.value,
 			})
 			.then(() => {
 				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", {
+					return nts
+						.call("nts.client.save", {
 							doc: letterhead.value,
 						})
 						.then((r) => (letterhead.value = r.message));
@@ -86,7 +86,7 @@ export function getStore(print_format_name) {
 			})
 			.then(() => fetch())
 			.always(() => {
-				frappe.dom.unfreeze();
+				nts.dom.unfreeze();
 			});
 	}
 	function reset_changes() {
@@ -105,7 +105,7 @@ export function getStore(print_format_name) {
 		return create_default_layout(meta.value, print_format.value);
 	}
 	function change_letterhead(_letterhead) {
-		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
+		return nts.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 		});
 	}

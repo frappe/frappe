@@ -1,20 +1,20 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 import showdown from "showdown";
 
-frappe.provide("frappe.tools");
+nts.provide("nts.tools");
 
-frappe.tools.downloadify = function (data, roles, title) {
+nts.tools.downloadify = function (data, roles, title) {
 	if (roles && roles.length && !has_common(roles, roles)) {
-		frappe.msgprint(
-			__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)])
+		nts.msgprint(
+			__("Export not allowed. You need {0} role to export.", [nts.utils.comma_or(roles)])
 		);
 		return;
 	}
 
 	var filename = title + ".csv";
-	var csv_data = frappe.tools.to_csv(data);
+	var csv_data = nts.tools.to_csv(data);
 	var a = document.createElement("a");
 
 	if ("download" in a) {
@@ -35,9 +35,9 @@ frappe.tools.downloadify = function (data, roles, title) {
 	document.body.removeChild(a);
 };
 
-frappe.markdown = function (txt) {
-	if (!frappe.md2html) {
-		frappe.md2html = new showdown.Converter();
+nts.markdown = function (txt) {
+	if (!nts.md2html) {
+		nts.md2html = new showdown.Converter();
 	}
 
 	while (txt.substr(0, 1) === "\n") {
@@ -61,10 +61,10 @@ frappe.markdown = function (txt) {
 		txt = txt1.join("\n");
 	}
 
-	return frappe.md2html.makeHtml(txt);
+	return nts.md2html.makeHtml(txt);
 };
 
-frappe.tools.to_csv = function (data) {
+nts.tools.to_csv = function (data) {
 	var res = [];
 	$.each(data, function (i, row) {
 		row = $.map(row, function (col) {

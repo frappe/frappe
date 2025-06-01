@@ -94,7 +94,7 @@ Unable to find attachment {0},Nemohu najít přílohu: {0}
 Assign a permission level to the field.,Přiřadit úroveň oprávnění poli.
 Show / Hide Modules,Zobrazit / skrýt moduly,
 Disable Report,Vypnout Report,
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formát: frappe.query_reports['REPORTNAME'] = {}
+JavaScript Format: nts.query_reports['REPORTNAME'] = {},JavaScript Formát: nts.query_reports['REPORTNAME'] = {}
 Doclist JSON,Doclist JSON,
 chevron-up,chevron-up,
 Documentation,Dokumentace,
@@ -533,7 +533,7 @@ Document Name,Název dokumentu,
 Comment By,Komentováno (kým)
 Customize Form,Přizpůsobit formulá$1,
 A symbol for this currency. For e.g. $,"Symbol této měny,  např. $"
-Frappe Framework,Frappe Framework,
+nts Framework,nts Framework,
 Name of {0} cannot be {1},Název {0} nemůže být {1}
 Show or hide modules globally.,Zobrazit nebo skrýt moduly globálně.
 Success,Povedlo se,

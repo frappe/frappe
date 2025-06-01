@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import functools
@@ -25,9 +25,9 @@ from typing import TypedDict
 from werkzeug.test import Client
 
 # utility functions like cint, int, flt, etc.
-from frappe.utils.data import *
-from frappe.utils.deprecations import deprecated
-from frappe.utils.html_utils import sanitize_html
+from nts.utils.data import *
+from nts.utils.deprecations import deprecated
+from nts.utils.html_utils import sanitize_html
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
@@ -47,29 +47,29 @@ EMAIL_MATCH_PATTERN = re.compile(
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	if not hasattr(frappe.local, "fullnames"):
-		frappe.local.fullnames = {}
+	if not hasattr(nts.local, "fullnames"):
+		nts.local.fullnames = {}
 
-	if not frappe.local.fullnames.get(user):
-		p = frappe.db.get_value("User", user, ["first_name", "last_name"], as_dict=True)
+	if not nts.local.fullnames.get(user):
+		p = nts.db.get_value("User", user, ["first_name", "last_name"], as_dict=True)
 		if p:
-			frappe.local.fullnames[user] = (
+			nts.local.fullnames[user] = (
 				" ".join(filter(None, [p.get("first_name"), p.get("last_name")])) or user
 			)
 		else:
-			frappe.local.fullnames[user] = user
+			nts.local.fullnames[user] = user
 
-	return frappe.local.fullnames.get(user)
+	return nts.local.fullnames.get(user)
 
 
 def get_email_address(user=None):
 	"""get the email address of the user from User"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	return frappe.db.get_value("User", user, "email")
+	return nts.db.get_value("User", user, "email")
 
 
 def get_formatted_email(user, mail=None):
@@ -99,7 +99,7 @@ def extract_email_id(email):
 def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -> None:
 	from phonenumbers import NumberParseException, is_valid_number, parse
 
-	from frappe import _
+	from nts import _
 
 	if not phone_number:
 		return
@@ -116,10 +116,10 @@ def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -
 			error_title = _("Country Code Required")
 	finally:
 		if not valid_number:
-			frappe.throw(
-				error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+			nts.throw(
+				error_message.format(nts.bold(phone_number), nts.bold(fieldname)),
 				title=error_title,
-				exc=frappe.InvalidPhoneNumberError,
+				exc=nts.InvalidPhoneNumberError,
 			)
 
 
@@ -132,8 +132,8 @@ def validate_phone_number(phone_number, throw=False):
 	match = PHONE_NUMBER_PATTERN.match(phone_number)
 
 	if not match and throw:
-		frappe.throw(
-			frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError
+		nts.throw(
+			nts._("{0} is not a valid Phone Number").format(phone_number), nts.InvalidPhoneNumberError
 		)
 
 	return bool(match)
@@ -144,7 +144,7 @@ def validate_name(name, throw=False):
 	valid names may have unicode and ascii characters, dash, quotes, numbers
 	anything else is considered invalid
 
-	Note: "Name" here is name of a person, not the primary key in Frappe doctypes.
+	Note: "Name" here is name of a person, not the primary key in nts doctypes.
 	"""
 	if not name:
 		return False
@@ -153,7 +153,7 @@ def validate_name(name, throw=False):
 	match = PERSON_NAME_PATTERN.match(name)
 
 	if not match and throw:
-		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
+		nts.throw(nts._("{0} is not a valid Name").format(name), nts.InvalidNameError)
 
 	return bool(match)
 
@@ -183,10 +183,10 @@ def validate_email_address(email_str, throw=False):
 
 		if not _valid:
 			if throw:
-				invalid_email = frappe.utils.escape_html(e)
-				frappe.throw(
-					frappe._("{0} is not a valid Email Address").format(invalid_email),
-					frappe.InvalidEmailAddressError,
+				invalid_email = nts.utils.escape_html(e)
+				nts.throw(
+					nts._("{0} is not a valid Email Address").format(invalid_email),
+					nts.InvalidEmailAddressError,
 				)
 			return None
 		else:
@@ -239,7 +239,7 @@ def validate_url(
 		is_valid = is_valid and (url.scheme in valid_schemes)
 
 	if not is_valid and throw:
-		frappe.throw(frappe._("'{0}' is not a valid URL").format(frappe.bold(txt)))
+		nts.throw(nts._("'{0}' is not a valid URL").format(nts.bold(txt)))
 
 	return is_valid
 
@@ -256,7 +256,7 @@ def has_gravatar(email: str) -> str:
 	"""Returns gravatar url if user has set an avatar at gravatar.com"""
 	import requests
 
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_test:
+	if nts.flags.in_import or nts.flags.in_install or nts.flags.in_test:
 		# no gravatar if via upload
 		# since querying gravatar for every item will be slow
 		return ""
@@ -273,12 +273,12 @@ def has_gravatar(email: str) -> str:
 
 
 def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
+	hexdigest = hashlib.md5(nts.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
 	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
 def get_gravatar(email: str) -> str:
-	from frappe.utils.identicon import Identicon
+	from nts.utils.identicon import Identicon
 
 	return has_gravatar(email) or Identicon(email).base64()
 
@@ -339,13 +339,13 @@ def _get_traceback_sanitizer():
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
-			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
+			(["_secret", nts._dict, lambda *a, **kw: False], dict_printer),
 		],
 	)
 
 
 def log(event, details):
-	frappe.logger(event).info(details)
+	nts.logger(event).info(details)
 
 
 def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
@@ -371,14 +371,14 @@ def get_defaults(key=None):
 	"""
 	Get dictionary of default values from the defaults, or a value if key is passed
 	"""
-	return frappe.db.get_defaults(key)
+	return nts.db.get_defaults(key)
 
 
 def set_default(key, val):
 	"""
 	Set / add a default value to defaults`
 	"""
-	return frappe.db.set_default(key, val)
+	return nts.db.set_default(key, val)
 
 
 def remove_blanks(d: dict) -> dict:
@@ -400,7 +400,7 @@ def get_file_timestamp(fn):
 	"""
 	Returns timestamp of the given file
 	"""
-	from frappe.utils import cint
+	from nts.utils import cint
 
 	try:
 		return str(cint(os.stat(fn).st_mtime))
@@ -481,7 +481,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 			print(out)
 
 	if failed:
-		raise frappe.CommandFailedError(
+		raise nts.CommandFailedError(
 			"Command failed", out.decode(errors="replace"), err.decode(errors="replace")
 		)
 
@@ -491,12 +491,12 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 def get_path(*path, **kwargs):
 	base = kwargs.get("base")
 	if not base:
-		base = frappe.local.site_path
+		base = nts.local.site_path
 	return os.path.join(base, *path)
 
 
 def get_site_base_path():
-	return frappe.local.site_path
+	return nts.local.site_path
 
 
 def get_site_path(*path):
@@ -508,17 +508,17 @@ def get_files_path(*path, **kwargs):
 
 
 def get_bench_path():
-	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
-		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	return os.environ.get("nts_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(nts.__file__), "..", "..", "..")
 	)
 
 
 def get_bench_id():
-	return frappe.get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
+	return nts.get_conf().get("bench_id", get_bench_path().strip("/").replace("/", "-"))
 
 
 def get_site_id(site=None):
-	return f"{site or frappe.local.site}@{get_bench_id()}"
+	return f"{site or nts.local.site}@{get_bench_id()}"
 
 
 def get_backups_path():
@@ -530,7 +530,7 @@ def get_request_site_address(full_address=False):
 
 
 def get_site_url(site):
-	conf = frappe.get_conf(site)
+	conf = nts.get_conf(site)
 	if conf.host_name:
 		return conf.host_name
 	return f"http://{site}:{conf.webserver_port}"
@@ -572,16 +572,16 @@ def touch_file(path):
 
 
 def get_test_client(use_cookies=True) -> Client:
-	"""Returns an test instance of the Frappe WSGI"""
-	from frappe.app import application
+	"""Returns an test instance of the nts WSGI"""
+	from nts.app import application
 
 	return Client(application, use_cookies=use_cookies)
 
 
 def get_hook_method(hook_name, fallback=None):
-	method = frappe.get_hooks().get(hook_name)
+	method = nts.get_hooks().get(hook_name)
 	if method:
-		method = frappe.get_attr(method[0])
+		method = nts.get_attr(method[0])
 		return method
 	if fallback:
 		return fallback
@@ -589,8 +589,8 @@ def get_hook_method(hook_name, fallback=None):
 
 def call_hook_method(hook, *args, **kwargs):
 	out = None
-	for method_name in frappe.get_hooks(hook):
-		out = out or frappe.get_attr(method_name)(*args, **kwargs)
+	for method_name in nts.get_hooks(hook):
+		out = out or nts.get_attr(method_name)(*args, **kwargs)
 
 	return out
 
@@ -614,7 +614,7 @@ def update_progress_bar(txt, i, l, absolute=False):
 		sys.stdout.flush()
 		return
 
-	if not getattr(frappe.local, "request", None) or is_cli():  # pragma: no cover
+	if not getattr(nts.local, "request", None) or is_cli():  # pragma: no cover
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
@@ -640,8 +640,8 @@ def get_html_format(print_path):
 			html_format = f.read()
 
 		for include_directive, path in INCLUDE_DIRECTIVE_PATTERN.findall(html_format):
-			for app_name in frappe.get_installed_apps():
-				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
+			for app_name in nts.get_installed_apps():
+				include_path = nts.get_app_path(app_name, *path.split(os.path.sep))
 				if os.path.exists(include_path):
 					with open(include_path) as f:
 						html_format = html_format.replace(include_directive, f.read())
@@ -666,7 +666,7 @@ def is_a_property(x) -> bool:
 
 def get_sites(sites_path=None):
 	if not sites_path:
-		sites_path = getattr(frappe.local, "sites_path", None) or "."
+		sites_path = getattr(nts.local, "sites_path", None) or "."
 
 	sites = []
 	for site in os.listdir(sites_path):
@@ -697,7 +697,7 @@ def get_request_session(max_retries=5):
 
 
 def markdown(text, sanitize=True, linkify=True):
-	html = text if is_html(text) else frappe.utils.md_to_html(text)
+	html = text if is_html(text) else nts.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
@@ -763,7 +763,7 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	from frappe.utils.change_log import get_versions
+	from nts.utils.change_log import get_versions
 
 	out.extend(
 		{
@@ -777,13 +777,13 @@ def get_installed_apps_info():
 
 
 def get_site_info():
-	from frappe.email.queue import get_emails_sent_this_month
-	from frappe.utils.user import get_system_managers
+	from nts.email.queue import get_emails_sent_this_month
+	from nts.utils.user import get_system_managers
 
 	# only get system users
-	users = frappe.get_all(
+	users = nts.get_all(
 		"User",
-		filters={"user_type": "System User", "name": ("not in", frappe.STANDARD_USERS)},
+		filters={"user_type": "System User", "name": ("not in", nts.STANDARD_USERS)},
 		fields=["name", "enabled", "last_login", "last_active", "language", "time_zone"],
 	)
 	system_managers = get_system_managers(only_name=True)
@@ -794,8 +794,8 @@ def get_site_info():
 		u.email = u.name
 		del u["name"]
 
-	system_settings = frappe.db.get_singles_dict("System Settings")
-	space_usage = frappe._dict((frappe.local.conf.limits or {}).get("space_usage", {}))
+	system_settings = nts.db.get_singles_dict("System Settings")
+	space_usage = nts._dict((nts.local.conf.limits or {}).get("space_usage", {}))
 
 	kwargs = {
 		"fields": ["user", "creation", "full_name"],
@@ -817,15 +817,15 @@ def get_site_info():
 		"database_size": space_usage.database_size,
 		"backup_size": space_usage.backup_size,
 		"files_size": space_usage.files_size,
-		"last_logins": frappe.get_all("Activity Log", **kwargs),
+		"last_logins": nts.get_all("Activity Log", **kwargs),
 	}
 
 	# from other apps
-	for method_name in frappe.get_hooks("get_site_info"):
-		site_info.update(frappe.get_attr(method_name)(site_info) or {})
+	for method_name in nts.get_hooks("get_site_info"):
+		site_info.update(nts.get_attr(method_name)(site_info) or {})
 
 	# dumps -> loads to prevent datatype conflicts
-	return json.loads(frappe.as_json(site_info))
+	return json.loads(nts.as_json(site_info))
 
 
 def parse_json(val):
@@ -835,7 +835,7 @@ def parse_json(val):
 	if isinstance(val, str):
 		val = json.loads(val)
 	if isinstance(val, dict):
-		val = frappe._dict(val)
+		val = nts._dict(val)
 	return val
 
 
@@ -850,29 +850,29 @@ def get_db_count(*args):
 
 	Example:
 	        via terminal:
-	                bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
+	                bench --site erpnext.local execute nts.utils.get_db_count --args "['DocType', 'Communication']"
 	"""
 	db_count = {}
 	for doctype in args:
-		db_count[doctype] = frappe.db.count(doctype)
+		db_count[doctype] = nts.db.count(doctype)
 
-	return json.loads(frappe.as_json(db_count))
+	return json.loads(nts.as_json(db_count))
 
 
 def call(fn, *args, **kwargs):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
 	Parameters:
-	        fn: frappe function to be called
+	        fn: nts function to be called
 
 	Returns:
 	        based on the function you call: output of the function you call
 
 	Example:
 	        via terminal:
-	                bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
+	                bench --site erpnext.local execute nts.utils.call --args '''["nts.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
-	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+	return json.loads(nts.as_json(nts.call(fn, *args, **kwargs)))
 
 
 # Following methods are aken as-is from Python 3 codebase
@@ -908,7 +908,7 @@ def get_safe_filters(filters):
 		filters = json.loads(filters)
 
 		if isinstance(filters, int | float):
-			filters = frappe.as_unicode(filters)
+			filters = nts.as_unicode(filters)
 
 	except (TypeError, ValueError):
 		# filters are not passed, not json
@@ -937,15 +937,15 @@ def set_request(**kwargs):
 	from werkzeug.wrappers import Request
 
 	builder = EnvironBuilder(**kwargs)
-	frappe.local.request = Request(builder.get_environ())
+	nts.local.request = Request(builder.get_environ())
 
 
 def get_html_for_route(route):
-	from frappe.website.serve import get_response
+	from nts.website.serve import get_response
 
 	set_request(method="GET", path=route)
 	response = get_response()
-	return frappe.safe_decode(response.get_data())
+	return nts.safe_decode(response.get_data())
 
 
 def get_file_size(path, format=False):
@@ -966,35 +966,35 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
+		return str(os.path.getmtime(os.path.join(nts.local.sites_path, "assets/assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
-		return frappe.utils.random_string(8)
+		return nts.utils.random_string(8)
 
 
 def get_assets_json():
 	def _get_assets():
 		# get merged assets.json and assets-rtl.json
-		assets = frappe.parse_json(frappe.read_file("assets/assets.json"))
+		assets = nts.parse_json(nts.read_file("assets/assets.json"))
 
-		if assets_rtl := frappe.read_file("assets/assets-rtl.json"):
-			assets.update(frappe.parse_json(assets_rtl))
+		if assets_rtl := nts.read_file("assets/assets-rtl.json"):
+			assets.update(nts.parse_json(assets_rtl))
 
 		return assets
 
-	if not hasattr(frappe.local, "assets_json"):
-		if not frappe.conf.developer_mode:
-			frappe.local.assets_json = frappe.cache.get_value(
+	if not hasattr(nts.local, "assets_json"):
+		if not nts.conf.developer_mode:
+			nts.local.assets_json = nts.cache.get_value(
 				"assets_json",
 				_get_assets,
 				shared=True,
 			)
 
 		else:
-			frappe.local.assets_json = _get_assets()
+			nts.local.assets_json = _get_assets()
 
-	return frappe.local.assets_json
+	return nts.local.assets_json
 
 
 def get_bench_relative_path(file_path):
@@ -1082,7 +1082,7 @@ def dictify(arg):
 		for i, a in enumerate(arg):
 			arg[i] = dictify(a)
 	elif isinstance(arg, MutableMapping):
-		arg = frappe._dict(arg)
+		arg = nts._dict(arg)
 
 	return arg
 
@@ -1106,14 +1106,14 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	if not missing_users:
 		return
 
-	missing_info = frappe.get_all(
+	missing_info = nts.get_all(
 		"User",
 		{"name": ("in", missing_users)},
 		["full_name", "user_image", "name", "email", "time_zone"],
 	)
 
 	for info in missing_info:
-		user_info.setdefault(info.name, frappe._dict()).update(
+		user_info.setdefault(info.name, nts._dict()).update(
 			fullname=info.full_name or info.name,
 			image=info.user_image,
 			name=info.name,
@@ -1145,7 +1145,7 @@ class CallbackManager:
 	callbacks.reset()
 	```
 
-	Example usage: frappe.db.after_commit
+	Example usage: nts.db.after_commit
 	"""
 
 	__slots__ = ("_functions",)

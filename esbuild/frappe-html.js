@@ -1,5 +1,5 @@
 module.exports = {
-	name: "frappe-html",
+	name: "nts-html",
 	setup(build) {
 		let path = require("path");
 		let fs = require("fs/promises");
@@ -7,11 +7,11 @@ module.exports = {
 		build.onResolve({ filter: /\.html$/ }, (args) => {
 			return {
 				path: path.join(args.resolveDir, args.path),
-				namespace: "frappe-html",
+				namespace: "nts-html",
 			};
 		});
 
-		build.onLoad({ filter: /.*/, namespace: "frappe-html" }, (args) => {
+		build.onLoad({ filter: /.*/, namespace: "nts-html" }, (args) => {
 			let filepath = args.path;
 			let filename = path.basename(filepath).split(".")[0];
 
@@ -20,7 +20,7 @@ module.exports = {
 				.then((content) => {
 					content = scrub_html_template(content);
 					return {
-						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`,
+						contents: `\n\tnts.templates['${filename}'] = \`${content}\`;\n`,
 						watchFiles: [filepath],
 					};
 				})

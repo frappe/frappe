@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from urllib.parse import quote, urljoin
 
-import frappe
-from frappe.utils import cstr, escape_html, get_request_site_address, now
+import nts
+from nts.utils import cstr, escape_html, get_request_site_address, now
 
 no_cache = 1
 base_template_path = "www/rss.xml"
@@ -15,7 +15,7 @@ def get_context(context):
 
 	host = get_request_site_address()
 
-	blog_list = frappe.get_all(
+	blog_list = nts.get_all(
 		"Blog Post",
 		fields=["name", "published_on", "modified", "title", "blog_intro", "route"],
 		filters={"published": 1},
@@ -33,7 +33,7 @@ def get_context(context):
 	else:
 		modified = now()
 
-	blog_settings = frappe.get_doc("Blog Settings", "Blog Settings")
+	blog_settings = nts.get_doc("Blog Settings", "Blog Settings")
 
 	context = {
 		"title": blog_settings.blog_title or "Blog",

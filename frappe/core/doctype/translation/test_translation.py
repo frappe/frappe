@@ -1,30 +1,30 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe import _
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts import _
+from nts.tests.utils import ntsTestCase
 
 
-class TestTranslation(FrappeTestCase):
+class TestTranslation(ntsTestCase):
 	def setUp(self):
-		frappe.db.delete("Translation")
+		nts.db.delete("Translation")
 
 	def tearDown(self):
-		frappe.local.lang = "en"
-		from frappe.translate import clear_cache
+		nts.local.lang = "en"
+		from nts.translate import clear_cache
 
 		clear_cache()
 
 	def test_doctype(self):
 		translation_data = get_translation_data()
 		for lang, (source_string, new_translation) in translation_data.items():
-			frappe.local.lang = lang
+			nts.local.lang = lang
 			original_translation = _(source_string)
 
 			docname = create_translation(lang, source_string, new_translation)
 			self.assertEqual(_(source_string), new_translation)
 
-			frappe.delete_doc("Translation", docname)
+			nts.delete_doc("Translation", docname)
 			self.assertEqual(_(source_string), original_translation)
 
 	def test_parent_language(self):
@@ -42,13 +42,13 @@ class TestTranslation(FrappeTestCase):
 			for lang, translation in translations.items():
 				create_translation(lang, source_string, translation)
 
-		frappe.local.lang = "es"
+		nts.local.lang = "es"
 
 		self.assertEqual(_("Test Data"), data["Test Data"]["es"])
 
 		self.assertEqual(_("Test Spanish"), data["Test Spanish"]["es"])
 
-		frappe.local.lang = "es-MX"
+		nts.local.lang = "es-MX"
 
 		# different translation for es-MX
 		self.assertEqual(_("Test Data"), data["Test Data"]["es-MX"])
@@ -110,7 +110,7 @@ def get_translation_data():
 
 
 def create_translation(lang, source_string, new_translation) -> str:
-	doc = frappe.new_doc("Translation")
+	doc = nts.new_doc("Translation")
 	doc.language = lang
 	doc.source_text = source_string
 	doc.translated_text = new_translation

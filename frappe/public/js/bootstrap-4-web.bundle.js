@@ -17,7 +17,7 @@ $(".dropdown-menu a.dropdown-toggle").on("click", function (e) {
 	return false;
 });
 
-frappe.get_modal = function (title, content) {
+nts.get_modal = function (title, content) {
 	return $(
 		`<div class="modal" tabindex="-1" role="dialog">
 			<div class="modal-dialog modal-dialog-scrollable" role="document">
@@ -25,7 +25,7 @@ frappe.get_modal = function (title, content) {
 					<div class="modal-header">
 						<h5 class="modal-title">${title}</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						${frappe.utils.icon("close-alt", "sm", "close-alt")}
+						${nts.utils.icon("close-alt", "sm", "close-alt")}
 						</button>
 					</div>
 					<div class="modal-body">
@@ -41,7 +41,7 @@ frappe.get_modal = function (title, content) {
 	);
 };
 
-frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
+nts.ui.Dialog = class Dialog extends nts.ui.Dialog {
 	get_primary_btn() {
 		return this.$wrapper.find(".modal-footer .btn-primary");
 	}

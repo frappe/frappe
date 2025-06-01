@@ -1,11 +1,11 @@
-# Copyright (c) 2021, Frappe Technologies and Contributors
+# Copyright (c) 2021, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.installer import update_site_config
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.installer import update_site_config
+from nts.tests.utils import ntsTestCase
 
 
-class TestUserType(FrappeTestCase):
+class TestUserType(ntsTestCase):
 	def setUp(self):
 		create_role()
 
@@ -13,9 +13,9 @@ class TestUserType(FrappeTestCase):
 		user_type = create_user_type("Test User Type")
 
 		# select perms added for all link fields
-		doc = frappe.get_meta("Contact")
+		doc = nts.get_meta("Contact")
 		link_fields = doc.get_link_fields()
-		select_doctypes = frappe.get_all(
+		select_doctypes = nts.get_all(
 			"User Select Document Type", {"parent": user_type.name}, pluck="document_type"
 		)
 
@@ -25,7 +25,7 @@ class TestUserType(FrappeTestCase):
 		# select perms added for all child table link fields
 		link_fields = []
 		for child_table in doc.get_table_fields():
-			child_doc = frappe.get_meta(child_table.options)
+			child_doc = nts.get_meta(child_table.options)
 			link_fields.extend(child_doc.get_link_fields())
 
 		for entry in link_fields:
@@ -37,24 +37,24 @@ class TestUserType(FrappeTestCase):
 		create_user_type("Test User Type")
 
 		# check if print, share & email values are set to 1
-		perm = frappe.get_all("Custom DocPerm", filters={"role": "_Test User Type"}, fields=["*"])[0]
+		perm = nts.get_all("Custom DocPerm", filters={"role": "_Test User Type"}, fields=["*"])[0]
 
 		self.assertTrue(perm.print == 1)
 		self.assertTrue(perm.share == 1)
 		self.assertTrue(perm.email == 1)
 
 	def tearDown(self):
-		frappe.db.rollback()
+		nts.db.rollback()
 
 
 def create_user_type(user_type):
-	if frappe.db.exists("User Type", user_type):
-		frappe.delete_doc("User Type", user_type)
+	if nts.db.exists("User Type", user_type):
+		nts.delete_doc("User Type", user_type)
 
-	user_type_limit = {frappe.scrub(user_type): 1}
+	user_type_limit = {nts.scrub(user_type): 1}
 	update_site_config("user_type_doctype_limit", user_type_limit)
 
-	doc = frappe.get_doc(
+	doc = nts.get_doc(
 		{
 			"doctype": "User Type",
 			"name": user_type,
@@ -70,7 +70,7 @@ def create_user_type(user_type):
 
 
 def create_role():
-	if not frappe.db.exists("Role", "_Test User Type"):
-		frappe.get_doc(
+	if not nts.db.exists("Role", "_Test User Type"):
+		nts.get_doc(
 			{"doctype": "Role", "role_name": "_Test User Type", "desk_access": 1, "is_custom": 1}
 		).insert()

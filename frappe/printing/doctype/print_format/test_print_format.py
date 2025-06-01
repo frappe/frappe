@@ -1,22 +1,22 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 import re
 import unittest
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 if TYPE_CHECKING:
-	from frappe.printing.doctype.print_format.print_format import PrintFormat
+	from nts.printing.doctype.print_format.print_format import PrintFormat
 
-test_records = frappe.get_test_records("Print Format")
+test_records = nts.get_test_records("Print Format")
 
 
-class TestPrintFormat(FrappeTestCase):
+class TestPrintFormat(ntsTestCase):
 	def test_print_user(self, style=None):
-		print_html = frappe.get_print("User", "Administrator", style=style)
+		print_html = nts.get_print("User", "Administrator", style=style)
 		self.assertTrue("<label>First Name: </label>" in print_html)
 		self.assertTrue(re.findall(r'<div class="col-xs-[^"]*">[\s]*administrator[\s]*</div>', print_html))
 		return print_html
@@ -36,17 +36,17 @@ class TestPrintFormat(FrappeTestCase):
 		self.assertTrue("/* classic format: for-test */" in print_html)
 
 	@unittest.skipUnless(
-		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+		os.access(nts.get_app_path("nts"), os.W_OK), "Only run if nts app paths is writable"
 	)
 	def test_export_doc(self):
-		doc: "PrintFormat" = frappe.get_doc("Print Format", test_records[0]["name"])
+		doc: "PrintFormat" = nts.get_doc("Print Format", test_records[0]["name"])
 
 		# this is only to make export_doc happy
 		doc.standard = "Yes"
-		_before = frappe.conf.developer_mode
-		frappe.conf.developer_mode = True
+		_before = nts.conf.developer_mode
+		nts.conf.developer_mode = True
 		export_path = doc.export_doc()
-		frappe.conf.developer_mode = _before
+		nts.conf.developer_mode = _before
 
 		exported_doc_path = f"{export_path}.json"
 		doc.reload()
@@ -55,7 +55,7 @@ class TestPrintFormat(FrappeTestCase):
 		self.assertTrue(os.path.exists(exported_doc_path))
 
 		with open(exported_doc_path) as f:
-			exported_doc = frappe.parse_json(f.read())
+			exported_doc = nts.parse_json(f.read())
 
 		for key, value in exported_doc.items():
 			if key in doc_dict:

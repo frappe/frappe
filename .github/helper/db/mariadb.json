@@ -1,8 +1,8 @@
 {
     "db_host": "127.0.0.1",
     "db_port": 3306,
-    "db_name": "test_frappe",
-    "db_password": "test_frappe",
+    "db_name": "test_nts",
+    "db_password": "test_nts",
     "allow_tests": true,
     "db_type": "mariadb",
     "auto_email_id": "test@example.com",

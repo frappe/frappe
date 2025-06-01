@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class HasRole(Document):
@@ -12,7 +12,7 @@ class HasRole(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		parent: DF.Data
 		parentfield: DF.Data
@@ -21,5 +21,5 @@ class HasRole(Document):
 
 	# end: auto-generated types
 	def before_insert(self):
-		if frappe.db.exists("Has Role", {"parent": self.parent, "role": self.role}):
-			frappe.throw(frappe._("User '{0}' already has the role '{1}'").format(self.parent, self.role))
+		if nts.db.exists("Has Role", {"parent": self.parent, "role": self.role}):
+			nts.throw(nts._("User '{0}' already has the role '{1}'").format(self.parent, self.role))

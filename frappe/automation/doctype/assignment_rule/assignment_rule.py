@@ -1,15 +1,15 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from collections.abc import Iterable
 
-import frappe
-from frappe import _
-from frappe.cache_manager import clear_doctype_map, get_doctype_map
-from frappe.desk.form import assign_to
-from frappe.model import log_types
-from frappe.model.document import Document
-from frappe.utils.data import comma_and
+import nts
+from nts import _
+from nts.cache_manager import clear_doctype_map, get_doctype_map
+from nts.desk.form import assign_to
+from nts.model import log_types
+from nts.model.document import Document
+from nts.utils.data import comma_and
 
 
 class AssignmentRule(Document):
@@ -19,11 +19,11 @@ class AssignmentRule(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.automation.doctype.assignment_rule_day.assignment_rule_day import AssignmentRuleDay
-		from frappe.automation.doctype.assignment_rule_user.assignment_rule_user import (
+		from nts.automation.doctype.assignment_rule_day.assignment_rule_day import AssignmentRuleDay
+		from nts.automation.doctype.assignment_rule_user.assignment_rule_user import (
 			AssignmentRuleUser,
 		)
-		from frappe.types import DF
+		from nts.types import DF
 
 		assign_condition: DF.Code
 		assignment_days: DF.Table[AssignmentRuleDay]
@@ -51,14 +51,14 @@ class AssignmentRule(Document):
 
 	def validate_document_types(self):
 		if self.document_type == "ToDo":
-			frappe.throw(
-				_("Assignment Rule is not allowed on document type {0}").format(frappe.bold(_("ToDo")))
+			nts.throw(
+				_("Assignment Rule is not allowed on document type {0}").format(nts.bold(_("ToDo")))
 			)
 
 	def validate_assignment_days(self):
 		assignment_days = self.get_assignment_days()
 		if len(set(assignment_days)) != len(assignment_days):
-			frappe.throw(
+			nts.throw(
 				_("The following Assignment Days have been repeated: {0}").format(
 					comma_and([_(day) for day in get_repeated(assignment_days)], add_quotes=False)
 				)
@@ -86,7 +86,7 @@ class AssignmentRule(Document):
 					assign_to=[user],
 					doctype=doc.get("doctype"),
 					name=doc.get("name"),
-					description=frappe.render_template(self.description, doc),
+					description=nts.render_template(self.description, doc),
 					assignment_rule=self.name,
 					notify=True,
 					date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
@@ -145,7 +145,7 @@ class AssignmentRule(Document):
 		counts = [
 			dict(
 				user=d.user,
-				count=frappe.db.count(
+				count=nts.db.count(
 					"ToDo",
 					dict(
 						reference_type=self.document_type,
@@ -164,17 +164,17 @@ class AssignmentRule(Document):
 
 	def get_user_based_on_field(self, doc):
 		val = doc.get(self.field)
-		if frappe.db.exists("User", val):
+		if nts.db.exists("User", val):
 			return val
 
 	def safe_eval(self, fieldname, doc):
 		try:
 			if self.get(fieldname):
-				return frappe.safe_eval(self.get(fieldname), None, doc)
+				return nts.safe_eval(self.get(fieldname), None, doc)
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
-			frappe.msgprint(frappe._("Auto assignment failed: {0}").format(str(e)), indicator="orange")
+			nts.msgprint(nts._("Auto assignment failed: {0}").format(str(e)), indicator="orange")
 
 		return False
 
@@ -182,13 +182,13 @@ class AssignmentRule(Document):
 		return [d.day for d in self.get("assignment_days", [])]
 
 	def is_rule_not_applicable_today(self):
-		today = frappe.flags.assignment_day or frappe.utils.get_weekday()
+		today = nts.flags.assignment_day or nts.utils.get_weekday()
 		assignment_days = self.get_assignment_days()
 		return assignment_days and today not in assignment_days
 
 
 def get_assignments(doc) -> list[dict]:
-	return frappe.get_all(
+	return nts.get_all(
 		"ToDo",
 		fields=["name", "assignment_rule"],
 		filters=dict(
@@ -198,15 +198,15 @@ def get_assignments(doc) -> list[dict]:
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def bulk_apply(doctype, docnames):
-	docnames = frappe.parse_json(docnames)
+	docnames = nts.parse_json(docnames)
 	background = len(docnames) > 5
 
 	for name in docnames:
 		if background:
-			frappe.enqueue(
-				"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			nts.enqueue(
+				"nts.automation.doctype.assignment_rule.assignment_rule.apply",
 				doc=None,
 				doctype=doctype,
 				name=name,
@@ -216,7 +216,7 @@ def bulk_apply(doctype, docnames):
 
 
 def reopen_closed_assignment(doc):
-	todo_list = frappe.get_all(
+	todo_list = nts.get_all(
 		"ToDo",
 		filters={
 			"reference_type": doc.doctype,
@@ -227,7 +227,7 @@ def reopen_closed_assignment(doc):
 	)
 
 	for todo in todo_list:
-		todo_doc = frappe.get_doc("ToDo", todo)
+		todo_doc = nts.get_doc("ToDo", todo)
 		todo_doc.status = "Open"
 		todo_doc.save(ignore_permissions=True)
 
@@ -238,9 +238,9 @@ def apply(doc=None, method=None, doctype=None, name=None):
 	doctype = doctype or doc.doctype
 
 	skip_assignment_rules = (
-		frappe.flags.in_patch
-		or frappe.flags.in_install
-		or frappe.flags.in_setup_wizard
+		nts.flags.in_patch
+		or nts.flags.in_install
+		or nts.flags.in_setup_wizard
 		or doctype in log_types
 	)
 
@@ -248,7 +248,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 		return
 
 	if not doc and doctype and name:
-		doc = frappe.get_doc(doctype, name)
+		doc = nts.get_doc(doctype, name)
 
 	assignment_rules = get_doctype_map(
 		"Assignment Rule",
@@ -259,7 +259,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 
 	# multiple auto assigns
 	assignment_rule_docs: list[AssignmentRule] = [
-		frappe.get_cached_doc("Assignment Rule", d.get("name")) for d in assignment_rules
+		nts.get_cached_doc("Assignment Rule", d.get("name")) for d in assignment_rules
 	]
 
 	if not assignment_rule_docs:
@@ -308,7 +308,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 
 				if to_close_todos:
 					# close todo status
-					todos_to_close = frappe.get_all(
+					todos_to_close = nts.get_all(
 						"ToDo",
 						filters={
 							"reference_type": doc.doctype,
@@ -318,7 +318,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 					)
 
 					for todo in todos_to_close:
-						_todo = frappe.get_doc("ToDo", todo)
+						_todo = nts.get_doc("ToDo", todo)
 						_todo.status = "Closed"
 						_todo.save(ignore_permissions=True)
 					break
@@ -334,11 +334,11 @@ def apply(doc=None, method=None, doctype=None, name=None):
 def update_due_date(doc, state=None):
 	"""Run on_update on every Document (via hooks.py)"""
 	skip_document_update = (
-		frappe.flags.in_migrate
-		or frappe.flags.in_patch
-		or frappe.flags.in_import
-		or frappe.flags.in_setup_wizard
-		or frappe.flags.in_install
+		nts.flags.in_migrate
+		or nts.flags.in_patch
+		or nts.flags.in_import
+		or nts.flags.in_setup_wizard
+		or nts.flags.in_install
 	)
 
 	if skip_document_update:
@@ -355,14 +355,14 @@ def update_due_date(doc, state=None):
 	)
 
 	for rule in assignment_rules:
-		rule_doc = frappe.get_cached_doc("Assignment Rule", rule.get("name"))
+		rule_doc = nts.get_cached_doc("Assignment Rule", rule.get("name"))
 		due_date_field = rule_doc.due_date_based_on
 		field_updated = (
 			doc.meta.has_field(due_date_field) and doc.has_value_changed(due_date_field) and rule.get("name")
 		)
 
 		if field_updated:
-			assignment_todos = frappe.get_all(
+			assignment_todos = nts.get_all(
 				"ToDo",
 				filters={
 					"assignment_rule": rule.get("name"),
@@ -374,7 +374,7 @@ def update_due_date(doc, state=None):
 			)
 
 			for todo in assignment_todos:
-				todo_doc = frappe.get_doc("ToDo", todo)
+				todo_doc = nts.get_doc("ToDo", todo)
 				todo_doc.date = doc.get(due_date_field)
 				todo_doc.flags.updater_reference = {
 					"doctype": "Assignment Rule",
@@ -385,7 +385,7 @@ def update_due_date(doc, state=None):
 
 
 def get_assignment_rules() -> list[str]:
-	return frappe.get_all("Assignment Rule", filters={"disabled": 0}, pluck="document_type")
+	return nts.get_all("Assignment Rule", filters={"disabled": 0}, pluck="document_type")
 
 
 def get_repeated(values: Iterable) -> list:

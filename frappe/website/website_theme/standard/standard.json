@@ -15,6 +15,6 @@
  "name": "Standard",
  "owner": "Administrator",
  "theme": "Standard",
- "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n@import \"frappe/public/scss/website\";\n\n\n\n// Custom Theme\n",
+ "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n@import \"nts/public/scss/website\";\n\n\n\n// Custom Theme\n",
  "theme_url": "/assets/css/standard_style.css"
 }

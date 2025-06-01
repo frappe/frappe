@@ -1,6 +1,6 @@
-frappe.provide("frappe.file_manager");
+nts.provide("nts.file_manager");
 
-frappe.file_manager = (function () {
+nts.file_manager = (function () {
 	let files_to_move = [];
 	let old_folder = null;
 	let new_folder = null;
@@ -19,9 +19,9 @@ frappe.file_manager = (function () {
 			}
 			new_folder = new_folder_;
 
-			frappe
+			nts
 				.call({
-					method: "frappe.core.api.file.move_file",
+					method: "nts.core.api.file.move_file",
 					args: {
 						file_list: files_to_move,
 						new_parent: new_folder,

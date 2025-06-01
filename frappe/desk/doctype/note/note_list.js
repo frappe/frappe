@@ -1,4 +1,4 @@
-frappe.listview_settings["Note"] = {
+nts.listview_settings["Note"] = {
 	hide_name_column: true,
 	add_fields: ["public"],
 	get_indicator: function (doc) {

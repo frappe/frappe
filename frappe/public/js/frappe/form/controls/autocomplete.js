@@ -1,6 +1,6 @@
 import Awesomplete from "awesomplete";
 
-frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui.form.ControlData {
+nts.ui.form.ControlAutocomplete = class ControlAutoComplete extends nts.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
 		super.make_input();
@@ -146,7 +146,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 	parse_options(options) {
 		if (typeof options === "string" && options[0] === "[") {
-			options = frappe.utils.parse_json(options);
+			options = nts.utils.parse_json(options);
 		}
 		if (typeof options === "string") {
 			options = options.split("\n");
@@ -217,7 +217,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		}
 
 		if (args.query) {
-			frappe.call({
+			nts.call({
 				method: args.query,
 				args: args,
 				callback: ({ message }) => {

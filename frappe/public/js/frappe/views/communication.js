@@ -1,12 +1,12 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 import localforage from "localforage";
 
-frappe.last_edited_communication = {};
+nts.last_edited_communication = {};
 const separator_element = "<div>---</div>";
 
-frappe.views.CommunicationComposer = class {
+nts.views.CommunicationComposer = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		if (!this.doc) {
@@ -19,7 +19,7 @@ frappe.views.CommunicationComposer = class {
 	make() {
 		const me = this;
 
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: this.title || this.subject || __("New Email"),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
@@ -58,7 +58,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down", "xs"),
+				label: nts.utils.icon("down", "xs"),
 				fieldname: "option_toggle_button",
 				click: () => {
 					this.toggle_more_options();
@@ -114,7 +114,7 @@ frappe.views.CommunicationComposer = class {
 				label: __("Message"),
 				fieldtype: "Text Editor",
 				fieldname: "content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
+				onchange: nts.utils.debounce(this.save_as_draft.bind(this), 300),
 			},
 			{
 				fieldtype: "Button",
@@ -132,7 +132,7 @@ frappe.views.CommunicationComposer = class {
 				label: __("Send me a copy"),
 				fieldtype: "Check",
 				fieldname: "send_me_a_copy",
-				default: frappe.boot.user.send_me_a_copy,
+				default: nts.boot.user.send_me_a_copy,
 			},
 			{
 				label: __("Send Read Receipt"),
@@ -157,7 +157,7 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Language",
 				fieldname: "print_language",
-				default: frappe.boot.lang,
+				default: nts.boot.lang,
 				depends_on: "attach_document_print",
 			},
 			{ fieldtype: "Column Break" },
@@ -169,7 +169,7 @@ frappe.views.CommunicationComposer = class {
 		];
 
 		// add from if user has access to multiple email accounts
-		const email_accounts = frappe.boot.email_accounts.filter((account) => {
+		const email_accounts = nts.boot.email_accounts.filter((account) => {
 			return (
 				!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
 				account.enable_outgoing
@@ -194,8 +194,8 @@ frappe.views.CommunicationComposer = class {
 			//Preselect email senders if there is only one
 			if (this.user_email_accounts.length == 1) {
 				this["sender"] = this.user_email_accounts;
-			} else if (this.user_email_accounts.includes(frappe.session.user_email)) {
-				this["sender"] = frappe.session.user_email;
+			} else if (this.user_email_accounts.includes(nts.session.user_email)) {
+				this["sender"] = nts.session.user_email;
 			}
 		}
 
@@ -225,13 +225,13 @@ frappe.views.CommunicationComposer = class {
 
 		let print_format_lang;
 		if (print_format != "Standard") {
-			print_format_lang = frappe.get_doc(
+			print_format_lang = nts.get_doc(
 				"Print Format",
 				print_format
 			)?.default_print_language;
 		}
 
-		let lang = document_lang || print_format_lang || frappe.boot.lang;
+		let lang = document_lang || print_format_lang || nts.boot.lang;
 		this.dialog.set_value("print_language", lang);
 	}
 
@@ -240,7 +240,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
 		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
+		const label = nts.utils.icon(show_options ? "up-line" : "down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
@@ -275,8 +275,8 @@ frappe.views.CommunicationComposer = class {
 					);
 				}
 
-				frappe.call({
-					method: "frappe.email.get_contact_list",
+				nts.call({
+					method: "nts.email.get_contact_list",
 					args: args,
 					callback: (r) => {
 						this.dialog.fields_dict[field].set_data(r.message);
@@ -401,8 +401,8 @@ frappe.views.CommunicationComposer = class {
 				subject_field.set_value(reply.subject);
 			}
 
-			frappe.call({
-				method: "frappe.email.doctype.email_template.email_template.get_email_template",
+			nts.call({
+				method: "nts.email.doctype.email_template.email_template.get_email_template",
 				args: {
 					template_name: email_template,
 					doc: me.doc,
@@ -429,7 +429,7 @@ frappe.views.CommunicationComposer = class {
 			},
 		];
 
-		frappe.utils.add_select_group_button(clear_and_add_template, email_template_actions);
+		nts.utils.add_select_group_button(clear_and_add_template, email_template_actions);
 	}
 
 	setup_last_edited_communication() {
@@ -458,15 +458,15 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_last_edited_communication(clear) {
-		if (!frappe.last_edited_communication[this.doctype]) {
-			frappe.last_edited_communication[this.doctype] = {};
+		if (!nts.last_edited_communication[this.doctype]) {
+			nts.last_edited_communication[this.doctype] = {};
 		}
 
-		if (clear || !frappe.last_edited_communication[this.doctype][this.key]) {
-			frappe.last_edited_communication[this.doctype][this.key] = {};
+		if (clear || !nts.last_edited_communication[this.doctype][this.key]) {
+			nts.last_edited_communication[this.doctype][this.key] = {};
 		}
 
-		return frappe.last_edited_communication[this.doctype][this.key];
+		return nts.last_edited_communication[this.doctype][this.key];
 	}
 
 	async set_values() {
@@ -474,7 +474,7 @@ frappe.views.CommunicationComposer = class {
 			await this.dialog.set_value(fieldname, this[fieldname] || "");
 		}
 
-		const subject = this.subject ? frappe.utils.html2text(this.subject) : "";
+		const subject = this.subject ? nts.utils.html2text(this.subject) : "";
 		await this.dialog.set_value("subject", subject);
 
 		await this.set_values_from_last_edited_communication();
@@ -544,7 +544,7 @@ frappe.views.CommunicationComposer = class {
 		$(fields.select_print_format.wrapper).toggle(false);
 
 		if (this.frm) {
-			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
+			const print_formats = nts.meta.get_print_formats(this.frm.meta.name);
 			$(fields.select_print_format.input)
 				.empty()
 				.add_options(print_formats)
@@ -590,7 +590,7 @@ frappe.views.CommunicationComposer = class {
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
 				<button class='btn btn-xs btn-default'>
-					${frappe.utils.icon("small-add", "xs")}&nbsp;
+					${nts.utils.icon("small-add", "xs")}&nbsp;
 					${__("Add Attachment")}
 				</button>
 			</p>
@@ -598,7 +598,7 @@ frappe.views.CommunicationComposer = class {
 
 		attach
 			.find(".add-more-attachments button")
-			.on("click", () => new frappe.ui.FileUploader(args));
+			.on("click", () => new nts.ui.FileUploader(args));
 		this.render_attachment_rows();
 	}
 
@@ -620,7 +620,7 @@ frappe.views.CommunicationComposer = class {
 				$.each(files, (i, f) => {
 					if (!f.file_name) return;
 					if (!attachment_rows.find(`[data-file-name="${f.name}"]`).length) {
-						f.file_url = frappe.urllib.get_full_url(f.file_url);
+						f.file_url = nts.urllib.get_full_url(f.file_url);
 						attachment_rows.append(this.get_attachment_row(f));
 					}
 				});
@@ -648,7 +648,7 @@ frappe.views.CommunicationComposer = class {
 					class="btn-link"
 					style="padding-left: var(--padding-xs)"
 				>
-					${frappe.utils.icon("link-url", "sm")}
+					${nts.utils.icon("link-url", "sm")}
 				</a>
 			</label>
 		</p>`);
@@ -666,8 +666,8 @@ frappe.views.CommunicationComposer = class {
 		$(fields.send_me_a_copy.input).on("click", () => {
 			// update send me a copy (make it sticky)
 			const val = fields.send_me_a_copy.get_value();
-			frappe.db.set_value("User", frappe.session.user, "send_me_a_copy", val);
-			frappe.boot.user.send_me_a_copy = val;
+			nts.db.set_value("User", nts.session.user, "send_me_a_copy", val);
+			nts.boot.user.send_me_a_copy = val;
 		});
 	}
 
@@ -759,7 +759,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.hide();
 
 		if (!form_values.recipients) {
-			frappe.msgprint(__("Enter Email Recipient(s)"));
+			nts.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
 
@@ -768,13 +768,13 @@ frappe.views.CommunicationComposer = class {
 			print_format = null;
 		}
 
-		if (this.frm && !frappe.model.can_email(this.doc.doctype, this.frm)) {
-			frappe.msgprint(__("You are not allowed to send emails related to this document"));
+		if (this.frm && !nts.model.can_email(this.doc.doctype, this.frm)) {
+			nts.msgprint(__("You are not allowed to send emails related to this document"));
 			return;
 		}
 
-		return frappe.call({
-			method: "frappe.core.doctype.communication.email.make",
+		return nts.call({
+			method: "nts.core.doctype.communication.email.make",
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,
@@ -788,7 +788,7 @@ frappe.views.CommunicationComposer = class {
 				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
 				sender: form_values.sender,
-				sender_full_name: form_values.sender ? frappe.user.full_name() : undefined,
+				sender_full_name: form_values.sender ? nts.user.full_name() : undefined,
 				email_template: form_values.email_template,
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
@@ -799,12 +799,12 @@ frappe.views.CommunicationComposer = class {
 			btn,
 			callback(r) {
 				if (!r.exc) {
-					frappe.utils.play_sound("email");
+					nts.utils.play_sound("email");
 
 					if (r.message["emails_not_sent_to"]) {
-						frappe.msgprint(
+						nts.msgprint(
 							__("Email not sent to {0} (unsubscribed / disabled)", [
-								frappe.utils.escape_html(r.message["emails_not_sent_to"]),
+								nts.utils.escape_html(r.message["emails_not_sent_to"]),
 							])
 						);
 					}
@@ -824,7 +824,7 @@ frappe.views.CommunicationComposer = class {
 						}
 					}
 				} else {
-					frappe.msgprint(
+					nts.msgprint(
 						__("There were errors while sending email. Please try again.")
 					);
 
@@ -846,7 +846,7 @@ frappe.views.CommunicationComposer = class {
 			return $(this.frm.wrapper).find(".print-letterhead").prop("checked") ? 1 : 0;
 		} else {
 			return (
-				frappe.model.get_doc(":Print Settings", "Print Settings") || { with_letterhead: 1 }
+				nts.model.get_doc(":Print Settings", "Print Settings") || { with_letterhead: 1 }
 			).with_letterhead
 				? 1
 				: 0;
@@ -879,7 +879,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	async get_signature(sender_email) {
-		let signature = frappe.boot.user.email_signature;
+		let signature = nts.boot.user.email_signature;
 
 		if (!signature) {
 			let filters = {
@@ -892,7 +892,7 @@ frappe.views.CommunicationComposer = class {
 				filters["default_outgoing"] = 1;
 			}
 
-			const email_accounts = await frappe.db.get_list("Email Account", {
+			const email_accounts = await nts.db.get_list("Email Account", {
 				filters: filters,
 				fields: ["signature", "email_id"],
 				limit: 1,
@@ -916,7 +916,7 @@ frappe.views.CommunicationComposer = class {
 
 		if (!signature) return "";
 
-		if (!frappe.utils.is_html(signature)) {
+		if (!nts.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
@@ -942,7 +942,7 @@ frappe.views.CommunicationComposer = class {
 			last_email_content = last_email_content.slice(0, 20 * 1024);
 		}
 
-		const communication_date = frappe.datetime.global_date_format(
+		const communication_date = nts.datetime.global_date_format(
 			last_email.communication_date || last_email.creation
 		);
 
@@ -968,7 +968,7 @@ frappe.views.CommunicationComposer = class {
 			.replace(/<\/p>/g, "<br></p>") // replace end of paragraphs
 			.replace(/<br>/g, "\n");
 
-		const text = frappe.utils.html2text(html);
+		const text = nts.utils.html2text(html);
 		return text.replace(/\n{3,}/g, "\n\n");
 	}
 };

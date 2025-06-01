@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	if "payments" in frappe.get_installed_apps():
+	if "payments" in nts.get_installed_apps():
 		return
 
 	for doctype in (
@@ -13,4 +13,4 @@ def execute():
 		"Paytm Settings",
 		"Stripe Settings",
 	):
-		frappe.delete_doc_if_exists("DocType", doctype, force=True)
+		nts.delete_doc_if_exists("DocType", doctype, force=True)

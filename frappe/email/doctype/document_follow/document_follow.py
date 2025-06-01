@@ -1,7 +1,7 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class DocumentFollow(Document):
@@ -11,7 +11,7 @@ class DocumentFollow(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		ref_docname: DF.DynamicLink
 		ref_doctype: DF.Link

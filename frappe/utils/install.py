@@ -1,64 +1,64 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import getpass
 
-import frappe
-from frappe.geo.doctype.country.country import import_country_and_currency
-from frappe.utils.password import update_password
+import nts
+from nts.geo.doctype.country.country import import_country_and_currency
+from nts.utils.password import update_password
 
 
 def before_install():
-	frappe.reload_doc("core", "doctype", "doctype_state")
-	frappe.reload_doc("core", "doctype", "docfield")
-	frappe.reload_doc("core", "doctype", "docperm")
-	frappe.reload_doc("core", "doctype", "doctype_action")
-	frappe.reload_doc("core", "doctype", "doctype_link")
-	frappe.reload_doc("desk", "doctype", "form_tour_step")
-	frappe.reload_doc("desk", "doctype", "form_tour")
-	frappe.reload_doc("core", "doctype", "doctype")
-	frappe.clear_cache()
+	nts.reload_doc("core", "doctype", "doctype_state")
+	nts.reload_doc("core", "doctype", "docfield")
+	nts.reload_doc("core", "doctype", "docperm")
+	nts.reload_doc("core", "doctype", "doctype_action")
+	nts.reload_doc("core", "doctype", "doctype_link")
+	nts.reload_doc("desk", "doctype", "form_tour_step")
+	nts.reload_doc("desk", "doctype", "form_tour")
+	nts.reload_doc("core", "doctype", "doctype")
+	nts.clear_cache()
 
 
 def after_install():
 	create_user_type()
 	install_basic_docs()
 
-	from frappe.core.doctype.file.utils import make_home_folder
-	from frappe.core.doctype.language.language import sync_languages
+	from nts.core.doctype.file.utils import make_home_folder
+	from nts.core.doctype.language.language import sync_languages
 
 	make_home_folder()
 	import_country_and_currency()
 	sync_languages()
 
 	# save default print setting
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = nts.get_doc("Print Settings")
 	print_settings.save()
 
 	# all roles to admin
-	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
+	nts.get_doc("User", "Administrator").add_roles(*nts.get_all("Role", pluck="name"))
 
 	# update admin password
 	update_password("Administrator", get_admin_password())
 
-	if not frappe.conf.skip_setup_wizard:
+	if not nts.conf.skip_setup_wizard:
 		# only set home_page if the value doesn't exist in the db
-		if not frappe.db.get_default("desktop:home_page"):
-			frappe.db.set_default("desktop:home_page", "setup-wizard")
-			frappe.db.set_single_value("System Settings", "setup_complete", 0)
+		if not nts.db.get_default("desktop:home_page"):
+			nts.db.set_default("desktop:home_page", "setup-wizard")
+			nts.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
-	with open(frappe.get_site_path(".test_log"), "w") as f:
+	with open(nts.get_site_path(".test_log"), "w") as f:
 		f.write("")
 
 	add_standard_navbar_items()
 
-	frappe.db.commit()
+	nts.db.commit()
 
 
 def create_user_type():
 	for user_type in ["System User", "Website User"]:
-		if not frappe.db.exists("User Type", user_type):
-			frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
+		if not nts.db.exists("User Type", user_type):
+			nts.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
 				ignore_permissions=True
 			)
 
@@ -115,8 +115,8 @@ def install_basic_docs():
 
 	for d in install_docs:
 		try:
-			frappe.get_doc(d).insert(ignore_if_duplicate=True)
-		except frappe.NameError:
+			nts.get_doc(d).insert(ignore_if_duplicate=True)
+		except nts.NameError:
 			pass
 
 
@@ -129,33 +129,33 @@ def get_admin_password():
 			return ask_admin_password()
 		return admin_password
 
-	admin_password = frappe.conf.get("admin_password")
+	admin_password = nts.conf.get("admin_password")
 	if not admin_password:
 		return ask_admin_password()
 	return admin_password
 
 
 def before_tests():
-	if len(frappe.get_installed_apps()) > 1:
+	if len(nts.get_installed_apps()) > 1:
 		# don't run before tests if any other app is installed
 		return
 
-	frappe.db.truncate("Custom Field")
-	frappe.db.truncate("Event")
+	nts.db.truncate("Custom Field")
+	nts.db.truncate("Event")
 
-	frappe.clear_cache()
+	nts.clear_cache()
 
 	# complete setup if missing
-	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
+	if not int(nts.db.get_single_value("System Settings", "setup_complete") or 0):
 		complete_setup_wizard()
 
-	frappe.db.set_single_value("Website Settings", "disable_signup", 0)
-	frappe.db.commit()
-	frappe.clear_cache()
+	nts.db.set_single_value("Website Settings", "disable_signup", 0)
+	nts.db.commit()
+	nts.clear_cache()
 
 
 def complete_setup_wizard():
-	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
+	from nts.desk.page.setup_wizard.setup_wizard import setup_complete
 
 	setup_complete(
 		{
@@ -171,7 +171,7 @@ def complete_setup_wizard():
 
 
 def add_standard_navbar_items():
-	navbar_settings = frappe.get_single("Navbar Settings")
+	navbar_settings = nts.get_single("Navbar Settings")
 
 	# don't add settings/help options if they're already present
 	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
@@ -180,10 +180,10 @@ def add_standard_navbar_items():
 	navbar_settings.settings_dropdown = []
 	navbar_settings.help_dropdown = []
 
-	for item in frappe.get_hooks("standard_navbar_items"):
+	for item in nts.get_hooks("standard_navbar_items"):
 		navbar_settings.append("settings_dropdown", item)
 
-	for item in frappe.get_hooks("standard_help_items"):
+	for item in nts.get_hooks("standard_help_items"):
 		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()

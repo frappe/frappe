@@ -1,4 +1,4 @@
-frappe.ui.form.on("Contact Us Settings", {
+nts.ui.form.on("Contact Us Settings", {
 	refresh: function (frm) {
 		frm.sidebar
 			.add_user_action(__("See on Website"))

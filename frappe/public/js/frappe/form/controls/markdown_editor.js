@@ -1,5 +1,5 @@
-frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
-	frappe.ui.form.ControlCode
+nts.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
+	nts.ui.form.ControlCode
 ) {
 	static editor_class = "markdown";
 	make_ace_editor() {
@@ -48,7 +48,7 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
 	update_preview() {
 		if (!this.markdown_preview) return;
 		const value = this.get_value() || "";
-		this.markdown_preview.html(frappe.markdown(value));
+		this.markdown_preview.html(nts.markdown(value));
 	}
 
 	set_formatted_input(value) {
@@ -71,14 +71,14 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
 			}
 			let files = dataTransfer.files;
 			if (!files[0].type.includes("image")) {
-				frappe.show_alert({
+				nts.show_alert({
 					message: __("You can only insert images in Markdown fields", [files[0].name]),
 					indicator: "orange",
 				});
 				return;
 			}
 
-			new frappe.ui.FileUploader({
+			new nts.ui.FileUploader({
 				dialog_title: __("Insert Image in Markdown"),
 				doctype: this.doctype,
 				docname: this.docname,

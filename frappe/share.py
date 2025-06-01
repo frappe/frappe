@@ -1,23 +1,23 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe import _
-from frappe.desk.doctype.notification_log.notification_log import (
+import nts
+from nts import _
+from nts.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_title,
 	get_title_html,
 )
-from frappe.desk.form.document_follow import follow_document
-from frappe.utils import cint
+from nts.desk.form.document_follow import follow_document
+from nts.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
 	"""Expose function without flags to the client-side"""
 	return add_docshare(
@@ -38,7 +38,7 @@ def add_docshare(
 ):
 	"""Share the given document with a user."""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if not (flags or {}).get("ignore_share_permission"):
 		check_share_permission(doctype, name)
@@ -46,9 +46,9 @@ def add_docshare(
 	share_name = get_share_name(doctype, name, user, everyone)
 
 	if share_name:
-		doc = frappe.get_doc("DocShare", share_name)
+		doc = nts.get_doc("DocShare", share_name)
 	else:
-		doc = frappe.new_doc("DocShare")
+		doc = nts.new_doc("DocShare")
 		doc.update({"user": user, "share_doctype": doctype, "share_name": name, "everyone": cint(everyone)})
 
 	if flags:
@@ -67,20 +67,20 @@ def add_docshare(
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, everyone, notify=notify)
 
-	if frappe.get_cached_value("User", user, "follow_shared_documents"):
+	if nts.get_cached_value("User", user, "follow_shared_documents"):
 		follow_document(doctype, name, user)
 
 	return doc
 
 
 def remove(doctype, name, user, flags=None):
-	share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name, "share_doctype": doctype})
+	share_name = nts.db.get_value("DocShare", {"user": user, "share_name": name, "share_doctype": doctype})
 
 	if share_name:
-		frappe.delete_doc("DocShare", share_name, flags=flags)
+		nts.delete_doc("DocShare", share_name, flags=flags)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	"""Expose function without flags to the client-side"""
 	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
@@ -102,7 +102,7 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 			share = None
 
 	else:
-		share = frappe.get_doc("DocShare", share_name)
+		share = nts.get_doc("DocShare", share_name)
 		if flags:
 			share.flags.update(flags)
 		share.flags.ignore_permissions = True
@@ -122,20 +122,20 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 	return share
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_users(doctype: str, name: str) -> list:
 	"""Get list of users with which this document is shared"""
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	return _get_users(doc)
 
 
 def _get_users(doc: "Document") -> list:
-	from frappe.permissions import has_permission
+	from nts.permissions import has_permission
 
 	if not has_permission(doc.doctype, "read", doc, raise_exception=False):
 		return []
 
-	return frappe.get_all(
+	return nts.get_all(
 		"DocShare",
 		fields=[
 			"name",
@@ -160,7 +160,7 @@ def get_shared(doctype, user=None, rights=None, *, filters=None, limit=None):
 	:param rights: List of rights for which the document is shared. List of `read`, `write`, `share`"""
 
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if not rights:
 		rights = ["read"]
@@ -174,7 +174,7 @@ def get_shared(doctype, user=None, rights=None, *, filters=None, limit=None):
 	if user != "Guest":
 		or_filters += [["everyone", "=", 1]]
 
-	shared_docs = frappe.get_all(
+	shared_docs = nts.get_all(
 		"DocShare",
 		fields=["share_name"],
 		filters=share_filters,
@@ -189,10 +189,10 @@ def get_shared(doctype, user=None, rights=None, *, filters=None, limit=None):
 def get_shared_doctypes(user=None):
 	"""Return list of doctypes in which documents are shared for the given user."""
 	if not user:
-		user = frappe.session.user
-	table = frappe.qb.DocType("DocShare")
+		user = nts.session.user
+	table = nts.qb.DocType("DocShare")
 	query = (
-		frappe.qb.from_(table)
+		nts.qb.from_(table)
 		.where((table.user == user) | (table.everyone == 1))
 		.select(table.share_doctype)
 		.distinct()
@@ -202,11 +202,11 @@ def get_shared_doctypes(user=None):
 
 def get_share_name(doctype, name, user, everyone):
 	if cint(everyone):
-		share_name = frappe.db.get_value(
+		share_name = nts.db.get_value(
 			"DocShare", {"everyone": 1, "share_name": name, "share_doctype": doctype}
 		)
 	else:
-		share_name = frappe.db.get_value(
+		share_name = nts.db.get_value(
 			"DocShare", {"user": user, "share_name": name, "share_doctype": doctype}
 		)
 
@@ -215,9 +215,9 @@ def get_share_name(doctype, name, user, everyone):
 
 def check_share_permission(doctype, name):
 	"""Check if the user can share with other users"""
-	if not frappe.has_permission(doctype, ptype="share", doc=name):
-		frappe.throw(
-			_("No permission to {0} {1} {2}").format("share", _(doctype), name), frappe.PermissionError
+	if not nts.has_permission(doctype, ptype="share", doc=name):
+		nts.throw(
+			_("No permission to {0} {1} {2}").format("share", _(doctype), name), nts.PermissionError
 		)
 
 
@@ -225,13 +225,13 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 	if not (shared_by and doctype and doc_name) or everyone or not notify:
 		return
 
-	from frappe.utils import get_fullname
+	from nts.utils import get_fullname
 
 	title = get_title(doctype, doc_name)
 
-	reference_user = get_fullname(frappe.session.user)
+	reference_user = get_fullname(nts.session.user)
 	notification_message = _("{0} shared a document {1} {2} with you").format(
-		frappe.bold(reference_user), frappe.bold(_(doctype)), get_title_html(title)
+		nts.bold(reference_user), nts.bold(_(doctype)), get_title_html(title)
 	)
 
 	notification_doc = {
@@ -239,7 +239,7 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 		"document_type": doctype,
 		"subject": notification_message,
 		"document_name": doc_name,
-		"from_user": frappe.session.user,
+		"from_user": nts.session.user,
 	}
 
 	enqueue_create_notification(shared_by, notification_doc)

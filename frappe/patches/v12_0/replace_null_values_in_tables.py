@@ -1,10 +1,10 @@
 import re
 
-import frappe
+import nts
 
 
 def execute():
-	fields = frappe.db.sql(
+	fields = nts.db.sql(
 		"""
 			SELECT COLUMN_NAME , TABLE_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS
 			WHERE DATA_TYPE IN ('INT', 'FLOAT', 'DECIMAL') AND IS_NULLABLE = 'YES'
@@ -21,9 +21,9 @@ def execute():
 			f"`{field.COLUMN_NAME}`=COALESCE(`{field.COLUMN_NAME}`, 0)"
 		)
 
-	for table in frappe.db.get_tables():
-		if update_column_table_map.get(table) and frappe.db.exists("DocType", re.sub("^tab", "", table)):
-			frappe.db.sql(
+	for table in nts.db.get_tables():
+		if update_column_table_map.get(table) and nts.db.exists("DocType", re.sub("^tab", "", table)):
+			nts.db.sql(
 				"""UPDATE `{table}` SET {columns}""".format(
 					table=table, columns=", ".join(update_column_table_map.get(table))
 				)

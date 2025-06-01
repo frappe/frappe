@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import contextlib
@@ -7,23 +7,23 @@ import json
 import os
 from textwrap import dedent
 
-import frappe
-import frappe.model.sync
-import frappe.modules.patch_handler
-import frappe.translate
-from frappe.cache_manager import clear_global_cache
-from frappe.core.doctype.language.language import sync_languages
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.database.schema import add_column
-from frappe.deferred_insert import save_to_db as flush_deferred_inserts
-from frappe.desk.notifications import clear_notifications
-from frappe.modules.patch_handler import PatchType
-from frappe.modules.utils import sync_customizations
-from frappe.search.website_search import build_index_for_all_routes
-from frappe.utils.connections import check_connection
-from frappe.utils.dashboard import sync_dashboards
-from frappe.utils.fixtures import sync_fixtures
-from frappe.website.utils import clear_website_cache
+import nts
+import nts.model.sync
+import nts.modules.patch_handler
+import nts.translate
+from nts.cache_manager import clear_global_cache
+from nts.core.doctype.language.language import sync_languages
+from nts.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from nts.database.schema import add_column
+from nts.deferred_insert import save_to_db as flush_deferred_inserts
+from nts.desk.notifications import clear_notifications
+from nts.modules.patch_handler import PatchType
+from nts.modules.utils import sync_customizations
+from nts.search.website_search import build_index_for_all_routes
+from nts.utils.connections import check_connection
+from nts.utils.dashboard import sync_dashboards
+from nts.utils.fixtures import sync_fixtures
+from nts.website.utils import clear_website_cache
 
 BENCH_START_MESSAGE = dedent(
 	"""
@@ -42,13 +42,13 @@ def atomic(method):
 	def wrapper(*args, **kwargs):
 		try:
 			ret = method(*args, **kwargs)
-			frappe.db.commit()
+			nts.db.commit()
 			return ret
 		except Exception as e:
 			# database itself can be gone while attempting rollback.
 			# We should preserve original exception in this case.
 			with contextlib.suppress(Exception):
-				frappe.db.rollback()
+				nts.db.rollback()
 			raise e
 
 	return wrapper
@@ -74,51 +74,51 @@ class SiteMigration:
 
 	def setUp(self):
 		"""Complete setup required for site migration"""
-		frappe.flags.touched_tables = set()
-		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
-		frappe.clear_cache()
+		nts.flags.touched_tables = set()
+		self.touched_tables_file = nts.get_site_path("touched_tables.json")
+		nts.clear_cache()
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
 		clear_global_cache()
 
 		if os.path.exists(self.touched_tables_file):
 			os.remove(self.touched_tables_file)
 
-		frappe.flags.in_migrate = True
+		nts.flags.in_migrate = True
 
 	def tearDown(self):
 		"""Run operations that should be run post schema updation processes
 		This should be executed irrespective of outcome
 		"""
-		frappe.translate.clear_cache()
+		nts.translate.clear_cache()
 		clear_website_cache()
 		clear_notifications()
 
 		with open(self.touched_tables_file, "w") as f:
-			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
+			json.dump(list(nts.flags.touched_tables), f, sort_keys=True, indent=4)
 
 		if not self.skip_search_index:
-			print(f"Queued rebuilding of search index for {frappe.local.site}")
-			frappe.enqueue(build_index_for_all_routes, queue="long")
+			print(f"Queued rebuilding of search index for {nts.local.site}")
+			nts.enqueue(build_index_for_all_routes, queue="long")
 
-		frappe.publish_realtime("version-update")
-		frappe.flags.touched_tables.clear()
-		frappe.flags.in_migrate = False
+		nts.publish_realtime("version-update")
+		nts.flags.touched_tables.clear()
+		nts.flags.in_migrate = False
 
 	@atomic
 	def pre_schema_updates(self):
 		"""Executes `before_migrate` hooks"""
-		for app in frappe.get_installed_apps():
-			for fn in frappe.get_hooks("before_migrate", app_name=app):
-				frappe.get_attr(fn)()
+		for app in nts.get_installed_apps():
+			for fn in nts.get_hooks("before_migrate", app_name=app):
+				nts.get_attr(fn)()
 
 	@atomic
 	def run_schema_updates(self):
 		"""Run patches as defined in patches.txt, sync schema changes as defined in the {doctype}.json files"""
-		frappe.modules.patch_handler.run_all(
+		nts.modules.patch_handler.run_all(
 			skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync
 		)
-		frappe.model.sync.sync_all()
-		frappe.modules.patch_handler.run_all(
+		nts.model.sync.sync_all()
+		nts.modules.patch_handler.run_all(
 			skip_failing=self.skip_failing, patch_type=PatchType.post_model_sync
 		)
 
@@ -130,7 +130,7 @@ class SiteMigration:
 		* Sync fixtures & custom scripts
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
-		* Sync Frappe's internal language master
+		* Sync nts's internal language master
 		* Flush deferred inserts made during maintenance mode.
 		* Sync Portal Menu Items
 		* Sync Installed Applications Version History
@@ -142,16 +142,16 @@ class SiteMigration:
 		sync_customizations()
 		sync_languages()
 		flush_deferred_inserts()
-		frappe.model.sync.remove_orphan_doctypes()
+		nts.model.sync.remove_orphan_doctypes()
 
-		frappe.get_single("Portal Settings").sync_menu()
-		frappe.get_single("Installed Applications").update_versions()
+		nts.get_single("Portal Settings").sync_menu()
+		nts.get_single("Installed Applications").update_versions()
 
 		print("Executing `after_migrate` hooks...")
 
-		for app in frappe.get_installed_apps():
-			for fn in frappe.get_hooks("after_migrate", app_name=app):
-				frappe.get_attr(fn)()
+		for app in nts.get_installed_apps():
+			for fn in nts.get_hooks("after_migrate", app_name=app):
+				nts.get_attr(fn)()
 
 	def required_services_running(self) -> bool:
 		"""Returns True if all required services are running. Returns False and prints
@@ -172,11 +172,11 @@ class SiteMigration:
 		"""Run Migrate operation on site specified. This method initializes
 		and destroys connections to the site database.
 		"""
-		from frappe.utils.synchronization import filelock
+		from nts.utils.synchronization import filelock
 
 		if site:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 
 		if not self.required_services_running():
 			raise SystemExit(1)
@@ -189,4 +189,4 @@ class SiteMigration:
 				self.post_schema_updates()
 			finally:
 				self.tearDown()
-				frappe.destroy()
+				nts.destroy()

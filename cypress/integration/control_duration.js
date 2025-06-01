@@ -21,17 +21,17 @@ context("Control Duration", () => {
 	it("should set duration", () => {
 		get_dialog_with_duration().as("dialog");
 		cy.wait(500);
-		cy.get(".frappe-control[data-fieldname=duration] input").first().click();
+		cy.get(".nts-control[data-fieldname=duration] input").first().click();
 		cy.get(".duration-input[data-duration=days]")
 			.type(45, { force: true })
 			.blur({ force: true });
 		cy.wait(500);
 		cy.get(".duration-input[data-duration=minutes]").type(30).blur({ force: true });
 		cy.wait(500);
-		cy.get(".frappe-control[data-fieldname=duration] input")
+		cy.get(".nts-control[data-fieldname=duration] input")
 			.first()
 			.should("have.value", "45d 30m");
-		cy.get(".frappe-control[data-fieldname=duration] input").first().blur();
+		cy.get(".nts-control[data-fieldname=duration] input").first().blur();
 		cy.get(".duration-picker").should("not.be.visible");
 		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("duration");
@@ -42,7 +42,7 @@ context("Control Duration", () => {
 
 	it("should hide days or seconds according to duration options", () => {
 		get_dialog_with_duration(1, 1).as("dialog");
-		cy.get(".frappe-control[data-fieldname=duration] input").first();
+		cy.get(".nts-control[data-fieldname=duration] input").first();
 		cy.get(".duration-input[data-duration=days]").should("not.be.visible");
 		cy.get(".duration-input[data-duration=seconds]").should("not.be.visible");
 	});

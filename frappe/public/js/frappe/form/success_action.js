@@ -1,14 +1,14 @@
-frappe.provide("frappe.ui.form");
-frappe.provide("frappe.success_action");
+nts.provide("nts.ui.form");
+nts.provide("nts.success_action");
 
-frappe.ui.form.SuccessAction = class SuccessAction {
+nts.ui.form.SuccessAction = class SuccessAction {
 	constructor(form) {
 		this.form = form;
 		this.load_setting();
 	}
 
 	load_setting() {
-		this.setting = frappe.boot.success_action.find(
+		this.setting = nts.boot.success_action.find(
 			(setting) => setting.ref_doctype === this.form.doctype
 		);
 	}
@@ -29,7 +29,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 	}
 
 	show_alert() {
-		frappe.db.get_list(this.form.doctype, { limit: 2 }).then((result) => {
+		nts.db.get_list(this.form.doctype, { limit: 2 }).then((result) => {
 			const count = result.length;
 			const setting = this.setting;
 			let message = count === 1 ? setting.first_success_message : setting.message;
@@ -46,7 +46,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			next_action_container.append($buttons);
 			const html = next_action_container;
 
-			frappe.show_alert(
+			nts.show_alert(
 				{
 					message: message,
 					body: html,
@@ -75,7 +75,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 		return {
 			new: {
 				label: __("New"),
-				action: (frm) => frappe.new_doc(frm.doctype),
+				action: (frm) => nts.new_doc(frm.doctype),
 			},
 			print: {
 				label: __("Print"),
@@ -88,7 +88,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			list: {
 				label: __("View All"),
 				action: (frm) => {
-					frappe.set_route("List", frm.doctype);
+					nts.set_route("List", frm.doctype);
 				},
 			},
 		};

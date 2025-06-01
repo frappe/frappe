@@ -119,7 +119,7 @@ function toggle_edit_letterhead() {
 	}
 	store.value.edit_letterhead = true;
 	if (!control.value) {
-		control.value = frappe.ui.form.make_control({
+		control.value = nts.ui.form.make_control({
 			parent: editor.value,
 			df: {
 				fieldname: "letterhead",
@@ -137,7 +137,7 @@ function toggle_edit_letterhead() {
 	control.value.set_value(letterhead.value.content);
 }
 function change_letterhead() {
-	let d = new frappe.ui.Dialog({
+	let d = new nts.ui.Dialog({
 		title: __("Change Letter Head"),
 		fields: [
 			{
@@ -157,7 +157,7 @@ function change_letterhead() {
 	d.show();
 }
 function upload_image() {
-	new frappe.ui.FileUploader({
+	new nts.ui.FileUploader({
 		folder: "Home/Attachments",
 		on_success: (file_doc) => {
 			get_image_dimensions(file_doc.file_url).then(({ width, height }) => {
@@ -191,7 +191,7 @@ function set_letterhead(_letterhead) {
 	});
 }
 function create_letterhead() {
-	let d = new frappe.ui.Dialog({
+	let d = new nts.ui.Dialog({
 		title: __("Create Letter Head"),
 		fields: [
 			{
@@ -201,7 +201,7 @@ function create_letterhead() {
 			},
 		],
 		primary_action: ({ name }) => {
-			return frappe.db
+			return nts.db
 				.insert({
 					doctype: "Letter Head",
 					letter_head_name: name,
@@ -219,8 +219,8 @@ function create_letterhead() {
 }
 // mounted
 onMounted(() => {
-	if (!letterhead.value && frappe.boot.sysdefaults.letter_head) {
-		set_letterhead(frappe.boot.sysdefaults.letter_head);
+	if (!letterhead.value && nts.boot.sysdefaults.letter_head) {
+		set_letterhead(nts.boot.sysdefaults.letter_head);
 	}
 
 	watch(

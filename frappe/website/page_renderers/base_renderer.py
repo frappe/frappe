@@ -1,5 +1,5 @@
-import frappe
-from frappe.website.utils import build_response
+import nts
+from nts.website.utils import build_response
 
 
 class BaseRenderer:
@@ -7,7 +7,7 @@ class BaseRenderer:
 		self.headers = None
 		self.http_status_code = http_status_code or 200
 		if not path:
-			path = frappe.local.request.path
+			path = nts.local.request.path
 		self.path = path.strip("/ ")
 		self.basepath = ""
 		self.basename = ""

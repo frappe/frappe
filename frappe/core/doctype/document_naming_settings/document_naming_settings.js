@@ -1,7 +1,7 @@
-// Copyright (c) 2022, Frappe Technologies and contributors
+// Copyright (c) 2022, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Document Naming Settings", {
+nts.ui.form.on("Document Naming Settings", {
 	setup: function (frm) {
 		frm.set_query("document_type", "amend_naming_override", () => {
 			return {
@@ -18,7 +18,7 @@ frappe.ui.form.on("Document Naming Settings", {
 	},
 
 	setup_transaction_autocomplete: function (frm) {
-		frappe.call({
+		nts.call({
 			method: "get_transactions_and_prefixes",
 			doc: frm.doc,
 			callback: function (r) {
@@ -30,7 +30,7 @@ frappe.ui.form.on("Document Naming Settings", {
 
 	transaction_type: function (frm) {
 		frm.set_value("user_must_always_select", 0);
-		frappe.call({
+		nts.call({
 			method: "get_options",
 			doc: frm.doc,
 			callback: function (r) {
@@ -42,7 +42,7 @@ frappe.ui.form.on("Document Naming Settings", {
 	},
 
 	prefix: function (frm) {
-		frappe.call({
+		nts.call({
 			method: "get_current",
 			doc: frm.doc,
 			callback: function (r) {
@@ -52,7 +52,7 @@ frappe.ui.form.on("Document Naming Settings", {
 	},
 
 	update: function (frm) {
-		frappe.call({
+		nts.call({
 			method: "update_series",
 			doc: frm.doc,
 			freeze: true,
@@ -65,7 +65,7 @@ frappe.ui.form.on("Document Naming Settings", {
 	},
 
 	try_naming_series(frm) {
-		frappe.call({
+		nts.call({
 			method: "preview_series",
 			doc: frm.doc,
 			callback: function (r) {

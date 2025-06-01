@@ -41,14 +41,14 @@ context("Sidebar", () => {
 		cy.visit("/app");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.call("frappe.tests.ui_test_helpers.create_blog_post");
+			.its("nts")
+			.then((nts) => {
+				return nts.call("nts.tests.ui_test_helpers.create_blog_post");
 			});
 	});
 
 	it("Verify attachment visibility config", () => {
-		cy.call("frappe.tests.ui_test_helpers.create_todo", {
+		cy.call("nts.tests.ui_test_helpers.create_todo", {
 			description: "Sidebar Attachment ToDo",
 		}).then((todo) => {
 			verify_attachment_visibility(`todo/${todo.message.name}`, true);
@@ -57,7 +57,7 @@ context("Sidebar", () => {
 	});
 
 	it("Verify attachment accessibility UX", () => {
-		cy.call("frappe.tests.ui_test_helpers.create_todo_with_attachment_limit", {
+		cy.call("nts.tests.ui_test_helpers.create_todo_with_attachment_limit", {
 			description: "Sidebar Attachment Access Test ToDo",
 		}).then((todo) => {
 			cy.visit(`/app/todo/${todo.message.name}`);
@@ -83,7 +83,7 @@ context("Sidebar", () => {
 	});
 
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
-		cy.call("frappe.tests.ui_test_helpers.create_todo", {
+		cy.call("nts.tests.ui_test_helpers.create_todo", {
 			description: "Sidebar Attachment ToDo",
 		}).then((todo) => {
 			let todo_name = todo.message.name;

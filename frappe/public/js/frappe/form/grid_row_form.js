@@ -7,9 +7,9 @@ export default class GridRowForm {
 		var me = this;
 		this.make_form();
 		this.form_area.empty();
-		frappe.utils.scroll_to(0, false, 0, this.wrapper.find(".grid-form-body"));
+		nts.utils.scroll_to(0, false, 0, this.wrapper.find(".grid-form-body"));
 
-		this.layout = new frappe.ui.form.Layout({
+		this.layout = new nts.ui.form.Layout({
 			fields: this.row.docfields,
 			body: this.form_area,
 			no_submit_on_enter: true,
@@ -45,12 +45,12 @@ export default class GridRowForm {
 						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
 					<span class="row-actions">
 						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
-							${frappe.utils.icon("down")}
+							${nts.utils.icon("down")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
 							${__("Move")}</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
-							${frappe.utils.icon("duplicate")}
+							${nts.utils.icon("duplicate")}
 							${__("Duplicate")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
@@ -58,7 +58,7 @@ export default class GridRowForm {
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
 							${__("Insert Below")}</button>
 						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
-							${frappe.utils.icon("delete")}
+							${nts.utils.icon("delete")}
 						</button>
 					</span>
 				</div>
@@ -67,7 +67,7 @@ export default class GridRowForm {
 				<div class="form-area"></div>
 				<div class="grid-footer-toolbar hidden-xs flex justify-between">
 					<div class="grid-shortcuts">
-						<span> ${frappe.utils.icon("keyboard", "md")} </span>
+						<span> ${nts.utils.icon("keyboard", "md")} </span>
 						<span class="text-medium"> ${__("Shortcuts")}: </span>
 						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
 					</div>

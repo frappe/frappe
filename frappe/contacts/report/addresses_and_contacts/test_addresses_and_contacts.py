@@ -1,14 +1,14 @@
-import frappe
-import frappe.defaults
-from frappe.contacts.report.addresses_and_contacts.addresses_and_contacts import get_data
-from frappe.tests.utils import FrappeTestCase
+import nts
+import nts.defaults
+from nts.contacts.report.addresses_and_contacts.addresses_and_contacts import get_data
+from nts.tests.utils import ntsTestCase
 
 
 def get_custom_linked_doctype():
-	if bool(frappe.get_all("DocType", filters={"name": "Test Custom Doctype"})):
+	if bool(nts.get_all("DocType", filters={"name": "Test Custom Doctype"})):
 		return
 
-	doc = frappe.get_doc(
+	doc = nts.get_doc(
 		{
 			"doctype": "DocType",
 			"module": "Core",
@@ -27,7 +27,7 @@ def get_custom_linked_doctype():
 
 def get_custom_doc_for_address_and_contacts():
 	get_custom_linked_doctype()
-	return frappe.get_doc(
+	return nts.get_doc(
 		{
 			"doctype": "Test Custom Doctype",
 			"test_field": "Hello",
@@ -36,10 +36,10 @@ def get_custom_doc_for_address_and_contacts():
 
 
 def create_linked_address(link_list):
-	if frappe.flags.test_address_created:
+	if nts.flags.test_address_created:
 		return
 
-	address = frappe.get_doc(
+	address = nts.get_doc(
 		{
 			"doctype": "Address",
 			"address_title": "_Test Address",
@@ -55,16 +55,16 @@ def create_linked_address(link_list):
 		address.append("links", {"link_doctype": "Test Custom Doctype", "link_name": name})
 
 	address.insert()
-	frappe.flags.test_address_created = True
+	nts.flags.test_address_created = True
 
 	return address.name
 
 
 def create_linked_contact(link_list, address):
-	if frappe.flags.test_contact_created:
+	if nts.flags.test_contact_created:
 		return
 
-	contact = frappe.get_doc(
+	contact = nts.get_doc(
 		{
 			"doctype": "Contact",
 			"salutation": "Mr",
@@ -82,10 +82,10 @@ def create_linked_contact(link_list, address):
 		contact.append("links", {"link_doctype": "Test Custom Doctype", "link_name": name})
 
 	contact.insert(ignore_permissions=True)
-	frappe.flags.test_contact_created = True
+	nts.flags.test_contact_created = True
 
 
-class TestAddressesAndContacts(FrappeTestCase):
+class TestAddressesAndContacts(ntsTestCase):
 	def test_get_data(self):
 		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]

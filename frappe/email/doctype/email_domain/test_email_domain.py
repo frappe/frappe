@@ -1,23 +1,23 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.test_runner import make_test_objects
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Email Domain")
+test_records = nts.get_test_records("Email Domain")
 
 
-class TestDomain(FrappeTestCase):
+class TestDomain(ntsTestCase):
 	def setUp(self):
 		make_test_objects("Email Domain", reset=True)
 
 	def tearDown(self):
-		frappe.delete_doc("Email Account", "Test")
-		frappe.delete_doc("Email Domain", "test.com")
+		nts.delete_doc("Email Account", "Test")
+		nts.delete_doc("Email Domain", "test.com")
 
 	def test_on_update(self):
-		mail_domain = frappe.get_doc("Email Domain", "test.com")
-		mail_account = frappe.get_doc("Email Account", "Test")
+		mail_domain = nts.get_doc("Email Domain", "test.com")
+		mail_account = nts.get_doc("Email Account", "Test")
 
 		# Ensure a different port
 		mail_account.incoming_port = int(mail_domain.incoming_port) + 5

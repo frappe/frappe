@@ -1,28 +1,28 @@
-# Copyright (c) 2021, Frappe Technologies and Contributors
+# Copyright (c) 2021, nts Technologies and Contributors
 # See LICENSE
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.core.doctype.user_permission.user_permission import (
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
 	remove_applicable,
 )
-from frappe.permissions import add_permission, has_user_permission
-from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
+from nts.permissions import add_permission, has_user_permission
+from nts.tests.utils import ntsTestCase
+from nts.website.doctype.blog_post.test_blog_post import make_test_blog
 
 
-class TestUserPermission(FrappeTestCase):
+class TestUserPermission(ntsTestCase):
 	def setUp(self):
 		test_users = (
 			"test_bulk_creation_update@example.com",
 			"test_user_perm1@example.com",
 			"nested_doc_user@example.com",
 		)
-		frappe.db.delete("User Permission", {"user": ("in", test_users)})
-		frappe.delete_doc_if_exists("DocType", "Person")
-		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
-		frappe.delete_doc_if_exists("DocType", "Doc A")
-		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabDoc A`")
+		nts.db.delete("User Permission", {"user": ("in", test_users)})
+		nts.delete_doc_if_exists("DocType", "Person")
+		nts.db.sql_ddl("DROP TABLE IF EXISTS `tabPerson`")
+		nts.delete_doc_if_exists("DocType", "Doc A")
+		nts.db.sql_ddl("DROP TABLE IF EXISTS `tabDoc A`")
 
 	def test_default_user_permission_validation(self):
 		user = create_user("test_default_permission@example.com")
@@ -31,7 +31,7 @@ class TestUserPermission(FrappeTestCase):
 		# create a duplicate entry with default
 		perm_user = create_user("test_user_perm@example.com")
 		param = get_params(user, "User", perm_user.name, is_default=1)
-		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
+		self.assertRaises(nts.ValidationError, add_user_permissions, param)
 
 	def test_default_user_permission_corectness(self):
 		user = create_user("test_default_corectness_permission_1@example.com")
@@ -42,15 +42,15 @@ class TestUserPermission(FrappeTestCase):
 		test_blog = make_test_blog()
 		param = get_params(perm_user, "Blog Post", test_blog.name, is_default=1, hide_descendants=1)
 		add_user_permissions(param)
-		frappe.db.delete("User Permission", filters={"for_value": test_blog.name})
-		frappe.delete_doc("Blog Post", test_blog.name)
+		nts.db.delete("User Permission", filters={"for_value": test_blog.name})
+		nts.delete_doc("Blog Post", test_blog.name)
 
 	def test_default_user_permission(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		user = create_user("test_user_perm1@example.com", "Website Manager")
 		for category in ["general", "public"]:
-			if not frappe.db.exists("Blog Category", category):
-				frappe.get_doc({"doctype": "Blog Category", "title": category}).insert()
+			if not nts.db.exists("Blog Category", category):
+				nts.get_doc({"doctype": "Blog Category", "title": category}).insert()
 
 		param = get_params(user, "Blog Category", "general", is_default=1)
 		add_user_permissions(param)
@@ -58,11 +58,11 @@ class TestUserPermission(FrappeTestCase):
 		param = get_params(user, "Blog Category", "public")
 		add_user_permissions(param)
 
-		frappe.set_user("test_user_perm1@example.com")
-		doc = frappe.new_doc("Blog Post")
+		nts.set_user("test_user_perm1@example.com")
+		doc = nts.new_doc("Blog Post")
 
 		self.assertEqual(doc.blog_category, "general")
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_apply_to_all(self):
 		"""Create User permission for User having access to all applicable Doctypes"""
@@ -95,13 +95,13 @@ class TestUserPermission(FrappeTestCase):
 		self.assertEqual(is_created, 1)
 
 		is_created = add_user_permissions(param)
-		frappe.db.commit()
+		nts.db.commit()
 
-		removed_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
-		is_created_applicable_first = frappe.db.exists(
+		removed_apply_to_all = nts.db.exists("User Permission", get_exists_param(user))
+		is_created_applicable_first = nts.db.exists(
 			"User Permission", get_exists_param(user, applicable="Comment")
 		)
-		is_created_applicable_second = frappe.db.exists(
+		is_created_applicable_second = nts.db.exists(
 			"User Permission", get_exists_param(user, applicable="Contact")
 		)
 
@@ -126,11 +126,11 @@ class TestUserPermission(FrappeTestCase):
 		self.assertEqual(is_created, 1)
 
 		is_created = add_user_permissions(param)
-		is_created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
-		removed_applicable_first = frappe.db.exists(
+		is_created_apply_to_all = nts.db.exists("User Permission", get_exists_param(user))
+		removed_applicable_first = nts.db.exists(
 			"User Permission", get_exists_param(user, applicable="Comment")
 		)
-		removed_applicable_second = frappe.db.exists(
+		removed_applicable_second = nts.db.exists(
 			"User Permission", get_exists_param(user, applicable="Contact")
 		)
 
@@ -144,10 +144,10 @@ class TestUserPermission(FrappeTestCase):
 
 	def test_user_perm_for_nested_doctype(self):
 		"""Test if descendants' visibility is controlled for a nested DocType."""
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from nts.core.doctype.doctype.test_doctype import new_doctype
 
 		user = create_user("nested_doc_user@example.com", "Blogger")
-		if not frappe.db.exists("DocType", "Person"):
+		if not nts.db.exists("DocType", "Person"):
 			doc = new_doctype(
 				"Person",
 				fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
@@ -156,9 +156,9 @@ class TestUserPermission(FrappeTestCase):
 			doc.is_tree = 1
 			doc.insert()
 
-		parent_record = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
+		parent_record = nts.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
 
-		child_record = frappe.get_doc(
+		child_record = nts.get_doc(
 			{
 				"doctype": "Person",
 				"person_name": "Child",
@@ -170,18 +170,18 @@ class TestUserPermission(FrappeTestCase):
 		add_user_permissions(get_params(user, "Person", parent_record.name))
 
 		# check if adding perm on a group record, makes child record visible
-		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
-		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+		self.assertTrue(has_user_permission(nts.get_doc("Person", parent_record.name), user.name))
+		self.assertTrue(has_user_permission(nts.get_doc("Person", child_record.name), user.name))
 
 		#  give access of Parent DocType to Blogger role
 		add_permission("Person", "Blogger")
-		frappe.set_user(user.name)
-		visible_names = frappe.get_list(
+		nts.set_user(user.name)
+		visible_names = nts.get_list(
 			doctype="Person",
 			pluck="person_name",
 		)
 
-		user_permission = frappe.get_doc(
+		user_permission = nts.get_doc(
 			"User Permission", {"allow": "Person", "for_value": parent_record.name}
 		)
 		user_permission.hide_descendants = 1
@@ -189,24 +189,24 @@ class TestUserPermission(FrappeTestCase):
 
 		# check if adding perm on a group record with hide_descendants enabled,
 		# hides child records
-		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
-		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+		self.assertTrue(has_user_permission(nts.get_doc("Person", parent_record.name), user.name))
+		self.assertFalse(has_user_permission(nts.get_doc("Person", child_record.name), user.name))
 
-		visible_names_after_hide_descendants = frappe.get_list(
+		visible_names_after_hide_descendants = nts.get_list(
 			"Person",
 			pluck="person_name",
 		)
 		self.assertEqual(visible_names, ["Child", "Parent"])
 		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_user_perm_on_new_doc_with_field_default(self):
-		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
-		frappe.set_user("Administrator")
+		"""Test User Perm impact on nts.new_doc. with *field* default value"""
+		nts.set_user("Administrator")
 		user = create_user("new_doc_test@example.com", "Blogger")
 
 		# make a doctype "Doc A" with 'doctype' link field and default value ToDo
-		if not frappe.db.exists("DocType", "Doc A"):
+		if not nts.db.exists("DocType", "Doc A"):
 			doc = new_doctype(
 				"Doc A",
 				fields=[
@@ -224,29 +224,29 @@ class TestUserPermission(FrappeTestCase):
 
 		# make User Perm on DocType 'ToDo' in Assignment Rule (unrelated doctype)
 		add_user_permissions(get_params(user, "DocType", "ToDo", applicable=["Assignment Rule"]))
-		frappe.set_user("new_doc_test@example.com")
+		nts.set_user("new_doc_test@example.com")
 
-		new_doc = frappe.new_doc("Doc A")
+		new_doc = nts.new_doc("Doc A")
 
 		# User perm is created on ToDo but for doctype Assignment Rule only
 		# it should not have impact on Doc A
 		self.assertEqual(new_doc.doc, "ToDo")
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		remove_applicable(["Assignment Rule"], "new_doc_test@example.com", "DocType", "ToDo")
 
 	def test_user_perm_on_new_doc_with_user_default(self):
-		"""Test User Perm impact on frappe.new_doc. with *user* default value"""
-		from frappe.core.doctype.session_default_settings.session_default_settings import (
+		"""Test User Perm impact on nts.new_doc. with *user* default value"""
+		from nts.core.doctype.session_default_settings.session_default_settings import (
 			clear_session_defaults,
 			set_session_default_values,
 		)
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		user = create_user("user_default_test@example.com", "Blogger")
 
 		# make a doctype "Doc A" with 'doctype' link field
-		if not frappe.db.exists("DocType", "Doc A"):
+		if not nts.db.exists("DocType", "Doc A"):
 			doc = new_doctype(
 				"Doc A",
 				fields=[
@@ -262,8 +262,8 @@ class TestUserPermission(FrappeTestCase):
 			doc.insert()
 
 		# create a 'DocType' session default field
-		if not frappe.db.exists("Session Default", {"ref_doctype": "DocType"}):
-			settings = frappe.get_single("Session Default Settings")
+		if not nts.db.exists("Session Default", {"ref_doctype": "DocType"}):
+			settings = nts.get_single("Session Default Settings")
 			settings.append("session_defaults", {"ref_doctype": "DocType"})
 			settings.save()
 
@@ -271,26 +271,26 @@ class TestUserPermission(FrappeTestCase):
 		add_user_permissions(get_params(user, "DocType", "ToDo", applicable=["Assignment Rule"]))
 
 		# User default Doctype value is ToDo via Session Defaults
-		frappe.set_user("user_default_test@example.com")
+		nts.set_user("user_default_test@example.com")
 		set_session_default_values({"doc": "ToDo"})
 
-		new_doc = frappe.new_doc("Doc A")
+		new_doc = nts.new_doc("Doc A")
 
 		# User perm is created on ToDo but for doctype Assignment Rule only
 		# it should not have impact on Doc A
 		self.assertEqual(new_doc.doc, "ToDo")
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		clear_session_defaults()
 		remove_applicable(["Assignment Rule"], "user_default_test@example.com", "DocType", "ToDo")
 
 
 def create_user(email, *roles):
 	"""create user with role system manager"""
-	if frappe.db.exists("User", email):
-		return frappe.get_doc("User", email)
+	if nts.db.exists("User", email):
+		return nts.get_doc("User", email)
 
-	user = frappe.new_doc("User")
+	user = nts.new_doc("User")
 	user.email = email
 	user.first_name = email.split("@", 1)[0]
 

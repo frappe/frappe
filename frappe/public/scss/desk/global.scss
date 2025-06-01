@@ -416,7 +416,7 @@ select.input-xs {
 	}
 }
 
-// .frappe-card {
+// .nts-card {
 // 	@include card();
 // }
 
@@ -453,7 +453,7 @@ kbd {
 	color: var(--criticism-color) !important;
 }
 
-.frappe-timestamp {
+.nts-timestamp {
 	cursor: default;
 }
 
@@ -548,7 +548,7 @@ kbd {
 
 /*rtl styles*/
 
-.frappe-rtl {
+.nts-rtl {
 	text-align: right;
 	.modal-actions {
 		right: auto !important;
@@ -660,12 +660,12 @@ details > summary:focus {
 	display: none;
 }
 
-.highlight:not(.frappe-control) {
+.highlight:not(.nts-control) {
 	transition: 0.5s ease background-color;
 	box-shadow: var(--highlight-shadow) !important;
 }
 
-.frappe-control.highlight {
+.nts-control.highlight {
 	--wrap-padding: calc(-1 * var(--padding-sm));
 	&::after {
 		content: " ";

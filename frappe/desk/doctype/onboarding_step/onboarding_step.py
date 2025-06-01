@@ -1,11 +1,11 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class OnboardingStep(Document):
@@ -15,7 +15,7 @@ class OnboardingStep(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		action: DF.Literal[
 			"Create Entry", "Update Settings", "Show Form Tour", "View Report", "Go to Page", "Watch Video"
@@ -49,15 +49,15 @@ class OnboardingStep(Document):
 		doc.is_skipped = 0
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_onboarding_steps(ob_steps):
 	steps = []
 	for s in json.loads(ob_steps):
-		doc = frappe.get_doc("Onboarding Step", s.get("step"))
+		doc = nts.get_doc("Onboarding Step", s.get("step"))
 		step = doc.as_dict().copy()
 		step.label = _(doc.title)
 		if step.action == "Create Entry":
-			step.is_submittable = frappe.db.get_value(
+			step.is_submittable = nts.db.get_value(
 				"DocType", step.reference_document, "is_submittable", cache=True
 			)
 		steps.append(step)

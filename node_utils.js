@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 const redis = require("@redis/client");
 let bench_path;
-if (process.env.FRAPPE_BENCH_ROOT) {
-	bench_path = process.env.FRAPPE_BENCH_ROOT;
+if (process.env.nts_BENCH_ROOT) {
+	bench_path = process.env.nts_BENCH_ROOT;
 } else {
 	bench_path = path.resolve(__dirname, "..", "..");
 }
@@ -11,7 +11,7 @@ if (process.env.FRAPPE_BENCH_ROOT) {
 const dns = require("dns");
 
 // Since node17, node resolves to ipv6 unless system is configured otherwise.
-// In Frappe context using ipv4 - 127.0.0.1 is fine.
+// In nts context using ipv4 - 127.0.0.1 is fine.
 dns.setDefaultResultOrder("ipv4first");
 
 function get_conf() {
@@ -38,20 +38,20 @@ function get_conf() {
 	read_config("sites/common_site_config.json");
 
 	// set overrides from environment
-	if (process.env.FRAPPE_SITE) {
-		conf.default_site = process.env.FRAPPE_SITE;
+	if (process.env.nts_SITE) {
+		conf.default_site = process.env.nts_SITE;
 	}
-	if (process.env.FRAPPE_REDIS_CACHE) {
-		conf.redis_cache = process.env.FRAPPE_REDIS_CACHE;
+	if (process.env.nts_REDIS_CACHE) {
+		conf.redis_cache = process.env.nts_REDIS_CACHE;
 	}
-	if (process.env.FRAPPE_REDIS_QUEUE) {
-		conf.redis_queue = process.env.FRAPPE_REDIS_QUEUE;
+	if (process.env.nts_REDIS_QUEUE) {
+		conf.redis_queue = process.env.nts_REDIS_QUEUE;
 	}
-	if (process.env.FRAPPE_SOCKETIO_PORT) {
-		conf.socketio_port = process.env.FRAPPE_SOCKETIO_PORT;
+	if (process.env.nts_SOCKETIO_PORT) {
+		conf.socketio_port = process.env.nts_SOCKETIO_PORT;
 	}
-	if (process.env.FRAPPE_SOCKETIO_UDS) {
-		conf.socketio_uds = process.env.FRAPPE_SOCKETIO_UDS;
+	if (process.env.nts_SOCKETIO_UDS) {
+		conf.socketio_uds = process.env.nts_SOCKETIO_UDS;
 	}
 	return conf;
 }

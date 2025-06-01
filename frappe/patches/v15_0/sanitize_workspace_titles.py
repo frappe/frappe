@@ -1,11 +1,11 @@
-import frappe
-from frappe.desk.doctype.workspace.workspace import update_page
-from frappe.utils import strip_html
-from frappe.utils.html_utils import unescape_html
+import nts
+from nts.desk.doctype.workspace.workspace import update_page
+from nts.utils import strip_html
+from nts.utils.html_utils import unescape_html
 
 
 def execute():
-	workspaces_to_update = frappe.get_all(
+	workspaces_to_update = nts.get_all(
 		"Workspace",
 		filters={"module": ("is", "not set")},
 		fields=["name", "title", "icon", "indicator_color", "parent_page as parent", "public"],
@@ -19,7 +19,7 @@ def execute():
 		workspace.title = new_title
 		try:
 			update_page(**workspace)
-			frappe.db.commit()
+			nts.db.commit()
 
 		except Exception:
-			frappe.db.rollback()
+			nts.db.rollback()

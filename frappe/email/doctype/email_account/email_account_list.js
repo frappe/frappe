@@ -1,4 +1,4 @@
-frappe.listview_settings["Email Account"] = {
+nts.listview_settings["Email Account"] = {
 	add_fields: ["default_incoming", "default_outgoing", "enable_incoming", "enable_outgoing"],
 	get_indicator: function (doc) {
 		if (doc.default_incoming && doc.default_outgoing) {
@@ -21,4 +21,4 @@ frappe.listview_settings["Email Account"] = {
 	},
 };
 
-frappe.help.youtube_id["Email Account"] = "YFYe0DrB95o";
+nts.help.youtube_id["Email Account"] = "YFYe0DrB95o";

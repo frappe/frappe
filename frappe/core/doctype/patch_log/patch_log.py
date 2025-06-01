@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class PatchLog(Document):
@@ -14,7 +14,7 @@ class PatchLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		patch: DF.Code | None
 		skipped: DF.Check
@@ -24,4 +24,4 @@ class PatchLog(Document):
 
 
 def before_migrate():
-	frappe.reload_doc("core", "doctype", "patch_log")
+	nts.reload_doc("core", "doctype", "patch_log")

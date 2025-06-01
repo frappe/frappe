@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import email
@@ -7,26 +7,26 @@ from unittest.mock import patch
 
 import requests
 
-import frappe
-from frappe.core.doctype.communication.email import make
-from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
-from frappe.email.doctype.email_queue.email_queue import QueueBuilder
-from frappe.query_builder.utils import db_type_is
-from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase, change_settings
+import nts
+from nts.core.doctype.communication.email import make
+from nts.desk.form.load import get_attachments
+from nts.email.doctype.email_account.test_email_account import TestEmailAccount
+from nts.email.doctype.email_queue.email_queue import QueueBuilder
+from nts.query_builder.utils import db_type_is
+from nts.tests.test_query_builder import run_only_if
+from nts.tests.utils import ntsTestCase, change_settings
 
 test_dependencies = ["Email Account"]
 
 
-class TestEmail(FrappeTestCase):
+class TestEmail(ntsTestCase):
 	def setUp(self):
-		frappe.db.delete("Email Unsubscribe")
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
+		nts.db.delete("Email Unsubscribe")
+		nts.db.delete("Email Queue")
+		nts.db.delete("Email Queue Recipient")
 
 	def test_email_queue(self, send_after=None):
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=["test@example.com", "test1@example.com"],
 			sender="admin@example.com",
 			reference_doctype="User",
@@ -37,13 +37,13 @@ class TestEmail(FrappeTestCase):
 			send_after=send_after,
 		)
 
-		email_queue = frappe.db.sql(
+		email_queue = nts.db.sql(
 			"""select name,message from `tabEmail Queue` where status='Not Sent'""", as_dict=1
 		)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""SELECT recipient FROM `tabEmail Queue Recipient`
 			WHERE status='Not Sent'""",
 				as_dict=1,
@@ -56,22 +56,22 @@ class TestEmail(FrappeTestCase):
 
 	def test_send_after(self):
 		self.test_email_queue(send_after=1)
-		from frappe.email.queue import flush
+		from nts.email.queue import flush
 
 		flush()
-		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		email_queue = nts.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 0)
 
 	def test_flush(self):
 		self.test_email_queue()
-		from frappe.email.queue import flush
+		from nts.email.queue import flush
 
 		flush()
-		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		email_queue = nts.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""",
 				as_dict=1,
@@ -80,11 +80,11 @@ class TestEmail(FrappeTestCase):
 		self.assertTrue("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
 		self.assertEqual(len(queue_recipients), 2)
-		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
+		self.assertTrue("Unsubscribe" in nts.safe_decode(nts.flags.sent_mail))
 
 	def test_cc_header(self):
 		# test if sending with cc's makes it into header
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=["test@example.com"],
 			cc=["test1@example.com"],
 			sender="admin@example.com",
@@ -95,13 +95,13 @@ class TestEmail(FrappeTestCase):
 			unsubscribe_message="Unsubscribe",
 			expose_recipients="header",
 		)
-		email_queue = frappe.db.sql(
+		email_queue = nts.db.sql(
 			"""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1
 		)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""select recipient from `tabEmail Queue Recipient`
 			where status='Not Sent'""",
 				as_dict=1,
@@ -110,7 +110,7 @@ class TestEmail(FrappeTestCase):
 		self.assertTrue("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
 
-		message = frappe.db.sql(
+		message = nts.db.sql(
 			"""select message from `tabEmail Queue`
 			where status='Not Sent'""",
 			as_dict=1,
@@ -120,7 +120,7 @@ class TestEmail(FrappeTestCase):
 
 	def test_cc_footer(self):
 		# test if sending with cc's makes it into header
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=["test@example.com"],
 			cc=["test1@example.com"],
 			sender="admin@example.com",
@@ -132,11 +132,11 @@ class TestEmail(FrappeTestCase):
 			expose_recipients="footer",
 			now=True,
 		)
-		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		email_queue = nts.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""",
 				as_dict=1,
@@ -147,14 +147,14 @@ class TestEmail(FrappeTestCase):
 
 		self.assertTrue(
 			"This email was sent to test@example.com and copied to test1@example.com"
-			in frappe.safe_decode(frappe.flags.sent_mail)
+			in nts.safe_decode(nts.flags.sent_mail)
 		)
 
 	def test_expose(self):
-		from frappe.utils import set_request
-		from frappe.utils.verified_command import verify_request
+		from nts.utils import set_request
+		from nts.utils.verified_command import verify_request
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=["test@example.com"],
 			cc=["test1@example.com"],
 			sender="admin@example.com",
@@ -165,11 +165,11 @@ class TestEmail(FrappeTestCase):
 			unsubscribe_message="Unsubscribe",
 			now=True,
 		)
-		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
+		email_queue = nts.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""",
 				as_dict=1,
@@ -178,14 +178,14 @@ class TestEmail(FrappeTestCase):
 		self.assertTrue("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
 
-		message = frappe.db.sql(
+		message = nts.db.sql(
 			"""select message from `tabEmail Queue`
 			where status='Sent'""",
 			as_dict=1,
 		)[0].message
 		self.assertTrue("<!--recipient-->" in message)
 
-		email_obj = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
+		email_obj = email.message_from_string(nts.safe_decode(nts.flags.sent_mail))
 		for part in email_obj.walk():
 			content = part.get_payload(decode=True)
 
@@ -193,7 +193,7 @@ class TestEmail(FrappeTestCase):
 				eol = "\r\n"
 
 				query_string = re.search(
-					r"(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
+					r"(?<=/api/method/nts.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
 				).group(0)
 
 				set_request(method="GET", query_string=query_string)
@@ -203,17 +203,17 @@ class TestEmail(FrappeTestCase):
 	def test_sender(self):
 		def _patched_assertion(email_account, assertion):
 			with patch.object(QueueBuilder, "get_outgoing_email_account", return_value=email_account):
-				frappe.sendmail(
+				nts.sendmail(
 					recipients=["test1@example.com"],
 					sender="admin@example.com",
 					subject="Test Email Queue",
 					message="This mail is queued!",
 					now=True,
 				)
-				email_queue_sender = frappe.db.get_value("Email Queue", {"status": "Sent"}, "sender")
+				email_queue_sender = nts.db.get_value("Email Queue", {"status": "Sent"}, "sender")
 				self.assertEqual(email_queue_sender, assertion)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 		email_account.default_outgoing = 1
 
 		email_account.always_use_account_name_as_sender_name = 0
@@ -231,11 +231,11 @@ class TestEmail(FrappeTestCase):
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
 
 	def test_unsubscribe(self):
-		from frappe.email.queue import unsubscribe
+		from nts.email.queue import unsubscribe
 
 		unsubscribe(doctype="User", name="Administrator", email="test@example.com")
 		self.assertTrue(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Email Unsubscribe",
 				{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"},
 			)
@@ -254,10 +254,10 @@ class TestEmail(FrappeTestCase):
 		# don't send right now
 		builder.process()
 
-		email_queue = frappe.db.get_value("Email Queue", {"status": "Not Sent"})
+		email_queue = nts.db.get_value("Email Queue", {"status": "Not Sent"})
 		queue_recipients = [
 			r.recipient
-			for r in frappe.db.sql(
+			for r in nts.db.sql(
 				"""select recipient from `tabEmail Queue Recipient`
 			where status='Not Sent'""",
 				as_dict=1,
@@ -267,22 +267,22 @@ class TestEmail(FrappeTestCase):
 		self.assertTrue("test1@example.com" in queue_recipients)
 		self.assertEqual(len(queue_recipients), 1)
 
-		frappe.get_doc("Email Queue", email_queue).send()
-		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
+		nts.get_doc("Email Queue", email_queue).send()
+		self.assertTrue("Unsubscribe" in nts.safe_decode(nts.flags.sent_mail))
 
 	def test_image_parsing(self):
 		import re
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 
-		frappe.db.delete("Communication", {"sender": "sukh@yyy.com"})
+		nts.db.delete("Communication", {"sender": "sukh@yyy.com"})
 
-		with open(frappe.get_app_path("frappe", "tests", "data", "email_with_image.txt")) as raw:
+		with open(nts.get_app_path("nts", "tests", "data", "email_with_image.txt")) as raw:
 			messages = {
 				'"INBOX"': {"latest_messages": [raw.read()], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 			}
 
-			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			email_account = nts.get_doc("Email Account", "_Test Email Account 1")
 			changed_flag = False
 			if not email_account.enable_incoming:
 				email_account.enable_incoming = True
@@ -306,10 +306,10 @@ class TestEmail(FrappeTestCase):
 			email_account.enable_incoming = False
 
 
-class TestVerifiedRequests(FrappeTestCase):
+class TestVerifiedRequests(ntsTestCase):
 	def test_round_trip(self):
-		from frappe.utils import set_request
-		from frappe.utils.verified_command import get_signed_params, verify_request
+		from nts.utils import set_request
+		from nts.utils.verified_command import get_signed_params, verify_request
 
 		test_cases = [{"xyz": "abc"}, {"email": "a@b.com", "user": "xyz"}]
 
@@ -317,10 +317,10 @@ class TestVerifiedRequests(FrappeTestCase):
 			signed_url = get_signed_params(params)
 			set_request(method="GET", query_string=signed_url)
 			self.assertTrue(verify_request())
-		frappe.local.request = None
+		nts.local.request = None
 
 
-class TestEmailIntegrationTest(FrappeTestCase):
+class TestEmailIntegrationTest(ntsTestCase):
 	"""Sends email to local SMTP server and verifies correctness.
 
 	SMTP4Dev runs as a service in unit test CI job.
@@ -332,13 +332,13 @@ class TestEmailIntegrationTest(FrappeTestCase):
 	SMTP4DEV_WEB = "http://localhost:3000"
 
 	def setUp(self) -> None:
-		# Frappe code is configured to not attempting sending emails during test.
-		frappe.flags.testing_email = True
+		# nts code is configured to not attempting sending emails during test.
+		nts.flags.testing_email = True
 		requests.delete(f"{self.SMTP4DEV_WEB}/api/Messages/*")
 		return super().setUp()
 
 	def tearDown(self) -> None:
-		frappe.flags.testing_email = False
+		nts.flags.testing_email = False
 		return super().tearDown()
 
 	@classmethod
@@ -355,7 +355,7 @@ class TestEmailIntegrationTest(FrappeTestCase):
 		subject = "checking if email works"
 		content = "is email working?"
 
-		email = frappe.sendmail(
+		email = nts.sendmail(
 			sender=sender, recipients=recipients, subject=subject, content=content, now=True
 		)
 		email.reload()
@@ -389,12 +389,12 @@ class TestEmailIntegrationTest(FrappeTestCase):
 			now=True,
 		).get("name")
 
-		communication = frappe.get_doc("Communication", name)
+		communication = nts.get_doc("Communication", name)
 
 		attachments = get_attachments(communication.doctype, communication.name)
 		self.assertEqual(len(attachments), 1)
 
-		file = frappe.get_doc("File", attachments[0].name)
+		file = nts.get_doc("File", attachments[0].name)
 		self.assertGreater(file.file_size, 1000)
 		self.assertIn("pdf", file.file_name.lower())
 		sent_mails = self.get_last_sent_emails()

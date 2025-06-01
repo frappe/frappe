@@ -1,47 +1,47 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.on("DocType", {
+nts.ui.form.on("DocType", {
 	onload: function (frm) {
 		if (frm.is_new() && !frm.doc?.fields) {
-			frappe.listview_settings["DocType"].new_doctype_dialog();
+			nts.listview_settings["DocType"].new_doctype_dialog();
 		}
 		frm.call("check_pending_migration");
 	},
 
 	before_save: function (frm) {
-		let form_builder = frappe.form_builder;
+		let form_builder = nts.form_builder;
 		if (form_builder?.store) {
 			let fields = form_builder.store.update_fields();
 
 			// if fields is a string, it means there is an error
 			if (typeof fields === "string") {
-				frappe.throw(fields);
+				nts.throw(fields);
 			}
 		}
 	},
 
 	after_save: function (frm) {
 		if (
-			frappe.form_builder &&
-			frappe.form_builder.doctype === frm.doc.name &&
-			frappe.form_builder.store
+			nts.form_builder &&
+			nts.form_builder.doctype === frm.doc.name &&
+			nts.form_builder.store
 		) {
-			frappe.form_builder.store.fetch();
+			nts.form_builder.store.fetch();
 		}
 	},
 
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
-			if (doc.custom && frappe.session.user != "Administrator") {
+			if (doc.custom && nts.session.user != "Administrator") {
 				return {
-					query: "frappe.core.doctype.role.role.role_query",
+					query: "nts.core.doctype.role.role.role_query",
 					filters: [["Role", "name", "!=", "All"]],
 				};
 			}
 		});
 
-		if (frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
+		if (nts.session.user !== "Administrator" || !nts.boot.developer_mode) {
 			if (frm.is_new()) {
 				frm.set_value("custom", 1);
 			}
@@ -53,17 +53,17 @@ frappe.ui.form.on("DocType", {
 		if (!frm.is_new() && !frm.doc.istable) {
 			if (frm.doc.issingle) {
 				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+					window.open(`/app/${nts.router.slug(frm.doc.name)}`);
 				});
 			} else {
 				frm.add_custom_button(__("Go to {0} List", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+					window.open(`/app/${nts.router.slug(frm.doc.name)}`);
 				});
 			}
 		}
 
 		const customize_form_link = `<a href="/app/customize-form">${__("Customize Form")}</a>`;
-		if (!frappe.boot.developer_mode && !frm.doc.custom) {
+		if (!nts.boot.developer_mode && !frm.doc.custom) {
 			// make the document read-only
 			frm.set_read_only();
 			frm.dashboard.clear_comment();
@@ -72,7 +72,7 @@ frappe.ui.form.on("DocType", {
 				"blue",
 				true
 			);
-		} else if (frappe.boot.developer_mode) {
+		} else if (nts.boot.developer_mode) {
 			frm.dashboard.clear_comment();
 			let msg = __(
 				"This site is running in developer mode. Any change made here will be updated in code."
@@ -126,7 +126,7 @@ frappe.ui.form.on("DocType", {
 	},
 
 	setup_default_views: (frm) => {
-		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
+		nts.model.set_default_views_for_doctype(frm.doc.name, frm);
 	},
 
 	on_tab_change: (frm) => {
@@ -144,7 +144,7 @@ frappe.ui.form.on("DocType", {
 	},
 });
 
-frappe.ui.form.on("DocField", {
+nts.ui.form.on("DocField", {
 	form_render(frm, doctype, docname) {
 		frm.trigger("setup_fetch_from_fields", doctype, docname);
 	},
@@ -159,22 +159,22 @@ frappe.ui.form.on("DocField", {
 });
 
 function render_form_builder(frm) {
-	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {
-		frappe.form_builder.setup_page_actions();
-		frappe.form_builder.store.fetch();
+	if (nts.form_builder && nts.form_builder.doctype === frm.doc.name) {
+		nts.form_builder.setup_page_actions();
+		nts.form_builder.store.fetch();
 		return;
 	}
 
-	if (frappe.form_builder) {
-		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
-		frappe.form_builder.frm = frm;
-		frappe.form_builder.doctype = frm.doc.name;
-		frappe.form_builder.customize = false;
-		frappe.form_builder.init(true);
-		frappe.form_builder.store.fetch();
+	if (nts.form_builder) {
+		nts.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		nts.form_builder.frm = frm;
+		nts.form_builder.doctype = frm.doc.name;
+		nts.form_builder.customize = false;
+		nts.form_builder.init(true);
+		nts.form_builder.store.fetch();
 	} else {
-		frappe.require("form_builder.bundle.js").then(() => {
-			frappe.form_builder = new frappe.ui.FormBuilder({
+		nts.require("form_builder.bundle.js").then(() => {
+			nts.form_builder = new nts.ui.FormBuilder({
 				wrapper: $(frm.fields_dict["form_builder"].wrapper),
 				frm: frm,
 				doctype: frm.doc.name,
@@ -184,4 +184,4 @@ function render_form_builder(frm) {
 	}
 }
 
-extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
+extend_cscript(cur_frm.cscript, new nts.model.DocTypeController({ frm: cur_frm }));

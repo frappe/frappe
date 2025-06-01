@@ -1,9 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.customize_form");
+nts.provide("nts.customize_form");
 
-frappe.ui.form.on("Customize Form", {
+nts.ui.form.on("Customize Form", {
 	setup: function (frm) {
 		// save the last setting if refreshing
 		window.addEventListener("beforeunload", () => {
@@ -19,8 +19,8 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					["DocType", "issingle", "=", 0],
 					["DocType", "custom", "=", 0],
-					["DocType", "name", "not in", frappe.model.core_doctypes_list],
-					["DocType", "restrict_to_domain", "in", frappe.boot.active_domains],
+					["DocType", "name", "not in", nts.model.core_doctypes_list],
+					["DocType", "restrict_to_domain", "in", nts.boot.active_domains],
 				],
 			};
 		});
@@ -96,14 +96,14 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-			frappe.model.with_doctype(frm.doc.doc_type).then(() => {
+			nts.model.with_doctype(frm.doc.doc_type).then(() => {
 				frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
-				frappe.customize_form.set_primary_action(frm);
+				nts.customize_form.set_primary_action(frm);
 
 				frm.add_custom_button(
 					__("Go to {0} List", [__(frm.doc.doc_type)]),
 					function () {
-						frappe.set_route("List", frm.doc.doc_type);
+						nts.set_route("List", frm.doc.doc_type);
 					},
 					__("Actions")
 				);
@@ -111,7 +111,7 @@ frappe.ui.form.on("Customize Form", {
 				frm.add_custom_button(
 					__("Set Permissions"),
 					function () {
-						frappe.set_route("permission-manager", frm.doc.doc_type);
+						nts.set_route("permission-manager", frm.doc.doc_type);
 					},
 					__("Actions")
 				);
@@ -135,7 +135,7 @@ frappe.ui.form.on("Customize Form", {
 				frm.add_custom_button(
 					__("Reset All Customizations"),
 					function () {
-						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
+						nts.customize_form.confirm(__("Remove all customizations?"), frm);
 					},
 					__("Actions")
 				);
@@ -153,7 +153,7 @@ frappe.ui.form.on("Customize Form", {
 				frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
 				frm.toggle_display(
 					["queue_in_background"],
-					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
+					nts.get_meta(frm.doc.doc_type).is_submittable || 0
 				);
 
 				render_form_builder(frm);
@@ -168,9 +168,9 @@ frappe.ui.form.on("Customize Form", {
 
 	set_default_doc_type(frm) {
 		let doc_type;
-		if (frappe.route_options && frappe.route_options.doc_type) {
-			doc_type = frappe.route_options.doc_type;
-			frappe.route_options = null;
+		if (nts.route_options && nts.route_options.doc_type) {
+			doc_type = nts.route_options.doc_type;
+			nts.route_options = null;
 			localStorage.removeItem("customize_doctype");
 		}
 		if (!doc_type) {
@@ -182,7 +182,7 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	reset_layout(frm) {
-		frappe.confirm(
+		nts.confirm(
 			__("Layout will be reset to standard layout, are you sure you want to do this?"),
 			() => {
 				return frm.call({
@@ -190,11 +190,11 @@ frappe.ui.form.on("Customize Form", {
 					method: "reset_layout",
 					callback: function (r) {
 						if (!r.exc) {
-							frappe.show_alert({
+							nts.show_alert({
 								message: __("Layout Reset"),
 								indicator: "green",
 							});
-							frappe.customize_form.clear_locals_and_refresh(frm);
+							nts.customize_form.clear_locals_and_refresh(frm);
 						}
 					},
 				});
@@ -203,13 +203,13 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	async trim_table(frm) {
-		let dropped_columns = await frappe.xcall(
-			"frappe.custom.doctype.customize_form.customize_form.get_orphaned_columns",
+		let dropped_columns = await nts.xcall(
+			"nts.custom.doctype.customize_form.customize_form.get_orphaned_columns",
 			{ doctype: frm.doc.doc_type }
 		);
 
 		if (!dropped_columns?.length) {
-			frappe.toast(__("This doctype has no orphan fields to trim"));
+			nts.toast(__("This doctype has no orphan fields to trim"));
 			return;
 		}
 		let msg = __(
@@ -219,17 +219,17 @@ frappe.ui.form.on("Customize Form", {
 		msg += "<ol>" + dropped_columns.map((col) => `<li>${col}</li>`).join("") + "</ol>";
 		msg += __("This action is irreversible. Do you wish to continue?");
 
-		frappe.confirm(msg, () => {
+		nts.confirm(msg, () => {
 			return frm.call({
 				doc: frm.doc,
 				method: "trim_table",
 				callback: function (r) {
 					if (!r.exc) {
-						frappe.show_alert({
+						nts.show_alert({
 							message: __("Table Trimmed"),
 							indicator: "green",
 						});
-						frappe.customize_form.clear_locals_and_refresh(frm);
+						nts.customize_form.clear_locals_and_refresh(frm);
 					}
 				},
 			});
@@ -237,11 +237,11 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_export(frm) {
-		if (frappe.boot.developer_mode) {
+		if (nts.boot.developer_mode) {
 			frm.add_custom_button(
 				__("Export Customizations"),
 				function () {
-					frappe.prompt(
+					nts.prompt(
 						[
 							{
 								fieldtype: "Link",
@@ -267,8 +267,8 @@ frappe.ui.form.on("Customize Form", {
 							},
 						],
 						function (data) {
-							frappe.call({
-								method: "frappe.modules.utils.export_customizations",
+							nts.call({
+								method: "nts.modules.utils.export_customizations",
 								args: {
 									doctype: frm.doc.doc_type,
 									module: data.module,
@@ -289,7 +289,7 @@ frappe.ui.form.on("Customize Form", {
 		// sort order select
 		if (frm.doc.doc_type) {
 			var fields = $.map(frm.doc.fields, function (df) {
-				return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null;
+				return nts.model.is_value_type(df.fieldtype) ? df.fieldname : null;
 			});
 			fields = ["", "name", "creation", "modified"].concat(fields);
 			frm.set_df_property("sort_field", "options", fields);
@@ -297,17 +297,17 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	setup_default_views(frm) {
-		frappe.model.set_default_views_for_doctype(frm.doc.doc_type, frm);
+		nts.model.set_default_views_for_doctype(frm.doc.doc_type, frm);
 	},
 });
 
 // can't delete standard fields
-frappe.ui.form.on("Customize Form Field", {
+nts.ui.form.on("Customize Form Field", {
 	before_fields_remove: function (frm, doctype, name) {
-		const row = frappe.get_doc(doctype, name);
+		const row = nts.get_doc(doctype, name);
 
 		if (row.is_system_generated) {
-			frappe.throw(
+			nts.throw(
 				__(
 					"Cannot delete system generated field <strong>{0}</strong>. You can hide it instead.",
 					[__(row.label) || row.fieldname]
@@ -316,7 +316,7 @@ frappe.ui.form.on("Customize Form Field", {
 		}
 
 		if (!(row.is_custom_field || row.__islocal)) {
-			frappe.throw(
+			nts.throw(
 				__("Cannot delete standard field <strong>{0}</strong>. You can hide it instead.", [
 					__(row.label) || row.fieldname,
 				])
@@ -324,7 +324,7 @@ frappe.ui.form.on("Customize Form Field", {
 		}
 	},
 	fields_add: function (frm, cdt, cdn) {
-		var f = frappe.model.get_doc(cdt, cdn);
+		var f = nts.model.get_doc(cdt, cdn);
 		f.is_system_generated = false;
 		f.is_custom_field = true;
 		frm.trigger("setup_default_views");
@@ -338,18 +338,18 @@ frappe.ui.form.on("Customize Form Field", {
 let parenttype, parent; // used in the form events for the child tables: links, actions and states
 
 // can't delete standard links
-frappe.ui.form.on("DocType Link", {
+nts.ui.form.on("DocType Link", {
 	before_links_remove: function (frm, doctype, name) {
-		let row = frappe.get_doc(doctype, name);
+		let row = nts.get_doc(doctype, name);
 		parenttype = row.parenttype; // used in the event links_remove
 		parent = row.parent; // used in the event links_remove
 		if (!(row.custom || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard link. You can hide it if you want"));
+			nts.msgprint(__("Cannot delete standard link. You can hide it if you want"));
 			throw "cannot delete standard link";
 		}
 	},
 	links_add: function (frm, cdt, cdn) {
-		let f = frappe.model.get_doc(cdt, cdn);
+		let f = nts.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	},
 	links_remove: function (frm, doctype, name) {
@@ -360,18 +360,18 @@ frappe.ui.form.on("DocType Link", {
 });
 
 // can't delete standard actions
-frappe.ui.form.on("DocType Action", {
+nts.ui.form.on("DocType Action", {
 	before_actions_remove: function (frm, doctype, name) {
-		let row = frappe.get_doc(doctype, name);
+		let row = nts.get_doc(doctype, name);
 		parenttype = row.parenttype; // used in the event actions_remove
 		parent = row.parent; // used in the event actions_remove
 		if (!(row.custom || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard action. You can hide it if you want"));
+			nts.msgprint(__("Cannot delete standard action. You can hide it if you want"));
 			throw "cannot delete standard action";
 		}
 	},
 	actions_add: function (frm, cdt, cdn) {
-		let f = frappe.model.get_doc(cdt, cdn);
+		let f = nts.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	},
 	actions_remove: function (frm, doctype, name) {
@@ -382,18 +382,18 @@ frappe.ui.form.on("DocType Action", {
 });
 
 // can't delete standard states
-frappe.ui.form.on("DocType State", {
+nts.ui.form.on("DocType State", {
 	before_states_remove: function (frm, doctype, name) {
-		let row = frappe.get_doc(doctype, name);
+		let row = nts.get_doc(doctype, name);
 		parenttype = row.parenttype; // used in the event states_remove
 		parent = row.parent; // used in the event states_remove
 		if (!(row.custom || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard document state."));
+			nts.msgprint(__("Cannot delete standard document state."));
 			throw "cannot delete standard document state";
 		}
 	},
 	states_add: function (frm, cdt, cdn) {
-		let f = frappe.model.get_doc(cdt, cdn);
+		let f = nts.model.get_doc(cdt, cdn);
 		f.custom = 1;
 	},
 	states_remove: function (frm, doctype, name) {
@@ -403,7 +403,7 @@ frappe.ui.form.on("DocType State", {
 	},
 });
 
-frappe.customize_form.save_customization = function (frm) {
+nts.customize_form.save_customization = function (frm) {
 	if (frm.doc.doc_type) {
 		return frm.call({
 			doc: frm.doc,
@@ -413,7 +413,7 @@ frappe.customize_form.save_customization = function (frm) {
 			method: "save_customization",
 			callback: function (r) {
 				if (!r.exc) {
-					frappe.customize_form.clear_locals_and_refresh(frm);
+					nts.customize_form.clear_locals_and_refresh(frm);
 					frm.script_manager.trigger("doc_type");
 				}
 			},
@@ -421,30 +421,30 @@ frappe.customize_form.save_customization = function (frm) {
 	}
 };
 
-frappe.customize_form.update_fields_from_form_builder = function (frm) {
-	let form_builder = frappe.form_builder;
+nts.customize_form.update_fields_from_form_builder = function (frm) {
+	let form_builder = nts.form_builder;
 	if (form_builder?.store) {
 		let fields = form_builder.store.update_fields();
 
 		// if fields is a string, it means there is an error
 		if (typeof fields === "string") {
-			frappe.throw(fields);
+			nts.throw(fields);
 		}
 		frm.refresh_fields();
 	}
 };
 
-frappe.customize_form.set_primary_action = function (frm) {
+nts.customize_form.set_primary_action = function (frm) {
 	frm.page.set_primary_action(__("Update"), () => {
 		this.update_fields_from_form_builder(frm);
 		this.save_customization(frm);
 	});
 };
 
-frappe.customize_form.confirm = function (msg, frm) {
+nts.customize_form.confirm = function (msg, frm) {
 	if (!frm.doc.doc_type) return;
 
-	var d = new frappe.ui.Dialog({
+	var d = new nts.ui.Dialog({
 		title: "Reset To Defaults",
 		fields: [
 			{
@@ -458,49 +458,49 @@ frappe.customize_form.confirm = function (msg, frm) {
 				method: "reset_to_defaults",
 				callback: function (r) {
 					if (r.exc) {
-						frappe.msgprint(r.exc);
+						nts.msgprint(r.exc);
 					} else {
 						d.hide();
-						frappe.show_alert({
+						nts.show_alert({
 							message: __("Customizations Reset"),
 							indicator: "green",
 						});
-						frappe.customize_form.clear_locals_and_refresh(frm);
+						nts.customize_form.clear_locals_and_refresh(frm);
 					}
 				},
 			});
 		},
 	});
 
-	frappe.customize_form.confirm.dialog = d;
+	nts.customize_form.confirm.dialog = d;
 	d.show();
 };
 
-frappe.customize_form.clear_locals_and_refresh = function (frm) {
+nts.customize_form.clear_locals_and_refresh = function (frm) {
 	delete frm.doc.__unsaved;
 	// clear doctype from locals
-	frappe.model.clear_doc("DocType", frm.doc.doc_type);
-	delete frappe.meta.docfield_copy[frm.doc.doc_type];
+	nts.model.clear_doc("DocType", frm.doc.doc_type);
+	delete nts.meta.docfield_copy[frm.doc.doc_type];
 	frm.refresh();
 };
 
 function render_form_builder(frm) {
-	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.doc_type) {
-		frappe.form_builder.setup_page_actions();
-		frappe.form_builder.store.fetch();
+	if (nts.form_builder && nts.form_builder.doctype === frm.doc.doc_type) {
+		nts.form_builder.setup_page_actions();
+		nts.form_builder.store.fetch();
 		return;
 	}
 
-	if (frappe.form_builder) {
-		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
-		frappe.form_builder.frm = frm;
-		frappe.form_builder.doctype = frm.doc.doc_type;
-		frappe.form_builder.customize = true;
-		frappe.form_builder.init(true);
-		frappe.form_builder.store.fetch();
+	if (nts.form_builder) {
+		nts.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		nts.form_builder.frm = frm;
+		nts.form_builder.doctype = frm.doc.doc_type;
+		nts.form_builder.customize = true;
+		nts.form_builder.init(true);
+		nts.form_builder.store.fetch();
 	} else {
-		frappe.require("form_builder.bundle.js").then(() => {
-			frappe.form_builder = new frappe.ui.FormBuilder({
+		nts.require("form_builder.bundle.js").then(() => {
+			nts.form_builder = new nts.ui.FormBuilder({
 				wrapper: $(frm.fields_dict["form_builder"].wrapper),
 				frm: frm,
 				doctype: frm.doc.doc_type,
@@ -510,4 +510,4 @@ function render_form_builder(frm) {
 	}
 }
 
-extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
+extend_cscript(cur_frm.cscript, new nts.model.DocTypeController({ frm: cur_frm }));

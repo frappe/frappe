@@ -3,9 +3,9 @@ from random import choice
 
 import requests
 
-import frappe
-from frappe.installer import update_site_config
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+import nts
+from nts.installer import update_site_config
+from nts.tests.test_api import ntsAPITestCase, suppress_stdout
 
 authorization_token = None
 
@@ -17,7 +17,7 @@ resource_key = {
 }
 
 
-class TestResourceAPIV2(FrappeAPITestCase):
+class TestResourceAPIV2(ntsAPITestCase):
 	version = "v2"
 	DOCTYPE = "ToDo"
 	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
@@ -26,17 +26,17 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		for _ in range(20):
-			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
+			doc = nts.get_doc({"doctype": "ToDo", "description": nts.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS = []
 			cls.GENERATED_DOCUMENTS.append(doc.name)
-		frappe.db.commit()
+		nts.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()
+		nts.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
-			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
-		frappe.db.commit()
+			nts.delete_doc_if_exists(cls.DOCTYPE, name)
+		nts.db.commit()
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
@@ -59,13 +59,13 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_get_list_dict(self):
 		# test 4: fetch response as (not) dict
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "as_dict": True})
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], dict)
 
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "as_dict": False})
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
@@ -74,11 +74,11 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		# test 6: fetch response with fields
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertIn("description", json.data[0])
 
 	def test_create_document(self):
-		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
+		data = {"description": nts.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource(self.DOCTYPE), data)
 		self.assertEqual(response.status_code, 200)
 		docname = response.json["data"]["name"]
@@ -86,7 +86,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.GENERATED_DOCUMENTS.append(docname)
 
 	def test_copy_document(self):
-		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
+		doc = nts.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
 
 		response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
 		self.assertEqual(response.status_code, 200)
@@ -116,10 +116,10 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_execute_doc_method(self):
 		response = self.get(self.resource("Website Theme", "Standard", "method", "get_apps"))
-		self.assertEqual(response.json["data"][0]["name"], "frappe")
+		self.assertEqual(response.json["data"][0]["name"], "nts")
 
 	def test_update_document(self):
-		generated_desc = frappe.mock("paragraph")
+		generated_desc = nts.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
 		random_doc = choice(self.GENERATED_DOCUMENTS)
 
@@ -131,7 +131,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"]["description"], generated_desc)
 
 	def test_delete_document_non_existing(self):
-		non_existent_doc = frappe.generate_hash(length=12)
+		non_existent_doc = nts.generate_hash(length=12)
 		with suppress_stdout():
 			response = self.delete(self.resource(self.DOCTYPE, non_existent_doc))
 		self.assertEqual(response.status_code, 404)
@@ -140,7 +140,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertFalse(response.json["errors"][0].get("exception"))
 
 
-class TestMethodAPIV2(FrappeAPITestCase):
+class TestMethodAPIV2(ntsAPITestCase):
 	version = "v2"
 
 	def setUp(self) -> None:
@@ -154,7 +154,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"], "pong")
 
 	def test_get_user_info(self):
-		response = self.get(self.method("frappe.realtime.get_user_info"))
+		response = self.get(self.method("nts.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn(response.json.get("data").get("user"), ("Administrator", "Guest"))
@@ -163,10 +163,10 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		global authorization_token
 
 		generate_admin_keys()
-		user = frappe.get_doc("User", "Administrator")
+		user = nts.get_doc("User", "Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
-		response = self.get(self.method("frappe.auth.get_logged_user"))
+		response = self.get(self.method("nts.auth.get_logged_user"))
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["data"], "Administrator")
@@ -184,7 +184,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertIn("Blogger", shorthand_response.json["data"])
 
 		expanded_response = self.get(
-			self.method("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}
+			self.method("nts.core.doctype.user.user.get_all_roles"), {"sid": self.sid}
 		)
 		self.assertEqual(expanded_response.data, shorthand_response.data)
 
@@ -194,7 +194,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertFalse(response.request.cookies["sid"])
 
 	def test_run_doc_method_in_memory(self):
-		dns = frappe.get_doc("Document Naming Settings")
+		dns = nts.get_doc("Document Naming Settings")
 
 		# Check that simple API can be called.
 		response = self.get(
@@ -221,7 +221,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 
 	def test_logs(self):
-		method = "frappe.tests.test_api.test"
+		method = "nts.tests.test_api.test"
 
 		expected_message = "Failed v2"
 		response = self.get(self.method(method), {"sid": self.sid, "message": expected_message}).json
@@ -251,14 +251,14 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertIn("Traceback", response["errors"][0]["exception"])
 
 	def test_add_comment(self):
-		comment_txt = frappe.generate_hash()
+		comment_txt = nts.generate_hash()
 		response = self.post(
 			self.resource("User", "Administrator", "method", "add_comment"), {"text": comment_txt}
 		).json
 		self.assertEqual(response["data"]["content"], comment_txt)
 
 
-class TestDocTypeAPIV2(FrappeAPITestCase):
+class TestDocTypeAPIV2(ntsAPITestCase):
 	version = "v2"
 
 	def setUp(self) -> None:
@@ -275,7 +275,7 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 		self.assertIsInstance(response.json["data"], int)
 
 
-class TestReadOnlyMode(FrappeAPITestCase):
+class TestReadOnlyMode(ntsAPITestCase):
 	"""During migration if read only mode can be enabled.
 	Test if reads work well and writes are blocked"""
 
@@ -297,25 +297,25 @@ class TestReadOnlyMode(FrappeAPITestCase):
 	def test_blocked_writes_v2(self):
 		with suppress_stdout():
 			response = self.post(
-				self.resource("ToDo"), {"description": frappe.mock("paragraph"), "sid": self.sid}
+				self.resource("ToDo"), {"description": nts.mock("paragraph"), "sid": self.sid}
 			)
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["errors"][0]["type"], "InReadOnlyMode")
 
 
 def generate_admin_keys():
-	from frappe.core.doctype.user.user import generate_keys
+	from nts.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	nts.db.commit()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:
-			frappe.throw(message)
+			nts.throw(message)
 		else:
 			1 / 0
 	else:
-		frappe.msgprint(message)
+		nts.msgprint(message)

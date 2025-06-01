@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // License: See license.txt
 
-frappe.ui.form.on("Currency", {
+nts.ui.form.on("Currency", {
 	refresh(frm) {
 		frm.set_intro("");
 		if (!frm.doc.enabled) {

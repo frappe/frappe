@@ -11,7 +11,7 @@ let args = ref({});
 
 let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter((df) => {
-		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
+		if (in_list(nts.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
 		}
 		if (
@@ -27,7 +27,7 @@ let docfield_df = computed(() => {
 
 		if (
 			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
-			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
+			in_list(nts.model.no_value_type, store.form.selected_field.fieldtype)
 		) {
 			return false;
 		}
@@ -79,7 +79,7 @@ let docfield_df = computed(() => {
 			:title="__('Close properties')"
 			@click="store.form.selected_field = null"
 		>
-			<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+			<div v-html="nts.utils.icon('remove', 'sm')"></div>
 		</button>
 	</div>
 	<div class="control-data">

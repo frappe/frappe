@@ -4,7 +4,7 @@ const props = defineProps(["df", "value"]);
 </script>
 
 <template>
-	<div class="control frappe-control editable" :data-fieldtype="df.fieldtype">
+	<div class="control nts-control editable" :data-fieldtype="df.fieldtype">
 		<!-- label -->
 		<div class="field-controls">
 			<h4 v-if="df.fieldtype == 'Heading'">

@@ -1,27 +1,27 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Client Script", {
+nts.ui.form.on("Client Script", {
 	setup(frm) {
 		frm.get_field("sample").html(SAMPLE_HTML);
 	},
 	refresh(frm) {
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () =>
-				frappe.set_route("List", frm.doc.dt, "List")
+				nts.set_route("List", frm.doc.dt, "List")
 			);
 		}
 
 		if (frm.doc.view == "Form") {
 			frm.add_custom_button(__("Add script for Child Table"), () => {
-				frappe.model.with_doctype(frm.doc.dt, () => {
-					const child_tables = frappe.meta
+				nts.model.with_doctype(frm.doc.dt, () => {
+					const child_tables = nts.meta
 						.get_docfields(frm.doc.dt, null, {
 							fieldtype: "Table",
 						})
 						.map((df) => df.options);
 
-					const d = new frappe.ui.Dialog({
+					const d = new nts.ui.Dialog({
 						title: __("Select Child Table"),
 						fields: [
 							{
@@ -52,7 +52,7 @@ frappe.ui.form.on("Client Script", {
 
 			if (!frm.is_new()) {
 				frm.add_custom_button(__("Compare Versions"), () => {
-					new frappe.ui.DiffView("Client Script", "script", frm.doc.name);
+					new nts.ui.DiffView("Client Script", "script", frm.doc.name);
 				});
 			}
 		}
@@ -65,7 +65,7 @@ frappe.ui.form.on("Client Script", {
 	},
 
 	dt(frm) {
-		frm.toggle_display("view", !frappe.boot.single_types.includes(frm.doc.dt));
+		frm.toggle_display("view", !nts.boot.single_types.includes(frm.doc.dt));
 
 		if (!frm.doc.script) {
 			frm.events.add_script_for_doctype(frm, frm.doc.dt);
@@ -78,7 +78,7 @@ frappe.ui.form.on("Client Script", {
 	},
 
 	view(frm) {
-		let has_form_boilerplate = frm.doc.script.includes("frappe.ui.form.on");
+		let has_form_boilerplate = frm.doc.script.includes("nts.ui.form.on");
 		if (frm.doc.view === "List" && has_form_boilerplate) {
 			frm.set_value("script", "");
 		}
@@ -90,7 +90,7 @@ frappe.ui.form.on("Client Script", {
 	add_script_for_doctype(frm, doctype) {
 		if (!doctype) return;
 		let boilerplate = `
-frappe.ui.form.on('${doctype}', {
+nts.ui.form.on('${doctype}', {
 	refresh(frm) {
 		// your code here
 	}
@@ -113,7 +113,7 @@ const SAMPLE_HTML = `<h3>Client Script Help</h3>
 cur_frm.add_fetch("customer",  "local_tax_no',  'local_tax_no');
 
 // additional validation on dates
-frappe.ui.form.on('Task',  'validate',  function(frm) {
+nts.ui.form.on('Task',  'validate',  function(frm) {
     if (frm.doc.from_date &lt; get_today()) {
         msgprint('You can not select past date in From Date');
         validated = false;
@@ -121,7 +121,7 @@ frappe.ui.form.on('Task',  'validate',  function(frm) {
 });
 
 // make a field read-only after saving
-frappe.ui.form.on('Task',  {
+nts.ui.form.on('Task',  {
     refresh: function(frm) {
         // use the __islocal value of doc,  to check if the doc is saved or not
         frm.set_df_property('myfield',  'read_only',  frm.doc.__islocal ? 0 : 1);
@@ -129,7 +129,7 @@ frappe.ui.form.on('Task',  {
 });
 
 // additional permission check
-frappe.ui.form.on('Task',  {
+nts.ui.form.on('Task',  {
     validate: function(frm) {
         if(user=='user1@example.com' &amp;&amp; frm.doc.purpose!='Material Receipt') {
             msgprint('You are only allowed Material Receipt');
@@ -139,7 +139,7 @@ frappe.ui.form.on('Task',  {
 });
 
 // calculate sales incentive
-frappe.ui.form.on('Sales Invoice',  {
+nts.ui.form.on('Sales Invoice',  {
     validate: function(frm) {
         // calculate incentives for each person on the deal
         total_incentive = 0

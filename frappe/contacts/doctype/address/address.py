@@ -1,15 +1,15 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from jinja2 import TemplateSyntaxError
 
-import frappe
-from frappe import _, throw
-from frappe.contacts.address_and_contact import set_link_title
-from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from frappe.model.document import Document
-from frappe.model.naming import make_autoname
-from frappe.utils import cstr
+import nts
+from nts import _, throw
+from nts.contacts.address_and_contact import set_link_title
+from nts.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from nts.model.document import Document
+from nts.model.naming import make_autoname
+from nts.utils import cstr
 
 
 class Address(Document):
@@ -19,8 +19,8 @@ class Address(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
-		from frappe.types import DF
+		from nts.core.doctype.dynamic_link.dynamic_link import DynamicLink
+		from nts.types import DF
 
 		address_line1: DF.Data
 		address_line2: DF.Data | None
@@ -63,7 +63,7 @@ class Address(Document):
 
 		if self.address_title:
 			self.name = cstr(self.address_title).strip() + "-" + cstr(_(self.address_type)).strip()
-			if frappe.db.exists("Address", self.name):
+			if nts.db.exists("Address", self.name):
 				self.name = make_autoname(
 					cstr(self.address_title).strip() + "-" + cstr(self.address_type).strip() + "-.#",
 					ignore_validate=True,
@@ -80,9 +80,9 @@ class Address(Document):
 	def link_address(self):
 		"""Link address based on owner"""
 		if not self.links:
-			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
+			contact_name = nts.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
-				contact = frappe.get_cached_doc("Contact", contact_name)
+				contact = nts.get_cached_doc("Contact", contact_name)
 				for link in contact.links:
 					self.append("links", dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -119,7 +119,7 @@ class Address(Document):
 
 def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 	if preferred_key in ["is_shipping_address", "is_primary_address"]:
-		address = frappe.db.sql(
+		address = nts.db.sql(
 			""" SELECT
 				addr.name
 			FROM
@@ -139,13 +139,13 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 	return
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_default_address(doctype: str, name: str | None, sort_key: str = "is_primary_address") -> str | None:
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None
 
-	addresses = frappe.get_all(
+	addresses = nts.get_all(
 		"Address",
 		filters=[
 			["Dynamic Link", "link_doctype", "=", doctype],
@@ -160,7 +160,7 @@ def get_default_address(doctype: str, name: str | None, sort_key: str = "is_prim
 	return addresses[0] if addresses else None
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_address_display(address_dict: dict | str | None) -> str | None:
 	return render_address(address_dict)
 
@@ -170,7 +170,7 @@ def render_address(address: dict | str | None, check_permissions=True) -> str | 
 		return
 
 	if not isinstance(address, dict):
-		address = frappe.get_cached_doc("Address", address)
+		address = nts.get_cached_doc("Address", address)
 		if check_permissions:
 			address.check_permission()
 		address = address.as_dict()
@@ -178,9 +178,9 @@ def render_address(address: dict | str | None, check_permissions=True) -> str | 
 	name, template = get_address_templates(address)
 
 	try:
-		return frappe.render_template(template, address)
+		return nts.render_template(template, address)
 	except TemplateSyntaxError:
-		frappe.throw(_("There is an error in your Address Template {0}").format(name))
+		nts.throw(_("There is an error in your Address Template {0}").format(name))
 
 
 def get_territory_from_address(address):
@@ -189,12 +189,12 @@ def get_territory_from_address(address):
 		return
 
 	if isinstance(address, str):
-		address = frappe.get_cached_doc("Address", address)
+		address = nts.get_cached_doc("Address", address)
 
 	territory = None
 	for fieldname in ("city", "state", "country"):
 		if address.get(fieldname):
-			territory = frappe.db.get_value("Territory", address.get(fieldname))
+			territory = nts.db.get_value("Territory", address.get(fieldname))
 			if territory:
 				break
 
@@ -211,9 +211,9 @@ def get_list_context(context=None):
 
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
-	from frappe.www.list import get_list
+	from nts.www.list import get_list
 
-	user = frappe.session.user
+	user = nts.session.user
 
 	if not filters:
 		filters = []
@@ -224,25 +224,25 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
-	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+	contact_name = nts.db.get_value("Contact", {"email_id": nts.session.user})
 
 	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = nts.get_doc("Contact", contact_name)
 		return contact.has_common_link(doc)
 
 	return False
 
 
 def get_address_templates(address):
-	result = frappe.db.get_value(
+	result = nts.db.get_value(
 		"Address Template", {"country": address.get("country")}, ["name", "template"]
 	)
 
 	if not result:
-		result = frappe.db.get_value("Address Template", {"is_default": 1}, ["name", "template"])
+		result = nts.db.get_value("Address Template", {"is_default": 1}, ["name", "template"])
 
 	if not result:
-		frappe.throw(
+		nts.throw(
 			_(
 				"No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
 			)
@@ -252,7 +252,7 @@ def get_address_templates(address):
 
 
 def get_company_address(company):
-	ret = frappe._dict()
+	ret = nts._dict()
 
 	if company:
 		ret.company_address = get_default_address("Company", company)
@@ -261,10 +261,10 @@ def get_company_address(company):
 	return ret
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def address_query(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.desk.search import search_widget
+	from nts.desk.search import search_widget
 
 	_filters = []
 	if link_doctype := filters.pop("link_doctype", None):
@@ -286,14 +286,14 @@ def get_condensed_address(doc):
 
 
 def update_preferred_address(address, field):
-	frappe.db.set_value("Address", address, field, 0)
+	nts.db.set_value("Address", address, field, 0)
 
 
 def get_address_display_list(doctype: str, name: str) -> list[dict]:
-	if not frappe.has_permission("Address", "read"):
+	if not nts.has_permission("Address", "read"):
 		return []
 
-	address_list = frappe.get_list(
+	address_list = nts.get_list(
 		"Address",
 		filters=[
 			["Dynamic Link", "link_doctype", "=", doctype],

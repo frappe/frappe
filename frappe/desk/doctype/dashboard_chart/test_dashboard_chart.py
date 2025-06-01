@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
 
 from datetime import datetime
@@ -6,19 +6,19 @@ from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 
-import frappe
-from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import formatdate, get_last_day, getdate
-from frappe.utils.dateutils import get_period, get_period_ending
+import nts
+from nts.desk.doctype.dashboard_chart.dashboard_chart import get
+from nts.tests.utils import ntsTestCase
+from nts.utils import formatdate, get_last_day, getdate
+from nts.utils.dateutils import get_period, get_period_ending
 
 
-class TestDashboardChart(FrappeTestCase):
+class TestDashboardChart(ntsTestCase):
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending("2019-04-10", "Daily"), getdate("2019-04-10"))
 
 		# week starts on monday
-		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+		with patch.object(nts.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			self.assertEqual(get_period_ending("2019-04-10", "Weekly"), getdate("2019-04-14"))
 
 		self.assertEqual(get_period_ending("2019-04-10", "Monthly"), getdate("2019-04-30"))
@@ -30,10 +30,10 @@ class TestDashboardChart(FrappeTestCase):
 		self.assertEqual(get_period_ending("2019-10-01", "Quarterly"), getdate("2019-12-31"))
 
 	def test_dashboard_chart(self):
-		if frappe.db.exists("Dashboard Chart", "Test Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Dashboard Chart")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Dashboard Chart",
@@ -58,12 +58,12 @@ class TestDashboardChart(FrappeTestCase):
 			cur_date += relativedelta(months=1)
 
 	def test_empty_dashboard_chart(self):
-		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
 
-		frappe.db.delete("Error Log")
+		nts.db.delete("Error Log")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Empty Dashboard Chart",
@@ -88,15 +88,15 @@ class TestDashboardChart(FrappeTestCase):
 			cur_date += relativedelta(months=1)
 
 	def test_chart_wih_one_value(self):
-		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
-			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
+		if nts.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
+			nts.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
 
-		frappe.db.delete("Error Log")
+		nts.db.delete("Error Log")
 
 		# create one data point
-		frappe.get_doc(dict(doctype="Error Log", creation="2018-06-01 00:00:00")).insert()
+		nts.get_doc(dict(doctype="Error Log", creation="2018-06-01 00:00:00")).insert()
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Empty Dashboard Chart 2",
@@ -124,12 +124,12 @@ class TestDashboardChart(FrappeTestCase):
 		self.assertEqual(result.get("datasets")[0].get("values")[2], 0)
 
 	def test_group_by_chart_type(self):
-		if frappe.db.exists("Dashboard Chart", "Test Group By Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Group By Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Group By Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Group By Dashboard Chart")
 
-		frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
+		nts.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Group By Dashboard Chart",
@@ -141,17 +141,17 @@ class TestDashboardChart(FrappeTestCase):
 		).insert()
 
 		result = get(chart_name="Test Group By Dashboard Chart", refresh=1)
-		todo_status_count = frappe.db.count("ToDo", {"status": result.get("labels")[0]})
+		todo_status_count = nts.db.count("ToDo", {"status": result.get("labels")[0]})
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
 	def test_daily_dashboard_chart(self):
 		insert_test_records()
 
-		if frappe.db.exists("Dashboard Chart", "Test Daily Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Daily Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Daily Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Daily Dashboard Chart")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Daily Dashboard Chart",
@@ -179,10 +179,10 @@ class TestDashboardChart(FrappeTestCase):
 	def test_weekly_dashboard_chart(self):
 		insert_test_records()
 
-		if frappe.db.exists("Dashboard Chart", "Test Weekly Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Weekly Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Weekly Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Weekly Dashboard Chart")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Weekly Dashboard Chart",
@@ -199,7 +199,7 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+		with patch.object(nts.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name="Test Weekly Dashboard Chart", refresh=1)
 
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 300.0, 800.0, 0.0])
@@ -208,10 +208,10 @@ class TestDashboardChart(FrappeTestCase):
 	def test_avg_dashboard_chart(self):
 		insert_test_records()
 
-		if frappe.db.exists("Dashboard Chart", "Test Average Dashboard Chart"):
-			frappe.delete_doc("Dashboard Chart", "Test Average Dashboard Chart")
+		if nts.db.exists("Dashboard Chart", "Test Average Dashboard Chart"):
+			nts.delete_doc("Dashboard Chart", "Test Average Dashboard Chart")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Average Dashboard Chart",
@@ -228,15 +228,15 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+		with patch.object(nts.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name="Test Average Dashboard Chart", refresh=1)
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
 	def test_user_date_label_dashboard_chart(self):
-		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
+		nts.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 
-		frappe.get_doc(
+		nts.get_doc(
 			dict(
 				doctype="Dashboard Chart",
 				chart_name="Test Dashboard Chart Date Label",
@@ -252,11 +252,11 @@ class TestDashboardChart(FrappeTestCase):
 			)
 		).insert()
 
-		with patch.object(frappe.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):
+		with patch.object(nts.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(sorted(result.get("labels")), sorted(["05.01.2019", "12.01.2019", "19.01.2019"]))
 
-		with patch.object(frappe.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
+		with patch.object(nts.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"]))
 
@@ -277,6 +277,6 @@ def create_new_communication(subject, date, rating):
 		"rating": rating,
 		"communication_date": date,
 	}
-	comm = frappe.get_doc(communication)
-	if not frappe.db.exists("Communication", {"subject": comm.subject}):
+	comm = nts.get_doc(communication)
+	if not nts.db.exists("Communication", {"subject": comm.subject}):
 		comm.insert()

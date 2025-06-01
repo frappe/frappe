@@ -2,7 +2,7 @@
 {%- from "templates/includes/navbar/navbar_items.html" import render_item -%}
 
 {%- block head_include %}
-<link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
+<link rel="stylesheet" href="/assets/nts/css/hljs-night-owl.css">
 {% endblock -%}
 
 {%- block navbar -%}
@@ -16,7 +16,7 @@
 					{%- elif banner_image -%}
 					<img src='{{ banner_image }}'>
 					{%- else -%}
-					<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+					<span>{{ (nts.get_hooks("brand_html") or [_("Home")])[0] }}</span>
 					{%- endif -%}
 				</a>
 			</div>
@@ -105,8 +105,8 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 
 {%- block script -%}
 <script>
-	frappe.ready(() => {
-		frappe.setup_search('#search-container', '{{ docs_search_scope or "" }}');
+	nts.ready(() => {
+		nts.setup_search('#search-container', '{{ docs_search_scope or "" }}');
 
 		$('.web-footer .container')
 			.removeClass('container')

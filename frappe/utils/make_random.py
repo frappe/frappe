@@ -1,12 +1,12 @@
 import random
 from typing import TYPE_CHECKING
 
-import frappe
+import nts
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
-settings = frappe._dict(
+settings = nts._dict(
 	prob={
 		"default": {"make": 0.6, "qty": (1, 5)},
 	}
@@ -39,7 +39,7 @@ def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 		condition.extend("{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items())
 	condition = " where " + " and ".join(condition) if condition else ""
 
-	out = frappe.db.multisql(
+	out = nts.db.multisql(
 		{
 			"mariadb": f"""select name from `tab{doctype}` {condition}
 		order by RAND() limit 1 offset 0""",
@@ -51,7 +51,7 @@ def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 	out = out and out[0][0] or None
 
 	if doc and out:
-		return frappe.get_doc(doctype, out)
+		return nts.get_doc(doctype, out)
 	return out
 
 

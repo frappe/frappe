@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.Tags = class {
+nts.ui.Tags = class {
 	constructor({ parent, placeholder, tagsList, onTagAdd, onTagRemove, onTagClick, onChange }) {
 		this.tagsList = tagsList || [];
 		this.onTagAdd = onTagAdd;
@@ -32,7 +32,7 @@ frappe.ui.Tags = class {
 	bind() {
 		const me = this;
 		const select_tag = function () {
-			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
+			const tagValue = nts.utils.xss_sanitise(me.$input.val());
 			me.addTag(tagValue);
 			me.$input.val("");
 		};
@@ -77,7 +77,7 @@ frappe.ui.Tags = class {
 	}
 
 	removeTag(label) {
-		label = frappe.utils.xss_sanitise(label);
+		label = nts.utils.xss_sanitise(label);
 		if (this.tagsList.includes(label)) {
 			this.tagsList.splice(this.tagsList.indexOf(label), 1);
 			this.onTagRemove && this.onTagRemove(label);
@@ -101,7 +101,7 @@ frappe.ui.Tags = class {
 
 	get_tag(label) {
 		let colored = true;
-		let $tag = frappe.get_data_pill(
+		let $tag = nts.get_data_pill(
 			label,
 			label,
 			(target, pill_wrapper) => {

@@ -1,21 +1,21 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
-from frappe.core.doctype.communication.email import add_attachments, make
-from frappe.email.doctype.email_queue.email_queue import EmailQueue
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.communication.communication import Communication, get_emails, parse_email
+from nts.core.doctype.communication.email import add_attachments, make
+from nts.email.doctype.email_queue.email_queue import EmailQueue
+from nts.tests.utils import ntsTestCase
 
 if TYPE_CHECKING:
-	from frappe.contacts.doctype.contact.contact import Contact
-	from frappe.email.doctype.email_account.email_account import EmailAccount
+	from nts.contacts.doctype.contact.contact import Contact
+	from nts.email.doctype.email_account.email_account import EmailAccount
 
-test_records = frappe.get_test_records("Communication")
+test_records = nts.get_test_records("Communication")
 
 
-class TestCommunication(FrappeTestCase):
+class TestCommunication(ntsTestCase):
 	def test_email(self):
 		valid_email_list = [
 			"Full Name <full@example.com>",
@@ -39,11 +39,11 @@ class TestCommunication(FrappeTestCase):
 
 		for i, x in enumerate(valid_email_list):
 			with self.subTest(i=i, x=x):
-				self.assertTrue(frappe.utils.parse_addr(x)[1])
+				self.assertTrue(nts.utils.parse_addr(x)[1])
 
 		for i, x in enumerate(invalid_email_list):
 			with self.subTest(i=i, x=x):
-				self.assertFalse(frappe.utils.parse_addr(x)[0])
+				self.assertFalse(nts.utils.parse_addr(x)[0])
 
 	def test_name(self):
 		valid_email_list = [
@@ -67,13 +67,13 @@ class TestCommunication(FrappeTestCase):
 		]
 
 		for x in valid_email_list:
-			self.assertTrue(frappe.utils.parse_addr(x)[0])
+			self.assertTrue(nts.utils.parse_addr(x)[0])
 
 		for x in invalid_email_list:
-			self.assertFalse(frappe.utils.parse_addr(x)[0])
+			self.assertFalse(nts.utils.parse_addr(x)[0])
 
 	def test_circular_linking(self):
-		a = frappe.get_doc(
+		a = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -81,7 +81,7 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		b = frappe.get_doc(
+		b = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -91,7 +91,7 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		c = frappe.get_doc(
+		c = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -101,16 +101,16 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		a = frappe.get_doc("Communication", a.name)
+		a = nts.get_doc("Communication", a.name)
 		a.reference_doctype = "Communication"
 		a.reference_name = c.name
 
-		self.assertRaises(frappe.CircularLinkingError, a.save)
+		self.assertRaises(nts.CircularLinkingError, a.save)
 
 	def test_deduplication_timeline_links(self):
-		frappe.delete_doc_if_exists("Note", "deduplication timeline links")
+		nts.delete_doc_if_exists("Note", "deduplication timeline links")
 
-		note = frappe.get_doc(
+		note = nts.get_doc(
 			{
 				"doctype": "Note",
 				"title": "deduplication timeline links",
@@ -118,7 +118,7 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		comm = frappe.get_doc(
+		comm = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -131,12 +131,12 @@ class TestCommunication(FrappeTestCase):
 		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 
-		comm = frappe.get_doc("Communication", comm.name)
+		comm = nts.get_doc("Communication", comm.name)
 
 		self.assertNotEqual(2, len(comm.timeline_links))
 
 	def test_contacts_attached(self):
-		contact_sender: "Contact" = frappe.get_doc(
+		contact_sender: "Contact" = nts.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_sender",
@@ -145,7 +145,7 @@ class TestCommunication(FrappeTestCase):
 		contact_sender.add_email("comm_sender@example.com")
 		contact_sender.insert(ignore_permissions=True)
 
-		contact_recipient: "Contact" = frappe.get_doc(
+		contact_recipient: "Contact" = nts.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_recipient",
@@ -154,7 +154,7 @@ class TestCommunication(FrappeTestCase):
 		contact_recipient.add_email("comm_recipient@example.com")
 		contact_recipient.insert(ignore_permissions=True)
 
-		contact_cc: "Contact" = frappe.get_doc(
+		contact_cc: "Contact" = nts.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_cc",
@@ -163,7 +163,7 @@ class TestCommunication(FrappeTestCase):
 		contact_cc.add_email("comm_cc@example.com")
 		contact_cc.insert(ignore_permissions=True)
 
-		comm: Communication = frappe.get_doc(
+		comm: Communication = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_medium": "Email",
@@ -174,7 +174,7 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		comm = frappe.get_doc("Communication", comm.name)
+		comm = nts.get_doc("Communication", comm.name)
 		contact_links = [x.link_name for x in comm.timeline_links]
 
 		self.assertIn(contact_sender.name, contact_links)
@@ -182,15 +182,15 @@ class TestCommunication(FrappeTestCase):
 		self.assertIn(contact_cc.name, contact_links)
 
 	def test_get_communication_data(self):
-		from frappe.desk.form.load import get_communication_data
+		from nts.desk.form.load import get_communication_data
 
-		frappe.delete_doc_if_exists("Note", "get communication data")
+		nts.delete_doc_if_exists("Note", "get communication data")
 
-		note = frappe.get_doc(
+		note = nts.get_doc(
 			{"doctype": "Note", "title": "get communication data", "content": "get communication data"}
 		).insert(ignore_permissions=True)
 
-		comm_note_1 = frappe.get_doc(
+		comm_note_1 = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -201,7 +201,7 @@ class TestCommunication(FrappeTestCase):
 
 		comm_note_1.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 
-		comm_note_2 = frappe.get_doc(
+		comm_note_2 = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -258,7 +258,7 @@ class TestCommunication(FrappeTestCase):
 			"subject": "Document Link in Email",
 			"sender": "comm_sender@example.com",
 		}
-		comm_with_signature = frappe.get_doc(
+		comm_with_signature = nts.get_doc(
 			base_communication
 			| {
 				"content": f"""<div class="ql-editor read-mode">
@@ -267,7 +267,7 @@ class TestCommunication(FrappeTestCase):
 				</div><p></p><br><p class="signature">{signature}</p>""",
 			}
 		).insert(ignore_permissions=True)
-		comm_without_signature = frappe.get_doc(
+		comm_without_signature = nts.get_doc(
 			base_communication
 			| {
 				"content": """<div class="ql-editor read-mode">
@@ -282,7 +282,7 @@ class TestCommunication(FrappeTestCase):
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
 	def test_mark_as_spam(self):
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Email Rule",
 				"email_id": "spammer@example.com",
@@ -290,7 +290,7 @@ class TestCommunication(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		spam_comm: Communication = frappe.get_doc(
+		spam_comm: Communication = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_medium": "Email",
@@ -303,7 +303,7 @@ class TestCommunication(FrappeTestCase):
 
 		self.assertEqual(spam_comm.email_status, "Spam")
 
-		normal_comm: Communication = frappe.get_doc(
+		normal_comm: Communication = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_medium": "Email",
@@ -316,13 +316,13 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(normal_comm.email_status, "Spam")
 
 
-class TestCommunicationEmailMixin(FrappeTestCase):
+class TestCommunicationEmailMixin(ntsTestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])
 		bcc = ", ".join(bcc or [])
 
-		return frappe.get_doc(
+		return nts.get_doc(
 			{
 				"doctype": "Communication",
 				"communication_type": "Communication",
@@ -337,7 +337,7 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 
 	def new_user(self, email, **user_data):
 		user_data.setdefault("first_name", "first_name")
-		user = frappe.new_doc("User")
+		user = nts.new_doc("User")
 		user.email = email
 		user.update(user_data)
 		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
@@ -353,13 +353,13 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 	def test_cc(self):
 		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
 			if set_user_as:
-				frappe.set_user(set_user_as)
+				nts.set_user(set_user_as)
 
 			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
 			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
 			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
 
-			frappe.set_user("Administrator")
+			nts.set_user("Administrator")
 			user.delete()
 			comm.delete()
 
@@ -401,14 +401,14 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		to_list = ["to <to@test.com>"]
 		comm = self.new_communication(recipients=to_list)
 
-		file = frappe.new_doc("File")
+		file = nts.new_doc("File")
 		file.file_name = "test_add_attachments_by_filename.txt"
 		file.content = "test_add_attachments_by_filename"
 		file.insert(ignore_permissions=True)
 
 		add_attachments(comm.name, [file.name])
 
-		attached_file_name, attached_content_hash = frappe.db.get_value(
+		attached_file_name, attached_content_hash = nts.db.get_value(
 			"File",
 			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
 			["file_name", "content_hash"],
@@ -422,22 +422,22 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		file_name = "test_add_attachments_by_file_content.txt"
 		file_content = "test_add_attachments_by_file_content"
 		add_attachments(comm.name, [{"fcontent": file_content, "fname": file_name}])
-		attached_file_name = frappe.db.get_value(
+		attached_file_name = nts.db.get_value(
 			"File",
 			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
 		)
-		attached_file = frappe.get_doc("File", attached_file_name)
+		attached_file = nts.get_doc("File", attached_file_name)
 		self.assertEqual(attached_file.file_name, file_name)
 		self.assertEqual(attached_file.get_content(), file_content)
 
 
 def create_email_account() -> "EmailAccount":
-	frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")
+	nts.delete_doc_if_exists("Email Account", "_Test Comm Account 1")
 
-	frappe.flags.mute_emails = False
-	frappe.flags.sent_mail = None
+	nts.flags.mute_emails = False
+	nts.flags.sent_mail = None
 
-	return frappe.get_doc(
+	return nts.get_doc(
 		{
 			"is_default": 1,
 			"is_global": 1,

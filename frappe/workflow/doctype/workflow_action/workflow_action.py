@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.desk.form.utils import get_pdf_link
-from frappe.desk.notifications import clear_doctype_notifications
-from frappe.email.doctype.email_template.email_template import get_email_template
-from frappe.model.document import Document
-from frappe.model.workflow import (
+import nts
+from nts import _
+from nts.desk.form.utils import get_pdf_link
+from nts.desk.notifications import clear_doctype_notifications
+from nts.email.doctype.email_template.email_template import get_email_template
+from nts.model.document import Document
+from nts.model.workflow import (
 	apply_workflow,
 	get_workflow_name,
 	get_workflow_state_field,
@@ -15,12 +15,12 @@ from frappe.model.workflow import (
 	is_transition_condition_satisfied,
 	send_email_alert,
 )
-from frappe.query_builder import DocType
-from frappe.utils import get_datetime, get_url
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.data import get_link_to_form
-from frappe.utils.user import get_users_with_role
-from frappe.utils.verified_command import get_signed_params, verify_request
+from nts.query_builder import DocType
+from nts.utils import get_datetime, get_url
+from nts.utils.background_jobs import enqueue
+from nts.utils.data import get_link_to_form
+from nts.utils.user import get_users_with_role
+from nts.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
@@ -30,8 +30,8 @@ class WorkflowAction(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.workflow.doctype.workflow_action_permitted_role.workflow_action_permitted_role import (
+		from nts.types import DF
+		from nts.workflow.doctype.workflow_action_permitted_role.workflow_action_permitted_role import (
 			WorkflowActionPermittedRole,
 		)
 
@@ -51,23 +51,23 @@ def on_doctype_update():
 	# The search order in any use case is no ["reference_name", "reference_doctype", "status"]
 	# The index scan would happen from left to right
 	# so even if status is not in the where clause the index will be used
-	frappe.db.add_index("Workflow Action", ["reference_name", "reference_doctype", "status"])
+	nts.db.add_index("Workflow Action", ["reference_name", "reference_doctype", "status"])
 
 
 def get_permission_query_conditions(user):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	if user == "Administrator":
 		return ""
 
-	roles = frappe.get_roles(user)
+	roles = nts.get_roles(user)
 
 	WorkflowAction = DocType("Workflow Action")
 	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
 
 	permitted_workflow_actions = (
-		frappe.qb.from_(WorkflowAction)
+		nts.qb.from_(WorkflowAction)
 		.join(WorkflowActionPermittedRole)
 		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
 		.select(WorkflowAction.name)
@@ -75,7 +75,7 @@ def get_permission_query_conditions(user):
 	).get_sql()
 
 	return f"""(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
-		or `tabWorkflow Action`.`user`={frappe.db.escape(user)})
+		or `tabWorkflow Action`.`user`={nts.db.escape(user)})
 		and `tabWorkflow Action`.`status`='Open'
 	"""
 
@@ -85,7 +85,7 @@ def has_permission(doc, user):
 		return True
 
 	permitted_roles = {permitted_role.role for permitted_role in doc.permitted_roles}
-	return not permitted_roles.isdisjoint(frappe.get_roles(user))
+	return not permitted_roles.isdisjoint(nts.get_roles(user))
 
 
 def process_workflow_actions(doc, state):
@@ -111,7 +111,7 @@ def process_workflow_actions(doc, state):
 	roles = {t.allowed for t in next_possible_transitions}
 	create_workflow_actions_for_roles(roles, doc)
 
-	if send_email_alert(workflow) and frappe.db.get_value(
+	if send_email_alert(workflow) and nts.db.get_value(
 		"Workflow Document State",
 		filters={"parent": workflow, "state": get_doc_workflow_state(doc)},
 		fieldname="send_email",
@@ -122,16 +122,16 @@ def process_workflow_actions(doc, state):
 			doc=doc,
 			transitions=next_possible_transitions,
 			enqueue_after_commit=True,
-			now=frappe.flags.in_test,
+			now=nts.flags.in_test,
 		)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
 	if not verify_request():
 		return
 
-	doc = frappe.get_doc(doctype, docname)
+	doc = nts.get_doc(doctype, docname)
 	doc_workflow_state = get_doc_workflow_state(doc)
 
 	if doc_workflow_state == current_state:
@@ -146,31 +146,31 @@ def apply_action(action, doctype, docname, current_state, user=None, last_modifi
 		return_link_expired_page(doc, doc_workflow_state)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def confirm_action(doctype, docname, user, action):
 	if not verify_request():
 		return
 
-	logged_in_user = frappe.session.user
+	logged_in_user = nts.session.user
 	if logged_in_user == "Guest" and user:
 		# to allow user to apply action without login
-		frappe.set_user(user)
+		nts.set_user(user)
 
-	doc = frappe.get_doc(doctype, docname)
+	doc = nts.get_doc(doctype, docname)
 	newdoc = apply_workflow(doc, action)
-	frappe.db.commit()
+	nts.db.commit()
 	return_success_page(newdoc)
 
 	# reset session user
 	if logged_in_user == "Guest":
-		frappe.set_user(logged_in_user)
+		nts.set_user(logged_in_user)
 
 
 def return_success_page(doc):
-	frappe.respond_as_web_page(
+	nts.respond_as_web_page(
 		_("Success"),
 		_("{0}: {1} is set to state {2}").format(
-			doc.get("doctype"), frappe.bold(doc.get("name")), frappe.bold(get_doc_workflow_state(doc))
+			doc.get("doctype"), nts.bold(doc.get("name")), nts.bold(get_doc_workflow_state(doc))
 		),
 		indicator_color="green",
 	)
@@ -188,7 +188,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 	template_params["pdf_link"] = get_pdf_link(doc.get("doctype"), doc.get("name"))
 
-	frappe.respond_as_web_page(
+	nts.respond_as_web_page(
 		title=None,
 		html=None,
 		indicator_color="blue",
@@ -198,12 +198,12 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 
 def return_link_expired_page(doc, doc_workflow_state):
-	frappe.respond_as_web_page(
+	nts.respond_as_web_page(
 		_("Link Expired"),
 		_("Document {0} has been set to state {1} by {2}").format(
-			frappe.bold(doc.get("name")),
-			frappe.bold(doc_workflow_state),
-			frappe.bold(frappe.get_value("User", doc.get("modified_by"), "full_name")),
+			nts.bold(doc.get("name")),
+			nts.bold(doc_workflow_state),
+			nts.bold(nts.get_value("User", doc.get("modified_by"), "full_name")),
 		),
 		indicator_color="blue",
 	)
@@ -225,16 +225,16 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 
 
 def get_allowed_roles(user, workflow, workflow_state):
-	user = user if user else frappe.session.user
+	user = user if user else nts.session.user
 
-	allowed_roles = frappe.get_all(
+	allowed_roles = nts.get_all(
 		"Workflow Transition",
 		fields="allowed",
 		filters=[["parent", "=", workflow], ["next_state", "=", workflow_state]],
 		pluck="allowed",
 	)
 
-	user_roles = set(frappe.get_roles(user))
+	user_roles = set(nts.get_roles(user))
 	return set(allowed_roles).intersection(user_roles)
 
 
@@ -242,7 +242,7 @@ def get_workflow_action_by_role(doc, allowed_roles):
 	WorkflowAction = DocType("Workflow Action")
 	WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
 	return (
-		frappe.qb.from_(WorkflowAction)
+		nts.qb.from_(WorkflowAction)
 		.join(WorkflowActionPermittedRole)
 		.on(WorkflowAction.name == WorkflowActionPermittedRole.parent)
 		.select(WorkflowAction.name, WorkflowActionPermittedRole.role)
@@ -258,14 +258,14 @@ def get_workflow_action_by_role(doc, allowed_roles):
 
 
 def update_completed_workflow_actions_using_role(user=None, workflow_action=None):
-	user = user if user else frappe.session.user
+	user = user if user else nts.session.user
 	WorkflowAction = DocType("Workflow Action")
 
 	if not workflow_action:
 		return
 
 	(
-		frappe.qb.update(WorkflowAction)
+		nts.qb.update(WorkflowAction)
 		.set(WorkflowAction.status, "Completed")
 		.set(WorkflowAction.completed_by, user)
 		.set(WorkflowAction.completed_by_role, workflow_action[0].role)
@@ -274,10 +274,10 @@ def update_completed_workflow_actions_using_role(user=None, workflow_action=None
 
 
 def clear_old_workflow_actions_using_user(doc, user=None):
-	user = user if user else frappe.session.user
+	user = user if user else nts.session.user
 
-	if frappe.db.has_column("Workflow Action", "user"):
-		frappe.db.delete(
+	if nts.db.has_column("Workflow Action", "user"):
+		nts.db.delete(
 			"Workflow Action",
 			{
 				"reference_name": doc.get("name"),
@@ -289,12 +289,12 @@ def clear_old_workflow_actions_using_user(doc, user=None):
 
 
 def update_completed_workflow_actions_using_user(doc, user=None):
-	user = user or frappe.session.user
+	user = user or nts.session.user
 
-	if frappe.db.has_column("Workflow Action", "user"):
+	if nts.db.has_column("Workflow Action", "user"):
 		WorkflowAction = DocType("Workflow Action")
 		(
-			frappe.qb.update(WorkflowAction)
+			nts.qb.update(WorkflowAction)
 			.set(WorkflowAction.status, "Completed")
 			.set(WorkflowAction.completed_by, user)
 			.where(
@@ -307,7 +307,7 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
-	transitions = frappe.get_all(
+	transitions = nts.get_all(
 		"Workflow Transition",
 		fields=["allowed", "action", "state", "allow_self_approval", "next_state", "condition"],
 		filters=[["parent", "=", workflow_name], ["state", "=", state]],
@@ -330,9 +330,9 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
 
-	@frappe.request_cache
+	@nts.request_cache
 	def user_has_permission(user: str) -> bool:
-		from frappe.permissions import has_permission
+		from nts.permissions import has_permission
 
 		return has_permission(doctype=doc, user=user)
 
@@ -345,15 +345,15 @@ def get_users_next_action_data(transitions, doc):
 			filtered_users.remove(doc.get("owner"))
 		for user in filtered_users:
 			if not user_data_map.get(user):
-				user_data_map[user] = frappe._dict(
+				user_data_map[user] = nts._dict(
 					{
 						"possible_actions": [],
-						"email": frappe.db.get_value("User", user, "email"),
+						"email": nts.db.get_value("User", user, "email"),
 					}
 				)
 
 			user_data_map[user].get("possible_actions").append(
-				frappe._dict(
+				nts._dict(
 					{
 						"action_name": transition.action,
 						"action_link": get_workflow_action_url(transition.action, doc, user),
@@ -366,7 +366,7 @@ def get_users_next_action_data(transitions, doc):
 def create_workflow_actions_for_roles(roles, doc):
 	if not roles:
 		return
-	workflow_action = frappe.get_doc(
+	workflow_action = nts.get_doc(
 		{
 			"doctype": "Workflow Action",
 			"reference_doctype": doc.get("doctype"),
@@ -395,10 +395,10 @@ def send_workflow_action_email(doc, transitions):
 		}
 		email_args.update(common_args)
 		try:
-			frappe.sendmail(**email_args)
-		except frappe.OutgoingEmailError:
+			nts.sendmail(**email_args)
+		except nts.OutgoingEmailError:
 			# Emails config broken, don't bother retrying next user.
-			frappe.log_error("Failed to send workflow action email")
+			nts.log_error("Failed to send workflow action email")
 			return
 
 
@@ -412,7 +412,7 @@ def deduplicate_actions(action_list):
 
 
 def get_workflow_action_url(action, doc, user):
-	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
+	apply_action_method = "/api/method/nts.workflow.doctype.workflow_action.workflow_action.apply_action"
 
 	params = {
 		"doctype": doc.get("doctype"),
@@ -428,7 +428,7 @@ def get_workflow_action_url(action, doc, user):
 
 def get_confirm_workflow_action_url(doc, action, user):
 	confirm_action_method = (
-		"/api/method/frappe.workflow.doctype.workflow_action.workflow_action.confirm_action"
+		"/api/method/nts.workflow.doctype.workflow_action.workflow_action.confirm_action"
 	)
 
 	params = {
@@ -442,7 +442,7 @@ def get_confirm_workflow_action_url(doc, action, user):
 
 
 def is_workflow_action_already_created(doc):
-	return frappe.db.exists(
+	return nts.db.exists(
 		{
 			"doctype": "Workflow Action",
 			"reference_name": doc.get("name"),
@@ -455,7 +455,7 @@ def is_workflow_action_already_created(doc):
 def clear_workflow_actions(doctype, name):
 	if not (doctype and name):
 		return
-	frappe.db.delete(
+	nts.db.delete(
 		"Workflow Action",
 		filters={
 			"reference_name": name,
@@ -484,7 +484,7 @@ def get_common_email_args(doc):
 
 	print_format = doc.meta.default_print_format
 	lang = doc.get("language") or (
-		frappe.get_cached_value("Print Format", print_format, "default_print_language")
+		nts.get_cached_value("Print Format", print_format, "default_print_language")
 		if print_format
 		else None
 	)
@@ -493,7 +493,7 @@ def get_common_email_args(doc):
 		"template": "workflow_action",
 		"header": "Workflow Action",
 		"attachments": [
-			frappe.attach_print(
+			nts.attach_print(
 				doctype,
 				docname,
 				file_name=docname,
@@ -511,7 +511,7 @@ def get_email_template_from_workflow(doc):
 	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	doc_state = get_doc_workflow_state(doc)
-	template_name = frappe.db.get_value(
+	template_name = nts.db.get_value(
 		"Workflow Document State",
 		{"parent": workflow_name, "state": doc_state},
 		"next_action_email_template",
@@ -526,6 +526,6 @@ def get_email_template_from_workflow(doc):
 
 
 def get_state_optional_field_value(workflow_name, state):
-	return frappe.get_cached_value(
+	return nts.get_cached_value(
 		"Workflow Document State", {"parent": workflow_name, "state": state}, "is_optional_state"
 	)

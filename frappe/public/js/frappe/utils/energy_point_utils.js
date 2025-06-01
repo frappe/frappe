@@ -1,9 +1,9 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.energy_points");
+nts.provide("nts.energy_points");
 
-Object.assign(frappe.energy_points, {
+Object.assign(nts.energy_points, {
 	get_points(points) {
 		return `<span class="bold" style="color: ${points >= 0 ? "#45A163" : "#e42121"}">
 			${points > 0 ? "+" : ""}${points}
@@ -20,18 +20,18 @@ Object.assign(frappe.energy_points, {
 	format_history_log(log) {
 		// redundant code to honor readability and to avoid confusion
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
-		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
+		const route = nts.utils.get_form_link(log.reference_doctype, log.reference_name);
 		return `<div class="flex">
   			<span class="${log.points >= 0 ? "green" : "red"} mr-2">
   				${this.get_points(log.points)}
   			</span>
   			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>
   			${log.reason ? separator + log.reason : ""}
-  			${separator + frappe.datetime.comment_when(log.creation)}
+  			${separator + nts.datetime.comment_when(log.creation)}
   		</div>`;
 	},
 	get_history_log_message(log) {
-		const owner_name = frappe.user.full_name(log.owner).bold();
+		const owner_name = nts.user.full_name(log.owner).bold();
 		const ref_doc = log.reference_name;
 
 		if (log.type === "Appreciation") {
@@ -47,8 +47,8 @@ Object.assign(frappe.energy_points, {
 	},
 	get_form_log_message(log) {
 		// redundant code to honor readability and to avoid confusion
-		const owner_name = frappe.user.full_name(log.owner).bold();
-		const user = frappe.user.full_name(log.user).bold();
+		const owner_name = nts.user.full_name(log.owner).bold();
+		const user = nts.user.full_name(log.user).bold();
 		if (log.type === "Appreciation") {
 			return __("{0} appreciated {1}", [owner_name, user]);
 		}

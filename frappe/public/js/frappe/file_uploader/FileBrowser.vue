@@ -12,7 +12,7 @@
 					class="form-control input-xs"
 					:placeholder="__('Search by filename or extension')"
 					v-model="search_text"
-					@input="frappe.utils.debounce(search_by_name(), 300)"
+					@input="nts.utils.debounce(search_by_name(), 300)"
 				/>
 			</div>
 			<TreeNode
@@ -88,8 +88,8 @@ function select_node(node) {
 	}
 }
 function get_files_in_folder(folder, start) {
-	return frappe
-		.call("frappe.core.api.file.get_files_in_folder", {
+	return nts
+		.call("nts.core.api.file.get_files_in_folder", {
 			folder,
 			start,
 			page_length: page_length.value,
@@ -118,8 +118,8 @@ function search_by_name() {
 		return;
 	}
 	if (search_text.value.length < 3) return;
-	frappe
-		.call("frappe.core.api.file.get_files_by_search_text", {
+	nts
+		.call("nts.core.api.file.get_files_by_search_text", {
 			text: search_text.value,
 		})
 		.then((r) => {
@@ -140,7 +140,7 @@ function search_by_name() {
 }
 function make_file_node(file) {
 	let filename = file.file_name || file.name;
-	let label = frappe.utils.file_name_ellipsis(filename, 40);
+	let label = nts.utils.file_name_ellipsis(filename, 40);
 	return {
 		label: label,
 		filename: filename,

@@ -1,8 +1,8 @@
-# Copyright (c) 2020, Frappe Technologies and Contributors
+# Copyright (c) 2020, nts Technologies and Contributors
 # License: MIT. See LICENSE
-# import frappe
-from frappe.tests.utils import FrappeTestCase
+# import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestDocTypeLayout(FrappeTestCase):
+class TestDocTypeLayout(ntsTestCase):
 	pass

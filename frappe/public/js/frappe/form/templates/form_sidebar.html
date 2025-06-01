@@ -21,7 +21,7 @@
 {% if frm.meta.beta %}
 <div class="sidebar-menu">
 	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
-	<p><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+	<p><a class="small text-muted" href="https://github.com/nts/{{ nts.boot.module_app[nts.scrub(frm.meta.module)] }}/issues/new"
 			target="_blank">
 		{{ __("Click here to post bugs and suggestions") }}</a></p>
 
@@ -36,7 +36,7 @@
 	<li class="rating-icons"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu hidden">
-	{% if (frappe.help.has_help(doctype)) { %}
+	{% if (nts.help.has_help(doctype)) { %}
 	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
 </ul>
@@ -166,6 +166,6 @@
 	<li class="modified-by"></li>
 	<li class="created-by"></li>
 </ul>
-{% if(frappe.get_form_sidebar_extension) { %}
-	{{ frappe.get_form_sidebar_extension() }}
+{% if(nts.get_form_sidebar_extension) { %}
+	{{ nts.get_form_sidebar_extension() }}
 {% } %}

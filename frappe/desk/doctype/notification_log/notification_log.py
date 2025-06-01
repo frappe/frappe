@@ -1,13 +1,13 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.desk.doctype.notification_settings.notification_settings import (
+import nts
+from nts import _
+from nts.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
 )
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class NotificationLog(Document):
@@ -17,7 +17,7 @@ class NotificationLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		attached_file: DF.Code | None
 		document_name: DF.Data | None
@@ -32,37 +32,37 @@ class NotificationLog(Document):
 
 	# end: auto-generated types
 	def after_insert(self):
-		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
+		nts.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
 			try:
 				send_notification_email(self)
-			except frappe.OutgoingEmailError:
+			except nts.OutgoingEmailError:
 				self.log_error(_("Failed to send notification email"))
 
 	@staticmethod
 	def clear_old_logs(days=180):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Notification Log")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Notification Log")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 def get_permission_query_conditions(for_user):
 	if not for_user:
-		for_user = frappe.session.user
+		for_user = nts.session.user
 
 	if for_user == "Administrator":
 		return
 
-	return f"""(`tabNotification Log`.for_user = {frappe.db.escape(for_user)})"""
+	return f"""(`tabNotification Log`.for_user = {nts.db.escape(for_user)})"""
 
 
 def get_title(doctype, docname, title_field=None):
 	if not title_field:
-		title_field = frappe.get_meta(doctype).get_title_field()
-	return docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
+		title_field = nts.get_meta(doctype).get_title_field()
+	return docname if title_field == "name" else nts.db.get_value(doctype, docname, title_field)
 
 
 def get_title_html(title):
@@ -79,26 +79,26 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 	# During installation of new site, enqueue_create_notification tries to connect to Redis.
 	# This breaks new site creation if Redis server is not running.
 	# We do not need any notifications in fresh installation
-	if frappe.flags.in_install:
+	if nts.flags.in_install:
 		return
 
-	doc = frappe._dict(doc)
+	doc = nts._dict(doc)
 
 	if isinstance(users, str):
 		users = [user.strip() for user in users.split(",") if user.strip()]
 	users = list(set(users))
 
-	frappe.enqueue(
-		"frappe.desk.doctype.notification_log.notification_log.make_notification_logs",
+	nts.enqueue(
+		"nts.desk.doctype.notification_log.notification_log.make_notification_logs",
 		doc=doc,
 		users=users,
-		now=frappe.flags.in_test,
+		now=nts.flags.in_test,
 	)
 
 
 def make_notification_logs(doc, users):
 	for user in _get_user_ids(users):
-		notification = frappe.new_doc("Notification Log")
+		notification = nts.new_doc("Notification Log")
 		notification.update(doc)
 		notification.for_user = user
 		if (
@@ -110,7 +110,7 @@ def make_notification_logs(doc, users):
 
 
 def _get_user_ids(user_emails):
-	user_names = frappe.db.get_values(
+	user_names = nts.db.get_values(
 		"User", {"enabled": 1, "email": ("in", user_emails)}, "name", pluck=True
 	)
 	return [user for user in user_names if is_notifications_enabled(user)]
@@ -120,9 +120,9 @@ def send_notification_email(doc: NotificationLog):
 	if doc.type == "Energy Point" and doc.email_content is None:
 		return
 
-	from frappe.utils import get_url_to_form, strip_html
+	from nts.utils import get_url_to_form, strip_html
 
-	user = frappe.db.get_value("User", doc.for_user, fieldname=["email", "language"], as_dict=True)
+	user = nts.db.get_value("User", doc.for_user, fieldname=["email", "language"], as_dict=True)
 	if not user:
 		return
 
@@ -139,13 +139,13 @@ def send_notification_email(doc: NotificationLog):
 		args["document_name"] = doc.document_name
 		args["doc_link"] = get_url_to_form(doc.document_type, doc.document_name)
 
-	frappe.sendmail(
+	nts.sendmail(
 		recipients=user.email,
 		subject=email_subject,
 		template="new_notification",
 		args=args,
 		header=[header, "orange"],
-		now=frappe.flags.in_test,
+		now=nts.flags.in_test,
 	)
 
 
@@ -162,49 +162,49 @@ def get_email_header(doc, language: str | None = None):
 	return header_map[doc.type or "Default"]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_notification_logs(limit=20):
-	notification_logs = frappe.db.get_list(
+	notification_logs = nts.db.get_list(
 		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
 	)
 
 	users = [log.from_user for log in notification_logs]
 	users = [*set(users)]  # remove duplicates
-	user_info = frappe._dict()
+	user_info = nts._dict()
 
 	for user in users:
-		frappe.utils.add_user_info(user, user_info)
+		nts.utils.add_user_info(user, user_info)
 
 	return {"notification_logs": notification_logs, "user_info": user_info}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.get_all(
-		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
+	unread_docs_list = nts.get_all(
+		"Notification Log", filters={"read": 0, "for_user": nts.session.user}
 	)
 	unread_docnames = [doc.name for doc in unread_docs_list]
 	if unread_docnames:
 		filters = {"name": ["in", unread_docnames]}
-		frappe.db.set_value("Notification Log", filters, "read", 1, update_modified=False)
+		nts.db.set_value("Notification Log", filters, "read", 1, update_modified=False)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_as_read(docname: str):
-	if frappe.flags.read_only:
+	if nts.flags.read_only:
 		return
 
 	if docname:
-		frappe.db.set_value("Notification Log", str(docname), "read", 1, update_modified=False)
+		nts.db.set_value("Notification Log", str(docname), "read", 1, update_modified=False)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def trigger_indicator_hide():
-	frappe.publish_realtime("indicator_hide", user=frappe.session.user)
+	nts.publish_realtime("indicator_hide", user=nts.session.user)
 
 
 def set_notifications_as_unseen(user):
 	try:
-		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
-	except frappe.DoesNotExistError:
+		nts.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
+	except nts.DoesNotExistError:
 		return

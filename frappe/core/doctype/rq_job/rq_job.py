@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # For license information, please see license.txt
 
 import functools
@@ -9,17 +9,17 @@ from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job
 from rq.queue import Queue
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import (
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import (
 	cint,
 	compare,
 	convert_utc_to_system_timezone,
 	create_batch,
 	make_filter_dict,
 )
-from frappe.utils.background_jobs import get_queues, get_redis_conn
+from nts.utils.background_jobs import get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
@@ -28,10 +28,10 @@ JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "schedule
 def check_permissions(method):
 	@functools.wraps(method)
 	def wrapper(*args, **kwargs):
-		frappe.only_for("System Manager")
+		nts.only_for("System Manager")
 		job = args[0].job
 		if not for_current_site(job):
-			raise frappe.PermissionError
+			raise nts.PermissionError
 
 		return method(*args, **kwargs)
 
@@ -45,7 +45,7 @@ class RQJob(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		arguments: DF.Code | None
 		ended_at: DF.Datetime | None
@@ -63,10 +63,10 @@ class RQJob(Document):
 		try:
 			job = Job.fetch(self.name, connection=get_redis_conn())
 		except NoSuchJobError:
-			raise frappe.DoesNotExistError
+			raise nts.DoesNotExistError
 
 		if not for_current_site(job):
-			raise frappe.PermissionError
+			raise nts.PermissionError
 
 		super(Document, self).__init__(serialize_job(job))
 		self._job_obj = job
@@ -114,7 +114,7 @@ class RQJob(Document):
 		try:
 			send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
 		except InvalidJobOperation:
-			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+			nts.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
 	@staticmethod
 	def get_count(args) -> int:
@@ -132,11 +132,11 @@ class RQJob(Document):
 		pass
 
 
-def serialize_job(job: Job) -> frappe._dict:
+def serialize_job(job: Job) -> nts._dict:
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
 	job_kwargs = job.kwargs.get("kwargs", {})
 	job_name = job_kwargs.get("job_type") or str(job.kwargs.get("job_name"))
-	if job_name == "frappe.utils.background_jobs.run_doc_method":
+	if job_name == "nts.utils.background_jobs.run_doc_method":
 		doctype = job_kwargs.get("doctype")
 		doc_method = job_kwargs.get("doc_method")
 		if doctype and doc_method:
@@ -147,7 +147,7 @@ def serialize_job(job: Job) -> frappe._dict:
 	if matches := re.match(r"<function (?P<func_name>.*) at 0x.*>", job_name):
 		job_name = matches.group("func_name")
 
-	return frappe._dict(
+	return nts._dict(
 		name=job.id,
 		job_id=job.id,
 		queue=job.origin.rsplit(":", 1)[1],
@@ -157,7 +157,7 @@ def serialize_job(job: Job) -> frappe._dict:
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
 		exc_info=job.exc_info,
-		arguments=frappe.as_json(job.kwargs),
+		arguments=nts.as_json(job.kwargs),
 		timeout=job.timeout,
 		creation=convert_utc_to_system_timezone(job.created_at),
 		modified=convert_utc_to_system_timezone(modified),
@@ -168,11 +168,11 @@ def serialize_job(job: Job) -> frappe._dict:
 
 
 def for_current_site(job: Job) -> bool:
-	return job.kwargs.get("site") == frappe.local.site
+	return job.kwargs.get("site") == nts.local.site
 
 
 def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
-	site = frappe.local.site
+	site = nts.local.site
 
 	return [j for j in job_ids if j.startswith(site)]
 
@@ -203,9 +203,9 @@ def fetch_job_ids(queue: Queue, status: str) -> list[str]:
 	return []
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def remove_failed_jobs():
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 	for queue in get_queues():
 		fail_registry = queue.failed_job_registry
 		failed_jobs = filter_current_site_jobs(fail_registry.get_job_ids())
@@ -225,6 +225,6 @@ def get_all_queued_jobs():
 	return [job for job in jobs if for_current_site(job)]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def stop_job(job_id):
-	frappe.get_doc("RQ Job", job_id).stop_job()
+	nts.get_doc("RQ Job", job_id).stop_job()

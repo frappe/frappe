@@ -1,21 +1,21 @@
-let frappeCloudBaseEndpoint = "https://frappecloud.com";
+let ntsCloudBaseEndpoint = "https://ntscloud.com";
 let isFCUser = false;
 
 $(document).ready(function () {
 	if (
-		frappe.boot.is_fc_site &&
-		frappe.boot.setup_complete === 1 &&
-		!frappe.is_mobile() &&
-		frappe.user.has_role("System Manager")
+		nts.boot.is_fc_site &&
+		nts.boot.setup_complete === 1 &&
+		!nts.is_mobile() &&
+		nts.user.has_role("System Manager")
 	) {
-		frappe.call({
-			method: "frappe.integrations.frappe_providers.frappecloud_billing.current_site_info",
+		nts.call({
+			method: "nts.integrations.nts_providers.ntscloud_billing.current_site_info",
 			callback: (r) => {
 				if (!r?.message) return;
 
 				const response = r.message;
 				const trial_end_date = new Date(response.trial_end_date);
-				frappeCloudBaseEndpoint = response.base_url;
+				ntsCloudBaseEndpoint = response.base_url;
 				isFCUser = response.is_fc_user;
 
 				if (response.trial_end_date && trial_end_date > new Date()) {
@@ -26,7 +26,7 @@ $(document).ready(function () {
 				addManageBillingDropdown();
 
 				$(".login-to-fc, .upgrade-plan-button").on("click", function () {
-					openFrappeCloudDashboard();
+					openntsCloudDashboard();
 				});
 			},
 		});
@@ -43,8 +43,8 @@ function addManageBillingDropdown() {
 	);
 }
 
-function openFrappeCloudDashboard() {
-	window.open(`${frappeCloudBaseEndpoint}/dashboard/sites/${frappe.boot.sitename}`, "_blank");
+function openntsCloudDashboard() {
+	window.open(`${ntsCloudBaseEndpoint}/dashboard/sites/${nts.boot.sitename}`, "_blank");
 }
 
 function generateTrialSubscriptionBanner(trialEndDate) {

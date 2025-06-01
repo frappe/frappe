@@ -1,17 +1,17 @@
 import WebFormList from "./web_form_list";
 import WebForm from "./web_form";
 
-frappe.ready(function () {
-	let web_form_doc = frappe.web_form_doc;
-	let reference_doc = frappe.reference_doc;
+nts.ready(function () {
+	let web_form_doc = nts.web_form_doc;
+	let reference_doc = nts.reference_doc;
 
 	show_login_prompt();
 
 	web_form_doc.is_list ? show_list() : show_form();
 
 	function show_login_prompt() {
-		if (frappe.session.user != "Guest" || !web_form_doc.login_required) return;
-		const login_required = new frappe.ui.Dialog({
+		if (nts.session.user != "Guest" || !web_form_doc.login_required) return;
+		const login_required = new nts.ui.Dialog({
 			title: __("Not Permitted"),
 			primary_action_label: __("Login"),
 			primary_action: () => {
@@ -49,7 +49,7 @@ frappe.ready(function () {
 		}
 
 		$(".file-size").each(function () {
-			$(this).text(frappe.form.formatters.FileSize($(this).text()));
+			$(this).text(nts.form.formatters.FileSize($(this).text()));
 		});
 	}
 

@@ -1,5 +1,5 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.change_column_type("__Auth", column="password", type="TEXT")
+	nts.db.change_column_type("__Auth", column="password", type="TEXT")

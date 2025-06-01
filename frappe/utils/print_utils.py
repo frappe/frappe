@@ -1,6 +1,6 @@
 from typing import Literal
 
-import frappe
+import nts
 
 
 def get_print(
@@ -33,15 +33,15 @@ def get_print(
 	"""
 	import copy
 
-	from frappe.utils.pdf import get_pdf
-	from frappe.website.serve import get_response_without_exception_handling
+	from nts.utils.pdf import get_pdf
+	from nts.website.serve import get_response_without_exception_handling
 
-	local = frappe.local
+	local = nts.local
 	if "pdf_generator" not in local.form_dict:
 		# if arg is passed, use that, else get setting from print format
 		if pdf_generator is None:
 			pdf_generator = (
-				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
+				nts.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
 			)
 		local.form_dict.pdf_generator = pdf_generator
 
@@ -68,13 +68,13 @@ def get_print(
 		return html
 
 	if local.form_dict.pdf_generator != "wkhtmltopdf":
-		hook_func = frappe.get_hooks("pdf_generator")
+		hook_func = nts.get_hooks("pdf_generator")
 		for hook in hook_func:
 			"""
 			check pdf_generator value in your hook function.
 			if it matches run and return pdf else return None
 			"""
-			pdf = frappe.call(
+			pdf = nts.call(
 				hook,
 				print_format=print_format,
 				html=html,

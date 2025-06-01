@@ -1,49 +1,49 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 from collections import defaultdict
 from typing import TYPE_CHECKING, Union
 
-import frappe
-from frappe import _
-from frappe.model.docstatus import DocStatus
-from frappe.utils import cint
+import nts
+from nts import _
+from nts.model.docstatus import DocStatus
+from nts.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
-	from frappe.workflow.doctype.workflow.workflow import Workflow
+	from nts.model.document import Document
+	from nts.workflow.doctype.workflow.workflow import Workflow
 
 
-class WorkflowStateError(frappe.ValidationError):
+class WorkflowStateError(nts.ValidationError):
 	pass
 
 
-class WorkflowTransitionError(frappe.ValidationError):
+class WorkflowTransitionError(nts.ValidationError):
 	pass
 
 
-class WorkflowPermissionError(frappe.ValidationError):
+class WorkflowPermissionError(nts.ValidationError):
 	pass
 
 
 def get_workflow_name(doctype):
-	workflow_name = frappe.cache.hget("workflow", doctype)
+	workflow_name = nts.cache.hget("workflow", doctype)
 	if workflow_name is None:
-		workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype, "is_active": 1}, "name")
-		frappe.cache.hset("workflow", doctype, workflow_name or "")
+		workflow_name = nts.db.get_value("Workflow", {"document_type": doctype, "is_active": 1}, "name")
+		nts.cache.hset("workflow", doctype, workflow_name or "")
 
 	return workflow_name
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_transitions(
 	doc: Union["Document", str, dict], workflow: "Workflow" = None, raise_exception: bool = False
 ) -> list[dict]:
 	"""Return list of possible transitions for the given doc"""
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
 	if not isinstance(doc, Document):
-		doc = frappe.get_doc(frappe.parse_json(doc))
+		doc = nts.get_doc(nts.parse_json(doc))
 		doc.load_from_db()
 
 	if doc.is_new():
@@ -58,10 +58,10 @@ def get_transitions(
 		if raise_exception:
 			raise WorkflowStateError
 		else:
-			frappe.throw(_("Workflow State not set"), WorkflowStateError)
+			nts.throw(_("Workflow State not set"), WorkflowStateError)
 
 	transitions = []
-	roles = frappe.get_roles()
+	roles = nts.get_roles()
 
 	for transition in workflow.transitions:
 		if transition.state == current_state and transition.allowed in roles:
@@ -73,16 +73,16 @@ def get_transitions(
 
 
 def get_workflow_safe_globals():
-	# access to frappe.db.get_value, frappe.db.get_list, and date time utils.
+	# access to nts.db.get_value, nts.db.get_list, and date time utils.
 	return dict(
-		frappe=frappe._dict(
-			db=frappe._dict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
-			session=frappe.session,
-			utils=frappe._dict(
-				now_datetime=frappe.utils.now_datetime,
-				add_to_date=frappe.utils.add_to_date,
-				get_datetime=frappe.utils.get_datetime,
-				now=frappe.utils.now,
+		nts=nts._dict(
+			db=nts._dict(get_value=nts.db.get_value, get_list=nts.db.get_list),
+			session=nts.session,
+			utils=nts._dict(
+				now_datetime=nts.utils.now_datetime,
+				add_to_date=nts.utils.add_to_date,
+				get_datetime=nts.utils.get_datetime,
+				now=nts.utils.now,
 			),
 		)
 	)
@@ -92,17 +92,17 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 	if not transition.condition:
 		return True
 	else:
-		return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
+		return nts.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def apply_workflow(doc, action):
 	"""Allow workflow action on the current doc"""
-	doc = frappe.get_doc(frappe.parse_json(doc))
+	doc = nts.get_doc(nts.parse_json(doc))
 	doc.load_from_db()
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
-	user = frappe.session.user
+	user = nts.session.user
 
 	# find the transition
 	transition = None
@@ -111,10 +111,10 @@ def apply_workflow(doc, action):
 			transition = t
 
 	if not transition:
-		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
+		nts.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
 
 	if not has_approval_access(user, doc, transition):
-		frappe.throw(_("Self approval is not allowed"))
+		nts.throw(_("Self approval is not allowed"))
 
 	# update workflow state field
 	doc.set(workflow.workflow_state_field, transition.next_state)
@@ -130,8 +130,8 @@ def apply_workflow(doc, action):
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
-		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-		from frappe.utils.scheduler import is_scheduler_inactive
+		from nts.core.doctype.submission_queue.submission_queue import queue_submission
+		from nts.utils.scheduler import is_scheduler_inactive
 
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
@@ -143,14 +143,14 @@ def apply_workflow(doc, action):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
 		doc.cancel()
 	else:
-		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
+		nts.throw(_("Illegal Document Status for {0}").format(next_state.state))
 
 	doc.add_comment("Workflow", _(next_state.state))
 
 	return doc
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def can_cancel_document(doctype):
 	workflow = get_workflow(doctype)
 	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
@@ -185,22 +185,22 @@ def validate_workflow(doc):
 
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
-		frappe.throw(
+		nts.throw(
 			_("{0} is not a valid Workflow State. Please update your Workflow and try again.").format(
-				frappe.bold(current_state)
+				nts.bold(current_state)
 			)
 		)
 	state_row = state_row[0]
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
-		bold_current = frappe.bold(current_state)
-		bold_next = frappe.bold(next_state)
+		bold_current = nts.bold(current_state)
+		bold_next = nts.bold(next_state)
 
 		if not doc._doc_before_save:
 			# transitioning directly to a state other than the first
 			# e.g from data import
-			frappe.throw(
+			nts.throw(
 				_("Workflow State transition not allowed from {0} to {1}").format(bold_current, bold_next),
 				WorkflowPermissionError,
 			)
@@ -208,14 +208,14 @@ def validate_workflow(doc):
 		transitions = get_transitions(doc._doc_before_save)
 		transition = [d for d in transitions if d.next_state == next_state]
 		if not transition:
-			frappe.throw(
+			nts.throw(
 				_("Workflow State transition not allowed from {0} to {1}").format(bold_current, bold_next),
 				WorkflowPermissionError,
 			)
 
 
 def get_workflow(doctype) -> "Workflow":
-	return frappe.get_cached_doc("Workflow", get_workflow_name(doctype))
+	return nts.get_cached_doc("Workflow", get_workflow_name(doctype))
 
 
 def has_approval_access(user, doc, transition):
@@ -231,17 +231,17 @@ def send_email_alert(workflow_name):
 
 
 def get_workflow_field_value(workflow_name, field):
-	return frappe.get_cached_value("Workflow", workflow_name, field)
+	return nts.get_cached_value("Workflow", workflow_name, field)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
 	docnames = json.loads(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
 	elif len(docnames) <= 500:
-		frappe.msgprint(_("Bulk {0} is enqueued in background.").format(action), alert=True)
-		frappe.enqueue(
+		nts.msgprint(_("Bulk {0} is enqueued in background.").format(action), alert=True)
+		nts.enqueue(
 			_bulk_workflow_action,
 			docnames=docnames,
 			doctype=doctype,
@@ -250,7 +250,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 			timeout=1000,
 		)
 	else:
-		frappe.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))
+		nts.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))
 
 
 def _bulk_workflow_action(docnames, doctype, action):
@@ -258,15 +258,15 @@ def _bulk_workflow_action(docnames, doctype, action):
 	failed_transactions = defaultdict(list)
 	successful_transactions = defaultdict(list)
 
-	frappe.clear_messages()
+	nts.clear_messages()
 	for idx, docname in enumerate(docnames, 1):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			apply_workflow(frappe.get_doc(doctype, docname), action)
-			frappe.db.commit()
+			apply_workflow(nts.get_doc(doctype, docname), action)
+			nts.db.commit()
 		except Exception as e:
-			if not frappe.message_log:
+			if not nts.message_log:
 				# Exception is	raised manually and not from msgprint or throw
 				message = f"{e.__class__.__name__}"
 				if e.args:
@@ -274,18 +274,18 @@ def _bulk_workflow_action(docnames, doctype, action):
 				message_dict = {"docname": docname, "message": message}
 				failed_transactions[docname].append(message_dict)
 
-			frappe.db.rollback()
-			frappe.log_error(
+			nts.db.rollback()
+			nts.log_error(
 				title=f"Workflow {action} threw an error for {doctype} {docname}",
 				reference_doctype="Workflow",
 				reference_name=action,
 			)
 		finally:
 			if not message_dict:
-				if frappe.message_log:
-					messages = frappe.get_message_log()
+				if nts.message_log:
+					messages = nts.get_message_log()
 					for message in messages:
-						frappe.message_log.pop()
+						nts.message_log.pop()
 						message_dict = {"docname": docname, "message": message.get("message")}
 
 						if message.get("raise_exception", False):
@@ -312,7 +312,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 
 		for doc in messages.keys():
 			if len(messages[doc]):
-				html = f"<details><summary>{frappe.utils.get_link_to_form(doctype, doc)}</summary>"
+				html = f"<details><summary>{nts.utils.get_link_to_form(doctype, doc)}</summary>"
 				for log in messages[doc]:
 					if log.get("message"):
 						html += "<div class='small text-muted' style='padding:2.5px'>{}</div>".format(
@@ -323,12 +323,12 @@ def print_workflow_log(messages, title, doctype, indicator):
 				html = f"<div>{doc}</div>"
 			msg += html
 
-		frappe.msgprint(
+		nts.msgprint(
 			msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True, realtime=True
 		)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_common_transition_actions(docs, doctype):
 	common_actions = []
 	if isinstance(docs, str):
@@ -340,7 +340,7 @@ def get_common_transition_actions(docs, doctype):
 			actions = [
 				t.get("action")
 				for t in get_transitions(doc, raise_exception=True)
-				if has_approval_access(frappe.session.user, doc, t)
+				if has_approval_access(nts.session.user, doc, t)
 			]
 			if not actions:
 				return []
@@ -356,11 +356,11 @@ def get_common_transition_actions(docs, doctype):
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
 	if n >= 5:
-		frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
+		nts.publish_progress(float(i) * 100 / n, title=message, description=description)
 
 
 def set_workflow_state_on_action(doc, workflow_name, action):
-	workflow = frappe.get_doc("Workflow", workflow_name)
+	workflow = nts.get_doc("Workflow", workflow_name)
 	workflow_state_field = workflow.workflow_state_field
 
 	# If workflow state of doc is already correct, don't set workflow state

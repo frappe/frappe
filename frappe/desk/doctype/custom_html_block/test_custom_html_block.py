@@ -1,9 +1,9 @@
-# Copyright (c) 2023, Frappe Technologies and Contributors
+# Copyright (c) 2023, nts Technologies and Contributors
 # See license.txt
 
-# import frappe
-from frappe.tests.utils import FrappeTestCase
+# import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestCustomHTMLBlock(FrappeTestCase):
+class TestCustomHTMLBlock(ntsTestCase):
 	pass

@@ -1,13 +1,13 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Email Group", {
+nts.ui.form.on("Email Group", {
 	refresh: function (frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(
 				__("Import Subscribers"),
 				function () {
-					frappe.prompt(
+					nts.prompt(
 						{
 							fieldtype: "Select",
 							options: frm.doc.__onload.import_types,
@@ -16,8 +16,8 @@ frappe.ui.form.on("Email Group", {
 							reqd: 1,
 						},
 						function (data) {
-							frappe.call({
-								method: "frappe.email.doctype.email_group.email_group.import_from",
+							nts.call({
+								method: "nts.email.doctype.email_group.email_group.import_from",
 								args: {
 									name: frm.doc.name,
 									doctype: data.doctype,
@@ -37,7 +37,7 @@ frappe.ui.form.on("Email Group", {
 			frm.add_custom_button(
 				__("Add Subscribers"),
 				function () {
-					frappe.prompt(
+					nts.prompt(
 						{
 							fieldtype: "Text",
 							label: __("Email Addresses"),
@@ -45,8 +45,8 @@ frappe.ui.form.on("Email Group", {
 							reqd: 1,
 						},
 						function (data) {
-							frappe.call({
-								method: "frappe.email.doctype.email_group.email_group.add_subscribers",
+							nts.call({
+								method: "nts.email.doctype.email_group.email_group.add_subscribers",
 								args: {
 									name: frm.doc.name,
 									email_list: data.email_list,
@@ -66,8 +66,8 @@ frappe.ui.form.on("Email Group", {
 			frm.add_custom_button(
 				__("New Newsletter"),
 				function () {
-					frappe.route_options = { email_group: frm.doc.name };
-					frappe.new_doc("Newsletter");
+					nts.route_options = { email_group: frm.doc.name };
+					nts.new_doc("Newsletter");
 				},
 				__("Action")
 			);

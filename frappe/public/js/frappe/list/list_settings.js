@@ -1,7 +1,7 @@
 export default class ListSettings {
 	constructor({ listview, doctype, meta, settings }) {
 		if (!doctype) {
-			frappe.throw("DocType required");
+			nts.throw("DocType required");
 		}
 
 		this.listview = listview;
@@ -13,7 +13,7 @@ export default class ListSettings {
 			this.settings && this.settings.fields ? JSON.parse(this.settings.fields) : [];
 		this.subject_field = null;
 
-		frappe.model.with_doctype("List View Settings", () => {
+		nts.model.with_doctype("List View Settings", () => {
 			this.make();
 			this.get_listview_fields(meta);
 			this.setup_fields();
@@ -26,9 +26,9 @@ export default class ListSettings {
 	make() {
 		let me = this;
 
-		let list_view_settings = frappe.get_meta("List View Settings");
+		let list_view_settings = nts.get_meta("List View Settings");
 
-		me.dialog = new frappe.ui.Dialog({
+		me.dialog = new nts.ui.Dialog({
 			title: __("{0} Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields,
 		});
@@ -36,13 +36,13 @@ export default class ListSettings {
 		me.dialog.set_primary_action(__("Save"), () => {
 			let values = me.dialog.get_values();
 
-			frappe.show_alert({
+			nts.show_alert({
 				message: __("Saving"),
 				indicator: "green",
 			});
 
-			frappe.call({
-				method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
+			nts.call({
+				method: "nts.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
 				args: {
 					doctype: me.doctype,
 					listview_settings: values,
@@ -118,14 +118,14 @@ export default class ListSettings {
 
 					<div class="row">
 						<div class="col-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
+							${nts.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-10" style="padding-left:0px;">
 							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("delete", "xs")}
+								${nts.utils.icon("delete", "xs")}
 							</a>
 						</div>
 					</div>
@@ -223,7 +223,7 @@ export default class ListSettings {
 	column_selector() {
 		let me = this;
 
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("{0} Fields", [__(me.doctype)]),
 			fields: [
 				{
@@ -264,7 +264,7 @@ export default class ListSettings {
 				if (me.fields.length === parseInt(me.dialog.get_values().total_fields)) {
 					break;
 				} else if (value != me.subject_field.fieldname) {
-					let field = frappe.meta.get_docfield(me.doctype, value);
+					let field = nts.meta.get_docfield(me.doctype, value);
 					if (field) {
 						me.fields.push({
 							label: __(field.label, null, me.doctype),
@@ -284,9 +284,9 @@ export default class ListSettings {
 	reset_listview_fields(dialog) {
 		let me = this;
 
-		frappe
+		nts
 			.xcall(
-				"frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
+				"nts.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
 				{
 					doctype: me.doctype,
 				}
@@ -319,7 +319,7 @@ export default class ListSettings {
 		meta.fields.forEach((field) => {
 			if (
 				field.in_list_view &&
-				!frappe.model.no_value_type.includes(field.fieldtype) &&
+				!nts.model.no_value_type.includes(field.fieldtype) &&
 				me.subject_field.fieldname != field.fieldname
 			) {
 				me.fields.push({
@@ -339,7 +339,7 @@ export default class ListSettings {
 		};
 
 		if (meta.title_field) {
-			let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim());
+			let field = nts.meta.get_docfield(me.doctype, meta.title_field.trim());
 
 			me.subject_field = {
 				label: __(field.label, null, me.doctype),
@@ -353,7 +353,7 @@ export default class ListSettings {
 	set_status_field() {
 		let me = this;
 
-		if (frappe.has_indicator(me.doctype)) {
+		if (nts.has_indicator(me.doctype)) {
 			me.fields.push({
 				type: "Status",
 				label: __("Status"),
@@ -366,7 +366,7 @@ export default class ListSettings {
 		let multiselect_fields = [];
 
 		meta.fields.forEach((field) => {
-			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
+			if (!nts.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
 					label: __(field.label, null, field.doctype),
 					value: field.fieldname,
@@ -382,7 +382,7 @@ export default class ListSettings {
 		let me = this;
 		let removed_fields = [];
 
-		if (frappe.has_indicator(me.doctype)) {
+		if (nts.has_indicator(me.doctype)) {
 			new_fields.push("status_field");
 		}
 

@@ -48,9 +48,9 @@ Message-Id: <444FBF29-EE23-4698-A38F-DD1081ABB362@example.com>
 Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
 Subject: Re: 1 minute review 🦄🌈😎
 Date: Mon, 7 Mar 2016 19:15:12 +0530
-References: <7c38972ae7@frappe.example.com>
+References: <7c38972ae7@nts.example.com>
 To: support@example.com
-In-Reply-To: <7c38972ae7@frappe.example.com>
+In-Reply-To: <7c38972ae7@nts.example.com>
 X-Mailer: Apple Mail (2.3112)
 
 
@@ -90,10 +90,10 @@ removing any features
 > Agree!
 > This email was sent to sukh@example.com
 > Leave this conversation =
-<http://frappe.example.com/api/method/frappe.email.bulk.unsubscribe?email=3D=
+<http://nts.example.com/api/method/nts.email.bulk.unsubscribe?email=3D=
 sukh%40example.com&name=3DWN-SUP17470&doctype=3DIssue&_signature=3Dbba=
 bf063b4f3aad9ba1af915aa66df23>
-> Frappe Technologies Private Limited
+> nts Technologies Private Limited
 > Sent via ERPNext <https://example.com/?source=3Dvia_email_footer>
 
 
@@ -167,7 +167,7 @@ center; color: #8d99a6;" class=3D"">
 href=3D"mailto:sukh@example.com" class=3D"">sukh@example.com</a>
 			<p style=3D"margin: 15px auto;" class=3D"">
 				<a =
-href=3D"http://frappe.example.com/api/method/frappe.email.bulk.unsubscribe=
+href=3D"http://nts.example.com/api/method/nts.email.bulk.unsubscribe=
 ?email=3Dsukh%40example.com&amp;name=3DWN-SUP17470&amp;doctype=3DIssue=
 &amp;_signature=3Dbbabf063b4f3aad9ba1af915aa66df23" style=3D"color: =
 #8d99a6; text-decoration: underline;
@@ -176,7 +176,7 @@ class=3D"">Leave this conversation
 				</a>
 			</p>
 		</div><div style=3D"margin: 15px auto; text-align: =
-center; color: #8d99a6" class=3D"">Frappe Technologies Private =
+center; color: #8d99a6" class=3D"">nts Technologies Private =
 Limited</div><div style=3D"margin: 15px auto;" class=3D""><div =
 style=3D"text-align: center;" class=3D"">
 	<a href=3D"https://example.com/?source=3Dvia_email_footer" =

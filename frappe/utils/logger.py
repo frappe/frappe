@@ -6,11 +6,11 @@ from logging.handlers import RotatingFileHandler
 from typing import Literal
 
 # imports - module imports
-import frappe
-from frappe.utils import get_sites
+import nts
+from nts.utils import get_sites
 
-default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
-stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
+default_log_level = logging.WARNING if nts._dev_server else logging.ERROR
+stream_logging = os.environ.get("nts_STREAM_LOGGING")
 
 
 def get_logger(
@@ -38,7 +38,7 @@ def get_logger(
 	"""
 
 	if allow_site is True:
-		site = getattr(frappe.local, "site", None)
+		site = getattr(nts.local, "site", None)
 	elif allow_site in get_sites():
 		site = allow_site
 	else:
@@ -47,19 +47,19 @@ def get_logger(
 	logger_name = "{}-{}".format(module, site or "all")
 
 	try:
-		return frappe.loggers[logger_name]
+		return nts.loggers[logger_name]
 	except KeyError:
 		pass
 
 	if not module:
-		module = "frappe"
+		module = "nts"
 		with_more_info = True
 
 	logfile = module + ".log"
 	log_filename = os.path.join("..", "logs", logfile)
 
 	logger = logging.getLogger(logger_name)
-	logger.setLevel(frappe.log_level or default_log_level)
+	logger.setLevel(nts.log_level or default_log_level)
 	logger.propagate = False
 
 	formatter = logging.Formatter(f"%(asctime)s %(levelname)s {module} %(message)s")
@@ -82,7 +82,7 @@ def get_logger(
 	if filter:
 		logger.addFilter(filter)
 
-	frappe.loggers[logger_name] = logger
+	nts.loggers[logger_name] = logger
 
 	return logger
 
@@ -92,16 +92,16 @@ class SiteContextFilter(logging.Filter):
 
 	def filter(self, record) -> bool:
 		if "Form Dict" not in str(record.msg):
-			site = getattr(frappe.local, "site", None)
-			form_dict = sanitized_dict(getattr(frappe.local, "form_dict", None))
+			site = getattr(nts.local, "site", None)
+			form_dict = sanitized_dict(getattr(nts.local, "form_dict", None))
 			record.msg = str(record.msg) + f"\nSite: {site}\nForm Dict: {form_dict}"
 			return True
 
 
 def set_log_level(level: Literal["ERROR", "WARNING", "WARN", "INFO", "DEBUG"]) -> None:
 	"""Use this method to set log level to something other than the default DEBUG"""
-	frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
-	frappe.loggers = {}
+	nts.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
+	nts.loggers = {}
 
 
 def sanitized_dict(form_dict):

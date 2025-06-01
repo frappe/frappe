@@ -1,12 +1,12 @@
-// Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // Common utility functions for logging doctypes.
 
-frappe.provide("frappe.utils.logtypes");
+nts.provide("nts.utils.logtypes");
 
-frappe.utils.logtypes.show_log_retention_message = (doctype) => {
-	if (!frappe.model.can_write("Log Settings")) {
+nts.utils.logtypes.show_log_retention_message = (doctype) => {
+	if (!nts.model.can_write("Log Settings")) {
 		return;
 	}
 
@@ -21,7 +21,7 @@ frappe.utils.logtypes.show_log_retention_message = (doctype) => {
 	const cta = __("You can change the retention policy from {0}.", [log_settings_link]);
 	let message = __("{0} records are not automatically deleted.", [__(doctype)]);
 
-	frappe.db
+	nts.db
 		.get_value("Logs To Clear", { ref_doctype: doctype }, "days", null, "Log Settings")
 		.then((r) => {
 			if (!r.exc && r.message && r.message.days) {

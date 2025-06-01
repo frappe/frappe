@@ -2,7 +2,7 @@ import os
 
 import click
 
-import frappe
+import nts
 
 
 @click.command("create-rq-users")
@@ -19,12 +19,12 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	acl config file will be used by redis server while starting the server
 	and app config is used by app while connecting to redis server.
 	"""
-	from frappe.installer import update_site_config
-	from frappe.utils.redis_queue import RedisQueue
+	from nts.installer import update_site_config
+	from nts.utils.redis_queue import RedisQueue
 
 	acl_file_path = os.path.abspath("../config/redis_queue.acl")
 
-	with frappe.init_site():
+	with nts.init_site():
 		acl_list, user_credentials = RedisQueue.gen_acl_list(set_admin_password=set_admin_password)
 
 	with open(acl_file_path, "w") as f:

@@ -1,8 +1,8 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class CommunicationLink(Document):
@@ -12,7 +12,7 @@ class CommunicationLink(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		link_doctype: DF.Link
 		link_name: DF.DynamicLink
@@ -25,4 +25,4 @@ class CommunicationLink(Document):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Communication Link", ["link_doctype", "link_name"])
+	nts.db.add_index("Communication Link", ["link_doctype", "link_name"])

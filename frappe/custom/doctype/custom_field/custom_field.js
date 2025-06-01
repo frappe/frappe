@@ -1,19 +1,19 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // Refresh
 // --------
 
-frappe.ui.form.on("Custom Field", {
+nts.ui.form.on("Custom Field", {
 	setup: function (frm) {
 		frm.set_query("dt", function (doc) {
 			var filters = [
 				["DocType", "issingle", "=", 0],
 				["DocType", "custom", "=", 0],
-				["DocType", "name", "not in", frappe.model.core_doctypes_list],
-				["DocType", "restrict_to_domain", "in", frappe.boot.active_domains],
+				["DocType", "name", "not in", nts.model.core_doctypes_list],
+				["DocType", "restrict_to_domain", "in", nts.boot.active_domains],
 			];
-			if (frappe.session.user !== "Administrator") {
+			if (nts.session.user !== "Administrator") {
 				filters.push(["DocType", "module", "not in", ["Core", "Custom"]]);
 			}
 			return {
@@ -32,7 +32,7 @@ frappe.ui.form.on("Custom Field", {
 				__(
 					"<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead.",
 					[
-						frappe.utils.get_form_link(
+						nts.utils.get_form_link(
 							"Customize Form",
 							"Customize Form",
 							true,
@@ -54,8 +54,8 @@ frappe.ui.form.on("Custom Field", {
 			return;
 		}
 		var insert_after = frm.doc.insert_after || null;
-		return frappe.call({
-			method: "frappe.custom.doctype.custom_field.custom_field.get_fields_label",
+		return nts.call({
+			method: "nts.custom.doctype.custom_field.custom_field.get_fields_label",
 			args: { doctype: frm.doc.dt, fieldname: frm.doc.fieldname },
 			callback: function (r) {
 				if (r) {
@@ -78,7 +78,7 @@ frappe.ui.form.on("Custom Field", {
 		});
 	},
 	label: function (frm) {
-		if (frm.doc.label && frappe.utils.has_special_chars(frm.doc.label)) {
+		if (frm.doc.label && nts.utils.has_special_chars(frm.doc.label)) {
 			frm.fields_dict["label_help"].disp_area.innerHTML =
 				'<font color = "red">' + __("Special Characters are not allowed") + "</font>";
 			frm.set_value("label", "");
@@ -114,7 +114,7 @@ frappe.ui.form.on("Custom Field", {
 	add_rename_field(frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Rename Fieldname"), () => {
-				frappe.prompt(
+				nts.prompt(
 					{
 						fieldtype: "Data",
 						label: __("Fieldname"),
@@ -123,9 +123,9 @@ frappe.ui.form.on("Custom Field", {
 						default: frm.doc.fieldname,
 					},
 					function (data) {
-						frappe
+						nts
 							.xcall(
-								"frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
+								"nts.custom.doctype.custom_field.custom_field.rename_fieldname",
 								{
 									custom_field: frm.doc.name,
 									fieldname: data.fieldname,
@@ -141,7 +141,7 @@ frappe.ui.form.on("Custom Field", {
 	},
 });
 
-frappe.utils.has_special_chars = function (t) {
+nts.utils.has_special_chars = function (t) {
 	var iChars = "!@#$%^&*()+=-[]\\';,./{}|\":<>?";
 	for (var i = 0; i < t.length; i++) {
 		if (iChars.indexOf(t.charAt(i)) != -1) {

@@ -39,8 +39,8 @@ export default class Header extends Block {
 			this.add_settings_button();
 			this.add_new_block_button();
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -111,7 +111,7 @@ export default class Header extends Block {
 			let div = document.createElement("div");
 			div.innerHTML = text;
 			let only_text = div.innerText;
-			only_text = frappe.utils.escape_html(only_text);
+			only_text = nts.utils.escape_html(only_text);
 			text = text.replace(only_text, __(only_text));
 
 			this._element.innerHTML = contains_html_tag
@@ -144,7 +144,7 @@ export default class Header extends Block {
 	static get toolbox() {
 		return {
 			title: "Heading",
-			icon: frappe.utils.icon("header", "sm"),
+			icon: nts.utils.icon("header", "sm"),
 		};
 	}
 }

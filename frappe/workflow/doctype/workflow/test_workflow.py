@@ -1,35 +1,35 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from unittest.mock import patch
 
-import frappe
-from frappe.model.workflow import (
+import nts
+from nts.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
 	get_common_transition_actions,
 )
-from frappe.query_builder import DocType
-from frappe.test_runner import make_test_records
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import random_string
+from nts.query_builder import DocType
+from nts.test_runner import make_test_records
+from nts.tests.utils import ntsTestCase
+from nts.utils import random_string
 
 
-class TestWorkflow(FrappeTestCase):
+class TestWorkflow(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		make_test_records("User")
 
 	def setUp(self):
-		self.patcher = patch("frappe.attach_print", return_value={})
+		self.patcher = patch("nts.attach_print", return_value={})
 		self.patcher.start()
-		frappe.db.delete("Workflow Action")
+		nts.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
 
 	def tearDown(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		self.patcher.stop()
-		frappe.delete_doc("Workflow", "Test ToDo")
+		nts.delete_doc("Workflow", "Test ToDo")
 
 	def test_default_condition(self):
 		"""test default condition is set"""
@@ -88,43 +88,43 @@ class TestWorkflow(FrappeTestCase):
 		self.assertListEqual(actions, ["Review"])
 
 	def test_if_workflow_actions_were_processed_using_role(self):
-		user = frappe.get_doc("User", "test2@example.com")
+		user = nts.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
-		frappe.set_user("test2@example.com")
+		nts.set_user("test2@example.com")
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
+		workflow_actions = nts.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
 		self.test_approve(doc)
 		user.remove_roles("Test Approver", "System Manager")
-		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
+		workflow_actions = nts.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 
 	def test_if_workflow_actions_were_processed_using_user(self):
-		user = frappe.get_doc("User", "test2@example.com")
+		user = nts.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
-		frappe.set_user("test2@example.com")
+		nts.set_user("test2@example.com")
 
 		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
+		workflow_actions = nts.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
 		WorkflowAction = DocType("Workflow Action")
 		WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
-		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, "test2@example.com").run()
-		frappe.qb.update(WorkflowActionPermittedRole).set(WorkflowActionPermittedRole.role, "").run()
+		nts.qb.update(WorkflowAction).set(WorkflowAction.user, "test2@example.com").run()
+		nts.qb.update(WorkflowActionPermittedRole).set(WorkflowActionPermittedRole.role, "").run()
 
 		self.test_approve(doc)
 
 		user.remove_roles("Test Approver", "System Manager")
-		workflow_actions = frappe.get_all("Workflow Action", fields=["status"])
+		workflow_actions = nts.get_all("Workflow Action", fields=["status"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
@@ -142,7 +142,7 @@ class TestWorkflow(FrappeTestCase):
 	def test_syntax_error_in_transition_rule(self):
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
 
-		with self.assertRaises(frappe.ValidationError) as se:
+		with self.assertRaises(nts.ValidationError) as se:
 			self.workflow.save()
 
 		self.assertTrue(
@@ -151,19 +151,19 @@ class TestWorkflow(FrappeTestCase):
 
 
 def create_todo_workflow():
-	from frappe.tests.ui_test_helpers import UI_TEST_USER
+	from nts.tests.ui_test_helpers import UI_TEST_USER
 
-	if frappe.db.exists("Workflow", "Test ToDo"):
-		frappe.delete_doc("Workflow", "Test ToDo")
+	if nts.db.exists("Workflow", "Test ToDo"):
+		nts.delete_doc("Workflow", "Test ToDo")
 
 	TEST_ROLE = "Test Approver"
 
-	if not frappe.db.exists("Role", TEST_ROLE):
-		frappe.get_doc(dict(doctype="Role", role_name=TEST_ROLE)).insert(ignore_if_duplicate=True)
-		if frappe.db.exists("User", UI_TEST_USER):
-			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+	if not nts.db.exists("Role", TEST_ROLE):
+		nts.get_doc(dict(doctype="Role", role_name=TEST_ROLE)).insert(ignore_if_duplicate=True)
+		if nts.db.exists("User", UI_TEST_USER):
+			nts.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
 
-	workflow = frappe.new_doc("Workflow")
+	workflow = nts.new_doc("Workflow")
 	workflow.workflow_name = "Test ToDo"
 	workflow.document_type = "ToDo"
 	workflow.workflow_state_field = "workflow_state"
@@ -205,4 +205,4 @@ def create_todo_workflow():
 
 
 def create_new_todo():
-	return frappe.get_doc(dict(doctype="ToDo", description="workflow " + random_string(10))).insert()
+	return nts.get_doc(dict(doctype="ToDo", description="workflow " + random_string(10))).insert()

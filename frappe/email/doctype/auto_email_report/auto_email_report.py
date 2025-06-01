@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import calendar
@@ -6,12 +6,12 @@ import datetime
 from datetime import timedelta
 from email.utils import formataddr
 
-import frappe
-from frappe import _
-from frappe.desk.query_report import build_xlsx_data
-from frappe.model.document import Document
-from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import (
+import nts
+from nts import _
+from nts.desk.query_report import build_xlsx_data
+from nts.model.document import Document
+from nts.model.naming import append_number_if_name_exists
+from nts.utils import (
 	add_to_date,
 	cint,
 	format_time,
@@ -28,8 +28,8 @@ from frappe.utils import (
 	today,
 	validate_email_address,
 )
-from frappe.utils.csvutils import to_csv
-from frappe.utils.xlsxutils import make_xlsx
+from nts.utils.csvutils import to_csv
+from nts.utils.xlsxutils import make_xlsx
 
 
 class AutoEmailReport(Document):
@@ -39,7 +39,7 @@ class AutoEmailReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		data_modified_till: DF.Int
 		day_of_week: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -67,7 +67,7 @@ class AutoEmailReport(Document):
 
 	def autoname(self):
 		self.name = _(self.report)
-		if frappe.db.exists("Auto Email Report", self.name):
+		if nts.db.exists("Auto Email Report", self.name):
 			self.name = append_number_if_name_exists("Auto Email Report", self.name)
 
 	def validate(self):
@@ -78,7 +78,7 @@ class AutoEmailReport(Document):
 
 	@property
 	def sender_email(self):
-		return frappe.db.get_value("Email Account", self.sender, "email_id")
+		return nts.db.get_value("Email Account", self.sender, "email_id")
 
 	def validate_emails(self):
 		"""Cleanup list of emails"""
@@ -94,38 +94,38 @@ class AutoEmailReport(Document):
 		self.email_to = "\n".join(valid)
 
 	def validate_report_count(self):
-		count = frappe.db.count("Auto Email Report", {"user": self.user, "enabled": 1})
+		count = nts.db.count("Auto Email Report", {"user": self.user, "enabled": 1})
 
 		max_reports_per_user = (
-			cint(frappe.local.conf.max_reports_per_user)  # kept for backward compatibilty
-			or cint(frappe.db.get_single_value("System Settings", "max_auto_email_report_per_user"))
+			cint(nts.local.conf.max_reports_per_user)  # kept for backward compatibilty
+			or cint(nts.db.get_single_value("System Settings", "max_auto_email_report_per_user"))
 			or 20
 		)
 
 		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			msg = _("Only {0} emailed reports are allowed per user.").format(max_reports_per_user)
 			msg += " " + _("To allow more reports update limit in System Settings.")
-			frappe.throw(msg, title=_("Report limit reached"))
+			nts.throw(msg, title=_("Report limit reached"))
 
 	def validate_report_format(self):
 		"""check if user has select correct report format"""
 		valid_report_formats = ["HTML", "XLSX", "CSV"]
 		if self.format not in valid_report_formats:
-			frappe.throw(
+			nts.throw(
 				_("{0} is not a valid report format. Report format should one of the following {1}").format(
-					frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats))
+					nts.bold(self.format), nts.bold(", ".join(valid_report_formats))
 				)
 			)
 
 	def validate_mandatory_fields(self):
 		# Check if all Mandatory Report Filters are filled by the User
-		filters = frappe.parse_json(self.filters) if self.filters else {}
-		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
+		filters = nts.parse_json(self.filters) if self.filters else {}
+		filter_meta = nts.parse_json(self.filter_meta) if self.filter_meta else {}
 		throw_list = [
 			meta["label"] for meta in filter_meta if meta.get("reqd") and not filters.get(meta["fieldname"])
 		]
 		if throw_list:
-			frappe.throw(
+			nts.throw(
 				title=_("Missing Filters Required"),
 				msg=_("Following Report Filters have missing values:")
 				+ "<br><br><ul><li>"
@@ -135,9 +135,9 @@ class AutoEmailReport(Document):
 
 	def get_report_content(self):
 		"""Returns file in for the report in given format"""
-		report = frappe.get_doc("Report", self.report)
+		report = nts.get_doc("Report", self.report)
 
-		self.filters = frappe.parse_json(self.filters) if self.filters else {}
+		self.filters = nts.parse_json(self.filters) if self.filters else {}
 
 		if self.report_type == "Report Builder" and self.data_modified_till:
 			self.filters["modified"] = (">", now_datetime() - timedelta(hours=self.data_modified_till))
@@ -155,7 +155,7 @@ class AutoEmailReport(Document):
 		)
 
 		# add serial numbers
-		columns.insert(0, frappe._dict(fieldname="idx", label="", width="30px"))
+		columns.insert(0, nts._dict(fieldname="idx", label="", width="30px"))
 		for i in range(len(data)):
 			data[i]["idx"] = i + 1
 
@@ -168,7 +168,7 @@ class AutoEmailReport(Document):
 			return self.get_html_table(columns, data)
 
 		elif self.format == "XLSX":
-			report_data = frappe._dict()
+			report_data = nts._dict()
 			report_data["columns"] = columns
 			report_data["result"] = data
 
@@ -177,7 +177,7 @@ class AutoEmailReport(Document):
 			return xlsx_file.getvalue()
 
 		elif self.format == "CSV":
-			report_data = frappe._dict()
+			report_data = nts._dict()
 			report_data["columns"] = columns
 			report_data["result"] = data
 
@@ -185,14 +185,14 @@ class AutoEmailReport(Document):
 			return to_csv(xlsx_data)
 
 		else:
-			frappe.throw(_("Invalid Output Format"))
+			nts.throw(_("Invalid Output Format"))
 
 	def get_html_table(self, columns=None, data=None):
 		date_time = global_date_format(now()) + " " + format_time(now())
-		report_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
+		report_doctype = nts.db.get_value("Report", self.report, "ref_doctype")
 
-		return frappe.render_template(
-			"frappe/templates/emails/auto_email_report.html",
+		return nts.render_template(
+			"nts/templates/emails/auto_email_report.html",
 			{
 				"title": self.name,
 				"description": self.description,
@@ -209,7 +209,7 @@ class AutoEmailReport(Document):
 		return "{}.{}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
 
 	def prepare_dynamic_filters(self):
-		self.filters = frappe.parse_json(self.filters)
+		self.filters = nts.parse_json(self.filters)
 
 		to_date = today()
 
@@ -248,7 +248,7 @@ class AutoEmailReport(Document):
 
 	def send(self):
 		if self.filter_meta and not self.filters:
-			frappe.throw(_("Please set filters value in Report Filter table."))
+			nts.throw(_("Please set filters value in Report Filter table."))
 
 		data = self.get_report_content()
 		if not data:
@@ -263,7 +263,7 @@ class AutoEmailReport(Document):
 		if not self.format == "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=self.email_to.split(),
 			sender=formataddr((self.sender, self.sender_email)) if self.sender else "",
 			subject=self.name,
@@ -278,26 +278,26 @@ class AutoEmailReport(Document):
 		return self.dynamic_date_period and self.from_date_field and self.to_date_field
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download(name):
 	"""Download report locally"""
-	auto_email_report = frappe.get_doc("Auto Email Report", name)
+	auto_email_report = nts.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
 	data = auto_email_report.get_report_content()
 
 	if not data:
-		frappe.msgprint(_("No Data"))
+		nts.msgprint(_("No Data"))
 		return
 
-	frappe.local.response.filecontent = data
-	frappe.local.response.type = "download"
-	frappe.local.response.filename = auto_email_report.get_file_name()
+	nts.local.response.filecontent = data
+	nts.local.response.type = "download"
+	nts.local.response.filename = auto_email_report.get_file_name()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def send_now(name):
 	"""Send Auto Email report now"""
-	auto_email_report = frappe.get_doc("Auto Email Report", name)
+	auto_email_report = nts.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
 	auto_email_report.send()
 
@@ -305,13 +305,13 @@ def send_now(name):
 def send_daily():
 	"""Check reports to be sent daily"""
 
-	enabled_reports = frappe.get_all(
+	enabled_reports = nts.get_all(
 		"Auto Email Report", filters={"enabled": 1, "frequency": ("in", ("Daily", "Weekdays", "Weekly"))}
 	)
 
 	for report in enabled_reports:
-		frappe.enqueue(
-			"frappe.email.doctype.auto_email_report.auto_email_report.process_auto_email_report",
+		nts.enqueue(
+			"nts.email.doctype.auto_email_report.auto_email_report.process_auto_email_report",
 			report=report,
 			queue="long",
 		)
@@ -322,7 +322,7 @@ def process_auto_email_report(report):
 
 	current_day = calendar.day_name[now_datetime().weekday()]
 
-	auto_email_report = frappe.get_doc("Auto Email Report", report.name)
+	auto_email_report = nts.get_doc("Auto Email Report", report.name)
 
 	# if not correct weekday, skip
 	if auto_email_report.frequency == "Weekdays":
@@ -339,8 +339,8 @@ def process_auto_email_report(report):
 
 def send_monthly():
 	"""Check reports to be sent monthly"""
-	for report in frappe.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
-		frappe.get_doc("Auto Email Report", report.name).send()
+	for report in nts.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
+		nts.get_doc("Auto Email Report", report.name).send()
 
 
 def make_links(columns, data):
@@ -358,12 +358,12 @@ def make_links(columns, data):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
 				doc = None
-				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
-					if frappe.db.exists(col.parent, doc_name):
-						doc = frappe.get_doc(col.parent, doc_name)
+				if doc_name and col.get("parent") and not nts.get_meta(col.parent).istable:
+					if nts.db.exists(col.parent, doc_name):
+						doc = nts.get_doc(col.parent, doc_name)
 
 				# Pass the Document to get the currency based on docfield option
-				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
+				row[col.fieldname] = nts.format_value(row[col.fieldname], col, doc=doc)
 	return columns, data
 
 

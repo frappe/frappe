@@ -1,27 +1,27 @@
 import json
 
-import frappe
-from frappe.core.doctype.file.file import File
-from frappe.core.doctype.file.utils import setup_folder_path
-from frappe.utils import cint, cstr
+import nts
+from nts.core.doctype.file.file import File
+from nts.core.doctype.file.utils import setup_folder_path
+from nts.utils import cint, cstr
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def unzip_file(name: str):
 	"""Unzip the given file and make file records for each of the extracted files"""
-	file: File = frappe.get_doc("File", name)
+	file: File = nts.get_doc("File", name)
 	return file.unzip()
 
 
-@frappe.whitelist()
-def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
+@nts.whitelist()
+def get_attached_images(doctype: str, names: list[str] | str) -> nts._dict:
 	"""get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}"""
 
 	if isinstance(names, str):
 		names = json.loads(names)
 
-	img_urls = frappe.db.get_list(
+	img_urls = nts.db.get_list(
 		"File",
 		filters={
 			"attached_to_doctype": doctype,
@@ -31,7 +31,7 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 		fields=["file_url", "attached_to_name as docname"],
 	)
 
-	out = frappe._dict()
+	out = nts._dict()
 	for i in img_urls:
 		out[i.docname] = out.get(i.docname, [])
 		out[i.docname].append(i.file_url)
@@ -39,16 +39,16 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	return out
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
-	attachment_folder = frappe.db.get_value(
+	attachment_folder = nts.db.get_value(
 		"File",
 		"Home/Attachments",
 		["name", "file_name", "file_url", "is_folder", "modified"],
 		as_dict=1,
 	)
 
-	files = frappe.get_list(
+	files = nts.get_list(
 		"File",
 		{"folder": folder},
 		["name", "file_name", "file_url", "is_folder", "modified"],
@@ -62,13 +62,13 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 	return {"files": files[:page_length], "has_more": len(files) > page_length}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []
 
 	text = "%" + cstr(text).lower() + "%"
-	return frappe.get_list(
+	return nts.get_list(
 		"File",
 		fields=["name", "file_name", "file_url", "is_folder", "modified"],
 		filters={"is_folder": False},
@@ -82,19 +82,19 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_max_file_size() -> int:
 	return (
-		cint(frappe.get_system_settings("max_file_size")) * 1024 * 1024
-		or cint(frappe.conf.get("max_file_size"))
+		cint(nts.get_system_settings("max_file_size")) * 1024 * 1024
+		or cint(nts.conf.get("max_file_size"))
 		or 25 * 1024 * 1024
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""
-	file = frappe.new_doc("File")
+	file = nts.new_doc("File")
 	file.file_name = file_name
 	file.is_folder = 1
 	file.folder = folder
@@ -102,7 +102,7 @@ def create_new_folder(file_name: str, folder: str) -> File:
 	return file
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: str) -> None:
 	if isinstance(file_list, str):
 		file_list = json.loads(file_list)
@@ -112,13 +112,13 @@ def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: s
 		setup_folder_path(file_obj.get("name"), new_parent)
 
 	# recalculate sizes
-	frappe.get_doc("File", old_parent).save()
-	frappe.get_doc("File", new_parent).save()
+	nts.get_doc("File", old_parent).save()
+	nts.get_doc("File", new_parent).save()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def zip_files(files: str):
-	files = frappe.parse_json(files)
-	frappe.response["filename"] = "files.zip"
-	frappe.response["filecontent"] = File.zip_files(files)
-	frappe.response["type"] = "download"
+	files = nts.parse_json(files)
+	nts.response["filename"] = "files.zip"
+	nts.response["filecontent"] = File.zip_files(files)
+	nts.response["type"] = "download"

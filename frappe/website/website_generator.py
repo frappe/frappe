@@ -1,15 +1,15 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.modules import get_module_name
-from frappe.search.website_search import remove_document_from_index, update_index_for_path
-from frappe.website.utils import cleanup_page_name, clear_cache
+import nts
+from nts.model.document import Document
+from nts.modules import get_module_name
+from nts.search.website_search import remove_document_from_index, update_index_for_path
+from nts.website.utils import cleanup_page_name, clear_cache
 
 
 class WebsiteGenerator(Document):
-	website = frappe._dict()
+	website = nts._dict()
 
 	def __init__(self, *args, **kwargs):
 		self.route = None
@@ -92,7 +92,7 @@ class WebsiteGenerator(Document):
 		self.send_indexing_request("URL_DELETED")
 		# On deleting the doc, remove the page from the web_routes index
 		if self.allow_website_search_indexing():
-			frappe.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)
+			nts.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)
 
 	def is_website_published(self):
 		"""Return true if published in website"""
@@ -110,7 +110,7 @@ class WebsiteGenerator(Document):
 		return condition_field
 
 	def get_page_info(self):
-		route = frappe._dict()
+		route = nts._dict()
 		route.update(
 			{
 				"doc": self,
@@ -135,13 +135,13 @@ class WebsiteGenerator(Document):
 		"""Send indexing request on update/trash operation."""
 
 		if (
-			frappe.db.get_single_value("Website Settings", "enable_google_indexing")
+			nts.db.get_single_value("Website Settings", "enable_google_indexing")
 			and self.is_website_published()
 			and self.meta.allow_guest_to_view
 		):
-			url = frappe.utils.get_url(self.route)
-			frappe.enqueue(
-				"frappe.website.doctype.website_settings.google_indexing.publish_site",
+			url = nts.utils.get_url(self.route)
+			nts.enqueue(
+				"nts.website.doctype.website_settings.google_indexing.publish_site",
 				url=url,
 				operation_type=operation_type,
 			)
@@ -153,7 +153,7 @@ class WebsiteGenerator(Document):
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
-		if self.allow_website_search_indexing() or frappe.flags.in_test:
+		if self.allow_website_search_indexing() or nts.flags.in_test:
 			return
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
@@ -167,11 +167,11 @@ class WebsiteGenerator(Document):
 		- remove document from index if document is unpublished
 		- update index otherwise
 		"""
-		if not self.allow_website_search_indexing() or frappe.flags.in_test:
+		if not self.allow_website_search_indexing() or nts.flags.in_test:
 			return
 
 		if self.is_website_published():
-			frappe.enqueue(update_index_for_path, path=self.route, enqueue_after_commit=True)
+			nts.enqueue(update_index_for_path, path=self.route, enqueue_after_commit=True)
 		elif self.route:
 			# If the website is not published
-			frappe.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)
+			nts.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)

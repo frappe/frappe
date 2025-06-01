@@ -1,23 +1,23 @@
-frappe.ui.form.on("System Settings", {
+nts.ui.form.on("System Settings", {
 	refresh: function (frm) {
-		frappe.call({
-			method: "frappe.core.doctype.system_settings.system_settings.load",
+		nts.call({
+			method: "nts.core.doctype.system_settings.system_settings.load",
 			callback: function (data) {
-				frappe.all_timezones = data.message.timezones;
-				frm.set_df_property("time_zone", "options", frappe.all_timezones);
+				nts.all_timezones = data.message.timezones;
+				frm.set_df_property("time_zone", "options", nts.all_timezones);
 
 				$.each(data.message.defaults, function (key, val) {
 					frm.set_value(key, val, null, true);
-					frappe.sys_defaults[key] = val;
+					nts.sys_defaults[key] = val;
 				});
 				if (frm.re_setup_moment) {
-					frappe.app.setup_moment();
+					nts.app.setup_moment();
 					delete frm.re_setup_moment;
 				}
 			},
 		});
 
-		frappe.xcall("frappe.apps.get_apps").then((r) => {
+		nts.xcall("nts.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", [" ", ...apps]);
 		});
@@ -49,12 +49,12 @@ frappe.ui.form.on("System Settings", {
 			!override && prev_fallback !== new_fallback;
 
 		const attr_tuples = [
-			[frm.doc.language, frappe.boot.sysdefaults.language, frappe.boot.user.language],
-			[frm.doc.rounding_method, frappe.boot.sysdefaults.rounding_method], // no user override.
+			[frm.doc.language, nts.boot.sysdefaults.language, nts.boot.user.language],
+			[frm.doc.rounding_method, nts.boot.sysdefaults.rounding_method], // no user override.
 		];
 
 		if (attr_tuples.some(has_effectively_changed)) {
-			frappe.msgprint(__("Refreshing..."));
+			nts.msgprint(__("Refreshing..."));
 			window.location.reload();
 		}
 	},
@@ -63,18 +63,18 @@ frappe.ui.form.on("System Settings", {
 	},
 
 	rounding_method: function (frm) {
-		if (frm.doc.rounding_method == frappe.boot.sysdefaults.rounding_method) return;
+		if (frm.doc.rounding_method == nts.boot.sysdefaults.rounding_method) return;
 		let msg = __(
 			"Changing rounding method on site with data can result in unexpected behaviour."
 		);
 		msg += "<br>";
 		msg += __("Do you still want to proceed?");
 
-		frappe.confirm(
+		nts.confirm(
 			msg,
 			() => {},
 			() => {
-				frm.set_value("rounding_method", frappe.boot.sysdefaults.rounding_method);
+				frm.set_value("rounding_method", nts.boot.sysdefaults.rounding_method);
 			}
 		);
 	},

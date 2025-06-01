@@ -1,7 +1,7 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class BlockModule(Document):
@@ -11,7 +11,7 @@ class BlockModule(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		module: DF.Data
 		parent: DF.Data

@@ -1,14 +1,14 @@
-# Copyright (c) 2021, Frappe Technologies and Contributors
+# Copyright (c) 2021, nts Technologies and Contributors
 # See license.txt
 
 import json
 import os
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestPackage(FrappeTestCase):
+class TestPackage(ntsTestCase):
 	def test_package_release(self):
 		make_test_package()
 		make_test_module()
@@ -17,15 +17,15 @@ class TestPackage(FrappeTestCase):
 		make_test_web_page()
 
 		# make release
-		frappe.get_doc(dict(doctype="Package Release", package="Test Package", publish=1)).insert()
+		nts.get_doc(dict(doctype="Package Release", package="Test Package", publish=1)).insert()
 
-		self.assertTrue(os.path.exists(frappe.get_site_path("packages", "test-package")))
+		self.assertTrue(os.path.exists(nts.get_site_path("packages", "test-package")))
 		self.assertTrue(
-			os.path.exists(frappe.get_site_path("packages", "test-package", "test_module_for_package"))
+			os.path.exists(nts.get_site_path("packages", "test-package", "test_module_for_package"))
 		)
 		self.assertTrue(
 			os.path.exists(
-				frappe.get_site_path(
+				nts.get_site_path(
 					"packages",
 					"test-package",
 					"test_module_for_package",
@@ -35,7 +35,7 @@ class TestPackage(FrappeTestCase):
 			)
 		)
 		with open(
-			frappe.get_site_path(
+			nts.get_site_path(
 				"packages",
 				"test-package",
 				"test_module_for_package",
@@ -51,28 +51,28 @@ class TestPackage(FrappeTestCase):
 
 
 def make_test_package():
-	if not frappe.db.exists("Package", "Test Package"):
-		frappe.get_doc(
+	if not nts.db.exists("Package", "Test Package"):
+		nts.get_doc(
 			dict(doctype="Package", name="Test Package", package_name="test-package", readme="# Test Package")
 		).insert()
 
 
 def make_test_module():
-	if not frappe.db.exists("Module Def", "Test Module for Package"):
-		frappe.get_doc(
+	if not nts.db.exists("Module Def", "Test Module for Package"):
+		nts.get_doc(
 			dict(
 				doctype="Module Def",
 				module_name="Test Module for Package",
 				custom=1,
-				app_name="frappe",
+				app_name="nts",
 				package="Test Package",
 			)
 		).insert()
 
 
 def make_test_doctype():
-	if not frappe.db.exists("DocType", "Test DocType for Package"):
-		frappe.get_doc(
+	if not nts.db.exists("DocType", "Test DocType for Package"):
+		nts.get_doc(
 			dict(
 				doctype="DocType",
 				name="Test DocType for Package",
@@ -85,8 +85,8 @@ def make_test_doctype():
 
 
 def make_test_server_script():
-	if not frappe.db.exists("Server Script", "Test Script for Package"):
-		frappe.get_doc(
+	if not nts.db.exists("Server Script", "Test Script for Package"):
+		nts.get_doc(
 			dict(
 				doctype="Server Script",
 				name="Test Script for Package",
@@ -94,14 +94,14 @@ def make_test_server_script():
 				script_type="DocType Event",
 				reference_doctype="Test DocType for Package",
 				doctype_event="Before Save",
-				script='frappe.msgprint("Test")',
+				script='nts.msgprint("Test")',
 			)
 		).insert()
 
 
 def make_test_web_page():
-	if not frappe.db.exists("Web Page", "test-web-page-for-package"):
-		frappe.get_doc(
+	if not nts.db.exists("Web Page", "test-web-page-for-package"):
+		nts.get_doc(
 			dict(
 				doctype="Web Page",
 				module="Test Module for Package",

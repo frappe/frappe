@@ -1,6 +1,6 @@
-frappe.provide("frappe.report_utils");
+nts.provide("nts.report_utils");
 
-frappe.report_utils = {
+nts.report_utils = {
 	make_chart_options: function (
 		columns,
 		raw_data,
@@ -12,7 +12,7 @@ frappe.report_utils = {
 
 		let labels = get_column_values(x_field);
 		let datasets = y_fields.map((y_field) => ({
-			name: frappe.model.unscrub(y_field),
+			name: nts.model.unscrub(y_field),
 			values: get_column_values(y_field).map((d) => Number(d)),
 		}));
 
@@ -35,7 +35,7 @@ frappe.report_utils = {
 			axisOptions: {
 				shortenYAxisNumbers: 1,
 				xAxisMode: "tick",
-				numberFormatter: frappe.utils.format_chart_axis_number,
+				numberFormatter: nts.utils.format_chart_axis_number,
 			},
 		};
 
@@ -67,7 +67,7 @@ frappe.report_utils = {
 				if (field.fieldname) {
 					return { label: field.label, value: field.fieldname };
 				} else {
-					field = frappe.report_utils.prepare_field_from_column(field);
+					field = nts.report_utils.prepare_field_from_column(field);
 					return { label: field.label, value: field.fieldname };
 				}
 			});
@@ -114,28 +114,28 @@ frappe.report_utils = {
 	},
 
 	get_report_filters: function (report_name) {
-		if (frappe.query_reports[report_name]) {
-			let filters = frappe.query_reports[report_name].filters;
+		if (nts.query_reports[report_name]) {
+			let filters = nts.query_reports[report_name].filters;
 			return Promise.resolve(filters);
 		}
 
-		return frappe
-			.xcall("frappe.desk.query_report.get_script", {
+		return nts
+			.xcall("nts.desk.query_report.get_script", {
 				report_name: report_name,
 			})
 			.then((r) => {
-				frappe.dom.eval(r.script || "");
-				return frappe.after_ajax(() => {
+				nts.dom.eval(r.script || "");
+				return nts.after_ajax(() => {
 					if (
-						frappe.query_reports[report_name] &&
-						!frappe.query_reports[report_name].filters &&
+						nts.query_reports[report_name] &&
+						!nts.query_reports[report_name].filters &&
 						r.filters
 					) {
-						return (frappe.query_reports[report_name].filters = r.filters);
+						return (nts.query_reports[report_name].filters = r.filters);
 					}
 					return (
-						frappe.query_reports[report_name] &&
-						frappe.query_reports[report_name].filters
+						nts.query_reports[report_name] &&
+						nts.query_reports[report_name].filters
 					);
 				});
 			});
@@ -223,7 +223,7 @@ frappe.report_utils = {
 			);
 		}
 
-		const dialog = new frappe.ui.Dialog({
+		const dialog = new nts.ui.Dialog({
 			title: __("Export Report: {0}", [report_name], "Export report"),
 			fields: fields,
 			primary_action_label: __("Download", null, "Export report"),
@@ -231,8 +231,8 @@ frappe.report_utils = {
 		});
 
 		function update_csv_preview(dialog) {
-			const is_query_report = frappe.get_route()[0] === "query-report";
-			const report = is_query_report ? frappe.query_report : cur_list;
+			const is_query_report = nts.get_route()[0] === "query-report";
+			const report = is_query_report ? nts.query_report : cur_list;
 			const columns = report.columns.filter((col) => col.hidden !== 1);
 			let PREVIEW_DATA = [
 				columns.map((col) => __(is_query_report ? col.label : col.name)),
@@ -245,7 +245,7 @@ frappe.report_utils = {
 
 			dialog.set_value(
 				"csv_preview",
-				frappe.report_utils.get_csv_preview(
+				nts.report_utils.get_csv_preview(
 					PREVIEW_DATA,
 					dialog.get_value("csv_quoting"),
 					dialog.get_value("csv_delimiter")
@@ -279,11 +279,11 @@ frappe.report_utils = {
 		};
 
 		if (delimiter.length > 1) {
-			frappe.throw(__("Delimiter must be a single character"));
+			nts.throw(__("Delimiter must be a single character"));
 		}
 
 		if (0 > quoting || quoting > 3) {
-			frappe.throw(__("Quoting must be between 0 and 3"));
+			nts.throw(__("Quoting must be between 0 and 3"));
 		}
 
 		return data

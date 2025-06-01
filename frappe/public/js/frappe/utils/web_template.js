@@ -1,7 +1,7 @@
 function open_web_template_values_editor(template, current_values = {}) {
 	return new Promise((resolve) => {
-		frappe.model.with_doc("Web Template", template).then((doc) => {
-			let d = new frappe.ui.Dialog({
+		nts.model.with_doc("Web Template", template).then((doc) => {
+			let d = new nts.ui.Dialog({
 				title: __("Edit Values"),
 				fields: get_fields(doc),
 				primary_action(values) {

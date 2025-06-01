@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import datetime
@@ -6,9 +6,9 @@ import re
 
 from dateutil.parser import ParserError
 
-import frappe
-from frappe.model.meta import get_field_currency, get_field_precision
-from frappe.utils import (
+import nts
+from nts.model.meta import get_field_currency, get_field_precision
+from nts.utils import (
 	cint,
 	cstr,
 	flt,
@@ -27,10 +27,10 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 	"""Format value based on given fieldtype, document reference, currency reference.
 	If docfield info (df) is not given, it will try and guess based on the datatype of the value"""
 	if isinstance(df, str):
-		df = frappe._dict(fieldtype=df)
+		df = nts._dict(fieldtype=df)
 
 	if not df:
-		df = frappe._dict()
+		df = nts._dict()
 		if isinstance(value, datetime.datetime):
 			df.fieldtype = "Datetime"
 		elif isinstance(value, datetime.date):
@@ -46,12 +46,12 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
-		df = frappe._dict(df)
+		df = nts._dict(df)
 
 	if value is None:
 		value = ""
 	elif translated:
-		value = frappe._(value)
+		value = nts._(value)
 
 	if not df:
 		return value
@@ -77,7 +77,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return ""
 
 	elif df.get("fieldtype") == "Currency":
-		default_currency = frappe.db.get_default("currency")
+		default_currency = nts.db.get_default("currency")
 		currency = currency or get_field_currency(df, doc) or default_currency
 		return fmt_money(value, precision=get_field_precision(df, doc), currency=currency, format=format)
 
@@ -100,18 +100,18 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif df.get("fieldtype") in ("Text", "Small Text"):
 		if not BLOCK_TAGS_PATTERN.search(value):
-			return frappe.safe_decode(value).replace("\n", "<br>")
+			return nts.safe_decode(value).replace("\n", "<br>")
 
 	elif df.get("fieldtype") == "Markdown Editor":
-		return frappe.utils.markdown(value)
+		return nts.utils.markdown(value)
 
 	elif df.get("fieldtype") == "Table MultiSelect":
 		values = []
-		meta = frappe.get_meta(df.options)
+		meta = nts.get_meta(df.options)
 		link_field = next(df for df in meta.fields if df.fieldtype == "Link")
 		for v in value:
 			v.update({"__link_titles": doc.get("__link_titles")})
-			formatted_value = frappe.format_value(v.get(link_field.fieldname, ""), link_field, v)
+			formatted_value = nts.format_value(v.get(link_field.fieldname, ""), link_field, v)
 			values.append(formatted_value)
 
 		return ", ".join(values)
@@ -132,7 +132,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			if not df.parent:
 				return value
 
-			meta = frappe.get_meta(df.parent)
+			meta = nts.get_meta(df.parent)
 			_field = meta.get_field(df.options)
 			doctype = _field.options
 
@@ -140,6 +140,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif df.get("fieldtype") == "Select":
 		if isinstance(value, str):
-			return frappe._(value, context=df.parent or "")
+			return nts._(value, context=df.parent or "")
 
 	return value

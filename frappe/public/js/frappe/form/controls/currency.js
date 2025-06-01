@@ -1,4 +1,4 @@
-frappe.ui.form.ControlCurrency = class ControlCurrency extends frappe.ui.form.ControlFloat {
+nts.ui.form.ControlCurrency = class ControlCurrency extends nts.ui.form.ControlFloat {
 	format_for_input(value) {
 		var formatted_value = format_number(value, this.get_number_format(), this.get_precision());
 		return isNaN(Number(value)) ? "" : formatted_value;
@@ -8,8 +8,8 @@ frappe.ui.form.ControlCurrency = class ControlCurrency extends frappe.ui.form.Co
 		// always round based on field precision or currency's precision
 		// this method is also called in this.parse()
 		if (typeof this.df.precision != "number" && !this.df.precision) {
-			if (frappe.boot.sysdefaults.currency_precision) {
-				this.df.precision = frappe.boot.sysdefaults.currency_precision;
+			if (nts.boot.sysdefaults.currency_precision) {
+				this.df.precision = nts.boot.sysdefaults.currency_precision;
 			} else {
 				this.df.precision = get_number_format_info(this.get_number_format()).precision;
 			}

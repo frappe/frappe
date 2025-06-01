@@ -29,7 +29,7 @@ export default class GoogleDrivePicker {
 			scope: this.scope,
 			callback: async (response) => {
 				if (response.error !== undefined) {
-					frappe.throw(response);
+					nts.throw(response);
 				}
 
 				this.createPicker(response.access_token);
@@ -51,7 +51,7 @@ export default class GoogleDrivePicker {
 			.setOAuthToken(access_token)
 			.addView(docsView)
 			.addView(new google.picker.DocsUploadView())
-			.setLocale(frappe.boot.lang)
+			.setLocale(nts.boot.lang)
 			.setCallback(this.pickerCallback)
 			.build();
 		this.picker.setVisible(true);

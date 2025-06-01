@@ -1,5 +1,5 @@
-import frappe
-from frappe.utils import cint
+import nts
+from nts.utils import cint
 
 # This patch aims to apply & delete all the customization
 # on custom doctypes done through customize form
@@ -10,24 +10,24 @@ from frappe.utils import cint
 
 
 def execute():
-	custom_doctypes = frappe.get_all("DocType", filters={"custom": 1})
+	custom_doctypes = nts.get_all("DocType", filters={"custom": 1})
 
 	for doctype in custom_doctypes:
-		property_setters = frappe.get_all(
+		property_setters = nts.get_all(
 			"Property Setter",
 			filters={"doc_type": doctype.name, "doctype_or_field": "DocField"},
 			fields=["name", "property", "value", "property_type", "field_name"],
 		)
 
-		custom_fields = frappe.get_all("Custom Field", filters={"dt": doctype.name}, fields=["*"])
+		custom_fields = nts.get_all("Custom Field", filters={"dt": doctype.name}, fields=["*"])
 
 		property_setter_map = {}
 
 		for prop in property_setters:
 			property_setter_map[prop.field_name] = prop
-			frappe.db.delete("Property Setter", {"name": prop.name})
+			nts.db.delete("Property Setter", {"name": prop.name})
 
-		meta = frappe.get_meta(doctype.name)
+		meta = nts.get_meta(doctype.name)
 
 		for df in meta.fields:
 			ps = property_setter_map.get(df.fieldname, None)
@@ -44,9 +44,9 @@ def execute():
 			if field:
 				field.update(cf)
 			else:
-				df = frappe.new_doc("DocField", parent_doc=meta, parentfield="fields")
+				df = nts.new_doc("DocField", parent_doc=meta, parentfield="fields")
 				df.update(cf)
 				meta.fields.append(df)
-			frappe.db.delete("Custom Field", {"name": cf.name})
+			nts.db.delete("Custom Field", {"name": cf.name})
 
 		meta.save()

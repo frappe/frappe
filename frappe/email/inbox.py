@@ -1,16 +1,16 @@
 import json
 
-import frappe
-from frappe.client import set_value
+import nts
+from nts.client import set_value
 
 
 def get_email_accounts(user=None):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	email_accounts = []
 
-	accounts = frappe.get_all(
+	accounts = nts.get_all(
 		"User Email",
 		filters={"parent": user},
 		fields=["email_account", "email_id", "enable_outgoing"],
@@ -37,24 +37,24 @@ def get_email_accounts(user=None):
 	return {"email_accounts": email_accounts, "all_accounts": all_accounts}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def create_email_flag_queue(names, action):
 	"""create email flag queue to mark email either as read or unread"""
 
 	def mark_as_seen_unseen(name, action):
-		doc = frappe.get_doc("Communication", name)
+		doc = nts.get_doc("Communication", name)
 		if action == "Read":
 			doc.add_seen()
 		else:
 			_seen = json.loads(doc._seen or "[]")
-			_seen = [user for user in _seen if frappe.session.user != user]
+			_seen = [user for user in _seen if nts.session.user != user]
 			doc.db_set("_seen", json.dumps(_seen), update_modified=False)
 
 	if not all([names, action]):
 		return
 
 	for name in json.loads(names or []):
-		uid, seen_status, email_account = frappe.db.get_value(
+		uid, seen_status, email_account = nts.db.get_value(
 			"Communication", name, ["uid", "seen", "email_account"]
 		)
 		if not uid:
@@ -70,7 +70,7 @@ def create_email_flag_queue(names, action):
 		# check if states are correct
 		if (action == "Read" and seen_status == 0) or (action == "Unread" and seen_status == 1):
 			create_new = True
-			email_flag_queue = frappe.db.sql(
+			email_flag_queue = nts.db.sql(
 				"""select name, action from `tabEmail Flag Queue`
 				where communication = %(name)s and is_completed=0""",
 				{"name": name},
@@ -79,13 +79,13 @@ def create_email_flag_queue(names, action):
 
 			for queue in email_flag_queue:
 				if queue.action != action:
-					frappe.delete_doc("Email Flag Queue", queue.name, ignore_permissions=True)
+					nts.delete_doc("Email Flag Queue", queue.name, ignore_permissions=True)
 				elif queue.action == action:
 					# Read or Unread request for email is already available
 					create_new = False
 
 			if create_new:
-				flag_queue = frappe.get_doc(
+				flag_queue = nts.get_doc(
 					{
 						"uid": uid,
 						"action": action,
@@ -95,34 +95,34 @@ def create_email_flag_queue(names, action):
 					}
 				)
 				flag_queue.save(ignore_permissions=True)
-				frappe.db.set_value("Communication", name, "seen", seen, update_modified=False)
+				nts.db.set_value("Communication", name, "seen", seen, update_modified=False)
 				mark_as_seen_unseen(name, action)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_as_closed_open(communication: str, status: str):
 	"""Set status to open or close"""
 	set_value("Communication", communication, "status", status)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def move_email(communication: str, email_account: str):
 	"""Move email to another email account."""
 	set_value("Communication", communication, "email_account", email_account)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_as_trash(communication: str):
 	"""Set email status to trash."""
 	set_value("Communication", communication, "email_status", "Trash")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_as_spam(communication: str, sender: str):
 	"""Set email status to spam."""
-	email_rule = frappe.db.get_value("Email Rule", {"email_id": sender})
+	email_rule = nts.db.get_value("Email Rule", {"email_id": sender})
 	if not email_rule:
-		frappe.get_doc({"doctype": "Email Rule", "email_id": sender, "is_spam": 1}).insert(
+		nts.get_doc({"doctype": "Email Rule", "email_id": sender, "is_spam": 1}).insert(
 			ignore_permissions=True
 		)
 	set_value("Communication", communication, "email_status", "Spam")

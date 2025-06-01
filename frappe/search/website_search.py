@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import os
@@ -6,10 +6,10 @@ import os
 from bs4 import BeautifulSoup
 from whoosh.fields import ID, TEXT, Schema
 
-import frappe
-from frappe.search.full_text_search import FullTextSearch
-from frappe.utils import set_request, update_progress_bar
-from frappe.website.serve import get_response_content
+import nts
+from nts.search.full_text_search import FullTextSearch
+from nts.utils import set_request, update_progress_bar
+from nts.website.serve import get_response_content
 
 INDEX_NAME = "web_routes"
 
@@ -58,8 +58,8 @@ class WebsiteSearch(FullTextSearch):
 		Returns:
 		        document (_dict): A dictionary with title, path and content
 		"""
-		frappe.set_user("Guest")
-		frappe.local.no_cache = True
+		nts.set_user("Guest")
+		nts.local.no_cache = True
 
 		try:
 			set_request(method="GET", path=route)
@@ -69,17 +69,17 @@ class WebsiteSearch(FullTextSearch):
 			text_content = page_content.text if page_content else ""
 			title = soup.title.text.strip() if soup.title else route
 
-			return frappe._dict(title=title, content=text_content, path=route)
+			return nts._dict(title=title, content=text_content, path=route)
 		except Exception:
 			pass
 		finally:
-			frappe.set_user("Administrator")
+			nts.set_user("Administrator")
 
 	def parse_result(self, result):
 		title_highlights = result.highlights("title")
 		content_highlights = result.highlights("content")
 
-		return frappe._dict(
+		return nts._dict(
 			title=result["title"],
 			path=result["path"],
 			title_highlights=title_highlights,
@@ -91,21 +91,21 @@ def slugs_with_web_view(_items_to_index):
 	all_routes = []
 	filters = {"has_web_view": 1, "allow_guest_to_view": 1, "index_web_pages_for_search": 1}
 	fields = ["name", "is_published_field", "website_search_field"]
-	doctype_with_web_views = frappe.get_all("DocType", filters=filters, fields=fields)
+	doctype_with_web_views = nts.get_all("DocType", filters=filters, fields=fields)
 
 	for doctype in doctype_with_web_views:
 		if doctype.is_published_field:
 			fields = ["route", doctype.website_search_field]
 			filters = {doctype.is_published_field: 1}
 			if doctype.website_search_field:
-				docs = frappe.get_all(doctype.name, filters=filters, fields=[*fields, "title"])
+				docs = nts.get_all(doctype.name, filters=filters, fields=[*fields, "title"])
 				for doc in docs:
-					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
+					content = nts.utils.md_to_html(getattr(doc, doctype.website_search_field))
 					soup = BeautifulSoup(content, "html.parser")
 					text_content = soup.text if soup else ""
-					_items_to_index += [frappe._dict(title=doc.title, content=text_content, path=doc.route)]
+					_items_to_index += [nts._dict(title=doc.title, content=text_content, path=doc.route)]
 			else:
-				docs = frappe.get_all(doctype.name, filters=filters, fields=fields)
+				docs = nts.get_all(doctype.name, filters=filters, fields=fields)
 				all_routes += [route.route for route in docs]
 
 	return all_routes
@@ -114,11 +114,11 @@ def slugs_with_web_view(_items_to_index):
 def get_static_pages_from_all_apps():
 	from glob import glob
 
-	apps = frappe.get_installed_apps()
+	apps = nts.get_installed_apps()
 
 	routes_to_index = []
 	for app in apps:
-		path_to_index = frappe.get_app_path(app, "www")
+		path_to_index = nts.get_app_path(app, "www")
 
 		files_to_index = glob(path_to_index + "/**/*.html", recursive=True)
 		files_to_index.extend(glob(path_to_index + "/**/*.md", recursive=True))
@@ -141,7 +141,7 @@ def remove_document_from_index(path):
 
 
 def build_index_for_all_routes():
-	from frappe.utils.synchronization import filelock
+	from nts.utils.synchronization import filelock
 
 	with filelock("building_website_search"):
 		ws = WebsiteSearch(INDEX_NAME)

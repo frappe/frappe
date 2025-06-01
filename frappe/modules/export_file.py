@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import os
 import shutil
 from pathlib import Path
 
-import frappe
-import frappe.model
-from frappe.modules import get_module_path, scrub, scrub_dt_dn
+import nts
+import nts.model
+from nts.modules import get_module_path, scrub, scrub_dt_dn
 
 
 def export_doc(doc):
@@ -18,14 +18,14 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 	"""
 	Export record_list to files. record_list is a list of lists ([doctype, docname, folder name],)  ,
 	"""
-	if frappe.flags.in_import:
+	if nts.flags.in_import:
 		return
 
 	if record_list:
 		for record in record_list:
 			folder_name = record[2] if len(record) == 3 else None
 			write_document_file(
-				frappe.get_doc(record[0], record[1]),
+				nts.get_doc(record[0], record[1]),
 				record_module,
 				create_init=create_init,
 				folder_name=folder_name,
@@ -38,7 +38,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 
 	doc_export = strip_default_fields(doc, doc_export)
 	module = record_module or get_module_name(doc)
-	is_custom_module = frappe.db.get_value("Module Def", module, "custom")
+	is_custom_module = nts.db.get_value("Module Def", module, "custom")
 
 	# create folder
 	if folder_name:
@@ -51,10 +51,10 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 
 	# write the data file
 	path = os.path.join(folder, f"{fname}.json")
-	if is_custom_module and not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-		frappe.throw("Invalid export path: " + Path(path).as_posix())
+	if is_custom_module and not Path(path).resolve().is_relative_to(Path(nts.get_site_path()).resolve()):
+		nts.throw("Invalid export path: " + Path(path).as_posix())
 	with open(path, "w+") as txtfile:
-		txtfile.write(frappe.as_json(doc_export))
+		txtfile.write(nts.as_json(doc_export))
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 
@@ -65,7 +65,7 @@ def strip_default_fields(doc, doc_export):
 
 	for df in doc.meta.get_table_fields():
 		for d in doc_export.get(df.fieldname):
-			for fieldname in frappe.model.default_fields + frappe.model.child_table_fields:
+			for fieldname in nts.model.default_fields + nts.model.child_table_fields:
 				if fieldname in d:
 					del d[fieldname]
 
@@ -78,8 +78,8 @@ def write_code_files(folder, fname, doc, doc_export):
 		for key, extn in doc.get_code_fields().items():
 			if doc.get(key):
 				path = os.path.join(folder, fname + "." + extn)
-				if not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-					frappe.throw("Invalid export path: " + Path(path).as_posix())
+				if not Path(path).resolve().is_relative_to(Path(nts.get_site_path()).resolve()):
+					nts.throw("Invalid export path: " + Path(path).as_posix())
 				with open(path, "w+") as txtfile:
 					txtfile.write(doc.get(key))
 
@@ -91,17 +91,17 @@ def get_module_name(doc):
 	if doc.doctype == "Module Def":
 		module = doc.name
 	elif doc.doctype == "Workflow":
-		module = frappe.db.get_value("DocType", doc.document_type, "module")
+		module = nts.db.get_value("DocType", doc.document_type, "module")
 	elif hasattr(doc, "module"):
 		module = doc.module
 	else:
-		module = frappe.db.get_value("DocType", doc.doctype, "module")
+		module = nts.db.get_value("DocType", doc.doctype, "module")
 
 	return module
 
 
 def delete_folder(module, dt, dn):
-	if frappe.db.get_value("Module Def", module, "custom"):
+	if nts.db.get_value("Module Def", module, "custom"):
 		module_path = get_custom_module_path(module)
 	else:
 		module_path = get_module_path(module)
@@ -126,7 +126,7 @@ def create_folder(module, dt, dn, create_init, is_custom_module):
 	# create folder
 	folder = os.path.join(module_path, dt, dn)
 
-	frappe.create_folder(folder)
+	nts.create_folder(folder)
 
 	# create init_py_files
 	if create_init:
@@ -136,13 +136,13 @@ def create_folder(module, dt, dn, create_init, is_custom_module):
 
 
 def get_custom_module_path(module):
-	package = frappe.db.get_value("Module Def", module, "package")
+	package = nts.db.get_value("Module Def", module, "package")
 	if not package:
-		frappe.throw(f"Package must be set for custom Module <b>{module}</b>")
+		nts.throw(f"Package must be set for custom Module <b>{module}</b>")
 
 	path = os.path.join(get_package_path(package), scrub(module))
-	if not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-		frappe.throw("Invalid module path: " + Path(path).as_posix())
+	if not Path(path).resolve().is_relative_to(Path(nts.get_site_path()).resolve()):
+		nts.throw("Invalid module path: " + Path(path).as_posix())
 
 	if not os.path.exists(path):
 		os.makedirs(path)
@@ -152,7 +152,7 @@ def get_custom_module_path(module):
 
 def get_package_path(package):
 	path = os.path.join(
-		frappe.get_site_path("packages"), frappe.db.get_value("Package", package, "package_name")
+		nts.get_site_path("packages"), nts.db.get_value("Package", package, "package_name")
 	)
 	if not os.path.exists(path):
 		os.makedirs(path)

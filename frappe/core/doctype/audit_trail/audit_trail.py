@@ -1,12 +1,12 @@
-# Copyright (c) 2023, Frappe Technologies and contributors
+# Copyright (c) 2023, nts Technologies and contributors
 # For license information, please see license.txt
 
 import json
 
-import frappe
-from frappe import _
-from frappe.core.doctype.version.version import get_diff
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.core.doctype.version.version import get_diff
+from nts.model.document import Document
 
 
 class AuditTrail(Document):
@@ -16,7 +16,7 @@ class AuditTrail(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		doctype_name: DF.Link
 		document: DF.DynamicLink
@@ -29,17 +29,17 @@ class AuditTrail(Document):
 
 	def validate_doctype_name(self):
 		if not self.doctype_name:
-			frappe.throw(_("{} field cannot be empty.").format(frappe.bold("Doctype")))
+			nts.throw(_("{} field cannot be empty.").format(nts.bold("Doctype")))
 
 	def validate_document(self):
 		if not self.document:
-			frappe.throw(_("{} field cannot be empty.").format(frappe.bold("Document")))
+			nts.throw(_("{} field cannot be empty.").format(nts.bold("Document")))
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def compare_document(self):
 		self.validate()
 		amended_document_names = self.get_amended_documents()
-		self.amended_docs = [frappe.get_doc(self.doctype_name, name) for name in amended_document_names]
+		self.amended_docs = [nts.get_doc(self.doctype_name, name) for name in amended_document_names]
 		self.docs_to_compare = len(self.amended_docs)
 		self.changed, self.row_changed, self.added, self.removed = {}, {}, {}, {}
 
@@ -62,7 +62,7 @@ class AuditTrail(Document):
 		curr_doc = self.document
 		while curr_doc and len(amended_document_names) < 5:
 			amended_document_names.append(curr_doc)
-			curr_doc = frappe.db.get_value(self.doctype_name, curr_doc, "amended_from")
+			curr_doc = nts.db.get_value(self.doctype_name, curr_doc, "amended_from")
 		amended_document_names = amended_document_names[::-1]
 
 		return amended_document_names
@@ -106,12 +106,12 @@ class AuditTrail(Document):
 
 def get_field_label(fieldname, doctype, child_field=None):
 	if child_field:
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 		for field in meta.fields:
 			if field.fieldname == child_field:
 				doctype = field.options
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	label = meta.get_label(fieldname)
 	if label not in ["No Label", None, ""]:
 		return label
@@ -120,7 +120,7 @@ def get_field_label(fieldname, doctype, child_field=None):
 
 def filter_fields_for_gridview(row):
 	grid_row = {}
-	meta = frappe.get_meta(row.doctype)
+	meta = nts.get_meta(row.doctype)
 	for field in meta.fields:
 		if field.in_list_view == 1:
 			fieldlabel = get_field_label(field.fieldname, row.doctype)

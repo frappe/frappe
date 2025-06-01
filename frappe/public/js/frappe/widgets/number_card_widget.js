@@ -1,6 +1,6 @@
 import Widget from "./base_widget.js";
 
-frappe.provide("frappe.utils");
+nts.provide("nts.utils");
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
@@ -28,10 +28,10 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	make_card() {
-		frappe.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
+		nts.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
 			if (!card) {
 				if (this.document_type) {
-					frappe.run_serially([
+					nts.run_serially([
 						() => this.create_number_card(),
 						() => this.render_card(),
 					]);
@@ -51,8 +51,8 @@ export default class NumberCardWidget extends Widget {
 
 	create_number_card() {
 		this.set_doc_args();
-		return frappe
-			.xcall("frappe.desk.doctype.number_card.number_card.create_number_card", {
+		return nts
+			.xcall("nts.desk.doctype.number_card.number_card.create_number_card", {
 				args: this.card_doc,
 			})
 			.then((doc) => {
@@ -77,7 +77,7 @@ export default class NumberCardWidget extends Widget {
 
 		const is_document_type = this.card_doc.type !== "Report";
 		const name = is_document_type ? this.card_doc.document_type : this.card_doc.report_name;
-		const route = frappe.utils.generate_route({
+		const route = nts.utils.generate_route({
 			name: name,
 			type: is_document_type ? "doctype" : "report",
 			is_query_report: !is_document_type,
@@ -85,24 +85,24 @@ export default class NumberCardWidget extends Widget {
 
 		if (is_document_type) {
 			const filters = JSON.parse(this.card_doc.filters_json);
-			frappe.route_options = filters.reduce((acc, filter) => {
+			nts.route_options = filters.reduce((acc, filter) => {
 				return Object.assign(acc, {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
 				});
 			}, {});
 		}
 
-		frappe.set_route(route);
+		nts.set_route(route);
 	}
 
 	set_route_for_custom_card() {
 		if (!this.data?.route) return;
 
 		if (this.data.route_options) {
-			frappe.route_options = this.data.route_options;
+			nts.route_options = this.data.route_options;
 		}
 
-		frappe.set_route(this.data.route);
+		nts.set_route(this.data.route);
 	}
 
 	set_doc_args() {
@@ -130,7 +130,7 @@ export default class NumberCardWidget extends Widget {
 				get_number: (res) => this.get_number_for_custom_card(res),
 			},
 			Report: {
-				method: "frappe.desk.query_report.run",
+				method: "nts.desk.query_report.run",
 				args: {
 					report_name: this.card_doc.report_name,
 					filters: this.filters,
@@ -139,7 +139,7 @@ export default class NumberCardWidget extends Widget {
 				get_number: (res) => this.get_number_for_report_card(res),
 			},
 			"Document Type": {
-				method: "frappe.desk.doctype.number_card.number_card.get_result",
+				method: "nts.desk.doctype.number_card.number_card.get_result",
 				args: {
 					doc: this.card_doc,
 					filters: this.filters,
@@ -151,7 +151,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_filters() {
-		return frappe.dashboard_utils.get_all_filters(this.card_doc);
+		return nts.dashboard_utils.get_all_filters(this.card_doc);
 	}
 
 	async render_card() {
@@ -177,7 +177,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	async get_data() {
-		this.data = await frappe.xcall(this.settings.method, this.settings.args);
+		this.data = await nts.xcall(this.settings.method, this.settings.args);
 		return this.settings.get_number(this.data);
 	}
 
@@ -193,8 +193,8 @@ export default class NumberCardWidget extends Widget {
 	get_number_for_doctype_card(res) {
 		this.number = res;
 		if (this.card_doc.function !== "Count") {
-			return frappe.model.with_doctype(this.card_doc.document_type, () => {
-				const based_on_df = frappe.meta.get_docfield(
+			return nts.model.with_doctype(this.card_doc.document_type, () => {
+				const based_on_df = nts.meta.get_docfield(
 					this.card_doc.document_type,
 					this.card_doc.aggregate_function_based_on
 				);
@@ -212,13 +212,13 @@ export default class NumberCardWidget extends Widget {
 			return acc;
 		}, []);
 		const col = res.columns.find((col) => col.fieldname == field);
-		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
+		this.number = nts.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
 		this.set_formatted_number(col, this._generate_common_doc(res.result));
 	}
 
 	set_formatted_number(df, doc) {
-		const default_country = frappe.sys_defaults.country;
-		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
+		const default_country = nts.sys_defaults.country;
+		const shortened_number = nts.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(" ");
 		const symbol = number_parts[1] || "";
 
@@ -230,7 +230,7 @@ export default class NumberCardWidget extends Widget {
 		}
 
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
-		const formatted_number = frappe.format(number_parts[0], df, null, doc);
+		const formatted_number = nts.format(number_parts[0], df, null, doc);
 		this.formatted_number =
 			($(formatted_number).text() || formatted_number) + " " + __(symbol);
 	}
@@ -273,12 +273,12 @@ export default class NumberCardWidget extends Widget {
 				color_class = "grey-stat";
 			} else if (this.percentage_stat > 0) {
 				caret_html = `<span class="indicator-pill-round green">
-						${frappe.utils.icon("es-line-arrow-up-right", "xs")}
+						${nts.utils.icon("es-line-arrow-up-right", "xs")}
 					</span>`;
 				color_class = "green-stat";
 			} else {
 				caret_html = `<span class="indicator-pill-round red">
-						${frappe.utils.icon("arrow-down-right", "xs")}
+						${nts.utils.icon("arrow-down-right", "xs")}
 					</span>`;
 				color_class = "red-stat";
 			}
@@ -310,15 +310,15 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_percentage_stats() {
-		return frappe
-			.xcall("frappe.desk.doctype.number_card.number_card.get_percentage_difference", {
+		return nts
+			.xcall("nts.desk.doctype.number_card.number_card.get_percentage_difference", {
 				doc: this.card_doc,
 				filters: this.filters,
 				result: this.number,
 			})
 			.then((res) => {
 				if (res !== undefined) {
-					this.percentage_stat = frappe.utils.shorten_number(res);
+					this.percentage_stat = nts.utils.shorten_number(res);
 				}
 			});
 	}
@@ -339,7 +339,7 @@ export default class NumberCardWidget extends Widget {
 				action: "action-edit",
 				handler: () => {
 					let number_card = this.number_card_name || this.name;
-					frappe.set_route("Form", "Number Card", number_card);
+					nts.set_route("Form", "Number Card", number_card);
 				},
 			},
 		];

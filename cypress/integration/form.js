@@ -20,9 +20,9 @@ context("Form", () => {
 		cy.visit("/app/website");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.call("frappe.tests.ui_test_helpers.create_contact_records");
+			.its("nts")
+			.then((nts) => {
+				return nts.call("nts.tests.ui_test_helpers.create_contact_records");
 			});
 	});
 
@@ -39,7 +39,7 @@ context("Form", () => {
 		cy.get(".page-title").should("contain", "Not Saved");
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.form.save.savedocs",
+			url: "api/method/nts.desk.form.save.savedocs",
 		}).as("form_save");
 		cy.get(".primary-action").click();
 		cy.wait("@form_save").its("response.statusCode").should("eq", 200);
@@ -85,7 +85,7 @@ context("Form", () => {
 		let expectBackgroundColor = "rgb(255, 245, 245)";
 
 		cy.visit("/app/contact/new");
-		cy.get('.frappe-control[data-fieldname="email_ids"]').as("table");
+		cy.get('.nts-control[data-fieldname="email_ids"]').as("table");
 		cy.get("@table").find("button.grid-add-row").click();
 		cy.get("@table").find("button.grid-add-row").click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
@@ -121,7 +121,7 @@ context("Form", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+				cy.get('.nts-control[data-fieldname="phone_nos"]').as("table");
 
 				// set property before form_render event of child table
 				cy.get("@table")
@@ -141,7 +141,7 @@ context("Form", () => {
 				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.find('.nts-control[data-fieldname="is_primary_phone"]')
 					.should("be.hidden");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
@@ -163,7 +163,7 @@ context("Form", () => {
 
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.find('.nts-control[data-fieldname="is_primary_phone"]')
 					.should("be.visible");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 			});

@@ -1,26 +1,26 @@
 import EditorJS from "@editorjs/editorjs";
 import Undo from "editorjs-undo";
 
-frappe.standard_pages["Workspaces"] = function () {
-	var wrapper = frappe.container.add_page("Workspaces");
+nts.standard_pages["Workspaces"] = function () {
+	var wrapper = nts.container.add_page("Workspaces");
 
-	frappe.ui.make_app_page({
+	nts.ui.make_app_page({
 		parent: wrapper,
 		name: "Workspaces",
 		title: __("Workspace"),
 	});
 
-	frappe.workspace = new frappe.views.Workspace(wrapper);
+	nts.workspace = new nts.views.Workspace(wrapper);
 	$(wrapper).bind("show", function () {
-		frappe.workspace.show();
+		nts.workspace.show();
 	});
 };
 
-frappe.views.Workspace = class Workspace {
+nts.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
-		this.blocks = frappe.workspace_block.blocks;
+		this.blocks = nts.workspace_block.blocks;
 		this.is_read_only = true;
 		this.pages = {};
 		this.sorted_public_items = [];
@@ -82,9 +82,9 @@ frappe.views.Workspace = class Workspace {
 		this.private_pages = this.all_pages.filter((page) => !page.public);
 
 		if (this.all_pages) {
-			frappe.workspaces = {};
+			nts.workspaces = {};
 			for (let page of this.all_pages) {
-				frappe.workspaces[frappe.router.slug(page.name)] = {
+				nts.workspaces[nts.router.slug(page.name)] = {
 					title: page.title,
 					public: page.public,
 				};
@@ -133,7 +133,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items");
+		return nts.xcall("nts.desk.desktop.get_workspace_sidebar_items");
 	}
 
 	sidebar_item_container(item) {
@@ -152,15 +152,15 @@ frappe.views.Workspace = class Workspace {
 					<a
 						href="/app/${
 							item.public
-								? frappe.router.slug(item.title)
-								: "private/" + frappe.router.slug(item.title)
+								? nts.router.slug(item.title)
+								: "private/" + nts.router.slug(item.title)
 						}"
 						class="item-anchor ${item.is_editable ? "" : "block-click"}" title="${__(item.title)}"
 					>
 						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>
 							${
 								item.public
-									? frappe.utils.icon(item.icon || "folder-normal", "md")
+									? nts.utils.icon(item.icon || "folder-normal", "md")
 									: `<span class="indicator ${item.indicator_color}"></span>`
 							}
 						</span>
@@ -193,7 +193,7 @@ frappe.views.Workspace = class Workspace {
 
 		// Scroll sidebar to selected page if it is not in viewport.
 		this.sidebar.find(".selected").length &&
-			!frappe.dom.is_element_in_viewport(this.sidebar.find(".selected")) &&
+			!nts.dom.is_element_in_viewport(this.sidebar.find(".selected")) &&
 			this.sidebar.find(".selected")[0].scrollIntoView();
 
 		this.remove_sidebar_skeleton();
@@ -205,7 +205,7 @@ frappe.views.Workspace = class Workspace {
 		);
 
 		let $title = $(`<button class="btn-reset standard-sidebar-label">
-			<span>${frappe.utils.icon("es-line-down", "xs")}</span>
+			<span>${nts.utils.icon("es-line-down", "xs")}</span>
 			<span class="section-title">${category.label}<span>
 		</div>`).appendTo(sidebar_section);
 		$title.attr({
@@ -249,7 +249,7 @@ frappe.views.Workspace = class Workspace {
 
 	append_item(item, container) {
 		let is_current_page =
-			frappe.router.slug(item.title) == frappe.router.slug(this.get_page_to_show().name) &&
+			nts.router.slug(item.title) == nts.router.slug(this.get_page_to_show().name) &&
 			item.public == this.get_page_to_show().public;
 		item.selected = is_current_page;
 		if (is_current_page) {
@@ -291,7 +291,7 @@ frappe.views.Workspace = class Workspace {
 
 		let $child_item_section = item_container.find(".sidebar-child-item");
 		let $drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
-			.html(frappe.utils.icon(drop_icon, "sm"))
+			.html(nts.utils.icon(drop_icon, "sm"))
 			.appendTo(sidebar_control);
 		let pages = item.public ? this.public_pages : this.private_pages;
 		if (
@@ -320,9 +320,9 @@ frappe.views.Workspace = class Workspace {
 
 		let page = this.get_page_to_show();
 
-		if (!frappe.router.current_route[0]) {
-			frappe.route_flags.replace_route = true;
-			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
+		if (!nts.router.current_route[0]) {
+			nts.route_flags.replace_route = true;
+			nts.set_route(nts.router.slug(page.public ? page.name : "private/" + page.name));
 			return;
 		}
 
@@ -363,8 +363,8 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_data(page) {
-		return frappe
-			.call("frappe.desk.desktop.get_desktop_page", {
+		return nts
+			.call("nts.desk.desktop.get_desktop_page", {
 				page: page,
 			})
 			.then((data) => {
@@ -377,7 +377,7 @@ frappe.views.Workspace = class Workspace {
 				if (!this.page_data || Object.keys(this.page_data).length === 0) return;
 				if (this.page_data.charts && this.page_data.charts.items.length === 0) return;
 
-				return frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+				return nts.dashboard_utils.get_dashboard_settings().then((settings) => {
 					if (settings) {
 						let chart_config = settings.chart_config
 							? JSON.parse(settings.chart_config)
@@ -394,10 +394,10 @@ frappe.views.Workspace = class Workspace {
 	get_page_to_show() {
 		let default_page;
 
-		if (frappe.boot.user.default_workspace) {
+		if (nts.boot.user.default_workspace) {
 			default_page = {
-				name: frappe.boot.user.default_workspace.title,
-				public: frappe.boot.user.default_workspace.public,
+				name: nts.boot.user.default_workspace.title,
+				public: nts.boot.user.default_workspace.public,
 			};
 		} else if (
 			localStorage.current_page &&
@@ -413,7 +413,7 @@ frappe.views.Workspace = class Workspace {
 			default_page = { name: "Build", public: true };
 		}
 
-		const route = frappe.get_route();
+		const route = nts.get_route();
 		const page = (route[1] == "private" ? route[2] : route[1]) || default_page.name;
 		const is_public = route[1] ? route[1] != "private" : default_page.public;
 		return { name: page, public: is_public };
@@ -442,7 +442,7 @@ frappe.views.Workspace = class Workspace {
 			if (this.pages && this.pages[current_page.name]) {
 				this.page_data = this.pages[current_page.name];
 			} else {
-				await frappe.after_ajax(() => this.get_data(current_page));
+				await nts.after_ajax(() => this.get_data(current_page));
 			}
 
 			this.setup_actions(page);
@@ -553,12 +553,12 @@ frappe.views.Workspace = class Workspace {
 			this.is_read_only = true;
 			this.sidebar_pages = this.cached_pages;
 			this.reload();
-			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
+			nts.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
 
 		if (page.name && this.has_access) {
 			this.page.add_inner_button(__("Settings"), () => {
-				frappe.set_route(`workspace/${page.name}`);
+				nts.set_route(`workspace/${page.name}`);
 			});
 		}
 	}
@@ -576,7 +576,7 @@ frappe.views.Workspace = class Workspace {
 		if (!item.is_editable) {
 			sidebar_control.parent().click(() => {
 				!this.is_read_only &&
-					frappe.show_alert(
+					nts.show_alert(
 						{
 							message: __("Only Workspace Manager can sort or edit this page"),
 							indicator: "info",
@@ -585,8 +585,8 @@ frappe.views.Workspace = class Workspace {
 					);
 			});
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-duplicate", "sm"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("es-line-duplicate", "sm"),
 				() => this.duplicate_page(item),
 				"duplicate-page",
 				__("Duplicate Workspace"),
@@ -594,8 +594,8 @@ frappe.views.Workspace = class Workspace {
 				sidebar_control
 			);
 		} else if (item.is_hidden) {
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-preview", "sm"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("es-line-preview", "sm"),
 				(e) => this.unhide_workspace(item, e),
 				"unhide-workspace-btn",
 				__("Unhide Workspace"),
@@ -603,8 +603,8 @@ frappe.views.Workspace = class Workspace {
 				sidebar_control
 			);
 		} else {
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-drag", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("es-line-drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -637,7 +637,7 @@ frappe.views.Workspace = class Workspace {
 		let parent_pages = this.get_parent_pages(item);
 		let idx = parent_pages.findIndex((x) => x == item.title);
 		if (idx !== -1) parent_pages.splice(idx, 1);
-		const d = new frappe.ui.Dialog({
+		const d = new nts.ui.Dialog({
 			title: __("Update Details"),
 			fields: [
 				{
@@ -701,8 +701,8 @@ frappe.views.Workspace = class Workspace {
 					return;
 				d.hide();
 
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.update_page",
+				nts.call({
+					method: "nts.desk.doctype.workspace.workspace.update_page",
 					args: {
 						name: old_item.name,
 						title: values.title,
@@ -716,7 +716,7 @@ frappe.views.Workspace = class Workspace {
 							let message = __("Workspace {0} Edited Successfully", [
 								old_item.title.bold(),
 							]);
-							frappe.show_alert({ message: message, indicator: "green" });
+							nts.show_alert({ message: message, indicator: "green" });
 						}
 					},
 				});
@@ -725,8 +725,8 @@ frappe.views.Workspace = class Workspace {
 
 				if (this.make_page_selected) {
 					let pre_url = values.is_public ? "" : "private/";
-					let route = pre_url + frappe.router.slug(values.title);
-					frappe.set_route(route);
+					let route = pre_url + nts.router.slug(values.title);
+					nts.set_route(route);
 
 					this.make_page_selected = false;
 				}
@@ -761,7 +761,7 @@ frappe.views.Workspace = class Workspace {
 				new_updated_item.label = new_item.title;
 				new_updated_item.for_user = "";
 			} else {
-				let user = frappe.session.user;
+				let user = nts.session.user;
 				new_updated_item.name = `${new_item.title}-${user}`;
 				new_updated_item.label = `${new_item.title}-${user}`;
 				new_updated_item.for_user = user;
@@ -787,7 +787,7 @@ frappe.views.Workspace = class Workspace {
 			child.label = child.title;
 			child.for_user = "";
 		} else {
-			let user = frappe.session.user;
+			let user = nts.session.user;
 			child.name = `${child.title}-${user}`;
 			child.label = `${child.title}-${user}`;
 			child.for_user = user;
@@ -804,11 +804,11 @@ frappe.views.Workspace = class Workspace {
 		let old_item_index = from_pages.findIndex((page) => page.title == old_item.title);
 		duplicate && old_item_index++;
 
-		// update frappe.workspaces
-		if (frappe.workspaces[frappe.router.slug(old_item.name)] || new_page) {
-			!duplicate && delete frappe.workspaces[frappe.router.slug(old_item.name)];
+		// update nts.workspaces
+		if (nts.workspaces[nts.router.slug(old_item.name)] || new_page) {
+			!duplicate && delete nts.workspaces[nts.router.slug(old_item.name)];
 			if (new_item) {
-				frappe.workspaces[frappe.router.slug(new_item.name)] = { title: new_item.title };
+				nts.workspaces[nts.router.slug(new_item.name)] = { title: new_item.title };
 			}
 		}
 
@@ -846,19 +846,19 @@ frappe.views.Workspace = class Workspace {
 			{
 				label: __("Edit"),
 				title: __("Edit Workspace"),
-				icon: frappe.utils.icon("es-line-edit", "sm"),
+				icon: nts.utils.icon("es-line-edit", "sm"),
 				action: () => this.edit_page(item),
 			},
 			{
 				label: __("Duplicate"),
 				title: __("Duplicate Workspace"),
-				icon: frappe.utils.icon("es-line-duplicate", "sm"),
+				icon: nts.utils.icon("es-line-duplicate", "sm"),
 				action: () => this.duplicate_page(item),
 			},
 			{
 				label: __("Hide"),
 				title: __("Hide Workspace"),
-				icon: frappe.utils.icon("es-line-hide", "sm"),
+				icon: nts.utils.icon("es-line-hide", "sm"),
 				action: (e) => this.hide_workspace(item, e),
 			},
 		];
@@ -867,14 +867,14 @@ frappe.views.Workspace = class Workspace {
 			this.dropdown_list.push({
 				label: __("Delete"),
 				title: __("Delete Workspace"),
-				icon: frappe.utils.icon("delete-active", "sm"),
+				icon: nts.utils.icon("delete-active", "sm"),
 				action: () => this.delete_page(item),
 			});
 		}
 
 		let $button = $(`
 			<div class="btn btn-xs setting-btn dropdown-btn" title="${__("Setting")}">
-				${frappe.utils.icon("es-line-dot-horizontal", "xs")}
+				${nts.utils.icon("es-line-dot-horizontal", "xs")}
 			</div>
 			<div class="dropdown-list hidden"></div>
 		`);
@@ -919,18 +919,18 @@ frappe.views.Workspace = class Workspace {
 		// then item is deletable
 		if (
 			!item.public ||
-			(item.public && (!item.module || (item.module && frappe.boot.developer_mode)))
+			(item.public && (!item.module || (item.module && nts.boot.developer_mode)))
 		)
 			return true;
 		return false;
 	}
 
 	delete_page(page) {
-		frappe.confirm(
+		nts.confirm(
 			__("Are you sure you want to delete page {0}?", [page.title.bold()]),
 			() => {
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.delete_page",
+				nts.call({
+					method: "nts.desk.doctype.workspace.workspace.delete_page",
 					args: { page: page },
 					callback: function (res) {
 						if (res.message) {
@@ -938,7 +938,7 @@ frappe.views.Workspace = class Workspace {
 							let message = __("Workspace {0} Deleted Successfully", [
 								page.title.bold(),
 							]);
-							frappe.show_alert({ message: message, indicator: "green" });
+							nts.show_alert({ message: message, indicator: "green" });
 						}
 					},
 				});
@@ -950,7 +950,7 @@ frappe.views.Workspace = class Workspace {
 					this.current_page.name == page.title &&
 					this.current_page.public == page.public
 				) {
-					frappe.set_route("/");
+					nts.set_route("/");
 				}
 
 				this.make_sidebar();
@@ -966,7 +966,7 @@ frappe.views.Workspace = class Workspace {
 			new_page.public = 0;
 		}
 		let parent_pages = this.get_parent_pages({ public: new_page.public });
-		const d = new frappe.ui.Dialog({
+		const d = new nts.ui.Dialog({
 			title: __("Create Duplicate"),
 			fields: [
 				{
@@ -1021,8 +1021,8 @@ frappe.views.Workspace = class Workspace {
 			primary_action: (values) => {
 				if (!this.validate_page(values)) return;
 				d.hide();
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.duplicate_page",
+				nts.call({
+					method: "nts.desk.doctype.workspace.workspace.duplicate_page",
 					args: {
 						page_name: page.name,
 						new_page: values,
@@ -1034,27 +1034,27 @@ frappe.views.Workspace = class Workspace {
 								"Duplicate of {0} named as {1} is created successfully",
 								[page.title.bold(), new_page.title.bold()]
 							);
-							frappe.show_alert({ message: message, indicator: "green" });
+							nts.show_alert({ message: message, indicator: "green" });
 						}
 					},
 				});
 
 				new_page.title = values.title;
 				new_page.public = values.is_public || 0;
-				new_page.name = values.title + (new_page.public ? "" : "-" + frappe.session.user);
+				new_page.name = values.title + (new_page.public ? "" : "-" + nts.session.user);
 				new_page.label = new_page.name;
 				new_page.icon = values.icon;
 				new_page.indicator_color = values.indicator_color;
 				new_page.parent_page = values.parent || "";
-				new_page.for_user = new_page.public ? "" : frappe.session.user;
+				new_page.for_user = new_page.public ? "" : nts.session.user;
 				new_page.is_editable = !new_page.public;
 				new_page.selected = true;
 
 				this.update_cached_values(page, new_page, true);
 
 				let pre_url = values.is_public ? "" : "private/";
-				let route = pre_url + frappe.router.slug(values.title);
-				frappe.set_route(route);
+				let route = pre_url + nts.router.slug(values.title);
+				nts.set_route(route);
 
 				me.make_sidebar();
 				me.show_sidebar_actions();
@@ -1081,8 +1081,8 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let method = hide ? "hide_page" : "unhide_page";
-		frappe.call({
-			method: "frappe.desk.doctype.workspace.workspace." + method,
+		nts.call({
+			method: "nts.desk.doctype.workspace.workspace." + method,
 			args: {
 				page_name: page.name,
 			},
@@ -1091,7 +1091,7 @@ frappe.views.Workspace = class Workspace {
 
 				let message = hide ? "{0} is hidden successfully" : "{0} is unhidden successfully";
 				message = __(message, [page.title.bold()]);
-				frappe.show_alert({ message: message, indicator: "green" });
+				nts.show_alert({ message: message, indicator: "green" });
 			},
 		});
 	}
@@ -1176,8 +1176,8 @@ frappe.views.Workspace = class Workspace {
 
 	update_sorted_sidebar() {
 		if (this.sorted_public_items || this.sorted_private_items) {
-			frappe.call({
-				method: "frappe.desk.doctype.workspace.workspace.sort_pages",
+			nts.call({
+				method: "nts.desk.doctype.workspace.workspace.sort_pages",
 				args: {
 					sb_public_items: this.sorted_public_items,
 					sb_private_items: this.sorted_private_items,
@@ -1185,7 +1185,7 @@ frappe.views.Workspace = class Workspace {
 				callback: function (res) {
 					if (res.message) {
 						let message = `Sidebar Updated Successfully`;
-						frappe.show_alert({ message: __(message), indicator: "green" });
+						nts.show_alert({ message: __(message), indicator: "green" });
 					}
 				},
 			});
@@ -1213,7 +1213,7 @@ frappe.views.Workspace = class Workspace {
 	initialize_new_page() {
 		var me = this;
 		this.get_parent_pages();
-		const d = new frappe.ui.Dialog({
+		const d = new nts.ui.Dialog({
 			title: __("New Workspace"),
 			fields: [
 				{
@@ -1267,7 +1267,7 @@ frappe.views.Workspace = class Workspace {
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons({ is_editable: true });
 
-				let name = values.title + (values.is_public ? "" : "-" + frappe.session.user);
+				let name = values.title + (values.is_public ? "" : "-" + nts.session.user);
 				let blocks = [
 					{
 						type: "header",
@@ -1281,7 +1281,7 @@ frappe.views.Workspace = class Workspace {
 					label: name,
 					title: values.title,
 					public: values.is_public || 0,
-					for_user: values.is_public ? "" : frappe.session.user,
+					for_user: values.is_public ? "" : nts.session.user,
 					icon: values.icon,
 					indicator_color: values.indicator_color,
 					parent_page: values.parent || "",
@@ -1299,8 +1299,8 @@ frappe.views.Workspace = class Workspace {
 							await this.editor.readOnly.toggle();
 						}
 
-						frappe.call({
-							method: "frappe.desk.doctype.workspace.workspace.new_page",
+						nts.call({
+							method: "nts.desk.doctype.workspace.workspace.new_page",
 							args: {
 								new_page: new_page,
 							},
@@ -1309,7 +1309,7 @@ frappe.views.Workspace = class Workspace {
 									let message = __("Workspace {0} Created Successfully", [
 										new_page.title.bold(),
 									]);
-									frappe.show_alert({
+									nts.show_alert({
 										message: message,
 										indicator: "green",
 									});
@@ -1320,8 +1320,8 @@ frappe.views.Workspace = class Workspace {
 						this.update_cached_values(new_page, new_page, true, true);
 
 						let pre_url = new_page.public ? "" : "private/";
-						let route = pre_url + frappe.router.slug(new_page.title);
-						frappe.set_route(route);
+						let route = pre_url + nts.router.slug(new_page.title);
+						nts.set_route(route);
 
 						this.make_sidebar();
 						this.show_sidebar_actions();
@@ -1344,7 +1344,7 @@ frappe.views.Workspace = class Workspace {
 			message = __("Page with title {0} already exist.", [new_page.title.bold()]);
 		}
 
-		if (frappe.router.doctype_route_exist(frappe.router.slug(new_page.title))) {
+		if (nts.router.doctype_route_exist(nts.router.slug(new_page.title))) {
 			message = __("Doctype with same route already exist. Please choose different title.");
 		}
 
@@ -1364,7 +1364,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		if (message) {
-			frappe.throw(__(message));
+			nts.throw(__(message));
 			return false;
 		}
 		return true;
@@ -1473,7 +1473,7 @@ frappe.views.Workspace = class Workspace {
 				},
 			},
 			spacer: this.blocks["spacer"],
-			HeaderSize: frappe.workspace_block.tunes["header_size"],
+			HeaderSize: nts.workspace_block.tunes["header_size"],
 		};
 
 		this.editor = new EditorJS({
@@ -1518,7 +1518,7 @@ frappe.views.Workspace = class Workspace {
 					Object.keys(new_widgets).length === 0
 				) {
 					this.setup_customization_buttons(page);
-					frappe.show_alert({
+					nts.show_alert({
 						message: __("No changes made on the page"),
 						indicator: "warning",
 					});
@@ -1527,8 +1527,8 @@ frappe.views.Workspace = class Workspace {
 
 				this.create_page_skeleton();
 				page.content = JSON.stringify(blocks);
-				frappe.call({
-					method: "frappe.desk.doctype.workspace.workspace.save_page",
+				nts.call({
+					method: "nts.desk.doctype.workspace.workspace.save_page",
 					args: {
 						title: page.title,
 						public: page.public || 0,
@@ -1540,7 +1540,7 @@ frappe.views.Workspace = class Workspace {
 							me.discard = true;
 							me.update_cached_values(page, page);
 							me.reload();
-							frappe.show_alert({
+							nts.show_alert({
 								message: __("Page Saved Successfully"),
 								indicator: "green",
 							});
@@ -1566,7 +1566,7 @@ frappe.views.Workspace = class Workspace {
 	create_page_skeleton() {
 		if (this.body.find(".workspace-skeleton").length) return;
 
-		this.body.prepend(frappe.render_template("workspace_loading_skeleton"));
+		this.body.prepend(nts.render_template("workspace_loading_skeleton"));
 		this.body.find(".codex-editor").addClass("hidden");
 	}
 
@@ -1578,7 +1578,7 @@ frappe.views.Workspace = class Workspace {
 	create_sidebar_skeleton() {
 		if ($(".workspace-sidebar-skeleton").length) return;
 
-		$(frappe.render_template("workspace_sidebar_loading_skeleton")).insertBefore(this.sidebar);
+		$(nts.render_template("workspace_sidebar_loading_skeleton")).insertBefore(this.sidebar);
 		this.sidebar.addClass("hidden");
 	}
 
@@ -1596,8 +1596,8 @@ frappe.views.Workspace = class Workspace {
 				},
 				page: this.page,
 			};
-			frappe.ui.keys.add_shortcut({ shortcut: letter, ...default_shortcut });
-			frappe.ui.keys.add_shortcut({ shortcut: `shift+${letter}`, ...default_shortcut });
+			nts.ui.keys.add_shortcut({ shortcut: letter, ...default_shortcut });
+			nts.ui.keys.add_shortcut({ shortcut: `shift+${letter}`, ...default_shortcut });
 		});
 	}
 };

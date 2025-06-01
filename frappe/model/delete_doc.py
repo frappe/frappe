@@ -1,21 +1,21 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import os
 import shutil
 
-import frappe
-import frappe.defaults
-import frappe.model.meta
-from frappe import _, get_module_path
-from frappe.desk.doctype.tag.tag import delete_tags_for_document
-from frappe.model.docstatus import DocStatus
-from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import revert_series_if_last
-from frappe.model.utils import is_virtual_doctype
-from frappe.utils.file_manager import remove_all
-from frappe.utils.global_search import delete_for_document
-from frappe.utils.password import delete_all_passwords_for
+import nts
+import nts.defaults
+import nts.model.meta
+from nts import _, get_module_path
+from nts.desk.doctype.tag.tag import delete_tags_for_document
+from nts.model.docstatus import DocStatus
+from nts.model.dynamic_links import get_dynamic_link_map
+from nts.model.naming import revert_series_if_last
+from nts.model.utils import is_virtual_doctype
+from nts.utils.file_manager import remove_all
+from nts.utils.global_search import delete_for_document
+from nts.utils.password import delete_all_passwords_for
 
 
 def delete_doc(
@@ -38,8 +38,8 @@ def delete_doc(
 
 	# get from form
 	if not doctype:
-		doctype = frappe.form_dict.get("dt")
-		name = frappe.form_dict.get("dn")
+		doctype = nts.form_dict.get("dt")
+		name = nts.form_dict.get("dn")
 
 	is_virtual = is_virtual_doctype(doctype)
 
@@ -49,13 +49,13 @@ def delete_doc(
 
 	for name in names or []:
 		if is_virtual:
-			frappe.get_doc(doctype, name).delete()
+			nts.get_doc(doctype, name).delete()
 			continue
 
 		# already deleted..?
-		if not frappe.db.exists(doctype, name):
+		if not nts.db.exists(doctype, name):
 			if not ignore_missing:
-				raise frappe.DoesNotExistError(doctype=doctype)
+				raise nts.DoesNotExistError(doctype=doctype)
 			else:
 				return False
 
@@ -66,35 +66,35 @@ def delete_doc(
 		if doctype == "DocType":
 			if for_reload:
 				try:
-					doc = frappe.get_doc(doctype, name)
-				except frappe.DoesNotExistError:
+					doc = nts.get_doc(doctype, name)
+				except nts.DoesNotExistError:
 					pass
 				else:
 					doc.run_method("before_reload")
 
 			else:
-				doc = frappe.get_doc(doctype, name)
-				if not (doc.custom or frappe.conf.developer_mode or frappe.flags.in_patch or force):
-					frappe.throw(_("Standard DocType can not be deleted."))
+				doc = nts.get_doc(doctype, name)
+				if not (doc.custom or nts.conf.developer_mode or nts.flags.in_patch or force):
+					nts.throw(_("Standard DocType can not be deleted."))
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 				# delete custom table fields using this doctype.
-				frappe.db.delete(
-					"Custom Field", {"options": name, "fieldtype": ("in", frappe.model.table_fields)}
+				nts.db.delete(
+					"Custom Field", {"options": name, "fieldtype": ("in", nts.model.table_fields)}
 				)
-				frappe.db.delete("__global_search", {"doctype": name})
+				nts.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
 			if (
-				frappe.conf.developer_mode
+				nts.conf.developer_mode
 				and not doc.custom
 				and not (
 					for_reload
-					or frappe.flags.in_migrate
-					or frappe.flags.in_install
-					or frappe.flags.in_uninstall
+					or nts.flags.in_migrate
+					or nts.flags.in_install
+					or nts.flags.in_uninstall
 				)
 			):
 				try:
@@ -106,15 +106,15 @@ def delete_doc(
 		else:
 			# Lock the doc without waiting
 			try:
-				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
-				frappe.throw(
+				nts.db.get_value(doctype, name, for_update=True, wait=False)
+			except (nts.QueryTimeoutError, nts.QueryDeadlockError):
+				nts.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
 					),
-					exc=frappe.QueryTimeoutError,
+					exc=nts.QueryTimeoutError,
 				)
-			doc = frappe.get_doc(doctype, name)
+			doc = nts.get_doc(doctype, name)
 
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)
@@ -130,11 +130,11 @@ def delete_doc(
 					try:
 						check_if_doc_is_linked(doc)
 						check_if_doc_is_dynamically_linked(doc)
-					except frappe.LinkExistsError as e:
+					except nts.LinkExistsError as e:
 						if doc.meta.has_field("enabled") or doc.meta.has_field("disabled"):
-							frappe.throw(
+							nts.throw(
 								_("You can disable this {0} instead of deleting it.").format(_(doctype)),
-								frappe.LinkExistsError,
+								nts.LinkExistsError,
 							)
 						else:
 							raise e
@@ -149,11 +149,11 @@ def delete_doc(
 			if not for_reload:
 				# Enqueued at the end, because it gets committed
 				# All the linked docs should be checked beforehand
-				frappe.enqueue(
-					"frappe.model.delete_doc.delete_dynamic_links",
+				nts.enqueue(
+					"nts.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.flags.in_test,
+					now=nts.flags.in_test,
 					enqueue_after_commit=True,
 				)
 
@@ -171,7 +171,7 @@ def delete_doc(
 			add_to_deleted_document(doc)
 
 		if doc and not for_reload:
-			if not frappe.flags.in_patch:
+			if not nts.flags.in_patch:
 				try:
 					doc.notify_update()
 					insert_feed(doc)
@@ -181,14 +181,14 @@ def delete_doc(
 
 def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""
-	if doc.doctype != "Deleted Document" and frappe.flags.in_install != "frappe":
-		frappe.get_doc(
+	if doc.doctype != "Deleted Document" and nts.flags.in_install != "nts":
+		nts.get_doc(
 			dict(
 				doctype="Deleted Document",
 				deleted_doctype=doc.doctype,
 				deleted_name=doc.name,
 				data=doc.as_json(),
-				owner=frappe.session.user,
+				owner=nts.session.user,
 			)
 		).db_insert()
 
@@ -204,25 +204,25 @@ def update_naming_series(doc):
 
 def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 	if doctype != "DocType" and doctype == name:
-		frappe.db.delete("Singles", {"doctype": name})
+		nts.db.delete("Singles", {"doctype": name})
 	else:
-		frappe.db.delete(doctype, {"name": name})
+		nts.db.delete(doctype, {"name": name})
 	if doc:
 		child_doctypes = [
-			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
+			d.options for d in doc.meta.get_table_fields() if nts.get_meta(d.options).is_virtual == 0
 		]
 
 	else:
-		child_doctypes = frappe.get_all(
+		child_doctypes = nts.get_all(
 			"DocField",
 			fields="options",
-			filters={"fieldtype": ["in", frappe.model.table_fields], "parent": doctype},
+			filters={"fieldtype": ["in", nts.model.table_fields], "parent": doctype},
 			pluck="options",
 		)
 
 	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
 	for child_doctype in child_doctypes_to_delete:
-		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
+		nts.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):
@@ -239,17 +239,17 @@ def check_permission_and_not_submitted(doc):
 	# permission
 	if (
 		not doc.flags.ignore_permissions
-		and frappe.session.user != "Administrator"
+		and nts.session.user != "Administrator"
 		and (not doc.has_permission("delete") or (doc.doctype == "DocType" and not doc.custom))
 	):
-		frappe.msgprint(
+		nts.msgprint(
 			_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name),
-			raise_exception=frappe.PermissionError,
+			raise_exception=nts.PermissionError,
 		)
 
 	# check if submitted
 	if doc.meta.is_submittable and doc.docstatus.is_submitted():
-		frappe.msgprint(
+		nts.msgprint(
 			_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(
 				_(doc.doctype),
 				doc.name,
@@ -264,7 +264,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 	Raises excption if the given doc(dt, dn) is linked in another record.
 	"""
-	from frappe.model.rename_doc import get_link_fields
+	from nts.model.rename_doc import get_link_fields
 
 	link_fields = get_link_fields(doc.doctype)
 	ignored_doctypes = set()
@@ -272,7 +272,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	if method == "Cancel" and (doc_ignore_flags := doc.get("ignore_linked_doctypes")):
 		ignored_doctypes.update(doc_ignore_flags)
 	if method == "Delete":
-		ignored_doctypes.update(frappe.get_hooks("ignore_links_on_delete"))
+		ignored_doctypes.update(nts.get_hooks("ignore_links_on_delete"))
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
@@ -280,15 +280,15 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			continue
 
 		try:
-			meta = frappe.get_meta(link_dt)
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
+			meta = nts.get_meta(link_dt)
+		except nts.DoesNotExistError:
+			nts.clear_last_message()
 			# This mostly happens when app do not remove their customizations, we shouldn't
 			# prevent link checks from failing in those cases
 			continue
 
 		if issingle:
-			if frappe.db.get_single_value(link_dt, link_field) == doc.name:
+			if nts.db.get_single_value(link_dt, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
 			continue
 
@@ -297,7 +297,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		if meta.istable:
 			fields.extend(["parent", "parenttype"])
 
-		for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
+		for item in nts.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
 			# available only in child table cases
 			item_parent = getattr(item, "parent", None)
 			linked_parent_doctype = item.parenttype if item_parent else link_dt
@@ -319,20 +319,20 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
-	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
+	"""Raise `nts.LinkExistsError` if the document is dynamically linked"""
 	for df in get_dynamic_link_map().get(doc.doctype, []):
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
-		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
+		if df.parent in nts.get_hooks("ignore_links_on_delete") or (
 			df.parent in ignore_linked_doctypes and method == "Cancel"
 		):
 			# don't check for communication and todo!
 			continue
 
-		meta = frappe.get_meta(df.parent)
+		meta = nts.get_meta(df.parent)
 		if meta.issingle:
 			# dynamic link in single doc
-			refdoc = frappe.db.get_singles_dict(df.parent)
+			refdoc = nts.db.get_singles_dict(df.parent)
 			if (
 				refdoc.get(df.options) == doc.doctype
 				and refdoc.get(df.fieldname) == doc.name
@@ -347,7 +347,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 		else:
 			# dynamic link in table
 			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
-			for refdoc in frappe.db.sql(
+			for refdoc in nts.db.sql(
 				"""select `name`, `docstatus` {table} from `tab{parent}` where
 				`{options}`=%s and `{fieldname}`=%s""".format(**df),
 				(doc.doctype, doc.name),
@@ -361,7 +361,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
 
-					if reference_doctype in frappe.get_hooks("ignore_links_on_delete") or (
+					if reference_doctype in nts.get_hooks("ignore_links_on_delete") or (
 						reference_doctype in ignore_linked_doctypes and method == "Cancel"
 					):
 						# don't check for communication and todo!
@@ -380,11 +380,11 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 	if reference_doctype == reference_docname:
 		reference_doctype = ""
 
-	frappe.throw(
+	nts.throw(
 		_("Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}").format(
 			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
-		frappe.LinkExistsError,
+		nts.LinkExistsError,
 	)
 
 
@@ -413,7 +413,7 @@ def delete_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.delete(
+	nts.db.delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
 	)
 
@@ -425,7 +425,7 @@ def clear_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.sql(
+	nts.db.sql(
 		f"""update
 			`tab{doctype}`
 		set
@@ -437,21 +437,21 @@ def clear_references(
 
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.delete("Communication Link", {"link_doctype": link_doctype, "link_name": link_name})
+	nts.db.delete("Communication Link", {"link_doctype": link_doctype, "link_name": link_name})
 
 
 def insert_feed(doc):
 	if (
-		frappe.flags.in_install
-		or frappe.flags.in_uninstall
-		or frappe.flags.in_import
+		nts.flags.in_install
+		or nts.flags.in_uninstall
+		or nts.flags.in_import
 		or getattr(doc, "no_feed_on_delete", False)
 	):
 		return
 
-	from frappe.utils import get_fullname
+	from nts.utils import get_fullname
 
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "Comment",
 			"comment_type": "Deleted",
@@ -467,6 +467,6 @@ def delete_controllers(doctype, module):
 	Delete controller code in the doctype folder
 	"""
 	module_path = get_module_path(module)
-	dir_path = os.path.join(module_path, "doctype", frappe.scrub(doctype))
+	dir_path = os.path.join(module_path, "doctype", nts.scrub(doctype))
 
 	shutil.rmtree(dir_path)

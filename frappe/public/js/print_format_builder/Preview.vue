@@ -59,7 +59,7 @@ function refresh() {
 	iframe.value?.contentWindow.location.reload();
 }
 function get_default_docname() {
-	return frappe.db.get_list(doctype.value, { limit: 1 }).then((doc) => {
+	return nts.db.get_list(doctype.value, { limit: 1 }).then((doc) => {
 		return doc.length > 0 ? doc[0].name : null;
 	});
 }
@@ -78,13 +78,13 @@ let url = computed(() => {
 		params.append("letterhead", store.value.letterhead.name);
 	}
 	let _url =
-		type.value == "PDF" ? `/api/method/frappe.utils.weasyprint.download_pdf` : "/printpreview";
+		type.value == "PDF" ? `/api/method/nts.utils.weasyprint.download_pdf` : "/printpreview";
 	return `${_url}?${params.toString()}`;
 });
 
 // mounted
 onMounted(() => {
-	doc_select.value = frappe.ui.form.make_control({
+	doc_select.value = nts.ui.form.make_control({
 		parent: doc_select_ref.value,
 		df: {
 			label: __("Select {0}", [__(doctype.value)]),
@@ -97,7 +97,7 @@ onMounted(() => {
 		},
 		render_input: true,
 	});
-	preview_type.value = frappe.ui.form.make_control({
+	preview_type.value = nts.ui.form.make_control({
 		parent: preview_type_ref.value,
 		df: {
 			label: __("Preview type"),

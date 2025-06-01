@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.geo.doctype.country.country import (
+import nts
+from nts.geo.doctype.country.country import (
 	get_countries_and_currencies,
 	import_country_and_currency,
 )
-from frappe.geo.doctype.currency.currency import enable_default_currencies
-from frappe.tests.utils import FrappeTestCase
+from nts.geo.doctype.currency.currency import enable_default_currencies
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Country")
+test_records = nts.get_test_records("Country")
 
 
 def get_table_snapshot(doctype):
-	data = frappe.db.sql(f"select * from `tab{doctype}` order by name", as_dict=True)
+	data = nts.db.sql(f"select * from `tab{doctype}` order by name", as_dict=True)
 
 	inconsequential_keys = ["modified", "creation"]
 	for row in data:
@@ -22,11 +22,11 @@ def get_table_snapshot(doctype):
 	return data
 
 
-class TestCountry(FrappeTestCase):
+class TestCountry(ntsTestCase):
 	def test_bulk_insert_correctness(self):
 		def clear_tables():
-			frappe.db.delete("Currency")
-			frappe.db.delete("Country")
+			nts.db.delete("Currency")
+			nts.db.delete("Country")
 
 		# Clear data
 		clear_tables()

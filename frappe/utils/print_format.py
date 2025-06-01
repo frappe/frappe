@@ -7,22 +7,22 @@ from typing import Literal
 
 from pypdf import PdfWriter
 
-import frappe
-from frappe import _
-from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.translate import print_language
-from frappe.utils.deprecations import deprecated
-from frappe.utils.pdf import get_pdf
+import nts
+from nts import _
+from nts.core.doctype.access_log.access_log import make_access_log
+from nts.translate import print_language
+from nts.utils.deprecations import deprecated
+from nts.utils.pdf import get_pdf
 
 no_cache = 1
 
 base_template_path = "www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
-from frappe.www.printview import validate_print_permission
+from nts.www.printview import validate_print_permission
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -37,7 +37,7 @@ def download_multi_pdf(
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_multi_pdf_async(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -55,7 +55,7 @@ def download_multi_pdf_async(
 	else:
 		doc_count = len(json.loads(name))
 
-	frappe.enqueue(
+	nts.enqueue(
 		_download_multi_pdf,
 		doctype=doctype,
 		name=name,
@@ -66,7 +66,7 @@ def download_multi_pdf_async(
 		options=options,
 		queue="long" if doc_count > 20 else "short",
 	)
-	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
+	nts.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
 
 
@@ -130,7 +130,7 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
+				pdf_writer = nts.get_print(
 					doctype,
 					ss,
 					format,
@@ -142,11 +142,11 @@ def _download_multi_pdf(
 				)
 			except Exception:
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					nts.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
 			# Publish progress
 			if task_id:
-				frappe.publish_progress(
+				nts.publish_progress(
 					percent=(idx + 1) / total_docs * 100,
 					title=_("PDF Generation in Progress"),
 					description=_("{0}/{1} complete | Please leave this tab open until completion.").format(
@@ -156,7 +156,7 @@ def _download_multi_pdf(
 				)
 
 		if task_id is None:
-			frappe.local.response.filename = "{doctype}.pdf".format(
+			nts.local.response.filename = "{doctype}.pdf".format(
 				doctype=doctype.replace(" ", "-").replace("/", "-")
 			)
 
@@ -167,7 +167,7 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
+					pdf_writer = nts.get_print(
 						doctype_name,
 						doc_name,
 						format,
@@ -179,8 +179,8 @@ def _download_multi_pdf(
 					)
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
-					frappe.log_error(
+						nts.publish_realtime(task_id=task_id, message="Failed")
+					nts.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
@@ -190,7 +190,7 @@ def _download_multi_pdf(
 				count += 1
 
 				if task_id:
-					frappe.publish_progress(
+					nts.publish_progress(
 						percent=count / total_docs * 100,
 						title=_("PDF Generation in Progress"),
 						description=_(
@@ -199,12 +199,12 @@ def _download_multi_pdf(
 						task_id=task_id,
 					)
 		if task_id is None:
-			frappe.local.response.filename = f"{name}.pdf"
+			nts.local.response.filename = f"{name}.pdf"
 
 	with BytesIO() as merged_pdf:
 		pdf_writer.write(merged_pdf)
 		if task_id:
-			_file = frappe.get_doc(
+			_file = nts.get_doc(
 				{
 					"doctype": "File",
 					"file_name": f"{filename}{task_id}.pdf",
@@ -213,10 +213,10 @@ def _download_multi_pdf(
 				}
 			)
 			_file.save()
-			frappe.publish_realtime(f"task_complete:{task_id}", message={"file_url": _file.unique_url})
+			nts.publish_realtime(f"task_complete:{task_id}", message={"file_url": _file.unique_url})
 		else:
-			frappe.local.response.filecontent = merged_pdf.getvalue()
-			frappe.local.response.type = "pdf"
+			nts.local.response.filecontent = merged_pdf.getvalue()
+			nts.local.response.type = "pdf"
 
 
 @deprecated
@@ -226,7 +226,7 @@ def read_multi_pdf(output: PdfWriter) -> bytes:
 		return merged_pdf.getvalue()
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def download_pdf(
 	doctype: str,
 	name: str,
@@ -237,11 +237,11 @@ def download_pdf(
 	letterhead=None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
 ):
-	doc = doc or frappe.get_doc(doctype, name)
+	doc = doc or nts.get_doc(doctype, name)
 	validate_print_permission(doc)
 
 	with print_language(language):
-		pdf_file = frappe.get_print(
+		pdf_file = nts.get_print(
 			doctype,
 			name,
 			format,
@@ -252,39 +252,39 @@ def download_pdf(
 			pdf_generator=pdf_generator,
 		)
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
-	frappe.local.response.filecontent = pdf_file
-	frappe.local.response.type = "pdf"
+	nts.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	nts.local.response.filecontent = pdf_file
+	nts.local.response.type = "pdf"
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def report_to_pdf(html, orientation="Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
-	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
-	frappe.local.response.type = "pdf"
+	nts.local.response.filename = "report.pdf"
+	nts.local.response.filecontent = get_pdf(html, {"orientation": orientation})
+	nts.local.response.type = "pdf"
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def print_by_server(
 	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
 ):
-	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
+	print_settings = nts.get_doc("Network Printer Settings", printer_setting)
 	try:
 		import cups
 	except ImportError:
-		frappe.throw(_("You need to install pycups to use this feature!"))
+		nts.throw(_("You need to install pycups to use this feature!"))
 
 	try:
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
 		output = PdfWriter()
-		output = frappe.get_print(
+		output = nts.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)
 		if not file_path:
-			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
+			file_path = os.path.join("/", "tmp", f"nts-pdf-{nts.generate_hash()}.pdf")
 		output.write(open(file_path, "wb"))
 		conn.printFile(print_settings.printer_name, file_path, name, {})
 	except OSError as e:
@@ -294,6 +294,6 @@ def print_by_server(
 			or "UnknownContentError" in e.message
 			or "RemoteHostClosedError" in e.message
 		):
-			frappe.throw(_("PDF generation failed"))
+			nts.throw(_("PDF generation failed"))
 	except cups.IPPError:
-		frappe.throw(_("Printing failed"))
+		nts.throw(_("Printing failed"))

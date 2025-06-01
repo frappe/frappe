@@ -1,7 +1,7 @@
 export default class KanbanSettings {
 	constructor({ kanbanview, doctype, meta, settings }) {
 		if (!doctype) {
-			frappe.throw(__("DocType required"));
+			nts.throw(__("DocType required"));
 		}
 
 		this.kanbanview = kanbanview;
@@ -11,7 +11,7 @@ export default class KanbanSettings {
 		this.dialog = null;
 		this.fields = this.settings && this.settings.fields;
 
-		frappe.model.with_doctype("List View Settings", () => {
+		nts.model.with_doctype("List View Settings", () => {
 			this.make();
 			this.get_fields();
 			this.setup_fields();
@@ -22,7 +22,7 @@ export default class KanbanSettings {
 	}
 
 	make() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("{0} Settings", [__(this.doctype)]),
 			fields: [
 				{
@@ -43,13 +43,13 @@ export default class KanbanSettings {
 		});
 		this.dialog.set_values(this.settings);
 		this.dialog.set_primary_action(__("Save"), () => {
-			frappe.show_alert({
+			nts.show_alert({
 				message: __("Saving"),
 				indicator: "green",
 			});
 
-			frappe.call({
-				method: "frappe.desk.doctype.kanban_board.kanban_board.save_settings",
+			nts.call({
+				method: "nts.desk.doctype.kanban_board.kanban_board.save_settings",
 				args: {
 					board_name: this.settings.name,
 					settings: this.dialog.get_values(),
@@ -94,14 +94,14 @@ export default class KanbanSettings {
 
 					<div class="row">
 						<div class="col-md-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle")}
+							${nts.utils.icon("drag", "xs", "", "", "sortable-handle")}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
 							${__(field.label, null, field.parent)}
 						</div>
 						<div class="col-md-1">
 							<a class="text-muted remove-field" data-fieldname="${field.fieldname}">
-								${frappe.utils.icon("delete", "xs")}
+								${nts.utils.icon("delete", "xs")}
 							</a>
 						</div>
 					</div>
@@ -174,7 +174,7 @@ export default class KanbanSettings {
 	}
 
 	show_column_selector() {
-		let dialog = new frappe.ui.Dialog({
+		let dialog = new nts.ui.Dialog({
 			title: __("{0} Fields", [__(this.doctype)]),
 			fields: [
 				{
@@ -202,8 +202,8 @@ export default class KanbanSettings {
 
 	get_docfield(field_name) {
 		return (
-			frappe.meta.get_docfield(this.doctype, field_name) ||
-			frappe.model.get_std_field(field_name)
+			nts.meta.get_docfield(this.doctype, field_name) ||
+			nts.model.get_std_field(field_name)
 		);
 	}
 
@@ -226,10 +226,10 @@ export default class KanbanSettings {
 			"HTML Editor",
 			"Code",
 			"Color",
-			...frappe.model.no_value_type,
+			...nts.model.no_value_type,
 		];
 
-		return frappe.model.std_fields
+		return nts.model.std_fields
 			.concat(this.kanbanview.get_fields_in_list_view())
 			.filter(
 				(field) =>

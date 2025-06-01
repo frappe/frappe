@@ -1,31 +1,31 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
 from bs4 import BeautifulSoup
 
-import frappe
-from frappe import _
-from frappe.desk.doctype.notification_log.notification_log import (
+import nts
+from nts import _
+from nts.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_title,
 	get_title_html,
 )
-from frappe.desk.doctype.notification_settings.notification_settings import (
+from nts.desk.doctype.notification_settings.notification_settings import (
 	get_subscribed_documents,
 )
-from frappe.utils import get_fullname
+from nts.utils import get_fullname
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_notifications():
 	out = {
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.db.get_single_value("System Settings", "setup_complete"):
+	if nts.flags.in_install or not nts.db.get_single_value("System Settings", "setup_complete"):
 		return out
 
 	config = get_notification_config()
@@ -39,7 +39,7 @@ def get_notifications():
 	notification_percent = {}
 
 	for name in groups:
-		count = frappe.cache.hget("notification_count:" + name, frappe.session.user)
+		count = nts.cache.hget("notification_count:" + name, nts.session.user)
 		if count is not None:
 			notification_count[name] = count
 
@@ -51,7 +51,7 @@ def get_notifications():
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
-	can_read = frappe.get_user().get_can_read()
+	can_read = nts.get_user().get_can_read()
 	open_count_doctype = {}
 
 	for d in config.for_doctype:
@@ -63,16 +63,16 @@ def get_notifications_for_doctypes(config, notification_count):
 			else:
 				try:
 					if isinstance(condition, dict):
-						result = frappe.get_list(
+						result = nts.get_list(
 							d, fields=["count(*) as count"], filters=condition, ignore_ifnull=True
 						)[0].count
 					else:
-						result = frappe.get_attr(condition)()
+						result = nts.get_attr(condition)()
 
-				except frappe.PermissionError:
-					frappe.clear_messages()
+				except nts.PermissionError:
+					nts.clear_messages()
 					pass
-					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
+					# nts.msgprint("Permission Error in notifications for {0}".format(d))
 
 				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
@@ -82,14 +82,14 @@ def get_notifications_for_doctypes(config, notification_count):
 
 				else:
 					open_count_doctype[d] = result
-					frappe.cache.hset("notification_count:" + d, frappe.session.user, result)
+					nts.cache.hset("notification_count:" + d, nts.session.user, result)
 
 	return open_count_doctype
 
 
 def get_notifications_for_targets(config, notification_percent):
 	"""Notifications for doc targets"""
-	can_read = frappe.get_user().get_can_read()
+	can_read = nts.get_user().get_can_read()
 	doc_target_percents = {}
 
 	# doc_target_percents = {
@@ -111,7 +111,7 @@ def get_notifications_for_targets(config, notification_percent):
 				value_field = d["value_field"]
 				try:
 					if isinstance(condition, dict):
-						doc_list = frappe.get_list(
+						doc_list = nts.get_list(
 							doctype,
 							fields=["name", target_field, value_field],
 							filters=condition,
@@ -119,8 +119,8 @@ def get_notifications_for_targets(config, notification_percent):
 							ignore_ifnull=True,
 						)
 
-				except frappe.PermissionError:
-					frappe.clear_messages()
+				except nts.PermissionError:
+					nts.clear_messages()
 					pass
 				except Exception as e:
 					if e.args[0] not in (1412, 1684):
@@ -138,7 +138,7 @@ def get_notifications_for_targets(config, notification_percent):
 
 
 def clear_notifications(user=None):
-	if frappe.flags.in_install:
+	if nts.flags.in_install:
 		return
 	config = get_notification_config()
 
@@ -151,17 +151,17 @@ def clear_notifications(user=None):
 
 	for name in groups:
 		if user:
-			frappe.cache.hdel("notification_count:" + name, user)
+			nts.cache.hdel("notification_count:" + name, user)
 		else:
-			frappe.cache.delete_key("notification_count:" + name)
+			nts.cache.delete_key("notification_count:" + name)
 
 
 def clear_notification_config(user):
-	frappe.cache.hdel("notification_config", user)
+	nts.cache.hdel("notification_config", user)
 
 
 def delete_notification_count_for(doctype):
-	frappe.cache.delete_key("notification_count:" + doctype)
+	nts.cache.delete_key("notification_count:" + doctype)
 
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
@@ -178,14 +178,14 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 		return
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_notification_info():
 	config = get_notification_config()
 	out = get_notifications()
-	can_read = frappe.get_user().get_can_read()
+	can_read = nts.get_user().get_can_read()
 	conditions = {}
 	module_doctypes = {}
-	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))
+	doctype_info = dict(nts.db.sql("""select name, module from tabDocType"""))
 
 	for d in list(set(can_read + list(config.for_doctype))):
 		if d in config.for_doctype:
@@ -205,21 +205,21 @@ def get_notification_info():
 
 
 def get_notification_config():
-	user = frappe.session.user or "Guest"
+	user = nts.session.user or "Guest"
 
 	def _get():
 		subscribed_documents = get_subscribed_documents()
-		config = frappe._dict()
-		hooks = frappe.get_hooks()
+		config = nts._dict()
+		hooks = nts.get_hooks()
 		if hooks:
 			for notification_config in hooks.notification_config:
-				nc = frappe.get_attr(notification_config)()
+				nc = nts.get_attr(notification_config)()
 				for key in ("for_doctype", "for_module", "for_other", "targets"):
 					config.setdefault(key, {})
 					if key == "for_doctype":
 						if len(subscribed_documents) > 0:
 							key_config = nc.get(key, {})
-							subscribed_docs_config = frappe._dict()
+							subscribed_docs_config = nts._dict()
 							for document in subscribed_documents:
 								if key_config.get(document):
 									subscribed_docs_config[document] = key_config.get(document)
@@ -230,7 +230,7 @@ def get_notification_config():
 						config[key].update(nc.get(key, {}))
 		return config
 
-	return frappe.cache.hget("notification_config", user, _get)
+	return nts.cache.hget("notification_config", user, _get)
 
 
 def get_filters_for(doctype):
@@ -240,8 +240,8 @@ def get_filters_for(doctype):
 	return None if isinstance(doctype_config, str) else doctype_config
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_open_count(doctype: str, name: str, items=None):
 	"""Get count for internal and external links for given transactions
 
@@ -249,10 +249,10 @@ def get_open_count(doctype: str, name: str, items=None):
 	:param name: Reference Name
 	:param items: Optional list of transactions (json/dict)"""
 
-	if frappe.flags.in_migrate or frappe.flags.in_install:
+	if nts.flags.in_migrate or nts.flags.in_install:
 		return {"count": []}
 
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	doc.check_permission()
 	meta = doc.meta
 	links = meta.get_dashboard_data()
@@ -294,7 +294,7 @@ def get_open_count(doctype: str, name: str, items=None):
 	}
 
 	if not meta.custom:
-		module = frappe.get_meta_module(doctype)
+		module = nts.get_meta_module(doctype)
 		if hasattr(module, "get_timeline_data"):
 			out["timeline_data"] = module.get_timeline_data(doctype, name)
 
@@ -345,7 +345,7 @@ def get_external_links(doctype, name, links):
 
 def get_doc_count(doctype, filters):
 	return len(
-		frappe.get_all(
+		nts.get_all(
 			doctype,
 			fields="name",
 			filters=filters,
@@ -369,7 +369,7 @@ def get_dynamic_link_filters(doctype, links, fieldname):
 
 	doctype_value, doctype_fieldname = dynamic_link
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	if not meta.has_field(doctype_fieldname):
 		return
 
@@ -383,11 +383,11 @@ def notify_mentions(ref_doctype, ref_name, content):
 		if not mentions:
 			return
 
-		sender_fullname = get_fullname(frappe.session.user)
+		sender_fullname = get_fullname(nts.session.user)
 		title = get_title(ref_doctype, ref_name)
 
 		recipients = [
-			frappe.db.get_value(
+			nts.db.get_value(
 				"User",
 				{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},
 				"email",
@@ -396,7 +396,7 @@ def notify_mentions(ref_doctype, ref_name, content):
 		]
 
 		notification_message = _("""{0} mentioned you in a comment in {1} {2}""").format(
-			frappe.bold(sender_fullname), frappe.bold(ref_doctype), get_title_html(title)
+			nts.bold(sender_fullname), nts.bold(ref_doctype), get_title_html(title)
 		)
 
 		notification_doc = {
@@ -404,7 +404,7 @@ def notify_mentions(ref_doctype, ref_name, content):
 			"document_type": ref_doctype,
 			"document_name": ref_name,
 			"subject": notification_message,
-			"from_user": frappe.session.user,
+			"from_user": nts.session.user,
 			"email_content": content,
 		}
 
@@ -418,9 +418,9 @@ def extract_mentions(txt):
 	for mention in soup.find_all(class_="mention"):
 		if mention.get("data-is-group") == "true":
 			try:
-				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
+				user_group = nts.get_cached_doc("User Group", mention["data-id"])
 				emails += [d.user for d in user_group.user_group_members]
-			except frappe.DoesNotExistError:
+			except nts.DoesNotExistError:
 				pass
 			continue
 		email = mention["data-id"]

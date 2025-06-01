@@ -130,7 +130,7 @@ export default class Section {
 
 	set_icon(hide) {
 		let indicator_icon = hide ? "es-line-down" : "es-line-up";
-		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
+		this.indicator && this.indicator.html(nts.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 
 	is_collapsed() {

@@ -185,7 +185,7 @@ body {
 					display: none !important;
 				}
 
-				.frappe-control,
+				.nts-control,
 				.form-group {
 					margin-bottom: 0px !important;
 				}
@@ -289,7 +289,7 @@ body {
 				z-index: 1;
 			}
 
-			.frappe-chart .chart-legend {
+			.nts-chart .chart-legend {
 				display: none;
 			}
 
@@ -305,7 +305,7 @@ body {
 
 				.chart-container {
 					height: 100%;
-					.frappe-chart {
+					.nts-chart {
 						height: 100%;
 					}
 				}

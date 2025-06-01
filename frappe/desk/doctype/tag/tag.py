@@ -1,10 +1,10 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.query_builder import DocType
-from frappe.utils import unique
+import nts
+from nts.model.document import Document
+from nts.query_builder import DocType
+from nts.utils import unique
 
 
 class Tag(Document):
@@ -14,7 +14,7 @@ class Tag(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		description: DF.SmallText | None
 	# end: auto-generated types
@@ -25,13 +25,13 @@ def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
 		doctype = DocType(dt)
-		frappe.qb.from_(doctype).select(doctype._user_tags).limit(1).run()
+		nts.qb.from_(doctype).select(doctype._user_tags).limit(1).run()
 	except Exception as e:
-		if frappe.db.is_missing_column(e):
+		if nts.db.is_missing_column(e):
 			DocTags(dt).setup()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add_tag(tag, dt, dn, color=None):
 	"adds a new tag to a record, and creates the Tag master"
 	DocTags(dt).add(dn, tag)
@@ -39,32 +39,32 @@ def add_tag(tag, dt, dn, color=None):
 	return tag
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add_tags(tags, dt, docs, color=None):
 	"adds a new tag to a record, and creates the Tag master"
-	tags = frappe.parse_json(tags)
-	docs = frappe.parse_json(docs)
+	tags = nts.parse_json(tags)
+	docs = nts.parse_json(docs)
 	for doc in docs:
 		for tag in tags:
 			DocTags(dt).add(doc, tag)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def remove_tag(tag, dt, dn):
 	"removes tag from the record"
 	DocTags(dt).remove(dn, tag)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_tagged_docs(doctype, tag):
-	frappe.has_permission(doctype, throw=True)
+	nts.has_permission(doctype, throw=True)
 	doctype = DocType(doctype)
-	return (frappe.qb.from_(doctype).where(doctype._user_tags.like(tag)).select(doctype.name)).run()
+	return (nts.qb.from_(doctype).where(doctype._user_tags.like(tag)).select(doctype.name)).run()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_tags(doctype, txt):
-	tag = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
+	tag = nts.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
 	tags = [t.name for t in tag]
 
 	return sorted(filter(lambda t: t and txt.casefold() in t.casefold(), list(set(tags))))
@@ -78,19 +78,19 @@ class DocTags:
 
 	def get_tag_fields(self):
 		"""returns tag_fields property"""
-		return frappe.db.get_value("DocType", self.dt, "tag_fields")
+		return nts.db.get_value("DocType", self.dt, "tag_fields")
 
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
-		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
+		return (nts.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
 	def add(self, dn, tag):
 		"""add a new user tag"""
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
 			tl.append(tag)
-			if not frappe.db.exists("Tag", tag):
-				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
+			if not nts.db.exists("Tag", tag):
+				nts.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
@@ -111,13 +111,13 @@ class DocTags:
 			tl = unique(filter(lambda x: x, tl))
 			tags = "," + ",".join(tl)
 		try:
-			frappe.db.sql(
+			nts.db.sql(
 				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
 			)
-			doc = frappe.get_doc(self.dt, dn)
+			doc = nts.get_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:
-			if frappe.db.is_missing_column(e):
+			if nts.db.is_missing_column(e):
 				if not tags:
 					# no tags, nothing to do
 					return
@@ -129,7 +129,7 @@ class DocTags:
 
 	def setup(self):
 		"""adds the _user_tags column if not exists"""
-		from frappe.database.schema import add_column
+		from nts.database.schema import add_column
 
 		add_column(self.dt, "_user_tags", "Data")
 
@@ -140,10 +140,10 @@ def delete_tags_for_document(doc):
 	been deleted
 	:param doc: Deleted document
 	"""
-	if not frappe.db.table_exists("Tag Link"):
+	if not nts.db.table_exists("Tag Link"):
 		return
 
-	frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name})
+	nts.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name})
 
 
 def update_tags(doc, tags):
@@ -155,14 +155,14 @@ def update_tags(doc, tags):
 	new_tags = {tag.strip() for tag in tags.split(",") if tag}
 	existing_tags = [
 		tag.tag
-		for tag in frappe.get_list(
+		for tag in nts.get_list(
 			"Tag Link", filters={"document_type": doc.doctype, "document_name": doc.name}, fields=["tag"]
 		)
 	]
 
 	added_tags = set(new_tags) - set(existing_tags)
 	for tag in added_tags:
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "Tag Link",
 				"document_type": doc.doctype,
@@ -174,10 +174,10 @@ def update_tags(doc, tags):
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
 	for tag in deleted_tags:
-		frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
+		nts.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_documents_for_tag(tag):
 	"""
 	Search for given text in Tag Link
@@ -186,7 +186,7 @@ def get_documents_for_tag(tag):
 	# remove hastag `#` from tag
 	tag = tag[1:]
 
-	result = frappe.get_list(
+	result = nts.get_list(
 		"Tag Link", filters={"tag": tag}, fields=["document_type", "document_name", "title", "tag"]
 	)
 
@@ -200,6 +200,6 @@ def get_documents_for_tag(tag):
 	]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_tags_list_for_awesomebar():
-	return frappe.get_list("Tag", pluck="name", order_by=None)
+	return nts.get_list("Tag", pluck="name", order_by=None)

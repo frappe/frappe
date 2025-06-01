@@ -1,14 +1,14 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe.desk.utils import slug
-from frappe.model.document import Document
+import nts
+from nts.desk.utils import slug
+from nts.model.document import Document
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.docfield.docfield import DocField
+	from nts.core.doctype.docfield.docfield import DocField
 
 
 class DocTypeLayout(Document):
@@ -18,8 +18,8 @@ class DocTypeLayout(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.custom.doctype.doctype_layout_field.doctype_layout_field import DocTypeLayoutField
-		from frappe.types import DF
+		from nts.custom.doctype.doctype_layout_field.doctype_layout_field import DocTypeLayoutField
+		from nts.types import DF
 
 		client_script: DF.Code | None
 		document_type: DF.Link
@@ -31,9 +31,9 @@ class DocTypeLayout(Document):
 		if not self.route:
 			self.route = slug(self.name)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def sync_fields(self):
-		doctype_fields = frappe.get_meta(self.document_type, cached=False).fields
+		doctype_fields = nts.get_meta(self.document_type, cached=False).fields
 
 		if self.is_new():
 			added_fields = [field.fieldname for field in doctype_fields]

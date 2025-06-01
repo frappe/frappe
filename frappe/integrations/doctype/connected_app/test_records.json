@@ -1,7 +1,7 @@
 [
     {
         "doctype": "Connected App",
-        "provider_name": "frappe",
+        "provider_name": "nts",
         "client_id": "test_client_id",
         "client_secret": "test_client_secret",
         "scopes": [

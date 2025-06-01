@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import hashlib
@@ -8,11 +8,11 @@ from datetime import datetime, timedelta
 import click
 from croniter import CroniterBadCronError, croniter
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import get_datetime, now_datetime
-from frappe.utils.background_jobs import enqueue, is_job_enqueued
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import get_datetime, now_datetime
+from nts.utils.background_jobs import enqueue, is_job_enqueued
 
 
 class ScheduledJobType(Document):
@@ -22,7 +22,7 @@ class ScheduledJobType(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		create_log: DF.Check
 		cron_format: DF.Data | None
@@ -59,11 +59,11 @@ class ScheduledJobType(Document):
 
 		if self.frequency == "Cron":
 			if not self.cron_format:
-				frappe.throw(_("Cron format is required for job types with Cron frequency."))
+				nts.throw(_("Cron format is required for job types with Cron frequency."))
 			try:
 				croniter(self.cron_format)
 			except CroniterBadCronError:
-				frappe.throw(
+				nts.throw(
 					_("{0} is not a valid Cron expression.").format(f"<code>{self.cron_format}</code>"),
 					title=_("Bad Cron Expression"),
 				)
@@ -73,15 +73,15 @@ class ScheduledJobType(Document):
 		if self.is_event_due() or force:
 			if not self.is_job_in_queue():
 				enqueue(
-					"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
+					"nts.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
 					queue=self.get_queue_name(),
 					job_type=self.method,
 					job_id=self.rq_job_id,
 				)
 				return True
 			else:
-				frappe.logger("scheduler").error(
-					f"Skipped queueing {self.method} because it was found in queue for {frappe.local.site}"
+				nts.logger("scheduler").error(
+					f"Skipped queueing {self.method} because it was found in queue for {nts.local.site}"
 				)
 
 		return False
@@ -107,7 +107,7 @@ class ScheduledJobType(Document):
 		# Maintenance jobs run at random time, the time is specific to the site though.
 		# This is done to avoid scheduling all maintenance task on all sites at the same time in
 		# multitenant deployments.
-		maintenance_offset = int(hashlib.sha1(frappe.local.site.encode()).hexdigest(), 16) % 60
+		maintenance_offset = int(hashlib.sha1(nts.local.site.encode()).hexdigest(), 16) % 60
 
 		CRON_MAP = {
 			"Yearly": "0 0 1 1 *",
@@ -122,7 +122,7 @@ class ScheduledJobType(Document):
 			"Hourly": "0 * * * *",
 			"Hourly Long": "0 * * * *",
 			"Hourly Maintenance": "0 * * * *",
-			"All": f"*/{(frappe.get_conf().scheduler_interval or 240) // 60} * * * *",
+			"All": f"*/{(nts.get_conf().scheduler_interval or 240) // 60} * * * *",
 		}
 
 		if not self.cron_format:
@@ -144,69 +144,69 @@ class ScheduledJobType(Document):
 		try:
 			self.log_status("Start")
 			if self.server_script:
-				script_name = frappe.db.get_value("Server Script", self.server_script)
+				script_name = nts.db.get_value("Server Script", self.server_script)
 				if script_name:
-					frappe.get_doc("Server Script", script_name).execute_scheduled_method()
+					nts.get_doc("Server Script", script_name).execute_scheduled_method()
 			else:
-				frappe.get_attr(self.method)()
-			frappe.db.commit()
+				nts.get_attr(self.method)()
+			nts.db.commit()
 			self.log_status("Complete")
 		except Exception:
-			frappe.db.rollback()
+			nts.db.rollback()
 			self.log_status("Failed")
 
 	def log_status(self, status):
 		# log file
-		frappe.logger("scheduler").info(f"Scheduled Job {status}: {self.method} for {frappe.local.site}")
+		nts.logger("scheduler").info(f"Scheduled Job {status}: {self.method} for {nts.local.site}")
 		self.update_scheduler_log(status)
 
 	def update_scheduler_log(self, status):
 		if not self.create_log:
 			# self.get_next_execution will work properly iff self.last_execution is properly set
 			self.db_set("last_execution", now_datetime(), update_modified=False)
-			frappe.db.commit()
+			nts.db.commit()
 			return
 		if not self.scheduler_log:
-			self.scheduler_log = frappe.get_doc(
+			self.scheduler_log = nts.get_doc(
 				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
-		if frappe.debug_log:
-			self.scheduler_log.db_set("debug_log", "\n".join(frappe.debug_log))
+		if nts.debug_log:
+			self.scheduler_log.db_set("debug_log", "\n".join(nts.debug_log))
 		if status == "Failed":
-			self.scheduler_log.db_set("details", frappe.get_traceback(with_context=True))
+			self.scheduler_log.db_set("details", nts.get_traceback(with_context=True))
 		if status == "Start":
 			self.db_set("last_execution", now_datetime(), update_modified=False)
-		frappe.db.commit()
+		nts.db.commit()
 
 	def get_queue_name(self):
 		return "long" if ("Long" in self.frequency or "Maintenance" in self.frequency) else "default"
 
 	def on_trash(self):
-		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
+		nts.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def execute_event(doc: str):
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 	doc = json.loads(doc)
-	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
+	nts.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
 	return doc
 
 
 def run_scheduled_job(job_type: str):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
-	if frappe.conf.maintenance_mode:
-		raise frappe.InReadOnlyMode("Scheduled jobs can't run in maintenance mode.")
+	if nts.conf.maintenance_mode:
+		raise nts.InReadOnlyMode("Scheduled jobs can't run in maintenance mode.")
 	try:
-		frappe.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
+		nts.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
 	except Exception:
-		print(frappe.get_traceback())
+		print(nts.get_traceback())
 
 
 def sync_jobs(hooks: dict | None = None):
-	frappe.reload_doc("core", "doctype", "scheduled_job_type")
-	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
+	nts.reload_doc("core", "doctype", "scheduled_job_type")
+	scheduler_events = hooks or nts.get_hooks("scheduler_events")
 	all_events = insert_events(scheduler_events)
 	clear_events(all_events)
 
@@ -243,15 +243,15 @@ def insert_event_jobs(events: list, event_type: str) -> list:
 
 def insert_single_event(frequency: str, event: str, cron_format: str | None = ""):
 	try:
-		frappe.get_attr(event)
+		nts.get_attr(event)
 	except Exception as e:
 		click.secho(f"{event} is not a valid method: {e}", fg="yellow")
 		return
 
 	doc: ScheduledJobType
 
-	if job_name := frappe.db.exists("Scheduled Job Type", {"method": event}):
-		doc = frappe.get_doc("Scheduled Job Type", job_name)
+	if job_name := nts.db.exists("Scheduled Job Type", {"method": event}):
+		doc = nts.get_doc("Scheduled Job Type", job_name)
 
 		# Update only frequency and cron_format fields if they are different
 		# Maintain existing values of other fields
@@ -260,7 +260,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = ""
 			doc.frequency = frequency
 			doc.save()
 	else:
-		doc = frappe.get_doc(
+		doc = nts.get_doc(
 			{
 				"doctype": "Scheduled Job Type",
 				"method": event,
@@ -271,16 +271,16 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = ""
 
 		savepoint = "scheduled_job_type_creation"
 		try:
-			frappe.db.savepoint(savepoint)
+			nts.db.savepoint(savepoint)
 			doc.insert()
-		except frappe.DuplicateEntryError:
-			frappe.db.rollback(save_point=savepoint)
+		except nts.DuplicateEntryError:
+			nts.db.rollback(save_point=savepoint)
 			doc.delete()
 			doc.insert()
 
 
 def clear_events(all_events: list):
-	for event in frappe.get_all(
+	for event in nts.get_all(
 		"Scheduled Job Type", fields=["name", "method", "server_script", "scheduler_event"]
 	):
 		is_server_script = event.server_script
@@ -290,4 +290,4 @@ def clear_events(all_events: list):
 			continue
 
 		if not (is_defined_in_hooks or is_server_script):
-			frappe.delete_doc("Scheduled Job Type", event.name)
+			nts.delete_doc("Scheduled Job Type", event.name)

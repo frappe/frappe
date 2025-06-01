@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Website Slideshow')
+# test_records = nts.get_test_records('Website Slideshow')
 
 
-class TestWebsiteSlideshow(FrappeTestCase):
+class TestWebsiteSlideshow(ntsTestCase):
 	pass

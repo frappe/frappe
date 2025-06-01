@@ -3,12 +3,12 @@ set -e
 cd ~ || exit
 
 echo "::group::Install Bench"
-pip install frappe-bench
+pip install nts-bench
 echo "::endgroup::"
 
 echo "::group::Init Bench"
-bench -v init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
-cd ./frappe-bench || exit
+bench -v init nts-bench --skip-assets --python "$(which python)" --nts-path "${GITHUB_WORKSPACE}"
+cd ./nts-bench || exit
 
 bench -v setup requirements --dev
 if [ "$TYPE" == "ui" ]
@@ -18,24 +18,24 @@ fi
 echo "::endgroup::"
 
 echo "::group::Create Test Site"
-mkdir ~/frappe-bench/sites/test_site
-cp "${GITHUB_WORKSPACE}/.github/helper/db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json
+mkdir ~/nts-bench/sites/test_site
+cp "${GITHUB_WORKSPACE}/.github/helper/db/$DB.json" ~/nts-bench/sites/test_site/site_config.json
 
 if [ "$DB" == "mariadb" ]
 then
   mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL character_set_server = 'utf8mb4'";
   mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
-  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE DATABASE test_frappe";
-  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'";
-  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
+  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE DATABASE test_nts";
+  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "CREATE USER 'test_nts'@'localhost' IDENTIFIED BY 'test_nts'";
+  mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "GRANT ALL PRIVILEGES ON \`test_nts\`.* TO 'test_nts'@'localhost'";
 
   mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "FLUSH PRIVILEGES";
 fi
 if [ "$DB" == "postgres" ]
 then
-  echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
-  echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
+  echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_nts" -U postgres;
+  echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_nts WITH PASSWORD 'test_nts'" -U postgres;
 fi
 echo "::endgroup::"
 
@@ -55,12 +55,12 @@ then
 fi
 echo "::endgroup::"
 
-bench start &> ~/frappe-bench/bench_start.log &
+bench start &> ~/nts-bench/bench_start.log &
 
 echo "::group::Install site"
 if [ "$TYPE" == "server" ]
 then
-  CI=Yes bench build --app frappe &
+  CI=Yes bench build --app nts &
   build_pid=$!
 fi
 

@@ -79,7 +79,7 @@ context("Date Control", () => {
 			// `expect` can not wait like `should`
 			cy.wait(500);
 			expect(win.cur_dialog.fields_dict.date.value).to.be.equal(
-				win.frappe.datetime.get_today()
+				win.nts.datetime.get_today()
 			);
 		});
 	});

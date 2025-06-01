@@ -1,31 +1,31 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.tags");
+nts.provide("nts.tags");
 
-frappe.tags.utils = {
+nts.tags.utils = {
 	get_tags: function (txt) {
 		txt = txt.slice(1);
 		let out = [];
 
-		if (!frappe.tags.tags) {
-			frappe.tags.utils.fetch_tags();
+		if (!nts.tags.tags) {
+			nts.tags.utils.fetch_tags();
 			return [];
 		}
 
-		for (let i in frappe.tags.tags) {
-			let tag = frappe.tags.tags[i];
-			let level = frappe.search.utils.fuzzy_search(txt, tag);
+		for (let i in nts.tags.tags) {
+			let tag = nts.tags.tags[i];
+			let level = nts.search.utils.fuzzy_search(txt, tag);
 			if (level) {
 				out.push({
 					type: "Tag",
-					label: __("#{0}", [frappe.search.utils.bolden_match_part(__(tag), txt)]),
+					label: __("#{0}", [nts.search.utils.bolden_match_part(__(tag), txt)]),
 					value: __("#{0}", [__(tag)]),
 					index: 1 + level,
 					match: tag,
 					onclick() {
 						// Use Global Search Dialog for tag search too.
-						frappe.searchdialog.search.init_search("#".concat(tag), "tags");
+						nts.searchdialog.search.init_search("#".concat(tag), "tags");
 					},
 				});
 			}
@@ -35,11 +35,11 @@ frappe.tags.utils = {
 	},
 
 	fetch_tags() {
-		frappe.call({
-			method: "frappe.desk.doctype.tag.tag.get_tags_list_for_awesomebar",
+		nts.call({
+			method: "nts.desk.doctype.tag.tag.get_tags_list_for_awesomebar",
 			callback: function (r) {
 				if (r && r.message) {
-					frappe.tags.tags = $.extend([], r.message);
+					nts.tags.tags = $.extend([], r.message);
 				}
 			},
 		});
@@ -95,8 +95,8 @@ frappe.tags.utils = {
 			return results_sets;
 		}
 		return new Promise(function (resolve) {
-			frappe.call({
-				method: "frappe.desk.doctype.tag.tag.get_documents_for_tag",
+			nts.call({
+				method: "nts.desk.doctype.tag.tag.get_documents_for_tag",
 				args: {
 					tag: tag,
 				},

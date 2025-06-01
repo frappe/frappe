@@ -1,4 +1,4 @@
-frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.ControlData {
+nts.ui.form.ControlPassword = class ControlPassword extends nts.ui.form.ControlData {
 	static input_type = "password";
 	make() {
 		super.make();
@@ -26,7 +26,7 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 
 		this.$input.on(
 			"keyup",
-			frappe.utils.debounce(() => {
+			nts.utils.debounce(() => {
 				let hide_icon = me.$input.val() && !me.$input.val().includes("*");
 				me.toggle_password.toggleClass("hidden", !hide_icon);
 				me.get_password_strength(me.$input.val());
@@ -35,17 +35,17 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 
 		this.toggle_password = $(`
 			<div class="toggle-password hidden">
-				${frappe.utils.icon("unhide", "sm")}
+				${nts.utils.icon("unhide", "sm")}
 			</div>
 		`).insertAfter(this.$input);
 
 		this.toggle_password.on("click", () => {
 			if (this.$input.attr("type") === "password") {
 				this.$input.attr("type", "text");
-				this.toggle_password.html(frappe.utils.icon("hide", "sm"));
+				this.toggle_password.html(nts.utils.icon("hide", "sm"));
 			} else {
 				this.$input.attr("type", "password");
-				this.toggle_password.html(frappe.utils.icon("unhide", "sm"));
+				this.toggle_password.html(nts.utils.icon("unhide", "sm"));
 			}
 		});
 
@@ -68,9 +68,9 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 		}
 
 		var me = this;
-		frappe.call({
+		nts.call({
 			type: "POST",
-			method: "frappe.core.doctype.user.user.test_password_strength",
+			method: "nts.core.doctype.user.user.test_password_strength",
 			args: {
 				new_password: value || "",
 			},

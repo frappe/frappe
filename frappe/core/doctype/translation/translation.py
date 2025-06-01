@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.model.document import Document
-from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
-from frappe.utils import is_html, strip_html_tags
+import nts
+from nts.model.document import Document
+from nts.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
+from nts.utils import is_html, strip_html_tags
 
 
 class Translation(Document):
@@ -16,7 +16,7 @@ class Translation(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		context: DF.Data | None
 		contributed: DF.Check
@@ -42,5 +42,5 @@ class Translation(Document):
 
 
 def clear_user_translation_cache(lang):
-	frappe.cache.hdel(USER_TRANSLATION_KEY, lang)
-	frappe.cache.hdel(MERGED_TRANSLATION_KEY, lang)
+	nts.cache.hdel(USER_TRANSLATION_KEY, lang)
+	nts.cache.hdel(MERGED_TRANSLATION_KEY, lang)

@@ -19,13 +19,13 @@ export default class NewWidget {
 	get_title() {
 		// DO NOT REMOVE: Comment to load translation
 		// __("New Chart") __("New Shortcut") __("New Number Card")
-		let title = `New ${frappe.model.unscrub(this.type)}`;
+		let title = `New ${nts.model.unscrub(this.type)}`;
 		return __(title);
 	}
 
 	make_widget() {
-		const new_widget_class = `new-${frappe.scrub(
-			frappe.model.unscrub(this.type),
+		const new_widget_class = `new-${nts.scrub(
+			nts.model.unscrub(this.type),
 			"-"
 		)}-widget`;
 		this.widget = $(`<div class="widget new-widget ${new_widget_class}">

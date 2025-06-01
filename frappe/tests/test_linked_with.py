@@ -1,14 +1,14 @@
 import random
 import string
 
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.database import savepoint
-from frappe.desk.form import linked_with
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.database import savepoint
+from nts.desk.form import linked_with
+from nts.tests.utils import ntsTestCase
 
 
-class TestLinkedWith(FrappeTestCase):
+class TestLinkedWith(ntsTestCase):
 	def setUp(self):
 		parent_doctype = new_doctype("Parent DocType")
 		parent_doctype.is_submittable = 1
@@ -64,8 +64,8 @@ class TestLinkedWith(FrappeTestCase):
 
 	def tearDown(self):
 		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
-			frappe.delete_doc("DocType", doctype)
-			frappe.db.commit()
+			nts.delete_doc("DocType", doctype)
+			nts.db.commit()
 
 	def test_get_doctype_references_by_link_field(self):
 		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Parent DocType"])
@@ -99,9 +99,9 @@ class TestLinkedWith(FrappeTestCase):
 		)
 		self.assertFalse(references)
 
-		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		parent_record = nts.get_doc({"doctype": "Parent DocType"}).insert()
 
-		child_record = frappe.get_doc(
+		child_record = nts.get_doc(
 			{
 				"doctype": "Child DocType1",
 				"reference_doctype": "Parent DocType",
@@ -122,9 +122,9 @@ class TestLinkedWith(FrappeTestCase):
 		parent_record.delete()
 
 	def test_get_submitted_linked_docs(self):
-		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		parent_record = nts.get_doc({"doctype": "Parent DocType"}).insert()
 
-		child_record = frappe.get_doc(
+		child_record = nts.get_doc(
 			{
 				"doctype": "Child DocType1",
 				"reference_doctype": "Parent DocType",
@@ -141,17 +141,17 @@ class TestLinkedWith(FrappeTestCase):
 
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
-		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc = nts.get_doc({"doctype": "Parent DocType"}).insert()
 		doc.submit()
 		doc.cancel()
 
-		amendment = frappe.copy_doc(doc)
+		amendment = nts.copy_doc(doc)
 		amendment.amended_from = doc.name
 		amendment.docstatus = 0
 		amendment.insert()
 		amendment.submit()
 
-		self.assertRaises(frappe.LinkExistsError, doc.delete)
+		self.assertRaises(nts.LinkExistsError, doc.delete)
 
 	def test_reserved_keywords(self):
 		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
@@ -172,15 +172,15 @@ class TestLinkedWith(FrappeTestCase):
 			is_submittable=True,
 		).insert()
 
-		linked_doc = frappe.new_doc(dt_name).insert().submit()
+		linked_doc = nts.new_doc(dt_name).insert().submit()
 
 		second_doc = (
-			frappe.new_doc(dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
+			nts.new_doc(dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
 			.insert()
 			.submit()
 		)
 
-		with savepoint(frappe.LinkExistsError):
+		with savepoint(nts.LinkExistsError):
 			linked_doc.cancel() and self.fail("Cancellation shouldn't have worked")
 
 		second_doc.cancel()

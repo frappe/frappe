@@ -1,7 +1,7 @@
 <!-- post login tools -->
 {% if not only_static %}
 
-	{% if frappe.session.user != 'Guest' %}
+	{% if nts.session.user != 'Guest' %}
 	<li class="nav-item dropdown logged-in" id="website-post-login" data-label="website-post-login" style="display: none">
 		<a href="#" class="nav-link nav-avatar" data-toggle="dropdown">
 			<span class="user-image-wrapper"></span>

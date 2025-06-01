@@ -1,8 +1,8 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
-# import frappe
-from frappe.tests.utils import FrappeTestCase
+# import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestDropboxSettings(FrappeTestCase):
+class TestDropboxSettings(ntsTestCase):
 	pass

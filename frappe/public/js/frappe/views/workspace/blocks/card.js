@@ -3,7 +3,7 @@ export default class Card extends Block {
 	static get toolbox() {
 		return {
 			title: "Card",
-			icon: frappe.utils.icon("card", "sm"),
+			icon: nts.utils.icon("card", "sm"),
 		};
 	}
 

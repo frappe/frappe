@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from __future__ import annotations
@@ -11,9 +11,9 @@ from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import (
+import nts
+from nts.email.doctype.email_account.email_account import EmailAccount
+from nts.utils import (
 	cint,
 	expand_relative_urls,
 	get_url,
@@ -25,7 +25,7 @@ from frappe.utils import (
 	strip,
 	to_markdown,
 )
-from frappe.utils.pdf import get_pdf
+from nts.utils.pdf import get_pdf
 
 if TYPE_CHECKING:
 	from typing import Literal
@@ -246,7 +246,7 @@ class EMail:
 
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
-		_file = frappe.get_doc("File", {"file_name": n})
+		_file = nts.get_doc("File", {"file_name": n})
 		content = _file.get_content()
 		if not content:
 			return
@@ -266,7 +266,7 @@ class EMail:
 
 	def validate(self):
 		"""validate the Email Addresses"""
-		from frappe.utils import validate_email_address
+		from nts.utils import validate_email_address
 
 		if not self.sender:
 			self.sender = self.email_account.default_sender
@@ -278,9 +278,9 @@ class EMail:
 		self.replace_sender()
 		self.replace_sender_name()
 
-		self.recipients = [strip(r) for r in self.recipients if r not in frappe.STANDARD_USERS]
-		self.cc = [strip(r) for r in self.cc if r not in frappe.STANDARD_USERS]
-		self.bcc = [strip(r) for r in self.bcc if r not in frappe.STANDARD_USERS]
+		self.recipients = [strip(r) for r in self.recipients if r not in nts.STANDARD_USERS]
+		self.cc = [strip(r) for r in self.cc if r not in nts.STANDARD_USERS]
+		self.bcc = [strip(r) for r in self.bcc if r not in nts.STANDARD_USERS]
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
 			validate_email_address(e, True)
@@ -324,7 +324,7 @@ class EMail:
 			"Date": email.utils.formatdate(),
 			"Reply-To": self.reply_to if self.reply_to else None,
 			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients == "header" else None,
-			"X-Frappe-Site": get_url(),
+			"X-nts-Site": get_url(),
 		}
 
 		if self.x_priority != 3:
@@ -340,8 +340,8 @@ class EMail:
 				self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending
-		for hook in frappe.get_hooks("make_email_body_message"):
-			frappe.get_attr(hook)(self)
+		for hook in nts.get_hooks("make_email_body_message"):
+			nts.get_attr(hook)(self)
 
 	def set_header(self, key, value):
 		if key in self.msg_root:
@@ -366,13 +366,13 @@ def get_formatted_html(
 	print_html=None,
 	email_account=None,
 	header=None,
-	unsubscribe_link: frappe._dict | None = None,
+	unsubscribe_link: nts._dict | None = None,
 	sender=None,
 	with_container=False,
 ):
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
-	rendered_email = frappe.get_template("templates/emails/standard.html").render(
+	rendered_email = nts.get_template("templates/emails/standard.html").render(
 		{
 			"brand_logo": get_brand_logo(email_account) if with_container or header else None,
 			"with_container": with_container,
@@ -394,7 +394,7 @@ def get_formatted_html(
 	return inline_style_in_html(html)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_email_html(template, args, subject, header=None, with_container=False):
 	import json
 
@@ -402,7 +402,7 @@ def get_email_html(template, args, subject, header=None, with_container=False):
 	args = json.loads(args)
 	if header and header.startswith("["):
 		header = json.loads(header)
-	email = frappe.utils.jinja.get_email_from_template(template, args)
+	email = nts.utils.jinja.get_email_from_template(template, args)
 	return get_formatted_html(subject, email[0], header=header, with_container=with_container)
 
 
@@ -410,10 +410,10 @@ def inline_style_in_html(html):
 	"""Convert email.css and html to inline-styled html"""
 	from premailer import Premailer
 
-	from frappe.utils.jinja_globals import bundled_asset
+	from nts.utils.jinja_globals import bundled_asset
 
 	# get email css files from hooks
-	css_files = frappe.get_hooks("email_css")
+	css_files = nts.get_hooks("email_css")
 	css_files = [bundled_asset(path) for path in css_files]
 	css_files = [path.lstrip("/") for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
@@ -474,7 +474,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 
 def get_message_id():
 	"""Returns Message ID created from doctype and name"""
-	return email.utils.make_msgid(domain=frappe.local.site)
+	return email.utils.make_msgid(domain=nts.local.site)
 
 
 def get_signature(email_account):
@@ -493,21 +493,21 @@ def get_footer(email_account, footer=None):
 	if email_account and email_account.footer:
 		args.update({"email_account_footer": email_account.footer})
 
-	sender_address = frappe.db.get_default("email_footer_address")
+	sender_address = nts.db.get_default("email_footer_address")
 
 	if sender_address:
 		args.update({"sender_address": sender_address})
 
-	if not cint(frappe.db.get_default("disable_standard_email_footer")):
-		args.update({"default_mail_footer": frappe.get_hooks("default_mail_footer")})
+	if not cint(nts.db.get_default("disable_standard_email_footer")):
+		args.update({"default_mail_footer": nts.get_hooks("default_mail_footer")})
 
-	footer += frappe.utils.jinja.get_email_from_template("email_footer", args)[0]
+	footer += nts.utils.jinja.get_email_from_template("email_footer", args)[0]
 
 	return footer
 
 
 def replace_filename_with_cid(message):
-	"""Replaces <img embed="assets/frappe/images/filename.jpg" ...> with
+	"""Replaces <img embed="assets/nts/images/filename.jpg" ...> with
 	<img src="cid:content_id" ...> and return the modified message and
 	a list of inline_images with {filename, filecontent, content_id}
 	"""
@@ -522,7 +522,7 @@ def replace_filename_with_cid(message):
 
 		# found match
 		img_path = groups[0]
-		img_path_escaped = frappe.utils.html_utils.unescape_html(img_path)
+		img_path_escaped = nts.utils.html_utils.unescape_html(img_path)
 		filename = img_path_escaped.rsplit("/")[-1]
 
 		filecontent = get_filecontent_from_path(img_path_escaped)
@@ -551,10 +551,10 @@ def get_filecontent_from_path(path):
 		full_path = os.path.abspath(path)
 	elif path.startswith("files/"):
 		# public file
-		full_path = frappe.get_site_path("public", path)
+		full_path = nts.get_site_path("public", path)
 	elif path.startswith("private/files/"):
 		# private file
-		full_path = frappe.get_site_path(path)
+		full_path = nts.get_site_path(path)
 	else:
 		full_path = path
 
@@ -569,7 +569,7 @@ def get_filecontent_from_path(path):
 
 def get_header(header=None):
 	"""Build header from template"""
-	from frappe.utils.jinja import get_email_from_template
+	from nts.utils.jinja import get_email_from_template
 
 	if not header:
 		return None
@@ -584,7 +584,7 @@ def get_header(header=None):
 	title, indicator = header
 
 	if not title:
-		title = frappe.get_hooks("app_title")[-1]
+		title = nts.get_hooks("app_title")[-1]
 
 	email_header, text = get_email_from_template(
 		"email_header", {"header_title": title, "indicator": indicator}

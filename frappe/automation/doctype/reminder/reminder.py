@@ -1,11 +1,11 @@
-# Copyright (c) 2023, Frappe Technologies and contributors
+# Copyright (c) 2023, nts Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import cint
-from frappe.utils.data import add_to_date, get_datetime, now_datetime
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import cint
+from nts.utils.data import add_to_date, get_datetime, now_datetime
 
 
 class Reminder(Document):
@@ -15,7 +15,7 @@ class Reminder(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		description: DF.SmallText
 		notified: DF.Check
@@ -27,16 +27,16 @@ class Reminder(Document):
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=30):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Reminder")
-		frappe.db.delete(table, filters=(table.remind_at < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Reminder")
+		nts.db.delete(table, filters=(table.remind_at < (Now() - Interval(days=days))))
 
 	def validate(self):
-		self.user = frappe.session.user
+		self.user = nts.session.user
 		if get_datetime(self.remind_at) < now_datetime():
-			frappe.throw(_("Reminder cannot be created in past."))
+			nts.throw(_("Reminder cannot be created in past."))
 
 	def send_reminder(self):
 		if self.notified:
@@ -45,7 +45,7 @@ class Reminder(Document):
 		self.db_set("notified", 1, update_modified=False)
 
 		try:
-			notification = frappe.new_doc("Notification Log")
+			notification = nts.new_doc("Notification Log")
 			notification.for_user = self.user
 			notification.set("type", "Alert")
 			notification.document_type = self.reminder_doctype
@@ -56,14 +56,14 @@ class Reminder(Document):
 			self.log_error("Failed to send reminder")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def create_new_reminder(
 	remind_at: str,
 	description: str,
 	reminder_doctype: str | None = None,
 	reminder_docname: str | None = None,
 ):
-	reminder = frappe.new_doc("Reminder")
+	reminder = nts.new_doc("Reminder")
 
 	reminder.description = description
 	reminder.remind_at = remind_at
@@ -79,7 +79,7 @@ def send_reminders():
 	upper_threshold = add_to_date(now_datetime(), seconds=job_freq, as_string=True, as_datetime=True)
 	lower_threshold = add_to_date(now_datetime(), hours=-1, as_string=True, as_datetime=True)
 
-	pending_reminders = frappe.get_all(
+	pending_reminders = nts.get_all(
 		"Reminder",
 		filters=[
 			("remind_at", "<=", upper_threshold),
@@ -91,4 +91,4 @@ def send_reminders():
 	)
 
 	for reminder in pending_reminders:
-		frappe.get_doc("Reminder", reminder).send_reminder()
+		nts.get_doc("Reminder", reminder).send_reminder()

@@ -1,7 +1,7 @@
 import importlib
 from pathlib import Path
 
-from frappe.utils import get_bench_path
+from nts.utils import get_bench_path
 
 
 def extract(fileobj, *args, **kwargs):

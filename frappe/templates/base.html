@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Built on Frappe. https://frappeframework.com/ -->
+<!-- Built on nts. https://ntsframework.com/ -->
 <html lang="{{boot.lang}}">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="generator" content="frappe">
+	<meta name="generator" content="nts">
 
 	{% block meta_block %}
 		{% include "templates/includes/meta_block.html" %}
@@ -15,7 +15,7 @@
 	{% block favicon %}
 	<link
 		rel="shortcut icon"
-		href="{{ (favicon or "/assets/frappe/images/frappe-favicon.svg") | abs_url }}"
+		href="{{ (favicon or "/assets/nts/images/nts-favicon.svg") | abs_url }}"
 		type="image/x-icon"
 	>
 	{% endblock %}
@@ -37,23 +37,23 @@
 	{% if boot.lang == "eo" %}
 	<script type="text/javascript">
 		var _jipt = [];
-		_jipt.push(['project', 'frappe']);
+		_jipt.push(['project', 'nts']);
 	</script>
 	<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
 	{% endif %}
 
 	<script>
-		window.frappe = {};
-		frappe.ready_events = [];
-		frappe.ready = function(fn) {
-			frappe.ready_events.push(fn);
+		window.nts = {};
+		nts.ready_events = [];
+		nts.ready = function(fn) {
+			nts.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ (frappe.socketio_port or 9000) }};
+		window.socketio_port = {{ (nts.socketio_port or 9000) }};
 		window.show_language_picker = {{ show_language_picker or 'false' }};
 	</script>
 </head>
-<body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
+<body nts-session-status="{{ 'logged-in' if nts.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} nts-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
 	{% include "public/icons/timeless/icons.svg" %}
 	{% include "public/icons/espresso/icons.svg" %}
 	{%- block banner -%}
@@ -91,11 +91,11 @@
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>
-		frappe.boot = {{ boot | json }}
+		nts.boot = {{ boot | json }}
 		// for backward compatibility of some libs
-		frappe.sys_defaults = frappe.boot.sysdefaults;
+		nts.sys_defaults = nts.boot.sysdefaults;
 	</script>
-	{{ include_script('frappe-web.bundle.js') }}
+	{{ include_script('nts-web.bundle.js') }}
 	{% endblock %}
 
 	{%- for link in web_include_js %}

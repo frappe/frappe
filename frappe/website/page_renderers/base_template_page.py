@@ -1,7 +1,7 @@
-import frappe
-from frappe.website.doctype.website_settings.website_settings import get_website_settings
-from frappe.website.page_renderers.base_renderer import BaseRenderer
-from frappe.website.website_components.metatags import MetaTags
+import nts
+from nts.website.doctype.website_settings.website_settings import get_website_settings
+from nts.website.page_renderers.base_renderer import BaseRenderer
+from nts.website.website_components.metatags import MetaTags
 
 
 class BaseTemplatePage(BaseRenderer):
@@ -11,15 +11,15 @@ class BaseTemplatePage(BaseRenderer):
 		self.source = ""
 
 	def init_context(self):
-		self.context = frappe._dict()
+		self.context = nts._dict()
 		self.context.update(get_website_settings())
-		self.context.update(frappe.local.conf.get("website_context") or {})
+		self.context.update(nts.local.conf.get("website_context") or {})
 
 	def add_csrf_token(self, html):
-		if frappe.local.session:
-			csrf_token = frappe.local.session.data.csrf_token
+		if nts.local.session:
+			csrf_token = nts.local.session.data.csrf_token
 			return html.replace(
-				"<!-- csrf_token -->", f'<script>frappe.csrf_token = "{csrf_token}";</script>'
+				"<!-- csrf_token -->", f'<script>nts.csrf_token = "{csrf_token}";</script>'
 			)
 
 		return html
@@ -37,7 +37,7 @@ class BaseTemplatePage(BaseRenderer):
 
 	def set_base_template_if_missing(self):
 		if not self.context.base_template_path:
-			app_base = frappe.get_hooks("base_template")
+			app_base = nts.get_hooks("base_template")
 			self.context.base_template_path = app_base[-1] if app_base else "templates/base.html"
 
 	def set_title_with_prefix(self):
@@ -49,13 +49,13 @@ class BaseTemplatePage(BaseRenderer):
 			self.context.title = f"{self.context.title_prefix} - {self.context.title}"
 
 	def set_missing_values(self):
-		# set using frappe.respond_as_web_page
-		if hasattr(frappe.local, "response") and frappe.local.response.get("context"):
-			self.context.update(frappe.local.response.context)
+		# set using nts.respond_as_web_page
+		if hasattr(nts.local, "response") and nts.local.response.get("context"):
+			self.context.update(nts.local.response.context)
 
 		# to be able to inspect the context dict
 		# Use the macro "inspect" from macros.html
-		self.context.canonical = frappe.utils.get_url(frappe.utils.escape_html(self.path))
+		self.context.canonical = nts.utils.get_url(nts.utils.escape_html(self.path))
 
 		if "url_prefix" not in self.context:
 			self.context.url_prefix = ""
@@ -64,12 +64,12 @@ class BaseTemplatePage(BaseRenderer):
 			self.context.url_prefix += "/"
 
 		self.context.path = self.path
-		self.context.pathname = getattr(frappe.local, "path", None) if hasattr(frappe, "local") else self.path
+		self.context.pathname = getattr(nts.local, "path", None) if hasattr(nts, "local") else self.path
 
 	def update_website_context(self):
 		# apply context from hooks
-		update_website_context = frappe.get_hooks("update_website_context")
+		update_website_context = nts.get_hooks("update_website_context")
 		for method in update_website_context:
-			values = frappe.get_attr(method)(self.context)
+			values = nts.get_attr(method)(self.context)
 			if values:
 				self.context.update(values)

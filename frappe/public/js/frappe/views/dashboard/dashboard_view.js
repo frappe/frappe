@@ -1,6 +1,6 @@
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
-frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
+nts.views.DashboardView = class DashboardView extends nts.views.ListView {
 	get view_name() {
 		return "Dashboard";
 	}
@@ -11,7 +11,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		return super.setup_defaults().then(() => {
 			this.page_title = __("{0} Dashboard", [__(this.doctype)]);
 			this.dashboard_settings =
-				frappe.get_user_settings(this.doctype)["dashboard_settings"] || null;
+				nts.get_user_settings(this.doctype)["dashboard_settings"] || null;
 		});
 	}
 
@@ -45,17 +45,17 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	setup_dashboard_page() {
 		const chart_wrapper_html = `<div class="dashboard-view"></div>`;
 
-		this.$frappe_list.html(chart_wrapper_html);
+		this.$nts_list.html(chart_wrapper_html);
 		this.page.clear_secondary_action();
 		this.$dashboard_page = this.$page
 			.find(".layout-main-section-wrapper")
 			.addClass("dashboard-page");
-		this.page.main.removeClass("frappe-card");
+		this.page.main.removeClass("nts-card");
 
 		this.$dashboard_wrapper = this.$page.find(".dashboard-view");
 		this.$chart_header = this.$page.find(".dashboard-header");
 
-		frappe.utils.bind_actions_with_object(this.$dashboard_page, this);
+		nts.utils.bind_actions_with_object(this.$dashboard_page, this);
 	}
 
 	add_customization_buttons() {
@@ -91,7 +91,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			this.number_cards = this.dashboard_settings.number_cards;
 			this.render_dashboard();
 		} else {
-			frappe.run_serially([
+			nts.run_serially([
 				() =>
 					this.fetch_dashboard_items(
 						"Dashboard Chart",
@@ -119,7 +119,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	render_dashboard() {
 		this.$dashboard_wrapper.empty();
 
-		frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+		nts.dashboard_utils.get_dashboard_settings().then((settings) => {
 			this.dashboard_chart_settings = settings.chart_config
 				? JSON.parse(settings.chart_config)
 				: {};
@@ -137,7 +137,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	fetch_dashboard_items(doctype, filters, obj_name) {
-		return frappe.db
+		return nts.db
 			.get_list(doctype, {
 				filters: filters,
 				fields: ["*"],
@@ -148,7 +148,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	render_number_cards() {
-		this.number_card_group = new frappe.widget.WidgetGroup({
+		this.number_card_group = new nts.widget.WidgetGroup({
 			container: this.$dashboard_wrapper,
 			type: "number_card",
 			columns: 3,
@@ -167,7 +167,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	render_dashboard_charts() {
-		this.chart_group = new frappe.widget.WidgetGroup({
+		this.chart_group = new nts.widget.WidgetGroup({
 			container: this.$dashboard_wrapper,
 			type: "chart",
 			columns: 2,
@@ -198,7 +198,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				${__("Customize")}
 			</button></p>`;
 
-		const empty_state_image = "/assets/frappe/images/ui-states/list-empty-state.svg";
+		const empty_state_image = "/assets/nts/images/ui-states/list-empty-state.svg";
 
 		const empty_state_html = `<div class="msg-box no-border empty-dashboard">
 			<div>
@@ -249,7 +249,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			number_cards: number_cards,
 		};
 
-		frappe.model.user_settings.save(
+		nts.model.user_settings.save(
 			this.doctype,
 			"dashboard_settings",
 			this.dashboard_settings
@@ -259,15 +259,15 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 
 	discard_dashboard_customization() {
 		this.dashboard_settings =
-			frappe.get_user_settings(this.doctype)["dashboard_settings"] || null;
+			nts.get_user_settings(this.doctype)["dashboard_settings"] || null;
 		this.toggle_customize(false);
 		this.render_dashboard();
 	}
 
 	reset_dashboard_customization() {
-		frappe.confirm(__("Are you sure you want to reset all customizations?"), () => {
+		nts.confirm(__("Are you sure you want to reset all customizations?"), () => {
 			this.dashboard_settings = null;
-			frappe.model.user_settings
+			nts.model.user_settings
 				.save(this.doctype, "dashboard_settings", this.dashboard_settings)
 				.then(() => this.make_dashboard());
 
@@ -282,7 +282,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 
 	show_add_chart_dialog() {
 		let fields = this.get_field_options();
-		const dialog = new frappe.ui.Dialog({
+		const dialog = new nts.ui.Dialog({
 			title: __("Add a {0} Chart", [__(this.doctype)]),
 			fields: [
 				{
@@ -298,7 +298,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldtype: "Link",
 					get_query: () => {
 						return {
-							query: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_charts_for_user",
+							query: "nts.desk.doctype.dashboard_chart.dashboard_chart.get_charts_for_user",
 							filters: {
 								document_type: this.doctype,
 							},
@@ -449,9 +449,9 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 							: chart.chart_type;
 					chart.document_type = this.doctype;
 					chart.filters_json = "[]";
-					frappe
+					nts
 						.xcall(
-							"frappe.desk.doctype.dashboard_chart.dashboard_chart.create_dashboard_chart",
+							"nts.desk.doctype.dashboard_chart.dashboard_chart.create_dashboard_chart",
 							{ args: chart }
 						)
 						.then((doc) => {
@@ -483,11 +483,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		let group_by_fields = [];
 		let aggregate_function_fields = [];
 
-		frappe.get_meta(this.doctype).fields.map((df) => {
+		nts.get_meta(this.doctype).fields.map((df) => {
 			if (["Date", "Datetime"].includes(df.fieldtype)) {
 				date_fields.push({ label: df.label, value: df.fieldname });
 			}
-			if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+			if (nts.model.numeric_fieldtypes.includes(df.fieldtype)) {
 				if (df.fieldtype == "Currency") {
 					if (!df.options || df.options !== "Company:company:default_currency") {
 						return;

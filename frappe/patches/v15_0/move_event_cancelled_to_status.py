@@ -1,10 +1,10 @@
-import frappe
+import nts
 
 
 def execute():
-	Event = frappe.qb.DocType("Event")
+	Event = nts.qb.DocType("Event")
 	query = (
-		frappe.qb.update(Event)
+		nts.qb.update(Event)
 		.set(Event.event_type, "Private")
 		.set(Event.status, "Cancelled")
 		.where(Event.event_type == "Cancelled")

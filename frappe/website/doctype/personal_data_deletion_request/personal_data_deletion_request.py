@@ -1,16 +1,16 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 import re
 
-import frappe
-from frappe import _
-from frappe.core.utils import find
-from frappe.model.document import Document
-from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
-from frappe.utils.user import get_system_managers
-from frappe.utils.verified_command import get_signed_params, verify_request
+import nts
+from nts import _
+from nts.core.utils import find
+from nts.model.document import Document
+from nts.utils import get_datetime, get_fullname, time_diff_in_hours
+from nts.utils.user import get_system_managers
+from nts.utils.verified_command import get_signed_params, verify_request
 
 
 class PersonalDataDeletionRequest(Document):
@@ -20,8 +20,8 @@ class PersonalDataDeletionRequest(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.personal_data_deletion_step.personal_data_deletion_step import (
+		from nts.types import DF
+		from nts.website.doctype.personal_data_deletion_step.personal_data_deletion_step import (
 			PersonalDataDeletionStep,
 		)
 
@@ -34,7 +34,7 @@ class PersonalDataDeletionRequest(Document):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.user_data_fields = frappe.get_hooks("user_data_fields")
+		self.user_data_fields = nts.get_hooks("user_data_fields")
 		self.full_match_privacy_docs = [x for x in self.user_data_fields if x.get("redact_fields")]
 		self.partial_privacy_docs = [
 			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
@@ -49,7 +49,7 @@ class PersonalDataDeletionRequest(Document):
 		}
 
 	def autoname(self):
-		from frappe.model.naming import set_name_from_naming_options
+		from nts.model.naming import set_name_from_naming_options
 
 		pattern = re.compile(
 			r"^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|"
@@ -57,44 +57,44 @@ class PersonalDataDeletionRequest(Document):
 			r"([a-zA-Z0-9][-_.a-zA-Z0-9]{0,61}[a-zA-Z0-9]))\."
 			r"([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}.[a-zA-Z]{2,3})$"
 		)
-		domain = frappe.local.site.replace("_", "-")
+		domain = nts.local.site.replace("_", "-")
 		site = domain if pattern.match(domain) else f"{domain}.com"
 		autoname = f"format:deleted-user-{{####}}@{site}"
 		set_name_from_naming_options(autoname, self)
-		frappe.utils.validate_email_address(self.email, throw=True)
+		nts.utils.validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
 		self.send_verification_mail()
 
 	def generate_url_for_confirmation(self):
-		params = {"email": self.email, "name": self.name, "host_name": frappe.local.site}
-		api = frappe.utils.get_url(
-			"/api/method/frappe.website.doctype.personal_data_deletion_request"
+		params = {"email": self.email, "name": self.name, "host_name": nts.local.site}
+		api = nts.utils.get_url(
+			"/api/method/nts.website.doctype.personal_data_deletion_request"
 			".personal_data_deletion_request.confirm_deletion"
 		)
 		url = f"{api}?{get_signed_params(params)}"
 
-		if frappe.conf.developer_mode:
+		if nts.conf.developer_mode:
 			print(f"URL generated for {self.doctype} {self.name}: {url}")
 
 		return url
 
 	def disable_user(self):
-		user = frappe.get_doc("User", self.email)
+		user = nts.get_doc("User", self.email)
 		user.enabled = False
 		user.save()
 
 	def send_verification_mail(self):
 		url = self.generate_url_for_confirmation()
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=self.email,
 			subject=_("Confirm Deletion of Account"),
 			template="delete_data_confirmation",
 			args={
 				"email": self.email,
 				"name": self.name,
-				"host_name": frappe.utils.get_url(),
+				"host_name": nts.utils.get_url(),
 				"link": url,
 			},
 			header=[_("Confirm Deletion of Account"), "green"],
@@ -103,21 +103,21 @@ class PersonalDataDeletionRequest(Document):
 	def notify_system_managers(self):
 		system_managers = get_system_managers(only_name=True)
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=system_managers,
 			subject=_("User {0} has requested for data deletion").format(self.email),
 			template="data_deletion_approval",
-			args={"user": self.email, "url": frappe.utils.get_url(self.get_url())},
+			args={"user": self.email, "url": nts.utils.get_url(self.get_url())},
 			header=[_("Approval Required"), "green"],
 		)
 
 	def validate_data_anonymization(self):
-		frappe.only_for("System Manager")
+		nts.only_for("System Manager")
 
 		if self.status != "Pending Approval":
-			frappe.throw(_("This request has not yet been approved by the user."))
+			nts.throw(_("This request has not yet been approved by the user."))
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def trigger_data_deletion(self):
 		"""Redact user data defined in current site's hooks under `user_data_fields`"""
 		self.validate_data_anonymization()
@@ -126,23 +126,23 @@ class PersonalDataDeletionRequest(Document):
 		self.notify_user_after_deletion()
 
 	def anonymize_data(self):
-		return frappe.enqueue_doc(
+		return nts.enqueue_doc(
 			self.doctype,
 			self.name,
 			"_anonymize_data",
 			queue="long",
 			timeout=3000,
-			now=frappe.flags.in_test,
+			now=nts.flags.in_test,
 		)
 
 	def notify_user_after_deletion(self):
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=self.email,
 			subject=_("Your account has been deleted"),
 			template="account_deletion_notification",
 			args={
 				"email": self.email,
-				"host_name": frappe.utils.get_url(),
+				"host_name": nts.utils.get_url(),
 			},
 			header=[_("Your account has been deleted"), "green"],
 		)
@@ -178,13 +178,13 @@ class PersonalDataDeletionRequest(Document):
 			return f"{email_user}-{number}@{domain}"
 
 		for i, name in enumerate(
-			frappe.get_all(
+			nts.get_all(
 				doctype["doctype"],
 				filters={doctype.get("filter_by", "owner"): self.email},
 				pluck="name",
 			)
 		):
-			frappe.rename_doc(
+			nts.rename_doc(
 				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
 			)
 
@@ -192,7 +192,7 @@ class PersonalDataDeletionRequest(Document):
 		"""Replaces the entire field value by the values set in the anonymization_value_map"""
 		filter_by = ref.get("filter_by", "owner")
 
-		docs = frappe.get_all(
+		docs = nts.get_all(
 			ref["doctype"],
 			filters={filter_by: email},
 			fields=["name", filter_by],
@@ -209,7 +209,7 @@ class PersonalDataDeletionRequest(Document):
 
 	def generate_anonymization_dict(self, ref):
 		anonymize_fields_dict = {}
-		meta = frappe.get_meta(ref["doctype"])
+		meta = nts.get_meta(ref["doctype"])
 
 		for field in ref.get("redact_fields", []):
 			field_details = meta.get_field(field)
@@ -233,7 +233,7 @@ class PersonalDataDeletionRequest(Document):
 
 	def redact_doc(self, doc, ref):
 		filter_by = ref.get("filter_by", "owner")
-		meta = frappe.get_meta(ref["doctype"])
+		meta = nts.get_meta(ref["doctype"])
 		filter_by_meta = meta.get_field(filter_by)
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
@@ -242,7 +242,7 @@ class PersonalDataDeletionRequest(Document):
 				value = re.sub(self.email_regex, self.anon, value)
 				self.anonymize_fields_dict[filter_by] = value
 
-		frappe.db.set_value(
+		nts.db.set_value(
 			ref["doctype"],
 			doc["name"],
 			self.anonymize_fields_dict,
@@ -250,7 +250,7 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 		if ref.get("rename") and doc["name"] != self.anon:
-			frappe.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
+			nts.rename_doc(ref["doctype"], doc["name"], self.anon, force=True, show_alert=False)
 
 	def _anonymize_data(self, email=None, anon=None, set_data=True, commit=False):
 		email = email or self.email
@@ -277,19 +277,19 @@ class PersonalDataDeletionRequest(Document):
 			self.redact_full_match_data(doctype, email)
 			self.set_step_status(doctype["doctype"])
 			if commit:
-				frappe.db.commit()
+				nts.db.commit()
 
 		for doctype in self.partial_match_doctypes:
 			self.redact_partial_match_data(doctype)
 			self.set_step_status(doctype["doctype"])
 			if commit:
-				frappe.db.commit()
+				nts.db.commit()
 
-		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		nts.rename_doc("User", email, anon, force=True, show_alert=False)
 		self.db_set("status", "Deleted")
 
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 
 	def set_step_status(self, step, status="Deleted"):
 		del_step = find(self.deletion_steps, lambda x: x.document_type == step and x.status != status)
@@ -322,7 +322,7 @@ class PersonalDataDeletionRequest(Document):
 			"Data",
 		}
 
-		for df in frappe.get_meta(doctype["doctype"]).fields:
+		for df in nts.get_meta(doctype["doctype"]).fields:
 			if df.fieldtype not in editable_text_fields:
 				continue
 
@@ -336,27 +336,27 @@ class PersonalDataDeletionRequest(Document):
 			"" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
 		)
 
-		frappe.db.sql(
+		nts.db.sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{"name": self.full_name, "email": self.email},
 		)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def put_on_hold(self):
 		self.db_set("status", "On Hold")
 
 
 def process_data_deletion_request():
-	auto_account_deletion = frappe.db.get_single_value("Website Settings", "auto_account_deletion")
+	auto_account_deletion = nts.db.get_single_value("Website Settings", "auto_account_deletion")
 	if auto_account_deletion < 1:
 		return
 
-	requests = frappe.get_all(
+	requests = nts.get_all(
 		"Personal Data Deletion Request", filters={"status": "Pending Approval"}, pluck="name"
 	)
 
 	for request in requests:
-		doc = frappe.get_doc("Personal Data Deletion Request", request)
+		doc = nts.get_doc("Personal Data Deletion Request", request)
 		if time_diff_in_hours(get_datetime(), doc.creation) >= auto_account_deletion:
 			doc.add_comment(
 				"Comment",
@@ -368,7 +368,7 @@ def process_data_deletion_request():
 
 
 def remove_unverified_record():
-	frappe.db.sql(
+	nts.db.sql(
 		"""
 		DELETE FROM `tabPersonal Data Deletion Request`
 		WHERE `status` = 'Pending Verification'
@@ -376,20 +376,20 @@ def remove_unverified_record():
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
 	if not verify_request():
 		return
 
-	doc = frappe.get_doc("Personal Data Deletion Request", name)
-	host_name = frappe.utils.get_url()
+	doc = nts.get_doc("Personal Data Deletion Request", name)
+	host_name = nts.utils.get_url()
 
 	if doc.status == "Pending Verification":
 		doc.status = "Pending Approval"
 		doc.save(ignore_permissions=True)
 		doc.notify_system_managers()
-		frappe.db.commit()
-		frappe.respond_as_web_page(
+		nts.db.commit()
+		nts.respond_as_web_page(
 			_("Confirmed"),
 			_("The process for deletion of {0} data associated with {1} has been initiated.").format(
 				host_name, email
@@ -398,7 +398,7 @@ def confirm_deletion(email, name, host_name):
 		)
 
 	else:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Link Expired"),
 			_("This link has already been activated for verification."),
 			indicator_color="red",

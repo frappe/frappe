@@ -1,7 +1,7 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-from frappe.model.document import Document
+from nts.model.document import Document
 
 
 class EmailFlagQueue(Document):
@@ -11,7 +11,7 @@ class EmailFlagQueue(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		action: DF.Literal["Read", "Unread"]
 		communication: DF.Data | None

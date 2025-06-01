@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import gzip
@@ -25,23 +25,23 @@ from click import Command
 from click.testing import CliRunner, Result
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-import frappe
-import frappe.commands.scheduler
-import frappe.commands.site
-import frappe.commands.utils
-import frappe.recorder
-from frappe.installer import add_to_installed_apps, remove_app
-from frappe.query_builder.utils import db_type_is
-from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase, timeout
-from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
-from frappe.utils.backups import BackupGenerator, fetch_latest_backups
-from frappe.utils.jinja_globals import bundled_asset
-from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
+import nts
+import nts.commands.scheduler
+import nts.commands.site
+import nts.commands.utils
+import nts.recorder
+from nts.installer import add_to_installed_apps, remove_app
+from nts.query_builder.utils import db_type_is
+from nts.tests.test_query_builder import run_only_if
+from nts.tests.utils import ntsTestCase, timeout
+from nts.utils import add_to_date, get_bench_path, get_bench_relative_path, now
+from nts.utils.backups import BackupGenerator, fetch_latest_backups
+from nts.utils.jinja_globals import bundled_asset
+from nts.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
 TEST_SITE = "commands-site-O4PN2QK.test"  # added random string tag to avoid collisions
-CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
+CLI_CONTEXT = nts._dict(sites=[TEST_SITE])
 
 
 def clean(value) -> str:
@@ -70,7 +70,7 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 	Returns:
 	        doctypes(list): doctypes that are missing in backup
 	"""
-	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
+	predicate = 'COPY public."tab{}"' if nts.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
 	with gzip.open(file, "rb") as f:
 		content = f.read().decode("utf8").lower()
 
@@ -93,18 +93,18 @@ def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
 
 @contextmanager
 def maintain_locals():
-	pre_site = frappe.local.site
-	pre_flags = frappe.local.flags.copy()
-	pre_db = frappe.local.db
+	pre_site = nts.local.site
+	pre_flags = nts.local.flags.copy()
+	pre_db = nts.local.db
 
 	try:
 		yield
 	finally:
-		post_site = getattr(frappe.local, "site", None)
+		post_site = getattr(nts.local, "site", None)
 		if not post_site or post_site != pre_site:
-			frappe.init(site=pre_site)
-			frappe.local.db = pre_db
-			frappe.local.flags.update(pre_flags)
+			nts.init(site=pre_site)
+			nts.local.db = pre_db
+			nts.local.flags.update(pre_flags)
 
 
 def pass_test_context(f):
@@ -120,7 +120,7 @@ def cli(cmd: Command, args: list | None = None):
 	with maintain_locals():
 		global _result
 
-		patch_ctx = patch("frappe.commands.pass_context", pass_test_context)
+		patch_ctx = patch("nts.commands.pass_context", pass_test_context)
 		_module = cmd.callback.__module__
 		_cmd = cmd.callback.__qualname__
 
@@ -140,7 +140,7 @@ def cli(cmd: Command, args: list | None = None):
 			importlib.invalidate_caches()
 
 
-class BaseTestCommands(FrappeTestCase):
+class BaseTestCommands(ntsTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		super().setUpClass()
@@ -149,9 +149,9 @@ class BaseTestCommands(FrappeTestCase):
 	@classmethod
 	def execute(self, command, kwargs=None):
 		# tests might have written to DB which wont be visible to commands until we end current transaction
-		frappe.db.commit()
+		nts.db.commit()
 
-		site = {"site": frappe.local.site}
+		site = {"site": nts.local.site}
 		cmd_input = None
 		if kwargs:
 			cmd_input = kwargs.get("cmd_input", None)
@@ -174,16 +174,16 @@ class BaseTestCommands(FrappeTestCase):
 		self.returncode = clean(self._proc.returncode)
 
 		# Commands might have written to DB which wont be visible until we end current transaction
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	@classmethod
 	def setup_test_site(cls):
 		cmd_config = {
 			"test_site": TEST_SITE,
-			"admin_password": frappe.conf.admin_password,
-			"db_type": frappe.conf.db_type,
-			"db_root_username": frappe.conf.root_login,
-			"db_root_password": frappe.conf.root_password,
+			"admin_password": nts.conf.admin_password,
+			"db_type": nts.conf.db_type,
+			"db_root_username": nts.conf.root_login,
+			"db_root_password": nts.conf.root_password,
 		}
 
 		if not os.path.exists(os.path.join(TEST_SITE, "site_config.json")):
@@ -227,12 +227,12 @@ class BaseTestCommands(FrappeTestCase):
 class TestCommands(BaseTestCommands):
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
-		self.execute("bench --site {site} execute frappe.db.get_database_size")
+		self.execute("bench --site {site} execute nts.db.get_database_size")
 		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(float(self.stdout), float)
 
 		# test 2: execute a command expecting an errored output as local won't exist
-		self.execute("bench --site {site} execute frappe.local.site")
+		self.execute("bench --site {site} execute nts.local.site")
 		self.assertEqual(self.returncode, 1)
 		self.assertIsNotNone(self.stderr)
 
@@ -240,18 +240,18 @@ class TestCommands(BaseTestCommands):
 		# Note:
 		# terminal command has been escaped to avoid .format string replacement
 		# The returned value has quotes which have been trimmed for the test
-		self.execute("""bench --site {site} execute frappe.bold --kwargs '{{"text": "DocType"}}'""")
+		self.execute("""bench --site {site} execute nts.bold --kwargs '{{"text": "DocType"}}'""")
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
+		self.assertEqual(self.stdout[1:-1], nts.bold(text="DocType"))
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_restore(self):
 		# step 0: create a site to run the test on
 		global_config = {
-			"admin_password": frappe.conf.admin_password,
-			"root_login": frappe.conf.root_login,
-			"root_password": frappe.conf.root_password,
-			"db_type": frappe.conf.db_type,
+			"admin_password": nts.conf.admin_password,
+			"root_login": nts.conf.root_login,
+			"root_password": nts.conf.root_password,
+			"db_type": nts.conf.db_type,
 		}
 		site_data = {"test_site": TEST_SITE, **global_config}
 		for key, value in global_config.items():
@@ -259,24 +259,24 @@ class TestCommands(BaseTestCommands):
 				self.execute(f"bench set-config {key} {value} -g")
 
 		with self.switch_site(TEST_SITE):
-			public_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			public_file = nts.new_doc(
+				"File", file_name=f"test_{nts.generate_hash()}", content=nts.generate_hash()
 			).insert()
-			private_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			private_file = nts.new_doc(
+				"File", file_name=f"test_{nts.generate_hash()}", content=nts.generate_hash()
 			).insert()
 
 		# test 1: bench restore from full backup
 		self.execute("bench --site {test_site} backup --ignore-backup-conf --with-files", site_data)
 		self.execute(
-			"bench --site {test_site} execute frappe.utils.backups.fetch_latest_backups",
+			"bench --site {test_site} execute nts.utils.backups.fetch_latest_backups",
 			site_data,
 		)
 		# Destroy some data and files to verify that they are indeed being restored.
 		with self.switch_site(TEST_SITE):
 			public_file.delete_file_data_content()
 			private_file.delete_file_data_content()
-			frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
+			nts.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
 			self.assertFalse(public_file.exists_on_disk())
 			self.assertFalse(private_file.exists_on_disk())
 
@@ -289,7 +289,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 
 		with self.switch_site(TEST_SITE):
-			self.assertTrue(frappe.db.table_exists("ToDo", cached=False))
+			self.assertTrue(nts.db.table_exists("ToDo", cached=False))
 			self.assertTrue(public_file.exists_on_disk())
 			self.assertTrue(private_file.exists_on_disk())
 
@@ -297,7 +297,7 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {test_site} backup --exclude 'ToDo'", site_data)
 		site_data.update({"kw": "\"{'partial':True}\""})
 		self.execute(
-			"bench --site {test_site} execute" " frappe.utils.backups.fetch_latest_backups --kwargs {kw}",
+			"bench --site {test_site} execute" " nts.utils.backups.fetch_latest_backups --kwargs {kw}",
 			site_data,
 		)
 		site_data.update({"database": json.loads(self.stdout)["database"]})
@@ -307,15 +307,15 @@ class TestCommands(BaseTestCommands):
 	def test_partial_restore(self):
 		_now = now()
 		for num in range(10):
-			frappe.get_doc(
+			nts.get_doc(
 				{
 					"doctype": "ToDo",
 					"date": add_to_date(_now, days=num),
-					"description": frappe.mock("paragraph"),
+					"description": nts.mock("paragraph"),
 				}
 			).insert()
-		frappe.db.commit()
-		todo_count = frappe.db.count("ToDo")
+		nts.db.commit()
+		todo_count = nts.db.count("ToDo")
 
 		# check if todos exist, create a partial backup and see if the state is the same after restore
 		self.assertIsNot(todo_count, 0)
@@ -323,23 +323,23 @@ class TestCommands(BaseTestCommands):
 		db_path = fetch_latest_backups(partial=True)["database"]
 		self.assertTrue("partial" in db_path)
 
-		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
-		frappe.db.commit()
+		nts.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
+		nts.db.commit()
 
 		self.execute("bench --site {site} partial-restore {path}", {"path": db_path})
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(frappe.db.count("ToDo"), todo_count)
+		self.assertEqual(nts.db.count("ToDo"), todo_count)
 
 	def test_recorder(self):
-		frappe.recorder.stop()
+		nts.recorder.stop()
 
 		self.execute("bench --site {site} start-recording")
-		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), True)
+		nts.local.cache = {}
+		self.assertEqual(nts.recorder.status(), True)
 
 		self.execute("bench --site {site} stop-recording")
-		frappe.local.cache = {}
-		self.assertEqual(frappe.recorder.status(), False)
+		nts.local.cache = {}
+		self.assertEqual(nts.recorder.status(), False)
 
 	@unittest.skip("Poorly written, relied on app name being absent in apps.txt")
 	def test_remove_from_installed_apps(self):
@@ -366,11 +366,11 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
 		list_apps = {_x.split(maxsplit=1)[0] for _x in self.stdout.split("\n")}
-		doctype = frappe.get_single("Installed Applications").installed_applications
+		doctype = nts.get_single("Installed Applications").installed_applications
 		if doctype:
 			installed_apps = {x.app_name for x in doctype}
 		else:
-			installed_apps = set(frappe.get_installed_apps())
+			installed_apps = set(nts.get_installed_apps())
 		self.assertSetEqual(list_apps, installed_apps)
 
 		# test 3: parse json format
@@ -426,9 +426,9 @@ class TestCommands(BaseTestCommands):
 		os.remove(test1_path)
 		os.remove(test2_path)
 
-	def test_frappe_site_env(self):
-		os.putenv("FRAPPE_SITE", frappe.local.site)
-		self.execute("bench execute frappe.ping")
+	def test_nts_site_env(self):
+		os.putenv("nts_SITE", nts.local.site)
+		self.execute("bench execute nts.ping")
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("pong", self.stdout)
 
@@ -444,7 +444,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 2)
 
 	def test_set_password(self):
-		from frappe.utils.password import check_password
+		from nts.utils.password import check_password
 
 		self.execute("bench --site {site} set-password Administrator test1")
 		self.assertEqual(self.returncode, 0)
@@ -455,13 +455,13 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
 
 		# Reset it back to original password
-		original_password = frappe.conf.admin_password or "admin"
+		original_password = nts.conf.admin_password or "admin"
 		self.execute("bench --site {site} set-admin-password %s" % original_password)
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
 	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
+		not (nts.conf.root_password and nts.conf.admin_password and nts.conf.db_type == "mariadb"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_bench_drop_site_should_archive_site(self):
@@ -470,13 +470,13 @@ class TestCommands(BaseTestCommands):
 
 		self.execute(
 			f"bench new-site {site} --force --verbose "
-			f"--admin-password {frappe.conf.admin_password} "
-			f"--mariadb-root-password {frappe.conf.root_password} "
-			f"--db-type {frappe.conf.db_type} "
+			f"--admin-password {nts.conf.admin_password} "
+			f"--mariadb-root-password {nts.conf.root_password} "
+			f"--db-type {nts.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
-		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+		self.execute(f"bench drop-site {site} --force --root-password {nts.conf.root_password}")
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
@@ -486,29 +486,29 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(os.path.exists(archive_directory))
 
 	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
+		not (nts.conf.root_password and nts.conf.admin_password and nts.conf.db_type == "mariadb"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_force_install_app(self):
 		if not os.path.exists(os.path.join(get_bench_path(), f"sites/{TEST_SITE}")):
 			self.execute(
 				f"bench new-site {TEST_SITE} --verbose "
-				f"--admin-password {frappe.conf.admin_password} "
-				f"--mariadb-root-password {frappe.conf.root_password} "
-				f"--db-type {frappe.conf.db_type} "
+				f"--admin-password {nts.conf.admin_password} "
+				f"--mariadb-root-password {nts.conf.root_password} "
+				f"--db-type {nts.conf.db_type} "
 			)
 
-		app_name = "frappe"
+		app_name = "nts"
 
-		# set admin password in site_config as when frappe force installs, we don't have the conf
-		self.execute(f"bench --site {TEST_SITE} set-config admin_password {frappe.conf.admin_password}")
+		# set admin password in site_config as when nts force installs, we don't have the conf
+		self.execute(f"bench --site {TEST_SITE} set-config admin_password {nts.conf.admin_password}")
 
-		# try installing the frappe_docs app again on test site
+		# try installing the nts_docs app again on test site
 		self.execute(f"bench --site {TEST_SITE} install-app {app_name}")
 		self.assertIn(f"{app_name} already installed", self.stdout)
 		self.assertEqual(self.returncode, 0)
 
-		# force install frappe_docs app on the test site
+		# force install nts_docs app on the test site
 		self.execute(f"bench --site {TEST_SITE} install-app {app_name} --force")
 		self.assertIn(f"Installing {app_name}", self.stdout)
 		self.assertEqual(self.returncode, 0)
@@ -517,7 +517,7 @@ class TestCommands(BaseTestCommands):
 		key = "answer"
 		value = "42"
 		self.execute(f"bench set-config {key} {value} -g")
-		conf = frappe.get_site_config()
+		conf = nts.get_site_config()
 
 		self.assertEqual(conf[key], value)
 
@@ -535,7 +535,7 @@ class TestBackups(BaseTestCommands):
 		}
 	)
 	home = os.path.expanduser("~")
-	site_backup_path = frappe.utils.get_site_path("private", "backups")
+	site_backup_path = nts.utils.get_site_path("private", "backups")
 
 	def setUp(self):
 		self.files_to_trash = []
@@ -560,7 +560,7 @@ class TestBackups(BaseTestCommands):
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
 
 	@skipIf(
-		not (frappe.conf.db_type == "mariadb"),
+		not (nts.conf.db_type == "mariadb"),
 		"Only for MariaDB",
 	)
 	def test_backup_extract_restore(self):
@@ -581,7 +581,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 
 	@skipIf(
-		not (frappe.conf.db_type == "mariadb"),
+		not (nts.conf.db_type == "mariadb"),
 		"Only for MariaDB",
 	)
 	def test_old_backup_restore(self):
@@ -598,13 +598,13 @@ class TestBackups(BaseTestCommands):
 	def test_backup_fails_with_exit_code(self):
 		"""Provide incorrect options to check if exit code is 1"""
 		odb = BackupGenerator(
-			frappe.conf.db_name,
-			frappe.conf.db_name,
-			frappe.conf.db_password + "INCORRECT PASSWORD",
-			db_socket=frappe.conf.db_socket,
-			db_host=frappe.conf.db_host,
-			db_port=frappe.conf.db_port,
-			db_type=frappe.conf.db_type,
+			nts.conf.db_name,
+			nts.conf.db_name,
+			nts.conf.db_password + "INCORRECT PASSWORD",
+			db_socket=nts.conf.db_socket,
+			db_host=nts.conf.db_host,
+			db_port=nts.conf.db_port,
+			db_type=nts.conf.db_type,
 		)
 		with self.assertRaises(Exception):
 			odb.take_dump()
@@ -624,18 +624,18 @@ class TestBackups(BaseTestCommands):
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_clear_log_table(self):
-		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
+		d = nts.get_doc(doctype="Error Log", title="Something").insert()
 		d.db_set("modified", "2010-01-01", update_modified=False)
-		frappe.db.commit()
+		nts.db.commit()
 
-		tables_before = frappe.db.get_tables(cached=False)
+		tables_before = nts.db.get_tables(cached=False)
 
 		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
 		self.assertEqual(self.returncode, 0)
-		frappe.db.commit()
+		nts.db.commit()
 
-		self.assertFalse(frappe.db.exists("Error Log", d.name))
-		tables_after = frappe.db.get_tables(cached=False)
+		self.assertFalse(nts.db.exists("Error Log", d.name))
+		tables_after = nts.db.get_tables(cached=False)
 
 		self.assertEqual(set(tables_before), set(tables_after))
 
@@ -687,7 +687,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 
 	def test_backup_only_specific_doctypes(self):
-		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`"""
+		"""Take a backup with (include) backup options set in the site config `nts.conf.backup.includes`"""
 		self.execute(
 			"bench --site {site} set-config backup '{includes}' --parse",
 			{"includes": json.dumps(self.backup_map["includes"])},
@@ -698,8 +698,8 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
 	def test_backup_excluding_specific_doctypes(self):
-		"""Take a backup with (exclude) backup options set (`frappe.conf.backup.excludes`, `--exclude`)"""
-		# test 1: take a backup with frappe.conf.backup.excludes
+		"""Take a backup with (exclude) backup options set (`nts.conf.backup.excludes`, `--exclude`)"""
+		# test 1: take a backup with nts.conf.backup.excludes
 		self.execute(
 			"bench --site {site} set-config backup '{excludes}' --parse",
 			{"excludes": json.dumps(self.backup_map["excludes"])},
@@ -720,7 +720,7 @@ class TestBackups(BaseTestCommands):
 		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 	def test_selective_backup_priority_resolution(self):
-		"""Take a backup with conflicting backup options set (`frappe.conf.excludes`, `--include`)"""
+		"""Take a backup with conflicting backup options set (`nts.conf.excludes`, `--include`)"""
 		self.execute(
 			"bench --site {site} backup --include '{include}'",
 			{"include": ",".join(self.backup_map["includes"]["includes"])},
@@ -730,27 +730,27 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
 	def test_dont_backup_conf(self):
-		"""Take a backup ignoring frappe.conf.backup settings (with --ignore-backup-conf option)"""
+		"""Take a backup ignoring nts.conf.backup settings (with --ignore-backup-conf option)"""
 		self.execute("bench --site {site} backup --ignore-backup-conf")
 		self.assertEqual(self.returncode, 0)
 		database = fetch_latest_backups()["database"]
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
-class TestRemoveApp(FrappeTestCase):
+class TestRemoveApp(ntsTestCase):
 	def test_delete_modules(self):
-		from frappe.installer import (
+		from nts.installer import (
 			_delete_doctypes,
 			_delete_modules,
 			_get_module_linked_doctype_field_map,
 		)
 
-		test_module = frappe.new_doc("Module Def")
+		test_module = nts.new_doc("Module Def")
 
-		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
+		test_module.update({"module_name": "RemoveThis", "app_name": "nts"})
 		test_module.save()
 
-		module_def_linked_doctype = frappe.get_doc(
+		module_def_linked_doctype = nts.get_doc(
 			{
 				"doctype": "DocType",
 				"name": "Doctype linked with module def",
@@ -778,19 +778,19 @@ class TestRemoveApp(FrappeTestCase):
 		self.assertEqual(len(doctypes_to_delete), 1)
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
-		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
-		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
+		self.assertFalse(nts.db.exists("Module Def", test_module.module_name))
+		self.assertFalse(nts.db.exists("DocType", module_def_linked_doctype.name))
 
 	def test_dry_run(self):
 		"""Check if dry run in not destructive."""
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
-		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+		remove_app("nts", dry_run=True, yes=True, no_backup=True)
 
 
 class TestSiteMigration(BaseTestCommands):
 	def test_migrate_cli(self):
-		with cli(frappe.commands.site.migrate) as result:
+		with cli(nts.commands.site.migrate) as result:
 			self.assertTrue(TEST_SITE in result.stdout)
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
@@ -802,27 +802,27 @@ class TestAddNewUser(BaseTestCommands):
 			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
 		)
 		self.assertEqual(self.returncode, 0)
-		user = frappe.get_doc("User", "test@gmail.com")
+		user = nts.get_doc("User", "test@gmail.com")
 		roles = {r.role for r in user.roles}
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
 
 
 class TestBenchBuild(BaseTestCommands):
 	def test_build_assets_size_check(self):
-		with cli(frappe.commands.utils.build, "--force --production") as result:
+		with cli(nts.commands.utils.build, "--force --production") as result:
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
 		CURRENT_SIZE = 3.5  # MB
 		JS_ASSET_THRESHOLD = 0.1
 
-		hooks = frappe.get_hooks()
+		hooks = nts.get_hooks()
 		default_bundle = hooks["app_include_js"]
 
 		default_bundle_size = 0.0
 
 		for chunk in default_bundle:
-			abs_path = Path.cwd() / frappe.local.sites_path / bundled_asset(chunk)[1:]
+			abs_path = Path.cwd() / nts.local.sites_path / bundled_asset(chunk)[1:]
 			default_bundle_size += abs_path.stat().st_size
 
 		self.assertLessEqual(
@@ -834,16 +834,16 @@ class TestBenchBuild(BaseTestCommands):
 
 class TestDBUtils(BaseTestCommands):
 	@skipIf(
-		not (frappe.conf.db_type == "mariadb"),
+		not (nts.conf.db_type == "mariadb"),
 		"Only for MariaDB",
 	)
 	def test_db_add_index(self):
 		field = "reset_password_key"
 		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
-		frappe.db.rollback()
-		index_name = frappe.db.get_index_name((field,))
-		self.assertTrue(frappe.db.has_index("tabUser", index_name))
-		meta = frappe.get_meta("User", cached=False)
+		nts.db.rollback()
+		index_name = nts.db.get_index_name((field,))
+		self.assertTrue(nts.db.has_index("tabUser", index_name))
+		meta = nts.get_meta("User", cached=False)
 		self.assertTrue(meta.get_field(field).search_index)
 
 
@@ -856,17 +856,17 @@ class TestSchedulerUtils(BaseTestCommands):
 		reraise=True,
 	)
 	def test_ready_for_migrate(self):
-		with cli(frappe.commands.scheduler.ready_for_migration) as result:
+		with cli(nts.commands.scheduler.ready_for_migration) as result:
 			self.assertEqual(result.exit_code, 0)
 
 
-class TestCommandUtils(FrappeTestCase):
+class TestCommandUtils(ntsTestCase):
 	def test_bench_helper(self):
-		from frappe.utils.bench_helper import get_app_groups
+		from nts.utils.bench_helper import get_app_groups
 
 		app_groups = get_app_groups()
-		self.assertIn("frappe", app_groups)
-		self.assertIsInstance(app_groups["frappe"], click.Group)
+		self.assertIn("nts", app_groups)
+		self.assertIsInstance(app_groups["nts"], click.Group)
 
 
 class TestDBCli(BaseTestCommands):
@@ -900,7 +900,7 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.assertRegex(self.stdout, r"Scheduler is (disabled|enabled) for site .*")
 
 		self.execute("bench --site {site} scheduler status -f json")
-		parsed_output = frappe.parse_json(self.stdout)
+		parsed_output = nts.parse_json(self.stdout)
 		self.assertEqual(self.returncode, 0)
 		self.assertIsInstance(parsed_output, dict)
 		self.assertIn("status", parsed_output)
@@ -925,7 +925,7 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
 
 
-class TestGunicornWorker(FrappeTestCase):
+class TestGunicornWorker(ntsTestCase):
 	port = 8005
 
 	def spawn_gunicorn(self, args):
@@ -937,7 +937,7 @@ class TestGunicornWorker(FrappeTestCase):
 				"-b",
 				f"127.0.0.1:{self.port}",
 				"-w1",
-				"frappe.app:application",
+				"nts.app:application",
 				"--preload",
 				*args,
 			],

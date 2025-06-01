@@ -63,7 +63,7 @@ Cypress.Commands.add("login", (email, password) => {
 Cypress.Commands.add("call", (method, args) => {
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -73,7 +73,7 @@ Cypress.Commands.add("call", (method, args) => {
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 				})
 				.then((res) => {
@@ -92,7 +92,7 @@ Cypress.Commands.add("get_list", (doctype, fields = [], filters = []) => {
 	let url = `/api/resource/${doctype}?fields=${fields}&filters=${filters}`;
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -100,7 +100,7 @@ Cypress.Commands.add("get_list", (doctype, fields = [], filters = []) => {
 					url,
 					headers: {
 						Accept: "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 				})
 				.then((res) => {
@@ -113,7 +113,7 @@ Cypress.Commands.add("get_list", (doctype, fields = [], filters = []) => {
 Cypress.Commands.add("get_doc", (doctype, name) => {
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -121,7 +121,7 @@ Cypress.Commands.add("get_doc", (doctype, name) => {
 					url: `/api/resource/${doctype}/${name}`,
 					headers: {
 						Accept: "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 				})
 				.then((res) => {
@@ -134,7 +134,7 @@ Cypress.Commands.add("get_doc", (doctype, name) => {
 Cypress.Commands.add("remove_doc", (doctype, name) => {
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -142,7 +142,7 @@ Cypress.Commands.add("remove_doc", (doctype, name) => {
 					url: `/api/resource/${doctype}/${name}`,
 					headers: {
 						Accept: "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 				})
 				.then((res) => {
@@ -154,12 +154,12 @@ Cypress.Commands.add("remove_doc", (doctype, name) => {
 
 Cypress.Commands.add("create_records", (doc) => {
 	return cy
-		.call("frappe.tests.ui_test_helpers.create_if_not_exists", { doc: JSON.stringify(doc) })
+		.call("nts.tests.ui_test_helpers.create_if_not_exists", { doc: JSON.stringify(doc) })
 		.then((r) => r.message);
 });
 
 Cypress.Commands.add("set_value", (doctype, name, obj) => {
-	return cy.call("frappe.client.set_value", {
+	return cy.call("nts.client.set_value", {
 		doctype,
 		name,
 		fieldname: obj,
@@ -232,7 +232,7 @@ Cypress.Commands.add(
 Cypress.Commands.add(
 	"get_table_field",
 	(tablefieldname, row_idx, fieldname, fieldtype = "Data") => {
-		let selector = `.frappe-control[data-fieldname="${tablefieldname}"]`;
+		let selector = `.nts-control[data-fieldname="${tablefieldname}"]`;
 		selector += ` [data-idx="${row_idx}"]`;
 
 		if (fieldtype === "Text Editor") {
@@ -272,21 +272,21 @@ Cypress.Commands.add("go_to_list", (doctype) => {
 
 Cypress.Commands.add("clear_cache", () => {
 	cy.window()
-		.its("frappe")
-		.then((frappe) => {
-			frappe.ui.toolbar.clear_cache();
+		.its("nts")
+		.then((nts) => {
+			nts.ui.toolbar.clear_cache();
 		});
 });
 
 Cypress.Commands.add("dialog", (opts) => {
 	return cy
 		.window({ log: false })
-		.its("frappe", { log: false })
-		.then((frappe) => {
+		.its("nts", { log: false })
+		.then((nts) => {
 			Cypress.log({
 				name: "dialog",
 				displayName: "dialog",
-				message: "frappe.ui.Dialog",
+				message: "nts.ui.Dialog",
 				consoleProps: () => {
 					return {
 						options: opts,
@@ -295,7 +295,7 @@ Cypress.Commands.add("dialog", (opts) => {
 				},
 			});
 
-			var d = new frappe.ui.Dialog(opts);
+			var d = new nts.ui.Dialog(opts);
 			d.show();
 			return d;
 		});
@@ -306,7 +306,7 @@ Cypress.Commands.add("get_open_dialog", () => {
 });
 
 Cypress.Commands.add("save", () => {
-	cy.intercept("/api/method/frappe.desk.form.save.savedocs").as("save_call");
+	cy.intercept("/api/method/nts.desk.form.save.savedocs").as("save_call");
 	cy.get(`.page-container:visible button[data-label="Save"]`).click({ force: true });
 	cy.wait("@save_call");
 });
@@ -336,7 +336,7 @@ Cypress.Commands.add("insert_doc", (doctype, args, ignore_duplicate) => {
 	}
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -346,7 +346,7 @@ Cypress.Commands.add("insert_doc", (doctype, args, ignore_duplicate) => {
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 					failOnStatusCode: !ignore_duplicate,
 				})
@@ -373,7 +373,7 @@ Cypress.Commands.add("insert_doc", (doctype, args, ignore_duplicate) => {
 Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 	return cy
 		.window()
-		.its("frappe.csrf_token")
+		.its("nts.csrf_token")
 		.then((csrf_token) => {
 			return cy
 				.request({
@@ -383,7 +383,7 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": csrf_token,
+						"X-nts-CSRF-Token": csrf_token,
 					},
 				})
 				.then((res) => {
@@ -402,18 +402,18 @@ Cypress.Commands.add("switch_to_user", (user) => {
 
 Cypress.Commands.add("add_role", (user, role) => {
 	cy.window()
-		.its("frappe")
-		.then((frappe) => {
-			const session_user = frappe.session.user;
+		.its("nts")
+		.then((nts) => {
+			const session_user = nts.session.user;
 			add_remove_role("add", user, role, session_user);
 		});
 });
 
 Cypress.Commands.add("remove_role", (user, role) => {
 	cy.window()
-		.its("frappe")
-		.then((frappe) => {
-			const session_user = frappe.session.user;
+		.its("nts")
+		.then((nts) => {
+			const session_user = nts.session.user;
 			add_remove_role("remove", user, role, session_user);
 		});
 });
@@ -423,7 +423,7 @@ const add_remove_role = (action, user, role, session_user) => {
 		cy.switch_to_user("Administrator");
 	}
 
-	cy.call("frappe.tests.ui_test_helpers.add_remove_role", {
+	cy.call("nts.tests.ui_test_helpers.add_remove_role", {
 		action: action,
 		user: user,
 		role: role,
@@ -500,7 +500,7 @@ Cypress.Commands.add("click_timeline_action_btn", (btn_name) => {
 });
 
 Cypress.Commands.add("select_listview_row_checkbox", (row_no) => {
-	cy.get(".frappe-list .select-like > .list-row-checkbox").eq(row_no).click();
+	cy.get(".nts-list .select-like > .list-row-checkbox").eq(row_no).click();
 });
 
 Cypress.Commands.add("click_form_section", (section_name) => {

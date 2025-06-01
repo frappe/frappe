@@ -140,7 +140,7 @@
 			min-width: 35px;
 		}
 
-		.frappe-timestamp {
+		.nts-timestamp {
 			font-size: var(--text-xs);
 			white-space: nowrap;
 		}
@@ -236,7 +236,7 @@ $level-margin-right: 8px;
 	}
 }
 
-.frappe-card {
+.nts-card {
 	.list-paging-area,
 	.footnote-area {
 		padding: var(--padding-md);
@@ -461,7 +461,7 @@ input.list-check-all {
 	}
 }
 
-.frappe-rtl {
+.nts-rtl {
 	.restricted-button {
 		margin: auto auto auto 5px;
 		direction: ltr;

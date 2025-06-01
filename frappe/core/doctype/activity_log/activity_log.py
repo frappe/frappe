@@ -1,12 +1,12 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.core.utils import set_timeline_doc
-from frappe.model.document import Document
-from frappe.query_builder import DocType, Interval
-from frappe.query_builder.functions import Now
-from frappe.utils import get_fullname, now, strip_html
+import nts
+from nts.core.utils import set_timeline_doc
+from nts.model.document import Document
+from nts.query_builder import DocType, Interval
+from nts.query_builder.functions import Now
+from nts.utils import get_fullname, now, strip_html
 
 
 class ActivityLog(Document):
@@ -16,7 +16,7 @@ class ActivityLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		communication_date: DF.Datetime | None
 		content: DF.TextEditor | None
@@ -53,24 +53,24 @@ class ActivityLog(Document):
 
 	def set_ip_address(self):
 		if self.operation in ("Login", "Logout"):
-			self.ip_address = frappe.local.request_ip
+			self.ip_address = nts.local.request_ip
 
 	@staticmethod
 	def clear_old_logs(days=None):
 		if not days:
 			days = 90
 		doctype = DocType("Activity Log")
-		frappe.db.delete(doctype, filters=(doctype.modified < (Now() - Interval(days=days))))
+		nts.db.delete(doctype, filters=(doctype.modified < (Now() - Interval(days=days))))
 
 
 def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
-	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
+	nts.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
+	nts.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
 
 
 def add_authentication_log(subject, user, operation="Login", status="Success"):
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "Activity Log",
 			"user": user,

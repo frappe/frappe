@@ -1,93 +1,93 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import time
 
 import sqlparse
 
-import frappe
-import frappe.recorder
-from frappe.recorder import normalize_query
-from frappe.tests.utils import FrappeTestCase, timeout
-from frappe.utils import set_request
-from frappe.utils.doctor import any_job_pending
-from frappe.website.serve import get_response_content
+import nts
+import nts.recorder
+from nts.recorder import normalize_query
+from nts.tests.utils import ntsTestCase, timeout
+from nts.utils import set_request
+from nts.utils.doctor import any_job_pending
+from nts.website.serve import get_response_content
 
 
-class TestRecorder(FrappeTestCase):
+class TestRecorder(ntsTestCase):
 	def setUp(self):
 		self.wait_for_background_jobs()
-		frappe.recorder.stop()
-		frappe.recorder.delete()
+		nts.recorder.stop()
+		nts.recorder.delete()
 		set_request()
-		frappe.recorder.start()
-		frappe.recorder.record()
+		nts.recorder.start()
+		nts.recorder.record()
 
 	@timeout
 	def wait_for_background_jobs(self):
-		while any_job_pending(frappe.local.site):
+		while any_job_pending(nts.local.site):
 			time.sleep(1)
 
 	def stop_recording(self):
-		frappe.recorder.dump()
-		frappe.recorder.stop()
+		nts.recorder.dump()
+		nts.recorder.stop()
 
 	def test_start(self):
 		self.stop_recording()
-		requests = frappe.recorder.get()
+		requests = nts.recorder.get()
 		self.assertEqual(len(requests), 1)
 
 	def test_do_not_record(self):
-		frappe.recorder.do_not_record(frappe.get_all)("DocType")
+		nts.recorder.do_not_record(nts.get_all)("DocType")
 		self.stop_recording()
-		requests = frappe.recorder.get()
+		requests = nts.recorder.get()
 		self.assertEqual(len(requests), 0)
 
 	def test_get(self):
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
+		requests = nts.recorder.get()
 		self.assertEqual(len(requests), 1)
 
-		request = frappe.recorder.get(requests[0]["uuid"])
+		request = nts.recorder.get(requests[0]["uuid"])
 		self.assertTrue(request)
 
 	def test_delete(self):
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
+		requests = nts.recorder.get()
 		self.assertEqual(len(requests), 1)
 
-		frappe.recorder.delete()
+		nts.recorder.delete()
 
-		requests = frappe.recorder.get()
+		requests = nts.recorder.get()
 		self.assertEqual(len(requests), 0)
 
 	def test_record_without_sql_queries(self):
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		requests = nts.recorder.get()
+		request = nts.recorder.get(requests[0]["uuid"])
 
 		self.assertEqual(len(request["calls"]), 0)
 
 	def test_record_with_sql_queries(self):
-		frappe.get_all("DocType")
+		nts.get_all("DocType")
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		requests = nts.recorder.get()
+		request = nts.recorder.get(requests[0]["uuid"])
 
 		self.assertNotEqual(len(request["calls"]), 0)
 
 	def test_explain(self):
-		frappe.db.sql("SELECT * FROM tabDocType")
-		frappe.db.sql("COMMIT")
-		frappe.db.sql("select 1", run=0)
+		nts.db.sql("SELECT * FROM tabDocType")
+		nts.db.sql("COMMIT")
+		nts.db.sql("select 1", run=0)
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		requests = nts.recorder.get()
+		request = nts.recorder.get(requests[0]["uuid"])
 
 		self.assertEqual(len(request["calls"][0]["explain_result"]), 1)
 		self.assertEqual(len(request["calls"][1]["explain_result"]), 0)
@@ -99,14 +99,14 @@ class TestRecorder(FrappeTestCase):
 			{"mariadb": "COMMIT", "postgres": "COMMIT"},
 		]
 
-		sql_dialect = frappe.db.db_type or "mariadb"
+		sql_dialect = nts.db.db_type or "mariadb"
 		for query in queries:
-			frappe.db.sql(query[sql_dialect])
+			nts.db.sql(query[sql_dialect])
 
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		requests = nts.recorder.get()
+		request = nts.recorder.get(requests[0]["uuid"])
 
 		self.assertEqual(len(request["calls"]), len(queries))
 
@@ -128,12 +128,12 @@ class TestRecorder(FrappeTestCase):
 			("COMMIT", 3),
 		]
 		for query in queries:
-			frappe.db.sql(query[0])
+			nts.db.sql(query[0])
 
 		self.stop_recording()
 
-		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		requests = nts.recorder.get()
+		request = nts.recorder.get(requests[0]["uuid"])
 
 		for query, call in zip(queries, request["calls"], strict=False):
 			self.assertEqual(call["exact_copies"], query[1])
@@ -143,19 +143,19 @@ class TestRecorder(FrappeTestCase):
 		self.assertIn("Error", content)
 
 
-class TestRecorderDeco(FrappeTestCase):
+class TestRecorderDeco(ntsTestCase):
 	def test_recorder_flag(self):
-		frappe.recorder.delete()
+		nts.recorder.delete()
 
-		@frappe.recorder.record_queries
+		@nts.recorder.record_queries
 		def test():
-			frappe.get_all("User")
+			nts.get_all("User")
 
 		test()
-		self.assertTrue(frappe.recorder.get())
+		self.assertTrue(nts.recorder.get())
 
 
-class TestQueryNormalization(FrappeTestCase):
+class TestQueryNormalization(ntsTestCase):
 	def test_query_normalization(self):
 		test_cases = {
 			"select * from user where name = 'x'": "select * from user where name = ?",

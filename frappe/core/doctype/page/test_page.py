@@ -1,14 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Page")
+test_records = nts.get_test_records("Page")
 
 
-class TestPage(FrappeTestCase):
+class TestPage(ntsTestCase):
 	def test_naming(self):
 		self.assertRaises(
-			frappe.NameError,
-			frappe.get_doc(dict(doctype="Page", page_name="DocType", module="Core")).insert,
+			nts.NameError,
+			nts.get_doc(dict(doctype="Page", page_name="DocType", module="Core")).insert,
 		)

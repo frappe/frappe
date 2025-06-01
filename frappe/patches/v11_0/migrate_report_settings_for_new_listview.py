@@ -1,6 +1,6 @@
 import json
 
-import frappe
+import nts
 
 
 def execute():
@@ -11,14 +11,14 @@ def execute():
 	Convert sort_by and sort_order to order_by
 	"""
 
-	reports = frappe.get_all("Report", {"report_type": "Report Builder"})
+	reports = nts.get_all("Report", {"report_type": "Report Builder"})
 
 	for report_name in reports:
-		settings = frappe.db.get_value("Report", report_name, "json")
+		settings = nts.db.get_value("Report", report_name, "json")
 		if not settings:
 			continue
 
-		settings = frappe._dict(json.loads(settings))
+		settings = nts._dict(json.loads(settings))
 
 		# columns -> fields
 		settings.fields = settings.columns or []
@@ -31,4 +31,4 @@ def execute():
 		settings.add_totals_row = settings.add_total_row
 		settings.pop("add_total_row", None)
 
-		frappe.db.set_value("Report", report_name, "json", json.dumps(settings))
+		nts.db.set_value("Report", report_name, "json", json.dumps(settings))

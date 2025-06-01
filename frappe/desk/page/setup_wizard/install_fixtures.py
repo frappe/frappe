@@ -1,11 +1,11 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.desk.doctype.global_search_settings.global_search_settings import (
+import nts
+from nts.desk.doctype.global_search_settings.global_search_settings import (
 	update_global_search_doctypes,
 )
-from frappe.utils.dashboard import sync_dashboards
+from nts.utils.dashboard import sync_dashboards
 
 
 def _(x, *args, **kwargs):
@@ -33,7 +33,7 @@ def update_genders():
 		_("Non-Conforming"),
 		_("Prefer not to say"),
 	):
-		doc = frappe.new_doc("Gender")
+		doc = nts.new_doc("Gender")
 		doc.gender = gender
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
@@ -50,7 +50,7 @@ def update_salutations():
 		_("Master"),
 		_("Prof"),
 	):
-		doc = frappe.new_doc("Salutation")
+		doc = nts.new_doc("Salutation")
 		doc.salutation = salutation
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
@@ -60,7 +60,7 @@ def add_unsubscribe():
 		{"email": "admin@example.com", "global_unsubscribe": 1},
 		{"email": "guest@example.com", "global_unsubscribe": 1},
 	]:
-		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
-			doc = frappe.new_doc("Email Unsubscribe")
+		if not nts.get_all("Email Unsubscribe", filters=unsubscribe):
+			doc = nts.new_doc("Email Unsubscribe")
 			doc.update(unsubscribe)
 			doc.insert(ignore_permissions=True)

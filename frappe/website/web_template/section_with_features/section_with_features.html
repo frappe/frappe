@@ -18,7 +18,7 @@
 				<h3 class="feature-title mt-0">{{ _(feature.title) }}</h3>
 				{%- endif -%}
 				{%- if feature.content -%}
-				<p class="feature-content">{{ frappe.utils.md_to_html(_(feature.content)) }}</p>
+				<p class="feature-content">{{ nts.utils.md_to_html(_(feature.content)) }}</p>
 				{%- endif -%}
 			</div>
 			<div>

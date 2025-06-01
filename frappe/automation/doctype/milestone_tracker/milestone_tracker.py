@@ -1,10 +1,10 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-import frappe.cache_manager
-from frappe.model import log_types
-from frappe.model.document import Document
+import nts
+import nts.cache_manager
+from nts.model import log_types
+from nts.model.document import Document
 
 
 class MilestoneTracker(Document):
@@ -14,7 +14,7 @@ class MilestoneTracker(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		disabled: DF.Check
 		document_type: DF.Link
@@ -22,16 +22,16 @@ class MilestoneTracker(Document):
 	# end: auto-generated types
 
 	def on_update(self):
-		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
+		nts.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
+		nts.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()
 		from_value = before_save and before_save.get(self.track_field) or None
 		if from_value != doc.get(self.track_field):
-			frappe.get_doc(
+			nts.get_doc(
 				dict(
 					doctype="Milestone",
 					reference_type=doc.doctype,
@@ -46,19 +46,19 @@ class MilestoneTracker(Document):
 
 def evaluate_milestone(doc, event):
 	if (
-		frappe.flags.in_install
-		or frappe.flags.in_migrate
-		or frappe.flags.in_setup_wizard
+		nts.flags.in_install
+		or nts.flags.in_migrate
+		or nts.flags.in_setup_wizard
 		or doc.doctype in log_types
 	):
 		return
 
 	# track milestones related to this doctype
 	for d in get_milestone_trackers(doc.doctype):
-		frappe.get_doc("Milestone Tracker", d.get("name")).apply(doc)
+		nts.get_doc("Milestone Tracker", d.get("name")).apply(doc)
 
 
 def get_milestone_trackers(doctype):
-	return frappe.cache_manager.get_doctype_map(
+	return nts.cache_manager.get_doctype_map(
 		"Milestone Tracker", doctype, dict(document_type=doctype, disabled=0)
 	)

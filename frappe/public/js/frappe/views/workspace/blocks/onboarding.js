@@ -4,7 +4,7 @@ export default class Onboarding extends Block {
 	static get toolbox() {
 		return {
 			title: "Onboarding",
-			icon: frappe.utils.icon("onboarding", "sm"),
+			icon: nts.utils.icon("onboarding", "sm"),
 		};
 	}
 
@@ -43,7 +43,7 @@ export default class Onboarding extends Block {
 			type: widget_type,
 			primary_action: (widget) => {
 				widget.in_customize_mode = 1;
-				this.block_widget = frappe.widget.make_widget({
+				this.block_widget = nts.widget.make_widget({
 					...widget,
 					widget_type: widget_type,
 					container: this.wrapper,
@@ -81,7 +81,7 @@ export default class Onboarding extends Block {
 		if (!block_data) return false;
 		this.wrapper.innerHTML = "";
 		block_data.in_customize_mode = !this.readOnly;
-		this.block_widget = frappe.widget.make_widget({
+		this.block_widget = nts.widget.make_widget({
 			container: this.wrapper,
 			widget_type: "onboarding",
 			in_customize_mode: block_data.in_customize_mode,
@@ -106,7 +106,7 @@ export default class Onboarding extends Block {
 	}
 
 	render() {
-		if (frappe.is_mobile()) return;
+		if (nts.is_mobile()) return;
 
 		this.wrapper = document.createElement("div");
 		this.new("onboarding");

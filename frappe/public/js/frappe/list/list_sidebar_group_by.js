@@ -1,11 +1,11 @@
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
-frappe.views.ListGroupBy = class ListGroupBy {
+nts.views.ListGroupBy = class ListGroupBy {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make_wrapper();
 
-		this.user_settings = frappe.get_user_settings(this.doctype);
+		this.user_settings = nts.get_user_settings(this.doctype);
 		this.group_by_fields = ["assigned_to", "owner"];
 		if (this.user_settings.group_by_fields) {
 			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
@@ -17,13 +17,13 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	make_group_by_fields_modal() {
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("Select Filters"),
 			fields: this.get_group_by_dropdown_fields(),
 		});
 
 		d.set_primary_action(__("Save"), ({ group_by_fields }) => {
-			frappe.model.user_settings.save(
+			nts.model.user_settings.save(
 				this.doctype,
 				"group_by_fields",
 				group_by_fields || null
@@ -45,7 +45,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		`);
 
 		this.page.sidebar.find(".add-list-group-by a").on("click", () => {
-			frappe.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
+			nts.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
 			d.show();
 		});
 	}
@@ -72,8 +72,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			} else if (fieldname === "owner") {
 				label = __("Created By");
 			} else {
-				label = frappe.meta.get_label(this.doctype, fieldname);
-				let docfield = frappe.meta.get_docfield(this.doctype, fieldname);
+				label = nts.meta.get_label(this.doctype, fieldname);
+				let docfield = nts.meta.get_docfield(this.doctype, fieldname);
 				if (!docfield) {
 					return;
 				}
@@ -86,7 +86,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 					href="#" onclick="return false;">
 						<span class="ellipsis">${__(label)}</span>
-						<span>${frappe.utils.icon("select", "xs")}</span>
+						<span>${nts.utils.icon("select", "xs")}</span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 					</ul>
@@ -138,7 +138,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	setup_search($dropdown) {
-		frappe.utils.setup_search($dropdown, ".group-by-item", ".group-by-value", "data-name");
+		nts.utils.setup_search($dropdown, ".group-by-item", ".group-by-value", "data-name");
 	}
 
 	get_group_by_dropdown_fields() {
@@ -174,14 +174,14 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			field: field,
 		};
 
-		return frappe.call("frappe.desk.listview.get_group_by_count", args).then((r) => {
+		return nts.call("nts.desk.listview.get_group_by_count", args).then((r) => {
 			let field_counts = r.message || [];
 			field_counts = field_counts.filter((f) => f.count !== 0);
-			let current_user = field_counts.find((f) => f.name === frappe.session.user);
+			let current_user = field_counts.find((f) => f.name === nts.session.user);
 			field_counts = field_counts.filter(
-				(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
+				(f) => !["Guest", "Administrator", nts.session.user].includes(f.name)
 			);
-			// Set frappe.session.user on top of the list
+			// Set nts.session.user on top of the list
 			if (current_user) field_counts.unshift(current_user);
 			return field_counts;
 		});
@@ -217,7 +217,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let label;
 		if (field.name == null) {
 			label = __("Not Set");
-		} else if (field.name === frappe.session.user) {
+		} else if (field.name === nts.session.user) {
 			label = __("Me");
 		} else if (fieldtype && fieldtype == "Check") {
 			label = field.name == "0" ? __("No") : __("Yes");
@@ -226,7 +226,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		}
 		let value = field.name == null ? "" : encodeURIComponent(field.name);
 		let applied_html = applied
-			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
+			? `<span class="applied"> ${nts.utils.icon("tick", "xs")} </span>`
 			: "";
 		return `<li class="group-by-item ${applied ? "selected" : ""}" data-value="${value}">
 			<a class="dropdown-item" href="#" onclick="return false;">

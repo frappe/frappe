@@ -18,16 +18,16 @@ ga('send', 'pageview');
 
 {% if enable_view_tracking %}
 	if (navigator.doNotTrack != 1 && !window.is_404) {
-		frappe.ready(() => {
-			let browser = frappe.utils.get_browser();
-			let query_params = frappe.utils.get_query_params();
+		nts.ready(() => {
+			let browser = nts.utils.get_browser();
+			let query_params = nts.utils.get_query_params();
 
 			// Get visitor ID based on browser uniqueness
 			import('https://openfpcdn.io/fingerprintjs/v3')
 				.then(fingerprint_js => fingerprint_js.load())
 				.then(fp => fp.get())
 				.then(result => {
-					frappe.call("frappe.website.doctype.web_page_view.web_page_view.make_view_log", {
+					nts.call("nts.website.doctype.web_page_view.web_page_view.make_view_log", {
 						referrer: document.referrer,
 						browser: browser.name,
 						version: browser.version,

@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-frappe.provide("frappe.realtime");
+nts.provide("nts.realtime");
 
 class RealTimeClient {
 	constructor() {
@@ -34,7 +34,7 @@ class RealTimeClient {
 	}
 
 	init(port = 9000, lazy_connect = false) {
-		if (frappe.boot.disable_async) {
+		if (nts.boot.disable_async) {
 			return;
 		}
 
@@ -70,7 +70,7 @@ class RealTimeClient {
 		});
 
 		this.socket.on("msgprint", function (message) {
-			frappe.msgprint(message);
+			nts.msgprint(message);
 		});
 
 		this.socket.on("progress", function (data) {
@@ -78,7 +78,7 @@ class RealTimeClient {
 				data.percent = (flt(data.progress[0]) / data.progress[1]) * 100;
 			}
 			if (data.percent) {
-				frappe.show_progress(
+				nts.show_progress(
 					data.title || __("Progress"),
 					data.percent,
 					100,
@@ -117,13 +117,13 @@ class RealTimeClient {
 		let host = window.location.origin;
 		if (window.dev_server) {
 			let parts = host.split(":");
-			port = frappe.boot.socketio_port || port.toString() || "9000";
+			port = nts.boot.socketio_port || port.toString() || "9000";
 			if (parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}
 			host = host + ":" + port;
 		}
-		return host + `/${frappe.boot.sitename}`;
+		return host + `/${nts.boot.sitename}`;
 	}
 
 	subscribe(task_id, opts) {
@@ -145,7 +145,7 @@ class RealTimeClient {
 		this.emit("doctype_unsubscribe", doctype);
 	}
 	doc_subscribe(doctype, docname) {
-		if (frappe.flags.doc_subscribe) {
+		if (nts.flags.doc_subscribe) {
 			console.log("throttled");
 			return;
 		}
@@ -153,11 +153,11 @@ class RealTimeClient {
 			return;
 		}
 
-		frappe.flags.doc_subscribe = true;
+		nts.flags.doc_subscribe = true;
 
 		// throttle to 1 per sec
 		setTimeout(function () {
-			frappe.flags.doc_subscribe = false;
+			nts.flags.doc_subscribe = false;
 		}, 1000);
 
 		this.emit("doc_subscribe", doctype, docname);
@@ -192,13 +192,13 @@ class RealTimeClient {
 			opts[method](data);
 		}
 
-		// "callback" is std frappe term
+		// "callback" is std nts term
 		if (method === "success") {
 			if (opts.callback) opts.callback(data);
 		}
 
 		// always
-		frappe.request.cleanup(opts, data);
+		nts.request.cleanup(opts, data);
 		if (opts.always) {
 			opts.always(data);
 		}
@@ -216,7 +216,7 @@ class RealTimeClient {
 	}
 }
 
-frappe.realtime = new RealTimeClient();
+nts.realtime = new RealTimeClient();
 
 // backward compatbility
-frappe.socketio = frappe.realtime;
+nts.socketio = nts.realtime;

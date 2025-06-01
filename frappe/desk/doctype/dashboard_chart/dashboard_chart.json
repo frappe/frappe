@@ -245,7 +245,7 @@
    "fieldtype": "Check",
    "label": "Is Standard",
    "no_copy": 1,
-   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+   "read_only_depends_on": "eval: !nts.boot.developer_mode"
   },
   {
    "depends_on": "eval: doc.is_standard",

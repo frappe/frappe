@@ -1,14 +1,14 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2018, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-import frappe.cache_manager
-from frappe import _
-from frappe.core.doctype.user.user import get_enabled_users
-from frappe.model import log_types
-from frappe.model.document import Document
-from frappe.social.doctype.energy_point_log.energy_point_log import create_energy_points_log
-from frappe.social.doctype.energy_point_settings.energy_point_settings import (
+import nts
+import nts.cache_manager
+from nts import _
+from nts.core.doctype.user.user import get_enabled_users
+from nts.model import log_types
+from nts.model.document import Document
+from nts.social.doctype.energy_point_log.energy_point_log import create_energy_points_log
+from nts.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 
@@ -20,7 +20,7 @@ class EnergyPointRule(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		apply_only_once: DF.Check
 		condition: DF.Code | None
@@ -37,10 +37,10 @@ class EnergyPointRule(Document):
 	# end: auto-generated types
 
 	def on_update(self):
-		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
+		nts.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
+		nts.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
 	def apply(self, doc):
 		if self.rule_condition_satisfied(doc):
@@ -106,16 +106,16 @@ class EnergyPointRule(Document):
 		return False
 
 	def eval_condition(self, doc):
-		return self.condition and frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()})
+		return self.condition and nts.safe_eval(self.condition, None, {"doc": doc.as_dict()})
 
 
 def process_energy_points(doc, state):
 	if (
-		frappe.flags.in_patch
-		or frappe.flags.in_install
-		or frappe.flags.in_migrate
-		or frappe.flags.in_import
-		or frappe.flags.in_setup_wizard
+		nts.flags.in_patch
+		or nts.flags.in_install
+		or nts.flags.in_migrate
+		or nts.flags.in_import
+		or nts.flags.in_setup_wizard
 		or doc.doctype in log_types
 	):
 		return
@@ -129,26 +129,26 @@ def process_energy_points(doc, state):
 	if old_doc and old_doc.docstatus.is_submitted() and doc.docstatus.is_cancelled():
 		return revert_points_for_cancelled_doc(doc)
 
-	for d in frappe.cache_manager.get_doctype_map(
+	for d in nts.cache_manager.get_doctype_map(
 		"Energy Point Rule", doc.doctype, dict(reference_doctype=doc.doctype, enabled=1)
 	):
-		frappe.get_doc("Energy Point Rule", d.get("name")).apply(doc)
+		nts.get_doc("Energy Point Rule", d.get("name")).apply(doc)
 
 
 def revert_points_for_cancelled_doc(doc):
-	energy_point_logs = frappe.get_all(
+	energy_point_logs = nts.get_all(
 		"Energy Point Log",
 		{"reference_doctype": doc.doctype, "reference_name": doc.name, "type": "Auto"},
 	)
 	for log in energy_point_logs:
-		reference_log = frappe.get_doc("Energy Point Log", log.name)
+		reference_log = nts.get_doc("Energy Point Log", log.name)
 		reference_log.revert(_("Reference document has been cancelled"), ignore_permissions=True)
 
 
 def get_energy_point_doctypes():
 	return [
 		d.reference_doctype
-		for d in frappe.get_all("Energy Point Rule", ["reference_doctype"], {"enabled": 1})
+		for d in nts.get_all("Energy Point Rule", ["reference_doctype"], {"enabled": 1})
 	]
 
 

@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def get_data():
-	return frappe._dict(
+	return nts._dict(
 		{
 			"dashboards": get_dashboards(),
 			"charts": get_charts(),

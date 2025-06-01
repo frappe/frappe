@@ -1,11 +1,11 @@
 """
-FrappeClient is a library that helps you connect with other frappe systems
+ntsClient is a library that helps you connect with other nts systems
 """
 import base64
 import json
 
-import frappe
-from frappe.utils.data import cstr
+import nts
+from nts.utils.data import cstr
 
 
 class AuthError(Exception):
@@ -20,11 +20,11 @@ class SiteUnreachableError(Exception):
 	pass
 
 
-class FrappeException(Exception):
+class ntsException(Exception):
 	pass
 
 
-class FrappeClient:
+class ntsClient:
 	def __init__(
 		self,
 		url,
@@ -33,7 +33,7 @@ class FrappeClient:
 		verify=True,
 		api_key=None,
 		api_secret=None,
-		frappe_authorization_source=None,
+		nts_authorization_source=None,
 	):
 		import requests
 
@@ -46,7 +46,7 @@ class FrappeClient:
 		self.url = url
 		self.api_key = api_key
 		self.api_secret = api_secret
-		self.frappe_authorization_source = frappe_authorization_source
+		self.nts_authorization_source = nts_authorization_source
 
 		self.setup_key_authentication_headers()
 
@@ -91,8 +91,8 @@ class FrappeClient:
 			}
 			self.headers.update(auth_header)
 
-			if self.frappe_authorization_source:
-				auth_source = {"Frappe-Authorization-Source": self.frappe_authorization_source}
+			if self.nts_authorization_source:
+				auth_source = {"nts-Authorization-Source": self.nts_authorization_source}
 				self.headers.update(auth_source)
 
 	def logout(self):
@@ -129,17 +129,17 @@ class FrappeClient:
 		:param doc: A dict or Document object to be inserted remotely"""
 		res = self.session.post(
 			self.url + "/api/resource/" + doc.get("doctype"),
-			data={"data": frappe.as_json(doc)},
+			data={"data": nts.as_json(doc)},
 			verify=self.verify,
 			headers=self.headers,
 		)
-		return frappe._dict(self.post_process(res))
+		return nts._dict(self.post_process(res))
 
 	def insert_many(self, docs):
 		"""Insert multiple documents to the remote server
 
 		:param docs: List of dict or Document objects to be inserted in one request"""
-		return self.post_request({"cmd": "frappe.client.insert_many", "docs": frappe.as_json(docs)})
+		return self.post_request({"cmd": "nts.client.insert_many", "docs": nts.as_json(docs)})
 
 	def update(self, doc):
 		"""Update a remote document
@@ -147,28 +147,28 @@ class FrappeClient:
 		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this"""
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + cstr(doc.get("name"))
 		res = self.session.put(
-			url, data={"data": frappe.as_json(doc)}, verify=self.verify, headers=self.headers
+			url, data={"data": nts.as_json(doc)}, verify=self.verify, headers=self.headers
 		)
-		return frappe._dict(self.post_process(res))
+		return nts._dict(self.post_process(res))
 
 	def bulk_update(self, docs):
 		"""Bulk update documents remotely
 
 		:param docs: List of dict or Document objects to be updated remotely (by `name`)"""
-		return self.post_request({"cmd": "frappe.client.bulk_update", "docs": frappe.as_json(docs)})
+		return self.post_request({"cmd": "nts.client.bulk_update", "docs": nts.as_json(docs)})
 
 	def delete(self, doctype, name):
 		"""Delete remote document by name
 
 		:param doctype: `doctype` to be deleted
 		:param name: `name` of document to be deleted"""
-		return self.post_request({"cmd": "frappe.client.delete", "doctype": doctype, "name": name})
+		return self.post_request({"cmd": "nts.client.delete", "doctype": doctype, "name": name})
 
 	def submit(self, doc):
 		"""Submit remote document
 
 		:param doc: dict or Document object to be submitted remotely"""
-		return self.post_request({"cmd": "frappe.client.submit", "doc": frappe.as_json(doc)})
+		return self.post_request({"cmd": "nts.client.submit", "doc": nts.as_json(doc)})
 
 	def get_value(self, doctype, fieldname=None, filters=None):
 		"""Returns a value form a document
@@ -178,10 +178,10 @@ class FrappeClient:
 		:param filters: dict or string for identifying the record"""
 		return self.get_request(
 			{
-				"cmd": "frappe.client.get_value",
+				"cmd": "nts.client.get_value",
 				"doctype": doctype,
 				"fieldname": fieldname or "name",
-				"filters": frappe.as_json(filters),
+				"filters": nts.as_json(filters),
 			}
 		)
 
@@ -194,7 +194,7 @@ class FrappeClient:
 		:param value: value to be updated"""
 		return self.post_request(
 			{
-				"cmd": "frappe.client.set_value",
+				"cmd": "nts.client.set_value",
 				"doctype": doctype,
 				"name": docname,
 				"fieldname": fieldname,
@@ -207,7 +207,7 @@ class FrappeClient:
 
 		:param doctype: DocType of the document to be cancelled
 		:param name: name of the document to be cancelled"""
-		return self.post_request({"cmd": "frappe.client.cancel", "doctype": doctype, "name": name})
+		return self.post_request({"cmd": "nts.client.cancel", "doctype": doctype, "name": name})
 
 	def get_doc(self, doctype, name="", filters=None, fields=None):
 		"""Returns a single remote document
@@ -238,7 +238,7 @@ class FrappeClient:
 		:param old_name: Current `name` of the document to be renamed
 		:param new_name: New `name` to be set"""
 		params = {
-			"cmd": "frappe.client.rename_doc",
+			"cmd": "nts.client.rename_doc",
 			"doctype": doctype,
 			"old_name": old_name,
 			"new_name": new_name,
@@ -247,7 +247,7 @@ class FrappeClient:
 
 	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None):
 		"""Migrate records from another doctype"""
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 		tables = {}
 		for df in meta.get_table_fields():
 			if verbose:
@@ -261,12 +261,12 @@ class FrappeClient:
 
 		# build - attach children to parents
 		if tables:
-			docs = [frappe._dict(doc) for doc in docs]
+			docs = [nts._dict(doc) for doc in docs]
 			docs_map = {doc.name: doc for doc in docs}
 
 			for fieldname in tables:
 				for child in tables[fieldname]:
-					child = frappe._dict(child)
+					child = nts._dict(child)
 					if child.parent in docs_map:
 						docs_map[child.parent].setdefault(fieldname, []).append(child)
 
@@ -282,8 +282,8 @@ class FrappeClient:
 			if not doc.get("owner"):
 				doc["owner"] = "Administrator"
 
-			if doctype != "User" and not frappe.db.exists("User", doc.get("owner")):
-				frappe.get_doc(
+			if doctype != "User" and not nts.db.exists("User", doc.get("owner")):
+				nts.get_doc(
 					{
 						"doctype": "User",
 						"email": doc.get("owner"),
@@ -295,7 +295,7 @@ class FrappeClient:
 				doc.update(update)
 
 			doc["doctype"] = doctype
-			new_doc = frappe.get_doc(doc)
+			new_doc = nts.get_doc(doc)
 			new_doc.insert()
 
 			if not meta.istable:
@@ -317,11 +317,11 @@ class FrappeClient:
 
 	def migrate_single(self, doctype):
 		doc = self.get_doc(doctype, doctype)
-		doc = frappe.get_doc(doc)
+		doc = nts.get_doc(doc)
 
 		# change modified so that there is no error
-		doc.modified = frappe.db.get_single_value(doctype, "modified")
-		frappe.get_doc(doc).insert()
+		doc.modified = nts.db.get_single_value(doctype, "modified")
+		nts.get_doc(doc).insert()
 
 	def get_api(self, method, params=None):
 		if params is None:
@@ -371,11 +371,11 @@ class FrappeClient:
 		if rjson and ("exc" in rjson) and rjson["exc"]:
 			try:
 				exc = json.loads(rjson["exc"])[0]
-				exc = "FrappeClient Request Failed\n\n" + exc
+				exc = "ntsClient Request Failed\n\n" + exc
 			except Exception:
 				exc = rjson["exc"]
 
-			raise FrappeException(exc)
+			raise ntsException(exc)
 		if "message" in rjson:
 			return rjson["message"]
 		elif "data" in rjson:
@@ -384,7 +384,7 @@ class FrappeClient:
 			return None
 
 
-class FrappeOAuth2Client(FrappeClient):
+class ntsOAuth2Client(ntsClient):
 	def __init__(self, url, access_token, verify=True):
 		import requests
 

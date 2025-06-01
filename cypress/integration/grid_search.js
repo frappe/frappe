@@ -13,10 +13,10 @@ context("Grid Search", () => {
 		cy.insert_doc("DocType", doctype_with_child_table, true);
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall(
-					"frappe.tests.ui_test_helpers.insert_doctype_with_child_table_record",
+			.its("nts")
+			.then((nts) => {
+				return nts.xcall(
+					"nts.tests.ui_test_helpers.insert_doctype_with_child_table_record",
 					{
 						name: doctype_with_child_table_name,
 					}
@@ -26,9 +26,9 @@ context("Grid Search", () => {
 
 	it("Test search row visibility", () => {
 		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				frappe.model.user_settings.save("Doctype With Child Table", "GridView", {
+			.its("nts")
+			.then((nts) => {
+				nts.model.user_settings.save("Doctype With Child Table", "GridView", {
 					"Child Table Doctype 1": [
 						{ fieldname: "data", columns: 2 },
 						{ fieldname: "barcode", columns: 1 },
@@ -42,7 +42,7 @@ context("Grid Search", () => {
 
 		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
 
-		cy.get('.frappe-control[data-fieldname="child_table_1"]').as("table");
+		cy.get('.nts-control[data-fieldname="child_table_1"]').as("table");
 		cy.get("@table").find(".grid-row-check:last").click();
 		cy.get("@table").find(".grid-footer").contains("Delete").click();
 		cy.get(".grid-heading-row .grid-row .search").should("not.exist");
@@ -51,7 +51,7 @@ context("Grid Search", () => {
 	it("test search field for different fieldtypes", () => {
 		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
 
-		cy.get('.frappe-control[data-fieldname="child_table_1"]').as("table");
+		cy.get('.nts-control[data-fieldname="child_table_1"]').as("table");
 
 		// Index Column
 		cy.get("@table").find(".grid-heading-row .row-index.search input").type("3");
@@ -106,7 +106,7 @@ context("Grid Search", () => {
 	});
 
 	it("test with multiple filter", () => {
-		cy.get('.frappe-control[data-fieldname="child_table_1"]').as("table");
+		cy.get('.nts-control[data-fieldname="child_table_1"]').as("table");
 
 		// Data Column
 		cy.get("@table").find('.grid-heading-row .search input[data-fieldtype="Data"]').type("a");

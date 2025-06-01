@@ -1,6 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from frappe import _
+from nts import _
 
 no_cache = 1
 

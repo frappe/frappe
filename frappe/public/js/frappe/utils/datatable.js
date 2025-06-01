@@ -1,8 +1,8 @@
-frappe.provide("frappe.utils.datatable");
+nts.provide("nts.utils.datatable");
 
-frappe.utils.datatable.get_translations = function () {
+nts.utils.datatable.get_translations = function () {
 	let translations = {};
-	translations[frappe.boot.lang] = {
+	translations[nts.boot.lang] = {
 		"Sort Ascending": __("Sort Ascending"),
 		"Sort Descending": __("Sort Descending"),
 		"Reset sorting": __("Reset sorting"),

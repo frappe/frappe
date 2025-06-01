@@ -1,4 +1,4 @@
-frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.ControlData {
+nts.ui.form.ControlDateRange = class ControlDateRange extends nts.ui.form.ControlData {
 	make_input() {
 		super.make_input();
 		this.set_date_options();
@@ -8,15 +8,15 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 	set_date_options() {
 		var me = this;
 
-		let lang = frappe.boot?.user?.language;
+		let lang = nts.boot?.user?.language;
 		this.datepicker_options = {
 			language: $.fn.datepicker.language[lang] ? lang : "en",
 			range: true,
 			autoClose: true,
 			toggleSelected: false,
-			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+			firstDay: nts.datetime.get_first_day_of_the_week_index(),
 		};
-		this.datepicker_options.dateFormat = frappe.boot.sysdefaults.date_format || "yyyy-mm-dd";
+		this.datepicker_options.dateFormat = nts.boot.sysdefaults.date_format || "yyyy-mm-dd";
 		this.datepicker_options.onSelect = function () {
 			me.$input.trigger("change");
 		};
@@ -50,8 +50,8 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 
 		if (value && value.includes(",")) {
 			var vals = value.split(",");
-			var from_date = moment(frappe.datetime.user_to_obj(vals[0])).format("YYYY-MM-DD");
-			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length - 1])).format(
+			var from_date = moment(nts.datetime.user_to_obj(vals[0])).format("YYYY-MM-DD");
+			var to_date = moment(nts.datetime.user_to_obj(vals[vals.length - 1])).format(
 				"YYYY-MM-DD"
 			);
 			return [from_date, to_date];
@@ -59,8 +59,8 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 	}
 	format_for_input(value1, value2) {
 		if (value1 && value2) {
-			value1 = frappe.datetime.str_to_user(value1, false, true);
-			value2 = frappe.datetime.str_to_user(value2, false, true);
+			value1 = nts.datetime.str_to_user(value1, false, true);
+			value2 = nts.datetime.str_to_user(value2, false, true);
 			return __("{0} to {1}", [value1, value2]);
 		}
 		return "";

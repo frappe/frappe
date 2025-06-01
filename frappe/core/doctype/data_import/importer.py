@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -7,13 +7,13 @@ import re
 import timeit
 from datetime import date, datetime, time
 
-import frappe
-from frappe import _
-from frappe.core.doctype.version.version import get_diff
-from frappe.model import no_value_fields
-from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
-from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
-from frappe.utils.xlsxutils import (
+import nts
+from nts import _
+from nts.core.doctype.version.version import get_diff
+from nts.model import no_value_fields
+from nts.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
+from nts.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
+from nts.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 	read_xlsx_file_from_attached_file,
 )
@@ -32,11 +32,11 @@ class Importer:
 
 		self.data_import = data_import
 		if not self.data_import:
-			self.data_import = frappe.get_doc(doctype="Data Import")
+			self.data_import = nts.get_doc(doctype="Data Import")
 			if import_type:
 				self.data_import.import_type = import_type
 
-		self.template_options = frappe.parse_json(self.data_import.template_options or "{}")
+		self.template_options = nts.parse_json(self.data_import.template_options or "{}")
 		self.import_type = self.data_import.import_type
 
 		self.import_file = ImportFile(
@@ -50,7 +50,7 @@ class Importer:
 	def get_data_for_import_preview(self):
 		out = self.import_file.get_data_for_import_preview()
 
-		out.import_log = frappe.get_all(
+		out.import_log = nts.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success"],
 			filters={"data_import": self.data_import.name},
@@ -62,12 +62,12 @@ class Importer:
 
 	def before_import(self):
 		# set user lang for translations
-		frappe.cache.hdel("lang", frappe.session.user)
-		frappe.set_user_lang(frappe.session.user)
+		nts.cache.hdel("lang", nts.session.user)
+		nts.set_user_lang(nts.session.user)
 
 		# set flags
-		frappe.flags.in_import = True
-		frappe.flags.mute_emails = self.data_import.mute_emails
+		nts.flags.in_import = True
+		nts.flags.mute_emails = self.data_import.mute_emails
 
 		self.data_import.db_set("template_warnings", "")
 
@@ -90,7 +90,7 @@ class Importer:
 
 		# setup import log
 		import_log = (
-			frappe.get_all(
+			nts.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -108,12 +108,12 @@ class Importer:
 		):
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
-			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
+			nts.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
 		imported_rows = []
 		for log in import_log:
-			log = frappe._dict(log)
+			log = nts._dict(log)
 			if log.success or len(import_log) < self.data_import.payload_count:
 				imported_rows += json.loads(log.row_indexes)
 
@@ -121,9 +121,9 @@ class Importer:
 
 		# start import
 		total_payload_count = len(payloads)
-		batch_size = frappe.conf.data_import_batch_size or 1000
+		batch_size = nts.conf.data_import_batch_size or 1000
 
-		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
+		for batch_index, batched_payloads in enumerate(nts.utils.create_batch(payloads, batch_size)):
 			for i, payload in enumerate(batched_payloads):
 				doc = payload.doc
 				row_indexes = [row.row_number for row in payload.rows]
@@ -132,7 +132,7 @@ class Importer:
 				if set(row_indexes).intersection(set(imported_rows)):
 					print("Skipping imported rows", row_indexes)
 					if total_payload_count > 5:
-						frappe.publish_realtime(
+						nts.publish_realtime(
 							"data_import_progress",
 							{
 								"current": current_index,
@@ -140,7 +140,7 @@ class Importer:
 								"skipping": True,
 								"data_import": self.data_import.name,
 							},
-							user=frappe.session.user,
+							user=nts.session.user,
 						)
 					continue
 
@@ -157,7 +157,7 @@ class Importer:
 							total_payload_count,
 						)
 					elif total_payload_count > 5:
-						frappe.publish_realtime(
+						nts.publish_realtime(
 							"data_import_progress",
 							{
 								"current": current_index,
@@ -168,7 +168,7 @@ class Importer:
 								"row_indexes": row_indexes,
 								"eta": eta,
 							},
-							user=frappe.session.user,
+							user=nts.session.user,
 						)
 
 					create_import_log(
@@ -183,21 +183,21 @@ class Importer:
 						self.data_import.db_set("status", "Partial Success")
 
 					# commit after every successful import
-					frappe.db.commit()
+					nts.db.commit()
 
 				except Exception:
-					messages = frappe.local.message_log
-					frappe.clear_messages()
+					messages = nts.local.message_log
+					nts.clear_messages()
 
 					# rollback if exception
-					frappe.db.rollback()
+					nts.db.rollback()
 
 					create_import_log(
 						self.data_import.name,
 						log_index,
 						{
 							"success": False,
-							"exception": frappe.get_traceback(),
+							"exception": nts.get_traceback(),
 							"messages": messages,
 							"row_indexes": row_indexes,
 						},
@@ -207,7 +207,7 @@ class Importer:
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
-			frappe.get_all(
+			nts.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -243,8 +243,8 @@ class Importer:
 		return import_log
 
 	def after_import(self):
-		frappe.flags.in_import = False
-		frappe.flags.mute_emails = False
+		nts.flags.in_import = False
+		nts.flags.mute_emails = False
 
 	def process_doc(self, doc):
 		if self.import_type == INSERT:
@@ -253,8 +253,8 @@ class Importer:
 			return self.update_record(doc)
 
 	def insert_record(self, doc):
-		meta = frappe.get_meta(self.doctype)
-		new_doc = frappe.new_doc(self.doctype)
+		meta = nts.get_meta(self.doctype)
+		new_doc = nts.new_doc(self.doctype)
 		new_doc.update(doc)
 
 		if not doc.name and (meta.autoname or "").lower() != "prompt":
@@ -274,9 +274,9 @@ class Importer:
 
 	def update_record(self, doc):
 		id_field = get_id_field(self.doctype)
-		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		existing_doc = nts.get_doc(self.doctype, doc.get(id_field.fieldname))
 
-		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		updated_doc = nts.get_doc(self.doctype, doc.get(id_field.fieldname))
 
 		updated_doc.update(doc)
 
@@ -291,7 +291,7 @@ class Importer:
 			return updated_doc
 		else:
 			# throw if no changes
-			frappe.throw(_("No changes to update"))
+			nts.throw(_("No changes to update"))
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -302,13 +302,13 @@ class Importer:
 		return self.last_eta
 
 	def export_errored_rows(self):
-		from frappe.utils.csvutils import build_csv_response
+		from nts.utils.csvutils import build_csv_response
 
 		if not self.data_import:
 			return
 
 		import_log = (
-			frappe.get_all(
+			nts.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success"],
 				filters={"data_import": self.data_import.name},
@@ -333,12 +333,12 @@ class Importer:
 		build_csv_response(rows, _(self.doctype))
 
 	def export_import_log(self):
-		from frappe.utils.csvutils import build_csv_response
+		from nts.utils.csvutils import build_csv_response
 
 		if not self.data_import:
 			return
 
-		import_log = frappe.get_all(
+		import_log = nts.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": self.data_import.name},
@@ -357,7 +357,7 @@ class Importer:
 				if log.get("success")
 				else log.get("messages")
 			)
-			exception = frappe.utils.cstr(log.get("exception", ""))
+			exception = nts.utils.cstr(log.get("exception", ""))
 			rows += [[row_number, status, message, exception]]
 
 		build_csv_response(rows, self.doctype)
@@ -372,7 +372,7 @@ class Importer:
 
 		if failed_records:
 			print(f"Failed to import {len(failed_records)} records")
-			file_name = f"{self.doctype}_import_on_{frappe.utils.now()}.txt"
+			file_name = f"{self.doctype}_import_on_{nts.utils.now()}.txt"
 			print("Check {} for errors".format(os.path.join("sites", file_name)))
 			text = ""
 			for w in failed_records:
@@ -404,7 +404,7 @@ class Importer:
 class ImportFile:
 	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False):
 		self.doctype = doctype
-		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
+		self.template_options = template_options or nts._dict(column_to_field_map=nts._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
 		self.warnings = []
@@ -412,15 +412,15 @@ class ImportFile:
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):
-			if frappe.db.exists("File", {"file_url": file}):
-				self.file_doc = frappe.get_doc("File", {"file_url": file})
+			if nts.db.exists("File", {"file_url": file}):
+				self.file_doc = nts.get_doc("File", {"file_url": file})
 			elif "docs.google.com/spreadsheets" in file:
 				self.google_sheets_url = file
 			elif os.path.exists(file):
 				self.file_path = file
 
 		if not self.file_doc and not self.file_path and not self.google_sheets_url:
-			frappe.throw(_("Invalid template file for import"))
+			nts.throw(_("Invalid template file for import"))
 
 		self.raw_data = self.get_data_from_template_file()
 		self.parse_data_from_template()
@@ -443,7 +443,7 @@ class ImportFile:
 			extension = "csv"
 
 		if not content:
-			frappe.throw(_("Invalid or corrupted content for import"))
+			nts.throw(_("Invalid or corrupted content for import"))
 
 		if not extension:
 			extension = "csv"
@@ -471,7 +471,7 @@ class ImportFile:
 		self.data = data
 
 		if len(data) < 1:
-			frappe.throw(
+			nts.throw(
 				_("Import template should contain a Header and atleast one row."),
 				title=_("Template Error"),
 			)
@@ -479,7 +479,7 @@ class ImportFile:
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
 
-		columns = [frappe._dict({"header_title": "Sr. No", "skip_import": True})]
+		columns = [nts._dict({"header_title": "Sr. No", "skip_import": True})]
 		columns += [col.as_dict() for col in self.columns]
 		for col in columns:
 			# only pick useful fields in docfields to minimise the payload
@@ -499,7 +499,7 @@ class ImportFile:
 
 		warnings = self.get_warnings()
 
-		out = frappe._dict()
+		out = nts._dict()
 		out.data = data
 		out.columns = columns
 		out.warnings = warnings
@@ -517,7 +517,7 @@ class ImportFile:
 		data = list(self.data)
 		while data:
 			doc, rows, data = self.parse_next_row_for_import(data)
-			payloads.append(frappe._dict(doc=doc, rows=rows))
+			payloads.append(nts._dict(doc=doc, rows=rows))
 		return payloads
 
 	def parse_next_row_for_import(self, data):
@@ -589,12 +589,12 @@ class ImportFile:
 		file_content = None
 
 		if self.console:
-			file_content = frappe.read_file(file_path, True)
+			file_content = nts.read_file(file_path, True)
 			return file_content, extn
 
-		file_name = frappe.db.get_value("File", {"file_url": file_path})
+		file_name = nts.db.get_value("File", {"file_url": file_path})
 		if file_name:
-			file = frappe.get_doc("File", file_name)
+			file = nts.get_doc("File", file_name)
 			file_content = file.get_content()
 
 		return file_content, extn
@@ -602,7 +602,7 @@ class ImportFile:
 	def read_content(self, content, extension):
 		error_title = _("Template Error")
 		if extension not in ("csv", "xlsx", "xls"):
-			frappe.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
+			nts.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
 
 		if extension == "csv":
 			data = read_csv_content(content)
@@ -652,10 +652,10 @@ class Row:
 		return self._parse_doc(doctype, columns, values, parent_doc, table_df)
 
 	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None):
-		doc = frappe._dict()
+		doc = nts._dict()
 		if self.import_type == INSERT:
 			# new_doc returns a dict with default values set
-			doc = frappe.new_doc(
+			doc = nts.new_doc(
 				doctype,
 				parent_doc=parent_doc,
 				parentfield=table_df.fieldname if table_df else None,
@@ -663,7 +663,7 @@ class Row:
 			)
 
 		# remove standard fields and __islocal
-		for key in frappe.model.default_fields + frappe.model.child_table_fields + ("__islocal",):
+		for key in nts.model.default_fields + nts.model.child_table_fields + ("__islocal",):
 			doc.pop(key, None)
 
 		for col, value in zip(columns, values, strict=False):
@@ -677,7 +677,7 @@ class Row:
 			if value is not None:
 				doc[df.fieldname] = self.parse_value(value, col)
 
-		is_table = frappe.get_meta(doctype).istable
+		is_table = nts.get_meta(doctype).istable
 		is_update = self.import_type == UPDATE
 		if is_table and is_update:
 			# check if the row already exists
@@ -685,14 +685,14 @@ class Row:
 			# if no, create a new doc
 			id_field = get_id_field(doctype)
 			id_value = doc.get(id_field.fieldname)
-			if id_value and frappe.db.exists(doctype, id_value):
-				existing_doc = frappe.get_doc(doctype, id_value)
+			if id_value and nts.db.exists(doctype, id_value):
+				existing_doc = nts.get_doc(doctype, id_value)
 				existing_doc.update(doc)
 				doc = existing_doc
 			else:
 				# for table rows being inserted in update
 				# create a new doc with defaults set
-				new_doc = frappe.new_doc(doctype, as_dict=True)
+				new_doc = nts.new_doc(doctype, as_dict=True)
 				new_doc.update(doc)
 				doc = new_doc
 
@@ -703,7 +703,7 @@ class Row:
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
 			if select_options and cstr(value) not in select_options:
-				options_string = ", ".join(frappe.bold(d) for d in select_options)
+				options_string = ", ".join(nts.bold(d) for d in select_options)
 				msg = _("Value must be one of {0}").format(options_string)
 				self.warnings.append(
 					{
@@ -717,7 +717,7 @@ class Row:
 		elif df.fieldtype == "Link":
 			exists = self.link_exists(value, df)
 			if not exists:
-				msg = _("Value {0} missing for {1}").format(frappe.bold(value), frappe.bold(df.options))
+				msg = _("Value {0} missing for {1}").format(nts.bold(value), nts.bold(df.options))
 				self.warnings.append(
 					{
 						"row": self.row_number,
@@ -736,7 +736,7 @@ class Row:
 						"col": col.column_number,
 						"field": df_as_json(df),
 						"message": _("Value {0} must in {1} format").format(
-							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
+							nts.bold(value), nts.bold(get_user_format(col.date_format))
 						),
 					}
 				)
@@ -749,7 +749,7 @@ class Row:
 						"col": col.column_number,
 						"field": df_as_json(df),
 						"message": _("Value {0} must be in the valid duration format: d h m s").format(
-							frappe.bold(value)
+							nts.bold(value)
 						),
 					}
 				)
@@ -757,7 +757,7 @@ class Row:
 		return value
 
 	def link_exists(self, value, df):
-		return bool(frappe.db.exists(df.options, value, cache=True))
+		return bool(nts.db.exists(df.options, value, cache=True))
 
 	def parse_value(self, value, col):
 		df = col.df
@@ -813,7 +813,7 @@ class Header(Row):
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
-		column_to_field_map = column_to_field_map or frappe._dict()
+		column_to_field_map = column_to_field_map or nts._dict()
 
 		self.seen = []
 		self.columns = []
@@ -869,7 +869,7 @@ class Column:
 		self.skip_import = None
 		self.warnings = []
 
-		self.meta = frappe.get_meta(doctype)
+		self.meta = nts.get_meta(doctype)
 		self.parse()
 		self.validate_values()
 
@@ -884,7 +884,7 @@ class Column:
 				self.warnings.append(
 					{
 						"message": _("Mapping column {0} to field {1}").format(
-							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
+							nts.bold(header_title or "<i>Untitled Column</i>"), nts.bold(df.label)
 						),
 						"type": "info",
 					}
@@ -911,7 +911,7 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping Duplicate Column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping Duplicate Column {0}").format(nts.bold(header_title)),
 					"type": "info",
 				}
 			)
@@ -922,7 +922,7 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping column {0}").format(nts.bold(header_title)),
 					"type": "info",
 				}
 			)
@@ -930,7 +930,7 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Cannot match column {0} with any field").format(frappe.bold(header_title)),
+					"message": _("Cannot match column {0} with any field").format(nts.bold(header_title)),
 					"type": "info",
 				}
 			)
@@ -956,7 +956,7 @@ class Column:
 				if self.df.fieldtype == "Time":
 					return "%H:%M:%S"
 			if isinstance(d, str):
-				return frappe.utils.guess_date_format(d)
+				return nts.utils.guess_date_format(d)
 
 		date_formats = [guess_date_format(d) for d in self.column_values]
 		date_formats = [d for d in date_formats if d]
@@ -975,9 +975,9 @@ class Column:
 				{
 					"col": self.column_number,
 					"message": message.format(
-						frappe.bold(self.header_title),
+						nts.bold(self.header_title),
 						len(unique_date_formats),
-						frappe.bold(user_date_format),
+						nts.bold(user_date_format),
 					),
 					"type": "info",
 				}
@@ -998,7 +998,7 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list({cstr(v) for v in self.column_values if v})
-			exists = [cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})]
+			exists = [cstr(d.name) for d in nts.get_all(self.df.options, filters={"name": ("in", values)})]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)
@@ -1037,8 +1037,8 @@ class Column:
 				values = {cstr(v) for v in self.column_values if v}
 				invalid = values - set(options)
 				if invalid:
-					valid_values = ", ".join(frappe.bold(o) for o in options)
-					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
+					valid_values = ", ".join(nts.bold(o) for o in options)
+					invalid_values = ", ".join(nts.bold(i) for i in invalid)
 					message = _("The following values are invalid: {0}. Values must be one of {1}")
 					self.warnings.append(
 						{
@@ -1048,7 +1048,7 @@ class Column:
 					)
 
 	def as_dict(self):
-		d = frappe._dict()
+		d = nts._dict()
 		d.index = self.index
 		d.column_number = self.column_number
 		d.doctype = self.doctype
@@ -1079,7 +1079,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	"""
 
 	def get_standard_fields(doctype):
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 		if meta.istable:
 			standard_fields = [
 				{"label": "Parent", "fieldname": "parent"},
@@ -1095,12 +1095,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 		out = []
 		for df in standard_fields:
-			df = frappe._dict(df)
+			df = nts._dict(df)
 			df.parent = doctype
 			out.append(df)
 		return out
 
-	parent_meta = frappe.get_meta(parent_doctype)
+	parent_meta = nts.get_meta(parent_doctype)
 	out = {}
 
 	# doctypes and fieldname if it is a child doctype
@@ -1110,7 +1110,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		translated_table_label = _(table_df.label) if table_df else None
 
 		# name field
-		name_df = frappe._dict(
+		name_df = nts._dict(
 			{
 				"fieldtype": "Data",
 				"fieldname": "name",
@@ -1139,7 +1139,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		for header in name_headers:
 			out[header] = name_df
 
-		fields = get_standard_fields(doctype) + frappe.get_meta(doctype).fields
+		fields = get_standard_fields(doctype) + nts.get_meta(doctype).fields
 		for df in fields:
 			fieldtype = df.fieldtype or "Data"
 			if fieldtype in no_value_fields:
@@ -1172,7 +1172,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 				# create a new df object to avoid mutation problems
 				if isinstance(df, dict):
-					new_df = frappe._dict(df.copy())
+					new_df = nts._dict(df.copy())
 				else:
 					new_df = df.as_dict()
 
@@ -1210,7 +1210,7 @@ def get_df_for_column_header(doctype, header):
 	def build_fields_dict_for_doctype():
 		return build_fields_dict_for_column_matching(doctype)
 
-	df_by_labels_and_fieldname = frappe.cache.hget(
+	df_by_labels_and_fieldname = nts.cache.hget(
 		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
 	)
 	return df_by_labels_and_fieldname.get(header)
@@ -1223,11 +1223,11 @@ def get_id_field(doctype):
 	autoname_field = get_autoname_field(doctype)
 	if autoname_field:
 		return autoname_field
-	return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
+	return nts._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
 
 
 def get_autoname_field(doctype):
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	if meta.autoname and meta.autoname.startswith("field:"):
 		fieldname = meta.autoname[len("field:") :]
 		return meta.get_field(fieldname)
@@ -1261,7 +1261,7 @@ def get_select_options(df):
 
 
 def create_import_log(data_import, log_index, log_details):
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "Data Import Log",
 			"log_index": log_index,

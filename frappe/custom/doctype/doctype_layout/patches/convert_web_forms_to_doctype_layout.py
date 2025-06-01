@@ -1,10 +1,10 @@
-import frappe
+import nts
 
 
 def execute():
-	for web_form_name in frappe.get_all("Web Form", pluck="name"):
-		web_form = frappe.get_doc("Web Form", web_form_name)
-		doctype_layout = frappe.get_doc(
+	for web_form_name in nts.get_all("Web Form", pluck="name"):
+		web_form = nts.get_doc("Web Form", web_form_name)
+		doctype_layout = nts.get_doc(
 			dict(
 				doctype="DocType Layout",
 				document_type=web_form.doc_type,

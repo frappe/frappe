@@ -169,7 +169,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	}
 	color-scheme: dark;
 
-	.frappe-card {
+	.nts-card {
 		.btn-default {
 			background-color: var(--control-bg);
 
@@ -210,7 +210,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// --criticism-color: var(--red-100);
 	// --criticism-bg: var(--red-600);
 
-	// Frappe Charts Colors
+	// nts Charts Colors
 	.chart-container {
 		--charts-label-color: var(--gray-300);
 		--charts-axis-line-color: var(--subtle-fg);

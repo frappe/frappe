@@ -25,7 +25,7 @@
 	},
 	"root": true,
 	"globals": {
-		"frappe": true,
+		"nts": true,
 		"Vue": true,
 		"SetVueGlobals": true,
 		"__": true,

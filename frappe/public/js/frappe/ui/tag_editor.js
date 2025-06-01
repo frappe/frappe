@@ -1,4 +1,4 @@
-frappe.ui.TagEditor = class TagEditor {
+nts.ui.TagEditor = class TagEditor {
 	constructor(opts) {
 		/* docs:
 		Arguments
@@ -29,35 +29,35 @@ frappe.ui.TagEditor = class TagEditor {
 		this.wrapper = this.parent;
 		if (!this.wrapper.length) return;
 
-		this.tags = new frappe.ui.Tags({
+		this.tags = new nts.ui.Tags({
 			parent: this.wrapper,
 			placeholder: '<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>',
 			onTagAdd: (tag) => {
 				if (me.initialized && !me.refreshing) {
-					return frappe.call({
-						method: "frappe.desk.doctype.tag.tag.add_tag",
+					return nts.call({
+						method: "nts.desk.doctype.tag.tag.add_tag",
 						args: me.get_args(tag),
 						callback: function (r) {
 							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
 							user_tags.push(tag);
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
-							frappe.tags.utils.fetch_tags();
+							nts.tags.utils.fetch_tags();
 						},
 					});
 				}
 			},
 			onTagRemove: (tag) => {
 				if (!me.refreshing) {
-					return frappe.call({
-						method: "frappe.desk.doctype.tag.tag.remove_tag",
+					return nts.call({
+						method: "nts.desk.doctype.tag.tag.remove_tag",
 						args: me.get_args(tag),
 						callback: function (r) {
 							var user_tags = me.user_tags.split(",");
 							user_tags.splice(user_tags.indexOf(tag), 1);
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
-							frappe.tags.utils.fetch_tags();
+							nts.tags.utils.fetch_tags();
 						},
 					});
 				}
@@ -83,8 +83,8 @@ frappe.ui.TagEditor = class TagEditor {
 		});
 		$input.on("input", function (e) {
 			var value = e.target.value;
-			frappe.call({
-				method: "frappe.desk.doctype.tag.tag.get_tags",
+			nts.call({
+				method: "nts.desk.doctype.tag.tag.get_tags",
 				args: {
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),

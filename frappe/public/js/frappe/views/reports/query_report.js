@@ -1,33 +1,33 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import DataTable from "frappe-datatable";
+import DataTable from "nts-datatable";
 
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
 
-frappe.provide("frappe.widget.utils");
-frappe.provide("frappe.views");
-frappe.provide("frappe.query_reports");
+nts.provide("nts.widget.utils");
+nts.provide("nts.views");
+nts.provide("nts.query_reports");
 
-frappe.standard_pages["query-report"] = function () {
-	var wrapper = frappe.container.add_page("query-report");
+nts.standard_pages["query-report"] = function () {
+	var wrapper = nts.container.add_page("query-report");
 
-	frappe.ui.make_app_page({
+	nts.ui.make_app_page({
 		parent: wrapper,
 		title: __("Query Report"),
 		single_column: true,
 	});
 
-	frappe.query_report = new frappe.views.QueryReport({
+	nts.query_report = new nts.views.QueryReport({
 		parent: wrapper,
 	});
 
 	$(wrapper).bind("show", function () {
-		frappe.query_report.show();
+		nts.query_report.show();
 	});
 };
 
-frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
+nts.views.QueryReport = class QueryReport extends nts.views.BaseList {
 	show() {
 		this.init().then(() => this.load());
 	}
@@ -43,26 +43,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.setup_report_wrapper,
 			this.setup_events,
 		].map((fn) => fn.bind(this));
-		this.init_promise = frappe.run_serially(tasks);
+		this.init_promise = nts.run_serially(tasks);
 		return this.init_promise;
 	}
 
 	setup_defaults() {
-		this.route = frappe.get_route();
-		this.page_name = frappe.get_route_str();
+		this.route = nts.get_route();
+		this.page_name = nts.get_route_str();
 
 		// Setup buttons
 		this.primary_action = null;
 
 		// throttle refresh for 300ms
-		this.refresh = frappe.utils.throttle(this.refresh, 300);
+		this.refresh = nts.utils.throttle(this.refresh, 300);
 
 		this.ignore_prepared_report = false;
 		this.menu_items = [];
 	}
 
 	update_url_with_filters() {
-		if (frappe.get_route_str() == this.page_name) {
+		if (nts.get_route_str() == this.page_name) {
 			window.history.replaceState(null, null, this.get_url_with_filters());
 		}
 	}
@@ -104,14 +104,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_no_result_message() {
 		return `<div class="msg-box no-border">
 			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
+				<img src="/assets/nts/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
 			</div>
 			<p>${__("Nothing to show")}</p>
 		</div>`;
 	}
 
 	setup_events() {
-		frappe.realtime.on("report_generated", (data) => {
+		nts.realtime.on("report_generated", (data) => {
 			this.toggle_primary_button_disabled(false);
 			if (data.report_name) {
 				this.prepared_report_action = "Rebuild";
@@ -123,7 +123,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				} else {
 					let alert_message = `Report ${this.report_name} generated.
 						<a href="#query-report/${this.report_name}/?prepared_report_name=${data.name}">View</a>`;
-					frappe.show_alert({ message: alert_message, indicator: "orange" });
+					nts.show_alert({ message: alert_message, indicator: "orange" });
 				}
 			}
 		});
@@ -137,18 +137,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load() {
-		if (frappe.get_route().length < 2) {
+		if (nts.get_route().length < 2) {
 			this.toggle_nothing_to_show(true);
 			return;
 		}
 
 		let route_options = {};
-		route_options = Object.assign(route_options, frappe.route_options);
+		route_options = Object.assign(route_options, nts.route_options);
 
-		if (this.report_name !== frappe.get_route()[1]) {
+		if (this.report_name !== nts.get_route()[1]) {
 			// different report
 			this.load_report(route_options);
-		} else if (frappe.has_route_options()) {
+		} else if (nts.has_route_options()) {
 			// filters passed through routes
 			// so refresh report again
 			this.refresh_report(route_options);
@@ -161,8 +161,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	load_report(route_options) {
 		this.page.clear_inner_toolbar();
-		this.route = frappe.get_route();
-		this.page_name = frappe.get_route_str();
+		this.route = nts.get_route();
+		this.page_name = nts.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
 		this.show_save = false;
@@ -170,7 +170,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.datatable = null;
 		this.prepared_report_action = "New";
 
-		frappe.run_serially([
+		nts.run_serially([
 			() => this.get_report_doc(),
 			() => this.get_report_settings(),
 			() => this.add_translate_data_checkbox(),
@@ -183,7 +183,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_card_button_to_toolbar() {
-		if (!frappe.model.can_create("Number Card")) return;
+		if (!nts.model.can_create("Number Card")) return;
 		this.page.add_inner_button(
 			__("Create Card"),
 			() => {
@@ -194,7 +194,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_chart_buttons_to_toolbar(show) {
-		if (!frappe.model.can_create("Dashboard Chart")) return;
+		if (!nts.model.can_create("Dashboard Chart")) return;
 		if (show) {
 			this.create_chart_button && this.create_chart_button.remove();
 			this.create_chart_button = this.page.add_inner_button(
@@ -222,14 +222,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_card_to_dashboard() {
-		let field_options = frappe.report_utils.get_field_options_from_report(
+		let field_options = nts.report_utils.get_field_options_from_report(
 			this.columns,
 			this.raw_data
 		);
-		const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
-		const set_standard = frappe.boot.developer_mode;
+		const dashboard_field = nts.dashboard_utils.get_dashboard_link_field();
+		const set_standard = nts.boot.developer_mode;
 
-		const dialog = new frappe.ui.Dialog({
+		const dialog = new nts.ui.Dialog({
 			title: __("Create Card"),
 			fields: [
 				{
@@ -279,10 +279,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_chart_to_dashboard() {
 		if (this.chart_fields || this.chart_options) {
-			const dashboard_field = frappe.dashboard_utils.get_dashboard_link_field();
-			const set_standard = frappe.boot.developer_mode;
+			const dashboard_field = nts.dashboard_utils.get_dashboard_link_field();
+			const set_standard = nts.boot.developer_mode;
 
-			const dialog = new frappe.ui.Dialog({
+			const dialog = new nts.ui.Dialog({
 				title: __("Create Chart"),
 				fields: [
 					{
@@ -306,7 +306,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			dialog.show();
 		} else {
-			frappe.msgprint(__("Please Set Chart"));
+			nts.msgprint(__("Please Set Chart"));
 		}
 	}
 
@@ -321,7 +321,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		Object.assign(args, values);
 
 		this.add_to_dashboard(
-			"frappe.desk.doctype.number_card.number_card.create_report_number_card",
+			"nts.desk.doctype.number_card.number_card.create_report_number_card",
 			args,
 			dashboard_name,
 			card_name,
@@ -334,7 +334,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			dashboard: dashboard_name || null,
 			chart_type: "Report",
 			report_name: this.report_name,
-			type: chart_args.chart_type || frappe.model.unscrub(chart_args.type),
+			type: chart_args.chart_type || nts.model.unscrub(chart_args.type),
 			color: chart_args.color,
 			filters_json: JSON.stringify(this.get_filter_values()),
 			custom_options: {},
@@ -369,7 +369,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		this.add_to_dashboard(
-			"frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart",
+			"nts.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart",
 			args,
 			dashboard_name,
 			chart_name,
@@ -378,7 +378,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_to_dashboard(method, args, dashboard_name, name, doctype) {
-		frappe.xcall(method, { args: args }).then(() => {
+		nts.xcall(method, { args: args }).then(() => {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href="/app/dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
@@ -391,7 +391,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				message = __("New {0} {1} created", [__(doctype), name]);
 			}
 
-			frappe.msgprint(message, __("New {0} Created", [__(doctype)]));
+			nts.msgprint(message, __("New {0} Created", [__(doctype)]));
 		});
 	}
 
@@ -400,7 +400,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(true);
 		this.toggle_report(false);
 
-		return frappe.run_serially([
+		return nts.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(route_options),
 			() => this.page.clear_custom_actions(),
@@ -410,33 +410,33 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_report_doc() {
-		return frappe.model
+		return nts.model
 			.with_doc("Report", this.report_name)
 			.then((doc) => {
 				this.report_doc = doc;
 			})
-			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype));
+			.then(() => nts.model.with_doctype(this.report_doc?.ref_doctype));
 	}
 
 	get_report_settings() {
 		return new Promise((resolve, reject) => {
-			if (frappe.query_reports[this.report_name]) {
-				this.report_settings = frappe.query_reports[this.report_name];
+			if (nts.query_reports[this.report_name]) {
+				this.report_settings = nts.query_reports[this.report_name];
 				resolve();
 			} else {
-				frappe
-					.xcall("frappe.desk.query_report.get_script", {
+				nts
+					.xcall("nts.desk.query_report.get_script", {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script || "");
-						frappe.after_ajax(() => {
+						nts.dom.eval(settings.script || "");
+						nts.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
 							);
 							this.report_settings.html_format = settings.html_format;
 							this.report_settings.execution_time = settings.execution_time || 0;
-							frappe.query_reports[this.report_name] = this.report_settings;
+							nts.query_reports[this.report_name] = this.report_settings;
 
 							if (this.report_doc.filters && !this.report_settings.filters) {
 								// add configured filters
@@ -458,7 +458,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					? custom_report_name
 					: this.report_doc.reference_report
 				: this.report_name;
-		return frappe.query_reports[report_script_name] || {};
+		return nts.query_reports[report_script_name] || {};
 	}
 
 	setup_progress_bar() {
@@ -469,7 +469,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		this.interval = setInterval(function () {
 			seconds_elapsed += 1;
-			frappe.show_progress(__("Preparing Report"), seconds_elapsed, execution_time);
+			nts.show_progress(__("Preparing Report"), seconds_elapsed, execution_time);
 		}, 1000);
 	}
 
@@ -507,9 +507,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				out = expression;
 			} else if (expression.substr(0, 5) == "eval:") {
 				try {
-					out = frappe.utils.eval(expression.substr(5), { doc });
+					out = nts.utils.eval(expression.substr(5), { doc });
 				} catch (e) {
-					frappe.throw(
+					nts.throw(
 						__('Invalid "depends_on" expression set in filter {0}', [filter_label])
 					);
 				}
@@ -595,7 +595,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_route_filters(route_options) {
-		if (!route_options) route_options = frappe.route_options;
+		if (!route_options) route_options = nts.route_options;
 
 		if (route_options) {
 			const fields = Object.keys(route_options);
@@ -614,12 +614,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				};
 			});
 			promises.push(() => {
-				frappe.route_options = null;
+				nts.route_options = null;
 			});
 
 			this.ignore_prepared_report = route_options["ignore_prepared_report"] || false;
 
-			return frappe.run_serially(promises);
+			return nts.run_serially(promises);
 		}
 	}
 
@@ -658,8 +658,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		return new Promise((resolve) => {
-			this.last_ajax = frappe.call({
-				method: "frappe.desk.query_report.run",
+			this.last_ajax = nts.call({
+				method: "nts.desk.query_report.run",
 				type: "GET",
 				args: {
 					report_name: this.report_name,
@@ -723,7 +723,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					} else {
 						this.$chart.empty();
 						if (this.chart_fields) {
-							this.chart_options = frappe.report_utils.make_chart_options(
+							this.chart_options = nts.report_utils.make_chart_options(
 								this.columns,
 								this.raw_data,
 								this.chart_fields
@@ -742,7 +742,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 
 				this.show_footer_message();
-				frappe.hide_progress();
+				nts.hide_progress();
 			})
 			.finally(() => {
 				this.hide_loading_screen();
@@ -752,15 +752,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_summary(data) {
 		data.forEach((summary) => {
-			frappe.utils.build_summary_item(summary).appendTo(this.$summary);
+			nts.utils.build_summary_item(summary).appendTo(this.$summary);
 		});
 
 		this.$summary.show();
 	}
 
 	get_query_params() {
-		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
-		return frappe.utils.get_query_params(query_string);
+		const query_string = nts.utils.get_query_string(nts.get_route_str());
+		return nts.utils.get_query_params(query_string);
 	}
 
 	add_prepared_report_buttons(doc) {
@@ -769,8 +769,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				__("Download Report"),
 				function () {
 					window.open(
-						frappe.urllib.get_full_url(
-							"/api/method/frappe.core.doctype.prepared_report.prepared_report.download_attachment?" +
+						nts.urllib.get_full_url(
+							"/api/method/nts.core.doctype.prepared_report.prepared_report.download_attachment?" +
 								"dn=" +
 								encodeURIComponent(doc.name)
 						)
@@ -779,9 +779,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				__("Actions")
 			);
 
-			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
-			const days_old = frappe.datetime.get_day_diff(
-				frappe.datetime.now_datetime(),
+			let pretty_diff = nts.datetime.comment_when(doc.report_end_time);
+			const days_old = nts.datetime.get_day_diff(
+				nts.datetime.now_datetime(),
 				doc.report_end_time
 			);
 			if (days_old > 1) {
@@ -816,7 +816,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			Edit: {
 				label: __("Edit"),
 				click: () => {
-					frappe.set_route(frappe.get_route());
+					nts.set_route(nts.get_route());
 				},
 			},
 			Rebuild: {
@@ -842,9 +842,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	show_warning_or_generate_report() {
-		frappe
+		nts
 			.xcall(
-				"frappe.core.doctype.prepared_report.prepared_report.get_reports_in_queued_state",
+				"nts.core.doctype.prepared_report.prepared_report.get_reports_in_queued_state",
 				{
 					filters: this.get_filter_values(),
 					report_name: this.report_name,
@@ -855,7 +855,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				if (reports.length) {
 					const message = this.get_queued_prepared_reports_warning_message(reports);
-					this.prepared_report_dialog = frappe.warn(
+					this.prepared_report_dialog = nts.warn(
 						__("Reports already in Queue"),
 						message,
 						() => this.generate_background_report(),
@@ -868,7 +868,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						${__("Delete and Generate New")}
 					</button>`);
 
-					frappe.utils.bind_actions_with_object(
+					nts.utils.bind_actions_with_object(
 						this.prepared_report_dialog.wrapper,
 						this
 					);
@@ -912,8 +912,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	delete_old_queued_reports() {
 		this.prepared_report_dialog.hide();
-		frappe
-			.xcall("frappe.core.doctype.prepared_report.prepared_report.delete_prepared_reports", {
+		nts
+			.xcall("nts.core.doctype.prepared_report.prepared_report.delete_prepared_reports", {
 				reports: this.queued_prepared_reports,
 			})
 			.then(() => this.generate_background_report());
@@ -926,8 +926,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise((resolve) =>
-				frappe.call({
-					method: "frappe.core.doctype.prepared_report.prepared_report.make_prepared_report",
+				nts.call({
+					method: "nts.core.doctype.prepared_report.prepared_report.make_prepared_report",
 					args: {
 						report_name: this.report_name,
 						filters: filters,
@@ -942,7 +942,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					`<a href='/app/prepared-report/${data.name}'>` +
 					__("Report initiated, click to view status") +
 					`</a>`;
-				frappe.show_alert({ message: alert_message, indicator: "orange" }, 10);
+				nts.show_alert({ message: alert_message, indicator: "orange" }, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}
@@ -961,13 +961,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
-		if (data.length > (cint(frappe.boot.sysdefaults.max_report_rows) || 100000)) {
+		if (data.length > (cint(nts.boot.sysdefaults.max_report_rows) || 100000)) {
 			let msg = __(
 				"This report contains {0} rows and is too big to display in browser, you can {1} this report instead.",
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
-			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
+			this.toggle_message(true, `${nts.utils.icon("solid-warning")} ${msg}`);
 			return;
 		}
 
@@ -989,15 +989,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				columns: columns,
 				data: data,
 				inlineFilters: true,
-				language: frappe.boot.lang,
-				translations: frappe.utils.datatable.get_translations(),
+				language: nts.boot.lang,
+				translations: nts.utils.datatable.get_translations(),
 				treeView: this.tree_report,
 				layout: "fixed",
 				cellHeight: 33,
 				showTotalRow: this.raw_data.add_total_row && !this.report_settings.tree,
-				direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
+				direction: nts.utils.is_rtl() ? "rtl" : "ltr",
 				hooks: {
-					columnTotal: frappe.utils.report_column_total,
+					columnTotal: nts.utils.report_column_total,
 				},
 			};
 
@@ -1018,7 +1018,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	show_loading_screen() {
 		const loading_state = `<div class="msg-box no-border">
 			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
+				<img src="/assets/nts/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
 			</div>
 			<p>${__("Loading")}...</p>
 		</div>`;
@@ -1045,7 +1045,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (options.fieldtype) {
 			options.tooltipOptions = {
 				formatTooltipY: (d) =>
-					frappe.format(
+					nts.format(
 						d,
 						{
 							fieldtype: options.fieldtype,
@@ -1058,7 +1058,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 		options.axisOptions = {
 			shortenYAxisNumbers: 1,
-			numberFormatter: frappe.utils.format_chart_axis_number,
+			numberFormatter: nts.utils.format_chart_axis_number,
 		};
 		options.height = 280;
 		return options;
@@ -1067,12 +1067,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_chart(options) {
 		this.$chart.empty();
 		this.$chart.show();
-		this.chart = new frappe.Chart(this.$chart[0], options);
+		this.chart = new nts.Chart(this.$chart[0], options);
 	}
 
 	open_create_chart_dialog() {
 		const me = this;
-		let field_options = frappe.report_utils.get_field_options_from_report(
+		let field_options = nts.report_utils.get_field_options_from_report(
 			this.columns,
 			this.raw_data
 		);
@@ -1098,14 +1098,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			values = set_chart_values(values);
 
 			if (values.x_field && values.y_fields.length) {
-				let options = frappe.report_utils.make_chart_options(
+				let options = nts.report_utils.make_chart_options(
 					me.columns,
 					me.raw_data,
 					values
 				);
 				me.chart_fields = values;
 				wrapper.empty();
-				new frappe.Chart(wrapper[0], options);
+				new nts.Chart(wrapper[0], options);
 				wrapper.find(".chart-container .title, .chart-container .sub-title").hide();
 				wrapper.show();
 
@@ -1118,7 +1118,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		}
 
-		const dialog = new frappe.ui.Dialog({
+		const dialog = new nts.ui.Dialog({
 			title: __("Create Chart"),
 			fields: [
 				{
@@ -1196,7 +1196,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			primary_action: (values) => {
 				values = set_chart_values(values);
 
-				let options = frappe.report_utils.make_chart_options(
+				let options = nts.report_utils.make_chart_options(
 					this.columns,
 					this.raw_data,
 					values
@@ -1235,7 +1235,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.report_doc.query != undefined &&
 			this.report_doc.query != "";
 		return columns.map((column) => {
-			column = frappe.report_utils.prepare_field_from_column(column);
+			column = nts.report_utils.prepare_field_from_column(column);
 
 			const format_cell = (value, row, column, data) => {
 				if (column.isHeader && !data && this.data) {
@@ -1258,7 +1258,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						data = this.data[0];
 					}
 				}
-				return frappe.format(
+				return nts.format(
 					value,
 					column,
 					{ for_print: false, always_show_decimals: true },
@@ -1272,8 +1272,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					if (!cell.content) return null;
 					if (keyword.length !== "YYYY-MM-DD".length) return null;
 
-					const keywordValue = frappe.datetime.user_to_obj(keyword);
-					const cellValue = frappe.datetime.str_to_obj(cell.content);
+					const keywordValue = nts.datetime.user_to_obj(keyword);
+					const cellValue = nts.datetime.str_to_obj(cell.content);
 					return [+cellValue, +keywordValue];
 				};
 			}
@@ -1397,12 +1397,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	set_breadcrumbs() {
 		if (!this.report_doc || !this.report_doc.ref_doctype) return;
-		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
-		frappe.breadcrumbs.add(ref_doctype.module);
+		const ref_doctype = nts.get_meta(this.report_doc.ref_doctype);
+		nts.breadcrumbs.add(ref_doctype.module);
 	}
 
 	make_access_log(method, file_format) {
-		frappe.call("frappe.core.doctype.access_log.access_log.make_access_log", {
+		nts.call("nts.core.doctype.access_log.access_log.make_access_log", {
 			doctype: this.doctype || "",
 			report_name: this.report_name,
 			filters: this.get_filter_values(),
@@ -1417,7 +1417,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const landscape = print_settings.orientation == "Landscape";
 
 		this.make_access_log("Print", "PDF");
-		frappe.render_grid({
+		nts.render_grid({
 			template: print_settings.columns ? "print_grid" : custom_format,
 			title: __(this.report_name),
 			subtitle: filters_html,
@@ -1433,8 +1433,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	pdf_report(print_settings) {
-		const base_url = frappe.urllib.get_base_url();
-		const print_css = frappe.boot.print_css;
+		const base_url = nts.urllib.get_base_url();
+		const print_css = nts.boot.print_css;
 		const landscape = print_settings.orientation == "Landscape";
 
 		const custom_format = this.report_settings.html_format || null;
@@ -1444,7 +1444,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		const filters_html = this.get_filters_html_for_print();
 		const template = print_settings.columns || !custom_format ? "print_grid" : custom_format;
-		const content = frappe.render_template(template, {
+		const content = nts.render_template(template, {
 			title: __(this.report_name),
 			subtitle: filters_html,
 			filters: applied_filters,
@@ -1455,7 +1455,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 
 		// Render Report in HTML
-		const html = frappe.render_template("print_template", {
+		const html = nts.render_template("print_template", {
 			title: __(this.report_name),
 			content: content,
 			base_url: base_url,
@@ -1463,8 +1463,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings: print_settings,
 			landscape: landscape,
 			columns: columns,
-			lang: frappe.boot.lang,
-			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
+			lang: nts.boot.lang,
+			layout_direction: nts.utils.is_rtl() ? "rtl" : "ltr",
 			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 
@@ -1481,14 +1481,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			print_settings.report_name = `${__(this.report_name)}.pdf`;
 		}
-		frappe.render_pdf(html, print_settings);
+		nts.render_pdf(html, print_settings);
 	}
 
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
 			.map((fieldname) => {
-				const docfield = frappe.query_report.get_filter(fieldname).df;
+				const docfield = nts.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
 
 				if (docfield.hidden_due_to_dependency) {
@@ -1496,7 +1496,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 
 				return `<div class="filter-row">
-					<b>${__(docfield.label, null, docfield.parent)}:</b> ${frappe.format(value, docfield)}
+					<b>${__(docfield.label, null, docfield.parent)}:</b> ${nts.format(value, docfield)}
 				</div>`;
 			})
 			.join("");
@@ -1527,7 +1527,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-		this.export_dialog = frappe.report_utils.get_export_dialog(
+		this.export_dialog = nts.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
 			({
@@ -1544,7 +1544,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				let applied_filters = {};
 
 				for (const [key, value] of Object.entries(filters)) {
-					const df = frappe.query_report.get_filter(key).df;
+					const df = nts.query_report.get_filter(key).df;
 					if (!df.hidden_due_to_dependency) {
 						applied_filters[df.label] =
 							df.fieldtype === "Check" ? boolean_labels[value] : value;
@@ -1561,7 +1561,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 
 				const args = {
-					cmd: "frappe.desk.query_report.export_query",
+					cmd: "nts.desk.query_report.export_query",
 					report_name: this.report_name,
 					custom_columns: this.custom_columns?.length ? this.custom_columns : [],
 					file_format_type: file_format,
@@ -1574,7 +1574,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					include_filters,
 				};
 
-				open_url_post(frappe.request.url, args);
+				open_url_post(nts.request.url, args);
 
 				this.export_dialog.hide();
 			}
@@ -1592,7 +1592,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row.slice(standard_column_count).map((cell, i) => {
 				if (cell.column.fieldtype === "Duration") {
-					cell.content = frappe.utils.get_formatted_duration(cell.content);
+					cell.content = nts.utils.get_formatted_duration(cell.content);
 				}
 				if (include_indentation && i === 0) {
 					cell.content = "   ".repeat(row.meta.indent) + (cell.content ?? "");
@@ -1650,14 +1650,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			{
 				label: __("Edit"),
-				action: () => frappe.set_route("Form", "Report", this.report_name),
-				condition: () => frappe.user.is_report_manager(),
+				action: () => nts.set_route("Form", "Report", this.report_name),
+				condition: () => nts.user.is_report_manager(),
 				standard: true,
 			},
 			{
 				label: __("Print"),
 				action: () => {
-					let dialog = frappe.ui.get_print_settings(
+					let dialog = nts.ui.get_print_settings(
 						false,
 						(print_settings) => this.print_report(print_settings),
 						this.report_doc.letter_head,
@@ -1665,13 +1665,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					);
 					this.add_portrait_warning(dialog);
 				},
-				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
+				condition: () => nts.model.can_print(this.report_doc.ref_doctype),
 				standard: true,
 			},
 			{
 				label: __("PDF"),
 				action: () => {
-					let dialog = frappe.ui.get_print_settings(
+					let dialog = nts.ui.get_print_settings(
 						false,
 						(print_settings) => this.pdf_report(print_settings),
 						this.report_doc.letter_head,
@@ -1680,25 +1680,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					this.add_portrait_warning(dialog);
 				},
-				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
+				condition: () => nts.model.can_print(this.report_doc.ref_doctype),
 				standard: true,
 			},
 			{
 				label: __("Export"),
 				action: () => this.export_report(),
-				condition: () => frappe.model.can_export(this.report_doc.ref_doctype),
+				condition: () => nts.model.can_export(this.report_doc.ref_doctype),
 				standard: true,
 			},
 			{
 				label: __("Setup Auto Email"),
 				action: () =>
-					frappe.set_route("List", "Auto Email Report", { report: this.report_name }),
+					nts.set_route("List", "Auto Email Report", { report: this.report_name }),
 				standard: true,
 			},
 			{
 				label: __("Add Column"),
 				action: () => {
-					let d = new frappe.ui.Dialog({
+					let d = new nts.ui.Dialog({
 						title: __("Add Column"),
 						fields: [
 							{
@@ -1706,7 +1706,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldname: "doctype",
 								label: __("From Document Type"),
 								options: this.linked_doctypes?.map((df) => ({
-									label: df.doctype + " (" + frappe.unscrub(df.fieldname) + ")",
+									label: df.doctype + " (" + nts.unscrub(df.fieldname) + ")",
 									value: JSON.stringify({
 										doctype: df.doctype,
 										fieldname: df.fieldname,
@@ -1716,10 +1716,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									const { doctype, fieldname } = JSON.parse(
 										d.get_value("doctype")
 									);
-									frappe.model.with_doctype(doctype, () => {
-										let options = frappe.meta
+									nts.model.with_doctype(doctype, () => {
+										let options = nts.meta
 											.get_docfields(doctype)
-											.filter(frappe.model.is_value_type)
+											.filter(nts.model.is_value_type)
 											.map((df) => ({
 												label: df.label,
 												value: df.fieldname,
@@ -1758,7 +1758,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const custom_columns = [];
 							const { doctype, fieldname } = JSON.parse(values.doctype);
 							Object.assign(values, { doctype, fieldname });
-							let df = frappe.meta.get_docfield(values.doctype, values.field);
+							let df = nts.meta.get_docfield(values.doctype, values.field);
 							const insert_after_index = this.columns.findIndex(
 								(column) => column.label === values.insert_after
 							);
@@ -1767,7 +1767,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldname: this.columns
 									.map((column) => column.fieldname)
 									.includes(df.fieldname)
-									? df.fieldname + "-" + frappe.scrub(values.doctype)
+									? df.fieldname + "-" + nts.scrub(values.doctype)
 									: df.fieldname,
 								fieldtype: df.fieldtype,
 								label: df.label,
@@ -1779,8 +1779,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							});
 
 							this.custom_columns = this.custom_columns.concat(custom_columns);
-							frappe.call({
-								method: "frappe.desk.query_report.get_data_for_custom_field",
+							nts.call({
+								method: "nts.desk.query_report.get_data_for_custom_field",
 								args: {
 									field: values.field,
 									doctype: values.doctype,
@@ -1810,20 +1810,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __("User Permissions"),
 				action: () =>
-					frappe.set_route("List", "User Permission", {
+					nts.set_route("List", "User Permission", {
 						doctype: "Report",
 						name: this.report_name,
 					}),
-				condition: () => frappe.user.has_role("System Manager"),
+				condition: () => nts.user.has_role("System Manager"),
 				standard: true,
 			},
 		];
 
-		if (frappe.user.is_report_manager()) {
+		if (nts.user.is_report_manager()) {
 			items.push({
 				label: __("Save"),
 				action: () => {
-					let d = new frappe.ui.Dialog({
+					let d = new nts.ui.Dialog({
 						title: __("Save Report"),
 						fields: [
 							{
@@ -1836,8 +1836,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							},
 						],
 						primary_action: (values) => {
-							frappe.call({
-								method: "frappe.desk.query_report.save_report",
+							nts.call({
+								method: "nts.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
@@ -1847,7 +1847,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								callback: function (r) {
 									this.show_save = false;
 									d.hide();
-									frappe.set_route("query-report", r.message);
+									nts.set_route("query-report", r.message);
 								},
 							});
 						},
@@ -1882,7 +1882,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		this.data.forEach((row) => {
 			if (column[0].fieldname.includes("-")) {
-				row[column_field + "-" + frappe.scrub(new_column_data.doctype)] =
+				row[column_field + "-" + nts.scrub(new_column_data.doctype)] =
 					custom_data[row[new_column_data.fieldname]];
 			} else {
 				row[column_field] = custom_data[row[new_column_data.fieldname]];

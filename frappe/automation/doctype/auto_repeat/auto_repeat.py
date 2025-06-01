@@ -1,21 +1,21 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
 
-import frappe
-from frappe import _
-from frappe.automation.doctype.assignment_rule.assignment_rule import get_repeated
-from frappe.contacts.doctype.contact.contact import (
+import nts
+from nts import _
+from nts.automation.doctype.assignment_rule.assignment_rule import get_repeated
+from nts.contacts.doctype.contact.contact import (
 	get_contacts_linked_from,
 	get_contacts_linking_to,
 )
-from frappe.core.doctype.communication.email import make
-from frappe.desk.form import assign_to
-from frappe.model.document import Document
-from frappe.utils import (
+from nts.core.doctype.communication.email import make
+from nts.desk.form import assign_to
+from nts.model.document import Document
+from nts.utils import (
 	add_days,
 	cstr,
 	get_first_day,
@@ -25,9 +25,9 @@ from frappe.utils import (
 	split_emails,
 	today,
 )
-from frappe.utils.background_jobs import get_jobs
-from frappe.utils.jinja import validate_template
-from frappe.utils.user import get_system_managers
+from nts.utils.background_jobs import get_jobs
+from nts.utils.jinja import validate_template
+from nts.utils.user import get_system_managers
 
 month_map = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
 week_map = {
@@ -48,8 +48,8 @@ class AutoRepeat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.automation.doctype.auto_repeat_day.auto_repeat_day import AutoRepeatDay
-		from frappe.types import DF
+		from nts.automation.doctype.auto_repeat_day.auto_repeat_day import AutoRepeatDay
+		from nts.types import DF
 
 		disabled: DF.Check
 		end_date: DF.Date | None
@@ -86,18 +86,18 @@ class AutoRepeat(Document):
 		validate_template(self.message or "")
 
 	def before_insert(self):
-		if not frappe.flags.in_test:
+		if not nts.flags.in_test:
 			start_date = getdate(self.start_date)
 			today_date = getdate(today())
 			if start_date <= today_date:
 				self.start_date = today_date
 
 	def after_save(self):
-		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
+		nts.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
-		frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
-		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
+		nts.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
+		nts.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
 		if self.disabled:
@@ -105,41 +105,41 @@ class AutoRepeat(Document):
 		else:
 			self.next_schedule_date = self.get_next_schedule_date(schedule_date=self.start_date)
 			if self.end_date and getdate(self.end_date) < getdate(self.next_schedule_date):
-				frappe.throw(_("The Next Scheduled Date cannot be later than the End Date."))
+				nts.throw(_("The Next Scheduled Date cannot be later than the End Date."))
 
 	def unlink_if_applicable(self):
 		if self.status == "Completed" or self.disabled:
-			frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
+			nts.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
 
 	def validate_reference_doctype(self):
-		if frappe.flags.in_test or frappe.flags.in_patch:
+		if nts.flags.in_test or nts.flags.in_patch:
 			return
-		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
-			frappe.throw(
+		if not nts.get_meta(self.reference_doctype).allow_auto_repeat:
+			nts.throw(
 				_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(
 					self.reference_doctype
 				)
 			)
 
 	def validate_submit_on_creation(self):
-		if self.submit_on_creation and not frappe.get_meta(self.reference_doctype).is_submittable:
-			frappe.throw(
+		if self.submit_on_creation and not nts.get_meta(self.reference_doctype).is_submittable:
+			nts.throw(
 				_("Cannot enable {0} for a non-submittable doctype").format(
-					frappe.bold(_("Submit on Creation"))
+					nts.bold(_("Submit on Creation"))
 				)
 			)
 
 	def validate_dates(self):
-		if frappe.flags.in_patch:
+		if nts.flags.in_patch:
 			return
 
 		if self.end_date:
 			self.validate_from_to_dates("start_date", "end_date")
 
 		if self.end_date == self.start_date:
-			frappe.throw(
+			nts.throw(
 				_("{0} should not be same as {1}").format(
-					frappe.bold(_("End Date")), frappe.bold(_("Start Date"))
+					nts.bold(_("End Date")), nts.bold(_("Start Date"))
 				)
 			)
 
@@ -147,13 +147,13 @@ class AutoRepeat(Document):
 		if self.notify_by_email:
 			if self.recipients:
 				email_list = split_emails(self.recipients.replace("\n", ""))
-				from frappe.utils import validate_email_address
+				from nts.utils import validate_email_address
 
 				for email in email_list:
 					if not validate_email_address(email):
-						frappe.throw(_("{0} is an invalid email address in 'Recipients'").format(email))
+						nts.throw(_("{0} is an invalid email address in 'Recipients'").format(email))
 			else:
-				frappe.throw(_("'Recipients' not specified"))
+				nts.throw(_("'Recipients' not specified"))
 
 	def validate_auto_repeat_days(self):
 		auto_repeat_days = self.get_auto_repeat_days()
@@ -161,21 +161,21 @@ class AutoRepeat(Document):
 			repeated_days = get_repeated(auto_repeat_days)
 			plural = "s" if len(repeated_days) > 1 else ""
 
-			frappe.throw(
+			nts.throw(
 				_("Auto Repeat Day{0} {1} has been repeated.").format(
-					plural, frappe.bold(", ".join(repeated_days))
+					plural, nts.bold(", ".join(repeated_days))
 				)
 			)
 
 	def update_auto_repeat_id(self):
 		# check if document is already on auto repeat
-		auto_repeat = frappe.db.get_value(self.reference_doctype, self.reference_document, "auto_repeat")
-		if auto_repeat and auto_repeat != self.name and not frappe.flags.in_patch:
-			frappe.throw(
+		auto_repeat = nts.db.get_value(self.reference_doctype, self.reference_document, "auto_repeat")
+		if auto_repeat and auto_repeat != self.name and not nts.flags.in_patch:
+			nts.throw(
 				_("The {0} is already on auto repeat {1}").format(self.reference_document, auto_repeat)
 			)
 		else:
-			frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", self.name)
+			nts.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", self.name)
 
 	def update_status(self):
 		if self.disabled:
@@ -188,7 +188,7 @@ class AutoRepeat(Document):
 	def is_completed(self):
 		return self.end_date and getdate(self.end_date) < getdate(today())
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def get_auto_repeat_schedule(self):
 		schedule_details = []
 		start_date = getdate(self.start_date)
@@ -229,12 +229,12 @@ class AutoRepeat(Document):
 
 			self.disable_auto_repeat()
 
-			if self.reference_document and not frappe.flags.in_test:
+			if self.reference_document and not nts.flags.in_test:
 				self.notify_error_to_user(error_log)
 
 	def make_new_document(self):
-		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
-		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy=False)
+		reference_doc = nts.get_doc(self.reference_doctype, self.reference_document)
+		new_doc = nts.copy_doc(reference_doc, ignore_no_copy=False)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.insert(ignore_permissions=True)
 
@@ -269,7 +269,7 @@ class AutoRepeat(Document):
 
 		self.set_auto_repeat_period(new_doc)
 
-		auto_repeat_doc = frappe.get_doc("Auto Repeat", self.name)
+		auto_repeat_doc = nts.get_doc("Auto Repeat", self.name)
 
 		# for any action that needs to take place after the recurring document creation
 		# on recurring method of that doctype is triggered
@@ -278,7 +278,7 @@ class AutoRepeat(Document):
 	def set_auto_repeat_period(self, new_doc):
 		mcount = month_map.get(self.frequency)
 		if mcount and new_doc.meta.get_field("from_date") and new_doc.meta.get_field("to_date"):
-			last_ref_doc = frappe.get_all(
+			last_ref_doc = nts.get_all(
 				doctype=self.reference_doctype,
 				fields=["name", "from_date", "to_date"],
 				filters=[
@@ -379,19 +379,19 @@ class AutoRepeat(Document):
 		if not self.subject:
 			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
-			subject = frappe.render_template(self.subject, {"doc": new_doc})
+			subject = nts.render_template(self.subject, {"doc": new_doc})
 
 		print_format = self.print_format or "Standard"
 		error_string = None
 
 		try:
 			attachments = [
-				frappe.attach_print(
+				nts.attach_print(
 					new_doc.doctype, new_doc.name, file_name=new_doc.name, print_format=print_format
 				)
 			]
 
-		except frappe.PermissionError:
+		except nts.PermissionError:
 			error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(
 				new_doc.doctype, new_doc.name, self.name
 			)
@@ -399,7 +399,7 @@ class AutoRepeat(Document):
 
 			error_string += _(
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
-			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
+			).format(nts.bold(_("Note")), nts.bold(_("Allow Print for Draft")))
 			attachments = None
 
 		if error_string:
@@ -407,7 +407,7 @@ class AutoRepeat(Document):
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
-			message = frappe.render_template(self.message, {"doc": new_doc})
+			message = nts.render_template(self.message, {"doc": new_doc})
 
 		make(
 			doctype=new_doc.doctype,
@@ -419,7 +419,7 @@ class AutoRepeat(Document):
 			send_email=1,
 		)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def fetch_linked_contacts(self):
 		if self.reference_doctype and self.reference_document:
 			res = get_contacts_linking_to(
@@ -430,25 +430,25 @@ class AutoRepeat(Document):
 			)
 			email_ids = {d.email_id for d in res}
 			if not email_ids:
-				frappe.msgprint(_("No contacts linked to document"), alert=True)
+				nts.msgprint(_("No contacts linked to document"), alert=True)
 			else:
 				self.recipients = ", ".join(email_ids)
 
 	def disable_auto_repeat(self):
-		frappe.db.set_value("Auto Repeat", self.name, "disabled", 1)
+		nts.db.set_value("Auto Repeat", self.name, "disabled", 1)
 
 	def notify_error_to_user(self, error_log):
 		recipients = list(get_system_managers(only_name=True))
 		recipients.append(self.owner)
 		subject = _("Auto Repeat Document Creation Failed")
 
-		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)
+		form_link = nts.utils.get_link_to_form(self.reference_doctype, self.reference_document)
 		auto_repeat_failed_for = _("Auto Repeat failed for {0}").format(form_link)
 
-		error_log_link = frappe.utils.get_link_to_form("Error Log", error_log.name)
+		error_log_link = nts.utils.get_link_to_form("Error Log", error_log.name)
 		error_log_message = _("Check the Error Log for more information: {0}").format(error_log_link)
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=recipients,
 			subject=subject,
 			template="auto_repeat_fail",
@@ -477,18 +477,18 @@ def get_next_weekday(current_schedule_day, weekdays):
 
 # called through hooks
 def make_auto_repeat_entry():
-	enqueued_method = "frappe.automation.doctype.auto_repeat.auto_repeat.create_repeated_entries"
+	enqueued_method = "nts.automation.doctype.auto_repeat.auto_repeat.create_repeated_entries"
 	jobs = get_jobs()
 
-	if not jobs or enqueued_method not in jobs[frappe.local.site]:
+	if not jobs or enqueued_method not in jobs[nts.local.site]:
 		date = getdate(today())
 		data = get_auto_repeat_entries(date)
-		frappe.enqueue(enqueued_method, data=data, queue="long")
+		nts.enqueue(enqueued_method, data=data, queue="long")
 
 
 def create_repeated_entries(data):
 	for d in data:
-		doc = frappe.get_doc("Auto Repeat", d.name)
+		doc = nts.get_doc("Auto Repeat", d.name)
 
 		current_date = getdate(today())
 		schedule_date = getdate(doc.next_schedule_date)
@@ -497,7 +497,7 @@ def create_repeated_entries(data):
 			doc.create_documents()
 			schedule_date = doc.get_next_schedule_date(schedule_date=schedule_date)
 			if schedule_date and not doc.disabled:
-				frappe.db.set_value("Auto Repeat", doc.name, "next_schedule_date", schedule_date)
+				nts.db.set_value("Auto Repeat", doc.name, "next_schedule_date", schedule_date)
 
 		if doc.is_completed():
 			doc.status = "Completed"
@@ -508,8 +508,8 @@ def get_auto_repeat_entries(date=None):
 	if not date:
 		date = getdate(today())
 
-	auto_repeat = frappe.qb.DocType("Auto Repeat")
-	query = frappe.qb.from_(auto_repeat)
+	auto_repeat = nts.qb.DocType("Auto Repeat")
+	query = nts.qb.from_(auto_repeat)
 	query = query.select("name")
 	query = query.where(
 		(auto_repeat.next_schedule_date <= date)
@@ -519,11 +519,11 @@ def get_auto_repeat_entries(date=None):
 	return query.run(as_dict=1)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_date=None):
 	if not start_date:
 		start_date = getdate(today())
-	doc = frappe.new_doc("Auto Repeat")
+	doc = nts.new_doc("Auto Repeat")
 	doc.reference_doctype = doctype
 	doc.reference_document = docname
 	doc.frequency = frequency
@@ -535,10 +535,10 @@ def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_d
 
 
 # method for reference_doctype filter
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	res = frappe.get_all(
+	res = nts.get_all(
 		"Property Setter",
 		{
 			"property": "allow_auto_repeat",
@@ -548,7 +548,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	)
 	docs = [r.doc_type for r in res]
 
-	res = frappe.get_all(
+	res = nts.get_all(
 		"DocType",
 		{
 			"allow_auto_repeat": 1,
@@ -561,22 +561,22 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	return [[d] for d in docs]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_reference(docname: str, reference: str):
-	doc = frappe.get_doc("Auto Repeat", str(docname))
+	doc = nts.get_doc("Auto Repeat", str(docname))
 	doc.check_permission("write")
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
-	frappe.has_permission("Auto Repeat", "write", throw=True)
-	doc = frappe.get_doc(reference_dt, reference_doc)
+	nts.has_permission("Auto Repeat", "write", throw=True)
+	doc = nts.get_doc(reference_dt, reference_doc)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(message, {"doc": doc})
+	msg_preview = nts.render_template(message, {"doc": doc})
 	if subject:
-		subject_preview = frappe.render_template(subject, {"doc": doc})
+		subject_preview = nts.render_template(subject, {"doc": doc})
 
 	return {"message": msg_preview, "subject": subject_preview}

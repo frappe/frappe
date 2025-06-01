@@ -1,12 +1,12 @@
 import json
 
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 
 def execute():
-	for seq, workspace in enumerate(frappe.get_all("Workspace")):
-		doc = frappe.get_doc("Workspace", workspace.name)
+	for seq, workspace in enumerate(nts.get_all("Workspace")):
+		doc = nts.get_doc("Workspace", workspace.name)
 		content = create_content(doc)
 		update_workspace(doc, seq, content)
 

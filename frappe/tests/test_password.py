@@ -1,16 +1,16 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from cryptography.fernet import Fernet
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
 
 
-class TestPassword(FrappeTestCase):
+class TestPassword(ntsTestCase):
 	def setUp(self):
-		frappe.delete_doc("Email Account", "Test Email Account Password")
-		frappe.delete_doc("Email Account", "Test Email Account Password-new")
+		nts.delete_doc("Email Account", "Test Email Account Password")
+		nts.delete_doc("Email Account", "Test Email Account Password-new")
 
 	def test_encrypted_password(self):
 		doc = self.make_email_account()
@@ -34,8 +34,8 @@ class TestPassword(FrappeTestCase):
 		return doc, new_password
 
 	def make_email_account(self, name="Test Email Account Password"):
-		if not frappe.db.exists("Email Account", name):
-			return frappe.get_doc(
+		if not nts.db.exists("Email Account", name):
+			return nts.get_doc(
 				{
 					"doctype": "Email Account",
 					"domain": "example.com",
@@ -49,7 +49,7 @@ class TestPassword(FrappeTestCase):
 			).insert()
 
 		else:
-			return frappe.get_doc("Email Account", name)
+			return nts.get_doc("Email Account", name)
 
 	def test_hashed_password(self, user="test@example.com"):
 		old_password = "Eastern_43A1W"
@@ -72,7 +72,7 @@ class TestPassword(FrappeTestCase):
 		self.assertTrue(check_password(user, old_password))
 
 		# shouldn't work with old password
-		self.assertRaises(frappe.AuthenticationError, check_password, user, new_password)
+		self.assertRaises(nts.AuthenticationError, check_password, user, new_password)
 
 	def test_password_on_rename_user(self):
 		password = "test-rename-password"
@@ -83,13 +83,13 @@ class TestPassword(FrappeTestCase):
 
 		old_name = doc.name
 		new_name = old_name + "-new"
-		frappe.rename_doc(doc.doctype, old_name, new_name)
+		nts.rename_doc(doc.doctype, old_name, new_name)
 
-		new_doc = frappe.get_doc(doc.doctype, new_name)
+		new_doc = nts.get_doc(doc.doctype, new_name)
 		self.assertEqual(new_doc.get_password(), password)
 		self.assertTrue(not get_password_list(doc))
 
-		frappe.rename_doc(doc.doctype, new_name, old_name)
+		nts.rename_doc(doc.doctype, new_name, old_name)
 		self.assertTrue(get_password_list(doc))
 
 	def test_password_on_delete(self):
@@ -110,7 +110,7 @@ class TestPassword(FrappeTestCase):
 		self.assertEqual(doc.get_password(raise_exception=False), None)
 
 	def test_custom_encryption_key(self):
-		text = "Frappe Framework"
+		text = "nts Framework"
 		custom_encryption_key = Fernet.generate_key().decode()
 
 		encrypted_text = encrypt(text, encryption_key=custom_encryption_key)
@@ -122,7 +122,7 @@ class TestPassword(FrappeTestCase):
 
 
 def get_password_list(doc):
-	return frappe.db.sql(
+	return nts.db.sql(
 		"""SELECT `password`
 			FROM `__Auth`
 			WHERE `doctype`=%s

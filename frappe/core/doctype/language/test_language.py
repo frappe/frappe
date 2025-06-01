@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Language')
+# test_records = nts.get_test_records('Language')
 
 
-class TestLanguage(FrappeTestCase):
+class TestLanguage(ntsTestCase):
 	pass

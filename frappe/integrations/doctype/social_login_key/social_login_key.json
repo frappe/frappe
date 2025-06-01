@@ -52,7 +52,7 @@
    "fieldname": "social_login_provider",
    "fieldtype": "Select",
    "label": "Social Login Provider",
-   "options": "Custom\nFacebook\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin\nKeycloak",
+   "options": "Custom\nFacebook\nnts\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin\nKeycloak",
    "set_only_once": 1
   },
   {

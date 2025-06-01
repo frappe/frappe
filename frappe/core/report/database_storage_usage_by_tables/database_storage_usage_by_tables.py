@@ -1,7 +1,7 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
+import nts
 
 COLUMNS = [
 	{"label": "Table", "fieldname": "table", "fieldtype": "Data", "width": 200},
@@ -12,9 +12,9 @@ COLUMNS = [
 
 
 def execute(filters=None):
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 
-	data = frappe.db.multisql(
+	data = nts.db.multisql(
 		{
 			"mariadb": """
 				SELECT table_name AS `table`,
@@ -40,10 +40,10 @@ def execute(filters=None):
 	return COLUMNS, data
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def optimize_doctype(doctype_name: str):
-	frappe.only_for("System Manager")
-	frappe.enqueue(
+	nts.only_for("System Manager")
+	nts.enqueue(
 		optimize_doctype_job,
 		queue="long",
 		job_id=f"optimize-{doctype_name}",
@@ -53,12 +53,12 @@ def optimize_doctype(doctype_name: str):
 
 
 def optimize_doctype_job(doctype_name: str):
-	from frappe.utils import get_table_name
+	from nts.utils import get_table_name
 
 	doctype_table = get_table_name(doctype_name, wrap_in_backticks=True)
-	if frappe.db.db_type == "mariadb":
+	if nts.db.db_type == "mariadb":
 		query = f"OPTIMIZE TABLE {doctype_table};"
 	else:
 		query = f"VACUUM (ANALYZE) {doctype_table};"
 
-	frappe.db.sql(query)
+	nts.db.sql(query)

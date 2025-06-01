@@ -22,10 +22,10 @@ class PrintFormatBuilder {
 			this.$component.$store.reset_changes()
 		);
 		this.page.add_menu_item(__("Edit Print Format"), () => {
-			frappe.set_route("Form", "Print Format", this.print_format);
+			nts.set_route("Form", "Print Format", this.print_format);
 		});
 		this.page.add_menu_item(__("Change Print Format"), () => {
-			frappe.set_route("print-format-builder-beta");
+			nts.set_route("print-format-builder-beta");
 		});
 
 		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
@@ -57,6 +57,6 @@ class PrintFormatBuilder {
 	}
 }
 
-frappe.provide("frappe.ui");
-frappe.ui.PrintFormatBuilder = PrintFormatBuilder;
+nts.provide("nts.ui");
+nts.ui.PrintFormatBuilder = PrintFormatBuilder;
 export default PrintFormatBuilder;

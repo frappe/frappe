@@ -1,20 +1,20 @@
-import frappe
-from frappe.utils import cint
+import nts
+from nts.utils import cint
 
 
 def execute():
 	"""
-	The motive of this patch is to increase the overall security in frappe framework
+	The motive of this patch is to increase the overall security in nts framework
 
 	Existing passwords won't be affected, however, newly created accounts
 	will have to adheare to the new password policy guidelines. Once can always
 	loosen up the security by modifying the values in System Settings, however,
 	we strongly advice against doing so!
 
-	Security is something we take very seriously at frappe,
+	Security is something we take very seriously at nts,
 	and hence we chose to make security tighter by default.
 	"""
-	doc = frappe.get_single("System Settings")
+	doc = nts.get_single("System Settings")
 
 	# Enforce a Password Policy
 	if cint(doc.enable_password_policy) == 0:

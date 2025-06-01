@@ -119,7 +119,7 @@
    "fieldtype": "Check",
    "label": "Is Standard",
    "no_copy": 1,
-   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+   "read_only_depends_on": "eval: !nts.boot.developer_mode"
   },
   {
    "depends_on": "eval: doc.is_standard",
@@ -180,7 +180,7 @@
    "label": "Custom Configuration"
   },
   {
-   "description": "Set the filters here. For example:\n<pre class=\"small text-muted\"><code>\n[{\n\tfieldname: \"company\",\n\tlabel: __(\"Company\"),\n\tfieldtype: \"Link\",\n\toptions: \"Company\",\n\tdefault: frappe.defaults.get_user_default(\"Company\"),\n\treqd: 1\n},\n{\n\tfieldname: \"account\",\n\tlabel: __(\"Account\"),\n\tfieldtype: \"Link\",\n\toptions: \"Account\",\n\treqd: 1\n}]\n</code></pre>",
+   "description": "Set the filters here. For example:\n<pre class=\"small text-muted\"><code>\n[{\n\tfieldname: \"company\",\n\tlabel: __(\"Company\"),\n\tfieldtype: \"Link\",\n\toptions: \"Company\",\n\tdefault: nts.defaults.get_user_default(\"Company\"),\n\treqd: 1\n},\n{\n\tfieldname: \"account\",\n\tlabel: __(\"Account\"),\n\tfieldtype: \"Link\",\n\toptions: \"Account\",\n\treqd: 1\n}]\n</code></pre>",
    "fieldname": "filters_config",
    "fieldtype": "Code",
    "label": "Filters Configuration",

@@ -3,7 +3,7 @@ export default class Shortcut extends Block {
 	static get toolbox() {
 		return {
 			title: "Shortcut",
-			icon: frappe.utils.icon("shortcut", "sm"),
+			icon: nts.utils.icon("shortcut", "sm"),
 		};
 	}
 

@@ -1,21 +1,21 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.test_runner import make_test_records_for_doctype
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.doctype.doctype import InvalidFieldNameError
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.test_runner import make_test_records_for_doctype
+from nts.tests.utils import ntsTestCase
 
 test_dependencies = ["Custom Field", "Property Setter"]
 
 
-class TestCustomizeForm(FrappeTestCase):
+class TestCustomizeForm(ntsTestCase):
 	def insert_custom_field(self):
-		frappe.delete_doc_if_exists("Custom Field", "Event-custom_test_field")
-		self.field = frappe.get_doc(
+		nts.delete_doc_if_exists("Custom Field", "Event-custom_test_field")
+		self.field = nts.get_doc(
 			{
 				"doctype": "Custom Field",
 				"fieldname": "custom_test_field",
@@ -26,23 +26,23 @@ class TestCustomizeForm(FrappeTestCase):
 				"in_list_view": 1,
 				"options": "\nCustom 1\nCustom 2\nCustom 3",
 				"default": "Custom 3",
-				"insert_after": frappe.get_meta("Event").fields[-1].fieldname,
+				"insert_after": nts.get_meta("Event").fields[-1].fieldname,
 			}
 		).insert()
 
 	def setUp(self):
 		self.insert_custom_field()
-		frappe.db.delete("Property Setter", dict(doc_type="Event"))
-		frappe.db.commit()
-		frappe.clear_cache(doctype="Event")
+		nts.db.delete("Property Setter", dict(doc_type="Event"))
+		nts.db.commit()
+		nts.clear_cache(doctype="Event")
 
 	def tearDown(self):
-		frappe.delete_doc("Custom Field", self.field.name)
-		frappe.db.commit()
-		frappe.clear_cache(doctype="Event")
+		nts.delete_doc("Custom Field", self.field.name)
+		nts.db.commit()
+		nts.clear_cache(doctype="Event")
 
 	def get_customize_form(self, doctype=None):
-		d = frappe.get_doc("Customize Form")
+		d = nts.get_doc("Customize Form")
 		if doctype:
 			d.doc_type = doctype
 		d.run_method("fetch_to_customize")
@@ -60,7 +60,7 @@ class TestCustomizeForm(FrappeTestCase):
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
 
-		self.assertEqual(len(d.get("fields")), len(frappe.get_doc("DocType", d.doc_type).fields) + 1)
+		self.assertEqual(len(d.get("fields")), len(nts.get_doc("DocType", d.doc_type).fields) + 1)
 		self.assertEqual(d.get("fields")[-1].fieldname, self.field.fieldname)
 		self.assertEqual(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
 
@@ -69,28 +69,28 @@ class TestCustomizeForm(FrappeTestCase):
 	def test_save_customization_property(self):
 		d = self.get_customize_form("Event")
 		self.assertEqual(
-			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
+			nts.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
+			nts.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			"1",
 		)
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
+			nts.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
 	def test_save_customization_field_property(self):
 		d = self.get_customize_form("Event")
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Property Setter",
 				{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"},
 				"value",
@@ -102,7 +102,7 @@ class TestCustomizeForm(FrappeTestCase):
 		repeat_this_event_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Property Setter",
 				{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"},
 				"value",
@@ -114,7 +114,7 @@ class TestCustomizeForm(FrappeTestCase):
 		repeat_this_event_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Property Setter",
 				{"doc_type": "Event", "property": "reqd", "field_name": "repeat_this_event"},
 				"value",
@@ -124,21 +124,21 @@ class TestCustomizeForm(FrappeTestCase):
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("Event")
-		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 0)
+		self.assertEqual(nts.db.get_value("Custom Field", self.field.name, "reqd"), 0)
 
 		custom_field = d.get("fields", {"fieldname": self.field.fieldname})[0]
 		custom_field.reqd = 1
 		custom_field.no_copy = 1
 		d.run_method("save_customization")
-		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 1)
-		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "no_copy"), 1)
+		self.assertEqual(nts.db.get_value("Custom Field", self.field.name, "reqd"), 1)
+		self.assertEqual(nts.db.get_value("Custom Field", self.field.name, "no_copy"), 1)
 
 		custom_field = d.get("fields", {"is_custom_field": True})[0]
 		custom_field.reqd = 0
 		custom_field.no_copy = 0
 		d.run_method("save_customization")
-		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 0)
-		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "no_copy"), 0)
+		self.assertEqual(nts.db.get_value("Custom Field", self.field.name, "reqd"), 0)
+		self.assertEqual(nts.db.get_value("Custom Field", self.field.name, "no_copy"), 0)
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("Event")
@@ -155,17 +155,17 @@ class TestCustomizeForm(FrappeTestCase):
 
 		custom_field_name = "Event-custom_test_add_custom_field_via_customize_form"
 		self.assertEqual(
-			frappe.db.get_value("Custom Field", custom_field_name, "fieldtype"),
+			nts.db.get_value("Custom Field", custom_field_name, "fieldtype"),
 			"Data",
 		)
 
 		self.assertEqual(
-			frappe.db.get_value("Custom Field", custom_field_name, "insert_after"),
+			nts.db.get_value("Custom Field", custom_field_name, "insert_after"),
 			last_fieldname,
 		)
 
-		frappe.delete_doc("Custom Field", custom_field_name)
-		self.assertEqual(frappe.db.get_value("Custom Field", custom_field_name), None)
+		nts.delete_doc("Custom Field", custom_field_name)
+		self.assertEqual(nts.db.get_value("Custom Field", custom_field_name), None)
 
 	def test_save_customization_remove_field(self):
 		d = self.get_customize_form("Event")
@@ -173,19 +173,19 @@ class TestCustomizeForm(FrappeTestCase):
 		d.get("fields").remove(custom_field)
 		d.run_method("save_customization")
 
-		self.assertEqual(frappe.db.get_value("Custom Field", custom_field.name), None)
+		self.assertEqual(nts.db.get_value("Custom Field", custom_field.name), None)
 
-		frappe.local.test_objects["Custom Field"] = []
+		nts.local.test_objects["Custom Field"] = []
 		make_test_records_for_doctype("Custom Field")
 
 	def test_reset_to_defaults(self):
-		d = frappe.get_doc("Customize Form")
+		d = nts.get_doc("Customize Form")
 		d.doc_type = "Event"
 		d.run_method("reset_to_defaults")
 
 		self.assertEqual(d.get("fields", {"fieldname": "repeat_this_event"})[0].in_list_view, 0)
 
-		frappe.local.test_objects["Property Setter"] = []
+		nts.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
 
 	def test_set_allow_on_submit(self):
@@ -228,7 +228,7 @@ class TestCustomizeForm(FrappeTestCase):
 		d.run_method("save_customization")
 
 	def test_core_doctype_customization(self):
-		self.assertRaises(frappe.ValidationError, self.get_customize_form, "User")
+		self.assertRaises(nts.ValidationError, self.get_customize_form, "User")
 
 	def test_save_customization_length_field_property(self):
 		# Using Notification Log doctype as it doesn't have any other custom fields
@@ -240,7 +240,7 @@ class TestCustomizeForm(FrappeTestCase):
 		d.run_method("save_customization")
 
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"Property Setter",
 				{"doc_type": "Notification Log", "property": "length", "field_name": "document_name"},
 				"value",
@@ -248,7 +248,7 @@ class TestCustomizeForm(FrappeTestCase):
 			str(new_document_length),
 		)
 
-		length = frappe.db.sql(
+		length = nts.db.sql(
 			"""SELECT character_maximum_length
 			FROM information_schema.columns
 			WHERE table_name = 'tabNotification Log'
@@ -278,8 +278,8 @@ class TestCustomizeForm(FrappeTestCase):
 
 			d.run_method("save_customization")
 
-			frappe.clear_cache()
-			event = frappe.get_meta("Event")
+			nts.clear_cache()
+			event = nts.get_meta("Event")
 
 			# check links exist
 			self.assertTrue([d.name for d in event.links if d.link_doctype == testdt_name])
@@ -294,8 +294,8 @@ class TestCustomizeForm(FrappeTestCase):
 			d.links = []
 			d.run_method("save_customization")
 
-			frappe.clear_cache()
-			event = frappe.get_meta("Event")
+			nts.clear_cache()
+			event = nts.get_meta("Event")
 			self.assertFalse([d.name for d in (event.links or []) if d.link_doctype == testdt_name])
 		finally:
 			testdt.delete()
@@ -303,7 +303,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 	def test_custom_internal_links(self):
 		# add a custom internal link
-		frappe.clear_cache()
+		nts.clear_cache()
 		d = self.get_customize_form("User Group")
 
 		d.append(
@@ -320,8 +320,8 @@ class TestCustomizeForm(FrappeTestCase):
 
 		d.run_method("save_customization")
 
-		frappe.clear_cache()
-		user_group = frappe.get_meta("User Group")
+		nts.clear_cache()
+		user_group = nts.get_meta("User Group")
 
 		# check links exist
 		self.assertTrue([d.name for d in user_group.links if d.link_doctype == "User Group Member"])
@@ -332,8 +332,8 @@ class TestCustomizeForm(FrappeTestCase):
 		d.links = []
 		d.run_method("save_customization")
 
-		frappe.clear_cache()
-		user_group = frappe.get_meta("Event")
+		nts.clear_cache()
+		user_group = nts.get_meta("Event")
 		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"])
 
 	def test_custom_action(self):
@@ -344,8 +344,8 @@ class TestCustomizeForm(FrappeTestCase):
 		d.append("actions", dict(label="Test Action", action_type="Route", action=test_route))
 		d.run_method("save_customization")
 
-		frappe.clear_cache()
-		event = frappe.get_meta("Event")
+		nts.clear_cache()
+		event = nts.get_meta("Event")
 
 		# check if added to meta
 		action = [d for d in event.actions if d.label == "Test Action"]
@@ -357,8 +357,8 @@ class TestCustomizeForm(FrappeTestCase):
 		d.actions = []
 		d.run_method("save_customization")
 
-		frappe.clear_cache()
-		event = frappe.get_meta("Event")
+		nts.clear_cache()
+		event = nts.get_meta("Event")
 
 		action = [d for d in event.actions if d.label == "Test Action"]
 		self.assertEqual(len(action), 0)
@@ -389,14 +389,14 @@ class TestCustomizeForm(FrappeTestCase):
 		d = self.get_customize_form("Event")
 		d.autoname = "autoincrement"
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(nts.ValidationError):
 			d.run_method("save_customization")
 
 	def test_system_generated_fields(self):
 		doctype = "Event"
 		custom_field_name = "custom_test_field"
 
-		custom_field = frappe.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
+		custom_field = nts.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
 		custom_field.is_system_generated = 1
 		custom_field.save()
 
@@ -411,7 +411,7 @@ class TestCustomizeForm(FrappeTestCase):
 			"property": "description",
 		}
 		self.assertEqual(
-			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
+			nts.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
 		)
 
 	def test_custom_field_order(self):
@@ -421,7 +421,7 @@ class TestCustomizeForm(FrappeTestCase):
 		customize_form.save_customization()
 
 		field_order_property = json.loads(
-			frappe.db.get_value("Property Setter", {"doc_type": "ToDo", "property": "field_order"}, "value")
+			nts.db.get_value("Property Setter", {"doc_type": "ToDo", "property": "field_order"}, "value")
 		)
 
-		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])
+		self.assertEqual(field_order_property, [df.fieldname for df in nts.get_meta("ToDo").fields])

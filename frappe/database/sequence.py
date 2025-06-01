@@ -1,4 +1,4 @@
-from frappe import db, scrub
+from nts import db, scrub
 
 # NOTE:
 # FOR MARIADB - using no cache - as during backup, if the sequence was used in anyform,

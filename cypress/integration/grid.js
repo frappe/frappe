@@ -8,10 +8,10 @@ context("Grid", () => {
 		cy.visit("/app/website");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.call(
-					"frappe.tests.ui_test_helpers.create_contact_phone_nos_records"
+			.its("nts")
+			.then((nts) => {
+				return nts.call(
+					"nts.tests.ui_test_helpers.create_contact_phone_nos_records"
 				);
 			});
 	});
@@ -20,21 +20,21 @@ context("Grid", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+				cy.get('.nts-control[data-fieldname="phone_nos"]').as("table");
 				let field = frm.get_field("phone_nos");
 				field.grid.update_docfield_property("is_primary_phone", "hidden", true);
 
 				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.find('.nts-control[data-fieldname="is_primary_phone"]')
 					.should("be.hidden");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
 				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.find('.nts-control[data-fieldname="is_primary_phone"]')
 					.should("be.hidden");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 			});
@@ -44,21 +44,21 @@ context("Grid", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+				cy.get('.nts-control[data-fieldname="phone_nos"]').as("table");
 				let field = frm.get_field("phone_nos");
 				field.grid.toggle_display("is_primary_mobile_no", false);
 
 				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_mobile_no"]')
+					.find('.nts-control[data-fieldname="is_primary_mobile_no"]')
 					.should("be.hidden");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
 				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="is_primary_mobile_no"]')
+					.find('.nts-control[data-fieldname="is_primary_mobile_no"]')
 					.should("be.hidden");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 			});
@@ -68,21 +68,21 @@ context("Grid", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+				cy.get('.nts-control[data-fieldname="phone_nos"]').as("table");
 				let field = frm.get_field("phone_nos");
 				field.grid.toggle_enable("phone", false);
 
 				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="phone"] .control-value')
+					.find('.nts-control[data-fieldname="phone"] .control-value')
 					.should("have.class", "like-disabled-input");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
 				cy.get("@table").find('[data-idx="2"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
-					.find('.frappe-control[data-fieldname="phone"] .control-value')
+					.find('.nts-control[data-fieldname="phone"] .control-value')
 					.should("have.class", "like-disabled-input");
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 			});
@@ -92,7 +92,7 @@ context("Grid", () => {
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+				cy.get('.nts-control[data-fieldname="phone_nos"]').as("table");
 				let field = frm.get_field("phone_nos");
 				field.grid.toggle_reqd("phone", false);
 

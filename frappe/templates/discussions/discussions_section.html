@@ -1,4 +1,4 @@
-{% set topics = frappe.get_all("Discussion Topic",
+{% set topics = nts.get_all("Discussion Topic",
 {"reference_doctype": doctype, "reference_docname": docname}, ["name", "title", "owner", "creation"]) %}
 
 
@@ -6,17 +6,17 @@
 	data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
 
 	{% if not single_thread %}
-	{% include "frappe/templates/discussions/topic_modal.html" %}
+	{% include "nts/templates/discussions/topic_modal.html" %}
 	{% endif %}
 
 	<div class="discussions-header">
 		<span class="discussions-section-title">{{ _(title) }}</span>
 		{% if topics | length and not single_thread %}
-		{% include "frappe/templates/discussions/search.html" %}
+		{% include "nts/templates/discussions/search.html" %}
 		{% endif %}
 
 		{% if topics and not single_thread %}
-		{% include "frappe/templates/discussions/button.html" %}
+		{% include "nts/templates/discussions/button.html" %}
 		{% endif %}
 	</div>
 
@@ -26,8 +26,8 @@
 		<div class="discussions-sidebar">
 
 			{% for topic in topics %}
-			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}
-			{% include "frappe/templates/discussions/sidebar.html" %}
+			{% set replies = nts.get_all("Discussion Reply", {"topic": topic.name})%}
+			{% include "nts/templates/discussions/sidebar.html" %}
 
 			{% if loop.index != topics | length %}
 			<div class="card-divider"></div>
@@ -38,32 +38,32 @@
 
 		<div class="hide" id="discussion-group">
 			{% for topic in topics %}
-			{% include "frappe/templates/discussions/reply_section.html" %}
+			{% include "nts/templates/discussions/reply_section.html" %}
 			{% endfor %}
 		</div>
 
 		{% elif single_thread %}
 		{% set topic = topics[0] if topics | length else None %}
-		{% include "frappe/templates/discussions/reply_section.html" %}
+		{% include "nts/templates/discussions/reply_section.html" %}
 
 		{% else %}
 		<div class="empty-state">
 			<div>
-			  <img class="icon icon-xl" src="/assets/frappe/icons/timeless/message.svg">
+			  <img class="icon icon-xl" src="/assets/nts/icons/timeless/message.svg">
 			</div>
 			<div class="empty-state-text">
 			  <div class="empty-state-heading">{{ empty_state_title }}</div>
 			  <div class="course-meta">{{ empty_state_subtitle }}</div>
 			</div>
 			<div>
-				{% if frappe.session.user == "Guest" %}
+				{% if nts.session.user == "Guest" %}
 				<div class="btn btn-default btn-md login-from-discussion"> {{ _("Login") }} </div>
 				{% elif condition is defined and not condition %}
 				<div class="btn btn-default btn-md login-from-discussion" data-redirect="{{ redirect_to }}">
 					{{ button_name }}
 				</div>
 				{% else %}
-				{% include "frappe/templates/discussions/button.html" %}
+				{% include "nts/templates/discussions/button.html" %}
 				{% endif %}
 			</div>
 		</div>
@@ -72,9 +72,9 @@
 </div>
 
 {% block script %}
-	<script> {% include "frappe/templates/discussions/discussions.js" %} </script>
+	<script> {% include "nts/templates/discussions/discussions.js" %} </script>
 {% endblock %}
 
 {% block style %}
-	<style> {% include "frappe/templates/styles/discussion_style.css" %} </style>
+	<style> {% include "nts/templates/styles/discussion_style.css" %} </style>
 {% endblock %}

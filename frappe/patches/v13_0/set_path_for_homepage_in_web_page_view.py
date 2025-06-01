@@ -1,6 +1,6 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("website", "doctype", "web_page_view", force=True)
-	frappe.db.sql("""UPDATE `tabWeb Page View` set path='/' where path=''""")
+	nts.reload_doc("website", "doctype", "web_page_view", force=True)
+	nts.db.sql("""UPDATE `tabWeb Page View` set path='/' where path=''""")

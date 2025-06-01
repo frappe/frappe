@@ -4,17 +4,17 @@ import click
 import werkzeug.routing.exceptions
 from werkzeug.routing import Rule
 
-import frappe
-from frappe.website.page_renderers.document_page import DocumentPage
-from frappe.website.page_renderers.list_page import ListPage
-from frappe.website.page_renderers.not_found_page import NotFoundPage
-from frappe.website.page_renderers.print_page import PrintPage
-from frappe.website.page_renderers.redirect_page import RedirectPage
-from frappe.website.page_renderers.static_page import StaticPage
-from frappe.website.page_renderers.template_page import TemplatePage
-from frappe.website.page_renderers.web_form import WebFormPage
-from frappe.website.router import evaluate_dynamic_routes
-from frappe.website.utils import can_cache, get_home_page
+import nts
+from nts.website.page_renderers.document_page import DocumentPage
+from nts.website.page_renderers.list_page import ListPage
+from nts.website.page_renderers.not_found_page import NotFoundPage
+from nts.website.page_renderers.print_page import PrintPage
+from nts.website.page_renderers.redirect_page import RedirectPage
+from nts.website.page_renderers.static_page import StaticPage
+from nts.website.page_renderers.template_page import TemplatePage
+from nts.website.page_renderers.web_form import WebFormPage
+from nts.website.router import evaluate_dynamic_routes
+from nts.website.utils import can_cache, get_home_page
 
 
 class PathResolver:
@@ -26,28 +26,28 @@ class PathResolver:
 
 	def resolve(self):
 		"""Returns endpoint and a renderer instance that can render the endpoint"""
-		request = frappe._dict()
-		if hasattr(frappe.local, "request"):
-			request = frappe.local.request or request
+		request = nts._dict()
+		if hasattr(nts.local, "request"):
+			request = nts.local.request or request
 
 		# check if the request url is in 404 list
-		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
+		if request.url and can_cache() and nts.cache.hget("website_404", request.url):
 			return self.path, NotFoundPage(self.path)
 
 		try:
 			resolve_redirect(self.path, request.query_string)
-		except frappe.Redirect as e:
-			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
+		except nts.Redirect as e:
+			return nts.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
-		if frappe.get_hooks("website_path_resolver"):
-			for handler in frappe.get_hooks("website_path_resolver"):
-				endpoint = frappe.get_attr(handler)(self.path)
+		if nts.get_hooks("website_path_resolver"):
+			for handler in nts.get_hooks("website_path_resolver"):
+				endpoint = nts.get_attr(handler)(self.path)
 		else:
 			try:
 				endpoint = resolve_path(self.path)
 			except werkzeug.routing.exceptions.RequestRedirect as e:
-				frappe.flags.redirect_location = e.new_url
-				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
+				nts.flags.redirect_location = e.new_url
+				return nts.flags.redirect_location, RedirectPage(e.new_url, e.code)
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
@@ -78,9 +78,9 @@ class PathResolver:
 	@staticmethod
 	def get_custom_page_renderers():
 		custom_renderers = []
-		for renderer_path in frappe.get_hooks("page_renderer") or []:
+		for renderer_path in nts.get_hooks("page_renderer") or []:
 			try:
-				renderer = frappe.get_attr(renderer_path)
+				renderer = nts.get_attr(renderer_path)
 				if not hasattr(renderer, "can_render"):
 					click.echo(f"{renderer.__name__} does not have can_render method")
 					continue
@@ -114,42 +114,42 @@ def resolve_redirect(path, query_string=None):
 	                                # use r as a string prefix if you use regex groups or want to escape any string literal
 	                ]
 	"""
-	redirects = frappe.get_hooks("website_redirects")
-	redirects += frappe.get_all(
+	redirects = nts.get_hooks("website_redirects")
+	redirects += nts.get_all(
 		"Website Route Redirect", ["source", "target", "redirect_http_status"], order_by=None
 	)
 
 	if not redirects:
 		return
 
-	redirect_to = frappe.cache.hget("website_redirects", path)
+	redirect_to = nts.cache.hget("website_redirects", path)
 
 	if redirect_to:
 		if isinstance(redirect_to, dict):
-			frappe.flags.redirect_location = redirect_to["path"]
-			raise frappe.Redirect(redirect_to["status_code"])
-		frappe.flags.redirect_location = redirect_to
-		raise frappe.Redirect
+			nts.flags.redirect_location = redirect_to["path"]
+			raise nts.Redirect(redirect_to["status_code"])
+		nts.flags.redirect_location = redirect_to
+		raise nts.Redirect
 
 	for rule in redirects:
 		pattern = rule["source"].strip("/ ") + "$"
 		path_to_match = path
 		if query_string and rule.get("match_with_query_string"):
-			path_to_match = path + "?" + frappe.safe_decode(query_string)
+			path_to_match = path + "?" + nts.safe_decode(query_string)
 
 		try:
 			match = re.match(pattern, path_to_match)
 		except re.error:
-			frappe.log_error("Broken Redirect: " + pattern)
+			nts.log_error("Broken Redirect: " + pattern)
 
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
-			frappe.flags.redirect_location = redirect_to
+			nts.flags.redirect_location = redirect_to
 			status_code = rule.get("redirect_http_status") or 301
-			frappe.cache.hset(
+			nts.cache.hset(
 				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
 			)
-			raise frappe.Redirect(status_code)
+			raise nts.Redirect(status_code)
 
 
 def resolve_path(path):
@@ -162,7 +162,7 @@ def resolve_path(path):
 	if path == "index":
 		path = get_home_page()
 
-	frappe.local.path = path
+	nts.local.path = path
 
 	if path != "index":
 		path = resolve_from_map(path)
@@ -183,20 +183,20 @@ def get_website_rules():
 	"""Get website route rules from hooks and DocType route"""
 
 	def _get():
-		rules = frappe.get_hooks("website_route_rules")
-		for d in frappe.get_all("DocType", "name, route", dict(has_web_view=1)):
+		rules = nts.get_hooks("website_route_rules")
+		for d in nts.get_all("DocType", "name, route", dict(has_web_view=1)):
 			if d.route:
 				rules.append(dict(from_route="/" + d.route.strip("/"), to_route=d.name))
 
 		return rules
 
-	if frappe.local.dev_server:
+	if nts.local.dev_server:
 		# dont cache in development
 		return _get()
 
-	return frappe.cache.get_value("website_route_rules", _get)
+	return nts.cache.get_value("website_route_rules", _get)
 
 
 def validate_path(path: str):
 	if not PathResolver(path).is_valid_path():
-		frappe.throw(frappe._("Path {0} it not a valid path").format(frappe.bold(path)))
+		nts.throw(nts._("Path {0} it not a valid path").format(nts.bold(path)))

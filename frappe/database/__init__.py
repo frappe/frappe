@@ -1,65 +1,65 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # Database Module
 # --------------------
 from shutil import which
 
-from frappe.database.database import savepoint
+from nts.database.database import savepoint
 
 
 def setup_database(force, verbose=None, mariadb_user_host_login_scope=None):
-	import frappe
+	import nts
 
-	if frappe.conf.db_type == "postgres":
-		import frappe.database.postgres.setup_db
+	if nts.conf.db_type == "postgres":
+		import nts.database.postgres.setup_db
 
-		return frappe.database.postgres.setup_db.setup_database()
+		return nts.database.postgres.setup_db.setup_database()
 	else:
-		import frappe.database.mariadb.setup_db
+		import nts.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.setup_database(force, verbose, mariadb_user_host_login_scope)
+		return nts.database.mariadb.setup_db.setup_database(force, verbose, mariadb_user_host_login_scope)
 
 
 def bootstrap_database(verbose=None, source_sql=None):
-	import frappe
+	import nts
 
-	if frappe.conf.db_type == "postgres":
-		import frappe.database.postgres.setup_db
+	if nts.conf.db_type == "postgres":
+		import nts.database.postgres.setup_db
 
-		return frappe.database.postgres.setup_db.bootstrap_database(verbose, source_sql)
+		return nts.database.postgres.setup_db.bootstrap_database(verbose, source_sql)
 	else:
-		import frappe.database.mariadb.setup_db
+		import nts.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.bootstrap_database(verbose, source_sql)
+		return nts.database.mariadb.setup_db.bootstrap_database(verbose, source_sql)
 
 
 def drop_user_and_database(db_name, root_login=None, root_password=None):
-	import frappe
+	import nts
 
-	if frappe.conf.db_type == "postgres":
-		import frappe.database.postgres.setup_db
+	if nts.conf.db_type == "postgres":
+		import nts.database.postgres.setup_db
 
-		return frappe.database.postgres.setup_db.drop_user_and_database(db_name, root_login, root_password)
+		return nts.database.postgres.setup_db.drop_user_and_database(db_name, root_login, root_password)
 	else:
-		import frappe.database.mariadb.setup_db
+		import nts.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.drop_user_and_database(db_name, root_login, root_password)
+		return nts.database.mariadb.setup_db.drop_user_and_database(db_name, root_login, root_password)
 
 
 def get_db(host=None, user=None, password=None, port=None, cur_db_name=None, socket=None):
-	import frappe
+	import nts
 
-	if frappe.conf.db_type == "postgres":
-		import frappe.database.postgres.database
+	if nts.conf.db_type == "postgres":
+		import nts.database.postgres.database
 
-		return frappe.database.postgres.database.PostgresDatabase(
+		return nts.database.postgres.database.PostgresDatabase(
 			host, user, password, port, cur_db_name, socket
 		)
 	else:
-		import frappe.database.mariadb.database
+		import nts.database.mariadb.database
 
-		return frappe.database.mariadb.database.MariaDBDatabase(
+		return nts.database.mariadb.database.MariaDBDatabase(
 			host, user, password, port, cur_db_name, socket
 		)
 
@@ -67,9 +67,9 @@ def get_db(host=None, user=None, password=None, port=None, cur_db_name=None, soc
 def get_command(
 	host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False, socket=None
 ):
-	import frappe
+	import nts
 
-	if frappe.conf.db_type == "postgres":
+	if nts.conf.db_type == "postgres":
 		if dump:
 			bin, bin_name = which("pg_dump"), "pg_dump"
 		else:

@@ -1,21 +1,21 @@
-import frappe
-from frappe.utils import get_fullname
+import nts
+from nts.utils import get_fullname
 
 
 def get_leaderboards():
 	return {
 		"User": {
 			"fields": ["points"],
-			"method": "frappe.desk.leaderboard.get_energy_point_leaderboard",
+			"method": "nts.desk.leaderboard.get_energy_point_leaderboard",
 			"company_disabled": 1,
 			"icon": "users",
 		}
 	}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_energy_point_leaderboard(date_range, company=None, field=None, limit=None):
-	users = frappe.get_list(
+	users = nts.get_list(
 		"User",
 		filters={
 			"name": ["not in", ["Administrator", "Guest"]],
@@ -27,9 +27,9 @@ def get_energy_point_leaderboard(date_range, company=None, field=None, limit=Non
 
 	filters = [["type", "!=", "Review"], ["user", "in", users]]
 	if date_range:
-		date_range = frappe.parse_json(date_range)
+		date_range = nts.parse_json(date_range)
 		filters.append(["creation", "between", [date_range[0], date_range[1]]])
-	energy_point_users = frappe.get_all(
+	energy_point_users = nts.get_all(
 		"Energy Point Log",
 		fields=["user as name", "sum(points) as value"],
 		filters=filters,

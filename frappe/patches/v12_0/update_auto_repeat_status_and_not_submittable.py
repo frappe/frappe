@@ -1,18 +1,18 @@
-import frappe
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+import nts
+from nts.custom.doctype.custom_field.custom_field import create_custom_field
 
 
 def execute():
 	# auto repeat is not submittable in v12
-	frappe.reload_doc("automation", "doctype", "Auto Repeat")
-	frappe.db.sql("update `tabDocPerm` set submit=0, cancel=0, amend=0 where parent='Auto Repeat'")
-	frappe.db.sql("update `tabAuto Repeat` set docstatus=0 where docstatus=1 or docstatus=2")
+	nts.reload_doc("automation", "doctype", "Auto Repeat")
+	nts.db.sql("update `tabDocPerm` set submit=0, cancel=0, amend=0 where parent='Auto Repeat'")
+	nts.db.sql("update `tabAuto Repeat` set docstatus=0 where docstatus=1 or docstatus=2")
 
-	for entry in frappe.get_all("Auto Repeat"):
-		doc = frappe.get_doc("Auto Repeat", entry.name)
+	for entry in nts.get_all("Auto Repeat"):
+		doc = nts.get_doc("Auto Repeat", entry.name)
 
 		# create custom field for allow auto repeat
-		fields = frappe.get_meta(doc.reference_doctype).fields
+		fields = nts.get_meta(doc.reference_doctype).fields
 		insert_after = fields[len(fields) - 1].fieldname
 		df = dict(
 			fieldname="auto_repeat",

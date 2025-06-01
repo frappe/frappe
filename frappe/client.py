@@ -1,30 +1,30 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 import os
 from typing import TYPE_CHECKING
 
-import frappe
-import frappe.model
-import frappe.utils
-from frappe import _
-from frappe.desk.reportview import validate_args
-from frappe.model.db_query import check_parent_permission
-from frappe.model.utils import is_virtual_doctype
-from frappe.utils import get_safe_filters
-from frappe.utils.deprecations import deprecated
+import nts
+import nts.model
+import nts.utils
+from nts import _
+from nts.desk.reportview import validate_args
+from nts.model.db_query import check_parent_permission
+from nts.model.utils import is_virtual_doctype
+from nts.utils import get_safe_filters
+from nts.utils.deprecations import deprecated
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
 """
 Handle RESTful requests that are mapped to the `/api/resource` route.
 
-Requests via FrappeClient are also handled here.
+Requests via ntsClient are also handled here.
 """
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_list(
 	doctype,
 	fields=None,
@@ -46,10 +46,10 @@ def get_list(
 	:param order_by: Order by this fieldname
 	:param limit_start: Start at this index
 	:param limit_page_length: Number of records to be returned (default 20)"""
-	if frappe.is_table(doctype):
+	if nts.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	args = frappe._dict(
+	args = nts._dict(
 		doctype=doctype,
 		parent_doctype=parent,
 		fields=fields,
@@ -64,30 +64,30 @@ def get_list(
 	)
 
 	validate_args(args)
-	return frappe.get_list(**args)
+	return nts.get_list(**args)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
-	return frappe.db.count(doctype, get_safe_filters(filters), debug, cache)
+	return nts.db.count(doctype, get_safe_filters(filters), debug, cache)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
 	"""Returns a document by name or filters
 
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
 	:param filters: If name is not set, filter by these values and return the first match"""
-	if frappe.is_table(doctype):
+	if nts.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
 	if name:
-		doc = frappe.get_doc(doctype, name)
+		doc = nts.get_doc(doctype, name)
 	elif filters or filters == {}:
-		doc = frappe.get_doc(doctype, frappe.parse_json(filters))
+		doc = nts.get_doc(doctype, nts.parse_json(filters))
 	else:
-		doc = frappe.get_doc(doctype)  # single
+		doc = nts.get_doc(doctype)  # single
 
 	doc.check_permission()
 	doc.apply_fieldlevel_read_permissions()
@@ -95,25 +95,25 @@ def get(doctype, name=None, filters=None, parent=None):
 	return doc.as_dict()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
 	"""Returns a value form a document
 
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
 	:param filters: dict or string for identifying the record"""
-	if frappe.is_table(doctype):
+	if nts.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if not frappe.has_permission(doctype, parent_doctype=parent):
-		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
+	if not nts.has_permission(doctype, parent_doctype=parent):
+		nts.throw(_("No permission for {0}").format(_(doctype)), nts.PermissionError)
 
 	filters = get_safe_filters(filters)
 	if isinstance(filters, str):
 		filters = {"name": filters}
 
 	try:
-		fields = frappe.parse_json(fieldname)
+		fields = nts.parse_json(fieldname)
 	except (TypeError, ValueError):
 		# name passed, not json
 		fields = [fieldname]
@@ -123,8 +123,8 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if not filters:
 		filters = None
 
-	if frappe.get_meta(doctype).issingle:
-		value = frappe.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
+	if nts.get_meta(doctype).issingle:
+		value = nts.db.get_values_from_single(fields, filters, doctype, as_dict=as_dict, debug=debug)
 	else:
 		value = get_list(
 			doctype,
@@ -145,15 +145,15 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	return value[0] if len(fields) > 1 else value[0][0]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_single_value(doctype, field):
-	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
+	if not nts.has_permission(doctype):
+		nts.throw(_("No permission for {0}").format(_(doctype)), nts.PermissionError)
 
-	return frappe.db.get_single_value(doctype, field)
+	return nts.db.get_single_value(doctype, field)
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def set_value(doctype, name, fieldname, value=None):
 	"""Set a value using get_doc, group of values
 
@@ -162,8 +162,8 @@ def set_value(doctype, name, fieldname, value=None):
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
-		frappe.throw(_("Cannot edit standard fields"))
+	if fieldname in (nts.model.default_fields + nts.model.child_table_fields):
+		nts.throw(_("Cannot edit standard fields"))
 
 	if not value:
 		values = fieldname
@@ -176,12 +176,12 @@ def set_value(doctype, name, fieldname, value=None):
 		values = {fieldname: value}
 
 	# check for child table doctype
-	if not frappe.get_meta(doctype).istable:
-		doc = frappe.get_doc(doctype, name)
+	if not nts.get_meta(doctype).istable:
+		doc = nts.get_doc(doctype, name)
 		doc.update(values)
 	else:
-		doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-		doc = frappe.get_doc(doc.parenttype, doc.parent)
+		doc = nts.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+		doc = nts.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
 		child.update(values)
 
@@ -190,7 +190,7 @@ def set_value(doctype, name, fieldname, value=None):
 	return doc.as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def insert(doc=None):
 	"""Insert a document
 
@@ -201,7 +201,7 @@ def insert(doc=None):
 	return insert_doc(doc).as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def insert_many(docs=None):
 	"""Insert multiple documents
 
@@ -210,12 +210,12 @@ def insert_many(docs=None):
 		docs = json.loads(docs)
 
 	if len(docs) > 200:
-		frappe.throw(_("Only 200 inserts allowed in one request"))
+		nts.throw(_("Only 200 inserts allowed in one request"))
 
 	return [insert_doc(doc).name for doc in docs]
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def save(doc):
 	"""Update (save) an existing document
 
@@ -223,24 +223,24 @@ def save(doc):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doc)
+	doc = nts.get_doc(doc)
 	doc.save()
 
 	return doc.as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def rename_doc(doctype, old_name, new_name, merge=False):
 	"""Rename document
 
 	:param doctype: DocType of the document to be renamed
 	:param old_name: Current `name` of the document to be renamed
 	:param new_name: New `name` to be set"""
-	new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)
+	new_name = nts.rename_doc(doctype, old_name, new_name, merge=merge)
 	return new_name
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def submit(doc):
 	"""Submit a document
 
@@ -248,25 +248,25 @@ def submit(doc):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doc)
+	doc = nts.get_doc(doc)
 	doc.submit()
 
 	return doc.as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def cancel(doctype, name):
 	"""Cancel a document
 
 	:param doctype: DocType of the document to be cancelled
 	:param name: name of the document to be cancelled"""
-	wrapper = frappe.get_doc(doctype, name)
+	wrapper = nts.get_doc(doctype, name)
 	wrapper.cancel()
 
 	return wrapper.as_dict()
 
 
-@frappe.whitelist(methods=["DELETE", "POST"])
+@nts.whitelist(methods=["DELETE", "POST"])
 def delete(doctype, name):
 	"""Delete a remote document
 
@@ -275,7 +275,7 @@ def delete(doctype, name):
 	delete_doc(doctype, name)
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def bulk_update(docs):
 	"""Bulk update documents
 
@@ -285,16 +285,16 @@ def bulk_update(docs):
 	for doc in docs:
 		doc.pop("flags", None)
 		try:
-			existing_doc = frappe.get_doc(doc["doctype"], doc["docname"])
+			existing_doc = nts.get_doc(doc["doctype"], doc["docname"])
 			existing_doc.update(doc)
 			existing_doc.save()
 		except Exception:
-			failed_docs.append({"doc": doc, "exc": frappe.utils.get_traceback()})
+			failed_docs.append({"doc": doc, "exc": nts.utils.get_traceback()})
 
 	return {"failed_docs": failed_docs}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def has_permission(doctype: str, docname: str, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
@@ -302,21 +302,21 @@ def has_permission(doctype: str, docname: str, perm_type: str = "read"):
 	:param docname: `name` of the document to be checked
 	:param perm_type: one of `read`, `write`, `create`, `submit`, `cancel`, `report`. Default is `read`"""
 	# perm_type can be one of read, write, create, submit, cancel, report
-	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
+	return {"has_permission": nts.has_permission(doctype, perm_type.lower(), docname)}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_doc_permissions(doctype: str, docname: str):
 	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
 	"""
-	doc = frappe.get_doc(doctype, docname)
-	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
+	doc = nts.get_doc(doctype, docname)
+	return {"permissions": nts.permissions.get_doc_permissions(doc)}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_password(doctype: str, name: str, fieldname: str):
 	"""Return a password type property. Only applicable for System Managers
 
@@ -324,15 +324,15 @@ def get_password(doctype: str, name: str, fieldname: str):
 	:param name: `name` of the document that holds the password
 	:param fieldname: `fieldname` of the password property
 	"""
-	frappe.only_for("System Manager")
-	return frappe.get_doc(doctype, name).get_password(fieldname)
+	nts.only_for("System Manager")
+	return nts.get_doc(doctype, name).get_password(fieldname)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @deprecated
 def get_js(items):
 	"""Load JS code files.  Will also append translations
-	and extend `frappe._messages`
+	and extend `nts._messages`
 
 	:param items: JSON list of paths of the js files to be loaded."""
 	items = json.loads(items)
@@ -341,24 +341,24 @@ def get_js(items):
 		src = src.strip("/").split("/")
 
 		if ".." in src or src[0] != "assets":
-			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
+			nts.throw(_("Invalid file path: {0}").format("/".join(src)))
 
-		contentpath = os.path.join(frappe.local.sites_path, *src)
+		contentpath = os.path.join(nts.local.sites_path, *src)
 		with open(contentpath) as srcfile:
-			code = frappe.utils.cstr(srcfile.read())
+			code = nts.utils.cstr(srcfile.read())
 
 		out.append(code)
 
 	return out
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_time_zone():
 	"""Returns default time zone"""
-	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
+	return {"time_zone": nts.defaults.get_defaults().get("time_zone")}
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@nts.whitelist(methods=["POST", "PUT"])
 def attach_file(
 	filename=None,
 	filedata=None,
@@ -380,10 +380,10 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_doc(doctype, docname)
+	doc = nts.get_doc(doctype, docname)
 	doc.check_permission()
 
-	file = frappe.get_doc(
+	file = nts.get_doc(
 		{
 			"doctype": "File",
 			"file_name": filename,
@@ -404,64 +404,64 @@ def attach_file(
 	return file
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def is_document_amended(doctype: str, docname: str):
-	if frappe.permissions.has_permission(doctype):
+	if nts.permissions.has_permission(doctype):
 		try:
-			return frappe.db.exists(doctype, {"amended_from": docname})
-		except frappe.db.InternalError:
+			return nts.db.exists(doctype, {"amended_from": docname})
+		except nts.db.InternalError:
 			pass
 
 	return False
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def validate_link(doctype: str, docname: str, fields=None):
 	if not isinstance(doctype, str):
-		frappe.throw(_("DocType must be a string"))
+		nts.throw(_("DocType must be a string"))
 
 	if not isinstance(docname, str):
-		frappe.throw(_("Document Name must be a string"))
+		nts.throw(_("Document Name must be a string"))
 
 	if doctype != "DocType":
 		parent_doctype = None
-		if frappe.get_meta(doctype).istable:  # needed for links to child rows
-			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
+		if nts.get_meta(doctype).istable:  # needed for links to child rows
+			parent_doctype = nts.db.get_value(doctype, docname, "parenttype")
 		if not (
-			frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
-			or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
+			nts.has_permission(doctype, "select", parent_doctype=parent_doctype)
+			or nts.has_permission(doctype, "read", parent_doctype=parent_doctype)
 		):
-			frappe.throw(
-				_("You do not have Read or Select Permissions for {}").format(frappe.bold(doctype)),
-				frappe.PermissionError,
+			nts.throw(
+				_("You do not have Read or Select Permissions for {}").format(nts.bold(doctype)),
+				nts.PermissionError,
 			)
 
-	values = frappe._dict()
+	values = nts._dict()
 
 	if is_virtual_doctype(doctype):
 		try:
-			frappe.get_doc(doctype, docname)
+			nts.get_doc(doctype, docname)
 			values.name = docname
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
-			frappe.msgprint(
-				_("Document {0} {1} does not exist").format(frappe.bold(doctype), frappe.bold(docname)),
+		except nts.DoesNotExistError:
+			nts.clear_last_message()
+			nts.msgprint(
+				_("Document {0} {1} does not exist").format(nts.bold(doctype), nts.bold(docname)),
 			)
 		return values
 
-	values.name = frappe.db.get_value(doctype, docname, cache=True)
+	values.name = nts.db.get_value(doctype, docname, cache=True)
 
-	fields = frappe.parse_json(fields)
+	fields = nts.parse_json(fields)
 	if not values.name or not fields:
 		return values
 
 	try:
 		values.update(get_value(doctype, fields, docname))
-	except frappe.PermissionError:
-		frappe.clear_last_message()
-		frappe.msgprint(
+	except nts.PermissionError:
+		nts.clear_last_message()
+		nts.msgprint(
 			_("You need {0} permission to fetch values from {1} {2}").format(
-				frappe.bold(_("Read")), frappe.bold(doctype), frappe.bold(docname)
+				nts.bold(_("Read")), nts.bold(doctype), nts.bold(docname)
 			),
 			title=_("Cannot Fetch Values"),
 			indicator="orange",
@@ -476,18 +476,18 @@ def insert_doc(doc) -> "Document":
 
 	:param doc: doc to insert (dict)"""
 
-	doc = frappe._dict(doc)
-	if frappe.is_table(doc.doctype):
+	doc = nts._dict(doc)
+	if nts.is_table(doc.doctype):
 		if not (doc.parenttype and doc.parent and doc.parentfield):
-			frappe.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))
+			nts.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))
 
 		# inserting a child record
-		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent = nts.get_doc(doc.parenttype, doc.parent)
 		parent.append(doc.parentfield, doc)
 		parent.save()
 		return parent
 
-	return frappe.get_doc(doc).insert()
+	return nts.get_doc(doc).insert()
 
 
 def delete_doc(doctype, name):
@@ -496,15 +496,15 @@ def delete_doc(doctype, name):
 	so that the parent doc's `on_update` is called
 	"""
 
-	if frappe.is_table(doctype):
-		values = frappe.db.get_value(doctype, name, ["parenttype", "parent", "parentfield"])
+	if nts.is_table(doctype):
+		values = nts.db.get_value(doctype, name, ["parenttype", "parent", "parentfield"])
 		if not values:
-			raise frappe.DoesNotExistError(doctype=doctype)
+			raise nts.DoesNotExistError(doctype=doctype)
 
 		parenttype, parent, parentfield = values
-		parent = frappe.get_doc(parenttype, parent)
+		parent = nts.get_doc(parenttype, parent)
 		if not parent.has_permission("write"):
-			raise frappe.DoesNotExistError(doctype=doctype)
+			raise nts.DoesNotExistError(doctype=doctype)
 
 		for row in parent.get(parentfield):
 			if row.name == name:
@@ -512,4 +512,4 @@ def delete_doc(doctype, name):
 				parent.save()
 				break
 	else:
-		frappe.delete_doc(doctype, name, ignore_missing=False)
+		nts.delete_doc(doctype, name, ignore_missing=False)

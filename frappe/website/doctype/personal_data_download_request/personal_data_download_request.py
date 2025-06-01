@@ -1,12 +1,12 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils.verified_command import get_signed_params
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils.verified_command import get_signed_params
 
 
 class PersonalDataDownloadRequest(Document):
@@ -16,7 +16,7 @@ class PersonalDataDownloadRequest(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		amended_from: DF.Link | None
 		user: DF.Link
@@ -26,19 +26,19 @@ class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
 
-		frappe.enqueue_doc(
+		nts.enqueue_doc(
 			self.doctype,
 			self.name,
 			"generate_file_and_send_mail",
 			queue="short",
 			personal_data=personal_data,
-			now=frappe.flags.in_test,
+			now=nts.flags.in_test,
 		)
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""
 		user_name = self.user_name.replace(" ", "-")
-		f = frappe.get_doc(
+		f = nts.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "Personal-Data-" + user_name + "-" + self.name + ".json",
@@ -51,12 +51,12 @@ class PersonalDataDownloadRequest(Document):
 		f.save(ignore_permissions=True)
 
 		file_link = (
-			frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file")
+			nts.utils.get_url("/api/method/nts.utils.file_manager.download_file")
 			+ "?"
 			+ get_signed_params({"file_url": f.file_url})
 		)
-		host_name = frappe.local.site
-		frappe.sendmail(
+		host_name = nts.local.site
+		nts.sendmail(
 			recipients=self.user,
 			subject=_("Download Your Data"),
 			template="download_data",
@@ -72,11 +72,11 @@ class PersonalDataDownloadRequest(Document):
 
 def get_user_data(user):
 	"""returns user data not linked to User doctype"""
-	hooks = frappe.get_hooks("user_data_fields")
+	hooks = nts.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:
 		d = data.get(hook.get("doctype"), [])
-		d += frappe.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
+		d += nts.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
 		if d:
 			data.update({hook.get("doctype"): d})
 	return json.dumps(data, indent=2, default=str)

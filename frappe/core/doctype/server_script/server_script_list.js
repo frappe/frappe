@@ -1,4 +1,4 @@
-frappe.listview_settings["Server Script"] = {
+nts.listview_settings["Server Script"] = {
 	onload: function (listview) {
 		add_github_star_cta(listview);
 	},
@@ -15,8 +15,8 @@ function add_github_star_cta(listview) {
 			listview.github_star_banner.remove();
 		}
 
-		const message = __("Loving Frappe Framework?");
-		const link = "https://github.com/frappe/frappe";
+		const message = __("Loving nts Framework?");
+		const link = "https://github.com/nts/nts";
 		const cta = __("Star us on GitHub");
 
 		listview.github_star_banner = $(`

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """ Patch Handler.
 
@@ -39,7 +39,7 @@ import time
 from enum import Enum
 from textwrap import dedent, indent
 
-import frappe
+import nts
 
 
 class PatchError(Exception):
@@ -53,9 +53,9 @@ class PatchType(Enum):
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
-	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
+	executed = set(nts.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
 
-	frappe.flags.final_patches = []
+	nts.flags.final_patches = []
 
 	def run_patch(patch):
 		try:
@@ -76,17 +76,17 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 			run_patch(patch)
 
 	# patches to be run in the end
-	for patch in frappe.flags.final_patches:
+	for patch in nts.flags.final_patches:
 		patch = patch.replace("finally:", "")
 		run_patch(patch)
 
 
 def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 	if patch_type and not isinstance(patch_type, PatchType):
-		frappe.throw(f"Unsupported patch type specified: {patch_type}")
+		nts.throw(f"Unsupported patch type specified: {patch_type}")
 
 	patches = []
-	for app in frappe.get_installed_apps():
+	for app in nts.get_installed_apps():
 		patches.extend(get_patches_from_app(app, patch_type=patch_type))
 
 	return patches
@@ -99,7 +99,7 @@ def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[
 	        1. ini like file with section for different patch_type
 	        2. plain text file with each line representing a patch.
 	"""
-	patches_file = frappe.get_app_path(app, "patches.txt")
+	patches_file = nts.get_app_path(app, "patches.txt")
 
 	try:
 		return parse_as_configfile(patches_file, patch_type)
@@ -107,7 +107,7 @@ def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[
 		# treat as old format with each line representing a single patch
 		# backward compatbility with old patches.txt format
 		if not patch_type or patch_type == PatchType.pre_model_sync:
-			return frappe.get_file_items(patches_file)
+			return nts.get_file_items(patches_file)
 
 	return []
 
@@ -133,17 +133,17 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
 	else:
-		frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
+		nts.throw(nts._("Patch type {} not found in patches.txt").format(patch_type))
 
 
 def reload_doc(args):
-	import frappe.modules
+	import nts.modules
 
-	run_single(method=frappe.modules.reload_doc, methodargs=args)
+	run_single(method=nts.modules.reload_doc, methodargs=args)
 
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
-	from frappe import conf
+	from nts import conf
 
 	# don't write txt files
 	conf.developer_mode = 0
@@ -165,24 +165,24 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	else:
 		has_patch_file = True
 		patch = f"{patchmodule.split(maxsplit=1)[0]}.execute"
-		_patch = frappe.get_attr(patch)
+		_patch = nts.get_attr(patch)
 		docstring = _patch.__doc__ or ""
 
 		if docstring:
 			docstring = "\n" + indent(dedent(docstring), "\t")
 
 	print(
-		f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}"
+		f"Executing {patchmodule or methodargs} in {nts.local.site} ({nts.db.cur_db_name}){docstring}"
 	)
 
 	start_time = time.monotonic()
-	frappe.db.begin()
-	frappe.db.auto_commit_on_many_writes = 0
+	nts.db.begin()
+	nts.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:
 			if patchmodule.startswith("finally:"):
 				# run run patch at the end
-				frappe.flags.final_patches.append(patchmodule)
+				nts.flags.final_patches.append(patchmodule)
 			else:
 				if has_patch_file:
 					_patch()
@@ -194,11 +194,11 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 			method(**methodargs)
 
 	except Exception:
-		frappe.db.rollback()
+		nts.db.rollback()
 		raise
 
 	else:
-		frappe.db.commit()
+		nts.db.commit()
 		end_time = time.monotonic()
 		_patch_mode(False)
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
@@ -209,10 +209,10 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 def update_patch_log(patchmodule, skipped=False):
 	"""update patch_file in patch log"""
 
-	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
+	patch = nts.get_doc({"doctype": "Patch Log", "patch": patchmodule})
 
 	if skipped:
-		traceback = frappe.get_traceback(with_context=True)
+		traceback = nts.get_traceback(with_context=True)
 		patch.skipped = 1
 		patch.traceback = traceback
 		print(traceback, end="\n\n")
@@ -225,10 +225,10 @@ def executed(patchmodule):
 	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
 		patchmodule = patchmodule.replace("finally:", "")
-	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
+	return nts.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
 def _patch_mode(enable):
 	"""stop/start execution till patch is run"""
-	frappe.local.flags.in_patch = enable
-	frappe.db.commit()
+	nts.local.flags.in_patch = enable
+	nts.db.commit()

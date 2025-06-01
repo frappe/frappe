@@ -1,19 +1,19 @@
 import json
 
-import frappe
-from frappe.model.utils.user_settings import sync_user_settings, update_user_settings
+import nts
+from nts.model.utils.user_settings import sync_user_settings, update_user_settings
 
 
 def execute():
 	"""Update list_view's order by property from __UserSettings"""
 
-	users = frappe.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
+	users = nts.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
 
 	for user in users:
 		# get user_settings for each user
-		settings = frappe.db.sql(
+		settings = nts.db.sql(
 			f"select * from `__UserSettings` \
-			where user={frappe.db.escape(user.user)}",
+			where user={nts.db.escape(user.user)}",
 			as_dict=True,
 		)
 

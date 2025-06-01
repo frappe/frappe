@@ -52,12 +52,12 @@ export default class GridRow {
 
 	set_docfields(update = false) {
 		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(
+			nts.meta.make_docfield_copy_for(
 				this.parent_df.options,
 				this.doc.name,
 				this.docfields
 			);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
+			const docfields = nts.meta.get_docfields(this.parent_df.options, this.doc.name);
 			if (update) {
 				// to maintain references
 				this.docfields.forEach((df) => {
@@ -103,7 +103,7 @@ export default class GridRow {
 				this.hide_form();
 			}
 			if (this.frm) {
-				frappe
+				nts
 					.run_serially([
 						() => {
 							return this.frm.script_manager.trigger(
@@ -113,7 +113,7 @@ export default class GridRow {
 							);
 						},
 						() => {
-							frappe.model.clear_doc(this.doc.doctype, this.doc.name);
+							nts.model.clear_doc(this.doc.doctype, this.doc.name);
 
 							this.frm.script_manager.trigger(
 								this.grid.df.fieldname + "_remove",
@@ -162,7 +162,7 @@ export default class GridRow {
 	move() {
 		// promopt the user where they want to move this row
 		var me = this;
-		frappe.prompt(
+		nts.prompt(
 			{
 				fieldname: "move_to",
 				label: __("Move to Row Number"),
@@ -172,7 +172,7 @@ export default class GridRow {
 			},
 			function (values) {
 				if (me.doc._sortable === false) {
-					frappe.msgprint(__("Cannot move row"));
+					nts.msgprint(__("Cannot move row"));
 					return;
 				}
 
@@ -236,8 +236,8 @@ export default class GridRow {
 		this.row_display = $('<div class="row-data sortable-handle template-row"></div>')
 			.appendTo(this.row)
 			.html(
-				frappe.render(this.grid.template, {
-					doc: this.doc ? frappe.get_format_helper(this.doc) : null,
+				nts.render(this.grid.template, {
+					doc: this.doc ? nts.get_format_helper(this.doc) : null,
 					frm: this.frm,
 					row: this,
 				})
@@ -283,7 +283,7 @@ export default class GridRow {
 
 			this.row_index.find("input").on(
 				"keyup",
-				frappe.utils.debounce((e) => {
+				nts.utils.debounce((e) => {
 					let df = {
 						fieldtype: "Sr No",
 					};
@@ -307,7 +307,7 @@ export default class GridRow {
 					this.grid.prevent_build = false;
 				}, 500)
 			);
-			frappe.utils.only_allow_num_decimal(this.row_index.find("input"));
+			nts.utils.only_allow_num_decimal(this.row_index.find("input"));
 		}
 
 		this.setup_columns();
@@ -341,7 +341,7 @@ export default class GridRow {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
-							<a>${frappe.utils.icon("edit", "xs")}</a>
+							<a>${nts.utils.icon("edit", "xs")}</a>
 						</div>
 					`)
 						.appendTo(this.open_form_button)
@@ -367,7 +367,7 @@ export default class GridRow {
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
 				<div class="col grid-static-col d-flex justify-content-center" style="cursor: pointer;">
-					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
+					<a>${nts.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
 				</div>
 			`)
 				.appendTo(this.row)
@@ -382,7 +382,7 @@ export default class GridRow {
 	}
 
 	configure_dialog_for_columns_selector() {
-		this.grid_settings_dialog = new frappe.ui.Dialog({
+		this.grid_settings_dialog = new nts.ui.Dialog({
 			title: __("Configure Columns"),
 			fields: [
 				{
@@ -459,7 +459,7 @@ export default class GridRow {
 			this.selected_columns_for_grid.map((field) => field.fieldname)
 		);
 
-		let d = new frappe.ui.Dialog({
+		let d = new nts.ui.Dialog({
 			title: __("{0} Fields", [__(this.grid.doctype)]),
 			fields: [
 				{
@@ -480,7 +480,7 @@ export default class GridRow {
 			this.selected_columns_for_grid = [];
 			if (selected_fields) {
 				selected_fields.forEach((selected_column) => {
-					let docfield = frappe.meta.get_docfield(this.grid.doctype, selected_column);
+					let docfield = nts.meta.get_docfield(this.grid.doctype, selected_column);
 					this.grid.update_default_colsize(docfield);
 
 					this.selected_columns_for_grid.push({
@@ -511,7 +511,7 @@ export default class GridRow {
 	prepare_columns_for_dialog(selected_fields) {
 		let fields = [];
 
-		const blocked_fields = frappe.model.no_value_type;
+		const blocked_fields = nts.model.no_value_type;
 		const always_allow = ["Button"];
 
 		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
@@ -552,7 +552,7 @@ export default class GridRow {
 		let fields = "";
 		if (this.selected_columns_for_grid) {
 			this.selected_columns_for_grid.forEach((d) => {
-				let docfield = frappe.meta.get_docfield(this.grid.doctype, d.fieldname);
+				let docfield = nts.meta.get_docfield(this.grid.doctype, d.fieldname);
 
 				fields += `
 					<div class='control-input flex align-center form-control fields_order sortable-handle sortable'
@@ -563,7 +563,7 @@ export default class GridRow {
 
 						<div class='row'>
 							<div class='col-1' style='padding-top: 4px;'>
-								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
+								<a style='cursor: grabbing;'>${nts.utils.icon("drag", "xs")}</a>
 							</div>
 							<div class='col-6' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
@@ -628,7 +628,7 @@ export default class GridRow {
 			.change((event) => {
 				if (cint(event.target.value) === 0) {
 					event.target.value = cint(event.target.defaultValue);
-					frappe.throw(__("Column width cannot be zero."));
+					nts.throw(__("Column width cannot be zero."));
 				}
 
 				this.selected_columns_for_grid.forEach((row) => {
@@ -650,7 +650,7 @@ export default class GridRow {
 		});
 
 		if (total_column_width && total_column_width > 10) {
-			frappe.throw(__("The total column width cannot be more than 10."));
+			nts.throw(__("The total column width cannot be more than 10."));
 		}
 	}
 
@@ -664,7 +664,7 @@ export default class GridRow {
 				});
 
 				if (selected_columns_for_grid && selected_columns_for_grid.length === 0) {
-					frappe.throw(__("At least one column is required to show in the grid."));
+					nts.throw(__("At least one column is required to show in the grid."));
 				}
 
 				this.selected_columns_for_grid = selected_columns_for_grid;
@@ -679,15 +679,15 @@ export default class GridRow {
 
 		let value = {};
 		value[this.grid.doctype] = this.selected_columns_for_grid;
-		frappe.model.user_settings.save(this.frm.doctype, "GridView", value).then((r) => {
-			frappe.model.user_settings[this.frm.doctype] = r.message || r;
+		nts.model.user_settings.save(this.frm.doctype, "GridView", value).then((r) => {
+			nts.model.user_settings[this.frm.doctype] = r.message || r;
 			this.grid.reset_grid();
 		});
 	}
 
 	reset_user_settings_for_grid() {
-		frappe.model.user_settings.save(this.frm.doctype, "GridView", null).then((r) => {
-			frappe.model.user_settings[this.frm.doctype] = r.message || r;
+		nts.model.user_settings.save(this.frm.doctype, "GridView", null).then((r) => {
+			nts.model.user_settings[this.frm.doctype] = r.message || r;
 			this.grid.reset_grid();
 		});
 	}
@@ -711,7 +711,7 @@ export default class GridRow {
 			let colsize = col[1];
 
 			let txt = this.doc
-				? frappe.format(this.doc[df.fieldname], df, null, this.doc)
+				? nts.format(this.doc[df.fieldname], df, null, this.doc)
 				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
@@ -792,12 +792,12 @@ export default class GridRow {
 			out = expression(doc);
 		} else if (expression.substr(0, 5) == "eval:") {
 			try {
-				out = frappe.utils.eval(expression.substr(5), { doc, parent });
+				out = nts.utils.eval(expression.substr(5), { doc, parent });
 				if (parent && parent.istable && expression.includes("is_submittable")) {
 					out = true;
 				}
 			} catch (e) {
-				frappe.throw(__('Invalid "depends_on" expression'));
+				nts.throw(__('Invalid "depends_on" expression'));
 			}
 		} else if (expression.substr(0, 3) == "fn:" && this.frm) {
 			out = this.frm.script_manager.trigger(
@@ -860,7 +860,7 @@ export default class GridRow {
 
 		$search_input.on(
 			"keyup",
-			frappe.utils.debounce((e) => {
+			nts.utils.debounce((e) => {
 				this.grid.filter[df.fieldname] = {
 					df: df,
 					value: e.target.value,
@@ -885,7 +885,7 @@ export default class GridRow {
 		);
 
 		["Currency", "Float", "Int", "Percent", "Rating"].includes(df.fieldtype) &&
-			frappe.utils.only_allow_num_decimal($search_input);
+			nts.utils.only_allow_num_decimal($search_input);
 
 		return $col;
 	}
@@ -1007,7 +1007,7 @@ export default class GridRow {
 					let grid_start = inital_position_x - event.touches[0].clientX;
 					let grid_end = grid.clientWidth - grid_container.clientWidth + 2;
 
-					if (frappe.utils.is_rtl()) {
+					if (nts.utils.is_rtl()) {
 						grid_start = -grid_start;
 					}
 
@@ -1017,7 +1017,7 @@ export default class GridRow {
 						grid_start = grid_end;
 					}
 
-					grid.style.left = `${frappe.utils.is_rtl() ? "" : "-"}${grid_start}px`;
+					grid.style.left = `${nts.utils.is_rtl() ? "" : "-"}${grid_start}px`;
 				}
 			})
 			.on("touchend", function () {
@@ -1025,7 +1025,7 @@ export default class GridRow {
 				horizontal = false;
 			})
 			.on("click", function (event) {
-				if (frappe.ui.form.editable_row !== me) {
+				if (nts.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
 				}
 				var col = this;
@@ -1087,8 +1087,8 @@ export default class GridRow {
 			show !== false
 		) {
 			// disable other editable row
-			if (frappe.ui.form.editable_row && frappe.ui.form.editable_row !== this) {
-				frappe.ui.form.editable_row.toggle_editable_row(false);
+			if (nts.ui.form.editable_row && nts.ui.form.editable_row !== this) {
+				nts.ui.form.editable_row.toggle_editable_row(false);
 			}
 
 			this.row.toggleClass("editable-row", true);
@@ -1100,7 +1100,7 @@ export default class GridRow {
 				column.field_area.toggle(true);
 			});
 
-			frappe.ui.form.editable_row = this;
+			nts.ui.form.editable_row = this;
 			return false;
 		} else {
 			this.row.toggleClass("editable-row", false);
@@ -1110,7 +1110,7 @@ export default class GridRow {
 					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc
-						? frappe.format(this.doc[df.fieldname], df, null, this.doc)
+						? nts.format(this.doc[df.fieldname], df, null, this.doc)
 						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
@@ -1122,7 +1122,7 @@ export default class GridRow {
 
 				column.field_area && column.field_area.toggle(false);
 			});
-			frappe.ui.form.editable_row = null;
+			nts.ui.form.editable_row = null;
 		}
 	}
 
@@ -1132,7 +1132,7 @@ export default class GridRow {
 		var me = this,
 			parent = column.field_area,
 			df = column.df;
-		var field = frappe.ui.form.make_control({
+		var field = nts.ui.form.make_control({
 			df: df,
 			parent: parent,
 			only_input: true,
@@ -1180,7 +1180,7 @@ export default class GridRow {
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
-				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = nts.ui.keyCode;
 				if (![TAB, UP_ARROW, DOWN_ARROW].includes(e.which)) {
 					return;
 				}
@@ -1297,7 +1297,7 @@ export default class GridRow {
 	}
 
 	get_open_form() {
-		return frappe.ui.form.get_open_grid_form();
+		return nts.ui.form.get_open_grid_form();
 	}
 
 	toggle_view(show, callback) {
@@ -1339,7 +1339,7 @@ export default class GridRow {
 		return this;
 	}
 	show_form() {
-		if (frappe.utils.is_xs()) {
+		if (nts.utils.is_xs()) {
 			$(this.grid.form_grid).css("min-width", "0");
 			$(this.grid.form_grid).css("position", "unset");
 		}
@@ -1364,15 +1364,15 @@ export default class GridRow {
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "dark grid-form");
+		nts.dom.freeze("", "dark grid-form");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (
-			!frappe.dom.is_element_in_viewport(this.wrapper) &&
-			!frappe.dom.is_element_in_modal(this.wrapper)
+			!nts.dom.is_element_in_viewport(this.wrapper) &&
+			!nts.dom.is_element_in_modal(this.wrapper)
 		) {
 			// -15 offset to make form look visually centered
-			frappe.utils.scroll_to(this.wrapper, true, -15);
+			nts.utils.scroll_to(this.wrapper, true, -15);
 		}
 
 		if (this.frm) {
@@ -1381,14 +1381,14 @@ export default class GridRow {
 		}
 	}
 	hide_form() {
-		if (frappe.utils.is_xs()) {
+		if (nts.utils.is_xs()) {
 			$(this.grid.form_grid).css("min-width", "738px");
 			$(this.grid.form_grid).css("position", "relative");
 		}
-		frappe.dom.unfreeze();
+		nts.dom.unfreeze();
 		this.row.toggle(true);
-		if (!frappe.dom.is_element_in_modal(this.row)) {
-			frappe.utils.scroll_to(this.row, true, 15);
+		if (!nts.dom.is_element_in_modal(this.row)) {
+			nts.utils.scroll_to(this.row, true, 15);
 		}
 		this.refresh();
 		if (cur_frm) cur_frm.cur_grid = null;
@@ -1440,11 +1440,11 @@ export default class GridRow {
 
 		// format values if no frm
 		if (df && this.doc) {
-			txt = frappe.format(this.doc[fieldname], df, null, this.doc);
+			txt = nts.format(this.doc[fieldname], df, null, this.doc);
 		}
 
 		if (!txt && this.frm) {
-			txt = frappe.format(this.doc[fieldname], df, null, this.frm.doc);
+			txt = nts.format(this.doc[fieldname], df, null, this.frm.doc);
 		}
 
 		// reset static value
@@ -1488,7 +1488,7 @@ export default class GridRow {
 				!df.hidden &&
 				df.in_list_view &&
 				me.grid.frm.get_perm(df.permlevel, "read") &&
-				!frappe.model.layout_fields.includes(df.fieldtype) &&
+				!nts.model.layout_fields.includes(df.fieldtype) &&
 				!blacklist.includes(df.fieldname);
 
 			return visible ? df : null;

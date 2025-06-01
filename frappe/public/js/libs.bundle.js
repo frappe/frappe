@@ -8,6 +8,6 @@ import Sortable from "sortablejs";
 
 window.SetVueGlobals = (app) => {
 	app.config.globalProperties.__ = window.__;
-	app.config.globalProperties.frappe = window.frappe;
+	app.config.globalProperties.nts = window.nts;
 };
 window.Sortable = Sortable;

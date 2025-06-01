@@ -1,7 +1,7 @@
-# Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2013, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 field_map = {
 	"Contact": [
@@ -61,7 +61,7 @@ def get_data(filters):
 def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	data = []
 	filters = None
-	reference_details = frappe._dict()
+	reference_details = nts._dict()
 
 	if not reference_doctype:
 		return []
@@ -70,11 +70,11 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		filters = {"name": reference_name}
 
 	reference_list = [
-		d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)
+		d[0] for d in nts.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)
 	]
 
 	for d in reference_list:
-		reference_details.setdefault(d, frappe._dict())
+		reference_details.setdefault(d, nts._dict())
 	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
 	reference_details = get_reference_details(reference_doctype, "Contact", reference_list, reference_details)
 
@@ -109,13 +109,13 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 	]
 	fields = ["`tabDynamic Link`.link_name", *field_map.get(doctype, [])]
 
-	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
+	records = nts.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	temp_records = [d[1:] for d in records]
 
 	if not reference_list:
-		frappe.throw(_("No records present in {0}").format(reference_doctype))
+		nts.throw(_("No records present in {0}").format(reference_doctype))
 
-	reference_details[reference_list[0]][frappe.scrub(doctype)] = temp_records
+	reference_details[reference_list[0]][nts.scrub(doctype)] = temp_records
 	return reference_details
 
 

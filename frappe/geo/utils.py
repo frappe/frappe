@@ -1,11 +1,11 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.utils.data import flt
+import nts
+from nts.utils.data import flt
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_coords(doctype, filters, type):
 	"""Get a geojson dict representing a doctype."""
 	filters_sql = get_coords_conditions(doctype, filters)[4:]
@@ -35,7 +35,7 @@ def merge_location_features_in_one(coords):
 	"""Merging all features from location field."""
 	geojson_dict = []
 	for element in coords:
-		geojson_loc = frappe.parse_json(element["location"])
+		geojson_loc = nts.parse_json(element["location"])
 		if not geojson_loc:
 			continue
 		for coord in geojson_loc["features"]:
@@ -66,14 +66,14 @@ def return_location(doctype, filters_sql):
 	"""Get name and location fields for Doctype."""
 	if filters_sql:
 		try:
-			coords = frappe.db.sql(
+			coords = nts.db.sql(
 				f"""SELECT name, location FROM `tab{doctype}`  WHERE {filters_sql}""", as_dict=True
 			)
-		except frappe.db.InternalError:
-			frappe.msgprint(frappe._("This Doctype does not contain location fields"), raise_exception=True)
+		except nts.db.InternalError:
+			nts.msgprint(nts._("This Doctype does not contain location fields"), raise_exception=True)
 			return
 	else:
-		coords = frappe.get_all(doctype, fields=["name", "location"])
+		coords = nts.get_all(doctype, fields=["name", "location"])
 	return coords
 
 
@@ -81,25 +81,25 @@ def return_coordinates(doctype, filters_sql):
 	"""Get name, latitude and longitude fields for Doctype."""
 	if filters_sql:
 		try:
-			coords = frappe.db.sql(
+			coords = nts.db.sql(
 				f"""SELECT name, latitude, longitude FROM `tab{doctype}`  WHERE {filters_sql}""",
 				as_dict=True,
 			)
-		except frappe.db.InternalError:
-			frappe.msgprint(
-				frappe._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
+		except nts.db.InternalError:
+			nts.msgprint(
+				nts._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
 			)
 			return
 	else:
-		coords = frappe.get_all(doctype, fields=["name", "latitude", "longitude"])
+		coords = nts.get_all(doctype, fields=["name", "latitude", "longitude"])
 	return coords
 
 
 def get_coords_conditions(doctype, filters=None):
 	"""Returns SQL conditions with user permissions and filters for event queries."""
-	from frappe.desk.reportview import get_filters_cond
+	from nts.desk.reportview import get_filters_cond
 
-	if not frappe.has_permission(doctype):
-		frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+	if not nts.has_permission(doctype):
+		nts.throw(nts._("Not Permitted"), nts.PermissionError)
 
 	return get_filters_cond(doctype, filters, [], with_match_conditions=True)

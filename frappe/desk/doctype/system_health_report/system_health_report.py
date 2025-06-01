@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Frappe Technologies and contributors
+# Copyright (c) 2024, nts Technologies and contributors
 # For license information, please see license.txt
 """
 Basic system health check report to see how everything on site is functioning in one single page.
@@ -25,13 +25,13 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import contextmanager
 
-import frappe
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
-from frappe.model.document import Document
-from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
-from frappe.utils.caching import redis_cache
-from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import (
+import nts
+from nts.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
+from nts.model.document import Document
+from nts.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
+from nts.utils.caching import redis_cache
+from nts.utils.data import add_to_date
+from nts.utils.scheduler import (
 	get_scheduler_status,
 	get_scheduler_tick,
 	is_dormant,
@@ -61,12 +61,12 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
-				if frappe.flags.in_test:
+				if nts.flags.in_test:
 					raise
-				frappe.log(frappe.get_traceback())
+				nts.log(nts.get_traceback())
 				# nosemgrep
-				frappe.msgprint(
-					f"System Health check step {frappe.bold(step)} failed: {e}", alert=True, indicator="red"
+				nts.msgprint(
+					f"System Health check step {nts.bold(step)} failed: {e}", alert=True, indicator="red"
 				)
 
 		return wrapper
@@ -81,22 +81,22 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.desk.doctype.system_health_report_errors.system_health_report_errors import (
+		from nts.desk.doctype.system_health_report_errors.system_health_report_errors import (
 			SystemHealthReportErrors,
 		)
-		from frappe.desk.doctype.system_health_report_failing_jobs.system_health_report_failing_jobs import (
+		from nts.desk.doctype.system_health_report_failing_jobs.system_health_report_failing_jobs import (
 			SystemHealthReportFailingJobs,
 		)
-		from frappe.desk.doctype.system_health_report_queue.system_health_report_queue import (
+		from nts.desk.doctype.system_health_report_queue.system_health_report_queue import (
 			SystemHealthReportQueue,
 		)
-		from frappe.desk.doctype.system_health_report_tables.system_health_report_tables import (
+		from nts.desk.doctype.system_health_report_tables.system_health_report_tables import (
 			SystemHealthReportTables,
 		)
-		from frappe.desk.doctype.system_health_report_workers.system_health_report_workers import (
+		from nts.desk.doctype.system_health_report_workers.system_health_report_workers import (
 			SystemHealthReportWorkers,
 		)
-		from frappe.types import DF
+		from nts.types import DF
 
 		active_sessions: DF.Int
 		background_jobs_check: DF.Data | None
@@ -139,7 +139,7 @@ class SystemHealthReport(Document):
 
 	def load_from_db(self):
 		super(Document, self).__init__({})
-		frappe.only_for("System Manager")
+		nts.only_for("System Manager")
 
 		# Each method loads a section of health report
 		# They should be written in a manner they are least likely to fail and if they do fail,
@@ -160,9 +160,9 @@ class SystemHealthReport(Document):
 	def fetch_background_jobs(self):
 		self.background_jobs_check = "failed"
 		# This just checks connection life
-		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
+		self.test_job_id = nts.enqueue("nts.ping", at_front=True).id
 		self.background_jobs_check = "queued"
-		workers = frappe.get_all("RQ Worker")
+		workers = nts.get_all("RQ Worker")
 		self.total_background_workers = len(workers)
 		queue_summary = defaultdict(list)
 
@@ -206,7 +206,7 @@ class SystemHealthReport(Document):
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
-		failing_jobs = frappe.db.sql(
+		failing_jobs = nts.db.sql(
 			"""
 			select scheduled_job_type,
 				   avg(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 as failure_rate
@@ -227,13 +227,13 @@ class SystemHealthReport(Document):
 			self.append("failing_scheduled_jobs", job)
 
 		threshold = add_to_date(None, seconds=-30 * get_scheduler_tick(), as_datetime=True)
-		for job_type in frappe.get_all(
+		for job_type in nts.get_all(
 			"Scheduled Job Type",
 			filters={"stopped": 0, "last_execution": ("<", threshold)},
 			fields="*",
 			order_by="last_execution asc",
 		):
-			job_type: ScheduledJobType = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
+			job_type: ScheduledJobType = nts.get_doc(doctype="Scheduled Job Type", **job_type)
 			if job_type.is_event_due():
 				self.oldest_unscheduled_job = job_type.name
 				break
@@ -242,11 +242,11 @@ class SystemHealthReport(Document):
 	def fetch_email_stats(self):
 		threshold = add_to_date(None, days=-7, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
-		self.total_outgoing_emails = frappe.db.count("Email Queue", filters)
-		self.pending_emails = frappe.db.count("Email Queue", {"status": "Not Sent", **filters})
-		self.failed_emails = frappe.db.count("Email Queue", {"status": "Error", **filters})
-		self.unhandled_emails = frappe.db.count("Unhandled Email", filters)
-		self.handled_emails = frappe.db.count(
+		self.total_outgoing_emails = nts.db.count("Email Queue", filters)
+		self.pending_emails = nts.db.count("Email Queue", {"status": "Not Sent", **filters})
+		self.failed_emails = nts.db.count("Email Queue", {"status": "Error", **filters})
+		self.unhandled_emails = nts.db.count("Unhandled Email", filters)
+		self.handled_emails = nts.db.count(
 			"Communication",
 			{"sent_or_received": "Received", "communication_type": "Communication", **filters},
 		)
@@ -255,9 +255,9 @@ class SystemHealthReport(Document):
 	def fetch_errors(self):
 		threshold = add_to_date(None, days=-1, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
-		self.total_errors = frappe.db.count("Error Log", filters)
+		self.total_errors = nts.db.count("Error Log", filters)
 
-		top_errors = frappe.db.sql(
+		top_errors = nts.db.sql(
 			"""select method as title, count(*) as occurrences
 			from `tabError Log`
 			where modified > %(threshold)s and creation > %(threshold)s
@@ -272,41 +272,41 @@ class SystemHealthReport(Document):
 
 	@health_check("Database")
 	def fetch_database_details(self):
-		from frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables import (
+		from nts.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables import (
 			execute as db_report,
 		)
 
 		_cols, data = db_report()
-		self.database = frappe.db.db_type
+		self.database = nts.db.db_type
 		self.db_storage_usage = sum(table.size for table in data)
 		for row in data[:5]:
 			self.append("top_db_tables", row)
-		self.database_version = frappe.db.sql("select version()")[0][0]
+		self.database_version = nts.db.sql("select version()")[0][0]
 
-		if frappe.db.db_type == "mariadb":
-			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
-			self.binary_logging = frappe.db.sql("show variables like 'log_bin'")[0][1]
+		if nts.db.db_type == "mariadb":
+			self.bufferpool_size = nts.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
+			self.binary_logging = nts.db.sql("show variables like 'log_bin'")[0][1]
 
 	@health_check("Cache")
 	def fetch_cache_details(self):
-		self.cache_keys = len(frappe.cache.get_keys(""))
-		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
+		self.cache_keys = len(nts.cache.get_keys(""))
+		self.cache_memory_usage = nts.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
 
 	@health_check("Storage")
 	def fetch_storage_details(self):
-		from frappe.desk.page.backups.backups import get_context
+		from nts.desk.page.backups.backups import get_context
 
 		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
 		self.private_files_size = get_directory_size("private", "files") / (1024 * 1024)
 		self.public_files_size = get_directory_size("public", "files") / (1024 * 1024)
-		self.onsite_backups = len(get_context(frappe._dict()).get("files", []))
+		self.onsite_backups = len(get_context(nts._dict()).get("files", []))
 
 	@health_check("Users")
 	def fetch_user_stats(self):
 		threshold = add_to_date(None, days=-30, as_datetime=True)
-		self.total_users = frappe.db.count("User", {"enabled": 1})
-		self.new_users = frappe.db.count("User", {"enabled": 1, "creation": (">", threshold)})
-		self.failed_logins = frappe.db.count(
+		self.total_users = nts.db.count("User", {"enabled": 1})
+		self.new_users = nts.db.count("User", {"enabled": 1, "creation": (">", threshold)})
+		self.failed_logins = nts.db.count(
 			"Activity Log",
 			{
 				"operation": "login",
@@ -315,9 +315,9 @@ class SystemHealthReport(Document):
 				"modified": (">", threshold),
 			},
 		)
-		self.active_sessions = frappe.db.count("Sessions")
+		self.active_sessions = nts.db.count("Sessions")
 		self.last_10_active_users = "\n".join(
-			frappe.get_all(
+			nts.get_all(
 				"User",
 				{"enabled": 1},
 				order_by="last_active desc",
@@ -345,14 +345,14 @@ class SystemHealthReport(Document):
 		raise NotImplementedError
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @no_wait(get_redis_conn)
 def get_job_status(job_id: str | None = None):
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 	try:
-		return frappe.get_doc("RQ Job", job_id).status
+		return nts.get_doc("RQ Job", job_id).status
 	except Exception:
-		frappe.clear_messages()
+		nts.clear_messages()
 
 
 @redis_cache(ttl=5 * 60)
@@ -361,7 +361,7 @@ def get_directory_size(*path):
 
 
 def _get_directory_size(*path):
-	folder = os.path.abspath(frappe.get_site_path(*path))
+	folder = os.path.abspath(nts.get_site_path(*path))
 	# Copied as is from agent
 	total_size = os.path.getsize(folder)
 	for item in os.listdir(folder):

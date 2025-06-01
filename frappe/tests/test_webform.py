@@ -1,13 +1,13 @@
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
-from frappe.www.list import get_list_context
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import set_request
+from nts.website.serve import get_response
+from nts.www.list import get_list_context
 
 
-class TestWebform(FrappeTestCase):
+class TestWebform(ntsTestCase):
 	def test_webform_publish_functionality(self):
-		request_data = frappe.get_doc("Web Form", "request-data")
+		request_data = nts.get_doc("Web Form", "request-data")
 		# publish webform
 		request_data.published = True
 		request_data.save()
@@ -32,7 +32,7 @@ class TestWebform(FrappeTestCase):
 		# create a hook to get webform_context
 		set_webform_hook(
 			"webform_list_context",
-			"frappe.www._test._test_webform.webform_list_context",
+			"nts.www._test._test_webform.webform_list_context",
 		)
 		# check context for apps with hook
 		context_list = get_list_context("", "Custom Doctype", "test-webform")
@@ -40,7 +40,7 @@ class TestWebform(FrappeTestCase):
 
 
 def create_custom_doctype():
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": "Custom Doctype",
@@ -52,7 +52,7 @@ def create_custom_doctype():
 
 
 def create_webform():
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "Web Form",
 			"module": "Core",
@@ -72,7 +72,7 @@ def create_webform():
 
 
 def set_webform_hook(key, value):
-	from frappe import hooks
+	from nts import hooks
 
 	# reset hooks
 	for hook in "webform_list_context":
@@ -80,4 +80,4 @@ def set_webform_hook(key, value):
 			delattr(hooks, hook)
 
 	setattr(hooks, key, value)
-	frappe.cache.delete_key("app_hooks")
+	nts.cache.delete_key("app_hooks")

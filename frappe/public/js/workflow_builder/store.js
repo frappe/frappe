@@ -14,33 +14,33 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let ref_history = ref(null);
 
 	async function fetch() {
-		await frappe.model.clear_doc("Workflow", workflow_name.value);
-		await frappe.model.with_doc("Workflow", workflow_name.value);
+		await nts.model.clear_doc("Workflow", workflow_name.value);
+		await nts.model.with_doc("Workflow", workflow_name.value);
 
-		workflow_doc.value = frappe.get_doc("Workflow", workflow_name.value);
-		await frappe.model.with_doctype(workflow_doc.value.document_type);
+		workflow_doc.value = nts.get_doc("Workflow", workflow_name.value);
+		await nts.model.with_doctype(workflow_doc.value.document_type);
 
 		if (!workflowfields.value.length) {
-			await frappe.model.with_doctype("Workflow");
-			workflowfields.value = frappe.get_meta("Workflow").fields;
+			await nts.model.with_doctype("Workflow");
+			workflowfields.value = nts.get_meta("Workflow").fields;
 		}
 
 		if (!statefields.value.length) {
-			await frappe.model.with_doctype("Workflow Document State");
-			statefields.value = frappe.get_meta("Workflow Document State").fields;
+			await nts.model.with_doctype("Workflow Document State");
+			statefields.value = nts.get_meta("Workflow Document State").fields;
 		}
 
 		if (!transitionfields.value.length) {
-			await frappe.model.with_doctype("Workflow Transition");
-			transitionfields.value = frappe.get_meta("Workflow Transition").fields;
+			await nts.model.with_doctype("Workflow Transition");
+			transitionfields.value = nts.get_meta("Workflow Transition").fields;
 		}
 
 		if (!workflow_doc_fields.value.length) {
 			let doc_type = workflow_doc.value.document_type;
-			await frappe.model.with_doctype(doc_type);
-			workflow_doc_fields.value = frappe.meta
+			await nts.model.with_doctype(doc_type);
+			workflow_doc_fields.value = nts.meta
 				.get_docfields(doc_type, null, {
-					fieldtype: ["not in", frappe.model.no_value_type],
+					fieldtype: ["not in", nts.model.no_value_type],
 				})
 				.sort((a, b) => {
 					if (a.label && b.label) {
@@ -70,7 +70,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	async function save_changes() {
-		frappe.dom.freeze(__("Saving..."));
+		nts.dom.freeze(__("Saving..."));
 
 		try {
 			let doc = workflow_doc.value;
@@ -79,20 +79,20 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			validate_workflow(doc);
 			const workflow_data = clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow_data);
-			await frappe.call("frappe.client.save", { doc });
-			frappe.toast(__("Workflow updated successfully"));
+			await nts.call("nts.client.save", { doc });
+			nts.toast(__("Workflow updated successfully"));
 			fetch();
 		} catch (e) {
 			console.error(e);
 		} finally {
-			frappe.dom.unfreeze();
+			nts.dom.unfreeze();
 		}
 	}
 
 	function validate_workflow(doc) {
 		if (doc.is_active && (!doc.states.length || !doc.transitions.length)) {
 			let message = "Workflow must have atleast one state and transition";
-			frappe.throw({
+			nts.throw({
 				message: __(message),
 				title: __("Missing Values Required"),
 				indicator: "orange",
@@ -131,8 +131,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			<li><a href="/app/workflow/${workflow_name.value}">${__(workflow_name.value)}</a></li>
 			<li class="disabled"><a href="#">${__("Workflow Builder")}</a></li>
 		`;
-		frappe.breadcrumbs.clear();
-		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
+		nts.breadcrumbs.clear();
+		nts.breadcrumbs.$breadcrumbs.append(breadcrumbs);
 	}
 
 	function get_state_df(data) {
@@ -187,7 +187,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 			let error = validate_transitions(state.data, next_state.data);
 			if (error) {
-				frappe.throw({
+				nts.throw({
 					message: error,
 					title: __("Invalid Transition"),
 				});

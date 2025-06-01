@@ -2,30 +2,30 @@ import sys
 
 import click
 
-import frappe
-from frappe.commands import get_site, pass_context
-from frappe.exceptions import SiteNotSpecifiedError
+import nts
+from nts.commands import get_site, pass_context
+from nts.exceptions import SiteNotSpecifiedError
 
 
 @click.command("trigger-scheduler-event", help="Trigger a scheduler event")
 @click.argument("event")
 @pass_context
 def trigger_scheduler_event(context, event):
-	import frappe.utils.scheduler
+	import nts.utils.scheduler
 
 	exit_code = 0
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			try:
-				frappe.get_doc("Scheduled Job Type", {"method": event}).execute()
-			except frappe.DoesNotExistError:
+				nts.get_doc("Scheduled Job Type", {"method": event}).execute()
+			except nts.DoesNotExistError:
 				click.secho(f"Event {event} does not exist!", fg="red")
 				exit_code = 1
 		finally:
-			frappe.destroy()
+			nts.destroy()
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -37,17 +37,17 @@ def trigger_scheduler_event(context, event):
 @pass_context
 def enable_scheduler(context):
 	"Enable scheduler"
-	import frappe.utils.scheduler
+	import nts.utils.scheduler
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.utils.scheduler.enable_scheduler()
-			frappe.db.commit()
+			nts.init(site=site)
+			nts.connect()
+			nts.utils.scheduler.enable_scheduler()
+			nts.db.commit()
 			print("Enabled for", site)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -56,17 +56,17 @@ def enable_scheduler(context):
 @pass_context
 def disable_scheduler(context):
 	"Disable scheduler"
-	import frappe.utils.scheduler
+	import nts.utils.scheduler
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.utils.scheduler.disable_scheduler()
-			frappe.db.commit()
+			nts.init(site=site)
+			nts.connect()
+			nts.utils.scheduler.disable_scheduler()
+			nts.db.commit()
 			print("Disabled for", site)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -79,8 +79,8 @@ def disable_scheduler(context):
 @pass_context
 def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
 	"""Control scheduler state."""
-	import frappe
-	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
+	import nts
+	from nts.utils.scheduler import is_scheduler_inactive, toggle_scheduler
 
 	site = site or get_site(context)
 
@@ -89,20 +89,20 @@ def scheduler(context, state: str, format: str, verbose: bool = False, site: str
 		"json": '{{"status": "{status}", "site": "{site}"}}',
 	}
 
-	with frappe.init_site(site=site):
+	with nts.init_site(site=site):
 		match state:
 			case "status":
-				frappe.connect()
+				nts.connect()
 				status = "disabled" if is_scheduler_inactive(verbose=verbose) else "enabled"
 				return print(output[format].format(status=status, site=site))
 			case "pause" | "resume":
-				from frappe.installer import update_site_config
+				from nts.installer import update_site_config
 
 				update_site_config("pause_scheduler", state == "pause")
 			case "enable" | "disable":
-				frappe.connect()
+				nts.connect()
 				toggle_scheduler(state == "enable")
-				frappe.db.commit()
+				nts.db.commit()
 
 		print(output[format].format(status=f"{state}d", site=site))
 
@@ -113,17 +113,17 @@ def scheduler(context, state: str, format: str, verbose: bool = False, site: str
 @pass_context
 def set_maintenance_mode(context, state, site=None):
 	"""Put the site in maintenance mode for upgrades."""
-	from frappe.installer import update_site_config
+	from nts.installer import update_site_config
 
 	if not site:
 		site = get_site(context)
 
 	try:
-		frappe.init(site=site)
+		nts.init(site=site)
 		update_site_config("maintenance_mode", 1 if (state == "on") else 0)
 
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 @click.command("doctor")  # Passing context always gets a site and if there is no use site it breaks
@@ -131,7 +131,7 @@ def set_maintenance_mode(context, state, site=None):
 @pass_context
 def doctor(context, site=None):
 	"Get diagnostic info about background workers"
-	from frappe.utils.doctor import doctor as _doctor
+	from nts.utils.doctor import doctor as _doctor
 
 	if not site:
 		site = get_site(context, raise_err=False)
@@ -143,12 +143,12 @@ def doctor(context, site=None):
 @pass_context
 def show_pending_jobs(context, site=None):
 	"Get diagnostic info about background jobs"
-	from frappe.utils.doctor import pending_jobs as _pending_jobs
+	from nts.utils.doctor import pending_jobs as _pending_jobs
 
 	if not site:
 		site = get_site(context)
 
-	with frappe.init_site(site):
+	with nts.init_site(site):
 		pending_jobs = _pending_jobs(site=site)
 
 	return pending_jobs
@@ -164,9 +164,9 @@ def show_pending_jobs(context, site=None):
 )
 def purge_jobs(site=None, queue=None, event=None):
 	"Purge any pending periodic tasks, if event option is not given, it will purge everything for the site"
-	from frappe.utils.doctor import purge_pending_jobs
+	from nts.utils.doctor import purge_pending_jobs
 
-	frappe.init(site or "")
+	nts.init(site or "")
 	count = purge_pending_jobs(event=event, site=site, queue=queue)
 	print(f"Purged {count} jobs")
 
@@ -176,7 +176,7 @@ def start_scheduler():
 	"""Start scheduler process which is responsible for enqueueing the scheduled job types."""
 	import time
 
-	from frappe.utils.scheduler import start_scheduler
+	from nts.utils.scheduler import start_scheduler
 
 	time.sleep(0.5)  # Delayed start. TODO: find better way to handle this.
 	start_scheduler()
@@ -200,7 +200,7 @@ def start_scheduler():
 )
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
 	"""Start a background worker"""
-	from frappe.utils.background_jobs import start_worker
+	from nts.utils.background_jobs import start_worker
 
 	start_worker(
 		queue,
@@ -223,7 +223,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
 def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 	"""Start a backgrond worker"""
-	from frappe.utils.background_jobs import start_worker_pool
+	from nts.utils.background_jobs import start_worker_pool
 
 	start_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)
 
@@ -234,13 +234,13 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 def ready_for_migration(context, site=None):
 	import time
 
-	from frappe.utils.doctor import any_job_pending
+	from nts.utils.doctor import any_job_pending
 
 	if not site:
 		site = get_site(context)
 
 	try:
-		frappe.init(site)
+		nts.init(site)
 		pending_jobs = False
 
 		# HACK: Check at least 3 times, 1 second apart.
@@ -259,7 +259,7 @@ def ready_for_migration(context, site=None):
 			return 0
 
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 commands = [

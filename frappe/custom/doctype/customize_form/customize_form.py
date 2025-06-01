@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
 """
@@ -7,22 +7,22 @@
 """
 import json
 
-import frappe
-import frappe.translate
-from frappe import _
-from frappe.core.doctype.doctype.doctype import (
+import nts
+import nts.translate
+from nts import _
+from nts.core.doctype.doctype.doctype import (
 	check_email_append_to,
 	validate_autoincrement_autoname,
 	validate_fields_for_doctype,
 	validate_series,
 )
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
-from frappe.model import core_doctypes_list, no_value_fields
-from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
-from frappe.model.meta import trim_table
-from frappe.utils import cint
+from nts.custom.doctype.custom_field.custom_field import create_custom_field
+from nts.custom.doctype.property_setter.property_setter import delete_property_setter
+from nts.model import core_doctypes_list, no_value_fields
+from nts.model.docfield import supports_translation
+from nts.model.document import Document
+from nts.model.meta import trim_table
+from nts.utils import cint
 
 
 class CustomizeForm(Document):
@@ -32,11 +32,11 @@ class CustomizeForm(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.doctype_action.doctype_action import DocTypeAction
-		from frappe.core.doctype.doctype_link.doctype_link import DocTypeLink
-		from frappe.core.doctype.doctype_state.doctype_state import DocTypeState
-		from frappe.custom.doctype.customize_form_field.customize_form_field import CustomizeFormField
-		from frappe.types import DF
+		from nts.core.doctype.doctype_action.doctype_action import DocTypeAction
+		from nts.core.doctype.doctype_link.doctype_link import DocTypeLink
+		from nts.core.doctype.doctype_state.doctype_state import DocTypeState
+		from nts.custom.doctype.customize_form_field.customize_form_field import CustomizeFormField
+		from nts.types import DF
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
@@ -88,16 +88,16 @@ class CustomizeForm(Document):
 	# end: auto-generated types
 
 	def on_update(self):
-		frappe.db.delete("Singles", {"doctype": "Customize Form"})
-		frappe.db.delete("Customize Form Field")
+		nts.db.delete("Singles", {"doctype": "Customize Form"})
+		nts.db.delete("Customize Form Field")
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
 		if not self.doc_type:
 			return
 
-		meta = frappe.get_meta(self.doc_type, cached=False)
+		meta = nts.get_meta(self.doc_type, cached=False)
 
 		self.validate_doctype(meta)
 
@@ -117,13 +117,13 @@ class CustomizeForm(Document):
 		Check if the doctype is allowed to be customized.
 		"""
 		if self.doc_type in core_doctypes_list:
-			frappe.throw(_("Core DocTypes cannot be customized."))
+			nts.throw(_("Core DocTypes cannot be customized."))
 
 		if meta.issingle:
-			frappe.throw(_("Single DocTypes cannot be customized."))
+			nts.throw(_("Single DocTypes cannot be customized."))
 
 		if meta.custom:
-			frappe.throw(_("Only standard DocTypes are allowed to be customized from Customize Form."))
+			nts.throw(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
 	def load_properties(self, meta):
 		"""
@@ -175,9 +175,9 @@ class CustomizeForm(Document):
 
 	def get_name_translation(self):
 		"""Get translation object if exists of current doctype name in the default language"""
-		return frappe.get_value(
+		return nts.get_value(
 			"Translation",
-			{"source_text": self.doc_type, "language": frappe.local.lang or "en"},
+			{"source_text": self.doc_type, "language": nts.local.lang or "en"},
 			["name", "translated_text"],
 			as_dict=True,
 		)
@@ -188,23 +188,23 @@ class CustomizeForm(Document):
 		if not self.label:
 			if current:
 				# clear translation
-				frappe.delete_doc("Translation", current.name)
+				nts.delete_doc("Translation", current.name)
 			return
 
 		if not current:
-			frappe.get_doc(
+			nts.get_doc(
 				{
 					"doctype": "Translation",
 					"source_text": self.doc_type,
 					"translated_text": self.label,
-					"language_code": frappe.local.lang or "en",
+					"language_code": nts.local.lang or "en",
 				}
 			).insert()
 			return
 
 		if self.label != current.translated_text:
-			frappe.db.set_value("Translation", current.name, "translated_text", self.label)
-			frappe.translate.clear_cache()
+			nts.db.set_value("Translation", current.name, "translated_text", self.label)
+			nts.translate.clear_cache()
 
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
@@ -218,7 +218,7 @@ class CustomizeForm(Document):
 		self.doc_type = doc_type
 		self.name = "Customize Form"
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def save_customization(self):
 		if not self.doc_type:
 			return
@@ -235,10 +235,10 @@ class CustomizeForm(Document):
 
 		if self.flags.update_db:
 			try:
-				frappe.db.updatedb(self.doc_type)
+				nts.db.updatedb(self.doc_type)
 			except Exception as e:
-				if frappe.db.is_db_table_size_limit(e):
-					frappe.throw(
+				if nts.db.is_db_table_size_limit(e):
+					nts.throw(
 						_("You have hit the row size limit on database table: {0}").format(
 							"<a href='https://docs.erpnext.com/docs/v14/user/manual/en/customize-erpnext/articles/maximum-number-of-fields-in-a-form'>"
 							"Maximum Number of Fields in a Form</a>"
@@ -248,19 +248,19 @@ class CustomizeForm(Document):
 				raise
 
 		if not hasattr(self, "hide_success") or not self.hide_success:
-			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
-		frappe.clear_cache(doctype=self.doc_type)
+			nts.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
+		nts.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
 		if self.flags.rebuild_doctype_for_global_search:
-			frappe.enqueue(
-				"frappe.utils.global_search.rebuild_for_doctype",
+			nts.enqueue(
+				"nts.utils.global_search.rebuild_for_doctype",
 				doctype=self.doc_type,
 				enqueue_after_commit=True,
 			)
 
 	def set_property_setters(self):
-		meta = frappe.get_meta(self.doc_type)
+		meta = nts.get_meta(self.doc_type)
 
 		# doctype
 		self.set_property_setters_for_doctype(meta)
@@ -292,7 +292,7 @@ class CustomizeForm(Document):
 		if existing_order and new_order == json.loads(existing_order):
 			return
 
-		frappe.make_property_setter(
+		nts.make_property_setter(
 			{
 				"doctype": self.doc_type,
 				"doctype_or_field": "DocType",
@@ -332,22 +332,22 @@ class CustomizeForm(Document):
 				self.flags.update_db = True
 
 		elif prop == "allow_on_submit" and df.get(prop):
-			if not frappe.db.get_value(
+			if not nts.db.get_value(
 				"DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"
 			):
-				frappe.msgprint(
+				nts.msgprint(
 					_("Row {0}: Not allowed to enable Allow on Submit for standard fields").format(df.idx)
 				)
 				return False
 
 		elif prop == "reqd" and (
 			(
-				frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "reqd")
+				nts.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "reqd")
 				== 1
 			)
 			and (df.get(prop) == 0)
 		):
-			frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx))
+			nts.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx))
 			return False
 
 		elif (
@@ -356,7 +356,7 @@ class CustomizeForm(Document):
 			and df.fieldtype != "Attach Image"
 			and df.fieldtype in no_value_fields
 		):
-			frappe.msgprint(
+			nts.msgprint(
 				_("'In List View' not allowed for type {0} in row {1}").format(df.fieldtype, df.idx)
 			)
 			return False
@@ -374,21 +374,21 @@ class CustomizeForm(Document):
 		elif (
 			prop == "read_only"
 			and cint(df.get("read_only")) == 0
-			and frappe.db.get_value(
+			and nts.db.get_value(
 				"DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only"
 			)
 			== 1
 		):
 			# if docfield has read_only checked and user is trying to make it editable, don't allow it
-			frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
+			nts.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
 			return False
 
 		elif prop == "options" and df.get("fieldtype") not in ALLOWED_OPTIONS_CHANGE:
-			frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+			nts.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
 			return False
 
 		elif prop == "translatable" and not supports_translation(df.get("fieldtype")):
-			frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
+			nts.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 			return False
 
 		elif prop == "in_global_search" and df.in_global_search != meta_df[0].get("in_global_search"):
@@ -409,9 +409,9 @@ class CustomizeForm(Document):
 			items = []
 			for i, d in enumerate(self.get(fieldname) or []):
 				d.idx = i
-				if frappe.db.exists(doctype, d.name) and not d.custom:
+				if nts.db.exists(doctype, d.name) and not d.custom:
 					# check property and apply property setter
-					original = frappe.get_doc(doctype, d.name)
+					original = nts.get_doc(doctype, d.name)
 					for prop, prop_type in field_map.items():
 						if d.get(prop) != original.get(prop):
 							self.make_property_setter(
@@ -441,23 +441,23 @@ class CustomizeForm(Document):
 				property_name, json.dumps([d.name for d in self.get(fieldname)]), "Small Text"
 			)
 		else:
-			frappe.db.delete("Property Setter", dict(property=property_name, doc_type=self.doc_type))
+			nts.db.delete("Property Setter", dict(property=property_name, doc_type=self.doc_type))
 
 	def clear_removed_items(self, doctype, items):
 		"""
 		Clear rows that do not appear in `items`. These have been removed by the user.
 		"""
 		if items:
-			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1, name=("not in", items)))
+			nts.db.delete(doctype, dict(parent=self.doc_type, custom=1, name=("not in", items)))
 		else:
-			frappe.db.delete(doctype, dict(parent=self.doc_type, custom=1))
+			nts.db.delete(doctype, dict(parent=self.doc_type, custom=1))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
 			if is_standard_or_system_generated_field(df):
 				continue
 
-			if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
+			if not nts.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
 				self.add_custom_field(df, i)
 				self.flags.update_db = True
 			else:
@@ -466,7 +466,7 @@ class CustomizeForm(Document):
 		self.delete_custom_fields()
 
 	def add_custom_field(self, df, i):
-		d = frappe.new_doc("Custom Field")
+		d = nts.new_doc("Custom Field")
 
 		d.dt = self.doc_type
 
@@ -484,13 +484,13 @@ class CustomizeForm(Document):
 			self.flags.rebuild_doctype_for_global_search = True
 
 	def update_in_custom_field(self, df, i):
-		meta = frappe.get_meta(self.doc_type)
+		meta = nts.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
 			# not a custom field
 			return
 
-		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
+		custom_field = nts.get_doc("Custom Field", meta_df[0].name)
 		changed = False
 		for prop in docfield_properties:
 			if df.get(prop) != custom_field.get(prop):
@@ -516,14 +516,14 @@ class CustomizeForm(Document):
 			# custom_field.save()
 
 	def delete_custom_fields(self):
-		meta = frappe.get_meta(self.doc_type)
+		meta = nts.get_meta(self.doc_type)
 		fields_to_remove = {df.fieldname for df in meta.get("fields")} - {
 			df.fieldname for df in self.get("fields")
 		}
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if not is_standard_or_system_generated_field(df):
-				frappe.delete_doc("Custom Field", df.name)
+				nts.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
 		delete_property_setter(self.doc_type, prop, fieldname, row_name)
@@ -537,7 +537,7 @@ class CustomizeForm(Document):
 			apply_on = "DocField" if fieldname else "DocType"
 
 		# create a new property setter
-		frappe.make_property_setter(
+		nts.make_property_setter(
 			{
 				"doctype": self.doc_type,
 				"doctype_or_field": apply_on,
@@ -553,12 +553,12 @@ class CustomizeForm(Document):
 	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
 		if fieldname:
-			property_value = frappe.db.get_value(
+			property_value = nts.db.get_value(
 				"DocField", {"parent": self.doc_type, "fieldname": fieldname}, property_name
 			)
 		else:
-			if frappe.db.has_column("DocType", property_name):
-				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
+			if nts.db.has_column("DocType", property_name):
+				property_value = nts.db.get_value("DocType", self.doc_type, property_name)
 			else:
 				property_value = None
 
@@ -570,8 +570,8 @@ class CustomizeForm(Document):
 
 		allowed = self.allow_fieldtype_change(old_value, new_value)
 		if allowed:
-			old_value_length = cint(frappe.db.type_map.get(old_value)[1])
-			new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+			old_value_length = cint(nts.db.type_map.get(old_value)[1])
+			new_value_length = cint(nts.db.type_map.get(new_value)[1])
 
 			# Ignore fieldtype check validation if new field type has unspecified maxlength
 			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
@@ -582,7 +582,7 @@ class CustomizeForm(Document):
 				self.flags.update_db = True
 
 		else:
-			frappe.throw(
+			nts.throw(
 				_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(
 					old_value, new_value, df.idx
 				)
@@ -591,9 +591,9 @@ class CustomizeForm(Document):
 	def validate_fieldtype_length(self):
 		for field in self.check_length_for_fieldtypes:
 			df = field.get("df")
-			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
+			max_length = cint(nts.db.type_map.get(df.fieldtype)[1])
 			fieldname = df.fieldname
-			docs = frappe.db.sql(
+			docs = nts.db.sql(
 				f"""
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
 				FROM `tab{self.doc_type}`
@@ -602,20 +602,20 @@ class CustomizeForm(Document):
 				as_dict=True,
 			)
 			label = df.label
-			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
+			links_str = ", ".join(nts.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
 			if docs:
-				frappe.throw(
+				nts.throw(
 					_(
 						"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
-					).format(frappe.bold(label), links_str, frappe.bold(max_length)),
+					).format(nts.bold(label), links_str, nts.bold(max_length)),
 					title=_("Data Too Long"),
 					is_minimizable=len(docs) > 1,
 				)
 
 		self.flags.update_db = True
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def reset_to_defaults(self):
 		if not self.doc_type:
 			return
@@ -623,12 +623,12 @@ class CustomizeForm(Document):
 		reset_customization(self.doc_type)
 		self.fetch_to_customize()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def reset_layout(self):
 		if not self.doc_type:
 			return
 
-		property_setters = frappe.get_all(
+		property_setters = nts.get_all(
 			"Property Setter",
 			filters={"doc_type": self.doc_type, "property": ("in", ("field_order", "insert_after"))},
 			pluck="name",
@@ -637,11 +637,11 @@ class CustomizeForm(Document):
 		if not property_setters:
 			return
 
-		frappe.db.delete("Property Setter", {"name": ("in", property_setters)})
-		frappe.clear_cache(doctype=self.doc_type)
+		nts.db.delete("Property Setter", {"name": ("in", property_setters)})
+		nts.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def trim_table(self):
 		"""Removes database fields that don't exist in the doctype.
 
@@ -666,15 +666,15 @@ class CustomizeForm(Document):
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_orphaned_columns(doctype: str):
-	frappe.only_for("System Manager")
-	frappe.db.begin(read_only=True)  # Avoid any potential bug from writing to db
+	nts.only_for("System Manager")
+	nts.db.begin(read_only=True)  # Avoid any potential bug from writing to db
 	return trim_table(doctype, dry_run=True)
 
 
 def reset_customization(doctype):
-	setters = frappe.get_all(
+	setters = nts.get_all(
 		"Property Setter",
 		filters={
 			"doc_type": doctype,
@@ -686,29 +686,29 @@ def reset_customization(doctype):
 	)
 
 	for setter in setters:
-		frappe.delete_doc("Property Setter", setter)
+		nts.delete_doc("Property Setter", setter)
 
-	custom_fields = frappe.get_all(
+	custom_fields = nts.get_all(
 		"Custom Field", filters={"dt": doctype, "is_system_generated": False}, pluck="name"
 	)
 
 	for field in custom_fields:
-		frappe.delete_doc("Custom Field", field)
+		nts.delete_doc("Custom Field", field)
 
-	frappe.clear_cache(doctype=doctype)
+	nts.clear_cache(doctype=doctype)
 
 
 def is_standard_or_system_generated_field(df):
 	return not df.get("is_custom_field") or df.get("is_system_generated")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_link_filters_from_doc_without_customisations(doctype, fieldname):
 	"""Get the filters of a link field from a doc without customisations
 	In backend the customisations are not applied.
 	Customisations are applied in the client side.
 	"""
-	doc = frappe.get_doc("DocType", doctype)
+	doc = nts.get_doc("DocType", doctype)
 	field = list(filter(lambda x: x.fieldname == fieldname, doc.fields))
 	return field[0].link_filters
 

@@ -2,10 +2,10 @@
 
 import { createStore } from "vuex";
 
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
 (function () {
-	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
+	var method_prefix = "nts.desk.doctype.kanban_board.kanban_board.";
 
 	let columns_unwatcher = null;
 
@@ -60,10 +60,10 @@ frappe.provide("frappe.views");
 				});
 			},
 			add_column: function (context, col) {
-				if (frappe.model.can_create("Custom Field")) {
+				if (nts.model.can_create("Custom Field")) {
 					store.dispatch("update_column", { col, action: "add" });
 				} else {
-					frappe.msgprint({
+					nts.msgprint({
 						title: __("Not permitted"),
 						message: __("You are not allowed to create columns"),
 						indicator: "red",
@@ -101,7 +101,7 @@ frappe.provide("frappe.views");
 			},
 			add_card: function (context, { card_title, column_title }) {
 				var state = context.state;
-				var doc = frappe.model.get_new_doc(state.doctype);
+				var doc = nts.model.get_new_doc(state.doctype);
 				var field = state.card_meta.title_field;
 				var quick_entry = state.card_meta.quick_entry;
 
@@ -141,7 +141,7 @@ frappe.provide("frappe.views");
 						store.dispatch("update_order_for_single_card", args);
 					});
 				} else {
-					frappe.new_doc(state.doctype, doc);
+					nts.new_doc(state.doctype, doc);
 				}
 			},
 			update_card: function (context, card) {
@@ -182,8 +182,8 @@ frappe.provide("frappe.views");
 						new_index: card.new_index,
 					};
 				}
-				frappe.dom.freeze();
-				frappe
+				nts.dom.freeze();
+				nts
 					.call({
 						method: method_prefix + method_name,
 						args: args,
@@ -198,7 +198,7 @@ frappe.provide("frappe.views");
 								cards: cards,
 								columns: columns,
 							});
-							frappe.dom.unfreeze();
+							nts.dom.unfreeze();
 						},
 					})
 					.fail(function () {
@@ -207,7 +207,7 @@ frappe.provide("frappe.views");
 							cards: _cards,
 							columns: _columns,
 						});
-						frappe.dom.unfreeze();
+						nts.dom.unfreeze();
 					});
 			},
 			update_order: function (context) {
@@ -227,7 +227,7 @@ frappe.provide("frappe.views");
 						});
 				});
 
-				frappe
+				nts
 					.call({
 						method: method_prefix + "update_order",
 						args: {
@@ -254,7 +254,7 @@ frappe.provide("frappe.views");
 					});
 			},
 			update_column_order: function (context, order) {
-				return frappe
+				return nts
 					.call({
 						method: method_prefix + "update_column_order",
 						args: {
@@ -271,7 +271,7 @@ frappe.provide("frappe.views");
 					});
 			},
 			set_indicator: function (context, { column, color }) {
-				return frappe
+				return nts
 					.call({
 						method: method_prefix + "set_indicator",
 						args: {
@@ -291,7 +291,7 @@ frappe.provide("frappe.views");
 		},
 	});
 
-	frappe.views.KanbanBoard = function (opts) {
+	nts.views.KanbanBoard = function (opts) {
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
@@ -334,7 +334,7 @@ frappe.provide("frappe.views");
 			self.$kanban_board = self.wrapper.find(".kanban");
 
 			if (self.$kanban_board.length === 0) {
-				self.$kanban_board = $(frappe.render_template("kanban_board"));
+				self.$kanban_board = $(nts.render_template("kanban_board"));
 				self.$kanban_board.appendTo(self.wrapper);
 			}
 
@@ -348,7 +348,7 @@ frappe.provide("frappe.views");
 			var columns = store.state.columns;
 
 			columns.filter(is_active_column).map(function (col) {
-				frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
+				nts.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
 			});
 		}
 
@@ -396,7 +396,7 @@ frappe.provide("frappe.views");
 			$compose_column_form.keydown(function (e) {
 				if (e.which == 13) {
 					e.preventDefault();
-					if (!frappe.request.ajax_count) {
+					if (!nts.request.ajax_count) {
 						// not already working -- double entry
 						var title = $compose_column_form.serializeArray()[0].value;
 						var col = {
@@ -523,7 +523,7 @@ frappe.provide("frappe.views");
 		return self;
 	};
 
-	frappe.views.KanbanBoardColumn = function (column, wrapper, board_perms) {
+	nts.views.KanbanBoardColumn = function (column, wrapper, board_perms) {
 		var self = {};
 		var filtered_cards = [];
 
@@ -540,10 +540,10 @@ frappe.provide("frappe.views");
 
 		function make_dom() {
 			self.$kanban_column = $(
-				frappe.render_template("kanban_column", {
+				nts.render_template("kanban_column", {
 					title: column.title,
 					doctype: store.state.doctype,
-					indicator: frappe.scrub(column.indicator, "-"),
+					indicator: nts.scrub(column.indicator, "-"),
 				})
 			).appendTo(wrapper);
 			// add task, archive
@@ -562,23 +562,23 @@ frappe.provide("frappe.views");
 				// new cards
 				filtered_cards.forEach(function (card) {
 					if (order.indexOf(card.name) === -1) {
-						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+						nts.views.KanbanBoardCard(card, self.$kanban_cards);
 					}
 				});
 				order.forEach(function (name) {
 					if (!filtered_cards_names.includes(name)) return;
-					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
+					nts.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
 				});
 			} else {
 				filtered_cards.map(function (card) {
-					frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+					nts.views.KanbanBoardCard(card, self.$kanban_cards);
 				});
 			}
 		}
 
 		function setup_sortable() {
 			// Block card dragging/record editing without 'write' access to reference doctype
-			if (!frappe.model.can_write(store.state.doctype)) return;
+			if (!nts.model.can_write(store.state.doctype)) return;
 
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
@@ -615,7 +615,7 @@ frappe.provide("frappe.views");
 			var $btn_add = $wrapper.find(".add-card");
 			var $new_card_area = $wrapper.find(".new-card-area");
 
-			if (!frappe.model.can_create(store.state.doctype)) {
+			if (!nts.model.can_create(store.state.doctype)) {
 				// Block record/card creation without 'create' access to reference doctype
 				$btn_add.remove();
 				$new_card_area.remove();
@@ -636,7 +636,7 @@ frappe.provide("frappe.views");
 			$new_card_area.keydown(function (e) {
 				if (e.which == 13) {
 					e.preventDefault();
-					if (!frappe.request.ajax_count) {
+					if (!nts.request.ajax_count) {
 						// not already working -- double entry
 						e.preventDefault();
 						var card_title = $textarea.val();
@@ -686,7 +686,7 @@ frappe.provide("frappe.views");
 			get_column_indicators(function (indicators) {
 				let html = `<li class="button-group">${indicators
 					.map((indicator) => {
-						let classname = frappe.scrub(indicator, "-");
+						let classname = nts.scrub(indicator, "-");
 						return `<div data-action="indicator" data-indicator="${indicator}" class="btn btn-default btn-xs indicator-pill ${classname}"></div>`;
 					})
 					.join("")}</li>`;
@@ -697,7 +697,7 @@ frappe.provide("frappe.views");
 		init();
 	};
 
-	frappe.views.KanbanBoardCard = function (card, wrapper) {
+	nts.views.KanbanBoardCard = function (card, wrapper) {
 		var self = {};
 
 		function init() {
@@ -709,17 +709,17 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: frappe.utils.html2text(card.title),
+				title: nts.utils.html2text(card.title),
 				disable_click: card._disable_click ? "disable-click" : "",
 				creation: card.creation,
 				doc_content: get_doc_content(card),
 				image_url: cur_list.get_image_url(card),
-				form_link: frappe.utils.get_form_link(card.doctype, card.name),
+				form_link: nts.utils.get_form_link(card.doctype, card.name),
 			};
 
-			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
+			self.$card = $(nts.render_template("kanban_card", opts)).appendTo(wrapper);
 
-			if (!frappe.model.can_write(card.doctype)) {
+			if (!nts.model.can_write(card.doctype)) {
 				// Undraggable card without 'write' access to reference doctype
 				self.$card.find(".kanban-card-body").css("cursor", "default");
 			}
@@ -729,12 +729,12 @@ frappe.provide("frappe.views");
 			let fields = [];
 			for (let field_name of cur_list.board.fields) {
 				let field =
-					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
-					frappe.model.get_std_field(field_name);
+					nts.meta.docfield_map[card.doctype]?.[field_name] ||
+					nts.model.get_std_field(field_name);
 				let label = cur_list.board.show_labels
 					? `<span>${__(field.label, null, field.parent)}: </span>`
 					: "";
-				let value = frappe.format(card.doc[field_name], field);
+				let value = nts.format(card.doc[field_name], field);
 				fields.push(`
 					<div class="text-muted text-truncate">
 						${label}
@@ -759,7 +759,7 @@ frappe.provide("frappe.views");
 
 			if (card.comment_count > 0)
 				html += `<span class="list-comment-count small text-muted ">
-					${frappe.utils.icon("es-line-chat-alt")}
+					${nts.utils.icon("es-line-chat-alt")}
 					${card.comment_count}
 				</span>`;
 
@@ -770,7 +770,7 @@ frappe.provide("frappe.views");
 				${cur_list.get_like_html(card)}
 			`;
 
-			if (card.color && frappe.ui.color.validate_hex(card.color)) {
+			if (card.color && nts.ui.color.validate_hex(card.color)) {
 				const $div = $("<div>");
 				$("<div></div>")
 					.css({
@@ -794,7 +794,7 @@ frappe.provide("frappe.views");
 		}
 
 		function get_assignees_group() {
-			return frappe.avatar_group(card.assigned_list, 3, {
+			return nts.avatar_group(card.assigned_list, 3, {
 				css_class: "avatar avatar-small",
 				action_icon: "add",
 				action: show_assign_to_dialog,
@@ -804,9 +804,9 @@ frappe.provide("frappe.views");
 		function show_assign_to_dialog(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			self.assign_to = new frappe.ui.form.AssignToDialog({
+			self.assign_to = new nts.ui.form.AssignToDialog({
 				obj: self,
-				method: "frappe.desk.form.assign_to.add",
+				method: "nts.desk.form.assign_to.add",
 				doctype: card.doctype,
 				docname: card.name,
 				callback: function () {
@@ -878,10 +878,10 @@ frappe.provide("frappe.views");
 
 	function fetch_customization(doctype) {
 		return new Promise(function (resolve) {
-			frappe.model.with_doc("Customize Form", "Customize Form", function () {
-				var doc = frappe.get_doc("Customize Form");
+			nts.model.with_doc("Customize Form", "Customize Form", function () {
+				var doc = nts.get_doc("Customize Form");
 				doc.doc_type = doctype;
-				frappe.call({
+				nts.call({
 					doc: doc,
 					method: "fetch_to_customize",
 					callback: function (r) {
@@ -895,21 +895,21 @@ frappe.provide("frappe.views");
 	function save_customization(doc) {
 		if (!doc) return;
 		doc.hide_success = true;
-		return frappe.call({
+		return nts.call({
 			doc: doc,
 			method: "save_customization",
 		});
 	}
 
 	function insert_doc(doc) {
-		return frappe.call({
-			method: "frappe.client.insert",
+		return nts.call({
+			method: "nts.client.insert",
 			args: {
 				doc: doc,
 			},
 			callback: function () {
-				frappe.model.clear_doc(doc.doctype, doc.name);
-				frappe.show_alert({ message: __("Saved"), indicator: "green" }, 1);
+				nts.model.clear_doc(doc.doctype, doc.name);
+				nts.show_alert({ message: __("Saved"), indicator: "green" }, 1);
 			},
 		});
 	}
@@ -926,7 +926,7 @@ frappe.provide("frappe.views");
 			method = "archive_restore_column";
 			args.status = action === "archive" ? "Archived" : "Active";
 		}
-		return frappe.call({
+		return nts.call({
 			method: method_prefix + method,
 			args: args,
 		});
@@ -961,8 +961,8 @@ frappe.provide("frappe.views");
 	}
 
 	function get_column_indicators(callback) {
-		frappe.model.with_doctype("Kanban Board Column", function () {
-			var meta = frappe.get_meta("Kanban Board Column");
+		nts.model.with_doctype("Kanban Board Column", function () {
+			var meta = nts.get_meta("Kanban Board Column");
 			var indicators;
 			meta.fields.forEach(function (df) {
 				if (df.fieldname === "indicator") {

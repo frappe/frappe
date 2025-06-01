@@ -1,7 +1,7 @@
-// Copyright (c) 2021, Frappe Technologies and contributors
+// Copyright (c) 2021, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Network Printer Settings", {
+nts.ui.form.on("Network Printer Settings", {
 	onload(frm) {
 		frm.trigger("connect_print_server");
 	},
@@ -13,7 +13,7 @@ frappe.ui.form.on("Network Printer Settings", {
 	},
 	connect_print_server(frm) {
 		if (frm.doc.server_ip && frm.doc.port) {
-			frappe.call({
+			nts.call({
 				doc: frm.doc,
 				method: "get_printers_list",
 				args: {

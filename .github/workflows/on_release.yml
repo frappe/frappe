@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: 'frappe'
+          path: 'nts'
 
       - uses: actions/setup-node@v3
         with:
@@ -30,14 +30,14 @@ jobs:
       - name: Set up bench and build assets
         run: |
           npm install -g yarn
-          pip3 install -U frappe-bench
-          bench -v init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
-          cd frappe-bench && bench build
+          pip3 install -U nts-bench
+          bench -v init nts-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --nts-path $GITHUB_WORKSPACE/nts
+          cd nts-bench && bench build
 
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/frappe/dist
+          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./nts-bench/sites/assets/nts/dist
 
       - name: Get release
         id: get_release
@@ -62,4 +62,4 @@ jobs:
     - name: curl
       run: |
         apk add curl bash
-        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/nts/nts_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'

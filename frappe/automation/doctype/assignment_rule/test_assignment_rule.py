@@ -1,26 +1,26 @@
-# Copyright (c) 2021, Frappe Technologies and Contributors
+# Copyright (c) 2021, nts Technologies and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.test_runner import make_test_records
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.test_runner import make_test_records
+from nts.tests.utils import ntsTestCase
 
 TEST_DOCTYPE = "Assignment Test"
 
 
-class TestAutoAssign(FrappeTestCase):
+class TestAutoAssign(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		frappe.db.delete("Assignment Rule")
+		nts.db.delete("Assignment Rule")
 		create_test_doctype(TEST_DOCTYPE)
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def setUp(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		make_test_records("User")
 		days = [
 			dict(day="Sunday"),
@@ -39,7 +39,7 @@ class TestAutoAssign(FrappeTestCase):
 		# check if auto assigned to first user
 		record = _make_test_record(public=1)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
@@ -50,7 +50,7 @@ class TestAutoAssign(FrappeTestCase):
 		# check if auto assigned to second user
 		record = _make_test_record(public=1)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
@@ -64,7 +64,7 @@ class TestAutoAssign(FrappeTestCase):
 		# previous assignments where closed
 		record = _make_test_record(public=1)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
@@ -75,7 +75,7 @@ class TestAutoAssign(FrappeTestCase):
 		# check loop back to first user
 		record = _make_test_record(public=1)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
@@ -93,15 +93,15 @@ class TestAutoAssign(FrappeTestCase):
 		# check if each user has 10 assignments (?)
 		for user in ("test@example.com", "test1@example.com", "test2@example.com"):
 			self.assertEqual(
-				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
+				len(nts.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
 
 		# clear 5 assignments for first user
 		# can't do a limit in "delete" since postgres does not support it
-		for d in frappe.get_all(
+		for d in nts.get_all(
 			"ToDo", dict(reference_type=TEST_DOCTYPE, allocated_to="test@example.com"), limit=5
 		):
-			frappe.db.delete("ToDo", {"name": d.name})
+			nts.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
 		for _ in range(5):
@@ -110,7 +110,7 @@ class TestAutoAssign(FrappeTestCase):
 		# check if each user still has 10 assignments
 		for user in ("test@example.com", "test1@example.com", "test2@example.com"):
 			self.assertEqual(
-				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
+				len(nts.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
 
 	def test_assingment_on_guest_submissions(self):
@@ -120,7 +120,7 @@ class TestAutoAssign(FrappeTestCase):
 
 		# check assignment to *anyone*
 		self.assertTrue(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				{"reference_type": TEST_DOCTYPE, "reference_name": doc.name, "status": "Open"},
 				"allocated_to",
@@ -133,11 +133,11 @@ class TestAutoAssign(FrappeTestCase):
 		self.assignment_rule.save()
 
 		for test_user in ("test1@example.com", "test2@example.com"):
-			frappe.set_user(test_user)
+			nts.set_user(test_user)
 			note = _make_test_record(public=1)
 			# check if auto assigned to doc owner, test1@example.com
 			self.assertEqual(
-				frappe.db.get_value(
+				nts.db.get_value(
 					"ToDo",
 					dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 					"owner",
@@ -150,7 +150,7 @@ class TestAutoAssign(FrappeTestCase):
 		note = _make_test_record(public=0)
 
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
@@ -162,11 +162,11 @@ class TestAutoAssign(FrappeTestCase):
 		note = _make_test_record(public=1)
 
 		# check if auto assigned to first user
-		todo = frappe.get_list(
+		todo = nts.get_list(
 			"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), limit=1
 		)[0]
 
-		todo = frappe.get_doc("ToDo", todo["name"])
+		todo = nts.get_doc("ToDo", todo["name"])
 		self.assertEqual(todo.allocated_to, "test@example.com")
 
 		# test auto unassign
@@ -182,11 +182,11 @@ class TestAutoAssign(FrappeTestCase):
 		note = _make_test_record(public=1, content="valid")
 
 		# check if auto assigned
-		todo = frappe.get_list(
+		todo = nts.get_list(
 			"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), limit=1
 		)[0]
 
-		todo = frappe.get_doc("ToDo", todo["name"])
+		todo = nts.get_doc("ToDo", todo["name"])
 		self.assertEqual(todo.allocated_to, "test@example.com")
 
 		note.content = "Closed"
@@ -204,7 +204,7 @@ class TestAutoAssign(FrappeTestCase):
 
 		# check if auto assigned to test3 (2nd rule is applied, as it has higher priority)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
@@ -213,7 +213,7 @@ class TestAutoAssign(FrappeTestCase):
 		)
 
 	def check_assignment_rule_scheduling(self):
-		frappe.db.delete("Assignment Rule")
+		nts.db.delete("Assignment Rule")
 
 		days_1 = [dict(day="Sunday"), dict(day="Monday"), dict(day="Tuesday")]
 
@@ -221,11 +221,11 @@ class TestAutoAssign(FrappeTestCase):
 
 		get_assignment_rule([days_1, days_2], ["public == 1", "public == 1"])
 
-		frappe.flags.assignment_day = "Monday"
+		nts.flags.assignment_day = "Monday"
 		note = _make_test_record(public=1)
 
 		self.assertIn(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
@@ -233,11 +233,11 @@ class TestAutoAssign(FrappeTestCase):
 			["test@example.com", "test1@example.com", "test2@example.com"],
 		)
 
-		frappe.flags.assignment_day = "Friday"
+		nts.flags.assignment_day = "Friday"
 		note = _make_test_record(public=1)
 
 		self.assertIn(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"ToDo",
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
@@ -246,9 +246,9 @@ class TestAutoAssign(FrappeTestCase):
 		)
 
 	def test_assignment_rule_condition(self):
-		frappe.db.delete("Assignment Rule")
+		nts.db.delete("Assignment Rule")
 
-		assignment_rule = frappe.get_doc(
+		assignment_rule = nts.get_doc(
 			dict(
 				name="Assignment with Due Date",
 				doctype="Assignment Rule",
@@ -262,44 +262,44 @@ class TestAutoAssign(FrappeTestCase):
 			)
 		).insert()
 
-		expiry_date = frappe.utils.add_days(frappe.utils.nowdate(), 2)
+		expiry_date = nts.utils.add_days(nts.utils.nowdate(), 2)
 		note1 = _make_test_record(expiry_date=expiry_date)
 		note2 = _make_test_record(expiry_date=expiry_date)
 
-		note1_todo = frappe.get_all(
+		note1_todo = nts.get_all(
 			"ToDo", filters=dict(reference_type=TEST_DOCTYPE, reference_name=note1.name, status="Open")
 		)[0]
 
-		note1_todo_doc = frappe.get_doc("ToDo", note1_todo.name)
-		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), expiry_date)
+		note1_todo_doc = nts.get_doc("ToDo", note1_todo.name)
+		self.assertEqual(nts.utils.get_date_str(note1_todo_doc.date), expiry_date)
 
 		# due date should be updated if the reference doc's date is updated.
-		note1.expiry_date = frappe.utils.add_days(expiry_date, 2)
+		note1.expiry_date = nts.utils.add_days(expiry_date, 2)
 		note1.save()
 		note1_todo_doc.reload()
-		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), note1.expiry_date)
+		self.assertEqual(nts.utils.get_date_str(note1_todo_doc.date), note1.expiry_date)
 
 		# saving one note's expiry should not update other note todo's due date
-		note2_todo = frappe.get_all(
+		note2_todo = nts.get_all(
 			"ToDo",
 			filters=dict(reference_type=TEST_DOCTYPE, reference_name=note2.name, status="Open"),
 			fields=["name", "date"],
 		)[0]
-		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
-		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
+		self.assertNotEqual(nts.utils.get_date_str(note2_todo.date), note1.expiry_date)
+		self.assertEqual(nts.utils.get_date_str(note2_todo.date), expiry_date)
 		assignment_rule.delete()
-		frappe.db.commit()  # undo changes commited by DDL
+		nts.db.commit()  # undo changes commited by DDL
 
 	def test_submittable_assignment(self):
 		# create a submittable doctype
 		submittable_doctype = "Assignment Test Submittable"
 		create_test_doctype(submittable_doctype)
-		dt = frappe.get_doc("DocType", submittable_doctype)
+		dt = nts.get_doc("DocType", submittable_doctype)
 		dt.is_submittable = 1
 		dt.save()
 
 		# create a rule for the submittable doctype
-		assignment_rule = frappe.new_doc("Assignment Rule")
+		assignment_rule = nts.new_doc("Assignment Rule")
 		assignment_rule.name = f"For {submittable_doctype}"
 		assignment_rule.document_type = submittable_doctype
 		assignment_rule.rule = "Round Robin"
@@ -310,12 +310,12 @@ class TestAutoAssign(FrappeTestCase):
 		assignment_rule.save()
 
 		# create a submittable doc
-		doc = frappe.new_doc(submittable_doctype)
+		doc = nts.new_doc(submittable_doctype)
 		doc.save()
 		doc.submit()
 
 		# check if todo is created
-		todos = frappe.get_all(
+		todos = nts.get_all(
 			"ToDo",
 			filters={
 				"reference_type": submittable_doctype,
@@ -328,7 +328,7 @@ class TestAutoAssign(FrappeTestCase):
 
 		# check if todo is closed on cancel
 		doc.cancel()
-		todos = frappe.get_all(
+		todos = nts.get_all(
 			"ToDo",
 			filters={
 				"reference_type": submittable_doctype,
@@ -341,16 +341,16 @@ class TestAutoAssign(FrappeTestCase):
 
 
 def clear_assignments():
-	frappe.db.delete("ToDo", {"reference_type": TEST_DOCTYPE})
+	nts.db.delete("ToDo", {"reference_type": TEST_DOCTYPE})
 
 
 def get_assignment_rule(days, assign=None):
-	frappe.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 1")
+	nts.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 1")
 
 	if not assign:
 		assign = ["public == 1", "notify_on_login == 1"]
 
-	assignment_rule = frappe.get_doc(
+	assignment_rule = nts.get_doc(
 		dict(
 			name=f"For {TEST_DOCTYPE} 1",
 			doctype="Assignment Rule",
@@ -369,10 +369,10 @@ def get_assignment_rule(days, assign=None):
 		)
 	).insert()
 
-	frappe.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 2")
+	nts.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 2")
 
 	# 2nd rule
-	frappe.get_doc(
+	nts.get_doc(
 		dict(
 			name=f"For {TEST_DOCTYPE} 2",
 			doctype="Assignment Rule",
@@ -394,7 +394,7 @@ def _make_test_record(
 	ignore_permissions=False,
 	**kwargs,
 ):
-	doc = frappe.new_doc(TEST_DOCTYPE)
+	doc = nts.new_doc(TEST_DOCTYPE)
 
 	if kwargs:
 		doc.update(kwargs)
@@ -404,9 +404,9 @@ def _make_test_record(
 
 def create_test_doctype(doctype: str):
 	"""Create custom doctype."""
-	frappe.delete_doc("DocType", doctype)
+	nts.delete_doc("DocType", doctype)
 
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": doctype,

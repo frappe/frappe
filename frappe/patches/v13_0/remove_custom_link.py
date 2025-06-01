@@ -1,4 +1,4 @@
-import frappe
+import nts
 
 
 def execute():
@@ -7,12 +7,12 @@ def execute():
 	Dashboard since this is now managed by Customize Form.
 	Update `parent` property to the DocType and delte the doctype
 	"""
-	frappe.reload_doctype("DocType Link")
-	if frappe.db.has_table("Custom Link"):
-		for custom_link in frappe.get_all("Custom Link", ["name", "document_type"]):
-			frappe.db.sql(
+	nts.reload_doctype("DocType Link")
+	if nts.db.has_table("Custom Link"):
+		for custom_link in nts.get_all("Custom Link", ["name", "document_type"]):
+			nts.db.sql(
 				"update `tabDocType Link` set custom=1, parent=%s where parent=%s",
 				(custom_link.document_type, custom_link.name),
 			)
 
-		frappe.delete_doc("DocType", "Custom Link")
+		nts.delete_doc("DocType", "Custom Link")

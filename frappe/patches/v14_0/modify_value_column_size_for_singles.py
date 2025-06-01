@@ -1,6 +1,6 @@
-import frappe
+import nts
 
 
 def execute():
-	if frappe.db.db_type == "mariadb":
-		frappe.db.sql_ddl("alter table `tabSingles` modify column `value` longtext")
+	if nts.db.db_type == "mariadb":
+		nts.db.sql_ddl("alter table `tabSingles` modify column `value` longtext")

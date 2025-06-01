@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.on("Website Slideshow", {
+nts.ui.form.on("Website Slideshow", {
 	refresh: (frm) => {
 		let intro = frm.doc.__islocal
 			? __("First set the name and save the record.")
@@ -11,7 +11,7 @@ frappe.ui.form.on("Website Slideshow", {
 		if (frm.is_new()) return;
 
 		frm.add_custom_button(__("Fetch attached images from document"), () => {
-			const d = new frappe.ui.Dialog({
+			const d = new nts.ui.Dialog({
 				title: __("Fetch Images"),
 				fields: [
 					{
@@ -31,7 +31,7 @@ frappe.ui.form.on("Website Slideshow", {
 				],
 				primary_action_label: __("Add to table"),
 				primary_action: ({ reference_doctype, reference_name }) => {
-					frappe.db
+					nts.db
 						.get_list("File", {
 							fields: ["file_url"],
 							filters: {

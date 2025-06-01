@@ -1,12 +1,12 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import hashlib
 
-import frappe
-from frappe.model.document import Document
-from frappe.query_builder import DocType
-from frappe.utils import cint, now_datetime
+import nts
+from nts.model.document import Document
+from nts.query_builder import DocType
+from nts.utils import cint, now_datetime
 
 
 class TransactionLog(Document):
@@ -16,7 +16,7 @@ class TransactionLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		amended_from: DF.Link | None
 		chaining_hash: DF.SmallText | None
@@ -35,7 +35,7 @@ class TransactionLog(Document):
 		self.row_index = index
 		self.timestamp = now_datetime()
 		if index != 1:
-			prev_hash = frappe.get_all(
+			prev_hash = nts.get_all(
 				"Transaction Log", filters={"row_index": str(index - 1)}, pluck="chaining_hash", limit=1
 			)
 			if prev_hash:
@@ -51,16 +51,16 @@ class TransactionLog(Document):
 	def hash_line(self):
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(self.row_index))
-			+ frappe.safe_encode(str(self.timestamp))
-			+ frappe.safe_encode(str(self.data))
+			nts.safe_encode(str(self.row_index))
+			+ nts.safe_encode(str(self.timestamp))
+			+ nts.safe_encode(str(self.data))
 		)
 		return sha.hexdigest()
 
 	def hash_chain(self):
 		sha = hashlib.sha256()
 		sha.update(
-			frappe.safe_encode(str(self.transaction_hash)) + frappe.safe_encode(str(self.previous_hash))
+			nts.safe_encode(str(self.transaction_hash)) + nts.safe_encode(str(self.previous_hash))
 		)
 		return sha.hexdigest()
 
@@ -68,19 +68,19 @@ class TransactionLog(Document):
 def get_current_index():
 	series = DocType("Series")
 	current = (
-		frappe.qb.from_(series).where(series.name == "TRANSACTLOG").for_update().select("current")
+		nts.qb.from_(series).where(series.name == "TRANSACTLOG").for_update().select("current")
 	).run()
 
 	if current and current[0][0] is not None:
 		current = current[0][0]
 
-		frappe.db.sql(
+		nts.db.sql(
 			"""UPDATE `tabSeries`
 			SET `current` = `current` + 1
 			where `name` = 'TRANSACTLOG'"""
 		)
 		current = cint(current) + 1
 	else:
-		frappe.db.sql("INSERT INTO `tabSeries` (name, current) VALUES ('TRANSACTLOG', 1)")
+		nts.db.sql("INSERT INTO `tabSeries` (name, current) VALUES ('TRANSACTLOG', 1)")
 		current = 1
 	return current

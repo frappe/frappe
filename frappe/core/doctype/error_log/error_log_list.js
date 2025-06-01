@@ -1,4 +1,4 @@
-frappe.listview_settings["Error Log"] = {
+nts.listview_settings["Error Log"] = {
 	add_fields: ["seen"],
 	get_indicator: function (doc) {
 		if (cint(doc.seen)) {
@@ -10,16 +10,16 @@ frappe.listview_settings["Error Log"] = {
 	order_by: "seen asc, modified desc",
 	onload: function (listview) {
 		listview.page.add_menu_item(__("Clear Error Logs"), function () {
-			frappe.call({
-				method: "frappe.core.doctype.error_log.error_log.clear_error_logs",
+			nts.call({
+				method: "nts.core.doctype.error_log.error_log.clear_error_logs",
 				callback: function () {
 					listview.refresh();
 				},
 			});
 		});
 
-		frappe.require("logtypes.bundle.js", () => {
-			frappe.utils.logtypes.show_log_retention_message(cur_list.doctype);
+		nts.require("logtypes.bundle.js", () => {
+			nts.utils.logtypes.show_log_retention_message(cur_list.doctype);
 		});
 	},
 };

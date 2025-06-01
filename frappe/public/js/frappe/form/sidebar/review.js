@@ -1,22 +1,22 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.Review = class Review {
+nts.ui.form.Review = class Review {
 	constructor({ parent, frm }) {
 		this.parent = parent;
 		this.frm = frm;
-		this.points = frappe.boot.points;
+		this.points = nts.boot.points;
 		this.reviews = this.parent.find(".reviews");
 		this.setup_add_review_button();
 		this.update_reviewers();
 	}
 	update_points() {
-		return frappe
-			.xcall("frappe.social.doctype.energy_point_log.energy_point_log.get_energy_points", {
-				user: frappe.session.user,
+		return nts
+			.xcall("nts.social.doctype.energy_point_log.energy_point_log.get_energy_points", {
+				user: nts.session.user,
 			})
 			.then((data) => {
-				frappe.boot.points = data;
+				nts.boot.points = data;
 				this.points = data;
 			});
 	}
@@ -41,7 +41,7 @@ frappe.ui.form.Review = class Review {
 
 	show_review_dialog() {
 		const user_options = this.frm.get_involved_users();
-		const review_dialog = new frappe.ui.Dialog({
+		const review_dialog = new nts.ui.Dialog({
 			title: __("Add Review"),
 			fields: [
 				{
@@ -88,10 +88,10 @@ frappe.ui.form.Review = class Review {
 			primary_action: (values) => {
 				review_dialog.disable_primary_action();
 				if (values.points > this.points.review_points) {
-					return frappe.msgprint(__("You do not have enough points"));
+					return nts.msgprint(__("You do not have enough points"));
 				}
-				frappe
-					.xcall("frappe.social.doctype.energy_point_log.energy_point_log.review", {
+				nts
+					.xcall("nts.social.doctype.energy_point_log.energy_point_log.review", {
 						doc: {
 							doctype: this.frm.doc.doctype,
 							name: this.frm.doc.name,
@@ -126,7 +126,7 @@ frappe.ui.form.Review = class Review {
 		review_logs.forEach((log) => {
 			let review_pill = $(`
 				<div class="review ${log.points < 0 ? "criticism" : "appreciation"} cursor-pointer">
-					${frappe.avatar(log.owner)}
+					${nts.avatar(log.owner)}
 					<span class="review-points">
 						${log.points > 0 ? "+" : ""}${log.points}
 					</span>
@@ -138,8 +138,8 @@ frappe.ui.form.Review = class Review {
 	}
 	setup_detail_popover(el, data) {
 		let subject = "";
-		let fullname = frappe.user.full_name(data.user);
-		let timestamp = `<span class="text-muted">${frappe.datetime.comment_when(
+		let fullname = nts.user.full_name(data.user);
+		let timestamp = `<span class="text-muted">${nts.datetime.comment_when(
 			data.creation
 		)}</span>`;
 		let message_parts = [Math.abs(data.points), fullname, timestamp];
@@ -178,12 +178,12 @@ frappe.ui.form.Review = class Review {
 						</div>
 
 						<div class="subject">
-							${frappe.utils.icon("review")}
+							${nts.utils.icon("review")}
 							${subject}
 
 							<p class="mt-1">
-								<!-- ${frappe.avatar("shivam@example.com", "avatar-xs")} -->
-								<span>${frappe.user.full_name(data.owner)}</span> - ${timestamp}
+								<!-- ${nts.avatar("shivam@example.com", "avatar-xs")} -->
+								<span>${nts.user.full_name(data.owner)}</span> - ${timestamp}
 							</p>
 						</div>
 					</div>

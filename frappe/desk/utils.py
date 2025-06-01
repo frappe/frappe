@@ -1,7 +1,7 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 
 def validate_route_conflict(doctype, name):
@@ -9,18 +9,18 @@ def validate_route_conflict(doctype, name):
 	Raises exception if name clashes with routes from other documents for /app routing
 	"""
 
-	if frappe.flags.in_migrate:
+	if nts.flags.in_migrate:
 		return
 
 	all_names = []
 	for _doctype in ["Page", "Workspace", "DocType"]:
 		all_names.extend(
-			[slug(d) for d in frappe.get_all(_doctype, pluck="name") if (doctype != _doctype and d != name)]
+			[slug(d) for d in nts.get_all(_doctype, pluck="name") if (doctype != _doctype and d != name)]
 		)
 
 	if slug(name) in all_names:
-		frappe.msgprint(frappe._("Name already taken, please set a new name"))
-		raise frappe.NameError
+		nts.msgprint(nts._("Name already taken, please set a new name"))
+		raise nts.NameError
 
 
 def slug(name):
@@ -31,7 +31,7 @@ def pop_csv_params(form_dict):
 	"""Pop csv params from form_dict and return them as a dict."""
 	from csv import QUOTE_NONNUMERIC
 
-	from frappe.utils.data import cint, cstr
+	from nts.utils.data import cint, cstr
 
 	return {
 		"delimiter": cstr(form_dict.pop("csv_delimiter", ","))[0],
@@ -53,8 +53,8 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 
 def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 	"""Provide a binary file to the client."""
-	from frappe import _
+	from nts import _
 
-	frappe.response["type"] = "binary"
-	frappe.response["filecontent"] = content
-	frappe.response["filename"] = f"{_(filename)}.{extension}"
+	nts.response["type"] = "binary"
+	nts.response["filecontent"] = content
+	nts.response["filename"] = f"{_(filename)}.{extension}"

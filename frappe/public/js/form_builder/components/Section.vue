@@ -31,7 +31,7 @@
 					<div
 						v-if="section.df.collapsible"
 						class="collapse-indicator"
-						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
+						v-html="nts.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
 				<Dropdown v-if="!store.read_only" :options="options" @click.stop />
@@ -114,7 +114,7 @@ function is_section_empty() {
 
 function remove_section() {
 	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
-		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		nts.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (store.has_standard_field(props.section)) {
 		delete_section();
@@ -187,7 +187,7 @@ function add_column() {
 
 function remove_column() {
 	if (store.is_customize_form && column.value.df.is_custom_field == 0) {
-		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		nts.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (column.value.fields.length == 0 || store.has_standard_field(column.value)) {
 		delete_column();
@@ -214,7 +214,7 @@ function delete_column(with_children) {
 
 	if (with_children && index == 0 && columns.length == 1) {
 		if (column.value.fields.length == 0) {
-			frappe.msgprint(__("Section must have at least one column"));
+			nts.msgprint(__("Section must have at least one column"));
 			throw "section must have at least one column";
 		}
 
@@ -237,7 +237,7 @@ function delete_column(with_children) {
 				if (next_column) {
 					next_column.is_first = true;
 				} else {
-					frappe.msgprint(__("Section must have at least one column"));
+					nts.msgprint(__("Section must have at least one column"));
 					throw "section must have at least one column";
 				}
 			} else {

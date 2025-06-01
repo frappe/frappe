@@ -1,10 +1,10 @@
 /**
- * frappe.views.MapView
+ * nts.views.MapView
  */
-frappe.provide("frappe.utils");
-frappe.provide("frappe.views");
+nts.provide("nts.utils");
+nts.provide("nts.views");
 
-frappe.views.MapView = class MapView extends frappe.views.ListView {
+nts.views.MapView = class MapView extends nts.views.ListView {
 	get view_name() {
 		return "Map";
 	}
@@ -16,16 +16,16 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	setup_view() {
-		this.map_id = frappe.dom.get_unique_id();
+		this.map_id = nts.dom.get_unique_id();
 		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
-		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
+		L.Icon.Default.imagePath = nts.utils.map_defaults.image_path;
 		this.map = L.map(this.map_id).setView(
-			frappe.utils.map_defaults.center,
-			frappe.utils.map_defaults.zoom
+			nts.utils.map_defaults.center,
+			nts.utils.map_defaults.zoom
 		);
 
-		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
+		L.tileLayer(nts.utils.map_defaults.tiles, nts.utils.map_defaults.options).addTo(
 			this.map
 		);
 
@@ -51,7 +51,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 			this.coords.features.forEach((coords) => {
 				const marker = L.geoJSON(coords).bindPopup(
-					frappe.utils.get_form_link(this.doctype, coords.properties.name, true)
+					nts.utils.get_form_link(this.doctype, coords.properties.name, true)
 				);
 				this.markerLayer.addLayer(marker);
 			});
@@ -65,7 +65,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 	get_coords() {
 		let get_coords_method =
-			(this.settings && this.settings.get_coords_method) || "frappe.geo.utils.get_coords";
+			(this.settings && this.settings.get_coords_method) || "nts.geo.utils.get_coords";
 
 		if (
 			cur_list.meta.fields.find(
@@ -79,7 +79,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		) {
 			this.type = "coordinates";
 		}
-		return frappe
+		return nts
 			.call({
 				method: get_coords_method,
 				args: {

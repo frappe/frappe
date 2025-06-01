@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.permissions import SYSTEM_USER_ROLE
 
 
 class OAuthClient(Document):
@@ -14,8 +14,8 @@ class OAuthClient(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.integrations.doctype.oauth_client_role.oauth_client_role import OAuthClientRole
-		from frappe.types import DF
+		from nts.integrations.doctype.oauth_client_role.oauth_client_role import OAuthClientRole
+		from nts.types import DF
 
 		allowed_roles: DF.TableMultiSelect[OAuthClientRole]
 		app_name: DF.Data
@@ -33,7 +33,7 @@ class OAuthClient(Document):
 	def validate(self):
 		self.client_id = self.name
 		if not self.client_secret:
-			self.client_secret = frappe.generate_hash(length=10)
+			self.client_secret = nts.generate_hash(length=10)
 		self.validate_grant_and_response()
 		self.add_default_role()
 
@@ -44,7 +44,7 @@ class OAuthClient(Document):
 			or self.grant_type == "Implicit"
 			and self.response_type != "Token"
 		):
-			frappe.throw(
+			nts.throw(
 				_(
 					"Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed"
 				).format(self.grant_type, self.response_type)
@@ -57,4 +57,4 @@ class OAuthClient(Document):
 	def user_has_allowed_role(self) -> bool:
 		"""Returns true if session user is allowed to use this client."""
 		allowed_roles = {d.role for d in self.allowed_roles}
-		return bool(allowed_roles & set(frappe.get_roles()))
+		return bool(allowed_roles & set(nts.get_roles()))

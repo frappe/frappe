@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 """Utils for inter-process synchronization using file-locks.
 
 This file implements a "weak" form lock which is not suitable for synchroniztion. This is only used
 for document locking for queue_action.
-Use `frappe.utils.synchroniztion.filelock` for process synchroniztion.
+Use `nts.utils.synchroniztion.filelock` for process synchroniztion.
 """
 
 import os
 from pathlib import Path
 from time import time
 
-import frappe
-from frappe.utils import get_site_path, touch_file
+import nts
+from nts.utils import get_site_path, touch_file
 
 LOCKS_DIR = "locks"
 
@@ -70,5 +70,5 @@ def get_lock_path(name):
 
 def release_document_locks():
 	"""Unlocks all documents that were locked by the current context."""
-	for doc in frappe.local.locked_documents:
+	for doc in nts.local.locked_documents:
 		doc.unlock()

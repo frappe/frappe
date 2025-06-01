@@ -1,9 +1,9 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class NavbarSettings(Document):
@@ -13,8 +13,8 @@ class NavbarSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.navbar_item.navbar_item import NavbarItem
-		from frappe.types import DF
+		from nts.core.doctype.navbar_item.navbar_item import NavbarItem
+		from nts.types import DF
 
 		announcement_widget: DF.TextEditor | None
 		app_logo: DF.AttachImage | None
@@ -39,17 +39,17 @@ class NavbarSettings(Document):
 
 		after_save_items = [item for item in self.help_dropdown + self.settings_dropdown if item.is_standard]
 
-		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
-			frappe.throw(_("Please hide the standard navbar items instead of deleting them"))
+		if not nts.flags.in_patch and (len(before_save_items) > len(after_save_items)):
+			nts.throw(_("Please hide the standard navbar items instead of deleting them"))
 
 
 def get_app_logo():
-	app_logo = frappe.get_website_settings("app_logo") or frappe.db.get_single_value(
+	app_logo = nts.get_website_settings("app_logo") or nts.db.get_single_value(
 		"Navbar Settings", "app_logo", cache=True
 	)
 
 	if not app_logo:
-		logos = frappe.get_hooks("app_logo_url")
+		logos = nts.get_hooks("app_logo_url")
 		app_logo = logos[0]
 		if len(logos) == 2:
 			app_logo = logos[1]
@@ -58,4 +58,4 @@ def get_app_logo():
 
 
 def get_navbar_settings():
-	return frappe.get_single("Navbar Settings")
+	return nts.get_single("Navbar Settings")

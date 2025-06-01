@@ -1,9 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 import Section from "./section.js";
 
-frappe.ui.form.Dashboard = class FormDashboard {
+nts.ui.form.Dashboard = class FormDashboard {
 	constructor(parent, frm) {
 		this.parent = parent;
 		this.frm = frm;
@@ -25,7 +25,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			collapsible: 1,
 			is_dashboard_section: 1,
 			body_html: `
-				<div id="heatmap-${frappe.model.scrub(this.frm.doctype)}" class="heatmap"></div>
+				<div id="heatmap-${nts.model.scrub(this.frm.doctype)}" class="heatmap"></div>
 				<div class="text-muted small heatmap-message hidden"></div>
 			`,
 		});
@@ -182,7 +182,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	refresh() {
 		this.reset();
-		if (this.frm.doc.__islocal || !frappe.boot.desk_settings.dashboard) {
+		if (this.frm.doc.__islocal || !nts.boot.desk_settings.dashboard) {
 			return;
 		}
 
@@ -292,7 +292,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		(this.data.transactions || []).forEach(function (group) {
 			let items = [];
 			group.items.forEach(function (doctype) {
-				if (frappe.model.can_read(doctype)) {
+				if (nts.model.can_read(doctype)) {
 					items.push(doctype);
 				}
 			});
@@ -319,7 +319,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		let transactions_area_body = this.transactions_area;
 
-		$(frappe.render_template("form_links", this.data)).appendTo(transactions_area_body);
+		$(nts.render_template("form_links", this.data)).appendTo(transactions_area_body);
 
 		this.render_report_links();
 
@@ -344,7 +344,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	render_report_links() {
 		let parent = this.transactions_area;
 		if (this.data.reports && this.data.reports.length) {
-			$(frappe.render_template("report_links", this.data)).appendTo(parent);
+			$(nts.render_template("report_links", this.data)).appendTo(parent);
 			// bind reports
 			parent.find(".report-link").on("click", (e) => {
 				this.open_report($(e.target).parent());
@@ -359,9 +359,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			? this.data.non_standard_fieldnames[report] || this.data.fieldname
 			: this.data.fieldname;
 
-		frappe.provide("frappe.route_options");
-		frappe.route_options[fieldname] = this.frm.doc.name;
-		frappe.set_route("query-report", report);
+		nts.provide("nts.route_options");
+		nts.route_options[fieldname] = this.frm.doc.name;
+		nts.set_route("query-report", report);
 	}
 
 	open_document_list($link, show_open) {
@@ -374,18 +374,18 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			this.internal_links_found.find((d) => d.doctype === doctype)
 		) {
 			if (names.length) {
-				frappe.route_options = { name: ["in", names] };
+				nts.route_options = { name: ["in", names] };
 			} else {
 				return false;
 			}
 		} else if (this.data.fieldname) {
-			frappe.route_options = this.get_document_filter(doctype);
-			if (show_open && frappe.ui.notifications) {
-				frappe.ui.notifications.show_open_count_list(doctype);
+			nts.route_options = this.get_document_filter(doctype);
+			if (show_open && nts.ui.notifications) {
+				nts.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
-		frappe.set_route("List", doctype, "List");
+		nts.set_route("List", doctype, "List");
 	}
 
 	get_document_filter(doctype) {
@@ -426,8 +426,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			});
 		});
 
-		let method = this.data.method || "frappe.desk.notifications.get_open_count";
-		frappe.call({
+		let method = this.data.method || "nts.desk.notifications.get_open_count";
+		nts.call({
 			type: "GET",
 			method: method,
 			args: {
@@ -518,7 +518,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// heatmap
 	render_heatmap() {
-		this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+		this.heatmap = new nts.Chart("#heatmap-" + nts.model.scrub(this.frm.doctype), {
 			type: "heatmap",
 			start: new Date(moment().subtract(1, "year").toDate()),
 			count_label: "interactions",
@@ -583,7 +583,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		};
 		$.extend(args, this.data.graph_method_args);
 
-		frappe.call({
+		nts.call({
 			type: "GET",
 			method: method,
 			args: args,
@@ -608,12 +608,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			truncateLegends: 1,
 			axisOptions: {
 				shortenYAxisNumbers: 1,
-				numberFormatter: frappe.utils.format_chart_axis_number,
+				numberFormatter: nts.utils.format_chart_axis_number,
 			},
 		});
 		this.show();
 
-		this.chart = new frappe.Chart(".form-graph", args);
+		this.chart = new nts.Chart(".form-graph", args);
 		if (!this.chart) {
 			this.hide();
 		}

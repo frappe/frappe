@@ -1,14 +1,14 @@
 import click
 
-from frappe.commands import pass_context
-from frappe.exceptions import SiteNotSpecifiedError
+from nts.commands import pass_context
+from nts.exceptions import SiteNotSpecifiedError
 
 
 @click.command("generate-pot-file", help="Translation: generate POT file")
-@click.option("--app", help="Only generate for this app. eg: frappe")
+@click.option("--app", help="Only generate for this app. eg: nts")
 @pass_context
 def generate_pot_file(context, app: str | None = None):
-	from frappe.gettext.translate import generate_pot
+	from nts.gettext.translate import generate_pot
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
@@ -17,7 +17,7 @@ def generate_pot_file(context, app: str | None = None):
 
 
 @click.command("compile-po-to-mo", help="Translation: compile PO files to MO files")
-@click.option("--app", help="Only compile for this app. eg: frappe")
+@click.option("--app", help="Only compile for this app. eg: nts")
 @click.option(
 	"--force",
 	is_flag=True,
@@ -27,7 +27,7 @@ def generate_pot_file(context, app: str | None = None):
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
 def compile_translations(context, app: str | None = None, locale: str | None = None, force=False):
-	from frappe.gettext.translate import compile_translations as _compile_translations
+	from nts.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
@@ -36,11 +36,11 @@ def compile_translations(context, app: str | None = None, locale: str | None = N
 
 
 @click.command("migrate-csv-to-po", help="Translation: migrate from CSV files (old) to PO files (new)")
-@click.option("--app", help="Only migrate for this app. eg: frappe")
+@click.option("--app", help="Only migrate for this app. eg: nts")
 @click.option("--locale", help="Compile translations only for this locale. eg: de")
 @pass_context
 def csv_to_po(context, app: str | None = None, locale: str | None = None):
-	from frappe.gettext.translate import migrate
+	from nts.gettext.translate import migrate
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
@@ -53,11 +53,11 @@ def csv_to_po(context, app: str | None = None, locale: str | None = None):
 	help="""Translation: sync PO files with POT file.
 You might want to run generate-pot-file first.""",
 )
-@click.option("--app", help="Only update for this app. eg: frappe")
+@click.option("--app", help="Only update for this app. eg: nts")
 @click.option("--locale", help="Update PO files only for this locale. eg: de")
 @pass_context
 def update_po_files(context, app: str | None = None, locale: str | None = None):
-	from frappe.gettext.translate import update_po
+	from nts.gettext.translate import update_po
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
@@ -67,11 +67,11 @@ def update_po_files(context, app: str | None = None, locale: str | None = None):
 
 @click.command("create-po-file", help="Translation: create a new PO file for a locale")
 @click.argument("locale", nargs=1)
-@click.option("--app", help="Only create for this app. eg: frappe")
+@click.option("--app", help="Only create for this app. eg: nts")
 @pass_context
 def create_po_file(context, locale: str, app: str | None = None):
 	"""Create PO file for lang code"""
-	from frappe.gettext.translate import new_po
+	from nts.gettext.translate import new_po
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
@@ -93,13 +93,13 @@ def update_csv_from_po(app: str, locale: str | None = None) -> None:
 
 	This command is intended for backporting translations from the new translation system to the old one.
 	"""
-	from frappe.gettext.translate import update_csv_from_po
+	from nts.gettext.translate import update_csv_from_po
 
 	update_csv_from_po(app, locale)
 
 
 def connect_to_site(site):
-	from frappe import connect
+	from nts import connect
 
 	if not site:
 		raise SiteNotSpecifiedError

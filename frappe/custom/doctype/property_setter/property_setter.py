@@ -1,9 +1,9 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 not_allowed_fieldtype_change = ["naming_series"]
 
@@ -15,7 +15,7 @@ class PropertySetter(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		default_value: DF.Data | None
 		doc_type: DF.Link
@@ -41,21 +41,21 @@ class PropertySetter(Document):
 
 		if self.is_new():
 			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
-		frappe.clear_cache(doctype=self.doc_type)
+		nts.clear_cache(doctype=self.doc_type)
 
 	def on_trash(self):
-		frappe.clear_cache(doctype=self.doc_type)
+		nts.clear_cache(doctype=self.doc_type)
 
 	def validate_fieldtype_change(self):
 		if self.property == "fieldtype" and self.field_name in not_allowed_fieldtype_change:
-			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
+			nts.throw(_("Field type cannot be changed for {0}").format(self.field_name))
 
 	def on_update(self):
-		if frappe.flags.in_patch:
+		if nts.flags.in_patch:
 			self.flags.validate_fields_for_doctype = False
 
 		if not self.flags.ignore_validate and self.flags.validate_fields_for_doctype:
-			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+			from nts.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 			validate_fields_for_doctype(self.doc_type)
 
@@ -71,7 +71,7 @@ def make_property_setter(
 	is_system_generated=True,
 ):
 	# WARNING: Ignores Permissions
-	property_setter = frappe.get_doc(
+	property_setter = nts.get_doc(
 		{
 			"doctype": "Property Setter",
 			"doctype_or_field": for_doctype and "DocType" or "DocField",
@@ -97,4 +97,4 @@ def delete_property_setter(doc_type, property, field_name=None, row_name=None):
 	if row_name:
 		filters["row_name"] = row_name
 
-	frappe.db.delete("Property Setter", filters)
+	nts.db.delete("Property Setter", filters)

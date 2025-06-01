@@ -1,12 +1,12 @@
-// Copyright (c) 2017, Frappe Technologies and contributors
+// Copyright (c) 2017, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Role Profile", {
+nts.ui.form.on("Role Profile", {
 	refresh: function (frm) {
-		if (has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
+		if (has_common(nts.user_roles, ["Administrator", "System Manager"])) {
 			if (!frm.roles_editor) {
 				const role_area = $(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
+				frm.roles_editor = new nts.RoleEditor(role_area, frm);
 			}
 			frm.roles_editor.show();
 		}

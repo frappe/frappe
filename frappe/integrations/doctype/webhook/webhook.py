@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2017, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import base64
@@ -10,14 +10,14 @@ from urllib.parse import urlparse
 
 import requests
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils.background_jobs import get_queues_timeout
-from frappe.utils.jinja import validate_template
-from frappe.utils.safe_exec import get_safe_globals
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils.background_jobs import get_queues_timeout
+from nts.utils.jinja import validate_template
+from nts.utils.safe_exec import get_safe_globals
 
-WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
+WEBHOOK_SECRET_HEADER = "X-nts-Webhook-Signature"
 
 
 class Webhook(Document):
@@ -27,9 +27,9 @@ class Webhook(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.integrations.doctype.webhook_data.webhook_data import WebhookData
-		from frappe.integrations.doctype.webhook_header.webhook_header import WebhookHeader
-		from frappe.types import DF
+		from nts.integrations.doctype.webhook_data.webhook_data import WebhookData
+		from nts.integrations.doctype.webhook_header.webhook_header import WebhookHeader
+		from nts.types import DF
 
 		background_jobs_queue: DF.Autocomplete | None
 		condition: DF.SmallText | None
@@ -69,33 +69,33 @@ class Webhook(Document):
 		self.preview_document = None
 
 	def on_update(self):
-		frappe.cache.delete_value("webhooks")
+		nts.cache.delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:
-			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
+			is_submittable = nts.get_value("DocType", self.webhook_doctype, "is_submittable")
 			if not is_submittable and self.webhook_docevent in [
 				"on_submit",
 				"on_cancel",
 				"on_update_after_submit",
 			]:
-				frappe.throw(_("DocType must be Submittable for the selected Doc Event"))
+				nts.throw(_("DocType must be Submittable for the selected Doc Event"))
 
 	def validate_condition(self):
-		temp_doc = frappe.new_doc(self.webhook_doctype)
+		temp_doc = nts.new_doc(self.webhook_doctype)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
+				nts.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_("Invalid Condition: {}").format(e))
+				nts.throw(_("Invalid Condition: {}").format(e))
 
 	def validate_request_url(self):
 		try:
 			request_url = urlparse(self.request_url).netloc
 			if not request_url:
-				raise frappe.ValidationError
+				raise nts.ValidationError
 		except Exception as e:
-			frappe.throw(_("Check Request URL"), exc=e)
+			nts.throw(_("Check Request URL"), exc=e)
 
 	def validate_request_body(self):
 		if self.request_structure:
@@ -109,16 +109,16 @@ class Webhook(Document):
 		"""Error when Same Field is entered multiple times in webhook_data"""
 		webhook_data = [entry.fieldname for entry in self.webhook_data]
 		if len(webhook_data) != len(set(webhook_data)):
-			frappe.throw(_("Same Field is entered more than once"))
+			nts.throw(_("Same Field is entered more than once"))
 
 	def validate_secret(self):
 		if self.enable_security:
 			try:
 				self.get_password("webhook_secret", False).encode("utf8")
 			except Exception:
-				frappe.throw(_("Invalid Webhook Secret"))
+				nts.throw(_("Invalid Webhook Secret"))
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def generate_preview(self):
 		# This function doesn't need to do anything specific as virtual fields
 		# get evaluated automatically.
@@ -133,8 +133,8 @@ class Webhook(Document):
 			return _("Select a document to check if it meets conditions.")
 
 		try:
-			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
-			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
+			doc = nts.get_cached_doc(self.webhook_doctype, self.preview_document)
+			met_condition = nts.safe_eval(self.condition, eval_locals=get_context(doc))
 		except Exception as e:
 			return _("Failed to evaluate conditions: {}").format(e)
 		return _("Yes") if met_condition else _("No")
@@ -145,28 +145,28 @@ class Webhook(Document):
 			return _("Select a document to preview request data")
 
 		try:
-			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
-			return frappe.as_json(get_webhook_data(doc, self))
+			doc = nts.get_cached_doc(self.webhook_doctype, self.preview_document)
+			return nts.as_json(get_webhook_data(doc, self))
 		except Exception as e:
 			return _("Failed to compute request body: {}").format(e)
 
 
 def get_context(doc):
-	return {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
+	return {"doc": doc, "utils": get_safe_globals().get("nts").get("utils")}
 
 
 def enqueue_webhook(doc, webhook) -> None:
 	request_url = headers = data = r = None
 	try:
-		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
+		webhook: Webhook = nts.get_doc("Webhook", webhook.get("name"))
 		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
-			request_url = frappe.render_template(webhook.request_url, get_context(doc))
+			request_url = nts.render_template(webhook.request_url, get_context(doc))
 		headers = get_webhook_headers(doc, webhook)
 		data = get_webhook_data(doc, webhook)
 
 	except Exception as e:
-		frappe.logger().debug({"enqueue_webhook_error": e})
+		nts.logger().debug({"enqueue_webhook_error": e})
 		log_request(webhook.name, doc.name, request_url, headers, data)
 		return
 
@@ -180,16 +180,16 @@ def enqueue_webhook(doc, webhook) -> None:
 				timeout=webhook.timeout or 5,
 			)
 			r.raise_for_status()
-			frappe.logger().debug({"webhook_success": r.text})
+			nts.logger().debug({"webhook_success": r.text})
 			log_request(webhook.name, doc.name, request_url, headers, data, r)
 			break
 
 		except requests.exceptions.ReadTimeout as e:
-			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			nts.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.name, request_url, headers, data)
 
 		except Exception as e:
-			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			nts.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.name, request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
@@ -204,17 +204,17 @@ def log_request(
 	data: dict,
 	res: requests.Response | None = None,
 ):
-	request_log = frappe.get_doc(
+	request_log = nts.get_doc(
 		{
 			"doctype": "Webhook Request Log",
 			"webhook": webhook,
 			"reference_document": docname,
-			"user": frappe.session.user if frappe.session.user else None,
+			"user": nts.session.user if nts.session.user else None,
 			"url": url,
-			"headers": frappe.as_json(headers) if headers else None,
-			"data": frappe.as_json(data) if data else None,
+			"headers": nts.as_json(headers) if headers else None,
+			"data": nts.as_json(data) if data else None,
 			"response": res.text if res is not None else None,
-			"error": frappe.get_traceback(),
+			"error": nts.get_traceback(),
 		}
 	)
 
@@ -250,15 +250,15 @@ def get_webhook_data(doc, webhook):
 	if webhook.webhook_data:
 		data = {w.key: doc.get(w.fieldname) for w in webhook.webhook_data}
 	elif webhook.webhook_json:
-		data = frappe.render_template(webhook.webhook_json, get_context(doc))
+		data = nts.render_template(webhook.webhook_json, get_context(doc))
 		data = json.loads(data)
 
 	return data
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_all_queues():
 	"""Fetches all workers and returns a list of available queue names."""
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 
 	return get_queues_timeout().keys()

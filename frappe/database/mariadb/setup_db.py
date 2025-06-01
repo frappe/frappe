@@ -2,12 +2,12 @@ import os
 
 import click
 
-import frappe
-from frappe.database.db_manager import DbManager
+import nts
+from nts.database.db_manager import DbManager
 
 
 def get_mariadb_variables():
-	return frappe._dict(frappe.db.sql("show variables"))
+	return nts._dict(nts.db.sql("show variables"))
 
 
 def get_mariadb_version(version_string: str = ""):
@@ -19,10 +19,10 @@ def get_mariadb_version(version_string: str = ""):
 
 
 def setup_database(force, verbose, mariadb_user_host_login_scope=None):
-	frappe.local.session = frappe._dict({"user": "Administrator"})
+	nts.local.session = nts._dict({"user": "Administrator"})
 
-	db_name = frappe.local.conf.db_name
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+	db_name = nts.local.conf.db_name
+	root_conn = get_root_connection(nts.flags.root_login, nts.flags.root_password)
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
 
@@ -35,7 +35,7 @@ def setup_database(force, verbose, mariadb_user_host_login_scope=None):
 	else:
 		raise Exception(f"Database {db_name} already exists")
 
-	dbman.create_user(db_name, frappe.conf.db_password, **dbman_kwargs)
+	dbman.create_user(db_name, nts.conf.db_password, **dbman_kwargs)
 	if verbose:
 		print("Created user %s" % db_name)
 
@@ -53,8 +53,8 @@ def setup_database(force, verbose, mariadb_user_host_login_scope=None):
 
 
 def drop_user_and_database(db_name, root_login, root_password):
-	frappe.local.db = get_root_connection(root_login, root_password)
-	dbman = DbManager(frappe.local.db)
+	nts.local.db = get_root_connection(root_login, root_password)
+	dbman = DbManager(nts.local.db)
 	dbman.drop_database(db_name)
 	dbman.delete_user(db_name, host="%")
 	dbman.delete_user(db_name)
@@ -63,13 +63,13 @@ def drop_user_and_database(db_name, root_login, root_password):
 def bootstrap_database(verbose, source_sql=None):
 	import sys
 
-	frappe.connect()
+	nts.connect()
 	check_compatible_versions()
 
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect()
+	nts.connect()
 
-	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
+	if "tabDefaultValue" not in nts.db.get_tables(cached=False):
 		from click import secho
 
 		secho(
@@ -84,11 +84,11 @@ def bootstrap_database(verbose, source_sql=None):
 def import_db_from_sql(source_sql=None, verbose=False):
 	if verbose:
 		print("Starting database import...")
-	db_name = frappe.conf.db_name
+	db_name = nts.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), "framework_mariadb.sql")
-	DbManager(frappe.local.db).restore_database(
-		verbose, db_name, source_sql, db_name, frappe.conf.db_password
+	DbManager(nts.local.db).restore_database(
+		verbose, db_name, source_sql, db_name, nts.conf.db_password
 	)
 	if verbose:
 		print("Imported from database %s" % source_sql)
@@ -101,12 +101,12 @@ def check_compatible_versions():
 
 		if version_tuple < (10, 6):
 			click.secho(
-				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
+				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by nts",
 				fg="yellow",
 			)
 		elif version_tuple >= (10, 9):
 			click.secho(
-				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with nts Framework.",
 				fg="yellow",
 			)
 	except Exception:
@@ -119,23 +119,23 @@ def check_compatible_versions():
 def get_root_connection(root_login, root_password):
 	import getpass
 
-	if not frappe.local.flags.root_connection:
+	if not nts.local.flags.root_connection:
 		if not root_login:
 			root_login = "root"
 
 		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+			root_password = nts.conf.get("root_password") or None
 
 		if not root_password:
 			root_password = getpass.getpass("MySQL root password: ")
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
-			socket=frappe.conf.db_socket,
-			host=frappe.conf.db_host,
-			port=frappe.conf.db_port,
+		nts.local.flags.root_connection = nts.database.get_db(
+			socket=nts.conf.db_socket,
+			host=nts.conf.db_host,
+			port=nts.conf.db_port,
 			user=root_login,
 			password=root_password,
 			cur_db_name=None,
 		)
 
-	return frappe.local.flags.root_connection
+	return nts.local.flags.root_connection

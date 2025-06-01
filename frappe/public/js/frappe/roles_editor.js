@@ -1,10 +1,10 @@
-frappe.RoleEditor = class {
+nts.RoleEditor = class {
 	constructor(wrapper, frm, disable) {
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = disable;
 		let user_roles = this.frm.doc.roles ? this.frm.doc.roles.map((a) => a.role) : [];
-		this.multicheck = frappe.ui.form.make_control({
+		this.multicheck = nts.ui.form.make_control({
 			parent: wrapper,
 			df: {
 				fieldname: "roles",
@@ -12,8 +12,8 @@ frappe.RoleEditor = class {
 				select_all: true,
 				columns: "15rem",
 				get_data: () => {
-					return frappe
-						.xcall("frappe.core.doctype.user.user.get_all_roles")
+					return nts
+						.xcall("nts.core.doctype.user.user.get_all_roles")
 						.then((roles) => {
 							return roles.map((role) => {
 								return {
@@ -53,8 +53,8 @@ frappe.RoleEditor = class {
 			this.make_perm_dialog();
 		}
 		$(this.perm_dialog.body).empty();
-		return frappe
-			.xcall("frappe.core.doctype.user.user.get_perm_info", { role })
+		return nts
+			.xcall("nts.core.doctype.user.user.get_perm_info", { role })
 			.then((permissions) => {
 				const $body = $(this.perm_dialog.body);
 				if (!permissions.length) {
@@ -69,7 +69,7 @@ frappe.RoleEditor = class {
 									<th> ${__("Document Type")} </th>
 									<th> ${__("Level")} </th>
 									<th> ${__("If Owner")} </th>
-									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
+									${nts.perm.rights.map((p) => `<th> ${__(nts.unscrub(p))}</th>`).join("")}
 								</tr>
 							</thead>
 							<tbody></tbody>
@@ -80,12 +80,12 @@ frappe.RoleEditor = class {
 							<tr>
 								<td>${__(perm.parent)}</td>
 								<td>${perm.permlevel}</td>
-								<td>${perm.if_owner ? frappe.utils.icon("check", "xs") : "-"}</td>
-								${frappe.perm.rights
+								<td>${perm.if_owner ? nts.utils.icon("check", "xs") : "-"}</td>
+								${nts.perm.rights
 									.map(
 										(p) =>
 											`<td class="text-muted bold">${
-												perm[p] ? frappe.utils.icon("check", "xs") : "-"
+												perm[p] ? nts.utils.icon("check", "xs") : "-"
 											}</td>`
 									)
 									.join("")}
@@ -98,7 +98,7 @@ frappe.RoleEditor = class {
 			});
 	}
 	make_perm_dialog() {
-		this.perm_dialog = new frappe.ui.Dialog({
+		this.perm_dialog = new nts.ui.Dialog({
 			title: __("Role Permissions"),
 		});
 
@@ -124,12 +124,12 @@ frappe.RoleEditor = class {
 		let checked_options = this.multicheck.get_checked_options();
 		roles.map((role_doc) => {
 			if (!checked_options.includes(role_doc.role)) {
-				frappe.model.clear_doc(role_doc.doctype, role_doc.name);
+				nts.model.clear_doc(role_doc.doctype, role_doc.name);
 			}
 		});
 		checked_options.map((role) => {
 			if (!roles.find((d) => d.role === role)) {
-				let role_doc = frappe.model.add_child(this.frm.doc, "Has Role", "roles");
+				let role_doc = nts.model.add_child(this.frm.doc, "Has Role", "roles");
 				role_doc.role = role;
 			}
 		});

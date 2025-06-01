@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class DefaultValue(Document):
@@ -12,7 +12,7 @@ class DefaultValue(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		defkey: DF.Data
 		defvalue: DF.Text | None
@@ -25,14 +25,14 @@ class DefaultValue(Document):
 
 def on_doctype_update():
 	"""Create indexes for `tabDefaultValue` on `(parent, defkey)`"""
-	frappe.db.commit()
-	frappe.db.add_index(
+	nts.db.commit()
+	nts.db.add_index(
 		doctype="DefaultValue",
 		fields=["parent", "defkey"],
 		index_name="defaultvalue_parent_defkey_index",
 	)
 
-	frappe.db.add_index(
+	nts.db.add_index(
 		doctype="DefaultValue",
 		fields=["parent", "parenttype"],
 		index_name="defaultvalue_parent_parenttype_index",

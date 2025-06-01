@@ -1,7 +1,7 @@
-// Copyright (c) 2023, Frappe Technologies and contributors
+// Copyright (c) 2023, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Recorder", {
+nts.ui.form.on("Recorder", {
 	onload: function (frm) {
 		frm.fields_dict.sql_queries.grid.only_sortable();
 	},
@@ -13,12 +13,12 @@ frappe.ui.form.on("Recorder", {
 		refresh_field("sql_queries");
 		frm.trigger("format_grid");
 		frm.add_custom_button(__("Suggest Optimizations"), () => {
-			frappe.xcall("frappe.core.doctype.recorder.recorder.optimize", {
+			nts.xcall("nts.core.doctype.recorder.recorder.optimize", {
 				recorder_id: frm.doc.name,
 			});
 		});
 
-		frappe.realtime.on("recorder-analysis-complete", () => {
+		nts.realtime.on("recorder-analysis-complete", () => {
 			frm.reload_doc();
 			setTimeout(() => frm.scroll_to_field("suggested_indexes"), 1500);
 		});
@@ -35,10 +35,10 @@ frappe.ui.form.on("Recorder", {
 				};
 			});
 			if (!indexes_to_add.length) {
-				frappe.toast(__("You need to select indexes you want to add first."));
+				nts.toast(__("You need to select indexes you want to add first."));
 				return;
 			}
-			frappe.xcall("frappe.core.doctype.recorder.recorder.add_indexes", {
+			nts.xcall("nts.core.doctype.recorder.recorder.add_indexes", {
 				indexes: indexes_to_add,
 			});
 		});
@@ -76,8 +76,8 @@ frappe.ui.form.on("Recorder", {
 	},
 });
 
-frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
-	let row = frappe.get_doc(cdt, cdn);
+nts.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
+	let row = nts.get_doc(cdt, cdn);
 	let stack = JSON.parse(row.stack);
 	render_html_field(stack, "stack_html", __("Stack Trace"));
 

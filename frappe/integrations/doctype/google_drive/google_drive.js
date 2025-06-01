@@ -1,7 +1,7 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Google Drive", {
+nts.ui.form.on("Google Drive", {
 	refresh: function (frm) {
 		if (!frm.doc.enable) {
 			frm.dashboard.set_headline(
@@ -11,7 +11,7 @@ frappe.ui.form.on("Google Drive", {
 			);
 		}
 
-		frappe.realtime.on("upload_to_google_drive", (data) => {
+		nts.realtime.on("upload_to_google_drive", (data) => {
 			if (data.progress) {
 				const progress_title = __("Uploading to Google Drive");
 				frm.dashboard.show_progress(
@@ -27,17 +27,17 @@ frappe.ui.form.on("Google Drive", {
 
 		if (frm.doc.enable && frm.doc.refresh_token) {
 			let sync_button = frm.add_custom_button(__("Take Backup"), function () {
-				frappe.show_alert({
+				nts.show_alert({
 					indicator: "green",
 					message: __("Backing up to Google Drive."),
 				});
-				frappe
+				nts
 					.call({
-						method: "frappe.integrations.doctype.google_drive.google_drive.take_backup",
+						method: "nts.integrations.doctype.google_drive.google_drive.take_backup",
 						btn: sync_button,
 					})
 					.then((r) => {
-						frappe.msgprint(r.message);
+						nts.msgprint(r.message);
 					});
 			});
 		}
@@ -55,8 +55,8 @@ frappe.ui.form.on("Google Drive", {
 		}
 	},
 	authorize_google_drive_access: function (frm) {
-		frappe.call({
-			method: "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
+		nts.call({
+			method: "nts.integrations.doctype.google_drive.google_drive.authorize_access",
 			args: {
 				reauthorize: frm.doc.authorization_code ? 1 : 0,
 			},

@@ -38,7 +38,7 @@
 			</div>
 			<div class="col-xs-4 text-right text-muted">
 				<small class="text-right">
-					{{ _("logged in") }}&nbsp;{{ frappe.utils.pretty_date(app.creation) }}
+					{{ _("logged in") }}&nbsp;{{ nts.utils.pretty_date(app.creation) }}
 				</small>
 			</div>
 			<div class="col-xs-2 text-right small text-muted">
@@ -49,7 +49,7 @@
 	{% endfor %}
 {% else %}
 <div class="empty-apps-state">
-	<img src="/assets/frappe/images/ui-states/empty-app-state.svg"/>
+	<img src="/assets/nts/images/ui-states/empty-app-state.svg"/>
 	<div class="font-weight-bold mt-4">
 		{{ _("No Active Sessions")}}
 	</div>

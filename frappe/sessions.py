@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 Boot session from cache or build
@@ -12,26 +12,26 @@ from urllib.parse import unquote
 
 import redis
 
-import frappe
-import frappe.defaults
-import frappe.model.meta
-import frappe.translate
-import frappe.utils
-from frappe import _
-from frappe.apps import get_apps, get_default_path, is_desk_apps
-from frappe.cache_manager import clear_user_cache
-from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json
-from frappe.utils.change_log import has_app_update_notifications
-from frappe.utils.data import add_to_date
+import nts
+import nts.defaults
+import nts.model.meta
+import nts.translate
+import nts.utils
+from nts import _
+from nts.apps import get_apps, get_default_path, is_desk_apps
+from nts.cache_manager import clear_user_cache
+from nts.query_builder import Order
+from nts.utils import cint, cstr, get_assets_json
+from nts.utils.change_log import has_app_update_notifications
+from nts.utils.data import add_to_date
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def clear():
-	frappe.local.session_obj.update(force=True)
-	frappe.local.db.commit()
-	clear_user_cache(frappe.session.user)
-	frappe.response["message"] = _("Cache Cleared")
+	nts.local.session_obj.update(force=True)
+	nts.local.db.commit()
+	clear_user_cache(nts.session.user)
+	nts.response["message"] = _("Cache Cleared")
 
 
 def clear_sessions(user=None, keep_current=False, force=False):
@@ -58,19 +58,19 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	:param force: ignore simultaneous sessions count, log the user out of all except current (default: false)
 	"""
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
 	offset = 0
-	if not force and user == frappe.session.user:
-		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
+	if not force and user == nts.session.user:
+		simultaneous_sessions = nts.db.get_value("User", user, "simultaneous_sessions") or 1
 		offset = simultaneous_sessions
 
-	session = frappe.qb.DocType("Sessions")
-	session_id = frappe.qb.from_(session).where(session.user == user)
+	session = nts.qb.DocType("Sessions")
+	session_id = nts.qb.from_(session).where(session.user == user)
 	if keep_current:
 		if not force:
 			offset = max(0, offset - 1)
-		session_id = session_id.where(session.sid != frappe.session.sid)
+		session_id = session_id.where(session.sid != nts.session.sid)
 
 	query = (
 		session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
@@ -80,42 +80,42 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
-	from frappe.core.doctype.activity_log.feed import logout_feed
+	from nts.core.doctype.activity_log.feed import logout_feed
 
-	if frappe.flags.read_only:
+	if nts.flags.read_only:
 		# This isn't manually initiated logout, most likely user's cookies were expired in such case
 		# we should just ignore it till database is back up again.
 		return
 
 	if sid and not user:
-		table = frappe.qb.DocType("Sessions")
-		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
+		table = nts.qb.DocType("Sessions")
+		user_details = nts.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		if user_details:
 			user = user_details[0].get("user")
 
 	logout_feed(user, reason)
-	frappe.db.delete("Sessions", {"sid": sid})
-	frappe.db.commit()
+	nts.db.delete("Sessions", {"sid": sid})
+	nts.db.commit()
 
-	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
+	nts.cache.hdel("session", sid)
+	nts.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
 	"""This effectively logs out all users"""
-	frappe.only_for("Administrator")
+	nts.only_for("Administrator")
 	if not reason:
 		reason = "Deleted All Active Session"
-	for sid in frappe.qb.from_("Sessions").select("sid").run(pluck=True):
+	for sid in nts.qb.from_("Sessions").select("sid").run(pluck=True):
 		delete_session(sid, reason=reason)
 
 
 def get_expired_sessions():
 	"""Returns list of expired sessions"""
 
-	sessions = frappe.qb.DocType("Sessions")
+	sessions = nts.qb.DocType("Sessions")
 	return (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.lastupdate < get_expired_threshold())
+		nts.qb.from_(sessions).select(sessions.sid).where(sessions.lastupdate < get_expired_threshold())
 	).run(pluck=True)
 
 
@@ -127,23 +127,23 @@ def clear_expired_sessions():
 
 def get():
 	"""get session boot info"""
-	from frappe.boot import get_bootinfo, get_unseen_notes
-	from frappe.utils.change_log import get_change_log
+	from nts.boot import get_bootinfo, get_unseen_notes
+	from nts.utils.change_log import get_change_log
 
 	bootinfo = None
-	if not getattr(frappe.conf, "disable_session_cache", None):
+	if not getattr(nts.conf, "disable_session_cache", None):
 		# check if cache exists
-		bootinfo = frappe.cache.hget("bootinfo", frappe.session.user)
+		bootinfo = nts.cache.hget("bootinfo", nts.session.user)
 		if bootinfo:
 			bootinfo["from_cache"] = 1
-			bootinfo["user"]["recent"] = json.dumps(frappe.cache.hget("user_recent", frappe.session.user))
+			bootinfo["user"]["recent"] = json.dumps(nts.cache.hget("user_recent", nts.session.user))
 
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
-		frappe.cache.hset("bootinfo", frappe.session.user, bootinfo)
+		nts.cache.hset("bootinfo", nts.session.user, bootinfo)
 		try:
-			frappe.cache.ping()
+			nts.cache.ping()
 		except redis.exceptions.ConnectionError:
 			message = _("Redis cache server not running. Please contact Administrator / Tech support")
 			if "messages" in bootinfo:
@@ -152,24 +152,24 @@ def get():
 				bootinfo["messages"] = [message]
 
 		# check only when clear cache is done, and don't cache this
-		if frappe.local.request:
+		if nts.local.request:
 			bootinfo["change_log"] = get_change_log()
 
-	bootinfo["metadata_version"] = frappe.cache.get_value("metadata_version")
+	bootinfo["metadata_version"] = nts.cache.get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
-		bootinfo["metadata_version"] = frappe.reset_metadata_version()
+		bootinfo["metadata_version"] = nts.reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
-	bootinfo.read_only = bool(frappe.flags.read_only)
+	bootinfo.read_only = bool(nts.flags.read_only)
 
-	for hook in frappe.get_hooks("extend_bootinfo"):
-		frappe.get_attr(hook)(bootinfo=bootinfo)
+	for hook in nts.get_hooks("extend_bootinfo"):
+		nts.get_attr(hook)(bootinfo=bootinfo)
 
-	bootinfo["lang"] = frappe.translate.get_user_lang()
-	bootinfo["disable_async"] = frappe.conf.disable_async
+	bootinfo["lang"] = nts.translate.get_user_lang()
+	bootinfo["disable_async"] = nts.conf.disable_async
 
-	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["setup_complete"] = cint(nts.get_system_settings("setup_complete"))
 	apps = get_apps() or []
 	bootinfo["apps_data"] = {
 		"apps": apps,
@@ -177,30 +177,30 @@ def get():
 		"default_path": get_default_path(apps) or "",
 	}
 
-	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
-	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
-	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
+	bootinfo["desk_theme"] = nts.db.get_value("User", nts.session.user, "desk_theme") or "Light"
+	bootinfo["user"]["impersonated_by"] = nts.session.data.get("impersonated_by")
+	bootinfo["navbar_settings"] = nts.get_cached_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 
 	return bootinfo
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_boot_assets_json():
 	return get_assets_json()
 
 
 def get_csrf_token():
-	if not frappe.local.session.data.csrf_token:
+	if not nts.local.session.data.csrf_token:
 		generate_csrf_token()
 
-	return frappe.local.session.data.csrf_token
+	return nts.local.session.data.csrf_token
 
 
 def generate_csrf_token():
-	frappe.local.session.data.csrf_token = frappe.generate_hash()
-	if not frappe.flags.in_test:
-		frappe.local.session_obj.update(force=True)
+	nts.local.session.data.csrf_token = nts.generate_hash()
+	if not nts.flags.in_test:
+		nts.local.session_obj.update(force=True)
 
 
 class Session:
@@ -215,16 +215,16 @@ class Session:
 		session_end: str | None = None,
 		audit_user: str | None = None,
 	):
-		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
+		self.sid = cstr(nts.form_dict.get("sid") or unquote(nts.request.cookies.get("sid", "Guest")))
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
-		self.data = frappe._dict({"data": frappe._dict({})})
+		self.data = nts._dict({"data": nts._dict({})})
 		self.time_diff = None
 		self._update_in_cache = False
 
 		# set local session
-		frappe.local.session = self.data
+		nts.local.session = self.data
 
 		if resume:
 			self.resume()
@@ -235,10 +235,10 @@ class Session:
 				self.start(session_end, audit_user)
 
 	def validate_user(self):
-		if not frappe.get_cached_value("User", self.user, "enabled"):
-			frappe.throw(
+		if not nts.get_cached_value("User", self.user, "enabled"):
+			nts.throw(
 				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
-				frappe.ValidationError,
+				nts.ValidationError,
 			)
 
 	def start(self, session_end: str | None = None, audit_user: str | None = None):
@@ -247,12 +247,12 @@ class Session:
 		if self.user == "Guest":
 			sid = "Guest"
 		else:
-			sid = frappe.generate_hash()
+			sid = nts.generate_hash()
 
 		self.data.user = self.user
 		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
-		self.data.data.session_ip = frappe.local.request_ip
+		self.data.data.session_ip = nts.local.request_ip
 
 		if session_end:
 			self.data.data.session_end = session_end
@@ -263,7 +263,7 @@ class Session:
 		if self.user != "Guest":
 			self.data.data.update(
 				{
-					"last_updated": frappe.utils.now(),
+					"last_updated": nts.utils.now(),
 					"session_expiry": get_expiry_period(),
 					"full_name": self.full_name,
 					"user_type": self.user_type,
@@ -275,35 +275,35 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			user = frappe.get_doc("User", self.data["user"])
-			user_doctype = frappe.qb.DocType("User")
+			user = nts.get_doc("User", self.data["user"])
+			user_doctype = nts.qb.DocType("User")
 			(
-				frappe.qb.update(user_doctype)
-				.set(user_doctype.last_login, frappe.utils.now())
-				.set(user_doctype.last_ip, frappe.local.request_ip)
-				.set(user_doctype.last_active, frappe.utils.now())
+				nts.qb.update(user_doctype)
+				.set(user_doctype.last_login, nts.utils.now())
+				.set(user_doctype.last_ip, nts.local.request_ip)
+				.set(user_doctype.last_active, nts.utils.now())
 				.where(user_doctype.name == self.data["user"])
 			).run()
 
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")
-			frappe.db.commit()
+			nts.db.commit()
 
 	def insert_session_record(self):
-		Sessions = frappe.qb.DocType("Sessions")
-		now = frappe.utils.now()
+		Sessions = nts.qb.DocType("Sessions")
+		now = nts.utils.now()
 
 		(
-			frappe.qb.into(Sessions)
+			nts.qb.into(Sessions)
 			.columns(Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status)
 			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
 		).run()
-		frappe.cache.hset("session", self.data.sid, self.data)
+		nts.cache.hset("session", self.data.sid, self.data)
 
 	def resume(self):
 		"""non-login request: load a session"""
-		import frappe
-		from frappe.auth import validate_ip_address
+		import nts
+		from nts.auth import validate_ip_address
 
 		data = self.get_session_record()
 
@@ -316,17 +316,17 @@ class Session:
 			self.start_as_guest()
 
 		if self.sid != "Guest":
-			frappe.local.user_lang = frappe.translate.get_user_lang(self.data.user)
-			frappe.local.lang = frappe.local.user_lang
+			nts.local.user_lang = nts.translate.get_user_lang(self.data.user)
+			nts.local.lang = nts.local.user_lang
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
-		from frappe.auth import clear_cookies
+		from nts.auth import clear_cookies
 
 		r = self.get_session_data()
 
 		if not r:
-			frappe.response["session_expired"] = 1
+			nts.response["session_expired"] = 1
 			clear_cookies()
 			self.sid = "Guest"
 			r = self.get_session_data()
@@ -335,7 +335,7 @@ class Session:
 
 	def get_session_data(self):
 		if self.sid == "Guest":
-			return frappe._dict({"user": "Guest"})
+			return nts._dict({"user": "Guest"})
 
 		data = self.get_session_data_from_cache()
 		if not data:
@@ -344,14 +344,14 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe.cache.hget("session", self.sid)
+		data = nts.cache.hget("session", self.sid)
 		if data:
-			data = frappe._dict(data)
+			data = nts._dict(data)
 			session_data = data.get("data", {})
 
 			# set user for correct timezone
-			self.time_diff = frappe.utils.time_diff_in_seconds(
-				frappe.utils.now(), session_data.get("last_updated")
+			self.time_diff = nts.utils.time_diff_in_seconds(
+				nts.utils.now(), session_data.get("last_updated")
 			)
 			expiry = get_expiry_in_seconds(session_data.get("session_expiry"))
 
@@ -365,17 +365,17 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		sessions = frappe.qb.DocType("Sessions")
+		sessions = nts.qb.DocType("Sessions")
 
 		record = (
-			frappe.qb.from_(sessions)
+			nts.qb.from_(sessions)
 			.select(sessions.user, sessions.sessiondata)
 			.where(sessions.sid == self.sid)
 			.where(sessions.lastupdate > get_expired_threshold())
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = nts._dict(nts.safe_eval(record and record[0][1] or "{}"))
 			data.user = record[0][0]
 		else:
 			self._delete_session()
@@ -394,37 +394,37 @@ class Session:
 	def update(self, force=False):
 		"""extend session expiry"""
 
-		if frappe.session.user == "Guest":
+		if nts.session.user == "Guest":
 			return
 
-		now = frappe.utils.now()
+		now = nts.utils.now()
 
-		Sessions = frappe.qb.DocType("Sessions")
+		Sessions = nts.qb.DocType("Sessions")
 
 		# update session in db
-		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
-		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
+		last_updated = nts.cache.hget("last_db_session_update", self.sid)
+		time_diff = nts.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
+		if (force or (time_diff is None) or (time_diff > 600)) and not nts.flags.read_only:
 			self.data.data.last_updated = now
-			self.data.data.lang = str(frappe.lang)
+			self.data.data.lang = str(nts.lang)
 			# update sessions table
 			(
-				frappe.qb.update(Sessions)
+				nts.qb.update(Sessions)
 				.where(Sessions.sid == self.data["sid"])
 				.set(Sessions.sessiondata, str(self.data["data"]))
 				.set(Sessions.lastupdate, now)
 			).run()
 
-			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
+			nts.db.set_value("User", nts.session.user, "last_active", now, update_modified=False)
 
-			frappe.db.commit()
+			nts.db.commit()
 			updated_in_db = True
 
-			frappe.cache.hset("last_db_session_update", self.sid, now)
-			frappe.cache.hset("session", self.sid, self.data)
+			nts.cache.hset("last_db_session_update", self.sid, now)
+			nts.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 
@@ -435,7 +435,7 @@ class Session:
 
 
 def get_expiry_period_for_query():
-	if frappe.db.db_type == "postgres":
+	if nts.db.db_type == "postgres":
 		return get_expiry_period()
 	else:
 		return get_expiry_in_seconds()
@@ -452,14 +452,14 @@ def get_expiry_in_seconds(expiry=None):
 def get_expired_threshold():
 	"""Get cutoff time before which all sessions are considered expired."""
 
-	now = frappe.utils.now()
+	now = nts.utils.now()
 	expiry_in_seconds = get_expiry_in_seconds()
 
 	return add_to_date(now, seconds=-expiry_in_seconds, as_string=True)
 
 
 def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "240:00:00"
+	exp_sec = nts.defaults.get_global_default("session_expiry") or "240:00:00"
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:
@@ -476,7 +476,7 @@ def get_geo_from_ip(ip_addr):
 			reader = f.reader()
 			data = reader.get(ip_addr)
 
-			return frappe._dict(data)
+			return nts._dict(data)
 	except ImportError:
 		return
 	except ValueError:

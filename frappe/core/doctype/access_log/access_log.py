@@ -1,10 +1,10 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # License: MIT. See LICENSE
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
-import frappe
-from frappe.model.document import Document
-from frappe.utils import cstr
+import nts
+from nts.model.document import Document
+from nts.utils import cstr
 
 
 class AccessLog(Document):
@@ -14,7 +14,7 @@ class AccessLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		columns: DF.HTMLEditor | None
 		export_from: DF.Data | None
@@ -30,14 +30,14 @@ class AccessLog(Document):
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=30):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Access Log")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Access Log")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def make_access_log(
 	doctype=None,
 	document=None,
@@ -60,10 +60,10 @@ def make_access_log(
 	)
 
 
-@frappe.write_only()
+@nts.write_only()
 @retry(
 	stop=stop_after_attempt(3),
-	retry=retry_if_exception_type(frappe.DuplicateEntryError),
+	retry=retry_if_exception_type(nts.DuplicateEntryError),
 	reraise=True,
 )
 def _make_access_log(
@@ -76,10 +76,10 @@ def _make_access_log(
 	page=None,
 	columns=None,
 ):
-	user = frappe.session.user
-	in_request = frappe.request and frappe.request.method == "GET"
+	user = nts.session.user
+	in_request = nts.request and nts.request.method == "GET"
 
-	access_log = frappe.get_doc(
+	access_log = nts.get_doc(
 		{
 			"doctype": "Access Log",
 			"user": user,
@@ -94,14 +94,14 @@ def _make_access_log(
 		}
 	)
 
-	if frappe.flags.read_only:
+	if nts.flags.read_only:
 		access_log.deferred_insert()
 		return
 	else:
 		access_log.db_insert()
 
-	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
+	# `nts.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
 	# dont commit in test mode. It must be tempting to put this block along with the in_request in the
 	# whitelisted method...yeah, don't do it. That part would be executed possibly on a read only DB conn
-	if not frappe.flags.in_test or in_request:
-		frappe.db.commit()
+	if not nts.flags.in_test or in_request:
+		nts.db.commit()

@@ -4,9 +4,9 @@ context("Attach Control", () => {
 		cy.visit("/app/doctype");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.create_doctype", {
+			.its("nts")
+			.then((nts) => {
+				return nts.xcall("nts.tests.ui_test_helpers.create_doctype", {
 					name: "Test Attach Control",
 					fields: [
 						{
@@ -169,9 +169,9 @@ context("Attach Control with Failed Document Save", () => {
 		cy.visit("/app/doctype");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.create_doctype", {
+			.its("nts")
+			.then((nts) => {
+				return nts.xcall("nts.tests.ui_test_helpers.create_doctype", {
 					name: "Test Mandatory Attach Control",
 					fields: [
 						{
@@ -246,6 +246,6 @@ context("Attach Control with Failed Document Save", () => {
 		cy.open_list_filter();
 		cy.get('input[data-fieldname="attached_to_name"]').click().clear().type(temp_name).blur();
 		cy.get(".filter-popover .apply-filters").click({ force: true });
-		cy.get(".frappe-list > .no-result").should("be.visible");
+		cy.get(".nts-list > .no-result").should("be.visible");
 	});
 });

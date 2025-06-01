@@ -1,11 +1,11 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.auto_commit_on_many_writes = 1
+	nts.db.auto_commit_on_many_writes = 1
 
 	# Strip everything except link to attachment and icon from comments of type "Attached"
-	for name, content in frappe.get_all(
+	for name, content in nts.get_all(
 		"Comment", filters={"comment_type": "Attachment"}, fields=["name", "content"], as_list=True
 	):
 		if not content:
@@ -20,14 +20,14 @@ def execute():
 		if end != -1:
 			content = content[: end + 4]
 
-		frappe.db.set_value("Comment", name, "content", content, update_modified=False)
+		nts.db.set_value("Comment", name, "content", content, update_modified=False)
 
 	# Strip "Removed " from comments of type "Attachment Removed"
-	for name, content in frappe.get_all(
+	for name, content in nts.get_all(
 		"Comment",
 		filters={"comment_type": "Attachment Removed"},
 		fields=["name", "content"],
 		as_list=True,
 	):
 		if content and content.startswith("Removed "):
-			frappe.db.set_value("Comment", name, "content", content[8:], update_modified=False)
+			nts.db.set_value("Comment", name, "content", content[8:], update_modified=False)

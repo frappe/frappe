@@ -1,9 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.Slide = class Slide {
+nts.ui.Slide = class Slide {
 	constructor(slide = null) {
 		$.extend(this, slide);
 		this.setup();
@@ -58,7 +58,7 @@ frappe.ui.Slide = class Slide {
 	}
 
 	setup_form() {
-		this.form = new frappe.ui.FieldGroup({
+		this.form = new nts.ui.FieldGroup({
 			fields: this.get_atomic_fields(),
 			body: this.$form[0],
 			no_submit_on_enter: true,
@@ -226,7 +226,7 @@ frappe.ui.Slide = class Slide {
 	primary_action() {}
 };
 
-frappe.ui.Slides = class Slides {
+nts.ui.Slides = class Slides {
 	constructor({
 		parent = null,
 		slides = [],
@@ -316,7 +316,7 @@ frappe.ui.Slides = class Slides {
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="slide-step-complete">${nts.utils.icon("tick", "xs")}</div>
 			</div>`).attr({ "data-step-id": id });
 
 			if (

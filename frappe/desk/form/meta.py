@@ -1,15 +1,15 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 
-import frappe
-from frappe import _
-from frappe.build import scrub_html_template
-from frappe.model.meta import Meta
-from frappe.model.utils import render_include
-from frappe.modules import get_module_path, load_doctype_module, scrub
-from frappe.utils import get_bench_path, get_html_format
-from frappe.utils.data import get_link_to_form
+import nts
+from nts import _
+from nts.build import scrub_html_template
+from nts.model.meta import Meta
+from nts.model.utils import render_include
+from nts.modules import get_module_path, load_doctype_module, scrub
+from nts.utils import get_bench_path, get_html_format
+from nts.utils.data import get_link_to_form
 
 ASSET_KEYS = (
 	"__js",
@@ -34,13 +34,13 @@ ASSET_KEYS = (
 
 def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
-	cached = cached and not frappe.conf.developer_mode
+	cached = cached and not nts.conf.developer_mode
 	if cached:
-		meta = frappe.cache.hget("doctype_form_meta", doctype)
+		meta = nts.cache.hget("doctype_form_meta", doctype)
 		if not meta:
 			# Cache miss - explicitly get meta from DB to avoid
 			meta = FormMeta(doctype, cached=False)
-			frappe.cache.hset("doctype_form_meta", doctype, meta)
+			nts.cache.hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
 
@@ -49,7 +49,7 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 
 class FormMeta(Meta):
 	def __init__(self, doctype, *, cached=True):
-		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
+		self.__dict__.update(nts.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
@@ -93,7 +93,7 @@ class FormMeta(Meta):
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
 
-		system_country = frappe.get_system_settings("country")
+		system_country = nts.get_system_settings("country")
 
 		self._add_code(_get_path(self.name + ".js"), "__js")
 		if system_country:
@@ -145,7 +145,7 @@ class FormMeta(Meta):
 		"""embed all require files"""
 		# custom script
 		client_scripts = (
-			frappe.get_all(
+			nts.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
 				fields=["name", "script", "view"],
@@ -186,8 +186,8 @@ class FormMeta(Meta):
 		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
 				try:
-					search_fields = frappe.get_meta(df.options).search_fields
-				except frappe.DoesNotExistError:
+					search_fields = nts.get_meta(df.options).search_fields
+				except nts.DoesNotExistError:
 					self._show_missing_doctype_msg(df)
 
 				if search_fields:
@@ -198,10 +198,10 @@ class FormMeta(Meta):
 		# A link field is referring to non-existing doctype, this usually happens when
 		# customizations are removed or some custom app is removed but hasn't cleaned
 		# up after itself.
-		frappe.clear_last_message()
+		nts.clear_last_message()
 
 		msg = _("Field {0} is referring to non-existing doctype {1}.").format(
-			frappe.bold(df.fieldname), frappe.bold(df.options)
+			nts.bold(df.fieldname), nts.bold(df.options)
 		)
 
 		if df.get("is_custom_field"):
@@ -210,18 +210,18 @@ class FormMeta(Meta):
 				custom_field_link
 			)
 
-		frappe.throw(msg, title=_("Missing DocType"))
+		nts.throw(msg, title=_("Missing DocType"))
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
 			if df.options:
 				try:
-					df.linked_document_type = frappe.get_meta(df.options).document_type
-				except frappe.DoesNotExistError:
+					df.linked_document_type = nts.get_meta(df.options).document_type
+				except nts.DoesNotExistError:
 					self._show_missing_doctype_msg(df)
 
 	def load_print_formats(self):
-		print_formats = frappe.db.sql(
+		print_formats = nts.db.sql(
 			"""select * FROM `tabPrint Format`
 			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
 			(self.name,),
@@ -236,11 +236,11 @@ class FormMeta(Meta):
 		workflow_name = self.get_workflow()
 		workflow_docs = []
 
-		if workflow_name and frappe.db.exists("Workflow", workflow_name):
-			workflow = frappe.get_doc("Workflow", workflow_name)
+		if workflow_name and nts.db.exists("Workflow", workflow_name):
+			workflow = nts.get_doc("Workflow", workflow_name)
 			workflow_docs.append(workflow)
 
-			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
+			workflow_docs.extend(nts.get_doc("Workflow State", d.state) for d in workflow.get("states"))
 		self.set("__workflow_docs", workflow_docs)
 
 	def load_templates(self):
@@ -250,7 +250,7 @@ class FormMeta(Meta):
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
 				for key, path in module.form_grid_templates.items():
-					templates[key] = get_html_format(frappe.get_app_path(app, path))
+					templates[key] = get_html_format(nts.get_app_path(app, path))
 
 				self.set("__form_grid_templates", templates)
 
@@ -262,22 +262,22 @@ class FormMeta(Meta):
 
 	def load_kanban_column_fields(self):
 		try:
-			values = frappe.get_list(
+			values = nts.get_list(
 				"Kanban Board", fields=["field_name"], filters={"reference_doctype": self.name}
 			)
 
 			fields = [x["field_name"] for x in values]
 			fields = list(set(fields))
 			self.set("__kanban_column_fields", fields)
-		except frappe.PermissionError:
+		except nts.PermissionError:
 			# no access to kanban board
 			pass
 
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
-	for app_name in frappe.get_installed_apps():
-		code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
+	for app_name in nts.get_installed_apps():
+		code_hook = nts.get_hooks(hook, default={}, app_name=app_name)
 		if not code_hook:
 			continue
 
@@ -286,13 +286,13 @@ def get_code_files_via_hooks(hook, name):
 			files = [files]
 
 		for file in files:
-			path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
+			path = nts.get_app_path(app_name, *file.strip("/").split("/"))
 			code_files.append(path)
 
 	return code_files
 
 
 def get_js(path):
-	js = frappe.read_file(path)
+	js = nts.read_file(path)
 	if js:
 		return render_include(js)

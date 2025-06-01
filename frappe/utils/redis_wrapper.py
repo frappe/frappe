@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import pickle
 import re
@@ -6,8 +6,8 @@ import re
 import redis
 from redis.commands.search import Search
 
-import frappe
-from frappe.utils import cstr
+import nts
+from nts.utils import cstr
 
 
 class RedisearchWrapper(Search):
@@ -35,7 +35,7 @@ class RedisWrapper(redis.Redis):
 			return False
 
 	def __call__(self):
-		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
+		"""WARNING: Added for backward compatibility to support nts.cache().method(...)"""
 		return self
 
 	def make_key(self, key, user=None, shared=False):
@@ -43,11 +43,11 @@ class RedisWrapper(redis.Redis):
 			return key
 		if user:
 			if user is True:
-				user = frappe.session.user
+				user = nts.session.user
 
 			key = f"user:{user}:{key}"
 
-		return f"{frappe.conf.db_name}|{key}".encode()
+		return f"{nts.conf.db_name}|{key}".encode()
 
 	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
@@ -60,7 +60,7 @@ class RedisWrapper(redis.Redis):
 		key = self.make_key(key, user, shared)
 
 		if not expires_in_sec:
-			frappe.local.cache[key] = val
+			nts.local.cache[key] = val
 
 		try:
 			if expires_in_sec:
@@ -77,12 +77,12 @@ class RedisWrapper(redis.Redis):
 
 		:param key: Cache key.
 		:param generator: Function to be called to generate a value if `None` is returned.
-		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
+		:param expires: If the key is supposed to be with an expiry, don't store it in nts.local
 		"""
 		original_key = key
 		key = self.make_key(key, user, shared)
 
-		local_cache = frappe.local.cache
+		local_cache = nts.local.cache
 		if key in local_cache:
 			val = local_cache[key]
 
@@ -121,7 +121,7 @@ class RedisWrapper(redis.Redis):
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
-			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
+			return [k for k in list(nts.local.cache) if regex.match(cstr(k))]
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
@@ -141,7 +141,7 @@ class RedisWrapper(redis.Redis):
 		if make_keys:
 			keys = [self.make_key(k, shared=shared, user=user) for k in keys]
 
-		local_cache = frappe.local.cache
+		local_cache = nts.local.cache
 		for key in keys:
 			local_cache.pop(key, None)
 
@@ -186,7 +186,7 @@ class RedisWrapper(redis.Redis):
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		frappe.local.cache.setdefault(_name, {})[key] = value
+		nts.local.cache.setdefault(_name, {})[key] = value
 
 		# set in redis
 		try:
@@ -218,7 +218,7 @@ class RedisWrapper(redis.Redis):
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
 
-		local_cache = frappe.local.cache
+		local_cache = nts.local.cache
 		if _name not in local_cache:
 			local_cache[_name] = {}
 
@@ -245,9 +245,9 @@ class RedisWrapper(redis.Redis):
 	def hdel(self, name, key, shared=False):
 		_name = self.make_key(name, shared=shared)
 
-		if _name in frappe.local.cache:
-			if key in frappe.local.cache[_name]:
-				del frappe.local.cache[_name][key]
+		if _name in nts.local.cache:
+			if key in nts.local.cache[_name]:
+				del nts.local.cache[_name][key]
 		try:
 			super().hdel(_name, key)
 		except redis.exceptions.ConnectionError:
@@ -294,21 +294,21 @@ class RedisWrapper(redis.Redis):
 
 
 def setup_cache():
-	if frappe.conf.redis_cache_sentinel_enabled:
-		sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
+	if nts.conf.redis_cache_sentinel_enabled:
+		sentinels = [tuple(node.split(":")) for node in nts.conf.get("redis_cache_sentinels", [])]
 		sentinel = get_sentinel_connection(
 			sentinels=sentinels,
-			sentinel_username=frappe.conf.get("redis_cache_sentinel_username"),
-			sentinel_password=frappe.conf.get("redis_cache_sentinel_password"),
-			master_username=frappe.conf.get("redis_cache_master_username"),
-			master_password=frappe.conf.get("redis_cache_master_password"),
+			sentinel_username=nts.conf.get("redis_cache_sentinel_username"),
+			sentinel_password=nts.conf.get("redis_cache_sentinel_password"),
+			master_username=nts.conf.get("redis_cache_master_username"),
+			master_password=nts.conf.get("redis_cache_master_password"),
 		)
 		return sentinel.master_for(
-			frappe.conf.get("redis_cache_master_service"),
+			nts.conf.get("redis_cache_master_service"),
 			redis_class=RedisWrapper,
 		)
 
-	return RedisWrapper.from_url(frappe.conf.get("redis_cache"))
+	return RedisWrapper.from_url(nts.conf.get("redis_cache"))
 
 
 def get_sentinel_connection(

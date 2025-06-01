@@ -1,4 +1,4 @@
-import frappe
+import nts
 
 
 def execute():
@@ -8,7 +8,7 @@ def execute():
 	]
 
 	for unsubscribe in email_unsubscribe:
-		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
-			doc = frappe.new_doc("Email Unsubscribe")
+		if not nts.get_all("Email Unsubscribe", filters=unsubscribe):
+			doc = nts.new_doc("Email Unsubscribe")
 			doc.update(unsubscribe)
 			doc.insert(ignore_permissions=True)

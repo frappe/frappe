@@ -1,10 +1,10 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-if (frappe.require) {
-	frappe.require("file_uploader.bundle.js");
+if (nts.require) {
+	nts.require("file_uploader.bundle.js");
 } else {
-	frappe.ready(function () {
-		frappe.require("file_uploader.bundle.js");
+	nts.ready(function () {
+		nts.require("file_uploader.bundle.js");
 	});
 }

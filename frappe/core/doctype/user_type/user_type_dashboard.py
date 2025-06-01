@@ -1,4 +1,4 @@
-from frappe import _
+from nts import _
 
 
 def get_data():

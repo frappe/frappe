@@ -1,10 +1,10 @@
 import os
 
-import frappe
+import nts
 
 
 def execute():
-	files = frappe.get_all(
+	files = nts.get_all(
 		"File",
 		fields=["name", "file_name", "file_url"],
 		filters={
@@ -13,8 +13,8 @@ def execute():
 		},
 	)
 
-	private_file_path = frappe.get_site_path("private", "files")
-	public_file_path = frappe.get_site_path("public", "files")
+	private_file_path = nts.get_site_path("private", "files")
+	public_file_path = nts.get_site_path("public", "files")
 
 	for file in files:
 		file_path = file.file_url
@@ -24,18 +24,18 @@ def execute():
 			continue
 
 		file_is_private = file_path.startswith("/private/files/")
-		full_path = frappe.utils.get_files_path(file_name, is_private=file_is_private)
+		full_path = nts.utils.get_files_path(file_name, is_private=file_is_private)
 
 		if not os.path.exists(full_path):
 			if file_is_private:
 				public_file_url = os.path.join(public_file_path, file_name)
 				if os.path.exists(public_file_url):
-					frappe.db.set_value(
+					nts.db.set_value(
 						"File", file.name, {"file_url": f"/files/{file_name}", "is_private": 0}
 					)
 			else:
 				private_file_url = os.path.join(private_file_path, file_name)
 				if os.path.exists(private_file_url):
-					frappe.db.set_value(
+					nts.db.set_value(
 						"File", file.name, {"file_url": f"/private/files/{file_name}", "is_private": 1}
 					)

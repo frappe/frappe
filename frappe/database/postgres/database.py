@@ -21,11 +21,11 @@ from psycopg2.errors import (
 )
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
-import frappe
-from frappe.database.database import Database
-from frappe.database.postgres.schema import PostgresTable
-from frappe.database.utils import EmptyQueryValues, LazyDecode
-from frappe.utils import cstr, get_table_name
+import nts
+from nts.database.database import Database
+from nts.database.postgres.schema import PostgresTable
+from nts.database.utils import EmptyQueryValues, LazyDecode
+from nts.utils import cstr, get_table_name
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
@@ -107,7 +107,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_statement_timeout(e):
-		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
+		return PostgresDatabase.is_timedout(e) or isinstance(e, nts.QueryTimeoutError)
 
 	@staticmethod
 	def is_data_too_long(e):
@@ -230,7 +230,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			from information_schema.tables
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{}'""".format(self.cur_db_name, frappe.conf.get("db_schema", "public"))
+				and table_schema='{}'""".format(self.cur_db_name, nts.conf.get("db_schema", "public"))
 			)
 		]
 
@@ -281,7 +281,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
 		table_name = get_table_name(doctype)
-		frappe.db.sql_ddl(
+		nts.db.sql_ddl(
 			f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`"
 		)
 
@@ -413,11 +413,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_column_type(self, doctype, column):
 		"""Returns column type from database."""
-		information_schema = frappe.qb.Schema("information_schema")
+		information_schema = nts.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
 		return (
-			frappe.qb.from_(information_schema.columns)
+			nts.qb.from_(information_schema.columns)
 			.select(information_schema.columns.data_type)
 			.where(
 				(information_schema.columns.table_name == table)
@@ -431,7 +431,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def estimate_count(self, doctype: str):
 		"""Get estimated count of total rows in a table."""
-		from frappe.utils.data import cint
+		from nts.utils.data import cint
 
 		table = get_table_name(doctype)
 		count = self.sql("select reltuples from pg_class where relname = %s", table)

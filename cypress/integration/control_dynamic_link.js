@@ -4,9 +4,9 @@ context("Dynamic Link", () => {
 		cy.visit("/app/doctype");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.create_doctype", {
+			.its("nts")
+			.then((nts) => {
+				return nts.xcall("nts.tests.ui_test_helpers.create_doctype", {
 					name: "Test Dynamic Link",
 					fields: [
 						{
@@ -140,7 +140,7 @@ context("Dynamic Link", () => {
 		cy.get_field("doc_type").clear();
 
 		//Entering System Settings in the Doctype field
-		cy.intercept("/api/method/frappe.desk.search.search_link").as("search_query");
+		cy.intercept("/api/method/nts.desk.search.search_link").as("search_query");
 		cy.fill_field("doc_type", "System Settings", "Link", { delay: 500 });
 		cy.wait("@search_query");
 		cy.get(`[data-fieldname="doc_type"] ul:visible div:first-child`).click({

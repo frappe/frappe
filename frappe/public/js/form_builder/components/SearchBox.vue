@@ -9,7 +9,7 @@
 			@input="(event) => $emit('update:modelValue', event.target.value)"
 		/>
 		<span class="search-icon">
-			<div v-html="frappe.utils.icon('search', 'sm')"></div>
+			<div v-html="nts.utils.icon('search', 'sm')"></div>
 		</span>
 	</div>
 </template>

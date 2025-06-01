@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 class BaseTimeline {
@@ -32,7 +32,7 @@ class BaseTimeline {
 	}
 
 	add_action_button(label, action, icon = null, btn_class = null) {
-		let icon_element = icon ? frappe.utils.icon(icon, "xs") : null;
+		let icon_element = icon ? nts.utils.icon(icon, "xs") : null;
 		this.timeline_actions_wrapper.show();
 		let action_btn = $(`<button class="btn btn-xs ${btn_class || "btn-default"} action-btn">
 			${icon_element}
@@ -122,8 +122,8 @@ class BaseTimeline {
 		});
 		if (item.icon) {
 			timeline_item.append(`
-				<div class="timeline-badge" title='${item.title || frappe.utils.to_title_case(item.icon)}'>
-					${frappe.utils.icon(item.icon, item.icon_size || "md", item.icon_class || "")}
+				<div class="timeline-badge" title='${item.title || nts.utils.to_title_case(item.icon)}'>
+					${nts.utils.icon(item.icon, item.icon_size || "md", item.icon_class || "")}
 				</div>
 			`);
 		} else if (item.timeline_badge) {
@@ -133,7 +133,7 @@ class BaseTimeline {
 		}
 
 		timeline_item.append(
-			`<div class="timeline-content ${item.is_card ? "frappe-card" : ""}">`
+			`<div class="timeline-content ${item.is_card ? "nts-card" : ""}">`
 		);
 		let timeline_content = timeline_item.find(".timeline-content");
 		timeline_content.append(item.content);

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 
@@ -14,11 +14,11 @@ from dateutil import parser
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-import frappe
-from frappe import _, _lt
-from frappe.integrations.google_oauth import GoogleOAuth
-from frappe.model.document import Document
-from frappe.utils import (
+import nts
+from nts import _, _lt
+from nts.integrations.google_oauth import GoogleOAuth
+from nts.model.document import Document
+from nts.utils import (
 	add_days,
 	add_to_date,
 	get_datetime,
@@ -27,10 +27,10 @@ from frappe.utils import (
 	get_weekdays,
 	now_datetime,
 )
-from frappe.utils.password import set_encrypted_password
+from nts.utils.password import set_encrypted_password
 
 if TYPE_CHECKING:
-	from frappe.desk.doctype.event.event import Event
+	from nts.desk.doctype.event.event import Event
 
 
 class RecurrenceParameters(TypedDict):
@@ -86,7 +86,7 @@ class GoogleCalendar(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		authorization_code: DF.Password | None
 		calendar_name: DF.Data
@@ -101,12 +101,12 @@ class GoogleCalendar(Document):
 
 	# end: auto-generated types
 	def validate(self):
-		google_settings = frappe.get_cached_doc("Google Settings")
+		google_settings = nts.get_cached_doc("Google Settings")
 		if not google_settings.enable:
-			frappe.throw(_("Enable Google API in Google Settings."))
+			nts.throw(_("Enable Google API in Google Settings."))
 
 		if not google_settings.client_id or not google_settings.client_secret:
-			frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
+			nts.throw(_("Enter Client Id and Client Secret in Google Settings."))
 
 		return google_settings
 
@@ -114,8 +114,8 @@ class GoogleCalendar(Document):
 		google_settings = self.validate()
 
 		if not self.refresh_token:
-			raise frappe.ValidationError(
-				_("Click on {0} to generate Refresh Token.").format(frappe.bold(allow_google_calendar_label))
+			raise nts.ValidationError(
+				_("Click on {0} to generate Refresh Token.").format(nts.bold(allow_google_calendar_label))
 			)
 
 		data = {
@@ -129,25 +129,25 @@ class GoogleCalendar(Document):
 		try:
 			r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
 		except requests.exceptions.HTTPError:
-			frappe.throw(
+			nts.throw(
 				_(
 					"Something went wrong during the token generation. Click on {0} to generate a new one."
-				).format(frappe.bold(allow_google_calendar_label))
+				).format(nts.bold(allow_google_calendar_label))
 			)
 
 		return r.get("access_token")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def authorize_access(g_calendar: str, reauthorize: bool = False):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Calendar Name is set to flags to set_value after Authorization Code is obtained.
 	"""
-	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_calendar = nts.get_doc("Google Calendar", g_calendar)
 	google_calendar.check_permission("write")
 
-	google_settings = frappe.get_cached_doc("Google Settings")
+	google_settings = nts.get_cached_doc("Google Settings")
 
 	redirect_uri = (
 		f"{get_request_site_address(full_address=True)}"
@@ -155,7 +155,7 @@ def authorize_access(g_calendar: str, reauthorize: bool = False):
 	)
 
 	if not google_calendar.authorization_code or reauthorize:
-		frappe.cache.hset("google_calendar", "google_calendar", google_calendar.name)
+		nts.cache.hset("google_calendar", "google_calendar", google_calendar.name)
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 
 	data = {
@@ -169,16 +169,16 @@ def authorize_access(g_calendar: str, reauthorize: bool = False):
 	try:
 		r = requests.post(GoogleOAuth.OAUTH_URL, data=data).json()
 	except Exception as e:
-		frappe.throw(e)
+		nts.throw(e)
 
 	if "refresh_token" in r:
-		frappe.db.set_value("Google Calendar", google_calendar.name, "refresh_token", r["refresh_token"])
-		frappe.db.commit()
+		nts.db.set_value("Google Calendar", google_calendar.name, "refresh_token", r["refresh_token"])
+		nts.db.commit()
 
-	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = google_calendar.get_url()
+	nts.local.response["type"] = "redirect"
+	nts.local.response["location"] = google_calendar.get_url()
 
-	frappe.msgprint(_("Google Calendar has been configured."), indicator="green")
+	nts.msgprint(_("Google Calendar has been configured."), indicator="green")
 
 
 def get_authentication_url(client_id=None, redirect_uri=None):
@@ -191,19 +191,19 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 	}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def google_callback(code=None):
 	"""
 	Authorization code is sent to callback as per the API configuration
 	"""
-	google_calendar = frappe.cache.hget("google_calendar", "google_calendar")
-	frappe.db.set_value("Google Calendar", google_calendar, "authorization_code", code)
-	frappe.db.commit()
+	google_calendar = nts.cache.hget("google_calendar", "google_calendar")
+	nts.db.set_value("Google Calendar", google_calendar, "authorization_code", code)
+	nts.db.commit()
 
 	authorize_access(google_calendar)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def sync(g_calendar: str | None = None):
 	filters = {"enable": 1, "pull_from_google_calendar": 1}
 	user_messages = []
@@ -211,7 +211,7 @@ def sync(g_calendar: str | None = None):
 	if g_calendar:
 		filters.update({"name": g_calendar})
 
-	for g in frappe.get_list("Google Calendar", filters=filters, pluck="name"):
+	for g in nts.get_list("Google Calendar", filters=filters, pluck="name"):
 		user_messages.append(sync_events_from_google_calendar(g))
 
 	return user_messages
@@ -219,8 +219,8 @@ def sync(g_calendar: str | None = None):
 
 def get_google_calendar_object(g_calendar):
 	"""Return an object of Google Calendar along with Google Calendar doc."""
-	google_settings = frappe.get_cached_doc("Google Settings")
-	account: GoogleCalendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_settings = nts.get_cached_doc("Google Settings")
+	account: GoogleCalendar = nts.get_doc("Google Calendar", g_calendar)
 
 	credentials = google.oauth2.credentials.Credentials(
 		token=account.get_access_token(),
@@ -248,7 +248,7 @@ def check_google_calendar(account: GoogleCalendar, google_calendar):
 		try:
 			return google_calendar.calendars().get(calendarId=account.google_calendar_id).execute()
 		except HttpError as err:
-			frappe.throw(
+			nts.throw(
 				_("Google Calendar - Could not find Calendar for {0}, error code {1}.").format(
 					account.name, err.resp.status
 				)
@@ -257,18 +257,18 @@ def check_google_calendar(account: GoogleCalendar, google_calendar):
 	# If no Calendar ID create a new Calendar
 	calendar = {
 		"summary": account.calendar_name,
-		"timeZone": frappe.get_system_settings("time_zone"),
+		"timeZone": nts.get_system_settings("time_zone"),
 	}
 	try:
 		created_calendar = google_calendar.calendars().insert(body=calendar).execute()
 	except HttpError as err:
-		frappe.throw(
+		nts.throw(
 			_("Google Calendar - Could not create Calendar for {0}, error code {1}.").format(
 				account.name, err.resp.status
 			)
 		)
 	account.db_set("google_calendar_id", created_calendar.get("id"))
-	frappe.db.commit()
+	nts.db.commit()
 
 
 def sync_events_from_google_calendar(g_calendar, method=None):
@@ -284,7 +284,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 		return
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-	events = frappe._dict()
+	events = nts._dict()
 	results = []
 	while True:
 		try:
@@ -308,11 +308,11 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 
 			if err.resp.status == 410:
 				set_encrypted_password("Google Calendar", account.name, "", "next_sync_token")
-				frappe.db.commit()
+				nts.db.commit()
 				msg += " " + _("Sync token was invalid and has been reset, Retry syncing.")
-				frappe.msgprint(msg, title="Invalid Sync Token", indicator="blue")
+				nts.msgprint(msg, title="Invalid Sync Token", indicator="blue")
 			else:
-				frappe.throw(msg)
+				nts.throw(msg)
 
 		results.extend(event for event in events.get("items", []))
 		if not events.get("nextPageToken"):
@@ -322,8 +322,8 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 			break
 
 	for idx, event in enumerate(results):
-		frappe.publish_realtime(
-			"import_google_calendar", {"progress": idx + 1, "total": len(results)}, user=frappe.session.user
+		nts.publish_realtime(
+			"import_google_calendar", {"progress": idx + 1, "total": len(results)}, user=nts.session.user
 		)
 
 		# If Google Calendar Event if confirmed, then create an Event
@@ -333,32 +333,32 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 				with suppress(IndexError):
 					recurrence = event.get("recurrence")[0]
 
-			# NOTE: Skip if event is already synced; Frappe doesn't track individual
+			# NOTE: Skip if event is already synced; nts doesn't track individual
 			# instances of recurring events, so we need to check if the event is already
-			# synced in Frappe Calendar
+			# synced in nts Calendar
 			if event.get("recurringEventId"):
 				...
-			elif not frappe.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
+			elif not nts.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
 				insert_event_to_calendar(account, event, recurrence)
 			else:
 				update_event_in_calendar(account, event, recurrence)
 
 		# If any synced Google Calendar Event is cancelled, then close the Event
 		elif event.get("status") == "cancelled":
-			event_name = frappe.db.get_value(
+			event_name = nts.db.get_value(
 				"Event",
 				{
 					"google_calendar_id": account.google_calendar_id,
 					"google_calendar_event_id": event.get("id"),
 				},
 			)
-			frappe.db.set_value(
+			nts.db.set_value(
 				"Event",
 				event_name,
 				"status",
 				"Closed",
 			)
-			frappe.get_doc(
+			nts.get_doc(
 				{
 					"doctype": "Comment",
 					"comment_type": "Info",
@@ -378,7 +378,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 
 def insert_event_to_calendar(account, event, recurrence=None):
 	"""
-	Inserts event in Frappe Calendar during Sync
+	Inserts event in nts Calendar during Sync
 	"""
 	calendar_event = {
 		"doctype": "Event",
@@ -394,7 +394,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"event_type": "Public" if account.sync_as_public else "Private",
 	} | google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end"))
 
-	e: Event = frappe.get_doc(calendar_event)
+	e: Event = nts.get_doc(calendar_event)
 	update_participants_in_event(calendar_event=e, google_event=event)
 	e.insert(ignore_permissions=True)
 	e.db_set("owner", account.user, update_modified=False)
@@ -404,7 +404,7 @@ def update_participants_in_event(calendar_event: "Event", google_event: dict):
 	google_event_participants = [
 		attendee["email"] for attendee in google_event.get("attendees", []) if not attendee.get("self")
 	]
-	in_system_participants = frappe.get_all(
+	in_system_participants = nts.get_all(
 		"User", filters={"email": ("in", google_event_participants)}, pluck="email"
 	)
 
@@ -425,9 +425,9 @@ def update_participants_in_event(calendar_event: "Event", google_event: dict):
 
 def update_event_in_calendar(account, event, recurrence=None):
 	"""
-	Updates Event in Frappe Calendar if any existing Google Calendar Event is updated
+	Updates Event in nts Calendar if any existing Google Calendar Event is updated
 	"""
-	calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
+	calendar_event = nts.get_doc("Event", {"google_calendar_event_id": event.get("id")})
 	calendar_event.subject = event.get("summary")
 	calendar_event.description = event.get("description")
 	calendar_event.google_meet_link = event.get("hangoutLink")
@@ -445,7 +445,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	if (
 		not doc.sync_with_google_calendar
 		or doc.pulled_from_google_calendar
-		or not frappe.db.exists("Google Calendar", {"name": doc.google_calendar})
+		or not nts.db.exists("Google Calendar", {"name": doc.google_calendar})
 	):
 		return
 
@@ -484,16 +484,16 @@ def insert_event_in_google_calendar(doc, method=None):
 			.execute()
 		)
 
-		frappe.db.set_value(
+		nts.db.set_value(
 			"Event",
 			doc.name,
 			{"google_calendar_event_id": event.get("id"), "google_meet_link": event.get("hangoutLink")},
 			update_modified=False,
 		)
 
-		frappe.msgprint(_("Event Synced with Google Calendar."))
+		nts.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
-		frappe.throw(
+		nts.throw(
 			_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(
 				account.name, err.resp.status
 			)
@@ -502,14 +502,14 @@ def insert_event_in_google_calendar(doc, method=None):
 
 def update_event_in_google_calendar(doc, method=None):
 	"""
-	Updates Events in Google Calendar if any existing event is modified in Frappe Calendar
+	Updates Events in Google Calendar if any existing event is modified in nts Calendar
 	"""
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
 	if (
 		not doc.sync_with_google_calendar
 		or doc.modified == doc.creation
-		or not frappe.db.exists("Google Calendar", {"name": doc.google_calendar})
+		or not nts.db.exists("Google Calendar", {"name": doc.google_calendar})
 	):
 		return
 
@@ -567,7 +567,7 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 
 		# if add_video_conferencing enabled or disabled during update, overwrite
-		frappe.db.set_value(
+		nts.db.set_value(
 			"Event",
 			doc.name,
 			{"google_meet_link": event.get("hangoutLink")},
@@ -575,9 +575,9 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 		doc.notify_update()
 
-		frappe.msgprint(_("Event Synced with Google Calendar."))
+		nts.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
-		frappe.throw(
+		nts.throw(
 			_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(
 				doc.name, err.resp.status
 			)
@@ -586,10 +586,10 @@ def update_event_in_google_calendar(doc, method=None):
 
 def delete_event_from_google_calendar(doc, method=None):
 	"""
-	Delete Events from Google Calendar if Frappe Event is deleted.
+	Delete Events from Google Calendar if nts Event is deleted.
 	"""
 
-	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar, "push_to_google_calendar": 1}):
+	if not nts.db.exists("Google Calendar", {"name": doc.google_calendar, "push_to_google_calendar": 1}):
 		return
 
 	google_calendar, _ = get_google_calendar_object(doc.google_calendar)
@@ -607,7 +607,7 @@ def delete_event_from_google_calendar(doc, method=None):
 			calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event
 		).execute()
 	except HttpError as err:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(
 				doc.name, err.resp.status
 			)
@@ -813,7 +813,7 @@ def get_attendees(doc):
 			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
 
 	if email_not_found:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}").format(
 				"<br>".join(f"{d.get('dt')} {d.get('dn')}" for d in email_not_found)
 			),

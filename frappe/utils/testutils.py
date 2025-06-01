@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
+import nts
 
 
 def add_custom_field(doctype, fieldname, fieldtype="Data", options=None):
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "Custom Field",
 			"dt": doctype,
@@ -16,5 +16,5 @@ def add_custom_field(doctype, fieldname, fieldtype="Data", options=None):
 
 
 def clear_custom_fields(doctype):
-	frappe.db.delete("Custom Field", {"dt": doctype})
-	frappe.clear_cache(doctype=doctype)
+	nts.db.delete("Custom Field", {"dt": doctype})
+	nts.clear_cache(doctype=doctype)

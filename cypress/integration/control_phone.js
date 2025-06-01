@@ -42,7 +42,7 @@ context("Control Phone", () => {
 		let phone_number = "9312672712";
 		cy.get(".selected-phone > img").click().first();
 		cy.get_field("phone").first().click();
-		cy.get(".frappe-control[data-fieldname=phone]")
+		cy.get(".nts-control[data-fieldname=phone]")
 			.findByRole("textbox")
 			.first()
 			.type(phone_number);

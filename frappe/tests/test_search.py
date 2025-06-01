@@ -1,18 +1,18 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import re
 from functools import partial
 
-import frappe
-from frappe.app import make_form_dict
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
+import nts
+from nts.app import make_form_dict
+from nts.desk.search import get_names_for_mentions, search_link, search_widget
+from nts.tests.utils import ntsTestCase
+from nts.utils import set_request
+from nts.website.serve import get_response
 
 
-class TestSearch(FrappeTestCase):
+class TestSearch(ntsTestCase):
 	def setUp(self):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
@@ -32,7 +32,7 @@ class TestSearch(FrappeTestCase):
 			"select`sid`from`tabSessions`",
 		):
 			self.assertRaises(
-				frappe.DataError,
+				nts.DataError,
 				search_link,
 				"DocType",
 				"User",
@@ -44,9 +44,9 @@ class TestSearch(FrappeTestCase):
 
 	def test_only_enabled_in_mention(self):
 		email = "test_disabled_user_in_mentions@example.com"
-		frappe.delete_doc("User", email)
-		if not frappe.db.exists("User", email):
-			user = frappe.new_doc("User")
+		nts.delete_doc("User", email)
+		if not nts.db.exists("User", email):
+			user = nts.new_doc("User")
 			user.update(
 				{
 					"email": email,
@@ -83,44 +83,44 @@ class TestSearch(FrappeTestCase):
 	# Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
 		try:
-			frappe.local.lang = "fr"
+			nts.local.lang = "fr"
 			output = search_widget(doctype="DocType", txt="pay", page_length=20)
 
 			result = [["found" for x in y if x == "Country"] for y in output]
 			self.assertTrue(["found"] in result)
 		finally:
-			frappe.local.lang = "en"
+			nts.local.lang = "en"
 
 	def test_doctype_search_in_foreign_language(self):
 		def do_search(txt: str):
 			return search_link(
 				doctype="DocType",
 				txt=txt,
-				query="frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
+				query="nts.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 				filters={"user": "Administrator"},
 				page_length=20,
 				searchfield=None,
 			)
 
 		try:
-			frappe.local.lang = "en"
+			nts.local.lang = "en"
 			results = do_search("user")
 			self.assertIn("User", [x["value"] for x in results])
 
-			frappe.local.lang = "fr"
+			nts.local.lang = "fr"
 			results = do_search("utilisateur")
 			self.assertIn("User", [x["value"] for x in results])
 
-			frappe.local.lang = "de"
+			nts.local.lang = "de"
 			results = do_search("nutzer")
 			self.assertIn("User", [x["value"] for x in results])
 		finally:
-			frappe.local.lang = "en"
+			nts.local.lang = "en"
 
 	def test_validate_and_sanitize_search_inputs(self):
 		# should raise error if searchfield is injectable
 		self.assertRaises(
-			frappe.DataError,
+			nts.DataError,
 			get_data,
 			*("User", "Random", "select * from tabSessions) --", "1", "10", dict()),
 		)
@@ -143,10 +143,10 @@ class TestSearch(FrappeTestCase):
 		# return empty string if passed doctype is invalid
 		self.assertListEqual(get_data("Random DocType", "Random", "email", "2", "10", dict()), [])
 
-		# should not fail if function is called via frappe.call with extra arguments
+		# should not fail if function is called via nts.call with extra arguments
 		args = ("Random DocType", "Random", "email", "2", "10", dict())
 		kwargs = {"as_dict": False}
-		self.assertListEqual(frappe.call("frappe.tests.test_search.get_data", *args, **kwargs), [])
+		self.assertListEqual(nts.call("nts.tests.test_search.get_data", *args, **kwargs), [])
 
 		# should not fail if query has @ symbol in it
 		results = search_link("User", "user@random", searchfield="name")
@@ -160,7 +160,7 @@ class TestSearch(FrappeTestCase):
 			filters=None,
 			page_length=20,
 			reference_doctype="ToDo",
-			query="frappe.tests.test_search.query_with_reference_doctype",
+			query="nts.tests.test_search.query_with_reference_doctype",
 		)
 		self.assertListEqual(results, [])
 
@@ -173,7 +173,7 @@ class TestSearch(FrappeTestCase):
 			self.assertIn("es", row["value"])
 
 		# Assume that "es" is used at least 10 times, it should now be first
-		frappe.db.set_value("Language", "es", "idx", 10)
+		nts.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
 
 	def test_search_with_paren(self):
@@ -182,13 +182,13 @@ class TestSearch(FrappeTestCase):
 		self.assertEqual(result, [])
 
 
-@frappe.validate_and_sanitize_search_inputs
+@nts.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, filters, reference_doctype=None):
 	return []
 
@@ -200,8 +200,8 @@ def setup_test_link_field_order(TestCase):
 	TestCase.parent_doctype_name = "All Territories"
 
 	# Create Tree doctype
-	if not frappe.db.exists("DocType", TestCase.tree_doctype_name):
-		TestCase.tree_doc = frappe.get_doc(
+	if not nts.db.exists("DocType", TestCase.tree_doctype_name):
+		TestCase.tree_doc = nts.get_doc(
 			{
 				"doctype": "DocType",
 				"name": TestCase.tree_doctype_name,
@@ -215,17 +215,17 @@ def setup_test_link_field_order(TestCase):
 		TestCase.tree_doc.search_fields = "parent_test_tree_order"
 		TestCase.tree_doc.save()
 	else:
-		TestCase.tree_doc = frappe.get_doc("DocType", TestCase.tree_doctype_name)
+		TestCase.tree_doc = nts.get_doc("DocType", TestCase.tree_doctype_name)
 
 	# Create root for the tree doctype
-	if not frappe.db.exists(TestCase.tree_doctype_name, {"random": TestCase.parent_doctype_name}):
-		frappe.get_doc(
+	if not nts.db.exists(TestCase.tree_doctype_name, {"random": TestCase.parent_doctype_name}):
+		nts.get_doc(
 			{"doctype": TestCase.tree_doctype_name, "random": TestCase.parent_doctype_name, "is_group": 1}
 		).insert(ignore_if_duplicate=True)
 
 	# Create children for the root
 	for child_name in TestCase.child_doctypes_names:
-		temp = frappe.get_doc(
+		temp = nts.get_doc(
 			{
 				"doctype": TestCase.tree_doctype_name,
 				"random": child_name,
@@ -240,7 +240,7 @@ def teardown_test_link_field_order(TestCase):
 	for child_doctype in TestCase.child_doctype_list:
 		child_doctype.delete()
 
-	frappe.delete_doc(
+	nts.delete_doc(
 		TestCase.tree_doctype_name,
 		TestCase.parent_doctype_name,
 		ignore_permissions=True,
@@ -251,13 +251,13 @@ def teardown_test_link_field_order(TestCase):
 	TestCase.tree_doc.delete()
 
 
-class TestWebsiteSearch(FrappeTestCase):
+class TestWebsiteSearch(ntsTestCase):
 	def get(self, path, user="Guest"):
-		frappe.set_user(user)
+		nts.set_user(user)
 		set_request(method="GET", path=path)
-		make_form_dict(frappe.local.request)
+		make_form_dict(nts.local.request)
 		response = get_response()
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		return response
 
 	def test_basic_search(self):

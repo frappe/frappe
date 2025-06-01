@@ -1,4 +1,4 @@
-frappe.listview_settings["Energy Point Log"] = {
+nts.listview_settings["Energy Point Log"] = {
 	hide_name_column: true,
 	add_fields: ["type", "reference_doctype", "reference_name"],
 	get_indicator: function (doc) {
@@ -23,7 +23,7 @@ frappe.listview_settings["Energy Point Log"] = {
 			return __("Open {0}", [`${doc.reference_doctype} ${doc.reference_name}`]);
 		},
 		action: function (doc) {
-			frappe.set_route("Form", doc.reference_doctype, doc.reference_name);
+			nts.set_route("Form", doc.reference_doctype, doc.reference_name);
 		},
 	},
 };

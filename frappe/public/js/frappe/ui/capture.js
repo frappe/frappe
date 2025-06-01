@@ -1,5 +1,5 @@
-// frappe.ui.Capture
-// Author - Achilles Rasquinha <achilles@frappe.io>
+// nts.ui.Capture
+// Author - Achilles Rasquinha <achilles@nts.io>
 
 /**
  * @description Converts a canvas, image or a video to a data URL string.
@@ -8,10 +8,10 @@
  * @returns {string} 			  - The data URL string.
  *
  * @example
- * frappe._.get_data_uri(video)
+ * nts._.get_data_uri(video)
  * // returns "data:image/pngbase64,..."
  */
-frappe._.get_data_uri = (element) => {
+nts._.get_data_uri = (element) => {
 	const width = element.videoWidth;
 	const height = element.videoHeight;
 
@@ -44,10 +44,10 @@ function read(file) {
 }
 
 /**
- * @description Frappe's Capture object.
+ * @description nts's Capture object.
  *
  * @example
- * const capture = frappe.ui.Capture()
+ * const capture = nts.ui.Capture()
  * capture.show()
  *
  * capture.click((data_uri) => {
@@ -56,9 +56,9 @@ function read(file) {
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Taking_still_photos
  */
-frappe.ui.Capture = class {
+nts.ui.Capture = class {
 	constructor(options = {}) {
-		this.options = frappe.ui.Capture.OPTIONS;
+		this.options = nts.ui.Capture.OPTIONS;
 		this.set_options(options);
 
 		this.facing_mode = "environment";
@@ -66,7 +66,7 @@ frappe.ui.Capture = class {
 	}
 
 	set_options(options) {
-		this.options = { ...frappe.ui.Capture.OPTIONS, ...options };
+		this.options = { ...nts.ui.Capture.OPTIONS, ...options };
 
 		return this;
 	}
@@ -74,9 +74,9 @@ frappe.ui.Capture = class {
 	show() {
 		this.build_dialog();
 
-		if (cint(frappe.boot.sysdefaults.force_web_capture_mode_for_uploads)) {
+		if (cint(nts.boot.sysdefaults.force_web_capture_mode_for_uploads)) {
 			this.show_for_desktop();
-		} else if (frappe.is_mobile()) {
+		} else if (nts.is_mobile()) {
 			this.show_for_mobile();
 		} else {
 			this.show_for_desktop();
@@ -85,7 +85,7 @@ frappe.ui.Capture = class {
 
 	build_dialog() {
 		let me = this;
-		me.dialog = new frappe.ui.Dialog({
+		me.dialog = new nts.ui.Dialog({
 			title: this.options.title,
 			animate: this.options.animate,
 			fields: [
@@ -103,7 +103,7 @@ frappe.ui.Capture = class {
 			},
 		});
 
-		me.$template = $(frappe.ui.Capture.TEMPLATE);
+		me.$template = $(nts.ui.Capture.TEMPLATE);
 
 		let field = me.dialog.get_field("capture");
 		$(field.wrapper).html(me.$template);
@@ -141,7 +141,7 @@ frappe.ui.Capture = class {
 			})
 			.catch((err) => {
 				if (me.options.error) {
-					frappe.show_alert(frappe.ui.Capture.ERR_MESSAGE, 3);
+					nts.show_alert(nts.ui.Capture.ERR_MESSAGE, 3);
 				}
 
 				throw err;
@@ -185,7 +185,7 @@ frappe.ui.Capture = class {
 			images += `
 				<div class="mt-1 p-1 rounded col-md-3 col-sm-4 col-xs-4" data-idx="${idx}">
 					<span class="capture-remove-btn" data-idx="${idx}">
-						${frappe.utils.icon("close", "lg")}
+						${nts.utils.icon("close", "lg")}
 					</span>
 					<img class="rounded" src="${image}" data-idx="${idx}">
 				</div>
@@ -210,7 +210,7 @@ frappe.ui.Capture = class {
 		let me = this;
 
 		this.dialog.set_primary_action(__("Take Photo"), () => {
-			const data_url = frappe._.get_data_uri(me.video);
+			const data_url = nts._.get_data_uri(me.video);
 
 			me.images.push(data_url);
 			me.setup_preview_action();
@@ -269,7 +269,7 @@ frappe.ui.Capture = class {
 			() => {
 				me.facing_mode = me.facing_mode == "environment" ? "user" : "environment";
 
-				frappe.show_alert({
+				nts.show_alert({
 					message: __("Switching Camera"),
 				});
 
@@ -285,7 +285,7 @@ frappe.ui.Capture = class {
 
 		this.dialog.set_secondary_action_label(__("Capture"));
 		this.dialog.set_secondary_action(() => {
-			if (frappe.is_mobile()) {
+			if (nts.is_mobile()) {
 				me.show_for_mobile();
 			} else {
 				me.render_stream();
@@ -322,16 +322,16 @@ frappe.ui.Capture = class {
 		this.callback = fn;
 	}
 };
-frappe.ui.Capture.OPTIONS = {
+nts.ui.Capture.OPTIONS = {
 	title: __("Camera"),
 	animate: false,
 	error: false,
 };
-frappe.ui.Capture.ERR_MESSAGE = __("Unable to load camera.");
-frappe.ui.Capture.TEMPLATE = `
-<div class="frappe-capture">
+nts.ui.Capture.ERR_MESSAGE = __("Unable to load camera.");
+nts.ui.Capture.TEMPLATE = `
+<div class="nts-capture">
 	<div class="embed-responsive embed-responsive-16by9 fc-stream-container">
-		<video class="fc-stream embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
+		<video class="fc-stream embed-responsive-item">${nts.ui.Capture.ERR_MESSAGE}</video>
 	</div>
 	<div class="fc-preview-container px-2" style="display: none;">
 

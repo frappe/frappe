@@ -1,4 +1,4 @@
-name: 'Frappe Assets'
+name: 'nts Assets'
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: 'frappe'
+          path: 'nts'
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -23,21 +23,21 @@ jobs:
       - name: Set up bench and build assets
         run: |
           npm install -g yarn
-          pip3 install -U frappe-bench
-          bench -v init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
-          cd frappe-bench && bench build
+          pip3 install -U nts-bench
+          bench -v init nts-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --nts-path $GITHUB_WORKSPACE/nts
+          cd nts-bench && bench build
 
       - name: Package assets
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
-          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./frappe-bench/sites/assets/frappe/dist
+          tar -cvpzf $GITHUB_WORKSPACE/build/$GITHUB_SHA.tar.gz ./nts-bench/sites/assets/nts/dist
 
       - name: Publish assets to S3
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read
         env:
-          AWS_S3_BUCKET: 'assets.frappeframework.com'
+          AWS_S3_BUCKET: 'assets.ntsframework.com'
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_ASSETS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_ASSETS_SECRET_ACCESS_KEY }}
           AWS_S3_ENDPOINT: 'http://s3.fr-par.scw.cloud'

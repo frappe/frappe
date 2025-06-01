@@ -1,7 +1,7 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Role Permission for Page and Report", {
+nts.ui.form.on("Role Permission for Page and Report", {
 	setup: function (frm) {
 		frm.trigger("set_queries");
 	},
@@ -15,7 +15,7 @@ frappe.ui.form.on("Role Permission for Page and Report", {
 	setup_buttons: function (frm) {
 		frm.clear_custom_buttons();
 		frm.page.clear_actions();
-		if (frm.doc.set_role_for && frm.doc[frappe.model.scrub(frm.doc.set_role_for)]) {
+		if (frm.doc.set_role_for && frm.doc[nts.model.scrub(frm.doc.set_role_for)]) {
 			frm.add_custom_button(__("Reset to defaults"), function () {
 				frm.trigger("reset_roles");
 			});
@@ -29,7 +29,7 @@ frappe.ui.form.on("Role Permission for Page and Report", {
 	onload: function (frm) {
 		if (!frm.roles_editor) {
 			frm.role_area = $(frm.fields_dict.roles_html.wrapper);
-			frm.roles_editor = new frappe.RoleEditor(frm.role_area, frm);
+			frm.roles_editor = new nts.RoleEditor(frm.role_area, frm);
 		}
 	},
 
@@ -97,7 +97,7 @@ frappe.ui.form.on("Role Permission for Page and Report", {
 			callback: function (r) {
 				refresh_field("roles");
 				frm.roles_editor.show();
-				frappe.msgprint(__("Successfully Updated"));
+				nts.msgprint(__("Successfully Updated"));
 			},
 		});
 	},
@@ -110,18 +110,18 @@ frappe.ui.form.on("Role Permission for Page and Report", {
 			callback: function (r) {
 				refresh_field("roles");
 				frm.roles_editor.show();
-				frappe.msgprint(__("Successfully Updated"));
+				nts.msgprint(__("Successfully Updated"));
 			},
 		});
 	},
 
 	validate_mandatory_fields: function (frm) {
 		if (!frm.doc.set_role_for) {
-			frappe.throw(__("Mandatory field: set role for"));
+			nts.throw(__("Mandatory field: set role for"));
 		}
 
 		if (frm.doc.set_role_for && !frm.doc[frm.doc.set_role_for.toLocaleLowerCase()]) {
-			frappe.throw(__("Mandatory field: {0}", [frm.doc.set_role_for]));
+			nts.throw(__("Mandatory field: {0}", [frm.doc.set_role_for]));
 		}
 	},
 });

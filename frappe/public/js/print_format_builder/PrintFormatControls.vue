@@ -142,7 +142,7 @@ function clone_field(df) {
 	]);
 	if (cloned.custom) {
 		// generate unique fieldnames for custom blocks
-		cloned.fieldname += "_" + frappe.utils.get_random(8);
+		cloned.fieldname += "_" + nts.utils.get_random(8);
 	}
 	return cloned;
 }
@@ -222,11 +222,11 @@ let print_templates = computed(() => {
 	for (let template of templates) {
 		let df;
 		if (template.field) {
-			df = frappe.meta.get_docfield(meta.value.name, template.field);
+			df = nts.meta.get_docfield(meta.value.name, template.field);
 		} else {
 			df = {
 				label: template.name,
-				fieldname: frappe.scrub(template.name),
+				fieldname: nts.scrub(template.name),
 			};
 		}
 		out.push({
@@ -253,8 +253,8 @@ let page_number_positions = computed(() => {
 // mounted
 onMounted(() => {
 	let method =
-		"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
-	frappe.call(method).then((r) => {
+		"nts.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
+	nts.call(method).then((r) => {
 		google_fonts.value = r.message || [];
 		if (!google_fonts.value.includes(print_format.value.font)) {
 			google_fonts.value.push(print_format.value.font);
@@ -308,7 +308,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-bottom: 0;
 }
 
-.control-font :deep(.frappe-control[data-fieldname="font"] label) {
+.control-font :deep(.nts-control[data-fieldname="font"] label) {
 	display: none;
 }
 </style>

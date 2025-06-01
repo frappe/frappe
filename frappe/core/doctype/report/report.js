@@ -1,6 +1,6 @@
-frappe.ui.form.on("Report", {
+nts.ui.form.on("Report", {
 	refresh: function (frm) {
-		if (frm.doc.is_standard === "Yes" && !frappe.boot.developer_mode) {
+		if (frm.doc.is_standard === "Yes" && !nts.boot.developer_mode) {
 			// make the document read-only
 			frm.disable_form();
 		} else {
@@ -14,16 +14,16 @@ frappe.ui.form.on("Report", {
 				function () {
 					switch (doc.report_type) {
 						case "Report Builder":
-							frappe.set_route("List", doc.ref_doctype, "Report", doc.name);
+							nts.set_route("List", doc.ref_doctype, "Report", doc.name);
 							break;
 						case "Query Report":
-							frappe.set_route("query-report", doc.name);
+							nts.set_route("query-report", doc.name);
 							break;
 						case "Script Report":
-							frappe.set_route("query-report", doc.name);
+							nts.set_route("query-report", doc.name);
 							break;
 						case "Custom Report":
-							frappe.set_route("query-report", doc.name);
+							nts.set_route("query-report", doc.name);
 							break;
 					}
 				},

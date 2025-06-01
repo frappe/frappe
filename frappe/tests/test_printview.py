@@ -1,16 +1,16 @@
-import frappe
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.tests.utils import FrappeTestCase
-from frappe.www.printview import get_html_and_style
+import nts
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.tests.utils import ntsTestCase
+from nts.www.printview import get_html_and_style
 
 
-class PrintViewTest(FrappeTestCase):
+class PrintViewTest(ntsTestCase):
 	def test_print_view_without_errors(self):
-		user = frappe.get_last_doc("User")
+		user = nts.get_last_doc("User")
 
-		messages_before = frappe.get_message_log()
+		messages_before = nts.get_message_log()
 		ret = get_html_and_style(doc=user.as_json(), print_format="Standard", no_letterhead=1)
-		messages_after = frappe.get_message_log()
+		messages_after = nts.get_message_log()
 
 		if len(messages_after) > len(messages_before):
 			new_messages = messages_after[len(messages_before) :]
@@ -23,10 +23,10 @@ class PrintViewTest(FrappeTestCase):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
 		doctype = new_doctype(is_submittable=1).insert()
 
-		doc = frappe.new_doc(doctype.name)
+		doc = nts.new_doc(doctype.name)
 		doc.insert()
 		doc.submit()
 		doc.cancel()
 
 		# cancelled doc can't be printed by default
-		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
+		self.assertRaises(nts.PermissionError, nts.attach_print, doc.doctype, doc.name)

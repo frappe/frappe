@@ -1,29 +1,29 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import base64
 import os
 
-import frappe
-from frappe import safe_decode
-from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
-from frappe.email.email_body import (
+import nts
+from nts import safe_decode
+from nts.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
+from nts.email.email_body import (
 	get_email,
 	get_header,
 	inline_style_in_html,
 	replace_filename_with_cid,
 )
-from frappe.email.receive import Email
-from frappe.tests.utils import FrappeTestCase
+from nts.email.receive import Email
+from nts.tests.utils import ntsTestCase
 
 
-class TestEmailBody(FrappeTestCase):
+class TestEmailBody(ntsTestCase):
 	def setUp(self):
 		email_html = """
 <div>
 	<h3>Hey John Doe!</h3>
 	<p>This is embedded image you asked for</p>
-	<img embed="assets/frappe/images/frappe-favicon.svg" />
+	<img embed="assets/nts/images/nts-favicon.svg" />
 </div>
 """
 		email_text = """
@@ -31,7 +31,7 @@ Hey John Doe!
 This is the text version of this email
 """
 
-		img_path = os.path.abspath("assets/frappe/images/frappe-favicon.svg")
+		img_path = os.path.abspath("assets/nts/images/nts-favicon.svg")
 		with open(img_path, "rb") as f:
 			img_content = f.read()
 			img_base64 = base64.b64encode(img_content).decode()
@@ -62,7 +62,7 @@ This is the text version of this email
 			message=f"<h1>{uni_chr1}abcd{uni_chr2}</h1>",
 			text_content="whatever",
 		).process()
-		queue_doc = frappe.get_last_doc("Email Queue")
+		queue_doc = nts.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = mail_ctx.build_message(recipient_email="test@test.com")
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
@@ -75,7 +75,7 @@ This is the text version of this email
 			message="<h1>\n this is a test of newlines\n" + "</h1>",
 			text_content="whatever",
 		).process()
-		queue_doc = frappe.get_last_doc("Email Queue")
+		queue_doc = nts.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = safe_decode(mail_ctx.build_message(recipient_email="test@test.com"))
 
@@ -86,7 +86,7 @@ This is the text version of this email
 Content-Type: image/svg+xml
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="frappe-favicon.svg"
+Content-Disposition: inline; filename="nts-favicon.svg"
 """
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
@@ -122,7 +122,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 	def test_replace_filename_with_cid(self):
 		original_message = """
 			<div>
-				<img embed="assets/frappe/images/frappe-favicon.svg" alt="test" />
+				<img embed="assets/nts/images/nts-favicon.svg" alt="test" />
 				<img embed="notexists.jpg" />
 			</div>
 		"""

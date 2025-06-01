@@ -1,23 +1,23 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import csv
 import os
 import re
 
-import frappe
-import frappe.permissions
-from frappe import _
-from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model.utils import is_virtual_doctype
-from frappe.utils import cint, cstr, format_datetime, format_duration, formatdate, parse_json
-from frappe.utils.csvutils import UnicodeWriter
+import nts
+import nts.permissions
+from nts import _
+from nts.core.doctype.access_log.access_log import make_access_log
+from nts.model.utils import is_virtual_doctype
+from nts.utils import cint, cstr, format_datetime, format_duration, formatdate, parse_json
+from nts.utils.csvutils import UnicodeWriter
 
 reflags = {"I": re.I, "L": re.L, "M": re.M, "U": re.U, "S": re.S, "X": re.X, "D": re.DEBUG}
 
 
 def get_data_keys():
-	return frappe._dict(
+	return nts._dict(
 		{
 			"data_separator": _("Start entering data below this line"),
 			"main_table": _("Table") + ":",
@@ -28,7 +28,7 @@ def get_data_keys():
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def export_data(
 	doctype=None,
 	parent_doctype=None,
@@ -122,7 +122,7 @@ class DataExporter:
 		if self.all_doctypes:
 			self.child_doctypes = [
 				dict(doctype=df.options, parentfield=df.fieldname)
-				for df in frappe.get_meta(self.doctype).get_table_fields()
+				for df in nts.get_meta(self.doctype).get_table_fields()
 			]
 
 	def build_response(self):
@@ -158,7 +158,7 @@ class DataExporter:
 		self.add_field_headings()
 		self.add_data()
 		if self.with_data and not self.data:
-			frappe.respond_as_web_page(
+			nts.respond_as_web_page(
 				_("No Data"), _("There is no data to be exported"), indicator_color="orange"
 			)
 
@@ -166,9 +166,9 @@ class DataExporter:
 			self.build_response_as_excel()
 		else:
 			# write out response as a type csv
-			frappe.response["result"] = cstr(self.writer.getvalue())
-			frappe.response["type"] = "csv"
-			frappe.response["doctype"] = self.doctype
+			nts.response["result"] = cstr(self.writer.getvalue())
+			nts.response["type"] = "csv"
+			nts.response["doctype"] = self.doctype
 
 	def add_main_header(self):
 		self.writer.writerow([_("Data Import Template")])
@@ -205,18 +205,18 @@ class DataExporter:
 			)
 
 	def build_field_columns(self, dt, parentfield=None):
-		meta = frappe.get_meta(dt)
+		meta = nts.get_meta(dt)
 
 		# build list of valid docfields
 		tablecolumns = []
 		table_name = "tab" + dt
 
-		for f in frappe.db.get_table_columns_description(table_name):
+		for f in nts.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
 			if f.name in ["owner", "creation"]:
-				std_field = next((x for x in frappe.model.std_fields if x["fieldname"] == f.name), None)
+				std_field = next((x for x in nts.model.std_fields if x["fieldname"] == f.name), None)
 				if std_field:
-					field = frappe._dict(
+					field = nts._dict(
 						{
 							"fieldname": std_field.get("fieldname"),
 							"label": std_field.get("label"),
@@ -234,7 +234,7 @@ class DataExporter:
 
 		tablecolumns.sort(key=lambda a: int(a.idx))
 
-		_column_start_end = frappe._dict(start=0)
+		_column_start_end = nts._dict(start=0)
 
 		if dt == self.doctype:
 			if (meta.get("autoname") and meta.get("autoname").lower() == "prompt") or (self.with_data):
@@ -243,7 +243,7 @@ class DataExporter:
 			# if importing only child table for new record, add parent field
 			if meta.get("istable") and not self.with_data:
 				self.append_field_column(
-					frappe._dict(
+					nts._dict(
 						{
 							"fieldname": "parent",
 							"parent": "",
@@ -258,9 +258,9 @@ class DataExporter:
 					True,
 				)
 
-			_column_start_end = frappe._dict(start=0)
+			_column_start_end = nts._dict(start=0)
 		else:
-			_column_start_end = frappe._dict(start=len(self.columns))
+			_column_start_end = nts._dict(start=len(self.columns))
 
 			if self.with_data:
 				self._append_name_column(dt)
@@ -336,7 +336,7 @@ class DataExporter:
 		elif docfield.fieldtype == "Check":
 			return "0 or 1"
 		elif docfield.fieldtype in ["Date", "Datetime"]:
-			return cstr(frappe.defaults.get_defaults().date_format)
+			return cstr(nts.defaults.get_defaults().date_format)
 		elif hasattr(docfield, "info"):
 			return docfield.info
 		else:
@@ -359,20 +359,20 @@ class DataExporter:
 			self.writer.writerow([self.data_keys.data_separator])
 
 	def add_data(self):
-		from frappe.query_builder import DocType
+		from nts.query_builder import DocType
 
 		if self.template and not self.with_data:
 			return
 
-		frappe.permissions.can_export(self.parent_doctype, raise_exception=True)
+		nts.permissions.can_export(self.parent_doctype, raise_exception=True)
 
 		# sort nested set doctypes by `lft asc`
 		order_by = None
-		table_columns = frappe.db.get_table_columns(self.parent_doctype)
+		table_columns = nts.db.get_table_columns(self.parent_doctype)
 		if "lft" in table_columns and "rgt" in table_columns:
 			order_by = f"`tab{self.parent_doctype}`.`lft` asc"
 		# get permitted data only
-		self.data = frappe.get_list(
+		self.data = nts.get_list(
 			self.doctype, fields=["*"], filters=self.filters, limit_page_length=None, order_by=order_by
 		)
 
@@ -411,7 +411,7 @@ class DataExporter:
 						continue
 					child_doctype_table = DocType(c["doctype"])
 					data_row = (
-						frappe.qb.from_(child_doctype_table)
+						nts.qb.from_(child_doctype_table)
 						.select("*")
 						.where(child_doctype_table.parent == doc.name)
 						.where(child_doctype_table.parentfield == c["parentfield"])
@@ -424,7 +424,7 @@ class DataExporter:
 
 	def add_data_row(self, rows, dt, parentfield, doc, rowidx):
 		d = doc.copy()
-		meta = frappe.get_meta(dt)
+		meta = nts.get_meta(dt)
 		if self.all_doctypes:
 			d.name = f'"{d.name}"'
 
@@ -450,10 +450,10 @@ class DataExporter:
 				row[_column_start_end.start + i + 1] = value
 
 	def build_response_as_excel(self):
-		from frappe.desk.utils import provide_binary_file
-		from frappe.utils.xlsxutils import make_xlsx
+		from nts.desk.utils import provide_binary_file
+		from nts.utils.xlsxutils import make_xlsx
 
-		filename = frappe.generate_hash(length=10)
+		filename = nts.generate_hash(length=10)
 		with open(filename, "wb") as f:
 			f.write(cstr(self.writer.getvalue()).encode("utf-8"))
 		f = open(filename)
@@ -467,7 +467,7 @@ class DataExporter:
 
 	def _append_name_column(self, dt=None):
 		self.append_field_column(
-			frappe._dict(
+			nts._dict(
 				{
 					"fieldname": "name" if dt else self.name_field,
 					"parent": dt or "",

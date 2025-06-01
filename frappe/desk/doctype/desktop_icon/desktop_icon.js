@@ -1,6 +1,6 @@
-// Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and contributors
+// Copyright (c) 2016, nts Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Desktop Icon", {
+nts.ui.form.on("Desktop Icon", {
 	refresh: function (frm) {},
 });

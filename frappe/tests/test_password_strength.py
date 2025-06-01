@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from frappe.utils.password_strength import test_password_strength
+from nts.utils.password_strength import test_password_strength
 
 
 class TestPasswordStrength(TestCase):

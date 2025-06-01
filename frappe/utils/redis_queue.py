@@ -1,7 +1,7 @@
 import redis
 
-import frappe
-from frappe.utils import get_bench_id, random_string
+import nts
+from nts.utils import get_bench_id, random_string
 
 
 class RedisQueue:
@@ -13,25 +13,25 @@ class RedisQueue:
 		password = password or self.conn.acl_genpass()
 		user_settings = self.get_new_user_settings(username, password)
 		is_created = self.conn.acl_setuser(**user_settings)
-		return frappe._dict(user_settings) if is_created else {}
+		return nts._dict(user_settings) if is_created else {}
 
 	@classmethod
 	def get_connection(cls, username=None, password=None):
-		if frappe.conf.redis_queue_sentinel_enabled:
-			from frappe.utils.redis_wrapper import get_sentinel_connection
+		if nts.conf.redis_queue_sentinel_enabled:
+			from nts.utils.redis_wrapper import get_sentinel_connection
 
-			sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_queue_sentinels", [])]
+			sentinels = [tuple(node.split(":")) for node in nts.conf.get("redis_queue_sentinels", [])]
 			sentinel = get_sentinel_connection(
 				sentinels=sentinels,
-				sentinel_username=frappe.conf.get("redis_queue_sentinel_username"),
-				sentinel_password=frappe.conf.get("redis_queue_sentinel_password"),
-				master_username=frappe.conf.get("redis_queue_master_username", username),
-				master_password=frappe.conf.get("redis_queue_master_password", password),
+				sentinel_username=nts.conf.get("redis_queue_sentinel_username"),
+				sentinel_password=nts.conf.get("redis_queue_sentinel_password"),
+				master_username=nts.conf.get("redis_queue_master_username", username),
+				master_password=nts.conf.get("redis_queue_master_password", password),
 			)
-			conn = sentinel.master_for(frappe.conf.get("redis_queue_master_service"))
+			conn = sentinel.master_for(nts.conf.get("redis_queue_master_service"))
 			conn.ping()
 			return conn
-		conn = redis.from_url(frappe.conf.redis_queue, username=username, password=password)
+		conn = redis.from_url(nts.conf.redis_queue, username=username, password=password)
 		conn.ping()
 		return conn
 

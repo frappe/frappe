@@ -1,12 +1,12 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import requests
 
-import frappe
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.frappeclient import FrappeClient, FrappeException
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url
+import nts
+from nts.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from nts.ntsclient import ntsClient, ntsException
+from nts.tests.utils import ntsTestCase
+from nts.utils import get_site_url
 
 scripts = [
 	dict(
@@ -26,7 +26,7 @@ if "test" in doc.description:
 		reference_doctype="ToDo",
 		script="""
 if "validate" in doc.description:
-	raise frappe.ValidationError
+	raise nts.ValidationError
 """,
 	),
 	dict(
@@ -35,7 +35,7 @@ if "validate" in doc.description:
 		api_method="test_server_script",
 		allow_guest=1,
 		script="""
-frappe.response['message'] = 'hello'
+nts.response['message'] = 'hello'
 """,
 	),
 	dict(
@@ -44,7 +44,7 @@ frappe.response['message'] = 'hello'
 		api_method="test_return_value",
 		allow_guest=1,
 		script="""
-frappe.flags = 'hello'
+nts.flags = 'hello'
 """,
 	),
 	dict(
@@ -61,7 +61,7 @@ conditions = '1 = 1'
 		doctype_event="Before Insert",
 		reference_doctype="Note",
 		script="""
-frappe.method_that_doesnt_exist("do some magic")
+nts.method_that_doesnt_exist("do some magic")
 """,
 	),
 	dict(
@@ -71,7 +71,7 @@ frappe.method_that_doesnt_exist("do some magic")
 		reference_doctype="ToDo",
 		disabled=1,
 		script="""
-frappe.db.commit()
+nts.db.commit()
 """,
 	),
 	dict(
@@ -81,7 +81,7 @@ frappe.db.commit()
 		reference_doctype="ToDo",
 		disabled=1,
 		script="""
-frappe.db.add_index("Todo", ["color", "date"])
+nts.db.add_index("Todo", ["color", "date"])
 """,
 	),
 	dict(
@@ -107,102 +107,102 @@ doc.save()
 ]
 
 
-class TestServerScript(FrappeTestCase):
+class TestServerScript(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		frappe.db.truncate("Server Script")
-		frappe.get_doc("User", "Administrator").add_roles("Script Manager")
+		nts.db.truncate("Server Script")
+		nts.get_doc("User", "Administrator").add_roles("Script Manager")
 		for script in scripts:
-			script_doc = frappe.get_doc(doctype="Server Script")
+			script_doc = nts.get_doc(doctype="Server Script")
 			script_doc.update(script)
 			script_doc.insert()
 		cls.enable_safe_exec()
-		frappe.db.commit()
+		nts.db.commit()
 		return super().setUpClass()
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()
-		frappe.db.truncate("Server Script")
-		frappe.cache.delete_value("server_script_map")
+		nts.db.commit()
+		nts.db.truncate("Server Script")
+		nts.cache.delete_value("server_script_map")
 
 	def setUp(self):
-		frappe.cache.delete_value("server_script_map")
+		nts.cache.delete_value("server_script_map")
 
 	def test_doctype_event(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="hello")).insert()
+		todo = nts.get_doc(dict(doctype="ToDo", description="hello")).insert()
 		self.assertEqual(todo.status, "Open")
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test todo")).insert()
+		todo = nts.get_doc(dict(doctype="ToDo", description="test todo")).insert()
 		self.assertEqual(todo.status, "Closed")
 
 		self.assertRaises(
-			frappe.ValidationError, frappe.get_doc(dict(doctype="ToDo", description="validate me")).insert
+			nts.ValidationError, nts.get_doc(dict(doctype="ToDo", description="validate me")).insert
 		)
 
-		role = frappe.get_doc(doctype="Role", role_name="_Test Role 9").insert(ignore_if_duplicate=True)
+		role = nts.get_doc(doctype="Role", role_name="_Test Role 9").insert(ignore_if_duplicate=True)
 		role.rename("_Test Role 10")
 		role.reload()
 		self.assertEqual(role.disabled, 1)
 		self.assertEqual(role.desk_access, 0)
 
 	def test_api(self):
-		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
+		response = requests.post(get_site_url(nts.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
 
 	def test_api_return(self):
-		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
+		self.assertEqual(nts.get_doc("Server Script", "test_return_value").execute_method(), "hello")
 
 	def test_permission_query(self):
-		if frappe.conf.db_type == "mariadb":
-			self.assertTrue("where (1 = 1)" in frappe.db.get_list("ToDo", run=False))
+		if nts.conf.db_type == "mariadb":
+			self.assertTrue("where (1 = 1)" in nts.db.get_list("ToDo", run=False))
 		else:
-			self.assertTrue("where (1 = '1')" in frappe.db.get_list("ToDo", run=False))
-		self.assertTrue(isinstance(frappe.db.get_list("ToDo"), list))
+			self.assertTrue("where (1 = '1')" in nts.db.get_list("ToDo", run=False))
+		self.assertTrue(isinstance(nts.db.get_list("ToDo"), list))
 
 	def test_attribute_error(self):
 		"""Raise AttributeError if method not found in Namespace"""
-		note = frappe.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
+		note = nts.get_doc({"doctype": "Note", "title": "Test Note: Server Script"})
 		self.assertRaises(AttributeError, note.insert)
 
 	def test_syntax_validation(self):
 		server_script = scripts[0]
 		server_script["script"] = "js || code.?"
 
-		with self.assertRaises(frappe.ValidationError) as se:
-			frappe.get_doc(doctype="Server Script", **server_script).insert()
+		with self.assertRaises(nts.ValidationError) as se:
+			nts.get_doc(doctype="Server Script", **server_script).insert()
 
 		self.assertTrue(
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
 	def test_commit_in_doctype_event(self):
-		server_script = frappe.get_doc("Server Script", "test_todo_commit")
+		server_script = nts.get_doc("Server Script", "test_todo_commit")
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
+		self.assertRaises(AttributeError, nts.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()
 
 	def test_add_index_in_doctype_event(self):
-		server_script = frappe.get_doc("Server Script", "test_add_index")
+		server_script = nts.get_doc("Server Script", "test_add_index")
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
+		self.assertRaises(AttributeError, nts.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()
 
 	def test_restricted_qb(self):
-		todo = frappe.get_doc(doctype="ToDo", description="QbScriptTestNote")
+		todo = nts.get_doc(doctype="ToDo", description="QbScriptTestNote")
 		todo.insert()
 
-		script = frappe.get_doc(
+		script = nts.get_doc(
 			doctype="Server Script",
 			name="test_qb_restrictions",
 			script_type="API",
@@ -210,7 +210,7 @@ class TestServerScript(FrappeTestCase):
 			allow_guest=1,
 			# whitelisted update
 			script=f"""
-frappe.db.set_value("ToDo", "{todo.name}", "description", "safe")
+nts.db.set_value("ToDo", "{todo.name}", "description", "safe")
 """,
 		)
 		script.insert()
@@ -221,25 +221,25 @@ frappe.db.set_value("ToDo", "{todo.name}", "description", "safe")
 
 		# unsafe update
 		script.script = f"""
-todo = frappe.qb.DocType("ToDo")
-frappe.qb.update(todo).set(todo.description, "unsafe").where(todo.name == "{todo.name}").run()
+todo = nts.qb.DocType("ToDo")
+nts.qb.update(todo).set(todo.description, "unsafe").where(todo.name == "{todo.name}").run()
 """
 		script.save()
-		self.assertRaises(frappe.PermissionError, script.execute_method)
+		self.assertRaises(nts.PermissionError, script.execute_method)
 		todo.reload()
 		self.assertEqual(todo.description, "safe")
 
 		# safe select
 		script.script = f"""
-todo = frappe.qb.DocType("ToDo")
-frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
+todo = nts.qb.DocType("ToDo")
+nts.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 """
 		script.save()
 		script.execute_method()
 
 	def test_scripts_all_the_way_down(self):
 		# why not
-		script = frappe.get_doc(
+		script = nts.get_doc(
 			doctype="Server Script",
 			name="test_nested_scripts_1",
 			script_type="API",
@@ -249,18 +249,18 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.insert()
 		script.execute_method()
 
-		script = frappe.get_doc(
+		script = nts.get_doc(
 			doctype="Server Script",
 			name="test_nested_scripts_2",
 			script_type="API",
 			api_method="test_nested_scripts_2",
-			script="""frappe.call("test_nested_scripts_1")""",
+			script="""nts.call("test_nested_scripts_1")""",
 		)
 		script.insert()
 		script.execute_method()
 
 	def test_server_script_rate_limiting(self):
-		script1 = frappe.get_doc(
+		script1 = nts.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script",
 			script_type="API",
@@ -268,12 +268,12 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			allow_guest=1,
 			rate_limit_count=5,
 			api_method="rate_limited_endpoint",
-			script="""frappe.flags = {"test": True}""",
+			script="""nts.flags = {"test": True}""",
 		)
 
 		script1.insert()
 
-		script2 = frappe.get_doc(
+		script2 = nts.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script2",
 			script_type="API",
@@ -281,58 +281,58 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			allow_guest=1,
 			rate_limit_count=5,
 			api_method="rate_limited_endpoint2",
-			script="""frappe.flags = {"test": False}""",
+			script="""nts.flags = {"test": False}""",
 		)
 
 		script2.insert()
 
-		frappe.db.commit()
+		nts.db.commit()
 
-		site = frappe.utils.get_site_url(frappe.local.site)
-		client = FrappeClient(site)
+		site = nts.utils.get_site_url(nts.local.site)
+		client = ntsClient(site)
 
 		# Exhaust rate limit
 		for _ in range(5):
 			client.get_api(script1.api_method)
 
-		self.assertRaises(FrappeException, client.get_api, script1.api_method)
+		self.assertRaises(ntsException, client.get_api, script1.api_method)
 
 		# Exhaust rate limit
 		for _ in range(5):
 			client.get_api(script2.api_method)
 
-		self.assertRaises(FrappeException, client.get_api, script2.api_method)
+		self.assertRaises(ntsException, client.get_api, script2.api_method)
 
 		script1.delete()
 		script2.delete()
-		frappe.db.commit()
+		nts.db.commit()
 
 	def test_server_script_scheduled(self):
-		scheduled_script = frappe.get_doc(
+		scheduled_script = nts.get_doc(
 			doctype="Server Script",
 			name="scheduled_script_wo_cron",
 			script_type="Scheduler Event",
-			script="""frappe.flags = {"test": True}""",
+			script="""nts.flags = {"test": True}""",
 			event_frequency="Hourly",
 		).insert()
 
-		cron_script = frappe.get_doc(
+		cron_script = nts.get_doc(
 			doctype="Server Script",
 			name="scheduled_script_w_cron",
 			script_type="Scheduler Event",
-			script="""frappe.flags = {"test": True}""",
+			script="""nts.flags = {"test": True}""",
 			event_frequency="Cron",
 			cron_format="0 0 1 1 *",  # 1st january
 		).insert()
 
 		# Ensure that jobs remain in DB after migrate
 		sync_jobs()
-		self.assertTrue(frappe.db.exists("Scheduled Job Type", {"server_script": scheduled_script.name}))
+		self.assertTrue(nts.db.exists("Scheduled Job Type", {"server_script": scheduled_script.name}))
 
-		cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
+		cron_job_name = nts.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
 		self.assertTrue(cron_job_name)
 
-		cron_job = frappe.get_doc("Scheduled Job Type", cron_job_name)
+		cron_job = nts.get_doc("Scheduled Job Type", cron_job_name)
 		self.assertEqual(cron_job.next_execution.day, 1)
 		self.assertEqual(cron_job.next_execution.month, 1)
 

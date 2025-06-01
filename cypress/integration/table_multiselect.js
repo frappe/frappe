@@ -17,11 +17,11 @@ context("Table MultiSelect", () => {
 		cy.wait(500);
 		cy.get("@input").type("{enter}");
 		cy.get(
-			'.frappe-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form'
+			'.nts-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form'
 		).as("selected-value");
 		cy.get("@selected-value").should("contain", "test@erpnext.com");
 
-		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save_form");
+		cy.intercept("POST", "/api/method/nts.desk.form.save.savedocs").as("save_form");
 		// trigger save
 		cy.get(".primary-action").click();
 		cy.wait("@save_form").its("response.statusCode").should("eq", 200);
@@ -32,7 +32,7 @@ context("Table MultiSelect", () => {
 		cy.go_to_list("Assignment Rule");
 		cy.get(`.list-subject:contains("table multiselect")`).last().find("a").click();
 		cy.get('input[data-fieldname="users"]').focus().type("{backspace}");
-		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').should(
+		cy.get('.nts-control[data-fieldname="users"] .form-control .tb-selected-value').should(
 			"not.exist"
 		);
 	});
@@ -40,7 +40,7 @@ context("Table MultiSelect", () => {
 	it("delete value using x", () => {
 		cy.go_to_list("Assignment Rule");
 		cy.get(`.list-subject:contains("table multiselect")`).last().find("a").click();
-		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as(
+		cy.get('.nts-control[data-fieldname="users"] .form-control .tb-selected-value').as(
 			"existing_value"
 		);
 		cy.get("@existing_value").find(".btn-remove").click();
@@ -50,7 +50,7 @@ context("Table MultiSelect", () => {
 	it("navigate to selected value", () => {
 		cy.go_to_list("Assignment Rule");
 		cy.get(`.list-subject:contains("table multiselect")`).last().find("a").click();
-		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as(
+		cy.get('.nts-control[data-fieldname="users"] .form-control .tb-selected-value').as(
 			"existing_value"
 		);
 		cy.get("@existing_value").find(".btn-link-to-form").click();

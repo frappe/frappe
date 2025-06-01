@@ -1,7 +1,7 @@
-# Copyright (c) 2023, Frappe Technologies and contributors
+# Copyright (c) 2023, nts Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
+import nts
 
 
 def execute(filters=None):
@@ -17,15 +17,15 @@ def get_columns():
 	]
 
 	# Each app is shown in order as a column
-	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
+	installed_apps = nts.get_installed_apps(_ensure_on_bench=True)
 	columns += [{"label": app, "fieldname": app, "fieldtype": values_field_type} for app in installed_apps]
 
 	return columns
 
 
 def get_data():
-	hooks = frappe.get_hooks()
-	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
+	hooks = nts.get_hooks()
+	installed_apps = nts.get_installed_apps(_ensure_on_bench=True)
 
 	def fmt_hook_values(v):
 		"""Improve readability by discarding falsy values and removing containers when only 1
@@ -37,7 +37,7 @@ def get_data():
 
 		if isinstance(v, dict | list):
 			try:
-				return frappe.as_json(v)
+				return nts.as_json(v)
 			except Exception:
 				pass
 
@@ -49,13 +49,13 @@ def get_data():
 			for k, v in values.items():
 				row = {"hook_name": hook, "hook_key": fmt_hook_values(k), "hook_values": fmt_hook_values(v)}
 				for app in installed_apps:
-					if app_hooks := delist(frappe.get_hooks(hook, app_name=app)):
+					if app_hooks := delist(nts.get_hooks(hook, app_name=app)):
 						row[app] = fmt_hook_values(app_hooks.get(k))
 				data.append(row)
 		else:
 			row = {"hook_name": hook, "hook_values": fmt_hook_values(values)}
 			for app in installed_apps:
-				row[app] = fmt_hook_values(frappe.get_hooks(hook, app_name=app))
+				row[app] = fmt_hook_values(nts.get_hooks(hook, app_name=app))
 
 			data.append(row)
 

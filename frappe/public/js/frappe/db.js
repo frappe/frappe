@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.db = {
+nts.db = {
 	get_list: function (doctype, args) {
 		if (!args) {
 			args = {};
@@ -14,8 +14,8 @@ frappe.db = {
 			args.limit = 20;
 		}
 		return new Promise((resolve) => {
-			frappe.call({
-				method: "frappe.desk.reportview.get_list",
+			nts.call({
+				method: "nts.desk.reportview.get_list",
 				args: args,
 				type: "GET",
 				callback: function (r) {
@@ -26,14 +26,14 @@ frappe.db = {
 	},
 	exists: function (doctype, name) {
 		return new Promise((resolve) => {
-			frappe.db.get_value(doctype, { name: name }, "name").then((r) => {
+			nts.db.get_value(doctype, { name: name }, "name").then((r) => {
 				r.message && r.message.name ? resolve(true) : resolve(false);
 			});
 		});
 	},
 	get_value: function (doctype, filters, fieldname, callback, parent_doc) {
-		return frappe.call({
-			method: "frappe.client.get_value",
+		return nts.call({
+			method: "nts.client.get_value",
 			type: "GET",
 			args: {
 				doctype: doctype,
@@ -48,9 +48,9 @@ frappe.db = {
 	},
 	get_single_value: (doctype, field) => {
 		return new Promise((resolve) => {
-			frappe
+			nts
 				.call({
-					method: "frappe.client.get_single_value",
+					method: "nts.client.get_single_value",
 					args: { doctype, field },
 					type: "GET",
 				})
@@ -58,8 +58,8 @@ frappe.db = {
 		});
 	},
 	set_value: function (doctype, docname, fieldname, value, callback) {
-		return frappe.call({
-			method: "frappe.client.set_value",
+		return nts.call({
+			method: "nts.client.set_value",
 			args: {
 				doctype: doctype,
 				name: docname,
@@ -73,13 +73,13 @@ frappe.db = {
 	},
 	get_doc: function (doctype, name, filters) {
 		return new Promise((resolve, reject) => {
-			frappe
+			nts
 				.call({
-					method: "frappe.client.get",
+					method: "nts.client.get",
 					type: "GET",
 					args: { doctype, name, filters },
 					callback: (r) => {
-						frappe.model.sync(r.message);
+						nts.model.sync(r.message);
 						resolve(r.message);
 					},
 				})
@@ -87,11 +87,11 @@ frappe.db = {
 		});
 	},
 	insert: function (doc) {
-		return frappe.xcall("frappe.client.insert", { doc });
+		return nts.xcall("nts.client.insert", { doc });
 	},
 	delete_doc: function (doctype, name) {
 		return new Promise((resolve) => {
-			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
+			nts.call("nts.client.delete", { doctype, name }, (r) => resolve(r.message));
 		});
 	},
 	count: function (doctype, args = {}) {
@@ -107,7 +107,7 @@ frappe.db = {
 
 		const fields = [];
 
-		return frappe.xcall("frappe.desk.reportview.get_count", {
+		return nts.xcall("nts.desk.reportview.get_count", {
 			doctype,
 			filters,
 			fields,
@@ -117,9 +117,9 @@ frappe.db = {
 	},
 	get_link_options(doctype, txt = "", filters = {}) {
 		return new Promise((resolve) => {
-			frappe.call({
+			nts.call({
 				type: "GET",
-				method: "frappe.desk.search.search_link",
+				method: "nts.desk.search.search_link",
 				args: {
 					doctype,
 					txt,

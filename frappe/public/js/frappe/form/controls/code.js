@@ -1,4 +1,4 @@
-frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlText {
+nts.ui.form.ControlCode = class ControlCode extends nts.ui.form.ControlText {
 	make_input() {
 		if (this.editor) return;
 		this.load_lib().then(() => this.make_ace_editor());
@@ -29,8 +29,8 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				</button>`
 			);
 			this.button.on("click", () => {
-				frappe.utils.copy_to_clipboard(
-					frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
+				nts.utils.copy_to_clipboard(
+					nts.model.get_value(this.doctype, this.docname, this.df.fieldname)
 				);
 			});
 			this.button.appendTo(this.$wrapper);
@@ -88,7 +88,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			change_content();
 		});
 
-		let change_content = frappe.utils.debounce(() => {
+		let change_content = nts.utils.debounce(() => {
 			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300);
@@ -141,7 +141,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 							a = { value: a };
 						}
 						return {
-							name: "frappe",
+							name: "nts",
 							value: a.value,
 							score: a.score,
 							meta: a.meta,
@@ -237,14 +237,14 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 	load_lib() {
 		if (this.library_loaded) return this.library_loaded;
 
-		if (frappe.boot.developer_mode) {
-			this.root_lib_path = "/assets/frappe/node_modules/ace-builds/src-noconflict/";
+		if (nts.boot.developer_mode) {
+			this.root_lib_path = "/assets/nts/node_modules/ace-builds/src-noconflict/";
 		} else {
-			this.root_lib_path = "/assets/frappe/node_modules/ace-builds/src-min-noconflict/";
+			this.root_lib_path = "/assets/nts/node_modules/ace-builds/src-min-noconflict/";
 		}
 
 		this.library_loaded = new Promise((resolve) => {
-			frappe.require(this.root_lib_path + "ace.js", () => {
+			nts.require(this.root_lib_path + "ace.js", () => {
 				window.ace.config.set("basePath", this.root_lib_path);
 				resolve();
 			});

@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	navbar_settings = frappe.get_single("Navbar Settings")
+	navbar_settings = nts.get_single("Navbar Settings")
 
 	# Remove "Workspace Settings" item from version 15
 	workspace_item = next(

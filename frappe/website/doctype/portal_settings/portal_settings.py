@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.website.path_resolver import validate_path
+import nts
+from nts.model.document import Document
+from nts.website.path_resolver import validate_path
 
 
 class PortalSettings(Document):
@@ -13,8 +13,8 @@ class PortalSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.portal_menu_item.portal_menu_item import PortalMenuItem
+		from nts.types import DF
+		from nts.website.doctype.portal_menu_item.portal_menu_item import PortalMenuItem
 
 		custom_menu: DF.Table[PortalMenuItem]
 		default_portal_home: DF.Data | None
@@ -35,7 +35,7 @@ class PortalSettings(Document):
 			self.append("menu", item)
 			return True
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def reset(self):
 		"""Restore defaults"""
 		self.menu = []
@@ -44,9 +44,9 @@ class PortalSettings(Document):
 	def sync_menu(self):
 		"""Sync portal menu items"""
 		dirty = False
-		for item in frappe.get_hooks("standard_portal_menu_items"):
-			if item.get("role") and not frappe.db.exists("Role", item.get("role")):
-				frappe.get_doc({"doctype": "Role", "role_name": item.get("role"), "desk_access": 0}).insert()
+		for item in nts.get_hooks("standard_portal_menu_items"):
+			if item.get("role") and not nts.db.exists("Role", item.get("role")):
+				nts.get_doc({"doctype": "Role", "role_name": item.get("role"), "desk_access": 0}).insert()
 			if self.add_item(item):
 				dirty = True
 
@@ -60,21 +60,21 @@ class PortalSettings(Document):
 	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
-		frappe.clear_cache(user="Guest")
+		nts.clear_cache(user="Guest")
 
-		from frappe.website.utils import clear_cache
+		from nts.website.utils import clear_cache
 
 		clear_cache()
 
 		# clears role based home pages
-		frappe.clear_cache()
+		nts.clear_cache()
 
 	def remove_deleted_doctype_items(self):
-		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
+		existing_doctypes = set(nts.get_list("DocType", pluck="name"))
 		for menu_item in list(self.get("menu") + self.get("custom_menu")):
 			if menu_item.reference_doctype not in existing_doctypes:
 				self.remove(menu_item)
 
 	def validate(self):
-		if frappe.request and self.default_portal_home:
+		if nts.request and self.default_portal_home:
 			validate_path(self.default_portal_home)

@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	navbar_settings = frappe.get_single("Navbar Settings")
+	navbar_settings = nts.get_single("Navbar Settings")
 	duplicate_items = [
 		navbar_item
 		for navbar_item in navbar_settings.settings_dropdown

@@ -1,12 +1,12 @@
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2017, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 
 def get_all_webhooks():
 	# query webhooks
-	webhooks_list = frappe.get_all(
+	webhooks_list = nts.get_all(
 		"Webhook",
 		fields=["name", "condition", "webhook_docevent", "webhook_doctype", "background_jobs_queue"],
 		filters={"enabled": True},
@@ -23,13 +23,13 @@ def get_all_webhooks():
 def run_webhooks(doc, method):
 	"""Run webhooks for this method"""
 
-	frappe_flags = frappe.local.flags
+	nts_flags = nts.local.flags
 
-	if frappe_flags.in_import or frappe_flags.in_patch or frappe_flags.in_install or frappe_flags.in_migrate:
+	if nts_flags.in_import or nts_flags.in_patch or nts_flags.in_install or nts_flags.in_migrate:
 		return
 
 	# load all webhooks from cache / DB
-	webhooks = frappe.cache.get_value("webhooks", get_all_webhooks)
+	webhooks = nts.cache.get_value("webhooks", get_all_webhooks)
 
 	# get webhooks for this doctype
 	webhooks_for_doc = webhooks.get(doc.doctype, None)
@@ -45,14 +45,14 @@ def run_webhooks(doc, method):
 		event_list.append("on_change")
 		event_list.append("before_update_after_submit")
 
-	from frappe.integrations.doctype.webhook.webhook import get_context
+	from nts.integrations.doctype.webhook.webhook import get_context
 
 	for webhook in webhooks_for_doc:
 		trigger_webhook = False
 		event = method if method in event_list else None
 		if not webhook.condition:
 			trigger_webhook = True
-		elif frappe.safe_eval(webhook.condition, eval_locals=get_context(doc)):
+		elif nts.safe_eval(webhook.condition, eval_locals=get_context(doc)):
 			trigger_webhook = True
 
 		if trigger_webhook and event and webhook.webhook_docevent == event:
@@ -61,11 +61,11 @@ def run_webhooks(doc, method):
 
 def _add_webhook_to_queue(webhook, doc):
 	# Maintain a queue and flush on commit
-	if not getattr(frappe.local, "_webhook_queue", None):
-		frappe.local._webhook_queue = []
-		frappe.db.after_commit.add(flush_webhook_execution_queue)
+	if not getattr(nts.local, "_webhook_queue", None):
+		nts.local._webhook_queue = []
+		nts.db.after_commit.add(flush_webhook_execution_queue)
 
-	frappe.local._webhook_queue.append(frappe._dict(doc=doc, webhook=webhook))
+	nts.local._webhook_queue.append(nts._dict(doc=doc, webhook=webhook))
 
 
 def flush_webhook_execution_queue():
@@ -75,34 +75,34 @@ def flush_webhook_execution_queue():
 	document. We assume that last enqueued version of document is the final document for this DB
 	transaction.
 	"""
-	if not getattr(frappe.local, "_webhook_queue", None):
+	if not getattr(nts.local, "_webhook_queue", None):
 		return
 
 	uniq_hooks = set()
 	unique_last_instances = []
 
 	# reverse
-	frappe.local._webhook_queue.reverse()
+	nts.local._webhook_queue.reverse()
 
 	# deduplicate on (doc.name, webhook.name)
 	# 'doc' holds the last instance values
-	for execution in frappe.local._webhook_queue:
+	for execution in nts.local._webhook_queue:
 		key = (execution.webhook.get("name"), execution.doc.get("name"))
 		if key not in uniq_hooks:
 			uniq_hooks.add(key)
 			unique_last_instances.append(execution)
 
 	# Clear original queue so next enqueue computation happens correctly.
-	del frappe.local._webhook_queue
+	del nts.local._webhook_queue
 
 	# reverse again, to get back the original order on which to execute webhooks
 	unique_last_instances.reverse()
 
 	for instance in unique_last_instances:
-		frappe.enqueue(
-			"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
+		nts.enqueue(
+			"nts.integrations.doctype.webhook.webhook.enqueue_webhook",
 			doc=instance.doc,
 			webhook=instance.webhook,
-			now=frappe.flags.in_test,
+			now=nts.flags.in_test,
 			queue=instance.webhook.background_jobs_queue or "default",
 		)

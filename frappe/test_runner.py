@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import cProfile
 import importlib
@@ -11,11 +11,11 @@ import unittest
 from importlib import reload
 from io import StringIO
 
-import frappe
-import frappe.utils.scheduler
-from frappe.model.naming import revert_series_if_last
-from frappe.modules import get_module_name, load_doctype_module
-from frappe.utils import cint
+import nts
+import nts.utils.scheduler
+from nts.model.naming import revert_series_if_last
+from nts.modules import get_module_name, load_doctype_module
+from nts.utils import cint
 
 unittest_runner = unittest.TextTestRunner
 SLOW_TEST_THRESHOLD = 2
@@ -54,13 +54,13 @@ def main(
 ):
 	global unittest_runner
 
-	frappe.init(site=site)
-	if not frappe.db:
-		frappe.connect()
+	nts.init(site=site)
+	if not nts.db:
+		nts.connect()
 
 	if doctype_list_path:
 		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
-		with open(frappe.get_app_path(app, doctype_list_path)) as f:
+		with open(nts.get_app_path(app, doctype_list_path)) as f:
 			doctype = f.read().strip().splitlines()
 
 	xmloutput_fh = None
@@ -71,27 +71,27 @@ def main(
 		unittest_runner = unittest.TextTestRunner
 
 	try:
-		frappe.flags.print_messages = verbose
-		frappe.flags.in_test = True
+		nts.flags.print_messages = verbose
+		nts.flags.in_test = True
 
 		# workaround! since there is no separate test db
-		frappe.clear_cache()
-		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
+		nts.clear_cache()
+		scheduler_disabled_by_user = nts.utils.scheduler.is_scheduler_disabled(verbose=False)
 		if not scheduler_disabled_by_user:
-			frappe.utils.scheduler.disable_scheduler()
+			nts.utils.scheduler.disable_scheduler()
 
-		if not frappe.flags.skip_before_tests:
+		if not nts.flags.skip_before_tests:
 			if verbose:
 				print('Running "before_tests" hooks')
-			for fn in frappe.get_hooks("before_tests", app_name=app):
-				frappe.get_attr(fn)()
+			for fn in nts.get_hooks("before_tests", app_name=app):
+				nts.get_attr(fn)()
 
 		if doctype:
 			ret = run_tests_for_doctype(
 				doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module_def:
-			doctypes = frappe.db.get_list(
+			doctypes = nts.db.get_list(
 				"DocType", filters={"module": module_def, "istable": 0}, pluck="name"
 			)
 			ret = run_tests_for_doctype(
@@ -111,13 +111,13 @@ def main(
 			ret = run_all_tests(app, verbose, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
 		if not scheduler_disabled_by_user:
-			frappe.utils.scheduler.enable_scheduler()
+			nts.utils.scheduler.enable_scheduler()
 
-		if frappe.db:
-			frappe.db.commit()
+		if nts.db:
+			nts.db.commit()
 
 		# workaround! since there is no separate test db
-		frappe.clear_cache()
+		nts.clear_cache()
 		return ret
 
 	finally:
@@ -142,11 +142,11 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 def run_all_tests(app=None, verbose=False, profile=False, failfast=False, junit_xml_output=False):
 	import os
 
-	apps = [app] if app else frappe.get_installed_apps()
+	apps = [app] if app else nts.get_installed_apps()
 
 	test_suite = unittest.TestSuite()
 	for app in apps:
-		for path, folders, files in os.walk(frappe.get_app_path(app)):
+		for path, folders, files in os.walk(nts.get_app_path(app)):
 			for dontwalk in ("locals", ".git", "public", "__pycache__"):
 				if dontwalk in folders:
 					folders.remove(dontwalk)
@@ -201,15 +201,15 @@ def run_tests_for_doctype(
 		doctypes = [doctypes]
 
 	for doctype in doctypes:
-		module = frappe.db.get_value("DocType", doctype, "module")
+		module = nts.db.get_value("DocType", doctype, "module")
 		if not module:
 			print(f"Invalid doctype {doctype}")
 			sys.exit(1)
 
 		test_module = get_module_name(doctype, module, "test_")
 		if force:
-			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
-				frappe.delete_doc(doctype, name, force=True)
+			for name in nts.db.sql_list("select name from `tab%s`" % doctype):
+				nts.delete_doc(doctype, name, force=True)
 		make_test_records(doctype, verbose=verbose, force=force, commit=True)
 		modules.append(importlib.import_module(test_module))
 
@@ -231,7 +231,7 @@ def run_tests_for_module(
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose, commit=True)
 
-	frappe.db.commit()
+	nts.db.commit()
 	return _run_unittest(
 		module,
 		verbose=verbose,
@@ -246,7 +246,7 @@ def run_tests_for_module(
 def _run_unittest(
 	modules, verbose=False, tests=(), profile=False, failfast=False, junit_xml_output=False, case=None
 ):
-	frappe.db.begin()
+	nts.db.begin()
 
 	test_suite = unittest.TestSuite()
 
@@ -280,7 +280,7 @@ def _run_unittest(
 		pr = cProfile.Profile()
 		pr.enable()
 
-	frappe.flags.tests_verbose = verbose
+	nts.flags.tests_verbose = verbose
 
 	out = runner.run(test_suite)
 
@@ -301,7 +301,7 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 		# in /doctype/doctype/boilerplate/
 		return
 
-	app_path = frappe.get_app_path(app)
+	app_path = nts.get_app_path(app)
 	relative_path = os.path.relpath(path, app_path)
 	if relative_path == ".":
 		module_name = app
@@ -331,21 +331,21 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 
 
 def make_test_records(doctype, verbose=0, force=False, commit=False):
-	if frappe.flags.skip_test_records:
+	if nts.flags.skip_test_records:
 		return
 
 	for options in get_dependencies(doctype):
 		if options == "[Select]":
 			continue
 
-		if options not in frappe.local.test_objects:
-			frappe.local.test_objects[options] = []
+		if options not in nts.local.test_objects:
+			nts.local.test_objects[options] = []
 			make_test_records(options, verbose, force, commit=commit)
 			make_test_records_for_doctype(options, verbose, force, commit=commit)
 
 
 def get_modules(doctype):
-	module = frappe.db.get_value("DocType", doctype, "module")
+	module = nts.db.get_value("DocType", doctype, "module")
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
@@ -358,11 +358,11 @@ def get_modules(doctype):
 
 def get_dependencies(doctype):
 	module, test_module = get_modules(doctype)
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 
 	for df in meta.get_table_fields():
-		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
+		link_fields.extend(nts.get_meta(df.options).get_link_fields())
 
 	options_list = [df.options for df in link_fields] + [doctype]
 
@@ -391,22 +391,22 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 		print("Making for " + doctype)
 
 	if hasattr(test_module, "_make_test_records"):
-		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
+		nts.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		if doctype in frappe.local.test_objects:
-			frappe.local.test_objects[doctype] += make_test_objects(
+		if doctype in nts.local.test_objects:
+			nts.local.test_objects[doctype] += make_test_objects(
 				doctype, test_module.test_records, verbose, force, commit=commit
 			)
 		else:
-			frappe.local.test_objects[doctype] = make_test_objects(
+			nts.local.test_objects[doctype] = make_test_objects(
 				doctype, test_module.test_records, verbose, force, commit=commit
 			)
 
 	else:
-		test_records = frappe.get_test_records(doctype)
+		test_records = nts.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(
+			nts.local.test_objects[doctype] += make_test_objects(
 				doctype, test_records, verbose, force, commit=commit
 			)
 
@@ -425,13 +425,13 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			revert_series_if_last(d.naming_series, d.name)
 
 	if test_records is None:
-		test_records = frappe.get_test_records(doctype)
+		test_records = nts.get_test_records(doctype)
 
 	for doc in test_records:
 		if not doc.get("doctype"):
 			doc["doctype"] = doctype
 
-		d = frappe.copy_doc(doc)
+		d = nts.copy_doc(doc)
 
 		if d.meta.get_field("naming_series"):
 			if not d.naming_series:
@@ -442,8 +442,8 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 		else:
 			d.set_new_name()
 
-		if frappe.db.exists(d.doctype, d.name) and not reset:
-			frappe.db.rollback()
+		if nts.db.exists(d.doctype, d.name) and not reset:
+			nts.db.rollback()
 			# do not create test records, if already exists
 			continue
 
@@ -459,7 +459,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			if docstatus == 1:
 				d.submit()
 
-		except frappe.NameError:
+		except nts.NameError:
 			revert_naming(d)
 
 		except Exception as e:
@@ -474,14 +474,14 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 		records.append(d.name)
 
 		if commit:
-			frappe.db.commit()
+			nts.db.commit()
 	return records
 
 
 def print_mandatory_fields(doctype):
 	print("Please setup make_test_records for: " + doctype)
 	print("-" * 60)
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	print("Autoname: " + (meta.autoname or ""))
 	print("Mandatory Fields: ")
 	for d in meta.get("fields", {"reqd": 1}):
@@ -494,18 +494,18 @@ def add_to_test_record_log(doctype):
 	`.test_log` is a cache of all doctypes for which test records are created"""
 	test_record_log = get_test_record_log()
 	if doctype not in test_record_log:
-		frappe.flags.test_record_log.append(doctype)
-		with open(frappe.get_site_path(".test_log"), "w") as f:
-			f.write("\n".join(filter(None, frappe.flags.test_record_log)))
+		nts.flags.test_record_log.append(doctype)
+		with open(nts.get_site_path(".test_log"), "w") as f:
+			f.write("\n".join(filter(None, nts.flags.test_record_log)))
 
 
 def get_test_record_log():
 	"""Return the list of doctypes for which test records have been created"""
-	if "test_record_log" not in frappe.flags:
-		if os.path.exists(frappe.get_site_path(".test_log")):
-			with open(frappe.get_site_path(".test_log")) as f:
-				frappe.flags.test_record_log = f.read().splitlines()
+	if "test_record_log" not in nts.flags:
+		if os.path.exists(nts.get_site_path(".test_log")):
+			with open(nts.get_site_path(".test_log")) as f:
+				nts.flags.test_record_log = f.read().splitlines()
 		else:
-			frappe.flags.test_record_log = []
+			nts.flags.test_record_log = []
 
-	return frappe.flags.test_record_log
+	return nts.flags.test_record_log

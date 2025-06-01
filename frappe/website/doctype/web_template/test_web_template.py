@@ -1,16 +1,16 @@
-# Copyright (c) 2020, Frappe Technologies and Contributors
+# Copyright (c) 2020, nts Technologies and Contributors
 # License: MIT. See LICENSE
 from bs4 import BeautifulSoup
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import set_request
+from nts.website.serve import get_response
 
 
-class TestWebTemplate(FrappeTestCase):
+class TestWebTemplate(ntsTestCase):
 	def test_render_web_template_with_values(self):
-		doc = frappe.get_doc("Web Template", "Hero with Right Image")
+		doc = nts.get_doc("Web Template", "Hero with Right Image")
 		values = {
 			"title": "Test Hero",
 			"subtitle": "Test subtitle content",
@@ -38,7 +38,7 @@ class TestWebTemplate(FrappeTestCase):
 
 		self.assertEqual(response.status_code, 200)
 
-		html = frappe.safe_decode(response.get_data())
+		html = nts.safe_decode(response.get_data())
 
 		soup = BeautifulSoup(html, "html.parser")
 		sections = soup.find("main").find_all("section")
@@ -53,23 +53,23 @@ class TestWebTemplate(FrappeTestCase):
 		theme = self.create_website_theme()
 		theme.set_as_default()
 
-		frappe.conf.developer_mode = 1
+		nts.conf.developer_mode = 1
 
 		set_request(method="GET", path="test-web-template")
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
-		html = frappe.safe_decode(response.get_data())
+		html = nts.safe_decode(response.get_data())
 
 		soup = BeautifulSoup(html, "html.parser")
 		stylesheet = soup.select_one('link[rel="stylesheet"]')
 
 		self.assertEqual(stylesheet.attrs["href"], theme.theme_url)
 
-		frappe.get_doc("Website Theme", "Standard").set_as_default()
+		nts.get_doc("Website Theme", "Standard").set_as_default()
 
 	def create_web_page(self):
-		if not frappe.db.exists("Web Page", "test-web-template"):
-			frappe.get_doc(
+		if not nts.db.exists("Web Page", "test-web-template"):
+			nts.get_doc(
 				{
 					"doctype": "Web Page",
 					"title": "test-web-template",
@@ -80,13 +80,13 @@ class TestWebTemplate(FrappeTestCase):
 					"page_blocks": [
 						{
 							"web_template": "Section with Image",
-							"web_template_values": frappe.as_json(
+							"web_template_values": nts.as_json(
 								{"title": "Test Title", "subtitle": "test lorem ipsum"}
 							),
 						},
 						{
 							"web_template": "Section with Cards",
-							"web_template_values": frappe.as_json(
+							"web_template_values": nts.as_json(
 								{
 									"title": "Test Title",
 									"subtitle": "test lorem ipsum",
@@ -108,8 +108,8 @@ class TestWebTemplate(FrappeTestCase):
 			).insert()
 
 	def create_website_theme(self):
-		if not frappe.db.exists("Website Theme", "Custom"):
-			theme = frappe.get_doc({"doctype": "Website Theme", "theme": "Custom"}).insert()
+		if not nts.db.exists("Website Theme", "Custom"):
+			theme = nts.get_doc({"doctype": "Website Theme", "theme": "Custom"}).insert()
 		else:
-			theme = frappe.get_doc("Website Theme", "Custom")
+			theme = nts.get_doc("Website Theme", "Custom")
 		return theme

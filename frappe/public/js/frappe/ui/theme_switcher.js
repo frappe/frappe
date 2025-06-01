@@ -1,13 +1,13 @@
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.ThemeSwitcher = class ThemeSwitcher {
+nts.ui.ThemeSwitcher = class ThemeSwitcher {
 	constructor() {
 		this.setup_dialog();
 		this.refresh();
 	}
 
 	setup_dialog() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("Switch Theme"),
 		});
 		this.body = $(`<div class="theme-grid"></div>`).appendTo(this.dialog.$body);
@@ -18,7 +18,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 		this.dialog.$wrapper.on("keydown", (e) => {
 			if (!this.themes) return;
 
-			const key = frappe.ui.keys.get_key(e);
+			const key = nts.ui.keys.get_key(e);
 			let increment_by;
 
 			if (key === "right") {
@@ -56,7 +56,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 			this.themes = [
 				{
 					name: "light",
-					label: __("Frappe Light"),
+					label: __("nts Light"),
 					info: __("Light Theme"),
 				},
 				{
@@ -91,7 +91,7 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 				<div class="background">
 					<div>
 						<div class="preview-check" data-theme=${is_auto_theme ? "dark" : theme.name}>
-							${frappe.utils.icon("tick", "xs")}
+							${nts.utils.icon("tick", "xs")}
 						</div>
 					</div>
 					<div class="navbar"></div>
@@ -127,9 +127,9 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	toggle_theme(theme) {
 		this.current_theme = theme.toLowerCase();
 		document.documentElement.setAttribute("data-theme-mode", this.current_theme);
-		frappe.show_alert(__("Theme Changed"), 3);
+		nts.show_alert(__("Theme Changed"), 3);
 
-		frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
+		nts.xcall("nts.core.doctype.user.user.switch_theme", {
 			theme: toTitle(theme),
 		});
 	}
@@ -143,20 +143,20 @@ frappe.ui.ThemeSwitcher = class ThemeSwitcher {
 	}
 };
 
-frappe.ui.add_system_theme_switch_listener = () => {
-	frappe.ui.dark_theme_media_query.addEventListener("change", () => {
-		frappe.ui.set_theme();
+nts.ui.add_system_theme_switch_listener = () => {
+	nts.ui.dark_theme_media_query.addEventListener("change", () => {
+		nts.ui.set_theme();
 	});
 };
 
-frappe.ui.dark_theme_media_query = window.matchMedia("(prefers-color-scheme: dark)");
+nts.ui.dark_theme_media_query = window.matchMedia("(prefers-color-scheme: dark)");
 
-frappe.ui.set_theme = (theme) => {
+nts.ui.set_theme = (theme) => {
 	const root = document.documentElement;
 	let theme_mode = root.getAttribute("data-theme-mode");
 	if (!theme) {
 		if (theme_mode === "automatic") {
-			theme = frappe.ui.dark_theme_media_query.matches ? "dark" : "light";
+			theme = nts.ui.dark_theme_media_query.matches ? "dark" : "light";
 		}
 	}
 	root.setAttribute("data-theme", theme || theme_mode);

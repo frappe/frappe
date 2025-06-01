@@ -5,10 +5,10 @@
 {% include "templates/includes/search_template.html" %}
 
 <script>
-frappe.ready(function() {
+nts.ready(function() {
 	$('.btn-more').on('click', function() {
-		frappe.call({
-			method: 'frappe.www.search.get_search_results',
+		nts.call({
+			method: 'nts.www.search.get_search_results',
 			args: {
 				text: '{{ query }}',
 				start: $('.search-result-item').length,

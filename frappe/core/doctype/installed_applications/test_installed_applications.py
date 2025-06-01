@@ -1,16 +1,16 @@
-# Copyright (c) 2020, Frappe Technologies and Contributors
+# Copyright (c) 2020, nts Technologies and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.core.doctype.installed_applications.installed_applications import (
+import nts
+from nts.core.doctype.installed_applications.installed_applications import (
 	InvalidAppOrder,
 	update_installed_apps_order,
 )
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
 
-class TestInstalledApplications(FrappeTestCase):
+class TestInstalledApplications(ntsTestCase):
 	def test_order_change(self):
-		update_installed_apps_order(["frappe"])
+		update_installed_apps_order(["nts"])
 		self.assertRaises(InvalidAppOrder, update_installed_apps_order, [])
-		self.assertRaises(InvalidAppOrder, update_installed_apps_order, ["frappe", "deepmind"])
+		self.assertRaises(InvalidAppOrder, update_installed_apps_order, ["nts", "deepmind"])

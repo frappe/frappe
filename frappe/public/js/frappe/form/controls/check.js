@@ -1,8 +1,8 @@
-frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlData {
+nts.ui.form.ControlCheck = class ControlCheck extends nts.ui.form.ControlData {
 	static html_element = "input";
 	static input_type = "checkbox";
 	make_wrapper() {
-		this.$wrapper = $(`<div class="form-group frappe-control">
+		this.$wrapper = $(`<div class="form-group nts-control">
 			<div class="checkbox">
 				<label>
 					<span class="input-area"></span>

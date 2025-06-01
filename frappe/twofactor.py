@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2017, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 from base64 import b32encode, b64encode
@@ -6,27 +6,27 @@ from io import BytesIO
 
 import pyotp
 
-import frappe
-import frappe.defaults
-from frappe import _
-from frappe.permissions import ALL_USER_ROLE
-from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.password import decrypt, encrypt
+import nts
+import nts.defaults
+from nts import _
+from nts.permissions import ALL_USER_ROLE
+from nts.utils import cint, get_datetime, get_url, time_diff_in_seconds
+from nts.utils.background_jobs import enqueue
+from nts.utils.password import decrypt, encrypt
 
 PARENT_FOR_DEFAULTS = "__2fa"
 
 
 def get_default(key):
-	return frappe.db.get_default(key, parent=PARENT_FOR_DEFAULTS)
+	return nts.db.get_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
 def set_default(key, value):
-	frappe.db.set_default(key, value, parent=PARENT_FOR_DEFAULTS)
+	nts.db.set_default(key, value, parent=PARENT_FOR_DEFAULTS)
 
 
 def clear_default(key):
-	frappe.defaults.clear_default(key, parent=PARENT_FOR_DEFAULTS)
+	nts.defaults.clear_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
 class ExpiredLoginException(Exception):
@@ -36,26 +36,26 @@ class ExpiredLoginException(Exception):
 def toggle_two_factor_auth(state, roles=None):
 	"""Enable or disable 2FA in site_config and roles"""
 	for role in roles or []:
-		role = frappe.get_doc("Role", {"role_name": role})
+		role = nts.get_doc("Role", {"role_name": role})
 		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
 
 
 def two_factor_is_enabled(user=None):
 	"""Returns True if 2FA is enabled."""
-	enabled = int(frappe.db.get_single_value("System Settings", "enable_two_factor_auth") or 0)
+	enabled = int(nts.db.get_single_value("System Settings", "enable_two_factor_auth") or 0)
 	if enabled:
 		bypass_two_factor_auth = int(
-			frappe.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users") or 0
+			nts.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users") or 0
 		)
 		if bypass_two_factor_auth and user:
-			user_doc = frappe.get_doc("User", user)
+			user_doc = nts.get_doc("User", user)
 			restrict_ip_list = (
 				user_doc.get_restricted_ip_list()
 			)  # can be None or one or more than one ip address
-			if restrict_ip_list and frappe.local.request_ip:
+			if restrict_ip_list and nts.local.request_ip:
 				for ip in restrict_ip_list:
-					if frappe.local.request_ip.startswith(ip):
+					if nts.local.request_ip.startswith(ip):
 						enabled = False
 						break
 
@@ -72,42 +72,42 @@ def should_run_2fa(user):
 def get_cached_user_pass():
 	"""Get user and password if set."""
 	user = pwd = None
-	tmp_id = frappe.form_dict.get("tmp_id")
+	tmp_id = nts.form_dict.get("tmp_id")
 	if tmp_id:
-		user = frappe.safe_decode(frappe.cache.get(tmp_id + "_usr"))
-		pwd = frappe.safe_decode(frappe.cache.get(tmp_id + "_pwd"))
+		user = nts.safe_decode(nts.cache.get(tmp_id + "_usr"))
+		pwd = nts.safe_decode(nts.cache.get(tmp_id + "_pwd"))
 	return (user, pwd)
 
 
 def authenticate_for_2factor(user):
 	"""Authenticate two factor for enabled user before login."""
-	if frappe.form_dict.get("otp"):
+	if nts.form_dict.get("otp"):
 		return
 	otp_secret = get_otpsecret_for_(user)
 	token = int(pyotp.TOTP(otp_secret).now())
-	tmp_id = frappe.generate_hash(length=8)
+	tmp_id = nts.generate_hash(length=8)
 	cache_2fa_data(user, token, otp_secret, tmp_id)
 	verification_obj = get_verification_obj(user, token, otp_secret)
 	# Save data in local
-	frappe.local.response["verification"] = verification_obj
-	frappe.local.response["tmp_id"] = tmp_id
+	nts.local.response["verification"] = verification_obj
+	nts.local.response["tmp_id"] = tmp_id
 
 
 def cache_2fa_data(user, token, otp_secret, tmp_id):
 	"""Cache and set expiry for data."""
-	pwd = frappe.form_dict.get("pwd")
+	pwd = nts.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
 	# set increased expiry time for SMS and Email
 	if verification_method in ["SMS", "Email"]:
-		expiry_time = frappe.flags.token_expiry or 300
-		frappe.cache.set(tmp_id + "_token", token)
-		frappe.cache.expire(tmp_id + "_token", expiry_time)
+		expiry_time = nts.flags.token_expiry or 300
+		nts.cache.set(tmp_id + "_token", token)
+		nts.cache.expire(tmp_id + "_token", expiry_time)
 	else:
-		expiry_time = frappe.flags.otp_expiry or 180
+		expiry_time = nts.flags.otp_expiry or 180
 	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
-		frappe.cache.set(f"{tmp_id}{k}", v)
-		frappe.cache.expire(f"{tmp_id}{k}", expiry_time)
+		nts.cache.set(f"{tmp_id}{k}", v)
+		nts.cache.expire(f"{tmp_id}{k}", expiry_time)
 
 
 def two_factor_is_enabled_for_(user):
@@ -116,11 +116,11 @@ def two_factor_is_enabled_for_(user):
 		return False
 
 	if isinstance(user, str):
-		user = frappe.get_doc("User", user)
+		user = nts.get_doc("User", user)
 	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
 
-	role_doctype = frappe.qb.DocType("Role")
-	no_of_users = frappe.db.count(
+	role_doctype = nts.qb.DocType("Role")
+	no_of_users = nts.db.count(
 		role_doctype,
 		filters=((role_doctype.two_factor_auth == 1) & (role_doctype.name.isin(roles))),
 	)
@@ -138,29 +138,29 @@ def get_otpsecret_for_(user):
 
 	otp_secret = b32encode(os.urandom(10)).decode("utf-8")
 	set_default(user + "_otpsecret", encrypt(otp_secret))
-	frappe.db.commit()
+	nts.db.commit()
 
 	return otp_secret
 
 
 def get_verification_method():
-	return frappe.db.get_single_value("System Settings", "two_factor_method")
+	return nts.db.get_single_value("System Settings", "two_factor_method")
 
 
 def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	"""Confirm otp matches."""
-	from frappe.auth import get_login_attempt_tracker
+	from nts.auth import get_login_attempt_tracker
 
 	if not otp:
-		otp = frappe.form_dict.get("otp")
+		otp = nts.form_dict.get("otp")
 	if not otp:
 		if two_factor_is_enabled_for_(login_manager.user):
 			return False
 		return True
 	if not tmp_id:
-		tmp_id = frappe.form_dict.get("tmp_id")
-	hotp_token = frappe.cache.get(tmp_id + "_token")
-	otp_secret = frappe.cache.get(tmp_id + "_otp_secret")
+		tmp_id = nts.form_dict.get("tmp_id")
+	hotp_token = nts.cache.get(tmp_id + "_token")
+	otp_secret = nts.cache.get(tmp_id + "_otp_secret")
 	if not otp_secret:
 		raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
@@ -169,7 +169,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token:
 		if hotp.verify(otp, int(hotp_token)):
-			frappe.cache.delete(tmp_id + "_token")
+			nts.cache.delete(tmp_id + "_token")
 			tracker.add_success_attempt()
 			return True
 		else:
@@ -190,7 +190,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 
 
 def get_verification_obj(user, token, otp_secret):
-	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
+	otp_issuer = nts.db.get_single_value("System Settings", "otp_issuer_name")
 	verification_method = get_verification_method()
 	verification_obj = None
 	if verification_method == "SMS":
@@ -208,7 +208,7 @@ def get_verification_obj(user, token, otp_secret):
 
 def process_2fa_for_sms(user, token, otp_secret):
 	"""Process sms method for 2fa."""
-	phone = frappe.db.get_value("User", user, ["phone", "mobile_no"], as_dict=1)
+	phone = nts.db.get_value("User", user, ["phone", "mobile_no"], as_dict=1)
 	phone = phone.mobile_no or phone.phone
 	status = send_token_via_sms(otp_secret, token=token, phone_no=phone)
 	return {
@@ -259,9 +259,9 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 def get_email_subject_for_2fa(kwargs_dict):
 	"""Get email subject for 2fa."""
 	subject_template = _("Login Verification Code from {}").format(
-		frappe.db.get_single_value("System Settings", "otp_issuer_name")
+		nts.db.get_single_value("System Settings", "otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return nts.render_template(subject_template, kwargs_dict)
 
 
 def get_email_body_for_2fa(kwargs_dict):
@@ -271,15 +271,15 @@ def get_email_body_for_2fa(kwargs_dict):
 		<br><br>
 		<b style="font-size: 18px;">{{ otp }}</b>
 	"""
-	return frappe.render_template(body_template, kwargs_dict)
+	return nts.render_template(body_template, kwargs_dict)
 
 
 def get_email_subject_for_qr_code(kwargs_dict):
 	"""Get QRCode email subject."""
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
-		frappe.db.get_single_value("System Settings", "otp_issuer_name")
+		nts.db.get_single_value("System Settings", "otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return nts.render_template(subject_template, kwargs_dict)
 
 
 def get_email_body_for_qr_code(kwargs_dict):
@@ -287,31 +287,31 @@ def get_email_body_for_qr_code(kwargs_dict):
 	body_template = _(
 		"Please click on the following link and follow the instructions on the page. {0}"
 	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
-	return frappe.render_template(body_template, kwargs_dict)
+	return nts.render_template(body_template, kwargs_dict)
 
 
 def get_link_for_qrcode(user, totp_uri):
 	"""Get link to temporary page showing QRCode."""
-	key = frappe.generate_hash(length=20)
+	key = nts.generate_hash(length=20)
 	key_user = f"{key}_user"
 	key_uri = f"{key}_uri"
-	lifespan = int(frappe.db.get_single_value("System Settings", "lifespan_qrcode_image")) or 240
-	frappe.cache.set_value(key_uri, totp_uri, expires_in_sec=lifespan)
-	frappe.cache.set_value(key_user, user, expires_in_sec=lifespan)
+	lifespan = int(nts.db.get_single_value("System Settings", "lifespan_qrcode_image")) or 240
+	nts.cache.set_value(key_uri, totp_uri, expires_in_sec=lifespan)
+	nts.cache.set_value(key_user, user, expires_in_sec=lifespan)
 	return get_url(f"/qrcode?k={key}")
 
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	"""Send token as sms to user."""
 	try:
-		from frappe.core.doctype.sms_settings.sms_settings import send_request
+		from nts.core.doctype.sms_settings.sms_settings import send_request
 	except Exception:
 		return False
 
 	if not phone_no:
 		return False
 
-	ss = frappe.get_doc("SMS Settings", "SMS Settings")
+	ss = nts.get_doc("SMS Settings", "SMS Settings")
 	if not ss.sms_gateway_url:
 		return False
 
@@ -339,14 +339,14 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):
 	"""Send token to user as email."""
-	user_email = frappe.db.get_value("User", user, "email")
+	user_email = nts.db.get_value("User", user, "email")
 	if not user_email:
 		return False
 	hotp = pyotp.HOTP(otp_secret)
 	otp = hotp.at(int(token))
 	template_args = {"otp": otp, "otp_issuer": otp_issuer}
 
-	frappe.sendmail(
+	nts.sendmail(
 		recipients=user_email,
 		subject=subject or get_email_subject_for_2fa(template_args),
 		message=message or get_email_body_for_2fa(template_args),
@@ -376,31 +376,31 @@ def get_qr_svg_code(totp_uri):
 def create_barcode_folder():
 	"""Get Barcodes folder."""
 	folder_name = "Barcodes"
-	folder = frappe.db.exists("File", {"file_name": folder_name})
+	folder = nts.db.exists("File", {"file_name": folder_name})
 	if folder:
 		return folder
-	folder = frappe.get_doc({"doctype": "File", "file_name": folder_name, "is_folder": 1, "folder": "Home"})
+	folder = nts.get_doc({"doctype": "File", "file_name": folder_name, "is_folder": 1, "folder": "Home"})
 	folder.insert(ignore_permissions=True)
 	return folder.name
 
 
 def delete_qrimage(user, check_expiry=False):
 	"""Delete Qrimage when user logs in."""
-	user_barcodes = frappe.get_all(
+	user_barcodes = nts.get_all(
 		"File", {"attached_to_doctype": "User", "attached_to_name": user, "folder": "Home/Barcodes"}
 	)
 
 	for barcode in user_barcodes:
 		if check_expiry and not should_remove_barcode_image(barcode):
 			continue
-		barcode = frappe.get_doc("File", barcode.name)
-		frappe.delete_doc("File", barcode.name, ignore_permissions=True)
+		barcode = nts.get_doc("File", barcode.name)
+		nts.delete_doc("File", barcode.name, ignore_permissions=True)
 
 
 def delete_all_barcodes_for_users():
 	"""Task to delete all barcodes for user."""
 
-	users = frappe.get_all("User", {"enabled": 1})
+	users = nts.get_all("User", {"enabled": 1})
 	for user in users:
 		if not two_factor_is_enabled(user=user.name):
 			continue
@@ -410,32 +410,32 @@ def delete_all_barcodes_for_users():
 def should_remove_barcode_image(barcode):
 	"""Check if it's time to delete barcode image from server."""
 	if isinstance(barcode, str):
-		barcode = frappe.get_doc("File", barcode)
-	lifespan = frappe.db.get_single_value("System Settings", "lifespan_qrcode_image") or 240
+		barcode = nts.get_doc("File", barcode)
+	lifespan = nts.db.get_single_value("System Settings", "lifespan_qrcode_image") or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
 	return False
 
 
 def disable():
-	frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
+	nts.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def reset_otp_secret(user: str):
-	if frappe.session.user != user:
-		frappe.only_for("System Manager", message=True)
+	if nts.session.user != user:
+		nts.only_for("System Manager", message=True)
 
-	settings = frappe.get_cached_doc("System Settings")
+	settings = nts.get_cached_doc("System Settings")
 
 	if not settings.enable_two_factor_auth:
-		frappe.throw(
+		nts.throw(
 			_("You have to enable Two Factor Auth from System Settings."),
 			title=_("Enable Two Factor Auth"),
 		)
 
-	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
-	user_email = frappe.get_cached_value("User", user, "email")
+	otp_issuer = settings.otp_issuer_name or "nts Framework"
+	user_email = nts.get_cached_value("User", user, "email")
 
 	clear_default(user + "_otplogin")
 	clear_default(user + "_otpsecret")
@@ -452,7 +452,7 @@ def reset_otp_secret(user: str):
 	}
 
 	enqueue(
-		method=frappe.sendmail,
+		method=nts.sendmail,
 		queue="short",
 		timeout=300,
 		event=None,
@@ -462,4 +462,4 @@ def reset_otp_secret(user: str):
 		**email_args,
 	)
 
-	frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+	nts.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))

@@ -16,7 +16,7 @@
  "title": "Manage Events",
  "meta_title": "Test Meta Form Title",
  "meta_description": "Test Meta Form Description",
- "meta_image": "https://frappe.io/files/frappe.png",
+ "meta_image": "https://nts.io/files/nts.png",
  "web_form_fields": [
   {
    "doctype": "Web Form Field",

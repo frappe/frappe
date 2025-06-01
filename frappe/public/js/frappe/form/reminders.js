@@ -5,7 +5,7 @@ export class ReminderManager {
 
 	show() {
 		let me = this;
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("Create a Reminder"),
 			fields: [
 				{
@@ -66,7 +66,7 @@ export class ReminderManager {
 			this.dialog.get_value("remind_me_in") != "custom";
 		this.dialog.fields_dict.remind_at.refresh();
 		this.dialog.fields_dict.remind_at.datepicker?.update({
-			minDate: frappe.datetime.str_to_obj(frappe.datetime.now_datetime()),
+			minDate: nts.datetime.str_to_obj(nts.datetime.now_datetime()),
 		});
 	}
 
@@ -74,26 +74,26 @@ export class ReminderManager {
 		const period = this.dialog.get_value("remind_me_in");
 		if (!period || period == "custom") return;
 
-		const now_time = frappe.datetime.str_to_obj(frappe.datetime.now_datetime());
+		const now_time = nts.datetime.str_to_obj(nts.datetime.now_datetime());
 		let [magnitude, unit] = period.split("_");
 
 		let time_to_set = moment(now_time)
 			.add(magnitude, unit)
-			.format(frappe.defaultDatetimeFormat);
+			.format(nts.defaultDatetimeFormat);
 		this.dialog.set_value("remind_at", time_to_set);
 	}
 
 	create_reminder() {
-		frappe
-			.xcall("frappe.automation.doctype.reminder.reminder.create_new_reminder", {
+		nts
+			.xcall("nts.automation.doctype.reminder.reminder.create_new_reminder", {
 				remind_at: this.dialog.get_value("remind_at"),
 				description: this.dialog.get_value("description"),
 				reminder_doctype: this.frm?.doc.doctype,
 				reminder_docname: this.frm?.doc.name,
 			})
 			.then((reminder) => {
-				frappe.show_alert(
-					__("Reminder set at {0}", [frappe.datetime.str_to_user(reminder.remind_at)])
+				nts.show_alert(
+					__("Reminder set at {0}", [nts.datetime.str_to_user(reminder.remind_at)])
 				);
 			});
 	}

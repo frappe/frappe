@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies and Contributors
+# Copyright (c) 2022, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import contextlib
 import functools
@@ -10,9 +10,9 @@ from unittest import TestCase, mock
 import ldap3
 from ldap3 import MOCK_SYNC, OFFLINE_AD_2012_R2, OFFLINE_SLAPD_2_4, Connection, Server
 
-import frappe
-from frappe.exceptions import MandatoryError, ValidationError
-from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+import nts
+from nts.exceptions import MandatoryError, ValidationError
+from nts.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 
 
 class LDAP_TestCase:
@@ -33,14 +33,14 @@ class LDAP_TestCase:
 		@functools.wraps(f)
 		def wrapped(self, *args, **kwargs):
 			with mock.patch(
-				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
+				"nts.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
 				return_value=self.connection,
 			):
 				self.test_class = LDAPSettings(self.doc)
 
 				# Create a clean doc
 				localdoc = self.doc.copy()
-				frappe.get_doc(localdoc).save()
+				nts.get_doc(localdoc).save()
 
 				rv = f(self, *args, **kwargs)
 
@@ -53,17 +53,17 @@ class LDAP_TestCase:
 
 	def clean_test_users():
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user1@unit.testing").delete()
+			nts.get_doc("User", "posix.user1@unit.testing").delete()
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user2@unit.testing").delete()
+			nts.get_doc("User", "posix.user2@unit.testing").delete()
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "website_ldap_user@test.com").delete()
+			nts.get_doc("User", "website_ldap_user@test.com").delete()
 
 	@classmethod
 	def setUpClass(cls):
 		cls.clean_test_users()
 		# Save user data for restoration in tearDownClass()
-		cls.user_ldap_settings = frappe.get_doc("LDAP Settings")
+		cls.user_ldap_settings = nts.get_doc("LDAP Settings")
 
 		# Create test user1
 		cls.user1doc = {
@@ -76,7 +76,7 @@ class LDAP_TestCase:
 			"user_type": "System User",
 		}
 
-		user = frappe.get_doc(cls.user1doc)
+		user = nts.get_doc(cls.user1doc)
 		user.insert(ignore_permissions=True)
 
 		cls.user2doc = {
@@ -88,7 +88,7 @@ class LDAP_TestCase:
 			"language": "",
 			"user_type": "System User",
 		}
-		user = frappe.get_doc(cls.user2doc)
+		user = nts.get_doc(cls.user2doc)
 		user.insert(ignore_permissions=True)
 
 		# Setup Mock OpenLDAP Directory
@@ -147,7 +147,7 @@ class LDAP_TestCase:
 	@classmethod
 	def tearDownClass(cls):
 		with contextlib.suppress(Exception):
-			frappe.get_doc("LDAP Settings").delete()
+			nts.get_doc("LDAP Settings").delete()
 
 		# return doc back to user data
 		with contextlib.suppress(Exception):
@@ -180,7 +180,7 @@ class LDAP_TestCase:
 			localdoc[mandatory_field] = ""
 
 			with contextlib.suppress(MandatoryError, ValidationError):
-				frappe.get_doc(localdoc).save()
+				nts.get_doc(localdoc).save()
 				self.fail(f"Document LDAP Settings field [{mandatory_field}] is not mandatory")
 
 		for non_mandatory_field in self.doc:  # Ensure remaining fields have not been made mandatory
@@ -191,7 +191,7 @@ class LDAP_TestCase:
 			localdoc[non_mandatory_field] = ""
 
 			try:
-				frappe.get_doc(localdoc).save()
+				nts.get_doc(localdoc).save()
 			except MandatoryError:
 				self.fail(f"Document LDAP Settings field [{non_mandatory_field}] should not be mandatory")
 
@@ -212,15 +212,15 @@ class LDAP_TestCase:
 			localdoc["ldap_search_string"] = invalid_search_string
 
 			with contextlib.suppress(ValidationError):
-				frappe.get_doc(localdoc).save()
+				nts.get_doc(localdoc).save()
 				self.fail(f"LDAP search string [{invalid_search_string}] should not validate")
 
 	def test_connect_to_ldap(self):
 		# prevent these parameters for security or lack of the und user from being able to configure
 		prevent_connection_parameters = {
 			"mode": {
-				"IP_V4_ONLY": "Locks the user to IPv4 without frappe providing a way to configure",
-				"IP_V6_ONLY": "Locks the user to IPv6 without frappe providing a way to configure",
+				"IP_V4_ONLY": "Locks the user to IPv4 without nts providing a way to configure",
+				"IP_V6_ONLY": "Locks the user to IPv6 without nts providing a way to configure",
 			},
 			"auto_bind": {
 				"NONE": "ldap3.Connection must autobind with base_dn",
@@ -321,7 +321,7 @@ class LDAP_TestCase:
 
 		localdoc = self.doc.copy()
 		localdoc["enabled"] = False
-		frappe.get_doc(localdoc).save()
+		nts.get_doc(localdoc).save()
 		result = self.test_class.get_ldap_client_settings()
 
 		self.assertFalse(result["enabled"])  # must match the edited doc
@@ -337,9 +337,9 @@ class LDAP_TestCase:
 			"phone": "08 1234 5678",
 			"mobile_no": "0421 123 456",
 		}
-		test_user = frappe.get_doc("User", test_user_data["email"])
+		test_user = nts.get_doc("User", test_user_data["email"])
 		self.test_class.update_user_fields(test_user, test_user_data)
-		updated_user = frappe.get_doc("User", test_user_data["email"])
+		updated_user = nts.get_doc("User", test_user_data["email"])
 
 		self.assertTrue(updated_user.middle_name == test_user_data["middle_name"])
 		self.assertTrue(updated_user.last_name == test_user_data["last_name"])
@@ -347,7 +347,7 @@ class LDAP_TestCase:
 		self.assertTrue(updated_user.mobile_no == test_user_data["mobile_no"])
 
 		self.assertEqual(updated_user.user_type, self.test_class.default_user_type)
-		self.assertIn(self.test_class.default_role, frappe.get_roles(updated_user.name))
+		self.assertIn(self.test_class.default_role, nts.get_roles(updated_user.name))
 
 	@mock_ldap_connection
 	def test_create_website_user(self):
@@ -358,7 +358,7 @@ class LDAP_TestCase:
 		}
 		self.test_class.default_user_type = "Website User"
 		self.test_class.create_or_update_user(user_data=new_test_user_data, groups=[])
-		new_user = frappe.get_doc("User", new_test_user_data["email"])
+		new_user = nts.get_doc("User", new_test_user_data["email"])
 		self.assertEqual(new_user.user_type, "Website User")
 
 	@mock_ldap_connection
@@ -369,17 +369,17 @@ class LDAP_TestCase:
 					"Users",
 					"Administrators",
 					"default_role",
-					"frappe_default_all",
-					"frappe_default_guest",
-					"frappe_default_desk_user",
+					"nts_default_all",
+					"nts_default_guest",
+					"nts_default_desk_user",
 				],
 				"posix.user2": [
 					"Users",
 					"Group3",
 					"default_role",
-					"frappe_default_all",
-					"frappe_default_guest",
-					"frappe_default_desk_user",
+					"nts_default_all",
+					"nts_default_guest",
+					"nts_default_desk_user",
 				],
 			}
 
@@ -389,17 +389,17 @@ class LDAP_TestCase:
 					"Domain Users",
 					"Domain Administrators",
 					"default_role",
-					"frappe_default_all",
-					"frappe_default_guest",
-					"frappe_default_desk_user",
+					"nts_default_all",
+					"nts_default_guest",
+					"nts_default_desk_user",
 				],
 				"posix.user2": [
 					"Domain Users",
 					"Enterprise Administrators",
 					"default_role",
-					"frappe_default_all",
-					"frappe_default_guest",
-					"frappe_default_desk_user",
+					"nts_default_all",
+					"nts_default_guest",
+					"nts_default_desk_user",
 				],
 			}
 
@@ -408,28 +408,28 @@ class LDAP_TestCase:
 			self.doc["ldap_groups"][1]["erpnext_role"]: self.doc["ldap_groups"][1]["ldap_group"],
 			self.doc["ldap_groups"][2]["erpnext_role"]: self.doc["ldap_groups"][2]["ldap_group"],
 			"Newsletter Manager": "default_role",
-			"All": "frappe_default_all",
-			"Guest": "frappe_default_guest",
-			"Desk User": "frappe_default_desk_user",
+			"All": "nts_default_all",
+			"Guest": "nts_default_guest",
+			"Desk User": "nts_default_desk_user",
 		}
 
 		# re-create user1 to ensure clean
-		frappe.get_doc("User", "posix.user1@unit.testing").delete()
-		user = frappe.get_doc(self.user1doc)
+		nts.get_doc("User", "posix.user1@unit.testing").delete()
+		user = nts.get_doc(self.user1doc)
 		user.insert(ignore_permissions=True)
 
 		for test_user in test_user_data:
-			test_user_doc = frappe.get_doc("User", f"{test_user}@unit.testing")
-			test_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
+			test_user_doc = nts.get_doc("User", f"{test_user}@unit.testing")
+			test_user_roles = nts.get_roles(f"{test_user}@unit.testing")
 
 			self.assertTrue(
 				len(test_user_roles) == 2, "User should only be a part of the All and Guest roles"
-			)  # check default frappe roles
+			)  # check default nts roles
 
 			self.test_class.sync_roles(test_user_doc, test_user_data[test_user])  # update user roles
 
-			frappe.get_doc("User", f"{test_user}@unit.testing")
-			updated_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
+			nts.get_doc("User", f"{test_user}@unit.testing")
+			updated_user_roles = nts.get_roles(f"{test_user}@unit.testing")
 
 			self.assertTrue(
 				len(updated_user_roles) == len(test_user_data[test_user]),
@@ -449,24 +449,24 @@ class LDAP_TestCase:
 				"Users",
 				"Administrators",
 				"default_role",
-				"frappe_default_all",
-				"frappe_default_guest",
+				"nts_default_all",
+				"nts_default_guest",
 			],
 		}
 		test_user = "posix.user1"
 
-		frappe.get_doc("User", f"{test_user}@unit.testing").delete()
+		nts.get_doc("User", f"{test_user}@unit.testing").delete()
 
 		with self.assertRaises(
-			frappe.exceptions.DoesNotExistError
+			nts.exceptions.DoesNotExistError
 		):  # ensure user deleted so function can be tested
-			frappe.get_doc("User", f"{test_user}@unit.testing")
+			nts.get_doc("User", f"{test_user}@unit.testing")
 
 		with mock.patch(
-			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.update_user_fields"
+			"nts.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.update_user_fields"
 		) as update_user_fields_method:
 			with mock.patch(
-				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.sync_roles"
+				"nts.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.sync_roles"
 			) as sync_roles_method:
 				# New user
 				self.test_class.create_or_update_user(self.user1doc, test_user_data[test_user])
@@ -520,7 +520,7 @@ class LDAP_TestCase:
 	@mock_ldap_connection
 	def test_authenticate(self):
 		with mock.patch(
-			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
+			"nts.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.fetch_ldap_groups"
 		) as fetch_ldap_groups_function:
 			self.assertTrue(self.test_class.authenticate("posix.user", "posix_user_password"))
 
@@ -540,7 +540,7 @@ class LDAP_TestCase:
 		]  # All invalid users should return 'invalid username or password'
 
 		for username, password in enumerate(invalid_users):
-			with self.assertRaises(frappe.exceptions.ValidationError) as display_massage:
+			with self.assertRaises(nts.exceptions.ValidationError) as display_massage:
 				self.test_class.authenticate(username, password)
 
 			self.assertTrue(
@@ -558,7 +558,7 @@ class LDAP_TestCase:
 			if (
 				"ACCESS:test3" in search_filter
 			):  # posix.user does not have str in ldap.description auth should fail
-				with self.assertRaises(frappe.exceptions.ValidationError) as display_massage:
+				with self.assertRaises(nts.exceptions.ValidationError) as display_massage:
 					self.test_class.authenticate("posix.user", "posix_user_password")
 
 				self.assertTrue(str(display_massage.exception).lower() == "invalid username or password")
@@ -572,14 +572,14 @@ class LDAP_TestCase:
 		# Create a clean doc
 		localdoc = self.doc.copy()
 		localdoc["enabled"] = False
-		frappe.get_doc(localdoc).save()
+		nts.get_doc(localdoc).save()
 
 		with mock.patch(
-			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
+			"nts.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
 			return_value=self.connection,
 		) as connect_to_ldap:
 			with self.assertRaises(
-				frappe.exceptions.ValidationError
+				nts.exceptions.ValidationError
 			) as validation:  # Fail if username string used
 				self.test_class.reset_password("posix.user", "posix_user_password")
 			self.assertTrue(str(validation.exception) == "No LDAP User found for email: posix.user")

@@ -1,4 +1,4 @@
-"""This file defines all frappe types."""
+"""This file defines all nts types."""
 
 from datetime import date, datetime, time
 from typing import Literal

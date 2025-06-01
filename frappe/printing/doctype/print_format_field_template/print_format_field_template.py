@@ -1,9 +1,9 @@
-# Copyright (c) 2021, Frappe Technologies and contributors
+# Copyright (c) 2021, nts Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class PrintFormatFieldTemplate(Document):
@@ -13,7 +13,7 @@ class PrintFormatFieldTemplate(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		document_type: DF.Link
 		field: DF.Data | None
@@ -24,8 +24,8 @@ class PrintFormatFieldTemplate(Document):
 
 	# end: auto-generated types
 	def validate(self):
-		if self.standard and not (frappe.conf.developer_mode or frappe.flags.in_patch):
-			frappe.throw(_("Enable developer mode to create a standard Print Template"))
+		if self.standard and not (nts.conf.developer_mode or nts.flags.in_patch):
+			nts.throw(_("Enable developer mode to create a standard Print Template"))
 
 	def before_insert(self):
 		self.validate_duplicate()
@@ -43,17 +43,17 @@ class PrintFormatFieldTemplate(Document):
 		filters = {"document_type": self.document_type, "field": self.field}
 		if not self.is_new():
 			filters.update({"name": ("!=", self.name)})
-		result = frappe.get_all("Print Format Field Template", filters=filters, limit=1)
+		result = nts.get_all("Print Format Field Template", filters=filters, limit=1)
 		if result:
-			frappe.throw(
+			nts.throw(
 				_("A template already exists for field {0} of {1}").format(
-					frappe.bold(self.field), frappe.bold(self.document_type)
+					nts.bold(self.field), nts.bold(self.document_type)
 				),
-				frappe.DuplicateEntryError,
+				nts.DuplicateEntryError,
 				title=_("Duplicate Entry"),
 			)
 
 	def export_doc(self):
-		from frappe.modules.utils import export_module_json
+		from nts.modules.utils import export_module_json
 
 		export_module_json(self, self.standard, self.module)

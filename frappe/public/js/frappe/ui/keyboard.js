@@ -1,14 +1,14 @@
 import "./alt_keyboard_shortcuts";
 
-frappe.provide("frappe.ui.keys.handlers");
+nts.provide("nts.ui.keys.handlers");
 
-frappe.ui.keys.setup = function () {
+nts.ui.keys.setup = function () {
 	$(window).on("keydown", function (e) {
-		var key = frappe.ui.keys.get_key(e);
-		if (frappe.ui.keys.handlers[key]) {
+		var key = nts.ui.keys.get_key(e);
+		if (nts.ui.keys.handlers[key]) {
 			var out = null;
-			for (var i = 0, l = frappe.ui.keys.handlers[key].length; i < l; i++) {
-				var handler = frappe.ui.keys.handlers[key][i];
+			for (var i = 0, l = nts.ui.keys.handlers[key].length; i < l; i++) {
+				var handler = nts.ui.keys.handlers[key][i];
 				var _out = handler.apply(this, [e]);
 				if (_out === false) {
 					out = _out;
@@ -20,8 +20,8 @@ frappe.ui.keys.setup = function () {
 };
 
 let standard_shortcuts = [];
-frappe.ui.keys.standard_shortcuts = standard_shortcuts;
-frappe.ui.keys.add_shortcut = ({
+nts.ui.keys.standard_shortcuts = standard_shortcuts;
+nts.ui.keys.add_shortcut = ({
 	shortcut,
 	action,
 	description,
@@ -59,9 +59,9 @@ frappe.ui.keys.add_shortcut = ({
 	// monkey patch page to handler
 	handler.page = page;
 	// remove handler with the same page attached to it
-	frappe.ui.keys.off(shortcut, page);
+	nts.ui.keys.off(shortcut, page);
 	// attach new handler
-	frappe.ui.keys.on(shortcut, handler);
+	nts.ui.keys.on(shortcut, handler);
 
 	// update standard shortcut list
 	let existing_shortcut_index = standard_shortcuts.findIndex((s) => s.shortcut === shortcut);
@@ -73,8 +73,8 @@ frappe.ui.keys.add_shortcut = ({
 	}
 };
 
-frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
-	if (frappe.ui.keys.is_dialog_shown) return;
+nts.ui.keys.show_keyboard_shortcut_dialog = () => {
+	if (nts.ui.keys.is_dialog_shown) return;
 
 	let global_shortcuts = standard_shortcuts.filter((shortcut) => !shortcut.page);
 	let current_page_shortcuts = standard_shortcuts.filter(
@@ -95,9 +95,9 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 			.map((shortcut) => {
 				let shortcut_label = shortcut.shortcut
 					.split("+")
-					.map(frappe.utils.to_title_case)
+					.map(nts.utils.to_title_case)
 					.join("+");
-				if (frappe.utils.is_mac()) {
+				if (nts.utils.is_mac()) {
 					shortcut_label = shortcut_label.replace("Ctrl", "⌘").replace("Alt", "⌥");
 				}
 
@@ -125,10 +125,10 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 	);
 	let grid_shortcuts_html = generate_shortcuts_html(grid_shortcuts, __("Grid Shortcuts"));
 
-	let dialog = new frappe.ui.Dialog({
+	let dialog = new nts.ui.Dialog({
 		title: __("Keyboard Shortcuts"),
 		on_hide() {
-			frappe.ui.keys.is_dialog_shown = false;
+			nts.ui.keys.is_dialog_shown = false;
 		},
 	});
 
@@ -142,12 +142,12 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 	`);
 
 	dialog.show();
-	frappe.ui.keys.is_dialog_shown = true;
+	nts.ui.keys.is_dialog_shown = true;
 };
 
-frappe.ui.keys.get_key = function (e) {
+nts.ui.keys.get_key = function (e) {
 	var keycode = e.keyCode || e.which;
-	var key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
+	var key = nts.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
 
 	if (e.ctrlKey || e.metaKey) {
 		// add ctrl+ the key
@@ -168,26 +168,26 @@ frappe.ui.keys.get_key = function (e) {
 	return key.toLowerCase();
 };
 
-frappe.ui.keys.on = function (key, handler) {
-	if (!frappe.ui.keys.handlers[key]) {
-		frappe.ui.keys.handlers[key] = [];
+nts.ui.keys.on = function (key, handler) {
+	if (!nts.ui.keys.handlers[key]) {
+		nts.ui.keys.handlers[key] = [];
 	}
-	frappe.ui.keys.handlers[key].push(handler);
+	nts.ui.keys.handlers[key].push(handler);
 };
 
-frappe.ui.keys.off = function (key, page) {
-	let handlers = frappe.ui.keys.handlers[key];
+nts.ui.keys.off = function (key, page) {
+	let handlers = nts.ui.keys.handlers[key];
 	if (!handlers || handlers.length === 0) return;
-	frappe.ui.keys.handlers[key] = handlers.filter((h) => {
+	nts.ui.keys.handlers[key] = handlers.filter((h) => {
 		if (!page) return false;
 		return h.page !== page;
 	});
 };
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "ctrl+s",
 	action: function (e) {
-		frappe.app.trigger_primary_action();
+		nts.app.trigger_primary_action();
 		e.preventDefault();
 		return false;
 	},
@@ -195,7 +195,7 @@ frappe.ui.keys.add_shortcut({
 	ignore_inputs: true,
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "ctrl+g",
 	action: function (e) {
 		$("#navbar-search").focus();
@@ -205,7 +205,7 @@ frappe.ui.keys.add_shortcut({
 	description: __("Open Awesomebar"),
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "ctrl+h",
 	action: function (e) {
 		e.preventDefault();
@@ -214,7 +214,7 @@ frappe.ui.keys.add_shortcut({
 	description: __("Navigate Home"),
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "alt+s",
 	action: function (e) {
 		e.preventDefault();
@@ -223,15 +223,15 @@ frappe.ui.keys.add_shortcut({
 	description: __("Open Settings"),
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "shift+/",
 	action: function () {
-		frappe.ui.keys.show_keyboard_shortcut_dialog();
+		nts.ui.keys.show_keyboard_shortcut_dialog();
 	},
 	description: __("Show Keyboard Shortcuts"),
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "alt+h",
 	action: function (e) {
 		e.preventDefault();
@@ -240,45 +240,45 @@ frappe.ui.keys.add_shortcut({
 	description: __("Open Help"),
 });
 
-frappe.ui.keys.on("escape", function (e) {
+nts.ui.keys.on("escape", function (e) {
 	handle_escape_key();
 });
 
-frappe.ui.keys.on("esc", function (e) {
+nts.ui.keys.on("esc", function (e) {
 	handle_escape_key();
 });
 
-frappe.ui.keys.on("enter", function (e) {
+nts.ui.keys.on("enter", function (e) {
 	if (window.cur_dialog && cur_dialog.confirm_dialog) {
 		cur_dialog.get_primary_btn().trigger("click");
 	}
 });
 
-frappe.ui.keys.on("ctrl+down", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
+nts.ui.keys.on("ctrl+down", function (e) {
+	var grid_row = nts.ui.form.get_open_grid_form();
 	grid_row &&
 		grid_row.toggle_view(false, function () {
 			grid_row.open_next();
 		});
 });
 
-frappe.ui.keys.on("ctrl+up", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
+nts.ui.keys.on("ctrl+up", function (e) {
+	var grid_row = nts.ui.form.get_open_grid_form();
 	grid_row &&
 		grid_row.toggle_view(false, function () {
 			grid_row.open_prev();
 		});
 });
 
-frappe.ui.keys.add_shortcut({
+nts.ui.keys.add_shortcut({
 	shortcut: "shift+ctrl+r",
 	action: function () {
-		frappe.ui.toolbar.clear_cache();
+		nts.ui.toolbar.clear_cache();
 	},
 	description: __("Clear Cache and Reload"),
 });
 
-frappe.ui.keys.key_map = {
+nts.ui.keys.key_map = {
 	8: "backspace",
 	9: "tab",
 	13: "enter",
@@ -303,11 +303,11 @@ frappe.ui.keys.key_map = {
 };
 
 "abcdefghijklmnopqrstuvwxyz".split("").forEach((letter, i) => {
-	frappe.ui.keys.key_map[65 + i] = letter;
+	nts.ui.keys.key_map[65 + i] = letter;
 });
 
 // keyCode map
-frappe.ui.keyCode = {
+nts.ui.keyCode = {
 	ESCAPE: 27,
 	LEFT: 37,
 	RIGHT: 39,

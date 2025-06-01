@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # For license information, please see license.txt
 
 import datetime
@@ -7,10 +7,10 @@ from contextlib import suppress
 import pytz
 from rq import Worker
 
-import frappe
-from frappe.model.document import Document
-from frappe.utils import cint, convert_utc_to_system_timezone
-from frappe.utils.background_jobs import get_workers
+import nts
+from nts.model.document import Document
+from nts.utils import cint, convert_utc_to_system_timezone
+from nts.utils.background_jobs import get_workers
 
 
 class RQWorker(Document):
@@ -20,7 +20,7 @@ class RQWorker(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		birth_date: DF.Datetime | None
 		current_job_id: DF.Link | None
@@ -40,7 +40,7 @@ class RQWorker(Document):
 		all_workers = get_workers()
 		workers = [w for w in all_workers if w.name == self.name]
 		if not workers:
-			raise frappe.DoesNotExistError
+			raise nts.DoesNotExistError
 		d = serialize_worker(workers[0])
 
 		super(Document, self).__init__(d)
@@ -80,17 +80,17 @@ class RQWorker(Document):
 		pass
 
 
-def serialize_worker(worker: Worker) -> frappe._dict:
+def serialize_worker(worker: Worker) -> nts._dict:
 	queue_names = worker.queue_names()
 
 	queue = ", ".join(queue_names)
 	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
 	current_job = worker.get_current_job_id()
-	if current_job and not current_job.startswith(frappe.local.site):
+	if current_job and not current_job.startswith(nts.local.site):
 		current_job = None
 
-	return frappe._dict(
+	return nts._dict(
 		name=worker.name,
 		queue=queue,
 		queue_type=queue_types,

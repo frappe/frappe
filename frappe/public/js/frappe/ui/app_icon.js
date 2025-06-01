@@ -1,8 +1,8 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui");
-frappe.ui.app_icon = {
+nts.provide("nts.ui");
+nts.ui.app_icon = {
 	get_html: function (module, small) {
 		var icon = module.icon;
 		var color = module.color;
@@ -28,7 +28,7 @@ frappe.ui.app_icon = {
 				"</span>";
 		} else if (icon.split(".").slice(-1)[0] === "svg") {
 			$.ajax({
-				url: frappe.urllib.get_full_url(icon),
+				url: nts.urllib.get_full_url(icon),
 				dataType: "text",
 				async: false,
 				success: function (data) {

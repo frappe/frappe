@@ -26,9 +26,9 @@ realtime.use(authenticate);
 // =======================
 
 // load and register handlers
-const frappe_handlers = require("./handlers/frappe_handlers");
+const nts_handlers = require("./handlers/nts_handlers");
 function on_connection(socket) {
-	frappe_handlers(realtime, socket);
+	nts_handlers(realtime, socket);
 
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {

@@ -1,19 +1,19 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import global_search, now_datetime
+import nts
+from nts.custom.doctype.property_setter.property_setter import make_property_setter
+from nts.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+from nts.test_runner import make_test_objects
+from nts.tests.utils import ntsTestCase
+from nts.utils import global_search, now_datetime
 
 
-class TestGlobalSearch(FrappeTestCase):
+class TestGlobalSearch(ntsTestCase):
 	def setUp(self):
 		update_global_search_doctypes()
 		global_search.setup_global_search_table()
-		self.assertTrue("__global_search" in frappe.db.get_tables())
+		self.assertTrue("__global_search" in nts.db.get_tables())
 		doctype = "Event"
 		global_search.reset()
 		make_property_setter(doctype, "subject", "in_global_search", 1, "Int")
@@ -22,15 +22,15 @@ class TestGlobalSearch(FrappeTestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
 	def tearDown(self):
-		frappe.db.delete("Property Setter", {"doc_type": "Event"})
-		frappe.clear_cache(doctype="Event")
-		frappe.db.delete("Event")
-		frappe.db.delete("__global_search")
+		nts.db.delete("Property Setter", {"doc_type": "Event"})
+		nts.clear_cache(doctype="Event")
+		nts.db.delete("Event")
+		nts.db.delete("__global_search")
 		make_test_objects("Event")
-		frappe.db.commit()
+		nts.db.commit()
 
 	def insert_test_events(self):
-		frappe.db.delete("Event")
+		nts.db.delete("Event")
 		phrases = [
 			'"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
 			"After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ",
@@ -38,12 +38,12 @@ class TestGlobalSearch(FrappeTestCase):
 		]
 
 		for text in phrases:
-			frappe.get_doc(
+			nts.get_doc(
 				dict(doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime())
 			).insert()
 
 		global_search.sync_global_search()
-		frappe.db.commit()
+		nts.db.commit()
 
 	def test_search(self):
 		self.insert_test_events()
@@ -67,10 +67,10 @@ class TestGlobalSearch(FrappeTestCase):
 	def test_update_doc(self):
 		self.insert_test_events()
 		test_subject = "testing global search"
-		event = frappe.get_doc("Event", frappe.get_all("Event")[0].name)
+		event = nts.get_doc("Event", nts.get_all("Event")[0].name)
 		event.subject = test_subject
 		event.save()
-		frappe.db.commit()
+		nts.db.commit()
 		global_search.sync_global_search()
 		results = global_search.search("testing global search")
 
@@ -88,17 +88,17 @@ class TestGlobalSearch(FrappeTestCase):
 
 	def test_delete_doc(self):
 		self.insert_test_events()
-		event_name = frappe.get_all("Event")[0].name
-		event = frappe.get_doc("Event", event_name)
+		event_name = nts.get_all("Event")[0].name
+		event = nts.get_doc("Event", event_name)
 		test_subject = event.subject
 		results = global_search.search(test_subject)
 		self.assertTrue(
 			any(r["name"] == event_name for r in results), msg="Failed to search document by exact name"
 		)
 
-		frappe.delete_doc("Event", event_name)
+		nts.delete_doc("Event", event_name)
 		global_search.sync_global_search()
-		frappe.db.commit()
+		nts.db.commit()
 
 		results = global_search.search(test_subject)
 		self.assertTrue(
@@ -107,7 +107,7 @@ class TestGlobalSearch(FrappeTestCase):
 		)
 
 	def test_insert_child_table(self):
-		frappe.db.delete("Event")
+		nts.db.delete("Event")
 		phrases = [
 			"Hydrus is a small constellation in the deep southern sky. ",
 			"It was first depicted on a celestial atlas by Johann Bayer in his 1603 Uranometria. ",
@@ -121,11 +121,11 @@ class TestGlobalSearch(FrappeTestCase):
 		]
 
 		for text in phrases:
-			doc = frappe.get_doc({"doctype": "Event", "subject": text, "starts_on": now_datetime()})
+			doc = nts.get_doc({"doctype": "Event", "subject": text, "starts_on": now_datetime()})
 			doc.insert()
 
 		global_search.sync_global_search()
-		frappe.db.commit()
+		nts.db.commit()
 
 	def test_get_field_value(self):
 		cases = [
@@ -179,7 +179,7 @@ class TestGlobalSearch(FrappeTestCase):
 		]
 
 		for case in cases:
-			doc = frappe.get_doc(
+			doc = nts.get_doc(
 				{
 					"doctype": "Event",
 					"subject": "Lorem Ipsum",
@@ -198,7 +198,7 @@ class TestGlobalSearch(FrappeTestCase):
 	def test_web_page_index(self):
 		global_search.update_global_search_for_all_web_pages()
 		global_search.sync_global_search()
-		frappe.db.commit()
+		nts.db.commit()
 		results = global_search.web_search("unsubscribe")
 		self.assertTrue("Unsubscribe" in results[0].content)
 		results = global_search.web_search(

@@ -87,6 +87,6 @@ class FormBuilder {
 	}
 }
 
-frappe.provide("frappe.ui");
-frappe.ui.FormBuilder = FormBuilder;
+nts.provide("nts.ui");
+nts.ui.FormBuilder = FormBuilder;
 export default FormBuilder;

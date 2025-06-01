@@ -1,9 +1,9 @@
-# Copyright (c) 2024, Frappe Technologies and contributors
+# Copyright (c) 2024, nts Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
-from frappe.model.document import Document
-from frappe.permissions import _pop_debug_log, has_permission
+import nts
+from nts.model.document import Document
+from nts.permissions import _pop_debug_log, has_permission
 
 
 class PermissionInspector(Document):
@@ -13,7 +13,7 @@ class PermissionInspector(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		docname: DF.DynamicLink | None
 		output: DF.Code | None
@@ -37,7 +37,7 @@ class PermissionInspector(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def debug(self):
 		if not (self.ref_doctype and self.user):
 			return

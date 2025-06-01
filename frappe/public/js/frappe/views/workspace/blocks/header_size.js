@@ -27,7 +27,7 @@ export default class HeaderSize {
 	render() {
 		this.button = document.createElement("button");
 		this.button.type = "button";
-		this.button.innerHTML = `${frappe.utils.icon("header", "sm")}${frappe.utils.icon(
+		this.button.innerHTML = `${nts.utils.icon("header", "sm")}${nts.utils.icon(
 			"small-down",
 			"xs"
 		)}`;
@@ -43,7 +43,7 @@ export default class HeaderSize {
 			if (termWrapper && termWrapper.classList.contains(h)) {
 				let num = h.match(/\d+/)[0];
 				$(".header-inline-tool svg:first-child").replaceWith(
-					frappe.utils.icon(`header-${num}`, "md")
+					nts.utils.icon(`header-${num}`, "md")
 				);
 			}
 		}

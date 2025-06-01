@@ -14,7 +14,7 @@
 			<div class="print-format-builder-column">
 				{% for(var k=0; k < column.fields.length; k++) {
 					var field = column.fields[k]; %}
-				{%= frappe.render_template("print_format_builder_field",
+				{%= nts.render_template("print_format_builder_field",
 					{field: field, me:me}) %}
 				{% } %}
 			</div>

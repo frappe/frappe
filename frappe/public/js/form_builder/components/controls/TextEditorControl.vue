@@ -8,7 +8,7 @@ let quill_control = computed(() => {
 	if (!quill.value) return;
 	quill.value.innerHTML = "";
 
-	return frappe.ui.form.make_control({
+	return nts.ui.form.make_control({
 		parent: quill.value,
 		df: { ...props.df, hidden: 0 },
 		disabled: true,

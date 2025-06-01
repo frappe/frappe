@@ -1,10 +1,10 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.social.doctype.energy_point_log.energy_point_log import create_review_points_log
-from frappe.utils import add_to_date, getdate, today
+import nts
+from nts.model.document import Document
+from nts.social.doctype.energy_point_log.energy_point_log import create_review_points_log
+from nts.utils import add_to_date, getdate, today
 
 
 class EnergyPointSettings(Document):
@@ -14,8 +14,8 @@ class EnergyPointSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.social.doctype.review_level.review_level import ReviewLevel
-		from frappe.types import DF
+		from nts.social.doctype.review_level.review_level import ReviewLevel
+		from nts.types import DF
 
 		enabled: DF.Check
 		last_point_allocation_date: DF.Date | None
@@ -25,15 +25,15 @@ class EnergyPointSettings(Document):
 
 	def on_update(self):
 		if self.has_value_changed("enabled"):
-			frappe.cache.delete_key("bootinfo")
+			nts.cache.delete_key("bootinfo")
 
 
 def is_energy_point_enabled():
-	return frappe.db.get_single_value("Energy Point Settings", "enabled", True)
+	return nts.db.get_single_value("Energy Point Settings", "enabled", True)
 
 
 def allocate_review_points():
-	settings = frappe.get_single("Energy Point Settings")
+	settings = nts.get_single("Energy Point Settings")
 
 	if not can_allocate_today(settings.last_point_allocation_date, settings.point_allocation_periodicity):
 		return
@@ -68,7 +68,7 @@ def can_allocate_today(last_date, periodicity):
 def get_users_with_role(role):
 	return [
 		p[0]
-		for p in frappe.db.sql(
+		for p in nts.db.sql(
 			"""SELECT DISTINCT `tabUser`.`name`
 		FROM `tabHas Role`, `tabUser`
 		WHERE `tabHas Role`.`role`=%s

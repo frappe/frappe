@@ -1,4 +1,4 @@
-frappe.ui.form.ControlHTML = class ControlHTML extends frappe.ui.form.Control {
+nts.ui.form.ControlHTML = class ControlHTML extends nts.ui.form.Control {
 	make() {
 		super.make();
 		this.disp_area = this.wrapper;
@@ -11,7 +11,7 @@ frappe.ui.form.ControlHTML = class ControlHTML extends frappe.ui.form.Control {
 		var content = this.df.options || "";
 		content = __(content);
 		try {
-			return frappe.render(content, this);
+			return nts.render(content, this);
 		} catch (e) {
 			return content;
 		}

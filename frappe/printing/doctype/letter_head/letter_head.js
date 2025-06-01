@@ -1,7 +1,7 @@
-// Copyright (c) 2017, Frappe Technologies and contributors
+// Copyright (c) 2017, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Letter Head", {
+nts.ui.form.on("Letter Head", {
 	setup(frm) {
 		frm.get_field("instructions").html(INSTRUCTIONS);
 	},
@@ -17,7 +17,7 @@ frappe.ui.form.on("Letter Head", {
 			try {
 				eval(frm.doc[field]);
 			} catch (e) {
-				frappe.throw({
+				nts.throw({
 					title: __("Error in Header/Footer Script"),
 					indicator: "orange",
 					message: '<pre class="small"><code>' + e.stack + "</code></pre>",

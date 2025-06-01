@@ -1,20 +1,20 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
 from dataclasses import dataclass
 
-import frappe
-import frappe.desk.form.document_follow as document_follow
-from frappe.desk.form.assign_to import add
-from frappe.desk.form.document_follow import get_document_followed_by_user
-from frappe.desk.form.utils import add_comment
-from frappe.desk.like import toggle_like
-from frappe.query_builder import DocType
-from frappe.query_builder.functions import Cast_
-from frappe.share import add as share
-from frappe.tests.utils import FrappeTestCase
+import nts
+import nts.desk.form.document_follow as document_follow
+from nts.desk.form.assign_to import add
+from nts.desk.form.document_follow import get_document_followed_by_user
+from nts.desk.form.utils import add_comment
+from nts.desk.like import toggle_like
+from nts.query_builder import DocType
+from nts.query_builder.functions import Cast_
+from nts.share import add as share
+from nts.tests.utils import ntsTestCase
 
 
-class TestDocumentFollow(FrappeTestCase):
+class TestDocumentFollow(ntsTestCase):
 	def test_document_follow_version(self):
 		user = get_user()
 		event_doc = get_event()
@@ -57,7 +57,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_follow_on_create(self):
 		user = get_user(DocumentFollowConditions(1))
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		event.description = "This is a test description for sending mail"
@@ -68,7 +68,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_do_not_follow_on_create(self):
 		user = get_user()
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 
 		event = get_event()
 
@@ -77,7 +77,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_do_not_follow_on_update(self):
 		user = get_user()
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		event.description = "This is a test description for sending mail"
@@ -88,7 +88,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_follow_on_comment(self):
 		user = get_user(DocumentFollowConditions(0, 1))
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		add_comment(event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh")
@@ -98,7 +98,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_do_not_follow_on_comment(self):
 		user = get_user()
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		add_comment(event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh")
@@ -108,7 +108,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_follow_on_like(self):
 		user = get_user(DocumentFollowConditions(0, 0, 1))
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		toggle_like(event.doctype, event.name, add="Yes")
@@ -118,7 +118,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_do_not_follow_on_like(self):
 		user = get_user()
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		toggle_like(event.doctype, event.name)
@@ -137,7 +137,7 @@ class TestDocumentFollow(FrappeTestCase):
 
 	def test_do_not_follow_on_assign(self):
 		user = get_user()
-		frappe.set_user(user.name)
+		nts.set_user(user.name)
 		event = get_event()
 
 		add({"assign_to": [user.name], "doctype": event.doctype, "name": event.name})
@@ -164,17 +164,17 @@ class TestDocumentFollow(FrappeTestCase):
 		self.assertFalse(documents_followed)
 
 	def tearDown(self):
-		frappe.db.rollback()
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Document Follow")
-		frappe.db.delete("Event")
+		nts.db.rollback()
+		nts.db.delete("Email Queue")
+		nts.db.delete("Email Queue Recipient")
+		nts.db.delete("Document Follow")
+		nts.db.delete("Event")
 
 
 def get_events_followed_by_user(event_name, user_name):
 	DocumentFollow = DocType("Document Follow")
 	return (
-		frappe.qb.from_(DocumentFollow)
+		nts.qb.from_(DocumentFollow)
 		.where(DocumentFollow.ref_doctype == "Event")
 		.where(DocumentFollow.ref_docname == event_name)
 		.where(DocumentFollow.user == user_name)
@@ -183,12 +183,12 @@ def get_events_followed_by_user(event_name, user_name):
 
 
 def get_event():
-	doc = frappe.get_doc(
+	doc = nts.get_doc(
 		{
 			"doctype": "Event",
 			"subject": "_Test_Doc_Follow",
-			"doc.starts_on": frappe.utils.now(),
-			"doc.ends_on": frappe.utils.add_days(frappe.utils.now(), 5),
+			"doc.starts_on": nts.utils.now(),
+			"doc.ends_on": nts.utils.add_days(nts.utils.now(), 5),
 			"doc.description": "Hello",
 		}
 	)
@@ -197,10 +197,10 @@ def get_event():
 
 
 def get_user(document_follow=None):
-	frappe.set_user("Administrator")
-	if frappe.db.exists("User", "test@docsub.com"):
-		doc = frappe.delete_doc("User", "test@docsub.com")
-	doc = frappe.new_doc("User")
+	nts.set_user("Administrator")
+	if nts.db.exists("User", "test@docsub.com"):
+		doc = nts.delete_doc("User", "test@docsub.com")
+	doc = nts.new_doc("User")
 	doc.email = "test@docsub.com"
 	doc.first_name = "Test"
 	doc.last_name = "User"
@@ -218,7 +218,7 @@ def get_emails(event_doc, search_string):
 	EmailQueueRecipient = DocType("Email Queue Recipient")
 
 	return (
-		frappe.qb.from_(EmailQueue)
+		nts.qb.from_(EmailQueue)
 		.join(EmailQueueRecipient)
 		.on(EmailQueueRecipient.parent == Cast_(EmailQueue.name, "varchar"))
 		.where(

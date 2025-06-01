@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 """
@@ -7,32 +7,32 @@ Create a new document with defaults set
 
 import copy
 
-import frappe
-import frappe.defaults
-from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-from frappe.model import data_fieldtypes
-from frappe.permissions import filter_allowed_docs_for_doctype
-from frappe.utils import cstr, now_datetime, nowdate, nowtime
+import nts
+import nts.defaults
+from nts.core.doctype.user_permission.user_permission import get_user_permissions
+from nts.model import data_fieldtypes
+from nts.permissions import filter_allowed_docs_for_doctype
+from nts.utils import cstr, now_datetime, nowdate, nowtime
 
 
 def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
-	if doctype not in frappe.local.new_doc_templates:
+	if doctype not in nts.local.new_doc_templates:
 		# cache a copy of new doc as it is called
 		# frequently for inserts
-		frappe.local.new_doc_templates[doctype] = make_new_doc(doctype)
+		nts.local.new_doc_templates[doctype] = make_new_doc(doctype)
 
-	doc = copy.deepcopy(frappe.local.new_doc_templates[doctype])
+	doc = copy.deepcopy(nts.local.new_doc_templates[doctype])
 
 	set_dynamic_default_values(doc, parent_doc, parentfield)
 
 	if as_dict:
 		return doc
 	else:
-		return frappe.get_doc(doc)
+		return nts.get_doc(doc)
 
 
 def make_new_doc(doctype):
-	doc = frappe.get_doc({"doctype": doctype, "__islocal": 1, "owner": frappe.session.user, "docstatus": 0})
+	doc = nts.get_doc({"doctype": doctype, "__islocal": 1, "owner": nts.session.user, "docstatus": 0})
 
 	set_user_and_static_default_values(doc)
 
@@ -41,7 +41,7 @@ def make_new_doc(doctype):
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
 
-	if not frappe.model.meta.is_single(doctype):
+	if not nts.model.meta.is_single(doctype):
 		doc["__unsaved"] = 1
 
 	return doc
@@ -49,7 +49,7 @@ def make_new_doc(doctype):
 
 def set_user_and_static_default_values(doc):
 	user_permissions = get_user_permissions()
-	defaults = frappe.defaults.get_defaults()
+	defaults = nts.defaults.get_defaults()
 
 	for df in doc.meta.get("fields"):
 		if df.fieldtype in data_fieldtypes:
@@ -65,7 +65,7 @@ def set_user_and_static_default_values(doc):
 			)
 			if user_default_value is not None:
 				# if fieldtype is link check if doc exists
-				if not df.fieldtype == "Link" or frappe.db.exists(df.options, user_default_value):
+				if not df.fieldtype == "Link" or nts.db.exists(df.options, user_default_value):
 					doc.set(df.fieldname, user_default_value)
 
 			else:
@@ -100,7 +100,7 @@ def get_static_default_value(df, doctype_user_permissions, allowed_records):
 	# 3 - look in default of docfield
 	if df.get("default"):
 		if df.default == "__user":
-			return frappe.session.user
+			return nts.session.user
 
 		elif df.default == "Today":
 			return nowdate()
@@ -136,7 +136,7 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 	# these values should not be cached
 	user_permissions = get_user_permissions()
 
-	for df in frappe.get_meta(doc["doctype"]).get("fields"):
+	for df in nts.get_meta(doc["doctype"]).get("fields"):
 		if df.get("default"):
 			if cstr(df.default).startswith(":"):
 				default_value = get_default_based_on_another_field(df, user_permissions, parent_doc)
@@ -167,12 +167,12 @@ def user_permissions_exist(df, doctype_user_permissions):
 
 def get_default_based_on_another_field(df, user_permissions, parent_doc):
 	# default value based on another document
-	from frappe.permissions import get_allowed_docs_for_doctype
+	from nts.permissions import get_allowed_docs_for_doctype
 
 	ref_doctype = df.default[1:]
 	ref_fieldname = ref_doctype.lower().replace(" ", "_")
-	reference_name = parent_doc.get(ref_fieldname) if parent_doc else frappe.db.get_default(ref_fieldname)
-	default_value = frappe.db.get_value(ref_doctype, reference_name, df.fieldname)
+	reference_name = parent_doc.get(ref_fieldname) if parent_doc else nts.db.get_default(ref_fieldname)
+	default_value = nts.db.get_value(ref_doctype, reference_name, df.fieldname)
 	is_allowed_default_value = not user_permissions_exist(df, user_permissions.get(df.options)) or (
 		default_value in get_allowed_docs_for_doctype(user_permissions[df.options], df.parent)
 	)

@@ -1,17 +1,17 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import os
 
-import frappe
-from frappe.model.document import Document
-from frappe.modules import get_module_path, scrub
-from frappe.modules.export_file import export_to_files
+import nts
+from nts.model.document import Document
+from nts.modules import get_module_path, scrub
+from nts.modules.export_file import export_to_files
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_config(name):
-	doc = frappe.get_doc("Dashboard Chart Source", name)
+	doc = nts.get_doc("Dashboard Chart Source", name)
 	with open(
 		os.path.join(
 			get_module_path(doc.module), "dashboard_chart_source", scrub(doc.name), scrub(doc.name) + ".js"
@@ -27,7 +27,7 @@ class DashboardChartSource(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		module: DF.Link
 		source_name: DF.Data

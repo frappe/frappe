@@ -1,3 +1,3 @@
-frappe.ready(function () {
+nts.ready(function () {
 	// bind events here
 });

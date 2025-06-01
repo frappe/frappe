@@ -1,10 +1,10 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2019, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import imaplib
 import poplib
 
-from frappe.utils import cint
+from nts.utils import cint
 
 
 def get_port(doc):

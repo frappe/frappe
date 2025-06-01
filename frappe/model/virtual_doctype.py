@@ -1,9 +1,9 @@
 import inspect
 from typing import Protocol, runtime_checkable
 
-import frappe
-from frappe import _
-from frappe.model.base_document import get_controller
+import nts
+from nts import _
+from nts.model.base_document import get_controller
 
 
 @runtime_checkable
@@ -12,7 +12,7 @@ class VirtualDoctype(Protocol):
 
 
 	Additional requirements:
-	- DocType controller has to inherit from `frappe.model.document.Document` class
+	- DocType controller has to inherit from `nts.model.document.Document` class
 
 	Note:
 	- "Backend" here means any storage service, it can be a database, flat file or network call to API.
@@ -21,7 +21,7 @@ class VirtualDoctype(Protocol):
 	# ============ class/static methods ============
 
 	@staticmethod
-	def get_list(args) -> list[frappe._dict]:
+	def get_list(args) -> list[nts._dict]:
 		"""Similar to reportview.get_list"""
 		...
 
@@ -60,7 +60,7 @@ def validate_controller(doctype: str) -> None:
 	try:
 		controller = get_controller(doctype)
 	except ImportError:
-		frappe.msgprint(_("Failed to import virtual doctype {}, is controller file present?").format(doctype))
+		nts.msgprint(_("Failed to import virtual doctype {}, is controller file present?").format(doctype))
 		return
 
 	def _as_str(method):
@@ -72,9 +72,9 @@ def validate_controller(doctype: str) -> None:
 	for m in expected_static_method:
 		method = inspect.getattr_static(controller, m, None)
 		if not isinstance(method, staticmethod):
-			frappe.msgprint(
+			nts.msgprint(
 				_("Virtual DocType {} requires a static method called {} found {}").format(
-					frappe.bold(doctype), frappe.bold(m), frappe.bold(_as_str(method))
+					nts.bold(doctype), nts.bold(m), nts.bold(_as_str(method))
 				),
 				title=_("Incomplete Virtual Doctype Implementation"),
 			)
@@ -85,9 +85,9 @@ def validate_controller(doctype: str) -> None:
 		method = getattr(controller, m, None)
 		original_method = getattr(parent_class, m, None)
 		if method == original_method:
-			frappe.msgprint(
+			nts.msgprint(
 				_("Virtual DocType {} requires overriding an instance method called {} found {}").format(
-					frappe.bold(doctype), frappe.bold(m), frappe.bold(_as_str(method))
+					nts.bold(doctype), nts.bold(m), nts.bold(_as_str(method))
 				),
 				title=_("Incomplete Virtual Doctype Implementation"),
 			)

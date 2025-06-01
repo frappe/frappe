@@ -1,13 +1,13 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 
 def execute():
 	"""Enable all the existing Client script"""
 
-	frappe.db.sql(
+	nts.db.sql(
 		"""
 		UPDATE `tabClient Script` SET enabled=1
 	"""

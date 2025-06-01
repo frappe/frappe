@@ -1,18 +1,18 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doctype("Event")
+	nts.reload_doctype("Event")
 	# Rename "Cancel" to "Cancelled"
-	frappe.db.sql("""UPDATE tabEvent set event_type='Cancelled' where event_type='Cancel'""")
+	nts.db.sql("""UPDATE tabEvent set event_type='Cancelled' where event_type='Cancel'""")
 	# Move references to Participants table
-	events = frappe.db.sql(
+	events = nts.db.sql(
 		"""SELECT name, ref_type, ref_name FROM tabEvent WHERE ref_type!=''""", as_dict=True
 	)
 	for event in events:
 		if event.ref_type and event.ref_name:
 			try:
-				e = frappe.get_doc("Event", event.name)
+				e = nts.get_doc("Event", event.name)
 				e.append(
 					"event_participants",
 					{"reference_doctype": event.ref_type, "reference_docname": event.ref_name},
@@ -21,4 +21,4 @@ def execute():
 				e.flags.ignore_permissions = True
 				e.save()
 			except Exception:
-				frappe.log_error(frappe.get_traceback())
+				nts.log_error(nts.get_traceback())

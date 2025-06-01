@@ -1,4 +1,4 @@
-frappe.ui.SortSelector = class SortSelector {
+nts.ui.SortSelector = class SortSelector {
 	// parent:
 	// change:
 	// args:
@@ -15,7 +15,7 @@ frappe.ui.SortSelector = class SortSelector {
 	make() {
 		this.prepare_args();
 		this.parent.find(".sort-selector").remove();
-		this.wrapper = $(frappe.render_template("sort_selector", this.args)).appendTo(this.parent);
+		this.wrapper = $(nts.render_template("sort_selector", this.args)).appendTo(this.parent);
 		this.bind_events();
 	}
 	bind_events() {
@@ -49,7 +49,7 @@ frappe.ui.SortSelector = class SortSelector {
 			const icon_name = sort_order === "asc" ? "sort-ascending" : "sort-descending";
 			$btn.attr("data-value", sort_order);
 			$btn.attr("title", title);
-			$icon.html(frappe.utils.icon(icon_name, "sm"));
+			$icon.html(nts.utils.icon(icon_name, "sm"));
 		}
 	}
 	prepare_args() {
@@ -98,7 +98,7 @@ frappe.ui.SortSelector = class SortSelector {
 	}
 	setup_from_doctype() {
 		var me = this;
-		var meta = frappe.get_meta(this.doctype);
+		var meta = nts.get_meta(this.doctype);
 		if (!meta) return;
 
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
@@ -141,8 +141,8 @@ frappe.ui.SortSelector = class SortSelector {
 			meta.fields.forEach(function (df) {
 				if (
 					(df.mandatory || df.bold || df.in_list_view || df.reqd) &&
-					frappe.model.is_value_type(df.fieldtype) &&
-					frappe.perm.has_perm(me.doctype, df.permlevel, "read")
+					nts.model.is_value_type(df.fieldtype) &&
+					nts.perm.has_perm(me.doctype, df.permlevel, "read")
 				) {
 					_options.push({ fieldname: df.fieldname, label: df.label });
 				}
@@ -166,7 +166,7 @@ frappe.ui.SortSelector = class SortSelector {
 		this.sort_order = this.args.sort_order = this.args.sort_order.toLowerCase();
 	}
 	get_meta_sort_field() {
-		var meta = frappe.get_meta(this.doctype);
+		var meta = nts.get_meta(this.doctype);
 
 		if (!meta) {
 			return {
@@ -192,7 +192,7 @@ frappe.ui.SortSelector = class SortSelector {
 		if (fieldname === "idx") {
 			return __("Most Used");
 		} else {
-			return this.labels[fieldname] || frappe.meta.get_label(this.doctype, fieldname);
+			return this.labels[fieldname] || nts.meta.get_label(this.doctype, fieldname);
 		}
 	}
 	get_sql_string() {

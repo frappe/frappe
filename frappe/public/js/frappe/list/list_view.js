@@ -1,20 +1,20 @@
 import BulkOperations from "./bulk_operations";
 import ListSettings from "./list_settings";
 
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
-frappe.views.ListView = class ListView extends frappe.views.BaseList {
+nts.views.ListView = class ListView extends nts.views.BaseList {
 	static load_last_view() {
-		const route = frappe.get_route();
+		const route = nts.get_route();
 		const doctype = route[1];
 
 		if (route.length === 2) {
-			const user_settings = frappe.get_user_settings(doctype);
+			const user_settings = nts.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
-			frappe.set_route(
+			nts.set_route(
 				"list",
-				frappe.router.doctype_layout || doctype,
-				frappe.views.is_valid(last_view) ? last_view.toLowerCase() : "list"
+				nts.router.doctype_layout || doctype,
+				nts.views.is_valid(last_view) ? last_view.toLowerCase() : "list"
 			);
 			return true;
 		}
@@ -24,10 +24,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	constructor(opts) {
 		super(opts);
 		this.show();
-		const meta = frappe.get_meta(this.doctype);
+		const meta = nts.get_meta(this.doctype);
 		this.is_large_table = meta?.is_large_table;
 
-		this.debounced_refresh = frappe.utils.debounce(
+		this.debounced_refresh = nts.utils.debounce(
 			this.process_document_refreshes.bind(this),
 			this.is_large_table ? 15000 : 2000
 		);
@@ -36,7 +36,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	has_permissions() {
-		return frappe.perm.has_perm(this.doctype, 0, "read");
+		return nts.perm.has_perm(this.doctype, 0, "read");
 	}
 
 	show() {
@@ -46,8 +46,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	check_permissions() {
 		if (!this.has_permissions()) {
-			frappe.set_route("");
-			frappe.throw(__("Not permitted to view {0}", [this.doctype]));
+			nts.set_route("");
+			nts.throw(__("Not permitted to view {0}", [this.doctype]));
 		}
 	}
 
@@ -126,7 +126,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		this.filters.push([this.doctype, recency_field, "Timespan", "last 90 days"]);
-		frappe.show_alert(
+		nts.show_alert(
 			{
 				message: __(
 					"Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
@@ -145,7 +145,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	validate_filters(filters) {
 		let valid_fields = this.meta.fields.map((df) => df.fieldname);
-		valid_fields = valid_fields.concat(frappe.model.std_fields_list);
+		valid_fields = valid_fields.concat(nts.model.std_fields_list);
 		return filters.filter((f) => valid_fields.includes(f[1])).uniqBy((f) => f[1]);
 	}
 
@@ -179,11 +179,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_restricted_list_indicator_if_applicable() {
-		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
+		const match_rules_list = nts.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
 			this.restricted_list = $(
 				`<button class="btn btn-xs restricted-button flex align-center">
-					${frappe.utils.icon("restriction", "xs")}
+					${nts.utils.icon("restriction", "xs")}
 				</button>`
 			)
 				.click(() => this.show_restrictions(match_rules_list))
@@ -192,8 +192,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_restrictions(match_rules_list = []) {
-		frappe.msgprint(
-			frappe.render_template("list_view_permission_restrictions", {
+		nts.msgprint(
+			nts.render_template("list_view_permission_restrictions", {
 				condition_list: match_rules_list,
 			}),
 			__("Restrictions", null, "Title of message showing restrictions in list view")
@@ -213,7 +213,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	async set_fields() {
 		this.link_field_title_fields = {};
 		let fields = [].concat(
-			frappe.model.std_fields_list,
+			nts.model.std_fields_list,
 			this.get_fields_in_list_view(),
 			[this.meta.title_field, this.meta.image_field],
 			this.settings.add_fields || [],
@@ -228,14 +228,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			fields.map((f) => {
 				return new Promise((resolve) => {
 					const df =
-						typeof f === "string" ? frappe.meta.get_docfield(this.doctype, f) : f;
+						typeof f === "string" ? nts.meta.get_docfield(this.doctype, f) : f;
 					if (
 						df &&
 						df.fieldtype == "Link" &&
-						frappe.boot.link_title_doctypes.includes(df.options)
+						nts.boot.link_title_doctypes.includes(df.options)
 					) {
-						frappe.model.with_doctype(df.options, () => {
-							const meta = frappe.get_meta(df.options);
+						nts.model.with_doctype(df.options, () => {
+							const meta = nts.get_meta(df.options);
 							if (meta.show_title_field_in_link && meta.title_field) {
 								this.link_field_title_fields[
 									typeof f === "string" ? f : f.fieldname
@@ -254,7 +254,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		this.fields.forEach((f) => {
-			const df = frappe.meta.get_docfield(f[1], f[0]);
+			const df = nts.meta.get_docfield(f[1], f[0]);
 			if (df && df.fieldtype === "Currency" && df.options && !df.options.includes(":")) {
 				this._add_field(df.options);
 			}
@@ -264,10 +264,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	patch_refresh_and_load_lib() {
 		// throttle refresh for 1s
 		this.refresh = this.refresh.bind(this);
-		this.refresh = frappe.utils.throttle(this.refresh, 1000);
+		this.refresh = nts.utils.throttle(this.refresh, 1000);
 		this.load_lib = new Promise((resolve) => {
 			if (this.required_libs) {
-				frappe.require(this.required_libs, resolve);
+				nts.require(this.required_libs, resolve);
 			} else {
 				resolve();
 			}
@@ -276,15 +276,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const interval = 5 * 60 * 1000;
 		setInterval(() => {
 			// don't call if route is different
-			if (frappe.get_route_str() === this.page_name) {
+			if (nts.get_route_str() === this.page_name) {
 				this.refresh();
 			}
 		}, interval);
 	}
 
 	set_primary_action() {
-		if (this.can_create && !frappe.boot.read_only) {
-			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
+		if (this.can_create && !nts.boot.read_only) {
+			const doctype_name = __(nts.router.doctype_layout) || __(this.doctype);
 
 			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")
 			// Keeping it like this to not disrupt existing translations
@@ -315,11 +315,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			"ancestors of",
 		];
 		this.filter_area.get().forEach((f) => {
-			if (allowed_filter_types.includes(f[2]) && frappe.model.is_non_std_field(f[1])) {
+			if (allowed_filter_types.includes(f[2]) && nts.model.is_non_std_field(f[1])) {
 				options[f[1]] = f[3];
 			}
 		});
-		frappe.new_doc(doctype, options);
+		nts.new_doc(doctype, options);
 	}
 
 	setup_view() {
@@ -373,7 +373,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// setup columns for list view
 		this.columns = [];
 
-		const get_df = frappe.meta.get_docfield.bind(null, this.doctype);
+		const get_df = nts.meta.get_docfield.bind(null, this.doctype);
 
 		// 1st column: title_field or name
 		if (this.meta.title_field) {
@@ -396,7 +396,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 
 		// 2nd column: Status indicator
-		if (frappe.has_indicator(this.doctype)) {
+		if (nts.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
 				type: "Status",
@@ -408,7 +408,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.columns = this.columns.concat(
 			fields_in_list_view
 				.filter((df) => {
-					if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
+					if (nts.has_indicator(this.doctype) && df.fieldname === "status") {
 						return false;
 					}
 					if (!df.in_list_view || df.is_virtual) {
@@ -511,7 +511,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			  );
 		let empty_state_image =
 			this.settings.empty_state_image ||
-			"/assets/frappe/images/ui-states/list-empty-state.svg";
+			"/assets/nts/images/ui-states/list-empty-state.svg";
 
 		const new_button = this.can_create
 			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
@@ -552,9 +552,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
-		if (frappe.route_options && this.filter_area) {
+		if (nts.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
-			frappe.route_options = null;
+			nts.route_options = null;
 
 			if (this.filters.length > 0) {
 				return this.filter_area
@@ -611,7 +611,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
-		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
+		nts.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		this.save_view_user_settings({
 			filters: this.filter_area && this.filter_area.get(),
 			sort_by: this.sort_selector && this.sort_selector.sort_by,
@@ -702,7 +702,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					"list-row-col ellipsis",
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
 					col.type == "Tag" ? "tag-col hide" : "",
-					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
+					nts.model.is_numeric_field(col.df) ? "text-right" : "",
 				].join(" ");
 
 				let html = "";
@@ -725,7 +725,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="list-count"></span>
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Liked by me")}">
-					${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
+					${nts.utils.icon("es-solid-heart", "sm", "like-icon")}
 				</span>
 			</span>
 		`;
@@ -812,7 +812,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? doc[fieldname + "_" + link_title_fieldname] || value
 			: value;
 
-		let translated_doctypes = frappe.boot?.translated_doctypes || [];
+		let translated_doctypes = nts.boot?.translated_doctypes || [];
 		if (translated_doctypes.includes(df.options)) {
 			value_display = __(value_display);
 		}
@@ -826,7 +826,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						</div>
 					</div>`;
 			} else {
-				return frappe.format(value, df, null, doc);
+				return nts.format(value, df, null, doc);
 			}
 		};
 
@@ -842,7 +842,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else {
 				_value =
 					typeof value_display === "string"
-						? frappe.utils.escape_html(value_display)
+						? nts.utils.escape_html(value_display)
 						: value_display;
 			}
 
@@ -856,10 +856,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					? `<img src="${doc[df.options]}"
 					style="max-height: 30px; max-width: 100%;">`
 					: `<div class="missing-image small">
-						${frappe.utils.icon("restriction")}
+						${nts.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="filterable indicator-pill ${nts.utils.guess_colour(
 					_value
 				)} ellipsis"
 					data-filter="${fieldname},=,${value}">
@@ -870,19 +870,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
+			} else if (nts.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
+					data-filter="${fieldname},=,${nts.utils.escape_html(value)}">
 					${format()}
 				</a>`;
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
+				title="${__(label)}: ${nts.utils.escape_html(_value)}">
 				${html}
 			</span>`;
 		};
@@ -894,7 +894,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const css_class = [
 			"list-row-col ellipsis",
 			class_map[col.type],
-			frappe.model.is_numeric_field(df) ? "text-right" : "",
+			nts.model.is_numeric_field(df) ? "text-right" : "",
 		].join(" ");
 
 		let column_html;
@@ -924,7 +924,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				style = "";
 			if (tag) {
 				if (colored) {
-					color = frappe.get_palette(tag);
+					color = nts.get_palette(tag);
 					style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 				}
 
@@ -961,14 +961,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
-					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
+					${nts.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
 				</div>`;
 		}
 
 		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			comment_count = `<span class="comment-count d-flex align-items-center">
-				${frappe.utils.icon("es-line-chat-alt")}
+				${nts.utils.icon("es-line-chat-alt")}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
 			</span>`;
 		}
@@ -997,7 +997,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let current_count = this.data.length;
 		let count_without_children = this.data.uniqBy((d) => d.name).length;
 
-		return frappe.db
+		return nts.db
 			.count(this.doctype, {
 				filters: this.get_filters_for_args(),
 				limit: this.count_upper_bound,
@@ -1032,19 +1032,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return `/app/${encodeURIComponent(
-			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
+			nts.router.slug(nts.router.doctype_layout || this.doctype)
 		)}/${encodeURIComponent(cstr(doc.name))}`;
 	}
 
 	get_seen_class(doc) {
 		const seen_by = doc._seen ? JSON.parse(doc._seen) : [];
-		return seen_by.includes(frappe.session.user) ? "" : "bold";
+		return seen_by.includes(nts.session.user) ? "" : "bold";
 	}
 
 	get_like_html(doc) {
 		const liked_by = doc._liked_by ? JSON.parse(doc._liked_by) : [];
-		const is_liked = liked_by.includes(frappe.session.user);
-		const title = liked_by.map((u) => frappe.user_info(u).fullname).join(", ");
+		const is_liked = liked_by.includes(nts.session.user);
+		const title = liked_by.map((u) => nts.user_info(u).fullname).join(", ");
 
 		const div = document.createElement("div");
 		div.appendChild(
@@ -1089,16 +1089,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			value = doc.name;
 		}
 
-		if (frappe.model.html_fieldtypes.includes(subject_field.fieldtype)) {
+		if (nts.model.html_fieldtypes.includes(subject_field.fieldtype)) {
 			// NOTE: this is very slow, so only do it for HTML fields
-			return frappe.utils.html2text(value);
+			return nts.utils.html2text(value);
 		} else {
 			return value;
 		}
 	}
 
 	get_indicator_html(doc, show_workflow_state) {
-		const indicator = frappe.get_indicator(doc, this.doctype, show_workflow_state);
+		const indicator = nts.get_indicator(doc, this.doctype, show_workflow_state);
 		// sequence is important
 		const docstatus_description = [
 			__("Document is in draft state"),
@@ -1118,7 +1118,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_indicator_dot(doc) {
-		const indicator = frappe.get_indicator(doc, this.doctype);
+		const indicator = nts.get_indicator(doc, this.doctype);
 		if (!indicator) return "";
 		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
 	}
@@ -1126,8 +1126,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_image_url(doc) {
 		let url = doc.image ? doc.image : doc[this.meta.image_field];
 		// absolute url for mobile
-		if (window.cordova && !frappe.utils.is_url(url)) {
-			url = frappe.base_url + url;
+		if (window.cordova && !nts.utils.is_url(url)) {
+			url = nts.base_url + url;
 		}
 		return url || null;
 	}
@@ -1180,21 +1180,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		};
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "down",
 			action: () => handle_navigation("down"),
 			description: __("Navigate list down", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "up",
 			action: () => handle_navigation("up"),
 			description: __("Navigate list up", null, "Description of a list view shortcut"),
 			page: this.page,
 		});
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+down",
 			action: () => {
 				if (!is_current_page() || is_input_focused()) return false;
@@ -1210,7 +1210,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			page: this.page,
 		});
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+up",
 			action: () => {
 				if (!is_current_page() || is_input_focused()) return false;
@@ -1226,7 +1226,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			page: this.page,
 		});
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "enter",
 			action: () => {
 				let $list_row = get_list_row_if_focused();
@@ -1240,7 +1240,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			page: this.page,
 		});
 
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "space",
 			action: () => {
 				let $list_row = get_list_row_if_focused();
@@ -1265,9 +1265,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const filters_to_apply = filters.map((f) => {
 				f = f.split(",");
 				if (f[2] === "Today") {
-					f[2] = frappe.datetime.get_today();
+					f[2] = nts.datetime.get_today();
 				} else if (f[2] == "User") {
-					f[2] = frappe.session.user;
+					f[2] = nts.session.user;
 				}
 				this.filter_area.remove(f[0]);
 				return [this.doctype, f[0], f[1], f.slice(2).join(",")];
@@ -1321,7 +1321,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const $row = $(e.currentTarget);
 			const link = $row.find(".list-subject a").get(0);
 			if (link) {
-				frappe.set_route(link.pathname);
+				nts.set_route(link.pathname);
 				return false;
 			}
 		});
@@ -1429,7 +1429,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on("click", ".like-action", (e) => {
 			const $this = $(e.currentTarget);
 			const { doctype, name } = $this.data();
-			frappe.ui.toggle_like($this, doctype, name);
+			nts.ui.toggle_like($this, doctype, name);
 
 			return false;
 		});
@@ -1443,7 +1443,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.doctype,
 					"_liked_by",
 					"like",
-					"%" + frappe.session.user + "%"
+					"%" + nts.session.user + "%"
 				);
 			} else {
 				this.filter_area.remove("_liked_by");
@@ -1476,9 +1476,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
 			return;
 		}
-		frappe.realtime.doctype_subscribe(this.doctype);
-		frappe.realtime.off("list_update");
-		frappe.realtime.on("list_update", (data) => {
+		nts.realtime.doctype_subscribe(this.doctype);
+		nts.realtime.off("list_update");
+		nts.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
 			}
@@ -1499,14 +1499,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	disable_realtime_updates() {
-		frappe.realtime.doctype_unsubscribe(this.doctype);
+		nts.realtime.doctype_unsubscribe(this.doctype);
 		this.realtime_events_setup = false;
 	}
 
 	process_document_refreshes() {
 		if (!this.pending_document_refreshes.length) return;
 
-		const route = frappe.get_route() || [];
+		const route = nts.get_route() || [];
 		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
 			// wait till user is back on list view before refreshing
 			this.pending_document_refreshes = [];
@@ -1526,9 +1526,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		call_args.args.filters.push([this.doctype, "name", "in", names]);
 		call_args.args.start = 0;
 
-		frappe.call(call_args).then(({ message }) => {
+		nts.call(call_args).then(({ message }) => {
 			if (!message) return;
-			const data = frappe.utils.dict(message.keys, message.values);
+			const data = nts.utils.dict(message.keys, message.values);
 
 			if (!(data && data.length)) {
 				// this doc was changed and should not be visible
@@ -1653,13 +1653,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	save_view_user_settings(obj) {
-		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
+		return nts.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
 
 	on_update() {}
 
 	update_url_with_filters() {
-		if (frappe.get_route_str() == this.page_name && !this.report_name) {
+		if (nts.get_route_str() == this.page_name && !this.report_name) {
 			// only update URL if the route still matches current page.
 			// do not update if current list is a "saved report".
 			window.history.replaceState(null, null, this.get_url_with_filters());
@@ -1693,33 +1693,33 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
-		if (frappe.model.can_import(doctype, null, this.meta)) {
+		if (nts.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import", null, "Button in list view menu"),
 				action: () =>
-					frappe.set_route("list", "data-import", {
+					nts.set_route("list", "data-import", {
 						reference_doctype: doctype,
 					}),
 				standard: true,
 			});
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
+		if (nts.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("User Permissions", null, "Button in list view menu"),
 				action: () =>
-					frappe.set_route("list", "user-permission", {
+					nts.set_route("list", "user-permission", {
 						allow: doctype,
 					}),
 				standard: true,
 			});
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
+		if (nts.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("Role Permissions Manager", null, "Button in list view menu"),
 				action: () =>
-					frappe.set_route("permission-manager", {
+					nts.set_route("permission-manager", {
 						doctype,
 					}),
 				standard: true,
@@ -1727,17 +1727,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		if (
-			frappe.model.can_create("Custom Field") &&
-			frappe.model.can_create("Property Setter")
+			nts.model.can_create("Custom Field") &&
+			nts.model.can_create("Property Setter")
 		) {
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
 					if (!this.meta) return;
 					if (this.meta.custom) {
-						frappe.set_route("form", "doctype", doctype);
+						nts.set_route("form", "doctype", doctype);
 					} else if (!this.meta.custom) {
-						frappe.set_route("form", "customize-form", {
+						nts.set_route("form", "customize-form", {
 							doc_type: doctype,
 						});
 					}
@@ -1755,16 +1755,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			shortcut: "Ctrl+K",
 		});
 
-		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode === 1) {
+		if (nts.user.has_role("System Manager") && nts.boot.developer_mode === 1) {
 			// edit doctype
 			items.push({
 				label: __("Edit DocType", null, "Button in list view menu"),
-				action: () => frappe.set_route("form", "doctype", doctype),
+				action: () => nts.set_route("form", "doctype", doctype),
 				standard: true,
 			});
 		}
 
-		if (frappe.user.has_role("System Manager")) {
+		if (nts.user.has_role("System Manager")) {
 			if (this.get_view_settings) {
 				items.push(this.get_view_settings());
 			}
@@ -1782,12 +1782,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_list_settings() {
-		frappe.model.with_doctype(this.doctype, () => {
+		nts.model.with_doctype(this.doctype, () => {
 			new ListSettings({
 				listview: this,
 				doctype: this.doctype,
 				settings: this.list_view_settings,
-				meta: frappe.get_meta(this.doctype),
+				meta: nts.get_meta(this.doctype),
 			});
 		});
 	}
@@ -1796,16 +1796,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const workflow_actions = [];
 		const me = this;
 
-		if (frappe.model.has_workflow(this.doctype)) {
-			const actions = frappe.workflow.get_all_transition_actions(this.doctype);
+		if (nts.model.has_workflow(this.doctype)) {
+			const actions = nts.workflow.get_all_transition_actions(this.doctype);
 			actions.forEach((action) => {
 				workflow_actions.push({
 					label: __(action),
 					name: action,
 					action: () => {
 						me.disable_list_update = true;
-						frappe
-							.xcall("frappe.model.workflow.bulk_workflow_approval", {
+						nts
+							.xcall("nts.model.workflow.bulk_workflow_approval", {
 								docnames: this.get_checked_items(true),
 								doctype: this.doctype,
 								action: action,
@@ -1822,15 +1822,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	toggle_workflow_actions() {
-		if (!frappe.model.has_workflow(this.doctype)) return;
+		if (!nts.model.has_workflow(this.doctype)) return;
 
 		Object.keys(this.workflow_action_items).forEach((key) => {
 			this.workflow_action_items[key].addClass("disabled");
 		});
 		const checked_items = this.get_checked_items();
 
-		frappe
-			.xcall("frappe.model.workflow.get_common_transition_actions", {
+		nts
+			.xcall("nts.model.workflow.get_common_transition_actions", {
 				docs: checked_items,
 				doctype: this.doctype,
 			})
@@ -1850,7 +1850,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const is_field_editable = (field_doc) => {
 			return (
 				field_doc.fieldname &&
-				frappe.model.is_value_type(field_doc) &&
+				nts.model.is_value_type(field_doc) &&
 				field_doc.fieldtype !== "Read Only" &&
 				!field_doc.hidden &&
 				!field_doc.read_only &&
@@ -1859,18 +1859,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		const has_editable_fields = (doctype) => {
-			return frappe.meta
+			return nts.meta
 				.get_docfields(doctype)
 				.some((field_doc) => is_field_editable(field_doc));
 		};
 
 		const has_submit_permission = (doctype) => {
-			return frappe.perm.has_perm(doctype, 0, "submit");
+			return nts.perm.has_perm(doctype, 0, "submit");
 		};
 
 		const is_bulk_edit_allowed = (doctype) => {
 			// Check settings if there is a workflow defined, otherwise directly allow
-			if (frappe.model.has_workflow(doctype)) {
+			if (nts.model.has_workflow(doctype)) {
 				return !!this.list_view_settings?.allow_edit;
 			}
 			return true;
@@ -1896,7 +1896,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
-					frappe.confirm(
+					nts.confirm(
 						"Are you sure you want to clear the assignments?",
 						() => {
 							this.disable_list_update = true;
@@ -1973,7 +1973,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							"Title of confirmation dialog"
 						);
 					}
-					frappe.confirm(message, () => {
+					nts.confirm(message, () => {
 						this.disable_list_update = true;
 						bulk_operations.delete(docnames, () => {
 							this.disable_list_update = false;
@@ -1992,7 +1992,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
-						frappe.confirm(
+						nts.confirm(
 							__(
 								"Cancel {0} documents?",
 								[docnames.length],
@@ -2019,7 +2019,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
-						frappe.confirm(
+						nts.confirm(
 							__(
 								"Submit {0} documents?",
 								[docnames.length],
@@ -2046,7 +2046,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					let field_mappings = {};
 
-					frappe.meta.get_docfields(doctype).forEach((field_doc) => {
+					nts.meta.get_docfields(doctype).forEach((field_doc) => {
 						if (is_field_editable(field_doc)) {
 							field_mappings[field_doc.label] = Object.assign({}, field_doc);
 						}
@@ -2091,26 +2091,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		actions_menu_items.push(bulk_add_tags());
 
 		// bulk printing
-		if (frappe.model.can_print(doctype)) {
+		if (nts.model.can_print(doctype)) {
 			actions_menu_items.push(bulk_printing());
 		}
 
 		// bulk submit
 		if (
-			frappe.model.is_submittable(doctype) &&
+			nts.model.is_submittable(doctype) &&
 			has_submit_permission(doctype) &&
-			!frappe.model.has_workflow(doctype)
+			!nts.model.has_workflow(doctype)
 		) {
 			actions_menu_items.push(bulk_submit());
 		}
 
 		// bulk cancel
-		if (frappe.model.can_cancel(doctype) && !frappe.model.has_workflow(doctype)) {
+		if (nts.model.can_cancel(doctype) && !nts.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_cancel());
 		}
 
 		// bulk delete
-		if (frappe.model.can_delete(doctype) && !frappe.model.has_workflow(doctype)) {
+		if (nts.model.can_delete(doctype) && !nts.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_delete());
 		}
 
@@ -2121,8 +2121,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const filters = [];
 
 		let params = new URLSearchParams(window.location.search);
-		if (!params.toString() && frappe.route_options) {
-			params = new Map(Object.entries(frappe.route_options));
+		if (!params.toString() && nts.route_options) {
+			params = new Map(Object.entries(nts.route_options));
 		}
 
 		params.forEach((value, field) => {
@@ -2150,7 +2150,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			// we can search all tables for mapping the doctype
 			if (!doctype) {
-				doctype = frappe.meta.get_doctype_for_field(this.doctype, field);
+				doctype = nts.meta.get_doctype_for_field(this.doctype, field);
 			}
 
 			if (doctype) {
@@ -2174,9 +2174,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 };
 
-frappe.get_list_view = (doctype) => {
+nts.get_list_view = (doctype) => {
 	let route = `List/${doctype}/List`;
-	return frappe.views.list_view[route];
+	return nts.views.list_view[route];
 };
 
 class ElementFactory {
@@ -2217,7 +2217,7 @@ class ElementFactory {
 	create_like_element(doctype) {
 		const like = document.createElement("span");
 		like.classList.add("like-action");
-		like.innerHTML = frappe.utils.icon("es-solid-heart", "sm", "like-icon");
+		like.innerHTML = nts.utils.icon("es-solid-heart", "sm", "like-icon");
 		like.dataset.doctype = doctype;
 
 		return like;

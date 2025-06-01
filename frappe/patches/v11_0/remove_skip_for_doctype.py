@@ -1,7 +1,7 @@
-import frappe
-from frappe.desk.form.linked_with import get_linked_doctypes
-from frappe.patches.v11_0.replicate_old_user_permissions import get_doctypes_to_skip
-from frappe.query_builder import Field
+import nts
+from nts.desk.form.linked_with import get_linked_doctypes
+from nts.patches.v11_0.replicate_old_user_permissions import get_doctypes_to_skip
+from nts.query_builder import Field
 
 # `skip_for_doctype` was a un-normalized way of storing for which
 # doctypes the user permission was applicable.
@@ -14,17 +14,17 @@ from frappe.query_builder import Field
 
 
 def execute():
-	frappe.reload_doctype("User Permission")
+	nts.reload_doctype("User Permission")
 
 	# to check if we need to migrate from skip_for_doctype
-	has_skip_for_doctype = frappe.db.has_column("User Permission", "skip_for_doctype")
+	has_skip_for_doctype = nts.db.has_column("User Permission", "skip_for_doctype")
 	skip_for_doctype_map = {}
 
 	new_user_permissions_list = []
 
 	user_permissions_to_delete = []
 
-	for user_permission in frappe.get_all("User Permission", fields=["*"]):
+	for user_permission in nts.get_all("User Permission", fields=["*"]):
 		skip_for_doctype = []
 
 		# while migrating from v11 -> v11
@@ -57,7 +57,7 @@ def execute():
 			user_permission.skip_for_doctype = None
 			new_user_permissions_list.extend(
 				(
-					frappe.generate_hash(length=10),
+					nts.generate_hash(length=10),
 					user_permission.user,
 					user_permission.allow,
 					user_permission.for_value,
@@ -71,10 +71,10 @@ def execute():
 			)
 		else:
 			# No skip_for_doctype found! Just update apply_to_all_doctypes.
-			frappe.db.set_value("User Permission", user_permission.name, "apply_to_all_doctypes", 1)
+			nts.db.set_value("User Permission", user_permission.name, "apply_to_all_doctypes", 1)
 
 	if new_user_permissions_list:
-		frappe.qb.into("User Permission").columns(
+		nts.qb.into("User Permission").columns(
 			"name",
 			"user",
 			"allow",
@@ -86,4 +86,4 @@ def execute():
 		).insert(*new_user_permissions_list).run()
 
 	if user_permissions_to_delete:
-		frappe.db.delete("User Permission", filters=(Field("name").isin(tuple(user_permissions_to_delete))))
+		nts.db.delete("User Permission", filters=(Field("name").isin(tuple(user_permissions_to_delete))))

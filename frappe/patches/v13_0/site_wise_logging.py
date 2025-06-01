@@ -1,10 +1,10 @@
 import os
 
-import frappe
+import nts
 
 
 def execute():
-	site = frappe.local.site
+	site = nts.local.site
 
 	log_folder = os.path.join(site, "logs")
 	if not os.path.exists(log_folder):

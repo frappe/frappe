@@ -1,27 +1,27 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-import frappe.desk.form.assign_to
-from frappe.automation.doctype.assignment_rule.test_assignment_rule import (
+import nts
+import nts.desk.form.assign_to
+from nts.automation.doctype.assignment_rule.test_assignment_rule import (
 	TEST_DOCTYPE,
 	_make_test_record,
 	create_test_doctype,
 )
-from frappe.desk.form.load import get_assignments
-from frappe.desk.listview import get_group_by_count
-from frappe.tests.utils import FrappeTestCase
+from nts.desk.form.load import get_assignments
+from nts.desk.listview import get_group_by_count
+from nts.tests.utils import ntsTestCase
 
 
-class TestAssign(FrappeTestCase):
+class TestAssign(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		create_test_doctype(TEST_DOCTYPE)
 
 	def test_assign(self):
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
-		if not frappe.db.exists("User", "test@example.com"):
-			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
+		todo = nts.get_doc({"doctype": "ToDo", "description": "test"}).insert()
+		if not nts.db.exists("User", "test@example.com"):
+			nts.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
 		self._test_basic_assign_on_document(todo)
 
@@ -30,21 +30,21 @@ class TestAssign(FrappeTestCase):
 
 		self.assertTrue("test@example.com" in [d.owner for d in added])
 
-		frappe.desk.form.assign_to.remove(doc.doctype, doc.name, "test@example.com")
+		nts.desk.form.assign_to.remove(doc.doctype, doc.name, "test@example.com")
 
 		# assignment is cleared
-		assignments = frappe.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
+		assignments = nts.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
 		self.assertEqual(len(assignments), 0)
 
 	def test_assign_single(self):
-		c = frappe.get_doc("Contact Us Settings")
+		c = nts.get_doc("Contact Us Settings")
 		self._test_basic_assign_on_document(c)
 
 	def test_assignment_count(self):
-		frappe.db.delete("ToDo")
+		nts.db.delete("ToDo")
 
-		if not frappe.db.exists("User", "test_assign1@example.com"):
-			frappe.get_doc(
+		if not nts.db.exists("User", "test_assign1@example.com"):
+			nts.get_doc(
 				{
 					"doctype": "User",
 					"email": "test_assign1@example.com",
@@ -53,8 +53,8 @@ class TestAssign(FrappeTestCase):
 				}
 			).insert()
 
-		if not frappe.db.exists("User", "test_assign2@example.com"):
-			frappe.get_doc(
+		if not nts.db.exists("User", "test_assign2@example.com"):
+			nts.get_doc(
 				{
 					"doctype": "User",
 					"email": "test_assign2@example.com",
@@ -86,23 +86,23 @@ class TestAssign(FrappeTestCase):
 		self.assertFalse("test_assign1@example.com" in data)
 		self.assertEqual(data["test_assign2@example.com"], 2)
 
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def test_assignment_removal(self):
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
-		if not frappe.db.exists("User", "test@example.com"):
-			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
+		todo = nts.get_doc({"doctype": "ToDo", "description": "test"}).insert()
+		if not nts.db.exists("User", "test@example.com"):
+			nts.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
 		new_todo = assign(todo, "test@example.com")
 
 		# remove assignment
-		frappe.db.set_value("ToDo", new_todo[0].name, "allocated_to", "")
+		nts.db.set_value("ToDo", new_todo[0].name, "allocated_to", "")
 
 		self.assertFalse(get_assignments("ToDo", todo.name))
 
 
 def assign(doc, user):
-	return frappe.desk.form.assign_to.add(
+	return nts.desk.form.assign_to.add(
 		{
 			"assign_to": [user],
 			"doctype": doc.doctype,

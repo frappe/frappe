@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from frappe.website.utils import clear_cache
-from frappe.website.website_generator import WebsiteGenerator
+from nts.website.utils import clear_cache
+from nts.website.website_generator import WebsiteGenerator
 
 
 class BlogCategory(WebsiteGenerator):
@@ -12,7 +12,7 @@ class BlogCategory(WebsiteGenerator):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		description: DF.SmallText | None
 		preview_image: DF.AttachImage | None

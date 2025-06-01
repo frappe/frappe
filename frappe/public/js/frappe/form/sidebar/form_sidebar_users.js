@@ -1,4 +1,4 @@
-frappe.ui.form.SidebarUsers = class {
+nts.ui.form.SidebarUsers = class {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
@@ -27,12 +27,12 @@ frappe.ui.form.SidebarUsers = class {
 		const message = type == "viewers" ? "viewing this document" : "composing an email";
 
 		users.current.forEach((username) => {
-			if (username === frappe.session.user) {
+			if (username === nts.session.user) {
 				// current user
 				return;
 			}
 
-			var user_info = frappe.user_info(username);
+			var user_info = nts.user_info(username);
 			sidebar_users.push({
 				image: user_info.image,
 				fullname: user_info.fullname,
@@ -51,7 +51,7 @@ frappe.ui.form.SidebarUsers = class {
 		if (sidebar_users.length) {
 			this.parent.parent().removeClass("hidden");
 			this.parent.append(
-				frappe.render_template("users_in_sidebar", { users: sidebar_users })
+				nts.render_template("users_in_sidebar", { users: sidebar_users })
 			);
 		} else {
 			this.parent.parent().addClass("hidden");
@@ -66,10 +66,10 @@ frappe.ui.form.SidebarUsers = class {
 	show_alert(users, message) {
 		if (users.length) {
 			if (users.length === 1) {
-				frappe.show_alert(__("{0} is currently {1}", [users[0], message]));
+				nts.show_alert(__("{0} is currently {1}", [users[0], message]));
 			} else {
-				frappe.show_alert(
-					__("{0} are currently {1}", [frappe.utils.comma_and(users), message])
+				nts.show_alert(
+					__("{0} are currently {1}", [nts.utils.comma_and(users), message])
 				);
 			}
 		}

@@ -1,12 +1,12 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("email", "doctype", "Newsletter")
-	frappe.db.sql(
+	nts.reload_doc("email", "doctype", "Newsletter")
+	nts.db.sql(
 		"""
 		UPDATE tabNewsletter
 		SET content_type = 'Rich Text'

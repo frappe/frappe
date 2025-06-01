@@ -1,16 +1,16 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import typing
 from functools import cached_property, wraps
 from types import NoneType
 
-import frappe
-from frappe.query_builder.builder import MariaDB, Postgres
-from frappe.query_builder.functions import Function
+import nts
+from nts.query_builder.builder import MariaDB, Postgres
+from nts.query_builder.functions import Function
 
 if typing.TYPE_CHECKING:
-	from frappe.query_builder import DocType
+	from nts.query_builder import DocType
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | None
@@ -75,7 +75,7 @@ class LazyMogrify(LazyString):
 		self.values = values
 
 	def _setup(self) -> str:
-		return frappe.db.mogrify(self.query, self.values)
+		return nts.db.mogrify(self.query, self.values)
 
 
 def dangerously_reconnect_on_connection_abort(func):
@@ -93,8 +93,8 @@ def dangerously_reconnect_on_connection_abort(func):
 		try:
 			return func(*args, **kwargs)
 		except Exception as e:
-			if frappe.db.is_interface_error(e) or isinstance(e, frappe.db.OperationalError):
-				frappe.db.connect()
+			if nts.db.is_interface_error(e) or isinstance(e, nts.db.OperationalError):
+				nts.db.connect()
 				return func(*args, **kwargs)
 			raise
 

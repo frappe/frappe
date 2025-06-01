@@ -69,7 +69,7 @@ context("Folder Navigation", () => {
 
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.reportview.delete_items",
+			url: "api/method/nts.desk.reportview.delete_items",
 		}).as("file_deleted");
 
 		//Deleting the added file from the Test folder

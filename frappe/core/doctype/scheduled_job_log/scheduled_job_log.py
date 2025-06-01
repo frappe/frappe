@@ -1,10 +1,10 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.query_builder import Interval
-from frappe.query_builder.functions import Now
+import nts
+from nts.model.document import Document
+from nts.query_builder import Interval
+from nts.query_builder.functions import Now
 
 
 class ScheduledJobLog(Document):
@@ -14,7 +14,7 @@ class ScheduledJobLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		debug_log: DF.Code | None
 		details: DF.Code | None
@@ -24,5 +24,5 @@ class ScheduledJobLog(Document):
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=90):
-		table = frappe.qb.DocType("Scheduled Job Log")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Scheduled Job Log")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))

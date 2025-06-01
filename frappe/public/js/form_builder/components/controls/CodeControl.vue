@@ -17,7 +17,7 @@ let content = computed({
 
 onMounted(() => {
 	if (code.value) {
-		code_control.value = frappe.ui.form.make_control({
+		code_control.value = nts.ui.form.make_control({
 			parent: code.value,
 			df: {
 				...props.df,

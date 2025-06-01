@@ -62,7 +62,7 @@ context("Form Builder", () => {
 		// Click on the "salutation" field
 		cy.get_field("gender").clear().click();
 
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.intercept("POST", "/api/method/nts.desk.search.search_link").as("search_link");
 		cy.wait("@search_link").then((data) => {
 			expect(data.response.body.message.length).to.eq(1);
 			expect(data.response.body.message[0].value).to.eq("Male");
@@ -86,7 +86,7 @@ context("Form Builder", () => {
 	});
 
 	it("Add Table field and check if columns are rendered", () => {
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.intercept("POST", "/api/method/nts.desk.search.search_link").as("search_link");
 
 		cy.visit(`/app/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
@@ -112,7 +112,7 @@ context("Form Builder", () => {
 
 		cy.get(last_field).click({ force: true });
 
-		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
+		cy.get(".sidebar-container .nts-control[data-fieldname='options'] input")
 			.click()
 			.as("input");
 		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
@@ -287,10 +287,10 @@ context("Form Builder", () => {
 		cy.get(last_field).click();
 
 		// validate duplicate name
-		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
+		cy.get(".sidebar-container .nts-control[data-fieldname='fieldname'] input")
 			.click()
 			.as("input");
-		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
+		cy.get(".sidebar-container .nts-control[data-fieldname='fieldname'] input")
 			.clear({ force: true })
 			.type("data3");
 
@@ -298,7 +298,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "appears multiple times");
 		cy.hide_dialog();
 		cy.get(last_field).click();
-		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input").clear({
+		cy.get(".sidebar-container .nts-control[data-fieldname='fieldname'] input").clear({
 			force: true,
 		});
 

@@ -3,7 +3,7 @@ base_template: "templates/base.html"
 no_cache: 1
 ---
 
-{%- block navbar -%} {% from "frappe/templates/includes/avatar_macro.html" import avatar %} {%-
+{%- block navbar -%} {% from "nts/templates/includes/avatar_macro.html" import avatar %} {%-
 endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 <div class="container">
 	<div class="apps-container">
@@ -65,8 +65,8 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 	$(".set-default").on("click", function (e) {
 		e.preventDefault();
 		var appName = $(this).attr("app-name");
-		frappe.call({
-			method: "frappe.apps.set_app_as_default",
+		nts.call({
+			method: "nts.apps.set_app_as_default",
 			args: { app_name: appName },
 			callback: function () {
 				location.reload();
@@ -74,7 +74,7 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 		});
 	});
 	$(".logout-btn").on("click", function () {
-		frappe.call({
+		nts.call({
 			method: "logout",
 			callback: function () {
 				window.location.href = "/login";

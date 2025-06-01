@@ -1,17 +1,17 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe.templates.includes.comments.comments import add_comment
-from frappe.tests.test_model_utils import set_user
-from frappe.tests.utils import FrappeTestCase, change_settings
-from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
+import nts
+from nts.templates.includes.comments.comments import add_comment
+from nts.tests.test_model_utils import set_user
+from nts.tests.utils import ntsTestCase, change_settings
+from nts.website.doctype.blog_post.test_blog_post import make_test_blog
 
 
-class TestComment(FrappeTestCase):
+class TestComment(ntsTestCase):
 	def test_comment_creation(self):
-		test_doc = frappe.get_doc(dict(doctype="ToDo", description="test"))
+		test_doc = nts.get_doc(dict(doctype="ToDo", description="test"))
 		test_doc.insert()
 		comment = test_doc.add_comment("Comment", "test comment")
 
@@ -23,7 +23,7 @@ class TestComment(FrappeTestCase):
 		self.assertEqual(comments[0].get("comment"), comment.content)
 
 		# check document creation
-		comment_1 = frappe.get_all(
+		comment_1 = nts.get_all(
 			"Comment",
 			fields=["*"],
 			filters=dict(reference_doctype=test_doc.doctype, reference_name=test_doc.name),
@@ -35,7 +35,7 @@ class TestComment(FrappeTestCase):
 	def test_public_comment(self):
 		test_blog = make_test_blog()
 
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		nts.db.delete("Comment", {"reference_doctype": "Blog Post"})
 		add_comment_args = {
 			"comment": "Good comment with 10 chars",
 			"comment_email": "test@test.com",
@@ -47,7 +47,7 @@ class TestComment(FrappeTestCase):
 		add_comment(**add_comment_args)
 
 		self.assertEqual(
-			frappe.get_all(
+			nts.get_all(
 				"Comment",
 				fields=["*"],
 				filters=dict(reference_doctype=test_blog.doctype, reference_name=test_blog.name),
@@ -55,14 +55,14 @@ class TestComment(FrappeTestCase):
 			1,
 		)
 
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		nts.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
 		add_comment_args.update(comment="pleez vizits my site http://mysite.com", comment_by="bad commentor")
 		add_comment(**add_comment_args)
 
 		self.assertEqual(
 			len(
-				frappe.get_all(
+				nts.get_all(
 					"Comment",
 					fields=["*"],
 					filters=dict(reference_doctype=test_blog.doctype, reference_name=test_blog.name),
@@ -72,12 +72,12 @@ class TestComment(FrappeTestCase):
 		)
 
 		# test for filtering html and css injection elements
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		nts.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
 		add_comment_args.update(comment="<script>alert(1)</script>Comment", comment_by="hacker")
 		add_comment(**add_comment_args)
 		self.assertEqual(
-			frappe.get_all(
+			nts.get_all(
 				"Comment",
 				fields=["content"],
 				filters=dict(reference_doctype=test_blog.doctype, reference_name=test_blog.name),
@@ -104,12 +104,12 @@ class TestComment(FrappeTestCase):
 			)
 
 	def test_user_not_logged_in(self):
-		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
+		some_system_user = nts.db.get_value("User", {"name": ("not in", nts.STANDARD_USERS)})
 
 		test_blog = make_test_blog()
 		with set_user("Guest"):
 			self.assertRaises(
-				frappe.ValidationError,
+				nts.ValidationError,
 				add_comment,
 				comment="Good comment with 10 chars",
 				comment_email=some_system_user,

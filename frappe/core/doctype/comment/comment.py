@@ -1,14 +1,14 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe.database.schema import add_column
-from frappe.desk.notifications import notify_mentions
-from frappe.exceptions import ImplicitCommitError
-from frappe.model.document import Document
-from frappe.model.utils import is_virtual_doctype
-from frappe.website.utils import clear_cache
+import nts
+from nts.database.schema import add_column
+from nts.desk.notifications import notify_mentions
+from nts.exceptions import ImplicitCommitError
+from nts.model.document import Document
+from nts.model.utils import is_virtual_doctype
+from nts.website.utils import clear_cache
 
 
 class Comment(Document):
@@ -18,7 +18,7 @@ class Comment(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		comment_by: DF.Data | None
 		comment_email: DF.Data | None
@@ -61,8 +61,8 @@ class Comment(Document):
 
 	def validate(self):
 		if not self.comment_email:
-			self.comment_email = frappe.session.user
-		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
+			self.comment_email = nts.session.user
+		self.content = nts.utils.sanitize_html(self.content, always_sanitize=True)
 
 	def on_update(self):
 		update_comment_in_doc(self)
@@ -86,7 +86,7 @@ class Comment(Document):
 		if not key:
 			return
 
-		frappe.publish_realtime(
+		nts.publish_realtime(
 			"docinfo_update",
 			{"doc": self.as_dict(), "key": key, "action": action},
 			doctype=self.reference_doctype,
@@ -104,7 +104,7 @@ class Comment(Document):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
+	nts.db.add_index("Comment", ["reference_doctype", "reference_name"])
 
 
 def update_comment_in_doc(doc):
@@ -159,10 +159,10 @@ def get_comments_from_parent(doc):
 		if is_virtual_doctype(doc.reference_doctype):
 			_comments = "[]"
 		else:
-			_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
+			_comments = nts.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
 	except Exception as e:
-		if frappe.db.is_missing_table_or_column(e):
+		if nts.db.is_missing_table_or_column(e):
 			_comments = "[]"
 
 		else:
@@ -181,29 +181,29 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	if (
 		not reference_doctype
 		or not reference_name
-		or frappe.db.get_value("DocType", reference_doctype, "issingle")
+		or nts.db.get_value("DocType", reference_doctype, "issingle")
 		or is_virtual_doctype(reference_doctype)
 	):
 		return
 
 	try:
 		# use sql, so that we do not mess with the timestamp
-		frappe.db.sql(
+		nts.db.sql(
 			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
 			(json.dumps(_comments[-100:]), reference_name),
 		)
 
 	except Exception as e:
-		if frappe.db.is_missing_column(e) and getattr(frappe.local, "request", None):
+		if nts.db.is_missing_column(e) and getattr(nts.local, "request", None):
 			pass
-		elif frappe.db.is_data_too_long(e):
-			raise frappe.DataTooLongException
+		elif nts.db.is_data_too_long(e):
+			raise nts.DataTooLongException
 		else:
 			raise
 	else:
-		if frappe.flags.in_patch:
+		if nts.flags.in_patch:
 			return
 
 		# Clear route cache
-		if route := frappe.get_cached_value(reference_doctype, reference_name, "route"):
+		if route := nts.get_cached_value(reference_doctype, reference_name, "route"):
 			clear_cache(route)

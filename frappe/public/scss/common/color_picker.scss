@@ -94,7 +94,7 @@
 	}
 }
 
-.frappe-control[data-fieldtype="Color"] {
+.nts-control[data-fieldtype="Color"] {
 	input {
 		padding-left: 32px;
 	}
@@ -112,7 +112,7 @@
 		left: 8px;
 		content: " ";
 		&.no-value {
-			background: url("/assets/frappe/images/color-circle.png");
+			background: url("/assets/nts/images/color-circle.png");
 			background-size: contain;
 		}
 	}

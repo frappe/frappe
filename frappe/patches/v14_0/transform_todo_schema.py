@@ -1,5 +1,5 @@
-import frappe
-from frappe.query_builder.utils import DocType
+import nts
+from nts.query_builder.utils import DocType
 
 
 def execute():
@@ -7,6 +7,6 @@ def execute():
 	# Only ToDo has to be updated.
 
 	ToDo = DocType("ToDo")
-	frappe.reload_doctype("ToDo", force=True)
+	nts.reload_doctype("ToDo", force=True)
 
-	frappe.qb.update(ToDo).set(ToDo.allocated_to, ToDo.owner).run()
+	nts.qb.update(ToDo).set(ToDo.allocated_to, ToDo.owner).run()

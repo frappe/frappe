@@ -1,70 +1,70 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 
 from urllib.parse import urlparse
 
-import frappe
-import frappe.utils
-from frappe import _
-from frappe.apps import get_default_path
-from frappe.auth import LoginManager
-from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
-from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, get_url
-from frappe.utils.data import escape_html
-from frappe.utils.html_utils import get_icon_html
-from frappe.utils.jinja import guess_is_path
-from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
-from frappe.utils.password import get_decrypted_password
-from frappe.website.utils import get_home_page
+import nts
+import nts.utils
+from nts import _
+from nts.apps import get_default_path
+from nts.auth import LoginManager
+from nts.core.doctype.navbar_settings.navbar_settings import get_app_logo
+from nts.rate_limiter import rate_limit
+from nts.utils import cint, get_url
+from nts.utils.data import escape_html
+from nts.utils.html_utils import get_icon_html
+from nts.utils.jinja import guess_is_path
+from nts.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
+from nts.utils.password import get_decrypted_password
+from nts.website.utils import get_home_page
 
 no_cache = True
 
 
 def get_context(context):
-	from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
-	from frappe.utils.frappecloud import on_frappecloud
+	from nts.integrations.nts_providers.ntscloud_billing import get_site_login_url
+	from nts.utils.ntscloud import on_ntscloud
 
-	redirect_to = frappe.local.request.args.get("redirect-to")
+	redirect_to = nts.local.request.args.get("redirect-to")
 	redirect_to = sanitize_redirect(redirect_to)
 
-	if frappe.session.user != "Guest":
+	if nts.session.user != "Guest":
 		if not redirect_to:
-			if frappe.session.data.user_type == "Website User":
+			if nts.session.data.user_type == "Website User":
 				redirect_to = get_default_path() or get_home_page()
 			else:
 				redirect_to = get_default_path() or "/app"
 
 		if redirect_to != "login":
-			frappe.local.flags.redirect_location = redirect_to
-			raise frappe.Redirect
+			nts.local.flags.redirect_location = redirect_to
+			raise nts.Redirect
 
 	context.no_header = True
 	context.for_test = "login.html"
 	context["title"] = "Login"
 	context["hide_login"] = True  # dont show login link on login page again.
 	context["provider_logins"] = []
-	context["disable_signup"] = cint(frappe.get_website_settings("disable_signup"))
-	context["show_footer_on_login"] = cint(frappe.get_website_settings("show_footer_on_login"))
-	context["disable_user_pass_login"] = cint(frappe.get_system_settings("disable_user_pass_login"))
+	context["disable_signup"] = cint(nts.get_website_settings("disable_signup"))
+	context["show_footer_on_login"] = cint(nts.get_website_settings("show_footer_on_login"))
+	context["disable_user_pass_login"] = cint(nts.get_system_settings("disable_user_pass_login"))
 	context["logo"] = get_app_logo()
 	context["app_name"] = (
-		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
+		nts.get_website_settings("app_name") or nts.get_system_settings("app_name") or _("nts")
 	)
 
-	signup_form_template = frappe.get_hooks("signup_form_template")
+	signup_form_template = nts.get_hooks("signup_form_template")
 	if signup_form_template and len(signup_form_template):
 		path = signup_form_template[-1]
 		if not guess_is_path(path):
-			path = frappe.get_attr(signup_form_template[-1])()
+			path = nts.get_attr(signup_form_template[-1])()
 	else:
-		path = "frappe/templates/signup.html"
+		path = "nts/templates/signup.html"
 
 	if path:
-		context["signup_form_template"] = frappe.get_template(path).render()
+		context["signup_form_template"] = nts.get_template(path).render()
 
-	providers = frappe.get_all(
+	providers = nts.get_all(
 		"Social Login Key",
 		filters={"enable_social_login": 1},
 		fields=["name", "client_id", "base_url", "provider_name", "icon"],
@@ -94,62 +94,62 @@ def get_context(context):
 			)
 			context["social_login"] = True
 
-	if cint(frappe.db.get_value("LDAP Settings", "LDAP Settings", "enabled")):
-		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+	if cint(nts.db.get_value("LDAP Settings", "LDAP Settings", "enabled")):
+		from nts.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 
 		context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
 
 	login_label = [_("Email")]
 
-	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_mobile_number")):
+	if nts.utils.cint(nts.get_system_settings("allow_login_using_mobile_number")):
 		login_label.append(_("Mobile"))
 
-	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_user_name")):
+	if nts.utils.cint(nts.get_system_settings("allow_login_using_user_name")):
 		login_label.append(_("Username"))
 
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
-	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
-	context["login_with_frappe_cloud_url"] = (
-		f"{get_site_login_url()}?site={frappe.local.site}"
-		if on_frappecloud() and frappe.conf.get("fc_communication_secret")
+	context["login_with_email_link"] = nts.get_system_settings("login_with_email_link")
+	context["login_with_nts_cloud_url"] = (
+		f"{get_site_login_url()}?site={nts.local.site}"
+		if on_ntscloud() and nts.conf.get("fc_communication_secret")
 		else None
 	)
 
 	return context
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def login_via_token(login_token: str):
-	sid = frappe.cache.get_value(f"login_token:{login_token}", expires=True)
+	sid = nts.cache.get_value(f"login_token:{login_token}", expires=True)
 	if not sid:
-		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
+		nts.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
 		return
 
-	frappe.local.form_dict.sid = sid
-	frappe.local.login_manager = LoginManager()
+	nts.local.form_dict.sid = sid
+	nts.local.login_manager = LoginManager()
 
 	redirect_post_login(
-		desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+		desk_user=nts.db.get_value("User", nts.session.user, "user_type") == "System User"
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
-	if not frappe.get_system_settings("login_with_email_link"):
+	if not nts.get_system_settings("login_with_email_link"):
 		return
 
-	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
+	expiry = nts.get_system_settings("login_with_email_link_expiry") or 10
 	link = _generate_temporary_login_link(email, expiry)
 
 	app_name = (
-		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
+		nts.get_website_settings("app_name") or nts.get_system_settings("app_name") or _("nts")
 	)
 
 	subject = _("Login To {0}").format(app_name)
 
-	frappe.sendmail(
+	nts.sendmail(
 		subject=subject,
 		recipients=email,
 		template="login_with_email_link",
@@ -161,33 +161,33 @@ def send_login_link(email: str):
 def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
-	if not frappe.db.exists("User", email):
-		frappe.throw(_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError)
-	key = frappe.generate_hash()
-	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+	if not nts.db.exists("User", email):
+		nts.throw(_("User with email address {0} does not exist").format(email), nts.DoesNotExistError)
+	key = nts.generate_hash()
+	nts.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
-	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+	return get_url(f"/api/method/nts.www.login.login_via_key?key={key}")
 
 
 def get_login_with_email_link_ratelimit() -> int:
-	return frappe.get_system_settings("rate_limit_email_link_login") or 5
+	return nts.get_system_settings("rate_limit_email_link_login") or 5
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@nts.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache.get_value(cache_key)
+	email = nts.cache.get_value(cache_key)
 
 	if email:
-		frappe.cache.delete_value(cache_key)
-		frappe.local.login_manager.login_as(email)
+		nts.cache.delete_value(cache_key)
+		nts.local.login_manager.login_as(email)
 
 		redirect_post_login(
-			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+			desk_user=nts.db.get_value("User", nts.session.user, "user_type") == "System User"
 		)
 	else:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Not Permitted"),
 			_("The link you trying to login is invalid or expired."),
 			http_status_code=403,
@@ -199,7 +199,7 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 	"""Only allow redirect on same domain.
 
 	Allowed redirects:
-	- Same host e.g. https://frappe.localhost/path
+	- Same host e.g. https://nts.localhost/path
 	- Just path e.g. /app
 	"""
 	if not redirect:
@@ -209,7 +209,7 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 	if not parsed_redirect.netloc:
 		return redirect
 
-	parsed_request_host = urlparse(frappe.local.request.url)
+	parsed_request_host = urlparse(nts.local.request.url)
 	if parsed_request_host.netloc == parsed_redirect.netloc:
 		return redirect
 

@@ -1,22 +1,22 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
-# test_records = frappe.get_test_records('Help Article')
+# test_records = nts.get_test_records('Help Article')
 
 
-class TestHelpArticle(FrappeTestCase):
+class TestHelpArticle(ntsTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.help_category = frappe.get_doc(
+		cls.help_category = nts.get_doc(
 			{
 				"doctype": "Help Category",
 				"category_name": "_Test Help Category",
 			}
 		).insert()
 
-		cls.help_article = frappe.get_doc(
+		cls.help_article = nts.get_doc(
 			{
 				"doctype": "Help Article",
 				"title": "_Test Article",
@@ -26,7 +26,7 @@ class TestHelpArticle(FrappeTestCase):
 		).insert()
 
 	def test_article_is_helpful(self):
-		from frappe.website.doctype.help_article.help_article import add_feedback
+		from nts.website.doctype.help_article.help_article import add_feedback
 
 		self.help_article.load_from_db()
 		self.assertEqual(self.help_article.helpful, 0)
@@ -53,5 +53,5 @@ class TestHelpArticle(FrappeTestCase):
 
 	@classmethod
 	def tearDownClass(cls) -> None:
-		frappe.delete_doc(cls.help_article.doctype, cls.help_article.name)
-		frappe.delete_doc(cls.help_category.doctype, cls.help_category.name)
+		nts.delete_doc(cls.help_article.doctype, cls.help_article.name)
+		nts.delete_doc(cls.help_category.doctype, cls.help_category.name)

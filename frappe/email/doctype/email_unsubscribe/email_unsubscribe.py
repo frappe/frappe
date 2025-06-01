@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class EmailUnsubscribe(Document):
@@ -13,7 +13,7 @@ class EmailUnsubscribe(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		email: DF.Data
 		global_unsubscribe: DF.Check
@@ -23,20 +23,20 @@ class EmailUnsubscribe(Document):
 	# end: auto-generated types
 	def validate(self):
 		if not self.global_unsubscribe and not (self.reference_doctype and self.reference_name):
-			frappe.throw(_("Reference DocType and Reference Name are required"), frappe.MandatoryError)
+			nts.throw(_("Reference DocType and Reference Name are required"), nts.MandatoryError)
 
-		if not self.global_unsubscribe and frappe.db.get_value(self.doctype, self.name, "global_unsubscribe"):
-			frappe.throw(_("Delete this record to allow sending to this email address"))
+		if not self.global_unsubscribe and nts.db.get_value(self.doctype, self.name, "global_unsubscribe"):
+			nts.throw(_("Delete this record to allow sending to this email address"))
 
 		if self.global_unsubscribe:
-			if frappe.get_all(
+			if nts.get_all(
 				"Email Unsubscribe",
 				filters={"email": self.email, "global_unsubscribe": 1, "name": ["!=", self.name]},
 			):
-				frappe.throw(_("{0} already unsubscribed").format(self.email), frappe.DuplicateEntryError)
+				nts.throw(_("{0} already unsubscribed").format(self.email), nts.DuplicateEntryError)
 
 		else:
-			if frappe.get_all(
+			if nts.get_all(
 				"Email Unsubscribe",
 				filters={
 					"email": self.email,
@@ -45,14 +45,14 @@ class EmailUnsubscribe(Document):
 					"name": ["!=", self.name],
 				},
 			):
-				frappe.throw(
+				nts.throw(
 					_("{0} already unsubscribed for {1} {2}").format(
 						self.email, self.reference_doctype, self.reference_name
 					),
-					frappe.DuplicateEntryError,
+					nts.DuplicateEntryError,
 				)
 
 	def on_update(self):
 		if self.reference_doctype and self.reference_name:
-			doc = frappe.get_doc(self.reference_doctype, self.reference_name)
+			doc = nts.get_doc(self.reference_doctype, self.reference_name)
 			doc.add_comment("Label", _("Left this conversation"), comment_email=self.email)

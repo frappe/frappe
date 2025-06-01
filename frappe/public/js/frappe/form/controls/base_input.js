@@ -1,4 +1,4 @@
-frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
+nts.ui.form.ControlInput = class ControlInput extends nts.ui.form.Control {
 	static horizontal = true;
 	make() {
 		// parent element
@@ -10,10 +10,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 	make_wrapper() {
 		if (this.only_input) {
-			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
+			this.$wrapper = $('<div class="form-group nts-control">').appendTo(this.parent);
 		} else {
 			this.$wrapper = $(
-				`<div class="frappe-control">
+				`<div class="nts-control">
 				<div class="form-group">
 					<div class="clearfix">
 						<label class="control-label" style="padding-right: 0px;"></label>
@@ -86,7 +86,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		if (me.disp_status != "None") {
 			// refresh value
 			if (me.frm) {
-				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
+				me.value = nts.model.get_value(me.doctype, me.docname, me.df.fieldname);
 			} else if (me.doc) {
 				me.value = me.doc[me.df.fieldname] || "";
 			}
@@ -117,7 +117,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 						"title",
 						__(
 							"This value is fetched from {0}'s {1} field",
-							me.df.fetch_from.split(".").map((value) => __(frappe.unscrub(value)))
+							me.df.fetch_from.split(".").map((value) => __(nts.unscrub(value)))
 						)
 					);
 				}
@@ -147,10 +147,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			value = this.value || value;
 		}
 		if (this.df.fieldtype === "Data") {
-			value = frappe.utils.escape_html(value);
+			value = nts.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
-		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+		let display_value = nts.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {
@@ -166,8 +166,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_doc_url() {
-		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
-			(x) => frappe.model.table_fields.indexOf(x) === -1
+		let unsupported_fieldtypes = nts.model.no_value_type.filter(
+			(x) => nts.model.table_fields.indexOf(x) === -1
 		);
 
 		if (
@@ -180,7 +180,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
 		$(`<a href="${this.df.documentation_url}" target="_blank" title="${__("Documentation")}">
-			${frappe.utils.icon("help", "sm")}
+			${nts.utils.icon("help", "sm")}
 		</a>`).appendTo($help);
 	}
 

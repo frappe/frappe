@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form.handlers");
+nts.provide("nts.ui.form.handlers");
 
 window.extend_cscript = (cscript, controller_object) => {
 	$.extend(cscript, controller_object);
@@ -11,19 +11,19 @@ window.extend_cscript = (cscript, controller_object) => {
 	return cscript;
 };
 
-frappe.ui.form.get_event_handler_list = function (doctype, fieldname) {
-	if (!frappe.ui.form.handlers[doctype]) {
-		frappe.ui.form.handlers[doctype] = {};
+nts.ui.form.get_event_handler_list = function (doctype, fieldname) {
+	if (!nts.ui.form.handlers[doctype]) {
+		nts.ui.form.handlers[doctype] = {};
 	}
-	if (!frappe.ui.form.handlers[doctype][fieldname]) {
-		frappe.ui.form.handlers[doctype][fieldname] = [];
+	if (!nts.ui.form.handlers[doctype][fieldname]) {
+		nts.ui.form.handlers[doctype][fieldname] = [];
 	}
-	return frappe.ui.form.handlers[doctype][fieldname];
+	return nts.ui.form.handlers[doctype][fieldname];
 };
 
-frappe.ui.form.on = frappe.ui.form.on_change = function (doctype, fieldname, handler) {
+nts.ui.form.on = nts.ui.form.on_change = function (doctype, fieldname, handler) {
 	var add_handler = function (fieldname, handler) {
-		var handler_list = frappe.ui.form.get_event_handler_list(doctype, fieldname);
+		var handler_list = nts.ui.form.get_event_handler_list(doctype, fieldname);
 
 		let _handler = (...args) => {
 			try {
@@ -57,10 +57,10 @@ frappe.ui.form.on = frappe.ui.form.on_change = function (doctype, fieldname, han
 };
 
 // remove standard event handlers
-frappe.ui.form.off = function (doctype, fieldname, handler) {
-	var handler_list = frappe.ui.form.get_event_handler_list(doctype, fieldname);
+nts.ui.form.off = function (doctype, fieldname, handler) {
+	var handler_list = nts.ui.form.get_event_handler_list(doctype, fieldname);
 	if (handler_list.length) {
-		frappe.ui.form.handlers[doctype][fieldname] = [];
+		nts.ui.form.handlers[doctype][fieldname] = [];
 	}
 
 	if (cur_frm && cur_frm.doctype === doctype && cur_frm.events[fieldname]) {
@@ -72,11 +72,11 @@ frappe.ui.form.off = function (doctype, fieldname, handler) {
 	}
 };
 
-frappe.ui.form.trigger = function (doctype, fieldname) {
+nts.ui.form.trigger = function (doctype, fieldname) {
 	cur_frm.script_manager.trigger(fieldname, doctype);
 };
 
-frappe.ui.form.ScriptManager = class ScriptManager {
+nts.ui.form.ScriptManager = class ScriptManager {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
@@ -97,7 +97,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		let handlers = this.get_handlers(event_name, doctype);
 
 		// helper for child table
-		this.frm.selected_doc = frappe.get_doc(doctype, name);
+		this.frm.selected_doc = nts.get_doc(doctype, name);
 
 		let runner = (_function, is_old_style) => {
 			let _promise = null;
@@ -110,11 +110,11 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			}
 
 			// if the trigger returns a promise, return it,
-			// or use the default promise frappe.after_ajax
+			// or use the default promise nts.after_ajax
 			if (_promise && _promise.then) {
 				return _promise;
 			} else {
-				return frappe.after_server_call();
+				return nts.after_server_call();
 			}
 		};
 
@@ -138,7 +138,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		});
 
 		// run them serially
-		return frappe.run_serially(tasks);
+		return nts.run_serially(tasks);
 	}
 	has_handlers(event_name, doctype) {
 		let handlers = this.get_handlers(event_name, doctype);
@@ -151,8 +151,8 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			old_style: [],
 			new_style: [],
 		};
-		if (frappe.ui.form.handlers[doctype] && frappe.ui.form.handlers[doctype][event_name]) {
-			$.each(frappe.ui.form.handlers[doctype][event_name], function (i, fn) {
+		if (nts.ui.form.handlers[doctype] && nts.ui.form.handlers[doctype][event_name]) {
+			$.each(nts.ui.form.handlers[doctype][event_name], function (i, fn) {
 				handlers.new_style.push(fn);
 			});
 		}
@@ -183,7 +183,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			try {
 				new Function(doctype.__custom_js)();
 			} catch (e) {
-				frappe.msgprint({
+				nts.msgprint({
 					title: __("Error in Client Script"),
 					indicator: "orange",
 					message: '<pre class="small"><code>' + e.stack + "</code></pre>",
@@ -224,9 +224,9 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		// setup add fetch
 		$.each(this.frm.fields, function (i, field) {
 			setup_add_fetch(field.df);
-			if (frappe.model.table_fields.includes(field.df.fieldtype)) {
+			if (nts.model.table_fields.includes(field.df.fieldtype)) {
 				$.each(
-					frappe.meta.get_docfields(field.df.options, me.frm.docname),
+					nts.meta.get_docfields(field.df.options, me.frm.docname),
 					function (i, df) {
 						setup_add_fetch(df);
 					}
@@ -235,12 +235,12 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		});
 
 		// css
-		doctype.__css && frappe.dom.set_style(doctype.__css);
+		doctype.__css && nts.dom.set_style(doctype.__css);
 
 		this.trigger("setup");
 	}
 	log_error(caller, e) {
-		frappe.show_alert({ message: __("Error in Client Script."), indicator: "error" });
+		nts.show_alert({ message: __("Error in Client Script."), indicator: "error" });
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);
@@ -259,7 +259,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		}
 
 		$.each(fieldnames, function (i, fieldname) {
-			frappe.model.set_value(
+			nts.model.set_value(
 				current_row.doctype,
 				current_row.name,
 				fieldname,

@@ -97,17 +97,17 @@ export function create_layout(fields) {
 }
 
 export async function load_doctype_model(doctype) {
-	await frappe.call("frappe.desk.form.load.getdoctype", { doctype });
+	await nts.call("nts.desk.form.load.getdoctype", { doctype });
 }
 
 export async function get_table_columns(df, child_doctype) {
 	let table_columns = [];
 
-	if (!frappe.get_meta(df.options)) {
+	if (!nts.get_meta(df.options)) {
 		await load_doctype_model(df.options);
 	}
 	if (!child_doctype) {
-		child_doctype = frappe.get_meta(df.options);
+		child_doctype = nts.get_meta(df.options);
 	}
 
 	let table_fields = child_doctype.fields;
@@ -119,7 +119,7 @@ export async function get_table_columns(df, child_doctype) {
 		1,
 	]);
 	for (let tf of table_fields) {
-		if (!frappe.model.layout_fields.includes(tf.fieldtype) && tf.in_list_view && tf.label) {
+		if (!nts.model.layout_fields.includes(tf.fieldtype) && tf.in_list_view && tf.label) {
 			let colsize;
 
 			if (tf.columns) {
@@ -158,7 +158,7 @@ export async function get_table_columns(df, child_doctype) {
 			for (var i in table_columns) {
 				var _df = table_columns[i][0];
 				var colsize = table_columns[i][1];
-				if (colsize > 1 && colsize < 11 && frappe.model.is_non_std_field(_df.fieldname)) {
+				if (colsize > 1 && colsize < 11 && nts.model.is_non_std_field(_df.fieldname)) {
 					if (
 						passes < 3 &&
 						["Int", "Currency", "Float", "Check", "Percent"].indexOf(_df.fieldtype) !==
@@ -213,12 +213,12 @@ export function evaluate_depends_on_value(expression, doc) {
 		out = expression(doc);
 	} else if (expression.substr(0, 5) == "eval:") {
 		try {
-			out = frappe.utils.eval(expression.substr(5), { doc, parent });
+			out = nts.utils.eval(expression.substr(5), { doc, parent });
 			if (parent && parent.istable && expression.includes("is_submittable")) {
 				out = true;
 			}
 		} catch (e) {
-			frappe.throw(__('Invalid "depends_on" expression'));
+			nts.throw(__('Invalid "depends_on" expression'));
 		}
 	} else {
 		var value = doc[expression];
@@ -281,7 +281,7 @@ export function scrub_field_names(fields) {
 					if (d.fieldname.endsWith("?")) {
 						d.fieldname = d.fieldname.slice(0, -1);
 					}
-					if (frappe.model.restricted_fields.includes(d.fieldname)) {
+					if (nts.model.restricted_fields.includes(d.fieldname)) {
 						d.fieldname = d.fieldname + "1";
 					}
 					if (d.fieldtype == "Section Break") {
@@ -295,11 +295,11 @@ export function scrub_field_names(fields) {
 					d.fieldname =
 						d.fieldtype.toLowerCase().replaceAll(" ", "_") +
 						"_" +
-						frappe.utils.get_random(4);
+						nts.utils.get_random(4);
 				}
 			} else {
-				if (frappe.model.restricted_fields.includes(d.fieldname)) {
-					frappe.throw(__("Fieldname {0} is restricted", [d.fieldname]));
+				if (nts.model.restricted_fields.includes(d.fieldname)) {
+					nts.throw(__("Fieldname {0} is restricted", [d.fieldname]));
 				}
 			}
 			let regex = new RegExp(/['",./%@()<>{}]/g);
@@ -319,7 +319,7 @@ export function scrub_field_names(fields) {
 
 export function clone_field(field) {
 	let cloned_field = JSON.parse(JSON.stringify(field));
-	cloned_field.df.name = frappe.utils.get_random(8);
+	cloned_field.df.name = nts.utils.get_random(8);
 	return cloned_field;
 }
 
@@ -331,7 +331,7 @@ export function confirm_dialog(
 	secondary_action,
 	secondary_action_label
 ) {
-	let d = new frappe.ui.Dialog({
+	let d = new nts.ui.Dialog({
 		title: title,
 		primary_action_label: primary_action_label || __("Yes"),
 		primary_action: () => {

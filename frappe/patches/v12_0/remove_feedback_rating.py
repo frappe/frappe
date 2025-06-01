@@ -1,4 +1,4 @@
-import frappe
+import nts
 
 
 def execute():
@@ -6,5 +6,5 @@ def execute():
 	Deprecate Feedback Trigger and Rating. This feature was not customizable.
 	Now can be achieved via custom Web Forms
 	"""
-	frappe.delete_doc("DocType", "Feedback Trigger")
-	frappe.delete_doc("DocType", "Feedback Rating")
+	nts.delete_doc("DocType", "Feedback Trigger")
+	nts.delete_doc("DocType", "Feedback Rating")

@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import cint, get_fullname
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import cint, get_fullname
 
 exclude_from_linked_with = True
 
@@ -16,7 +16,7 @@ class DocShare(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		everyone: DF.Check
 		notify_by_email: DF.Check
@@ -45,26 +45,26 @@ class DocShare(Document):
 
 	def get_doc(self):
 		if not getattr(self, "_doc", None):
-			self._doc = frappe.get_doc(self.share_doctype, self.share_name)
+			self._doc = nts.get_doc(self.share_doctype, self.share_name)
 		return self._doc
 
 	def validate_user(self):
 		if self.everyone:
 			self.user = None
 		elif not self.user:
-			frappe.throw(_("User is mandatory for Share"), frappe.MandatoryError)
+			nts.throw(_("User is mandatory for Share"), nts.MandatoryError)
 
 	def check_share_permission(self):
-		if not self.flags.ignore_share_permission and not frappe.has_permission(
+		if not self.flags.ignore_share_permission and not nts.has_permission(
 			self.share_doctype, "share", self.get_doc()
 		):
-			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
+			nts.throw(_('You need to have "Share" permission'), nts.PermissionError)
 
 	def check_is_submittable(self):
-		if self.submit and not cint(frappe.db.get_value("DocType", self.share_doctype, "is_submittable")):
-			frappe.throw(
+		if self.submit and not cint(nts.db.get_value("DocType", self.share_doctype, "is_submittable")):
+			nts.throw(
 				_("Cannot share {0} with submit permission as the doctype {1} is not submittable").format(
-					frappe.bold(self.share_name), frappe.bold(self.share_doctype)
+					nts.bold(self.share_name), nts.bold(self.share_doctype)
 				)
 			)
 
@@ -93,5 +93,5 @@ class DocShare(Document):
 
 def on_doctype_update():
 	"""Add index in `tabDocShare` for `(user, share_doctype)`"""
-	frappe.db.add_index("DocShare", ["user", "share_doctype"])
-	frappe.db.add_index("DocShare", ["share_doctype", "share_name"])
+	nts.db.add_index("DocShare", ["user", "share_doctype"])
+	nts.db.add_index("DocShare", ["share_doctype", "share_name"])

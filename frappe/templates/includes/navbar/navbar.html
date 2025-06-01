@@ -6,7 +6,7 @@
 			{%- elif banner_image -%}
 				<img src='{{ banner_image }}'>
 			{%- else -%}
-				<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+				<span>{{ (nts.get_hooks("brand_html") or [_("Home")])[0] }}</span>
 			{%- endif -%}
 		</a>
 		<button class="navbar-toggler" type="button"

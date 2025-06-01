@@ -1,8 +1,8 @@
-frappe.provide("frappe.setup");
-frappe.provide("frappe.setup.events");
-frappe.provide("frappe.ui");
+nts.provide("nts.setup");
+nts.provide("nts.setup.events");
+nts.provide("nts.ui");
 
-frappe.setup = {
+nts.setup = {
 	slides: [],
 	events: {},
 	data: {},
@@ -10,76 +10,76 @@ frappe.setup = {
 	domains: [],
 
 	on: function (event, fn) {
-		if (!frappe.setup.events[event]) {
-			frappe.setup.events[event] = [];
+		if (!nts.setup.events[event]) {
+			nts.setup.events[event] = [];
 		}
-		frappe.setup.events[event].push(fn);
+		nts.setup.events[event].push(fn);
 	},
 	add_slide: function (slide) {
-		frappe.setup.slides.push(slide);
+		nts.setup.slides.push(slide);
 	},
 
 	remove_slide: function (slide_name) {
-		frappe.setup.slides = frappe.setup.slides.filter((slide) => slide.name !== slide_name);
+		nts.setup.slides = nts.setup.slides.filter((slide) => slide.name !== slide_name);
 	},
 
 	run_event: function (event) {
-		$.each(frappe.setup.events[event] || [], function (i, fn) {
+		$.each(nts.setup.events[event] || [], function (i, fn) {
 			fn();
 		});
 	},
 };
 
-frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
-	if (frappe.boot.setup_complete) {
-		window.location.href = frappe.boot.apps_data.default_path || "/app";
+nts.pages["setup-wizard"].on_page_load = function (wrapper) {
+	if (nts.boot.setup_complete) {
+		window.location.href = nts.boot.apps_data.default_path || "/app";
 	}
-	let requires = frappe.boot.setup_wizard_requires || [];
-	frappe.require(requires, function () {
-		frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
+	let requires = nts.boot.setup_wizard_requires || [];
+	nts.require(requires, function () {
+		nts.call({
+			method: "nts.desk.page.setup_wizard.setup_wizard.load_languages",
 			freeze: true,
 			callback: function (r) {
-				frappe.setup.data.lang = r.message;
+				nts.setup.data.lang = r.message;
 
-				frappe.setup.run_event("before_load");
+				nts.setup.run_event("before_load");
 				var wizard_settings = {
 					parent: wrapper,
-					slides: frappe.setup.slides,
-					slide_class: frappe.setup.SetupWizardSlide,
+					slides: nts.setup.slides,
+					slide_class: nts.setup.SetupWizardSlide,
 					unidirectional: 1,
 					done_state: 1,
 				};
-				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
-				frappe.setup.run_event("after_load");
-				frappe.wizard.show_slide(cint(frappe.get_route()[1]));
+				nts.wizard = new nts.setup.SetupWizard(wizard_settings);
+				nts.setup.run_event("after_load");
+				nts.wizard.show_slide(cint(nts.get_route()[1]));
 			},
 		});
 	});
 };
 
-frappe.pages["setup-wizard"].on_page_show = function () {
-	frappe.wizard && frappe.wizard.show_slide(cint(frappe.get_route()[1]));
+nts.pages["setup-wizard"].on_page_show = function () {
+	nts.wizard && nts.wizard.show_slide(cint(nts.get_route()[1]));
 };
 
-frappe.setup.on("before_load", function () {
+nts.setup.on("before_load", function () {
 	// load slides
-	frappe.setup.slides_settings.forEach((s) => {
-		if (!(s.name === "user" && frappe.boot.developer_mode)) {
+	nts.setup.slides_settings.forEach((s) => {
+		if (!(s.name === "user" && nts.boot.developer_mode)) {
 			// if not user slide with developer mode
-			frappe.setup.add_slide(s);
+			nts.setup.add_slide(s);
 		}
 	});
 });
 
-frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
+nts.setup.SetupWizard = class SetupWizard extends nts.ui.Slides {
 	constructor(args = {}) {
 		super(args);
 		$.extend(this, args);
 
 		this.page_name = "setup-wizard";
 		this.welcomed = true;
-		frappe.set_route("setup-wizard/0");
+		nts.set_route("setup-wizard/0");
 	}
 
 	make() {
@@ -99,7 +99,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	handle_enter_press(e) {
-		if (e.which === frappe.ui.keyCode.ENTER) {
+		if (e.which === nts.ui.keyCode.ENTER) {
 			let $target = $(e.target);
 			if ($target.hasClass("prev-btn") || $target.hasClass("next-btn")) {
 				$target.trigger("click");
@@ -115,7 +115,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	before_show_slide() {
 		if (!this.welcomed) {
-			frappe.set_route(this.page_name);
+			nts.set_route(this.page_name);
 			return false;
 		}
 		return true;
@@ -126,7 +126,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			return;
 		}
 		super.show_slide(id);
-		frappe.set_route(this.page_name, cstr(id));
+		nts.set_route(this.page_name, cstr(id));
 	}
 
 	show_hide_prev_next(id) {
@@ -151,13 +151,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.in_refresh_slides = true;
 
 		this.update_values();
-		frappe.setup.slides = [];
-		frappe.setup.run_event("before_load");
+		nts.setup.slides = [];
+		nts.setup.run_event("before_load");
 
-		frappe.setup.slides = this.get_setup_slides_filtered_by_domain();
+		nts.setup.slides = this.get_setup_slides_filtered_by_domain();
 
-		this.slides = frappe.setup.slides;
-		frappe.setup.run_event("after_load");
+		this.slides = nts.setup.slides;
+		nts.setup.run_event("after_load");
 
 		// re-render all slide, only remake made slides
 		$.each(this.slide_dict, (id, slide) => {
@@ -177,15 +177,15 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		frappe.telemetry.capture("initated_client_side", "setup");
+		nts.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
 		this.disable_keyboard_nav();
 		this.listen_for_setup_stages();
 
-		return frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+		return nts.call({
+			method: "nts.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: { args: this.values },
 			callback: (r) => {
 				if (r.message.status === "ok") {
@@ -202,12 +202,12 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	post_setup_success() {
 		this.set_setup_complete_message(__("Setup Complete"), __("Refreshing..."));
-		if (frappe.setup.welcome_page) {
-			localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+		if (nts.setup.welcome_page) {
+			localStorage.setItem("session_last_route", nts.setup.welcome_page);
 		}
 		setTimeout(function () {
 			// Reload
-			window.location.href = frappe.boot.apps_data.default_path || "/app";
+			window.location.href = nts.boot.apps_data.default_path || "/app";
 		}, 2000);
 	}
 
@@ -215,8 +215,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$working_state.find(".state-icon-container").html("");
 		fail_msg = fail_msg
 			? fail_msg
-			: frappe.last_response.setup_wizard_failure_message
-			? frappe.last_response.setup_wizard_failure_message
+			: nts.last_response.setup_wizard_failure_message
+			? nts.last_response.setup_wizard_failure_message
 			: __("Failed to complete setup");
 
 		this.update_setup_message(__("Could not start up: ") + fail_msg);
@@ -227,7 +227,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	listen_for_setup_stages() {
-		frappe.realtime.on("setup_task", (data) => {
+		nts.realtime.on("setup_task", (data) => {
 			// console.log('data', data);
 			if (data.stage_status) {
 				// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
@@ -249,9 +249,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	get_setup_slides_filtered_by_domain() {
 		let filtered_slides = [];
-		frappe.setup.slides.forEach(function (slide) {
-			if (frappe.setup.domains) {
-				let active_domains = frappe.setup.domains;
+		nts.setup.slides.forEach(function (slide) {
+			if (nts.setup.domains) {
+				let active_domains = nts.setup.domains;
 				if (
 					!slide.domains ||
 					slide.domains.filter((d) => active_domains.includes(d)).length > 0
@@ -267,11 +267,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_working_state() {
 		this.container.hide();
-		frappe.set_route(this.page_name);
+		nts.set_route(this.page_name);
 
 		this.$working_state = this.get_message(
 			__("Setting up your system"),
-			__("Starting Frappe ...")
+			__("Starting nts ...")
 		).appendTo(this.parent);
 
 		this.attach_abort_button();
@@ -289,7 +289,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$abort_btn.on("click", () => {
 			$(this.parent).find(".setup-in-progress").remove();
 			this.container.show();
-			frappe.set_route(this.page_name, this.slides.length - 1);
+			nts.set_route(this.page_name, this.slides.length - 1);
 		});
 
 		this.$abort_btn.hide();
@@ -321,7 +321,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 };
 
-frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
+nts.setup.SetupWizardSlide = class SetupWizardSlide extends nts.ui.Slide {
 	constructor(slide = null) {
 		super(slide);
 	}
@@ -335,10 +335,10 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 
 	set_init_values() {
 		let me = this;
-		// set values from frappe.setup.values
-		if (frappe.wizard.values && this.fields) {
+		// set values from nts.setup.values
+		if (nts.wizard.values && this.fields) {
 			this.fields.forEach(function (f) {
-				var value = frappe.wizard.values[f.fieldname];
+				var value = nts.wizard.values[f.fieldname];
 				if (value) {
 					me.get_field(f.fieldname).set_input(value);
 				}
@@ -348,24 +348,24 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 
 	setup_telemetry_events() {
 		let me = this;
-		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
+		this.fields.filter(nts.model.is_value_type).forEach((field) => {
 			field.fieldname &&
 				me.get_input(field.fieldname)?.on?.("change", function () {
-					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
+					nts.telemetry.capture(`${field.fieldname}_set`, "setup");
 					if (
 						field.fieldname == "enable_telemetry" &&
 						!me.get_value("enable_telemetry")
 					) {
-						frappe.telemetry.disable();
+						nts.telemetry.disable();
 					}
 				});
 		});
 	}
 };
 
-// Frappe slides settings
+// nts slides settings
 // ======================================================
-frappe.setup.slides_settings = [
+nts.setup.slides_settings = [
 	{
 		// Welcome (language) slide
 		name: "welcome",
@@ -412,42 +412,42 @@ frappe.setup.slides_settings = [
 				fieldname: "enable_telemetry",
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
-				default: cint(frappe.telemetry.can_enable()),
-				depends_on: "eval:frappe.telemetry.can_enable()",
+				default: cint(nts.telemetry.can_enable()),
+				depends_on: "eval:nts.telemetry.can_enable()",
 			},
 		],
 
 		onload: function (slide) {
-			frappe.setup.utils.load_prefilled_data(slide, this.initialize_fields);
+			nts.setup.utils.load_prefilled_data(slide, this.initialize_fields);
 		},
 
 		initialize_fields: function (slide) {
 			const setup_fields = function (slide) {
-				frappe.setup.utils.setup_region_fields(slide);
-				frappe.setup.utils.setup_language_field(slide);
+				nts.setup.utils.setup_region_fields(slide);
+				nts.setup.utils.setup_language_field(slide);
 			};
 
-			if (frappe.setup.data.regional_data) {
+			if (nts.setup.data.regional_data) {
 				setup_fields(slide);
 			} else {
-				frappe.setup.utils.load_regional_data(slide, setup_fields);
+				nts.setup.utils.load_regional_data(slide, setup_fields);
 			}
 			if (!slide.get_value("language")) {
 				let session_language =
-					frappe.setup.utils.get_language_name_from_code(
-						frappe.boot.lang || navigator.language
+					nts.setup.utils.get_language_name_from_code(
+						nts.boot.lang || navigator.language
 					) || "English";
 				let language_field = slide.get_field("language");
 
 				language_field.set_input(session_language);
-				if (!frappe.setup._from_load_messages) {
+				if (!nts.setup._from_load_messages) {
 					language_field.$input.trigger("change");
 				}
-				delete frappe.setup._from_load_messages;
+				delete nts.setup._from_load_messages;
 				moment.locale("en");
 			}
-			frappe.setup.utils.bind_region_events(slide);
-			frappe.setup.utils.bind_language_events(slide);
+			nts.setup.utils.bind_region_events(slide);
+			nts.setup.utils.bind_language_events(slide);
 		},
 	},
 	{
@@ -471,18 +471,18 @@ frappe.setup.slides_settings = [
 			{
 				fieldname: "password",
 				label:
-					frappe.session.user === "Administrator"
+					nts.session.user === "Administrator"
 						? __("Password")
 						: __("Update Password"),
 				fieldtype: "Password",
 				length: 512,
-				depends_on: "eval:!frappe.boot.is_fc_site",
+				depends_on: "eval:!nts.boot.is_fc_site",
 			},
 		],
 
 		onload: function (slide) {
-			if (frappe.session.user !== "Administrator") {
-				const { first_name, last_name, email } = frappe.boot.user;
+			if (nts.session.user !== "Administrator") {
+				const { first_name, last_name, email } = nts.boot.user;
 				if (first_name || last_name) {
 					slide.form.fields_dict.full_name.set_input(
 						[first_name, last_name].join(" ").trim()
@@ -494,28 +494,28 @@ frappe.setup.slides_settings = [
 			} else {
 				slide.form.fields_dict.email.df.reqd = 1;
 				slide.form.fields_dict.email.refresh();
-				if (!frappe.boot.is_fc_site) slide.form.fields_dict.password.df.reqd = 1;
+				if (!nts.boot.is_fc_site) slide.form.fields_dict.password.df.reqd = 1;
 				slide.form.fields_dict.password.refresh();
 
-				frappe.setup.utils.load_user_details(slide, this.setup_fields);
+				nts.setup.utils.load_user_details(slide, this.setup_fields);
 			}
 		},
 
 		setup_fields: function (slide) {
-			if (frappe.setup.data.full_name) {
-				slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
+			if (nts.setup.data.full_name) {
+				slide.form.fields_dict.full_name.set_input(nts.setup.data.full_name);
 			}
-			if (frappe.setup.data.email) {
-				let email = frappe.setup.data.email;
+			if (nts.setup.data.email) {
+				let email = nts.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
 			}
 		},
 	},
 ];
 
-frappe.setup.utils = {
+nts.setup.utils = {
 	load_prefilled_data: function (slide, callback) {
-		frappe.db
+		nts.db
 			.get_value("System Settings", "System Settings", [
 				"country",
 				"timezone",
@@ -524,19 +524,19 @@ frappe.setup.utils = {
 			])
 			.then((r) => {
 				if (r.message) {
-					frappe.wizard.values.currency = r.message.currency;
-					frappe.wizard.values.country = r.message.country;
-					frappe.wizard.values.timezone = r.message.time_zone;
-					frappe.wizard.values.language = r.message.language;
+					nts.wizard.values.currency = r.message.currency;
+					nts.wizard.values.country = r.message.country;
+					nts.wizard.values.timezone = r.message.time_zone;
+					nts.wizard.values.language = r.message.language;
 
-					frappe.db.get_value(
+					nts.db.get_value(
 						"User",
 						{ name: ["not in", ["Administrator", "Guest"]] },
 						["full_name", "email"],
 						(r) => {
 							if (r) {
-								frappe.wizard.values.full_name = r.full_name;
-								frappe.wizard.values.email = r.email;
+								nts.wizard.values.full_name = r.full_name;
+								nts.wizard.values.email = r.email;
 							}
 						}
 					);
@@ -546,22 +546,22 @@ frappe.setup.utils = {
 	},
 
 	load_regional_data: function (slide, callback) {
-		frappe.call({
-			method: "frappe.geo.country_info.get_country_timezone_info",
+		nts.call({
+			method: "nts.geo.country_info.get_country_timezone_info",
 			callback: function (data) {
-				frappe.setup.data.regional_data = data.message;
+				nts.setup.data.regional_data = data.message;
 				callback(slide);
 			},
 		});
 	},
 
 	load_user_details: function (slide, callback) {
-		frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
+		nts.call({
+			method: "nts.desk.page.setup_wizard.setup_wizard.load_user_details",
 			freeze: true,
 			callback: function (r) {
-				frappe.setup.data.full_name = r.message.full_name;
-				frappe.setup.data.email = r.message.email;
+				nts.setup.data.full_name = r.message.full_name;
+				nts.setup.data.email = r.message.email;
 				callback(slide);
 			},
 		});
@@ -569,7 +569,7 @@ frappe.setup.utils = {
 
 	setup_language_field: function (slide) {
 		var language_field = slide.get_field("language");
-		language_field.df.options = frappe.setup.data.lang.languages;
+		language_field.df.options = nts.setup.data.lang.languages;
 		language_field.set_options();
 	},
 
@@ -577,7 +577,7 @@ frappe.setup.utils = {
 		/*
 			Set a slide's country, timezone and currency fields
 		*/
-		let data = frappe.setup.data.regional_data;
+		let data = nts.setup.data.regional_data;
 		let country_field = slide.get_field("country");
 		let translated_countries = [];
 
@@ -596,19 +596,19 @@ frappe.setup.utils = {
 			.get_input("currency")
 			.empty()
 			.add_options(
-				frappe.utils.unique($.map(data.country_info, (opts) => opts.currency).sort())
+				nts.utils.unique($.map(data.country_info, (opts) => opts.currency).sort())
 			);
 
 		slide.get_input("timezone").empty().add_options(data.all_timezones);
 
-		slide.get_field("currency").set_input(frappe.wizard.values.currency);
-		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+		slide.get_field("currency").set_input(nts.wizard.values.currency);
+		slide.get_field("timezone").set_input(nts.wizard.values.timezone);
 
 		// set values if present
 		let country =
-			frappe.wizard.values.country ||
+			nts.wizard.values.country ||
 			data.default_country ||
-			guess_country(frappe.setup.data.regional_data.country_info);
+			guess_country(nts.setup.data.regional_data.country_info);
 
 		if (country) {
 			country_field.set_input(country);
@@ -627,16 +627,16 @@ frappe.setup.utils = {
 				clearTimeout(slide.language_call_timeout);
 				slide.language_call_timeout = setTimeout(() => {
 					let lang = selected_language || "English";
-					frappe._messages = {};
-					frappe.call({
-						method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
+					nts._messages = {};
+					nts.call({
+						method: "nts.desk.page.setup_wizard.setup_wizard.load_messages",
 						freeze: true,
 						args: {
 							language: lang,
 						},
 						callback: function () {
-							frappe.setup._from_load_messages = true;
-							frappe.wizard.refresh_slides();
+							nts.setup._from_load_messages = true;
+							nts.wizard.refresh_slides();
 						},
 					});
 				}, 500);
@@ -644,7 +644,7 @@ frappe.setup.utils = {
 	},
 
 	get_language_name_from_code: function (language_code) {
-		return frappe.setup.data.lang.codes_to_names[language_code] || "English";
+		return nts.setup.data.lang.codes_to_names[language_code] || "English";
 	},
 
 	bind_region_events: function (slide) {
@@ -652,7 +652,7 @@ frappe.setup.utils = {
 			Bind a slide's country, timezone and currency fields
 		*/
 		slide.get_input("country").on("change", function () {
-			let data = frappe.setup.data.regional_data;
+			let data = nts.setup.data.regional_data;
 			let country = slide.get_input("country").val();
 			if (!(country in data.country_info)) return;
 
@@ -672,16 +672,16 @@ frappe.setup.utils = {
 			slide.get_field("timezone").set_input($timezone.val());
 
 			// temporarily set date format
-			frappe.boot.sysdefaults.date_format =
+			nts.boot.sysdefaults.date_format =
 				data.country_info[country].date_format || "dd-mm-yyyy";
 		});
 
 		slide.get_input("currency").on("change", function () {
 			let currency = slide.get_input("currency").val();
 			if (!currency) return;
-			frappe.model.with_doc("Currency", currency, function () {
-				frappe.provide("locals.:Currency." + currency);
-				let currency_doc = frappe.model.get_doc("Currency", currency);
+			nts.model.with_doc("Currency", currency, function () {
+				nts.provide("locals.:Currency." + currency);
+				let currency_doc = nts.model.get_doc("Currency", currency);
 				let number_format = currency_doc.number_format;
 				if (number_format === "#.###") {
 					number_format = "#.###,##";
@@ -689,7 +689,7 @@ frappe.setup.utils = {
 					number_format = "#,###.##";
 				}
 
-				frappe.boot.sysdefaults.number_format = number_format;
+				nts.boot.sysdefaults.number_format = number_format;
 				locals[":Currency"][currency] = $.extend({}, currency_doc);
 			});
 		});

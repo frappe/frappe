@@ -4,21 +4,21 @@
 			<a class="navbar-brand navbar-home" href="/app">
 				<img
 					class="app-logo"
-					src="{{ frappe.boot.app_logo_url }}"
+					src="{{ nts.boot.app_logo_url }}"
 					alt="{{ __("App Logo") }}"
 				>
 			</a>
 			<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 			<div class="collapse navbar-collapse justify-content-end">
 				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
-					{% if (frappe.boot.read_only) { %}
+					{% if (nts.boot.read_only) { %}
 						<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
 							{%= __("Read Only Mode") %}
 						</span>
 					{% } %}
-					{% if (frappe.boot.user.impersonated_by) { %}
+					{% if (nts.boot.user.impersonated_by) { %}
 						<span class="indicator-pill red no-indicator-dot" title="{%= __("You are impersonating as another user.") %}">
-							{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
+							{%= __("Impersonating {0}", [nts.boot.user.name]) %}
 						</span>
 					{% } %}
 					<div class="input-group search-bar text-muted hidden">
@@ -26,7 +26,7 @@
 							id="navbar-search"
 							type="text"
 							class="form-control"
-							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
+							placeholder="{%= __('Search or type a command ({0})', [nts.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
 							aria-haspopup="true"
 						>
 						<span class="search-icon">
@@ -145,7 +145,7 @@
 		<div class="container flex justify-between align-center mx-auto">
 			{{ navbar_settings.announcement_widget }}
 			<div class="close-message p-0 mr-2" style="position: relative;">
-			{{ frappe.utils.icon("close") }}
+			{{ nts.utils.icon("close") }}
 			</div>
 		</div>
 	</div>

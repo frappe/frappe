@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from typing import TYPE_CHECKING
@@ -7,28 +7,28 @@ from urllib.parse import parse_qs, urljoin, urlparse
 import requests
 from werkzeug.test import TestResponse
 
-import frappe
-from frappe.integrations.oauth2 import encode_params
-from frappe.test_runner import make_test_records
-from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.integrations.oauth2 import encode_params
+from nts.test_runner import make_test_records
+from nts.tests.test_api import get_test_client, make_request, suppress_stdout
+from nts.tests.utils import ntsTestCase
 
 if TYPE_CHECKING:
-	from frappe.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
+	from nts.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
 
 
-class FrappeRequestTestCase(FrappeTestCase):
+class ntsRequestTestCase(ntsTestCase):
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
-			from frappe.auth import CookieManager, LoginManager
-			from frappe.utils import set_request
+			from nts.auth import CookieManager, LoginManager
+			from nts.utils import set_request
 
 			set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as("test@example.com")
-			self._sid = frappe.session.sid
+			nts.local.cookie_manager = CookieManager()
+			nts.local.login_manager = LoginManager()
+			nts.local.login_manager.login_as("test@example.com")
+			self._sid = nts.session.sid
 
 		return self._sid
 
@@ -51,8 +51,8 @@ class FrappeRequestTestCase(FrappeTestCase):
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs, site=self.site)
 
 
-class TestOAuth20(FrappeRequestTestCase):
-	site = frappe.local.site
+class TestOAuth20(ntsRequestTestCase):
+	site = nts.local.site
 
 	@classmethod
 	def setUpClass(cls):
@@ -63,17 +63,17 @@ class TestOAuth20(FrappeRequestTestCase):
 		cls.scope = "all openid"
 		cls.redirect_uri = "http://localhost"
 
-		# Set Frappe server URL reqired for id_token generation
-		frappe_login_key: "SocialLoginKey" = frappe.new_doc("Social Login Key")
-		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
-		frappe_login_key.base_url = frappe.utils.get_url()
-		frappe_login_key.enable_social_login = 0
-		frappe_login_key.insert(ignore_if_duplicate=True)
-		frappe.db.commit()
+		# Set nts server URL reqired for id_token generation
+		nts_login_key: "SocialLoginKey" = nts.new_doc("Social Login Key")
+		nts_login_key.get_social_login_provider("nts", initialize=True)
+		nts_login_key.base_url = nts.utils.get_url()
+		nts_login_key.enable_social_login = 0
+		nts_login_key.insert(ignore_if_duplicate=True)
+		nts.db.commit()
 
 	def setUp(self):
 		self.TEST_CLIENT = get_test_client()
-		self.oauth_client = frappe.new_doc("OAuth Client")
+		self.oauth_client = nts.new_doc("OAuth Client")
 		self.oauth_client.update(
 			{
 				"app_name": "_Test OAuth Client",
@@ -96,7 +96,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 	def tearDown(self):
 		self.oauth_client.delete(force=True)
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def test_invalid_login(self):
 		with suppress_stdout():
@@ -108,7 +108,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Go to Authorize url
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
 		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
+			"/api/method/nts.integrations.oauth2.authorize",
 			{
 				"client_id": self.client_id,
 				"scope": self.scope,
@@ -122,7 +122,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Request for bearer token
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/method/nts.integrations.oauth2.get_token",
 			headers=self.form_header,
 			data={
 				"grant_type": "authorization_code",
@@ -155,7 +155,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Go to Authorize url
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
 		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
+			"/api/method/nts.integrations.oauth2.authorize",
 			{
 				"client_id": self.client_id,
 				"scope": self.scope,
@@ -173,7 +173,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Request for bearer token
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/method/nts.integrations.oauth2.get_token",
 			headers=self.form_header,
 			data={
 				"grant_type": "authorization_code",
@@ -195,16 +195,16 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
 	def test_revoke_token(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
+		client = nts.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
-		frappe.db.commit()
+		nts.db.commit()
 
 		# Go to Authorize url
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
 		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
+			"/api/method/nts.integrations.oauth2.authorize",
 			{
 				"client_id": self.client_id,
 				"scope": self.scope,
@@ -220,7 +220,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Request for bearer token
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/method/nts.integrations.oauth2.get_token",
 			headers=self.form_header,
 			data={
 				"grant_type": "authorization_code",
@@ -235,7 +235,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Revoke Token
 		revoke_token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.revoke_token",
+			"/api/method/nts.integrations.oauth2.revoke_token",
 			headers=self.form_header,
 			data={"token": bearer_token.get("access_token")},
 		)
@@ -248,15 +248,15 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 	def test_resource_owner_password_credentials_grant(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
+		client = nts.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
-		frappe.db.commit()
+		nts.db.commit()
 
 		# Request for bearer token
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/method/nts.integrations.oauth2.get_token",
 			data={
 				"grant_type": "password",
 				"username": "test@example.com",
@@ -276,12 +276,12 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 	def test_login_using_implicit_token(self):
-		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
+		oauth_client = nts.get_doc("OAuth Client", self.client_id)
 		oauth_client.grant_type = "Implicit"
 		oauth_client.response_type = "Token"
 		oauth_client.save()
 		oauth_client_before = oauth_client.get_doc_before_save()
-		frappe.db.commit()
+		nts.db.commit()
 
 		session = requests.Session()
 		login(session)
@@ -291,7 +291,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		# Go to Authorize url
 		try:
 			session.get(
-				get_full_url("/api/method/frappe.integrations.oauth2.authorize"),
+				get_full_url("/api/method/nts.integrations.oauth2.authorize"),
 				params=encode_params(
 					{
 						"client_id": self.client_id,
@@ -313,16 +313,16 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertTrue(check_valid_openid_response(response_dict.get("access_token")[0]))
 		oauth_client.delete(force=True)
 		oauth_client_before.insert()
-		frappe.db.commit()
+		nts.db.commit()
 
 	def test_openid_code_id_token(self):
 		update_client_for_auth_code_grant(self.client_id)
-		nonce = frappe.generate_hash()
+		nonce = nts.generate_hash()
 
 		# Go to Authorize url
 		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
 		resp = self.get(
-			"/api/method/frappe.integrations.oauth2.authorize",
+			"/api/method/nts.integrations.oauth2.authorize",
 			{
 				"client_id": self.client_id,
 				"scope": self.scope,
@@ -339,7 +339,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		# Request for bearer token
 		token_response = self.post(
-			"/api/method/frappe.integrations.oauth2.get_token",
+			"/api/method/nts.integrations.oauth2.get_token",
 			headers=self.form_header,
 			data=encode_params(
 				{
@@ -372,11 +372,11 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 
-def check_valid_openid_response(access_token=None, client: "FrappeRequestTestCase" = None):
+def check_valid_openid_response(access_token=None, client: "ntsRequestTestCase" = None):
 	"""Return True for valid response."""
 	# Use token in header
 	headers = {}
-	URL = "/api/method/frappe.integrations.oauth2.openid_profile"
+	URL = "/api/method/nts.integrations.oauth2.openid_profile"
 
 	if access_token:
 		headers["Authorization"] = f"Bearer {access_token}"
@@ -396,13 +396,13 @@ def login(session):
 
 def get_full_url(endpoint):
 	"""Turn '/endpoint' into 'http://127.0.0.1:8000/endpoint'."""
-	return urljoin(frappe.utils.get_url(), endpoint)
+	return urljoin(nts.utils.get_url(), endpoint)
 
 
 def update_client_for_auth_code_grant(client_id):
-	client = frappe.get_doc("OAuth Client", client_id)
+	client = nts.get_doc("OAuth Client", client_id)
 	client.grant_type = "Authorization Code"
 	client.response_type = "Code"
 	client.save()
-	frappe.db.commit()
+	nts.db.commit()
 	return client

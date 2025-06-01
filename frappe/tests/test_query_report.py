@@ -1,21 +1,21 @@
-# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-import frappe.utils
-from frappe.desk.query_report import build_xlsx_data, export_query, run
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.xlsxutils import make_xlsx
+import nts
+import nts.utils
+from nts.desk.query_report import build_xlsx_data, export_query, run
+from nts.tests.utils import ntsTestCase
+from nts.utils.xlsxutils import make_xlsx
 
 
-class TestQueryReport(FrappeTestCase):
+class TestQueryReport(ntsTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.enable_safe_exec()
 		return super().setUpClass()
 
 	def tearDown(self):
-		frappe.db.rollback()
+		nts.db.rollback()
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -66,7 +66,7 @@ class TestQueryReport(FrappeTestCase):
 	def test_xlsx_export_with_composite_cell_value(self):
 		"""Test excel export using rows with composite cell value"""
 
-		data = frappe._dict()
+		data = nts._dict()
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
@@ -96,18 +96,18 @@ class TestQueryReport(FrappeTestCase):
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
+		if not nts.db.exists("Report", REPORT_NAME):
+			report = nts.new_doc("Report")
 			report.report_name = REPORT_NAME
 			report.ref_doctype = "User"
 			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
+			report.query = nts.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
 			report.is_standard = "No"
 			report.save()
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
-				frappe.local.form_dict = frappe._dict(
+				nts.local.form_dict = nts._dict(
 					{
 						"report_name": REPORT_NAME,
 						"file_format_type": "CSV",
@@ -119,15 +119,15 @@ class TestQueryReport(FrappeTestCase):
 				)
 				export_query()
 
-				self.assertTrue(frappe.response["filename"].endswith(".csv"))
-				self.assertEqual(frappe.response["type"], "binary")
-				with StringIO(frappe.response["filecontent"].decode("utf-8")) as result:
+				self.assertTrue(nts.response["filename"].endswith(".csv"))
+				self.assertEqual(nts.response["type"], "binary")
+				with StringIO(nts.response["filecontent"].decode("utf-8")) as result:
 					reader = DictReader(result, delimiter=delimiter, quoting=quoting)
 					row = reader.__next__()
 					for column in REPORT_COLUMNS:
 						self.assertIn(column, row)
 
-		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+		nts.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 
 	def test_report_for_duplicate_column_names(self):
 		"""Test report with duplicate column names"""
@@ -137,7 +137,7 @@ class TestQueryReport(FrappeTestCase):
 				{"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"},
 				{"label": "Last Name", "fieldname": "last_name", "fieldtype": "Data"},
 			]
-			frappe.get_doc(
+			nts.get_doc(
 				{
 					"doctype": "DocType",
 					"name": "Doc A",
@@ -149,7 +149,7 @@ class TestQueryReport(FrappeTestCase):
 				}
 			).insert(ignore_if_duplicate=True)
 
-			frappe.get_doc(
+			nts.get_doc(
 				{
 					"doctype": "DocType",
 					"name": "Doc B",
@@ -162,11 +162,11 @@ class TestQueryReport(FrappeTestCase):
 			).insert(ignore_if_duplicate=True)
 
 			for i in range(1, 3):
-				frappe.get_doc({"doctype": "Doc A", "first_name": f"John{i}", "last_name": "Doe"}).insert()
-				frappe.get_doc({"doctype": "Doc B", "last_name": f"Doe{i}", "first_name": "John"}).insert()
+				nts.get_doc({"doctype": "Doc A", "first_name": f"John{i}", "last_name": "Doe"}).insert()
+				nts.get_doc({"doctype": "Doc B", "last_name": f"Doe{i}", "first_name": "John"}).insert()
 
-			if not frappe.db.exists("Report", "Doc A Report"):
-				report = frappe.get_doc(
+			if not nts.db.exists("Report", "Doc A Report"):
+				report = nts.get_doc(
 					{
 						"doctype": "Report",
 						"ref_doctype": "Doc A",
@@ -176,7 +176,7 @@ class TestQueryReport(FrappeTestCase):
 					}
 				).insert(ignore_permissions=True)
 			else:
-				report = frappe.get_doc("Report", "Doc A Report")
+				report = nts.get_doc("Report", "Doc A Report")
 
 			report.report_script = """
 result = [["Ritvik","Sardana", "Doe1"],["Shariq","Ansari", "Doe2"]]
@@ -244,11 +244,11 @@ data = columns, result
 
 		except Exception as e:
 			raise e
-			frappe.db.rollback()
+			nts.db.rollback()
 
 
 def create_mock_data():
-	data = frappe._dict()
+	data = nts._dict()
 	data.columns = [
 		{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 		{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},

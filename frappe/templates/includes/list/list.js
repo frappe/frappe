@@ -1,20 +1,20 @@
-frappe.ready(function() {
+nts.ready(function() {
 	var next_start = {{ next_start or 0 }};
 	var result_wrapper = $(".website-list .result");
 
 	$(".website-list .btn-more").on("click", function() {
 		var btn = $(this);
-		var data = $.extend(frappe.utils.get_query_params(), {
+		var data = $.extend(nts.utils.get_query_params(), {
 			doctype: "{{ doctype }}",
 			txt: "{{ (txt or '')|e }}",
 			limit_start: next_start,
 			pathname: location.pathname,
 		});
-		data.web_form_name = frappe.web_form_name;
+		data.web_form_name = nts.web_form_name;
 		data.pathname = location.pathname;
 		btn.prop("disabled", true);
 		return $.ajax({
-			url:"/api/method/frappe.www.list.get",
+			url:"/api/method/nts.www.list.get",
 			data: data,
 			statusCode: {
 				200: function(data) {

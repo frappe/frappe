@@ -1,18 +1,18 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.views.calendar");
-frappe.provide("frappe.views.calendars");
+nts.provide("nts.views.calendar");
+nts.provide("nts.views.calendars");
 
-frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
+nts.views.CalendarView = class CalendarView extends nts.views.ListView {
 	static load_last_view() {
-		const route = frappe.get_route();
+		const route = nts.get_route();
 		if (route.length === 3) {
 			const doctype = route[1];
-			const user_settings = frappe.get_user_settings(doctype)["Calendar"] || {};
+			const user_settings = nts.get_user_settings(doctype)["Calendar"] || {};
 			route.push(user_settings.last_calendar || "default");
-			frappe.route_flags.replace_route = true;
-			frappe.set_route(route);
+			nts.route_flags.replace_route = true;
+			nts.set_route(route);
 			return true;
 		} else {
 			return false;
@@ -28,8 +28,8 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
 			this.page_title = __("{0} Calendar", [this.page_title]);
-			this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-			this.calendar_name = frappe.get_route()[3];
+			this.calendar_settings = nts.views.calendar[this.doctype] || {};
+			this.calendar_name = nts.get_route()[3];
 		});
 	}
 
@@ -56,7 +56,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		this.load_lib
 			.then(() => this.get_calendar_preferences())
 			.then((options) => {
-				this.calendar = new frappe.views.Calendar(options);
+				this.calendar = new nts.views.Calendar(options);
 			});
 	}
 
@@ -71,18 +71,18 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 		return new Promise((resolve) => {
 			if (calendar_name === "default") {
-				Object.assign(options, frappe.views.calendar[this.doctype]);
+				Object.assign(options, nts.views.calendar[this.doctype]);
 				resolve(options);
 			} else {
-				frappe.model.with_doc("Calendar View", calendar_name, () => {
-					const doc = frappe.get_doc("Calendar View", calendar_name);
+				nts.model.with_doc("Calendar View", calendar_name, () => {
+					const doc = nts.get_doc("Calendar View", calendar_name);
 					if (!doc) {
-						frappe.show_alert(
+						nts.show_alert(
 							__("{0} is not a valid Calendar. Redirecting to default Calendar.", [
 								calendar_name.bold(),
 							])
 						);
-						frappe.set_route("List", this.doctype, "Calendar", "default");
+						nts.set_route("List", this.doctype, "Calendar", "default");
 						return;
 					}
 					Object.assign(options, {
@@ -102,18 +102,18 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 	get required_libs() {
 		let assets = [
-			"assets/frappe/js/lib/fullcalendar/fullcalendar.min.css",
-			"assets/frappe/js/lib/fullcalendar/fullcalendar.min.js",
+			"assets/nts/js/lib/fullcalendar/fullcalendar.min.css",
+			"assets/nts/js/lib/fullcalendar/fullcalendar.min.js",
 		];
-		let user_language = frappe.boot.lang;
+		let user_language = nts.boot.lang;
 		if (user_language && user_language !== "en") {
-			assets.push("assets/frappe/js/lib/fullcalendar/locale-all.js");
+			assets.push("assets/nts/js/lib/fullcalendar/locale-all.js");
 		}
 		return assets;
 	}
 };
 
-frappe.views.Calendar = class Calendar {
+nts.views.Calendar = class Calendar {
 	constructor(options) {
 		$.extend(this, options);
 		this.field_map = this.field_map || {
@@ -153,10 +153,10 @@ frappe.views.Calendar = class Calendar {
 
 		// add links to other calendars
 		me.page.clear_user_actions();
-		$.each(frappe.boot.calendars, function (i, doctype) {
-			if (frappe.model.can_read(doctype)) {
+		$.each(nts.boot.calendars, function (i, doctype) {
+			if (nts.model.can_read(doctype)) {
 				me.page.add_menu_item(__(doctype), function () {
-					frappe.set_route("List", doctype, "Calendar");
+					nts.set_route("List", doctype, "Calendar");
 				});
 			}
 		});
@@ -169,7 +169,7 @@ frappe.views.Calendar = class Calendar {
 	make() {
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		this.footnote_area = frappe.utils.set_footnote(
+		this.footnote_area = nts.utils.set_footnote(
 			this.footnote_area,
 			this.$wrapper,
 			__("Select or drag across time slots to create a new event.")
@@ -224,13 +224,13 @@ frappe.views.Calendar = class Calendar {
 		this.$wrapper
 			.find(".fc-prev-button span")
 			.attr("class", "")
-			.html(frappe.utils.icon("left"));
+			.html(nts.utils.icon("left"));
 		this.$wrapper
 			.find(".fc-next-button span")
 			.attr("class", "")
-			.html(frappe.utils.icon("right"));
+			.html(nts.utils.icon("right"));
 
-		this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
+		this.$wrapper.find(".fc-today-button").prepend(nts.utils.icon("today"));
 
 		this.$wrapper.find(".fc-day-number").wrap('<div class="fc-day"></div>');
 
@@ -244,14 +244,14 @@ frappe.views.Calendar = class Calendar {
 	}
 
 	get_system_datetime(date) {
-		date._offset = moment(date).tz(frappe.sys_defaults.time_zone)._offset;
-		return frappe.datetime.convert_to_system_tz(moment(date).locale("en"));
+		date._offset = moment(date).tz(nts.sys_defaults.time_zone)._offset;
+		return nts.datetime.convert_to_system_tz(moment(date).locale("en"));
 	}
 	setup_options(defaults) {
 		var me = this;
 		defaults.meridiem = "false";
 		this.cal_options = {
-			locale: frappe.boot.lang,
+			locale: nts.boot.lang,
 			header: {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
@@ -271,8 +271,8 @@ frappe.views.Calendar = class Calendar {
 				day: __("Day"),
 			},
 			events: function (start, end, timezone, callback) {
-				return frappe.call({
-					method: me.get_events_method || "frappe.desk.calendar.get_events",
+				return nts.call({
+					method: me.get_events_method || "nts.desk.calendar.get_events",
 					type: "GET",
 					args: me.get_args(start, end),
 					callback: function (r) {
@@ -289,8 +289,8 @@ frappe.views.Calendar = class Calendar {
 			eventClick: function (event) {
 				// edit event description or delete
 				var doctype = event.doctype || me.doctype;
-				if (frappe.model.can_read(doctype)) {
-					frappe.set_route("Form", doctype, event.name);
+				if (nts.model.can_read(doctype)) {
+					nts.set_route("Form", doctype, event.name);
 				}
 			},
 			eventDrop: function (event, delta, revertFunc) {
@@ -305,7 +305,7 @@ frappe.views.Calendar = class Calendar {
 					return;
 				}
 
-				var event = frappe.model.get_new_doc(me.doctype);
+				var event = nts.model.get_new_doc(me.doctype);
 
 				event[me.field_map.start] = me.get_system_datetime(startDate);
 
@@ -322,7 +322,7 @@ frappe.views.Calendar = class Calendar {
 						);
 				}
 
-				frappe.set_route("Form", me.doctype, event.name);
+				nts.set_route("Form", me.doctype, event.name);
 			},
 			dayClick: function (date, jsEvent, view) {
 				if (view.name === "month") {
@@ -368,7 +368,7 @@ frappe.views.Calendar = class Calendar {
 
 		return (events || []).map((d) => {
 			d.id = d.name;
-			d.editable = frappe.model.can_write(d.doctype || me.doctype);
+			d.editable = nts.model.can_write(d.doctype || me.doctype);
 
 			// do not allow submitted/cancelled events to be moved / extended
 			if (d.docstatus && d.docstatus > 0) {
@@ -387,23 +387,23 @@ frappe.views.Calendar = class Calendar {
 
 			// convert to user tz
 			if (d.convertToUserTz) {
-				d.start = frappe.datetime.convert_to_user_tz(d.start);
-				d.end = frappe.datetime.convert_to_user_tz(d.end);
+				d.start = nts.datetime.convert_to_user_tz(d.start);
+				d.end = nts.datetime.convert_to_user_tz(d.end);
 			}
 
 			// show event on single day if start or end date is invalid
-			if (!frappe.datetime.validate(d.start) && d.end) {
-				d.start = frappe.datetime.add_days(d.end, -1);
+			if (!nts.datetime.validate(d.start) && d.end) {
+				d.start = nts.datetime.add_days(d.end, -1);
 			}
 
-			if (d.start && !frappe.datetime.validate(d.end)) {
-				d.end = frappe.datetime.add_days(d.start, 1);
+			if (d.start && !nts.datetime.validate(d.end)) {
+				d.end = nts.datetime.add_days(d.start, 1);
 			}
 
 			me.fix_end_date_for_event_render(d);
 			me.prepare_colors(d);
 
-			d.title = frappe.utils.html2text(d.title);
+			d.title = nts.utils.html2text(d.title);
 
 			return d;
 		});
@@ -415,30 +415,30 @@ frappe.views.Calendar = class Calendar {
 			color_name = this.color_map[color_name] || color_name || "blue";
 
 			if (color_name.startsWith("#")) {
-				color_name = frappe.ui.color.validate_hex(color_name) ? color_name : "blue";
+				color_name = nts.ui.color.validate_hex(color_name) ? color_name : "blue";
 			}
 
-			d.backgroundColor = frappe.ui.color.get(color_name, "extra-light");
-			d.textColor = frappe.ui.color.get(color_name, "dark");
+			d.backgroundColor = nts.ui.color.get(color_name, "extra-light");
+			d.textColor = nts.ui.color.get(color_name, "dark");
 		} else {
 			color = d.color;
-			if (!frappe.ui.color.validate_hex(color) || !color) {
-				color = frappe.ui.color.get("blue", "extra-light");
+			if (!nts.ui.color.validate_hex(color) || !color) {
+				color = nts.ui.color.get("blue", "extra-light");
 			}
 			d.backgroundColor = color;
-			d.textColor = frappe.ui.color.get_contrast_color(color);
+			d.textColor = nts.ui.color.get_contrast_color(color);
 		}
 		return d;
 	}
 	update_event(event, revertFunc) {
 		var me = this;
-		frappe.model.remove_from_locals(me.doctype, event.name);
-		return frappe.call({
-			method: me.update_event_method || "frappe.desk.calendar.update_event",
+		nts.model.remove_from_locals(me.doctype, event.name);
+		return nts.call({
+			method: me.update_event_method || "nts.desk.calendar.update_event",
 			args: me.get_update_args(event),
 			callback: function (r) {
 				if (r.exc) {
-					frappe.show_alert(__("Unable to update event"));
+					nts.show_alert(__("Unable to update event"));
 					revertFunc();
 				}
 			},

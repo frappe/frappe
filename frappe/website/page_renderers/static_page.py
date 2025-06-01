@@ -4,9 +4,9 @@ import os
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
-import frappe
-from frappe.website.page_renderers.base_renderer import BaseRenderer
-from frappe.website.utils import is_binary_file
+import nts
+from nts.website.page_renderers.base_renderer import BaseRenderer
+from nts.website.utils import is_binary_file
 
 UNSUPPORTED_STATIC_PAGE_TYPES = (
 	"css",
@@ -33,8 +33,8 @@ class StaticPage(BaseRenderer):
 		self.file_path = ""
 		if not self.is_valid_file_path():
 			return
-		for app in frappe.get_installed_apps():
-			file_path = frappe.get_app_path(app, "www") + "/" + self.path
+		for app in nts.get_installed_apps():
+			file_path = nts.get_app_path(app, "www") + "/" + self.path
 			if os.path.isfile(file_path) and is_binary_file(file_path):
 				self.file_path = file_path
 
@@ -50,6 +50,6 @@ class StaticPage(BaseRenderer):
 	def render(self):
 		# file descriptor to be left open, closed by middleware
 		f = open(self.file_path, "rb")
-		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
+		response = Response(wrap_file(nts.local.request.environ, f), direct_passthrough=True)
 		response.mimetype = mimetypes.guess_type(self.file_path)[0] or "application/octet-stream"
 		return response

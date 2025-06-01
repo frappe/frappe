@@ -3,7 +3,7 @@ from imaplib import IMAP4
 from poplib import POP3
 from smtplib import SMTP
 
-import frappe
+import nts
 
 
 class Oauth:
@@ -25,9 +25,9 @@ class Oauth:
 
 	def _validate(self) -> None:
 		if not self._access_token:
-			frappe.throw(
-				frappe._("Please Authorize OAuth for Email Account {}").format(self.email_account),
-				title=frappe._("OAuth Error"),
+			nts.throw(
+				nts._("Please Authorize OAuth for Email Account {}").format(self.email_account),
+				title=nts._("OAuth Error"),
 			)
 
 	@property
@@ -47,7 +47,7 @@ class Oauth:
 				self._connect_smtp()
 
 		except Exception:
-			frappe.log_error(
+			nts.log_error(
 				"Email Connection Error - Authentication Failed",
 				reference_doctype="Email Account",
 				reference_name=self.email_account,

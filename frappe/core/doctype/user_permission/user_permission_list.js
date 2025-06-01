@@ -1,8 +1,8 @@
-frappe.listview_settings["User Permission"] = {
+nts.listview_settings["User Permission"] = {
 	onload: function (list_view) {
 		var me = this;
 		list_view.page.add_inner_button(__("Add / Update"), function () {
-			let dialog = new frappe.ui.Dialog({
+			let dialog = new nts.ui.Dialog({
 				title: __("Add User Permissions"),
 				fields: [
 					{
@@ -112,20 +112,20 @@ frappe.listview_settings["User Permission"] = {
 				],
 				primary_action: (data) => {
 					data = me.validate(dialog, data);
-					frappe.call({
+					nts.call({
 						async: false,
-						method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",
+						method: "nts.core.doctype.user_permission.user_permission.add_user_permissions",
 						args: {
 							data: data,
 						},
 						callback: function (r) {
 							if (r.message === 1) {
-								frappe.show_alert({
+								nts.show_alert({
 									message: __("User Permissions created sucessfully"),
 									indicator: "blue",
 								});
 							} else {
-								frappe.show_alert({
+								nts.show_alert({
 									message: __("Nothing to update"),
 									indicator: "red",
 								});
@@ -140,7 +140,7 @@ frappe.listview_settings["User Permission"] = {
 			dialog.show();
 		});
 		list_view.page.add_inner_button(__("Bulk Delete"), function () {
-			const dialog = new frappe.ui.Dialog({
+			const dialog = new nts.ui.Dialog({
 				title: __("Clear User Permissions"),
 				fields: [
 					{
@@ -162,10 +162,10 @@ frappe.listview_settings["User Permission"] = {
 					// mandatory not filled
 					if (!data) return;
 
-					frappe.confirm(__("Are you sure?"), () => {
-						frappe
+					nts.confirm(__("Are you sure?"), () => {
+						nts
 							.xcall(
-								"frappe.core.doctype.user_permission.user_permission.clear_user_permissions",
+								"nts.core.doctype.user_permission.user_permission.clear_user_permissions",
 								data
 							)
 							.then((data) => {
@@ -178,7 +178,7 @@ frappe.listview_settings["User Permission"] = {
 								} else {
 									message = __("{0} records deleted", [data]);
 								}
-								frappe.show_alert({
+								nts.show_alert({
 									message,
 									indicator: "info",
 								});
@@ -200,16 +200,16 @@ frappe.listview_settings["User Permission"] = {
 			return data;
 		}
 		if (data.apply_to_all_doctypes == 0 && !("applicable_doctypes" in data)) {
-			frappe.throw(__("Please select applicable Doctypes"));
+			nts.throw(__("Please select applicable Doctypes"));
 		}
 		return data;
 	},
 
 	get_applicable_doctype: function (dialog) {
 		return new Promise((resolve) => {
-			frappe
+			nts
 				.call({
-					method: "frappe.core.doctype.user_permission.user_permission.check_applicable_doc_perm",
+					method: "nts.core.doctype.user_permission.user_permission.check_applicable_doc_perm",
 					async: false,
 					args: {
 						user: dialog.fields_dict.user.value,
@@ -225,9 +225,9 @@ frappe.listview_settings["User Permission"] = {
 
 	get_multi_select_options: function (dialog, applicable) {
 		return new Promise((resolve) => {
-			frappe
+			nts
 				.call({
-					method: "frappe.desk.form.linked_with.get_linked_doctypes",
+					method: "nts.desk.form.linked_with.get_linked_doctypes",
 					async: false,
 					args: {
 						user: dialog.fields_dict.user.value,
@@ -252,7 +252,7 @@ frappe.listview_settings["User Permission"] = {
 		dialog.set_df_property("is_default", "hidden", 0);
 		dialog.set_df_property("apply_to_all_doctypes", "hidden", 0);
 		dialog.set_value("apply_to_all_doctypes", "checked", 1);
-		let show = frappe.boot.nested_set_doctypes.includes(dialog.get_value("doctype"));
+		let show = nts.boot.nested_set_doctypes.includes(dialog.get_value("doctype"));
 		dialog.set_df_property("hide_descendants", "hidden", !show);
 		dialog.refresh();
 	},

@@ -1,8 +1,8 @@
-# Copyright (c) 2023, Frappe Technologies and contributors
+# Copyright (c) 2023, nts Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
-from frappe.model.document import Document
+# import nts
+from nts.model.document import Document
 
 
 class RecorderQuery(Document):
@@ -12,7 +12,7 @@ class RecorderQuery(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		duration: DF.Float
 		exact_copies: DF.Int

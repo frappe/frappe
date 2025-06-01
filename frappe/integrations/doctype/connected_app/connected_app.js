@@ -1,11 +1,11 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Connected App", {
+nts.ui.form.on("Connected App", {
 	refresh: (frm) => {
 		frm.add_custom_button(__("Get OpenID Configuration"), async () => {
 			if (!frm.doc.openid_configuration) {
-				frappe.msgprint(__("Please enter OpenID Configuration URL"));
+				nts.msgprint(__("Please enter OpenID Configuration URL"));
 			} else {
 				try {
 					const response = await fetch(frm.doc.openid_configuration);
@@ -16,14 +16,14 @@ frappe.ui.form.on("Connected App", {
 					frm.set_value("introspection_uri", oidc.introspection_endpoint);
 					frm.set_value("revocation_uri", oidc.revocation_endpoint);
 				} catch (error) {
-					frappe.msgprint(__("Please check OpenID Configuration URL"));
+					nts.msgprint(__("Please check OpenID Configuration URL"));
 				}
 			}
 		});
 
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Connect to {}", [frm.doc.provider_name]), async () => {
-				frappe.call({
+				nts.call({
 					method: "initiate_web_application_flow",
 					doc: frm.doc,
 					callback: function (r) {

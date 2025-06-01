@@ -1,7 +1,7 @@
-// Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See LICENSE
 
-frappe.ui.form.LinkedWith = class LinkedWith {
+nts.ui.form.LinkedWith = class LinkedWith {
 	constructor(opts) {
 		$.extend(this, opts);
 	}
@@ -19,13 +19,13 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	make_dialog() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("Linked With"),
 		});
 
 		this.dialog.on_page_show = () => {
-			frappe
-				.xcall("frappe.desk.form.linked_with.get", {
+			nts
+				.xcall("nts.desk.form.linked_with.get", {
 					doctype: this.frm.doctype,
 					docname: this.frm.docname,
 				})
@@ -72,7 +72,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		return `<div class="list-row-container">
 			<div class="level list-row small">
 				<div class="level-left bold">
-					<a href="/app/${frappe.router.slug(doctype)}/${doc.name}">${doc.name}</a>
+					<a href="/app/${nts.router.slug(doctype)}/${doc.name}">${doc.name}</a>
 				</div>
 			</div>
 		</div>`;

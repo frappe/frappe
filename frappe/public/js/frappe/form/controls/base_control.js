@@ -1,4 +1,4 @@
-frappe.ui.form.Control = class BaseControl {
+nts.ui.form.Control = class BaseControl {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
@@ -19,12 +19,12 @@ frappe.ui.form.Control = class BaseControl {
 
 		this.tooltip.on("click", (e) => {
 			let text = $(e.target).text();
-			frappe.utils.copy_to_clipboard(text);
+			nts.utils.copy_to_clipboard(text);
 		});
 	}
 
 	make_wrapper() {
-		this.$wrapper = $("<div class='frappe-control'></div>").appendTo(this.parent);
+		this.$wrapper = $("<div class='nts-control'></div>").appendTo(this.parent);
 
 		// alias
 		this.wrapper = this.$wrapper;
@@ -91,9 +91,9 @@ frappe.ui.form.Control = class BaseControl {
 			return status;
 		}
 
-		var status = frappe.perm.get_field_display_status(
+		var status = nts.perm.get_field_display_status(
 			this.df,
-			frappe.model.get_doc(this.doctype, this.docname),
+			nts.model.get_doc(this.doctype, this.docname),
 			this.perm || (this.frm && this.frm.perm),
 			explain
 		);
@@ -110,10 +110,10 @@ frappe.ui.form.Control = class BaseControl {
 			}
 		}
 
-		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
+		let value = nts.model.get_value(this.doctype, this.docname, this.df.fieldname);
 
 		if (["Date", "Datetime"].includes(this.df.fieldtype) && value) {
-			value = frappe.datetime.str_to_user(value);
+			value = nts.datetime.str_to_user(value);
 		}
 
 		value = this.get_parsed_value(value);
@@ -146,17 +146,17 @@ frappe.ui.form.Control = class BaseControl {
 	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields
 		if (
-			!frappe.model ||
+			!nts.model ||
 			!this.frm ||
 			!this.doc ||
 			!this.df.translatable ||
-			!frappe.model.can_write("Translation") ||
+			!nts.model.can_write("Translation") ||
 			!value
 		)
 			return;
 
 		// Disable translation in website
-		if (!frappe.views || !frappe.views.TranslationManager) return;
+		if (!nts.views || !nts.views.TranslationManager) return;
 
 		// Already attached button
 		if (this.$wrapper.find(".clearfix .btn-translation").length) return;
@@ -171,7 +171,7 @@ frappe.ui.form.Control = class BaseControl {
 			.appendTo(this.$wrapper.find(".clearfix"))
 			.on("click", () => {
 				if (!this.doc.__islocal) {
-					new frappe.views.TranslationManager({
+					new nts.views.TranslationManager({
 						df: this.df,
 						source_text: this.value,
 						target_language: this.doc.language,
@@ -228,7 +228,7 @@ frappe.ui.form.Control = class BaseControl {
 		this.inside_change_event = true;
 		function set(value) {
 			me.inside_change_event = false;
-			return frappe.run_serially([
+			return nts.run_serially([
 				() => (me._validated = true),
 				() => me.set_model_value(value),
 				() => delete me._validated,
@@ -268,7 +268,7 @@ frappe.ui.form.Control = class BaseControl {
 	set_model_value(value) {
 		if (this.frm) {
 			this.last_value = value;
-			return frappe.model.set_value(
+			return nts.model.set_value(
 				this.doctype,
 				this.docname,
 				this.df.fieldname,

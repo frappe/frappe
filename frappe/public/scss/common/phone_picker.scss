@@ -69,7 +69,7 @@
 	}
 }
 
-.frappe-control[data-fieldtype="Phone"] {
+.nts-control[data-fieldtype="Phone"] {
 	.control-input {
 		position: relative;
 	}
@@ -114,7 +114,7 @@
 }
 
 .modal-body {
-	.frappe-control[data-fieldtype="Phone"] {
+	.nts-control[data-fieldtype="Phone"] {
 		.selected-phone {
 			top: calc(50% - 0.5px);
 		}

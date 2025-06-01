@@ -1,12 +1,12 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import datetime
 import json
 from urllib.parse import parse_qs
 
-import frappe
-from frappe.utils import get_request_session
+import nts
+from nts.utils import get_request_session
 
 
 def make_request(method, url, auth=None, headers=None, data=None, json=None, params=None):
@@ -16,7 +16,7 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None, par
 
 	try:
 		s = get_request_session()
-		response = frappe.flags.integration_request = s.request(
+		response = nts.flags.integration_request = s.request(
 			method, url, data=data, auth=auth, headers=headers, json=json, params=params
 		)
 		response.raise_for_status()
@@ -31,7 +31,7 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None, par
 				return response.text
 		return
 	except Exception as exc:
-		frappe.log_error()
+		nts.log_error()
 		raise exc
 
 
@@ -83,7 +83,7 @@ def create_request_log(
 		reference_doctype = data.get("reference_doctype")
 		reference_docname = data.get("reference_docname")
 
-	integration_request = frappe.get_doc(
+	integration_request = nts.get_doc(
 		{
 			"doctype": "Integration Request",
 			"integration_request_service": service_name,
@@ -101,13 +101,13 @@ def create_request_log(
 		integration_request.flags._name = name
 
 	integration_request.insert(ignore_permissions=True)
-	frappe.db.commit()
+	nts.db.commit()
 
 	return integration_request
 
 
 def get_json(obj):
-	return obj if isinstance(obj, str) else frappe.as_json(obj, indent=1)
+	return obj if isinstance(obj, str) else nts.as_json(obj, indent=1)
 
 
 def json_handler(obj):

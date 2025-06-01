@@ -1,7 +1,7 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Server Script", {
+nts.ui.form.on("Server Script", {
 	setup: function (frm) {
 		frm.trigger("setup_help");
 	},
@@ -12,7 +12,7 @@ frappe.ui.form.on("Server Script", {
 
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Compare Versions"), () => {
-				new frappe.ui.DiffView("Server Script", "script", frm.doc.name);
+				new nts.ui.DiffView("Server Script", "script", frm.doc.name);
 			});
 		}
 
@@ -26,10 +26,10 @@ frappe.ui.form.on("Server Script", {
 	},
 
 	check_safe_exec(frm) {
-		frappe.xcall("frappe.core.doctype.server_script.server_script.enabled").then((enabled) => {
+		nts.xcall("nts.core.doctype.server_script.server_script.enabled").then((enabled) => {
 			if (enabled === false) {
 				let docs_link =
-					"https://frappeframework.com/docs/user/en/desk/scripting/server-script";
+					"https://ntsframework.com/docs/user/en/desk/scripting/server-script";
 				let docs = `<a href=${docs_link}>${__("Official Documentation")}</a>`;
 
 				frm.dashboard.clear_comment();
@@ -53,11 +53,11 @@ if "test" in doc.description:
 
 # validate
 if "validate" in doc.description:
-	raise frappe.ValidationError
+	raise nts.ValidationError
 
 # auto create another document
 if doc.allocated_to:
-	frappe.get_doc(dict(
+	nts.get_doc(dict(
 		doctype = 'ToDo'
 		owner = doc.allocated_to,
 		description = doc.subject
@@ -72,10 +72,10 @@ if doc.allocated_to:
 <pre><code>
 # respond to API
 
-if frappe.form_dict.message == "ping":
-	frappe.response['message'] = "pong"
+if nts.form_dict.message == "ping":
+	nts.response['message'] = "pong"
 else:
-	frappe.response['message'] = "ok"
+	nts.response['message'] = "ok"
 </code></pre>
 
 <hr>
@@ -84,7 +84,7 @@ else:
 <p>Add conditions to the where clause of list queries.</p>
 <pre><code>
 # generate dynamic conditions and set it in the conditions variable
-tenant_id = frappe.db.get_value(...)
+tenant_id = nts.db.get_value(...)
 conditions = f'tenant_id = {tenant_id}'
 
 # resulting select query

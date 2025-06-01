@@ -1,13 +1,13 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.search.full_text_search import FullTextSearch
-from frappe.search.website_search import WebsiteSearch
-from frappe.utils import cint
+import nts
+from nts.search.full_text_search import FullTextSearch
+from nts.search.website_search import WebsiteSearch
+from nts.utils import cint
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def web_search(query, scope=None, limit=20):
 	limit = cint(limit)
 	ws = WebsiteSearch(index_name="web_routes")

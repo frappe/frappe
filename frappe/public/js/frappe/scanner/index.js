@@ -1,6 +1,6 @@
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.Scanner = class Scanner {
+nts.ui.Scanner = class Scanner {
 	constructor(options) {
 		this.dialog = null;
 		this.handler = null;
@@ -12,7 +12,7 @@ frappe.ui.Scanner = class Scanner {
 		}
 		if (options.container) {
 			this.$scan_area = $(options.container);
-			this.scan_area_id = frappe.dom.set_unique_id(this.$scan_area);
+			this.scan_area_id = nts.dom.set_unique_id(this.$scan_area);
 		}
 		if (options.dialog) {
 			this.dialog = this.make_dialog();
@@ -68,7 +68,7 @@ frappe.ui.Scanner = class Scanner {
 	}
 
 	make_dialog() {
-		let dialog = new frappe.ui.Dialog({
+		let dialog = new nts.ui.Dialog({
 			title: __("Scan QRCode"),
 			fields: [
 				{
@@ -79,7 +79,7 @@ frappe.ui.Scanner = class Scanner {
 			on_page_show: () => {
 				this.$scan_area = dialog.get_field("scan_area").$wrapper;
 				this.$scan_area.addClass("barcode-scanner");
-				this.scan_area_id = frappe.dom.set_unique_id(this.$scan_area);
+				this.scan_area_id = nts.dom.set_unique_id(this.$scan_area);
 				this.scan();
 			},
 			on_hide: () => {
@@ -94,6 +94,6 @@ frappe.ui.Scanner = class Scanner {
 	}
 
 	load_lib() {
-		return frappe.require("/assets/frappe/node_modules/html5-qrcode/html5-qrcode.min.js");
+		return nts.require("/assets/nts/node_modules/html5-qrcode/html5-qrcode.min.js");
 	}
 };

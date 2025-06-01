@@ -1,14 +1,14 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import datetime
 
 import pytz
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import cint, cstr, get_system_timezone
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import cint, cstr, get_system_timezone
 
 
 class TokenCache(Document):
@@ -18,8 +18,8 @@ class TokenCache(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.integrations.doctype.oauth_scope.oauth_scope import OAuthScope
-		from frappe.types import DF
+		from nts.integrations.doctype.oauth_scope.oauth_scope import OAuthScope
+		from nts.types import DF
 
 		access_token: DF.Password | None
 		connected_app: DF.Link | None
@@ -36,7 +36,7 @@ class TokenCache(Document):
 	def get_auth_header(self):
 		if self.access_token:
 			return {"Authorization": "Bearer " + self.get_password("access_token")}
-		raise frappe.exceptions.DoesNotExistError
+		raise nts.exceptions.DoesNotExistError
 
 	def update_data(self, data):
 		"""
@@ -47,7 +47,7 @@ class TokenCache(Document):
 		"""
 		token_type = cstr(data.get("token_type", "")).lower()
 		if token_type not in ["bearer", "mac"]:
-			frappe.throw(_("Received an invalid token type."))
+			nts.throw(_("Received an invalid token type."))
 		# 'Bearer' or 'MAC'
 		token_type = token_type.title() if token_type == "bearer" else token_type.upper()
 
@@ -69,12 +69,12 @@ class TokenCache(Document):
 
 		self.state = None
 		self.save(ignore_permissions=True)
-		frappe.db.commit()
+		nts.db.commit()
 		return self
 
 	def get_expires_in(self):
 		system_timezone = pytz.timezone(get_system_timezone())
-		modified = frappe.utils.get_datetime(self.modified)
+		modified = nts.utils.get_datetime(self.modified)
 		modified = system_timezone.localize(modified)
 		expiry_utc = modified.astimezone(pytz.utc) + datetime.timedelta(seconds=self.expires_in)
 		now_utc = datetime.datetime.now(pytz.utc)

@@ -1,28 +1,28 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 
 from unittest.mock import patch
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import get_site_url
 
 
-class TestClient(FrappeTestCase):
+class TestClient(ntsTestCase):
 	def test_set_value(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
-		frappe.set_value("ToDo", todo.name, "description", "test 1")
-		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 1")
+		todo = nts.get_doc(dict(doctype="ToDo", description="test")).insert()
+		nts.set_value("ToDo", todo.name, "description", "test 1")
+		self.assertEqual(nts.get_value("ToDo", todo.name, "description"), "test 1")
 
-		frappe.set_value("ToDo", todo.name, {"description": "test 2"})
-		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 2")
+		nts.set_value("ToDo", todo.name, {"description": "test 2"})
+		self.assertEqual(nts.get_value("ToDo", todo.name, "description"), "test 2")
 
 	def test_delete(self):
-		from frappe.client import delete
-		from frappe.desk.doctype.note.note import Note
+		from nts.client import delete
+		from nts.desk.doctype.note.note import Note
 
-		note = frappe.get_doc(
+		note = nts.get_doc(
 			doctype="Note",
-			title=frappe.generate_hash(length=8),
+			title=nts.generate_hash(length=8),
 			content="test",
 			seen_by=[{"user": "Administrator"}],
 		).insert()
@@ -35,47 +35,47 @@ class TestClient(FrappeTestCase):
 
 		delete("Note", note.name)
 
-		self.assertFalse(frappe.db.exists("Note", note.name))
-		self.assertRaises(frappe.DoesNotExistError, delete, "Note", note.name)
-		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
+		self.assertFalse(nts.db.exists("Note", note.name))
+		self.assertRaises(nts.DoesNotExistError, delete, "Note", note.name)
+		self.assertRaises(nts.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
 	def test_http_valid_method_access(self):
-		from frappe.client import delete
-		from frappe.handler import execute_cmd
+		from nts.client import delete
+		from nts.handler import execute_cmd
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
-		frappe.local.request = frappe._dict()
-		frappe.local.request.method = "POST"
+		nts.local.request = nts._dict()
+		nts.local.request.method = "POST"
 
-		frappe.local.form_dict = frappe._dict(
-			{"doc": dict(doctype="ToDo", description="Valid http method"), "cmd": "frappe.client.save"}
+		nts.local.form_dict = nts._dict(
+			{"doc": dict(doctype="ToDo", description="Valid http method"), "cmd": "nts.client.save"}
 		)
-		todo = execute_cmd("frappe.client.save")
+		todo = execute_cmd("nts.client.save")
 
 		self.assertEqual(todo.get("description"), "Valid http method")
 
 		delete("ToDo", todo.name)
 
 	def test_http_invalid_method_access(self):
-		from frappe.handler import execute_cmd
+		from nts.handler import execute_cmd
 
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
-		frappe.local.request = frappe._dict()
-		frappe.local.request.method = "GET"
+		nts.local.request = nts._dict()
+		nts.local.request.method = "GET"
 
-		frappe.local.form_dict = frappe._dict(
-			{"doc": dict(doctype="ToDo", description="Invalid http method"), "cmd": "frappe.client.save"}
+		nts.local.form_dict = nts._dict(
+			{"doc": dict(doctype="ToDo", description="Invalid http method"), "cmd": "nts.client.save"}
 		)
 
-		self.assertRaises(frappe.PermissionError, execute_cmd, "frappe.client.save")
+		self.assertRaises(nts.PermissionError, execute_cmd, "nts.client.save")
 
 	def test_run_doc_method(self):
-		from frappe.handler import execute_cmd
+		from nts.handler import execute_cmd
 
-		if not frappe.db.exists("Report", "Test Run Doc Method"):
-			report = frappe.get_doc(
+		if not nts.db.exists("Report", "Test Run Doc Method"):
+			report = nts.get_doc(
 				{
 					"doctype": "Report",
 					"ref_doctype": "User",
@@ -86,13 +86,13 @@ class TestClient(FrappeTestCase):
 				}
 			).insert()
 		else:
-			report = frappe.get_doc("Report", "Test Run Doc Method")
+			report = nts.get_doc("Report", "Test Run Doc Method")
 
-		frappe.local.request = frappe._dict()
-		frappe.local.request.method = "GET"
+		nts.local.request = nts._dict()
+		nts.local.request.method = "GET"
 
 		# Whitelisted, works as expected
-		frappe.local.form_dict = frappe._dict(
+		nts.local.form_dict = nts._dict(
 			{
 				"dt": report.doctype,
 				"dn": report.name,
@@ -102,10 +102,10 @@ class TestClient(FrappeTestCase):
 			}
 		)
 
-		execute_cmd(frappe.local.form_dict.cmd)
+		execute_cmd(nts.local.form_dict.cmd)
 
 		# Not whitelisted, throws permission error
-		frappe.local.form_dict = frappe._dict(
+		nts.local.form_dict = nts._dict(
 			{
 				"dt": report.doctype,
 				"dn": report.name,
@@ -115,28 +115,28 @@ class TestClient(FrappeTestCase):
 			}
 		)
 
-		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
+		self.assertRaises(nts.PermissionError, execute_cmd, nts.local.form_dict.cmd)
 
 	def test_array_values_in_request_args(self):
 		import requests
 
-		from frappe.auth import CookieManager, LoginManager
+		from nts.auth import CookieManager, LoginManager
 
-		frappe.utils.set_request(path="/")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as("Administrator")
+		nts.utils.set_request(path="/")
+		nts.local.cookie_manager = CookieManager()
+		nts.local.login_manager = LoginManager()
+		nts.local.login_manager.login_as("Administrator")
 		params = {
 			"doctype": "DocType",
 			"fields": ["name", "modified"],
-			"sid": frappe.session.sid,
+			"sid": nts.session.sid,
 		}
 		headers = {
 			"accept": "application/json",
 			"content-type": "application/json",
 		}
-		url = get_site_url(frappe.local.site)
-		url += "/api/method/frappe.client.get_list"
+		url = get_site_url(nts.local.site)
+		url += "/api/method/nts.client.get_list"
 
 		res = requests.post(url, json=params, headers=headers)
 		self.assertEqual(res.status_code, 200)
@@ -146,11 +146,11 @@ class TestClient(FrappeTestCase):
 		self.assertTrue("modified" in first_item)
 
 	def test_client_get(self):
-		from frappe.client import get
+		from nts.client import get
 
-		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
+		todo = nts.get_doc(doctype="ToDo", description="test").insert()
 		filters = {"name": todo.name}
-		filters_json = frappe.as_json(filters)
+		filters_json = nts.as_json(filters)
 
 		self.assertEqual(get("ToDo", filters=filters).description, "test")
 		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
@@ -159,29 +159,29 @@ class TestClient(FrappeTestCase):
 		todo.delete()
 
 	def test_client_validatate_link(self):
-		from frappe.client import validate_link
+		from nts.client import validate_link
 
 		# Basic test
 		self.assertTrue(validate_link("User", "Guest"))
 
 		# fixes capitalization
-		if frappe.db.db_type == "mariadb":
+		if nts.db.db_type == "mariadb":
 			self.assertEqual(validate_link("User", "GueSt"), {"name": "Guest"})
 
 		# Fetch
 		self.assertEqual(validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1})
 
 		# Permissions
-		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
+		with self.set_user("Guest"), self.assertRaises(nts.PermissionError):
 			self.assertEqual(
 				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
 			)
 
 	def test_client_insert(self):
-		from frappe.client import insert
+		from nts.client import insert
 
 		def get_random_title():
-			return f"test-{frappe.generate_hash()}"
+			return f"test-{nts.generate_hash()}"
 
 		# test insert dict
 		doc = {"doctype": "Note", "title": get_random_title(), "content": "test"}
@@ -190,13 +190,13 @@ class TestClient(FrappeTestCase):
 
 		# test insert json
 		doc["title"] = get_random_title()
-		json_doc = frappe.as_json(doc)
+		json_doc = nts.as_json(doc)
 		note2 = insert(json_doc)
 		self.assertTrue(note2)
 
 		# test insert child doc without parent fields
 		child_doc = {"doctype": "Note Seen By", "user": "Administrator"}
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(nts.ValidationError):
 			insert(child_doc)
 
 		# test insert child doc with parent fields
@@ -211,14 +211,14 @@ class TestClient(FrappeTestCase):
 		self.assertTrue(note3)
 
 		# cleanup
-		frappe.delete_doc("Note", note1.name)
-		frappe.delete_doc("Note", note2.name)
+		nts.delete_doc("Note", note1.name)
+		nts.delete_doc("Note", note2.name)
 
 	def test_client_insert_many(self):
-		from frappe.client import insert, insert_many
+		from nts.client import insert, insert_many
 
 		def get_random_title():
-			return f"test-{frappe.generate_hash(length=5)}"
+			return f"test-{nts.generate_hash(length=5)}"
 
 		# insert a (parent) doc
 		note1 = {"doctype": "Note", "title": get_random_title(), "content": "test"}
@@ -256,10 +256,10 @@ class TestClient(FrappeTestCase):
 		docs = insert_many(doc_list)
 
 		self.assertEqual(len(docs), 7)
-		self.assertEqual(frappe.db.get_value("Note", docs[3], "title"), "not-a-random-title")
-		self.assertEqual(frappe.db.get_value("Note", docs[6], "title"), "another-note-title")
+		self.assertEqual(nts.db.get_value("Note", docs[3], "title"), "not-a-random-title")
+		self.assertEqual(nts.db.get_value("Note", docs[6], "title"), "another-note-title")
 		self.assertIn(note1.name, docs)
 
 		# cleanup
 		for doc in docs:
-			frappe.delete_doc("Note", doc)
+			nts.delete_doc("Note", doc)

@@ -1,16 +1,16 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import smtplib
 from contextlib import suppress
 
-import frappe
-from frappe import _
-from frappe.email.oauth import Oauth
-from frappe.utils import cint, cstr, get_traceback
+import nts
+from nts import _
+from nts.email.oauth import Oauth
+from nts.utils import cint, cstr, get_traceback
 
 
-class InvalidEmailCredentials(frappe.ValidationError):
+class InvalidEmailCredentials(nts.ValidationError):
 	pass
 
 
@@ -39,9 +39,9 @@ class SMTPServer:
 		self._session = None
 
 		if not self.server:
-			frappe.msgprint(
+			nts.msgprint(
 				_("Email Account not setup. Please create a new Email Account from Settings > Email Account"),
-				raise_exception=frappe.OutgoingEmailError,
+				raise_exception=nts.OutgoingEmailError,
 			)
 
 	@property
@@ -74,8 +74,8 @@ class SMTPServer:
 		try:
 			_session = SMTP(self.server, self.port, timeout=2 * 60)
 			if not _session:
-				frappe.msgprint(
-					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError
+				nts.msgprint(
+					_("Could not connect to outgoing email server"), raise_exception=nts.OutgoingEmailError
 				)
 
 			self.secure_session(_session)
@@ -88,7 +88,7 @@ class SMTPServer:
 
 				# check if logged correctly
 				if res[0] != 235:
-					frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
+					nts.msgprint(res[1], raise_exception=nts.OutgoingEmailError)
 
 			self._session = _session
 			self._enqueue_connection_closure()
@@ -99,17 +99,17 @@ class SMTPServer:
 
 		except OSError as e:
 			# Invalid mail server -- due to refusing connection
-			frappe.throw(
+			nts.throw(
 				_("Invalid Outgoing Mail Server or Port: {0}").format(str(e)),
 				title=_("Incorrect Configuration"),
 			)
 
 	def _enqueue_connection_closure(self):
-		if frappe.request and hasattr(frappe.request, "after_response"):
-			frappe.request.after_response.add(self.quit)
-		elif frappe.job:
-			frappe.job.after_job.add(self.quit)
-		elif not frappe.flags.in_test:
+		if nts.request and hasattr(nts.request, "after_response"):
+			nts.request.after_response.add(self.quit)
+		elif nts.job:
+			nts.job.after_job.add(self.quit)
+		elif not nts.flags.in_test:
 			# Console?
 			import atexit
 
@@ -130,7 +130,7 @@ class SMTPServer:
 	@classmethod
 	def throw_invalid_credentials_exception(cls):
 		original_exception = get_traceback() or "\n"
-		frappe.throw(
+		nts.throw(
 			_("Please check your email login credentials.") + " " + original_exception.splitlines()[-1],
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,

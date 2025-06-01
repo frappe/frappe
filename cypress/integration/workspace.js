@@ -14,7 +14,7 @@ context("Workspace 2.0", () => {
 	it("Create Private Page", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.new_page",
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
@@ -44,7 +44,7 @@ context("Workspace 2.0", () => {
 	it("Create Child Page", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.new_page",
 		}).as("new_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
@@ -75,7 +75,7 @@ context("Workspace 2.0", () => {
 	it("Duplicate Page", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.duplicate_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.duplicate_page",
 		}).as("page_duplicated");
 
 		cy.get(".codex-editor__redactor .ce-block");
@@ -100,7 +100,7 @@ context("Workspace 2.0", () => {
 	it("Drag Sidebar Item", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.sort_pages",
+			url: "api/method/nts.desk.doctype.workspace.workspace.sort_pages",
 		}).as("page_sorted");
 
 		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').as("sidebar-item");
@@ -119,7 +119,7 @@ context("Workspace 2.0", () => {
 	it("Edit Page Detail", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.update_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.update_page",
 		}).as("page_updated");
 
 		cy.get('.sidebar-item-container[item-name="Test Private Page"]').as("sidebar-item");
@@ -192,7 +192,7 @@ context("Workspace 2.0", () => {
 		// hide
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.hide_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.hide_page",
 		}).as("hide_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
@@ -213,7 +213,7 @@ context("Workspace 2.0", () => {
 		// unhide
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.unhide_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.unhide_page",
 		}).as("unhide_page");
 
 		cy.get(".codex-editor__redactor .ce-block");
@@ -233,7 +233,7 @@ context("Workspace 2.0", () => {
 	it("Delete Duplicate Page", () => {
 		cy.intercept({
 			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.delete_page",
+			url: "api/method/nts.desk.doctype.workspace.workspace.delete_page",
 		}).as("page_deleted");
 
 		cy.get(".codex-editor__redactor .ce-block");

@@ -1,26 +1,26 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
 import click
 
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def download_pdf(doctype, name, print_format, letterhead=None):
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
-	frappe.local.response.filecontent = pdf
-	frappe.local.response.type = "pdf"
+	nts.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	nts.local.response.filecontent = pdf
+	nts.local.response.type = "pdf"
 
 
 def get_html(doctype, name, print_format, letterhead=None):
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	return generator.get_html_preview()
@@ -45,29 +45,29 @@ class PrintFormatGenerator:
 		letterhead: str
 		        Letter Head to apply (optional)
 		"""
-		self.base_url = frappe.utils.get_url()
-		self.print_format = frappe.get_doc("Print Format", print_format)
+		self.base_url = nts.utils.get_url()
+		self.print_format = nts.get_doc("Print Format", print_format)
 		self.doc = doc
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
-		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+		self.letterhead = nts.get_doc("Letter Head", letterhead) if letterhead else None
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
 
 	def build_context(self):
-		self.print_settings = frappe.get_doc("Print Settings")
+		self.print_settings = nts.get_doc("Print Settings")
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		print_style = (
-			frappe.get_doc("Print Style", self.print_settings.print_style)
+			nts.get_doc("Print Style", self.print_settings.print_style)
 			if self.print_settings.print_style
 			else None
 		)
-		context = frappe._dict(
+		context = nts._dict(
 			{
 				"doc": self.doc,
 				"print_format": self.print_format,
@@ -87,15 +87,15 @@ class PrintFormatGenerator:
 		return self.get_main_html()
 
 	def get_main_html(self):
-		self.context.css = frappe.render_template("templates/print_format/print_format.css", self.context)
-		return frappe.render_template("templates/print_format/print_format.html", self.context)
+		self.context.css = nts.render_template("templates/print_format/print_format.css", self.context)
+		return nts.render_template("templates/print_format/print_format.html", self.context)
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
 		if self.letterhead:
-			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
+			header_html = nts.render_template("templates/print_format/print_header.html", self.context)
 		if self.letterhead:
-			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
+			footer_html = nts.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 
 	def render_pdf(self):
@@ -191,7 +191,7 @@ class PrintFormatGenerator:
 		self.footer_height = footer_height
 
 	def get_layout(self, print_format):
-		layout = frappe.parse_json(print_format.format_data)
+		layout = nts.parse_json(print_format.format_data)
 		layout = self.set_field_renderers(layout)
 		layout = self.process_margin_texts(layout)
 		return layout
@@ -219,7 +219,7 @@ class PrintFormatGenerator:
 		for key in margin_texts:
 			text = layout.get("text_" + key)
 			if text and "{{" in text:
-				layout["text_" + key] = frappe.render_template(text, self.context)
+				layout["text_" + key] = nts.render_template(text, self.context)
 
 		return layout
 
@@ -251,4 +251,4 @@ def import_weasyprint():
 			]
 		)
 		click.secho(message, fg="yellow")
-		frappe.throw(message)
+		nts.throw(message)

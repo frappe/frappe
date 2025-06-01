@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import contextlib
 
@@ -17,10 +17,10 @@ import click
 from cryptography.fernet import Fernet
 
 # imports - module imports
-import frappe
-import frappe.utils
-from frappe import _, conf
-from frappe.utils import cint, get_file_size, get_url, now, now_datetime
+import nts
+import nts.utils
+from nts import _, conf
+from nts.utils import cint, get_file_size, get_url, now, now_datetime
 
 # backup variable for backwards compatibility
 verbose = False
@@ -82,7 +82,7 @@ class BackupGenerator:
 		self.old_backup_metadata = old_backup_metadata
 		self.rollback_callback = rollback_callback
 
-		site = frappe.local.site or frappe.generate_hash(length=8)
+		site = nts.local.site or nts.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
 		self.verbose = verbose
 		self.setup_backup_directory()
@@ -118,14 +118,14 @@ class BackupGenerator:
 
 	def setup_backup_tables(self):
 		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_tables = frappe.db.get_tables()
+		existing_tables = nts.db.get_tables()
 
 		def get_tables(doctypes):
 			tables = []
 			for doctype in doctypes:
 				if not doctype:
 					continue
-				table = frappe.utils.get_table_name(doctype)
+				table = nts.utils.get_table_name(doctype)
 				if table in existing_tables:
 					tables.append(table)
 			return tables
@@ -134,12 +134,12 @@ class BackupGenerator:
 			"include": get_tables(self.include_doctypes.strip().split(",")),
 			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
 		}
-		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
+		specified_tables = get_tables(nts.conf.get("backup", {}).get("includes", []))
 		include_tables = (specified_tables + base_tables) if specified_tables else []
 
 		conf_tables = {
 			"include": include_tables,
-			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
+			"exclude": get_tables(nts.conf.get("backup", {}).get("excludes", [])),
 		}
 
 		self.backup_includes = passed_tables["include"]
@@ -199,7 +199,7 @@ class BackupGenerator:
 					self.backup_files, self.backup_path_files, self.backup_path_private_files
 				)
 
-			if frappe.get_system_settings("encrypt_backup"):
+			if nts.get_system_settings("encrypt_backup"):
 				self.backup_encryption()
 
 		else:
@@ -211,7 +211,7 @@ class BackupGenerator:
 	def set_backup_file_name(self):
 		partial = "-partial" if self.partial else ""
 		ext = "tgz" if self.compress_files else "tar"
-		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
+		enc = "-enc" if nts.get_system_settings("encrypt_backup") else ""
 		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
@@ -246,7 +246,7 @@ class BackupGenerator:
 						filelocation=path,
 					)
 
-					frappe.utils.execute_in_shell(command)
+					nts.utils.execute_in_shell(command)
 					os.rename(path + ".gpg", path)
 
 				except Exception as err:
@@ -261,7 +261,7 @@ class BackupGenerator:
 		if partial:
 			separator = "*"
 
-		if frappe.get_system_settings("encrypt_backup"):
+		if nts.get_system_settings("encrypt_backup"):
 			suffix = "-enc"
 
 		file_type_slugs = {
@@ -337,7 +337,7 @@ class BackupGenerator:
 
 	def print_summary(self):
 		backup_summary = self.get_summary()
-		print(f"Backup Summary for {frappe.local.site} at {now()}")
+		print(f"Backup Summary for {nts.local.site} at {now()}")
 
 		title = max(len(x) for x in backup_summary)
 		path = max(len(x["path"]) for x in backup_summary.values())
@@ -348,7 +348,7 @@ class BackupGenerator:
 
 	def backup_files(self):
 		for folder in ("public", "private"):
-			files_path = frappe.get_site_path(folder, "files")
+			files_path = nts.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
@@ -357,13 +357,13 @@ class BackupGenerator:
 				cmd_string = "tar -cf {0} {1}"
 
 			try:
-				frappe.utils.execute_in_shell(
+				nts.utils.execute_in_shell(
 					cmd_string.format(backup_path, files_path),
 					verbose=self.verbose,
 					low_priority=True,
 					check_exit_code=True,
 				)
-			except frappe.CommandFailedError as e:
+			except nts.CommandFailedError as e:
 				if e.err and "file changed as we read it" in e.err:
 					click.secho(
 						"Ignoring `tar: file changed as we read it` to prevent backup failure",
@@ -374,7 +374,7 @@ class BackupGenerator:
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
-		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
+		site_config_path = os.path.join(nts.get_site_path(), "site_config.json")
 
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
@@ -382,27 +382,27 @@ class BackupGenerator:
 	def take_dump(self):
 		import shlex
 
-		import frappe.utils
-		from frappe.utils.change_log import get_app_branch
+		import nts.utils
+		from nts.utils.change_log import get_app_branch
 
 		gzip_exc = which("gzip")
 		if not gzip_exc:
-			frappe.throw(
-				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+			nts.throw(
+				_("gzip not found in PATH! This is required to take a backup."), exc=nts.ExecutableNotFound
 			)
 
 		if self.old_backup_metadata:
 			database_header_content = [
-				f"Backup generated by Frappe {frappe.__version__} on branch {get_app_branch('frappe') or 'N/A'}",
+				f"Backup generated by nts {nts.__version__} on branch {get_app_branch('nts') or 'N/A'}",
 				"",
 			]
 		else:
 			database_header_content = [
-				"begin frappe metadata",
-				"[frappe]",
-				f"version = {frappe.__version__}",
-				f"branch = {get_app_branch('frappe') or 'N/A'}",
-				"end frappe metadata",
+				"begin nts metadata",
+				"[nts]",
+				f"version = {nts.__version__}",
+				f"branch = {get_app_branch('nts') or 'N/A'}",
+				"end nts metadata",
 				"",
 			]
 
@@ -416,7 +416,7 @@ class BackupGenerator:
 				print("".join(backup_info), "\n")
 			database_header_content.extend(
 				[
-					f"Partial Backup of Frappe Site {frappe.local.site}",
+					f"Partial Backup of nts Site {nts.local.site}",
 					("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
 					"",
 				]
@@ -441,7 +441,7 @@ class BackupGenerator:
 			elif self.backup_excludes:
 				extra.extend([f'--exclude-table-data=public."{table}"' for table in self.backup_excludes])
 
-		from frappe.database import get_command
+		from nts.database import get_command
 
 		bin, args, bin_name = get_command(
 			socket=self.db_socket,
@@ -454,9 +454,9 @@ class BackupGenerator:
 			dump=True,
 		)
 		if not bin:
-			frappe.throw(
+			nts.throw(
 				_("{} not found in PATH! This is required to take a backup.").format(bin_name),
-				exc=frappe.ExecutableNotFound,
+				exc=nts.ExecutableNotFound,
 			)
 		cmd.append(bin)
 		cmd.append(shlex.join(args))
@@ -465,13 +465,13 @@ class BackupGenerator:
 		if self.verbose:
 			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 
-		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
+		nts.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
 	def send_email(self):
 		"""
 		Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.email import get_system_managers
+		from nts.email import get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
@@ -490,7 +490,7 @@ download only after 24 hours."""
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
-		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
+		nts.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
 
 	def add_to_rollback(self, func: Callable) -> None:
@@ -522,7 +522,7 @@ download only after 24 hours."""
 			self.add_to_rollback(lambda: os.remove(path))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def fetch_latest_backups(partial=False):
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
@@ -530,15 +530,15 @@ def fetch_latest_backups(partial=False):
 	Returns:
 	        dict: relative Backup Paths
 	"""
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 	odb = BackupGenerator(
-		frappe.conf.db_name,
-		frappe.conf.db_name,
-		frappe.conf.db_password,
-		db_socket=frappe.conf.db_socket,
-		db_host=frappe.conf.db_host,
-		db_port=frappe.conf.db_port,
-		db_type=frappe.conf.db_type,
+		nts.conf.db_name,
+		nts.conf.db_name,
+		nts.conf.db_password,
+		db_socket=nts.conf.db_socket,
+		db_host=nts.conf.db_host,
+		db_port=nts.conf.db_port,
+		db_type=nts.conf.db_type,
 	)
 	database, public, private, config = odb.get_recent_backup(older_than=24 * 30, partial=partial)
 
@@ -603,13 +603,13 @@ def new_backup(
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
-		frappe.conf.db_name,
-		frappe.conf.db_name,
-		frappe.conf.db_password,
-		db_socket=frappe.conf.db_socket,
-		db_host=frappe.conf.db_host,
-		db_port=frappe.conf.db_port,
-		db_type=frappe.conf.db_type,
+		nts.conf.db_name,
+		nts.conf.db_name,
+		nts.conf.db_password,
+		db_socket=nts.conf.db_socket,
+		db_host=nts.conf.db_host,
+		db_port=nts.conf.db_port,
+		db_type=nts.conf.db_type,
 		backup_path=backup_path,
 		backup_path_db=backup_path_db,
 		backup_path_files=backup_path_files,
@@ -631,7 +631,7 @@ def delete_temp_backups(older_than=24):
 	"""
 	Cleans up the backup_link_path directory by deleting older files
 	"""
-	older_than = cint(frappe.conf.keep_backups_for_hours) or older_than
+	older_than = cint(nts.conf.keep_backups_for_hours) or older_than
 	backup_path = get_backup_path()
 	if os.path.exists(backup_path):
 		file_list = os.listdir(get_backup_path())
@@ -668,19 +668,19 @@ def is_file_old(file_path, older_than=24):
 
 
 def get_backup_path():
-	return frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
+	return nts.utils.get_site_path(conf.get("backup_path", "private/backups"))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_backup_encryption_key():
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 	return get_or_generate_backup_encryption_key()
 
 
 def get_or_generate_backup_encryption_key():
-	from frappe.installer import update_site_config
+	from nts.installer import update_site_config
 
-	key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	key = nts.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
 	if key:
 		return key
 
@@ -708,7 +708,7 @@ def decrypt_backup(file_path: str, passphrase: str):
 			file_location=file_path_with_ext,
 			decrypted_file=file_path,
 		)
-	frappe.utils.execute_in_shell(command)
+	nts.utils.execute_in_shell(command)
 	try:
 		yield
 	finally:

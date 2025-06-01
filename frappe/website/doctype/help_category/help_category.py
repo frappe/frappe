@@ -1,9 +1,9 @@
-# Copyright (c) 2013, Frappe and contributors
+# Copyright (c) 2013, nts and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.website.doctype.help_article.help_article import clear_cache
-from frappe.website.website_generator import WebsiteGenerator
+import nts
+from nts.website.doctype.help_article.help_article import clear_cache
+from nts.website.website_generator import WebsiteGenerator
 
 
 class HelpCategory(WebsiteGenerator):
@@ -13,7 +13,7 @@ class HelpCategory(WebsiteGenerator):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		category_description: DF.Text | None
 		category_name: DF.Data
@@ -21,7 +21,7 @@ class HelpCategory(WebsiteGenerator):
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
-	website = frappe._dict(condition_field="published", page_title_field="category_name")
+	website = nts._dict(condition_field="published", page_title_field="category_name")
 
 	def before_insert(self):
 		self.published = 1
@@ -34,8 +34,8 @@ class HelpCategory(WebsiteGenerator):
 
 		# disable help articles of this category
 		if not self.published:
-			for d in frappe.get_all("Help Article", dict(category=self.name)):
-				frappe.db.set_value("Help Article", d.name, "published", 0)
+			for d in nts.get_all("Help Article", dict(category=self.name)):
+				nts.db.set_value("Help Article", d.name, "published", 0)
 
 	def set_route(self):
 		if not self.route:

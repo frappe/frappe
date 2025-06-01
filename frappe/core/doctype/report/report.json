@@ -113,7 +113,7 @@
   },
   {
    "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
-   "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}",
+   "description": "JavaScript Format: nts.query_reports['REPORTNAME'] = {}",
    "fieldname": "javascript",
    "fieldtype": "Code",
    "label": "Javascript"

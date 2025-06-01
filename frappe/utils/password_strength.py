@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from zxcvbn import zxcvbn
 from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
-import frappe
-from frappe import _, _lt
+import nts
+from nts import _, _lt
 
 
 def test_password_strength(password, user_inputs=None):
@@ -21,7 +21,7 @@ def test_password_strength(password, user_inputs=None):
 	return result
 
 
-# NOTE: code modified for frappe translations
+# NOTE: code modified for nts translations
 # -------------------------------------------
 # feedback functionality code from https://github.com/sans-serif/python-zxcvbn/blob/master/zxcvbn/feedback.py
 # see license for feedback code at https://github.com/sans-serif/python-zxcvbn/blob/master/LICENSE.txt
@@ -42,7 +42,7 @@ def get_feedback(score, sequence):
 	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
 	"""
 	global default_feedback
-	minimum_password_score = int(frappe.db.get_single_value("System Settings", "minimum_password_score") or 2)
+	minimum_password_score = int(nts.db.get_single_value("System Settings", "minimum_password_score") or 2)
 
 	# Starting feedback
 	if len(sequence) == 0:

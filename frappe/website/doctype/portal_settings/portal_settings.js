@@ -1,7 +1,7 @@
-// Copyright (c) 2016, Frappe Technologies and contributors
+// Copyright (c) 2016, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Portal Settings", {
+nts.ui.form.on("Portal Settings", {
 	setup: function (frm) {
 		frm.fields_dict["default_role"].get_query = function (doc) {
 			return {
@@ -17,7 +17,7 @@ frappe.ui.form.on("Portal Settings", {
 	},
 	refresh: function (frm) {
 		frm.add_custom_button(__("Reset"), function () {
-			frappe.confirm(__("Restore to default settings?"), function () {
+			nts.confirm(__("Restore to default settings?"), function () {
 				frm.call("reset");
 			});
 		});

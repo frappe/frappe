@@ -1,8 +1,8 @@
 import click
 import requests
 
-import frappe
-from frappe.core.utils import html2text
+import nts
+from nts.core.utils import html2text
 
 
 def get_remote_script(remote_site):
@@ -13,7 +13,7 @@ def get_remote_script(remote_site):
 	if request.status_code / 100 != 2:
 		print(f"Request exited with Status Code: {request.status_code}\nPayload: {html2text(request.text)}")
 		click.secho(
-			"Some errors occurred while recovering the migration script. Please contact us @ Frappe Cloud if this issue persists",
+			"Some errors occurred while recovering the migration script. Please contact us @ nts Cloud if this issue persists",
 			fg="yellow",
 		)
 		return
@@ -21,8 +21,8 @@ def get_remote_script(remote_site):
 	return request.json()["message"]
 
 
-def frappecloud_migrator():
-	remote_site_name = "frappecloud.com"
+def ntscloud_migrator():
+	remote_site_name = "ntscloud.com"
 	script_contents = get_remote_script(remote_site=remote_site_name)
 	import os
 	import sys

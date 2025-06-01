@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
 from functools import partial
 
-import frappe
-from frappe.contacts.doctype.address.address import address_query, get_address_display
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.contacts.doctype.address.address import address_query, get_address_display
+from nts.tests.utils import ntsTestCase
 
 
-class TestAddress(FrappeTestCase):
+class TestAddress(ntsTestCase):
 	def test_template_works(self):
-		if not frappe.db.exists("Address Template", "India"):
-			frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()
+		if not nts.db.exists("Address Template", "India"):
+			nts.get_doc({"doctype": "Address Template", "country": "India", "is_default": 1}).insert()
 
-		if not frappe.db.exists("Address", "_Test Address-Office"):
-			frappe.get_doc(
+		if not nts.db.exists("Address", "_Test Address-Office"):
+			nts.get_doc(
 				{
 					"address_line1": "_Test Address Line 1",
 					"address_title": "_Test Address",
@@ -27,8 +27,8 @@ class TestAddress(FrappeTestCase):
 				}
 			).insert()
 
-		address = frappe.get_list("Address")[0].name
-		display = get_address_display(frappe.get_doc("Address", address).as_dict())
+		address = nts.get_list("Address")[0].name
+		display = get_address_display(nts.get_doc("Address", address).as_dict())
 		self.assertTrue(display)
 
 	def test_address_query(self):
@@ -37,7 +37,7 @@ class TestAddress(FrappeTestCase):
 				filters = {"link_doctype": "User", "link_name": "Administrator"}
 			return address_query(doctype, txt, searchfield, start, page_len, filters)
 
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"address_type": "Billing",
 				"address_line1": "1",

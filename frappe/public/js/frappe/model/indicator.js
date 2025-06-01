@@ -1,45 +1,45 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 
-frappe.has_indicator = function (doctype) {
+nts.has_indicator = function (doctype) {
 	// returns true if indicator is present
-	if (frappe.model.is_submittable(doctype)) {
+	if (nts.model.is_submittable(doctype)) {
 		return true;
 	} else if (
-		(frappe.listview_settings[doctype] || {}).get_indicator ||
-		frappe.workflow.get_state_fieldname(doctype)
+		(nts.listview_settings[doctype] || {}).get_indicator ||
+		nts.workflow.get_state_fieldname(doctype)
 	) {
 		return true;
 	} else if (
-		frappe.meta.has_field(doctype, "enabled") ||
-		frappe.meta.has_field(doctype, "disabled")
+		nts.meta.has_field(doctype, "enabled") ||
+		nts.meta.has_field(doctype, "disabled")
 	) {
 		return true;
 	} else if (
-		frappe.meta.has_field(doctype, "status") &&
-		frappe.get_meta(doctype).states.length
+		nts.meta.has_field(doctype, "status") &&
+		nts.get_meta(doctype).states.length
 	) {
 		return true;
 	}
 	return false;
 };
 
-frappe.get_indicator = function (doc, doctype, show_workflow_state) {
+nts.get_indicator = function (doc, doctype, show_workflow_state) {
 	if (doc.__unsaved) {
 		return [__("Not Saved"), "orange"];
 	}
 
 	if (!doctype) doctype = doc.doctype;
 
-	let meta = frappe.get_meta(doctype);
-	var workflow = frappe.workflow.workflows[doctype];
+	let meta = nts.get_meta(doctype);
+	var workflow = nts.workflow.workflows[doctype];
 	var without_workflow = workflow ? workflow["override_status"] : true;
 
-	var settings = frappe.listview_settings[doctype] || {};
+	var settings = nts.listview_settings[doctype] || {};
 
-	var is_submittable = frappe.model.is_submittable(doctype);
-	let workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
+	var is_submittable = nts.model.is_submittable(doctype);
+	let workflow_fieldname = nts.workflow.get_state_fieldname(doctype);
 
-	let avoid_status_override = (frappe.workflow.avoid_status_override[doctype] || []).includes(
+	let avoid_status_override = (nts.workflow.avoid_status_override[doctype] || []).includes(
 		doc[workflow_fieldname]
 	);
 	// workflow
@@ -81,7 +81,7 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	// based on document state
 	if (doc.status && meta && meta.states && meta.states.find((d) => d.title === doc.status)) {
 		let state = meta.states.find((d) => d.title === doc.status);
-		let color_class = frappe.scrub(state.color, "-");
+		let color_class = nts.scrub(state.color, "-");
 		return [__(doc.status), color_class, "status,=," + doc.status];
 	}
 
@@ -97,11 +97,11 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 
 	// based on status
 	if (doc.status) {
-		return [__(doc.status), frappe.utils.guess_colour(doc.status), "status,=," + doc.status];
+		return [__(doc.status), nts.utils.guess_colour(doc.status), "status,=," + doc.status];
 	}
 
 	// based on enabled
-	if (frappe.meta.has_field(doctype, "enabled")) {
+	if (nts.meta.has_field(doctype, "enabled")) {
 		if (doc.enabled) {
 			return [__("Enabled"), "blue", "enabled,=,1"];
 		} else {
@@ -110,7 +110,7 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	}
 
 	// based on disabled
-	if (frappe.meta.has_field(doctype, "disabled")) {
+	if (nts.meta.has_field(doctype, "disabled")) {
 		if (doc.disabled) {
 			return [__("Disabled"), "grey", "disabled,=,1"];
 		} else {

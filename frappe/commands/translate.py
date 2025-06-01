@@ -1,7 +1,7 @@
 import click
 
-from frappe.commands import get_site, pass_context
-from frappe.exceptions import SiteNotSpecifiedError
+from nts.commands import get_site, pass_context
+from nts.exceptions import SiteNotSpecifiedError
 
 
 # translation
@@ -9,15 +9,15 @@ from frappe.exceptions import SiteNotSpecifiedError
 @pass_context
 def build_message_files(context):
 	"Build message files for translation"
-	import frappe.translate
+	import nts.translate
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.translate.rebuild_all_translation_files()
+			nts.init(site=site)
+			nts.connect()
+			nts.translate.rebuild_all_translation_files()
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -25,21 +25,21 @@ def build_message_files(context):
 @click.command("new-language")  # , help="Create lang-code.csv for given app")
 @pass_context
 @click.argument("lang_code")  # , help="Language code eg. en")
-@click.argument("app")  # , help="App name eg. frappe")
+@click.argument("app")  # , help="App name eg. nts")
 def new_language(context, lang_code, app):
 	"""Create lang-code.csv for given app"""
-	import frappe.translate
+	import nts.translate
 
 	if not context["sites"]:
 		raise Exception("--site is required")
 
 	# init site
-	frappe.init(site=context["sites"][0])
-	frappe.connect()
-	frappe.translate.write_translations_file(app, lang_code)
+	nts.init(site=context["sites"][0])
+	nts.connect()
+	nts.translate.write_translations_file(app, lang_code)
 
 	print(f"File created at ./apps/{app}/{app}/translations/{lang_code}.csv")
-	print("You will need to add the language in frappe/geo/languages.json, if you haven't done it already.")
+	print("You will need to add the language in nts/geo/languages.json, if you haven't done it already.")
 
 
 @click.command("get-untranslated")
@@ -50,15 +50,15 @@ def new_language(context, lang_code, app):
 @pass_context
 def get_untranslated(context, lang, untranslated_file, app="_ALL_APPS", all=None):
 	"Get untranslated strings for language"
-	import frappe.translate
+	import nts.translate
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.get_untranslated(lang, untranslated_file, get_all=all, app=app)
+		nts.init(site=site)
+		nts.connect()
+		nts.translate.get_untranslated(lang, untranslated_file, get_all=all, app=app)
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 @click.command("update-translations")
@@ -69,15 +69,15 @@ def get_untranslated(context, lang, untranslated_file, app="_ALL_APPS", all=None
 @pass_context
 def update_translations(context, lang, untranslated_file, translated_file, app="_ALL_APPS"):
 	"Update translated strings"
-	import frappe.translate
+	import nts.translate
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.update_translations(lang, untranslated_file, translated_file, app=app)
+		nts.init(site=site)
+		nts.connect()
+		nts.translate.update_translations(lang, untranslated_file, translated_file, app=app)
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 @click.command("import-translations")
@@ -86,15 +86,15 @@ def update_translations(context, lang, untranslated_file, translated_file, app="
 @pass_context
 def import_translations(context, lang, path):
 	"Update translated strings"
-	import frappe.translate
+	import nts.translate
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.import_translations(lang, path)
+		nts.init(site=site)
+		nts.connect()
+		nts.translate.import_translations(lang, path)
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 @click.command("migrate-translations")
@@ -103,15 +103,15 @@ def import_translations(context, lang, path):
 @pass_context
 def migrate_translations(context, source_app, target_app):
 	"Migrate target-app-specific translations from source-app to target-app"
-	import frappe.translate
+	import nts.translate
 
 	site = get_site(context)
 	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.migrate_translations(source_app, target_app)
+		nts.init(site=site)
+		nts.connect()
+		nts.translate.migrate_translations(source_app, target_app)
 	finally:
-		frappe.destroy()
+		nts.destroy()
 
 
 commands = [

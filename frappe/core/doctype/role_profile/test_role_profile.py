@@ -1,15 +1,15 @@
-# Copyright (c) 2017, Frappe Technologies and Contributors
+# Copyright (c) 2017, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 test_dependencies = ["Role"]
 
 
-class TestRoleProfile(FrappeTestCase):
+class TestRoleProfile(ntsTestCase):
 	def test_make_new_role_profile(self):
-		frappe.delete_doc_if_exists("Role Profile", "Test 1", force=1)
-		new_role_profile = frappe.get_doc(dict(doctype="Role Profile", role_profile="Test 1")).insert()
+		nts.delete_doc_if_exists("Role Profile", "Test 1", force=1)
+		new_role_profile = nts.get_doc(dict(doctype="Role Profile", role_profile="Test 1")).insert()
 
 		self.assertEqual(new_role_profile.role_profile, "Test 1")
 
@@ -19,10 +19,10 @@ class TestRoleProfile(FrappeTestCase):
 		self.assertEqual(new_role_profile.roles[0].role, "_Test Role 2")
 
 		# user with a role profile
-		random_user = frappe.mock("email")
-		random_user_name = frappe.mock("name")
+		random_user = nts.mock("email")
+		random_user_name = nts.mock("name")
 
-		random_user = frappe.get_doc(
+		random_user = nts.get_doc(
 			{
 				"doctype": "User",
 				"email": random_user,

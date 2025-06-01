@@ -1,13 +1,13 @@
-frappe.provide("frappe.model");
+nts.provide("nts.model");
 
 /*
 	Common class for handling client side interactions that
 	apply to both DocType form and customize form.
 */
-frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.Controller {
+nts.model.DocTypeController = class DocTypeController extends nts.ui.form.Controller {
 	setup() {
 		// setup formatters for fieldtype
-		frappe.meta.docfield_map[
+		nts.meta.docfield_map[
 			this.frm.doctype === "DocType" ? "DocField" : "Customize Form Field"
 		].fieldtype.formatter = (value) => {
 			const prefix = {
@@ -28,8 +28,8 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 
 	show_db_utilization() {
 		const doctype = this.frm.doc.doc_type || this.frm.doc.name;
-		frappe
-			.xcall("frappe.core.doctype.doctype.doctype.get_row_size_utilization", {
+		nts
+			.xcall("nts.core.doctype.doctype.doctype.get_row_size_utilization", {
 				doctype,
 			})
 			.then((r) => {
@@ -55,7 +55,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 		if (no_of_attach_fields > this.frm.doc.max_attachments) {
 			this.frm.set_value("max_attachments", no_of_attach_fields);
 			const label = this.frm.get_docfield("max_attachments").label;
-			frappe.show_alert(
+			nts.show_alert(
 				__("Number of attachment fields are more than {}, limit updated to {}.", [
 					label,
 					no_of_attach_fields,
@@ -150,7 +150,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 		$doctype_select.wrap('<div class="col"></div>');
 		$field_select.wrap('<div class="col"></div>');
 
-		let row = frappe.get_doc(doctype, docname);
+		let row = nts.get_doc(doctype, docname);
 		let curr_value = { doctype: null, fieldname: null };
 		if (row.fetch_from) {
 			let [doctype, fieldname] = row.fetch_from.split(".");
@@ -184,10 +184,10 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			if (!link_fieldname) return;
 			let link_field = frm.doc.fields.find((df) => df.fieldname === link_fieldname);
 			let link_doctype = link_field.options;
-			frappe.model.with_doctype(link_doctype, () => {
-				let fields = frappe.meta
+			nts.model.with_doctype(link_doctype, () => {
+				let fields = nts.meta
 					.get_docfields(link_doctype, null, {
-						fieldtype: ["not in", frappe.model.no_value_type],
+						fieldtype: ["not in", nts.model.no_value_type],
 					})
 					.sort((a, b) => a.label.localeCompare(b.label))
 					.map((df) => ({

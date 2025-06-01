@@ -1,7 +1,7 @@
-// Copyright (c) 2019, Frappe Technologies and contributors
+// Copyright (c) 2019, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Notification Settings", {
+nts.ui.form.on("Notification Settings", {
 	onload: (frm) => {
 		frm.set_query("subscribed_documents", () => {
 			return {
@@ -13,9 +13,9 @@ frappe.ui.form.on("Notification Settings", {
 	},
 
 	refresh: (frm) => {
-		if (frappe.user.has_role("System Manager")) {
+		if (nts.user.has_role("System Manager")) {
 			frm.add_custom_button(__("Go to Notification Settings List"), () => {
-				frappe.set_route("List", "Notification Settings");
+				nts.set_route("List", "Notification Settings");
 			});
 		}
 	},

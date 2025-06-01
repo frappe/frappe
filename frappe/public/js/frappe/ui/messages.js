@@ -1,15 +1,15 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.messages");
+nts.provide("nts.messages");
 
 import "./dialog";
 
-frappe.messages.waiting = function (parent, msg) {
-	return $(frappe.messages.get_waiting_message(msg)).appendTo(parent);
+nts.messages.waiting = function (parent, msg) {
+	return $(nts.messages.get_waiting_message(msg)).appendTo(parent);
 };
 
-frappe.messages.get_waiting_message = function (msg) {
+nts.messages.get_waiting_message = function (msg) {
 	return repl(
 		'<div class="msg-box" style="width: 63%; margin: 30px auto;">\
 		<p class="text-center">%(msg)s</p></div>',
@@ -17,17 +17,17 @@ frappe.messages.get_waiting_message = function (msg) {
 	);
 };
 
-frappe.throw = function (msg) {
+nts.throw = function (msg) {
 	if (typeof msg === "string") {
 		msg = { message: msg, title: __("Error") };
 	}
 	if (!msg.indicator) msg.indicator = "red";
-	frappe.msgprint(msg);
+	nts.msgprint(msg);
 	throw new Error(msg.message);
 };
 
-frappe.confirm = function (message, confirm_action, reject_action) {
-	var d = new frappe.ui.Dialog({
+nts.confirm = function (message, confirm_action, reject_action) {
+	var d = new nts.ui.Dialog({
 		title: __("Confirm", null, "Title of confirmation dialog"),
 		primary_action_label: __("Yes", null, "Approve confirmation dialog"),
 		primary_action: () => {
@@ -38,7 +38,7 @@ frappe.confirm = function (message, confirm_action, reject_action) {
 		secondary_action: () => d.hide(),
 	});
 
-	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);
+	d.$body.append(`<p class="nts-confirm-message">${message}</p>`);
 	d.show();
 
 	// flag, used to bind "okay" on enter
@@ -56,8 +56,8 @@ frappe.confirm = function (message, confirm_action, reject_action) {
 	return d;
 };
 
-frappe.warn = function (title, message_html, proceed_action, primary_label, is_minimizable) {
-	const d = new frappe.ui.Dialog({
+nts.warn = function (title, message_html, proceed_action, primary_label, is_minimizable) {
+	const d = new nts.ui.Dialog({
 		title: title,
 		indicator: "red",
 		primary_action_label: primary_label,
@@ -70,14 +70,14 @@ frappe.warn = function (title, message_html, proceed_action, primary_label, is_m
 		minimizable: is_minimizable,
 	});
 
-	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
+	d.$body.append(`<div class="nts-confirm-message">${message_html}</div>`);
 	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
 
 	d.show();
 	return d;
 };
 
-frappe.prompt = function (fields, callback, title, primary_label) {
+nts.prompt = function (fields, callback, title, primary_label) {
 	if (typeof fields === "string") {
 		fields = [
 			{
@@ -89,7 +89,7 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 		];
 	}
 	if (!$.isArray(fields)) fields = [fields];
-	var d = new frappe.ui.Dialog({
+	var d = new nts.ui.Dialog({
 		fields: fields,
 		title: title || __("Enter Value", null, "Title of prompt dialog"),
 	});
@@ -108,7 +108,7 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 	return d;
 };
 
-frappe.msgprint = function (msg, title, is_minimizable) {
+nts.msgprint = function (msg, title, is_minimizable) {
 	if (!msg) return;
 
 	let data;
@@ -160,36 +160,36 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 		}
 
 		messages.forEach(function (m) {
-			frappe.msgprint(m);
+			nts.msgprint(m);
 		});
 		return;
 	}
 
 	if (data.alert || data.toast) {
-		frappe.show_alert(data);
+		nts.show_alert(data);
 		return;
 	}
 
-	if (!frappe.msg_dialog) {
-		frappe.msg_dialog = new frappe.ui.Dialog({
+	if (!nts.msg_dialog) {
+		nts.msg_dialog = new nts.ui.Dialog({
 			title: __("Message"),
 			onhide: function () {
-				if (frappe.msg_dialog.custom_onhide) {
-					frappe.msg_dialog.custom_onhide();
+				if (nts.msg_dialog.custom_onhide) {
+					nts.msg_dialog.custom_onhide();
 				}
-				frappe.msg_dialog.msg_area.empty();
+				nts.msg_dialog.msg_area.empty();
 			},
 			minimizable: data.is_minimizable || is_minimizable,
 		});
 
 		// class "msgprint" is used in tests
-		frappe.msg_dialog.msg_area = $('<div class="msgprint">').appendTo(frappe.msg_dialog.body);
+		nts.msg_dialog.msg_area = $('<div class="msgprint">').appendTo(nts.msg_dialog.body);
 
-		frappe.msg_dialog.clear = function () {
-			frappe.msg_dialog.msg_area.empty();
+		nts.msg_dialog.clear = function () {
+			nts.msg_dialog.msg_area.empty();
 		};
 
-		frappe.msg_dialog.indicator = frappe.msg_dialog.header.find(".indicator");
+		nts.msg_dialog.indicator = nts.msg_dialog.header.find(".indicator");
 	}
 
 	// setup and bind an action to the primary button
@@ -199,14 +199,14 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 			typeof data.primary_action.server_action === "string"
 		) {
 			data.primary_action.action = () => {
-				frappe.call({
+				nts.call({
 					method: data.primary_action.server_action,
 					args: {
 						args: data.primary_action.args,
 					},
 					callback() {
 						if (data.primary_action.hide_on_success) {
-							frappe.hide_msgprint();
+							nts.hide_msgprint();
 						}
 					},
 				});
@@ -229,20 +229,20 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 			};
 		}
 
-		frappe.msg_dialog.set_primary_action(
+		nts.msg_dialog.set_primary_action(
 			__(data.primary_action.label) || __(data.primary_action_label) || __("Done"),
 			data.primary_action.action
 		);
 	} else {
-		if (frappe.msg_dialog.has_primary_action) {
-			frappe.msg_dialog.get_primary_btn().addClass("hide");
-			frappe.msg_dialog.has_primary_action = false;
+		if (nts.msg_dialog.has_primary_action) {
+			nts.msg_dialog.get_primary_btn().addClass("hide");
+			nts.msg_dialog.has_primary_action = false;
 		}
 	}
 
 	if (data.secondary_action) {
-		frappe.msg_dialog.set_secondary_action(data.secondary_action.action);
-		frappe.msg_dialog.set_secondary_action_label(
+		nts.msg_dialog.set_secondary_action(data.secondary_action.action);
+		nts.msg_dialog.set_secondary_action_label(
 			__(data.secondary_action.label) || __("Close")
 		);
 	}
@@ -252,85 +252,85 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 	}
 
 	if (data.message.search(/<br>|<p>|<li>/) == -1) {
-		msg = frappe.utils.replace_newlines(data.message);
+		msg = nts.utils.replace_newlines(data.message);
 	}
 
 	var msg_exists = false;
 	if (data.clear) {
-		frappe.msg_dialog.msg_area.empty();
+		nts.msg_dialog.msg_area.empty();
 	} else {
-		msg_exists = frappe.msg_dialog.msg_area.html();
+		msg_exists = nts.msg_dialog.msg_area.html();
 	}
 
 	if (data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		frappe.msg_dialog.set_title(
+		nts.msg_dialog.set_title(
 			data.title || __("Message", null, "Default title of the message dialog")
 		);
 	}
 
 	// show / hide indicator
 	if (data.indicator) {
-		frappe.msg_dialog.indicator.removeClass().addClass("indicator " + data.indicator);
+		nts.msg_dialog.indicator.removeClass().addClass("indicator " + data.indicator);
 	} else {
-		frappe.msg_dialog.indicator.removeClass().addClass("hidden");
+		nts.msg_dialog.indicator.removeClass().addClass("hidden");
 	}
 
 	// width
 	if (data.wide) {
 		// msgprint should be narrower than the usual dialog
-		if (frappe.msg_dialog.wrapper.classList.contains("msgprint-dialog")) {
-			frappe.msg_dialog.wrapper.classList.remove("msgprint-dialog");
+		if (nts.msg_dialog.wrapper.classList.contains("msgprint-dialog")) {
+			nts.msg_dialog.wrapper.classList.remove("msgprint-dialog");
 		}
 	} else {
 		// msgprint should be narrower than the usual dialog
-		frappe.msg_dialog.wrapper.classList.add("msgprint-dialog");
+		nts.msg_dialog.wrapper.classList.add("msgprint-dialog");
 	}
 
 	if (msg_exists) {
-		frappe.msg_dialog.msg_area.append("<hr>");
+		nts.msg_dialog.msg_area.append("<hr>");
 		// append a <hr> if another msg already exists
 	}
 
-	frappe.msg_dialog.msg_area.append(data.message);
+	nts.msg_dialog.msg_area.append(data.message);
 
 	// make msgprint always appear on top
-	frappe.msg_dialog.$wrapper.css("z-index", 2000);
-	frappe.msg_dialog.show();
+	nts.msg_dialog.$wrapper.css("z-index", 2000);
+	nts.msg_dialog.show();
 
-	return frappe.msg_dialog;
+	return nts.msg_dialog;
 };
 
-window.msgprint = frappe.msgprint;
+window.msgprint = nts.msgprint;
 
-frappe.hide_msgprint = function (instant) {
+nts.hide_msgprint = function (instant) {
 	// clear msgprint
-	if (frappe.msg_dialog && frappe.msg_dialog.msg_area) {
-		frappe.msg_dialog.msg_area.empty();
+	if (nts.msg_dialog && nts.msg_dialog.msg_area) {
+		nts.msg_dialog.msg_area.empty();
 	}
-	if (frappe.msg_dialog && frappe.msg_dialog.$wrapper.is(":visible")) {
+	if (nts.msg_dialog && nts.msg_dialog.$wrapper.is(":visible")) {
 		if (instant) {
-			frappe.msg_dialog.$wrapper.removeClass("fade");
+			nts.msg_dialog.$wrapper.removeClass("fade");
 		}
-		frappe.msg_dialog.hide();
+		nts.msg_dialog.hide();
 		if (instant) {
-			frappe.msg_dialog.$wrapper.addClass("fade");
+			nts.msg_dialog.$wrapper.addClass("fade");
 		}
 	}
 };
 
 // update html in existing msgprint
-frappe.update_msgprint = function (html) {
-	if (!frappe.msg_dialog || (frappe.msg_dialog && !frappe.msg_dialog.$wrapper.is(":visible"))) {
-		frappe.msgprint(html);
+nts.update_msgprint = function (html) {
+	if (!nts.msg_dialog || (nts.msg_dialog && !nts.msg_dialog.$wrapper.is(":visible"))) {
+		nts.msgprint(html);
 	} else {
-		frappe.msg_dialog.msg_area.html(html);
+		nts.msg_dialog.msg_area.html(html);
 	}
 };
 
-frappe.verify_password = function (callback) {
-	frappe.prompt(
+nts.verify_password = function (callback) {
+	nts.prompt(
 		{
 			fieldname: "password",
 			label: __("Enter your password"),
@@ -338,8 +338,8 @@ frappe.verify_password = function (callback) {
 			reqd: 1,
 		},
 		function (data) {
-			frappe.call({
-				method: "frappe.core.doctype.user.user.verify_password",
+			nts.call({
+				method: "nts.core.doctype.user.user.verify_password",
 				args: {
 					password: data.password,
 				},
@@ -355,16 +355,16 @@ frappe.verify_password = function (callback) {
 	);
 };
 
-frappe.show_progress = (title, count, total = 100, description, hide_on_completion = false) => {
+nts.show_progress = (title, count, total = 100, description, hide_on_completion = false) => {
 	let dialog;
 	if (
-		frappe.cur_progress &&
-		frappe.cur_progress.title === title &&
-		frappe.cur_progress.is_visible
+		nts.cur_progress &&
+		nts.cur_progress.title === title &&
+		nts.cur_progress.is_visible
 	) {
-		dialog = frappe.cur_progress;
+		dialog = nts.cur_progress;
 	} else {
-		dialog = new frappe.ui.Dialog({
+		dialog = new nts.ui.Dialog({
 			title: title,
 		});
 		dialog.progress = $(`<div>
@@ -376,7 +376,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		dialog.progress_bar = dialog.progress.css({ "margin-top": "10px" }).find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
 		dialog.show();
-		frappe.cur_progress = dialog;
+		nts.cur_progress = dialog;
 	}
 	if (description) {
 		dialog.progress.find(".description").text(description);
@@ -385,21 +385,21 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 	dialog.progress_bar.css({ width: dialog.percent + "%" });
 	if (hide_on_completion && dialog.percent === 100) {
 		// timeout to avoid abrupt hide
-		setTimeout(frappe.hide_progress, 500);
+		setTimeout(nts.hide_progress, 500);
 	}
-	frappe.cur_progress.$wrapper.css("z-index", 2000);
+	nts.cur_progress.$wrapper.css("z-index", 2000);
 	return dialog;
 };
 
-frappe.hide_progress = function () {
-	if (frappe.cur_progress) {
-		frappe.cur_progress.hide();
-		frappe.cur_progress = null;
+nts.hide_progress = function () {
+	if (nts.cur_progress) {
+		nts.cur_progress.hide();
+		nts.cur_progress = null;
 	}
 };
 
 // Floating Message
-frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {
+nts.show_alert = nts.toast = function (message, seconds = 7, actions = {}) {
 	let indicator_icon_map = {
 		orange: "solid-warning",
 		yellow: "solid-warning",
@@ -431,13 +431,13 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 		<div class="alert desk-alert ${indicator}" role="alert">
 			<div class="alert-message-container">
 				<div class="alert-title-container">
-					<div>${frappe.utils.icon(icon, "lg")}</div>
+					<div>${nts.utils.icon(icon, "lg")}</div>
 					<div class="alert-message">${message.message}</div>
 				</div>
 				<div class="alert-subtitle">${message.subtitle || ""}</div>
 			</div>
 			<div class="alert-body" style="display: none"></div>
-			<a class="close">${frappe.utils.icon("close-alt")}</a>
+			<a class="close">${nts.utils.icon("close-alt")}</a>
 		</div>
 	`);
 

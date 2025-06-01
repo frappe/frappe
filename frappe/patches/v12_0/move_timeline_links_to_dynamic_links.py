@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	communications = frappe.db.sql(
+	communications = nts.db.sql(
 		"""
 		SELECT
 			`tabCommunication`.name, `tabCommunication`.creation, `tabCommunication`.modified,
@@ -25,9 +25,9 @@ def execute():
 				"""({}, "{}", "timeline_links", "Communication", "{}", "{}", "{}", "{}", "{}", "{}")""".format(
 					counter,
 					str(name),
-					frappe.db.escape(communication.name),
-					frappe.db.escape(communication.timeline_doctype),
-					frappe.db.escape(communication.timeline_name),
+					nts.db.escape(communication.name),
+					nts.db.escape(communication.timeline_doctype),
+					nts.db.escape(communication.timeline_name),
 					communication.creation,
 					communication.modified,
 					communication.modified_by,
@@ -40,9 +40,9 @@ def execute():
 				"""({}, "{}", "timeline_links", "Communication", "{}", "{}", "{}", "{}", "{}", "{}")""".format(
 					counter,
 					str(name),
-					frappe.db.escape(communication.name),
-					frappe.db.escape(communication.link_doctype),
-					frappe.db.escape(communication.link_name),
+					nts.db.escape(communication.name),
+					nts.db.escape(communication.link_doctype),
+					nts.db.escape(communication.link_name),
 					communication.creation,
 					communication.modified,
 					communication.modified_by,
@@ -50,7 +50,7 @@ def execute():
 			)
 
 		if values and (count % 10000 == 0 or count == len(communications) - 1):
-			frappe.db.sql(
+			nts.db.sql(
 				"""
 				INSERT INTO `tabCommunication Link`
 					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
@@ -61,4 +61,4 @@ def execute():
 
 			values = []
 
-	frappe.db.add_index("Communication Link", ["link_doctype", "link_name"])
+	nts.db.add_index("Communication Link", ["link_doctype", "link_name"])

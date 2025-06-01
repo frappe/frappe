@@ -1,22 +1,22 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
 from random import choice
 from unittest.mock import MagicMock, PropertyMock, patch
 
-import frappe
-from frappe.email.doctype.newsletter.exceptions import (
+import nts
+from nts.email.doctype.newsletter.exceptions import (
 	NewsletterAlreadySentError,
 	NoRecipientFoundError,
 )
-from frappe.email.doctype.newsletter.newsletter import (
+from nts.email.doctype.newsletter.newsletter import (
 	Newsletter,
 	confirmed_unsubscribe,
 	send_scheduled_email,
 )
-from frappe.email.queue import flush
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, getdate
+from nts.email.queue import flush
+from nts.tests.utils import ntsTestCase
+from nts.utils import add_days, getdate
 
 emails = [
 	"test_subscriber1@example.com",
@@ -37,51 +37,51 @@ def get_dotted_path(obj: type) -> str:
 
 class TestNewsletterMixin:
 	def setUp(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		self.setup_email_group()
 
 	def tearDown(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		for newsletter in newsletters:
-			frappe.db.delete(
+			nts.db.delete(
 				"Email Queue",
 				{
 					"reference_doctype": "Newsletter",
 					"reference_name": newsletter,
 				},
 			)
-			frappe.delete_doc("Newsletter", newsletter)
-			frappe.db.delete("Newsletter Email Group", {"parent": newsletter})
+			nts.delete_doc("Newsletter", newsletter)
+			nts.db.delete("Newsletter Email Group", {"parent": newsletter})
 			newsletters.remove(newsletter)
 
 	def setup_email_group(self):
-		if not frappe.db.exists("Email Group", "_Test Email Group"):
-			frappe.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
+		if not nts.db.exists("Email Group", "_Test Email Group"):
+			nts.get_doc({"doctype": "Email Group", "title": "_Test Email Group"}).insert()
 
 		for email in emails:
 			doctype = "Email Group Member"
 			email_filters = {"email": email, "email_group": "_Test Email Group"}
 
 			savepoint = "setup_email_group"
-			frappe.db.savepoint(savepoint)
+			nts.db.savepoint(savepoint)
 
 			try:
-				frappe.get_doc(
+				nts.get_doc(
 					{
 						"doctype": doctype,
 						**email_filters,
 					}
 				).insert(ignore_if_duplicate=True)
 			except Exception:
-				frappe.db.rollback(save_point=savepoint)
-				frappe.db.set_value(doctype, email_filters, "unsubscribed", 0)
+				nts.db.rollback(save_point=savepoint)
+				nts.db.set_value(doctype, email_filters, "unsubscribed", 0)
 
-			frappe.db.release_savepoint(savepoint)
+			nts.db.release_savepoint(savepoint)
 
 	def send_newsletter(self, published=0, schedule_send=None) -> str | None:
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Newsletter")
+		nts.db.delete("Email Queue")
+		nts.db.delete("Email Queue Recipient")
+		nts.db.delete("Newsletter")
 
 		newsletter_options = {
 			"published": published,
@@ -109,18 +109,18 @@ class TestNewsletterMixin:
 			"content_type": "Rich Text",
 			"message": "Testing my news.",
 		}
-		similar_newsletters = frappe.get_all(doctype, newsletter_content, pluck="name")
+		similar_newsletters = nts.get_all(doctype, newsletter_content, pluck="name")
 
 		for similar_newsletter in similar_newsletters:
-			frappe.delete_doc(doctype, similar_newsletter)
+			nts.delete_doc(doctype, similar_newsletter)
 
-		newsletter = frappe.get_doc({"doctype": doctype, **newsletter_content, **kwargs})
+		newsletter = nts.get_doc({"doctype": doctype, **newsletter_content, **kwargs})
 		newsletter.append("email_group", {"email_group": "_Test Email Group"})
 		newsletter.save(ignore_permissions=True)
 		newsletter.reload()
 		newsletters.append(newsletter.name)
 
-		attached_files = frappe.get_all(
+		attached_files = nts.get_all(
 			"File",
 			{
 				"attached_to_doctype": newsletter.doctype,
@@ -129,16 +129,16 @@ class TestNewsletterMixin:
 			pluck="name",
 		)
 		for file in attached_files:
-			frappe.delete_doc("File", file)
+			nts.delete_doc("File", file)
 
 		return newsletter
 
 
-class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
+class TestNewsletter(TestNewsletterMixin, ntsTestCase):
 	def test_send(self):
 		self.send_newsletter()
 
-		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		email_queue_list = [nts.get_doc("Email Queue", e.name) for e in nts.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 
 		recipients = {e.recipients[0].recipient for e in email_queue_list}
@@ -147,13 +147,13 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 	def test_unsubscribe(self):
 		name = self.send_newsletter()
 		to_unsubscribe = choice(emails)
-		group = frappe.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
+		group = nts.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
 
 		flush()
 		confirmed_unsubscribe(to_unsubscribe, group[0].email_group)
 
 		name = self.send_newsletter()
-		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		email_queue_list = [nts.get_doc("Email Queue", e.name) for e in nts.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 3)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 
@@ -166,7 +166,7 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		newsletter.db_set("schedule_send", add_days(getdate(), -1))  # Set date in past
 		send_scheduled_email()
 
-		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		email_queue_list = [nts.get_doc("Email Queue", e.name) for e in nts.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 		for email in emails:
@@ -182,7 +182,7 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		newsletter.save = MagicMock()
 		self.assertFalse(newsletter.save.called)
 		# check if the test email is in the queue
-		email_queue = frappe.get_all(
+		email_queue = nts.get_all(
 			"Email Queue",
 			filters=[
 				["reference_doctype", "=", "Newsletter"],
@@ -218,10 +218,10 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 
 	def test_send_scheduled_email_error_handling(self):
 		newsletter = self.get_newsletter(schedule_send=add_days(getdate(), -1))
-		job_path = "frappe.email.doctype.newsletter.newsletter.Newsletter.queue_all"
-		m = MagicMock(side_effect=frappe.OutgoingEmailError)
+		job_path = "nts.email.doctype.newsletter.newsletter.Newsletter.queue_all"
+		m = MagicMock(side_effect=nts.OutgoingEmailError)
 
-		with self.assertRaises(frappe.OutgoingEmailError):
+		with self.assertRaises(nts.OutgoingEmailError):
 			with patch(job_path, new_callable=m):
 				send_scheduled_email()
 
@@ -229,13 +229,13 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		self.assertEqual(newsletter.email_sent, 0)
 
 	def test_retry_partially_sent_newsletter(self):
-		frappe.db.delete("Email Queue")
-		frappe.db.delete("Email Queue Recipient")
-		frappe.db.delete("Newsletter")
+		nts.db.delete("Email Queue")
+		nts.db.delete("Email Queue Recipient")
+		nts.db.delete("Newsletter")
 
 		newsletter = self.get_newsletter()
 		newsletter.send_emails()
-		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		email_queue_list = [nts.get_doc("Email Queue", e.name) for e in nts.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 
 		# delete a queue document to emulate partial send
@@ -248,5 +248,5 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 
 		# retry
 		newsletter.send_emails()
-		self.assertEqual(frappe.db.count("Email Queue"), 4)
+		self.assertEqual(nts.db.count("Email Queue"), 4)
 		self.assertTrue(newsletter.email_sent)

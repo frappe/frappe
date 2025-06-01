@@ -53,7 +53,7 @@ function remove_tab(tab, event, force = false) {
 	if (!event?.currentTarget?.offsetParent && !force) return;
 
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
-		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		nts.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (store.has_standard_field(store.current_tab)) {
 		delete_tab(tab);
@@ -141,7 +141,7 @@ function delete_tab(tab, with_children) {
 						@click.stop="remove_tab(element, $event)"
 						:hidden="store.read_only"
 					>
-						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
+						<div v-html="nts.utils.icon('remove', 'xs')"></div>
 					</button>
 				</div>
 			</template>

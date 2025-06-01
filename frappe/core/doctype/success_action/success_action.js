@@ -1,7 +1,7 @@
-// Copyright (c) 2018, Frappe Technologies and contributors
+// Copyright (c) 2018, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Success Action", {
+nts.ui.form.on("Success Action", {
 	on_load: (frm) => {
 		if (!frm.action_multicheck) {
 			frm.trigger("set_next_action_multicheck");
@@ -15,7 +15,7 @@ frappe.ui.form.on("Success Action", {
 	validate: (frm) => {
 		const checked_actions = frm.action_multicheck.get_checked_options();
 		if (checked_actions.length < 2) {
-			frappe.msgprint(__("Select atleast 2 actions"));
+			nts.msgprint(__("Select atleast 2 actions"));
 		} else {
 			return true;
 		}
@@ -25,7 +25,7 @@ frappe.ui.form.on("Success Action", {
 		frm.doc.next_actions = checked_actions.join("\n");
 	},
 	after_save: (frm) => {
-		frappe.boot.success_action.push(frm.doc);
+		nts.boot.success_action.push(frm.doc);
 		//TODO: update success action cache on record update and delete
 	},
 	set_next_action_multicheck: (frm) => {
@@ -38,7 +38,7 @@ frappe.ui.form.on("Success Action", {
 				checked: checked_actions.length ? checked_actions.includes(action.value) : 1,
 			};
 		});
-		frm.action_multicheck = frappe.ui.form.make_control({
+		frm.action_multicheck = nts.ui.form.make_control({
 			parent: next_actions_wrapper,
 			df: {
 				label: "Next Actions",

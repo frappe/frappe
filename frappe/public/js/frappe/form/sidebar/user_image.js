@@ -1,4 +1,4 @@
-frappe.ui.form.set_user_image = function (frm) {
+nts.ui.form.set_user_image = function (frm) {
 	var image_section = frm.sidebar.image_section;
 	var image_field = frm.meta.image_field;
 	var image = frm.doc[image_field];
@@ -14,7 +14,7 @@ frappe.ui.form.set_user_image = function (frm) {
 
 	// if image field has value
 	if (image) {
-		image = window.cordova && image.indexOf("http") === -1 ? frappe.base_url + image : image;
+		image = window.cordova && image.indexOf("http") === -1 ? nts.base_url + image : image;
 
 		image_section.find(".sidebar-image").attr("src", image).removeClass("hide");
 
@@ -32,20 +32,20 @@ frappe.ui.form.set_user_image = function (frm) {
 			.find(".sidebar-standard-image")
 			.removeClass("hide")
 			.find(".standard-image")
-			.html(frappe.get_abbr(title));
+			.html(nts.get_abbr(title));
 
-		title_image.css("background-image", "").html(frappe.get_abbr(title));
+		title_image.css("background-image", "").html(nts.get_abbr(title));
 
 		image_actions.find(".sidebar-image-change").show();
 		image_actions.find(".sidebar-image-remove").hide();
 	}
 };
 
-frappe.ui.form.setup_user_image_event = function (frm) {
+nts.ui.form.setup_user_image_event = function (frm) {
 	// re-draw image on change of user image
 	if (frm.meta.image_field) {
-		frappe.ui.form.on(frm.doctype, frm.meta.image_field, function (frm) {
-			frappe.ui.form.set_user_image(frm);
+		nts.ui.form.on(frm.doctype, frm.meta.image_field, function (frm) {
+			nts.ui.form.set_user_image(frm);
 		});
 	}
 

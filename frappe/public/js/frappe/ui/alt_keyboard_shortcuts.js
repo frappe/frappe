@@ -1,13 +1,13 @@
-frappe.provide("frappe.ui.keys");
+nts.provide("nts.ui.keys");
 
 let shortcut_groups = new WeakMap();
 let shortcut_group_list = [];
-frappe.ui.keys.shortcut_groups = shortcut_groups;
+nts.ui.keys.shortcut_groups = shortcut_groups;
 
-frappe.ui.keys.get_shortcut_group = (parent) => {
+nts.ui.keys.get_shortcut_group = (parent) => {
 	// parent must be an object
 	if (!shortcut_groups.has(parent)) {
-		shortcut_groups.set(parent, new frappe.ui.keys.AltShortcutGroup());
+		shortcut_groups.set(parent, new nts.ui.keys.AltShortcutGroup());
 	}
 	return shortcut_groups.get(parent);
 };
@@ -16,7 +16,7 @@ let listener_added = false;
 let $current_dropdown = null;
 let $body = $(document.body);
 
-frappe.ui.keys.bind_shortcut_group_event = () => {
+nts.ui.keys.bind_shortcut_group_event = () => {
 	if (listener_added) return;
 	listener_added = true;
 
@@ -36,7 +36,7 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 	}
 
 	$(document).on("keydown", (e) => {
-		let key = (frappe.ui.keys.key_map[e.which] || "").toLowerCase();
+		let key = (nts.ui.keys.key_map[e.which] || "").toLowerCase();
 
 		if (key === "alt") {
 			highlight_alt_shortcuts();
@@ -92,12 +92,12 @@ function get_shortcut_for_key(key) {
 	return shortcut;
 }
 
-frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
+nts.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	constructor() {
 		this.shortcuts_dict = {};
 		$current_dropdown = null;
 		this.bind_events();
-		frappe.ui.keys.bind_shortcut_group_event();
+		nts.ui.keys.bind_shortcut_group_event();
 		shortcut_group_list.push(this);
 	}
 
@@ -171,7 +171,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	}
 
 	is_taken(letter) {
-		let is_in_global_shortcut = frappe.ui.keys.standard_shortcuts
+		let is_in_global_shortcut = nts.ui.keys.standard_shortcuts
 			.filter((s) => !s.page)
 			.some((s) => s.shortcut === `alt+${letter}`);
 		return letter in this.shortcuts_dict || is_in_global_shortcut;

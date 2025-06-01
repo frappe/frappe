@@ -1,9 +1,9 @@
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
 export default class ListFilter {
 	constructor({ wrapper, doctype }) {
 		Object.assign(this, arguments[0]);
-		this.can_add_global = frappe.user.has_role(["System Manager", "Administrator"]);
+		this.can_add_global = nts.user.has_role(["System Manager", "Administrator"]);
 		this.filters = [];
 		this.make();
 		this.bind();
@@ -27,7 +27,7 @@ export default class ListFilter {
 		this.saved_filters_hidden = true;
 		this.toggle_saved_filters(true);
 
-		this.filter_input = frappe.ui.form.make_control({
+		this.filter_input = nts.ui.form.make_control({
 			df: {
 				fieldtype: "Data",
 				placeholder: __("Filter Name"),
@@ -37,7 +37,7 @@ export default class ListFilter {
 			render_input: 1,
 		});
 
-		this.is_global_input = frappe.ui.form.make_control({
+		this.is_global_input = nts.ui.form.make_control({
 			df: {
 				fieldtype: "Check",
 				label: __("Is Global"),
@@ -72,7 +72,7 @@ export default class ListFilter {
 			filter.name
 		}">
 			<a class="ellipsis filter-name">${filter.filter_name}</a>
-			<a class="remove">${frappe.utils.icon("close")}</a>
+			<a class="remove">${nts.utils.icon("close")}</a>
 		</div>`;
 	}
 
@@ -105,7 +105,7 @@ export default class ListFilter {
 			const $li = $(e.currentTarget).closest(".filter-pill");
 			const filter_label = $li.text().trim();
 
-			frappe.confirm(
+			nts.confirm(
 				__("Are you sure you want to remove the {0} filter?", [filter_label.bold()]),
 				() => {
 					const name = $li.attr("data-name");
@@ -120,11 +120,11 @@ export default class ListFilter {
 
 	bind_save_filter() {
 		this.filter_input.$input.keydown(
-			frappe.utils.debounce((e) => {
+			nts.utils.debounce((e) => {
 				const value = this.filter_input.get_value();
 				const has_value = Boolean(value);
 
-				if (e.which === frappe.ui.keyCode["ENTER"]) {
+				if (e.which === nts.ui.keyCode["ENTER"]) {
 					if (!has_value || this.filter_name_exists(value)) return;
 
 					this.filter_input.set_value("");
@@ -148,18 +148,18 @@ export default class ListFilter {
 	}
 
 	save_filter(filter_name) {
-		return frappe.db.insert({
+		return nts.db.insert({
 			doctype: "List Filter",
 			reference_doctype: this.list_view.doctype,
 			filter_name,
-			for_user: this.is_global_input.get_value() ? "" : frappe.session.user,
+			for_user: this.is_global_input.get_value() ? "" : nts.session.user,
 			filters: JSON.stringify(this.get_current_filters()),
 		});
 	}
 
 	remove_filter(name) {
 		if (!name) return;
-		return frappe.db.delete_doc("List Filter", name);
+		return nts.db.delete_doc("List Filter", name);
 	}
 
 	get_filters_values(name) {
@@ -176,13 +176,13 @@ export default class ListFilter {
 	}
 
 	get_list_filters() {
-		if (frappe.session.user === "Guest") return Promise.resolve();
-		return frappe.db
+		if (nts.session.user === "Guest") return Promise.resolve();
+		return nts.db
 			.get_list("List Filter", {
 				fields: ["name", "filter_name", "for_user", "filters"],
 				filters: { reference_doctype: this.list_view.doctype },
 				or_filters: [
-					["for_user", "=", frappe.session.user],
+					["for_user", "=", nts.session.user],
 					["for_user", "=", ""],
 				],
 				order_by: "filter_name asc",

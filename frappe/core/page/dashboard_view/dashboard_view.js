@@ -1,19 +1,19 @@
-// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2019, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.dashboards");
-frappe.provide("frappe.dashboards.chart_sources");
+nts.provide("nts.dashboards");
+nts.provide("nts.dashboards.chart_sources");
 
-frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
-	frappe.ui.make_app_page({
+nts.pages["dashboard-view"].on_page_load = function (wrapper) {
+	nts.ui.make_app_page({
 		parent: wrapper,
 		title: __("Dashboard"),
 		single_column: true,
 	});
 
-	frappe.dashboard = new Dashboard(wrapper);
+	nts.dashboard = new Dashboard(wrapper);
 	$(wrapper).bind("show", function () {
-		frappe.dashboard.show();
+		nts.dashboard.show();
 	});
 };
 
@@ -28,28 +28,28 @@ class Dashboard {
 	}
 
 	show() {
-		this.route = frappe.get_route();
+		this.route = nts.get_route();
 		this.set_breadcrumbs();
 		if (this.route.length > 1) {
 			// from route
 			this.show_dashboard(this.route.slice(-1)[0]);
 		} else {
 			// last opened
-			if (frappe.last_dashboard) {
-				frappe.set_re_route("dashboard-view", frappe.last_dashboard);
+			if (nts.last_dashboard) {
+				nts.set_re_route("dashboard-view", nts.last_dashboard);
 			} else {
 				// default dashboard
-				frappe.db.get_list("Dashboard", { filters: { is_default: 1 } }).then((data) => {
+				nts.db.get_list("Dashboard", { filters: { is_default: 1 } }).then((data) => {
 					if (data && data.length) {
-						frappe.set_re_route("dashboard-view", data[0].name);
+						nts.set_re_route("dashboard-view", data[0].name);
 					} else {
 						// no default, get the latest one
-						frappe.db.get_list("Dashboard", { limit: 1 }).then((data) => {
+						nts.db.get_list("Dashboard", { limit: 1 }).then((data) => {
 							if (data && data.length) {
-								frappe.set_re_route("dashboard-view", data[0].name);
+								nts.set_re_route("dashboard-view", data[0].name);
 							} else {
 								// create a new dashboard!
-								frappe.new_doc("Dashboard");
+								nts.new_doc("Dashboard");
 							}
 						});
 					}
@@ -72,29 +72,29 @@ class Dashboard {
 			this.refresh();
 		}
 		this.charts = {};
-		frappe.last_dashboard = current_dashboard_name;
+		nts.last_dashboard = current_dashboard_name;
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add("Desk", "Dashboard");
+		nts.breadcrumbs.add("Desk", "Dashboard");
 	}
 
 	refresh() {
-		frappe.run_serially([() => this.render_cards(), () => this.render_charts()]);
+		nts.run_serially([() => this.render_cards(), () => this.render_charts()]);
 	}
 
 	render_charts() {
 		return this.get_permitted_items(
-			"frappe.desk.doctype.dashboard.dashboard.get_permitted_charts"
+			"nts.desk.doctype.dashboard.dashboard.get_permitted_charts"
 		).then((charts) => {
 			if (!charts.length) {
-				frappe.msgprint(
+				nts.msgprint(
 					__("No Permitted Charts on this Dashboard"),
 					__("No Permitted Charts")
 				);
 			}
 
-			frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+			nts.dashboard_utils.get_dashboard_settings().then((settings) => {
 				let chart_config = settings.chart_config ? JSON.parse(settings.chart_config) : {};
 				this.charts = charts.map((chart) => {
 					return {
@@ -105,7 +105,7 @@ class Dashboard {
 					};
 				});
 
-				this.chart_group = new frappe.widget.WidgetGroup({
+				this.chart_group = new nts.widget.WidgetGroup({
 					title: null,
 					container: this.container,
 					type: "chart",
@@ -125,7 +125,7 @@ class Dashboard {
 
 	render_cards() {
 		return this.get_permitted_items(
-			"frappe.desk.doctype.dashboard.dashboard.get_permitted_cards"
+			"nts.desk.doctype.dashboard.dashboard.get_permitted_cards"
 		).then((cards) => {
 			if (!cards.length) {
 				return;
@@ -137,7 +137,7 @@ class Dashboard {
 				};
 			});
 
-			this.number_card_group = new frappe.widget.WidgetGroup({
+			this.number_card_group = new nts.widget.WidgetGroup({
 				container: this.container,
 				type: "number_card",
 				columns: 3,
@@ -154,7 +154,7 @@ class Dashboard {
 	}
 
 	get_permitted_items(method) {
-		return frappe
+		return nts
 			.xcall(method, {
 				dashboard_name: this.dashboard_name,
 			})
@@ -167,11 +167,11 @@ class Dashboard {
 		this.page.clear_menu();
 
 		this.page.add_menu_item(__("Edit"), () => {
-			frappe.set_route("Form", "Dashboard", frappe.dashboard.dashboard_name);
+			nts.set_route("Form", "Dashboard", nts.dashboard.dashboard_name);
 		});
 
 		this.page.add_menu_item(__("New"), () => {
-			frappe.new_doc("Dashboard");
+			nts.new_doc("Dashboard");
 		});
 
 		this.page.add_menu_item(__("Refresh All"), () => {
@@ -180,13 +180,13 @@ class Dashboard {
 				this.number_card_group.widgets_list.forEach((card) => card.render_card());
 		});
 
-		frappe.db.get_list("Dashboard").then((dashboards) => {
+		nts.db.get_list("Dashboard").then((dashboards) => {
 			dashboards.map((dashboard) => {
 				let name = dashboard.name;
 				if (name != this.dashboard_name) {
 					this.page.add_menu_item(
 						name,
-						() => frappe.set_route("dashboard-view", name),
+						() => nts.set_route("dashboard-view", name),
 						1
 					);
 				}

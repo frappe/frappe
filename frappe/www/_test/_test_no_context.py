@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 # no context object is accepted
 def get_context():
-	context = frappe._dict()
+	context = nts._dict()
 	context.body = "Custom Content"
 	return context

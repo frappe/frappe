@@ -6,7 +6,7 @@ from typing import ForwardRef, TypeVar, Union
 
 from pydantic import ConfigDict
 
-from frappe.exceptions import FrappeTypeError
+from nts.exceptions import ntsTypeError
 
 SLACK_DICT = {
 	bool: (int, bool, float),
@@ -14,7 +14,7 @@ SLACK_DICT = {
 T = TypeVar("T")
 
 
-FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
+ntsPydanticConfig = ConfigDict(arbitrary_types_allowed=True)
 
 
 def validate_argument_types(func: Callable, apply_condition: Callable = lambda: True):
@@ -60,7 +60,7 @@ def raise_type_error(
 	and the actual type of the value passed.
 
 	"""
-	raise FrappeTypeError(
+	raise ntsTypeError(
 		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
@@ -70,7 +70,7 @@ def raise_type_error(
 def TypeAdapter(type_):
 	from pydantic import TypeAdapter as PyTypeAdapter
 
-	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	return PyTypeAdapter(type_, config=ntsPydanticConfig)
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
@@ -118,7 +118,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
 			continue
 
-		# allow slack for Frappe types
+		# allow slack for nts types
 		if current_arg_type in SLACK_DICT:
 			current_arg_type = SLACK_DICT[current_arg_type]
 

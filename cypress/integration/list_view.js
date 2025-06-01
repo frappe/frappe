@@ -4,9 +4,9 @@ context("List View", () => {
 		cy.visit("/app/website");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.setup_workflow");
+			.its("nts")
+			.then((nts) => {
+				return nts.xcall("nts.tests.ui_test_helpers.setup_workflow");
 			});
 	});
 
@@ -41,7 +41,7 @@ context("List View", () => {
 			.then((elements) => {
 				cy.intercept({
 					method: "POST",
-					url: "api/method/frappe.model.workflow.bulk_workflow_approval",
+					url: "api/method/nts.model.workflow.bulk_workflow_approval",
 				}).as("bulk-approval");
 				cy.wrap(elements).contains("Approve").click();
 				cy.wait("@bulk-approval");

@@ -1,11 +1,11 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.core.doctype.data_export.exporter import DataExporter
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.data_export.exporter import DataExporter
+from nts.tests.utils import ntsTestCase
 
 
-class TestDataExporter(FrappeTestCase):
+class TestDataExporter(ntsTestCase):
 	def setUp(self):
 		self.doctype_name = "Test DocType for Export Tool"
 		self.doc_name = "Test Data for Export Tool"
@@ -17,15 +17,15 @@ class TestDataExporter(FrappeTestCase):
 		Helper Function for setting up doctypes
 		"""
 		if force:
-			frappe.delete_doc_if_exists("DocType", doctype_name)
-			frappe.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)
+			nts.delete_doc_if_exists("DocType", doctype_name)
+			nts.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)
 
-		if frappe.db.exists("DocType", doctype_name):
+		if nts.db.exists("DocType", doctype_name):
 			return
 
 		# Child Table 1
 		table_1_name = "Child 1 of " + doctype_name
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "DocType",
 				"name": table_1_name,
@@ -40,7 +40,7 @@ class TestDataExporter(FrappeTestCase):
 		).insert()
 
 		# Main Table
-		frappe.get_doc(
+		nts.get_doc(
 			{
 				"doctype": "DocType",
 				"name": doctype_name,
@@ -66,10 +66,10 @@ class TestDataExporter(FrappeTestCase):
 		Helper Function creating test data
 		"""
 		if force:
-			frappe.delete_doc(self.doctype_name, self.doc_name)
+			nts.delete_doc(self.doctype_name, self.doc_name)
 
-		if not frappe.db.exists(self.doctype_name, self.doc_name):
-			self.doc = frappe.get_doc(
+		if not nts.db.exists(self.doctype_name, self.doc_name):
+			self.doc = nts.get_doc(
 				doctype=self.doctype_name,
 				title=self.doc_name,
 				number="100",
@@ -79,17 +79,17 @@ class TestDataExporter(FrappeTestCase):
 				],
 			).insert()
 		else:
-			self.doc = frappe.get_doc(self.doctype_name, self.doc_name)
+			self.doc = nts.get_doc(self.doctype_name, self.doc_name)
 
 	def test_export_content(self):
 		exp = DataExporter(doctype=self.doctype_name, file_type="CSV")
 		exp.build_response()
 
-		self.assertEqual(frappe.response["type"], "csv")
-		self.assertEqual(frappe.response["doctype"], self.doctype_name)
-		self.assertTrue(frappe.response["result"])
-		self.assertRegex(frappe.response["result"], r"Child Title 1.*?,50")
-		self.assertRegex(frappe.response["result"], r"Child Title 2.*?,51")
+		self.assertEqual(nts.response["type"], "csv")
+		self.assertEqual(nts.response["doctype"], self.doctype_name)
+		self.assertTrue(nts.response["result"])
+		self.assertRegex(nts.response["result"], r"Child Title 1.*?,50")
+		self.assertRegex(nts.response["result"], r"Child Title 2.*?,51")
 
 	def test_export_type(self):
 		for type in ["csv", "Excel"]:
@@ -97,17 +97,17 @@ class TestDataExporter(FrappeTestCase):
 				exp = DataExporter(doctype=self.doctype_name, file_type=type)
 				exp.build_response()
 
-				self.assertEqual(frappe.response["doctype"], self.doctype_name)
-				self.assertTrue(frappe.response["result"])
+				self.assertEqual(nts.response["doctype"], self.doctype_name)
+				self.assertTrue(nts.response["result"])
 
 				if type == "csv":
-					self.assertEqual(frappe.response["type"], "csv")
+					self.assertEqual(nts.response["type"], "csv")
 				elif type == "Excel":
-					self.assertEqual(frappe.response["type"], "binary")
+					self.assertEqual(nts.response["type"], "binary")
 					self.assertEqual(
-						frappe.response["filename"], self.doctype_name + ".xlsx"
+						nts.response["filename"], self.doctype_name + ".xlsx"
 					)  # 'Test DocType for Export Tool.xlsx')
-					self.assertTrue(frappe.response["filecontent"])
+					self.assertTrue(nts.response["filecontent"])
 
 	def tearDown(self):
 		pass

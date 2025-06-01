@@ -8,7 +8,7 @@ repos:
     rev: v4.3.0
     hooks:
       - id: trailing-whitespace
-        files: "frappe.*"
+        files: "nts.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: check-yaml
       - id: no-commit-to-branch
@@ -38,13 +38,13 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                frappe/public/dist/.*|
+                nts/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                frappe/www/website_script.js|
-                frappe/templates/includes/.*|
-                frappe/public/js/lib/.*|
-                frappe/website/doctype/website_theme/website_theme_template.scss
+                nts/www/website_script.js|
+                nts/templates/includes/.*|
+                nts/public/js/lib/.*|
+                nts/website/doctype/website_theme/website_theme_template.scss
             )$
 
 
@@ -57,13 +57,13 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                frappe/public/dist/.*|
+                nts/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                frappe/www/website_script.js|
-                frappe/templates/includes/.*|
-                frappe/public/js/lib/.*
+                nts/www/website_script.js|
+                nts/templates/includes/.*|
+                nts/public/js/lib/.*
             )$
 
 ci:

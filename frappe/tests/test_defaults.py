@@ -1,14 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.core.doctype.user_permission.test_user_permission import create_user
-from frappe.defaults import *
-from frappe.query_builder.utils import db_type_is
-from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.user_permission.test_user_permission import create_user
+from nts.defaults import *
+from nts.query_builder.utils import db_type_is
+from nts.tests.test_query_builder import run_only_if
+from nts.tests.utils import ntsTestCase
 
 
-class TestDefaults(FrappeTestCase):
+class TestDefaults(ntsTestCase):
 	def test_global(self):
 		clear_user_default("key1")
 		set_global_default("key1", "value1")
@@ -55,14 +55,14 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("language"), "en")
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
 
-		old_user = frappe.session.user
+		old_user = nts.session.user
 		user = "test@example.com"
-		frappe.set_user(user)
+		nts.set_user(user)
 
-		perm_doc = frappe.get_doc(
+		perm_doc = nts.get_doc(
 			dict(
 				doctype="User Permission",
-				user=frappe.session.user,
+				user=nts.session.user,
 				allow="Language",
 				for_value="en-GB",
 			)
@@ -72,38 +72,38 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("language"), None)
 		self.assertEqual(get_user_default_as_list("language"), [])
 
-		frappe.delete_doc("User Permission", perm_doc.name)
-		frappe.set_user(old_user)
+		nts.delete_doc("User Permission", perm_doc.name)
+		nts.set_user(old_user)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_user_permission_defaults(self):
 		# Create user permission
 		create_user("user_default_test@example.com", "Blogger")
-		frappe.set_user("user_default_test@example.com")
+		nts.set_user("user_default_test@example.com")
 		set_global_default("Country", "")
 		clear_user_default("Country")
 
-		perm_doc = frappe.get_doc(
+		perm_doc = nts.get_doc(
 			dict(
 				doctype="User Permission",
-				user=frappe.session.user,
+				user=nts.session.user,
 				allow="Country",
 				for_value="India",
 			)
 		).insert(ignore_permissions=True)
 
-		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
+		nts.db.set_value("User Permission", perm_doc.name, "is_default", 1)
 		set_global_default("Country", "United States")
 		self.assertEqual(get_user_default("Country"), "India")
 
-		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 0)
+		nts.db.set_value("User Permission", perm_doc.name, "is_default", 0)
 		clear_user_default("Country")
 		self.assertEqual(get_user_default("Country"), None)
 
-		perm_doc = frappe.get_doc(
+		perm_doc = nts.get_doc(
 			dict(
 				doctype="User Permission",
-				user=frappe.session.user,
+				user=nts.session.user,
 				allow="Country",
 				for_value="United States",
 			)

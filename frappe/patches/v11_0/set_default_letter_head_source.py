@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doctype("Letter Head")
+	nts.reload_doctype("Letter Head")
 
 	# source of all existing letter heads must be HTML
-	frappe.db.sql("update `tabLetter Head` set source = 'HTML'")
+	nts.db.sql("update `tabLetter Head` set source = 'HTML'")

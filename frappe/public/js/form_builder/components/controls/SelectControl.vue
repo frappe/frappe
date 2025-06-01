@@ -25,10 +25,10 @@ function get_options() {
 	}
 
 	if (props.df.fieldname == "fieldtype") {
-		if (!in_list(frappe.model.layout_fields, props.modelValue)) {
+		if (!in_list(nts.model.layout_fields, props.modelValue)) {
 			options =
 				options &&
-				options.filter((opt) => !in_list(frappe.model.layout_fields, opt.value));
+				options.filter((opt) => !in_list(nts.model.layout_fields, opt.value));
 		} else {
 			options = [{ label: __(props.modelValue), value: props.modelValue }];
 		}
@@ -45,7 +45,7 @@ let select_control = computed(() => {
 	if (!select.value) return;
 	select.value.innerHTML = "";
 
-	return frappe.ui.form.make_control({
+	return nts.ui.form.make_control({
 		parent: select.value,
 		df: {
 			...props.df,
@@ -92,7 +92,7 @@ watch(
 </script>
 
 <template>
-	<div v-if="slots.label" class="control frappe-control" :class="{ editable: slots.label }">
+	<div v-if="slots.label" class="control nts-control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div class="field-controls">
 			<slot name="label" />
@@ -102,7 +102,7 @@ watch(
 		<!-- select input -->
 		<div class="select-input">
 			<input class="form-control" readonly />
-			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
+			<div class="select-icon" v-html="nts.utils.icon('select', 'sm')"></div>
 		</div>
 
 		<!-- description -->

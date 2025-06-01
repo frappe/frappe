@@ -1,10 +1,10 @@
-import frappe
+import nts
 
 
 def execute():
 	doctype = "Top Bar Item"
-	if not frappe.db.table_exists(doctype) or not frappe.db.has_column(doctype, "target"):
+	if not nts.db.table_exists(doctype) or not nts.db.has_column(doctype, "target"):
 		return
 
-	frappe.reload_doc("website", "doctype", "top_bar_item")
-	frappe.db.set_value(doctype, {"target": 'target = "_blank"'}, "open_in_new_tab", 1)
+	nts.reload_doc("website", "doctype", "top_bar_item")
+	nts.db.set_value(doctype, {"target": 'target = "_blank"'}, "open_in_new_tab", 1)

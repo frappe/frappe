@@ -3,7 +3,7 @@ import Mention from "./quill-mention/quill.mention";
 
 Quill.register("modules/mention", Mention, true);
 
-frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.ControlTextEditor {
+nts.ui.form.ControlComment = class ControlComment extends nts.ui.form.ControlTextEditor {
 	make_wrapper() {
 		this.comment_wrapper = !this.no_wrapper
 			? $(`
@@ -12,21 +12,21 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 				<span>${__("Comments")}</span>
 				</div>
 				<div class="comment-input-container">
-				${frappe.avatar(frappe.session.user, "avatar-medium")}
-					<div class="frappe-control col"></div>
+				${nts.avatar(nts.session.user, "avatar-medium")}
+					<div class="nts-control col"></div>
 				</div>
 				<button class="btn hidden btn-comment btn-xs" style="margin-left:48px;">
 					${__("Comment")}
 				</button>
 			</div>
 		`)
-			: $('<div class="frappe-control"></div>');
+			: $('<div class="nts-control"></div>');
 
 		this.comment_wrapper.appendTo(this.parent);
 
-		// wrapper should point to frappe-control
+		// wrapper should point to nts-control
 		this.$wrapper = !this.no_wrapper
-			? this.comment_wrapper.find(".frappe-control")
+			? this.comment_wrapper.find(".nts-control")
 			: this.comment_wrapper;
 
 		this.wrapper = this.$wrapper;
@@ -42,7 +42,7 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 		});
 
 		this.$wrapper.on("keydown", (e) => {
-			const key = frappe.ui.keys.get_key(e);
+			const key = nts.ui.keys.get_key(e);
 			if (key === "ctrl+enter") {
 				e.preventDefault();
 				this.submit();
@@ -51,7 +51,7 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 
 		this.quill.on(
 			"text-change",
-			frappe.utils.debounce(() => {
+			nts.utils.debounce(() => {
 				this.update_state();
 			}, 300)
 		);

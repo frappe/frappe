@@ -4,10 +4,10 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from requests import get, post
 
-import frappe
-from frappe.utils import get_request_site_address
+import nts
+from nts.utils import get_request_site_address
 
-CALLBACK_METHOD = "/api/method/frappe.integrations.google_oauth.callback"
+CALLBACK_METHOD = "/api/method/nts.integrations.google_oauth.callback"
 _SCOPES = {
 	"mail": ("https://mail.google.com/"),
 	"contacts": ("https://www.googleapis.com/auth/contacts"),
@@ -20,10 +20,10 @@ _SERVICES = {
 	"indexing": ("indexing", "v3"),
 }
 _DOMAIN_CALLBACK_METHODS = {
-	"mail": "frappe.email.oauth.authorize_google_access",
-	"contacts": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
-	"drive": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
-	"indexing": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
+	"mail": "nts.email.oauth.authorize_google_access",
+	"contacts": "nts.integrations.doctype.google_contacts.google_contacts.authorize_access",
+	"drive": "nts.integrations.doctype.google_drive.google_drive.authorize_access",
+	"indexing": "nts.website.doctype.website_settings.google_indexing.authorize_access",
 }
 
 
@@ -35,7 +35,7 @@ class GoogleOAuth:
 	OAUTH_URL = "https://oauth2.googleapis.com/token"
 
 	def __init__(self, domain: str, validate: bool = True):
-		self.google_settings = frappe.get_single("Google Settings")
+		self.google_settings = nts.get_single("Google Settings")
 		self.domain = domain.lower()
 		self.scopes = (
 			" ".join(_SCOPES[self.domain])
@@ -50,10 +50,10 @@ class GoogleOAuth:
 		google_settings = "<a href='/app/google-settings'>Google Settings</a>"
 
 		if not self.google_settings.enable:
-			frappe.throw(frappe._("Please enable {} before continuing.").format(google_settings))
+			nts.throw(nts._("Please enable {} before continuing.").format(google_settings))
 
 		if not (self.google_settings.client_id and self.google_settings.client_secret):
-			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
+			nts.throw(nts._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
 		"""Returns a dict with access and refresh token.
@@ -145,10 +145,10 @@ def handle_response(
 	raise_err: bool = False,
 ):
 	if "error" in response:
-		frappe.log_error(frappe._(error_title), frappe._(response.get("error_description", error_message)))
+		nts.log_error(nts._(error_title), nts._(response.get("error_description", error_message)))
 
 		if raise_err:
-			frappe.throw(frappe._(error_title), GoogleAuthenticationError, frappe._(error_message))
+			nts.throw(nts._(error_title), GoogleAuthenticationError, nts._(error_message))
 
 		return {}
 
@@ -164,11 +164,11 @@ def is_valid_access_token(access_token: str) -> bool:
 	return True
 
 
-@frappe.whitelist(methods=["GET"])
+@nts.whitelist(methods=["GET"])
 def callback(state: str, code: str | None = None, error: str | None = None) -> None:
 	"""Common callback for google integrations.
-	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
-	along with committing and redirecting us back to frappe site."""
+	Invokes functions using `nts.get_attr` and also adds required (keyworded) arguments
+	along with committing and redirecting us back to nts site."""
 
 	state = json.loads(state)
 	redirect = state.pop("redirect", "/app")
@@ -178,12 +178,12 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	if not error:
 		if (domain := state.pop("domain")) in _DOMAIN_CALLBACK_METHODS:
 			state.update({"code": code})
-			frappe.get_attr(_DOMAIN_CALLBACK_METHODS[domain])(**state)
+			nts.get_attr(_DOMAIN_CALLBACK_METHODS[domain])(**state)
 
 			# GET request, hence using commit to persist changes
-			frappe.db.commit()  # nosemgrep
+			nts.db.commit()  # nosemgrep
 		else:
-			return frappe.respond_as_web_page(
+			return nts.respond_as_web_page(
 				"Invalid Google Callback",
 				"The callback domain provided is not valid for Google Authentication",
 				http_status_code=400,
@@ -191,5 +191,5 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 				width=640,
 			)
 
-	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = f"{redirect}?{failure_query_param if error else success_query_param}"
+	nts.local.response["type"] = "redirect"
+	nts.local.response["location"] = f"{redirect}?{failure_query_param if error else success_query_param}"

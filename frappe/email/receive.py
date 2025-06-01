@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import datetime
@@ -17,12 +17,12 @@ import _socket
 import chardet
 from email_reply_parser import EmailReplyParser
 
-import frappe
-from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
-from frappe.core.doctype.file.utils import get_random_filename
-from frappe.email.oauth import Oauth
-from frappe.utils import (
+import nts
+from nts import _, safe_decode, safe_encode
+from nts.core.doctype.file.exceptions import MaxFileSizeReachedError
+from nts.core.doctype.file.utils import get_random_filename
+from nts.email.oauth import Oauth
+from nts.utils import (
 	add_days,
 	cint,
 	convert_utc_to_system_timezone,
@@ -36,8 +36,8 @@ from frappe.utils import (
 	sanitize_html,
 	strip,
 )
-from frappe.utils.html_utils import clean_email_html
-from frappe.utils.user import is_system_user
+from nts.utils.html_utils import clean_email_html
+from nts.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
@@ -50,11 +50,11 @@ ALTERNATE_CHARSET_MAP = {
 }
 
 
-class EmailSizeExceededError(frappe.ValidationError):
+class EmailSizeExceededError(nts.ValidationError):
 	pass
 
 
-class LoginLimitExceeded(frappe.ValidationError):
+class LoginLimitExceeded(nts.ValidationError):
 	pass
 
 
@@ -66,7 +66,7 @@ class EmailServer:
 	"""Wrapper for POP server to pull emails."""
 
 	def __init__(self, args=None):
-		self.settings = args or frappe._dict()
+		self.settings = args or nts._dict()
 
 	def connect(self):
 		"""Connect to **Email Account**."""
@@ -79,12 +79,12 @@ class EmailServer:
 				self.imap = imaplib.IMAP4_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=nts.conf.pop_timeout,
 					ssl_context=ssl.create_default_context(),
 				)
 			else:
 				self.imap = imaplib.IMAP4(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=nts.conf.pop_timeout
 				)
 
 				if cint(self.settings.use_starttls):
@@ -106,7 +106,7 @@ class EmailServer:
 
 		except _socket.error:
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
+			nts.msgprint(_("Invalid Mail Server. Please rectify and try again."))
 			raise
 
 	def connect_pop(self):
@@ -116,12 +116,12 @@ class EmailServer:
 				self.pop = poplib.POP3_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=nts.conf.pop_timeout,
 					context=ssl.create_default_context(),
 				)
 			else:
 				self.pop = poplib.POP3(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=nts.conf.pop_timeout
 				)
 
 			if self.settings.use_oauth:
@@ -140,10 +140,10 @@ class EmailServer:
 			return True
 
 		except _socket.error:
-			frappe.log_error("POP: Unable to connect")
+			nts.log_error("POP: Unable to connect")
 
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
+			nts.msgprint(_("Invalid Mail Server. Please rectify and try again."))
 			raise
 
 		except poplib.error_proto as e:
@@ -151,7 +151,7 @@ class EmailServer:
 				return False
 
 			else:
-				frappe.msgprint(_("Invalid User Name or Support Password. Please rectify and try again."))
+				nts.msgprint(_("Invalid User Name or Support Password. Please rectify and try again."))
 				raise
 
 	def select_imap_folder(self, folder):
@@ -214,12 +214,12 @@ class EmailServer:
 		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
-		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
+		nts.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			Communication = frappe.qb.DocType("Communication")
-			frappe.qb.update(Communication).set(Communication.uid, -1).where(
+			Communication = nts.qb.DocType("Communication")
+			nts.qb.update(Communication).set(Communication.uid, -1).where(
 				Communication.communication_medium == "Email"
 			).where(Communication.email_account == self.settings.email_account).run()
 
@@ -228,15 +228,15 @@ class EmailServer:
 				if folder[0] == folder[-1] == '"':
 					folder = folder[1:-1]
 				# new update for the IMAP Folder DocType
-				IMAPFolder = frappe.qb.DocType("IMAP Folder")
-				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+				IMAPFolder = nts.qb.DocType("IMAP Folder")
+				nts.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
 					IMAPFolder.uidnext, uidnext
 				).where(IMAPFolder.parent == self.settings.email_account_name).where(
 					IMAPFolder.folder_name == folder
 				).run()
 			else:
-				EmailAccount = frappe.qb.DocType("Email Account")
-				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
+				EmailAccount = nts.qb.DocType("Email Account")
+				nts.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
 					EmailAccount.uidnext, uidnext
 				).where(EmailAccount.name == self.settings.email_account_name).run()
 
@@ -274,7 +274,7 @@ class EmailServer:
 			if self.has_login_limit_exceeded(e):
 				raise LoginLimitExceeded(e)
 
-			frappe.log_error("Unable to fetch email", self.make_error_msg(uid, msg_num))
+			nts.log_error("Unable to fetch email", self.make_error_msg(uid, msg_num))
 
 		self._post_retrieve_cleanup(uid, msg_num)
 
@@ -285,7 +285,7 @@ class EmailServer:
 
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
-			match = WORDS_PATTERN.search(frappe.as_unicode(flag))
+			match = WORDS_PATTERN.search(nts.as_unicode(flag))
 			flags.append(match.group(0))
 
 		if "Seen" in flags:
@@ -317,7 +317,7 @@ class EmailServer:
 
 	def make_error_msg(self, uid, msg_num):
 		partial_mail = None
-		traceback = frappe.get_traceback(with_context=True)
+		traceback = nts.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
 			if not cint(self.settings.use_imap):
@@ -432,7 +432,7 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-		if _reply_to and not frappe.db.get_value("Email Account", {"email_id": _reply_to}, "email_id"):
+		if _reply_to and not nts.db.get_value("Email Account", {"email_id": _reply_to}, "email_id"):
 			self.from_email = extract_email_id(_reply_to)
 		else:
 			self.from_email = extract_email_id(_from_email)
@@ -447,7 +447,7 @@ class Email:
 		if not email:
 			return
 		decoded = ""
-		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
+		for part, encoding in decode_header(nts.as_unicode(email).replace('"', " ").replace("'", " ")):
 			if encoding:
 				decoded += part.decode(encoding, "replace")
 			else:
@@ -561,7 +561,7 @@ class Email:
 
 		for attachment in self.attachments:
 			try:
-				_file = frappe.get_doc(
+				_file = nts.get_doc(
 					{
 						"doctype": "File",
 						"file_name": attachment["fname"],
@@ -580,9 +580,9 @@ class Email:
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
 				pass
-			except frappe.FileAlreadyAttachedException:
+			except nts.FileAlreadyAttachedException:
 				pass
-			except frappe.DuplicateEntryError:
+			except nts.DuplicateEntryError:
 				# same file attached twice??
 				pass
 
@@ -612,7 +612,7 @@ class InboundMail(Email):
 		self._parent_communication = None
 		self._reference_document = None
 
-		self.flags = frappe._dict()
+		self.flags = nts._dict()
 
 	def get_content(self):
 		if self.content_type == "text/html":
@@ -621,7 +621,7 @@ class InboundMail(Email):
 	def process(self):
 		"""Create communication record from email."""
 		if self.is_sender_same_as_receiver() and not self.is_reply():
-			if frappe.flags.in_test:
+			if nts.flags.in_test:
 				print("WARN: Cannot pull email. Sender same as recipient inbox")
 			raise SentEmailInInboxError
 
@@ -659,7 +659,7 @@ class InboundMail(Email):
 		if self.seen_status:
 			data["_seen"] = json.dumps(self.get_users_linked_to_account(self.email_account))
 
-		communication = frappe.get_doc(data)
+		communication = nts.get_doc(data)
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions=True)
 
@@ -686,7 +686,7 @@ class InboundMail(Email):
 
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""
-		from frappe.core.doctype.communication.communication import Communication
+		from nts.core.doctype.communication.communication import Communication
 
 		if not self.message_id:
 			return
@@ -698,14 +698,14 @@ class InboundMail(Email):
 
 	def is_reply_to_system_sent_mail(self):
 		"""Is it a reply to already sent mail."""
-		return self.is_reply() and frappe.local.site in self.in_reply_to
+		return self.is_reply() and nts.local.site in self.in_reply_to
 
 	def parent_email_queue(self):
 		"""Get parent record from `Email Queue`.
 
 		If it is a reply to already sent mail, then there will be a parent record in EMail Queue.
 		"""
-		from frappe.email.doctype.email_queue.email_queue import EmailQueue
+		from nts.email.doctype.email_queue.email_queue import EmailQueue
 
 		if self._parent_email_queue is not None:
 			return self._parent_email_queue
@@ -729,7 +729,7 @@ class InboundMail(Email):
 		3. Sender sent a reply but reply is on top of what (s)he sent before,
 		        then parent record exists directly in communication.
 		"""
-		from frappe.core.doctype.communication.communication import Communication
+		from nts.core.doctype.communication.communication import Communication
 
 		if self._parent_communication is not None:
 			return self._parent_communication
@@ -788,7 +788,7 @@ class InboundMail(Email):
 		        Ex: when a System User is using Outlook and replies to an email from their own client,
 		        it reaches the Email Account with the threading info lost and the (sender + subject match)
 		        doesn't work because the sender in the first communication was someone different to whom
-		        the system user is replying to via the common email account in Frappe. This fix bypasses
+		        the system user is replying to via the common email account in nts. This fix bypasses
 		        the sender match when the sender is a system user and subject is atleast 10 chars long
 		        (for additional safety)
 
@@ -810,38 +810,38 @@ class InboundMail(Email):
 			if not (len(subject) > 10 and is_system_user(self.from_email)):
 				filters[email_fields.sender_field] = self.from_email
 
-			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
+			name = nts.db.get_value(self.email_account.append_to, filters=filters)
 			record = self.get_doc(doctype, name, ignore_error=True) if name else None
 		return record
 
 	def _create_reference_document(self, doctype):
 		"""Create reference document if it does not exist in the system."""
-		parent = frappe.new_doc(doctype)
+		parent = nts.new_doc(doctype)
 		email_fields = self.get_email_fields(doctype)
 
 		if email_fields.subject_field:
-			parent.set(email_fields.subject_field, frappe.as_unicode(self.subject)[:140])
+			parent.set(email_fields.subject_field, nts.as_unicode(self.subject)[:140])
 
 		if email_fields.sender_field:
-			parent.set(email_fields.sender_field, frappe.as_unicode(self.from_email))
+			parent.set(email_fields.sender_field, nts.as_unicode(self.from_email))
 
 		if email_fields.sender_name_field:
-			parent.set(email_fields.sender_name_field, frappe.as_unicode(self.from_real_name))
+			parent.set(email_fields.sender_name_field, nts.as_unicode(self.from_real_name))
 
 		parent.flags.ignore_mandatory = True
 
 		try:
 			parent.insert(ignore_permissions=True)
 			return parent.name
-		except frappe.DuplicateEntryError:
+		except nts.DuplicateEntryError:
 			# try and find matching parent
-			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
+			return nts.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):
 		try:
-			return frappe.get_doc(doctype, docname)
-		except frappe.DoesNotExistError:
+			return nts.get_doc(doctype, docname)
+		except nts.DoesNotExistError:
 			if ignore_error:
 				return
 			raise
@@ -854,7 +854,7 @@ class InboundMail(Email):
 	@staticmethod
 	def get_users_linked_to_account(email_account):
 		"""Get list of users who linked to Email account."""
-		users = frappe.get_all("User Email", filters={"email_account": email_account.name}, fields=["parent"])
+		users = nts.get_all("User Email", filters={"email_account": email_account.name}, fields=["parent"])
 		return list({user.get("parent") for user in users})
 
 	@staticmethod
@@ -862,15 +862,15 @@ class InboundMail(Email):
 		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
 		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
-		return frappe.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
+		return nts.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
 
 	@staticmethod
 	def get_email_fields(doctype):
 		"""Returns Email related fields of a doctype."""
-		fields = frappe._dict()
+		fields = nts._dict()
 
 		email_fields = ["subject_field", "sender_field", "sender_name_field"]
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 
 		for field in email_fields:
 			if hasattr(meta, field):
@@ -879,10 +879,10 @@ class InboundMail(Email):
 
 	@staticmethod
 	def get_document(self, doctype, name):
-		"""Is same as frappe.get_doc but suppresses the DoesNotExist error."""
+		"""Is same as nts.get_doc but suppresses the DoesNotExist error."""
 		try:
-			return frappe.get_doc(doctype, name)
-		except frappe.DoesNotExistError:
+			return nts.get_doc(doctype, name)
+		except nts.DoesNotExistError:
 			return None
 
 	def as_dict(self):

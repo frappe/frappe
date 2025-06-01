@@ -1,14 +1,14 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2020, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.geo.utils import get_coords
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.geo.utils import get_coords
+from nts.tests.utils import ntsTestCase
 
 
-class TestGeoUtils(FrappeTestCase):
+class TestGeoUtils(ntsTestCase):
 	def setUp(self):
-		self.todo = frappe.get_doc(
+		self.todo = nts.get_doc(
 			dict(doctype="ToDo", description="Test description", assigned_by="Administrator")
 		).insert()
 
@@ -22,7 +22,7 @@ class TestGeoUtils(FrappeTestCase):
 				}
 			],
 		}
-		self.test_location = frappe.get_doc(
+		self.test_location = nts.get_doc(
 			{"name": "Test Location", "doctype": "Location", "location": str(self.test_location_dict)}
 		)
 
@@ -41,10 +41,10 @@ class TestGeoUtils(FrappeTestCase):
 		self.assertEqual(coords, {"type": "FeatureCollection", "features": []})
 
 	def test_get_coords_from_not_existable_location(self):
-		self.assertRaises(frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "location_field")
+		self.assertRaises(nts.ValidationError, get_coords, "ToDo", self.test_filter_todo, "location_field")
 
 	def test_get_coords_from_not_existable_coords(self):
-		self.assertRaises(frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "coordinates")
+		self.assertRaises(nts.ValidationError, get_coords, "ToDo", self.test_filter_todo, "coordinates")
 
 	def tearDown(self):
 		self.todo.delete()

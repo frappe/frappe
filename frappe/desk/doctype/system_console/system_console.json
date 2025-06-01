@@ -6,7 +6,7 @@
    "label": "Logs"
   },
   {
-   "action": "frappe.desk.doctype.system_console.system_console.execute_code",
+   "action": "nts.desk.doctype.system_console.system_console.execute_code",
    "action_type": "Server Action",
    "hidden": 1,
    "label": "Execute"

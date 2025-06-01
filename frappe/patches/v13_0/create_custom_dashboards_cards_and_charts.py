@@ -1,19 +1,19 @@
-import frappe
-from frappe.model.naming import append_number_if_name_exists
-from frappe.utils.dashboard import get_dashboards_with_link
+import nts
+from nts.model.naming import append_number_if_name_exists
+from nts.utils.dashboard import get_dashboards_with_link
 
 
 def execute():
 	if (
-		not frappe.db.table_exists("Dashboard Chart")
-		or not frappe.db.table_exists("Number Card")
-		or not frappe.db.table_exists("Dashboard")
+		not nts.db.table_exists("Dashboard Chart")
+		or not nts.db.table_exists("Number Card")
+		or not nts.db.table_exists("Dashboard")
 	):
 		return
 
-	frappe.reload_doc("desk", "doctype", "dashboard_chart")
-	frappe.reload_doc("desk", "doctype", "number_card")
-	frappe.reload_doc("desk", "doctype", "dashboard")
+	nts.reload_doc("desk", "doctype", "dashboard_chart")
+	nts.reload_doc("desk", "doctype", "number_card")
+	nts.reload_doc("desk", "doctype", "dashboard")
 
 	modified_charts = get_modified_docs("Dashboard Chart")
 	modified_cards = get_modified_docs("Number Card")
@@ -34,13 +34,13 @@ def execute():
 
 
 def get_modified_docs(doctype):
-	return frappe.get_all(doctype, filters={"owner": "Administrator", "modified_by": ["!=", "Administrator"]})
+	return nts.get_all(doctype, filters={"owner": "Administrator", "modified_by": ["!=", "Administrator"]})
 
 
 def rename_modified_doc(docname, doctype):
 	new_name = docname + " Custom"
 	try:
-		frappe.rename_doc(doctype, docname, new_name)
-	except frappe.ValidationError:
+		nts.rename_doc(doctype, docname, new_name)
+	except nts.ValidationError:
 		new_name = append_number_if_name_exists(doctype, new_name)
-		frappe.rename_doc(doctype, docname, new_name)
+		nts.rename_doc(doctype, docname, new_name)

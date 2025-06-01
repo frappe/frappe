@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -7,15 +7,15 @@ from typing import TypedDict
 
 from typing_extensions import NotRequired  # not required in 3.11+
 
-import frappe
+import nts
 
 # Backward compatbility
-from frappe import _, is_whitelisted, validate_and_sanitize_search_inputs
-from frappe.database.schema import SPECIAL_CHAR_PATTERN
-from frappe.model.db_query import get_order_by
-from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, unique
-from frappe.utils.data import make_filter_tuple
+from nts import _, is_whitelisted, validate_and_sanitize_search_inputs
+from nts.database.schema import SPECIAL_CHAR_PATTERN
+from nts.model.db_query import get_order_by
+from nts.permissions import has_permission
+from nts.utils import cint, cstr, unique
+from nts.utils.data import make_filter_tuple
 
 
 def sanitize_searchfield(searchfield: str):
@@ -23,7 +23,7 @@ def sanitize_searchfield(searchfield: str):
 		return
 
 	if SPECIAL_CHAR_PATTERN.search(searchfield):
-		frappe.throw(_("Invalid Search Field {0}").format(searchfield), frappe.DataError)
+		nts.throw(_("Invalid Search Field {0}").format(searchfield), nts.DataError)
 
 
 class LinkSearchResults(TypedDict):
@@ -33,7 +33,7 @@ class LinkSearchResults(TypedDict):
 
 
 # this is called by the Link Field
-@frappe.whitelist()
+@nts.whitelist()
 def search_link(
 	doctype: str,
 	txt: str,
@@ -58,7 +58,7 @@ def search_link(
 
 
 # this is called by the search box
-@frappe.whitelist()
+@nts.whitelist()
 def search_widget(
 	doctype: str,
 	txt: str,
@@ -83,15 +83,15 @@ def search_widget(
 	if not searchfield:
 		searchfield = "name"
 
-	standard_queries = frappe.get_hooks().standard_queries or {}
+	standard_queries = nts.get_hooks().standard_queries or {}
 
 	if not query and doctype in standard_queries:
 		query = standard_queries[doctype][-1]
 
 	if query:  # Query = custom search query i.e. python function
 		try:
-			is_whitelisted(frappe.get_attr(query))
-			return frappe.call(
+			is_whitelisted(nts.get_attr(query))
+			return nts.call(
 				query,
 				doctype,
 				txt,
@@ -103,11 +103,11 @@ def search_widget(
 				reference_doctype=reference_doctype,
 				ignore_user_permissions=ignore_user_permissions,
 			)
-		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError):
-			if frappe.local.conf.developer_mode:
+		except (nts.PermissionError, nts.AppNotInstalledError, ImportError):
+			if nts.local.conf.developer_mode:
 				raise
 			else:
-				frappe.respond_as_web_page(
+				nts.respond_as_web_page(
 					title="Invalid Method",
 					html="Method not found",
 					indicator_color="red",
@@ -115,7 +115,7 @@ def search_widget(
 				)
 				return []
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	if isinstance(filters, dict):
 		filters_items = filters.items()
@@ -171,14 +171,14 @@ def search_widget(
 	order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
 
 	if not meta.translated_doctype:
-		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+		_txt = nts.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
 		formatted_fields.append(f"""{_relevance} as `_relevance`""")
 		# Since we are sorting by alias postgres needs to know number of column we are sorting
-		if frappe.db.db_type == "mariadb":
+		if nts.db.db_type == "mariadb":
 			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
-		elif frappe.db.db_type == "postgres":
+		elif nts.db.db_type == "postgres":
 			# Since we are sorting by alias postgres needs to know number of column we are sorting
 			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
 
@@ -186,12 +186,12 @@ def search_widget(
 		cint(ignore_user_permissions)
 		and has_permission(
 			doctype,
-			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+			ptype="select" if nts.only_has_select_perm(doctype) else "read",
 			parent_doctype=reference_doctype,
 		)
 	)
 
-	values = frappe.get_list(
+	values = nts.get_list(
 		doctype,
 		filters=filters,
 		fields=formatted_fields,
@@ -257,7 +257,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		)
 
 	results = []
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 	if meta.show_title_field_in_link:
 		for item in res:
 			item = list(item)
@@ -288,17 +288,17 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_names_for_mentions(search_term):
-	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
-	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
+	users_for_mentions = nts.cache.get_value("users_for_mentions", get_users_for_mentions)
+	user_groups = nts.cache.get_value("user_groups", get_user_groups)
 
 	filtered_mentions = []
 	for mention_data in users_for_mentions + user_groups:
 		if search_term.lower() not in mention_data.value.lower():
 			continue
 
-		mention_data["link"] = frappe.utils.get_url_to_form(
+		mention_data["link"] = nts.utils.get_url_to_form(
 			"User Group" if mention_data.get("is_group") else "User Profile", mention_data["id"]
 		)
 
@@ -308,7 +308,7 @@ def get_names_for_mentions(search_term):
 
 
 def get_users_for_mentions():
-	return frappe.get_all(
+	return nts.get_all(
 		"User",
 		fields=["name as id", "full_name as value"],
 		filters={
@@ -321,14 +321,14 @@ def get_users_for_mentions():
 
 
 def get_user_groups():
-	return frappe.get_all("User Group", fields=["name as id", "name as value"], update={"is_group": True})
+	return nts.get_all("User Group", fields=["name as id", "name as value"], update={"is_group": True})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_link_title(doctype, docname):
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	if meta.show_title_field_in_link:
-		return frappe.db.get_value(doctype, docname, meta.title_field)
+		return nts.db.get_value(doctype, docname, meta.title_field)
 
 	return docname

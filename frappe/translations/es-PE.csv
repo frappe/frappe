@@ -102,7 +102,7 @@ Success Message,Mensaje de éxito,
 Slideshow Name,Presentación Nombre,
 Row # ,Fila #
 share-alt,share- alt,
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Formato de JavaScript: frappe.query_reports [' REPORTNAME'] = { }
+JavaScript Format: nts.query_reports['REPORTNAME'] = {},Formato de JavaScript: nts.query_reports [' REPORTNAME'] = { }
 Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar en color y texto en color son los mismos. Deben tienen buen contraste para ser legible.
 "The task {0}, that you assigned to {1}, has been closed by {2}.","La tarea {0}, que asignó a {1}, ha sido cerrado por {2}."
 star-empty,- estrella vacía,

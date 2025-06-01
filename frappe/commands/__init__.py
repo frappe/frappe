@@ -11,8 +11,8 @@ from os import environ
 
 import click
 
-import frappe
-import frappe.utils
+import nts
+import nts.utils
 
 click.disable_unicode_literals_warning = True
 
@@ -26,11 +26,11 @@ def pass_context(f):
 			pr.enable()
 
 		try:
-			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
-		except frappe.exceptions.SiteNotSpecifiedError as e:
+			ret = f(nts._dict(ctx.obj), *args, **kwargs)
+		except nts.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg="yellow")
 			sys.exit(1)
-		except frappe.exceptions.IncorrectSitePath:
+		except nts.exceptions.IncorrectSitePath:
 			site = ctx.obj.get("sites", "")[0]
 			click.secho(f"Site {site} does not exist!", fg="yellow")
 			sys.exit(1)
@@ -55,7 +55,7 @@ def get_site(context, raise_err=True):
 		return context.sites[0]
 	except (IndexError, TypeError):
 		if raise_err:
-			raise frappe.SiteNotSpecifiedError
+			raise nts.SiteNotSpecifiedError
 		return None
 
 
@@ -112,7 +112,7 @@ def get_commands():
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
-	clickable_link = "https://frappeframework.com/docs"
+	clickable_link = "https://ntsframework.com/docs"
 	all_commands = (
 		scheduler_commands
 		+ site_commands

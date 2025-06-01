@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import os
@@ -6,8 +6,8 @@ import os
 from werkzeug.exceptions import NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
-import frappe
-from frappe.utils import cstr, get_site_name
+import nts
+from nts.utils import cstr, get_site_name
 
 
 class StaticDataMiddleware(SharedDataMiddleware):
@@ -17,7 +17,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 
 	def get_directory_loader(self, directory):
 		def loader(path):
-			site = get_site_name(frappe.app._site or self.environ.get("HTTP_HOST"))
+			site = get_site_name(nts.app._site or self.environ.get("HTTP_HOST"))
 			path = os.path.join(directory, site, "public", "files", cstr(path))
 			if os.path.isfile(path):
 				return os.path.basename(path), self._opener(path)

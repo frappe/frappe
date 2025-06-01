@@ -14,14 +14,14 @@ class WidgetDialog {
 	}
 
 	make_dialog() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: this.get_title(),
 			fields: this.get_fields(),
 			primary_action: (data) => {
 				data = this.process_data(data);
 
 				if (!this.editing && !data.name) {
-					data.name = `${this.type}-${this.label}-${frappe.utils.get_random(20)}`;
+					data.name = `${this.type}-${this.label}-${nts.utils.get_random(20)}`;
 				}
 
 				this.dialog.hide();
@@ -36,7 +36,7 @@ class WidgetDialog {
 		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
 
 		let action = this.editing ? "Edit" : "Add";
-		let label = (action = action + " " + frappe.model.unscrub(this.type));
+		let label = (action = action + " " + nts.model.unscrub(this.type));
 		return __(label);
 	}
 
@@ -77,13 +77,13 @@ class WidgetDialog {
 
 		this.generate_filter_from_json && this.generate_filter_from_json();
 
-		this.filter_group = new frappe.ui.FilterGroup({
+		this.filter_group = new nts.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
 			doctype: doctype,
 			on_change: () => {},
 		});
 
-		frappe.model.with_doctype(doctype, () => {
+		nts.model.with_doctype(doctype, () => {
 			this.filter_group.add_filters_to_filter_group(this.filters);
 			this.hide_field("filter_area_loading");
 			this.show_field("filter_area");
@@ -172,7 +172,7 @@ class QuickListDialog extends WidgetDialog {
 
 	generate_filter_from_json() {
 		if (this.values && this.values.quick_list_filter) {
-			this.filters = frappe.utils.get_filter_from_json(
+			this.filters = nts.utils.get_filter_from_json(
 				this.values.quick_list_filter,
 				this.values.document_type
 			);
@@ -331,7 +331,7 @@ class CardDialog extends WidgetDialog {
 
 		if (message) {
 			message += "</ul>";
-			frappe.throw({
+			nts.throw({
 				message: __(message),
 				title: __("Missing Values Required"),
 				indicator: "orange",
@@ -370,9 +370,9 @@ class ShortcutDialog extends WidgetDialog {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
 							return {
-								query: "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
+								query: "nts.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 								filters: {
-									user: frappe.session.user,
+									user: nts.session.user,
 									include_single_doctypes: true,
 								},
 							};
@@ -399,10 +399,10 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					const doctype = this.dialog.get_value("link_to");
 					if (doctype && this.dialog.get_value("type") == "DocType") {
-						frappe.model.with_doctype(doctype, async () => {
-							let meta = frappe.get_meta(doctype);
+						nts.model.with_doctype(doctype, async () => {
+							let meta = nts.get_meta(doctype);
 
-							if (doctype && frappe.boot.single_types.includes(doctype)) {
+							if (doctype && nts.boot.single_types.includes(doctype)) {
 								this.hide_filters();
 							} else if (doctype) {
 								this.setup_filter(doctype);
@@ -411,9 +411,9 @@ class ShortcutDialog extends WidgetDialog {
 
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === 1) views.push("Tree");
-							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
+							if (nts.boot.calendars.includes(doctype)) views.push("Calendar");
 
-							const response = await frappe.db.get_value(
+							const response = await nts.db.get_value(
 								"Kanban Board",
 								{ reference_doctype: doctype },
 								"name"
@@ -449,7 +449,7 @@ class ShortcutDialog extends WidgetDialog {
 				depends_on: (state) => {
 					if (this.dialog) {
 						let doctype = this.dialog.get_value("link_to");
-						let is_single = frappe.boot.single_types.includes(doctype);
+						let is_single = nts.boot.single_types.includes(doctype);
 						return doctype && state.type == "DocType" && !is_single;
 					}
 
@@ -544,7 +544,7 @@ class ShortcutDialog extends WidgetDialog {
 
 	generate_filter_from_json() {
 		if (this.values && this.values.stats_filter) {
-			this.filters = frappe.utils.get_filter_from_json(
+			this.filters = nts.utils.get_filter_from_json(
 				this.values.stats_filter,
 				this.values.link_to
 			);
@@ -557,15 +557,15 @@ class ShortcutDialog extends WidgetDialog {
 			data.stats_filter = JSON.stringify(filters);
 		}
 
-		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
+		data.label = data.label ? data.label : nts.model.unscrub(data.link_to);
 
 		if (data.url) {
 			let _url = data.url;
 			if (data.url.startsWith("/")) {
-				_url = frappe.urllib.get_base_url() + data.url;
+				_url = nts.urllib.get_base_url() + data.url;
 			}
 			!validate_url(_url) &&
-				frappe.throw({
+				nts.throw({
 					message: __("<b>{0}</b> is not a valid URL", [data.url]),
 					title: __("Invalid URL"),
 					indicator: "red",
@@ -598,7 +598,7 @@ class NumberCardDialog extends WidgetDialog {
 					reqd: 1,
 					get_query: () => {
 						return {
-							query: "frappe.desk.doctype.number_card.number_card.get_cards_for_user",
+							query: "nts.desk.doctype.number_card.number_card.get_cards_for_user",
 							filters: {
 								document_type: this.document_type,
 							},
@@ -627,7 +627,7 @@ class NumberCardDialog extends WidgetDialog {
 				options: "Number Card",
 				get_query: () => {
 					return {
-						query: "frappe.desk.doctype.number_card.number_card.get_cards_for_user",
+						query: "nts.desk.doctype.number_card.number_card.get_cards_for_user",
 						filters: {
 							document_type: this.document_type,
 						},
@@ -720,9 +720,9 @@ class NumberCardDialog extends WidgetDialog {
 
 	set_aggregate_function_fields() {
 		let aggregate_function_fields = [];
-		if (this.document_type && frappe.get_meta(this.document_type)) {
-			frappe.get_meta(this.document_type).fields.map((df) => {
-				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+		if (this.document_type && nts.get_meta(this.document_type)) {
+			nts.get_meta(this.document_type).fields.map((df) => {
+				if (nts.model.numeric_fieldtypes.includes(df.fieldtype)) {
 					if (df.fieldtype == "Currency") {
 						if (!df.options || df.options !== "Company:company:default_currency") {
 							return;
@@ -769,7 +769,7 @@ class CustomBlockDialog extends WidgetDialog {
 				reqd: 1,
 				get_query: () => {
 					return {
-						query: "frappe.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
+						query: "nts.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
 					};
 				},
 			},

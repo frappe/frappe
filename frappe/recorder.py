@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import cProfile
 import functools
@@ -15,10 +15,10 @@ from dataclasses import dataclass
 
 import sqlparse
 
-import frappe
-from frappe import _
-from frappe.database.database import is_query_type
-from frappe.utils import now_datetime
+import nts
+from nts import _
+from nts.database.database import is_query_type
+from nts.utils import now_datetime
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_CONFIG_FLAG = "recorder-config"
@@ -29,7 +29,7 @@ RECORDER_AUTO_DISABLE = 5 * 60
 
 
 if typing.TYPE_CHECKING:
-	from frappe.database.database import Database
+	from nts.database.database import Database
 
 
 @dataclass
@@ -45,32 +45,32 @@ class RecorderConfig:
 
 	def __post_init__(self):
 		if not (self.record_jobs or self.record_requests):
-			frappe.throw("You must record one of jobs or requests")
+			nts.throw("You must record one of jobs or requests")
 
 	def store(self):
-		frappe.cache.set_value(RECORDER_CONFIG_FLAG, self, expires_in_sec=RECORDER_AUTO_DISABLE)
+		nts.cache.set_value(RECORDER_CONFIG_FLAG, self, expires_in_sec=RECORDER_AUTO_DISABLE)
 
 	@classmethod
 	def retrieve(cls):
-		return frappe.cache.get_value(RECORDER_CONFIG_FLAG) or cls()
+		return nts.cache.get_value(RECORDER_CONFIG_FLAG) or cls()
 
 	@staticmethod
 	def delete():
-		frappe.cache.delete_value(RECORDER_CONFIG_FLAG)
+		nts.cache.delete_value(RECORDER_CONFIG_FLAG)
 
 
 def record_sql(*args, **kwargs):
 	start_time = time.monotonic()
-	result = frappe.db._sql(*args, **kwargs)
+	result = nts.db._sql(*args, **kwargs)
 	end_time = time.monotonic()
 
-	query = getattr(frappe.db, "last_query", None)
+	query = getattr(nts.db, "last_query", None)
 	if not query or isinstance(result, str):
 		# run=0, doesn't actually run the query so last_query won't be present
 		return result
 
 	stack = []
-	if frappe.local._recorder.config.capture_stack:
+	if nts.local._recorder.config.capture_stack:
 		stack = list(get_current_stack_frames())
 
 	data = {
@@ -81,12 +81,12 @@ def record_sql(*args, **kwargs):
 		"duration": float(f"{(end_time - start_time) * 1000:.3f}"),
 	}
 
-	frappe.local._recorder.register(data)
+	nts.local._recorder.register(data)
 	return result
 
 
 def get_current_stack_frames():
-	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+	from nts.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
 
 	try:
 		current = inspect.currentframe()
@@ -111,11 +111,11 @@ def post_process():
 	        - SQLParse reformatting of queries
 	        - Mark duplicates
 	"""
-	frappe.db.rollback()
-	frappe.db.begin(read_only=True)  # Explicitly start read only transaction
+	nts.db.rollback()
+	nts.db.begin(read_only=True)  # Explicitly start read only transaction
 
 	config = RecorderConfig.retrieve()
-	result = list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
+	result = list(nts.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 	for request in result:
 		for call in request["calls"]:
@@ -128,11 +128,11 @@ def post_process():
 			if config.explain and is_query_type(formatted_query, ("select", "update", "delete")):
 				# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
 				try:
-					call["explain_result"] = frappe.db.sql(f"EXPLAIN {formatted_query}", as_dict=True)
+					call["explain_result"] = nts.db.sql(f"EXPLAIN {formatted_query}", as_dict=True)
 				except Exception:
 					pass
 		mark_duplicates(request)
-		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+		nts.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
 
 	config.delete()
 
@@ -181,15 +181,15 @@ def normalize_query(query: str) -> str:
 
 def record(force=False):
 	if __debug__:
-		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
-			frappe.local._recorder = Recorder(force=force)
-			return frappe.local._recorder
+		if nts.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
+			nts.local._recorder = Recorder(force=force)
+			return nts.local._recorder
 
 
 def dump():
 	if __debug__:
-		if hasattr(frappe.local, "_recorder"):
-			frappe.local._recorder.dump()
+		if hasattr(nts.local, "_recorder"):
+			nts.local._recorder.dump()
 
 
 class Recorder:
@@ -207,18 +207,18 @@ class Recorder:
 
 		if (
 			self.config.record_requests
-			and frappe.request
-			and self.config.request_filter in frappe.request.path
+			and nts.request
+			and self.config.request_filter in nts.request.path
 		):
-			self.path = frappe.request.path
-			self.cmd = frappe.local.form_dict.cmd or ""
-			self.method = frappe.request.method
-			self.headers = dict(frappe.local.request.headers)
-			self.form_dict = frappe.local.form_dict
+			self.path = nts.request.path
+			self.cmd = nts.local.form_dict.cmd or ""
+			self.method = nts.request.method
+			self.headers = dict(nts.local.request.headers)
+			self.form_dict = nts.local.form_dict
 			self.event_type = "HTTP Request"
-		elif self.config.record_jobs and frappe.job and self.config.jobs_filter in frappe.job.method:
+		elif self.config.record_jobs and nts.job and self.config.jobs_filter in nts.job.method:
 			self.event_type = "Background Job"
-			self.path = frappe.job.method
+			self.path = nts.job.method
 			self.cmd = None
 			self.method = None
 			self.headers = None
@@ -229,10 +229,10 @@ class Recorder:
 		else:
 			self.event_type = "Function Call"
 
-		self.uuid = frappe.generate_hash(length=10)
+		self.uuid = nts.generate_hash(length=10)
 		self.time = now_datetime()
 
-		self._patch_sql(frappe.db)
+		self._patch_sql(nts.db)
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -273,13 +273,13 @@ class Recorder:
 			"method": self.method,
 			"event_type": self.event_type,
 		}
-		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
+		nts.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
 		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
-		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
+		nts.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 		self._unpatch_sql()
 
@@ -287,8 +287,8 @@ class Recorder:
 		if not self.config.record_sql:
 			return
 
-		frappe.db._sql = frappe.db.sql
-		frappe.db.sql = record_sql
+		nts.db._sql = nts.db.sql
+		nts.db.sql = record_sql
 		self.patched_databases.append(db)
 
 	def _unpatch_sql(self):
@@ -299,9 +299,9 @@ class Recorder:
 def do_not_record(function):
 	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
-		if hasattr(frappe.local, "_recorder"):
-			frappe.local._recorder.cleanup()
-			del frappe.local._recorder
+		if hasattr(nts.local, "_recorder"):
+			nts.local._recorder.cleanup()
+			del nts.local._recorder
 		return function(*args, **kwargs)
 
 	return wrapper
@@ -310,21 +310,21 @@ def do_not_record(function):
 def administrator_only(function):
 	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
-		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator is allowed to use Recorder"))
+		if nts.session.user != "Administrator":
+			nts.throw(_("Only Administrator is allowed to use Recorder"))
 		return function(*args, **kwargs)
 
 	return wrapper
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def status(*args, **kwargs):
-	return bool(frappe.cache.get_value(RECORDER_INTERCEPT_FLAG))
+	return bool(nts.cache.get_value(RECORDER_INTERCEPT_FLAG))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def start(
@@ -349,41 +349,41 @@ def start(
 		request_filter=request_filter,
 		jobs_filter=jobs_filter,
 	).store()
-	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
+	nts.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def stop(*args, **kwargs):
-	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
-	frappe.enqueue(post_process, now=frappe.flags.in_test)
+	nts.cache.delete_value(RECORDER_INTERCEPT_FLAG)
+	nts.enqueue(post_process, now=nts.flags.in_test)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def get(uuid=None, *args, **kwargs):
 	if uuid:
-		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
+		result = nts.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:
-		result = list(frappe.cache.hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
+		result = list(nts.cache.hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def export_data(*args, **kwargs):
-	return list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
+	return list(nts.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def delete(*args, **kwargs):
-	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
-	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
+	nts.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
+	nts.cache.delete_value(RECORDER_REQUEST_HASH)
 
 
 def record_queries(func: Callable):
@@ -403,13 +403,13 @@ def record_queries(func: Callable):
 	return wrapped
 
 
-@frappe.whitelist()
+@nts.whitelist()
 @do_not_record
 @administrator_only
 def import_data(file: str) -> None:
-	file_doc = frappe.get_doc("File", {"file_url": file})
+	file_doc = nts.get_doc("File", {"file_url": file})
 	file_content = json.loads(file_doc.get_content())
 	for request in file_content:
-		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
-		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+		nts.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
+		nts.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
 	file_doc.delete(delete_permanently=True)

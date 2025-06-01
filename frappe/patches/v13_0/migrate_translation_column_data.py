@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doctype("Translation")
-	frappe.db.sql(
+	nts.reload_doctype("Translation")
+	nts.db.sql(
 		"UPDATE `tabTranslation` SET `translated_text`=`target_name`, `source_text`=`source_name`, `contributed`=0"
 	)

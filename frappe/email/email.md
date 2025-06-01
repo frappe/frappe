@@ -1,6 +1,6 @@
 # Email Architecture
 
-This document describes the high-level architecture of how emails work in frappe.
+This document describes the high-level architecture of how emails work in nts.
 
 > NOTE: There are mentions of different types of workers to execute jobs from different types of queues in the explanations below, however only a single type of worker can also be used to do the same.
 

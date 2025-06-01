@@ -2,8 +2,8 @@
 
 #### Application Name and Details
 
-1. `app_name` - slugified name e.g. "frappe"
-1. `app_title` - full title name e.g. "Frappe"
+1. `app_name` - slugified name e.g. "nts"
+1. `app_title` - full title name e.g. "nts"
 1. `app_publisher`
 1. `app_description`
 1. `app_version`
@@ -17,10 +17,10 @@
 #### Javascript / CSS Builds
 
 1. `app_include_js` - include in "app"
-1. `app_include_css` - assets/frappe/css/splash.css
+1. `app_include_css` - assets/nts/css/splash.css
 
-1. `web_include_js` - assets/js/frappe-web.min.js
-1. `web_include_css` - assets/css/frappe-web.css
+1. `web_include_js` - assets/js/nts-web.min.js
+1. `web_include_css` - assets/css/nts-web.css
 
 #### Desktop
 

@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import redis
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_bench_id
-from frappe.utils.background_jobs import get_redis_conn
-from frappe.utils.redis_queue import RedisQueue
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.utils import get_bench_id
+from nts.utils.background_jobs import get_redis_conn
+from nts.utils.redis_queue import RedisQueue
 
 
 def version_tuple(version):
@@ -29,16 +29,16 @@ def skip_if_redis_version_lt(version):
 	return decorator
 
 
-class TestRedisAuth(FrappeTestCase):
+class TestRedisAuth(ntsTestCase):
 	@skip_if_redis_version_lt("6.0")
-	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
+	@patch.dict(nts.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_rq_gen_acllist(self):
 		"""Make sure that ACL list is genrated"""
 		acl_list = RedisQueue.gen_acl_list()
 		self.assertEqual(acl_list[1]["bench"][0], get_bench_id())
 
 	@skip_if_redis_version_lt("6.0")
-	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
+	@patch.dict(nts.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_adding_redis_user(self):
 		acl_list = RedisQueue.gen_acl_list()
 		username, password = acl_list[1]["bench"]
@@ -50,11 +50,11 @@ class TestRedisAuth(FrappeTestCase):
 		conn.acl_deluser(username)
 
 	@skip_if_redis_version_lt("6.0")
-	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
+	@patch.dict(nts.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_rq_namespace(self):
 		"""Make sure that user can access only their respective namespace."""
 		# Current bench ID
-		bench_id = frappe.conf.get("bench_id")
+		bench_id = nts.conf.get("bench_id")
 		conn = get_redis_conn()
 		conn.set("rq:queue:test_bench1:abc", "value")
 		conn.set(f"rq:queue:{bench_id}:abc", "value")
@@ -63,7 +63,7 @@ class TestRedisAuth(FrappeTestCase):
 		tmp_bench_id = "test_bench1"
 		username, password = tmp_bench_id, "password1"
 		conn.acl_deluser(username)
-		frappe.conf.update({"bench_id": tmp_bench_id})
+		nts.conf.update({"bench_id": tmp_bench_id})
 		_ = RedisQueue(conn).add_user(username, password)
 		test_bench1_conn = RedisQueue.get_connection(username, password)
 
@@ -73,5 +73,5 @@ class TestRedisAuth(FrappeTestCase):
 		with self.assertRaises(redis.exceptions.NoPermissionError):
 			test_bench1_conn.get(f"rq:queue:{bench_id}:abc")
 
-		frappe.conf.update({"bench_id": bench_id})
+		nts.conf.update({"bench_id": bench_id})
 		conn.acl_deluser(username)

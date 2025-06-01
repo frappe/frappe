@@ -1,12 +1,12 @@
 import json
 from urllib.parse import urlparse
 
-import frappe
-from frappe import sbool
-from frappe.utils.data import cstr
-from frappe.utils.response import Response
+import nts
+from nts import sbool
+from nts.utils.data import cstr
+from nts.utils.response import Response
 
-from .frappeclient import FrappeClient
+from .ntsclient import ntsClient
 
 
 class PushNotification:
@@ -125,7 +125,7 @@ class PushNotification:
 			else:
 				raise Exception("Body should be at max 1000 characters")
 		if strip_html:
-			body = frappe.utils.strip_html(body)
+			body = nts.utils.strip_html(body)
 
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.user",
@@ -170,7 +170,7 @@ class PushNotification:
 			else:
 				raise Exception("Body should be at max 1000 characters")
 		if strip_html:
-			body = frappe.utils.strip_html(body)
+			body = nts.utils.strip_html(body)
 
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.topic",
@@ -185,7 +185,7 @@ class PushNotification:
 		:return: bool True if enabled, False otherwise.
 		"""
 		return sbool(
-			frappe.db.get_single_value("Push Notification Settings", "enable_push_notification_relay")
+			nts.db.get_single_value("Push Notification Settings", "enable_push_notification_relay")
 		)
 
 	def _get_credential(self) -> tuple[str, str]:
@@ -197,14 +197,14 @@ class PushNotification:
 
 		:return: tuple[str, str] The API key and secret.
 		"""
-		notification_settings = frappe.get_doc("Push Notification Settings")
+		notification_settings = nts.get_doc("Push Notification Settings")
 		if notification_settings.api_key and notification_settings.api_secret:
 			return notification_settings.api_key, notification_settings.get_password("api_secret")
 
 		# Generate new credentials
-		token = frappe.generate_hash(length=48)
+		token = nts.generate_hash(length=48)
 		# store the token in the redis cache
-		frappe.cache().set_value(
+		nts.cache().set_value(
 			f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600
 		)
 		body = {
@@ -212,7 +212,7 @@ class PushNotification:
 			"protocol": self._site_protocol,
 			"port": self._site_port,
 			"token": token,
-			"webhook_route": "/api/method/frappe.push_notification.auth_webhook",
+			"webhook_route": "/api/method/nts.push_notification.auth_webhook",
 		}
 		response = self._send_post_request("notification_relay.api.auth.get_credential", body, False)
 		success = response["success"]
@@ -222,7 +222,7 @@ class PushNotification:
 		notification_settings.api_secret = response["credentials"]["api_secret"]
 		notification_settings.save(ignore_permissions=True)
 		# GET request, hence using commit to persist changes
-		frappe.db.commit()  # nosemgrep
+		nts.db.commit()  # nosemgrep
 		return notification_settings.api_key, notification_settings.get_password("api_secret")
 
 	def _send_post_request(self, method: str, params: dict, use_authentication: bool = True):
@@ -240,37 +240,37 @@ class PushNotification:
 		if not self.is_enabled():
 			raise Exception("Push Notification Relay is not enabled")
 
-		relay_server_endpoint = frappe.conf.get("push_relay_server_url")
+		relay_server_endpoint = nts.conf.get("push_relay_server_url")
 		if use_authentication:
 			api_key, api_secret = self._get_credential()
-			client = FrappeClient(relay_server_endpoint, api_key=api_key, api_secret=api_secret)
+			client = ntsClient(relay_server_endpoint, api_key=api_key, api_secret=api_secret)
 		else:
-			client = FrappeClient(relay_server_endpoint)
+			client = ntsClient(relay_server_endpoint)
 		params["project_name"] = self.project_name
 		params["site_name"] = self._site_name
 		return client.post_api(method, params)
 
 	@property
 	def _site_name(self) -> str:
-		return urlparse(frappe.utils.get_url()).hostname
+		return urlparse(nts.utils.get_url()).hostname
 
 	@property
 	def _site_protocol(self) -> str:
-		return urlparse(frappe.utils.get_url()).scheme
+		return urlparse(nts.utils.get_url()).scheme
 
 	@property
 	def _site_port(self) -> str:
-		site_uri = urlparse(frappe.utils.get_url())
+		site_uri = urlparse(nts.utils.get_url())
 		if site_uri.port is not None:
 			return str(site_uri.port)
 		return ""
 
 
 # Webhook which will be called by the central relay server for authentication
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@nts.whitelist(allow_guest=True, methods=["GET"])
 def auth_webhook():
-	url = urlparse(frappe.utils.get_url()).hostname
-	token = frappe.cache().get_value(f"{url}:push_relay_registration_token")
+	url = urlparse(nts.utils.get_url()).hostname
+	token = nts.cache().get_value(f"{url}:push_relay_registration_token")
 	response = Response()
 	response.mimetype = "text/plain; charset=UTF-8"
 
@@ -285,13 +285,13 @@ def auth_webhook():
 
 
 # Subscribe and Unsubscribe API
-@frappe.whitelist(methods=["GET"])
+@nts.whitelist(methods=["GET"])
 def subscribe(fcm_token: str, project_name: str) -> dict:
-	success, message = PushNotification(project_name).add_token(frappe.session.user, fcm_token)
+	success, message = PushNotification(project_name).add_token(nts.session.user, fcm_token)
 	return {"success": success, "message": message}
 
 
-@frappe.whitelist(methods=["GET"])
+@nts.whitelist(methods=["GET"])
 def unsubscribe(fcm_token: str, project_name: str) -> dict:
-	success, message = PushNotification(project_name).remove_token(frappe.session.user, fcm_token)
+	success, message = PushNotification(project_name).remove_token(nts.session.user, fcm_token)
 	return {"success": success, "message": message}

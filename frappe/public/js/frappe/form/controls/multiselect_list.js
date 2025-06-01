@@ -1,5 +1,5 @@
-frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
-	frappe.ui.form.ControlData
+nts.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
+	nts.ui.form.ControlData
 ) {
 	static trigger_change_on_input_event = false;
 	make_input() {
@@ -42,7 +42,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.$list_wrapper.on(
 			"input",
 			"input",
-			frappe.utils.debounce((e) => {
+			nts.utils.debounce((e) => {
 				this.set_options().then(() => {
 					let txt = e.target.value;
 					let filtered_options = this._options.filter((opt) => {
@@ -234,7 +234,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					<strong>${option.label}</strong>
 					<div class="small">${option.description}</div>
 				</div>
-				<div class="multiselect-check">${frappe.utils.icon("tick", "xs")}</div>
+				<div class="multiselect-check">${nts.utils.icon("tick", "xs")}</div>
 			</li>`;
 			})
 			.join("");

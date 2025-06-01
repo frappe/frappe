@@ -7,10 +7,10 @@ const props = defineProps(["df"]);
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;
 	if (!doctype) return [];
-	if (!frappe.get_meta(doctype)) {
+	if (!nts.get_meta(doctype)) {
 		await load_doctype_model(doctype);
 	}
-	let child_doctype = frappe.get_meta(doctype);
+	let child_doctype = nts.get_meta(doctype);
 	return get_table_columns(props.df, child_doctype);
 }, []);
 </script>
@@ -42,7 +42,7 @@ let table_columns = computedAsync(async () => {
 		</div>
 		<div class="grid-empty text-center">
 			<img
-				src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+				src="/assets/nts/images/ui-states/grid-empty-state.svg"
 				:alt="__('Grid Empty State')"
 				class="grid-empty-illustration"
 			/>

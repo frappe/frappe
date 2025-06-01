@@ -1,8 +1,8 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
-from frappe.model.document import Document
+# import nts
+from nts.model.document import Document
 
 
 class LogsToClear(Document):
@@ -12,7 +12,7 @@ class LogsToClear(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		days: DF.Int
 		parent: DF.Data

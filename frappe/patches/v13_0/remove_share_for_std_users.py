@@ -1,7 +1,7 @@
-import frappe
-import frappe.share
+import nts
+import nts.share
 
 
 def execute():
-	for user in frappe.STANDARD_USERS:
-		frappe.share.remove("User", user, user)
+	for user in nts.STANDARD_USERS:
+		nts.share.remove("User", user, user)

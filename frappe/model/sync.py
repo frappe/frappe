@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
 	Sync's doctype and docfields from txt files to database
@@ -6,12 +6,12 @@
 """
 import os
 
-import frappe
-from frappe.cache_manager import clear_controller_cache
-from frappe.model.base_document import get_controller
-from frappe.modules.import_file import import_file_by_path
-from frappe.modules.patch_handler import _patch_mode
-from frappe.utils import update_progress_bar
+import nts
+from nts.cache_manager import clear_controller_cache
+from nts.model.base_document import get_controller
+from nts.modules.import_file import import_file_by_path
+from nts.modules.patch_handler import _patch_mode
+from nts.utils import update_progress_bar
 
 IMPORTABLE_DOCTYPES = [
 	("core", "doctype"),
@@ -39,21 +39,21 @@ IMPORTABLE_DOCTYPES = [
 def sync_all(force=0, reset_permissions=False):
 	_patch_mode(True)
 
-	for app in frappe.get_installed_apps():
+	for app in nts.get_installed_apps():
 		sync_for(app, force, reset_permissions=reset_permissions)
 
 	_patch_mode(False)
 
-	frappe.clear_cache()
+	nts.clear_cache()
 
 
 def sync_for(app_name, force=0, reset_permissions=False):
 	files = []
 
-	if app_name == "frappe":
+	if app_name == "nts":
 		# these need to go first at time of install
 
-		FRAPPE_PATH = frappe.get_app_path("frappe")
+		nts_PATH = nts.get_app_path("nts")
 
 		for core_module in [
 			"docfield",
@@ -65,16 +65,16 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"has_role",
 			"doctype",
 		]:
-			files.append(os.path.join(FRAPPE_PATH, "core", "doctype", core_module, f"{core_module}.json"))
+			files.append(os.path.join(nts_PATH, "core", "doctype", core_module, f"{core_module}.json"))
 
 		for custom_module in ["custom_field", "property_setter"]:
 			files.append(
-				os.path.join(FRAPPE_PATH, "custom", "doctype", custom_module, f"{custom_module}.json")
+				os.path.join(nts_PATH, "custom", "doctype", custom_module, f"{custom_module}.json")
 			)
 
 		for website_module in ["web_form", "web_template", "web_form_field", "portal_menu_item"]:
 			files.append(
-				os.path.join(FRAPPE_PATH, "website", "doctype", website_module, f"{website_module}.json")
+				os.path.join(nts_PATH, "website", "doctype", website_module, f"{website_module}.json")
 			)
 
 		for desk_module in [
@@ -93,15 +93,15 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace_custom_block",
 			"workspace",
 		]:
-			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
+			files.append(os.path.join(nts_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
 
 		for module_name, document_type in IMPORTABLE_DOCTYPES:
-			file = os.path.join(FRAPPE_PATH, module_name, "doctype", document_type, f"{document_type}.json")
+			file = os.path.join(nts_PATH, module_name, "doctype", document_type, f"{document_type}.json")
 			if file not in files:
 				files.append(file)
 
-	for module_name in frappe.local.app_modules.get(app_name) or []:
-		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
+	for module_name in nts.local.app_modules.get(app_name) or []:
+		folder = os.path.dirname(nts.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
 	l = len(files)
@@ -112,7 +112,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 				doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions
 			)
 
-			frappe.db.commit()
+			nts.db.commit()
 
 			# show progress bar
 			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
@@ -149,11 +149,11 @@ def remove_orphan_doctypes():
 	So this is supposed to be non-destrictive operation.
 	"""
 
-	doctype_names = frappe.get_all("DocType", {"custom": 0}, pluck="name")
+	doctype_names = nts.get_all("DocType", {"custom": 0}, pluck="name")
 	orphan_doctypes = []
 
 	clear_controller_cache()
-	class_overrides = frappe.get_hooks("override_doctype_class", {})
+	class_overrides = nts.get_hooks("override_doctype_class", {})
 
 	for doctype in doctype_names:
 		if doctype in class_overrides:
@@ -170,7 +170,7 @@ def remove_orphan_doctypes():
 
 	print(f"Orphaned DocType(s) found: {', '.join(orphan_doctypes)}")
 	for i, name in enumerate(orphan_doctypes):
-		frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
+		nts.delete_doc("DocType", name, force=True, ignore_missing=True)
 		update_progress_bar("Deleting orphaned DocTypes", i, len(orphan_doctypes))
-	frappe.db.commit()
+	nts.db.commit()
 	print()

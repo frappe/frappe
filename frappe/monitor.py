@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import datetime
@@ -10,39 +10,39 @@ import uuid
 import pytz
 import rq
 
-import frappe
-from frappe.utils.data import cint
-from frappe.utils.synchronization import filelock
+import nts
+from nts.utils.data import cint
+from nts.utils.synchronization import filelock
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
 
 
 def start(transaction_type="request", method=None, kwargs=None):
-	if frappe.conf.monitor:
-		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
+	if nts.conf.monitor:
+		nts.local.monitor = Monitor(transaction_type, method, kwargs)
 
 
 def stop(response=None):
-	if hasattr(frappe.local, "monitor"):
-		frappe.local.monitor.dump(response)
+	if hasattr(nts.local, "monitor"):
+		nts.local.monitor.dump(response)
 
 
 def add_data_to_monitor(**kwargs) -> None:
 	"""Add additional custom key-value pairs along with monitor log.
 	Note: Key-value pairs should be simple JSON exportable types."""
-	if hasattr(frappe.local, "monitor"):
-		frappe.local.monitor.add_custom_data(**kwargs)
+	if hasattr(nts.local, "monitor"):
+		nts.local.monitor.add_custom_data(**kwargs)
 
 
 def get_trace_id() -> str | None:
 	"""Get unique ID for current transaction."""
-	if monitor := getattr(frappe.local, "monitor", None):
+	if monitor := getattr(nts.local, "monitor", None):
 		return monitor.data.uuid
 
 
 def log_file():
-	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
+	return os.path.join(nts.utils.get_bench_path(), "logs", "monitor.json.log")
 
 
 class Monitor:
@@ -50,9 +50,9 @@ class Monitor:
 
 	def __init__(self, transaction_type, method, kwargs):
 		try:
-			self.data = frappe._dict(
+			self.data = nts._dict(
 				{
-					"site": frappe.local.site,
+					"site": nts.local.site,
 					"timestamp": datetime.datetime.now(pytz.UTC),
 					"transaction_type": transaction_type,
 					"uuid": str(uuid.uuid4()),
@@ -67,19 +67,19 @@ class Monitor:
 			traceback.print_exc()
 
 	def collect_request_meta(self):
-		self.data.request = frappe._dict(
+		self.data.request = nts._dict(
 			{
-				"ip": frappe.local.request_ip,
-				"method": frappe.request.method,
-				"path": frappe.request.path,
+				"ip": nts.local.request_ip,
+				"method": nts.request.method,
+				"path": nts.request.path,
 			}
 		)
 
-		if request_id := frappe.request.headers.get("X-Frappe-Request-Id"):
+		if request_id := nts.request.headers.get("X-nts-Request-Id"):
 			self.data.uuid = request_id
 
 	def collect_job_meta(self, method, kwargs):
-		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
+		self.data.job = nts._dict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
 			self.data.job.method = kwargs["job_type"]
 			self.data.job.scheduled = True
@@ -106,8 +106,8 @@ class Monitor:
 				else:
 					self.data.request.status_code = 500
 
-				if hasattr(frappe.local, "rate_limiter"):
-					limiter = frappe.local.rate_limiter
+				if hasattr(nts.local, "rate_limiter"):
+					limiter = nts.local.rate_limiter
 					self.data.request.counter = limiter.counter
 					if limiter.rejected:
 						self.data.request.reset = limiter.reset
@@ -118,21 +118,21 @@ class Monitor:
 
 	def store(self):
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
+		length = nts.cache.rpush(MONITOR_REDIS_KEY, serialized)
 		if cint(length) > MONITOR_MAX_ENTRIES:
-			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
+			nts.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
 
 
 def flush():
-	logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
+	logs = nts.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
 	if not logs:
 		return
 
-	logs = list(map(frappe.safe_decode, logs))
+	logs = list(map(nts.safe_decode, logs))
 	with filelock("monitor_flush", is_global=True, timeout=5):
 		with open(log_file(), "a") as f:
 			f.write("\n".join(logs))
 			f.write("\n")
 
 	# Remove fetched entries from cache
-	frappe.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+	nts.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)

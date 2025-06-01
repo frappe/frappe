@@ -2,7 +2,7 @@
 	<div class="file-preview">
 		<div class="file-icon">
 			<img v-if="is_image" :src="src" :alt="file.name" />
-			<div class="fallback" v-else v-html="frappe.utils.icon('file', 'md')"></div>
+			<div class="fallback" v-else v-html="nts.utils.icon('file', 'md')"></div>
 		</div>
 		<div>
 			<div>
@@ -19,14 +19,14 @@
 			</div>
 
 			<div class="flex config-area">
-				<label v-if="allow_toggle_optimize" class="frappe-checkbox"
+				<label v-if="allow_toggle_optimize" class="nts-checkbox"
 					><input
 						type="checkbox"
 						:checked="optimize"
 						@change="emit('toggle_optimize')"
 					/>{{ __("Optimize") }}</label
 				>
-				<label v-if="allow_toggle_private" class="frappe-checkbox"
+				<label v-if="allow_toggle_private" class="nts-checkbox"
 					><input
 						type="checkbox"
 						:checked="file.private"
@@ -49,20 +49,20 @@
 				:progress="progress"
 				:stroke="3"
 			/>
-			<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
-			<div v-if="file.failed" v-html="frappe.utils.icon('solid-error', 'lg')"></div>
+			<div v-if="uploaded" v-html="nts.utils.icon('solid-success', 'lg')"></div>
+			<div v-if="file.failed" v-html="nts.utils.icon('solid-error', 'lg')"></div>
 			<div class="file-action-buttons">
 				<button
 					v-if="is_cropable"
 					class="btn btn-crop muted"
 					@click="emit('toggle_image_cropper')"
-					v-html="frappe.utils.icon('crop', 'md')"
+					v-html="nts.utils.icon('crop', 'md')"
 				></button>
 				<button
 					v-if="!uploaded && !file.uploading && !file.failed"
 					class="btn muted"
 					@click="emit('remove')"
-					v-html="frappe.utils.icon('delete', 'md')"
+					v-html="nts.utils.icon('delete', 'md')"
 				></button>
 			</div>
 		</div>
@@ -93,7 +93,7 @@ let optimize = ref(props.file.optimize);
 
 // computed
 let file_size = computed(() => {
-	return frappe.form.formatters.FileSize(props.file.file_obj.size);
+	return nts.form.formatters.FileSize(props.file.file_obj.size);
 });
 let is_private = computed(() => {
 	return props.file.doc ? props.file.doc.is_private : props.file.private;
@@ -231,7 +231,7 @@ onMounted(() => {
 	opacity: 1;
 }
 
-.frappe-checkbox {
+.nts-checkbox {
 	font-size: var(--text-sm);
 	color: var(--text-light);
 	display: flex;

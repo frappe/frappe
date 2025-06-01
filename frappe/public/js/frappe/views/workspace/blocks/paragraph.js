@@ -82,7 +82,7 @@ export default class Paragraph extends Block {
 			</div>
 		`);
 
-		let all_blocks = frappe.workspace_block.blocks;
+		let all_blocks = nts.workspace_block.blocks;
 		Object.keys(all_blocks).forEach((key) => {
 			let $block_list_item = $(`
 				<div class="block-list-item dropdown-item">
@@ -129,8 +129,8 @@ export default class Paragraph extends Block {
 			this.add_new_block_button();
 			this.add_settings_button();
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -218,7 +218,7 @@ export default class Paragraph extends Block {
 	static get toolbox() {
 		return {
 			title: "Text",
-			icon: frappe.utils.icon("text", "sm"),
+			icon: nts.utils.icon("text", "sm"),
 		};
 	}
 }

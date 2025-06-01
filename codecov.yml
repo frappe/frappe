@@ -40,21 +40,21 @@ flags:
 
 profiling:
    critical_files_paths:
-      - /frappe/api.py
-      - /frappe/app.py
-      - /frappe/auth.py
-      - /frappe/boot.py
-      - /frappe/client.py
-      - /frappe/handler.py
-      - /frappe/migrate.py
-      - /frappe/sessions.py
-      - /frappe/utils/*
-      - /frappe/desk/reportview.py
-      - /frappe/desk/form/*
-      - /frappe/model/*
-      - /frappe/core/doctype/doctype/*
-      - /frappe/core/doctype/data_import/*
-      - /frappe/core/doctype/user/*
-      - /frappe/core/doctype/user/*
-      - /frappe/query_builder/*
-      - /frappe/database/*
+      - /nts/api.py
+      - /nts/app.py
+      - /nts/auth.py
+      - /nts/boot.py
+      - /nts/client.py
+      - /nts/handler.py
+      - /nts/migrate.py
+      - /nts/sessions.py
+      - /nts/utils/*
+      - /nts/desk/reportview.py
+      - /nts/desk/form/*
+      - /nts/model/*
+      - /nts/core/doctype/doctype/*
+      - /nts/core/doctype/data_import/*
+      - /nts/core/doctype/user/*
+      - /nts/core/doctype/user/*
+      - /nts/query_builder/*
+      - /nts/database/*

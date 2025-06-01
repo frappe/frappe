@@ -216,13 +216,13 @@ body.modal-open[style^="padding-right"] {
 		display: flex;
 		align-items: center;
 
-		.frappe-control:first-child {
+		.nts-control:first-child {
 			&[data-fieldname="sender"] {
 				margin-right: 10px;
 			}
 			flex: 1;
 		}
-		.frappe-control:last-child {
+		.nts-control:last-child {
 			margin-left: 10px;
 			margin-bottom: -24px;
 			button {
@@ -238,14 +238,14 @@ body.modal-open[style^="padding-right"] {
 		display: flex;
 		align-items: center;
 
-		.frappe-control:first-child {
+		.nts-control:first-child {
 			&[data-fieldname="email_template"] {
 				margin-right: 10px;
 			}
 			flex: 1;
 		}
 
-		.frappe-control:last-child {
+		.nts-control:last-child {
 			margin-bottom: -8px;
 		}
 	}

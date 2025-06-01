@@ -1,19 +1,19 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-# Author - Shivam Mishra <shivam@frappe.io>
+# Author - Shivam Mishra <shivam@nts.io>
 
 from functools import wraps
 from json import dumps, loads
 
-import frappe
-from frappe import DoesNotExistError, ValidationError, _, _dict
-from frappe.boot import get_allowed_pages, get_allowed_reports
-from frappe.cache_manager import (
+import nts
+from nts import DoesNotExistError, ValidationError, _, _dict
+from nts.boot import get_allowed_pages, get_allowed_reports
+from nts.cache_manager import (
 	build_domain_restriced_doctype_cache,
 	build_domain_restriced_page_cache,
 	build_table_count_cache,
 )
-from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from nts.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 
 
 def handle_not_exist(fn):
@@ -22,7 +22,7 @@ def handle_not_exist(fn):
 		try:
 			return fn(*args, **kwargs)
 		except DoesNotExistError:
-			frappe.clear_last_message()
+			nts.clear_last_message()
 			return []
 
 	return wrapper
@@ -33,19 +33,19 @@ class Workspace:
 		self.page_name = page.get("name")
 		self.page_title = page.get("title")
 		self.public_page = page.get("public")
-		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
+		self.workspace_manager = "Workspace Manager" in nts.get_roles()
 
-		self.user = frappe.get_user()
+		self.user = nts.get_user()
 		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
-		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
+		self.doc = nts.get_cached_doc("Workspace", self.page_name)
 		if (
 			self.doc
 			and self.doc.module
 			and self.doc.module not in self.allowed_modules
 			and not self.workspace_manager
 		):
-			raise frappe.PermissionError
+			raise nts.PermissionError
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
@@ -61,15 +61,15 @@ class Workspace:
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = (
-			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
+			nts.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		)
 		self.restricted_pages = (
-			frappe.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+			nts.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 		)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
-		from frappe.utils import has_common
+		from nts.utils import has_common
 
 		allowed = [d.role for d in self.doc.roles]
 
@@ -79,20 +79,20 @@ class Workspace:
 		if not allowed:
 			return True
 
-		roles = frappe.get_roles()
+		roles = nts.get_roles()
 
 		if has_common(roles, allowed):
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
-		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
+		value = nts.cache.get_value(cache_key, user=nts.session.user)
 		if value is not None:
 			return value
 
 		value = fallback_fn()
 
 		# Expire every six hour
-		frappe.cache.set_value(cache_key, value, frappe.session.user, 21600)
+		nts.cache.set_value(cache_key, value, nts.session.user, 21600)
 		return value
 
 	def get_can_read_items(self):
@@ -109,20 +109,20 @@ class Workspace:
 
 	def get_onboarding_doc(self, onboarding):
 		# Check if onboarding is enabled
-		if not frappe.get_system_settings("enable_onboarding"):
+		if not nts.get_system_settings("enable_onboarding"):
 			return None
 
 		if not self.onboarding_list:
 			return None
 
-		if frappe.db.get_value("Module Onboarding", onboarding, "is_complete"):
+		if nts.db.get_value("Module Onboarding", onboarding, "is_complete"):
 			return None
 
-		doc = frappe.get_doc("Module Onboarding", onboarding)
+		doc = nts.get_doc("Module Onboarding", onboarding)
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
-		user_roles = set(frappe.get_roles())
+		user_roles = set(nts.get_roles())
 		if not allowed_roles & user_roles:
 			return None
 
@@ -133,7 +133,7 @@ class Workspace:
 		return doc
 
 	def is_item_allowed(self, name, item_type):
-		if frappe.session.user == "Administrator":
+		if nts.session.user == "Administrator":
 			return True
 
 		item_type = item_type.lower()
@@ -169,9 +169,9 @@ class Workspace:
 	def _doctype_contains_a_record(self, name):
 		exists = self.table_counts.get(name, False)
 
-		if not exists and frappe.db.exists(name):
-			if not frappe.db.get_value("DocType", name, "issingle"):
-				exists = bool(frappe.get_all(name, limit=1))
+		if not exists and nts.db.exists(name):
+			if not nts.db.get_value("DocType", name, "issingle"):
+				exists = bool(nts.get_all(name, limit=1))
 			else:
 				exists = True
 			self.table_counts[name] = exists
@@ -198,7 +198,7 @@ class Workspace:
 				item["count"] = count
 
 		if item.get("link_type") == "DocType":
-			item["description"] = frappe.get_meta(item.link_to).description
+			item["description"] = nts.get_meta(item.link_to).description
 
 		# Translate label
 		item["label"] = _(item.label) if item.label else _(item.name)
@@ -206,16 +206,16 @@ class Workspace:
 		return item
 
 	def is_custom_block_permitted(self, custom_block_name):
-		from frappe.utils import has_common
+		from nts.utils import has_common
 
 		allowed = [
-			d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": custom_block_name})
+			d.role for d in nts.get_all("Has Role", fields=["role"], filters={"parent": custom_block_name})
 		]
 
 		if not allowed:
 			return True
 
-		roles = frappe.get_roles()
+		roles = nts.get_roles()
 
 		if has_common(roles, allowed):
 			return True
@@ -229,7 +229,7 @@ class Workspace:
 		if not self.doc.hide_custom:
 			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
 
-		default_country = frappe.db.get_default("country")
+		default_country = nts.db.get_default("country")
 
 		new_data = []
 		for card in cards:
@@ -264,11 +264,11 @@ class Workspace:
 	@handle_not_exist
 	def get_charts(self):
 		all_charts = []
-		if frappe.has_permission("Dashboard Chart", throw=False):
+		if nts.has_permission("Dashboard Chart", throw=False):
 			charts = self.doc.charts
 
 			for chart in charts:
-				if frappe.has_permission("Dashboard Chart", doc=chart.chart_name):
+				if nts.has_permission("Dashboard Chart", doc=chart.chart_name):
 					# Translate label
 					chart.label = _(chart.label) if chart.label else _(chart.chart_name)
 					all_charts.append(chart)
@@ -281,7 +281,7 @@ class Workspace:
 			if not item.restrict_to_domain:
 				return True
 			else:
-				return item.restrict_to_domain in frappe.get_active_domains()
+				return item.restrict_to_domain in nts.get_active_domains()
 
 		items = []
 		shortcuts = self.doc.shortcuts
@@ -343,7 +343,7 @@ class Workspace:
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
 			if step.action == "Create Entry":
-				step.is_submittable = frappe.db.get_value(
+				step.is_submittable = nts.db.get_value(
 					"DocType", step.reference_document, "is_submittable", cache=True
 				)
 			steps.append(step)
@@ -353,10 +353,10 @@ class Workspace:
 	@handle_not_exist
 	def get_number_cards(self):
 		all_number_cards = []
-		if frappe.has_permission("Number Card", throw=False):
+		if nts.has_permission("Number Card", throw=False):
 			number_cards = self.doc.number_cards
 			for number_card in number_cards:
-				if frappe.has_permission("Number Card", doc=number_card.number_card_name):
+				if nts.has_permission("Number Card", doc=number_card.number_card_name):
 					# Translate label
 					number_card.label = (
 						_(number_card.label) if number_card.label else _(number_card.number_card_name)
@@ -368,11 +368,11 @@ class Workspace:
 	@handle_not_exist
 	def get_custom_blocks(self):
 		all_custom_blocks = []
-		if frappe.has_permission("Custom HTML Block", throw=False):
+		if nts.has_permission("Custom HTML Block", throw=False):
 			custom_blocks = self.doc.custom_blocks
 
 			for custom_block in custom_blocks:
-				if frappe.has_permission("Custom HTML Block", doc=custom_block.custom_block_name):
+				if nts.has_permission("Custom HTML Block", doc=custom_block.custom_block_name):
 					if not self.is_custom_block_permitted(custom_block.custom_block_name):
 						continue
 
@@ -385,8 +385,8 @@ class Workspace:
 		return all_custom_blocks
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_desktop_page(page):
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
@@ -410,21 +410,21 @@ def get_desktop_page(page):
 			"custom_blocks": workspace.custom_blocks,
 		}
 	except DoesNotExistError:
-		frappe.log_error("Workspace Missing")
+		nts.log_error("Workspace Missing")
 		return {}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_workspace_sidebar_items():
 	"""Get list of sidebar items for desk"""
-	has_access = "Workspace Manager" in frappe.get_roles()
+	has_access = "Workspace Manager" in nts.get_roles()
 
 	# don't get domain restricted pages
-	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+	blocked_modules = nts.get_cached_doc("User", nts.session.user).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
-	allowed_domains = [None, *frappe.get_active_domains()]
+	allowed_domains = [None, *nts.get_active_domains()]
 
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
@@ -448,7 +448,7 @@ def get_workspace_sidebar_items():
 		"indicator_color",
 		"is_hidden",
 	]
-	all_pages = frappe.get_all(
+	all_pages = nts.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
 	pages = []
@@ -461,27 +461,27 @@ def get_workspace_sidebar_items():
 			if has_access or workspace.is_permitted():
 				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
 					pages.append(page)
-				elif page.for_user == frappe.session.user:
+				elif page.for_user == nts.session.user:
 					private_pages.append(page)
 				page["label"] = _(page.get("name"))
-		except frappe.PermissionError:
+		except nts.PermissionError:
 			pass
 	if private_pages:
 		pages.extend(private_pages)
 
 	if len(pages) == 0:
-		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
+		pages = [nts.get_doc("Workspace", "Welcome Workspace").as_dict()]
 		pages[0]["label"] = _("Welcome Workspace")
 
 	return {
 		"pages": pages,
 		"has_access": has_access,
-		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
+		"has_create_access": nts.has_permission(doctype="Workspace", ptype="create"),
 	}
 
 
 def get_table_with_counts():
-	counts = frappe.cache.get_value("information_schema:counts")
+	counts = nts.cache.get_value("information_schema:counts")
 	if not counts:
 		counts = build_table_count_cache()
 
@@ -496,7 +496,7 @@ def get_custom_reports_and_doctypes(module):
 
 
 def get_custom_doctype_list(module):
-	doctypes = frappe.get_all(
+	doctypes = nts.get_all(
 		"DocType",
 		fields=["name"],
 		filters={"custom": 1, "istable": 0, "module": module},
@@ -516,7 +516,7 @@ def get_custom_doctype_list(module):
 
 def get_custom_report_list(module):
 	"""Returns list on new style reports for modules."""
-	reports = frappe.get_all(
+	reports = nts.get_all(
 		"Report",
 		fields=["name", "ref_doctype", "report_type"],
 		filters={"is_standard": "No", "disabled": 0, "module": module},
@@ -612,7 +612,7 @@ def new_widget(config, doctype, parentfield):
 		widget.pop("name", None)
 
 		# New Doc
-		doc = frappe.new_doc(doctype)
+		doc = nts.new_doc(doctype)
 		doc.update(widget)
 
 		# Manually Set IDX
@@ -647,7 +647,7 @@ def prepare_widget(config, doctype, parentfield):
 		wid_config.pop("name", None)
 
 		# New Doc
-		doc = frappe.new_doc(doctype)
+		doc = nts.new_doc(doctype)
 		doc.update(wid_config)
 
 		# Manually Set IDX
@@ -660,7 +660,7 @@ def prepare_widget(config, doctype, parentfield):
 	return prepare_widget_list
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_onboarding_step(name, field, value):
 	"""Update status of onboaridng step
 
@@ -670,8 +670,8 @@ def update_onboarding_step(name, field, value):
 	        value: Value to be updated
 
 	"""
-	from frappe.utils.telemetry import capture
+	from nts.utils.telemetry import capture
 
-	frappe.db.set_value("Onboarding Step", name, field, value)
+	nts.db.set_value("Onboarding Step", name, field, value)
 
-	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
+	capture(nts.scrub(name), app="nts_onboarding", properties={field: value})

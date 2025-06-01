@@ -1,4 +1,4 @@
-frappe.find = {
+nts.find = {
 	page_primary_action: () => {
 		return $(".page-actions:visible .btn-primary");
 	},
@@ -7,7 +7,7 @@ frappe.find = {
 			let input = $(`[data-fieldname="${fieldname}"] :input`);
 			if (value) {
 				input.val(value).trigger("change");
-				frappe.after_ajax(() => {
+				nts.after_ajax(() => {
 					resolve(input);
 				});
 			} else {

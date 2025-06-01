@@ -27,7 +27,7 @@ export default class CustomBlockWidget extends Widget {
 		await this.get_custom_block_data();
 		this.body.empty();
 
-		frappe.create_shadow_element(
+		nts.create_shadow_element(
 			this.body[0],
 			this.custom_block_doc.html,
 			this.custom_block_doc.style,
@@ -37,7 +37,7 @@ export default class CustomBlockWidget extends Widget {
 
 	async get_custom_block_data() {
 		this.label = this.custom_block_name;
-		let custom_block_doc = await frappe.model.with_doc(
+		let custom_block_doc = await nts.model.with_doc(
 			"Custom HTML Block",
 			this.custom_block_name
 		);

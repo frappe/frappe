@@ -1,16 +1,16 @@
-import frappe
+import nts
 
 
-class MaxFileSizeReachedError(frappe.ValidationError):
+class MaxFileSizeReachedError(nts.ValidationError):
 	pass
 
 
-class FolderNotEmpty(frappe.ValidationError):
+class FolderNotEmpty(nts.ValidationError):
 	pass
 
 
-class FileTypeNotAllowed(frappe.ValidationError):
+class FileTypeNotAllowed(nts.ValidationError):
 	pass
 
 
-from frappe.exceptions import *
+from nts.exceptions import *

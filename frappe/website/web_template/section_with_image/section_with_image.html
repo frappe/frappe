@@ -5,7 +5,7 @@
 	{%- endif -%}
 
 	{%- if image -%}
-	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+	{{ nts.render_template('templates/includes/image_with_blur.html', {
 		"src": image,
 		"alt": image_description or title,
 		"class": "section-image"

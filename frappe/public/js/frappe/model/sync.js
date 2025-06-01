@@ -1,12 +1,12 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-Object.assign(frappe.model, {
+Object.assign(nts.model, {
 	docinfo: {},
 	sync: function (r) {
 		/* docs:
 			extract docs, docinfo (attachments, comments, assignments)
-			from incoming request and set in `locals` and `frappe.model.docinfo`
+			from incoming request and set in `locals` and `nts.model.docinfo`
 		*/
 		var isPlain;
 		if (!r.docs && !r.docinfo) r = { docs: r };
@@ -20,36 +20,36 @@ Object.assign(frappe.model, {
 
 				if (locals[d.doctype] && locals[d.doctype][d.name]) {
 					// update values
-					frappe.model.update_in_locals(d);
+					nts.model.update_in_locals(d);
 				} else {
-					frappe.model.add_to_locals(d);
+					nts.model.add_to_locals(d);
 				}
 
 				d.__last_sync_on = new Date();
 
 				if (d.doctype === "DocType") {
-					frappe.meta.sync(d);
+					nts.meta.sync(d);
 				}
 
 				if (d.localname) {
-					frappe.model.rename_after_save(d, i);
+					nts.model.rename_after_save(d, i);
 				}
 			}
 		}
 
-		frappe.model.sync_docinfo(r);
+		nts.model.sync_docinfo(r);
 		return r.docs;
 	},
 
 	rename_after_save: (d, i) => {
-		frappe.model.new_names[d.localname] = d.name;
+		nts.model.new_names[d.localname] = d.name;
 		$(document).trigger("rename", [d.doctype, d.localname, d.name]);
 		delete locals[d.doctype][d.localname];
 
 		// update docinfo to new dict keys
 		if (i === 0) {
-			frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
-			frappe.model.docinfo[d.doctype][d.localname] = undefined;
+			nts.model.docinfo[d.doctype][d.name] = nts.model.docinfo[d.doctype][d.localname];
+			nts.model.docinfo[d.doctype][d.localname] = undefined;
 		}
 	},
 
@@ -57,13 +57,13 @@ Object.assign(frappe.model, {
 		// set docinfo (comments, assign, attachments)
 		if (r.docinfo) {
 			const { doctype, name } = r.docinfo;
-			if (!frappe.model.docinfo[doctype]) {
-				frappe.model.docinfo[doctype] = {};
+			if (!nts.model.docinfo[doctype]) {
+				nts.model.docinfo[doctype] = {};
 			}
-			frappe.model.docinfo[doctype][name] = r.docinfo;
+			nts.model.docinfo[doctype][name] = r.docinfo;
 
-			// copy values to frappe.boot.user_info
-			Object.assign(frappe.boot.user_info, r.docinfo.user_info);
+			// copy values to nts.boot.user_info
+			Object.assign(nts.boot.user_info, r.docinfo.user_info);
 		}
 
 		return r.docs;
@@ -74,17 +74,17 @@ Object.assign(frappe.model, {
 
 		if (!doc.name && doc.__islocal) {
 			// get name (local if required)
-			if (!doc.parentfield) frappe.model.clear_doc(doc);
+			if (!doc.parentfield) nts.model.clear_doc(doc);
 
-			doc.name = frappe.model.get_new_name(doc.doctype);
+			doc.name = nts.model.get_new_name(doc.doctype);
 
 			if (!doc.parentfield)
-				frappe.provide("frappe.model.docinfo." + doc.doctype + "." + doc.name);
+				nts.provide("nts.model.docinfo." + doc.doctype + "." + doc.name);
 		}
 
 		locals[doc.doctype][doc.name] = doc;
 
-		let meta = frappe.get_meta(doc.doctype);
+		let meta = nts.get_meta(doc.doctype);
 		let is_table = meta ? meta.istable : doc.parentfield;
 		// add child docs to locals
 		if (!is_table) {
@@ -97,7 +97,7 @@ Object.assign(frappe.model, {
 
 						if (typeof d == "object" && !d.parent) d.parent = doc.name;
 
-						frappe.model.add_to_locals(d);
+						nts.model.add_to_locals(d);
 					}
 				}
 			}
@@ -114,8 +114,8 @@ Object.assign(frappe.model, {
 		};
 
 		for (let fieldname in doc) {
-			let df = frappe.meta.get_field(doc.doctype, fieldname);
-			if (df && frappe.model.table_fields.includes(df.fieldtype)) {
+			let df = nts.meta.get_field(doc.doctype, fieldname);
+			if (df && nts.model.table_fields.includes(df.fieldtype)) {
 				// table
 				if (!(doc[fieldname] instanceof Array)) {
 					doc[fieldname] = [];
@@ -135,7 +135,7 @@ Object.assign(frappe.model, {
 
 						if (!d.name) {
 							// incoming row is new, find a new name
-							d.name = frappe.model.get_new_name(doc.doctype);
+							d.name = nts.model.get_new_name(doc.doctype);
 						}
 
 						// if incoming row is not registered, register it
@@ -153,7 +153,7 @@ Object.assign(frappe.model, {
 					} else {
 						local_doc[fieldname].push(d);
 						if (!d.parent) d.parent = doc.name;
-						frappe.model.add_to_locals(d);
+						nts.model.add_to_locals(d);
 					}
 				}
 

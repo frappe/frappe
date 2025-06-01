@@ -1,22 +1,22 @@
-import frappe
-from frappe.utils import cint
+import nts
+from nts.utils import cint
 
 no_cache = 1
 
 
 def get_context(context):
-	frappe.db.commit()  # nosemgrep
-	context = frappe._dict()
+	nts.db.commit()  # nosemgrep
+	context = nts._dict()
 	context.boot = get_boot()
 	return context
 
 
 def get_boot():
-	return frappe._dict(
+	return nts._dict(
 		{
-			"site_name": frappe.local.site,
-			"read_only_mode": frappe.flags.read_only,
-			"csrf_token": frappe.sessions.get_csrf_token(),
-			"setup_complete": cint(frappe.get_system_settings("setup_complete")),
+			"site_name": nts.local.site,
+			"read_only_mode": nts.flags.read_only,
+			"csrf_token": nts.sessions.get_csrf_token(),
+			"setup_complete": cint(nts.get_system_settings("setup_complete")),
 		}
 	)

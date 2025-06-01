@@ -19,10 +19,10 @@ context("Control Icon", () => {
 
 	it("should set icon", () => {
 		get_dialog_with_icon().as("dialog");
-		cy.get(".frappe-control[data-fieldname=icon]").findByRole("textbox").click();
+		cy.get(".nts-control[data-fieldname=icon]").findByRole("textbox").click();
 
 		cy.get(".icon-picker .icon-wrapper[id=heart-active]").first().click();
-		cy.get(".frappe-control[data-fieldname=icon]")
+		cy.get(".nts-control[data-fieldname=icon]")
 			.findByRole("textbox")
 			.should("have.value", "heart-active");
 		cy.get("@dialog").then((dialog) => {
@@ -31,7 +31,7 @@ context("Control Icon", () => {
 		});
 
 		cy.get(".icon-picker .icon-wrapper[id=heart]").first().click();
-		cy.get(".frappe-control[data-fieldname=icon]")
+		cy.get(".nts-control[data-fieldname=icon]")
 			.findByRole("textbox")
 			.should("have.value", "heart");
 		cy.get("@dialog").then((dialog) => {

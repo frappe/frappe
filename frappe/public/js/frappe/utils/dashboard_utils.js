@@ -1,11 +1,11 @@
-frappe.dashboard_utils = {
+nts.dashboard_utils = {
 	render_chart_filters: function (filters, button_class, container, append) {
 		filters.forEach((filter) => {
 			let icon_html = "",
 				filter_class = "";
 
 			if (filter.icon) {
-				icon_html = frappe.utils.icon(filter.icon);
+				icon_html = nts.utils.icon(filter.icon);
 			}
 
 			if (filter.class) {
@@ -17,7 +17,7 @@ frappe.dashboard_utils = {
 						<button class="btn btn-secondary btn-xs">
 							${icon_html}
 							<span class="filter-label">${__(filter.label)}</span>
-							${frappe.utils.icon("select", "xs")}
+							${nts.utils.icon("select", "xs")}
 						</button>
 				</a>`;
 			let options_html;
@@ -69,13 +69,13 @@ frappe.dashboard_utils = {
 	get_filters_for_chart_type: function (chart) {
 		if (chart.chart_type === "Custom" && chart.source) {
 			const method =
-				"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
-			return frappe.xcall(method, { name: chart.source }).then((config) => {
-				frappe.dom.eval(config);
-				return frappe.dashboards.chart_sources[chart.source].filters;
+				"nts.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
+			return nts.xcall(method, { name: chart.source }).then((config) => {
+				nts.dom.eval(config);
+				return nts.dashboards.chart_sources[chart.source].filters;
 			});
 		} else if (chart.chart_type === "Report" && chart.report_name) {
-			return frappe.report_utils.get_report_filters(chart.report_name).then((filters) => {
+			return nts.report_utils.get_report_filters(chart.report_name).then((filters) => {
 				return filters;
 			});
 		} else {
@@ -84,10 +84,10 @@ frappe.dashboard_utils = {
 	},
 
 	get_dashboard_settings() {
-		return frappe.db
+		return nts.db
 			.get_list("Dashboard Settings", {
 				filters: {
-					name: frappe.session.user,
+					name: nts.session.user,
 				},
 				fields: ["*"],
 			})
@@ -103,11 +103,11 @@ frappe.dashboard_utils = {
 	},
 
 	create_dashboard_settings() {
-		return frappe
+		return nts
 			.xcall(
-				"frappe.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings",
+				"nts.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings",
 				{
-					user: frappe.session.user,
+					user: nts.session.user,
 				}
 			)
 			.then((settings) => {
@@ -118,7 +118,7 @@ frappe.dashboard_utils = {
 	get_years_since_creation(creation) {
 		//Get years since user account created
 		let creation_year = this.get_year(creation);
-		let current_year = this.get_year(frappe.datetime.now_date());
+		let current_year = this.get_year(nts.datetime.now_date());
 		let years_list = [];
 		for (var year = current_year; year >= creation_year; year--) {
 			years_list.push(year);
@@ -163,7 +163,7 @@ frappe.dashboard_utils = {
 						<p>${__("Set dynamic filter values in JavaScript for the required fields here.")}
 						</p>
 						<p>${__("For example:")}
-							<code>frappe.defaults.get_user_default("Company")</code>
+							<code>nts.defaults.get_user_default("Company")</code>
 						</p>
 					</div>`,
 			},
@@ -216,7 +216,7 @@ frappe.dashboard_utils = {
 				try {
 					f[3] = eval(f[3]);
 				} catch (e) {
-					frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
+					nts.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
 				}
 			});
 			filters = [...filters, ...dynamic_filters];
@@ -226,7 +226,7 @@ frappe.dashboard_utils = {
 					const val = eval(dynamic_filters[key]);
 					dynamic_filters[key] = val;
 				} catch (e) {
-					frappe.throw(__("Invalid expression set in filter {0}", [key]));
+					nts.throw(__("Invalid expression set in filter {0}", [key]));
 				}
 			}
 			Object.assign(filters, dynamic_filters);
@@ -243,7 +243,7 @@ frappe.dashboard_utils = {
 			options: "Dashboard",
 		};
 
-		if (!frappe.boot.developer_mode) {
+		if (!nts.boot.developer_mode) {
 			field.get_query = () => {
 				return {
 					filters: {
@@ -259,13 +259,13 @@ frappe.dashboard_utils = {
 	get_add_to_dashboard_dialog(docname, doctype, method) {
 		const field = this.get_dashboard_link_field();
 
-		const dialog = new frappe.ui.Dialog({
+		const dialog = new nts.ui.Dialog({
 			title: __("Add to Dashboard"),
 			fields: [field],
 			primary_action: (values) => {
 				values.name = docname;
-				values.set_standard = frappe.boot.developer_mode;
-				frappe.xcall(method, { args: values }).then(() => {
+				values.set_standard = nts.boot.developer_mode;
+				nts.xcall(method, { args: values }).then(() => {
 					let dashboard_route_html = `<a href = "/app/dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message = __("{0} {1} added to Dashboard {2}", [
 						doctype,
@@ -273,7 +273,7 @@ frappe.dashboard_utils = {
 						dashboard_route_html,
 					]);
 
-					frappe.msgprint(message);
+					nts.msgprint(message);
 				});
 
 				dialog.hide();

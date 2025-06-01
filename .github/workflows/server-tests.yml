@@ -135,12 +135,12 @@ jobs:
 
       - name: Run Tests
         run: bench --site test_site run-parallel-tests
-        working-directory: /home/runner/frappe-bench
+        working-directory: /home/runner/nts-bench
 
       - name: Show bench output
         if: ${{ always() }}
         run: |
-          cd ~/frappe-bench
+          cd ~/nts-bench
           cat bench_start.log || true
           cd logs
           for f in ./*.log*; do

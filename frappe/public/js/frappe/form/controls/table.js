@@ -1,6 +1,6 @@
 import Grid from "../grid";
 
-frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control {
+nts.ui.form.ControlTable = class ControlTable extends nts.ui.form.Control {
 	make() {
 		super.make();
 
@@ -25,18 +25,18 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			const row_docname = $(e.target).closest(".grid-row").data("name");
 			const in_grid_form = $(e.target).closest(".form-in-grid").length;
 			const value_formatter_map = {
-				Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
+				Date: (val) => (val ? nts.datetime.user_to_str(val) : val),
 				Int: (val) => cint(val),
 				Check: (val) => cint(val),
 				Float: (val) => flt(val),
 				Currency: (val) => flt(val),
 			};
 
-			let pasted_data = frappe.utils.get_clipboard_data(e);
+			let pasted_data = nts.utils.get_clipboard_data(e);
 
 			if (!pasted_data || in_grid_form) return;
 
-			let data = frappe.utils.csv_to_array(pasted_data, "\t");
+			let data = nts.utils.csv_to_array(pasted_data, "\t");
 
 			if (data.length === 1 && data[0].length === 1) return;
 
@@ -46,7 +46,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			if (this.get_field(data[0][0])) {
 				data[0].forEach((column) => {
 					fieldnames.push(this.get_field(column));
-					const df = frappe.meta.get_docfield(doctype, this.get_field(column));
+					const df = nts.meta.get_docfield(doctype, this.get_field(column));
 					fieldtypes.push(df ? df.fieldtype : "");
 				});
 				data.shift();
@@ -61,7 +61,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 						column.fieldname === $(e.target).data("fieldname")
 					) {
 						fieldnames.push(column.fieldname);
-						const df = frappe.meta.get_docfield(doctype, column.fieldname);
+						const df = nts.meta.get_docfield(doctype, column.fieldname);
 						fieldtypes.push(df ? df.fieldtype : "");
 						target_column_matched = true;
 					}
@@ -89,7 +89,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 								value = value_formatter_map[fieldtypes[data_index]]
 									? value_formatter_map[fieldtypes[data_index]](value)
 									: value;
-								frappe.model.set_value(
+								nts.model.set_value(
 									doctype,
 									row_name,
 									fieldnames[data_index],
@@ -100,7 +100,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 						row_idx++;
 						if (data_length >= 10) {
 							let progress = i + 1;
-							frappe.show_progress(
+							nts.show_progress(
 								__("Processing"),
 								progress,
 								data_length,
@@ -118,7 +118,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 		let fieldname;
 		field_name = field_name.toLowerCase();
 		this.grid?.meta?.fields.some((field) => {
-			if (frappe.model.no_value_type.includes(field.fieldtype)) {
+			if (nts.model.no_value_type.includes(field.fieldtype)) {
 				return false;
 			}
 

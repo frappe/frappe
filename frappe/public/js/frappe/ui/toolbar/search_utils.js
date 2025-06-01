@@ -1,9 +1,9 @@
-frappe.provide("frappe.search");
+nts.provide("nts.search");
 import { fuzzy_match } from "./fuzzy_match.js";
 
-frappe.search.utils = {
+nts.search.utils = {
 	setup_recent: function () {
-		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
+		this.recent = JSON.parse(nts.boot.user.recent || "[]") || [];
 	},
 
 	get_recent_pages: function (keywords) {
@@ -43,7 +43,7 @@ frappe.search.utils = {
 
 		values = values.reverse();
 
-		frappe.route_history.forEach(function (route, i) {
+		nts.route_history.forEach(function (route, i) {
 			if (route[0] === "Form") {
 				values.push([route[2], route]);
 			} else if (
@@ -54,7 +54,7 @@ frappe.search.utils = {
 					values.push([route[1], route]);
 				}
 			} else if (route[0]) {
-				values.push([frappe.route_titles[route.join("/")] || route[0], route]);
+				values.push([nts.route_titles[route.join("/")] || route[0], route]);
 			}
 		});
 
@@ -97,7 +97,7 @@ frappe.search.utils = {
 						break;
 				}
 			} else if (match[0]) {
-				out.label = frappe.utils.escape_html(match[0]).bold();
+				out.label = nts.utils.escape_html(match[0]).bold();
 				out.value = match[0];
 			} else {
 				console.log("Illegal match", match);
@@ -111,8 +111,8 @@ frappe.search.utils = {
 
 	get_frequent_links() {
 		let options = [];
-		frappe.boot.frequently_visited_links.forEach((link) => {
-			const label = frappe.utils.get_route_label(link.route);
+		nts.boot.frequently_visited_links.forEach((link) => {
+			const label = nts.utils.get_route_label(link.route);
 			options.push({
 				route: link.route,
 				label: label,
@@ -131,8 +131,8 @@ frappe.search.utils = {
 		var out = [];
 		if (keywords.split(" ").includes("in") && keywords.slice(-2) !== "in") {
 			var parts = keywords.split(" in ");
-			frappe.boot.user.can_read.forEach(function (item) {
-				if (frappe.boot.user.can_search.includes(item)) {
+			nts.boot.user.can_read.forEach(function (item) {
+				if (nts.boot.user.can_search.includes(item)) {
 					const search_result = me.fuzzy_search(parts[1], item, true);
 					if (search_result.score) {
 						out.push({
@@ -158,7 +158,7 @@ frappe.search.utils = {
 		var out = [];
 		var firstKeyword = keywords.split(" ")[0];
 		if (firstKeyword.toLowerCase() === __("new")) {
-			frappe.boot.user.can_create.forEach(function (item) {
+			nts.boot.user.can_create.forEach(function (item) {
 				const search_result = me.fuzzy_search(keywords.substr(4), item, true);
 				var level = search_result.score;
 				if (level) {
@@ -169,7 +169,7 @@ frappe.search.utils = {
 						index: 1 + level,
 						match: item,
 						onclick: function () {
-							frappe.new_doc(item, true);
+							nts.new_doc(item, true);
 						},
 					});
 				}
@@ -201,16 +201,16 @@ frappe.search.utils = {
 				route: route,
 			};
 		};
-		frappe.boot.user.can_read.forEach(function (item) {
+		nts.boot.user.can_read.forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			({ score, marked_string } = search_result);
 			if (score) {
 				target = item;
-				if (frappe.boot.single_types.includes(item)) {
+				if (nts.boot.single_types.includes(item)) {
 					out.push(option("", ["Form", item, item], 0.05));
-				} else if (frappe.boot.user.can_search.includes(item)) {
+				} else if (nts.boot.user.can_search.includes(item)) {
 					// include 'making new' option
-					if (frappe.boot.user.can_create.includes(item)) {
+					if (nts.boot.user.can_create.includes(item)) {
 						var match = item;
 						out.push({
 							type: "New",
@@ -219,13 +219,13 @@ frappe.search.utils = {
 							index: score + 0.015,
 							match: item,
 							onclick: function () {
-								frappe.new_doc(match, true);
+								nts.new_doc(match, true);
 							},
 						});
 					}
 
 					out.push(option("List", ["List", item], 0.05));
-					if (frappe.model.can_get_report(item)) {
+					if (nts.model.can_get_report(item)) {
 						out.push(option("Report", ["List", item, "Report"], 0.04));
 					}
 				}
@@ -238,11 +238,11 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		var route;
-		Object.keys(frappe.boot.user.all_reports).forEach(function (item) {
+		Object.keys(nts.boot.user.all_reports).forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			var level = search_result.score;
 			if (level > 0) {
-				var report = frappe.boot.user.all_reports[item];
+				var report = nts.boot.user.all_reports[item];
 				if (report.report_type == "Report Builder")
 					route = ["List", report.ref_doctype, "Report", item];
 				else route = ["query-report", item];
@@ -262,7 +262,7 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		this.pages = {};
-		$.each(frappe.boot.page_info, function (name, p) {
+		$.each(nts.boot.page_info, function (name, p) {
 			me.pages[p.title] = p;
 			p.name = name;
 		});
@@ -317,7 +317,7 @@ frappe.search.utils = {
 	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.allowed_workspaces.forEach(function (item) {
+		nts.boot.allowed_workspaces.forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item.name, true);
 			var level = search_result.score;
 			if (level > 0) {
@@ -326,7 +326,7 @@ frappe.search.utils = {
 					label: __("Open {0}", [search_result.marked_string || __(item.name)]),
 					value: __("Open {0}", [__(item.name)]),
 					index: level,
-					route: [frappe.router.slug(item.name)],
+					route: [nts.router.slug(item.name)],
 				};
 
 				out.push(ret);
@@ -338,7 +338,7 @@ frappe.search.utils = {
 	get_dashboards: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.dashboards.forEach(function (item) {
+		nts.boot.dashboards.forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item.name, true);
 			var level = search_result.score;
 			if (level > 0) {
@@ -470,8 +470,8 @@ frappe.search.utils = {
 			return results_sets;
 		}
 		return new Promise(function (resolve, reject) {
-			frappe.call({
-				method: "frappe.utils.global_search.search",
+			nts.call({
+				method: "nts.utils.global_search.search",
 				args: {
 					text: keywords,
 					start: start,
@@ -687,7 +687,7 @@ frappe.search.utils = {
 	get_marketplace_apps: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.marketplace_apps.forEach(function (item) {
+		nts.boot.marketplace_apps.forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item.title, true);
 			if (search_result.score > 0) {
 				var ret = {
@@ -695,7 +695,7 @@ frappe.search.utils = {
 					value: __("Install {0} from Marketplace", [__(item.title)]),
 					index: search_result.score * 0.8,
 					route: [
-						`https://frappecloud.com/${item.route}?utm_source=awesomebar`,
+						`https://ntscloud.com/${item.route}?utm_source=awesomebar`,
 						item.name,
 					],
 				};

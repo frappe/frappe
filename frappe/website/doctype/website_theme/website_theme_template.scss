@@ -13,10 +13,10 @@ $font-family-sans-serif: "{{ google_font }}", "InterVariable", "Inter", -apple-s
 }
 {% endif -%}
 
-{% if primary_color %}$primary: {{ frappe.db.get_value('Color', primary_color, 'color') }};{% endif -%}
-{% if dark_color %}$dark: {{ frappe.db.get_value('Color', dark_color, 'color') }};{% endif -%}
-{% if text_color %}$body-text-color: {{ frappe.db.get_value('Color', text_color, 'color') }};{% endif -%}
-{% if background_color %}$body-bg: {{ frappe.db.get_value('Color', background_color, 'color') }};{% endif -%}
+{% if primary_color %}$primary: {{ nts.db.get_value('Color', primary_color, 'color') }};{% endif -%}
+{% if dark_color %}$dark: {{ nts.db.get_value('Color', dark_color, 'color') }};{% endif -%}
+{% if text_color %}$body-text-color: {{ nts.db.get_value('Color', text_color, 'color') }};{% endif -%}
+{% if background_color %}$body-bg: {{ nts.db.get_value('Color', background_color, 'color') }};{% endif -%}
 
 $enable-shadows: {{ button_shadows and "true" or "false" }};
 $enable-gradients: {{ button_gradients and "true" or "false" }};

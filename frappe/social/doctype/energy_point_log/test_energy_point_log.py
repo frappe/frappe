@@ -1,40 +1,40 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.desk.form.assign_to import add as assign_to
-from frappe.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.testutils import add_custom_field, clear_custom_fields
+import nts
+from nts.desk.form.assign_to import add as assign_to
+from nts.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
+from nts.tests.utils import ntsTestCase
+from nts.utils.testutils import add_custom_field, clear_custom_fields
 
 from .energy_point_log import create_review_points_log, review
 from .energy_point_log import get_energy_points as _get_energy_points
 
 
-class TestEnergyPointLog(FrappeTestCase):
+class TestEnergyPointLog(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		settings = frappe.get_single("Energy Point Settings")
+		settings = nts.get_single("Energy Point Settings")
 		settings.enabled = 1
 		settings.save()
 
 	@classmethod
 	def tearDownClass(cls):
-		settings = frappe.get_single("Energy Point Settings")
+		settings = nts.get_single("Energy Point Settings")
 		settings.enabled = 0
 		settings.save()
 
 	def setUp(self):
-		frappe.cache.delete_value("energy_point_rule_map")
+		nts.cache.delete_value("energy_point_rule_map")
 
 	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.delete("Energy Point Log")
-		frappe.db.delete("Energy Point Rule")
-		frappe.cache.delete_value("energy_point_rule_map")
+		nts.set_user("Administrator")
+		nts.db.delete("Energy Point Log")
+		nts.db.delete("Energy Point Rule")
+		nts.cache.delete_value("energy_point_rule_map")
 
 	def test_user_energy_point(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
 
@@ -54,7 +54,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(points_after_double_save, energy_point_of_user + todo_point_rule.points)
 
 	def test_points_based_on_multiplier_field(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		add_custom_field("ToDo", "multiplier", "Float")
 		multiplier_value = 0.51
 
@@ -76,7 +76,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		clear_custom_fields("ToDo")
 
 	def test_points_based_on_max_points(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		# here multiplier is high
 		# let see if points get capped to max_point limit
 		multiplier_value = 15
@@ -104,11 +104,11 @@ class TestEnergyPointLog(FrappeTestCase):
 		clear_custom_fields("ToDo")
 
 	def test_disabled_energy_points(self):
-		settings = frappe.get_single("Energy Point Settings")
+		settings = nts.get_single("Energy Point Settings")
 		settings.enabled = 0
 		settings.save()
 
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
 
@@ -131,7 +131,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		create_review_points_log("test2@example.com", review_points)
 
 		# reviewer
-		frappe.set_user("test2@example.com")
+		nts.set_user("test2@example.com")
 
 		review_points_before_review = get_points("test2@example.com", "review_points")
 		self.assertEqual(review_points_before_review, review_points)
@@ -157,7 +157,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(review_points_after_review, review_points_before_review - criticism_points)
 
 	def test_user_energy_point_as_admin(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		create_energy_point_rule_for_todo()
 		created_todo = create_a_todo()
 
@@ -170,18 +170,18 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(points_after_closing_todo, 0)
 
 	def test_revert_points_on_cancelled_doc(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		create_energy_point_rule_for_todo()
 		created_todo = create_a_todo()
 		created_todo.status = "Closed"
 		created_todo.save()
 
-		energy_point_logs = frappe.get_all("Energy Point Log")
+		energy_point_logs = nts.get_all("Energy Point Log")
 
 		self.assertEqual(len(energy_point_logs), 1)
 
 		# for submit and cancel permission
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		# submit
 		created_todo.docstatus = 1
 		created_todo.save()
@@ -190,7 +190,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		created_todo.docstatus = 2
 		created_todo.save()
 
-		energy_point_logs = frappe.get_all("Energy Point Log", fields=["reference_name", "type", "reverted"])
+		energy_point_logs = nts.get_all("Energy Point Log", fields=["reference_name", "type", "reverted"])
 
 		self.assertListEqual(
 			energy_point_logs,
@@ -201,7 +201,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		)
 
 	def test_energy_point_for_new_document_creation(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo(for_doc_event="New")
 
 		points_before_todo_creation = get_points("test@example.com")
@@ -237,7 +237,7 @@ class TestEnergyPointLog(FrappeTestCase):
 	def test_points_on_field_value_change(self):
 		rule = create_energy_point_rule_for_todo(for_doc_event="Value Change", field_to_check="description")
 
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		points_before_todo_creation = get_points("test@example.com")
 		todo = create_a_todo()
 		todo.status = "Closed"
@@ -251,7 +251,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(points_after_changing_todo_description, points_before_todo_creation + rule.points)
 
 	def test_apply_only_once(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo(apply_once=True, user_field="modified_by")
 		first_user_points = get_points("test@example.com")
 
@@ -264,7 +264,7 @@ class TestEnergyPointLog(FrappeTestCase):
 
 		self.assertEqual(first_user_points_after_closing_todo, first_user_points + todo_point_rule.points)
 
-		frappe.set_user("test2@example.com")
+		nts.set_user("test2@example.com")
 		second_user_points = get_points("test2@example.com")
 		created_todo.save(ignore_permissions=True)
 		second_user_points_after_closing_todo = get_points("test2@example.com")
@@ -273,7 +273,7 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(second_user_points_after_closing_todo, second_user_points)
 
 	def test_allow_creation_of_new_log_if_the_previous_log_was_reverted(self):
-		frappe.set_user("test@example.com")
+		nts.set_user("test@example.com")
 		todo_point_rule = create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
 
@@ -283,8 +283,8 @@ class TestEnergyPointLog(FrappeTestCase):
 		created_todo.save()
 		points_after_closing_todo = get_points("test@example.com")
 
-		log_name = frappe.db.exists("Energy Point Log", {"reference_name": created_todo.name})
-		frappe.get_doc("Energy Point Log", log_name).revert("Just for test")
+		log_name = nts.db.exists("Energy Point Log", {"reference_name": created_todo.name})
+		nts.get_doc("Energy Point Log", log_name).revert("Just for test")
 		points_after_reverting_todo = get_points("test@example.com")
 		created_todo.save()
 		points_after_saving_todo_again = get_points("test@example.com")
@@ -295,8 +295,8 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(points_after_saving_todo_again, points_after_reverting_todo + rule_points)
 
 	def test_energy_points_disabled_user(self):
-		frappe.set_user("test@example.com")
-		user = frappe.get_doc("User", "test@example.com")
+		nts.set_user("test@example.com")
+		user = nts.get_doc("User", "test@example.com")
 		user.enabled = 0
 		user.save()
 		todo_point_rule = create_energy_point_rule_for_todo()
@@ -330,12 +330,12 @@ def create_energy_point_rule_for_todo(
 	user_field="owner",
 ):
 	name = "ToDo Closed"
-	point_rule_exists = frappe.db.exists("Energy Point Rule", name)
+	point_rule_exists = nts.db.exists("Energy Point Rule", name)
 
 	if point_rule_exists:
-		return frappe.get_doc("Energy Point Rule", name)
+		return nts.get_doc("Energy Point Rule", name)
 
-	return frappe.get_doc(
+	return nts.get_doc(
 		{
 			"doctype": "Energy Point Rule",
 			"rule_name": name,
@@ -356,7 +356,7 @@ def create_energy_point_rule_for_todo(
 def create_a_todo(description=None):
 	if not description:
 		description = "Fix a bug"
-	return frappe.get_doc(
+	return nts.get_doc(
 		{
 			"doctype": "ToDo",
 			"description": description,

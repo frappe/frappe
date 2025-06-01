@@ -192,7 +192,7 @@ Disable Report,禁用報告
 Apply Text Styles,應用文本樣式
 Detailed feedback,詳細的反饋
 Pull,拉
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript的格式：frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+JavaScript Format: nts.query_reports['REPORTNAME'] = {},JavaScript的格式：nts.query_reports [&#39;REPORTNAME&#39;] = {}
 chevron-up,人字形-上
 Allow Guest to View,允許訪客查看
 Documentation,文檔
@@ -747,7 +747,7 @@ Modules HTML,HTML模塊
 <br>
 Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""",跟踪收件人是否已打開您的電子郵件。 <br>注意：如果您要向多個收件人發送郵件，即使有1個收件人閱讀該郵件，也會被視為“已打開”
 Missing Values Required,遺漏必須值
-Frappe,冰咖啡
+nts,冰咖啡
 Mark as Unread,標記為未讀
 Operation,作業
 Change Label (via Custom Translation),更改標籤（通過自定義轉換）
@@ -1152,7 +1152,7 @@ Fieldname which will be the DocType for this link field.,字段名這將是在DO
 Documents assigned to you and by you.,分配給您和您的文檔。
 Email Signature,電子郵件簽名
 Google Analytics ID,Google Analytics（分析）的ID,
-"For help see <a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>","有關幫助，請參閱<a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">客戶端腳本API和示例</a>"
+"For help see <a href=""https://nts.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>","有關幫助，請參閱<a href=""https://nts.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">客戶端腳本API和示例</a>"
 Link to your Bootstrap theme,鏈接到你的引導主題
 Delete,刪除
 New {0},新的{0}
@@ -1995,7 +1995,7 @@ Select a group node first.,首先選擇一組節點。
 Implicit,含蓄
 "Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",作為追加對通信本的DocType（必須有田，“狀態”，“主題”）
 "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.
-<br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",的URI，用於接收授權代碼一旦用戶允許訪問，以及失敗的響應。通常，REST端點的客戶端應用程序暴露出來。 <br>例如http：//hostname//api/method/frappe.www.login.login_via_facebook,
+<br>e.g. http://hostname//api/method/nts.www.login.login_via_facebook",的URI，用於接收授權代碼一旦用戶允許訪問，以及失敗的響應。通常，REST端點的客戶端應用程序暴露出來。 <br>例如http：//hostname//api/method/nts.www.login.login_via_facebook,
 Not allowed to change {0} after submission,不允許提交後更改{0}
 Migration ID Field,遷移ID字段
 Comment Type,註釋類型
@@ -2212,7 +2212,7 @@ Icons,圖標
 You are not allowed to update this Web Form Document,你不允許更新此網頁表單文件
 Emails,電子郵件
 Please select Document Type first,請先選擇文件類型
-Please set Base URL in Social Login Key for Frappe,請在Frappe的社交登錄密鑰中設置基本網址
+Please set Base URL in Social Login Key for nts,請在nts的社交登錄密鑰中設置基本網址
 About Us Settings,關於我們的設置
 Website Theme,網站主題
 Api Access,Api訪問

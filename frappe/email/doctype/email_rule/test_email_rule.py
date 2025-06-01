@@ -1,7 +1,7 @@
-# Copyright (c) 2017, Frappe Technologies and Contributors
+# Copyright (c) 2017, nts Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
 
-class TestEmailRule(FrappeTestCase):
+class TestEmailRule(ntsTestCase):
 	pass

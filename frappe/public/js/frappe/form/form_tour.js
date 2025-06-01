@@ -1,12 +1,12 @@
-frappe.ui.form.FormTour = class FormTour {
+nts.ui.form.FormTour = class FormTour {
 	constructor({ frm }) {
 		this.frm = frm;
 		this.driver_steps = [];
 	}
 
 	init_driver() {
-		this.driver = new frappe.Driver({
-			className: "frappe-driver",
+		this.driver = new nts.Driver({
+			className: "nts-driver",
 			allowClose: false,
 			padding: 10,
 			overlayClickNext: true,
@@ -25,23 +25,23 @@ frappe.ui.form.FormTour = class FormTour {
 
 				// focus on input
 				const $input = $(step.node).find("input").get(0);
-				if ($input) frappe.utils.sleep(200).then(() => $input.focus());
+				if ($input) nts.utils.sleep(200).then(() => $input.focus());
 			},
 		});
 
-		frappe.router.on("change", () => this.driver.reset());
+		nts.router.on("change", () => this.driver.reset());
 		this.frm.layout.sections.forEach((section) => section.collapse(false));
 	}
 
 	async init({ tour_name, on_finish }) {
 		if (tour_name) {
-			this.tour = await frappe.db.get_doc("Form Tour", tour_name);
+			this.tour = await nts.db.get_doc("Form Tour", tour_name);
 		} else {
-			const doctype_tour_exists = await frappe.db.exists("Form Tour", this.frm.doctype);
+			const doctype_tour_exists = await nts.db.exists("Form Tour", this.frm.doctype);
 			if (doctype_tour_exists) {
-				this.tour = await frappe.db.get_doc("Form Tour", this.frm.doctype);
+				this.tour = await nts.db.get_doc("Form Tour", this.frm.doctype);
 			} else {
-				this.tour = { steps: frappe.tour[this.frm.doctype] };
+				this.tour = { steps: nts.tour[this.frm.doctype] };
 			}
 		}
 
@@ -81,7 +81,7 @@ frappe.ui.form.FormTour = class FormTour {
 				if (field?.tab && !field.tab.is_active()) {
 					field.tab.set_active();
 					this.driver.reset(true);
-					frappe.utils.sleep(200).then(() => {
+					nts.utils.sleep(200).then(() => {
 						this.start(step.idx);
 						this.driver.overlay.refresh();
 					});
@@ -94,7 +94,7 @@ frappe.ui.form.FormTour = class FormTour {
 				if (field?.tab && !field.tab.is_active()) {
 					field.tab.set_active();
 					this.driver.reset(true);
-					frappe.utils.sleep(200).then(() => {
+					nts.utils.sleep(200).then(() => {
 						this.start(step.idx - 2);
 						this.driver.overlay.refresh();
 					});
@@ -121,7 +121,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 	get_step(step_info, on_next, on_prev) {
 		const { name, fieldname, title, description, position, is_table_field } = step_info;
-		let element = `.frappe-control[data-fieldname='${fieldname}']`;
+		let element = `.nts-control[data-fieldname='${fieldname}']`;
 
 		const field = this.frm.get_field(fieldname);
 		if (field) {
@@ -131,7 +131,7 @@ frappe.ui.form.FormTour = class FormTour {
 
 		if (is_table_field) {
 			// TODO: fix wrapper for grid sections
-			element = `.grid-row-open .frappe-control[data-fieldname='${fieldname}']`;
+			element = `.grid-row-open .nts-control[data-fieldname='${fieldname}']`;
 		}
 
 		return {
@@ -140,7 +140,7 @@ frappe.ui.form.FormTour = class FormTour {
 			popover: {
 				title: __(title),
 				description: __(description),
-				position: frappe.router.slug(position || "Bottom"),
+				position: nts.router.slug(position || "Bottom"),
 			},
 			onNext: on_next,
 			onPrevious: on_prev,
@@ -205,7 +205,7 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_new_row_step(step) {
-		const $add_row = `.frappe-control[data-fieldname='${step.fieldname}'] .grid-add-row`;
+		const $add_row = `.nts-control[data-fieldname='${step.fieldname}'] .grid-add-row`;
 		const add_row_step = {
 			element: $add_row,
 			popover: { title: __("Add a Row"), description: "" },
@@ -227,7 +227,7 @@ frappe.ui.form.FormTour = class FormTour {
 	expand_row_and_proceed(step, start_from) {
 		this.open_first_row_of(step.fieldname);
 		this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
-		frappe.utils.sleep(300).then(() => this.driver.start(start_from));
+		nts.utils.sleep(300).then(() => this.driver.start(start_from));
 	}
 
 	open_first_row_of(fieldname) {
@@ -240,11 +240,11 @@ frappe.ui.form.FormTour = class FormTour {
 			const next_step = this.get_next_step();
 			const next_element = next_step.options.is_save_step ? null : next_step.node;
 
-			frappe.utils.scroll_to(next_element, true, 150, null, () => {
+			nts.utils.scroll_to(next_element, true, 150, null, () => {
 				this.driver.moveNext();
-				frappe.flags.disable_auto_scroll = false;
+				nts.flags.disable_auto_scroll = false;
 			});
-			frappe.flags.disable_auto_scroll = true;
+			nts.flags.disable_auto_scroll = true;
 		});
 	}
 
@@ -302,7 +302,7 @@ frappe.ui.form.FormTour = class FormTour {
 			},
 		};
 		this.driver_steps.push(save_step);
-		frappe.ui.form.on(
+		nts.ui.form.on(
 			this.frm.doctype,
 			"after_save",
 			() => this.on_finish && this.on_finish()

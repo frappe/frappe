@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 UNSEEN_NOTES_KEY = "unseen_notes::"
 
@@ -14,8 +14,8 @@ class Note(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.desk.doctype.note_seen_by.note_seen_by import NoteSeenBy
-		from frappe.types import DF
+		from nts.desk.doctype.note_seen_by.note_seen_by import NoteSeenBy
+		from nts.types import DF
 
 		content: DF.TextEditor | None
 		expire_notification_on: DF.Date | None
@@ -29,7 +29,7 @@ class Note(Document):
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)
-			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
+			self.expire_notification_on = nts.utils.add_days(self.creation, 7)
 
 		if not self.public and self.notify_on_login:
 			self.notify_on_login = 0
@@ -48,18 +48,18 @@ class Note(Document):
 		self.append("seen_by", {"user": user})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def mark_as_seen(note: str):
-	note: Note = frappe.get_doc("Note", note)
-	note.mark_seen_by(frappe.session.user)
+	note: Note = nts.get_doc("Note", note)
+	note.mark_seen_by(nts.session.user)
 	note.save(ignore_permissions=True, ignore_version=True)
 
 
 def get_permission_query_conditions(user):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	return f"(`tabNote`.owner = {frappe.db.escape(user)} or `tabNote`.public = 1)"
+	return f"(`tabNote`.owner = {nts.db.escape(user)} or `tabNote`.public = 1)"
 
 
 def has_permission(doc, user):
@@ -68,36 +68,36 @@ def has_permission(doc, user):
 
 def get_unseen_notes():
 	return (
-		frappe.cache.get_value(
-			f"{UNSEEN_NOTES_KEY}{frappe.session.user}",
+		nts.cache.get_value(
+			f"{UNSEEN_NOTES_KEY}{nts.session.user}",
 		)
 		or []
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def reset_notes():
-	frappe.cache.set_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}", [])
-	return frappe.cache.get_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}")
+	nts.cache.set_value(f"{UNSEEN_NOTES_KEY}{nts.session.user}", [])
+	return nts.cache.get_value(f"{UNSEEN_NOTES_KEY}{nts.session.user}")
 
 
 def _get_unseen_notes():
-	from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
+	from nts.query_builder.terms import ParameterizedValueWrapper, SubQuery
 
-	note = frappe.qb.DocType("Note")
-	nsb = frappe.qb.DocType("Note Seen By").as_("nsb")
+	note = nts.qb.DocType("Note")
+	nsb = nts.qb.DocType("Note Seen By").as_("nsb")
 
 	results = (
-		frappe.qb.from_(note)
+		nts.qb.from_(note)
 		.select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
 			(note.notify_on_login == 1)
-			& (note.expire_notification_on > frappe.utils.now())
+			& (note.expire_notification_on > nts.utils.now())
 			& (
-				ParameterizedValueWrapper(frappe.session.user).notin(
-					SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
+				ParameterizedValueWrapper(nts.session.user).notin(
+					SubQuery(nts.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
 				)
 			)
 		)
 	).run(as_dict=1)
-	frappe.cache.set_value(f"{UNSEEN_NOTES_KEY}{frappe.session.user}", results)
+	nts.cache.set_value(f"{UNSEEN_NOTES_KEY}{nts.session.user}", results)

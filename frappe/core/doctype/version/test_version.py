@@ -1,18 +1,18 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import copy
 
-import frappe
-from frappe.core.doctype.version.version import get_diff
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.doctype.version.version import get_diff
+from nts.test_runner import make_test_objects
+from nts.tests.utils import ntsTestCase
 
 
-class TestVersion(FrappeTestCase):
+class TestVersion(ntsTestCase):
 	def test_get_diff(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		test_records = make_test_objects("Event", reset=True)
-		old_doc = frappe.get_doc("Event", test_records[0])
+		old_doc = nts.get_doc("Event", test_records[0])
 		new_doc = copy.deepcopy(old_doc)
 
 		old_doc.color = None
@@ -33,14 +33,14 @@ class TestVersion(FrappeTestCase):
 		self.assertEqual(get_new_values(diff)[1], "07-20-2017 00:00:00")
 
 	def test_no_version_on_new_doc(self):
-		from frappe.desk.form.load import get_versions
+		from nts.desk.form.load import get_versions
 
-		t = frappe.get_doc(doctype="ToDo", description="something")
+		t = nts.get_doc(doctype="ToDo", description="something")
 		t.save(ignore_version=False)
 
 		self.assertFalse(get_versions(t))
 
-		t = frappe.get_doc(t.doctype, t.name)
+		t = nts.get_doc(t.doctype, t.name)
 		t.description = "changed"
 		t.save(ignore_version=False)
 		self.assertTrue(get_versions(t))

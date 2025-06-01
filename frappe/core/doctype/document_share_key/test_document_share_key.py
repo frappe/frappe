@@ -1,9 +1,9 @@
-# Copyright (c) 2021, Frappe Technologies and Contributors
+# Copyright (c) 2021, nts Technologies and Contributors
 # See license.txt
 
-# import frappe
-from frappe.tests.utils import FrappeTestCase
+# import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestDocumentShareKey(FrappeTestCase):
+class TestDocumentShareKey(ntsTestCase):
 	pass

@@ -1,4 +1,4 @@
-frappe.listview_settings["Communication"] = {
+nts.listview_settings["Communication"] = {
 	add_fields: [
 		"sent_or_received",
 		"recipients",
@@ -14,7 +14,7 @@ frappe.listview_settings["Communication"] = {
 	],
 
 	onload: function (list_view) {
-		let method = "frappe.email.inbox.create_email_flag_queue";
+		let method = "nts.email.inbox.create_email_flag_queue";
 
 		list_view.page.add_menu_item(__("Mark as Read"), function () {
 			list_view.call_for_selected_items(method, { action: "Read" });
@@ -25,6 +25,6 @@ frappe.listview_settings["Communication"] = {
 	},
 
 	primary_action: function () {
-		new frappe.views.CommunicationComposer();
+		new nts.views.CommunicationComposer();
 	},
 };

@@ -1,14 +1,14 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-Frappe - Low Code Open Source Framework in Python and JS
+nts - Low Code Open Source Framework in Python and JS
 
-Frappe, pronounced fra-pay, is a full stack, batteries-included, web
+nts, pronounced fra-pay, is a full stack, batteries-included, web
 framework written in Python and Javascript with MariaDB as the database.
 It is the framework which powers ERPNext. It is pretty generic and can
 be used to build database driven apps.
 
-Read the documentation: https://frappeframework.com/docs
+Read the documentation: https://ntsframework.com/docs
 """
 
 import faulthandler
@@ -29,19 +29,19 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 import click
 from werkzeug.local import Local, release_local
 
-import frappe
-from frappe.query_builder import (
+import nts
+from nts.query_builder import (
 	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,
 )
-from frappe.utils.caching import request_cache
-from frappe.utils.data import cint, cstr, sbool
+from nts.utils.caching import request_cache
+from nts.utils.data import cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
-from .types.frappedict import _dict
+from .types.ntsdict import _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -52,19 +52,19 @@ from .utils.jinja import (
 from .utils.lazy_loader import lazy_import
 
 __version__ = "15.69.2"
-__title__ = "Frappe Framework"
+__title__ = "nts Framework"
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
-	from frappe.database.mariadb.database import MariaDBDatabase
-	from frappe.database.postgres.database import PostgresDatabase
-	from frappe.email.doctype.email_queue.email_queue import EmailQueue
-	from frappe.model.document import Document
-	from frappe.query_builder.builder import MariaDB, Postgres
-	from frappe.utils.redis_wrapper import RedisWrapper
+	from nts.database.mariadb.database import MariaDBDatabase
+	from nts.database.postgres.database import PostgresDatabase
+	from nts.email.doctype.email_queue.email_queue import EmailQueue
+	from nts.model.document import Document
+	from nts.query_builder.builder import MariaDB, Postgres
+	from nts.utils.redis_wrapper import RedisWrapper
 
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
@@ -90,7 +90,7 @@ STANDARD_USERS = ("Guest", "Administrator")
 
 _one_time_setup = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
-_tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
+_tune_gc = bool(sbool(os.environ.get("nts_TUNE_GC", True)))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -103,8 +103,8 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	        _('Change')
 	        _('Change', context='Coins')
 	"""
-	from frappe.translate import get_all_translations
-	from frappe.utils import is_html, strip_html_tags
+	from nts.translate import get_all_translations
+	from nts.utils import is_html, strip_html_tags
 
 	if not hasattr(local, "lang"):
 		local.lang = lang or "en"
@@ -141,7 +141,7 @@ def _lt(msg: str, lang: str | None = None, context: str | None = None):
 	translation first before casting.
 
 	This is only useful for translating strings in global scope or anything that potentially runs
-	before `frappe.init()`
+	before `nts.init()`
 
 	Note: Result is not guaranteed to equivalent to pure strings for all operations.
 	"""
@@ -163,8 +163,8 @@ def as_unicode(text, encoding: str = "utf-8") -> str:
 
 
 def set_user_lang(user: str, user_language: str | None = None) -> None:
-	"""Guess and set user language for the session. `frappe.local.lang`"""
-	from frappe.translate import get_user_lang
+	"""Guess and set user language for the session. `nts.local.lang`"""
+	from nts.translate import get_user_lang
 
 	local.lang = get_user_lang(user) or user_language
 
@@ -190,7 +190,7 @@ lang = local("lang")
 
 
 def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
-	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
+	"""Initialize nts for the current site. Reset thread locals `nts.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
 
@@ -255,7 +255,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		_register_fault_handler()
 		_one_time_setup[local.conf.db_type] = True
 
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
+	setup_module_map(include_all_apps=not (nts.request or nts.job or nts.flags.in_migrate))
 
 	local.initialised = True
 
@@ -263,11 +263,11 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 def connect(site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True) -> None:
 	"""Connect to site database instance.
 
-	:param site: If site is given, calls `frappe.init`.
+	:param site: If site is given, calls `nts.init`.
 	:param db_name: Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
-	from frappe.database import get_db
+	from nts.database import get_db
 
 	if site:
 		init(site)
@@ -288,7 +288,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 
 
 def connect_replica() -> bool:
-	from frappe.database import get_db
+	from nts.database import get_db
 
 	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
@@ -314,8 +314,8 @@ def connect_replica() -> bool:
 	local.primary_db = local.db
 	local.db = local.replica_db
 
-	if hasattr(frappe.local, "_recorder"):
-		frappe.local._recorder._patch_sql(local.db)
+	if hasattr(nts.local, "_recorder"):
+		nts.local._recorder._patch_sql(local.db)
 
 	return True
 
@@ -344,7 +344,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
-		from frappe.database.mariadb.database import MariaDBDatabase
+		from nts.database.mariadb.database import MariaDBDatabase
 
 		return {
 			"mariadb": MariaDBDatabase.default_port,  # 3306
@@ -352,16 +352,16 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		}[db_type]
 
 	config["redis_queue"] = (
-		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
+		os.environ.get("nts_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
 	)
 	config["redis_cache"] = (
-		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
+		os.environ.get("nts_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
 	)
-	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
-	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
-	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
+	config["db_type"] = os.environ.get("nts_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_socket"] = os.environ.get("nts_DB_SOCKET") or config.get("db_socket")
+	config["db_host"] = os.environ.get("nts_DB_HOST") or config.get("db_host") or "127.0.0.1"
 	config["db_port"] = (
-		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
+		os.environ.get("nts_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
 
 	# Allow externally extending the config with hooks
@@ -429,18 +429,18 @@ def destroy():
 
 
 def setup_redis_cache_connection():
-	"""Defines `frappe.cache` as `RedisWrapper` instance"""
+	"""Defines `nts.cache` as `RedisWrapper` instance"""
 	global cache
 
 	if not cache:
-		from frappe.utils.redis_wrapper import setup_cache
+		from nts.utils.redis_wrapper import setup_cache
 
 		cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
 	"""Returns error traceback."""
-	from frappe.utils import get_traceback
+	from nts.utils import get_traceback
 
 	return get_traceback(with_context=with_context)
 
@@ -472,7 +472,7 @@ def log(msg: str) -> None:
 
 @functools.lru_cache(maxsize=1024)
 def _strip_html_tags(message):
-	from frappe.utils import strip_html_tags
+	from nts.utils import strip_html_tags
 
 	return strip_html_tags(message)
 
@@ -520,8 +520,8 @@ def msgprint(
 				exc.args = (msg,)
 			else:
 				exc = ValidationError(msg)
-			if out.__frappe_exc_id:
-				exc.__frappe_exc_id = out.__frappe_exc_id
+			if out.__nts_exc_id:
+				exc.__nts_exc_id = out.__nts_exc_id
 			raise exc
 
 	if flags.mute_messages:
@@ -559,7 +559,7 @@ def msgprint(
 
 	if raise_exception:
 		out.raise_exception = 1
-		out.__frappe_exc_id = generate_hash()
+		out.__nts_exc_id = generate_hash()
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -599,7 +599,7 @@ def throw(
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
-	:param exc: Exception class. Default `frappe.ValidationError`
+	:param exc: Exception class. Default `nts.ValidationError`
 	:param title: [optional] Message title. Default: "Message".
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
@@ -623,7 +623,7 @@ def create_folder(path, with_init=False):
 
 	:param path: Folder path.
 	:param with_init: Create `__init__.py` in the new folder."""
-	from frappe.utils import touch_file
+	from nts.utils import touch_file
 
 	if not os.path.exists(path):
 		os.makedirs(path)
@@ -648,7 +648,7 @@ def set_user(username: str):
 
 
 def get_user():
-	from frappe.utils.user import UserPermissions
+	from nts.utils.user import UserPermissions
 
 	if not local.user_perms:
 		local.user_perms = UserPermissions(local.session.user)
@@ -659,9 +659,9 @@ def get_roles(username=None) -> list[str]:
 	"""Returns roles of current user."""
 	if not local.session or not local.session.user:
 		return ["Guest"]
-	import frappe.permissions
+	import nts.permissions
 
-	return frappe.permissions.get_roles(username or local.session.user)
+	return nts.permissions.get_roles(username or local.session.user)
 
 
 def get_request_header(key, default=None):
@@ -755,14 +755,14 @@ def sendmail(
 	message = content or message
 
 	if as_markdown:
-		from frappe.utils import md_to_html
+		from nts.utils import md_to_html
 
 		message = md_to_html(message)
 
 	if not delayed:
 		now = True
 
-	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
+	from nts.email.doctype.email_queue.email_queue import QueueBuilder
 
 	builder = QueueBuilder(
 		recipients=recipients,
@@ -817,7 +817,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 	Use as:
 
-	        @frappe.whitelist()
+	        @nts.whitelist()
 	        def myfunc(param1, param2):
 	                pass
 	"""
@@ -826,7 +826,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
-		from frappe.utils.typing_validations import validate_argument_types
+		from nts.utils.typing_validations import validate_argument_types
 
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 
@@ -857,7 +857,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 
 def is_whitelisted(method):
-	from frappe.utils import sanitize_html
+	from nts.utils import sanitize_html
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
@@ -878,7 +878,7 @@ def read_only():
 	def innfn(fn):
 		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
-			# frappe.read_only could be called from nested functions, in such cases don't swap the
+			# nts.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
 			switched_connection = False
 			if conf.read_from_replica:
@@ -926,7 +926,7 @@ def write_only():
 
 def only_for(roles: list[str] | tuple[str] | str, message=False):
 	"""
-	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
+	Raises `nts.PermissionError` if the user does not have any of the permitted roles.
 
 	:param roles: Permitted role(s)
 	"""
@@ -969,21 +969,21 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.cache_manager
-	import frappe.utils.caching
-	from frappe.website.router import clear_routing_cache
+	import nts.cache_manager
+	import nts.utils.caching
+	from nts.website.router import clear_routing_cache
 
 	if doctype:
-		frappe.cache_manager.clear_doctype_cache(doctype)
+		nts.cache_manager.clear_doctype_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		frappe.cache_manager.clear_user_cache(user)
+		nts.cache_manager.clear_user_cache(user)
 	else:  # everything
 		# Delete ALL keys associated with this site.
-		keys_to_delete = set(frappe.cache.get_keys(""))
-		for key in frappe.get_hooks("persistent_cache_keys"):
-			keys_to_delete.difference_update(frappe.cache.get_keys(key))
-		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+		keys_to_delete = set(nts.cache.get_keys(""))
+		for key in nts.get_hooks("persistent_cache_keys"):
+			keys_to_delete.difference_update(nts.cache.get_keys(key))
+		nts.cache.delete_value(list(keys_to_delete), make_keys=False)
 
 		reset_metadata_version()
 		local.cache = {}
@@ -992,7 +992,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		for fn in get_hooks("clear_cache"):
 			get_attr(fn)()
 
-	frappe.utils.caching._SITE_CACHE.clear()
+	nts.utils.caching._SITE_CACHE.clear()
 	local.role_permissions = {}
 	if hasattr(local, "request_cache"):
 		local.request_cache.clear()
@@ -1008,7 +1008,7 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
 		return False
 
-	from frappe.permissions import get_role_permissions
+	from nts.permissions import get_role_permissions
 
 	user = user or local.session.user
 	permissions = get_role_permissions(doctype, user=user)
@@ -1029,7 +1029,7 @@ def has_permission(
 ):
 	"""
 	Returns True if the user has permission `ptype` for given `doctype` or `doc`
-	Raises `frappe.PermissionError` if user isn't permitted and `throw` is truthy
+	Raises `nts.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
@@ -1037,12 +1037,12 @@ def has_permission(
 	:param user: [optional] Check for given user. Default: current user.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
 	"""
-	import frappe.permissions
+	import nts.permissions
 
 	if not doctype and doc:
 		doctype = doc.doctype
 
-	out = frappe.permissions.has_permission(
+	out = nts.permissions.has_permission(
 		doctype,
 		ptype,
 		doc=doc,
@@ -1055,17 +1055,17 @@ def has_permission(
 
 	if throw and not out:
 		if doc:
-			frappe.permissions.check_doctype_permission(doctype, ptype)
+			nts.permissions.check_doctype_permission(doctype, ptype)
 
 		document_label = f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
-		frappe.flags.error_message = _("No permission for {0}").format(document_label)
-		raise frappe.PermissionError
+		nts.flags.error_message = _("No permission for {0}").format(document_label)
+		raise nts.PermissionError
 
 	return out
 
 
 def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doctype=None):
-	"""Raises `frappe.PermissionError` if not permitted.
+	"""Raises `nts.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
@@ -1117,7 +1117,7 @@ def get_precision(
 	doctype: str, fieldname: str, currency: str | None = None, doc: Optional["Document"] = None
 ) -> int:
 	"""Get precision for a given field"""
-	from frappe.model.meta import get_field_precision
+	from nts.model.meta import get_field_precision
 
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
@@ -1157,7 +1157,7 @@ def new_doc(
 	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
 	"""
 
-	from frappe.model.create_new import get_new_doc
+	from nts.model.create_new import get_new_doc
 
 	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
 
@@ -1165,10 +1165,10 @@ def new_doc(
 
 
 def set_value(doctype, docname, fieldname, value=None):
-	"""Set document value. Calls `frappe.client.set_value`"""
-	import frappe.client
+	"""Set document value. Calls `nts.client.set_value`"""
+	import nts.client
 
-	return frappe.client.set_value(doctype, docname, fieldname, value)
+	return nts.client.set_value(doctype, docname, fieldname, value)
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
@@ -1273,19 +1273,19 @@ def get_doc(doctype: str, name: str, /, *, for_update: bool | None = None) -> "D
 @overload
 def get_doc(**kwargs: dict) -> "_NewDocument":
 	"""Initialize document from kwargs.
-	Not recommended. Use `frappe.new_doc` instead."""
+	Not recommended. Use `nts.new_doc` instead."""
 	pass
 
 
 @overload
 def get_doc(documentdict: dict) -> "_NewDocument":
 	"""Create document from dict.
-	Not recommended. Use `frappe.new_doc` instead."""
+	Not recommended. Use `nts.new_doc` instead."""
 	pass
 
 
 def get_doc(*args, **kwargs):
-	"""Return a `frappe.model.document.Document` object of the given type and name.
+	"""Return a `nts.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
 	:param arg2: [optional] Document name as string.
@@ -1293,16 +1293,16 @@ def get_doc(*args, **kwargs):
 	Examples:
 
 	        # insert a new document
-	        todo = frappe.get_doc({"doctype":"ToDo", "description": "test"})
+	        todo = nts.get_doc({"doctype":"ToDo", "description": "test"})
 	        todo.insert()
 
 	        # open an existing document
-	        todo = frappe.get_doc("ToDo", "TD0001")
+	        todo = nts.get_doc("ToDo", "TD0001")
 
 	"""
-	import frappe.model.document
+	import nts.model.document
 
-	return frappe.model.document.get_doc(*args, **kwargs)
+	return nts.model.document.get_doc(*args, **kwargs)
 
 
 def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
@@ -1315,21 +1315,21 @@ def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=
 
 
 def get_single(doctype):
-	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
+	"""Return a `nts.model.document.Document` object of the given Single doctype."""
 	return get_doc(doctype, doctype)
 
 
 def get_meta(doctype, cached=True):
-	"""Get `frappe.model.meta.Meta` instance of given doctype name."""
-	import frappe.model.meta
+	"""Get `nts.model.meta.Meta` instance of given doctype name."""
+	import nts.model.meta
 
-	return frappe.model.meta.get_meta(doctype, cached=cached)
+	return nts.model.meta.get_meta(doctype, cached=cached)
 
 
 def get_meta_module(doctype):
-	import frappe.modules
+	import nts.modules
 
-	return frappe.modules.load_doctype_module(doctype)
+	return nts.modules.load_doctype_module(doctype)
 
 
 def delete_doc(
@@ -1344,7 +1344,7 @@ def delete_doc(
 	ignore_missing: bool = True,
 	delete_permanently: bool = False,
 ):
-	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
+	"""Delete a document. Calls `nts.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
 	:param name: Name of document to be delete.
@@ -1353,9 +1353,9 @@ def delete_doc(
 	:param for_reload: Call `before_reload` trigger before deleting.
 	:param ignore_permissions: Ignore user permissions.
 	:param delete_permanently: Do not create a Deleted Document for the document."""
-	import frappe.model.delete_doc
+	import nts.model.delete_doc
 
-	return frappe.model.delete_doc.delete_doc(
+	return nts.model.delete_doc.delete_doc(
 		doctype,
 		name,
 		force,
@@ -1400,9 +1400,9 @@ def reload_doc(
 	:param force: Reload even if `modified` timestamp matches.
 	"""
 
-	import frappe.modules
+	import nts.modules
 
-	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
+	return nts.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
 @whitelist(methods=["POST", "PUT"])
@@ -1420,10 +1420,10 @@ def rename_doc(
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
-	Calls `frappe.model.rename_doc.rename_doc`
+	Calls `nts.model.rename_doc.rename_doc`
 	"""
 
-	from frappe.model.rename_doc import rename_doc
+	from nts.model.rename_doc import rename_doc
 
 	return rename_doc(
 		doctype=doctype,
@@ -1457,7 +1457,7 @@ def get_module_path(module, *joins):
 
 	:param module: Module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	from frappe.modules.utils import get_module_app
+	from nts.modules.utils import get_module_app
 
 	app = get_module_app(module)
 	return get_pymodule_path(app + "." + scrub(module), *joins)
@@ -1518,9 +1518,9 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 			if app not in apps:
 				apps.append(app)
 
-	if "frappe" in apps:
-		apps.remove("frappe")
-	apps.insert(0, "frappe")
+	if "nts" in apps:
+		apps.remove("nts")
+	apps.insert(0, "nts")
 
 	return apps
 
@@ -1678,11 +1678,11 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 	"""Returns items from text file as a list. Ignores empty lines."""
-	import frappe.utils
+	import nts.utils
 
 	content = read_file(path, raise_not_found=raise_not_found)
 	if content:
-		content = frappe.utils.strip(content)
+		content = nts.utils.strip(content)
 
 		return [
 			p.strip()
@@ -1838,7 +1838,7 @@ def make_property_setter(
 
 def import_doc(path):
 	"""Import a file using Data Import."""
-	from frappe.core.doctype.data_import.data_import import import_doc
+	from nts.core.doctype.data_import.data_import import import_doc
 
 	import_doc(path)
 
@@ -1942,7 +1942,7 @@ def respond_as_web_page(
 
 def redirect(url):
 	"""Raise a 301 redirect to url"""
-	from frappe.exceptions import Redirect
+	from nts.exceptions import Redirect
 
 	flags.redirect_location = url
 	raise Redirect
@@ -1957,7 +1957,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 	:param http_status_code: HTTP status code.
 
 	Example Usage:
-	        frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
+	        nts.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
 
 	"""
 
@@ -1981,13 +1981,13 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 
 def build_match_conditions(doctype, as_condition=True):
 	"""Return match (User permissions) for given doctype as list or SQL."""
-	import frappe.desk.reportview
+	import nts.desk.reportview
 
-	return frappe.desk.reportview.build_match_conditions(doctype, as_condition=as_condition)
+	return nts.desk.reportview.build_match_conditions(doctype, as_condition=as_condition)
 
 
 def get_list(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will also check for permissions.
+	"""List database query via `nts.model.db_query`. Will also check for permissions.
 
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
@@ -1999,19 +1999,19 @@ def get_list(doctype, *args, **kwargs):
 	Example usage:
 
 	        # simple dict filter
-	        frappe.get_list("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
+	        nts.get_list("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
 
 	        # filter as a list of lists
-	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
+	        nts.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 	"""
-	import frappe.model.db_query
+	import nts.model.db_query
 
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
+	return nts.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
-	Parameters are same as `frappe.get_list`
+	"""List database query via `nts.model.db_query`. Will **not** check for permissions.
+	Parameters are same as `nts.get_list`
 
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`. Default is: `["name"]`.
@@ -2023,10 +2023,10 @@ def get_all(doctype, *args, **kwargs):
 	Example usage:
 
 	        # simple dict filter
-	        frappe.get_all("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
+	        nts.get_all("ToDo", fields=["name", "description"], filters = {"owner":"test@example.com"})
 
 	        # filter as a list of lists
-	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
+	        nts.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 	"""
 	kwargs["ignore_permissions"] = True
 	if "limit_page_length" not in kwargs:
@@ -2037,7 +2037,7 @@ def get_all(doctype, *args, **kwargs):
 def get_value(*args, **kwargs):
 	"""Returns a document property or list of properties.
 
-	Alias for `frappe.db.get_value`
+	Alias for `nts.db.get_value`
 
 	:param doctype: DocType name.
 	:param filters: Filters like `{"x":"y"}` or name of the document. `None` if Single DocType.
@@ -2050,7 +2050,7 @@ def get_value(*args, **kwargs):
 
 
 def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
-	from frappe.utils.response import json_handler
+	from nts.utils.response import json_handler
 
 	if separators is None:
 		separators = (",", ": ")
@@ -2083,7 +2083,7 @@ def are_emails_muted():
 
 def get_test_records(doctype):
 	"""Returns list of objects from `test_records.json` in the given doctype's folder."""
-	from frappe.modules import get_doctype_module, get_module_path
+	from nts.modules import get_doctype_module, get_module_path
 
 	path = os.path.join(
 		get_module_path(get_doctype_module(doctype)), "doctype", scrub(doctype), "test_records.json"
@@ -2100,9 +2100,9 @@ def format_value(*args, **kwargs):
 
 	:param value: Value to be formatted.
 	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
-	import frappe.utils.formatters
+	import nts.utils.formatters
 
-	return frappe.utils.formatters.format_value(*args, **kwargs)
+	return nts.utils.formatters.format_value(*args, **kwargs)
 
 
 def format(*args, **kwargs):
@@ -2110,9 +2110,9 @@ def format(*args, **kwargs):
 
 	:param value: Value to be formatted.
 	:param df: (Optional) DocField object with properties `fieldtype`, `options` etc."""
-	import frappe.utils.formatters
+	import nts.utils.formatters
 
-	return frappe.utils.formatters.format_value(*args, **kwargs)
+	return nts.utils.formatters.format_value(*args, **kwargs)
 
 
 def attach_print(
@@ -2128,9 +2128,9 @@ def attach_print(
 	password=None,
 	letterhead=None,
 ):
-	from frappe.translate import print_language
-	from frappe.utils import scrub_urls
-	from frappe.utils.pdf import get_pdf
+	from nts.translate import print_language
+	from nts.utils import scrub_urls
+	from nts.utils.pdf import get_pdf
 
 	print_settings = db.get_singles_dict("Print Settings")
 
@@ -2177,9 +2177,9 @@ def publish_progress(*args, **kwargs):
 	:param docname: Optional, for document name
 	:param description: Optional description
 	"""
-	import frappe.realtime
+	import nts.realtime
 
-	return frappe.realtime.publish_progress(*args, **kwargs)
+	return nts.realtime.publish_progress(*args, **kwargs)
 
 
 def publish_realtime(*args, **kwargs):
@@ -2193,16 +2193,16 @@ def publish_realtime(*args, **kwargs):
 	:param docname: Transmit to doctype, docname
 	:param after_commit: (default False) will emit after current transaction is committed
 	"""
-	import frappe.realtime
+	import nts.realtime
 
-	return frappe.realtime.publish_realtime(*args, **kwargs)
+	return nts.realtime.publish_realtime(*args, **kwargs)
 
 
 def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request
 
-	:param namespace: frappe.local.cache[namespace]
-	:param key: frappe.local.cache[namespace][key] used to retrieve value
+	:param namespace: nts.local.cache[namespace]
+	:param key: nts.local.cache[namespace][key] used to retrieve value
 	:param generator: method to generate a value if not found in store
 
 	"""
@@ -2231,9 +2231,9 @@ def enqueue(*args, **kwargs):
 	:param job_name: (optional) can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param kwargs: keyword arguments to be passed to the method
 	"""
-	import frappe.utils.background_jobs
+	import nts.utils.background_jobs
 
-	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
+	return nts.utils.background_jobs.enqueue(*args, **kwargs)
 
 
 def task(**task_kwargs):
@@ -2255,9 +2255,9 @@ def enqueue_doc(*args, **kwargs):
 	:param timeout: (optional) should be set according to the functions
 	:param kwargs: keyword arguments to be passed to the method
 	"""
-	import frappe.utils.background_jobs
+	import nts.utils.background_jobs
 
-	return frappe.utils.background_jobs.enqueue_doc(*args, **kwargs)
+	return nts.utils.background_jobs.enqueue_doc(*args, **kwargs)
 
 
 def get_doctype_app(doctype):
@@ -2274,7 +2274,7 @@ log_level = None
 
 def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	"""Returns a python logger that uses StreamHandler"""
-	from frappe.utils.logger import get_logger
+	from nts.utils.logger import get_logger
 
 	return get_logger(
 		module=module,
@@ -2305,7 +2305,7 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 
-	from frappe.utils.safe_exec import safe_eval
+	from nts.utils.safe_exec import safe_eval
 
 	return safe_eval(code, eval_globals, eval_locals)
 
@@ -2334,7 +2334,7 @@ def get_system_settings(key: str):
 
 
 def get_active_domains():
-	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
+	from nts.core.doctype.domain_settings.domain_settings import get_active_domains
 
 	return get_active_domains()
 
@@ -2346,7 +2346,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	Note: Applicable only if DocType has changes tracked.
 
 	Example
-	>>> frappe.get_version("User", "foobar@gmail.com")
+	>>> nts.get_version("User", "foobar@gmail.com")
 	>>>
 	[
 	        {
@@ -2369,7 +2369,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 			as_list=1,
 		)
 
-		from frappe.utils import dictify, safe_json_loads, squashify
+		from nts.utils import dictify, safe_json_loads, squashify
 
 		versions = []
 
@@ -2424,7 +2424,7 @@ def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
 
 
 def parse_json(val):
-	from frappe.utils import parse_json
+	from nts.utils import parse_json
 
 	return parse_json(val)
 
@@ -2441,7 +2441,7 @@ def mock(type, size=1, locale="en"):
 			data = getattr(fake, type)()
 			results.append(data)
 
-	from frappe.utils import squashify
+	from nts.utils import squashify
 
 	return squashify(results)
 
@@ -2449,7 +2449,7 @@ def mock(type, size=1, locale="en"):
 def validate_and_sanitize_search_inputs(fn):
 	@functools.wraps(fn)
 	def wrapper(*args, **kwargs):
-		from frappe.desk.search import sanitize_searchfield
+		from nts.desk.search import sanitize_searchfield
 
 		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
 		sanitize_searchfield(kwargs["searchfield"])
@@ -2479,12 +2479,12 @@ def override_whitelisted_method(original_method: str) -> str:
 	return overrides[-1] if overrides else original_method
 
 
-from frappe.utils.error import log_error
-from frappe.utils.print_utils import get_print
+from nts.utils.error import log_error
+from nts.utils.print_utils import get_print
 
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.
-	# This number is quite small for frappe where a single query can potentially create 700+
+	# This number is quite small for nts where a single query can potentially create 700+
 	# objects easily.
 	# Bump this number higher, this will make GC less aggressive but that improves performance of
 	# everything else.

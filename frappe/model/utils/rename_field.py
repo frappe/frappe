@@ -1,17 +1,17 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe.model import no_value_fields, table_fields
-from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
-from frappe.utils.password import rename_password_field
+import nts
+from nts.model import no_value_fields, table_fields
+from nts.model.utils.user_settings import sync_user_settings, update_user_settings_data
+from nts.utils.password import rename_password_field
 
 
 def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
 	"""This functions assumes that doctype is already synced"""
 
-	meta = frappe.get_meta(doctype, cached=False)
+	meta = nts.get_meta(doctype, cached=False)
 	new_field = meta.get_field(new_fieldname)
 
 	if validate:
@@ -19,14 +19,14 @@ def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
 			print("rename_field: " + (new_fieldname) + " not found in " + doctype)
 			return
 
-		if not meta.issingle and not frappe.db.has_column(doctype, old_fieldname):
+		if not meta.issingle and not nts.db.has_column(doctype, old_fieldname):
 			print("rename_field: " + (old_fieldname) + " not found in table for: " + doctype)
 			# never had the field?
 			return
 
 	if new_field.fieldtype in table_fields:
 		# change parentfield of table mentioned in options
-		frappe.db.sql(
+		nts.db.sql(
 			"""update `tab{}` set parentfield={}
 			where parentfield={}""".format(new_field.options.split("\n", 1)[0], "%s", "%s"),
 			(new_fieldname, old_fieldname),
@@ -34,14 +34,14 @@ def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
 
 	elif new_field.fieldtype not in no_value_fields:
 		if meta.issingle:
-			frappe.db.sql(
+			nts.db.sql(
 				"""update `tabSingles` set field=%s
 				where doctype=%s and field=%s""",
 				(new_fieldname, doctype, old_fieldname),
 			)
 		else:
 			# copy field value
-			frappe.db.sql(f"""update `tab{doctype}` set `{new_fieldname}`=`{old_fieldname}`""")
+			nts.db.sql(f"""update `tab{doctype}` set `{new_fieldname}`=`{old_fieldname}`""")
 
 		update_reports(doctype, old_fieldname, new_fieldname)
 		update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
@@ -74,7 +74,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 
 		return sort_by
 
-	reports = frappe.db.sql(
+	reports = nts.db.sql(
 		"""select name, ref_doctype, json from tabReport
 		where report_type = 'Report Builder' and ifnull(is_standard, 'No') = 'No'
 		and json like %s and json like %s""",
@@ -121,11 +121,11 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 				}
 			)
 
-			frappe.db.sql("""update `tabReport` set `json`=%s where name=%s""", (new_val, r.name))
+			nts.db.sql("""update `tabReport` set `json`=%s where name=%s""", (new_val, r.name))
 
 
 def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
-	user_report_cols = frappe.db.sql(
+	user_report_cols = nts.db.sql(
 		"""select defkey, defvalue from `tabDefaultValue` where
 		defkey like '_list_settings:%'"""
 	)
@@ -140,7 +140,7 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 				new_columns.append([field, field_doctype])
 
 		if columns_modified:
-			frappe.db.sql(
+			nts.db.sql(
 				"""update `tabDefaultValue` set defvalue={}
 				where defkey={}""".format("%s", "%s"),
 				(json.dumps(new_columns), key),
@@ -148,13 +148,13 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 
 
 def update_property_setters(doctype, old_fieldname, new_fieldname):
-	frappe.db.sql(
+	nts.db.sql(
 		"""update `tabProperty Setter` set field_name = %s
 		where doc_type=%s and field_name=%s""",
 		(new_fieldname, doctype, old_fieldname),
 	)
 
-	frappe.db.sql(
+	nts.db.sql(
 		"""update `tabCustom Field` set insert_after=%s
 		where insert_after=%s and dt=%s""",
 		(new_fieldname, old_fieldname, doctype),
@@ -165,7 +165,7 @@ def update_user_settings(doctype, old_fieldname, new_fieldname):
 	# store the user settings data from the redis to db
 	sync_user_settings()
 
-	user_settings = frappe.db.sql(
+	user_settings = nts.db.sql(
 		''' select user, doctype, data from `__UserSettings`
 		where doctype=%s and data like "%%%s%%"''',
 		(doctype, old_fieldname),

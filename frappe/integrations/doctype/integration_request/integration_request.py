@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.integrations.utils import json_handler
-from frappe.model.document import Document
+import nts
+from nts.integrations.utils import json_handler
+from nts.model.document import Document
 
 
 class IntegrationRequest(Document):
@@ -15,7 +15,7 @@ class IntegrationRequest(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		data: DF.Code | None
 		error: DF.Code | None
@@ -36,11 +36,11 @@ class IntegrationRequest(Document):
 			self.name = self.flags._name
 
 	def clear_old_logs(days=30):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Integration Request")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Integration Request")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 	def update_status(self, params, status):
 		data = json.loads(self.data)
@@ -49,7 +49,7 @@ class IntegrationRequest(Document):
 		self.data = json.dumps(data)
 		self.status = status
 		self.save(ignore_permissions=True)
-		frappe.db.commit()
+		nts.db.commit()
 
 	def handle_success(self, response):
 		"""update the output field with the response along with the relevant status"""

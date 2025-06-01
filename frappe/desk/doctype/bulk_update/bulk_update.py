@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-from frappe.model.document import Document
-from frappe.utils import cint
-from frappe.utils.deprecations import deprecated
-from frappe.utils.scheduler import is_scheduler_inactive
+import nts
+from nts import _
+from nts.core.doctype.submission_queue.submission_queue import queue_submission
+from nts.model.document import Document
+from nts.utils import cint
+from nts.utils.deprecations import deprecated
+from nts.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
@@ -17,7 +17,7 @@ class BulkUpdate(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		condition: DF.SmallText | None
 		document_type: DF.Link
@@ -27,7 +27,7 @@ class BulkUpdate(Document):
 
 	# end: auto-generated types
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")
 		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
@@ -35,11 +35,11 @@ class BulkUpdate(Document):
 		condition = ""
 		if self.condition:
 			if ";" in self.condition:
-				frappe.throw(_("; not allowed in condition"))
+				nts.throw(_("; not allowed in condition"))
 
 			condition = f" where {self.condition}"
 
-		docnames = frappe.db.sql_list(
+		docnames = nts.db.sql_list(
 			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
 		)
 		return submit_cancel_or_update_docs(
@@ -47,16 +47,16 @@ class BulkUpdate(Document):
 		)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
 	if isinstance(docnames, str):
-		docnames = frappe.parse_json(docnames)
+		docnames = nts.parse_json(docnames)
 
 	if len(docnames) < 20:
 		return _bulk_action(doctype, docnames, action, data, task_id)
 	elif len(docnames) <= 500:
-		frappe.msgprint(_("Bulk operation is enqueued in background."), alert=True)
-		frappe.enqueue(
+		nts.msgprint(_("Bulk operation is enqueued in background."), alert=True)
+		nts.enqueue(
 			_bulk_action,
 			doctype=doctype,
 			docnames=docnames,
@@ -67,18 +67,18 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, 
 			timeout=1000,
 		)
 	else:
-		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
+		nts.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
 
 
 def _bulk_action(doctype, docnames, action, data, task_id=None):
 	if data:
-		data = frappe.parse_json(data)
+		data = nts.parse_json(data)
 
 	failed = []
 	num_documents = len(docnames)
 
 	for idx, docname in enumerate(docnames, 1):
-		doc = frappe.get_doc(doctype, docname)
+		doc = nts.get_doc(doctype, docname)
 		try:
 			message = ""
 			if action == "submit" and doc.docstatus.is_draft():
@@ -97,8 +97,8 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 				message = _("Updating {0}").format(doctype)
 			else:
 				failed.append(docname)
-			frappe.db.commit()
-			frappe.publish_progress(
+			nts.db.commit()
+			nts.publish_progress(
 				percent=idx / num_documents * 100,
 				title=message,
 				description=docname,
@@ -107,7 +107,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 
 		except Exception:
 			failed.append(docname)
-			frappe.db.rollback()
+			nts.db.rollback()
 
 	return failed
 
@@ -115,4 +115,4 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 @deprecated
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
-	frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
+	nts.publish_progress(float(i) * 100 / n, title=message, description=description)

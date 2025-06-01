@@ -1,17 +1,17 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # For license information, please see license.txt
 
 from urllib.parse import quote
 
 from rq import get_current_job
 
-import frappe
-from frappe import _
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-from frappe.model.document import Document
-from frappe.monitor import add_data_to_monitor
-from frappe.utils import now, time_diff_in_seconds
-from frappe.utils.data import cint
+import nts
+from nts import _
+from nts.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from nts.model.document import Document
+from nts.monitor import add_data_to_monitor
+from nts.utils import now, time_diff_in_seconds
+from nts.utils.data import cint
 
 
 class SubmissionQueue(Document):
@@ -21,7 +21,7 @@ class SubmissionQueue(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		created_at: DF.Datetime | None
 		ended_at: DF.Datetime | None
@@ -43,15 +43,15 @@ class SubmissionQueue(Document):
 
 	@property
 	def queued_doc(self):
-		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
+		return getattr(self, "to_be_queued_doc", nts.get_doc(self.ref_doctype, self.ref_docname))
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
+		from nts.query_builder import Interval
+		from nts.query_builder.functions import Now
 
-		table = frappe.qb.DocType("Submission Queue")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		table = nts.qb.DocType("Submission Queue")
+		nts.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.status = "Queued"
@@ -66,13 +66,13 @@ class SubmissionQueue(Document):
 		self.queued_doc.unlock()
 
 	def update_job_id(self, job_id):
-		frappe.db.set_value(
+		nts.db.set_value(
 			self.doctype,
 			self.name,
 			{"job_id": job_id},
 			update_modified=False,
 		)
-		frappe.db.commit()
+		nts.db.commit()
 
 	def after_insert(self):
 		self.queue_action(
@@ -102,11 +102,11 @@ class SubmissionQueue(Document):
 			)
 			values = {"status": "Finished"}
 		except Exception:
-			values = {"status": "Failed", "exception": frappe.get_traceback(with_context=True)}
-			frappe.db.rollback()
+			values = {"status": "Failed", "exception": nts.get_traceback(with_context=True)}
+			nts.db.rollback()
 
 		values["ended_at"] = now()
-		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
+		nts.db.set_value(self.doctype, self.name, values, update_modified=False)
 		self.notify(values["status"], action_for_queuing)
 
 	def notify(self, submission_status: str, action: str):
@@ -120,14 +120,14 @@ class SubmissionQueue(Document):
 			message = _("Action {0} completed successfully on {1} {2}. View it {3}")
 
 		message_replacements = (
-			frappe.bold(action),
-			frappe.bold(str(self.ref_doctype)),
-			frappe.bold(str(self.ref_docname)),
+			nts.bold(action),
+			nts.bold(str(self.ref_doctype)),
+			nts.bold(str(self.ref_docname)),
 		)
 
 		time_diff = time_diff_in_seconds(now(), self.created_at)
 		if cint(time_diff) <= 60:
-			frappe.publish_realtime(
+			nts.publish_realtime(
 				"msgprint",
 				{
 					"message": message.format(
@@ -147,10 +147,10 @@ class SubmissionQueue(Document):
 				"subject": message.format(*message_replacements, "here"),
 			}
 
-			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
+			notify_to = nts.db.get_value("User", self.enqueued_by, fieldname="email")
 			enqueue_create_notification([notify_to], notification_doc)
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def unlock_doc(self):
 		# NOTE: this can lead to some weird unlocking/locking behaviours.
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
@@ -160,17 +160,17 @@ class SubmissionQueue(Document):
 			return
 
 		self.queued_doc.unlock()
-		frappe.msgprint(_("Document Unlocked"))
+		nts.msgprint(_("Document Unlocked"))
 
 
 def queue_submission(doc: Document, action: str, alert: bool = True):
-	queue = frappe.new_doc("Submission Queue")
+	queue = nts.new_doc("Submission Queue")
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
 
 	if alert:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Queued for Submission. You can track the progress over {0}.").format(
 				f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
 			),
@@ -179,12 +179,12 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 		)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_latest_submissions(doctype, docname):
 	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
 	# hence assuming modified will be equal to creation for submission queue documents
 
-	latest_submission = frappe.db.get_value(
+	latest_submission = nts.db.get_value(
 		"Submission Queue",
 		filters={"ref_doctype": doctype, "ref_docname": docname},
 		fieldname=["name", "exception", "status"],

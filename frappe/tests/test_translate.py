@@ -1,16 +1,16 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
 import textwrap
 from random import choices
 from unittest.mock import patch
 
-import frappe
-import frappe.translate
-from frappe import _, _lt
-from frappe.gettext.extractors.javascript import extract_javascript
-from frappe.tests.utils import FrappeTestCase
-from frappe.translate import (
+import nts
+import nts.translate
+from nts import _, _lt
+from nts.gettext.extractors.javascript import extract_javascript
+from nts.tests.utils import ntsTestCase
+from nts.translate import (
 	MERGED_TRANSLATION_KEY,
 	USER_TRANSLATION_KEY,
 	clear_cache,
@@ -21,13 +21,13 @@ from frappe.translate import (
 	get_parent_language,
 	get_translation_dict_from_file,
 )
-from frappe.utils import get_bench_path, set_request
+from nts.utils import get_bench_path, set_request
 
 dirname = os.path.dirname(__file__)
 translation_string_file = os.path.abspath(os.path.join(dirname, "translation_test_file.txt"))
 first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 	# skip "en*" since it is a default language
-	frappe.get_all("Language", pluck="name", filters=[["name", "not like", "en%"], ["enabled", "=", 1]]),
+	nts.get_all("Language", pluck="name", filters=[["name", "not like", "en%"], ["enabled", "=", 1]]),
 	k=5,
 )
 
@@ -35,7 +35,7 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 _lazy_translations = _lt("Communication")
 
 
-class TestTranslate(FrappeTestCase):
+class TestTranslate(ntsTestCase):
 	guest_sessions_required = (
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",
@@ -43,29 +43,29 @@ class TestTranslate(FrappeTestCase):
 
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:
-			frappe.set_user("Guest")
+			nts.set_user("Guest")
 
 	def tearDown(self):
-		frappe.form_dict.pop("_lang", None)
+		nts.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
-			frappe.set_user("Administrator")
-		frappe.local.lang = "en"
+			nts.set_user("Administrator")
+		nts.local.lang = "en"
 
 	def test_clear_cache(self):
 		_("Trigger caching")
 
-		self.assertIsNotNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
-		self.assertIsNotNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNotNone(nts.cache.hget(USER_TRANSLATION_KEY, nts.local.lang))
+		self.assertIsNotNone(nts.cache.hget(MERGED_TRANSLATION_KEY, nts.local.lang))
 
 		clear_cache()
 
-		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
-		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNone(nts.cache.hget(USER_TRANSLATION_KEY, nts.local.lang))
+		self.assertIsNone(nts.cache.hget(MERGED_TRANSLATION_KEY, nts.local.lang))
 
 	def test_extract_message_from_file(self):
-		data = frappe.translate.get_messages_from_file(translation_string_file)
+		data = nts.translate.get_messages_from_file(translation_string_file)
 		bench_path = get_bench_path()
-		file_path = frappe.get_app_path("frappe", "tests", "translation_test_file.txt")
+		file_path = nts.get_app_path("nts", "tests", "translation_test_file.txt")
 		exp_filename = os.path.relpath(file_path, bench_path)
 
 		self.assertEqual(
@@ -85,21 +85,21 @@ class TestTranslate(FrappeTestCase):
 	def test_read_language_variant(self):
 		self.assertEqual(_("Mobile No"), "Mobile No")
 		try:
-			frappe.local.lang = "pt-BR"
+			nts.local.lang = "pt-BR"
 			self.assertEqual(_("Mobile No"), "Telefone Celular")
-			frappe.local.lang = "pt"
+			nts.local.lang = "pt"
 			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
 		finally:
-			frappe.local.lang = "en"
+			nts.local.lang = "en"
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_translation_with_context(self):
-		frappe.local.lang = "fr"
+		nts.local.lang = "fr"
 		self.assertEqual(_("Change"), "Changement")
 		self.assertEqual(_("Change", context="Coins"), "la monnaie")
 
 	def test_lazy_translations(self):
-		frappe.local.lang = "de"
+		nts.local.lang = "de"
 		eager_translation = _("Communication")
 		self.assertEqual(str(_lazy_translations), eager_translation)
 		self.assertRaises(NotImplementedError, lambda: _lazy_translations == "blah")
@@ -114,25 +114,25 @@ class TestTranslate(FrappeTestCase):
 		self.assertEqual(f"{_lazy_translations}", eager_translation)
 
 	def test_request_language_resolution_with_form_dict(self):
-		"""Test for frappe.translate.get_language
+		"""Test for nts.translate.get_language
 
-		Case 1: frappe.form_dict._lang is set
+		Case 1: nts.form_dict._lang is set
 		"""
 
-		frappe.form_dict._lang = first_lang
+		nts.form_dict._lang = first_lang
 
-		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
+		with patch.object(nts.translate, "get_preferred_language_cookie", return_value=second_lang):
 			return_val = get_language()
 
 		self.assertIn(return_val, [first_lang, get_parent_language(first_lang)])
 
 	def test_request_language_resolution_with_cookie(self):
-		"""Test for frappe.translate.get_language
+		"""Test for nts.translate.get_language
 
-		Case 2: frappe.form_dict._lang is not set, but preferred_language cookie is
+		Case 2: nts.form_dict._lang is not set, but preferred_language cookie is
 		"""
 
-		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value="fr"):
+		with patch.object(nts.translate, "get_preferred_language_cookie", return_value="fr"):
 			set_request(method="POST", path="/", headers=[("Accept-Language", "hr")])
 			return_val = get_language()
 			# system default language
@@ -140,12 +140,12 @@ class TestTranslate(FrappeTestCase):
 			self.assertNotIn(return_val, [second_lang, get_parent_language(second_lang)])
 
 	def test_guest_request_language_resolution_with_cookie(self):
-		"""Test for frappe.translate.get_language
+		"""Test for nts.translate.get_language
 
-		Case 3: frappe.form_dict._lang is not set, but preferred_language cookie is [Guest User]
+		Case 3: nts.form_dict._lang is not set, but preferred_language cookie is [Guest User]
 		"""
 
-		with patch.object(frappe.translate, "get_preferred_language_cookie", return_value=second_lang):
+		with patch.object(nts.translate, "get_preferred_language_cookie", return_value=second_lang):
 			set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
 			return_val = get_language()
 
@@ -153,16 +153,16 @@ class TestTranslate(FrappeTestCase):
 
 	def test_global_translations(self):
 		""" """
-		site = frappe.local.site
-		frappe.destroy()
+		site = nts.local.site
+		nts.destroy()
 		_("this shouldn't break")
-		frappe.init(site=site)
-		frappe.connect()
+		nts.init(site=site)
+		nts.connect()
 
 	def test_guest_request_language_resolution_with_request_header(self):
-		"""Test for frappe.translate.get_language
+		"""Test for nts.translate.get_language
 
-		Case 4: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is [Guest User]
+		Case 4: nts.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is [Guest User]
 		"""
 
 		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
@@ -170,9 +170,9 @@ class TestTranslate(FrappeTestCase):
 		self.assertIn(return_val, [third_lang, get_parent_language(third_lang)])
 
 	def test_request_language_resolution_with_request_header(self):
-		"""Test for frappe.translate.get_language
+		"""Test for nts.translate.get_language
 
-		Case 5: frappe.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
+		Case 5: nts.form_dict._lang & preferred_language cookie is not set, but Accept-Language header is
 		"""
 
 		set_request(method="POST", path="/", headers=[("Accept-Language", third_lang)])
@@ -181,14 +181,14 @@ class TestTranslate(FrappeTestCase):
 
 	def test_load_all_translate_files(self):
 		"""Load all CSV files to ensure they have correct format"""
-		verify_translation_files("frappe")
+		verify_translation_files("nts")
 
 	def test_python_extractor(self):
 		code = textwrap.dedent(
 			"""
-			frappe._("attr")
+			nts._("attr")
 			_("name")
-			frappe._("attr with", context="attr context")
+			nts._("attr with", context="attr context")
 			_("name with", context="name context")
 			_("broken on",
 				context="new line")
@@ -309,7 +309,7 @@ def verify_translation_files(app):
 
 	from pathlib import Path
 
-	translations_dir = Path(frappe.get_app_path(app)) / "translations"
+	translations_dir = Path(nts.get_app_path(app)) / "translations"
 
 	for file in translations_dir.glob("*.csv"):
 		lang = file.stem  # basename of file = lang

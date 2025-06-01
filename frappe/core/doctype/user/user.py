@@ -1,26 +1,26 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from collections.abc import Iterable
 from datetime import timedelta
 
-import frappe
-import frappe.defaults
-import frappe.permissions
-import frappe.share
-from frappe import STANDARD_USERS, _, msgprint, throw
-from frappe.apps import get_default_path
-from frappe.auth import MAX_PASSWORD_SIZE
-from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
-from frappe.desk.doctype.notification_settings.notification_settings import (
+import nts
+import nts.defaults
+import nts.permissions
+import nts.share
+from nts import STANDARD_USERS, _, msgprint, throw
+from nts.apps import get_default_path
+from nts.auth import MAX_PASSWORD_SIZE
+from nts.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from nts.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
 	toggle_notifications,
 )
-from frappe.desk.notifications import clear_notifications
-from frappe.model.document import Document
-from frappe.query_builder import DocType
-from frappe.rate_limiter import rate_limit
-from frappe.utils import (
+from nts.desk.notifications import clear_notifications
+from nts.model.document import Document
+from nts.query_builder import DocType
+from nts.rate_limiter import rate_limit
+from nts.utils import (
 	cint,
 	escape_html,
 	flt,
@@ -31,13 +31,13 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.data import sha256_hash
-from frappe.utils.deprecations import deprecated
-from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit
-from frappe.utils.password import update_password as _update_password
-from frappe.utils.user import get_system_managers
-from frappe.website.utils import get_home_page, is_signup_disabled
+from nts.utils.data import sha256_hash
+from nts.utils.deprecations import deprecated
+from nts.utils.html_utils import sanitize_html
+from nts.utils.password import check_password, get_password_reset_limit
+from nts.utils.password import update_password as _update_password
+from nts.utils.user import get_system_managers
+from nts.website.utils import get_home_page, is_signup_disabled
 
 desk_properties = (
 	"search_bar",
@@ -58,12 +58,12 @@ class User(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.block_module.block_module import BlockModule
-		from frappe.core.doctype.defaultvalue.defaultvalue import DefaultValue
-		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.core.doctype.user_email.user_email import UserEmail
-		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
-		from frappe.types import DF
+		from nts.core.doctype.block_module.block_module import BlockModule
+		from nts.core.doctype.defaultvalue.defaultvalue import DefaultValue
+		from nts.core.doctype.has_role.has_role import HasRole
+		from nts.core.doctype.user_email.user_email import UserEmail
+		from nts.core.doctype.user_social_login.user_social_login import UserSocialLogin
+		from nts.types import DF
 
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
@@ -151,7 +151,7 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
-		from frappe.config import get_modules_from_all_apps
+		from nts.config import get_modules_from_all_apps
 
 		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
@@ -161,15 +161,15 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
-		frappe.cache.delete_key("users_for_mentions")
-		frappe.cache.delete_key("enabled_users")
+		nts.cache.delete_key("users_for_mentions")
+		nts.cache.delete_key("enabled_users")
 
 	def validate(self):
 		# clear new password
 		self.__new_password = self.new_password
 		self.new_password = ""
 
-		if not frappe.flags.in_test:
+		if not nts.flags.in_test:
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
@@ -195,12 +195,12 @@ class User(Document):
 		if self.language == "Loading...":
 			self.language = None
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("nts")):
+			self.set_social_login_userid("nts", nts.generate_hash(length=39))
 
 	def populate_role_profile_roles(self):
 		if self.role_profile_name:
-			role_profile = frappe.get_doc("Role Profile", self.role_profile_name)
+			role_profile = nts.get_doc("Role Profile", self.role_profile_name)
 			self.set("roles", [])
 			self.append_roles(*[role.role for role in role_profile.roles])
 
@@ -210,24 +210,24 @@ class User(Document):
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
-			module_profile = frappe.get_doc("Module Profile", self.module_profile)
+			module_profile = nts.get_doc("Module Profile", self.module_profile)
 			self.set("block_modules", [])
 			for d in module_profile.get("block_modules"):
 				self.append("block_modules", {"module": d.module})
 
 	def validate_user_image(self):
 		if self.user_image and len(self.user_image) > 2000:
-			frappe.throw(_("Not a valid User Image."))
+			nts.throw(_("Not a valid User Image."))
 
 	def on_update(self):
 		# clear new password
 		self.share_with_self()
 		clear_notifications(user=self.name)
-		frappe.clear_cache(user=self.name)
-		now = frappe.flags.in_test or frappe.flags.in_install
+		nts.clear_cache(user=self.name)
+		now = nts.flags.in_test or nts.flags.in_install
 		self.send_password_notification(self.__new_password)
-		frappe.enqueue(
-			"frappe.core.doctype.user.user.create_contact",
+		nts.enqueue(
+			"nts.core.doctype.user.user.create_contact",
 			user=self,
 			ignore_mandatory=True,
 			now=now,
@@ -235,8 +235,8 @@ class User(Document):
 		)
 
 		if self.name not in STANDARD_USERS and not self.user_image:
-			frappe.enqueue(
-				"frappe.core.doctype.user.user.update_gravatar",
+			nts.enqueue(
+				"nts.core.doctype.user.user.update_gravatar",
 				name=self.name,
 				now=now,
 				enqueue_after_commit=True,
@@ -244,17 +244,17 @@ class User(Document):
 
 		# Set user selected timezone
 		if self.time_zone:
-			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
+			nts.defaults.set_default("time_zone", self.time_zone, self.name)
 
 		if self.has_value_changed("enabled"):
-			frappe.cache.delete_key("users_for_mentions")
-			frappe.cache.delete_key("enabled_users")
+			nts.cache.delete_key("users_for_mentions")
+			nts.cache.delete_key("enabled_users")
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
-			frappe.cache.delete_key("users_for_mentions")
+			nts.cache.delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
-		return self.name == frappe.session.user
+		return self.name == nts.session.user
 
 	def clean_name(self):
 		for field in ("first_name", "middle_name", "last_name"):
@@ -267,11 +267,11 @@ class User(Document):
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
-			frappe.throw(_("User {0} cannot be disabled").format(self.name))
+			nts.throw(_("User {0} cannot be disabled").format(self.name))
 
 		# clear sessions if disabled
-		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		if not cint(self.enabled) and getattr(nts.local, "login_manager", None):
+			nts.local.login_manager.logout(user=self.name)
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled))
@@ -284,7 +284,7 @@ class User(Document):
 		"""For the standard users like admin and guest, the user type is fixed."""
 		user_type_mapper = {"Administrator": "System User", "Guest": "Website User"}
 
-		if self.user_type and not frappe.get_cached_value("User Type", self.user_type, "is_standard"):
+		if self.user_type and not nts.get_cached_value("User Type", self.user_type, "is_standard"):
 			if user_type_mapper.get(self.name):
 				self.user_type = user_type_mapper.get(self.name)
 			else:
@@ -294,7 +294,7 @@ class User(Document):
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
 
 	def set_roles_and_modules_based_on_user_type(self):
-		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
+		user_type_doc = nts.get_cached_doc("User Type", self.user_type)
 		if user_type_doc.role:
 			self.roles = []
 
@@ -302,7 +302,7 @@ class User(Document):
 			if user_linked_with_permission_on_doctype(user_type_doc, self.name):
 				self.append("roles", {"role": user_type_doc.role})
 
-				frappe.msgprint(
+				nts.msgprint(
 					_("Role has been set as per the user type {0}").format(self.user_type), alert=True
 				)
 
@@ -314,7 +314,7 @@ class User(Document):
 			return False
 
 		role_table = DocType("Role")
-		return frappe.db.count(
+		return nts.db.count(
 			role_table,
 			((role_table.desk_access == 1) & (role_table.name.isin([d.role for d in self.roles]))),
 		)
@@ -323,7 +323,7 @@ class User(Document):
 		if self.name in STANDARD_USERS:
 			return
 
-		frappe.share.add_docshare(
+		nts.share.add_docshare(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
@@ -332,9 +332,9 @@ class User(Document):
 		# if docshare.user == self.name:
 		# 	if self.user_type=="System User":
 		# 		if docshare.share != 1:
-		# 			frappe.throw(_("Sorry! User should have complete access to their own record."))
+		# 			nts.throw(_("Sorry! User should have complete access to their own record."))
 		# 	else:
-		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
+		# 		nts.throw(_("Sorry! Sharing with Website User is prohibited."))
 
 	def send_password_notification(self, new_password):
 		try:
@@ -353,15 +353,15 @@ class User(Document):
 					):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
-						if frappe.session.user != "Guest":
+						if nts.session.user != "Guest":
 							msgprint(_("Welcome email sent"))
 						return
 			else:
 				self.email_new_password(new_password)
 
-		except frappe.OutgoingEmailError:
-			frappe.clear_last_message()
-			frappe.msgprint(
+		except nts.OutgoingEmailError:
+			nts.clear_last_message()
+			nts.msgprint(
 				_("Please setup default outgoing Email Account from Settings > Email Account"), alert=True
 			)
 			# email server not set, don't send email
@@ -372,9 +372,9 @@ class User(Document):
 		pass
 
 	def reset_password(self, send_email=False, password_expired=False):
-		from frappe.utils import get_url
+		from nts.utils import get_url
 
-		key = frappe.generate_hash()
+		key = nts.generate_hash()
 		hashed_key = sha256_hash(key)
 		self.db_set("reset_password_key", hashed_key)
 		self.db_set("last_reset_password_key_generated_on", now_datetime())
@@ -394,7 +394,7 @@ class User(Document):
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
 
 	def password_reset_mail(self, link):
-		reset_password_template = frappe.db.get_system_setting("reset_password_template")
+		reset_password_template = nts.db.get_system_setting("reset_password_template")
 
 		self.send_login_mail(
 			_("Password Reset"),
@@ -405,21 +405,21 @@ class User(Document):
 		)
 
 	def send_welcome_mail_to_user(self):
-		from frappe.utils import get_url
+		from nts.utils import get_url
 
 		link = self.reset_password()
 		subject = None
-		method = frappe.get_hooks("welcome_email")
+		method = nts.get_hooks("welcome_email")
 		if method:
-			subject = frappe.get_attr(method[-1])()
+			subject = nts.get_attr(method[-1])()
 		if not subject:
-			site_name = frappe.db.get_default("site_name") or frappe.get_conf().get("site_name")
+			site_name = nts.db.get_default("site_name") or nts.get_conf().get("site_name")
 			if site_name:
 				subject = _("Welcome to {0}").format(site_name)
 			else:
 				subject = _("Complete Registration")
 
-		welcome_email_template = frappe.db.get_system_setting("welcome_email_template")
+		welcome_email_template = nts.db.get_system_setting("welcome_email_template")
 
 		self.send_login_mail(
 			subject,
@@ -433,10 +433,10 @@ class User(Document):
 
 	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
 		"""send mail with login details"""
-		from frappe.utils import get_url
-		from frappe.utils.user import get_user_fullname
+		from nts.utils import get_url
+		from nts.utils.user import get_user_fullname
 
-		created_by = get_user_fullname(frappe.session["user"])
+		created_by = get_user_fullname(nts.session["user"])
 		if created_by == "Guest":
 			created_by = "Administrator"
 
@@ -451,17 +451,17 @@ class User(Document):
 		args.update(add_args)
 
 		sender = (
-			frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
+			nts.session.user not in STANDARD_USERS and get_formatted_email(nts.session.user) or None
 		)
 
 		if custom_template:
-			from frappe.email.doctype.email_template.email_template import get_email_template
+			from nts.email.doctype.email_template.email_template import get_email_template
 
 			email_template = get_email_template(custom_template, args)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=self.email,
 			sender=sender,
 			subject=subject,
@@ -474,32 +474,32 @@ class User(Document):
 		)
 
 	def on_trash(self):
-		frappe.clear_cache(user=self.name)
+		nts.clear_cache(user=self.name)
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
 
 		# disable the user and log him/her out
 		self.enabled = 0
-		if getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		if getattr(nts.local, "login_manager", None):
+			nts.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.delete("ToDo", {"allocated_to": self.name})
+		nts.db.delete("ToDo", {"allocated_to": self.name})
 		todo_table = DocType("ToDo")
 		(
-			frappe.qb.update(todo_table)
+			nts.qb.update(todo_table)
 			.set(todo_table.assigned_by, None)
 			.where(todo_table.assigned_by == self.name)
 		).run()
 
 		# delete events
-		frappe.db.delete("Event", {"owner": self.name, "event_type": "Private"})
+		nts.db.delete("Event", {"owner": self.name, "event_type": "Private"})
 
 		# delete shares
-		frappe.db.delete("DocShare", {"user": self.name})
+		nts.db.delete("DocShare", {"user": self.name})
 		# delete messages
 		table = DocType("Communication")
-		frappe.db.delete(
+		nts.db.delete(
 			table,
 			filters=(
 				(table.communication_type.isin(["Chat", "Notification"]))
@@ -510,36 +510,36 @@ class User(Document):
 		)
 		# unlink contact
 		table = DocType("Contact")
-		frappe.qb.update(table).where(table.user == self.name).set(table.user, None).run()
+		nts.qb.update(table).where(table.user == self.name).set(table.user, None).run()
 
 		# delete notification settings
-		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
+		nts.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
 		if self.get("allow_in_mentions"):
-			frappe.cache.delete_key("users_for_mentions")
+			nts.cache.delete_key("users_for_mentions")
 
-		frappe.cache.delete_key("enabled_users")
+		nts.cache.delete_key("enabled_users")
 
 		# delete user permissions
-		frappe.db.delete("User Permission", {"user": self.name})
+		nts.db.delete("User Permission", {"user": self.name})
 
 		# Delete OAuth data
-		frappe.db.delete("OAuth Authorization Code", {"user": self.name})
-		frappe.db.delete("Token Cache", {"user": self.name})
+		nts.db.delete("OAuth Authorization Code", {"user": self.name})
+		nts.db.delete("Token Cache", {"user": self.name})
 
 		# Delete EPS data
-		frappe.db.delete("Energy Point Log", {"user": self.name})
+		nts.db.delete("Energy Point Log", {"user": self.name})
 
 		# Remove user link from Workflow Action
-		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
+		nts.db.set_value("Workflow Action", {"user": self.name}, "user", None)
 
 		# Delete user's List Filters
-		frappe.db.delete("List Filter", {"for_user": self.name})
+		nts.db.delete("List Filter", {"for_user": self.name})
 
 		# Remove user from Note's Seen By table
-		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
+		seen_notes = nts.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
 		for note_id in seen_notes:
-			note = frappe.get_doc("Note", note_id)
+			note = nts.get_doc("Note", note_id)
 			for row in note.seen_by:
 				if row.user == self.name:
 					note.remove(row)
@@ -548,9 +548,9 @@ class User(Document):
 	def before_rename(self, old_name, new_name, merge=False):
 		# if merging, delete the old user notification settings
 		if merge:
-			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
+			nts.delete_doc("Notification Settings", old_name, ignore_permissions=True)
 
-		frappe.clear_cache(user=old_name)
+		nts.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 
 	def validate_rename(self, old_name, new_name):
@@ -561,28 +561,28 @@ class User(Document):
 		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
-		from frappe.utils import validate_email_address
+		from nts.utils import validate_email_address
 
 		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.get_tables()
+		tables = nts.db.get_tables()
 		for tab in tables:
-			desc = frappe.db.get_table_columns_description(tab)
+			desc = nts.db.get_table_columns_description(tab)
 			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 			for field in has_fields:
-				frappe.db.sql(
+				nts.db.sql(
 					"""UPDATE `{}`
 					SET `{}` = {}
 					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
 					(new_name, old_name),
 				)
 
-		if frappe.db.exists("Notification Settings", old_name):
-			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
+		if nts.db.exists("Notification Settings", old_name):
+			nts.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		frappe.db.set_value("User", new_name, "email", new_name)
+		nts.db.set_value("User", new_name, "email", new_name)
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -610,7 +610,7 @@ class User(Document):
 			self.set("roles", list({d for d in self.get("roles") if d.role == "Guest"}))
 
 	def remove_disabled_roles(self):
-		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled": 1})]
+		disabled_roles = [d.name for d in nts.get_all("Role", filters={"disabled": 1})]
 		for role in list(self.get("roles")):
 			if role.role in disabled_roles:
 				self.get("roles").remove(role)
@@ -625,7 +625,7 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = nts.scrub(self.first_name)
 
 		if not self.username:
 			return
@@ -635,7 +635,7 @@ class User(Document):
 
 		if self.username_exists():
 			if self.user_type == "System User":
-				frappe.msgprint(_("Username {0} already exists").format(self.username))
+				nts.msgprint(_("Username {0} already exists").format(self.username))
 				self.suggest_username()
 
 			self.username = ""
@@ -661,19 +661,19 @@ class User(Document):
 			return None
 
 		# @firstname
-		username = _check_suggestion(frappe.scrub(self.first_name))
+		username = _check_suggestion(nts.scrub(self.first_name))
 
 		if not username:
 			# @firstname_last_name
-			username = _check_suggestion(frappe.scrub("{} {}".format(self.first_name, self.last_name or "")))
+			username = _check_suggestion(nts.scrub("{} {}".format(self.first_name, self.last_name or "")))
 
 		if username:
-			frappe.msgprint(_("Suggested Username: {0}").format(username))
+			nts.msgprint(_("Suggested Username: {0}").format(username))
 
 		return username
 
 	def username_exists(self, username=None):
-		return frappe.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
+		return nts.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
 
 	def get_blocked_modules(self):
 		"""Returns list of modules blocked for that user"""
@@ -684,7 +684,7 @@ class User(Document):
 
 		email_accounts = [user_email.email_account for user_email in self.user_emails]
 		if len(email_accounts) != len(set(email_accounts)):
-			frappe.throw(_("Email Account added multiple times"))
+			nts.throw(_("Email Account added multiple times"))
 
 	def get_social_login_userid(self, provider: str):
 		try:
@@ -716,10 +716,10 @@ class User(Document):
 		"""
 
 		login_with_mobile = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
+			nts.db.get_single_value("System Settings", "allow_login_using_mobile_number")
 		)
 		login_with_username = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
+			nts.db.get_single_value("System Settings", "allow_login_using_user_name")
 		)
 
 		or_filters = [{"name": user_name}]
@@ -728,7 +728,7 @@ class User(Document):
 		if login_with_username:
 			or_filters.append({"username": user_name})
 
-		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		users = nts.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
 			return
 
@@ -737,7 +737,7 @@ class User(Document):
 		if validate_password:
 			try:
 				check_password(user["name"], password, delete_tracker_cache=False)
-			except frappe.AuthenticationError:
+			except nts.AuthenticationError:
 				user["is_authenticated"] = False
 
 		return user
@@ -750,34 +750,34 @@ class User(Document):
 		if self.user_type != "System User" or self.roles or not self.is_new():
 			return
 
-		frappe.msgprint(
-			_("Newly created user {0} has no roles enabled.").format(frappe.bold(self.name)),
+		nts.msgprint(
+			_("Newly created user {0} has no roles enabled.").format(nts.bold(self.name)),
 			title=_("No Roles Specified"),
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.set_route",
+				"client_action": "nts.set_route",
 				"args": ["Form", self.doctype, self.name],
 			},
 		)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_timezones():
 	import pytz
 
 	return {"timezones": pytz.all_timezones}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_all_roles():
 	"""return all roles"""
-	active_domains = frappe.get_active_domains()
+	active_domains = nts.get_active_domains()
 
-	roles = frappe.get_all(
+	roles = nts.get_all(
 		"Role",
 		filters={
-			"name": ("not in", frappe.permissions.AUTOMATIC_ROLES),
+			"name": ("not in", nts.permissions.AUTOMATIC_ROLES),
 			"disabled": 0,
 		},
 		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
@@ -787,21 +787,21 @@ def get_all_roles():
 	return sorted([role.get("name") for role in roles])
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_roles(arg=None):
 	"""get roles for a user"""
-	return frappe.get_roles(frappe.form_dict["uid"])
+	return nts.get_roles(nts.form_dict["uid"])
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_perm_info(role):
 	"""get permission info"""
-	from frappe.permissions import get_all_perms
+	from nts.permissions import get_all_perms
 
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@nts.whitelist(allow_guest=True, methods=["POST"])
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
@@ -815,7 +815,7 @@ def update_password(
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+		nts.throw(_("Password size exceeded the maximum allowed size."))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
@@ -825,12 +825,12 @@ def update_password(
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get("message"):
-		frappe.local.response.http_status_code = 410
+		nts.local.response.http_status_code = 410
 		return res["message"]
 	else:
 		user = res["user"]
 
-	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value(
+	logout_all_sessions = cint(logout_all_sessions) or nts.db.get_single_value(
 		"System Settings", "logout_on_password_reset"
 	)
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
@@ -840,15 +840,15 @@ def update_password(
 	user_doc.validate_reset_password()
 
 	# get redirect url from cache
-	redirect_to = frappe.cache.hget("redirect_after_login", user)
+	redirect_to = nts.cache.hget("redirect_after_login", user)
 	if redirect_to:
 		redirect_url = redirect_to
-		frappe.cache.hdel("redirect_after_login", user)
+		nts.cache.hdel("redirect_after_login", user)
 
-	frappe.local.login_manager.login_as(user)
+	nts.local.login_manager.login_as(user)
 
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
+	nts.db.set_value("User", user, "last_password_reset_date", today())
+	nts.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return get_default_path() or "/app"
@@ -856,30 +856,30 @@ def update_password(
 		return redirect_url or get_default_path() or get_home_page()
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
-	from frappe.utils.deprecations import deprecation_warning
-	from frappe.utils.password_strength import test_password_strength as _test_password_strength
+	from nts.utils.deprecations import deprecation_warning
+	from nts.utils.password_strength import test_password_strength as _test_password_strength
 
 	if key is not None or old_password is not None:
 		deprecation_warning(
 			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`."
 		)
 
-	enable_password_policy = frappe.get_system_settings("enable_password_policy") or 0
+	enable_password_policy = nts.get_system_settings("enable_password_policy") or 0
 
 	if not enable_password_policy:
 		return {}
 
 	if not user_data:
-		user_data = frappe.db.get_value(
-			"User", frappe.session.user, ["first_name", "middle_name", "last_name", "email", "birth_date"]
+		user_data = nts.db.get_value(
+			"User", nts.session.user, ["first_name", "middle_name", "last_name", "email", "birth_date"]
 		)
 
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score")) or 0
+		minimum_password_score = cint(nts.get_system_settings("minimum_password_score")) or 0
 
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:
@@ -890,14 +890,14 @@ def test_password_strength(new_password: str, key=None, old_password=None, user_
 		return result
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def has_email_account(email: str):
-	return frappe.get_list("Email Account", filters={"email_id": email})
+	return nts.get_list("Email Account", filters={"email_id": email})
 
 
-@frappe.whitelist(allow_guest=False)
+@nts.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	return frappe.get_all(
+	return nts.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
 		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
@@ -906,9 +906,9 @@ def get_email_awaiting(user):
 
 def ask_pass_update():
 	# update the sys defaults as to awaiting users
-	from frappe.utils import set_default
+	from nts.utils import set_default
 
-	password_list = frappe.get_all(
+	password_list = nts.get_all(
 		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
 	)
 	set_default("email_user_password", ",".join(password_list))
@@ -916,16 +916,16 @@ def ask_pass_update():
 
 def _get_user_for_update_password(key, old_password):
 	# verify old password
-	result = frappe._dict()
+	result = nts._dict()
 	if key:
 		hashed_key = sha256_hash(key)
-		user = frappe.db.get_value(
+		user = nts.db.get_value(
 			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
 			reset_password_link_expiry = cint(
-				frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
+				nts.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
 			)
 			if (
 				reset_password_link_expiry
@@ -937,14 +937,14 @@ def _get_user_for_update_password(key, old_password):
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
 		# verify old password
-		frappe.local.login_manager.check_password(frappe.session.user, old_password)
-		user = frappe.session.user
+		nts.local.login_manager.check_password(nts.session.user, old_password)
+		user = nts.session.user
 		result.user = user
 	return result
 
 
 def reset_user_data(user):
-	user_doc = frappe.get_doc("User", user)
+	user_doc = nts.get_doc("User", user)
 	redirect_url = user_doc.redirect_url
 	user_doc.reset_password_key = ""
 	user_doc.redirect_url = ""
@@ -953,25 +953,25 @@ def reset_user_data(user):
 	return user_doc, redirect_url
 
 
-@frappe.whitelist(methods=["POST"])
+@nts.whitelist(methods=["POST"])
 def verify_password(password):
-	frappe.local.login_manager.check_password(frappe.session.user, password)
+	nts.local.login_manager.check_password(nts.session.user, password)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
-		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
+		nts.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
 
-	user = frappe.db.get("User", {"email": email})
+	user = nts.db.get("User", {"email": email})
 	if user:
 		if user.enabled:
 			return 0, _("Already Registered")
 		else:
 			return 0, _("Registered but disabled")
 	else:
-		if frappe.db.get_creation_count("User", 60) > 300:
-			frappe.respond_as_web_page(
+		if nts.db.get_creation_count("User", 60) > 300:
+			nts.respond_as_web_page(
 				_("Temporarily Disabled"),
 				_(
 					"Too many users signed up recently, so the registration is disabled. Please try back in an hour"
@@ -979,9 +979,9 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 				http_status_code=429,
 			)
 
-		from frappe.utils import random_string
+		from nts.utils import random_string
 
-		user = frappe.get_doc(
+		user = nts.get_doc(
 			{
 				"doctype": "User",
 				"email": email,
@@ -996,12 +996,12 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
+		default_role = nts.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 
 		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, redirect_to)
+			nts.cache.hset("redirect_after_login", user.name, redirect_to)
 
 		if user.flags.email_sent:
 			return 1, _("Please check your email for verification")
@@ -1009,11 +1009,11 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@nts.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> str:
 	try:
-		user: User = frappe.get_doc("User", user)
+		user: User = nts.get_doc("User", user)
 		if user.name == "Administrator":
 			return "not allowed"
 		if not user.enabled:
@@ -1022,18 +1022,18 @@ def reset_password(user: str) -> str:
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 
-		return frappe.msgprint(
+		return nts.msgprint(
 			msg=_("Password reset instructions have been sent to your email"),
 			title=_("Password Email Sent"),
 		)
-	except frappe.DoesNotExistError:
-		frappe.local.response["http_status_code"] = 404
-		frappe.clear_messages()
+	except nts.DoesNotExistError:
+		nts.local.response["http_status_code"] = 404
+		nts.clear_messages()
 		return "not found"
 
 
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	doctype = "User"
 
@@ -1048,13 +1048,13 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		or_filters += [[field, "like", f"%{txt}%"] for field in ("first_name", "middle_name", "last_name")]
 
 	if filters:
-		if not (filters.get("ignore_user_type") and frappe.session.data.user_type == "System User"):
+		if not (filters.get("ignore_user_type") and nts.session.data.user_type == "System User"):
 			list_filters["user_type"] = ["!=", "Website User"]
 
 		filters.pop("ignore_user_type", None)
 		list_filters.update(filters)
 
-	return frappe.get_list(
+	return nts.get_list(
 		doctype,
 		filters=list_filters,
 		fields=["name", "full_name"],
@@ -1069,7 +1069,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 def get_total_users():
 	"""Returns total no. of system users"""
 	return flt(
-		frappe.db.sql(
+		nts.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
 		FROM `tabUser`
 		WHERE `enabled` = 1
@@ -1087,7 +1087,7 @@ def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: in
 	elif isinstance(exclude_users, Iterable):
 		_excluded_users.extend(exclude_users)
 
-	return frappe.get_all(
+	return nts.get_all(
 		"User",
 		filters={
 			"enabled": 1,
@@ -1101,7 +1101,7 @@ def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: in
 
 def get_active_users():
 	"""Returns No. of system users who logged in, in the last 3 days"""
-	return frappe.db.sql(
+	return nts.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ({})
@@ -1112,12 +1112,12 @@ def get_active_users():
 
 def get_website_users():
 	"""Returns total no. of website users"""
-	return frappe.db.count("User", filters={"enabled": True, "user_type": "Website User"})
+	return nts.db.count("User", filters={"enabled": True, "user_type": "Website User"})
 
 
 def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
-	return frappe.db.sql(
+	return nts.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'
 		and hour(timediff(now(), last_active)) < 72"""
@@ -1129,7 +1129,7 @@ def get_permission_query_conditions(user):
 		return ""
 	else:
 		return """(`tabUser`.name not in ({standard_users}))""".format(
-			standard_users=", ".join(frappe.db.escape(user) for user in STANDARD_USERS)
+			standard_users=", ".join(nts.db.escape(user) for user in STANDARD_USERS)
 		)
 
 
@@ -1143,17 +1143,17 @@ def notify_admin_access_to_system_manager(login_manager=None):
 	if (
 		login_manager
 		and login_manager.user == "Administrator"
-		and frappe.local.conf.notify_admin_access_to_system_manager
+		and nts.local.conf.notify_admin_access_to_system_manager
 	):
-		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
+		site = '<a href="{0}" target="_blank">{0}</a>'.format(nts.local.request.host_url)
 		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
-		ip_address = frappe.local.request_ip
+		ip_address = nts.local.request_ip
 
 		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(
 			site, date_and_time, ip_address
 		)
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=get_system_managers(),
 			subject=_("Administrator Logged In"),
 			template="administrator_logged_in",
@@ -1170,36 +1170,36 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
+	nts.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):
 	gravatar = has_gravatar(name)
 	if gravatar:
-		frappe.db.set_value("User", name, "user_image", gravatar)
+		nts.db.set_value("User", name, "user_image", gravatar)
 
 
 def throttle_user_creation():
-	if frappe.flags.in_import:
+	if nts.flags.in_import:
 		return
 
-	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):
-		frappe.throw(_("Throttled"))
+	if nts.db.get_creation_count("User", 60) > nts.local.conf.get("throttle_user_limit", 60):
+		nts.throw(_("Throttled"))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_role_profile(role_profile: str):
-	return frappe.get_doc("Role Profile", {"role_profile": role_profile}).roles
+	return nts.get_doc("Role Profile", {"role_profile": role_profile}).roles
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_module_profile(module_profile: str):
-	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
+	module_profile = nts.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
-	from frappe.contacts.doctype.contact.contact import get_contact_name
+	from nts.contacts.doctype.contact.contact import get_contact_name
 
 	if user.name in ["Administrator", "Guest"]:
 		return
@@ -1207,7 +1207,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
 		try:
-			contact = frappe.get_doc(
+			contact = nts.get_doc(
 				{
 					"doctype": "Contact",
 					"first_name": user.first_name,
@@ -1229,11 +1229,11 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.insert(
 				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
 			)
-		except frappe.DuplicateEntryError:
+		except nts.DuplicateEntryError:
 			pass
 	else:
 		try:
-			contact = frappe.get_doc("Contact", contact_name)
+			contact = nts.get_doc("Contact", contact_name)
 			contact.first_name = user.first_name
 			contact.last_name = user.last_name
 			contact.gender = user.gender
@@ -1261,8 +1261,8 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 				)
 
 			contact.save(ignore_permissions=True)
-		except frappe.TimestampMismatchError:
-			raise frappe.RetryBackgroundJobError
+		except nts.TimestampMismatchError:
+			raise nts.RetryBackgroundJobError
 
 
 def get_restricted_ip_list(user):
@@ -1272,19 +1272,19 @@ def get_restricted_ip_list(user):
 	return [i.strip() for i in user.restrict_ip.split(",")]
 
 
-@frappe.whitelist(methods=["POST"])
+@nts.whitelist(methods=["POST"])
 def generate_keys(user: str):
 	"""
 	generate api key and api secret
 
 	:param user: str
 	"""
-	frappe.only_for("System Manager")
-	user_details: User = frappe.get_doc("User", user)
-	api_secret = frappe.generate_hash(length=15)
+	nts.only_for("System Manager")
+	user_details: User = nts.get_doc("User", user)
+	api_secret = nts.generate_hash(length=15)
 	# if api key is not set generate api key
 	if not user_details.api_key:
-		api_key = frappe.generate_hash(length=15)
+		api_key = nts.generate_hash(length=15)
 		user_details.api_key = api_key
 	user_details.api_secret = api_secret
 	user_details.save()
@@ -1292,28 +1292,28 @@ def generate_keys(user: str):
 	return {"api_secret": api_secret}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def switch_theme(theme):
 	if theme in ["Dark", "Light", "Automatic"]:
-		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
+		nts.db.set_value("User", nts.session.user, "desk_theme", theme)
 
 
 def get_enabled_users():
 	def _get_enabled_users():
-		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
+		enabled_users = nts.get_all("User", filters={"enabled": "1"}, pluck="name")
 		return enabled_users
 
-	return frappe.cache.get_value("enabled_users", _get_enabled_users)
+	return nts.cache.get_value("enabled_users", _get_enabled_users)
 
 
-@frappe.whitelist(methods=["POST"])
+@nts.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
 	# Note: For now we only allow admins, we MIGHT allow system manager in future.
 	# All the impersonation code doesn't assume anything about user.
-	frappe.only_for("Administrator")
+	nts.only_for("Administrator")
 
-	impersonator = frappe.session.user
-	frappe.get_doc(
+	impersonator = nts.session.user
+	nts.get_doc(
 		{
 			"doctype": "Activity Log",
 			"user": user,
@@ -1323,12 +1323,12 @@ def impersonate(user: str, reason: str):
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
 
-	notification = frappe.new_doc(
+	notification = nts.new_doc(
 		"Notification Log",
 		for_user=user,
-		from_user=frappe.session.user,
+		from_user=nts.session.user,
 		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
 	)
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
-	frappe.local.login_manager.impersonate(user)
+	nts.local.login_manager.impersonate(user)

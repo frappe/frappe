@@ -1,8 +1,8 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class GoogleSettings(Document):
@@ -12,7 +12,7 @@ class GoogleSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		api_key: DF.Data | None
 		app_id: DF.Data | None
@@ -25,10 +25,10 @@ class GoogleSettings(Document):
 	pass
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_file_picker_settings():
 	"""Return all the data FileUploader needs to start the Google Drive Picker."""
-	google_settings = frappe.get_cached_doc("Google Settings")
+	google_settings = nts.get_cached_doc("Google Settings")
 
 	if not (google_settings.enable and google_settings.google_drive_picker_enabled):
 		return {}

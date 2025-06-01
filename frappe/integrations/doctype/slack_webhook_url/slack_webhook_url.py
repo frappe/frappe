@@ -1,14 +1,14 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2018, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 
 import requests
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import get_url_to_form
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import get_url_to_form
 
 error_messages = {
 	400: "400: Invalid Payload or User not found",
@@ -26,7 +26,7 @@ class SlackWebhookURL(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		show_document_link: DF.Check
 		webhook_name: DF.Data
@@ -38,7 +38,7 @@ class SlackWebhookURL(Document):
 def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 	data = {"text": message, "attachments": []}
 
-	slack_url, show_link = frappe.db.get_value(
+	slack_url, show_link = nts.db.get_value(
 		"Slack Webhook URL", webhook_url, ["webhook_url", "show_document_link"]
 	)
 
@@ -61,7 +61,7 @@ def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 
 	if not r.ok:
 		message = error_messages.get(r.status_code, r.status_code)
-		frappe.log_error(message, _("Slack Webhook Error"))
+		nts.log_error(message, _("Slack Webhook Error"))
 		return "error"
 
 	return "success"

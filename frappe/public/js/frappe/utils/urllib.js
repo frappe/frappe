@@ -1,4 +1,4 @@
-frappe.urllib = {
+nts.urllib = {
 	// get argument from url
 	get_arg: function (name) {
 		name = name.replace(/[[]/, "\\[").replace(/[\]]/, "\\]");
@@ -28,8 +28,8 @@ frappe.urllib = {
 
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function () {
-		// var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
-		var url = frappe.base_url || window.location.origin;
+		// var url= (nts.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
+		var url = nts.base_url || window.location.origin;
 		if (url.substr(url.length - 1, 1) == "/") url = url.substr(0, url.length - 1);
 		return url;
 	},
@@ -40,14 +40,14 @@ frappe.urllib = {
 			return url;
 		}
 		return url.substr(0, 1) === "/"
-			? frappe.urllib.get_base_url() + url
-			: frappe.urllib.get_base_url() + "/" + url;
+			? nts.urllib.get_base_url() + url
+			: nts.urllib.get_base_url() + "/" + url;
 	},
 };
 
 window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 	if (window.cordova) {
-		let url = URL + "api/method/" + PARAMS.cmd + frappe.utils.make_query_string(PARAMS, false);
+		let url = URL + "api/method/" + PARAMS.cmd + nts.utils.make_query_string(PARAMS, false);
 		window.location.href = url;
 	} else {
 		// call a url as POST
@@ -58,7 +58,7 @@ window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 		if (new_window) {
 			temp.target = "_blank";
 		}
-		PARAMS["csrf_token"] = frappe.csrf_token;
+		PARAMS["csrf_token"] = nts.csrf_token;
 		for (var x in PARAMS) {
 			var opt = document.createElement("textarea");
 			opt.name = x;
@@ -73,5 +73,5 @@ window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 	}
 };
 
-window.get_url_arg = frappe.urllib.get_arg;
-window.get_url_dict = frappe.urllib.get_dict;
+window.get_url_arg = nts.urllib.get_arg;
+window.get_url_dict = nts.urllib.get_dict;

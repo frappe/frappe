@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 
@@ -21,7 +21,7 @@ def resolve_class(*classes):
 
 
 def inspect(var, render=True):
-	from frappe.utils.jinja import get_jenv
+	from nts.utils.jinja import get_jenv
 
 	context = {"var": var}
 	if render:
@@ -38,9 +38,9 @@ def web_block(template, values=None, **kwargs):
 
 
 def web_blocks(blocks):
-	import frappe
-	from frappe import _, _dict, throw
-	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+	import nts
+	from nts import _, _dict, throw
+	from nts.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
 	for block in blocks:
@@ -66,31 +66,31 @@ def web_blocks(blocks):
 
 	html = out.html
 
-	if not frappe.flags.web_block_scripts:
-		frappe.flags.web_block_scripts = {}
-		frappe.flags.web_block_styles = {}
+	if not nts.flags.web_block_scripts:
+		nts.flags.web_block_scripts = {}
+		nts.flags.web_block_styles = {}
 
 	for template, scripts in out.scripts.items():
 		# deduplication of scripts when web_blocks methods are used in web pages
 		# see render_dynamic method web_page.py
-		if template not in frappe.flags.web_block_scripts:
+		if template not in nts.flags.web_block_scripts:
 			for script in scripts:
 				html += f"<script data-web-template='{template}'>{script}</script>"
-			frappe.flags.web_block_scripts[template] = True
+			nts.flags.web_block_scripts[template] = True
 
 	for template, styles in out.styles.items():
 		# deduplication of styles when web_blocks methods are used in web pages
 		# see render_dynamic method web_page.py
-		if template not in frappe.flags.web_block_styles:
+		if template not in nts.flags.web_block_styles:
 			for style in styles:
 				html += f"<style data-web-template='{template}'>{style}</style>"
-			frappe.flags.web_block_styles[template] = True
+			nts.flags.web_block_styles[template] = True
 
 	return html
 
 
 def get_dom_id(seed=None):
-	from frappe import generate_hash
+	from nts import generate_hash
 
 	return "id-" + generate_hash(12)
 
@@ -103,9 +103,9 @@ def include_script(path, preload=True):
 	path = bundled_asset(path)
 
 	if preload:
-		import frappe
+		import nts
 
-		frappe.local.preload_assets["script"].append(path)
+		nts.local.preload_assets["script"].append(path)
 
 	return f'<script type="text/javascript" src="{path}"></script>'
 
@@ -118,16 +118,16 @@ def include_style(path, rtl=None, preload=True):
 	path = bundled_asset(path)
 
 	if preload:
-		import frappe
+		import nts
 
-		frappe.local.preload_assets["style"].append(path)
+		nts.local.preload_assets["style"].append(path)
 
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
 def bundled_asset(path, rtl=None):
-	from frappe.utils import get_assets_json
-	from frappe.website.utils import abs_url
+	from nts.utils import get_assets_json
+	from nts.website.utils import abs_url
 
 	if ".bundle." in path and not path.startswith("/assets"):
 		bundled_assets = get_assets_json()
@@ -139,7 +139,7 @@ def bundled_asset(path, rtl=None):
 
 
 def is_rtl(rtl=None):
-	from frappe import local
+	from nts import local
 
 	if rtl is None:
 		return local.lang in ["ar", "he", "fa", "ps"]

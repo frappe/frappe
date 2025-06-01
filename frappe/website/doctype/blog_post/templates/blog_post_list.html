@@ -17,14 +17,14 @@
 		<div style="max-width: 20rem">
 			<label for="category-select" class="sr-only">{{ _("Browse by category") }}</label>
 			<select id="category-select" class="custom-select" onchange="window.location.pathname = this.value">
-				<option value="" {{ not frappe.form_dict.category and "selected" or "" }} disabled>
+				<option value="" {{ not nts.form_dict.category and "selected" or "" }} disabled>
 					{{ _("Browse by category") }}
 				</option>
-				{%- if frappe.form_dict.category -%}
+				{%- if nts.form_dict.category -%}
 				<option value="blog">{{ _("Show all blogs") }}</option>
 				{%- endif -%}
 				{%- for category in blog_categories -%}
-				<option value="{{ category.route }}" {{ frappe.form_dict.category == category.name and "selected" or "" }}>
+				<option value="{{ category.route }}" {{ nts.form_dict.category == category.name and "selected" or "" }}>
 					{{ _(category.title) }}
 				</option>
 				{%- endfor -%}
@@ -54,20 +54,20 @@
 
 {% block script %}
 <script>
-	frappe.ready(() => {
+	nts.ready(() => {
 		let result_wrapper = $(".blog-list.result");
 		let next_start = {{ next_start or 0 }};
 
 		$(".blog-list-content .btn-more").on("click", function() {
 			let $btn = $(this);
-			let args = $.extend(frappe.utils.get_query_params(), {
+			let args = $.extend(nts.utils.get_query_params(), {
 				doctype: "Blog Post",
-				category: {{ frappe.form_dict.category|tojson or "''"}},
+				category: {{ nts.form_dict.category|tojson or "''"}},
 				limit_start: next_start,
 				pathname: location.pathname,
 			});
 			$btn.prop("disabled", true);
-			frappe.call('frappe.www.list.get', args)
+			nts.call('nts.www.list.get', args)
 				.then(r => {
 					var data = r.message;
 					next_start = data.next_start;

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import time
@@ -8,26 +8,26 @@ from functools import wraps
 import pytz
 from werkzeug.wrappers import Response
 
-import frappe
-from frappe import _
-from frappe.utils import cint
+import nts
+from nts import _
+from nts.utils import cint
 
 
 def apply():
-	rate_limit = frappe.conf.rate_limit
+	rate_limit = nts.conf.rate_limit
 	if rate_limit:
-		frappe.local.rate_limiter = RateLimiter(rate_limit["limit"], rate_limit["window"])
-		frappe.local.rate_limiter.apply()
+		nts.local.rate_limiter = RateLimiter(rate_limit["limit"], rate_limit["window"])
+		nts.local.rate_limiter.apply()
 
 
 def update():
-	if hasattr(frappe.local, "rate_limiter"):
-		frappe.local.rate_limiter.update()
+	if hasattr(nts.local, "rate_limiter"):
+		nts.local.rate_limiter.update()
 
 
 def respond():
-	if hasattr(frappe.local, "rate_limiter"):
-		return frappe.local.rate_limiter.respond()
+	if hasattr(nts.local, "rate_limiter"):
+		return nts.local.rate_limiter.respond()
 
 
 class RateLimiter:
@@ -53,12 +53,12 @@ class RateLimiter:
 		self.start = time.time()
 
 		self.window_number, self.spent = divmod(int(self.start), self.window)
-		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
-		self.counter = cint(frappe.cache.get(self.key))
+		self.key = nts.cache.make_key(f"rate-limit-counter-{self.window_number}")
+		self.counter = cint(nts.cache.get(self.key))
 		if not self.counter:
 			# This is the first request in this window
-			frappe.cache.incrby(self.key, 0)
-			frappe.cache.expire(self.key, self.window)
+			nts.cache.incrby(self.key, 0)
+			nts.cache.expire(self.key, self.window)
 
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
@@ -73,11 +73,11 @@ class RateLimiter:
 			self.reject()
 
 	def reject(self):
-		raise frappe.TooManyRequestsError
+		raise nts.TooManyRequestsError
 
 	def update(self):
 		self.record_request_end()
-		frappe.cache.incrby(self.key, self.duration)
+		nts.cache.incrby(self.key, self.duration)
 
 	def headers(self):
 		self.record_request_end()
@@ -131,16 +131,16 @@ def rate_limit(
 		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if not frappe.request or (
-				methods != "ALL" and frappe.request.method and frappe.request.method.upper() not in methods
+			if not nts.request or (
+				methods != "ALL" and nts.request.method and nts.request.method.upper() not in methods
 			):
 				return fn(*args, **kwargs)
 
 			_limit = limit() if callable(limit) else limit
 
-			ip = frappe.local.request_ip if ip_based is True else None
+			ip = nts.local.request_ip if ip_based is True else None
 
-			user_key = frappe.form_dict.get(key, "")
+			user_key = nts.form_dict.get(key, "")
 
 			identity = None
 
@@ -150,19 +150,19 @@ def rate_limit(
 			identity = identity or ip or user_key
 
 			if not identity:
-				frappe.throw(_("Either key or IP flag is required."))
+				nts.throw(_("Either key or IP flag is required."))
 
-			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
+			cache_key = nts.cache.make_key(f"rl:{nts.form_dict.cmd}:{identity}")
 
-			value = frappe.cache.get(cache_key) or 0
+			value = nts.cache.get(cache_key) or 0
 			if not value:
-				frappe.cache.setex(cache_key, seconds, 0)
+				nts.cache.setex(cache_key, seconds, 0)
 
-			value = frappe.cache.incrby(cache_key, 1)
+			value = nts.cache.incrby(cache_key, 1)
 			if value > _limit:
-				frappe.throw(
+				nts.throw(
 					_("You hit the rate limit because of too many requests. Please try after sometime."),
-					frappe.RateLimitExceededError,
+					nts.RateLimitExceededError,
 				)
 
 			return fn(*args, **kwargs)

@@ -2,7 +2,7 @@ function prettyDate(date, mini) {
 	if (!date) return "";
 
 	if (typeof date == "string") {
-		date = frappe.datetime.convert_to_user_tz(date);
+		date = nts.datetime.convert_to_user_tz(date);
 		date = new Date(
 			(date || "")
 				.replace(/-/g, "/")
@@ -12,7 +12,7 @@ function prettyDate(date, mini) {
 	}
 
 	let diff =
-		(new Date(frappe.datetime.now_datetime().replace(/-/g, "/")).getTime() - date.getTime()) /
+		(new Date(nts.datetime.now_datetime().replace(/-/g, "/")).getTime() - date.getTime()) /
 		1000;
 	let day_diff = Math.floor(diff / 86400);
 
@@ -75,11 +75,11 @@ function prettyDate(date, mini) {
 	}
 }
 
-frappe.provide("frappe.datetime");
+nts.provide("nts.datetime");
 window.comment_when = function (datetime, mini) {
-	var timestamp = frappe.datetime.str_to_user ? frappe.datetime.str_to_user(datetime) : datetime;
+	var timestamp = nts.datetime.str_to_user ? nts.datetime.str_to_user(datetime) : datetime;
 	return (
-		'<span class="frappe-timestamp ' +
+		'<span class="nts-timestamp ' +
 		(mini ? " mini" : "") +
 		'" data-timestamp="' +
 		datetime +
@@ -90,17 +90,17 @@ window.comment_when = function (datetime, mini) {
 		"</span>"
 	);
 };
-frappe.datetime.comment_when = comment_when;
-frappe.datetime.prettyDate = prettyDate;
+nts.datetime.comment_when = comment_when;
+nts.datetime.prettyDate = prettyDate;
 
-frappe.datetime.refresh_when = function () {
+nts.datetime.refresh_when = function () {
 	if (jQuery) {
-		$(".frappe-timestamp").each(function () {
+		$(".nts-timestamp").each(function () {
 			$(this).html(prettyDate($(this).attr("data-timestamp"), $(this).hasClass("mini")));
 		});
 	}
 };
 
 setInterval(function () {
-	frappe.datetime.refresh_when();
+	nts.datetime.refresh_when();
 }, 60000); // refresh every minute

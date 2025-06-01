@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """build query for doclistview and return results"""
 
@@ -8,19 +8,19 @@ import json
 import re
 from collections import Counter
 
-import frappe
-import frappe.defaults
-import frappe.permissions
-import frappe.share
-from frappe import _
-from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, optional_fields
-from frappe.model.meta import get_table_columns
-from frappe.model.utils import is_virtual_doctype
-from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.query_builder.utils import Column
-from frappe.utils import (
+import nts
+import nts.defaults
+import nts.permissions
+import nts.share
+from nts import _
+from nts.core.doctype.server_script.server_script_utils import get_server_script_map
+from nts.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from nts.model import OPTIONAL_FIELDS, get_permitted_fields, optional_fields
+from nts.model.meta import get_table_columns
+from nts.model.utils import is_virtual_doctype
+from nts.model.utils.user_settings import get_user_settings, update_user_settings
+from nts.query_builder.utils import Column
+from nts.utils import (
 	cint,
 	cstr,
 	flt,
@@ -29,7 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from nts.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", flags=re.IGNORECASE)
@@ -57,9 +57,9 @@ class DatabaseQuery:
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
-		self.user = user or frappe.session.user
+		self.user = user or nts.session.user
 		self.ignore_ifnull = False
-		self.flags = frappe._dict()
+		self.flags = nts._dict()
 		self.reference_doctype = None
 		self.permission_map = {}
 		self.shared = []
@@ -68,7 +68,7 @@ class DatabaseQuery:
 	@property
 	def doctype_meta(self):
 		if not hasattr(self, "_doctype_meta"):
-			self._doctype_meta = frappe.get_meta(self.doctype)
+			self._doctype_meta = nts.get_meta(self.doctype)
 		return self._doctype_meta
 
 	@property
@@ -149,7 +149,7 @@ class DatabaseQuery:
 		self.as_list = as_list
 		self.ignore_ifnull = ignore_ifnull
 		self.flags.ignore_permissions = ignore_permissions
-		self.user = user or frappe.session.user
+		self.user = user or nts.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		self.run = run
@@ -165,7 +165,7 @@ class DatabaseQuery:
 			self.user_settings = json.loads(user_settings)
 
 		if is_virtual_doctype(self.doctype):
-			from frappe.model.base_document import get_controller
+			from nts.model.base_document import get_controller
 
 			controller = get_controller(self.doctype)
 			if not hasattr(controller, "get_list"):
@@ -219,7 +219,7 @@ class DatabaseQuery:
 
 		# Postgres requires any field that appears in the select clause to also
 		# appear in the order by and group by clause
-		if frappe.db.db_type == "postgres" and args.order_by and args.group_by:
+		if nts.db.db_type == "postgres" and args.order_by and args.group_by:
 			args = self.prepare_select_args(args)
 
 		query = """select {fields}
@@ -229,7 +229,7 @@ from {tables}
 {order_by}
 {limit}""".format(**args)
 
-		return frappe.db.sql(
+		return nts.db.sql(
 			query,
 			as_dict=not self.as_list,
 			debug=self.debug,
@@ -246,7 +246,7 @@ from {tables}
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
 
-		args = frappe._dict()
+		args = nts._dict()
 
 		if self.with_childnames:
 			for t in self.tables:
@@ -259,7 +259,7 @@ from {tables}
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {nts.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -346,7 +346,7 @@ from {tables}
 				if " as " in field:
 					field, alias = field.split(" as ", 1)
 				linked_fieldname, fieldname = field.split(".", 1)
-				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				linked_field = nts.get_meta(self.doctype).get_field(linked_fieldname)
 				# this is not a link field
 				if not linked_field:
 					continue
@@ -400,7 +400,7 @@ from {tables}
 		]
 
 		def _raise_exception():
-			frappe.throw(_("Use of sub-query or function is restricted"), frappe.DataError)
+			nts.throw(_("Use of sub-query or function is restricted"), nts.DataError)
 
 		def _is_query(field):
 			if IS_QUERY_PATTERN.match(field):
@@ -422,8 +422,8 @@ from {tables}
 
 				function = lower_field.split("(", 1)[0].rstrip()
 				if function in blacklisted_functions:
-					frappe.throw(
-						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
+					nts.throw(
+						_("Use of function {0} in field is restricted").format(function), exc=nts.DataError
 					)
 
 				if "@" in lower_field:
@@ -440,10 +440,10 @@ from {tables}
 
 			if self.strict:
 				if STRICT_FIELD_PATTERN.match(field):
-					frappe.throw(_("Illegal SQL Query"))
+					nts.throw(_("Illegal SQL Query"))
 
 				if STRICT_UNION_PATTERN.match(lower_field):
-					frappe.throw(_("Illegal SQL Query"))
+					nts.throw(_("Illegal SQL Query"))
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -495,7 +495,7 @@ from {tables}
 
 		self.check_read_permission(doctype)
 		self.linked_table_counter.update((doctype,))
-		linked_table = frappe._dict(
+		linked_table = nts._dict(
 			doctype=doctype,
 			fieldname=fieldname,
 			table_name=f"`tab{doctype}`",
@@ -515,8 +515,8 @@ from {tables}
 		return self.permission_map[doctype]
 
 	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
-		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-		frappe.has_permission(
+		ptype = "select" if nts.only_has_select_perm(doctype) else "read"
+		nts.has_permission(
 			doctype,
 			ptype=ptype,
 			parent_doctype=parent_doctype or self.doctype,
@@ -546,7 +546,7 @@ from {tables}
 	def get_table_columns(self):
 		try:
 			return get_table_columns(self.doctype)
-		except frappe.db.TableMissingError:
+		except nts.db.TableMissingError:
 			if self.ignore_ddl:
 				return None
 			else:
@@ -608,7 +608,7 @@ from {tables}
 	def apply_fieldlevel_read_permissions(self):
 		"""Apply fieldlevel read permissions to the query
 
-		Note: Does not apply to `frappe.model.core_doctype_list`
+		Note: Does not apply to `nts.model.core_doctype_list`
 
 		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
 		be returned.
@@ -616,9 +616,9 @@ from {tables}
 		Example:
 		        - User has read permission only on `title` for DocType `Note`
 		        - Query: fields=["*"]
-		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		        - Result: fields=["title", ...] // will also include nts's meta field like `name`, `owner`, etc.
 		"""
-		from frappe.desk.reportview import extract_fieldnames
+		from nts.desk.reportview import extract_fieldnames
 
 		if self.flags.ignore_permissions:
 			return
@@ -653,7 +653,7 @@ from {tables}
 			if not column or column.isnumeric():
 				continue
 
-			# labels / pseudo columns or frappe internals
+			# labels / pseudo columns or nts internals
 			if column[0] in {"'", '"'}:
 				continue
 
@@ -667,7 +667,7 @@ from {tables}
 			# handle child / joined table fields
 			if doctype and doctype != self.doctype:
 				if wrap_grave_quotes(table) not in self.query_tables:
-					raise frappe.PermissionError(doctype)
+					raise nts.PermissionError(doctype)
 
 				if doctype not in permitted_child_table_fields:
 					permitted_child_table_fields[doctype] = set(
@@ -714,7 +714,7 @@ from {tables}
 
 		# TODO: refactor
 
-		from frappe.boot import get_additional_filters_from_hooks
+		from nts.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
 		f = get_filter(self.doctype, f, additional_filters_config)
@@ -728,7 +728,7 @@ from {tables}
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
-		meta = frappe.get_meta(f.doctype)
+		meta = nts.get_meta(f.doctype)
 
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
@@ -744,7 +744,7 @@ from {tables}
 			ref_doctype = field.options if field else f.doctype
 			lft, rgt = "", ""
 			if f.value:
-				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"]) or (0, 0)
+				lft, rgt = nts.db.get_value(ref_doctype, f.value, ["lft", "rgt"]) or (0, 0)
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in (
@@ -752,7 +752,7 @@ from {tables}
 				"not descendants of",
 				"descendants of (inclusive)",
 			):
-				nodes = frappe.get_all(
+				nodes = nts.get_all(
 					ref_doctype,
 					filters={"lft": [">", lft], "rgt": ["<", rgt]},
 					order_by="`lft` ASC",
@@ -762,7 +762,7 @@ from {tables}
 					nodes += [f.value]
 			else:
 				# Get ancestor elements of a DocType with a tree structure
-				nodes = frappe.get_all(
+				nodes = nts.get_all(
 					ref_doctype,
 					filters={"lft": ["<", lft], "rgt": [">", rgt]},
 					order_by="`lft` DESC",
@@ -770,7 +770,7 @@ from {tables}
 				)
 
 			fallback = "''"
-			value = [frappe.db.escape((cstr(v)).strip(), percent=False) for v in nodes]
+			value = [nts.db.escape((cstr(v)).strip(), percent=False) for v in nodes]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
@@ -794,7 +794,7 @@ from {tables}
 				values = values.split(",")
 
 			fallback = "''"
-			value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
+			value = [nts.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
@@ -856,11 +856,11 @@ from {tables}
 				f.value = value = ""
 
 			elif df and df.fieldtype == "Date":
-				value = frappe.db.format_date(f.value)
+				value = nts.db.format_date(f.value)
 				fallback = "'0001-01-01'"
 
 			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime.datetime):
-				value = frappe.db.format_datetime(f.value)
+				value = nts.db.format_datetime(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif df and df.fieldtype == "Time":
@@ -888,7 +888,7 @@ from {tables}
 
 			elif (
 				df
-				and (db_type := cstr(frappe.db.type_map.get(df.fieldtype, " ")[0]))
+				and (db_type := cstr(nts.db.type_map.get(df.fieldtype, " ")[0]))
 				and db_type in ("varchar", "text", "longtext", "smalltext", "json")
 			):
 				value = cstr(f.value)
@@ -900,12 +900,12 @@ from {tables}
 
 			if isinstance(f.value, Column):
 				can_be_null = False  # added to avoid the ifnull/coalesce addition
-				quote = '"' if frappe.conf.db_type == "postgres" else "`"
+				quote = '"' if nts.conf.db_type == "postgres" else "`"
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
 			elif escape and isinstance(value, str):
-				value = f"{frappe.db.escape(value, percent=False)}"
+				value = f"{nts.db.escape(value, percent=False)}"
 
 		if (
 			self.ignore_ifnull
@@ -913,7 +913,7 @@ from {tables}
 			or (f.value and f.operator.lower() in ("=", "like"))
 			or "ifnull(" in column_name.lower()
 		):
-			if f.operator.lower() == "like" and frappe.conf.get("db_type") == "postgres":
+			if f.operator.lower() == "like" and nts.conf.get("db_type") == "postgres":
 				f.operator = "ilike"
 			condition = f"{column_name} {f.operator} {value}"
 		else:
@@ -935,12 +935,12 @@ from {tables}
 		self.match_conditions = []
 		only_if_shared = False
 		if not self.user:
-			self.user = frappe.session.user
+			self.user = nts.session.user
 
 		if not self.tables:
 			self.extract_tables()
 
-		role_permissions = frappe.permissions.get_role_permissions(self.doctype_meta, user=self.user)
+		role_permissions = nts.permissions.get_role_permissions(self.doctype_meta, user=self.user)
 		if (
 			not self.doctype_meta.istable
 			and not (role_permissions.get("select") or role_permissions.get("read"))
@@ -948,9 +948,9 @@ from {tables}
 			and not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
 		):
 			only_if_shared = True
-			self.shared = frappe.share.get_shared(self.doctype, self.user)
+			self.shared = nts.share.get_shared(self.doctype, self.user)
 			if not self.shared:
-				frappe.throw(_("No permission to read {0}").format(_(self.doctype)), frappe.PermissionError)
+				nts.throw(_("No permission to read {0}").format(_(self.doctype)), nts.PermissionError)
 			else:
 				self.conditions.append(self.get_share_condition())
 
@@ -959,13 +959,13 @@ from {tables}
 			if requires_owner_constraint(role_permissions):
 				self._fetch_shared_documents = True
 				self.match_conditions.append(
-					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
+					f"`tab{self.doctype}`.`owner` = {nts.db.escape(self.user, percent=False)}"
 				)
 
 			# add user permission only if role has read perm
 			elif role_permissions.get("read") or role_permissions.get("select"):
 				# get user permissions
-				user_permissions = frappe.permissions.get_user_permissions(self.user)
+				user_permissions = nts.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)
 
 			# Only when full read access is not present fetch shared docuemnts.
@@ -974,7 +974,7 @@ from {tables}
 			#    1. DocType has if_owner constraint and hence can't see shared documents
 			#    2. DocType has user permissions and hence can't see shared documents
 			if self._fetch_shared_documents:
-				self.shared = frappe.share.get_shared(self.doctype, self.user)
+				self.shared = nts.share.get_shared(self.doctype, self.user)
 
 		if as_condition:
 			conditions = ""
@@ -998,7 +998,7 @@ from {tables}
 	def get_share_condition(self):
 		return (
 			cast_name(f"`tab{self.doctype}`.name")
-			+ f" in ({', '.join(frappe.db.escape(s, percent=False) for s in self.shared)})"
+			+ f" in ({', '.join(nts.db.escape(s, percent=False) for s in self.shared)})"
 		)
 
 	def add_user_permissions(self, user_permissions):
@@ -1023,7 +1023,7 @@ from {tables}
 
 			if user_permission_values:
 				docs = []
-				if frappe.get_system_settings("apply_strict_user_permissions"):
+				if nts.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
 					empty_value_condition = cast_name(
@@ -1048,7 +1048,7 @@ from {tables}
 						docs.append(permission.get("doc"))
 
 				if docs:
-					values = ", ".join(frappe.db.escape(doc, percent=False) for doc in docs)
+					values = ", ".join(nts.db.escape(doc, percent=False) for doc in docs)
 					condition += cast_name(f"`tab{self.doctype}`.`{df.get('fieldname')}`") + f" in ({values})"
 					match_conditions.append(f"({condition})")
 					match_filters[df.get("options")] = docs
@@ -1063,14 +1063,14 @@ from {tables}
 
 	def get_permission_query_conditions(self) -> str:
 		conditions = []
-		hooks = frappe.get_hooks("permission_query_conditions", {})
+		hooks = nts.get_hooks("permission_query_conditions", {})
 		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		for method in condition_methods:
-			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+			if c := nts.call(nts.get_attr(method), self.user, doctype=self.doctype):
 				conditions.append(c)
 
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
-			script = frappe.get_doc("Server Script", permission_script_name)
+			script = nts.get_doc("Server Script", permission_script_name)
 			if condition := script.get_permission_query_conditions(self.user):
 				conditions.append(condition)
 
@@ -1127,10 +1127,10 @@ from {tables}
 		_lower = parameters.lower()
 
 		if "select" in _lower and "from" in _lower:
-			frappe.throw(_("Cannot use sub-query in order by"))
+			nts.throw(_("Cannot use sub-query in order by"))
 
 		if ORDER_GROUP_PATTERN.match(_lower):
-			frappe.throw(_("Illegal SQL Query"))
+			nts.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
 			field = field.strip()
@@ -1142,11 +1142,11 @@ from {tables}
 				if tbl not in self.tables:
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
-					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
+					nts.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
 			# Check if the function is used anywhere in the field
 			if any(func in function for func in blacklisted_sql_functions):
-				frappe.throw(_("Cannot use {0} in order/group by").format(function))
+				nts.throw(_("Cannot use {0} in order/group by").format(function))
 
 	def add_limit(self):
 		if self.limit_page_length:
@@ -1195,7 +1195,7 @@ def cast_name(column: str) -> str:
 	input - "ifnull(`tabBlog Post`.`name`, '')=''"
 	output - "ifnull(cast(`tabBlog Post`.`name` as varchar), '')=''" """
 
-	if frappe.db.db_type == "mariadb":
+	if nts.db.db_type == "mariadb":
 		return column
 
 	kwargs = {"string": column}
@@ -1216,16 +1216,16 @@ def check_parent_permission(parent, child_doctype):
 	if parent:
 		# User may pass fake parent and get the information from the child table
 		if child_doctype and not (
-			frappe.db.exists("DocField", {"parent": parent, "options": child_doctype})
-			or frappe.db.exists("Custom Field", {"dt": parent, "options": child_doctype})
+			nts.db.exists("DocField", {"parent": parent, "options": child_doctype})
+			or nts.db.exists("Custom Field", {"dt": parent, "options": child_doctype})
 		):
-			raise frappe.PermissionError
+			raise nts.PermissionError
 
-		if frappe.permissions.has_permission(parent):
+		if nts.permissions.has_permission(parent):
 			return
 
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
-	raise frappe.PermissionError
+	raise nts.PermissionError
 
 
 def get_order_by(doctype, meta):
@@ -1257,7 +1257,7 @@ def get_order_by(doctype, meta):
 
 
 def has_any_user_permission_for_doctype(doctype, user, applicable_for):
-	user_permissions = frappe.permissions.get_user_permissions(user=user)
+	user_permissions = nts.permissions.get_user_permissions(user=user)
 	doctype_user_permissions = user_permissions.get(doctype, [])
 
 	for permission in doctype_user_permissions:
@@ -1280,8 +1280,8 @@ def get_between_date_filter(value, df=None):
 
 	fieldtype = df and df.fieldtype or "Datetime"
 
-	from_date = frappe.utils.nowdate()
-	to_date = frappe.utils.nowdate()
+	from_date = nts.utils.nowdate()
+	to_date = nts.utils.nowdate()
 
 	if value and isinstance(value, list | tuple):
 		if len(value) >= 1:
@@ -1296,9 +1296,9 @@ def get_between_date_filter(value, df=None):
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
-		cond = f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
+		cond = f"'{nts.db.format_datetime(from_date)}' AND '{nts.db.format_datetime(to_date)}'"
 	else:
-		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+		cond = f"'{nts.db.format_date(from_date)}' AND '{nts.db.format_date(to_date)}'"
 
 	return cond
 
@@ -1322,10 +1322,10 @@ def _convert_type_for_between_filters(
 
 def get_additional_filter_field(additional_filters_config, f, value):
 	additional_filter = additional_filters_config[f.operator.lower()]
-	f = frappe._dict(frappe.get_attr(additional_filter["get_field"])())
+	f = nts._dict(nts.get_attr(additional_filter["get_field"])())
 	if f.query_value:
 		for option in f.options:
-			option = frappe._dict(option)
+			option = nts._dict(option)
 			if option.value == value:
 				f.value = option.query_value
 	return f

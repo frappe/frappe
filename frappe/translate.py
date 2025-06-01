@@ -1,10 +1,10 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-frappe.translate
+nts.translate
 ~~~~~~~~~~~~~~~~
 
-Translation tools for frappe
+Translation tools for nts
 """
 
 import functools
@@ -17,9 +17,9 @@ import re
 from contextlib import contextmanager, suppress
 from csv import reader, writer
 
-import frappe
-from frappe.query_builder import DocType, Field
-from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
+import nts
+from nts.query_builder import DocType, Field
+from nts.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
@@ -31,7 +31,7 @@ USER_TRANSLATION_KEY = "lang_user_translations"
 
 
 def get_language(lang_list: list | None = None) -> str:
-	"""Set `frappe.local.lang` from HTTP headers at beginning of request
+	"""Set `nts.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
 	1. Form Dict => _lang
@@ -40,17 +40,17 @@ def get_language(lang_list: list | None = None) -> str:
 	4. User document => language
 	5. System Settings => language
 	"""
-	is_logged_in = frappe.session.user != "Guest"
+	is_logged_in = nts.session.user != "Guest"
 
 	# fetch language from form_dict
-	if frappe.form_dict._lang:
-		language = get_lang_code(frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang))
+	if nts.form_dict._lang:
+		language = get_lang_code(nts.form_dict._lang or get_parent_language(nts.form_dict._lang))
 		if language:
 			return language
 
 	# use language set in User or System Settings if user is logged in
 	if is_logged_in:
-		return frappe.local.lang
+		return nts.local.lang
 
 	lang_set = set(lang_list or get_all_languages() or [])
 
@@ -66,7 +66,7 @@ def get_language(lang_list: list | None = None) -> str:
 			return parent_language
 
 	# fetch language from request headers
-	accept_language = list(frappe.request.accept_languages.values())
+	accept_language = list(nts.request.accept_languages.values())
 
 	for language in accept_language:
 		if language in lang_set:
@@ -77,7 +77,7 @@ def get_language(lang_list: list | None = None) -> str:
 			return parent_language
 
 	# fallback to language set in System Settings or "en"
-	return frappe.db.get_default("lang") or "en"
+	return nts.db.get_default("lang") or "en"
 
 
 @functools.lru_cache
@@ -94,50 +94,50 @@ def get_parent_language(lang: str) -> str:
 
 
 def get_user_lang(user: str | None = None) -> str:
-	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
-	user = user or frappe.session.user
+	"""Set nts.local.lang from user preferences on session beginning or resumption"""
+	user = user or nts.session.user
 
-	# User.language => Session Defaults => frappe.local.lang => 'en'
+	# User.language => Session Defaults => nts.local.lang => 'en'
 	return (
-		frappe.get_cached_value("User", user, "language")
-		or frappe.db.get_default("lang")
-		or frappe.local.lang
+		nts.get_cached_value("User", user, "language")
+		or nts.db.get_default("lang")
+		or nts.local.lang
 		or "en"
 	)
 
 
 def get_lang_code(lang: str) -> str | None:
-	return frappe.db.get_value("Language", {"name": lang}) or frappe.db.get_value(
+	return nts.db.get_value("Language", {"name": lang}) or nts.db.get_value(
 		"Language", {"language_name": lang}
 	)
 
 
 def set_default_language(lang):
 	"""Set Global default language"""
-	if frappe.db.get_default("lang") != lang:
-		frappe.db.set_default("lang", lang)
-	frappe.local.lang = lang
+	if nts.db.get_default("lang") != lang:
+		nts.db.set_default("lang", lang)
+	nts.local.lang = lang
 
 
 def get_lang_dict():
 	"""Return all languages in dict format, full name is the key e.g. `{"english":"en"}`."""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by="creation", as_list=True)
+		nts.get_all("Language", fields=["language_name", "name"], order_by="creation", as_list=True)
 	)
 
 
 def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
 
-	return get_all_translations(frappe.local.lang)
+	return get_all_translations(nts.local.lang)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_app_translations():
-	if frappe.session.user != "Guest":
-		language = frappe.db.get_value("User", frappe.session.user, "language")
+	if nts.session.user != "Guest":
+		language = nts.db.get_value("User", nts.session.user, "language")
 	else:
-		language = frappe.db.get_single_value("System Settings", "language")
+		language = nts.db.get_single_value("System Settings", "language")
 
 	return get_all_translations(language)
 
@@ -151,7 +151,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return {}
 
 	def _merge_translations():
-		from frappe.geo.country_info import get_translated_countries
+		from nts.geo.country_info import get_translated_countries
 
 		parent_lang = get_parent_language(lang)
 
@@ -171,13 +171,13 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return all_translations
 
 	try:
-		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
+		return nts.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
-		if frappe.flags and frappe.flags.in_test:
+		if nts.flags and nts.flags.in_test:
 			raise
 		# People mistakenly call translation function on global variables
 		# where locals are not initialized, translations don't make much sense there
-		frappe.logger().error("Unable to load translations", exc_info=True)
+		nts.logger().error("Unable to load translations", exc_info=True)
 		return {}
 
 
@@ -186,9 +186,9 @@ def get_translations_from_apps(lang, apps=None):
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
 	translations = {}
-	from frappe.gettext.translate import get_translations_from_mo
+	from nts.gettext.translate import get_translations_from_mo
 
-	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
+	for app in apps or nts.get_installed_apps(_ensure_on_bench=True):
 		translations.update(get_translations_from_csv(lang, app) or {})
 		translations.update(get_translations_from_mo(lang, app) or {})
 	if parent := get_parent_language(lang):
@@ -201,7 +201,7 @@ def get_translations_from_apps(lang, apps=None):
 
 def get_translations_from_csv(lang, app):
 	return get_translation_dict_from_file(
-		os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv"), lang, app
+		os.path.join(nts.get_app_path(app, "translations"), lang + ".csv"), lang, app
 	)
 
 
@@ -219,9 +219,9 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 				translation_map[item[0]] = strip(item[1])
 			elif item:
 				msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
-				frappe.log_error(message=msg, title="Error in translation file")
+				nts.log_error(message=msg, title="Error in translation file")
 				if throw:
-					frappe.throw(msg, title="Error in translation file")
+					nts.throw(msg, title="Error in translation file")
 
 	return translation_map
 
@@ -229,7 +229,7 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 def get_user_translations(lang):
 	def _read_from_db():
 		user_translations = {}
-		translations = frappe.get_all(
+		translations = nts.get_all(
 			"Translation", fields=["source_text", "translated_text", "context"], filters={"language": lang}
 		)
 
@@ -241,12 +241,12 @@ def get_user_translations(lang):
 			user_translations[key] = value
 		return user_translations
 
-	return frappe.cache.hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
+	return nts.cache.hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
 
 
 def clear_cache():
-	"""Clear all translation assets from :meth:`frappe.cache`"""
-	frappe.cache.delete_value(
+	"""Clear all translation assets from :meth:`nts.cache`"""
+	nts.cache.delete_value(
 		keys=["bootinfo", USER_TRANSLATION_KEY, MERGED_TRANSLATION_KEY],
 	)
 
@@ -254,21 +254,21 @@ def clear_cache():
 def get_messages_for_app(app, deduplicate=True):
 	"""Return all messages (list) for a specified `app`."""
 	messages = []
-	modules = [frappe.unscrub(m) for m in frappe.local.app_modules[app]]
+	modules = [nts.unscrub(m) for m in nts.local.app_modules[app]]
 
 	# doctypes
 	if modules:
 		if isinstance(modules, str):
 			modules = [modules]
 		filtered_doctypes = (
-			frappe.qb.from_("DocType").where(Field("module").isin(modules)).select("name").run(pluck=True)
+			nts.qb.from_("DocType").where(Field("module").isin(modules)).select("name").run(pluck=True)
 		)
 		for name in filtered_doctypes:
 			messages.extend(get_messages_from_doctype(name))
 
 		# pages
 		filtered_pages = (
-			frappe.qb.from_("Page").where(Field("module").isin(modules)).select("name", "title").run()
+			nts.qb.from_("Page").where(Field("module").isin(modules)).select("name", "title").run()
 		)
 		for name, title in filtered_pages:
 			messages.append((None, title or name))
@@ -278,7 +278,7 @@ def get_messages_for_app(app, deduplicate=True):
 		report = DocType("Report")
 		doctype = DocType("DocType")
 		names = (
-			frappe.qb.from_(doctype)
+			nts.qb.from_(doctype)
 			.from_(report)
 			.where((report.ref_doctype == doctype.name) & doctype.module.isin(modules))
 			.select(report.name)
@@ -314,17 +314,17 @@ def get_messages_for_app(app, deduplicate=True):
 
 def get_messages_from_navbar():
 	"""Return all labels from Navbar Items, as specified in Navbar Settings."""
-	labels = frappe.get_all("Navbar Item", filters={"item_label": ("is", "set")}, pluck="item_label")
+	labels = nts.get_all("Navbar Item", filters={"item_label": ("is", "set")}, pluck="item_label")
 	return [("Navbar:", label, "Label of a Navbar Item") for label in labels]
 
 
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
 	Javascript code, html templates"""
-	from frappe.gettext.extractors.utils import is_translatable
+	from nts.gettext.extractors.utils import is_translatable
 
 	messages = []
-	meta = frappe.get_meta(name)
+	meta = nts.get_meta(name)
 
 	messages = [meta.name, meta.module]
 
@@ -349,7 +349,7 @@ def get_messages_from_doctype(name):
 
 	# extract from js, py files
 	if not meta.custom:
-		doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
+		doctype_file_path = nts.get_module_path(meta.module, "doctype", meta.name, meta.name)
 		messages.extend(get_messages_from_file(doctype_file_path + ".js"))
 		messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
 		messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
@@ -363,25 +363,25 @@ def get_messages_from_doctype(name):
 
 def get_messages_from_workflow(doctype=None, app_name=None):
 	assert doctype or app_name, "doctype or app_name should be provided"
-	from frappe.gettext.extractors.utils import is_translatable
+	from nts.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows
 	workflows = []
 	if doctype:
-		workflows = frappe.get_all("Workflow", filters={"document_type": doctype})
+		workflows = nts.get_all("Workflow", filters={"document_type": doctype})
 	else:
-		fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
+		fixtures = nts.get_hooks("fixtures", app_name=app_name) or []
 		for fixture in fixtures:
 			if isinstance(fixture, str) and fixture == "Worflow":
-				workflows = frappe.get_all("Workflow")
+				workflows = nts.get_all("Workflow")
 				break
 			elif isinstance(fixture, dict) and fixture.get("dt", fixture.get("doctype")) == "Workflow":
-				workflows.extend(frappe.get_all("Workflow", filters=fixture.get("filters")))
+				workflows.extend(nts.get_all("Workflow", filters=fixture.get("filters")))
 
 	messages = []
 	document_state = DocType("Workflow Document State")
 	for w in workflows:
-		states = frappe.db.get_values(
+		states = nts.db.get_values(
 			document_state,
 			filters=document_state.parent == w["name"],
 			fieldname="state",
@@ -396,7 +396,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 				if is_translatable(state["state"])
 			]
 		)
-		states = frappe.db.get_values(
+		states = nts.db.get_values(
 			document_state,
 			filters=(document_state.parent == w["name"]) & (document_state.message.isnotnull()),
 			fieldname="message",
@@ -412,7 +412,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			]
 		)
 
-		actions = frappe.db.get_values(
+		actions = nts.db.get_values(
 			"Workflow Transition",
 			filters={"parent": w["name"]},
 			fieldname="action",
@@ -433,20 +433,20 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 
 def get_messages_from_custom_fields(app_name):
-	from frappe.gettext.extractors.utils import is_translatable
+	from nts.gettext.extractors.utils import is_translatable
 
-	fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
+	fixtures = nts.get_hooks("fixtures", app_name=app_name) or []
 	custom_fields = []
 
 	for fixture in fixtures:
 		if isinstance(fixture, str) and fixture == "Custom Field":
-			custom_fields = frappe.get_all(
+			custom_fields = nts.get_all(
 				"Custom Field", fields=["name", "label", "description", "fieldtype", "options"]
 			)
 			break
 		elif isinstance(fixture, dict) and fixture.get("dt", fixture.get("doctype")) == "Custom Field":
 			custom_fields.extend(
-				frappe.get_all(
+				nts.get_all(
 					"Custom Field",
 					filters=fixture.get("filters"),
 					fields=["name", "label", "description", "fieldtype", "options"],
@@ -469,17 +469,17 @@ def get_messages_from_custom_fields(app_name):
 
 
 def get_messages_from_page(name):
-	"""Return all translatable strings from a :class:`frappe.core.doctype.Page`."""
+	"""Return all translatable strings from a :class:`nts.core.doctype.Page`."""
 	return _get_messages_from_page_or_report("Page", name)
 
 
 def get_messages_from_report(name):
-	"""Return all translatable strings from a :class:`frappe.core.doctype.Report`."""
-	from frappe.gettext.extractors.utils import is_translatable
+	"""Return all translatable strings from a :class:`nts.core.doctype.Report`."""
+	from nts.gettext.extractors.utils import is_translatable
 
-	report = frappe.get_doc("Report", name)
+	report = nts.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report(
-		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
+		"Report", name, nts.db.get_value("DocType", report.ref_doctype, "module")
 	)
 
 	if report.columns:
@@ -506,11 +506,11 @@ def get_messages_from_report(name):
 
 def _get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
-		module = frappe.db.get_value(doctype, name, "module")
+		module = nts.db.get_value(doctype, name, "module")
 
-	doc_path = frappe.get_module_path(module, doctype, name)
+	doc_path = nts.get_module_path(module, doctype, name)
 
-	messages = get_messages_from_file(os.path.join(doc_path, frappe.scrub(name) + ".py"))
+	messages = get_messages_from_file(os.path.join(doc_path, nts.scrub(name) + ".py"))
 
 	if os.path.exists(doc_path):
 		for filename in os.listdir(doc_path):
@@ -521,11 +521,11 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 
 
 def get_server_messages(app):
-	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules
+	"""Extracts all translatable strings (tagged with :func:`nts._`) from Python modules
 	inside an app"""
 	messages = []
 	file_extensions = (".py", ".html", ".js", ".vue")
-	app_walk = os.walk(frappe.get_app_path(app))
+	app_walk = os.walk(nts.get_app_path(app))
 
 	for basepath, folders, files in app_walk:
 		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
@@ -534,7 +534,7 @@ def get_server_messages(app):
 			continue
 
 		for f in files:
-			f = frappe.as_unicode(f)
+			f = nts.as_unicode(f)
 			if f.endswith(file_extensions):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
@@ -543,16 +543,16 @@ def get_server_messages(app):
 
 def get_messages_from_include_files(app_name=None):
 	"""Return messages from js files included at time of boot like desk.min.js for desk and web."""
-	from frappe.utils.jinja_globals import bundled_asset
+	from nts.utils.jinja_globals import bundled_asset
 
 	messages = []
-	app_include_js = frappe.get_hooks("app_include_js", app_name=app_name) or []
-	web_include_js = frappe.get_hooks("web_include_js", app_name=app_name) or []
+	app_include_js = nts.get_hooks("app_include_js", app_name=app_name) or []
+	web_include_js = nts.get_hooks("web_include_js", app_name=app_name) or []
 	include_js = app_include_js + web_include_js
 
 	for js_path in include_js:
 		file_path = bundled_asset(js_path)
-		relative_path = os.path.join(frappe.local.sites_path, file_path.lstrip("/"))
+		relative_path = os.path.join(nts.local.sites_path, file_path.lstrip("/"))
 		messages_from_file = get_messages_from_file(relative_path)
 		messages.extend(messages_from_file)
 
@@ -562,10 +562,10 @@ def get_messages_from_include_files(app_name=None):
 def get_all_messages_from_js_files(app_name=None):
 	"""Extracts all translatable strings from app `.js` files"""
 	messages = []
-	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
-		if os.path.exists(frappe.get_app_path(app, "public")):
-			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
-				if "frappe/public/js/lib" in basepath:
+	for app in [app_name] if app_name else nts.get_installed_apps(_ensure_on_bench=True):
+		if os.path.exists(nts.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(nts.get_app_path(app, "public")):  # noqa: B007
+				if "nts/public/js/lib" in basepath:
 					continue
 
 				for fname in files:
@@ -581,15 +581,15 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 	:param path: path of the code file
 	"""
 
-	from frappe.gettext.extractors.utils import extract_messages_from_code
+	from nts.gettext.extractors.utils import extract_messages_from_code
 
-	frappe.flags.setdefault("scanned_files", set())
+	nts.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
-	if path in frappe.flags.scanned_files:
+	if path in nts.flags.scanned_files:
 		return []
 
-	frappe.flags.scanned_files.add(path)
+	nts.flags.scanned_files.add(path)
 
 	bench_path = get_bench_path()
 	if not os.path.exists(path):
@@ -649,7 +649,7 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	"""Extracts translatable strings from JavaScript code using babel."""
 
 	messages = []
-	from frappe.gettext.extractors.javascript import extract_javascript
+	from nts.gettext.extractors.javascript import extract_javascript
 
 	for message in extract_javascript(code):
 		lineno, _func, args = message
@@ -717,7 +717,7 @@ def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 	:param untranslated_file: Output file path.
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
-	apps = frappe.get_all_apps(True)
+	apps = nts.get_all_apps(True)
 	if app != "_ALL_APPS":
 		if app not in apps:
 			print(f"Application {app} not found!")
@@ -778,15 +778,15 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 
 	translation_dict = {}
 	for key, value in zip(
-		frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
-		frappe.get_file_items(translated_file, ignore_empty_lines=False),
+		nts.get_file_items(untranslated_file, ignore_empty_lines=False),
+		nts.get_file_items(translated_file, ignore_empty_lines=False),
 		strict=False,
 	):
 		# undo hack in get_untranslated
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
 	full_dict.update(translation_dict)
-	apps = frappe.get_all_apps(True)
+	apps = nts.get_all_apps(True)
 
 	if app != "_ALL_APPS":
 		if app not in apps:
@@ -804,23 +804,23 @@ def import_translations(lang, path):
 	full_dict = get_all_translations(lang)
 	full_dict.update(get_translation_dict_from_file(path, lang, "import"))
 
-	for app in frappe.get_all_apps(True):
+	for app in nts.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
 
 
 def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
-	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
-	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
+	strings_in_source_app = [m[1] for m in nts.translate.get_messages_for_app(source_app)]
+	strings_in_target_app = [m[1] for m in nts.translate.get_messages_for_app(target_app)]
 
 	strings_in_target_app_but_not_in_source_app = list(
 		set(strings_in_target_app) - set(strings_in_source_app)
 	)
 
-	languages = frappe.translate.get_all_languages()
+	languages = nts.translate.get_all_languages()
 
-	source_app_translations_dir = frappe.get_app_path(source_app, "translations")
-	target_app_translations_dir = frappe.get_app_path(target_app, "translations")
+	source_app_translations_dir = nts.get_app_path(source_app, "translations")
+	target_app_translations_dir = nts.get_app_path(target_app, "translations")
 
 	if not os.path.exists(target_app_translations_dir):
 		os.makedirs(target_app_translations_dir)
@@ -854,7 +854,7 @@ def migrate_translations(source_app, target_app):
 def rebuild_all_translation_files():
 	"""Rebuild all translation files: `[app]/translations/[lang].csv`."""
 	for lang in get_all_languages():
-		for app in frappe.get_all_apps():
+		for app in nts.get_all_apps():
 			write_translations_file(app, lang)
 
 
@@ -872,17 +872,17 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	if not app_messages:
 		return
 
-	tpath = frappe.get_app_path(app, "translations")
-	frappe.create_folder(tpath)
+	tpath = nts.get_app_path(app, "translations")
+	nts.create_folder(tpath)
 	write_csv_file(os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang))
 
 
 def send_translations(translation_dict):
-	"""Append translated dict in `frappe.local.response`"""
-	if "__messages" not in frappe.local.response:
-		frappe.local.response["__messages"] = {}
+	"""Append translated dict in `nts.local.response`"""
+	if "__messages" not in nts.local.response:
+		nts.local.response["__messages"] = {}
 
-	frappe.local.response["__messages"].update(translation_dict)
+	nts.local.response["__messages"].update(translation_dict)
 
 
 def deduplicate_messages(messages):
@@ -891,7 +891,7 @@ def deduplicate_messages(messages):
 	return [next(g) for k, g in itertools.groupby(messages, op)]
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_translations_for_source(source=None, translation_dict=None):
 	if not (source and translation_dict):
 		return
@@ -902,22 +902,22 @@ def update_translations_for_source(source=None, translation_dict=None):
 		source = strip_html_tags(source)
 
 	# for existing records
-	translation_records = frappe.db.get_values(
+	translation_records = nts.db.get_values(
 		"Translation", {"source_text": source}, ["name", "language"], as_dict=1
 	)
 	for d in translation_records:
 		if translation_dict.get(d.language, None):
-			doc = frappe.get_doc("Translation", d.name)
+			doc = nts.get_doc("Translation", d.name)
 			doc.translated_text = translation_dict.get(d.language)
 			doc.save()
 			# done with this lang value
 			translation_dict.pop(d.language)
 		else:
-			frappe.delete_doc("Translation", d.name)
+			nts.delete_doc("Translation", d.name)
 
 	# remaining values are to be inserted
 	for lang, translated_text in translation_dict.items():
-		doc = frappe.new_doc("Translation")
+		doc = nts.new_doc("Translation")
 		doc.language = lang
 		doc.source_text = source
 		doc.translated_text = translated_text
@@ -926,41 +926,41 @@ def update_translations_for_source(source=None, translation_dict=None):
 	return translation_records
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_translations(source_text):
 	if is_html(source_text):
 		source_text = strip_html_tags(source_text)
 
-	return frappe.db.get_list(
+	return nts.db.get_list(
 		"Translation",
 		fields=["name", "language", "translated_text as translation"],
 		filters={"source_text": source_text},
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
 
 	def get_language_codes():
-		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
+		return nts.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
-		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
+		return nts.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
 	if with_language_name:
-		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
+		return nts.cache.get_value("languages_with_name", get_all_language_with_name)
 	else:
-		return frappe.cache.get_value("languages", get_language_codes)
+		return nts.cache.get_value("languages", get_language_codes)
 
 
 def get_preferred_language_cookie():
-	return frappe.request.cookies.get("preferred_language")
+	return nts.request.cookies.get("preferred_language")
 
 
 def get_translated_doctypes():
-	dts = frappe.get_all("DocType", {"translated_doctype": 1}, pluck="name")
-	custom_dts = frappe.get_all(
+	dts = nts.get_all("DocType", {"translated_doctype": 1}, pluck="name")
+	custom_dts = nts.get_all(
 		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
 	)
 	return unique(dts + custom_dts)
@@ -974,27 +974,27 @@ def print_language(language: str):
 
 	```
 	with print_language("de"):
-	    html = frappe.get_print(...)
+	    html = nts.get_print(...)
 	```
 	"""
-	if not language or language == frappe.local.lang:
+	if not language or language == nts.local.lang:
 		# do nothing
 		yield
 		return
 
 	# remember original values
-	_lang = frappe.local.lang
-	_jenv = frappe.local.jenv
+	_lang = nts.local.lang
+	_jenv = nts.local.jenv
 
 	# set language, empty any existing lang_full_dict and jenv
-	frappe.local.lang = language
-	frappe.local.jenv = None
+	nts.local.lang = language
+	nts.local.jenv = None
 
 	yield
 
 	# restore original values
-	frappe.local.lang = _lang
-	frappe.local.jenv = _jenv
+	nts.local.lang = _lang
+	nts.local.jenv = _jenv
 
 
 # Backward compatibility

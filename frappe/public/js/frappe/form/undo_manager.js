@@ -54,7 +54,7 @@ export class UndoManager {
 
 	_apply_change(change) {
 		if (change.is_child) {
-			frappe.model.set_value(
+			nts.model.set_value(
 				change.doctype,
 				change.docname,
 				change.fieldname,
@@ -69,6 +69,6 @@ export class UndoManager {
 	_show_alert(msg) {
 		// reduce duration
 		// keyboard interactions shouldn't have long running annoying toasts
-		frappe.show_alert(msg, 3);
+		nts.show_alert(msg, 3);
 	}
 }

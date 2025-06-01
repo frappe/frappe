@@ -2,10 +2,10 @@ import datetime
 from collections import defaultdict
 from pathlib import Path
 
-import frappe
-from frappe import _
-from frappe.utils import get_site_path, get_url
-from frappe.utils.data import convert_utc_to_system_timezone
+import nts
+from nts import _
+from nts.utils import get_site_path, get_url
+from nts.utils.data import convert_utc_to_system_timezone
 
 
 def get_time(path: Path):
@@ -30,7 +30,7 @@ def get_size(path: Path):
 
 def get_context(context):
 	context.no_cache = True
-	backup_limit = frappe.get_system_settings("backup_limit")
+	backup_limit = nts.get_system_settings("backup_limit")
 
 	backups_path = Path(get_site_path("private", "backups"))
 	backup_files = [
@@ -70,43 +70,43 @@ def delete_downloadable_backups():
 		if not x.is_file():
 			continue
 
-		# Based on the naming convention of the backup files defined in frappe.utils.backups
-		backup_name = x.name.rsplit("-" + frappe.local.site.replace(".", "_"), maxsplit=1)[0]
+		# Based on the naming convention of the backup files defined in nts.utils.backups
+		backup_name = x.name.rsplit("-" + nts.local.site.replace(".", "_"), maxsplit=1)[0]
 		backups[backup_name].append(x)
 
-	backup_limit = frappe.get_system_settings("backup_limit")
+	backup_limit = nts.get_system_settings("backup_limit")
 
 	cleanup_old_backups(backups, backup_limit)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def schedule_files_backup(user_email: str):
-	from frappe.utils.background_jobs import enqueue, get_jobs
+	from nts.utils.background_jobs import enqueue, get_jobs
 
-	frappe.only_for("System Manager")
+	nts.only_for("System Manager")
 
-	queued_jobs = get_jobs(site=frappe.local.site, queue="long")
-	method = "frappe.desk.page.backups.backups.backup_files_and_notify_user"
+	queued_jobs = get_jobs(site=nts.local.site, queue="long")
+	method = "nts.desk.page.backups.backups.backup_files_and_notify_user"
 
-	if method not in queued_jobs[frappe.local.site]:
+	if method not in queued_jobs[nts.local.site]:
 		enqueue(
-			"frappe.desk.page.backups.backups.backup_files_and_notify_user",
+			"nts.desk.page.backups.backups.backup_files_and_notify_user",
 			queue="long",
 			user_email=user_email,
 		)
-		frappe.msgprint(_("Queued for backup. You will receive an email with the download link"))
+		nts.msgprint(_("Queued for backup. You will receive an email with the download link"))
 	else:
-		frappe.msgprint(_("Backup job is already queued. You will receive an email with the download link"))
+		nts.msgprint(_("Backup job is already queued. You will receive an email with the download link"))
 
 
 def backup_files_and_notify_user(user_email=None):
-	from frappe.utils.backups import backup
+	from nts.utils.backups import backup
 
 	backup_files = backup(with_files=True)
 	get_downloadable_links(backup_files)
 
 	subject = _("File backup is ready")
-	frappe.sendmail(
+	nts.sendmail(
 		recipients=[user_email],
 		subject=subject,
 		template="file_backup_notification",

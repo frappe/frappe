@@ -1,13 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # pre loaded
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestUser(FrappeTestCase):
+class TestUser(ntsTestCase):
 	def test_default_currency_on_setup(self):
-		usd = frappe.get_doc("Currency", "USD")
+		usd = nts.get_doc("Currency", "USD")
 		self.assertDocumentEqual({"enabled": 1, "fraction": "Cent"}, usd)

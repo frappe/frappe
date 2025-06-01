@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
 import email.utils
@@ -8,18 +8,18 @@ import time
 from datetime import datetime, timedelta
 from poplib import error_proto
 
-import frappe
-from frappe import _, are_emails_muted, safe_encode
-from frappe.desk.form import assign_to
-from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
-from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
-from frappe.email.smtp import SMTPServer
-from frappe.email.utils import get_port
-from frappe.model.document import Document
-from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.jinja import render_template
-from frappe.utils.user import get_system_managers
+import nts
+from nts import _, are_emails_muted, safe_encode
+from nts.desk.form import assign_to
+from nts.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
+from nts.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from nts.email.smtp import SMTPServer
+from nts.email.utils import get_port
+from nts.model.document import Document
+from nts.utils import cint, comma_or, cstr, parse_addr, validate_email_address
+from nts.utils.background_jobs import enqueue, get_jobs
+from nts.utils.jinja import render_template
+from nts.utils.user import get_system_managers
 
 
 class SentEmailInInbox(Exception):
@@ -30,10 +30,10 @@ def cache_email_account(cache_name):
 	def decorator_cache_email_account(func):
 		@functools.wraps(func)
 		def wrapper_cache_email_account(*args, **kwargs):
-			if not hasattr(frappe.local, cache_name):
-				setattr(frappe.local, cache_name, {})
+			if not hasattr(nts.local, cache_name):
+				setattr(nts.local, cache_name, {})
 
-			cached_accounts = getattr(frappe.local, cache_name)
+			cached_accounts = getattr(nts.local, cache_name)
 			match_by = [*list(kwargs.values()), "default"]
 			matched_accounts = list(filter(None, [cached_accounts.get(key) for key in match_by]))
 			if matched_accounts:
@@ -55,8 +55,8 @@ class EmailAccount(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.imap_folder.imap_folder import IMAPFolder
-		from frappe.types import DF
+		from nts.email.doctype.imap_folder.imap_folder import IMAPFolder
+		from nts.types import DF
 
 		add_signature: DF.Check
 		always_bcc: DF.Data | None
@@ -131,7 +131,7 @@ class EmailAccount(Document):
 
 		if self.login_id_is_different:
 			if not self.login_id:
-				frappe.throw(_("Login Id is required"))
+				nts.throw(_("Login Id is required"))
 		else:
 			self.login_id = None
 
@@ -140,9 +140,9 @@ class EmailAccount(Document):
 
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
-			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+			nts.throw(_("You need to set one IMAP folder for {0}").format(nts.bold(self.email_id)))
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
+		if nts.local.flags.in_patch or nts.local.flags.in_test:
 			return
 
 		use_oauth = self.auth_method == "OAuth"
@@ -154,7 +154,7 @@ class EmailAccount(Document):
 			self.awaiting_password = 0
 			self.password = None
 
-		if not frappe.local.flags.in_install and not self.awaiting_password:
+		if not nts.local.flags.in_install and not self.awaiting_password:
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
@@ -165,11 +165,11 @@ class EmailAccount(Document):
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					if not use_oauth:
-						frappe.throw(_("Password is required or select Awaiting Password"))
+						nts.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
-				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
+				nts.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
@@ -178,11 +178,11 @@ class EmailAccount(Document):
 				if folder.append_to:
 					valid_doctypes = [d[0] for d in get_append_to()]
 					if folder.append_to not in valid_doctypes:
-						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+						nts.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
-			frappe.throw(_("SMTP Server is required"))
+			nts.throw(_("SMTP Server is required"))
 
 		server = self.get_smtp_server()
 		return server.session
@@ -194,22 +194,22 @@ class EmailAccount(Document):
 			self.default_incoming = False
 			messages.append(
 				_("{} has been disabled. It can only be enabled if {} is checked.").format(
-					frappe.bold(_("Default Incoming")),
-					frappe.bold(_("Enable Incoming")),
+					nts.bold(_("Default Incoming")),
+					nts.bold(_("Enable Incoming")),
 				)
 			)
 		if not self.enable_outgoing and self.default_outgoing:
 			self.default_outgoing = False
 			messages.append(
 				_("{} has been disabled. It can only be enabled if {} is checked.").format(
-					frappe.bold(_("Default Outgoing")),
-					frappe.bold(_("Enable Outgoing")),
+					nts.bold(_("Default Outgoing")),
+					nts.bold(_("Enable Outgoing")),
 				)
 			)
 		if messages:
 			if len(messages) == 1:
 				(as_list, messages) = (0, messages[0])
-			frappe.msgprint(
+			nts.msgprint(
 				messages,
 				as_list=as_list,
 				indicator="orange",
@@ -234,22 +234,22 @@ class EmailAccount(Document):
 			if not self.get(field):
 				continue
 
-			for email_account in frappe.get_all("Email Account", filters={field: 1}):
+			for email_account in nts.get_all("Email Account", filters={field: 1}):
 				if email_account.name == self.name:
 					continue
 
-				email_account = frappe.get_doc("Email Account", email_account.name)
+				email_account = nts.get_doc("Email Account", email_account.name)
 				email_account.set(field, 0)
 				email_account.save()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def get_domain_values(self, domain: str):
-		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
+		return nts.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
 		oauth_token = self.get_oauth_token()
-		args = frappe._dict(
+		args = nts._dict(
 			{
 				"email_account_name": self.email_account_name,
 				"email_account": self.name,
@@ -270,9 +270,9 @@ class EmailAccount(Document):
 			args.password = self.get_password()
 
 		if not args.get("host"):
-			frappe.throw(_("{0} is required").format("Email Server"))
+			nts.throw(_("{0} is required").format("Email Server"))
 
-		email_server = EmailServer(frappe._dict(args))
+		email_server = EmailServer(nts._dict(args))
 		self.check_email_server_connection(email_server, in_receive)
 
 		if not in_receive and self.use_imap:
@@ -317,12 +317,12 @@ class EmailAccount(Document):
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
 				SMTPServer.throw_invalid_credentials_exception()
 			else:
-				frappe.throw(cstr(e))
+				nts.throw(cstr(e))
 
 		except OSError:
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
-				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
+				description = nts.message_log.pop() if nts.message_log else "Socket Error"
 				self.db_set("no_failed", self.no_failed + 1)
 				if self.no_failed > 2:
 					self.handle_incoming_connect_error(description=description)
@@ -333,7 +333,7 @@ class EmailAccount(Document):
 	@property
 	def _password(self):
 		raise_exception = not (
-			self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.flags.in_test
+			self.auth_method == "OAuth" or self.no_smtp_authentication or nts.flags.in_test
 		)
 		return self.get_password(raise_exception=raise_exception)
 
@@ -349,17 +349,17 @@ class EmailAccount(Document):
 
 	@classmethod
 	def from_record(cls, record):
-		email_account = frappe.new_doc(cls.DOCTYPE)
+		email_account = nts.new_doc(cls.DOCTYPE)
 		email_account.update(record)
 		return email_account
 
 	@classmethod
 	def find(cls, name):
-		return frappe.get_doc(cls.DOCTYPE, name)
+		return nts.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
 	def find_one_by_filters(cls, **kwargs) -> "EmailAccount":
-		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
+		name = nts.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
 	@classmethod
@@ -399,9 +399,9 @@ class EmailAccount(Document):
 			return {"default": doc}
 
 		if _raise_error:
-			frappe.throw(
+			nts.throw(
 				_("Please setup default outgoing Email Account from Tools > Email Account"),
-				frappe.OutgoingEmailError,
+				nts.OutgoingEmailError,
 			)
 
 	@classmethod
@@ -434,7 +434,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	def get_account_details_from_site_config(cls):
-		if not frappe.conf.get("mail_server"):
+		if not nts.conf.get("mail_server"):
 			return {}
 
 		field_to_conf_name_map = {
@@ -455,7 +455,7 @@ class EmailAccount(Document):
 				"conf_names": ("always_use_account_name_as_sender_name",),
 				"default": 0,
 			},
-			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
+			"name": {"conf_names": ("email_sender_name",), "default": "nts"},
 			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
 			"from_site_config": {"default": True},
 			"no_smtp_authentication": {
@@ -467,7 +467,7 @@ class EmailAccount(Document):
 		account_details = {}
 		for doc_field_name, d in field_to_conf_name_map.items():
 			conf_names, default = d.get("conf_names") or [], d.get("default")
-			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
+			value = [nts.conf.get(k) for k in conf_names if nts.conf.get(k)]
 			account_details[doc_field_name] = (value and value[0]) or default
 
 		return account_details
@@ -507,12 +507,12 @@ class EmailAccount(Document):
 	def handle_incoming_connect_error(self, description):
 		if self.get_failed_attempts_count() > 5:
 			# This is done in background to avoid committing here.
-			frappe.enqueue(self._disable_broken_incoming_account, description=description)
+			nts.enqueue(self._disable_broken_incoming_account, description=description)
 		else:
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def _disable_broken_incoming_account(self, description):
-		if frappe.flags.in_test:
+		if nts.flags.in_test:
 			return
 		self.db_set("enable_incoming", 0)
 
@@ -532,10 +532,10 @@ class EmailAccount(Document):
 				pass
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
+		nts.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
-		return cint(frappe.cache.get_value(f"{self.name}:email-account-failed-attempts"))
+		return cint(nts.cache.get_value(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -544,7 +544,7 @@ class EmailAccount(Document):
 		for mail in inbound_mails:
 			try:
 				communication = mail.process()
-				frappe.db.commit()
+				nts.db.commit()
 				# If email already exists in the system
 				# then do not send notifications for the same email.
 				if communication and mail.flags.is_new_communication:
@@ -554,23 +554,23 @@ class EmailAccount(Document):
 
 					communication.send_email(is_inbound_mail_communcation=True)
 			except SentEmailInInboxError:
-				frappe.db.rollback()
+				nts.db.rollback()
 			except Exception:
-				frappe.db.rollback()
+				nts.db.rollback()
 				try:
 					self.log_error(title="EmailAccount.receive")
 					if self.use_imap:
-						self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
-					exceptions.append(frappe.get_traceback())
+						self.handle_bad_emails(mail.uid, mail.raw_message, nts.get_traceback())
+					exceptions.append(nts.get_traceback())
 				except Exception:
-					frappe.db.rollback()
+					nts.db.rollback()
 				else:
-					frappe.db.commit()
+					nts.db.commit()
 			else:
-				frappe.db.commit()
+				nts.db.commit()
 
 		if exceptions:
-			raise Exception(frappe.as_json(exceptions))
+			raise Exception(nts.as_json(exceptions))
 
 	def get_inbound_mails(self) -> list[InboundMail]:
 		"""retrive and return inbound mails."""
@@ -586,7 +586,7 @@ class EmailAccount(Document):
 						InboundMail(
 							message,
 							self,
-							frappe.safe_decode(uid),
+							nts.safe_decode(uid),
 							seen_status,
 							append_to,
 						)
@@ -639,7 +639,7 @@ class EmailAccount(Document):
 				raw_str = "can't be parsed"
 				message_id = "can't be parsed"
 
-			unhandled_email = frappe.get_doc(
+			unhandled_email = nts.get_doc(
 				{
 					"raw": raw_str,
 					"uid": uid,
@@ -650,11 +650,11 @@ class EmailAccount(Document):
 				}
 			)
 			unhandled_email.insert(ignore_permissions=True)
-			frappe.db.commit()
+			nts.db.commit()
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
-		from frappe.core.doctype.communication.email import (
+		from nts.core.doctype.communication.email import (
 			set_incoming_outgoing_accounts,
 		)
 
@@ -663,13 +663,13 @@ class EmailAccount(Document):
 
 			unsubscribe_message = (self.send_unsubscribe_message and _("Leave this conversation")) or ""
 
-			frappe.sendmail(
+			nts.sendmail(
 				recipients=[email.from_email],
 				sender=self.email_id,
 				reply_to=communication.incoming_email_account,
 				subject=" ".join([_("Re:"), communication.subject]),
 				content=render_template(self.auto_reply_message or "", communication.as_dict())
-				or frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
+				or nts.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype=communication.reference_doctype,
 				reference_name=communication.reference_name,
 				in_reply_to=email.mail.get("Message-Id"),  # send back the Message-Id as In-Reply-To
@@ -683,15 +683,15 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
-		Communication = frappe.qb.DocType("Communication")
-		frappe.qb.update(Communication).set(Communication.email_account, "").where(
+		Communication = nts.qb.DocType("Communication")
+		nts.qb.update(Communication).set(Communication.email_account, "").where(
 			Communication.email_account == self.name
 		).run()
 
 		remove_user_email_inbox(email_account=self.name)
 
 	def after_rename(self, old, new, merge=False):
-		frappe.db.set_value("Email Account", new, "email_account_name", new)
+		nts.db.set_value("Email Account", new, "email_account_name", new)
 
 	def build_email_sync_rule(self):
 		if not self.use_imap:
@@ -707,13 +707,13 @@ class EmailAccount(Document):
 	def check_automatic_linking_email_account(self):
 		if self.enable_automatic_linking:
 			if not self.enable_incoming:
-				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
+				nts.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
 
-			if frappe.db.exists(
+			if nts.db.exists(
 				"Email Account",
 				{"enable_automatic_linking": 1, "name": ("!=", self.name)},
 			):
-				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+				nts.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 	def append_email_to_sent_folder(self, message):
 		if not (self.enable_incoming and self.use_imap):
@@ -732,7 +732,7 @@ class EmailAccount(Document):
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
-			connected_app = frappe.get_doc("Connected App", self.connected_app)
+			connected_app = nts.get_doc("Connected App", self.connected_app)
 			if self.backend_app_flow:
 				token = connected_app.get_backend_app_token()
 			else:
@@ -741,19 +741,19 @@ class EmailAccount(Document):
 			return token
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
 	# Set Email Append To DocTypes via DocType
 	email_append_to_list = [
-		dt.name for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"])
+		dt.name for dt in nts.get_all("DocType", filters=filters, fields=["name", "email_append_to"])
 	]
 	# Set Email Append To DocTypes set via Customize Form
 	email_append_to_list.extend(
 		dt.doc_type
-		for dt in frappe.get_list(
+		for dt in nts.get_list(
 			"Property Setter",
 			filters={"property": "email_append_to", "value": 1},
 			fields=["doc_type"],
@@ -765,12 +765,12 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 	and `notify_if_unreplied` is set as true."""
-	for email_account in frappe.get_all(
+	for email_account in nts.get_all(
 		"Email Account",
 		"name",
 		filters={"enable_incoming": 1, "notify_if_unreplied": 1},
 	):
-		email_account = frappe.get_doc("Email Account", email_account.name)
+		email_account = nts.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
 			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
@@ -779,7 +779,7 @@ def notify_unreplied():
 
 		if append_to:
 			# get open communications younger than x mins, for given doctype
-			for comm in frappe.get_all(
+			for comm in nts.get_all(
 				"Communication",
 				"name",
 				filters=[
@@ -802,11 +802,11 @@ def notify_unreplied():
 					},
 				],
 			):
-				comm = frappe.get_doc("Communication", comm.name)
+				comm = nts.get_doc("Communication", comm.name)
 
-				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status") == "Open":
+				if nts.db.get_value(comm.reference_doctype, comm.reference_name, "status") == "Open":
 					# if status is still open
-					frappe.sendmail(
+					nts.sendmail(
 						recipients=email_account.get_unreplied_notification_emails(),
 						content=comm.content,
 						subject=comm.subject,
@@ -820,11 +820,11 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
-	from frappe.integrations.doctype.connected_app.connected_app import has_token
+	from nts.integrations.doctype.connected_app.connected_app import has_token
 
-	doctype = frappe.qb.DocType("Email Account")
+	doctype = nts.qb.DocType("Email Account")
 	email_accounts = (
-		frappe.qb.from_(doctype)
+		nts.qb.from_(doctype)
 		.select(
 			doctype.name,
 			doctype.auth_method,
@@ -853,7 +853,7 @@ def pull(now=False):
 			# job_name is used to prevent duplicates in queue
 			job_name = f"pull_from_email_account|{email_account.name}"
 
-			queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+			queued_jobs = get_jobs(site=nts.local.site, key="job_name")[nts.local.site]
 			if job_name not in queued_jobs:
 				enqueue(
 					pull_from_email_account,
@@ -866,14 +866,14 @@ def pull(now=False):
 
 def pull_from_email_account(email_account):
 	"""Runs within a worker process"""
-	email_account = frappe.get_doc("Email Account", email_account)
+	email_account = nts.get_doc("Email Account", email_account)
 	email_account.receive()
 
 
 def get_max_email_uid(email_account):
 	"""get maximum uid of emails"""
 
-	if result := frappe.get_all(
+	if result := nts.get_all(
 		"Communication",
 		filters={
 			"communication_medium": "Email",
@@ -888,10 +888,10 @@ def get_max_email_uid(email_account):
 
 def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth):
 	"""setup email inbox for user"""
-	from frappe.core.doctype.user.user import ask_pass_update
+	from nts.core.doctype.user.user import ask_pass_update
 
 	def add_user_email(user):
-		user = frappe.get_doc("User", user)
+		user = nts.get_doc("User", user)
 		row = user.append("user_emails", {})
 
 		row.email_id = email_id
@@ -906,7 +906,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 	if not all([email_account, email_id]):
 		return
 
-	user_names = frappe.db.get_values("User", {"email": email_id}, as_dict=True)
+	user_names = nts.db.get_values("User", {"email": email_id}, as_dict=True)
 	if not user_names:
 		return
 
@@ -915,7 +915,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 
 		# check if inbox is alreay configured
 		user_inbox = (
-			frappe.db.get_value(
+			nts.db.get_value(
 				"User Email",
 				{"email_account": email_account, "parent": user_name},
 				["name"],
@@ -930,14 +930,14 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 			update_user_email_settings = True
 
 	if update_user_email_settings:
-		UserEmail = frappe.qb.DocType("User Email")
-		frappe.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
+		UserEmail = nts.qb.DocType("User Email")
+		nts.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
 			UserEmail.enable_outgoing, (enable_outgoing or 0)
 		).set(UserEmail.used_oauth, (used_oauth or 0)).where(UserEmail.email_account == email_account).run()
 
 	else:
-		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
-		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
+		users = " and ".join([nts.bold(user.get("name")) for user in user_names])
+		nts.msgprint(_("Enabled email inbox for user {0}").format(users))
 	ask_pass_update()
 
 
@@ -946,30 +946,30 @@ def remove_user_email_inbox(email_account):
 	if not email_account:
 		return
 
-	users = frappe.get_all(
+	users = nts.get_all(
 		"User Email",
 		filters={"email_account": email_account},
 		fields=["parent as name"],
 	)
 
 	for user in users:
-		doc = frappe.get_doc("User", user.get("name"))
+		doc = nts.get_doc("User", user.get("name"))
 		to_remove = [row for row in doc.user_emails if row.email_account == email_account]
 		[doc.remove(row) for row in to_remove]
 
 		doc.save(ignore_permissions=True)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def set_email_password(email_account, password):
-	account = frappe.get_doc("Email Account", email_account)
+	account = nts.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0
 		account.password = password
 		try:
 			account.save(ignore_permissions=True)
 		except Exception:
-			frappe.db.rollback()
+			nts.db.rollback()
 			return False
 
 	return True

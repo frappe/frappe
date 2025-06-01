@@ -1,18 +1,18 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // My HTTP Request
 
-frappe.provide("frappe.request");
-frappe.provide("frappe.request.error_handlers");
-frappe.request.url = "/";
-frappe.request.ajax_count = 0;
-frappe.request.waiting_for_ajax = [];
-frappe.request.logs = {};
+nts.provide("nts.request");
+nts.provide("nts.request.error_handlers");
+nts.request.url = "/";
+nts.request.ajax_count = 0;
+nts.request.waiting_for_ajax = [];
+nts.request.logs = {};
 
-frappe.xcall = function (method, params) {
+nts.xcall = function (method, params) {
 	return new Promise((resolve, reject) => {
-		frappe.call({
+		nts.call({
 			method: method,
 			args: params,
 			callback: (r) => {
@@ -26,9 +26,9 @@ frappe.xcall = function (method, params) {
 };
 
 // generic server call (call page, object)
-frappe.call = function (opts) {
-	if (!frappe.is_online()) {
-		frappe.show_alert(
+nts.call = function (opts) {
+	if (!nts.is_online()) {
+		nts.show_alert(
 			{
 				indicator: "orange",
 				message: __("Connection Lost"),
@@ -64,7 +64,7 @@ frappe.call = function (opts) {
 	} else if (opts.doc) {
 		$.extend(args, {
 			cmd: "run_doc_method",
-			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
+			docs: nts.get_doc(opts.doc.doctype, opts.doc.name),
 			method: opts.method,
 			args: opts.args,
 		});
@@ -75,7 +75,7 @@ frappe.call = function (opts) {
 	var callback = function (data, response_text) {
 		if (data.task_id) {
 			// async call, subscribe
-			frappe.realtime.subscribe(data.task_id, opts);
+			nts.realtime.subscribe(data.task_id, opts);
 
 			if (opts.queued) {
 				opts.queued(data);
@@ -94,7 +94,7 @@ frappe.call = function (opts) {
 		}
 		url = prefix + args.cmd;
 		if (window.cordova) {
-			let host = frappe.request.url;
+			let host = nts.request.url;
 			host = host.slice(0, host.length - 1);
 			url = host + url;
 		}
@@ -102,11 +102,11 @@ frappe.call = function (opts) {
 	}
 
 	// debouce if required
-	if (opts.debounce && frappe.request.is_fresh(args, opts.debounce)) {
+	if (opts.debounce && nts.request.is_fresh(args, opts.debounce)) {
 		return Promise.resolve();
 	}
 
-	return frappe.request.call({
+	return nts.request.call({
 		type: opts.type || "POST",
 		args: args,
 		success: callback,
@@ -125,23 +125,23 @@ frappe.call = function (opts) {
 	});
 };
 
-frappe.request.call = function (opts) {
-	frappe.request.prepare(opts);
+nts.request.call = function (opts) {
+	nts.request.prepare(opts);
 
 	var statusCode = {
 		200: function (data, xhr) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function (xhr) {
-			if (frappe.app.session_expired_dialog && frappe.app.session_expired_dialog.display) {
-				frappe.app.redirect_to_login();
+			if (nts.app.session_expired_dialog && nts.app.session_expired_dialog.display) {
+				nts.app.redirect_to_login();
 			} else {
-				frappe.app.handle_session_expired();
+				nts.app.handle_session_expired();
 			}
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			frappe.msgprint({
+			nts.msgprint({
 				title: __("Not found"),
 				indicator: "red",
 				message: __("The resource you are looking for is not available"),
@@ -149,11 +149,11 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
-			if (frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest") {
+			if (nts.session.user === "Guest" && nts.session.logged_in_user !== "Guest") {
 				// session expired
-				frappe.app.handle_session_expired();
+				nts.app.handle_session_expired();
 			} else if (xhr.responseJSON && xhr.responseJSON._error_message) {
-				frappe.msgprint({
+				nts.msgprint({
 					title: __("Not permitted"),
 					indicator: "red",
 					message: xhr.responseJSON._error_message,
@@ -168,7 +168,7 @@ frappe.request.call = function (opts) {
 					return;
 				}
 			} else {
-				frappe.msgprint({
+				nts.msgprint({
 					title: __("Not permitted"),
 					indicator: "red",
 					message: __(
@@ -179,8 +179,8 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		508: function (xhr) {
-			frappe.utils.play_sound("error");
-			frappe.msgprint({
+			nts.utils.play_sound("error");
+			nts.msgprint({
 				title: __("Please try again"),
 				indicator: "red",
 				message: __(
@@ -190,11 +190,11 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		413: function (data, xhr) {
-			frappe.msgprint({
+			nts.msgprint({
 				indicator: "red",
 				title: __("File too big"),
 				message: __("File size exceeded the maximum allowed size of {0} MB", [
-					(frappe.boot.max_file_size || 5242880) / 1048576,
+					(nts.boot.max_file_size || 5242880) / 1048576,
 				]),
 			});
 			opts.error_callback && opts.error_callback();
@@ -216,36 +216,36 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback(data, xhr.responseText);
 		},
 		500: function (xhr) {
-			frappe.utils.play_sound("error");
+			nts.utils.play_sound("error");
 			try {
 				opts.error_callback && opts.error_callback();
-				frappe.request.report_error(xhr, opts);
+				nts.request.report_error(xhr, opts);
 			} catch (e) {
-				frappe.request.report_error(xhr, opts);
+				nts.request.report_error(xhr, opts);
 			}
 		},
 		504: function (xhr) {
-			frappe.msgprint(__("Request Timed Out"));
+			nts.msgprint(__("Request Timed Out"));
 			opts.error_callback && opts.error_callback();
 		},
 		502: function (xhr) {
-			frappe.msgprint(__("Internal Server Error"));
+			nts.msgprint(__("Internal Server Error"));
 			opts.error_callback && opts.error_callback();
 		},
 	};
 
 	var exception_handlers = {
 		QueryTimeoutError: function () {
-			frappe.utils.play_sound("error");
-			frappe.msgprint({
+			nts.utils.play_sound("error");
+			nts.msgprint({
 				title: __("Request Timeout"),
 				indicator: "red",
 				message: __("Server was too busy to process this request. Please try again."),
 			});
 		},
 		QueryDeadlockError: function () {
-			frappe.utils.play_sound("error");
-			frappe.msgprint({
+			nts.utils.play_sound("error");
+			nts.msgprint({
 				title: __("Deadlock Occurred"),
 				indicator: "red",
 				message: __(
@@ -256,16 +256,16 @@ frappe.request.call = function (opts) {
 	};
 
 	var ajax_args = {
-		url: opts.url || frappe.request.url,
+		url: opts.url || nts.request.url,
 		data: opts.args,
 		type: opts.type,
 		dataType: opts.dataType || "json",
 		async: opts.async,
 		headers: Object.assign(
 			{
-				"X-Frappe-CSRF-Token": frappe.csrf_token,
+				"X-nts-CSRF-Token": nts.csrf_token,
 				Accept: "application/json",
-				"X-Frappe-CMD": (opts.args && opts.args.cmd) || "" || "",
+				"X-nts-CMD": (opts.args && opts.args.cmd) || "" || "",
 			},
 			opts.headers
 		),
@@ -273,10 +273,10 @@ frappe.request.call = function (opts) {
 	};
 
 	if (opts.args && opts.args.doctype) {
-		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
+		ajax_args.headers["X-nts-Doctype"] = encodeURIComponent(opts.args.doctype);
 	}
 
-	frappe.last_request = ajax_args.data;
+	nts.last_request = ajax_args.data;
 
 	return $.ajax(ajax_args)
 		.done(function (data, textStatus, xhr) {
@@ -285,20 +285,20 @@ frappe.request.call = function (opts) {
 
 				// sync attached docs
 				if (data.docs || data.docinfo) {
-					frappe.model.sync(data);
+					nts.model.sync(data);
 				}
 
 				// sync translated messages
 				if (data.__messages) {
-					$.extend(frappe._messages, data.__messages);
+					$.extend(nts._messages, data.__messages);
 				}
 
 				// sync link titles
 				if (data._link_titles) {
-					if (!frappe._link_titles) {
-						frappe._link_titles = {};
+					if (!nts._link_titles) {
+						nts._link_titles = {};
 					}
-					$.extend(frappe._link_titles, data._link_titles);
+					$.extend(nts._link_titles, data._link_titles);
 				}
 
 				// callbacks
@@ -324,7 +324,7 @@ frappe.request.call = function (opts) {
 				data = null;
 				// pass
 			}
-			frappe.request.cleanup(opts, data);
+			nts.request.cleanup(opts, data);
 			if (opts.always) {
 				opts.always(data);
 			}
@@ -344,7 +344,7 @@ frappe.request.call = function (opts) {
 						console.log(e);
 					}
 					if (data && data.exception) {
-						// frappe.exceptions.CustomError: (1024, ...) -> CustomError
+						// nts.exceptions.CustomError: (1024, ...) -> CustomError
 						var exception = data.exception.split(".").at(-1).split(":").at(0);
 						var exception_handler = exception_handlers[exception];
 						if (exception_handler) {
@@ -367,17 +367,17 @@ frappe.request.call = function (opts) {
 		});
 };
 
-frappe.request.is_fresh = function (args, threshold) {
+nts.request.is_fresh = function (args, threshold) {
 	// return true if a request with similar args has been sent recently
-	if (!frappe.request.logs[args.cmd]) {
-		frappe.request.logs[args.cmd] = [];
+	if (!nts.request.logs[args.cmd]) {
+		nts.request.logs[args.cmd] = [];
 	}
 
-	for (let past_request of frappe.request.logs[args.cmd]) {
+	for (let past_request of nts.request.logs[args.cmd]) {
 		// check if request has same args and was made recently
 		if (
 			new Date() - past_request.timestamp < threshold &&
-			frappe.utils.deep_equal(args, past_request.args)
+			nts.utils.deep_equal(args, past_request.args)
 		) {
 			console.log("throttled");
 			return true;
@@ -385,19 +385,19 @@ frappe.request.is_fresh = function (args, threshold) {
 	}
 
 	// log the request
-	frappe.request.logs[args.cmd].push({ args: args, timestamp: new Date() });
+	nts.request.logs[args.cmd].push({ args: args, timestamp: new Date() });
 	return false;
 };
 
 // call execute serverside request
-frappe.request.prepare = function (opts) {
+nts.request.prepare = function (opts) {
 	$("body").attr("data-ajax-state", "triggered");
 
 	// btn indicator
 	if (opts.btn) $(opts.btn).prop("disabled", true);
 
 	// freeze page
-	if (opts.freeze) frappe.dom.freeze(opts.freeze_message);
+	if (opts.freeze) nts.dom.freeze(opts.freeze_message);
 
 	// stringify args if required
 	for (var key in opts.args) {
@@ -418,7 +418,7 @@ frappe.request.prepare = function (opts) {
 	delete opts.error;
 };
 
-frappe.request.cleanup = function (opts, r) {
+nts.request.cleanup = function (opts, r) {
 	// stop button indicator
 	if (opts.btn) {
 		$(opts.btn).prop("disabled", false);
@@ -427,20 +427,20 @@ frappe.request.cleanup = function (opts, r) {
 	$("body").attr("data-ajax-state", "complete");
 
 	// un-freeze page
-	if (opts.freeze) frappe.dom.unfreeze();
+	if (opts.freeze) nts.dom.unfreeze();
 
 	if (r) {
 		// session expired? - Guest has no business here!
 		if (
 			r.session_expired ||
-			(frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest")
+			(nts.session.user === "Guest" && nts.session.logged_in_user !== "Guest")
 		) {
-			frappe.app.handle_session_expired();
+			nts.app.handle_session_expired();
 			return;
 		}
 
 		// error handlers
-		let global_handlers = frappe.request.error_handlers[r.exc_type] || [];
+		let global_handlers = nts.request.error_handlers[r.exc_type] || [];
 		let request_handler = opts.error_handlers ? opts.error_handlers[r.exc_type] : null;
 		let handlers = [].concat(global_handlers, request_handler).filter(Boolean);
 
@@ -461,8 +461,8 @@ frappe.request.cleanup = function (opts, r) {
 		if (messages && !opts.silent) {
 			// show server messages if no handlers exist
 			if (handlers.length === 0) {
-				frappe.hide_msgprint();
-				frappe.msgprint(messages);
+				nts.hide_msgprint();
+				nts.msgprint(messages);
 			}
 		}
 
@@ -497,13 +497,13 @@ frappe.request.cleanup = function (opts, r) {
 		}
 	}
 
-	frappe.last_response = r;
+	nts.last_response = r;
 };
 
-frappe.after_server_call = () => {
-	if (frappe.request.ajax_count) {
+nts.after_server_call = () => {
+	if (nts.request.ajax_count) {
 		return new Promise((resolve) => {
-			frappe.request.waiting_for_ajax.push(() => {
+			nts.request.waiting_for_ajax.push(() => {
 				resolve();
 			});
 		});
@@ -512,10 +512,10 @@ frappe.after_server_call = () => {
 	}
 };
 
-frappe.after_ajax = function (fn) {
+nts.after_ajax = function (fn) {
 	return new Promise((resolve) => {
-		if (frappe.request.ajax_count) {
-			frappe.request.waiting_for_ajax.push(() => {
+		if (nts.request.ajax_count) {
+			nts.request.waiting_for_ajax.push(() => {
 				if (fn) return resolve(fn());
 				resolve();
 			});
@@ -526,7 +526,7 @@ frappe.after_ajax = function (fn) {
 	});
 };
 
-frappe.request.report_error = function (xhr, request_opts) {
+nts.request.report_error = function (xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);
 	var exc;
 	if (data.exc) {
@@ -544,12 +544,12 @@ frappe.request.report_error = function (xhr, request_opts) {
 		const code_block = (snippet) => "```\n" + snippet + "\n```";
 
 		let request_data = Object.assign({}, request_opts);
-		request_data.request_id = xhr.getResponseHeader("X-Frappe-Request-Id");
+		request_data.request_id = xhr.getResponseHeader("X-nts-Request-Id");
 		const traceback_info = [
 			"### App Versions",
-			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
+			code_block(JSON.stringify(nts.boot.versions, null, "\t")),
 			"### Route",
-			code_block(frappe.get_route_str()),
+			code_block(nts.get_route_str()),
 			"### Traceback",
 			code_block(exc),
 			"### Request Data",
@@ -557,7 +557,7 @@ frappe.request.report_error = function (xhr, request_opts) {
 			"### Response Data",
 			code_block(JSON.stringify(data, null, "\t")),
 		].join("\n");
-		frappe.utils.copy_to_clipboard(traceback_info);
+		nts.utils.copy_to_clipboard(traceback_info);
 	};
 
 	var show_communication = function () {
@@ -567,9 +567,9 @@ frappe.request.report_error = function (xhr, request_opts) {
 				border-radius: 5px; padding: 15px; margin-bottom: 15px;"></div>',
 			"<hr>",
 			"<h5>App Versions</h5>",
-			"<pre>" + JSON.stringify(frappe.boot.versions, null, "\t") + "</pre>",
+			"<pre>" + JSON.stringify(nts.boot.versions, null, "\t") + "</pre>",
 			"<h5>Route</h5>",
-			"<pre>" + frappe.get_route_str() + "</pre>",
+			"<pre>" + nts.get_route_str() + "</pre>",
 			"<hr>",
 			"<h5>Error Report</h5>",
 			"<pre>" + exc + "</pre>",
@@ -581,45 +581,45 @@ frappe.request.report_error = function (xhr, request_opts) {
 			"<pre>" + JSON.stringify(data, null, "\t") + "</pre>",
 		].join("\n");
 
-		var communication_composer = new frappe.views.CommunicationComposer({
-			subject: "Error Report [" + frappe.datetime.nowdate() + "]",
+		var communication_composer = new nts.views.CommunicationComposer({
+			subject: "Error Report [" + nts.datetime.nowdate() + "]",
 			recipients: error_report_email,
 			message: error_report_message,
 			doc: {
 				doctype: "User",
-				name: frappe.session.user,
+				name: nts.session.user,
 			},
 		});
 		communication_composer.dialog.$wrapper.css(
 			"z-index",
-			cint(frappe.msg_dialog.$wrapper.css("z-index")) + 1
+			cint(nts.msg_dialog.$wrapper.css("z-index")) + 1
 		);
 	};
 
 	if (exc) {
-		var error_report_email = frappe.boot.error_report_email;
+		var error_report_email = nts.boot.error_report_email;
 
-		request_opts = frappe.request.cleanup_request_opts(request_opts);
+		request_opts = nts.request.cleanup_request_opts(request_opts);
 
-		// window.msg_dialog = frappe.msgprint({message:error_message, indicator:'red', big: true});
+		// window.msg_dialog = nts.msgprint({message:error_message, indicator:'red', big: true});
 
-		if (!frappe.error_dialog) {
-			frappe.error_dialog = new frappe.ui.Dialog({
+		if (!nts.error_dialog) {
+			nts.error_dialog = new nts.ui.Dialog({
 				title: __("Server Error"),
 			});
 
 			if (error_report_email) {
-				frappe.error_dialog.set_primary_action(__("Report"), () => {
+				nts.error_dialog.set_primary_action(__("Report"), () => {
 					show_communication();
-					frappe.error_dialog.hide();
+					nts.error_dialog.hide();
 				});
 			} else {
-				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
+				nts.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
 					copy_markdown_to_clipboard();
-					frappe.error_dialog.hide();
+					nts.error_dialog.hide();
 				});
 			}
-			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
+			nts.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
 
 		let parts = strip(exc).split("\n");
@@ -631,12 +631,12 @@ frappe.request.report_error = function (xhr, request_opts) {
 			dialog_html += `Possible source of error: ${data._exc_source.bold()} `;
 		}
 
-		frappe.error_dialog.$body.html(dialog_html);
-		frappe.error_dialog.show();
+		nts.error_dialog.$body.html(dialog_html);
+		nts.error_dialog.show();
 	}
 };
 
-frappe.request.cleanup_request_opts = function (request_opts) {
+nts.request.cleanup_request_opts = function (request_opts) {
 	var doc = (request_opts.args || {}).doc;
 	if (doc) {
 		doc = JSON.parse(doc);
@@ -651,21 +651,21 @@ frappe.request.cleanup_request_opts = function (request_opts) {
 	return request_opts;
 };
 
-frappe.request.on_error = function (error_type, handler) {
-	frappe.request.error_handlers[error_type] = frappe.request.error_handlers[error_type] || [];
-	frappe.request.error_handlers[error_type].push(handler);
+nts.request.on_error = function (error_type, handler) {
+	nts.request.error_handlers[error_type] = nts.request.error_handlers[error_type] || [];
+	nts.request.error_handlers[error_type].push(handler);
 };
 
 $(document).ajaxSend(function () {
-	frappe.request.ajax_count++;
+	nts.request.ajax_count++;
 });
 
 $(document).ajaxComplete(function () {
-	frappe.request.ajax_count--;
-	if (!frappe.request.ajax_count) {
-		$.each(frappe.request.waiting_for_ajax || [], function (i, fn) {
+	nts.request.ajax_count--;
+	if (!nts.request.ajax_count) {
+		$.each(nts.request.waiting_for_ajax || [], function (i, fn) {
 			fn();
 		});
-		frappe.request.waiting_for_ajax = [];
+		nts.request.waiting_for_ajax = [];
 	}
 });

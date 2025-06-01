@@ -443,7 +443,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:frappe.utils.html2text(doc.footer || '')!=''",
+   "collapsible_depends_on": "eval:nts.utils.html2text(doc.footer || '')!=''",
    "fieldname": "set_footer",
    "fieldtype": "Section Break",
    "hide_days": 1,

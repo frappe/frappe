@@ -1,28 +1,28 @@
 import markupsafe
 
-import frappe
-from frappe import _
-from frappe.core.utils import html2text
-from frappe.utils import sanitize_html
-from frappe.utils.global_search import web_search
+import nts
+from nts import _
+from nts.core.utils import html2text
+from nts.utils import sanitize_html
+from nts.utils.global_search import web_search
 
 
 def get_context(context):
 	context.no_cache = 1
-	if frappe.form_dict.q:
-		query = str(markupsafe.escape(sanitize_html(frappe.form_dict.q)))
+	if nts.form_dict.q:
+		query = str(markupsafe.escape(sanitize_html(nts.form_dict.q)))
 		context.title = _("Search Results for")
 		context.query = query
 		context.route = "/search"
-		context.update(get_search_results(query, frappe.utils.sanitize_html(frappe.form_dict.scope)))
+		context.update(get_search_results(query, nts.utils.sanitize_html(nts.form_dict.scope)))
 	else:
 		context.title = _("Search")
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_search_results(text: str, scope: str | None = None, start: int = 0, as_html: bool = False):
 	results = web_search(text, scope, start, limit=21)
-	out = frappe._dict()
+	out = nts._dict()
 
 	if len(results) == 21:
 		out.has_more = 1
@@ -58,6 +58,6 @@ def get_search_results(text: str, scope: str | None = None, start: int = 0, as_h
 	out.results = results
 
 	if as_html:
-		out.results = frappe.render_template("templates/includes/search_result.html", out)
+		out.results = nts.render_template("templates/includes/search_result.html", out)
 
 	return out

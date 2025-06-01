@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.core.doctype.report.report import is_prepared_report_enabled
-from frappe.model.document import Document
-from frappe.permissions import ALL_USER_ROLE
-from frappe.utils import cint
+import nts
+from nts.core.doctype.report.report import is_prepared_report_enabled
+from nts.model.document import Document
+from nts.permissions import ALL_USER_ROLE
+from nts.utils import cint
 
 
 class RolePermissionforPageandReport(Document):
@@ -15,8 +15,8 @@ class RolePermissionforPageandReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.types import DF
+		from nts.core.doctype.has_role.has_role import HasRole
+		from nts.types import DF
 
 		enable_prepared_report: DF.Check
 		page: DF.Link | None
@@ -25,7 +25,7 @@ class RolePermissionforPageandReport(Document):
 		set_role_for: DF.Literal["", "Page", "Report"]
 
 	# end: auto-generated types
-	@frappe.whitelist()
+	@nts.whitelist()
 	def set_report_page_data(self):
 		self.set_custom_roles()
 		self.check_prepared_report_disabled()
@@ -34,9 +34,9 @@ class RolePermissionforPageandReport(Document):
 		args = self.get_args()
 		self.set("roles", [])
 
-		name = frappe.db.get_value("Custom Role", args, "name")
+		name = nts.db.get_value("Custom Role", args, "name")
 		if name:
-			doc = frappe.get_doc("Custom Role", name)
+			doc = nts.get_doc("Custom Role", name)
 			roles = doc.roles
 		else:
 			roles = self.get_standard_roles()
@@ -50,41 +50,41 @@ class RolePermissionforPageandReport(Document):
 	def get_standard_roles(self):
 		doctype = self.set_role_for
 		docname = self.page if self.set_role_for == "Page" else self.report
-		doc = frappe.get_doc(doctype, docname)
+		doc = nts.get_doc(doctype, docname)
 		return doc.roles
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def reset_roles(self):
 		roles = self.get_standard_roles()
 		self.set("roles", roles)
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def update_report_page_data(self):
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 
 	def update_custom_roles(self):
 		args = self.get_args()
-		name = frappe.db.get_value("Custom Role", args, "name")
+		name = nts.db.get_value("Custom Role", args, "name")
 
 		args.update({"doctype": "Custom Role", "roles": self.get_roles()})
 
 		if self.report:
-			args.update({"ref_doctype": frappe.db.get_value("Report", self.report, "ref_doctype")})
+			args.update({"ref_doctype": nts.db.get_value("Report", self.report, "ref_doctype")})
 
 		if name:
-			custom_role = frappe.get_doc("Custom Role", name)
+			custom_role = nts.get_doc("Custom Role", name)
 			custom_role.set("roles", self.get_roles())
 			custom_role.save()
 		else:
-			frappe.get_doc(args).insert()
+			nts.get_doc(args).insert()
 
 	def update_disable_prepared_report(self):
 		if self.report:
-			# intentionally written update query in frappe.db.sql instead of frappe.db.set_value
-			frappe.db.sql(
+			# intentionally written update query in nts.db.sql instead of nts.db.set_value
+			nts.db.sql(
 				"""update `tabReport` set prepared_report = %s
 				where name = %s""",
 				(self.enable_prepared_report, self.report),
@@ -104,4 +104,4 @@ class RolePermissionforPageandReport(Document):
 		]
 
 	def update_status(self):
-		return frappe.render_template
+		return nts.render_template

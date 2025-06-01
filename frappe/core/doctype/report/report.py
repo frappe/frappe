@@ -1,20 +1,20 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
 import json
 import threading
 
-import frappe
-import frappe.desk.query_report
-from frappe import _, scrub
-from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
-from frappe.core.doctype.page.page import delete_custom_role
-from frappe.desk.reportview import append_totals_row
-from frappe.model.document import Document
-from frappe.modules import make_boilerplate
-from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, cstr
-from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+import nts
+import nts.desk.query_report
+from nts import _, scrub
+from nts.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from nts.core.doctype.page.page import delete_custom_role
+from nts.desk.reportview import append_totals_row
+from nts.model.document import Document
+from nts.modules import make_boilerplate
+from nts.modules.export_file import export_to_files
+from nts.utils import cint, cstr
+from nts.utils.safe_exec import check_safe_sql_query, safe_exec
 
 
 class Report(Document):
@@ -24,10 +24,10 @@ class Report(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.core.doctype.report_column.report_column import ReportColumn
-		from frappe.core.doctype.report_filter.report_filter import ReportFilter
-		from frappe.types import DF
+		from nts.core.doctype.has_role.has_role import HasRole
+		from nts.core.doctype.report_column.report_column import ReportColumn
+		from nts.core.doctype.report_filter.report_filter import ReportFilter
+		from nts.types import DF
 
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
@@ -53,26 +53,26 @@ class Report(Document):
 	def validate(self):
 		"""only administrator can save standard report"""
 		if not self.module:
-			self.module = frappe.db.get_value("DocType", self.ref_doctype, "module")
+			self.module = nts.db.get_value("DocType", self.ref_doctype, "module")
 
 		if not self.is_standard:
 			self.is_standard = "No"
 			if (
-				frappe.session.user == "Administrator"
-				and getattr(frappe.local.conf, "developer_mode", 0) == 1
+				nts.session.user == "Administrator"
+				and getattr(nts.local.conf, "developer_mode", 0) == 1
 			):
 				self.is_standard = "Yes"
 
 		if self.is_standard == "No":
 			# allow only script manager to edit scripts
 			if self.report_type != "Report Builder":
-				frappe.only_for("Script Manager", True)
+				nts.only_for("Script Manager", True)
 
-			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
-				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
+			if nts.db.get_value("Report", self.name, "is_standard") == "Yes":
+				nts.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
-		if self.is_standard == "Yes" and frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+		if self.is_standard == "Yes" and nts.session.user != "Administrator":
+			nts.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
@@ -90,28 +90,28 @@ class Report(Document):
 	def on_trash(self):
 		if (
 			self.is_standard == "Yes"
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not (frappe.flags.in_migrate or frappe.flags.in_patch)
+			and not cint(getattr(nts.local.conf, "developer_mode", 0))
+			and not (nts.flags.in_migrate or nts.flags.in_patch)
 		):
-			frappe.throw(_("You are not allowed to delete Standard Report"))
+			nts.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def set_doctype_roles(self):
 		if not self.get("roles") and self.is_standard == "No":
-			meta = frappe.get_meta(self.ref_doctype)
+			meta = nts.get_meta(self.ref_doctype)
 			if not meta.istable:
 				roles = [{"role": d.role} for d in meta.permissions if d.permlevel == 0]
 				self.set("roles", roles)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
-		from frappe.utils import has_common
+		from nts.utils import has_common
 
-		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
+		allowed = [d.role for d in nts.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
 
 		custom_roles = get_custom_allowed_roles("report", self.name)
 
@@ -121,7 +121,7 @@ class Report(Document):
 		if not allowed:
 			return True
 
-		if has_common(frappe.get_roles(), allowed):
+		if has_common(nts.get_roles(), allowed):
 			return True
 
 	def update_report_json(self):
@@ -129,10 +129,10 @@ class Report(Document):
 			self.json = "{}"
 
 	def export_doc(self):
-		if frappe.flags.in_import:
+		if nts.flags.in_import:
 			return
 
-		if self.is_standard == "Yes" and (frappe.local.conf.get("developer_mode") or 0) == 1:
+		if self.is_standard == "Yes" and (nts.local.conf.get("developer_mode") or 0) == 1:
 			export_to_files(record_list=[["Report", self.name]], record_module=self.module, create_init=True)
 
 			self.create_report_py()
@@ -144,12 +144,12 @@ class Report(Document):
 
 	def execute_query_report(self, filters):
 		if not self.query:
-			frappe.throw(_("Must specify a Query to run"), title=_("Report Document Error"))
+			nts.throw(_("Must specify a Query to run"), title=_("Report Document Error"))
 
 		check_safe_sql_query(self.query)
 
-		result = [list(t) for t in frappe.db.sql(self.query, filters)]
-		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		result = [list(t) for t in nts.db.sql(self.query, filters)]
+		columns = self.get_columns() or [cstr(c[0]) for c in nts.db.get_description()]
 
 		return [columns, result]
 
@@ -164,7 +164,7 @@ class Report(Document):
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
-				kwargs={"report": self.name, "site": frappe.local.site},
+				kwargs={"report": self.name, "site": nts.local.site},
 			)
 			prepared_report_watcher.start()
 
@@ -179,19 +179,19 @@ class Report(Document):
 
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 
-		frappe.cache.hset("report_execution_time", self.name, execution_time)
+		nts.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
 
 	def execute_module(self, filters):
 		# report in python module
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		module = self.module or nts.db.get_value("DocType", self.ref_doctype, "module")
 		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return nts.get_attr(method_name)(nts._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
-		loc = {"filters": frappe._dict(filters), "data": None, "result": None}
+		loc = {"filters": nts._dict(filters), "data": None, "result": None}
 		safe_exec(self.report_script, None, loc, script_filename=f"Report {self.name}")
 		if loc["data"]:
 			return loc["data"]
@@ -223,7 +223,7 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
+		data = nts.desk.query_report.run(
 			self.name,
 			filters=filters,
 			user=user,
@@ -233,7 +233,7 @@ class Report(Document):
 
 		for d in data.get("columns"):
 			if isinstance(d, dict):
-				col = frappe._dict(d)
+				col = nts._dict(d)
 				if not col.fieldname:
 					col.fieldname = col.label
 				columns.append(col)
@@ -247,7 +247,7 @@ class Report(Document):
 							fieldtype, options = fieldtype.split("/")
 
 				columns.append(
-					frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options)
+					nts._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options)
 				)
 
 		result += data.get("result")
@@ -260,7 +260,7 @@ class Report(Document):
 		result = []
 		order_by, group_by, group_by_args = self.get_standard_report_order_by(params)
 
-		_result = frappe.get_list(
+		_result = nts.get_list(
 			self.ref_doctype,
 			fields=[
 				get_group_by_field(group_by_args, c[1])
@@ -301,7 +301,7 @@ class Report(Document):
 			columns = [["name", self.ref_doctype]]
 			columns.extend(
 				[df.fieldname, self.ref_doctype]
-				for df in frappe.get_meta(self.ref_doctype).fields
+				for df in nts.get_meta(self.ref_doctype).fields
 				if df.in_list_view
 			)
 		return columns
@@ -338,7 +338,7 @@ class Report(Document):
 
 		group_by = None
 		if params.get("group_by"):
-			group_by_args = frappe._dict(params["group_by"])
+			group_by_args = nts._dict(params["group_by"])
 			group_by = group_by_args["group_by"]
 			order_by = "_aggregate_column desc"
 
@@ -348,7 +348,7 @@ class Report(Document):
 		_columns = []
 
 		for fieldname, doctype in columns:
-			meta = frappe.get_meta(doctype)
+			meta = nts.get_meta(doctype)
 
 			if meta.get_field(fieldname):
 				field = meta.get_field(fieldname)
@@ -358,7 +358,7 @@ class Report(Document):
 				else:
 					label = meta.get_label(fieldname)
 
-				field = frappe._dict(fieldname=fieldname, label=label)
+				field = nts._dict(fieldname=fieldname, label=label)
 
 				# since name is the primary key for a document, it will always be a Link datatype
 				if fieldname == "name":
@@ -372,31 +372,31 @@ class Report(Document):
 		data = []
 		for row in result:
 			if isinstance(row, list | tuple):
-				_row = frappe._dict()
+				_row = nts._dict()
 				for i, val in enumerate(row):
 					_row[columns[i].get("fieldname")] = val
 			elif isinstance(row, dict):
 				# no need to convert from dict to dict
-				_row = frappe._dict(row)
+				_row = nts._dict(row)
 			data.append(_row)
 
 		return data
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
-			frappe.throw(_("You are not allowed to edit the report."))
+			nts.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
 
 
 def is_prepared_report_enabled(report):
-	return cint(frappe.db.get_value("Report", report, "prepared_report")) or 0
+	return cint(nts.db.get_value("Report", report, "prepared_report")) or 0
 
 
 def get_report_module_dotted_path(module, report_name):
 	return (
-		frappe.local.module_app[scrub(module)]
+		nts.local.module_app[scrub(module)]
 		+ "."
 		+ scrub(module)
 		+ ".report."
@@ -426,8 +426,8 @@ def get_group_by_column_label(args, meta):
 
 
 def enable_prepared_report(report: str, site: str):
-	frappe.init(site)
-	frappe.connect()
-	frappe.db.set_value("Report", report, "prepared_report", 1)
-	frappe.db.commit()
-	frappe.destroy()
+	nts.init(site)
+	nts.connect()
+	nts.db.set_value("Report", report, "prepared_report", 1)
+	nts.db.commit()
+	nts.destroy()

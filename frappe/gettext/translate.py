@@ -11,8 +11,8 @@ from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
 from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
-import frappe
-from frappe.utils import get_bench_path
+import nts
+from nts.utils import get_bench_path
 
 PO_DIR = "locale"  # po and pot files go into [app]/locale
 POT_FILE = "main.pot"  # the app's pot file is always main.pot
@@ -20,7 +20,7 @@ POT_FILE = "main.pot"  # the app's pot file is always main.pot
 
 def new_catalog(app: str, locale: str | None = None) -> Catalog:
 	def get_hook(hook, app):
-		return frappe.get_hooks(hook, [None], app)[0]
+		return nts.get_hooks(hook, [None], app)[0]
 
 	app_email = get_hook("app_email", app)
 	return Catalog(
@@ -38,7 +38,7 @@ def new_catalog(app: str, locale: str | None = None) -> Catalog:
 
 
 def get_po_dir(app: str) -> Path:
-	return Path(frappe.get_app_path(app)) / PO_DIR
+	return Path(nts.get_app_path(app)) / PO_DIR
 
 
 def get_locale_dir() -> Path:
@@ -102,7 +102,7 @@ def write_binary(app: str, catalog: Catalog, locale: str) -> Path:
 
 
 def get_method_map(app: str):
-	file_path = Path(frappe.get_app_path(app)).parent / "babel_extractors.csv"
+	file_path = Path(nts.get_app_path(app)).parent / "babel_extractors.csv"
 	if file_path.exists():
 		with open(file_path) as f:
 			reader = csv.reader(f)
@@ -127,19 +127,19 @@ def generate_pot(target_app: str | None = None):
 		subdir = os.path.basename(dirpath)
 		return not (subdir.startswith(".") or subdir.startswith("_"))
 
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
-	default_method_map = get_method_map("frappe")
+	apps = [target_app] if target_app else nts.get_all_apps(True)
+	default_method_map = get_method_map("nts")
 
 	keywords = DEFAULT_KEYWORDS.copy()
 	keywords["_lt"] = None
 
 	for app in apps:
-		app_path = frappe.get_pymodule_path(app, "..")
+		app_path = nts.get_pymodule_path(app, "..")
 		catalog = new_catalog(app)
 
 		# Each file will only be processed by the first method that matches,
 		# so more specific methods should come first.
-		method_map = [] if app == "frappe" else get_method_map(app)
+		method_map = [] if app == "nts" else get_method_map(app)
 		method_map.extend(default_method_map)
 
 		for filename, lineno, message, comments, context in extract_from_dir(
@@ -164,7 +164,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 	if not app:
 		return lambda d: "public/dist" in d
 
-	repo = git.Repo(frappe.get_app_source_path(app), search_parent_directories=True)
+	repo = git.Repo(nts.get_app_source_path(app), search_parent_directories=True)
 
 	def _check_gitignore(d: str):
 		d = d.rstrip("/")
@@ -176,7 +176,7 @@ def get_is_gitignored_function_for_app(app: str | None):
 
 
 def new_po(locale, target_app: str | None = None):
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else nts.get_all_apps(True)
 
 	for app in apps:
 		po_path = get_po_path(app, locale)
@@ -190,12 +190,12 @@ def new_po(locale, target_app: str | None = None):
 
 		print(f"PO file created_at {po_path}")
 		print(
-			"You will need to add the language in frappe/geo/languages.csv, if you haven't done it already."
+			"You will need to add the language in nts/geo/languages.csv, if you haven't done it already."
 		)
 
 
 def compile_translations(target_app: str | None = None, locale: str | None = None, force=False):
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else nts.get_all_apps(True)
 	tasks = []
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
@@ -235,7 +235,7 @@ def update_po(target_app: str | None = None, locale: str | None = None):
 
 	:param target_app: Limit operation to `app`, if specified
 	"""
-	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	apps = [target_app] if target_app else nts.get_all_apps(True)
 
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
@@ -248,13 +248,13 @@ def update_po(target_app: str | None = None, locale: str | None = None):
 
 
 def migrate(app: str | None = None, locale: str | None = None):
-	apps = [app] if app else frappe.get_all_apps(True)
+	apps = [app] if app else nts.get_all_apps(True)
 
 	for app in apps:
 		if locale:
 			csv_to_po(app, locale)
 		else:
-			app_path = Path(frappe.get_app_path(app))
+			app_path = Path(nts.get_app_path(app))
 			for filename in (app_path / "translations").iterdir():
 				if filename.suffix != ".csv":
 					continue
@@ -262,7 +262,7 @@ def migrate(app: str | None = None, locale: str | None = None):
 
 
 def csv_to_po(app: str, locale: str):
-	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
+	csv_file = Path(nts.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
 	locale = locale.replace("-", "_")
 	if not csv_file.exists():
 		return
@@ -307,7 +307,7 @@ def get_translations_from_mo(lang, app):
 		return {}
 
 	translations = {}
-	lang = lang.replace("-", "_")  # Frappe uses dash, babel uses underscore.
+	lang = lang.replace("-", "_")  # nts uses dash, babel uses underscore.
 
 	locale_dir = get_locale_dir()
 	mo_file = gettext.find(app, locale_dir, (lang,))
@@ -348,7 +348,7 @@ def update_csv_from_po(app: str, locale: str | None = None):
 	locales = [locale] if locale else get_locales(app)
 
 	for _locale in locales:
-		csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{_locale.replace('_', '-')}.csv"
+		csv_file = Path(nts.get_app_path(app)) / "translations" / f"{_locale.replace('_', '-')}.csv"
 
 		if not csv_file.exists():
 			continue

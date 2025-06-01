@@ -24,9 +24,9 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot | json }};
-		frappe._messages = {{ translated_messages }};
-		frappe.web_form_doc = {{ web_form_doc | json }};
+		nts.boot = {{ boot | json }};
+		nts._messages = {{ translated_messages }};
+		nts.web_form_doc = {{ web_form_doc | json }};
 	</script>
 
 	{{ include_script("web_form.bundle.js") }}

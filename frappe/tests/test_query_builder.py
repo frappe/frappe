@@ -2,11 +2,11 @@ import unittest
 from collections.abc import Callable
 from datetime import time
 
-import frappe
-from frappe.query_builder import Case
-from frappe.query_builder.builder import Function
-from frappe.query_builder.custom import ConstantColumn
-from frappe.query_builder.functions import (
+import nts
+from nts.query_builder import Case
+from nts.query_builder.builder import Function
+from nts.query_builder.custom import ConstantColumn
+from nts.query_builder.functions import (
 	Cast_,
 	Coalesce,
 	CombineDatetime,
@@ -17,16 +17,16 @@ from frappe.query_builder.functions import (
 	Truncate,
 	UnixTimestamp,
 )
-from frappe.query_builder.utils import db_type_is
-from frappe.tests.utils import FrappeTestCase
+from nts.query_builder.utils import db_type_is
+from nts.tests.utils import ntsTestCase
 
 
 def run_only_if(dbtype: db_type_is) -> Callable:
-	return unittest.skipIf(db_type_is(frappe.conf.db_type) != dbtype, f"Only runs for {dbtype.value}")
+	return unittest.skipIf(db_type_is(nts.conf.db_type) != dbtype, f"Only runs for {dbtype.value}")
 
 
 @run_only_if(db_type_is.MARIADB)
-class TestCustomFunctionsMariaDB(FrappeTestCase):
+class TestCustomFunctionsMariaDB(ntsTestCase):
 	def test_concat(self):
 		self.assertEqual("GROUP_CONCAT('Notes')", GroupConcat("Notes").get_sql())
 
@@ -38,11 +38,11 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 		self.assertEqual(" MATCH('Notes') AGAINST ('+text*' IN BOOLEAN MODE)", query.get_sql())
 
 	def test_constant_column(self):
-		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		query = nts.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), "SELECT `name`,'John' `User` FROM `tabDocType`")
 
 	def test_timestamp(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual(
 			"TIMESTAMP(posting_date,posting_time)",
 			CombineDatetime(note.posting_date, note.posting_time).get_sql(),
@@ -51,9 +51,9 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 			"TIMESTAMP('2021-01-01','00:00:21')", CombineDatetime("2021-01-01", "00:00:21").get_sql()
 		)
 
-		todo = frappe.qb.DocType("ToDo")
+		todo = nts.qb.DocType("ToDo")
 		select_query = (
-			frappe.qb.from_(note)
+			nts.qb.from_(note)
 			.join(todo)
 			.on(todo.refernce_name == note.name)
 			.select(CombineDatetime(note.posting_date, note.posting_time))
@@ -86,16 +86,16 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 
 	def test_unix_ts_mariadb(self):
 		# Simple Query
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual(
 			"unix_timestamp(posting_date)",
 			UnixTimestamp(note.posting_date).get_sql(),
 		)
 
 		# Complex multi table query
-		todo = frappe.qb.DocType("ToDo")
+		todo = nts.qb.DocType("ToDo")
 		select_query = (
-			frappe.qb.from_(note)
+			nts.qb.from_(note)
 			.join(todo)
 			.on(todo.refernce_name == note.name)
 			.select(UnixTimestamp(note.posting_date))
@@ -124,12 +124,12 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 		)
 
 	def test_time(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual(
 			"TIMESTAMP('2021-01-01','00:00:21')", CombineDatetime("2021-01-01", time(0, 0, 21)).get_sql()
 		)
 
-		select_query = frappe.qb.from_(note).select(CombineDatetime(note.posting_date, note.posting_time))
+		select_query = nts.qb.from_(note).select(CombineDatetime(note.posting_date, note.posting_time))
 		self.assertIn("select timestamp(`posting_date`,`posting_time`)", str(select_query).lower())
 
 		select_query = select_query.where(
@@ -142,31 +142,31 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 		)
 
 	def test_cast(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual("CONCAT(name,'')", Cast_(note.name, "varchar").get_sql())
 		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
 		self.assertEqual(
-			frappe.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
+			nts.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
 			"SELECT `tabred`.`other`,CONCAT(`tabNote`.`name`,'') FROM `tabred`,`tabNote`",
 		)
 
 	def test_round(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 
-		query = frappe.qb.from_(note).select(Round(note.price))
+		query = nts.qb.from_(note).select(Round(note.price))
 		self.assertEqual("select round(`price`,0) from `tabnote`", str(query).lower())
 
-		query = frappe.qb.from_(note).select(Round(note.price, 3))
+		query = nts.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual("select round(`price`,3) from `tabnote`", str(query).lower())
 
 	def test_truncate(self):
-		note = frappe.qb.DocType("Note")
-		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		note = nts.qb.DocType("Note")
+		query = nts.qb.from_(note).select(Truncate(note.price, 3))
 		self.assertEqual("select truncate(`price`,3) from `tabnote`", str(query).lower())
 
 
 @run_only_if(db_type_is.POSTGRES)
-class TestCustomFunctionsPostgres(FrappeTestCase):
+class TestCustomFunctionsPostgres(ntsTestCase):
 	def test_concat(self):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
 
@@ -177,11 +177,11 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 		self.assertEqual("TO_TSVECTOR('Notes') @@ PLAINTO_TSQUERY('text')", query.get_sql())
 
 	def test_constant_column(self):
-		query = frappe.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
+		query = nts.qb.from_("DocType").select("name", ConstantColumn("John").as_("User"))
 		self.assertEqual(query.get_sql(), 'SELECT "name",\'John\' "User" FROM "tabDocType"')
 
 	def test_timestamp(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual(
 			"posting_date+posting_time", CombineDatetime(note.posting_date, note.posting_time).get_sql()
 		)
@@ -190,9 +190,9 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 			CombineDatetime("2021-01-01", "00:00:21").get_sql(),
 		)
 
-		todo = frappe.qb.DocType("ToDo")
+		todo = nts.qb.DocType("ToDo")
 		select_query = (
-			frappe.qb.from_(note)
+			nts.qb.from_(note)
 			.join(todo)
 			.on(todo.refernce_name == note.name)
 			.select(CombineDatetime(note.posting_date, note.posting_time))
@@ -219,16 +219,16 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 
 	def test_unix_ts_postgres(self):
 		# Simple Query
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual(
 			"extract(epoch from posting_date)",
 			UnixTimestamp(note.posting_date).get_sql().lower(),
 		)
 
 		# Complex multi table query
-		todo = frappe.qb.DocType("ToDo")
+		todo = nts.qb.DocType("ToDo")
 		select_query = (
-			frappe.qb.from_(note)
+			nts.qb.from_(note)
 			.join(todo)
 			.on(todo.refernce_name == note.name)
 			.select(UnixTimestamp(note.posting_date))
@@ -259,14 +259,14 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 		)
 
 	def test_time(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 
 		self.assertEqual(
 			"CAST('2021-01-01' AS DATE)+CAST('00:00:21' AS TIME)",
 			CombineDatetime("2021-01-01", time(0, 0, 21)).get_sql(),
 		)
 
-		select_query = frappe.qb.from_(note).select(CombineDatetime(note.posting_date, note.posting_time))
+		select_query = nts.qb.from_(note).select(CombineDatetime(note.posting_date, note.posting_time))
 		self.assertIn('select "posting_date"+"posting_time"', str(select_query).lower())
 
 		select_query = select_query.where(
@@ -279,66 +279,66 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 		)
 
 	def test_cast(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 		self.assertEqual("CAST(name AS VARCHAR)", Cast_(note.name, "varchar").get_sql())
 		self.assertEqual("CAST(name AS INTEGER)", Cast_(note.name, "integer").get_sql())
 		self.assertEqual(
-			frappe.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
+			nts.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
 			'SELECT "tabred"."other",CAST("tabNote"."name" AS VARCHAR) FROM "tabred","tabNote"',
 		)
 
 	def test_round(self):
-		note = frappe.qb.DocType("Note")
+		note = nts.qb.DocType("Note")
 
-		query = frappe.qb.from_(note).select(Round(note.price))
+		query = nts.qb.from_(note).select(Round(note.price))
 		self.assertEqual('select round("price",0) from "tabnote"', str(query).lower())
 
-		query = frappe.qb.from_(note).select(Round(note.price, 3))
+		query = nts.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual('select round("price",3) from "tabnote"', str(query).lower())
 
 	def test_truncate(self):
-		note = frappe.qb.DocType("Note")
-		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		note = nts.qb.DocType("Note")
+		query = nts.qb.from_(note).select(Truncate(note.price, 3))
 		self.assertEqual('select truncate("price",3) from "tabnote"', str(query).lower())
 
 
 class TestBuilderBase:
 	def test_adding_tabs(self):
-		self.assertEqual("tabNotes", frappe.qb.DocType("Notes").get_sql())
-		self.assertEqual("__Auth", frappe.qb.DocType("__Auth").get_sql())
-		self.assertEqual("Notes", frappe.qb.Table("Notes").get_sql())
+		self.assertEqual("tabNotes", nts.qb.DocType("Notes").get_sql())
+		self.assertEqual("__Auth", nts.qb.DocType("__Auth").get_sql())
+		self.assertEqual("Notes", nts.qb.Table("Notes").get_sql())
 
 	def test_run_patcher(self):
-		query = frappe.qb.from_("ToDo").select("*").limit(1)
+		query = nts.qb.from_("ToDo").select("*").limit(1)
 		data = query.run(as_dict=True)
 		self.assertTrue("run" in dir(query))
 		self.assertIsInstance(query.run, Callable)
 		self.assertIsInstance(data, list)
 
 	def test_agg_funcs(self):
-		frappe.db.truncate("Communication")
+		nts.db.truncate("Communication")
 		sample_data = {
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "testing",
 			"rating": 1,
 		}
-		frappe.get_doc(sample_data).insert()
+		nts.get_doc(sample_data).insert()
 		sample_data["rating"] = 3
-		frappe.get_doc(sample_data).insert()
+		nts.get_doc(sample_data).insert()
 		sample_data["rating"] = 4
-		frappe.get_doc(sample_data).insert()
-		self.assertEqual(frappe.qb.max("Communication", "rating"), 4)
-		self.assertEqual(frappe.qb.min("Communication", "rating"), 1)
-		self.assertAlmostEqual(frappe.qb.avg("Communication", "rating"), 2.666, places=2)
-		self.assertEqual(frappe.qb.sum("Communication", "rating"), 8.0)
-		frappe.db.rollback()
+		nts.get_doc(sample_data).insert()
+		self.assertEqual(nts.qb.max("Communication", "rating"), 4)
+		self.assertEqual(nts.qb.min("Communication", "rating"), 1)
+		self.assertAlmostEqual(nts.qb.avg("Communication", "rating"), 2.666, places=2)
+		self.assertEqual(nts.qb.sum("Communication", "rating"), 8.0)
+		nts.db.rollback()
 
 
-class TestParameterization(FrappeTestCase):
+class TestParameterization(ntsTestCase):
 	def test_where_conditions(self):
-		DocType = frappe.qb.DocType("DocType")
-		query = frappe.qb.from_(DocType).select(DocType.name).where(DocType.owner == "Administrator' --")
+		DocType = nts.qb.DocType("DocType")
+		query = nts.qb.from_(DocType).select(DocType.name).where(DocType.owner == "Administrator' --")
 		self.assertTrue("walk" in dir(query))
 		query, params = query.walk()
 
@@ -347,8 +347,8 @@ class TestParameterization(FrappeTestCase):
 		self.assertEqual(params["param1"], "Administrator' --")
 
 	def test_set_conditions(self):
-		DocType = frappe.qb.DocType("DocType")
-		query = frappe.qb.update(DocType).set(DocType.value, "some_value")
+		DocType = nts.qb.DocType("DocType")
+		query = nts.qb.update(DocType).set(DocType.value, "some_value")
 
 		self.assertTrue("walk" in dir(query))
 		query, params = query.walk()
@@ -358,9 +358,9 @@ class TestParameterization(FrappeTestCase):
 		self.assertEqual(params["param1"], "some_value")
 
 	def test_where_conditions_functions(self):
-		DocType = frappe.qb.DocType("DocType")
+		DocType = nts.qb.DocType("DocType")
 		query = (
-			frappe.qb.from_(DocType).select(DocType.name).where(Coalesce(DocType.search_fields == "subject"))
+			nts.qb.from_(DocType).select(DocType.name).where(Coalesce(DocType.search_fields == "subject"))
 		)
 
 		self.assertTrue("walk" in dir(query))
@@ -371,8 +371,8 @@ class TestParameterization(FrappeTestCase):
 		self.assertEqual(params["param1"], "subject")
 
 	def test_case(self):
-		DocType = frappe.qb.DocType("DocType")
-		query = frappe.qb.from_(DocType).select(
+		DocType = nts.qb.DocType("DocType")
+		query = nts.qb.from_(DocType).select(
 			Case()
 			.when(DocType.search_fields == "value", "other_value")
 			.when(Coalesce(DocType.search_fields == "subject_in_function"), "true_value")
@@ -391,8 +391,8 @@ class TestParameterization(FrappeTestCase):
 		self.assertEqual(params["param5"], "Overdue")
 
 	def test_case_in_update(self):
-		DocType = frappe.qb.DocType("DocType")
-		query = frappe.qb.update(DocType).set(
+		DocType = nts.qb.DocType("DocType")
+		query = nts.qb.update(DocType).set(
 			"parent",
 			Case()
 			.when(DocType.search_fields == "value", "other_value")
@@ -412,7 +412,7 @@ class TestParameterization(FrappeTestCase):
 		self.assertEqual(params["param5"], "Overdue")
 
 	def test_named_parameter_wrapper(self):
-		from frappe.query_builder.terms import NamedParameterWrapper
+		from nts.query_builder.terms import NamedParameterWrapper
 
 		test_npw = NamedParameterWrapper()
 		self.assertTrue(hasattr(test_npw, "parameters"))
@@ -426,64 +426,64 @@ class TestParameterization(FrappeTestCase):
 
 
 @run_only_if(db_type_is.MARIADB)
-class TestBuilderMaria(FrappeTestCase, TestBuilderBase):
+class TestBuilderMaria(ntsTestCase, TestBuilderBase):
 	def test_adding_tabs_in_from(self):
-		self.assertEqual("SELECT * FROM `tabNotes`", frappe.qb.from_("Notes").select("*").get_sql())
-		self.assertEqual("SELECT * FROM `__Auth`", frappe.qb.from_("__Auth").select("*").get_sql())
+		self.assertEqual("SELECT * FROM `tabNotes`", nts.qb.from_("Notes").select("*").get_sql())
+		self.assertEqual("SELECT * FROM `__Auth`", nts.qb.from_("__Auth").select("*").get_sql())
 
 	def test_get_qb_type(self):
-		from frappe.query_builder import get_query_builder
+		from nts.query_builder import get_query_builder
 
-		qb = get_query_builder(frappe.db.db_type)
+		qb = get_query_builder(nts.db.db_type)
 		self.assertEqual("SELECT * FROM `tabDocType`", qb().from_("DocType").select("*").get_sql())
 
 
 @run_only_if(db_type_is.POSTGRES)
-class TestBuilderPostgres(FrappeTestCase, TestBuilderBase):
+class TestBuilderPostgres(ntsTestCase, TestBuilderBase):
 	def test_adding_tabs_in_from(self):
-		self.assertEqual('SELECT * FROM "tabNotes"', frappe.qb.from_("Notes").select("*").get_sql())
-		self.assertEqual('SELECT * FROM "__Auth"', frappe.qb.from_("__Auth").select("*").get_sql())
+		self.assertEqual('SELECT * FROM "tabNotes"', nts.qb.from_("Notes").select("*").get_sql())
+		self.assertEqual('SELECT * FROM "__Auth"', nts.qb.from_("__Auth").select("*").get_sql())
 
 	def test_replace_tables(self):
-		info_schema = frappe.qb.Schema("information_schema")
+		info_schema = nts.qb.Schema("information_schema")
 		self.assertEqual(
 			'SELECT * FROM "pg_stat_all_tables"',
-			frappe.qb.from_(info_schema.tables).select("*").get_sql(),
+			nts.qb.from_(info_schema.tables).select("*").get_sql(),
 		)
 
 	def test_replace_fields_post(self):
-		self.assertEqual("relname", frappe.qb.Field("table_name").get_sql())
+		self.assertEqual("relname", nts.qb.Field("table_name").get_sql())
 
 	def test_get_qb_type(self):
-		from frappe.query_builder import get_query_builder
+		from nts.query_builder import get_query_builder
 
-		qb = get_query_builder(frappe.db.db_type)
+		qb = get_query_builder(nts.db.db_type)
 		self.assertEqual('SELECT * FROM "tabDocType"', qb().from_("DocType").select("*").get_sql())
 
 
-class TestMisc(FrappeTestCase):
+class TestMisc(ntsTestCase):
 	def test_custom_func(self):
-		rand_func = frappe.qb.functions("rand", "45")
+		rand_func = nts.qb.functions("rand", "45")
 		self.assertIsInstance(rand_func, Function)
 		self.assertEqual(rand_func.get_sql(), "rand('45')")
 
 	def test_function_with_schema(self):
-		from frappe.query_builder import ParameterizedFunction
+		from nts.query_builder import ParameterizedFunction
 
 		x = ParameterizedFunction("rand", "45")
-		x.schema = frappe.qb.DocType("DocType")
+		x.schema = nts.qb.DocType("DocType")
 		self.assertEqual("tabDocType.rand('45')", x.get_sql())
 
 	def test_util_table(self):
-		from frappe.query_builder.utils import Table
+		from nts.query_builder.utils import Table
 
 		DocType = Table("DocType")
 		self.assertEqual(DocType.get_sql(), "DocType")
 
 	def test_union(self):
-		user = frappe.qb.DocType("User")
-		role = frappe.qb.DocType("Role")
-		users = frappe.qb.from_(user).select(user.name)
-		roles = frappe.qb.from_(role).select(role.name)
+		user = nts.qb.DocType("User")
+		role = nts.qb.DocType("Role")
+		users = nts.qb.from_(user).select(user.name)
+		roles = nts.qb.from_(role).select(role.name)
 
 		self.assertEqual(set(users.run() + roles.run()), set((users + roles).run()))

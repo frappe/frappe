@@ -1,26 +1,26 @@
 import "./libs.bundle.js";
-import "./frappe/class.js";
-import "./frappe/polyfill.js";
-import "./frappe/provide.js";
-import "./frappe/translate.js";
-import "./frappe/form/formatters.js";
-import "./frappe/format.js";
-import "./frappe/utils/number_format.js";
-import "./frappe/utils/utils.js";
-import "./frappe/utils/common.js";
-import "./frappe/ui/messages.js";
-import "./frappe/utils/pretty_date.js";
-import "./frappe/utils/datetime.js";
-import "./frappe/microtemplate.js";
-import "./frappe/query_string.js";
+import "./nts/class.js";
+import "./nts/polyfill.js";
+import "./nts/provide.js";
+import "./nts/translate.js";
+import "./nts/form/formatters.js";
+import "./nts/format.js";
+import "./nts/utils/number_format.js";
+import "./nts/utils/utils.js";
+import "./nts/utils/common.js";
+import "./nts/ui/messages.js";
+import "./nts/utils/pretty_date.js";
+import "./nts/utils/datetime.js";
+import "./nts/microtemplate.js";
+import "./nts/query_string.js";
 
-import "./frappe/upload.js";
+import "./nts/upload.js";
 
-import "./frappe/model/meta.js";
-import "./frappe/model/model.js";
-import "./frappe/model/perm.js";
+import "./nts/model/meta.js";
+import "./nts/model/model.js";
+import "./nts/model/perm.js";
 
 import "./bootstrap-4-web.bundle";
 
 import "../../website/js/website.js";
-import "./frappe/socketio_client.js";
+import "./nts/socketio_client.js";

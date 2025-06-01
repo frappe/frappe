@@ -1,7 +1,7 @@
-// Copyright (c) 2020, Frappe Technologies and contributors
+// Copyright (c) 2020, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Onboarding Step", {
+nts.ui.form.on("Onboarding Step", {
 	setup: function (frm) {
 		frm.set_query("form_tour", function () {
 			return {
@@ -13,7 +13,7 @@ frappe.ui.form.on("Onboarding Step", {
 	},
 
 	refresh: function (frm) {
-		frappe.boot.developer_mode &&
+		nts.boot.developer_mode &&
 			frm.set_intro(
 				__(
 					"To export this step as JSON, link it in a Onboarding document and save the document."
@@ -24,7 +24,7 @@ frappe.ui.form.on("Onboarding Step", {
 			setup_fields(frm);
 		}
 
-		if (!frappe.boot.developer_mode) {
+		if (!nts.boot.developer_mode) {
 			frm.trigger("disable_form");
 		}
 	},
@@ -40,7 +40,7 @@ frappe.ui.form.on("Onboarding Step", {
 			frm.fields_dict.reference_document
 				.set_description(`You need to add the steps in the contoller JS file. For example: <code>note.js</code>
 <pre class="small text-muted"><code>
-frappe.tour['Note'] = [
+nts.tour['Note'] = [
 	{
 		fieldname: "title",
 		title: "Title of the Note",
@@ -67,8 +67,8 @@ frappe.tour['Note'] = [
 
 function setup_fields(frm) {
 	if (frm.doc.reference_document && frm.doc.action == "Update Settings") {
-		frappe.model.with_doctype(frm.doc.reference_document, () => {
-			let fields = frappe
+		nts.model.with_doctype(frm.doc.reference_document, () => {
+			let fields = nts
 				.get_meta(frm.doc.reference_document)
 				.fields.filter((df) => {
 					return ["Data", "Check", "Int", "Link", "Select"].includes(df.fieldtype);

@@ -8,9 +8,9 @@ import NumberCardWidget from "../widgets/number_card_widget";
 import QuickListWidget from "../widgets/quick_list_widget";
 import CustomBlock from "../widgets/custom_block_widget";
 
-frappe.provide("frappe.widget");
+nts.provide("nts.widget");
 
-frappe.widget.widget_factory = {
+nts.widget.widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
 	shortcut: ShortcutWidget,
@@ -21,8 +21,8 @@ frappe.widget.widget_factory = {
 	custom_block: CustomBlock,
 };
 
-frappe.widget.make_widget = (opts) => {
-	const widget_class = frappe.widget.widget_factory[opts.widget_type];
+nts.widget.make_widget = (opts) => {
+	const widget_class = nts.widget.widget_factory[opts.widget_type];
 	if (widget_class) {
 		return new widget_class(opts);
 	} else {
@@ -79,7 +79,7 @@ export default class WidgetGroup {
 	}
 
 	add_widget(widget) {
-		let widget_object = frappe.widget.make_widget({
+		let widget_object = nts.widget.make_widget({
 			...widget,
 			widget_type: this.type,
 			container: this.body,
@@ -202,7 +202,7 @@ export class SingleWidgetGroup {
 	}
 
 	add_widget(widget) {
-		let widget_object = frappe.widget.make_widget({
+		let widget_object = nts.widget.make_widget({
 			...widget,
 			widget_type: this.type,
 			container: this.container,
@@ -234,5 +234,5 @@ export class SingleWidgetGroup {
 	}
 }
 
-frappe.widget.WidgetGroup = WidgetGroup;
-frappe.widget.SingleWidgetGroup = SingleWidgetGroup;
+nts.widget.WidgetGroup = WidgetGroup;
+nts.widget.SingleWidgetGroup = SingleWidgetGroup;

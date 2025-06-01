@@ -1,1 +1,1 @@
-import "./frappe/data_import";
+import "./nts/data_import";

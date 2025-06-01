@@ -1,10 +1,10 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("core", "doctype", "doctype_link")
-	frappe.reload_doc("core", "doctype", "doctype_action")
-	frappe.reload_doc("core", "doctype", "doctype")
-	frappe.model.delete_fields({"DocType": ["hide_heading", "image_view", "read_only_onload"]}, delete=1)
+	nts.reload_doc("core", "doctype", "doctype_link")
+	nts.reload_doc("core", "doctype", "doctype_action")
+	nts.reload_doc("core", "doctype", "doctype")
+	nts.model.delete_fields({"DocType": ["hide_heading", "image_view", "read_only_onload"]}, delete=1)
 
-	frappe.db.delete("Property Setter", {"property": "read_only_onload"})
+	nts.db.delete("Property Setter", {"property": "read_only_onload"})

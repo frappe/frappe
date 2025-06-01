@@ -19,14 +19,14 @@ Content-Type: text/plain;
 
 Testing another reply!
 
-> On 10-Nov-2016, at 3:20 PM, Frappe <test@erpnext.com> wrote:
+> On 10-Nov-2016, at 3:20 PM, nts <test@erpnext.com> wrote:
 >=20
 > Please share what did you do today. If you reply by midnight, your =
 response will be recorded!
 >=20
 > This email was sent to rmehta@gmail.com
 > Unsubscribe from this list =
-<http://demo-test.erpnext.com.dev/api/method/frappe.email.queue.unsubscrib=
+<http://demo-test.erpnext.com.dev/api/method/nts.email.queue.unsubscrib=
 e?email=3Drmehta%40gmail.com&name=3D26cc3e5a5d&doctype=3DDaily+Work+Summar=
 y&_signature=3D2c7ab37e6d775e5a481e9b4376154a41>
 > Sent via ERPNext <https://erpnext.com/?source=3Dvia_email_footer>
@@ -37,7 +37,7 @@ Content-Transfer-Encoding: 7bit
 Content-Type: text/html;
 	charset=us-ascii
 
-<html><head><meta http-equiv="Content-Type" content="text/html charset=us-ascii"></head><body style="word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" class="">Testing another reply!<div class=""><br class=""><div><blockquote type="cite" class=""><div class="">On 10-Nov-2016, at 3:20 PM, Frappe &lt;<a href="mailto:test@erpnext.com" class="">test@erpnext.com</a>&gt; wrote:</div><br class="Apple-interchange-newline"><div class="">
+<html><head><meta http-equiv="Content-Type" content="text/html charset=us-ascii"></head><body style="word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" class="">Testing another reply!<div class=""><br class=""><div><blockquote type="cite" class=""><div class="">On 10-Nov-2016, at 3:20 PM, nts &lt;<a href="mailto:test@erpnext.com" class="">test@erpnext.com</a>&gt; wrote:</div><br class="Apple-interchange-newline"><div class="">
 
 
 <meta name="viewport" content="width=device-width" class="">
@@ -57,7 +57,7 @@ Content-Type: text/html;
 	<div style="margin: 15px auto; padding: 0px 7px; text-align: center; color: #8d99a6;" class="">
 			This email was sent to <a href="mailto:rmehta@gmail.com" class="">rmehta@gmail.com</a>
 			<p style="margin: 15px auto;" class="">
-				<a href="http://demo-test.erpnext.com.dev/api/method/frappe.email.queue.unsubscribe?email=rmehta%40gmail.com&amp;name=26cc3e5a5d&amp;doctype=Daily+Work+Summary&amp;_signature=2c7ab37e6d775e5a481e9b4376154a41" style="color: #8d99a6; text-decoration: underline;
+				<a href="http://demo-test.erpnext.com.dev/api/method/nts.email.queue.unsubscribe?email=rmehta%40gmail.com&amp;name=26cc3e5a5d&amp;doctype=Daily+Work+Summary&amp;_signature=2c7ab37e6d775e5a481e9b4376154a41" style="color: #8d99a6; text-decoration: underline;
 					target=" _blank"="" class="">Unsubscribe from this list
 				</a>
 			</p>

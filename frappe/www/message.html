@@ -40,7 +40,7 @@ html, body {
 <p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>
 {% endif %}
 <script>
-	frappe.ready(function() {
+	nts.ready(function() {
 		if (window.location.hash || window.location.href.includes('/app')) {
 			localStorage.setItem('session_last_route', window.location.pathname);
 		}

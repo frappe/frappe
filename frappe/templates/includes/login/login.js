@@ -18,11 +18,11 @@ login.bind_events = function () {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "login";
-		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
+		args.usr = nts.utils.xss_sanitise(($("#login_email").val() || "").trim());
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
 			{# striptags is used to remove newlines, e is used for escaping #}
-			frappe.msgprint("{{ _('Both login and password required') | striptags | e }}");
+			nts.msgprint("{{ _('Both login and password required') | striptags | e }}");
 			return false;
 		}
 		login.call(args, null, "/login");
@@ -32,10 +32,10 @@ login.bind_events = function () {
 	$(".form-signup").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.user.user.sign_up";
+		args.cmd = "nts.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
-		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
-		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
+		args.redirect_to = nts.utils.sanitise_redirect(nts.utils.get_url_arg("redirect-to"));
+		args.full_name = nts.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
 		if (!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_status({{ _("Valid email and name required") | tojson }}, 'red');
 			return false;
@@ -47,7 +47,7 @@ login.bind_events = function () {
 	$(".form-forgot").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.user.user.reset_password";
+		args.cmd = "nts.core.doctype.user.user.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
 		if (!args.user) {
 			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
@@ -60,7 +60,7 @@ login.bind_events = function () {
 	$(".form-login-with-email-link").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.www.login.send_login_link";
+		args.cmd = "nts.www.login.send_login_link";
 		args.email = ($("#login_with_email_link_email").val() || "").trim();
 		if (!args.email) {
 			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
@@ -171,7 +171,7 @@ login.signup = function () {
 login.call = function (args, callback, url="/") {
 	login.set_status({{ _("Verifying...") | tojson }}, 'blue');
 
-	return frappe.call({
+	return nts.call({
 		type: "POST",
 		url: url,
 		args: args,
@@ -230,20 +230,20 @@ login.login_handlers = (function () {
 			if (data.message == 'Logged In') {
 				login.set_status({{ _("Success") | tojson }}, 'green');
 				document.body.innerHTML = `{% include "templates/includes/splash_screen.html" %}`;
-				window.location.href = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to")) || data.home_page;
+				window.location.href = nts.utils.sanitise_redirect(nts.utils.get_url_arg("redirect-to")) || data.home_page;
 			} else if (data.message == 'Password Reset') {
-				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
+				window.location.href = nts.utils.sanitise_redirect(data.redirect_to);
 			} else if (data.message == "No App") {
 				login.set_status({{ _("Success") | tojson }}, 'green');
 				if (localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
-						|| frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
+						|| nts.utils.sanitise_redirect(nts.utils.get_url_arg("redirect-to"));
 					localStorage.removeItem("last_visited");
 				}
 
 				if (data.redirect_to) {
-					window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
+					window.location.href = nts.utils.sanitise_redirect(data.redirect_to);
 				}
 
 				if (last_visited && last_visited != "/login") {
@@ -268,7 +268,7 @@ login.login_handlers = (function () {
 					login.set_status(data.message[1], 'red');
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
-					frappe.msgprint(data.message[1])
+					nts.msgprint(data.message[1])
 				}
 				//login.set_status(__(data.message), 'green');
 			}
@@ -297,7 +297,7 @@ login.login_handlers = (function () {
 	return login_handlers;
 })();
 
-frappe.ready(function () {
+nts.ready(function () {
 
 	login.bind_events();
 
@@ -321,10 +321,10 @@ var verify_token = function (event) {
 		var args = {};
 		args.cmd = "login";
 		args.otp = $("#login_token").val();
-		args.tmp_id = frappe.get_cookie('tmp_id');
+		args.tmp_id = nts.get_cookie('tmp_id');
 		if (!args.otp) {
 			{# striptags is used to remove newlines, e is used for escaping #}
-			frappe.msgprint("{{ _('Login token required') | striptags | e }}");
+			nts.msgprint("{{ _('Login token required') | striptags | e }}");
 			return false;
 		}
 		login.call(args);

@@ -1,6 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
+import nts
 
-test_records = frappe.get_test_records("Blogger")
+test_records = nts.get_test_records("Blogger")

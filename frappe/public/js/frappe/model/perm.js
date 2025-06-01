@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.perm");
+nts.provide("nts.perm");
 
 // backward compatibilty
 Object.assign(window, {
@@ -14,7 +14,7 @@ Object.assign(window, {
 	AMEND: "amend",
 });
 
-$.extend(frappe.perm, {
+$.extend(nts.perm, {
 	rights: [
 		"select",
 		"read",
@@ -35,7 +35,7 @@ $.extend(frappe.perm, {
 	doctype_perm: {},
 
 	has_perm: (doctype, permlevel = 0, ptype = "read", doc) => {
-		const perms = frappe.perm.get_perm(doctype, doc);
+		const perms = nts.perm.get_perm(doctype, doc);
 		return !!perms?.[permlevel]?.[ptype];
 	},
 
@@ -44,30 +44,30 @@ $.extend(frappe.perm, {
 		// (with ownership and user perms applied) else cached doctype perms
 
 		if (doc && !doc.__islocal) {
-			return frappe.perm._get_perm(doctype, doc);
+			return nts.perm._get_perm(doctype, doc);
 		}
 
-		return (frappe.perm.doctype_perm[doctype] ??= frappe.perm._get_perm(doctype));
+		return (nts.perm.doctype_perm[doctype] ??= nts.perm._get_perm(doctype));
 	},
 
 	_get_perm: (doctype, doc) => {
 		let perm = [{ read: 0, permlevel: 0 }];
 
-		let meta = frappe.get_doc("DocType", doctype);
-		const user = frappe.session.user;
+		let meta = nts.get_doc("DocType", doctype);
+		const user = nts.session.user;
 
-		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
+		if (user === "Administrator" || nts.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
 		if (!meta) return perm;
 
-		perm = frappe.perm.get_role_permissions(meta);
+		perm = nts.perm.get_role_permissions(meta);
 		const base_perm = perm[0];
 
 		if (doc) {
 			// apply user permissions via docinfo (which is processed server-side)
-			let docinfo = frappe.model.get_docinfo(doctype, doc.name);
+			let docinfo = nts.model.get_docinfo(doctype, doc.name);
 			if (docinfo && docinfo.permissions) {
 				Object.keys(docinfo.permissions).forEach((ptype) => {
 					base_perm[ptype] = docinfo.permissions[ptype];
@@ -76,7 +76,7 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if (doc.owner !== user) {
-				for (const right of frappe.perm.rights) {
+				for (const right of nts.perm.rights) {
 					if (base_perm[right] && !base_perm.rights_without_if_owner.has(right)) {
 						base_perm[right] = 0;
 					}
@@ -96,15 +96,15 @@ $.extend(frappe.perm, {
 						// also give print, email permissions if read
 						// and these permissions exist at level [0]
 						base_perm.email =
-							frappe.boot.user.can_email.indexOf(doctype) !== -1 ? 1 : 0;
+							nts.boot.user.can_email.indexOf(doctype) !== -1 ? 1 : 0;
 						base_perm.print =
-							frappe.boot.user.can_print.indexOf(doctype) !== -1 ? 1 : 0;
+							nts.boot.user.can_print.indexOf(doctype) !== -1 ? 1 : 0;
 					}
 				}
 			}
 		}
 
-		if (!base_perm.read && frappe.model.can_read(doctype)) {
+		if (!base_perm.read && nts.model.can_read(doctype)) {
 			// read via sharing
 			base_perm.read = 1;
 		}
@@ -132,8 +132,8 @@ $.extend(frappe.perm, {
 			}
 
 			// if user has this role
-			if (frappe.user_roles.includes(p.role)) {
-				frappe.perm.rights.forEach((right) => {
+			if (nts.user_roles.includes(p.role)) {
+				nts.perm.rights.forEach((right) => {
 					if (!p[right]) return;
 
 					current_perm[right] = 1;
@@ -155,16 +155,16 @@ $.extend(frappe.perm, {
 
 		if (!ptype) ptype = "read";
 
-		let perm = frappe.perm.get_perm(doctype);
+		let perm = nts.perm.get_perm(doctype);
 
-		let user_permissions = frappe.defaults.get_user_permissions();
+		let user_permissions = nts.defaults.get_user_permissions();
 
 		if (user_permissions && !$.isEmptyObject(user_permissions)) {
 			let rules = {};
-			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
+			let fields_to_check = nts.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
 				const user_permissions_for_doctype = user_permissions[df.options] || [];
-				const allowed_records = frappe.perm.get_allowed_docs_for_doctype(
+				const allowed_records = nts.perm.get_allowed_docs_for_doctype(
 					user_permissions_for_doctype,
 					doctype
 				);
@@ -179,7 +179,7 @@ $.extend(frappe.perm, {
 
 		const base_perm = perm[0];
 		if (base_perm.read && !base_perm.rights_without_if_owner.has("read")) {
-			match_rules.push({ Owner: frappe.session.user });
+			match_rules.push({ Owner: nts.session.user });
 		}
 		return match_rules;
 	},
@@ -188,7 +188,7 @@ $.extend(frappe.perm, {
 		// returns the display status of a particular field
 		// returns one of "Read", "Write" or "None"
 		if (!perm && doc) {
-			perm = frappe.perm.get_perm(doc.doctype, doc);
+			perm = nts.perm.get_perm(doc.doctype, doc);
 		}
 
 		if (!perm) {
@@ -265,17 +265,17 @@ $.extend(frappe.perm, {
 	is_visible: (df, doc, perm) => {
 		if (typeof df === "string") {
 			// df is fieldname
-			df = frappe.meta.get_docfield(doc.doctype, df, doc.parent || doc.name);
+			df = nts.meta.get_docfield(doc.doctype, df, doc.parent || doc.name);
 		}
 
-		let status = frappe.perm.get_field_display_status(df, doc, perm);
+		let status = nts.perm.get_field_display_status(df, doc, perm);
 
 		return status === "None" ? false : true;
 	},
 
 	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
 		// returns docs from the list of user permissions that are allowed under provided doctype
-		return frappe.perm.filter_allowed_docs_for_doctype(user_permissions, doctype, false);
+		return nts.perm.filter_allowed_docs_for_doctype(user_permissions, doctype, false);
 	},
 
 	filter_allowed_docs_for_doctype: (user_permissions, doctype, with_default_doc = true) => {

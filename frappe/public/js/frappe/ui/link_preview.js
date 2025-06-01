@@ -1,4 +1,4 @@
-frappe.ui.LinkPreview = class {
+nts.ui.LinkPreview = class {
 	constructor() {
 		this.popovers_list = [];
 		this.LINK_CLASSES = 'a[data-doctype], input[data-fieldtype="Link"], .popover';
@@ -26,7 +26,7 @@ frappe.ui.LinkPreview = class {
 	identify_doc() {
 		if (this.is_link) {
 			this.doctype = this.element.attr("data-doctype");
-			this.name = frappe.utils.unescape_html(this.element.attr("data-name"));
+			this.name = nts.utils.unescape_html(this.element.attr("data-name"));
 			this.href = this.element.attr("href");
 		} else {
 			this.href = this.element
@@ -40,7 +40,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	setup_popover_control(e) {
-		if (!(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
+		if (!(nts.boot.link_preview_doctypes || []).includes(this.doctype)) {
 			return;
 		}
 		//If control field value is changed, new popover has to be created
@@ -121,7 +121,7 @@ frappe.ui.LinkPreview = class {
 			}
 		});
 
-		frappe.router.on("change", () => {
+		nts.router.on("change", () => {
 			this.clear_all_popovers();
 		});
 	}
@@ -131,7 +131,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_preview_data() {
-		return frappe.xcall("frappe.desk.link_preview.get_preview_data", {
+		return nts.xcall("nts.desk.link_preview.get_preview_data", {
 			doctype: this.doctype,
 			docname: this.name,
 		});
@@ -205,7 +205,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_image_html(preview_data) {
-		let avatar_html = frappe.get_avatar(
+		let avatar_html = nts.get_avatar(
 			"avatar-medium",
 			preview_data.preview_title,
 			preview_data.preview_image
@@ -221,7 +221,7 @@ frappe.ui.LinkPreview = class {
 
 		Object.keys(preview_data).forEach((key) => {
 			if (!["preview_image", "preview_title", "name"].includes(key)) {
-				let value = frappe.ellipsis(preview_data[key], 280);
+				let value = nts.ellipsis(preview_data[key], 280);
 				let label = key;
 				content_html += `
 					<div class="preview-field">

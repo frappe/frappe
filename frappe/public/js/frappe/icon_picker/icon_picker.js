@@ -17,7 +17,7 @@ class Picker {
 			<div class="icon-picker">
 				<div class="search-icons">
 					<input type="search" placeholder="${__("Search for icons...")}" class="form-control">
-					<span class="search-icon">${frappe.utils.icon("search", "sm")}</span>
+					<span class="search-icon">${nts.utils.icon("search", "sm")}</span>
 				</div>
 				<div class="icon-section">
 					<div class="icons"></div>
@@ -34,7 +34,7 @@ class Picker {
 	setup_icons() {
 		this.icons.forEach((icon) => {
 			let $icon = $(
-				`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`
+				`<div id="${icon}" class="icon-wrapper">${nts.utils.icon(icon, "md")}</div>`
 			);
 			this.icon_wrapper.append($icon);
 			const set_values = () => {

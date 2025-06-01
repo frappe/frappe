@@ -1,6 +1,6 @@
 import Widget from "./base_widget.js";
 
-frappe.provide("frappe.utils");
+nts.provide("nts.utils");
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
@@ -29,7 +29,7 @@ export default class LinksWidget extends Widget {
 		if (this.description) {
 			const description = $(`
 				<button class="btn-reset card-description-btn ml-2">
-					${frappe.utils.icon("help", "sm")}
+					${nts.utils.icon("help", "sm")}
 				</button>
 			`).appendTo(this.widget.find(".widget-title"));
 
@@ -81,7 +81,7 @@ export default class LinksWidget extends Widget {
 			return `
 				<span class="link-content ellipsis">
 					<span class="link-text">${item.link_title}</span>
-					${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")}
+					${nts.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")}
 				</span>
 			`;
 		};
@@ -99,7 +99,7 @@ export default class LinksWidget extends Widget {
 				opts.doctype = item.dependencies;
 			}
 
-			const route = frappe.utils.generate_route(opts);
+			const route = nts.utils.generate_route(opts);
 			item.link_title = item.label ? item.label : item.name;
 
 			const $link = $(`
@@ -150,7 +150,7 @@ export default class LinksWidget extends Widget {
 
 					if (link_label.hasClass("help-video-link")) {
 						let yt_id = event.currentTarget.dataset.youtubeid;
-						frappe.help.show_video(yt_id);
+						nts.help.show_video(yt_id);
 					}
 				});
 			}

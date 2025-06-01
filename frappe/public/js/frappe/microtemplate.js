@@ -1,13 +1,13 @@
 // Simple JavaScript Templating
 // Adapted from John Resig - http://ejohn.org/ - MIT Licensed
 
-frappe.template = { compiled: {}, debug: {} };
+nts.template = { compiled: {}, debug: {} };
 
 /* eslint-disable */
-frappe.template.compile = function (str, name) {
+nts.template.compile = function (str, name) {
 	var key = name || str;
 
-	if (!frappe.template.compiled[key]) {
+	if (!nts.template.compiled[key]) {
 		if (str.indexOf("'") !== -1) {
 			str.replace(/'/g, "\\'");
 			//console.warn("Warning: Single quotes (') may not work in templates");
@@ -25,8 +25,8 @@ frappe.template.compile = function (str, name) {
 		// {% for item in list %}
 		//       --> {% for (var i=0, len=list.length; i<len; i++) {  var item = list[i]; %}
 		function replacer(match, p1, p2, offset, string) {
-			var i = frappe.utils.get_random(3);
-			var len = frappe.utils.get_random(3);
+			var i = nts.utils.get_random(3);
+			var len = nts.utils.get_random(3);
 			return (
 				"{% for (var " +
 				i +
@@ -83,9 +83,9 @@ frappe.template.compile = function (str, name) {
 				.join("\\'") +
 			"');}return _p.join('');";
 
-		frappe.template.debug[name] = fn_str;
+		nts.template.debug[name] = fn_str;
 		try {
-			frappe.template.compiled[key] = new Function("obj", fn_str);
+			nts.template.compiled[key] = new Function("obj", fn_str);
 		} catch (e) {
 			console.log("Error in Template:");
 			console.log(fn_str);
@@ -96,29 +96,29 @@ frappe.template.compile = function (str, name) {
 		}
 	}
 
-	return frappe.template.compiled[key];
+	return nts.template.compiled[key];
 };
 /* eslint-enable */
 
-frappe.render = function (str, data, name) {
-	return frappe.template.compile(str, name)(data);
+nts.render = function (str, data, name) {
+	return nts.template.compile(str, name)(data);
 };
-frappe.render_template = function (name, data) {
+nts.render_template = function (name, data) {
 	let template;
 	if (name.indexOf(" ") !== -1) {
 		template = name;
 	} else {
-		template = frappe.templates[name];
+		template = nts.templates[name];
 	}
 	if (data === undefined) {
 		data = {};
 	}
 	if (!template) {
-		frappe.throw(`Template <b>${name}</b> not found.`);
+		nts.throw(`Template <b>${name}</b> not found.`);
 	}
-	return frappe.render(template, data, name);
+	return nts.render(template, data, name);
 };
-(frappe.render_grid = function (opts) {
+(nts.render_grid = function (opts) {
 	// build context
 	if (opts.grid) {
 		opts.columns = opts.grid.getColumns();
@@ -144,44 +144,44 @@ frappe.render_template = function (name, data) {
 
 	// render content
 	if (!opts.content) {
-		opts.content = frappe.render_template(opts.template || "print_grid", opts);
+		opts.content = nts.render_template(opts.template || "print_grid", opts);
 	}
 
 	// render HTML wrapper page
-	opts.base_url = frappe.urllib.get_base_url();
-	opts.print_css = frappe.boot.print_css;
+	opts.base_url = nts.urllib.get_base_url();
+	opts.print_css = nts.boot.print_css;
 
-	(opts.lang = opts.lang || frappe.boot.lang),
-		(opts.layout_direction = opts.layout_direction || frappe.utils.is_rtl() ? "rtl" : "ltr");
+	(opts.lang = opts.lang || nts.boot.lang),
+		(opts.layout_direction = opts.layout_direction || nts.utils.is_rtl() ? "rtl" : "ltr");
 
-	var html = frappe.render_template("print_template", opts);
+	var html = nts.render_template("print_template", opts);
 
 	var w = window.open();
 
 	if (!w) {
-		frappe.msgprint(__("Please enable pop-ups in your browser"));
+		nts.msgprint(__("Please enable pop-ups in your browser"));
 	}
 
 	w.document.write(html);
 	w.document.close();
 }),
-	(frappe.render_tree = function (opts) {
-		opts.base_url = frappe.urllib.get_base_url();
+	(nts.render_tree = function (opts) {
+		opts.base_url = nts.urllib.get_base_url();
 		opts.landscape = false;
-		opts.print_css = frappe.boot.print_css;
-		opts.print_format_css_path = frappe.assets.bundled_asset("print_format.bundle.css");
-		var tree = frappe.render_template("print_tree", opts);
+		opts.print_css = nts.boot.print_css;
+		opts.print_format_css_path = nts.assets.bundled_asset("print_format.bundle.css");
+		var tree = nts.render_template("print_tree", opts);
 		var w = window.open();
 
 		if (!w) {
-			frappe.msgprint(__("Please enable pop-ups in your browser"));
+			nts.msgprint(__("Please enable pop-ups in your browser"));
 		}
 
 		w.document.write(tree);
 		w.document.close();
 	});
 
-frappe.render_pdf = function (html, opts = {}) {
+nts.render_pdf = function (html, opts = {}) {
 	//Create a form to place the HTML content
 	var formData = new FormData();
 
@@ -194,8 +194,8 @@ frappe.render_pdf = function (html, opts = {}) {
 	formData.append("blob", blob);
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "/api/method/frappe.utils.print_format.report_to_pdf");
-	xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+	xhr.open("POST", "/api/method/nts.utils.print_format.report_to_pdf");
+	xhr.setRequestHeader("X-nts-CSRF-Token", nts.csrf_token);
 	xhr.responseType = "arraybuffer";
 
 	xhr.onload = function (success) {

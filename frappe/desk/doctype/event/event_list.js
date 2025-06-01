@@ -1,7 +1,7 @@
-frappe.listview_settings["Event"] = {
+nts.listview_settings["Event"] = {
 	add_fields: ["starts_on", "ends_on"],
 	onload: function () {
-		frappe.route_options = {
+		nts.route_options = {
 			status: "Open",
 		};
 	},

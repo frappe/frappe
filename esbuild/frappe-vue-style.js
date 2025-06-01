@@ -3,7 +3,7 @@ const path = require("path");
 const { sites_path } = require("./utils");
 
 module.exports = {
-	name: "frappe-vue-style",
+	name: "nts-vue-style",
 	setup(build) {
 		build.initialOptions.write = false;
 		build.onEnd((result) => {
@@ -21,7 +21,7 @@ module.exports = {
 					});
 
 					let css_data = JSON.stringify(result.outputFiles[index].text);
-					let modified = `frappe.dom.set_style(${css_data});\n${out.text}`;
+					let modified = `nts.dom.set_style(${css_data});\n${out.text}`;
 					out.contents = Buffer.from(modified);
 
 					result.outputFiles.splice(index, 1);

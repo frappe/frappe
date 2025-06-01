@@ -35,7 +35,7 @@
 {% endmacro %}
 
 {% macro my_account() %}
-{% if frappe.user != 'Guest' %}
+{% if nts.user != 'Guest' %}
 <ul class="list-unstyled">
 	<li class="sidebar-item">
 		<a href="/me">{{ _("My Account") }}</a>
@@ -57,7 +57,7 @@
 </div>
 
 <script>
-	frappe.ready(function () {
+	nts.ready(function () {
 		$('.sidebar-item a').each(function (index) {
 			const active_class = 'active'
 			const non_active_class = ''

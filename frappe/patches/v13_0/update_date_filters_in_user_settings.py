@@ -1,14 +1,14 @@
 import json
 
-import frappe
-from frappe.model.utils.user_settings import sync_user_settings, update_user_settings
+import nts
+from nts.model.utils.user_settings import sync_user_settings, update_user_settings
 
 
 def execute():
-	users = frappe.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
+	users = nts.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
 
 	for user in users:
-		user_settings = frappe.db.sql(
+		user_settings = nts.db.sql(
 			f"""
 			select
 				* from `__UserSettings`
@@ -19,7 +19,7 @@ def execute():
 		)
 
 		for setting in user_settings:
-			data = frappe.parse_json(setting.get("data"))
+			data = nts.parse_json(setting.get("data"))
 			if data:
 				for key in data:
 					update_user_setting_filters(data, key, setting)

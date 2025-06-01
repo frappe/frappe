@@ -1,10 +1,10 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2018, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import cint
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import cint
 
 
 class PrintSettings(Document):
@@ -14,7 +14,7 @@ class PrintSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		add_draft_heading: DF.Check
 		allow_page_break_inside_tables: DF.Check
@@ -67,17 +67,17 @@ class PrintSettings(Document):
 	# end: auto-generated types
 	def validate(self):
 		if self.pdf_page_size == "Custom" and not (self.pdf_page_height and self.pdf_page_width):
-			frappe.throw(_("Page height and width cannot be zero"))
+			nts.throw(_("Page height and width cannot be zero"))
 
 	def on_update(self):
-		frappe.clear_cache()
+		nts.clear_cache()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def is_print_server_enabled():
-	if not hasattr(frappe.local, "enable_print_server"):
-		frappe.local.enable_print_server = cint(
-			frappe.db.get_single_value("Print Settings", "enable_print_server")
+	if not hasattr(nts.local, "enable_print_server"):
+		nts.local.enable_print_server = cint(
+			nts.db.get_single_value("Print Settings", "enable_print_server")
 		)
 
-	return frappe.local.enable_print_server
+	return nts.local.enable_print_server

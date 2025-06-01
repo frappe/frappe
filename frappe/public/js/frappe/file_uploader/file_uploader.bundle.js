@@ -37,7 +37,7 @@ class FileUploader {
 
 		if (restrictions && !restrictions.allowed_file_types) {
 			// apply global allow list if present
-			let allowed_extensions = frappe.sys_defaults?.allowed_file_extensions;
+			let allowed_extensions = nts.sys_defaults?.allowed_file_extensions;
 			if (allowed_extensions) {
 				restrictions.allowed_file_types = allowed_extensions
 					.split("\n")
@@ -127,7 +127,7 @@ class FileUploader {
 	}
 
 	make_dialog(title) {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: title || __("Upload"),
 			primary_action_label: __("Upload"),
 			primary_action: () => this.upload_files(),
@@ -149,6 +149,6 @@ class FileUploader {
 	}
 }
 
-frappe.provide("frappe.ui");
-frappe.ui.FileUploader = FileUploader;
+nts.provide("nts.ui");
+nts.ui.FileUploader = FileUploader;
 export default FileUploader;

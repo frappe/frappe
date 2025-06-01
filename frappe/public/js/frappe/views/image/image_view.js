@@ -1,9 +1,9 @@
 /**
- * frappe.views.ImageView
+ * nts.views.ImageView
  */
-frappe.provide("frappe.views");
+nts.provide("nts.views");
 
-frappe.views.ImageView = class ImageView extends frappe.views.ListView {
+nts.views.ImageView = class ImageView extends nts.views.ListView {
 	get view_name() {
 		return "Image";
 	}
@@ -87,19 +87,19 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		item._name = encodeURI(item.name);
 		const encoded_name = item._name;
 		const title = strip_html(item[this.meta.title_field || "name"]);
-		const escaped_title = frappe.utils.escape_html(title);
+		const escaped_title = nts.utils.escape_html(title);
 		const _class = !item._image_url ? "no-image" : "";
 		const _html = item._image_url
 			? `<img data-name="${encoded_name}" src="${item._image_url}" alt="${title}">`
 			: `<span class="placeholder-text">
-				${frappe.get_abbr(title)}
+				${nts.get_abbr(title)}
 			</span>`;
 
 		let details = this.item_details_html(item);
 
 		const expand_button_html = item._image_url
 			? `<div class="zoom-view" data-name="${encoded_name}">
-				${frappe.utils.icon("expand", "xs")}
+				${nts.utils.icon("expand", "xs")}
 			</div>`
 			: "";
 
@@ -142,9 +142,9 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 
 	get_attached_images() {
-		return frappe
+		return nts
 			.call({
-				method: "frappe.core.api.file.get_attached_images",
+				method: "nts.core.api.file.get_attached_images",
 				args: {
 					doctype: this.doctype,
 					names: this.items.map((i) => i.name),
@@ -165,7 +165,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		// 		</div>
 		// 		<div class="list-image-header-item">
 		// 			<div class="level-item list-liked-by-me">
-		// 				${frappe.utils.icon('heart', 'sm', 'like-icon')}
+		// 				${nts.utils.icon('heart', 'sm', 'like-icon')}
 		// 			</div>
 		// 			<div>${__('Liked')}</div>
 		// 		</div>
@@ -175,7 +175,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 	setup_gallery() {
 		var me = this;
-		this.gallery = new frappe.views.GalleryView({
+		this.gallery = new nts.views.GalleryView({
 			doctype: this.doctype,
 			items: this.items,
 			wrapper: this.$result,
@@ -192,7 +192,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 };
 
-frappe.views.GalleryView = class GalleryView {
+nts.views.GalleryView = class GalleryView {
 	constructor(opts) {
 		$.extend(this, opts);
 		var me = this;
@@ -206,7 +206,7 @@ frappe.views.GalleryView = class GalleryView {
 		// keep only one pswp dom element
 		this.pswp_root = $("body > .pswp");
 		if (this.pswp_root.length === 0) {
-			var pswp = frappe.render_template("photoswipe_dom");
+			var pswp = nts.render_template("photoswipe_dom");
 			this.pswp_root = $(pswp).appendTo("body");
 		}
 	}
@@ -350,8 +350,8 @@ frappe.views.GalleryView = class GalleryView {
 	}
 	load_lib() {
 		return new Promise((resolve) => {
-			var asset_dir = "assets/frappe/js/lib/photoswipe/";
-			frappe.require(
+			var asset_dir = "assets/nts/js/lib/photoswipe/";
+			nts.require(
 				[
 					asset_dir + "photoswipe.css",
 					asset_dir + "default-skin.css",

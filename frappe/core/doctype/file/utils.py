@@ -9,27 +9,27 @@ from urllib.parse import unquote
 
 import filetype
 
-import frappe
-from frappe import _, safe_decode
-from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
-from frappe.utils.file_manager import safe_b64decode
-from frappe.utils.image import optimize_image
+import nts
+from nts import _, safe_decode
+from nts.utils import cint, cstr, encode, get_files_path, random_string, strip
+from nts.utils.file_manager import safe_b64decode
+from nts.utils.image import optimize_image
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
 	from requests.models import Response
 
-	from frappe.model.document import Document
+	from nts.model.document import Document
 
 	from .file import File
 
 
 def make_home_folder() -> None:
-	home = frappe.get_doc(
+	home = nts.get_doc(
 		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
 	).insert(ignore_if_duplicate=True)
 
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "File",
 			"folder": home.name,
@@ -41,12 +41,12 @@ def make_home_folder() -> None:
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:
-	file: "File" = frappe.get_doc("File", filename)
+	file: "File" = nts.get_doc("File", filename)
 	file.folder = new_parent
 	file.save()
 
 	if file.is_folder:
-		from frappe.model.rename_doc import rename_doc
+		from nts.model.rename_doc import rename_doc
 
 		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
@@ -91,12 +91,12 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 	else:
 		file_url_path = ("public", file_url.lstrip("/"))
 
-	file_path = frappe.get_site_path(*file_url_path)
+	file_path = nts.get_site_path(*file_url_path)
 
 	try:
 		image = Image.open(file_path)
 	except OSError:
-		frappe.throw(_("Unable to read file format for {0}").format(file_url))
+		nts.throw(_("Unable to read file format for {0}").format(file_url))
 
 	content = None
 
@@ -120,21 +120,21 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	import requests.exceptions
 	from PIL import Image
 
-	file_url = frappe.utils.get_url(file_url)
+	file_url = nts.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
 		r.raise_for_status()
 	except requests.exceptions.HTTPError as e:
 		if "404" in e.args[0]:
-			frappe.msgprint(_("File '{0}' not found").format(file_url))
+			nts.msgprint(_("File '{0}' not found").format(file_url))
 		else:
-			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
+			nts.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
 	try:
 		image = Image.open(BytesIO(r.content))
 	except Exception as e:
-		frappe.msgprint(_("Image link '{0}' is not valid").format(file_url), raise_exception=e)
+		nts.msgprint(_("Image link '{0}' is not valid").format(file_url), raise_exception=e)
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)
@@ -154,16 +154,16 @@ def delete_file(path: str) -> None:
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
-			frappe.throw(
+			nts.throw(
 				_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path)
 			)
 
 		parts = os.path.split(path.strip("/"))
 		if parts[0] == "files":
-			path = frappe.utils.get_site_path("public", "files", parts[-1])
+			path = nts.utils.get_site_path("public", "files", parts[-1])
 
 		else:
-			path = frappe.utils.get_site_path("private", "files", parts[-1])
+			path = nts.utils.get_site_path("private", "files", parts[-1])
 
 		path = encode(path)
 		if os.path.exists(path):
@@ -172,14 +172,14 @@ def delete_file(path: str) -> None:
 
 def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
 	if doctype and name:
-		fid = frappe.db.get_value(
+		fid = nts.db.get_value(
 			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
 		)
 	else:
-		fid = frappe.db.get_value("File", {"file_url": file_url})
+		fid = nts.db.get_value("File", {"file_url": file_url})
 
 	if fid:
-		from frappe.utils.file_manager import remove_file
+		from nts.utils.file_manager import remove_file
 
 		return remove_file(fid=fid)
 
@@ -212,7 +212,7 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 	# convert to unicode
 	fname = cstr(fname)
 	partial, extn = os.path.splitext(fname)
-	suffix = optional_suffix or frappe.generate_hash(length=6)
+	suffix = optional_suffix or nts.generate_hash(length=6)
 
 	return f"{partial}{suffix}{extn}"
 
@@ -220,12 +220,12 @@ def get_file_name(fname: str, optional_suffix: str | None = None) -> str:
 def extract_images_from_doc(doc: "Document", fieldname: str):
 	content = doc.get(fieldname)
 	content = extract_images_from_html(doc, content, is_private=(not doc.meta.make_attachments_public))
-	if frappe.flags.has_dataurl:
+	if nts.flags.has_dataurl:
 		doc.set(fieldname, content)
 
 
 def extract_images_from_html(doc: "Document", content: str, is_private: bool = False):
-	frappe.flags.has_dataurl = False
+	nts.flags.has_dataurl = False
 
 	def _save_file(match):
 		data = match.group(1).split("data:")[1]
@@ -244,7 +244,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		try:
 			content = safe_b64decode(content)
 		except BinasciiError:
-			frappe.flags.has_dataurl = True
+			nts.flags.has_dataurl = True
 			return f'<img src="#broken-image" alt="{get_corrupted_image_msg()}"'
 
 		content = optimize_image(content, mtype)
@@ -263,7 +263,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			doctype = doc.doctype
 			name = doc.name
 
-		_file = frappe.get_doc(
+		_file = nts.get_doc(
 			{
 				"doctype": "File",
 				"file_name": filename,
@@ -276,7 +276,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		)
 		_file.save(ignore_permissions=True)
 		file_url = _file.unique_url
-		frappe.flags.has_dataurl = True
+		nts.flags.has_dataurl = True
 
 		return f'<img src="{file_url}"'
 
@@ -300,9 +300,9 @@ def get_random_filename(content_type: str | None = None) -> str:
 
 def update_existing_file_docs(doc: "File") -> None:
 	# Update is private and file url of all file docs that point to the same file
-	file_doctype = frappe.qb.DocType("File")
+	file_doctype = nts.qb.DocType("File")
 	(
-		frappe.qb.update(file_doctype)
+		nts.qb.update(file_doctype)
 		.set(file_doctype.file_url, doc.file_url)
 		.set(file_doctype.is_private, doc.is_private)
 		.where(file_doctype.content_hash == doc.content_hash)
@@ -326,7 +326,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 		if not (value or "").startswith(("/files", "/private/files")):
 			continue
 
-		if frappe.db.exists(
+		if nts.db.exists(
 			"File",
 			{
 				"file_url": value,
@@ -337,7 +337,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 		):
 			continue
 
-		unattached_file = frappe.db.exists(
+		unattached_file = nts.db.exists(
 			"File",
 			{
 				"file_url": value,
@@ -348,7 +348,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 		)
 
 		if unattached_file:
-			frappe.db.set_value(
+			nts.db.set_value(
 				"File",
 				unattached_file,
 				field={
@@ -360,7 +360,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			)
 			continue
 
-		file: "File" = frappe.get_doc(
+		file: "File" = nts.get_doc(
 			doctype="File",
 			file_url=value,
 			attached_to_name=doc.name,
@@ -381,9 +381,9 @@ def relink_files(doc, fieldname, temp_doc_name):
 	"""
 	if not temp_doc_name:
 		return
-	from frappe.utils.data import add_to_date, now_datetime
+	from nts.utils.data import add_to_date, now_datetime
 
-	mislinked_file = frappe.db.get_value(
+	mislinked_file = nts.db.get_value(
 		"File",
 		{
 			"file_url": doc.get(fieldname),
@@ -398,7 +398,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 	)
 	# If file exists, attach it to the new docname
 	if mislinked_file:
-		frappe.db.set_value(
+		nts.db.set_value(
 			"File",
 			mislinked_file,
 			field={
@@ -432,12 +432,12 @@ def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 	if name:
 		filters["name"] = str(name)
 
-	files = frappe.get_all("File", filters=filters, fields="*")
+	files = nts.get_all("File", filters=filters, fields="*")
 
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
-		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		file: "File" = nts.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file

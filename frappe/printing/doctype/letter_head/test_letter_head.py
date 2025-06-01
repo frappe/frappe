@@ -1,12 +1,12 @@
-# Copyright (c) 2017, Frappe Technologies and Contributors
+# Copyright (c) 2017, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.tests.utils import ntsTestCase
 
 
-class TestLetterHead(FrappeTestCase):
+class TestLetterHead(ntsTestCase):
 	def test_auto_image(self):
-		letter_head = frappe.get_doc(
+		letter_head = nts.get_doc(
 			dict(doctype="Letter Head", letter_head_name="Test", source="Image", image="/public/test.png")
 		).insert()
 

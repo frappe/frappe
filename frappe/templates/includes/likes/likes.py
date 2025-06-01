@@ -1,18 +1,18 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.rate_limiter import rate_limit
-from frappe.website.doctype.blog_settings.blog_settings import get_like_limit
-from frappe.website.utils import clear_cache
+import nts
+from nts import _
+from nts.rate_limiter import rate_limit
+from nts.website.doctype.blog_settings.blog_settings import get_like_limit
+from nts.website.utils import clear_cache
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_like_limit, seconds=60 * 60)
 def like(reference_doctype, reference_name, like, route=""):
-	like = frappe.parse_json(like)
-	ref_doc = frappe.get_doc(reference_doctype, reference_name)
+	like = nts.parse_json(like)
+	ref_doc = nts.get_doc(reference_doctype, reference_name)
 	if ref_doc.disable_likes == 1:
 		return
 
@@ -31,12 +31,12 @@ def like(reference_doctype, reference_name, like, route=""):
 		content = _("You have received a ❤️ like on your blog post")
 		message = f"<p>{content} <b>{ref_doc_title}</b></p>"
 		message = message + "<p><a href='{}/{}#likes' style='font-size: 80%'>{}</a></p>".format(
-			frappe.utils.get_request_site_address(), ref_doc.route, _("View Blog Post")
+			nts.utils.get_request_site_address(), ref_doc.route, _("View Blog Post")
 		)
 
 		# notify creator
-		frappe.sendmail(
-			recipients=frappe.db.get_value("User", ref_doc.owner, "email") or ref_doc.owner,
+		nts.sendmail(
+			recipients=nts.db.get_value("User", ref_doc.owner, "email") or ref_doc.owner,
 			subject=subject,
 			message=message,
 			reference_doctype=ref_doc.doctype,
@@ -47,22 +47,22 @@ def like(reference_doctype, reference_name, like, route=""):
 
 
 def add_like(reference_doctype, reference_name):
-	user = frappe.session.user
+	user = nts.session.user
 
-	like = frappe.new_doc("Comment")
+	like = nts.new_doc("Comment")
 	like.comment_type = "Like"
 	like.comment_email = user
 	like.reference_doctype = reference_doctype
 	like.reference_name = reference_name
 	like.content = "Liked by: " + user
 	if user == "Guest":
-		like.ip_address = frappe.local.request_ip
+		like.ip_address = nts.local.request_ip
 	like.save(ignore_permissions=True)
 	return True
 
 
 def delete_like(reference_doctype, reference_name):
-	user = frappe.session.user
+	user = nts.session.user
 
 	filters = {
 		"comment_type": "Like",
@@ -72,7 +72,7 @@ def delete_like(reference_doctype, reference_name):
 	}
 
 	if user == "Guest":
-		filters["ip_address"] = frappe.local.request_ip
+		filters["ip_address"] = nts.local.request_ip
 
-	frappe.db.delete("Comment", filters)
+	nts.db.delete("Comment", filters)
 	return False

@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import datetime
@@ -6,20 +6,20 @@ import json
 import os
 from datetime import timedelta
 
-import frappe
-import frappe.desk.reportview
-from frappe import _
-from frappe.core.utils import ljust_list
-from frappe.desk.reportview import clean_params, parse_json
-from frappe.model.utils import render_include
-from frappe.modules import get_module_path, scrub
-from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, get_valid_perms, has_permission
-from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
+import nts
+import nts.desk.reportview
+from nts import _
+from nts.core.utils import ljust_list
+from nts.desk.reportview import clean_params, parse_json
+from nts.model.utils import render_include
+from nts.modules import get_module_path, scrub
+from nts.monitor import add_data_to_monitor
+from nts.permissions import get_role_permissions, get_valid_perms, has_permission
+from nts.utils import cint, cstr, flt, format_duration, get_html_format, sbool
 
 
 def get_report_doc(report_name):
-	doc = frappe.get_doc("Report", report_name)
+	doc = nts.get_doc("Report", report_name)
 	doc.custom_columns = []
 	doc.custom_filters = []
 
@@ -38,19 +38,19 @@ def get_report_doc(report_name):
 		doc.prepared_report = custom_report_doc.prepared_report
 
 	if not doc.is_permitted():
-		frappe.throw(
+		nts.throw(
 			_("You don't have access to Report: {0}").format(_(doc.name)),
-			frappe.PermissionError,
+			nts.PermissionError,
 		)
 
-	if not frappe.has_permission(doc.ref_doctype, "report"):
-		frappe.throw(
+	if not nts.has_permission(doc.ref_doctype, "report"):
+		nts.throw(
 			_("You don't have permission to get a report on: {0}").format(_(doc.ref_doctype)),
-			frappe.PermissionError,
+			nts.PermissionError,
 		)
 
 	if doc.disabled:
-		frappe.throw(_("Report {0} is disabled").format(_(report_name)))
+		nts.throw(_("Report {0} is disabled").format(_(report_name)))
 
 	return doc
 
@@ -71,11 +71,11 @@ def get_report_result(report, filters):
 	return res
 
 
-@frappe.read_only()
+@nts.read_only()
 def generate_report_result(
 	report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None
 ):
-	user = user or frappe.session.user
+	user = user or nts.session.user
 	filters = filters or []
 
 	if filters and isinstance(filters, str):
@@ -123,7 +123,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
+		"execution_time": nts.cache.hget("report_execution_time", report.name) or 0,
 	}
 
 
@@ -143,12 +143,12 @@ def normalize_result(result, columns):
 	return data
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_script(report_name):
 	report = get_report_doc(report_name)
-	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
+	module = report.module or nts.db.get_value("DocType", report.ref_doctype, "module")
 
-	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
+	is_custom_module = nts.get_cached_value("Module Def", module, "custom")
 
 	# custom modules are virtual modules those exists in DB but not in disk.
 	module_path = "" if is_custom_module else get_module_path(module)
@@ -169,12 +169,12 @@ def get_script(report_name):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['%s']={}" % report_name
+		script = "nts.query_reports['%s']={}" % report_name
 
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
-		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
+		"execution_time": nts.cache.hget("report_execution_time", report_name) or 0,
 		"filters": report.filters,
 		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
@@ -183,12 +183,12 @@ def get_script(report_name):
 def get_reference_report(report):
 	if report.report_type != "Custom Report":
 		return report
-	reference_report = frappe.get_doc("Report", report.reference_report)
+	reference_report = nts.get_doc("Report", report.reference_report)
 	return get_reference_report(reference_report)
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def run(
 	report_name,
 	filters=None,
@@ -200,11 +200,11 @@ def run(
 	are_default_filters=True,
 ):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 	validate_filters_permissions(report_name, filters, user)
 	report = get_report_doc(report_name)
-	if not frappe.has_permission(report.ref_doctype, "report"):
-		frappe.msgprint(
+	if not nts.has_permission(report.ref_doctype, "report"):
+		nts.msgprint(
 			_("Must have report permission to access this report."),
 			raise_exception=True,
 		)
@@ -228,7 +228,7 @@ def run(
 			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
-		frappe.log_error("Report Error")
+		nts.log_error("Report Error")
 		raise
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
@@ -244,7 +244,7 @@ def add_custom_column_data(custom_columns, result):
 	for column in custom_columns:
 		if len(column["fieldname"].split("-")) > 1:
 			# length greater than 1, means that the column is a custom field with confilicting fieldname
-			doctype_name = frappe.unscrub(column["fieldname"].split("-")[1])
+			doctype_name = nts.unscrub(column["fieldname"].split("-")[1])
 			doctype_names_from_custom_field.append(doctype_name)
 		column["fieldname"] = column["fieldname"].split("-")[0]
 
@@ -259,7 +259,7 @@ def add_custom_column_data(custom_columns, result):
 				# backwards compatibile `link_field`
 				# old custom reports which use `str` should not break.
 				if isinstance(link_field, str):
-					link_field = frappe._dict({"fieldname": link_field, "names": []})
+					link_field = nts._dict({"fieldname": link_field, "names": []})
 
 				row_reference = row.get(link_field.get("fieldname"))
 				# possible if the row is empty
@@ -273,7 +273,7 @@ def add_custom_column_data(custom_columns, result):
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
-	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
+	from nts.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
 
 	def get_report_data(doc, data):
 		# backwards compatibility - prepared report used to have a columns field,
@@ -296,36 +296,36 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			filters, user, report.get("custom_report") or report.get("report_name")
 		)
 
-	doc = frappe.get_doc("Prepared Report", dn) if dn else None
+	doc = nts.get_doc("Prepared Report", dn) if dn else None
 	if doc:
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
 				report_data = get_report_data(doc, data)
 		except Exception as e:
 			doc.log_error("Prepared report render failed")
-			frappe.msgprint(_("Prepared report render failed") + f": {e!s}")
+			nts.msgprint(_("Prepared report render failed") + f": {e!s}")
 			doc = None
 
 	return report_data | {"prepared_report": True, "doc": doc}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def export_query():
 	"""export from query reports"""
-	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+	from nts.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
-	form_params = frappe._dict(frappe.local.form_dict)
+	form_params = nts._dict(nts.local.form_dict)
 	csv_params = pop_csv_params(form_params)
 	clean_params(form_params)
 	parse_json(form_params)
 	report_name = form_params.report_name
-	frappe.permissions.can_export(
-		frappe.get_cached_value("Report", report_name, "ref_doctype"),
+	nts.permissions.can_export(
+		nts.get_cached_value("Report", report_name, "ref_doctype"),
 		raise_exception=True,
 	)
 
 	file_format_type = form_params.file_format_type
-	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
+	custom_columns = nts.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx
@@ -334,11 +334,11 @@ def export_query():
 		visible_idx = json.loads(visible_idx)
 
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
-	data = frappe._dict(data)
+	data = nts._dict(data)
 	data.filters = form_params.applied_filters
 
 	if not data.columns:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("No data to export"),
 			_("You can try changing the filters of your report."),
 		)
@@ -353,7 +353,7 @@ def export_query():
 		content = get_csv_bytes(xlsx_data, csv_params)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
-		from frappe.utils.xlsxutils import make_xlsx
+		from nts.utils.xlsxutils import make_xlsx
 
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
@@ -378,7 +378,7 @@ def valid_report_name(report_name, suffix):
 	return False
 
 
-def format_fields(data: frappe._dict) -> None:
+def format_fields(data: nts._dict) -> None:
 	for i, col in enumerate(data.columns):
 		if col.get("fieldtype") == "Duration":
 			for row in data.result:
@@ -536,18 +536,18 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 	return result
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_data_for_custom_field(doctype, field, names=None):
-	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
+	if not nts.has_permission(doctype, "read"):
+		nts.throw(_("Not Permitted to read {0}").format(_(doctype)), nts.PermissionError)
 
 	filters = {}
 	if names:
 		if isinstance(names, str | bytearray):
-			names = frappe.json.loads(names)
+			names = nts.json.loads(names)
 		filters.update({"name": ["in", names]})
 
-	return frappe._dict(frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
+	return nts._dict(nts.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
 
 
 def get_data_for_custom_report(columns, result):
@@ -558,7 +558,7 @@ def get_data_for_custom_report(columns, result):
 			# backwards compatibile `link_field`
 			# old custom reports which use `str` should not break
 			if isinstance(link_field, str):
-				link_field = frappe._dict({"fieldname": link_field, "names": []})
+				link_field = nts._dict({"fieldname": link_field, "names": []})
 
 			fieldname = column.get("fieldname")
 			doctype = column.get("doctype")
@@ -574,11 +574,11 @@ def get_data_for_custom_report(columns, result):
 	return doc_field_value_map
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def save_report(reference_report, report_name, columns, filters):
 	report_doc = get_report_doc(reference_report)
 
-	docname = frappe.db.exists(
+	docname = nts.db.exists(
 		"Report",
 		{
 			"report_name": report_name,
@@ -588,17 +588,17 @@ def save_report(reference_report, report_name, columns, filters):
 	)
 
 	if docname:
-		report = frappe.get_doc("Report", docname)
+		report = nts.get_doc("Report", docname)
 		existing_jd = json.loads(report.json)
 		existing_jd["columns"] = json.loads(columns)
 		existing_jd["filters"] = json.loads(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
-		frappe.msgprint(_("Report updated successfully"))
+		nts.msgprint(_("Report updated successfully"))
 
 		return docname
 	else:
-		new_report = frappe.get_doc(
+		new_report = nts.get_doc(
 			{
 				"doctype": "Report",
 				"report_name": report_name,
@@ -609,7 +609,7 @@ def save_report(reference_report, report_name, columns, filters):
 				"reference_report": reference_report,
 			}
 		).insert(ignore_permissions=True)
-		frappe.msgprint(_("{0} saved successfully").format(_(new_report.name)))
+		nts.msgprint(_("{0} saved successfully").format(_(new_report.name)))
 		return new_report.name
 
 
@@ -617,10 +617,10 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
-	shared = frappe.share.get_shared(ref_doctype, user)
+	shared = nts.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
-	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
+	role_permissions = get_role_permissions(nts.get_meta(ref_doctype), user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
 	if match_filters_per_doctype:
@@ -701,7 +701,7 @@ def has_match(
 					if (
 						dt in match_filters
 						and cell_value not in match_filters.get(dt)
-						and frappe.db.exists(dt, cell_value)
+						and nts.db.exists(dt, cell_value)
 					):
 						match = False
 						break
@@ -769,7 +769,7 @@ def get_columns_dict(columns):
 	The keys for the dict are both idx and fieldname,
 	so either index or fieldname can be used to search for a column's docfield properties
 	"""
-	columns_dict = frappe._dict()
+	columns_dict = nts._dict()
 	for idx, col in enumerate(columns):
 		col_dict = get_column_as_dict(col)
 		columns_dict[idx] = col_dict
@@ -779,7 +779,7 @@ def get_columns_dict(columns):
 
 
 def get_column_as_dict(col):
-	col_dict = frappe._dict()
+	col_dict = nts._dict()
 
 	# string
 	if isinstance(col, str):
@@ -793,13 +793,13 @@ def get_column_as_dict(col):
 				col_dict["width"] = col[2]
 
 		col_dict["label"] = col[0]
-		col_dict["fieldname"] = frappe.scrub(col[0])
+		col_dict["fieldname"] = nts.scrub(col[0])
 
 	# dict
 	else:
 		col_dict.update(col)
 		if "fieldname" not in col_dict:
-			col_dict["fieldname"] = frappe.scrub(col_dict["label"])
+			col_dict["fieldname"] = nts.scrub(col_dict["label"])
 
 	return col_dict
 
@@ -808,7 +808,7 @@ def get_user_match_filters(doctypes, user):
 	match_filters = {}
 
 	for dt in doctypes:
-		filter_list = frappe.desk.reportview.build_match_conditions(dt, user, False)
+		filter_list = nts.desk.reportview.build_match_conditions(dt, user, False)
 		if filter_list:
 			match_filters[dt] = filter_list
 
@@ -822,7 +822,7 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	report = frappe.get_doc("Report", report_name)
+	report = nts.get_doc("Report", report_name)
 	for field in report.filters:
 		if field.fieldname in filters and field.fieldtype == "Link":
 			linked_doctype = field.options
@@ -831,7 +831,7 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 			) and not has_permission(
 				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
 			):
-				frappe.throw(
+				nts.throw(
 					_("You do not have permission to access {0}: {1}.").format(
 						linked_doctype, filters[field.fieldname]
 					)

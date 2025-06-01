@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.AssignTo = class AssignTo {
+nts.ui.form.AssignTo = class AssignTo {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.btn = this.parent.find(".add-assignment-btn").on("click", () => this.add());
@@ -30,7 +30,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 			return;
 		}
 
-		let avatar_group = frappe.avatar_group(assigned_users, 5, {
+		let avatar_group = nts.avatar_group(assigned_users, 5, {
 			align: "left",
 			overlap: true,
 		});
@@ -38,7 +38,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 		assignments_wrapper.show();
 		assignments_wrapper.append(avatar_group);
 		avatar_group.click(() => {
-			new frappe.ui.form.AssignmentDialog({
+			new nts.ui.form.AssignmentDialog({
 				assignments: assigned_users,
 				frm: this.frm,
 			});
@@ -48,13 +48,13 @@ frappe.ui.form.AssignTo = class AssignTo {
 		var me = this;
 
 		if (this.frm.is_new()) {
-			frappe.throw(__("Please save the document before assignment"));
+			nts.throw(__("Please save the document before assignment"));
 			return;
 		}
 
 		if (!me.assign_to) {
-			me.assign_to = new frappe.ui.form.AssignToDialog({
-				method: "frappe.desk.form.assign_to.add",
+			me.assign_to = new nts.ui.form.AssignToDialog({
+				method: "nts.desk.form.assign_to.add",
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
 				frm: me.frm,
@@ -68,12 +68,12 @@ frappe.ui.form.AssignTo = class AssignTo {
 	}
 	remove(owner) {
 		if (this.frm.is_new()) {
-			frappe.throw(__("Please save the document before removing assignment"));
+			nts.throw(__("Please save the document before removing assignment"));
 			return;
 		}
 
-		return frappe
-			.xcall("frappe.desk.form.assign_to.remove", {
+		return nts
+			.xcall("nts.desk.form.assign_to.remove", {
 				doctype: this.frm.doctype,
 				name: this.frm.docname,
 				assign_to: owner,
@@ -84,7 +84,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 	}
 };
 
-frappe.ui.form.AssignToDialog = class AssignToDialog {
+nts.ui.form.AssignToDialog = class AssignToDialog {
 	constructor(opts) {
 		$.extend(this, opts);
 
@@ -94,7 +94,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 	make() {
 		let me = this;
 
-		me.dialog = new frappe.ui.Dialog({
+		me.dialog = new nts.ui.Dialog({
 			title: __("Add to ToDo"),
 			fields: me.get_fields(),
 			primary_action_label: __("Add"),
@@ -104,7 +104,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				if (args && args.assign_to) {
 					me.dialog.set_message("Assigning...");
 
-					frappe.call({
+					nts.call({
 						method: me.method,
 						args: $.extend(args, {
 							doctype: me.doctype,
@@ -134,7 +134,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 		let assign_to = [];
 
 		if (me.dialog.get_value("assign_to_me")) {
-			assign_to.push(frappe.session.user);
+			assign_to.push(nts.session.user);
 		}
 
 		me.dialog.set_value("assign_to", assign_to);
@@ -146,7 +146,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 
 		if (user_group) {
 			let user_group_members = [];
-			frappe.db
+			nts.db
 				.get_list("User Group Member", {
 					parent_doctype: "User Group",
 					filters: { parent: user_group },
@@ -189,7 +189,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				label: __("Assign To"),
 				reqd: true,
 				get_data: function (txt) {
-					return frappe.db.get_link_options("User", txt, {
+					return nts.db.get_link_options("User", txt, {
 						user_type: "System User",
 						enabled: 1,
 					});
@@ -241,7 +241,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 	}
 };
 
-frappe.ui.form.AssignmentDialog = class {
+nts.ui.form.AssignmentDialog = class {
 	constructor(opts) {
 		this.frm = opts.frm;
 		this.assignments = opts.assignments;
@@ -249,7 +249,7 @@ frappe.ui.form.AssignmentDialog = class {
 	}
 
 	make() {
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("Assignments"),
 			size: "small",
 			no_focus: true,
@@ -285,7 +285,7 @@ frappe.ui.form.AssignmentDialog = class {
 		});
 
 		this.assignment_list = $(this.dialog.get_field("assignment_list").wrapper);
-		this.assignment_list.removeClass("frappe-control");
+		this.assignment_list.removeClass("nts-control");
 
 		this.assignments.forEach((assignment) => {
 			this.update_assignment(assignment);
@@ -296,8 +296,8 @@ frappe.ui.form.AssignmentDialog = class {
 		this.frm && this.frm.assign_to.render(assignments);
 	}
 	add_assignment(assignment) {
-		return frappe
-			.xcall("frappe.desk.form.assign_to.add", {
+		return nts
+			.xcall("nts.desk.form.assign_to.add", {
 				doctype: this.frm.doctype,
 				name: this.frm.docname,
 				assign_to: [assignment],
@@ -308,14 +308,14 @@ frappe.ui.form.AssignmentDialog = class {
 			});
 	}
 	remove_assignment(assignment) {
-		return frappe.xcall("frappe.desk.form.assign_to.remove", {
+		return nts.xcall("nts.desk.form.assign_to.remove", {
 			doctype: this.frm.doctype,
 			name: this.frm.docname,
 			assign_to: assignment,
 		});
 	}
 	close_assignment(assignment) {
-		return frappe.xcall("frappe.desk.form.assign_to.close", {
+		return nts.xcall("nts.desk.form.assign_to.close", {
 			doctype: this.frm.doctype,
 			name: this.frm.docname,
 			assign_to: assignment,
@@ -331,8 +331,8 @@ frappe.ui.form.AssignmentDialog = class {
 		const row = $(`
 			<div class="dialog-assignment-row" data-user="${assignment}">
 				<div class="assignee">
-					${frappe.avatar(assignment)}
-					${frappe.user.full_name(assignment)}
+					${nts.avatar(assignment)}
+					${nts.user.full_name(assignment)}
 				</div>
 				<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
 				</div>
@@ -341,10 +341,10 @@ frappe.ui.form.AssignmentDialog = class {
 
 		const btn_group = row.find(".btn-group");
 
-		if (assignment === frappe.session.user) {
+		if (assignment === nts.session.user) {
 			btn_group.append(`
 				<button type="button" class="btn btn-default complete-btn" title="${__("Done")}">
-					${frappe.utils.icon("tick", "xs")}
+					${nts.utils.icon("tick", "xs")}
 				</button>
 			`);
 			btn_group.find(".complete-btn").click(() => {
@@ -355,10 +355,10 @@ frappe.ui.form.AssignmentDialog = class {
 			});
 		}
 
-		if (assignment === frappe.session.user || this.frm.perm[0].write) {
+		if (assignment === nts.session.user || this.frm.perm[0].write) {
 			btn_group.append(`
 				<button type="button" class="btn btn-default remove-btn" title="${__("Cancel")}">
-				${frappe.utils.icon("close")}
+				${nts.utils.icon("close")}
 				</button>
 			`);
 			btn_group.find(".remove-btn").click(() => {

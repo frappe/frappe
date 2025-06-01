@@ -1,15 +1,15 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.core.doctype.data_import.importer import Importer
-from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import format_duration, getdate
+import nts
+from nts.core.doctype.data_import.importer import Importer
+from nts.tests.test_query_builder import db_type_is, run_only_if
+from nts.tests.utils import ntsTestCase
+from nts.utils import format_duration, getdate
 
 doctype_name = "DocType for Import"
 
 
-class TestImporter(FrappeTestCase):
+class TestImporter(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -22,9 +22,9 @@ class TestImporter(FrappeTestCase):
 		data_import = self.get_importer(doctype_name, import_file)
 		data_import.start_import()
 
-		doc1 = frappe.get_doc(doctype_name, "Test")
-		doc2 = frappe.get_doc(doctype_name, "Test 2")
-		doc3 = frappe.get_doc(doctype_name, "Test 3")
+		doc1 = nts.get_doc(doctype_name, "Test")
+		doc2 = nts.get_doc(doctype_name, "Test 2")
+		doc3 = nts.get_doc(doctype_name, "Test 3")
 
 		self.assertEqual(doc1.description, "test description")
 		self.assertEqual(doc1.number, 1)
@@ -63,45 +63,45 @@ class TestImporter(FrappeTestCase):
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file("sample_import_file_without_mandatory")
 		data_import = self.get_importer(doctype_name, import_file)
-		frappe.clear_messages()
+		nts.clear_messages()
 		data_import.start_import()
 		data_import.reload()
 
-		import_log = frappe.get_all(
+		import_log = nts.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": data_import.name},
 			order_by="log_index",
 		)
 
-		self.assertEqual(frappe.parse_json(import_log[0]["row_indexes"]), [2, 3])
+		self.assertEqual(nts.parse_json(import_log[0]["row_indexes"]), [2, 3])
 		expected_error = (
 			"Error: <strong>Child 1 of DocType for Import</strong> Row #1: Value missing for: Child Title"
 		)
 		self.assertEqual(
-			frappe.parse_json(frappe.parse_json(import_log[0]["messages"])[0])["message"], expected_error
+			nts.parse_json(nts.parse_json(import_log[0]["messages"])[0])["message"], expected_error
 		)
 		expected_error = (
 			"Error: <strong>Child 1 of DocType for Import</strong> Row #2: Value missing for: Child Title"
 		)
 		self.assertEqual(
-			frappe.parse_json(frappe.parse_json(import_log[0]["messages"])[1])["message"], expected_error
+			nts.parse_json(nts.parse_json(import_log[0]["messages"])[1])["message"], expected_error
 		)
 
-		self.assertEqual(frappe.parse_json(import_log[1]["row_indexes"]), [4])
+		self.assertEqual(nts.parse_json(import_log[1]["row_indexes"]), [4])
 		self.assertEqual(
-			frappe.parse_json(frappe.parse_json(import_log[1]["messages"])[0])["message"],
+			nts.parse_json(nts.parse_json(import_log[1]["messages"])[0])["message"],
 			"Title is required",
 		)
 
 	def test_data_import_update(self):
-		existing_doc = frappe.get_doc(
+		existing_doc = nts.get_doc(
 			doctype=doctype_name,
-			title=frappe.generate_hash(length=8),
+			title=nts.generate_hash(length=8),
 			table_field_1=[{"child_title": "child title to update"}],
 		)
 		existing_doc.save()
-		frappe.db.commit()
+		nts.db.commit()
 
 		import_file = get_import_file("sample_import_file_for_update")
 		data_import = self.get_importer(doctype_name, import_file, update=True)
@@ -111,7 +111,7 @@ class TestImporter(FrappeTestCase):
 		i.import_file.raw_data[1][4] = existing_doc.table_field_1[0].name
 
 		# uppercase to check if autoname field isn't replaced in mariadb
-		if frappe.db.db_type == "mariadb":
+		if nts.db.db_type == "mariadb":
 			i.import_file.raw_data[1][0] = existing_doc.name.upper()
 		else:
 			i.import_file.raw_data[1][0] = existing_doc.name
@@ -119,7 +119,7 @@ class TestImporter(FrappeTestCase):
 		i.import_file.parse_data_from_template()
 		i.import_data()
 
-		updated_doc = frappe.get_doc(doctype_name, existing_doc.name)
+		updated_doc = nts.get_doc(doctype_name, existing_doc.name)
 		self.assertEqual(existing_doc.title, updated_doc.title)
 		self.assertEqual(updated_doc.description, "test description")
 		self.assertEqual(updated_doc.table_field_1[0].child_title, "child title")
@@ -128,29 +128,29 @@ class TestImporter(FrappeTestCase):
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
 
 	def get_importer(self, doctype, import_file, update=False):
-		data_import = frappe.new_doc("Data Import")
+		data_import = nts.new_doc("Data Import")
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
 		data_import.insert()
 		# Commit so that the first import failure does not rollback the Data Import insert.
-		frappe.db.commit()
+		nts.db.commit()
 
 		return data_import
 
 
 def create_doctype_if_not_exists(doctype_name, force=False):
 	if force:
-		frappe.delete_doc_if_exists("DocType", doctype_name)
-		frappe.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)
-		frappe.delete_doc_if_exists("DocType", "Child 2 of " + doctype_name)
+		nts.delete_doc_if_exists("DocType", doctype_name)
+		nts.delete_doc_if_exists("DocType", "Child 1 of " + doctype_name)
+		nts.delete_doc_if_exists("DocType", "Child 2 of " + doctype_name)
 
-	if frappe.db.exists("DocType", doctype_name):
+	if nts.db.exists("DocType", doctype_name):
 		return
 
 	# Child Table 1
 	table_1_name = "Child 1 of " + doctype_name
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": table_1_name,
@@ -169,7 +169,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 
 	# Child Table 2
 	table_2_name = "Child 2 of " + doctype_name
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": table_2_name,
@@ -191,7 +191,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 	).insert()
 
 	# Main Table
-	frappe.get_doc(
+	nts.get_doc(
 		{
 			"doctype": "DocType",
 			"name": doctype_name,
@@ -231,16 +231,16 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 
 def get_import_file(csv_file_name, force=False):
 	file_name = csv_file_name + ".csv"
-	_file = frappe.db.exists("File", {"file_name": file_name})
+	_file = nts.db.exists("File", {"file_name": file_name})
 	if force and _file:
-		frappe.delete_doc_if_exists("File", _file)
+		nts.delete_doc_if_exists("File", _file)
 
-	if frappe.db.exists("File", {"file_name": file_name}):
-		f = frappe.get_doc("File", {"file_name": file_name})
+	if nts.db.exists("File", {"file_name": file_name}):
+		f = nts.get_doc("File", {"file_name": file_name})
 	else:
 		full_path = get_csv_file_path(file_name)
-		f = frappe.get_doc(
-			doctype="File", content=frappe.read_file(full_path), file_name=file_name, is_private=1
+		f = nts.get_doc(
+			doctype="File", content=nts.read_file(full_path), file_name=file_name, is_private=1
 		)
 		f.save(ignore_permissions=True)
 
@@ -248,4 +248,4 @@ def get_import_file(csv_file_name, force=False):
 
 
 def get_csv_file_path(file_name):
-	return frappe.get_app_path("frappe", "core", "doctype", "data_import", "fixtures", file_name)
+	return nts.get_app_path("nts", "core", "doctype", "data_import", "fixtures", file_name)

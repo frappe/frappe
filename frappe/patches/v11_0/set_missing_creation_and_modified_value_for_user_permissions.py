@@ -1,8 +1,8 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.sql(
+	nts.db.sql(
 		"""UPDATE `tabUser Permission`
 		SET `modified`=NOW(), `creation`=NOW()
 		WHERE `creation` IS NULL"""

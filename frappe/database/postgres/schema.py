@@ -1,12 +1,12 @@
-import frappe
-from frappe import _
-from frappe.database.schema import DBTable, get_definition
-from frappe.utils import cint, flt
+import nts
+from nts import _
+from nts.database.schema import DBTable, get_definition
+from nts.utils import cint, flt
 
 
 class PostgresTable(DBTable):
 	def create(self):
-		varchar_len = frappe.db.VARCHAR_LEN
+		varchar_len = nts.db.VARCHAR_LEN
 		name_column = f"name varchar({varchar_len}) primary key"
 
 		additional_definitions = ""
@@ -30,12 +30,12 @@ class PostgresTable(DBTable):
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
-			frappe.db.create_sequence(self.doctype, check_not_exists=True)
+			nts.db.create_sequence(self.doctype, check_not_exists=True)
 			name_column = "name bigint primary key"
 
 		# TODO: set docstatus length
 		# create table
-		frappe.db.sql(
+		nts.db.sql(
 			f"""create table `{self.table_name}` (
 			{name_column},
 			creation timestamp(6),
@@ -49,22 +49,22 @@ class PostgresTable(DBTable):
 		)
 
 		self.create_indexes()
-		frappe.db.commit()
+		nts.db.commit()
 
 	def create_indexes(self):
 		create_index_query = ""
 		for col in self.columns.values():
 			if (
 				col.set_index
-				and col.fieldtype in frappe.db.type_map
-				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
+				and col.fieldtype in nts.db.type_map
+				and nts.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
 			):
 				create_index_query += (
 					f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 				)
 		if create_index_query:
 			# nosemgrep
-			frappe.db.sql(create_index_query)
+			nts.db.sql(create_index_query)
 
 	def alter(self):
 		for col in self.columns.values():
@@ -104,7 +104,7 @@ class PostgresTable(DBTable):
 				col_default = "NULL"
 
 			else:
-				col_default = f"{frappe.db.escape(col.default)}"
+				col_default = f"{nts.db.escape(col.default)}"
 
 			query.append(f"ALTER COLUMN `{col.fieldname}` SET DEFAULT {col_default}")
 
@@ -137,20 +137,20 @@ class PostgresTable(DBTable):
 			if query:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
 				# nosemgrep
-				frappe.db.sql(final_alter_query)
+				nts.db.sql(final_alter_query)
 			if create_contraint_query:
 				# nosemgrep
-				frappe.db.sql(create_contraint_query)
+				nts.db.sql(create_contraint_query)
 			if drop_contraint_query:
 				# nosemgrep
-				frappe.db.sql(drop_contraint_query)
+				nts.db.sql(drop_contraint_query)
 		except Exception as e:
 			# sanitize
-			if frappe.db.is_duplicate_fieldname(e):
-				frappe.throw(str(e))
-			elif frappe.db.is_duplicate_entry(e):
+			if nts.db.is_duplicate_fieldname(e):
+				nts.throw(str(e))
+			elif nts.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
-				frappe.throw(
+				nts.throw(
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)

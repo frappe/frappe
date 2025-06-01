@@ -17,7 +17,7 @@ function get_version_timeline_content(version_doc, frm) {
 		let label = updater_reference.label || __("via {0}", [updater_reference.doctype]);
 		let { doctype, docname } = updater_reference;
 		if (doctype && docname) {
-			updater_reference_link = frappe.utils.get_form_link(doctype, docname, true, label);
+			updater_reference_link = nts.utils.get_form_link(doctype, docname, true, label);
 		} else {
 			updater_reference_link = label;
 		}
@@ -82,9 +82,9 @@ function get_version_timeline_content(version_doc, frm) {
 					out.push(get_version_comment(version_doc, message));
 				}
 			} else {
-				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
+				const df = nts.meta.get_docfield(frm.doctype, p[0], frm.docname);
 				if (df && (!df.hidden || df.show_on_timeline)) {
-					const field_display_status = frappe.perm.get_field_display_status(
+					const field_display_status = nts.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
@@ -140,14 +140,14 @@ function get_version_timeline_content(version_doc, frm) {
 			row[3].every(function (p) {
 				var df =
 					frm.fields_dict[row[0]] &&
-					frappe.meta.get_docfield(
+					nts.meta.get_docfield(
 						frm.fields_dict[row[0]].grid.doctype,
 						p[0],
 						frm.docname
 					);
 
 				if (df && (!df.hidden || df.show_on_timeline)) {
-					var field_display_status = frappe.perm.get_field_display_status(
+					var field_display_status = nts.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
@@ -160,7 +160,7 @@ function get_version_timeline_content(version_doc, frm) {
 					) {
 						parts.push(
 							__("{0} from {1} to {2} in row #{3}", [
-								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
+								nts.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
 								row[1],
@@ -204,10 +204,10 @@ function get_version_timeline_content(version_doc, frm) {
 	["added", "removed"].forEach(function (key) {
 		if (data[key] && data[key].length) {
 			let parts = (data[key] || []).map(function (p) {
-				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
+				var df = nts.meta.get_docfield(frm.doctype, p[0], frm.docname);
 
 				if (df && (!df.hidden || df.show_on_timeline)) {
-					var field_display_status = frappe.perm.get_field_display_status(
+					var field_display_status = nts.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
@@ -218,7 +218,7 @@ function get_version_timeline_content(version_doc, frm) {
 						field_display_status === "Write" ||
 						(df.hidden && df.show_on_timeline)
 					) {
-						return __(frappe.meta.get_label(frm.doctype, p[0]));
+						return __(nts.meta.get_label(frm.doctype, p[0]));
 					}
 				}
 			});
@@ -268,7 +268,7 @@ function get_version_comment(version_doc, text) {
 			Array.from($(text)).forEach((element) => {
 				if ($(element).is("a")) {
 					version_comment += unlinked_content
-						? frappe.utils.get_form_link(
+						? nts.utils.get_form_link(
 								"Version",
 								version_doc.name,
 								true,
@@ -282,7 +282,7 @@ function get_version_comment(version_doc, text) {
 				}
 			});
 			if (unlinked_content) {
-				version_comment += frappe.utils.get_form_link(
+				version_comment += nts.utils.get_form_link(
 					"Version",
 					version_doc.name,
 					true,
@@ -294,7 +294,7 @@ function get_version_comment(version_doc, text) {
 			// pass
 		}
 	}
-	return frappe.utils.get_form_link("Version", version_doc.name, true, text);
+	return nts.utils.get_form_link("Version", version_doc.name, true, text);
 }
 
 function format_content_for_timeline(content) {
@@ -302,19 +302,19 @@ function format_content_for_timeline(content) {
 	// limits content to 40 characters
 	// escapes HTML
 	// and makes it bold
-	content = frappe.utils.html2text(content);
-	content = frappe.ellipsis(content, 40) || '""';
-	content = frappe.utils.escape_html(content);
+	content = nts.utils.html2text(content);
+	content = nts.ellipsis(content, 40) || '""';
+	content = nts.utils.escape_html(content);
 	return content.bold();
 }
 
 function get_user_link(user) {
-	const user_display_text = frappe.user_info(user).fullname || "";
-	return frappe.utils.get_form_link("User", user, true, user_display_text);
+	const user_display_text = nts.user_info(user).fullname || "";
+	return nts.utils.get_form_link("User", user, true, user_display_text);
 }
 
 function get_user_message(user, message_self, message_other) {
-	return frappe.utils.is_current_user(user) ? message_self : message_other;
+	return nts.utils.is_current_user(user) ? message_self : message_other;
 }
 
 export { get_version_timeline_content, get_user_link, get_user_message };

@@ -1,19 +1,19 @@
-# Copyright (c) 2018, Frappe Technologies and Contributors
+# Copyright (c) 2018, nts Technologies and Contributors
 # License: MIT. See LICENSE
 from typing import TYPE_CHECKING
 
-import frappe
-from frappe.automation.doctype.auto_repeat.auto_repeat import (
+import nts
+from nts.automation.doctype.auto_repeat.auto_repeat import (
 	create_repeated_entries,
 	get_auto_repeat_entries,
 	week_map,
 )
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, add_months, getdate, today
+from nts.custom.doctype.custom_field.custom_field import create_custom_field
+from nts.tests.utils import ntsTestCase
+from nts.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
-	from frappe.custom.doctype.custom_field.custom_field import CustomField
+	from nts.custom.doctype.custom_field.custom_field import CustomField
 
 
 def add_custom_fields() -> "CustomField":
@@ -27,12 +27,12 @@ def add_custom_fields() -> "CustomField":
 		print_hide=1,
 		read_only=1,
 	)
-	return create_custom_field("ToDo", df) or frappe.get_doc(
+	return create_custom_field("ToDo", df) or nts.get_doc(
 		"Custom Field", dict(fieldname=df["fieldname"], dt="ToDo")
 	)
 
 
-class TestAutoRepeat(FrappeTestCase):
+class TestAutoRepeat(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
 		cls.custom_field = add_custom_fields()
@@ -40,7 +40,7 @@ class TestAutoRepeat(FrappeTestCase):
 		return super().setUpClass()
 
 	def test_daily_auto_repeat(self):
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
 		).insert()
 
@@ -48,19 +48,19 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(doc.next_schedule_date, today())
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
-		frappe.db.commit()
+		nts.db.commit()
 
-		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
+		todo = nts.get_doc(doc.reference_doctype, doc.reference_document)
 		self.assertEqual(todo.auto_repeat, doc.name)
 
-		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
+		new_todo = nts.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = nts.get_doc("ToDo", new_todo)
 
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 
 	def test_weekly_auto_repeat(self):
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(doctype="ToDo", description="test weekly todo", assigned_by="Administrator")
 		).insert()
 
@@ -74,19 +74,19 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(doc.next_schedule_date, today())
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
-		frappe.db.commit()
+		nts.db.commit()
 
-		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
+		todo = nts.get_doc(doc.reference_doctype, doc.reference_document)
 		self.assertEqual(todo.auto_repeat, doc.name)
 
-		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
+		new_todo = nts.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = nts.get_doc("ToDo", new_todo)
 
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 
 	def test_weekly_auto_repeat_with_weekdays(self):
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(doctype="ToDo", description="test auto repeat with weekdays", assigned_by="Administrator")
 		).insert()
 
@@ -104,9 +104,9 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(doc.next_schedule_date, today())
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
-		frappe.db.commit()
+		nts.db.commit()
 
-		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
+		todo = nts.get_doc(doc.reference_doctype, doc.reference_document)
 		self.assertEqual(todo.auto_repeat, doc.name)
 
 		doc.reload()
@@ -116,13 +116,13 @@ class TestAutoRepeat(FrappeTestCase):
 		start_date = today()
 		end_date = add_months(start_date, 12)
 
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
 		).insert()
 
 		self.monthly_auto_repeat("ToDo", todo.name, start_date, end_date)
 		# test without end_date
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(
 				doctype="ToDo",
 				description="test recurring todo without end_date",
@@ -148,21 +148,21 @@ class TestAutoRepeat(FrappeTestCase):
 
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
-		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
+		docnames = nts.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), 1)
 
-		doc = frappe.get_doc("Auto Repeat", doc.name)
+		doc = nts.get_doc("Auto Repeat", doc.name)
 		doc.db_set("disabled", 0)
 
 		months = get_months(getdate(start_date), getdate(today()))
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
 
-		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
+		docnames = nts.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), months)
 
 	def test_email_notification(self):
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(
 				doctype="ToDo",
 				description="Test recurring notification attachment",
@@ -179,16 +179,16 @@ class TestAutoRepeat(FrappeTestCase):
 		)
 		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
-		frappe.db.commit()
+		nts.db.commit()
 
-		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
+		new_todo = nts.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		email_queue = frappe.db.exists("Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo))
+		email_queue = nts.db.exists("Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo))
 		self.assertTrue(email_queue)
 
 	def test_next_schedule_date(self):
 		current_date = getdate(today())
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(
 				doctype="ToDo", description="test next schedule date for monthly", assigned_by="Administrator"
 			)
@@ -201,7 +201,7 @@ class TestAutoRepeat(FrappeTestCase):
 		# it should not be a previous month's date
 		self.assertTrue(doc.next_schedule_date >= current_date)
 
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			dict(doctype="ToDo", description="test next schedule date for daily", assigned_by="Administrator")
 		).insert()
 		doc = make_auto_repeat(
@@ -214,7 +214,7 @@ class TestAutoRepeat(FrappeTestCase):
 		create_submittable_doctype(doctype)
 
 		current_date = getdate()
-		submittable_doc = frappe.get_doc(dict(doctype=doctype, test="test submit on creation")).insert()
+		submittable_doc = nts.get_doc(dict(doctype=doctype, test="test submit on creation")).insert()
 		submittable_doc.submit()
 		doc = make_auto_repeat(
 			frequency="Daily",
@@ -226,19 +226,19 @@ class TestAutoRepeat(FrappeTestCase):
 
 		data = get_auto_repeat_entries(current_date)
 		create_repeated_entries(data)
-		docnames = frappe.get_all(
+		docnames = nts.get_all(
 			doc.reference_doctype, filters={"auto_repeat": doc.name}, fields=["docstatus"], limit=1
 		)
 		self.assertEqual(docnames[0].docstatus, 1)
 
 
 def make_auto_repeat(**args):
-	args = frappe._dict(args)
-	return frappe.get_doc(
+	args = nts._dict(args)
+	return nts.get_doc(
 		{
 			"doctype": "Auto Repeat",
 			"reference_doctype": args.reference_doctype or "ToDo",
-			"reference_document": args.reference_document or frappe.db.get_value("ToDo", "name"),
+			"reference_document": args.reference_document or nts.db.get_value("ToDo", "name"),
 			"submit_on_creation": args.submit_on_creation or 0,
 			"frequency": args.frequency or "Daily",
 			"start_date": args.start_date or add_days(today(), -1),
@@ -253,10 +253,10 @@ def make_auto_repeat(**args):
 
 
 def create_submittable_doctype(doctype, submit_perms=1):
-	if frappe.db.exists("DocType", doctype):
+	if nts.db.exists("DocType", doctype):
 		return
 	else:
-		doc = frappe.get_doc(
+		doc = nts.get_doc(
 			{
 				"doctype": "DocType",
 				"__newname": doctype,

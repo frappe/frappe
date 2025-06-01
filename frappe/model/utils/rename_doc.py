@@ -1,10 +1,10 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from itertools import product
 
-import frappe
-from frappe.model.rename_doc import get_link_fields
+import nts
+from nts.model.rename_doc import get_link_fields
 
 
 def update_linked_doctypes(
@@ -18,7 +18,7 @@ def update_linked_doctypes(
 	linked_doctype_info_list = get_fetch_fields(doctype, linked_to, ignore_doctypes)
 
 	for d in linked_doctype_info_list:
-		frappe.db.set_value(
+		nts.db.set_value(
 			d.doctype,
 			{
 				d.master_fieldname: docname,
@@ -49,7 +49,7 @@ def get_fetch_fields(doctype: str, linked_to: str, ignore_doctypes: list | None 
 	product_list = product(master_list, linked_to_list)
 
 	for d in product_list:
-		linked_doctype_info = frappe._dict()
+		linked_doctype_info = nts._dict()
 		if (
 			d[0]["parent"] == d[1]["parent"]
 			and (not ignore_doctypes or d[0]["parent"] not in ignore_doctypes)

@@ -1,19 +1,19 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import format_date, today
-from frappe.utils.goal import get_monthly_goal_graph_data, get_monthly_results
+import nts
+from nts.test_runner import make_test_objects
+from nts.tests.utils import ntsTestCase
+from nts.utils import format_date, today
+from nts.utils.goal import get_monthly_goal_graph_data, get_monthly_results
 
 
-class TestGoal(FrappeTestCase):
+class TestGoal(ntsTestCase):
 	def setUp(self):
 		make_test_objects("Event", reset=True)
 
 	def tearDown(self):
-		frappe.db.delete("Event")
+		nts.db.delete("Event")
 
 	def test_get_monthly_results(self):
 		"""Test monthly aggregation values of a field"""
@@ -29,8 +29,8 @@ class TestGoal(FrappeTestCase):
 
 	def test_get_monthly_goal_graph_data(self):
 		"""Test for accurate values in graph data (based on test_get_monthly_results)"""
-		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]
-		frappe.db.set_value("Event", docname, "description", 1)
+		docname = nts.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]
+		nts.db.set_value("Event", docname, "description", 1)
 		data = get_monthly_goal_graph_data(
 			"Test",
 			"Event",

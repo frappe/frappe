@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class CustomDocPerm(Document):
@@ -12,7 +12,7 @@ class CustomDocPerm(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		amend: DF.Check
 		cancel: DF.Check
@@ -34,4 +34,4 @@ class CustomDocPerm(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		frappe.clear_cache(doctype=self.parent)
+		nts.clear_cache(doctype=self.parent)

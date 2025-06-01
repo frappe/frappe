@@ -1,21 +1,21 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-from frappe.desk.form.load import run_onload
-from frappe.model.docstatus import DocStatus
-from frappe.monitor import add_data_to_monitor
-from frappe.utils.scheduler import is_scheduler_inactive
-from frappe.utils.telemetry import capture_doc
+import nts
+from nts.core.doctype.submission_queue.submission_queue import queue_submission
+from nts.desk.form.load import run_onload
+from nts.model.docstatus import DocStatus
+from nts.monitor import add_data_to_monitor
+from nts.utils.scheduler import is_scheduler_inactive
+from nts.utils.telemetry import capture_doc
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
-	doc = frappe.get_doc(json.loads(doc))
+	doc = nts.get_doc(json.loads(doc))
 	capture_doc(doc, action)
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.
@@ -44,20 +44,20 @@ def savedocs(doc, action):
 
 	add_data_to_monitor(doctype=doc.doctype, action=action)
 	status_message = "Submitted" if doc.docstatus.is_submitted() else "Saved"
-	frappe.msgprint(frappe._(status_message), indicator="green", alert=True)
+	nts.msgprint(nts._(status_message), indicator="green", alert=True)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
-	doc = frappe.get_doc(doctype, name)
+	doc = nts.get_doc(doctype, name)
 	capture_doc(doc, "Cancel")
 
 	if workflow_state_fieldname and workflow_state:
 		doc.set(workflow_state_fieldname, workflow_state)
 	doc.cancel()
 	send_updated_docs(doc)
-	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
+	nts.msgprint(nts._("Cancelled"), indicator="red", alert=True)
 
 
 def send_updated_docs(doc):
@@ -69,7 +69,7 @@ def send_updated_docs(doc):
 	if hasattr(doc, "localname"):
 		d["localname"] = doc.localname
 
-	frappe.response.docs.append(d)
+	nts.response.docs.append(d)
 
 
 def set_local_name(doc):

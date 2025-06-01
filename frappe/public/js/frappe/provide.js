@@ -1,10 +1,10 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // provide a namespace
-if (!window.frappe) window.frappe = {};
+if (!window.nts) window.nts = {};
 
-frappe.provide = function (namespace) {
+nts.provide = function (namespace) {
 	// docs: create a namespace //
 	var nsl = namespace.split(".");
 	var parent = window;
@@ -18,25 +18,25 @@ frappe.provide = function (namespace) {
 	return parent;
 };
 
-frappe.provide("locals");
-frappe.provide("frappe.flags");
-frappe.provide("frappe.settings");
-frappe.provide("frappe.utils");
-frappe.provide("frappe.ui.form");
-frappe.provide("frappe.modules");
-frappe.provide("frappe.templates");
-frappe.provide("frappe.test_data");
-frappe.provide("frappe.utils");
-frappe.provide("frappe.model");
-frappe.provide("frappe.user");
-frappe.provide("frappe.session");
-frappe.provide("frappe._messages");
-frappe.provide("locals.DocType");
+nts.provide("locals");
+nts.provide("nts.flags");
+nts.provide("nts.settings");
+nts.provide("nts.utils");
+nts.provide("nts.ui.form");
+nts.provide("nts.modules");
+nts.provide("nts.templates");
+nts.provide("nts.test_data");
+nts.provide("nts.utils");
+nts.provide("nts.model");
+nts.provide("nts.user");
+nts.provide("nts.session");
+nts.provide("nts._messages");
+nts.provide("locals.DocType");
 
 // for listviews
-frappe.provide("frappe.listview_settings");
-frappe.provide("frappe.tour");
-frappe.provide("frappe.listview_parent_route");
+nts.provide("nts.listview_settings");
+nts.provide("nts.tour");
+nts.provide("nts.listview_parent_route");
 
 // constants
 window.NEWLINE = "\n";

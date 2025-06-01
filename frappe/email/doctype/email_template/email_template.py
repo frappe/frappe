@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.model.document import Document
-from frappe.utils.jinja import validate_template
+import nts
+from nts.model.document import Document
+from nts.utils.jinja import validate_template
 
 
 class EmailTemplate(Document):
@@ -15,7 +15,7 @@ class EmailTemplate(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		response: DF.TextEditor | None
 		response_html: DF.Code | None
@@ -33,10 +33,10 @@ class EmailTemplate(Document):
 		validate_template(self.response_)
 
 	def get_formatted_subject(self, doc):
-		return frappe.render_template(self.subject, doc)
+		return nts.render_template(self.subject, doc)
 
 	def get_formatted_response(self, doc):
-		return frappe.render_template(self.response_, doc)
+		return nts.render_template(self.response_, doc)
 
 	def get_formatted_email(self, doc):
 		if isinstance(doc, str):
@@ -48,9 +48,9 @@ class EmailTemplate(Document):
 		}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_email_template(template_name, doc):
 	"""Returns the processed HTML of a email template with the given doc"""
 
-	email_template = frappe.get_doc("Email Template", template_name)
+	email_template = nts.get_doc("Email Template", template_name)
 	return email_template.get_formatted_email(doc)

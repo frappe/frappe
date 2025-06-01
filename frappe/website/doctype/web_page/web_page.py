@@ -1,25 +1,25 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import re
 
 from jinja2.exceptions import TemplateSyntaxError
 
-import frappe
-from frappe import _
-from frappe.utils import get_datetime, now, quoted, strip_html
-from frappe.utils.caching import redis_cache
-from frappe.utils.jinja import render_template
-from frappe.utils.safe_exec import safe_exec
-from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import (
+import nts
+from nts import _
+from nts.utils import get_datetime, now, quoted, strip_html
+from nts.utils.caching import redis_cache
+from nts.utils.jinja import render_template
+from nts.utils.safe_exec import safe_exec
+from nts.website.doctype.website_slideshow.website_slideshow import get_slideshow
+from nts.website.utils import (
 	extract_title,
 	find_first_image,
 	get_comment_list,
 	get_html_content_based_on_type,
 	get_sidebar_items,
 )
-from frappe.website.website_generator import WebsiteGenerator
+from nts.website.website_generator import WebsiteGenerator
 
 H_TAG_PATTERN = re.compile("<h.>")
 
@@ -31,8 +31,8 @@ class WebPage(WebsiteGenerator):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.web_page_block.web_page_block import WebPageBlock
+		from nts.types import DF
+		from nts.website.doctype.web_page_block.web_page_block import WebPageBlock
 
 		breadcrumbs: DF.Code | None
 		content_type: DF.Literal["Rich Text", "Markdown", "HTML", "Page Builder", "Slideshow"]
@@ -78,7 +78,7 @@ class WebPage(WebsiteGenerator):
 		context.title = self.title
 
 		if self.context_script:
-			_locals = dict(context=frappe._dict())
+			_locals = dict(context=nts._dict())
 			safe_exec(self.context_script, None, _locals, script_filename=f"web page {self.name}")
 			context.update(_locals["context"])
 
@@ -122,8 +122,8 @@ class WebPage(WebsiteGenerator):
 			or ("{{" in context.main_section)
 		)
 		if is_jinja:
-			frappe.flags.web_block_scripts = {}
-			frappe.flags.web_block_styles = {}
+			nts.flags.web_block_scripts = {}
+			nts.flags.web_block_styles = {}
 			try:
 				context["main_section"] = render_template(context.main_section, context)
 				if "<!-- static -->" not in context.main_section:
@@ -131,13 +131,13 @@ class WebPage(WebsiteGenerator):
 			except TemplateSyntaxError:
 				raise
 			finally:
-				frappe.flags.web_block_scripts = {}
-				frappe.flags.web_block_styles = {}
+				nts.flags.web_block_scripts = {}
+				nts.flags.web_block_styles = {}
 
 	def set_breadcrumbs(self, context):
 		"""Build breadcrumbs template"""
 		if self.breadcrumbs:
-			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
+			context.parents = nts.safe_eval(self.breadcrumbs, {"_": _})
 		if "no_breadcrumbs" not in context:
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
@@ -188,10 +188,10 @@ class WebPage(WebsiteGenerator):
 
 	def check_for_redirect(self, context):
 		if "<!-- redirect:" in context.main_section:
-			frappe.local.flags.redirect_location = (
+			nts.local.flags.redirect_location = (
 				context.main_section.split("<!-- redirect:", 2)[1].split("-->", 1)[0].strip()
 			)
-			raise frappe.Redirect
+			raise nts.Redirect
 
 	def set_metatags(self, context):
 		if not context.metatags:
@@ -205,19 +205,19 @@ class WebPage(WebsiteGenerator):
 	def validate_dates(self):
 		if self.end_date:
 			if self.start_date and get_datetime(self.end_date) < get_datetime(self.start_date):
-				frappe.throw(_("End Date cannot be before Start Date!"))
+				nts.throw(_("End Date cannot be before Start Date!"))
 
 			# If the current date is past end date, and
 			# web page is published, empty the end date
 			if self.published and now() > self.end_date:
 				self.end_date = None
 
-				frappe.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
+				nts.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
 
 
 def check_publish_status():
 	# called via daily scheduler
-	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
+	web_pages = nts.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
 	now_date = get_datetime(now())
 
 	for page in web_pages:
@@ -227,23 +227,23 @@ def check_publish_status():
 		if page.published:
 			# Unpublish pages that are outside the set date ranges
 			if (start_date and now_date < start_date) or (end_date and now_date > end_date):
-				frappe.db.set_value("Web Page", page.name, "published", 0)
+				nts.db.set_value("Web Page", page.name, "published", 0)
 		else:
 			# Publish pages that are inside the set date ranges
 			if start_date:
 				if not end_date or (end_date and now_date < end_date):
-					frappe.db.set_value("Web Page", page.name, "published", 1)
+					nts.db.set_value("Web Page", page.name, "published", 1)
 
 
 def get_web_blocks_html(blocks):
 	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
 
-	out = frappe._dict(html="", scripts={}, styles={})
+	out = nts._dict(html="", scripts={}, styles={})
 	extracted_scripts = {}
 	extracted_styles = {}
 	for block in blocks:
-		web_template = frappe.get_cached_doc("Web Template", block.web_template)
-		rendered_html = frappe.render_template(
+		web_template = nts.get_cached_doc("Web Template", block.web_template)
+		rendered_html = nts.render_template(
 			"templates/includes/web_block.html",
 			context={
 				"web_block": block,
@@ -287,13 +287,13 @@ def extract_script_and_style_tags(html):
 
 @redis_cache(ttl=60 * 60)
 def get_dynamic_web_pages() -> dict[str, str]:
-	pages = frappe.get_all(
+	pages = nts.get_all(
 		"Web Page",
 		fields=["name", "route", "modified"],
 		filters=dict(published=1, dynamic_route=1),
 		update={"doctype": "Web Page"},
 	)
-	get_web_pages_with_dynamic_routes = frappe.get_hooks("get_web_pages_with_dynamic_routes") or []
+	get_web_pages_with_dynamic_routes = nts.get_hooks("get_web_pages_with_dynamic_routes") or []
 	for method in get_web_pages_with_dynamic_routes:
-		pages.extend(frappe.get_attr(method)())
+		pages.extend(nts.get_attr(method)())
 	return pages

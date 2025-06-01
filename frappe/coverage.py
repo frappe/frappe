@@ -1,10 +1,10 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 """
-	frappe.coverage
+	nts.coverage
 	~~~~~~~~~~~~~~~~
 
-	Coverage settings for frappe
+	Coverage settings for nts
 """
 
 STANDARD_INCLUSIONS = ["*.py"]
@@ -26,20 +26,20 @@ STANDARD_EXCLUSIONS = [
 
 # tested via commands' test suite
 TESTED_VIA_CLI = [
-	"*/frappe/installer.py",
-	"*/frappe/build.py",
-	"*/frappe/database/__init__.py",
-	"*/frappe/database/db_manager.py",
-	"*/frappe/database/**/setup_db.py",
+	"*/nts/installer.py",
+	"*/nts/build.py",
+	"*/nts/database/__init__.py",
+	"*/nts/database/db_manager.py",
+	"*/nts/database/**/setup_db.py",
 ]
 
-FRAPPE_EXCLUSIONS = [
+nts_EXCLUSIONS = [
 	"*/tests/*",
 	"*/commands/*",
-	"*/frappe/change_log/*",
-	"*/frappe/exceptions*",
-	"*/frappe/coverage.py",
-	"*frappe/setup.py",
+	"*/nts/change_log/*",
+	"*/nts/exceptions*",
+	"*/nts/coverage.py",
+	"*nts/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
 	*TESTED_VIA_CLI,
@@ -49,7 +49,7 @@ FRAPPE_EXCLUSIONS = [
 class CodeCoverage:
 	def __init__(self, with_coverage, app):
 		self.with_coverage = with_coverage
-		self.app = app or "frappe"
+		self.app = app or "nts"
 
 	def __enter__(self):
 		if self.with_coverage:
@@ -57,14 +57,14 @@ class CodeCoverage:
 
 			from coverage import Coverage
 
-			from frappe.utils import get_bench_path
+			from nts.utils import get_bench_path
 
 			# Generate coverage report only for app that is being tested
 			source_path = os.path.join(get_bench_path(), "apps", self.app)
 			omit = STANDARD_EXCLUSIONS[:]
 
-			if self.app == "frappe":
-				omit.extend(FRAPPE_EXCLUSIONS)
+			if self.app == "nts":
+				omit.extend(nts_EXCLUSIONS)
 
 			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 			self.coverage.start()

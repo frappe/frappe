@@ -1,7 +1,7 @@
-frappe.listview_settings["Webhook Request Log"] = {
+nts.listview_settings["Webhook Request Log"] = {
 	onload: function (list_view) {
-		frappe.require("logtypes.bundle.js", () => {
-			frappe.utils.logtypes.show_log_retention_message(list_view.doctype);
+		nts.require("logtypes.bundle.js", () => {
+			nts.utils.logtypes.show_log_retention_message(list_view.doctype);
 		});
 	},
 };

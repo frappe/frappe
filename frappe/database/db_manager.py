@@ -1,5 +1,5 @@
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 
 class DbManager:
@@ -38,7 +38,7 @@ class DbManager:
 				"CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, "
 				"CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES"
 			)
-			if frappe.conf.rds_db
+			if nts.conf.rds_db
 			else "ALL PRIVILEGES"
 		)
 		self.db.sql(f"GRANT {permissions} ON `{target}`.* TO '{user}'@'{host}'")
@@ -63,8 +63,8 @@ class DbManager:
 		import shlex
 		from shutil import which
 
-		from frappe.database import get_command
-		from frappe.utils import execute_in_shell
+		from nts.database import get_command
+		from nts.utils import execute_in_shell
 
 		# Ensure that the entire process fails if any part of the pipeline fails
 		command: list[str] = ["set -o pipefail;"]
@@ -86,20 +86,20 @@ class DbManager:
 
 		# Generate the restore command
 		bin, args, bin_name = get_command(
-			socket=frappe.conf.db_socket,
-			host=frappe.conf.db_host,
-			port=frappe.conf.db_port,
+			socket=nts.conf.db_socket,
+			host=nts.conf.db_host,
+			port=nts.conf.db_port,
 			user=user,
 			password=password,
 			db_name=target,
 		)
 		if not bin:
-			return frappe.throw(
+			return nts.throw(
 				_("{} not found in PATH! This is required to restore the database.").format(bin_name),
-				exc=frappe.ExecutableNotFound,
+				exc=nts.ExecutableNotFound,
 			)
 		command.append(bin)
 		command.append(shlex.join(args))
 
 		execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
-		frappe.cache.delete_keys("")  # Delete all keys associated with this site.
+		nts.cache.delete_keys("")  # Delete all keys associated with this site.

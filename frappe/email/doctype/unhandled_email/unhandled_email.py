@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class UnhandledEmail(Document):
@@ -12,7 +12,7 @@ class UnhandledEmail(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		email_account: DF.Link | None
 		message_id: DF.Code | None
@@ -23,9 +23,9 @@ class UnhandledEmail(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		frappe.db.delete(
+		nts.db.delete(
 			"Unhandled Email",
 			{
-				"modified": ("<", frappe.utils.add_days(frappe.utils.nowdate(), -1 * days)),
+				"modified": ("<", nts.utils.add_days(nts.utils.nowdate(), -1 * days)),
 			},
 		)

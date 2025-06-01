@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2020, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from whoosh.fields import ID, TEXT, Schema
@@ -7,12 +7,12 @@ from whoosh.qparser import FieldsPlugin, MultifieldParser, WildcardPlugin
 from whoosh.query import FuzzyTerm, Prefix
 from whoosh.writing import AsyncWriter
 
-import frappe
-from frappe.utils import update_progress_bar
+import nts
+from nts.utils import update_progress_bar
 
 
 class FullTextSearch:
-	"""Frappe Wrapper for Whoosh"""
+	"""nts Wrapper for Whoosh"""
 
 	def __init__(self, index_name):
 		self.index_name = index_name
@@ -92,7 +92,7 @@ class FullTextSearch:
 			return self.create_index()
 
 	def create_index(self):
-		frappe.create_folder(self.index_path)
+		nts.create_folder(self.index_path)
 		return create_in(self.index_path, self.schema)
 
 	def build_index(self):
@@ -158,4 +158,4 @@ class FuzzyTermExtended(FuzzyTerm):
 
 
 def get_index_path(index_name):
-	return frappe.get_site_path("indexes", index_name)
+	return nts.get_site_path("indexes", index_name)

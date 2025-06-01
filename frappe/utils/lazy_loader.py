@@ -13,7 +13,7 @@ def lazy_import(name, package=None):
 	>>> mod = lazy_import("mod")  # Module is not loaded
 	>>> mod.__str__()  # module is loaded on accessing attribute
 	Loading mod.py
-	"<module 'mod' from '.../frappe/utils/mod.py'>"
+	"<module 'mod' from '.../nts/utils/mod.py'>"
 	>>>
 
 	Code based on https://github.com/python/cpython/blob/master/Doc/library/importlib.rst#implementing-lazy-imports.

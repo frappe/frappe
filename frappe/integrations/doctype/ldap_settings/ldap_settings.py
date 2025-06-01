@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies and contributors
+# Copyright (c) 2022, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import ssl
@@ -16,13 +16,13 @@ from ldap3.core.exceptions import (
 from ldap3.utils.conv import escape_filter_chars
 from ldap3.utils.hashed import hashed
 
-import frappe
-from frappe import _, safe_encode
-from frappe.model.document import Document
-from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+import nts
+from nts import _, safe_encode
+from nts.model.document import Document
+from nts.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.user.user import User
+	from nts.core.doctype.user.user import User
 
 
 class LDAPSettings(Document):
@@ -32,8 +32,8 @@ class LDAPSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.integrations.doctype.ldap_group_mapping.ldap_group_mapping import LDAPGroupMapping
-		from frappe.types import DF
+		from nts.integrations.doctype.ldap_group_mapping.ldap_group_mapping import LDAPGroupMapping
+		from nts.types import DF
 
 		base_dn: DF.Data
 		default_role: DF.Link | None
@@ -98,19 +98,19 @@ class LDAPSettings(Document):
 						)
 
 				except LDAPAttributeError as ex:
-					frappe.throw(
+					nts.throw(
 						_("LDAP settings incorrect. validation response was: {0}").format(ex),
 						title=_("Misconfigured"),
 					)
 
 				except LDAPNoSuchObjectResult:
-					frappe.throw(
+					nts.throw(
 						_("Ensure the user and group search paths are correct."), title=_("Misconfigured")
 					)
 
 				if self.ldap_directory_server.lower() == "custom":
 					if not self.ldap_group_member_attribute or not self.ldap_group_objectclass:
-						frappe.throw(
+						nts.throw(
 							_(
 								"Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
 							),
@@ -118,7 +118,7 @@ class LDAPSettings(Document):
 						)
 
 				if self.ldap_custom_group_search and "{0}" not in self.ldap_custom_group_search:
-					frappe.throw(
+					nts.throw(
 						_(
 							"Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"
 						),
@@ -126,7 +126,7 @@ class LDAPSettings(Document):
 					)
 
 			else:
-				frappe.throw(
+				nts.throw(
 					_(
 						"LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
 					)
@@ -160,20 +160,20 @@ class LDAPSettings(Document):
 
 		except ImportError:
 			msg = _("Please Install the ldap3 library via pip to use ldap functionality.")
-			frappe.throw(msg, title=_("LDAP Not Installed"))
+			nts.throw(msg, title=_("LDAP Not Installed"))
 		except LDAPInvalidCredentialsResult:
-			frappe.throw(_("Invalid username or password"))
+			nts.throw(_("Invalid username or password"))
 		except Exception as ex:
-			frappe.throw(_(str(ex)))
+			nts.throw(_(str(ex)))
 
 	@staticmethod
 	def get_ldap_client_settings() -> dict:
 		# return the settings to be used on the client side.
 		result = {"enabled": False}
-		ldap = frappe.get_cached_doc("LDAP Settings")
+		ldap = nts.get_cached_doc("LDAP Settings")
 		if ldap.enabled:
 			result["enabled"] = True
-			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
+			result["method"] = "nts.integrations.doctype.ldap_settings.ldap_settings.login"
 		return result
 
 	@classmethod
@@ -208,8 +208,8 @@ class LDAPSettings(Document):
 		user: "User" = None
 		role: str = None
 
-		if frappe.db.exists("User", user_data["email"]):
-			user = frappe.get_doc("User", user_data["email"])
+		if nts.db.exists("User", user_data["email"]):
+			user = nts.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
@@ -218,10 +218,10 @@ class LDAPSettings(Document):
 				"language": "",
 				"user_type": self.default_user_type,
 			}
-			user = frappe.get_doc(doc)
+			user = nts.get_doc(doc)
 			user.insert(ignore_permissions=True)
 		else:
-			frappe.throw(
+			nts.throw(
 				_(
 					"User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 				).format(user_data["email"])
@@ -230,7 +230,7 @@ class LDAPSettings(Document):
 		if self.default_user_type == "System User":
 			role = self.default_role
 		else:
-			role = frappe.db.get_value("User Type", user.user_type, "role")
+			role = nts.db.get_value("User Type", user.user_type, "role")
 
 		if role:
 			user.add_roles(role)
@@ -306,7 +306,7 @@ class LDAPSettings(Document):
 
 	def authenticate(self, username: str, password: str):
 		if not self.enabled:
-			frappe.throw(_("LDAP is not enabled."))
+			nts.throw(_("LDAP is not enabled."))
 
 		user_filter = self.ldap_search_string.format(username)
 		ldap_attributes = self.get_ldap_attributes()
@@ -330,10 +330,10 @@ class LDAPSettings(Document):
 			raise LDAPInvalidCredentialsResult  # even though nothing foundor failed authentication raise invalid credentials
 
 		except LDAPInvalidFilterError:
-			frappe.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
+			nts.throw(_("Please use a valid LDAP search filter"), title=_("Misconfigured"))
 
 		except LDAPInvalidCredentialsResult:
-			frappe.throw(_("Invalid username or password"))
+			nts.throw(_("Invalid username or password"))
 
 	def reset_password(self, user, password, logout_sessions=False):
 		search_filter = f"({self.ldap_email_field}={user})"
@@ -351,16 +351,16 @@ class LDAPSettings(Document):
 				changes = {"userPassword": [(MODIFY_REPLACE, [hashed_password])]}
 				if conn.modify(entry_dn, changes=changes):
 					if logout_sessions:
-						from frappe.sessions import clear_sessions
+						from nts.sessions import clear_sessions
 
 						clear_sessions(user=user, force=True)
-					frappe.msgprint(_("Password changed successfully."))
+					nts.msgprint(_("Password changed successfully."))
 				else:
-					frappe.throw(_("Failed to change password."))
+					nts.throw(_("Failed to change password."))
 			else:
-				frappe.throw(_("No Entry for the User {0} found within LDAP!").format(user))
+				nts.throw(_("No Entry for the User {0} found within LDAP!").format(user))
 		else:
-			frappe.throw(_("No LDAP User found for email: {0}").format(user))
+			nts.throw(_("No LDAP User found for email: {0}").format(user))
 
 	def convert_ldap_entry_to_dict(self, user_entry: Entry):
 		# support multiple email values
@@ -369,7 +369,7 @@ class LDAPSettings(Document):
 		if isinstance(email, list):
 			# check if any of the email in the list already exist
 			for e in email:
-				if frappe.db.exists("User", e):
+				if nts.db.exists("User", e):
 					email = e
 					break
 			else:
@@ -398,30 +398,30 @@ class LDAPSettings(Document):
 		return data
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def login():
 	# LDAP LOGIN LOGIC
-	args = frappe.form_dict
-	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
+	args = nts.form_dict
+	ldap: LDAPSettings = nts.get_doc("LDAP Settings")
 
-	user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
+	user = ldap.authenticate(nts.as_unicode(args.usr), nts.as_unicode(args.pwd))
 
-	frappe.local.login_manager.user = user.name
+	nts.local.login_manager.user = user.name
 	if should_run_2fa(user.name):
 		authenticate_for_2factor(user.name)
-		if not confirm_otp_token(frappe.local.login_manager):
+		if not confirm_otp_token(nts.local.login_manager):
 			return False
 
-	frappe.form_dict.pop("pwd", None)
-	frappe.local.login_manager.post_login()
+	nts.form_dict.pop("pwd", None)
+	nts.local.login_manager.post_login()
 
 	# because of a GET request!
-	frappe.db.commit()
+	nts.db.commit()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def reset_password(user, password, logout):
-	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
+	ldap: LDAPSettings = nts.get_doc("LDAP Settings")
 	if not ldap.enabled:
-		frappe.throw(_("LDAP is not enabled."))
+		nts.throw(_("LDAP is not enabled."))
 	ldap.reset_password(user, password, logout_sessions=int(logout))

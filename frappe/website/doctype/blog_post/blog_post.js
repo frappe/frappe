@@ -1,9 +1,9 @@
-// Copyright (c) 2016, Frappe Technologies Pvt. Ltd. and contributors
+// Copyright (c) 2016, nts Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Blog Post", {
+nts.ui.form.on("Blog Post", {
 	refresh: function (frm) {
-		frappe.db.get_single_value("Blog Settings", "show_cta_in_blog").then((value) => {
+		nts.db.get_single_value("Blog Settings", "show_cta_in_blog").then((value) => {
 			frm.set_df_property("hide_cta", "hidden", !value);
 		});
 
@@ -53,7 +53,7 @@ function generate_google_search_preview(frm) {
 		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
 			<div style="font-family: Open Sans; padding: 15px; border: 1px solid #d1d8dd !important; border-radius: 6px;">
 				<cite style="font-size: 14px; padding-top: 1px; line-height: 1.3; color: #202124; font-style: normal;">
-					${frappe.boot.sitename}
+					${nts.boot.sitename}
 					<span style="color: #5f6368;"> › ${route_array.join(" › ")}</span>
 				</cite>
 				<div style="font-size: 20px; line-height: 1.3; color: #1a0dab; padding-top: 4px; margin-bottom: 3px;">

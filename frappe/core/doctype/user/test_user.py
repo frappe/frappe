@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 import time
@@ -8,9 +8,9 @@ from urllib.parse import parse_qs, urlparse
 
 from werkzeug.http import parse_cookie
 
-import frappe
-import frappe.exceptions
-from frappe.core.doctype.user.user import (
+import nts
+import nts.exceptions
+from nts.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
 	reset_password,
@@ -19,24 +19,24 @@ from frappe.core.doctype.user.user import (
 	update_password,
 	verify_password,
 )
-from frappe.desk.notifications import extract_mentions
-from frappe.frappeclient import FrappeClient
-from frappe.model.delete_doc import delete_doc
-from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase, change_settings
-from frappe.utils import get_url
+from nts.desk.notifications import extract_mentions
+from nts.ntsclient import ntsClient
+from nts.model.delete_doc import delete_doc
+from nts.tests.test_api import ntsAPITestCase
+from nts.tests.utils import ntsTestCase, change_settings
+from nts.utils import get_url
 
-user_module = frappe.core.doctype.user.user
-test_records = frappe.get_test_records("User")
+user_module = nts.core.doctype.user.user
+test_records = nts.get_test_records("User")
 
 
-class TestUser(FrappeTestCase):
+class TestUser(ntsTestCase):
 	def tearDown(self):
 		# disable password strength test
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
-		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
-		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
-		frappe.set_user("Administrator")
+		nts.db.set_single_value("System Settings", "enable_password_policy", 0)
+		nts.db.set_single_value("System Settings", "minimum_password_score", "")
+		nts.db.set_single_value("System Settings", "password_reset_limit", 3)
+		nts.set_user("Administrator")
 
 	@staticmethod
 	def reset_password(user) -> str:
@@ -44,13 +44,13 @@ class TestUser(FrappeTestCase):
 		return parse_qs(urlparse(link).query)["key"][0]
 
 	def test_user_type(self):
-		user_id = frappe.generate_hash() + "@example.com"
-		new_user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		user_id = nts.generate_hash() + "@example.com"
+		new_user = nts.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
 		self.assertEqual(new_user.user_type, "Website User")
 
-		# social login userid for frappe
+		# social login userid for nts
 		self.assertTrue(new_user.social_logins[0].userid)
-		self.assertEqual(new_user.social_logins[0].provider, "frappe")
+		self.assertEqual(new_user.social_logins[0].provider, "nts")
 
 		# role with desk access
 		new_user.add_roles("_Test Role 2")
@@ -68,73 +68,73 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(new_user.user_type, "Website User")
 
 		delete_contact(new_user.name)
-		frappe.delete_doc("User", new_user.name)
+		nts.delete_doc("User", new_user.name)
 
 	def test_delete(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
-		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
-		frappe.db.delete("Has Role", {"role": "_Test Role 2"})
+		nts.get_doc("User", "test@example.com").add_roles("_Test Role 2")
+		self.assertRaises(nts.LinkExistsError, delete_doc, "Role", "_Test Role 2")
+		nts.db.delete("Has Role", {"role": "_Test Role 2"})
 		delete_doc("Role", "_Test Role 2")
 
-		if frappe.db.exists("User", "_test@example.com"):
+		if nts.db.exists("User", "_test@example.com"):
 			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
-		user = frappe.copy_doc(test_records[1])
+		user = nts.copy_doc(test_records[1])
 		user.email = "_test@example.com"
 		user.insert()
 
-		frappe.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
+		nts.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
 
 		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
 		self.assertTrue(
-			not frappe.db.sql("""select * from `tabToDo` where allocated_to=%s""", ("_test@example.com",))
+			not nts.db.sql("""select * from `tabToDo` where allocated_to=%s""", ("_test@example.com",))
 		)
 
-		from frappe.core.doctype.role.test_role import test_records as role_records
+		from nts.core.doctype.role.test_role import test_records as role_records
 
-		frappe.copy_doc(role_records[1]).insert()
+		nts.copy_doc(role_records[1]).insert()
 
 	def test_get_value(self):
-		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
-		self.assertEqual(frappe.db.get_value("User", {"email": "test@example.com"}), "test@example.com")
+		self.assertEqual(nts.db.get_value("User", "test@example.com"), "test@example.com")
+		self.assertEqual(nts.db.get_value("User", {"email": "test@example.com"}), "test@example.com")
 		self.assertEqual(
-			frappe.db.get_value("User", {"email": "test@example.com"}, "email"), "test@example.com"
+			nts.db.get_value("User", {"email": "test@example.com"}, "email"), "test@example.com"
 		)
 		self.assertEqual(
-			frappe.db.get_value("User", {"email": "test@example.com"}, ["first_name", "email"]),
+			nts.db.get_value("User", {"email": "test@example.com"}, ["first_name", "email"]),
 			("_Test", "test@example.com"),
 		)
 		self.assertEqual(
-			frappe.db.get_value(
+			nts.db.get_value(
 				"User", {"email": "test@example.com", "first_name": "_Test"}, ["first_name", "email"]
 			),
 			("_Test", "test@example.com"),
 		)
 
-		test_user = frappe.db.sql("select * from tabUser where name='test@example.com'", as_dict=True)[0]
+		test_user = nts.db.sql("select * from tabUser where name='test@example.com'", as_dict=True)[0]
 		self.assertEqual(
-			frappe.db.get_value("User", {"email": "test@example.com"}, "*", as_dict=True), test_user
+			nts.db.get_value("User", {"email": "test@example.com"}, "*", as_dict=True), test_user
 		)
 
-		self.assertEqual(frappe.db.get_value("User", "xxxtest@example.com"), None)
+		self.assertEqual(nts.db.get_value("User", "xxxtest@example.com"), None)
 
-		frappe.db.set_single_value("Website Settings", "_test", "_test_val")
-		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
-		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
+		nts.db.set_single_value("Website Settings", "_test", "_test_val")
+		self.assertEqual(nts.db.get_value("Website Settings", None, "_test"), "_test_val")
+		self.assertEqual(nts.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 
 	def test_high_permlevel_validations(self):
-		user = frappe.get_meta("User")
+		user = nts.get_meta("User")
 		self.assertTrue("roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = nts.get_doc("User", "testperm@example.com")
 		me.remove_roles("System Manager")
 
-		frappe.set_user("testperm@example.com")
+		nts.set_user("testperm@example.com")
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = nts.get_doc("User", "testperm@example.com")
 		me.add_roles("System Manager")
 
 		# system manager is not added (it is reset)
@@ -151,16 +151,16 @@ class TestUser(FrappeTestCase):
 		me.flags.ignore_permlevel_for_fields = None
 
 		# change user
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = nts.get_doc("User", "testperm@example.com")
 		me.add_roles("System Manager")
 
 		# system manager now added by Administrator
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
 	def test_delete_user(self):
-		new_user = frappe.get_doc(
+		new_user = nts.get_doc(
 			dict(doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User")
 		).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, "Website User")
@@ -170,7 +170,7 @@ class TestUser(FrappeTestCase):
 		new_user.save()
 		self.assertEqual(new_user.user_type, "System User")
 
-		comm = frappe.get_doc(
+		comm = nts.get_doc(
 			{
 				"doctype": "Communication",
 				"subject": "To check user able to delete even if linked with communication",
@@ -182,27 +182,27 @@ class TestUser(FrappeTestCase):
 		comm.insert(ignore_permissions=True)
 
 		delete_contact(new_user.name)
-		frappe.delete_doc("User", new_user.name)
-		self.assertFalse(frappe.db.exists("User", new_user.name))
+		nts.delete_doc("User", new_user.name)
+		self.assertFalse(nts.db.exists("User", new_user.name))
 
 	def test_password_strength(self):
 		# Test Password without Password Strength Policy
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
+		nts.db.set_single_value("System Settings", "enable_password_policy", 0)
 
 		# password policy is disabled, test_password_strength should be ignored
 		result = test_password_strength("test_password")
 		self.assertFalse(result.get("feedback", None))
 
 		# Test Password with Password Strenth Policy Set
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 1)
-		frappe.db.set_single_value("System Settings", "minimum_password_score", 2)
+		nts.db.set_single_value("System Settings", "enable_password_policy", 1)
+		nts.db.set_single_value("System Settings", "minimum_password_score", 2)
 
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
-		self.assertRaises(frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"])
+		self.assertRaises(nts.exceptions.ValidationError, handle_password_test_fail, result["feedback"])
 		self.assertRaises(
-			frappe.exceptions.ValidationError, handle_password_test_fail, result
+			nts.exceptions.ValidationError, handle_password_test_fail, result
 		)  # test backwards compatibility
 
 		# Score 4; should pass
@@ -210,14 +210,14 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
 		# test password strength while saving user with new password
-		user = frappe.get_doc("User", "test@example.com")
-		frappe.flags.in_test = False
+		user = nts.get_doc("User", "test@example.com")
+		nts.flags.in_test = False
 		user.new_password = "password"
-		self.assertRaises(frappe.exceptions.ValidationError, user.save)
+		self.assertRaises(nts.exceptions.ValidationError, user.save)
 		user.reload()
 		user.new_password = "Eastern_43A1W"
 		user.save()
-		frappe.flags.in_test = True
+		nts.flags.in_test = True
 
 	def test_comment_mentions(self):
 		comment = """
@@ -253,8 +253,8 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
 		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
-		frappe.delete_doc("User Group", "Team")
-		doc = frappe.get_doc(
+		nts.delete_doc("User Group", "Team")
+		doc = nts.get_doc(
 			{
 				"doctype": "User Group",
 				"name": "Team",
@@ -282,13 +282,13 @@ class TestUser(FrappeTestCase):
 	@change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()
-		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
+		data = {"cmd": "nts.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
 		# Clear rate limit tracker to start fresh
 		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache.delete(key)
+		nts.cache.delete(key)
 
-		c = FrappeClient(url)
+		c = ntsClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		self.assertEqual(res1.status_code, 404)
@@ -297,7 +297,7 @@ class TestUser(FrappeTestCase):
 	def test_user_rename(self):
 		old_name = "test_user_rename@example.com"
 		new_name = "test_user_rename_new@example.com"
-		user = frappe.get_doc(
+		user = nts.get_doc(
 			{
 				"doctype": "User",
 				"email": old_name,
@@ -308,20 +308,20 @@ class TestUser(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		frappe.rename_doc("User", user.name, new_name)
-		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
+		nts.rename_doc("User", user.name, new_name)
+		self.assertTrue(nts.db.exists("Notification Settings", new_name))
 
-		frappe.delete_doc("User", new_name)
+		nts.delete_doc("User", new_name)
 
 	def test_signup(self):
-		import frappe.website.utils
+		import nts.website.utils
 
-		random_user = frappe.mock("email")
-		random_user_name = frappe.mock("name")
+		random_user = nts.mock("email")
+		random_user_name = nts.mock("name")
 		# disabled signup
 		with patch.object(user_module, "is_signup_disabled", return_value=True):
 			self.assertRaisesRegex(
-				frappe.exceptions.ValidationError,
+				nts.exceptions.ValidationError,
 				"Sign Up is disabled",
 				sign_up,
 				random_user,
@@ -333,13 +333,13 @@ class TestUser(FrappeTestCase):
 			sign_up(random_user, random_user_name, "/welcome"),
 			(1, "Please check your email for verification"),
 		)
-		self.assertEqual(frappe.cache.hget("redirect_after_login", random_user), "/welcome")
+		self.assertEqual(nts.cache.hget("redirect_after_login", random_user), "/welcome")
 
 		# re-register
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
 
 		# disabled user
-		user = frappe.get_doc("User", random_user)
+		user = nts.get_doc("User", random_user)
 		user.enabled = 0
 		user.save()
 
@@ -348,32 +348,32 @@ class TestUser(FrappeTestCase):
 		)
 
 		# throttle user creation
-		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
+		with patch.object(user_module.nts.db, "get_creation_count", return_value=301):
 			self.assertRaisesRegex(
-				frappe.exceptions.ValidationError,
+				nts.exceptions.ValidationError,
 				"Throttled",
 				sign_up,
-				frappe.mock("email"),
+				nts.mock("email"),
 				random_user_name,
 				"/signup",
 			)
 
 	@change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
-		from frappe.auth import CookieManager, LoginManager
-		from frappe.utils import set_request
+		from nts.auth import CookieManager, LoginManager
+		from nts.utils import set_request
 
 		old_password = "Eastern_43A1W"
 		new_password = "easy_password"
 
 		set_request(path="/random")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
+		nts.local.cookie_manager = CookieManager()
+		nts.local.login_manager = LoginManager()
 		# used by rate limiter when calling reset_password
-		frappe.local.request_ip = "127.0.0.69"
+		nts.local.request_ip = "127.0.0.69"
 
-		frappe.set_user("testpassword@example.com")
-		test_user = frappe.get_doc("User", "testpassword@example.com")
+		nts.set_user("testpassword@example.com")
+		test_user = nts.get_doc("User", "testpassword@example.com")
 		key = self.reset_password(test_user)
 		self.assertEqual(update_password(new_password, key=key), "/app")
 		self.assertEqual(
@@ -382,7 +382,7 @@ class TestUser(FrappeTestCase):
 		)
 
 		# password verification should fail with old password
-		self.assertRaises(frappe.exceptions.AuthenticationError, verify_password, old_password)
+		self.assertRaises(nts.exceptions.AuthenticationError, verify_password, old_password)
 		verify_password(new_password)
 
 		# reset password
@@ -396,7 +396,7 @@ class TestUser(FrappeTestCase):
 		# password strength failure test
 		with patch.object(user_module, "test_password_strength", return_value=password_strength_response):
 			self.assertRaisesRegex(
-				frappe.exceptions.ValidationError,
+				nts.exceptions.ValidationError,
 				"Fix password",
 				update_password,
 				new_password,
@@ -405,15 +405,15 @@ class TestUser(FrappeTestCase):
 			)
 
 		# test redirect URL for website users
-		frappe.set_user("test2@example.com")
+		nts.set_user("test2@example.com")
 		self.assertEqual(update_password(new_password, old_password=old_password), "me")
 		# reset password
 		update_password(old_password, old_password=new_password)
 
 		# test API endpoint
-		with patch.object(user_module.frappe, "sendmail") as sendmail:
-			frappe.clear_messages()
-			test_user = frappe.get_doc("User", "test2@example.com")
+		with patch.object(user_module.nts, "sendmail") as sendmail:
+			nts.clear_messages()
+			test_user = nts.get_doc("User", "test2@example.com")
 			self.assertEqual(reset_password(user="test2@example.com"), None)
 			test_user.reload()
 			link = sendmail.call_args_list[0].kwargs["args"]["link"]
@@ -421,7 +421,7 @@ class TestUser(FrappeTestCase):
 			self.assertEqual(update_password(new_password, key=key), "me")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
-				frappe.message_log[0].get("message"),
+				nts.message_log[0].get("message"),
 				"Password reset instructions have been sent to your email",
 			)
 
@@ -433,12 +433,12 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(reset_password(user="random"), "not found")
 
 	def test_user_onload_modules(self):
-		from frappe.config import get_modules_from_all_apps
-		from frappe.desk.form.load import getdoc
+		from nts.config import get_modules_from_all_apps
+		from nts.desk.form.load import getdoc
 
-		frappe.response.docs = []
+		nts.response.docs = []
 		getdoc("User", "Administrator")
-		doc = frappe.response.docs[0]
+		doc = nts.response.docs[0]
 		self.assertListEqual(
 			sorted(doc.get("__onload").get("all_modules", [])),
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
@@ -447,8 +447,8 @@ class TestUser(FrappeTestCase):
 	@change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
-		frappe.set_user("testpassword@example.com")
-		test_user = frappe.get_doc("User", "testpassword@example.com")
+		nts.set_user("testpassword@example.com")
+		test_user = nts.get_doc("User", "testpassword@example.com")
 		key = self.reset_password(test_user)
 		time.sleep(1)
 
@@ -458,14 +458,14 @@ class TestUser(FrappeTestCase):
 		)
 
 
-class TestImpersonation(FrappeAPITestCase):
+class TestImpersonation(ntsAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
-				self.method("frappe.core.doctype.user.user.impersonate"),
+				self.method("nts.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
-			resp = self.get(self.method("frappe.auth.get_logged_user"))
+			resp = self.get(self.method("nts.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 
 
@@ -474,9 +474,9 @@ def test_user(
 	*, first_name: str | None = None, email: str | None = None, roles: list[str], commit=False, **kwargs
 ):
 	try:
-		first_name = first_name or frappe.generate_hash()
+		first_name = first_name or nts.generate_hash()
 		email = email or (first_name + "@example.com")
-		user: User = frappe.new_doc(
+		user: User = nts.new_doc(
 			"User",
 			send_welcome_email=0,
 			email=email,
@@ -486,12 +486,12 @@ def test_user(
 		user.append_roles(*roles)
 		user.insert()
 		yield user
-		commit and frappe.db.commit()
+		commit and nts.db.commit()
 	finally:
 		user.delete(force=True, ignore_permissions=True)
-		commit and frappe.db.commit()
+		commit and nts.db.commit()
 
 
 def delete_contact(user):
-	frappe.db.delete("Contact", {"email_id": user})
-	frappe.db.delete("Contact Email", {"email_id": user})
+	nts.db.delete("Contact", {"email_id": user})
+	nts.db.delete("Contact Email", {"email_id": user})

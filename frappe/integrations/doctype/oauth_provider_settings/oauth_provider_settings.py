@@ -1,9 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
+import nts
+from nts import _
+from nts.model.document import Document
 
 
 class OAuthProviderSettings(Document):
@@ -13,7 +13,7 @@ class OAuthProviderSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		skip_authorization: DF.Literal["Force", "Auto"]
 	# end: auto-generated types
@@ -22,6 +22,6 @@ class OAuthProviderSettings(Document):
 
 def get_oauth_settings():
 	"""Returns oauth settings"""
-	return frappe._dict(
-		{"skip_authorization": frappe.db.get_single_value("OAuth Provider Settings", "skip_authorization")}
+	return nts._dict(
+		{"skip_authorization": nts.db.get_single_value("OAuth Provider Settings", "skip_authorization")}
 	)

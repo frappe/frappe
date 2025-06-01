@@ -1,45 +1,45 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
 
-import frappe
-from frappe import _
-from frappe.model import child_table_fields, default_fields, table_fields
-from frappe.utils import cstr
+import nts
+from nts import _
+from nts.model import child_table_fields, default_fields, table_fields
+from nts.utils import cstr
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	"""Returns the mapped document calling the given mapper method.
 	Sets selected_children as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
+	method = nts.get_attr(nts.override_whitelisted_method(method))
 
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	if method not in nts.whitelisted:
+		raise nts.PermissionError
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
 
 	if args:
-		frappe.flags.args = frappe._dict(json.loads(args))
+		nts.flags.args = nts._dict(json.loads(args))
 
-	frappe.flags.selected_children = selected_children or None
+	nts.flags.selected_children = selected_children or None
 
 	return method(source_name)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def map_docs(method, source_names, target_doc, args=None):
 	'''Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc
 
 	:param args: Args as string to pass to the mapper method
 	E.g. args: "{ 'supplier': 'XYZ' }"'''
-	method = frappe.get_attr(frappe.override_whitelisted_method(method))
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	method = nts.get_attr(nts.override_whitelisted_method(method))
+	if method not in nts.whitelisted:
+		raise nts.PermissionError
 
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
@@ -57,13 +57,13 @@ def get_mapped_doc(
 	ignore_child_tables=False,
 	cached=False,
 ):
-	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+	apply_strict_user_permissions = nts.get_system_settings("apply_strict_user_permissions")
 
 	# main
 	if not target_doc:
-		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
+		target_doc = nts.new_doc(table_maps[from_doctype]["doctype"])
 	elif isinstance(target_doc, str):
-		target_doc = frappe.get_doc(json.loads(target_doc))
+		target_doc = nts.get_doc(json.loads(target_doc))
 
 	if (
 		not apply_strict_user_permissions
@@ -73,9 +73,9 @@ def get_mapped_doc(
 		target_doc.raise_no_permission_to("create")
 
 	if cached:
-		source_doc = frappe.get_cached_doc(from_doctype, from_docname)
+		source_doc = nts.get_cached_doc(from_doctype, from_docname)
 	else:
-		source_doc = frappe.get_doc(from_doctype, from_docname)
+		source_doc = nts.get_doc(from_doctype, from_docname)
 
 	if not ignore_permissions:
 		if not source_doc.has_permission("read"):
@@ -121,9 +121,9 @@ def get_mapped_doc(
 					# if children are selected (checked from UI) for this table type,
 					# and this record is not in the selected children, then continue
 					if (
-						frappe.flags.selected_children
-						and (df.fieldname in frappe.flags.selected_children)
-						and source_d.name not in frappe.flags.selected_children[df.fieldname]
+						nts.flags.selected_children
+						and (df.fieldname in nts.flags.selected_children)
+						and source_d.name not in nts.flags.selected_children[df.fieldname]
 					):
 						continue
 
@@ -160,7 +160,7 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
 			if condition[0] == "=" and source_doc.get(key) != condition[1]:
-				frappe.throw(
+				nts.throw(
 					_("Cannot map because following condition fails:") + f" {key}={cstr(condition[1])}"
 				)
 
@@ -243,7 +243,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 
 			if not linked_doc:
 				try:
-					linked_doc = frappe.get_doc(df.options, target_doc.get(df.fieldname))
+					linked_doc = nts.get_doc(df.options, target_doc.get(df.fieldname))
 				except Exception:
 					return
 
@@ -256,7 +256,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 def map_child_doc(source_d, target_parent, table_map, source_parent=None):
 	target_child_doctype = table_map["doctype"]
 	target_parentfield = target_parent.get_parentfield_of_doctype(target_child_doctype)
-	target_d = frappe.new_doc(target_child_doctype, parent_doc=target_parent, parentfield=target_parentfield)
+	target_d = nts.new_doc(target_child_doctype, parent_doc=target_parent, parentfield=target_parentfield)
 
 	map_doc(source_d, target_d, table_map, source_parent)
 

@@ -1,9 +1,9 @@
-// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-frappe.provide("frappe.views");
-frappe.provide("frappe.interaction_settings");
+nts.provide("nts.views");
+nts.provide("nts.interaction_settings");
 
-frappe.views.InteractionComposer = class InteractionComposer {
+nts.views.InteractionComposer = class InteractionComposer {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
@@ -11,7 +11,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 
 	make() {
 		let me = this;
-		me.dialog = new frappe.ui.Dialog({
+		me.dialog = new nts.ui.Dialog({
 			title: me.title || me.subject || __("New Activity"),
 			no_submit_on_enter: true,
 			fields: me.get_fields(),
@@ -99,8 +99,8 @@ frappe.views.InteractionComposer = class InteractionComposer {
 
 	get_event_categories() {
 		let me = this;
-		frappe.model.with_doctype("Event", () => {
-			let categories = frappe.meta
+		nts.model.with_doctype("Event", () => {
+			let categories = nts.meta
 				.get_docfield("Event", "event_category")
 				.options.split("\n");
 			me.dialog.get_input("category").empty().add_options(categories);
@@ -159,7 +159,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				__("Add Attachment") +
 				"</a></p>"
 		).appendTo(attach.empty());
-		attach.find(".add-more-attachments a").on("click", () => new frappe.ui.FileUploader(args));
+		attach.find(".add-more-attachments a").on("click", () => new nts.ui.FileUploader(args));
 		this.render_attach();
 	}
 
@@ -178,7 +178,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		if (files.length) {
 			$.each(files, function (i, f) {
 				if (!f.file_name) return;
-				f.file_url = frappe.urllib.get_full_url(f.file_url);
+				f.file_url = nts.urllib.get_full_url(f.file_url);
 
 				$(
 					repl(
@@ -246,18 +246,18 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			];
 		}
 		if (!("owner" in interaction_values)) {
-			interaction_values["owner"] = frappe.session.user;
+			interaction_values["owner"] = nts.session.user;
 		}
 		if (!("assigned_by" in interaction_values) && interaction_values["doctype"] == "ToDo") {
-			interaction_values["assigned_by"] = frappe.session.user;
+			interaction_values["assigned_by"] = nts.session.user;
 		}
-		return frappe.call({
-			method: "frappe.client.insert",
+		return nts.call({
+			method: "nts.client.insert",
 			args: { doc: interaction_values },
 			btn: btn,
 			callback: function (r) {
 				if (!r.exc) {
-					frappe.show_alert({
+					nts.show_alert({
 						message: __("{0} created successfully", [form_values.interaction_type]),
 						indicator: "green",
 					});
@@ -273,7 +273,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 						cur_frm.reload_doc();
 					}
 				} else {
-					frappe.msgprint(
+					nts.msgprint(
 						__("There were errors while creating the document. Please try again.")
 					);
 				}
@@ -282,8 +282,8 @@ frappe.views.InteractionComposer = class InteractionComposer {
 	}
 
 	assign_document(doc, assignee) {
-		frappe.call({
-			method: "frappe.desk.form.assign_to.add",
+		nts.call({
+			method: "nts.desk.form.assign_to.add",
 			args: {
 				doctype: doc.doctype,
 				name: doc.name,
@@ -291,13 +291,13 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			},
 			callback: function (r) {
 				if (!r.exc) {
-					frappe.show_alert({
+					nts.show_alert({
 						message: __("The document has been assigned to {0}", [assignee]),
 						indicator: "green",
 					});
 					return;
 				} else {
-					frappe.show_alert({
+					nts.show_alert({
 						message: __("The document could not be correctly assigned"),
 						indicator: "orange",
 					});
@@ -308,8 +308,8 @@ frappe.views.InteractionComposer = class InteractionComposer {
 	}
 
 	add_attachments(doc, attachments) {
-		frappe.call({
-			method: "frappe.utils.file_manager.add_attachments",
+		nts.call({
+			method: "nts.utils.file_manager.add_attachments",
 			args: {
 				doctype: doc.doctype,
 				name: doc.name,
@@ -319,7 +319,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				if (!r.exc) {
 					return;
 				} else {
-					frappe.show_alert({
+					nts.show_alert({
 						message: __(
 							"The attachments could not be correctly linked to the new document"
 						),

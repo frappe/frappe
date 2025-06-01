@@ -1,8 +1,8 @@
-frappe/public/js/lib/*
-frappe/public/js/frappe/misc/tests/*
-frappe/public/js/frappe/views/test_runner.js
-frappe/core/doctype/doctype/boilerplate/*
-frappe/core/doctype/report/boilerplate/*
-frappe/public/js/frappe/class.js
-frappe/templates/includes/*
-frappe/www/website_script.js
+nts/public/js/lib/*
+nts/public/js/nts/misc/tests/*
+nts/public/js/nts/views/test_runner.js
+nts/core/doctype/doctype/boilerplate/*
+nts/core/doctype/report/boilerplate/*
+nts/public/js/nts/class.js
+nts/templates/includes/*
+nts/www/website_script.js

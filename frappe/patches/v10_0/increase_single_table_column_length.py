@@ -1,9 +1,9 @@
 """
 Run this after updating country_info.json and or
 """
-import frappe
+import nts
 
 
 def execute():
 	for col in ("field", "doctype"):
-		frappe.db.sql_ddl(f"alter table `tabSingles` modify column `{col}` varchar(255)")
+		nts.db.sql_ddl(f"alter table `tabSingles` modify column `{col}` varchar(255)")

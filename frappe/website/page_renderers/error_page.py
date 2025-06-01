@@ -1,4 +1,4 @@
-from frappe.website.page_renderers.template_page import TemplatePage
+from nts.website.page_renderers.template_page import TemplatePage
 
 
 class ErrorPage(TemplatePage):

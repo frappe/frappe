@@ -1,10 +1,10 @@
-const { frappe_request } = require("../utils");
+const { nts_request } = require("../utils");
 const log = console.log;
 
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";
 
-function frappe_handlers(realtime, socket) {
+function nts_handlers(realtime, socket) {
 	socket.join(user_room(socket.user));
 	socket.join(WEBSITE_ROOM);
 
@@ -117,7 +117,7 @@ function notify_disconnected_documents(socket) {
 function can_subscribe_doctype(args) {
 	if (!args) return;
 	if (!args.doctype) return;
-	frappe_request("/api/method/frappe.realtime.can_subscribe_doctype", args.socket)
+	nts_request("/api/method/nts.realtime.can_subscribe_doctype", args.socket)
 		.type("form")
 		.query({
 			doctype: args.doctype,
@@ -167,7 +167,7 @@ function notify_subscribed_doc_users(args) {
 function can_subscribe_doc(args) {
 	if (!args) return;
 	if (!args.doctype || !args.docname) return;
-	frappe_request("/api/method/frappe.realtime.can_subscribe_doc", args.socket)
+	nts_request("/api/method/nts.realtime.can_subscribe_doc", args.socket)
 		.type("form")
 		.query({
 			doctype: args.doctype,
@@ -194,4 +194,4 @@ const user_room = (user) => "user:" + user;
 const doctype_room = (doctype) => "doctype:" + doctype;
 const task_room = (task_id) => "task_progress:" + task_id;
 
-module.exports = frappe_handlers;
+module.exports = nts_handlers;

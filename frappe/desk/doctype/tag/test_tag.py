@@ -1,18 +1,18 @@
-import frappe
-from frappe.desk.doctype.tag.tag import add_tag
-from frappe.desk.reportview import get_stats
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.desk.doctype.tag.tag import add_tag
+from nts.desk.reportview import get_stats
+from nts.tests.utils import ntsTestCase
 
 
-class TestTag(FrappeTestCase):
+class TestTag(ntsTestCase):
 	def setUp(self) -> None:
-		frappe.db.delete("Tag")
-		frappe.db.sql("UPDATE `tabDocType` set _user_tags=''")
+		nts.db.delete("Tag")
+		nts.db.sql("UPDATE `tabDocType` set _user_tags=''")
 
 	def test_tag_count_query(self):
 		self.assertDictEqual(
 			get_stats('["_user_tags"]', "DocType"),
-			{"_user_tags": [["No Tags", frappe.db.count("DocType")]]},
+			{"_user_tags": [["No Tags", nts.db.count("DocType")]]},
 		)
 		add_tag("Standard", "DocType", "User")
 		add_tag("Standard", "DocType", "ToDo")
@@ -20,7 +20,7 @@ class TestTag(FrappeTestCase):
 		# count with no filter
 		self.assertDictEqual(
 			get_stats('["_user_tags"]', "DocType"),
-			{"_user_tags": [["Standard", 2], ["No Tags", frappe.db.count("DocType") - 2]]},
+			{"_user_tags": [["Standard", 2], ["No Tags", nts.db.count("DocType") - 2]]},
 		)
 
 		# count with child table field filter

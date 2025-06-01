@@ -1,52 +1,52 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """Use blog post test to test user permissions logic"""
 
 import json
 from datetime import date
 
-import frappe
-from frappe.core.utils import find
-from frappe.desk.doctype.event.event import get_events
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.core.utils import find
+from nts.desk.doctype.event.event import get_events
+from nts.test_runner import make_test_objects
+from nts.tests.utils import ntsTestCase
 
-test_records = frappe.get_test_records("Event")
+test_records = nts.get_test_records("Event")
 
 
-class TestEvent(FrappeTestCase):
+class TestEvent(ntsTestCase):
 	def setUp(self):
-		frappe.db.delete("Event")
+		nts.db.delete("Event")
 		make_test_objects("Event", reset=True)
 
-		self.test_records = frappe.get_test_records("Event")
+		self.test_records = nts.get_test_records("Event")
 		self.test_user = "test1@example.com"
 
 	def tearDown(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_allowed_public(self):
-		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 1"}))
-		self.assertTrue(frappe.has_permission("Event", doc=doc))
+		nts.set_user(self.test_user)
+		doc = nts.get_doc("Event", nts.db.get_value("Event", {"subject": "_Test Event 1"}))
+		self.assertTrue(nts.has_permission("Event", doc=doc))
 
 	def test_not_allowed_private(self):
-		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 2"}))
-		self.assertFalse(frappe.has_permission("Event", doc=doc))
+		nts.set_user(self.test_user)
+		doc = nts.get_doc("Event", nts.db.get_value("Event", {"subject": "_Test Event 2"}))
+		self.assertFalse(nts.has_permission("Event", doc=doc))
 
 	def test_allowed_private_if_in_event_user(self):
-		name = frappe.db.get_value("Event", {"subject": "_Test Event 3"})
-		frappe.share.add("Event", name, self.test_user, "read")
-		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", name)
-		self.assertTrue(frappe.has_permission("Event", doc=doc))
-		frappe.set_user("Administrator")
-		frappe.share.remove("Event", name, self.test_user)
+		name = nts.db.get_value("Event", {"subject": "_Test Event 3"})
+		nts.share.add("Event", name, self.test_user, "read")
+		nts.set_user(self.test_user)
+		doc = nts.get_doc("Event", name)
+		self.assertTrue(nts.has_permission("Event", doc=doc))
+		nts.set_user("Administrator")
+		nts.share.remove("Event", name, self.test_user)
 
 	def test_event_list(self):
-		frappe.set_user(self.test_user)
-		res = frappe.get_list(
+		nts.set_user(self.test_user)
+		res = nts.get_list(
 			"Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"]
 		)
 		self.assertEqual(len(res), 1)
@@ -56,21 +56,21 @@ class TestEvent(FrappeTestCase):
 		self.assertFalse("_Test Event 2" in subjects)
 
 	def test_revert_logic(self):
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = nts.get_doc(self.test_records[0]).insert()
 		name = ev.name
 
-		frappe.delete_doc("Event", ev.name)
+		nts.delete_doc("Event", ev.name)
 
 		# insert again
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = nts.get_doc(self.test_records[0]).insert()
 
 		# the name should be same!
 		self.assertEqual(ev.name, name)
 
 	def test_assign(self):
-		from frappe.desk.form.assign_to import add
+		from nts.desk.form.assign_to import add
 
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = nts.get_doc(self.test_records[0]).insert()
 
 		add(
 			{
@@ -81,7 +81,7 @@ class TestEvent(FrappeTestCase):
 			}
 		)
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = nts.get_doc("Event", ev.name)
 
 		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
@@ -95,26 +95,26 @@ class TestEvent(FrappeTestCase):
 			}
 		)
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = nts.get_doc("Event", ev.name)
 
 		self.assertEqual(set(json.loads(ev._assign)), {"test@example.com", self.test_user})
 
 		# Remove an assignment
-		todo = frappe.get_doc(
+		todo = nts.get_doc(
 			"ToDo",
 			{"reference_type": ev.doctype, "reference_name": ev.name, "allocated_to": self.test_user},
 		)
 		todo.status = "Cancelled"
 		todo.save()
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = nts.get_doc("Event", ev.name)
 		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
 		# cleanup
 		ev.delete()
 
 	def test_yearly_repeat(self):
-		ev = frappe.get_doc(
+		ev = nts.get_doc(
 			{
 				"doctype": "Event",
 				"subject": "_Test Event",
@@ -170,7 +170,7 @@ class TestEvent(FrappeTestCase):
 				)
 
 	def test_monthly_repeat(self):
-		ev = frappe.get_doc(
+		ev = nts.get_doc(
 			{
 				"doctype": "Event",
 				"subject": "_Test Event",
@@ -199,7 +199,7 @@ class TestEvent(FrappeTestCase):
 				)
 
 	def test_daily_repeat(self):
-		ev = frappe.get_doc(
+		ev = nts.get_doc(
 			{
 				"doctype": "Event",
 				"subject": "_Test Event",
@@ -242,7 +242,7 @@ class TestEvent(FrappeTestCase):
 				)
 
 	def test_weekly_repeat(self):
-		ev = frappe.get_doc(
+		ev = nts.get_doc(
 			{
 				"doctype": "Event",
 				"subject": "_Test Event",

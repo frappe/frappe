@@ -1,14 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
 from pypika.terms import Values
 
-import frappe
-from frappe import _
-from frappe.query_builder import Table
-from frappe.utils import cstr, encode
+import nts
+from nts import _
+from nts.query_builder import Table
+from nts.utils import cstr, encode
 
 Auth = Table("__Auth")
 
@@ -23,7 +23,7 @@ passlibctx = CryptContext(
 
 def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
 	result = (
-		frappe.qb.from_(Auth)
+		nts.qb.from_(Auth)
 		.select(Auth.password)
 		.where(
 			(Auth.doctype == doctype)
@@ -38,43 +38,43 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 		return decrypt(result[0][0], key=f"{doctype}.{name}.{fieldname}")
 
 	elif raise_exception:
-		frappe.throw(
+		nts.throw(
 			_("Password not found for {0} {1} {2}").format(doctype, name, fieldname),
-			frappe.AuthenticationError,
+			nts.AuthenticationError,
 		)
 
 
 def set_encrypted_password(doctype, name, pwd, fieldname="password"):
 	query = (
-		frappe.qb.into(Auth)
+		nts.qb.into(Auth)
 		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
 		.insert(doctype, name, fieldname, encrypt(pwd), 1)
 	)
 
-	# TODO: Simplify this via aliasing methods in `frappe.qb`
-	if frappe.db.db_type == "mariadb":
+	# TODO: Simplify this via aliasing methods in `nts.qb`
+	if nts.db.db_type == "mariadb":
 		query = query.on_duplicate_key_update(Auth.password, Values(Auth.password))
-	elif frappe.db.db_type == "postgres":
+	elif nts.db.db_type == "postgres":
 		query = query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname).do_update(Auth.password)
 
 	try:
 		query.run()
 
-	except frappe.db.DataError as e:
-		if frappe.db.is_data_too_long(e):
-			frappe.throw(_("Most probably your password is too long."), exc=e)
+	except nts.db.DataError as e:
+		if nts.db.is_data_too_long(e):
+			nts.throw(_("Most probably your password is too long."), exc=e)
 		raise e
 
 
 def remove_encrypted_password(doctype, name, fieldname="password"):
-	frappe.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
+	nts.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
 
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
-	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
+	"""Checks if user and password are correct, else raises nts.AuthenticationError"""
 
 	result = (
-		frappe.qb.from_(Auth)
+		nts.qb.from_(Auth)
 		.select(Auth.name, Auth.password)
 		.where(
 			(Auth.doctype == doctype)
@@ -87,7 +87,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	)
 
 	if not result or not passlibctx.verify(pwd, result[0].password):
-		raise frappe.AuthenticationError(_("Incorrect User or Password"))
+		raise nts.AuthenticationError(_("Incorrect User or Password"))
 
 	# lettercase agnostic
 	user = result[0].name
@@ -104,9 +104,9 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("last_login_tried", user)
-	frappe.cache.hdel("login_failed_count", user)
-	frappe.cache.hdel("locked_account_time", user)
+	nts.cache.hdel("last_login_tried", user)
+	nts.cache.hdel("login_failed_count", user)
+	nts.cache.hdel("locked_account_time", user)
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
@@ -122,17 +122,17 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	hashPwd = passlibctx.hash(pwd)
 
 	query = (
-		frappe.qb.into(Auth)
+		nts.qb.into(Auth)
 		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
 		.insert(doctype, user, fieldname, hashPwd, 0)
 	)
 
-	# TODO: Simplify this via aliasing methods in `frappe.qb`
-	if frappe.db.db_type == "mariadb":
+	# TODO: Simplify this via aliasing methods in `nts.qb`
+	if nts.db.db_type == "mariadb":
 		query = query.on_duplicate_key_update(Auth.password, hashPwd).on_duplicate_key_update(
 			Auth.encrypted, 0
 		)
-	elif frappe.db.db_type == "postgres":
+	elif nts.db.db_type == "postgres":
 		query = (
 			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
 			.do_update(Auth.password, hashPwd)
@@ -143,35 +143,35 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 
 	# clear all the sessions except current
 	if logout_all_sessions:
-		from frappe.sessions import clear_sessions
+		from nts.sessions import clear_sessions
 
 		clear_sessions(user=user, keep_current=True, force=True)
 
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.delete("__Auth", {"doctype": doctype, "name": name})
+		nts.db.delete("__Auth", {"doctype": doctype, "name": name})
 	except Exception as e:
-		if not frappe.db.is_missing_column(e):
+		if not nts.db.is_missing_column(e):
 			raise
 
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
-	frappe.qb.update(Auth).set(Auth.name, new_name).where(
+	nts.qb.update(Auth).set(Auth.name, new_name).where(
 		(Auth.doctype == doctype) & (Auth.name == old_name)
 	).run()
 
 
 def rename_password_field(doctype, old_fieldname, new_fieldname):
-	frappe.qb.update(Auth).set(Auth.fieldname, new_fieldname).where(
+	nts.qb.update(Auth).set(Auth.fieldname, new_fieldname).where(
 		(Auth.doctype == doctype) & (Auth.fieldname == old_fieldname)
 	).run()
 
 
 def create_auth_table():
 	# same as Framework.sql
-	frappe.db.create_auth_table()
+	nts.db.create_auth_table()
 
 
 def encrypt(txt, encryption_key=None):
@@ -181,7 +181,7 @@ def encrypt(txt, encryption_key=None):
 		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
 	except Exception:
 		# encryption_key is not in 32 url-safe base64-encoded format
-		frappe.throw(_("Encryption key is in invalid format!"))
+		nts.throw(_("Encryption key is in invalid format!"))
 
 	return cstr(cipher_suite.encrypt(encode(txt)))
 
@@ -194,7 +194,7 @@ def decrypt(txt, encryption_key=None, key: str | None = None):
 		return cstr(cipher_suite.decrypt(encode(txt)))
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
-		frappe.throw(
+		nts.throw(
 			(_("Failed to decrypt key {0}").format(key) + "<br><br>" if key else "")
 			+ _("Encryption key is invalid! Please check site_config.json")
 			+ "<br><br>"
@@ -203,21 +203,21 @@ def decrypt(txt, encryption_key=None, key: str | None = None):
 			)
 			+ "<br><br>"
 			+ _(
-				"Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
+				"Please visit https://ntscloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
 			),
 		)
 
 
 def get_encryption_key():
-	if "encryption_key" not in frappe.local.conf:
-		from frappe.installer import update_site_config
+	if "encryption_key" not in nts.local.conf:
+		from nts.installer import update_site_config
 
 		encryption_key = Fernet.generate_key().decode()
 		update_site_config("encryption_key", encryption_key)
-		frappe.local.conf.encryption_key = encryption_key
+		nts.local.conf.encryption_key = encryption_key
 
-	return frappe.local.conf.encryption_key
+	return nts.local.conf.encryption_key
 
 
 def get_password_reset_limit():
-	return frappe.get_system_settings("password_reset_limit") or 3
+	return nts.get_system_settings("password_reset_limit") or 3

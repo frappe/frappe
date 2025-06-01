@@ -1,9 +1,9 @@
-import frappe
+import nts
 
 
 def execute():
-	item = frappe.db.exists("Navbar Item", {"item_label": "Background Jobs"})
+	item = nts.db.exists("Navbar Item", {"item_label": "Background Jobs"})
 	if not item:
 		return
 
-	frappe.delete_doc("Navbar Item", item)
+	nts.delete_doc("Navbar Item", item)

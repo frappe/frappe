@@ -1,11 +1,11 @@
-frappe.listview_settings["Deleted Document"] = {
+nts.listview_settings["Deleted Document"] = {
 	onload: function (doclist) {
 		const action = () => {
 			const selected_docs = doclist.get_checked_items();
 			if (selected_docs.length > 0) {
 				let docnames = selected_docs.map((doc) => doc.name);
-				frappe.call({
-					method: "frappe.core.doctype.deleted_document.deleted_document.bulk_restore",
+				nts.call({
+					method: "nts.core.doctype.deleted_document.deleted_document.bulk_restore",
 					args: { docnames },
 					callback: function (r) {
 						if (r.message) {
@@ -35,7 +35,7 @@ frappe.listview_settings["Deleted Document"] = {
 							);
 							const summary = restored_summary + invalid_summary + failed_summary;
 
-							frappe.msgprint(summary, __("Document Restoration Summary"), true);
+							nts.msgprint(summary, __("Document Restoration Summary"), true);
 
 							if (restored.length > 0) {
 								doclist.refresh();

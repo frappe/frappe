@@ -1,7 +1,7 @@
-// Copyright (c) 2018, Frappe Technologies and contributors
+// Copyright (c) 2018, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Prepared Report", {
+nts.ui.form.on("Prepared Report", {
 	render_filter_values: function (frm, filters) {
 		var wrapper = $(frm.fields_dict["filter_values"].wrapper).empty();
 
@@ -17,7 +17,7 @@ frappe.ui.form.on("Prepared Report", {
 
 		Object.keys(filters).forEach((key) => {
 			const filter_row = $(`<tr>
-				<td>${frappe.model.unscrub(key)}</td>
+				<td>${nts.model.unscrub(key)}</td>
 				<td>${filters[key]}</td>
 			</tr>`);
 			filter_table.find("tbody").append(filter_row);
@@ -41,8 +41,8 @@ frappe.ui.form.on("Prepared Report", {
 
 		if (frm.doc.status == "Completed") {
 			frm.page.set_primary_action(__("Show Report"), () => {
-				frappe.route_options = { prepared_report_name: frm.doc.name };
-				frappe.set_route("query-report", frm.doc.report_name);
+				nts.route_options = { prepared_report_name: frm.doc.name };
+				nts.set_route("query-report", frm.doc.report_name);
 			});
 		}
 	},

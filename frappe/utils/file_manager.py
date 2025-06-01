@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import base64
@@ -10,13 +10,13 @@ import os
 from copy import copy
 from urllib.parse import unquote
 
-import frappe
-from frappe import _, conf
-from frappe.query_builder.utils import DocType
-from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
+import nts
+from nts import _, conf
+from nts.query_builder.utils import DocType
+from nts.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
 
 
-class MaxFileSizeReachedError(frappe.ValidationError):
+class MaxFileSizeReachedError(nts.ValidationError):
 	pass
 
 
@@ -35,20 +35,20 @@ def safe_b64decode(binary: bytes) -> bytes:
 
 
 def get_file_url(file_data_name):
-	data = frappe.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
+	data = nts.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
 	return data.file_url or data.file_name
 
 
 def upload():
 	# get record details
-	dt = frappe.form_dict.doctype
-	dn = frappe.form_dict.docname
-	file_url = frappe.form_dict.file_url
-	filename = frappe.form_dict.filename
-	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
+	dt = nts.form_dict.doctype
+	dn = nts.form_dict.docname
+	file_url = nts.form_dict.file_url
+	filename = nts.form_dict.filename
+	nts.form_dict.is_private = cint(nts.form_dict.is_private)
 
 	if not filename and not file_url:
-		frappe.msgprint(_("Please select a file or url"), raise_exception=True)
+		nts.msgprint(_("Please select a file or url"), raise_exception=True)
 
 	file_doc = get_file_doc()
 
@@ -57,7 +57,7 @@ def upload():
 		file_url = file_doc.file_url.replace("#", "%23") if file_doc.file_name else file_doc.file_url
 		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
 		file_name = file_doc.file_name or file_doc.file_url
-		comment = frappe.get_doc(dt, dn).add_comment(
+		comment = nts.get_doc(dt, dn).add_comment(
 			"Attachment",
 			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
 		)
@@ -73,7 +73,7 @@ def upload():
 
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
 	"""returns File object (Document) from given parameters or form_dict"""
-	r = frappe.form_dict
+	r = nts.form_dict
 
 	if dt is None:
 		dt = r.doctype
@@ -105,13 +105,13 @@ def save_uploaded(dt, dn, folder, is_private, df=None):
 
 def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
-	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
+	# 	nts.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
 
 	file_url = unquote(file_url)
-	file_size = frappe.form_dict.file_size
+	file_size = nts.form_dict.file_size
 
-	f = frappe.get_doc(
+	f = nts.get_doc(
 		{
 			"doctype": "File",
 			"file_url": file_url,
@@ -127,21 +127,21 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	f.flags.ignore_permissions = True
 	try:
 		f.insert()
-	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
+	except nts.DuplicateEntryError:
+		return nts.get_doc("File", f.duplicate_entry)
 	return f
 
 
 def get_uploaded_content():
-	# should not be unicode when reading a file, hence using frappe.form
-	if "filedata" in frappe.form_dict:
-		if "," in frappe.form_dict.filedata:
-			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
-		frappe.uploaded_content = safe_b64decode(frappe.form_dict.filedata)
-		frappe.uploaded_filename = frappe.form_dict.filename
-		return frappe.uploaded_filename, frappe.uploaded_content
+	# should not be unicode when reading a file, hence using nts.form
+	if "filedata" in nts.form_dict:
+		if "," in nts.form_dict.filedata:
+			nts.form_dict.filedata = nts.form_dict.filedata.rsplit(",", 1)[1]
+		nts.uploaded_content = safe_b64decode(nts.form_dict.filedata)
+		nts.uploaded_filename = nts.form_dict.filename
+		return nts.uploaded_filename, nts.uploaded_content
 	else:
-		frappe.msgprint(_("No file attached"))
+		nts.msgprint(_("No file attached"))
 		return None, None
 
 
@@ -179,22 +179,22 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		}
 	)
 
-	f = frappe.get_doc(file_data)
+	f = nts.get_doc(file_data)
 	f.flags.ignore_permissions = True
 	try:
 		f.insert()
-	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
+	except nts.DuplicateEntryError:
+		return nts.get_doc("File", f.duplicate_entry)
 
 	return f
 
 
 def get_file_data_from_hash(content_hash, is_private=0):
-	for name in frappe.get_all(
+	for name in nts.get_all(
 		"File", {"content_hash": content_hash, "is_private": is_private}, pluck="name"
 	):
-		b = frappe.get_doc("File", name)
-		return {k: b.get(k) for k in frappe.get_hooks()["write_file_keys"]}
+		b = nts.get_doc("File", name)
+		return {k: b.get(k) for k in nts.get_hooks()["write_file_keys"]}
 	return False
 
 
@@ -218,7 +218,7 @@ def check_max_file_size(content):
 	file_size = len(content)
 
 	if file_size > max_file_size:
-		frappe.msgprint(
+		nts.msgprint(
 			_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
 			raise_exception=MaxFileSizeReachedError,
 		)
@@ -231,7 +231,7 @@ def write_file(content, fname, is_private=0):
 	file_path = get_files_path(is_private=is_private)
 
 	# create directory (if not exists)
-	frappe.create_folder(file_path)
+	nts.create_folder(file_path)
 	# write the file
 	if isinstance(content, str):
 		content = content.encode()
@@ -244,10 +244,10 @@ def write_file(content, fname, is_private=0):
 def remove_all(dt, dn, from_delete=False, delete_permanently=False):
 	"""remove all files in a transaction"""
 	try:
-		for fid in frappe.get_all("File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"):
+		for fid in nts.get_all("File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"):
 			if from_delete:
 				# If deleting a doc, directly delete files
-				frappe.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
+				nts.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
 			else:
 				# Removes file and adds a comment in the document it is attached to
 				remove_file(
@@ -272,20 +272,20 @@ def remove_file(
 	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value("File", fid, ["attached_to_doctype", "attached_to_name", "file_name"])
+		attached = nts.db.get_value("File", fid, ["attached_to_doctype", "attached_to_name", "file_name"])
 		if attached:
 			attached_to_doctype, attached_to_name, file_name = attached
 
 	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name and not from_delete:
-		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		doc = nts.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
-		if frappe.flags.in_web_form:
+		if nts.flags.in_web_form:
 			ignore_permissions = True
 		if not file_name:
-			file_name = frappe.db.get_value("File", fid, "file_name")
+			file_name = nts.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", file_name)
-		frappe.delete_doc(
+		nts.delete_doc(
 			"File", fid, ignore_permissions=ignore_permissions, delete_permanently=delete_permanently
 		)
 
@@ -310,16 +310,16 @@ def delete_file(path):
 	"""Delete file from `public folder`"""
 	if path:
 		if ".." in path.split("/"):
-			frappe.msgprint(
+			nts.msgprint(
 				_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path)
 			)
 
 		parts = os.path.split(path.strip("/"))
 		if parts[0] == "files":
-			path = frappe.utils.get_site_path("public", "files", parts[-1])
+			path = nts.utils.get_site_path("public", "files", parts[-1])
 
 		else:
-			path = frappe.utils.get_site_path("private", "files", parts[-1])
+			path = nts.utils.get_site_path("private", "files", parts[-1])
 
 		path = encode(path)
 		if os.path.exists(path):
@@ -351,7 +351,7 @@ def get_file_path(file_name):
 	File = DocType("File")
 
 	f = (
-		frappe.qb.from_(File)
+		nts.qb.from_(File)
 		.where((File.name == file_name) | (File.file_name == file_name))
 		.select(File.file_url)
 		.run()
@@ -372,7 +372,7 @@ def get_file_path(file_name):
 		file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
 	else:
-		frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
+		nts.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 	return file_path
 
@@ -387,7 +387,7 @@ def get_file_name(fname, optional_suffix):
 	# convert to unicode
 	fname = cstr(fname)
 
-	n_records = frappe.get_all("File", {"file_name": fname}, pluck="name")
+	n_records = nts.get_all("File", {"file_name": fname}, pluck="name")
 	if len(n_records) > 0 or os.path.exists(encode(get_files_path(fname))):
 		f = fname.rsplit(".", 1)
 		if len(f) == 1:
@@ -398,7 +398,7 @@ def get_file_name(fname, optional_suffix):
 	return fname
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def add_attachments(doctype, name, attachments):
 	"""Add attachments to the given DocType"""
 	if isinstance(attachments, str):
@@ -407,7 +407,7 @@ def add_attachments(doctype, name, attachments):
 	files = []
 	for a in attachments:
 		if isinstance(a, str):
-			attach = frappe.db.get_value(
+			attach = nts.db.get_value(
 				"File", {"name": a}, ["file_name", "file_url", "is_private"], as_dict=1
 			)
 			# save attachments to new doc
@@ -423,7 +423,7 @@ def is_safe_path(path: str) -> bool:
 	if path.startswith(("http://", "https://")):
 		return True
 
-	basedir = frappe.get_site_path()
+	basedir = nts.get_site_path()
 	# ref: https://docs.python.org/3/library/os.path.html#os.path.commonpath
 	matchpath = os.path.abspath(path)
 	basedir = os.path.abspath(basedir)

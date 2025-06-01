@@ -1,26 +1,26 @@
 import re
 
-import frappe
-from frappe.query_builder import DocType
+import nts
+from nts.query_builder import DocType
 
 
 def execute():
-	"""Replace temporarily available Database Aggregate APIs on frappe (develop)
+	"""Replace temporarily available Database Aggregate APIs on nts (develop)
 
 	APIs changed:
-	        * frappe.db.max => frappe.qb.max
-	        * frappe.db.min => frappe.qb.min
-	        * frappe.db.sum => frappe.qb.sum
-	        * frappe.db.avg => frappe.qb.avg
+	        * nts.db.max => nts.qb.max
+	        * nts.db.min => nts.qb.min
+	        * nts.db.sum => nts.qb.sum
+	        * nts.db.avg => nts.qb.avg
 	"""
 	ServerScript = DocType("Server Script")
 	server_scripts = (
-		frappe.qb.from_(ServerScript)
+		nts.qb.from_(ServerScript)
 		.where(
-			ServerScript.script.like("%frappe.db.max(%")
-			| ServerScript.script.like("%frappe.db.min(%")
-			| ServerScript.script.like("%frappe.db.sum(%")
-			| ServerScript.script.like("%frappe.db.avg(%")
+			ServerScript.script.like("%nts.db.max(%")
+			| ServerScript.script.like("%nts.db.min(%")
+			| ServerScript.script.like("%nts.db.sum(%")
+			| ServerScript.script.like("%nts.db.avg(%")
 		)
 		.select("name", "script")
 		.run(as_dict=True)
@@ -30,6 +30,6 @@ def execute():
 		name, script = server_script["name"], server_script["script"]
 
 		for agg in ["avg", "max", "min", "sum"]:
-			script = re.sub(f"frappe.db.{agg}\\(", f"frappe.qb.{agg}(", script)
+			script = re.sub(f"nts.db.{agg}\\(", f"nts.qb.{agg}(", script)
 
-		frappe.db.set_value("Server Script", name, "script", script)
+		nts.db.set_value("Server Script", name, "script", script)

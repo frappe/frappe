@@ -1,9 +1,9 @@
-// Copyright (c) 2021, Frappe Technologies and contributors
+// Copyright (c) 2021, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Form Tour", {
+nts.ui.form.on("Form Tour", {
 	refresh(frm) {
-		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
+		if (frm.doc.is_standard && !nts.boot.developer_mode) {
 			frm.trigger("disable_form");
 		}
 		frm.set_query("reference_doctype", () => {
@@ -24,7 +24,7 @@ frappe.ui.form.on("Form Tour", {
 	},
 	async report_name(frm) {
 		if (!frm.doc.ui_tour || !frm.doc.report_name) return;
-		let { message } = await frappe.db.get_value("Report", frm.doc.report_name, "ref_doctype");
+		let { message } = await nts.db.get_value("Report", frm.doc.report_name, "ref_doctype");
 		frm.set_value("reference_doctype", message?.ref_doctype || "");
 	},
 	async before_save(frm) {
@@ -34,7 +34,7 @@ frappe.ui.form.on("Form Tour", {
 			frm.doc.dashboard_name &&
 			frm.doc.reference_doctype
 		) {
-			frappe.throw(
+			nts.throw(
 				__("Referance Doctype and Dashboard Name both can't be used at the same time.")
 			);
 		}
@@ -76,7 +76,7 @@ frappe.ui.form.on("Form Tour", {
 		});
 		if (!frm.doc.ui_tour) {
 			// remove report name if reference doctype is changed and report name is not valid.
-			frappe.db
+			nts.db
 				.get_list(
 					"Report",
 					{
@@ -99,16 +99,16 @@ frappe.ui.form.on("Form Tour", {
 let add_custom_button = (frm) => {
 	if (frm.doc.ui_tour) {
 		frm.add_custom_button(__("Reset"), function () {
-			frappe.confirm(
+			nts.confirm(
 				__("This will reset this tour and show it to all users. Are you sure?"),
 				function () {
-					frappe.call({
-						method: "frappe.desk.doctype.form_tour.form_tour.reset_tour",
+					nts.call({
+						method: "nts.desk.doctype.form_tour.form_tour.reset_tour",
 						args: {
 							tour_name: frm.doc.name,
 						},
 					});
-					delete frappe.boot.user.onboarding_status[frm.doc.name];
+					delete nts.boot.user.onboarding_status[frm.doc.name];
 				}
 			);
 		});
@@ -118,12 +118,12 @@ let add_custom_button = (frm) => {
 			let route_changed = null;
 
 			if (issingle) {
-				route_changed = frappe.set_route("Form", frm.doc.reference_doctype);
+				route_changed = nts.set_route("Form", frm.doc.reference_doctype);
 			} else if (frm.doc.first_document) {
 				const name = await get_first_document(frm.doc.reference_doctype);
-				route_changed = frappe.set_route("Form", frm.doc.reference_doctype, name);
+				route_changed = nts.set_route("Form", frm.doc.reference_doctype, name);
 			} else {
-				route_changed = frappe.set_route("Form", frm.doc.reference_doctype, "new");
+				route_changed = nts.set_route("Form", frm.doc.reference_doctype, "new");
 			}
 			route_changed.then(() => {
 				const tour_name = frm.doc.name;
@@ -133,7 +133,7 @@ let add_custom_button = (frm) => {
 	}
 };
 
-frappe.ui.form.on("Form Tour Step", {
+nts.ui.form.on("Form Tour Step", {
 	form_render(frm, cdt, cdn) {
 		if (locals[cdt][cdn].is_table_field) {
 			frm.trigger("parent_fieldname", cdt, cdn);
@@ -142,7 +142,7 @@ frappe.ui.form.on("Form Tour Step", {
 	parent_fieldname(frm, cdt, cdn) {
 		const child_row = locals[cdt][cdn];
 
-		const parent_fieldname_df = frappe
+		const parent_fieldname_df = nts
 			.get_meta(frm.doc.reference_doctype)
 			.fields.find((df) => df.fieldname == child_row.parent_fieldname);
 
@@ -157,25 +157,25 @@ frappe.ui.form.on("Form Tour Step", {
 				[""].concat(options)
 			);
 			if (child_row.fieldname) {
-				frappe.model.set_value(cdt, cdn, "fieldname", child_row.fieldname);
+				nts.model.set_value(cdt, cdn, "fieldname", child_row.fieldname);
 			}
 		});
 	},
 });
 
 async function check_if_single(doctype) {
-	const { message } = await frappe.db.get_value("DocType", doctype, "issingle");
+	const { message } = await nts.db.get_value("DocType", doctype, "issingle");
 	return message.issingle || 0;
 }
 async function check_if_private_workspace(name) {
-	const { message } = await frappe.db.get_value("Workspace", name, "public");
+	const { message } = await nts.db.get_value("Workspace", name, "public");
 	return !message.public || 0;
 }
 
 async function get_first_document(doctype) {
 	let docname;
 
-	await frappe.db.get_list(doctype, { order_by: "creation" }).then((res) => {
+	await nts.db.get_list(doctype, { order_by: "creation" }).then((res) => {
 		if (Array.isArray(res) && res.length) docname = res[0].name;
 	});
 
@@ -232,7 +232,7 @@ async function get_path(frm) {
 			if (await check_if_single(frm.doc.reference_doctype)) {
 				route.push(frm.doc.reference_doctype);
 			} else if (frm.doc.new_document_form) {
-				route.push("new-" + frappe.router.slug(frm.doc.reference_doctype));
+				route.push("new-" + nts.router.slug(frm.doc.reference_doctype));
 			}
 			return route;
 		case "Tree":

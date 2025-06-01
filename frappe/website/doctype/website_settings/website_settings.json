@@ -1,7 +1,7 @@
 {
  "actions": [
   {
-   "action": "frappe.sessions.clear",
+   "action": "nts.sessions.clear",
    "action_type": "Server Action",
    "label": "Clear Cache"
   }
@@ -390,7 +390,7 @@
    "label": "Navbar Template"
   },
   {
-   "default": "Frappe",
+   "default": "nts",
    "fieldname": "app_name",
    "fieldtype": "Data",
    "label": "App Name"

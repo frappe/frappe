@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
-from frappe.website.path_resolver import validate_path
-from frappe.website.router import clear_routing_cache
+import nts
+from nts.model.document import Document
+from nts.website.path_resolver import validate_path
+from nts.website.router import clear_routing_cache
 
 STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "Guest")
 
@@ -16,7 +16,7 @@ class Role(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		desk_access: DF.Check
 		disabled: DF.Check
@@ -29,10 +29,10 @@ class Role(Document):
 	# end: auto-generated types
 	def before_rename(self, old, new, merge=False):
 		if old in STANDARD_ROLES:
-			frappe.throw(frappe._("Standard roles cannot be renamed"))
+			nts.throw(nts._("Standard roles cannot be renamed"))
 
 	def after_insert(self):
-		frappe.cache.hdel("roles", "Administrator")
+		nts.cache.hdel("roles", "Administrator")
 
 	def validate(self):
 		if self.disabled:
@@ -43,12 +43,12 @@ class Role(Document):
 
 	def disable_role(self):
 		if self.name in STANDARD_ROLES:
-			frappe.throw(frappe._("Standard roles cannot be disabled"))
+			nts.throw(nts._("Standard roles cannot be disabled"))
 		else:
 			self.remove_roles()
 
 	def validate_homepage(self):
-		if frappe.request and self.home_page:
+		if nts.request and self.home_page:
 			validate_path(self.home_page)
 
 		if self.has_value_changed("home_page"):
@@ -60,12 +60,12 @@ class Role(Document):
 			self.desk_access = 0
 
 	def remove_roles(self):
-		frappe.db.delete("Has Role", {"role": self.name})
-		frappe.clear_cache()
+		nts.db.delete("Has Role", {"role": self.name})
+		nts.clear_cache()
 
 	def on_update(self):
 		"""update system user desk access if this has changed in this update"""
-		if frappe.flags.in_install:
+		if nts.flags.in_install:
 			return
 		if self.has_value_changed("desk_access"):
 			self.update_user_type_on_change()
@@ -77,10 +77,10 @@ class Role(Document):
 
 		# perf: Do not re-evaluate users who already have same desk access that this role permits.
 		role_user_type = "System User" if self.desk_access else "Website User"
-		users_with_same_user_type = frappe.get_all("User", {"user_type": role_user_type}, pluck="name")
+		users_with_same_user_type = nts.get_all("User", {"user_type": role_user_type}, pluck="name")
 
 		for user_name in set(users_with_role) - set(users_with_same_user_type):
-			user = frappe.get_doc("User", user_name)
+			user = nts.get_doc("User", user_name)
 			user_type = user.user_type
 			user.set_system_user()
 			if user_type != user.user_type:
@@ -89,7 +89,7 @@ class Role(Document):
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	"""Get information of all users that have been assigned this role"""
-	users = frappe.get_list(
+	users = nts.get_list(
 		"Has Role",
 		filters={"role": role, "parenttype": "User"},
 		parent_doctype="User",
@@ -104,7 +104,7 @@ def get_user_info(users, field="email"):
 	"""Fetch details about users for the specified field"""
 	info_list = []
 	for user in users:
-		user_info, enabled = frappe.db.get_value("User", user.get("user_name"), [field, "enabled"])
+		user_info, enabled = nts.db.get_value("User", user.get("user_name"), [field, "enabled"])
 		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
 			info_list.append(user_info)
 	return info_list
@@ -113,18 +113,18 @@ def get_user_info(users, field="email"):
 def get_users(role):
 	return [
 		d.parent
-		for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"])
+		for d in nts.get_all("Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"])
 	]
 
 
 # searches for active employees
-@frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@nts.whitelist()
+@nts.validate_and_sanitize_search_inputs
 def role_query(doctype, txt, searchfield, start, page_len, filters):
 	report_filters = [["Role", "name", "like", f"%{txt}%"], ["Role", "is_custom", "=", 0]]
 	if filters and isinstance(filters, list):
 		report_filters.extend(filters)
 
-	return frappe.get_all(
+	return nts.get_all(
 		"Role", limit_start=start, limit_page_length=page_len, filters=report_filters, as_list=1
 	)

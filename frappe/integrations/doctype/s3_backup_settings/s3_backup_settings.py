@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2017, nts Technologies and contributors
 # License: MIT. See LICENSE
 import os
 import os.path
@@ -7,17 +7,17 @@ import boto3
 from botocore.exceptions import ClientError
 from rq.timeouts import JobTimeoutException
 
-import frappe
-from frappe import _
-from frappe.integrations.offsite_backup_utils import (
+import nts
+from nts import _
+from nts.integrations.offsite_backup_utils import (
 	generate_files_backup,
 	get_latest_backup_file,
 	send_email,
 	validate_file_size,
 )
-from frappe.model.document import Document
-from frappe.utils import cint
-from frappe.utils.background_jobs import enqueue
+from nts.model.document import Document
+from nts.utils import cint
+from nts.utils.background_jobs import enqueue
 
 
 class S3BackupSettings(Document):
@@ -27,7 +27,7 @@ class S3BackupSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		access_key_id: DF.Data
 		backup_files: DF.Check
@@ -60,7 +60,7 @@ class S3BackupSettings(Document):
 			conn.head_bucket(Bucket=self.bucket)
 		except ClientError as e:
 			error_code = e.response["Error"]["Code"]
-			bucket_name = frappe.bold(self.bucket)
+			bucket_name = nts.bold(self.bucket)
 			if error_code == "403":
 				msg = _("Do not have permission to access bucket {0}.").format(bucket_name)
 			elif error_code == "404":
@@ -68,18 +68,18 @@ class S3BackupSettings(Document):
 			else:
 				msg = e.args[0]
 
-			frappe.throw(msg)
+			nts.throw(msg)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to s3"""
 	enqueue(
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
+		"nts.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 		queue="long",
 		timeout=1500,
 	)
-	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+	nts.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
 def take_backups_daily():
@@ -95,12 +95,12 @@ def take_backups_monthly():
 
 
 def take_backups_if(freq):
-	if cint(frappe.db.get_single_value("S3 Backup Settings", "enabled")):
-		if frappe.db.get_single_value("S3 Backup Settings", "frequency") == freq:
+	if cint(nts.db.get_single_value("S3 Backup Settings", "enabled")):
+		if nts.db.get_single_value("S3 Backup Settings", "frequency") == freq:
 			take_backups_s3()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def take_backups_s3(retry_count=0):
 	try:
 		validate_file_size()
@@ -110,7 +110,7 @@ def take_backups_s3(retry_count=0):
 		if retry_count < 2:
 			args = {"retry_count": retry_count + 1}
 			enqueue(
-				"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
+				"nts.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 				queue="long",
 				timeout=1500,
 				**args,
@@ -122,15 +122,15 @@ def take_backups_s3(retry_count=0):
 
 
 def notify():
-	error_message = frappe.get_traceback()
+	error_message = nts.get_traceback()
 	send_email(False, "Amazon S3", "S3 Backup Settings", "notify_email", error_message)
 
 
 def backup_to_s3():
-	from frappe.utils import get_backups_path
-	from frappe.utils.backups import new_backup
+	from nts.utils import get_backups_path
+	from nts.utils.backups import new_backup
 
-	doc = frappe.get_single("S3 Backup Settings")
+	doc = nts.get_single("S3 Backup Settings")
 	bucket = doc.bucket
 	backup_files = cint(doc.backup_files)
 
@@ -141,7 +141,7 @@ def backup_to_s3():
 		endpoint_url=doc.endpoint_url or "https://s3.amazonaws.com",
 	)
 
-	if frappe.flags.create_new_backup:
+	if nts.flags.create_new_backup:
 		backup = new_backup(
 			ignore_files=False,
 			backup_path_db=None,

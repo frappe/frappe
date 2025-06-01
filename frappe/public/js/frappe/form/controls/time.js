@@ -1,4 +1,4 @@
-frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDate {
+nts.ui.form.ControlTime = class ControlTime extends nts.ui.form.ControlDate {
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
 	}
@@ -12,18 +12,18 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		this.refresh();
 	}
 	set_time_options() {
-		let sysdefaults = frappe.boot.sysdefaults;
+		let sysdefaults = nts.boot.sysdefaults;
 
 		let time_format =
 			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
 
-		this.time_format = frappe.defaultTimeFormat;
+		this.time_format = nts.defaultTimeFormat;
 		this.datepicker_options = {
 			language: "en",
 			timepicker: true,
 			onlyTimepicker: true,
 			timeFormat: time_format.toLowerCase().replace("mm", "ii"),
-			startDate: frappe.datetime.now_time(true),
+			startDate: nts.datetime.now_time(true),
 			onSelect: () => {
 				// ignore micro seconds
 				if (
@@ -52,8 +52,8 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			((this.last_value && this.last_value !== this.value) ||
 				!this.datepicker.selectedDates.length)
 		) {
-			let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
+			let time_format = nts.sys_defaults.time_format || "HH:mm:ss";
+			var date_obj = nts.datetime.moment_to_date_obj(moment(value, time_format));
 			this.datepicker.selectDate(date_obj);
 		}
 	}
@@ -62,7 +62,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		this.datepicker = this.$input.data("datepicker");
 
 		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(frappe.datetime.now_time(true));
+			this.datepicker.selectDate(nts.datetime.now_time(true));
 			this.datepicker.hide();
 		});
 		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
@@ -75,8 +75,8 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	set_description() {
 		const { description } = this.df;
-		const { time_zone } = frappe.sys_defaults;
-		if (!frappe.datetime.is_system_time_zone()) {
+		const { time_zone } = nts.sys_defaults;
+		if (!nts.datetime.is_system_time_zone()) {
 			if (!description) {
 				this.df.description = time_zone;
 			} else if (!description.includes(time_zone)) {
@@ -90,21 +90,21 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				value = "";
 			}
-			return frappe.datetime.user_to_str(value, true);
+			return nts.datetime.user_to_str(value, true);
 		}
 	}
 	format_for_input(value) {
 		if (value) {
-			return frappe.datetime.str_to_user(value, true);
+			return nts.datetime.str_to_user(value, true);
 		}
 		return "";
 	}
 	validate(value) {
-		if (value && !frappe.datetime.validate(value)) {
-			let sysdefaults = frappe.sys_defaults;
+		if (value && !nts.datetime.validate(value)) {
+			let sysdefaults = nts.sys_defaults;
 			let time_format =
 				sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
-			frappe.msgprint(__("Time {0} must be in format: {1}", [value, time_format]));
+			nts.msgprint(__("Time {0} must be in format: {1}", [value, time_format]));
 			return "";
 		}
 		return value;

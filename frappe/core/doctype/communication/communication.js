@@ -1,7 +1,7 @@
-frappe.ui.form.on("Communication", {
+nts.ui.form.on("Communication", {
 	onload: function (frm) {
 		if (frm.doc.content) {
-			frm.doc.content = frappe.dom.remove_script_and_style(frm.doc.content);
+			frm.doc.content = nts.dom.remove_script_and_style(frm.doc.content);
 		}
 		frm.set_query("reference_doctype", function () {
 			return {
@@ -24,7 +24,7 @@ frappe.ui.form.on("Communication", {
 
 		if (frm.doc.reference_doctype && frm.doc.reference_name) {
 			frm.add_custom_button(__(frm.doc.reference_name), function () {
-				frappe.set_route("Form", frm.doc.reference_doctype, frm.doc.reference_name);
+				nts.set_route("Form", frm.doc.reference_doctype, frm.doc.reference_name);
 			});
 		} else {
 			// if an unlinked communication, set email field
@@ -134,7 +134,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	show_relink_dialog: function (frm) {
-		var d = new frappe.ui.Dialog({
+		var d = new nts.ui.Dialog({
 			title: __("Relink Communication"),
 			fields: [
 				{
@@ -143,7 +143,7 @@ frappe.ui.form.on("Communication", {
 					label: __("Reference Doctype"),
 					fieldname: "reference_doctype",
 					get_query: function () {
-						return { query: "frappe.email.get_communication_doctype" };
+						return { query: "nts.email.get_communication_doctype" };
 					},
 				},
 				{
@@ -159,14 +159,14 @@ frappe.ui.form.on("Communication", {
 		d.set_primary_action(__("Relink"), function () {
 			var values = d.get_values();
 			if (values) {
-				frappe.confirm(
+				nts.confirm(
 					__("Are you sure you want to relink this communication to {0}?", [
 						values["reference_name"],
 					]),
 					function () {
 						d.hide();
-						frappe.call({
-							method: "frappe.email.relink",
+						nts.call({
+							method: "nts.email.relink",
 							args: {
 								name: frm.doc.name,
 								reference_doctype: values["reference_doctype"],
@@ -178,7 +178,7 @@ frappe.ui.form.on("Communication", {
 						});
 					},
 					function () {
-						frappe.show_alert({
+						nts.show_alert({
 							message: __("Document not Relinked"),
 							indicator: "info",
 						});
@@ -190,7 +190,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	show_move_dialog: function (frm) {
-		var d = new frappe.ui.Dialog({
+		var d = new nts.ui.Dialog({
 			title: __("Move"),
 			fields: [
 				{
@@ -212,8 +212,8 @@ frappe.ui.form.on("Communication", {
 			primary_action_label: __("Move"),
 			primary_action(values) {
 				d.hide();
-				frappe.call({
-					method: "frappe.email.inbox.move_email",
+				nts.call({
+					method: "nts.email.inbox.move_email",
 					args: {
 						communication: frm.doc.name,
 						email_account: values.email_account,
@@ -232,8 +232,8 @@ frappe.ui.form.on("Communication", {
 		var action = frm.doc.seen ? "Unread" : "Read";
 		var flag = "(\\SEEN)";
 
-		return frappe.call({
-			method: "frappe.email.inbox.create_email_flag_queue",
+		return nts.call({
+			method: "nts.email.inbox.create_email_flag_queue",
 			args: {
 				names: [frm.doc.name],
 				action: action,
@@ -249,8 +249,8 @@ frappe.ui.form.on("Communication", {
 	mark_as_closed_open: function (frm) {
 		var status = frm.doc.status == "Open" ? "Closed" : "Open";
 
-		return frappe.call({
-			method: "frappe.email.inbox.mark_as_closed_open",
+		return nts.call({
+			method: "nts.email.inbox.mark_as_closed_open",
 			args: {
 				communication: frm.doc.name,
 				status: status,
@@ -270,7 +270,7 @@ frappe.ui.form.on("Communication", {
 			is_a_reply: true,
 		});
 
-		new frappe.views.CommunicationComposer(args);
+		new nts.views.CommunicationComposer(args);
 	},
 
 	reply_all: function (frm) {
@@ -281,7 +281,7 @@ frappe.ui.form.on("Communication", {
 			cc: frm.doc.cc,
 			is_a_reply: true,
 		});
-		new frappe.views.CommunicationComposer(args);
+		new nts.views.CommunicationComposer(args);
 	},
 
 	forward_mail: function (frm) {
@@ -292,12 +292,12 @@ frappe.ui.form.on("Communication", {
 			is_a_reply: true,
 		});
 
-		new frappe.views.CommunicationComposer(args);
+		new nts.views.CommunicationComposer(args);
 	},
 
 	get_mail_args: function (frm) {
 		var sender_email_id = "";
-		$.each(frappe.boot.email_accounts, function (idx, account) {
+		$.each(nts.boot.email_accounts, function (idx, account) {
 			if (account.email_account == frm.doc.email_account) {
 				sender_email_id = account.email_id;
 				return;
@@ -321,38 +321,38 @@ frappe.ui.form.on("Communication", {
 		var first_name = names[0];
 		var last_name = names.length >= 2 ? names[names.length - 1] : "";
 
-		frappe.route_options = {
+		nts.route_options = {
 			email_id: frm.doc.sender || "",
 			first_name: first_name,
 			last_name: last_name,
 			mobile_no: frm.doc.phone_no || "",
 		};
-		frappe.new_doc("Contact");
+		nts.new_doc("Contact");
 	},
 
 	mark_as_spam: function (frm) {
-		frappe.call({
-			method: "frappe.email.inbox.mark_as_spam",
+		nts.call({
+			method: "nts.email.inbox.mark_as_spam",
 			args: {
 				communication: frm.doc.name,
 				sender: frm.doc.sender,
 			},
 			freeze: true,
 			callback: function (r) {
-				frappe.msgprint(__("Email has been marked as spam"));
+				nts.msgprint(__("Email has been marked as spam"));
 			},
 		});
 	},
 
 	move_to_trash: function (frm) {
-		frappe.call({
-			method: "frappe.email.inbox.mark_as_trash",
+		nts.call({
+			method: "nts.email.inbox.mark_as_trash",
 			args: {
 				communication: frm.doc.name,
 			},
 			freeze: true,
 			callback: function (r) {
-				frappe.msgprint(__("Email has been moved to trash"));
+				nts.msgprint(__("Email has been moved to trash"));
 			},
 		});
 	},

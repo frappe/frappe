@@ -77,7 +77,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook",
+   "description": "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname/api/method/nts.integrations.oauth2_logins.login_via_facebook",
    "fieldname": "redirect_uris",
    "fieldtype": "Text",
    "label": "Redirect URIs"

@@ -1,7 +1,7 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
-from frappe.exceptions import ValidationError
+from nts.exceptions import ValidationError
 
 
 class NewsletterAlreadySentError(ValidationError):

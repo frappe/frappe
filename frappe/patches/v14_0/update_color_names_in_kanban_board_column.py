@@ -1,8 +1,8 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 
-import frappe
+import nts
 
 
 def execute():
@@ -17,6 +17,6 @@ def execute():
 		"yellow": "Yellow",
 		"lightblue": "Light Blue",
 	}
-	for d in frappe.get_all("Kanban Board Column", fields=["name", "indicator"]):
+	for d in nts.get_all("Kanban Board Column", fields=["name", "indicator"]):
 		color_name = indicator_map.get(d.indicator, "Gray")
-		frappe.db.set_value("Kanban Board Column", d.name, "indicator", color_name)
+		nts.db.set_value("Kanban Board Column", d.name, "indicator", color_name)

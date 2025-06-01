@@ -1,19 +1,19 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.defaults = {
+nts.defaults = {
 	get_user_default: function (key) {
-		let defaults = frappe.boot.user.defaults;
+		let defaults = nts.boot.user.defaults;
 		let d = defaults[key];
-		if (!d && frappe.defaults.is_a_user_permission_key(key)) {
-			d = defaults[frappe.model.scrub(key)];
+		if (!d && nts.defaults.is_a_user_permission_key(key)) {
+			d = defaults[nts.model.scrub(key)];
 			// Check for default user permission values
 			let user_default = this.get_user_permission_default(key, defaults);
 			if (user_default) d = user_default;
 		}
 		if ($.isArray(d)) d = d[0];
 
-		if (!frappe.defaults.in_user_permission(key, d)) {
+		if (!nts.defaults.in_user_permission(key, d)) {
 			return;
 		}
 
@@ -41,52 +41,52 @@ frappe.defaults = {
 	},
 
 	get_user_defaults: function (key) {
-		var defaults = frappe.boot.user.defaults;
+		var defaults = nts.boot.user.defaults;
 		var d = defaults[key];
 
-		if (frappe.defaults.is_a_user_permission_key(key)) {
+		if (nts.defaults.is_a_user_permission_key(key)) {
 			if (d && $.isArray(d) && d.length === 1) {
 				// Use User Permission value when only when it has a single value
 				d = d[0];
 			} else {
-				d = defaults[key] || defaults[frappe.model.scrub(key)];
+				d = defaults[key] || defaults[nts.model.scrub(key)];
 			}
 		}
 		if (!$.isArray(d)) d = [d];
 
 		// filter out values which are not permitted to the user
 		d.filter((item) => {
-			if (frappe.defaults.in_user_permission(key, item)) {
+			if (nts.defaults.in_user_permission(key, item)) {
 				return item;
 			}
 		});
 		return d;
 	},
 	get_global_default: function (key) {
-		var d = frappe.sys_defaults[key];
+		var d = nts.sys_defaults[key];
 		if ($.isArray(d)) d = d[0];
 		return d;
 	},
 	get_global_defaults: function (key) {
-		var d = frappe.sys_defaults[key];
+		var d = nts.sys_defaults[key];
 		if (!$.isArray(d)) d = [d];
 		return d;
 	},
 	set_user_default_local: function (key, value) {
-		frappe.boot.user.defaults[key] = value;
+		nts.boot.user.defaults[key] = value;
 	},
 	get_default: function (key) {
-		var defaults = frappe.boot.user.defaults;
+		var defaults = nts.boot.user.defaults;
 		var value = defaults[key];
-		if (frappe.defaults.is_a_user_permission_key(key)) {
+		if (nts.defaults.is_a_user_permission_key(key)) {
 			if (value && $.isArray(value) && value.length === 1) {
 				value = value[0];
 			} else {
-				value = defaults[frappe.model.scrub(key)];
+				value = defaults[nts.model.scrub(key)];
 			}
 		}
 
-		if (!frappe.defaults.in_user_permission(key, value)) {
+		if (!nts.defaults.in_user_permission(key, value)) {
 			return;
 		}
 
@@ -100,11 +100,11 @@ frappe.defaults = {
 	},
 
 	is_a_user_permission_key: function (key) {
-		return key.indexOf(":") === -1 && key !== frappe.model.scrub(key);
+		return key.indexOf(":") === -1 && key !== nts.model.scrub(key);
 	},
 
 	in_user_permission: function (key, value) {
-		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)];
+		let user_permission = this.get_user_permissions()[nts.model.unscrub(key)];
 
 		if (user_permission && user_permission.length) {
 			return user_permission.some((perm) => {
@@ -122,8 +122,8 @@ frappe.defaults = {
 	},
 
 	update_user_permissions: function () {
-		const method = "frappe.core.doctype.user_permission.user_permission.get_user_permissions";
-		frappe.call(method).then((r) => {
+		const method = "nts.core.doctype.user_permission.user_permission.get_user_permissions";
+		nts.call(method).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);
 			}
@@ -131,10 +131,10 @@ frappe.defaults = {
 	},
 
 	load_user_permission_from_boot: function () {
-		if (frappe.boot.user.user_permissions) {
-			this._user_permissions = Object.assign({}, frappe.boot.user.user_permissions);
+		if (nts.boot.user.user_permissions) {
+			this._user_permissions = Object.assign({}, nts.boot.user.user_permissions);
 		} else {
-			frappe.defaults.update_user_permissions();
+			nts.defaults.update_user_permissions();
 		}
 	},
 };

@@ -5,7 +5,7 @@
 @import "phone_picker";
 
 // password
-.frappe-control[data-fieldtype="Password"] {
+.nts-control[data-fieldtype="Password"] {
 	.control-input-wrapper {
 		position: relative;
 
@@ -140,7 +140,7 @@ select.form-control {
 	}
 }
 
-.frappe-control {
+.nts-control {
 	@include get_textstyle("base", "regular");
 	.control-label.reqd:after {
 		content: " *";
@@ -194,7 +194,7 @@ select.form-control {
 	}
 }
 
-.frappe-control:not([data-fieldtype="MultiSelectPills"]):not([data-fieldtype="Table MultiSelect"]) {
+.nts-control:not([data-fieldtype="MultiSelectPills"]):not([data-fieldtype="Table MultiSelect"]) {
 	&.has-error {
 		input {
 			border: 1px solid var(--error-border);
@@ -206,8 +206,8 @@ select.form-control {
 	}
 }
 
-.frappe-control[data-fieldtype="MultiSelectPills"],
-.frappe-control[data-fieldtype="Table MultiSelect"] {
+.nts-control[data-fieldtype="MultiSelectPills"],
+.nts-control[data-fieldtype="Table MultiSelect"] {
 	&.has-error {
 		.control-input {
 			border: 1px solid var(--error-border);
@@ -239,8 +239,8 @@ select.form-control {
 	}
 }
 
-.frappe-control[data-fieldtype="Attach"],
-.frappe-control[data-fieldtype="Attach Image"] {
+.nts-control[data-fieldtype="Attach"],
+.nts-control[data-fieldtype="Attach Image"] {
 	.attached-file {
 		position: relative;
 		padding: 6px 10px;
@@ -359,11 +359,11 @@ textarea.form-control {
 	}
 }
 
-.frappe-control .control-value {
+.nts-control .control-value {
 	overflow-wrap: break-word;
 }
 
-.frappe-control[data-fieldtype="Data"] .control-input,
+.nts-control[data-fieldtype="Data"] .control-input,
 .control-value {
 	position: relative;
 }

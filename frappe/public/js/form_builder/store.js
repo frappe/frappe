@@ -52,8 +52,8 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	function get_df(fieldtype, fieldname = "", label = "") {
 		let docfield = is_customize_form.value ? "Customize Form Field" : "DocField";
-		let df = frappe.model.get_new_doc(docfield);
-		df.name = frappe.utils.get_random(8);
+		let df = nts.model.get_new_doc(docfield);
+		df.name = nts.utils.get_random(8);
 		df.fieldtype = fieldtype;
 		df.fieldname = fieldname;
 		df.label = label;
@@ -86,20 +86,20 @@ export const useStore = defineStore("form-builder-store", () => {
 	async function fetch() {
 		doc.value = frm.value.doc;
 		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields?.length) {
-			frappe.model.with_doctype("DocType").then(() => {
-				frappe.listview_settings["DocType"].new_doctype_dialog();
+			nts.model.with_doctype("DocType").then(() => {
+				nts.listview_settings["DocType"].new_doctype_dialog();
 			});
 			// redirect to /doctype
-			frappe.set_route("List", "DocType");
+			nts.set_route("List", "DocType");
 			return;
 		}
 
 		if (!get_docfields.value.length) {
 			let docfield = is_customize_form.value ? "Customize Form Field" : "DocField";
-			if (!frappe.get_meta(docfield)) {
+			if (!nts.get_meta(docfield)) {
 				await load_doctype_model(docfield);
 			}
-			let df = frappe.get_meta(docfield).fields;
+			let df = nts.get_meta(docfield).fields;
 			if (is_customize_form.value) {
 				custom_docfields.value = df;
 			} else {
@@ -118,7 +118,7 @@ export const useStore = defineStore("form-builder-store", () => {
 				frm.value.page.clear_indicator();
 			}
 			read_only.value =
-				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
+				!is_customize_form.value && !nts.boot.developer_mode && !doc.value.custom;
 			preview.value = false;
 		});
 
@@ -154,7 +154,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			error_message = __("DocType must have atleast one field");
 		}
 
-		let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
+		let not_allowed_in_list_view = ["Attach Image", ...nts.model.no_value_type];
 		if (is_table) {
 			not_allowed_in_list_view = not_allowed_in_list_view.filter((f) => f != "Button");
 		}
@@ -176,7 +176,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			}
 
 			// Link & Table fields should always have options set
-			if (["Link", ...frappe.model.table_fields].includes(df.fieldtype) && !df.options) {
+			if (["Link", ...nts.model.table_fields].includes(df.fieldtype) && !df.options) {
 				error_message = __(
 					"Options is required for field {0} of type {1}",
 					get_field_data(df)
@@ -200,7 +200,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			}
 
 			// In Global Search is not allowed for no_value_type fields
-			if (df.in_global_search && frappe.model.no_value_type.includes(df.fieldtype)) {
+			if (df.in_global_search && nts.model.no_value_type.includes(df.fieldtype)) {
 				error_message = __(
 					"'In Global Search' is not allowed for field {0} of type {1}",
 					get_field_data(df)
@@ -230,7 +230,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	function update_fields() {
 		if (!dirty.value && !frm.value.is_new()) return;
 
-		frappe.dom.freeze(__("Saving..."));
+		nts.dom.freeze(__("Saving..."));
 
 		try {
 			let fields = get_updated_fields();
@@ -241,7 +241,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		} catch (e) {
 			console.error(e);
 		} finally {
-			frappe.dom.unfreeze();
+			nts.dom.unfreeze();
 		}
 	}
 

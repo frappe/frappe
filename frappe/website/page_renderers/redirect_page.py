@@ -1,5 +1,5 @@
-import frappe
-from frappe.website.utils import build_response
+import nts
+from nts.website.utils import build_response
 
 
 class RedirectPage:
@@ -16,7 +16,7 @@ class RedirectPage:
 			"",
 			self.http_status_code,
 			{
-				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get("location"),
+				"Location": nts.flags.redirect_location or (nts.local.response or {}).get("location"),
 				"Cache-Control": "no-store, no-cache, must-revalidate",
 			},
 		)

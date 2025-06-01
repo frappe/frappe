@@ -18,9 +18,9 @@
 		<meta name="mobile-web-app-capable" content="yes">
 		<title>{{ app_name }}</title>
 		<link rel="shortcut icon"
-			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+			href="{{ favicon or "/assets/nts/images/nts-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
-			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+			href="{{ favicon or "/assets/nts/images/nts-favicon.svg" }}" type="image/x-icon">
 		{% for include in include_css -%}
 		{{ include_style(include) }}
 		{%- endfor -%}
@@ -28,7 +28,7 @@
 		{% if lang == "eo" %}
 		<script type="text/javascript">
 			var _jipt = [];
-			_jipt.push(['project', 'frappe']);
+			_jipt.push(['project', 'nts']);
 		</script>
 		<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
 		{% endif %}
@@ -49,11 +49,11 @@
 			window.app = true;
 			window.dev_server = {{ dev_server }};
 
-			if (!window.frappe) window.frappe = {};
+			if (!window.nts) window.nts = {};
 
-			frappe.boot = {{ boot | json }};
-			frappe._messages = frappe.boot["__messages"];
-			frappe.csrf_token = "{{ csrf_token }}";
+			nts.boot = {{ boot | json }};
+			nts._messages = nts.boot["__messages"];
+			nts.csrf_token = "{{ csrf_token }}";
 
 
 			{%- for path in include_icons -%}

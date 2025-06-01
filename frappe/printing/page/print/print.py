@@ -1,10 +1,10 @@
-import frappe
+import nts
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_print_settings_to_show(doctype, docname):
-	doc = frappe.get_doc(doctype, docname)
-	print_settings = frappe.get_single("Print Settings")
+	doc = nts.get_doc(doctype, docname)
+	print_settings = nts.get_single("Print Settings")
 
 	if hasattr(doc, "get_print_settings"):
 		fields = doc.get_print_settings() or []

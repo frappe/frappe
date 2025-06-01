@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class BlogSettings(Document):
@@ -14,7 +14,7 @@ class BlogSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		allow_guest_to_comment: DF.Check
 		blog_introduction: DF.SmallText | None
@@ -32,15 +32,15 @@ class BlogSettings(Document):
 
 	# end: auto-generated types
 	def on_update(self):
-		from frappe.website.utils import clear_cache
+		from nts.website.utils import clear_cache
 
 		clear_cache("blog")
 		clear_cache("writers")
 
 
 def get_like_limit():
-	return frappe.db.get_single_value("Blog Settings", "like_limit") or 5
+	return nts.db.get_single_value("Blog Settings", "like_limit") or 5
 
 
 def get_comment_limit():
-	return frappe.db.get_single_value("Blog Settings", "comment_limit") or 5
+	return nts.db.get_single_value("Blog Settings", "comment_limit") or 5

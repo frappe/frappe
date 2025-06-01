@@ -5,7 +5,7 @@
 {% block page_content %}
 
 	<script>
-		frappe.ready(function() {
+		nts.ready(function() {
 			$("#select-all-btn").click(function() {
 				$(".group").prop('checked', true);
 
@@ -34,7 +34,7 @@
 				{% endif %}
 				<form method="post">
 					<input type="hidden" name="user_email" value="{{ email }}">
-					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+					<input type="hidden" name="csrf_token" value="{{ nts.session.csrf_token }}">
 					<!-- Break into columns if there are more than 20 groups -->
 					<div class="checkbox-container {% if email_groups|length > 10 %} row {% endif %}">
 						{% for group in email_groups %}

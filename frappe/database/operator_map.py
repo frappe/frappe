@@ -1,17 +1,17 @@
-# Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2023, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 import operator
 from collections.abc import Callable
 
-import frappe
-from frappe.database.utils import NestedSetHierarchy
-from frappe.model.db_query import get_timespan_date_range
-from frappe.query_builder import Field
-from frappe.query_builder.functions import Coalesce
+import nts
+from nts.database.utils import NestedSetHierarchy
+from nts.model.db_query import get_timespan_date_range
+from nts.query_builder import Field
+from nts.query_builder.functions import Coalesce
 
 
-def like(key: Field, value: str) -> frappe.qb:
+def like(key: Field, value: str) -> nts.qb:
 	"""Wrapper method for `LIKE`
 
 	Args:
@@ -19,12 +19,12 @@ def like(key: Field, value: str) -> frappe.qb:
 	        value (str): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `LIKE`
+	        nts.qb: `nts.qb object with `LIKE`
 	"""
 	return key.like(value)
 
 
-def func_in(key: Field, value: list | tuple) -> frappe.qb:
+def func_in(key: Field, value: list | tuple) -> nts.qb:
 	"""Wrapper method for `IN`
 
 	Args:
@@ -32,14 +32,14 @@ def func_in(key: Field, value: list | tuple) -> frappe.qb:
 	        value (Union[int, str]): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `IN`
+	        nts.qb: `nts.qb object with `IN`
 	"""
 	if isinstance(value, str):
 		value = value.split(",")
 	return key.isin(value)
 
 
-def not_like(key: Field, value: str) -> frappe.qb:
+def not_like(key: Field, value: str) -> nts.qb:
 	"""Wrapper method for `NOT LIKE`
 
 	Args:
@@ -47,7 +47,7 @@ def not_like(key: Field, value: str) -> frappe.qb:
 	        value (str): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `NOT LIKE`
+	        nts.qb: `nts.qb object with `NOT LIKE`
 	"""
 	return key.not_like(value)
 
@@ -60,14 +60,14 @@ def func_not_in(key: Field, value: list | tuple | str):
 	        value (Union[int, str]): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `NOT IN`
+	        nts.qb: `nts.qb object with `NOT IN`
 	"""
 	if isinstance(value, str):
 		value = value.split(",")
 	return key.notin(value)
 
 
-def func_regex(key: Field, value: str) -> frappe.qb:
+def func_regex(key: Field, value: str) -> nts.qb:
 	"""Wrapper method for `REGEX`
 
 	Args:
@@ -75,12 +75,12 @@ def func_regex(key: Field, value: str) -> frappe.qb:
 	        value (str): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `REGEX`
+	        nts.qb: `nts.qb object with `REGEX`
 	"""
 	return key.regex(value)
 
 
-def func_between(key: Field, value: list | tuple) -> frappe.qb:
+def func_between(key: Field, value: list | tuple) -> nts.qb:
 	"""Wrapper method for `BETWEEN`
 
 	Args:
@@ -88,7 +88,7 @@ def func_between(key: Field, value: list | tuple) -> frappe.qb:
 	        value (Union[int, str]): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `BETWEEN`
+	        nts.qb: `nts.qb object with `BETWEEN`
 	"""
 	return key[slice(*value)]
 
@@ -105,7 +105,7 @@ def func_is(key, value):
 			raise ValueError("`is` operator only supports `set` and `not set` as value")
 
 
-def func_timespan(key: Field, value: str) -> frappe.qb:
+def func_timespan(key: Field, value: str) -> nts.qb:
 	"""Wrapper method for `TIMESPAN`
 
 	Args:
@@ -113,7 +113,7 @@ def func_timespan(key: Field, value: str) -> frappe.qb:
 	        value (str): criterion
 
 	Returns:
-	        frappe.qb: `frappe.qb object with `TIMESPAN`
+	        nts.qb: `nts.qb object with `TIMESPAN`
 	"""
 
 	return func_between(key, get_timespan_date_range(value))

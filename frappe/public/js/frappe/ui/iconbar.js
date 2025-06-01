@@ -1,7 +1,7 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.IconBar = class IconBar {
+nts.ui.IconBar = class IconBar {
 	constructor(parent, n_groups) {
 		this.parent = parent;
 		this.buttons = {};

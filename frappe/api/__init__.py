@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from enum import Enum
 
@@ -6,10 +6,10 @@ from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Submount
 from werkzeug.wrappers import Request, Response
 
-import frappe
-import frappe.client
-from frappe import _
-from frappe.utils.response import build_response
+import nts
+import nts.client
+from nts import _
+from nts.utils.response import build_response
 
 
 class ApiVersion(str, Enum):
@@ -44,20 +44,20 @@ def handle(request: Request):
 	try:
 		endpoint, arguments = API_URL_MAP.bind_to_environ(request.environ).match()
 	except NotFound:  # Wrap 404 - backward compatiblity
-		raise frappe.DoesNotExistError
+		raise nts.DoesNotExistError
 
 	data = endpoint(**arguments)
 	if isinstance(data, Response):
 		return data
 
 	if data is not None:
-		frappe.response["data"] = data
+		nts.response["data"] = data
 	return build_response("json")
 
 
 # Merge all API version routing rules
-from frappe.api.v1 import url_rules as v1_rules
-from frappe.api.v2 import url_rules as v2_rules
+from nts.api.v1 import url_rules as v1_rules
+from nts.api.v2 import url_rules as v2_rules
 
 API_URL_MAP = Map(
 	[
@@ -72,9 +72,9 @@ API_URL_MAP = Map(
 
 
 def get_api_version() -> ApiVersion | None:
-	if not frappe.request:
+	if not nts.request:
 		return
 
-	if frappe.request.path.startswith(f"/api/{ApiVersion.V2.value}"):
+	if nts.request.path.startswith(f"/api/{ApiVersion.V2.value}"):
 		return ApiVersion.V2
 	return ApiVersion.V1

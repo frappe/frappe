@@ -1,4 +1,4 @@
-{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+{% from "nts/templates/includes/avatar_macro.html" import avatar %}
 {% if top_performer.energy_points %}
 <h1 class="text-2xl">{{ _('Top Performer') }} 🏆 </h1>
 <p>
@@ -6,8 +6,8 @@
 		{{ avatar(top_performer.user) }} &nbsp;
 		{{
 			_('{0} gained {1} points').format(
-				frappe.get_fullname(top_performer.user),
-				frappe.utils.cint(top_performer.energy_points)
+				nts.get_fullname(top_performer.user),
+				nts.utils.cint(top_performer.energy_points)
 			)
 		}}
 	</span>
@@ -21,8 +21,8 @@
 		{{ avatar(top_reviewer.user) }} &nbsp;
 		{{
 			_('{0} gave {1} points').format(
-				frappe.get_fullname(top_reviewer.user),
-				frappe.utils.cint(top_reviewer.given_points)
+				nts.get_fullname(top_reviewer.user),
+				nts.utils.cint(top_reviewer.given_points)
 			)
 		}}
 	</span>
@@ -42,9 +42,9 @@
 	{% for user in standings %}
 	<tr class="text-small">
 		<td>{{ loop.index }}</td>
-		<td>{{ frappe.get_fullname(user.user) }}</td>
-		<td class="text-muted">{{ frappe.utils.cint(user.energy_points) }}</td>
-		<td class="text-muted">{{ frappe.utils.cint(user.given_points) }}</td>
+		<td>{{ nts.get_fullname(user.user) }}</td>
+		<td class="text-muted">{{ nts.utils.cint(user.energy_points) }}</td>
+		<td class="text-muted">{{ nts.utils.cint(user.given_points) }}</td>
 	</tr>
 	{% endfor %}
 </table>

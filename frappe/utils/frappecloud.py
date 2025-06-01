@@ -1,11 +1,11 @@
-import frappe
+import nts
 
-FRAPPE_CLOUD_DOMAINS = ("frappe.cloud", "erpnext.com", "frappehr.com", "frappe.dev")
+nts_CLOUD_DOMAINS = ("nts.cloud", "erpnext.com", "ntshr.com", "nts.dev")
 
 
-def on_frappecloud() -> bool:
-	"""Returns true if running on Frappe Cloud.
+def on_ntscloud() -> bool:
+	"""Returns true if running on nts Cloud.
 
 
 	Useful for modifying few features for better UX."""
-	return frappe.local.site.endswith(FRAPPE_CLOUD_DOMAINS)
+	return nts.local.site.endswith(nts_CLOUD_DOMAINS)

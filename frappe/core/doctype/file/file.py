@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import io
@@ -11,15 +11,15 @@ from urllib.parse import quote, unquote
 
 from PIL import Image, ImageFile, ImageOps
 
-import frappe
-from frappe import _
-from frappe.database.schema import SPECIAL_CHAR_PATTERN
-from frappe.exceptions import DoesNotExistError
-from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
-from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
-from frappe.utils.file_manager import is_safe_path
-from frappe.utils.image import optimize_image, strip_exif_data
+import nts
+from nts import _
+from nts.database.schema import SPECIAL_CHAR_PATTERN
+from nts.exceptions import DoesNotExistError
+from nts.model.document import Document
+from nts.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
+from nts.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
+from nts.utils.file_manager import is_safe_path
+from nts.utils.image import optimize_image, strip_exif_data
 
 from .exceptions import (
 	AttachmentLimitReached,
@@ -41,7 +41,7 @@ class File(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		attached_to_doctype: DF.Link | None
 		attached_to_field: DF.Data | None
@@ -86,7 +86,7 @@ class File(Document):
 				# home
 				self.name = self.file_name
 		else:
-			self.name = frappe.generate_hash(length=10)
+			self.name = nts.generate_hash(length=10)
 
 	def before_insert(self):
 		self.set_folder_name()
@@ -104,7 +104,7 @@ class File(Document):
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
-			frappe.db.after_rollback.add(self.on_rollback)
+			nts.db.after_rollback.add(self.on_rollback)
 
 		self.validate_duplicate_entry()  # Hash is generated in save_file
 
@@ -130,17 +130,17 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 
-		self.file_size = frappe.form_dict.file_size or self.file_size
+		self.file_size = nts.form_dict.file_size or self.file_size
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
 			return
 
 		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
-			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
+			nts.throw(_("Attached To Name must be a string or an integer"), nts.ValidationError)
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
-			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+			nts.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
@@ -148,7 +148,7 @@ class File(Document):
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
-			frappe.throw(_("Cannot delete Home and Attachments folders"))
+			nts.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
 		self.validate_protected_file()
 		self._delete_file_on_disk()
@@ -194,7 +194,7 @@ class File(Document):
 			return os.path.join(self.folder, self.file_name)
 
 	def get_successors(self):
-		return frappe.get_all("File", filters={"folder": self.name}, pluck="name")
+		return nts.get_all("File", filters={"folder": self.name}, pluck="name")
 
 	def validate_file_path(self):
 		if self.is_remote_file:
@@ -202,7 +202,7 @@ class File(Document):
 
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
 		if not os.path.realpath(self.get_full_path()).startswith(base_path):
-			frappe.throw(
+			nts.throw(
 				_("The File URL you've entered is incorrect"),
 				title=_("Invalid File URL"),
 			)
@@ -213,7 +213,7 @@ class File(Document):
 
 		if not self.file_url.startswith(("/files/", "/private/files/")):
 			# Probably an invalid URL since it doesn't start with http either
-			frappe.throw(
+			nts.throw(
 				_("URL must start with http:// or https://"),
 				title=_("Invalid URL"),
 			)
@@ -226,8 +226,8 @@ class File(Document):
 
 		old_file_url = self.file_url
 		file_name = self.file_url.split("/")[-1]
-		private_file_path = Path(frappe.get_site_path("private", "files", file_name))
-		public_file_path = Path(frappe.get_site_path("public", "files", file_name))
+		private_file_path = Path(nts.get_site_path("private", "files", file_name))
+		public_file_path = Path(nts.get_site_path("public", "files", file_name))
 
 		if cint(self.is_private):
 			source = public_file_path
@@ -246,12 +246,12 @@ class File(Document):
 			return
 
 		if not source.exists():
-			frappe.throw(
+			nts.throw(
 				_("Cannot find file {} on disk").format(source),
 				exc=FileNotFoundError,
 			)
 		if target.exists():
-			frappe.throw(
+			nts.throw(
 				_("A file with same name {} already exists").format(target),
 				exc=FileExistsError,
 			)
@@ -259,7 +259,7 @@ class File(Document):
 		# Uses os.rename which is an atomic operation
 		shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
-		frappe.db.after_rollback.add(self.on_rollback)
+		nts.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
 		update_existing_file_docs(self)
@@ -271,14 +271,14 @@ class File(Document):
 		):
 			return
 
-		if frappe.get_meta(self.attached_to_doctype).issingle:
-			frappe.db.set_single_value(
+		if nts.get_meta(self.attached_to_doctype).issingle:
+			nts.db.set_single_value(
 				self.attached_to_doctype,
 				self.attached_to_field,
 				self.file_url,
 			)
 		else:
-			frappe.db.set_value(
+			nts.db.set_value(
 				self.attached_to_doctype,
 				self.attached_to_name,
 				self.attached_to_field,
@@ -289,7 +289,7 @@ class File(Document):
 		if self.attached_to_field:
 			return True
 
-		reference_dict = frappe.get_doc(self.attached_to_doctype, self.attached_to_name).as_dict()
+		reference_dict = nts.get_doc(self.attached_to_doctype, self.attached_to_name).as_dict()
 
 		for key, value in reference_dict.items():
 			if value == old_file_url:
@@ -299,11 +299,11 @@ class File(Document):
 	def validate_attachment_limit(self):
 		attachment_limit = 0
 		if self.attached_to_doctype and self.attached_to_name:
-			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
+			attachment_limit = cint(nts.get_meta(self.attached_to_doctype).max_attachments)
 
 		if attachment_limit:
 			current_attachment_count = len(
-				frappe.get_all(
+				nts.get_all(
 					"File",
 					filters={
 						"attached_to_doctype": self.attached_to_doctype,
@@ -314,9 +314,9 @@ class File(Document):
 			)
 
 			if current_attachment_count >= attachment_limit:
-				frappe.throw(
+				nts.throw(
 					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
-						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
+						nts.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
 					),
 					exc=AttachmentLimitReached,
 					title=_("Attachment Limit Reached"),
@@ -334,7 +334,7 @@ class File(Document):
 			return
 
 		if self.attached_to_doctype:
-			self.folder = frappe.db.get_value("File", {"is_attachments_folder": 1})
+			self.folder = nts.db.get_value("File", {"is_attachments_folder": 1})
 
 		elif not self.is_home_folder:
 			self.folder = "Home"
@@ -358,19 +358,19 @@ class File(Document):
 			return True
 
 		if not os.path.exists(full_path):
-			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+			nts.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_file_extension(self):
 		# Only validate uploaded files, not generated by code/integrations.
-		if not self.file_type or not frappe.request:
+		if not self.file_type or not nts.request:
 			return
 
-		allowed_extensions = frappe.get_system_settings("allowed_file_extensions")
+		allowed_extensions = nts.get_system_settings("allowed_file_extensions")
 		if not allowed_extensions:
 			return
 
 		if self.file_type not in allowed_extensions.splitlines():
-			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
+			nts.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
@@ -394,18 +394,18 @@ class File(Document):
 						"attached_to_name": self.attached_to_name,
 					}
 				)
-			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
+			duplicate_file = nts.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
 
 			if duplicate_file:
-				duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
+				duplicate_file_doc = nts.get_cached_doc("File", duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
 					# just use the url, to avoid uploading a duplicate
 					self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
 		if not self.file_name and not self.file_url:
-			frappe.throw(
-				_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError
+			nts.throw(
+				_("Fields `file_name` or `file_url` must be set for File"), exc=nts.MandatoryError
 			)
 		elif not self.file_name and self.file_url:
 			self.file_name = self.file_url.split("/")[-1]
@@ -421,7 +421,7 @@ class File(Document):
 			with open(file_path, "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except OSError:
-			frappe.throw(_("File {0} does not exist").format(file_path))
+			nts.throw(_("File {0} does not exist").format(file_path))
 
 	def make_thumbnail(
 		self,
@@ -451,7 +451,7 @@ class File(Document):
 			image.thumbnail(size, Image.Resampling.LANCZOS)
 
 		thumbnail_url = f"{filename}_{suffix}.{extn}"
-		path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
+		path = os.path.abspath(nts.get_site_path("public", thumbnail_url.lstrip("/")))
 
 		try:
 			image.save(path)
@@ -459,15 +459,15 @@ class File(Document):
 				self.db_set("thumbnail_url", thumbnail_url)
 
 		except OSError:
-			frappe.msgprint(_("Unable to write file format for {0}").format(path))
+			nts.msgprint(_("Unable to write file format for {0}").format(path))
 			return
 
 		return thumbnail_url
 
 	def validate_empty_folder(self):
 		"""Throw exception if folder is not empty"""
-		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}, limit=1):
-			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
+		if self.is_folder and nts.get_all("File", filters={"folder": self.name}, limit=1):
+			nts.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
 
 	def validate_protected_file(self):
 		"""Throw an exception if this file is attached to a doctype that protects files.
@@ -479,7 +479,7 @@ class File(Document):
 			return
 
 		try:
-			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+			ref_doc = nts.get_doc(self.attached_to_doctype, self.attached_to_name)
 		except DoesNotExistError:
 			return
 
@@ -494,14 +494,14 @@ class File(Document):
 			# Deletion must still be possible if users have the permission to delete the linked document
 			return
 
-		frappe.throw(
+		nts.throw(
 			msg=_("This file is attached to a protected document and cannot be deleted."),
 			title=_("Protected File"),
 		)
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
-		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
+		on_disk_file_not_shared = self.content_hash and not nts.get_all(
 			"File",
 			filters={
 				"content_hash": self.content_hash,
@@ -519,7 +519,7 @@ class File(Document):
 	def unzip(self) -> list["File"]:
 		"""Unzip current file and replace it by its children"""
 		if not self.file_url.endswith(".zip"):
-			frappe.throw(_("{0} is not a zip file").format(self.file_name))
+			nts.throw(_("{0} is not a zip file").format(self.file_name))
 
 		zip_path = self.get_full_path()
 
@@ -535,11 +535,11 @@ class File(Document):
 					# skip hidden files
 					continue
 
-				file_doc = frappe.new_doc("File")
+				file_doc = nts.new_doc("File")
 				try:
 					file_doc.content = z.read(file.filename)
 				except zipfile.BadZipFile:
-					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
+					nts.throw(_("{0} is a not a valid zip file").format(self.file_name))
 				file_doc.file_name = filename
 				file_doc.folder = self.folder
 				file_doc.is_private = self.is_private
@@ -548,7 +548,7 @@ class File(Document):
 				file_doc.save()
 				files.append(file_doc)
 
-		frappe.delete_doc("File", self.name)
+		nts.delete_doc("File", self.name)
 		return files
 
 	def exists_on_disk(self):
@@ -556,7 +556,7 @@ class File(Document):
 
 	def get_content(self) -> bytes:
 		if self.is_folder:
-			frappe.throw(_("Cannot get file contents of a Folder"))
+			nts.throw(_("Cannot get file contents of a Folder"))
 
 		if self.get("content"):
 			self._content = self.content
@@ -607,13 +607,13 @@ class File(Document):
 			pass
 
 		elif not self.file_url:
-			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
+			nts.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 		if not is_safe_path(file_path):
-			frappe.throw(_("Cannot access file path {0}").format(file_path))
+			nts.throw(_("Cannot access file path {0}").format(file_path))
 
 		if os.path.sep in self.file_name:
-			frappe.throw(_("File name cannot have {0}").format(os.path.sep))
+			nts.throw(_("File name cannot have {0}").format(os.path.sep))
 
 		return file_path
 
@@ -631,7 +631,7 @@ class File(Document):
 			f.write(self._content)
 			os.fsync(f.fileno())
 
-		frappe.db.after_rollback.add(self.on_rollback)
+		nts.db.after_rollback.add(self.on_rollback)
 
 		return file_path
 
@@ -666,7 +666,7 @@ class File(Document):
 		if (
 			self.content_type
 			and self.content_type == "image/jpeg"
-			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
+			and nts.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
 			self._content = strip_exif_data(self._content, self.content_type)
 
@@ -675,7 +675,7 @@ class File(Document):
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
-			duplicate_file = frappe.get_value(
+			duplicate_file = nts.get_value(
 				"File",
 				{"content_hash": self.content_hash, "is_private": self.is_private},
 				["file_url", "name"],
@@ -683,7 +683,7 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
+			file_doc: "File" = nts.get_cached_doc("File", duplicate_file.name)
 			if file_doc.exists_on_disk():
 				if self.exists_on_disk():
 					if not self.file_url:
@@ -717,16 +717,16 @@ class File(Document):
 		return {"file_name": os.path.basename(fpath), "file_url": self.file_url}
 
 	def check_max_file_size(self):
-		from frappe.core.api.file import get_max_file_size
+		from nts.core.api.file import get_max_file_size
 
 		max_file_size = get_max_file_size()
 		file_size = len(self._content or b"")
 
 		if file_size > max_file_size:
 			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
-			if frappe.has_permission("System Settings", "write"):
+			if nts.has_permission("System Settings", "write"):
 				msg += ".<br>" + _("You can increase the limit from System Settings.")
-			frappe.throw(msg, exc=MaxFileSizeReachedError)
+			nts.throw(msg, exc=MaxFileSizeReachedError)
 
 		return file_size
 
@@ -754,7 +754,7 @@ class File(Document):
 
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
+		file_url = quote(nts.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = self.file_name or self.file_url
 
 		self.add_comment_in_reference_doc(
@@ -765,16 +765,16 @@ class File(Document):
 	def add_comment_in_reference_doc(self, comment_type, text):
 		if self.attached_to_doctype and self.attached_to_name:
 			try:
-				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+				doc = nts.get_doc(self.attached_to_doctype, self.attached_to_name)
 				doc.add_comment(comment_type, text)
-			except frappe.DoesNotExistError:
-				frappe.clear_messages()
+			except nts.DoesNotExistError:
+				nts.clear_messages()
 
 	def set_is_private(self):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
-	@frappe.whitelist()
+	@nts.whitelist()
 	def optimize_file(self):
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
@@ -814,7 +814,7 @@ class File(Document):
 		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
 		for _file in files:
 			if isinstance(_file, str):
-				_file = frappe.get_doc("File", _file)
+				_file = nts.get_doc("File", _file)
 			if not isinstance(_file, File):
 				continue
 			if _file.is_folder:
@@ -827,18 +827,18 @@ class File(Document):
 
 
 def on_doctype_update():
-	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
-	frappe.db.add_index("File", ["file_url(100)"])
+	nts.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	nts.db.add_index("File", ["file_url(100)"])
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
-	user = user or frappe.session.user
+	user = user or nts.session.user
 
 	if user == "Administrator":
 		return True
 
 	if ptype == "create":
-		return frappe.has_permission("File", "create", user=user, debug=debug)
+		return nts.has_permission("File", "create", user=user, debug=debug)
 
 	if not doc.is_private and ptype in ("read", "select"):
 		return True
@@ -851,11 +851,11 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		attached_to_name = doc.attached_to_name
 
 		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+			ref_doc = nts.get_doc(attached_to_doctype, attached_to_name)
 		except ModuleNotFoundError:
 			return False
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
+		except nts.DoesNotExistError:
+			nts.clear_last_message()
 			return False
 
 		if ptype in ["write", "create", "delete"]:
@@ -867,20 +867,20 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:
-	user = user or frappe.session.user
+	user = user or nts.session.user
 	if user == "Administrator":
 		return ""
 
-	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
-		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
+	if SYSTEM_USER_ROLE not in nts.get_roles(user):
+		return f""" `tabFile`.`owner` = {nts.db.escape(user)} """
 
 	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
 	return f"""
 		(`tabFile`.`is_private` = 0)
-		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {frappe.db.escape(user)})
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {nts.db.escape(user)})
 		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
 	"""
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility
-from frappe.core.api.file import *
+from nts.core.api.file import *

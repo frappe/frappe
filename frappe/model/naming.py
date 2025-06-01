@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import base64
@@ -8,16 +8,16 @@ import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
-import frappe
-from frappe import _
-from frappe.model import log_types
-from frappe.monitor import get_trace_id
-from frappe.query_builder import DocType
-from frappe.utils import cint, cstr, now_datetime
+import nts
+from nts import _
+from nts.model import log_types
+from nts.monitor import get_trace_id
+from nts.query_builder import DocType
+from nts.utils import cint, cstr, now_datetime
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
-	from frappe.model.meta import Meta
+	from nts.model.document import Document
+	from nts.model.meta import Meta
 
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
@@ -35,7 +35,7 @@ NAMING_SERIES_PART_TYPES = (
 )
 
 
-class InvalidNamingSeriesError(frappe.ValidationError):
+class InvalidNamingSeriesError(nts.ValidationError):
 	pass
 
 
@@ -51,16 +51,16 @@ class NamingSeries:
 
 	def validate(self):
 		if "." not in self.series:
-			frappe.throw(
-				_("Invalid naming series {}: dot (.) missing").format(frappe.bold(self.series)),
+			nts.throw(
+				_("Invalid naming series {}: dot (.) missing").format(nts.bold(self.series)),
 				exc=InvalidNamingSeriesError,
 			)
 
 		if not NAMING_SERIES_PATTERN.match(self.series):
-			frappe.throw(
+			nts.throw(
 				_(
 					"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
-				).format(frappe.bold(self.series)),
+				).format(nts.bold(self.series)),
 				exc=InvalidNamingSeriesError,
 			)
 
@@ -91,7 +91,7 @@ class NamingSeries:
 		parse_naming_series(self.series, number_generator=fake_counter_backend)
 
 		if prefix is None:
-			frappe.throw(_("Invalid Naming Series: {}").format(self.series))
+			nts.throw(_("Invalid Naming Series: {}").format(self.series))
 
 		return prefix
 
@@ -111,18 +111,18 @@ class NamingSeries:
 
 	def update_counter(self, new_count: int) -> None:
 		"""Warning: Incorrectly updating series can result in unusable transactions"""
-		Series = frappe.qb.DocType("Series")
+		Series = nts.qb.DocType("Series")
 		prefix = self.get_prefix()
 
 		# Initialize if not present in DB
-		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
-			frappe.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
+		if nts.db.get_value("Series", prefix, "name", order_by="name") is None:
+			nts.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
 
-		(frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)).run()
+		(nts.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)).run()
 
 	def get_current_value(self) -> int:
 		prefix = self.get_prefix()
-		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
+		return cint(nts.db.get_value("Series", prefix, "current", order_by="name"))
 
 
 def set_new_name(doc):
@@ -139,14 +139,14 @@ def set_new_name(doc):
 
 	doc.run_method("before_naming")
 
-	meta = frappe.get_meta(doc.doctype)
+	meta = nts.get_meta(doc.doctype)
 	autoname = meta.autoname or ""
 
-	if autoname.lower() != "prompt" and not frappe.flags.in_import:
+	if autoname.lower() != "prompt" and not nts.flags.in_import:
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
-		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
+		doc.name = nts.db.get_next_sequence_val(doc.doctype)
 		return
 
 	if getattr(doc, "amended_from", None):
@@ -177,7 +177,7 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	"""Checks if the doctype has autoincrement autoname set"""
 
 	if not meta:
-		meta = frappe.get_meta(doctype)
+		meta = nts.get_meta(doctype)
 
 	if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
 		return True
@@ -199,7 +199,7 @@ def set_name_from_naming_options(autoname, doc):
 		# notify
 		if not doc.name:
 			fieldname = autoname[6:]
-			frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+			nts.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
@@ -215,14 +215,14 @@ def set_naming_from_document_naming_rule(doc):
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
-	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+	from nts.model.base_document import DOCTYPES_FOR_DOCTYPE
 
 	IGNORED_DOCTYPES = {*log_types, *DOCTYPES_FOR_DOCTYPE, "DefaultValue", "Patch Log"}
 
 	if doc.doctype in IGNORED_DOCTYPES:
 		return
 
-	document_naming_rules = frappe.cache_manager.get_doctype_map(
+	document_naming_rules = nts.cache_manager.get_doctype_map(
 		"Document Naming Rule",
 		doc.doctype,
 		filters={"document_type": doc.doctype, "disabled": 0},
@@ -230,7 +230,7 @@ def set_naming_from_document_naming_rule(doc):
 	)
 
 	for d in document_naming_rules:
-		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
+		nts.get_cached_doc("Document Naming Rule", d.name).apply(doc)
 		if doc.name:
 			break
 
@@ -241,7 +241,7 @@ def set_name_by_naming_series(doc):
 		doc.naming_series = get_default_naming_series(doc.doctype)
 
 	if not doc.naming_series:
-		frappe.throw(frappe._("Naming Series mandatory"))
+		nts.throw(nts._("Naming Series mandatory"))
 
 	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
 
@@ -286,7 +286,7 @@ def _get_timestamp_prefix():
 
 
 def _generate_random_string(length=10):
-	"""Better version of frappe.generate_hash for naming.
+	"""Better version of nts.generate_hash for naming.
 
 	This uses entire base32 instead of base16 used by generate_hash. So it has twice as many
 	characters and hence more likely to have shorter common prefixes. i.e. slighly faster comparisons and less conflicts.
@@ -351,7 +351,7 @@ def parse_naming_series(
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
 		elif method := has_custom_parser(e):
-			part = frappe.get_attr(method[0])(doc, e)
+			part = nts.get_attr(method[0])(doc, e)
 		else:
 			part = e
 
@@ -365,7 +365,7 @@ def parse_naming_series(
 
 def has_custom_parser(e):
 	"""Returns true if the naming series part has a custom parser"""
-	return frappe.get_hooks("naming_series_variables", {}).get(e)
+	return nts.get_hooks("naming_series_variables", {}).get(e)
 
 
 def determine_consecutive_week_number(datetime):
@@ -383,18 +383,18 @@ def determine_consecutive_week_number(datetime):
 
 def getseries(key, digits):
 	# series created ?
-	# Using frappe.qb as frappe.get_values does not allow order_by=None
+	# Using nts.qb as nts.get_values does not allow order_by=None
 	series = DocType("Series")
-	current = (frappe.qb.from_(series).where(series.name == key).for_update().select("current")).run()
+	current = (nts.qb.from_(series).where(series.name == key).for_update().select("current")).run()
 
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
+		nts.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
+		nts.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
 		current = 1
 	return ("%0" + str(digits) + "d") % current
 
@@ -441,15 +441,15 @@ def revert_series_if_last(key, name, doc=None):
 
 	count = cint(name.replace(prefix, ""))
 	series = DocType("Series")
-	current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
+	current = (nts.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
 
 	if current and current[0][0] == count:
-		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
+		nts.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
 
 
 def get_default_naming_series(doctype: str) -> str | None:
 	"""get default value for `naming_series` property"""
-	naming_series_options = frappe.get_meta(doctype).get_naming_series_options()
+	naming_series_options = nts.get_meta(doctype).get_naming_series_options()
 
 	# Return first truthy options
 	# Empty strings are used to avoid populating forms by default
@@ -460,30 +460,30 @@ def get_default_naming_series(doctype: str) -> str | None:
 
 def validate_name(doctype: str, name: int | str):
 	if not name:
-		frappe.throw(_("No Name Specified for {0}").format(doctype))
+		nts.throw(_("No Name Specified for {0}").format(doctype))
 
 	if isinstance(name, int):
 		if is_autoincremented(doctype):
 			# this will set the sequence value to be the provided name/value and set it to be used
 			# so that the sequence will start from the next value
-			frappe.db.set_next_sequence_val(doctype, name, is_val_used=True)
+			nts.db.set_next_sequence_val(doctype, name, is_val_used=True)
 			return name
 
-		frappe.throw(_("Invalid name type (integer) for varchar name column"), frappe.NameError)
+		nts.throw(_("Invalid name type (integer) for varchar name column"), nts.NameError)
 
 	if name.startswith("New " + doctype):
-		frappe.throw(
-			_("There were some errors setting the name, please contact the administrator"), frappe.NameError
+		nts.throw(
+			_("There were some errors setting the name, please contact the administrator"), nts.NameError
 		)
 	name = name.strip()
 
-	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name != "DocType"):
-		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
+	if not nts.get_meta(doctype).get("issingle") and (doctype == name) and (name != "DocType"):
+		nts.throw(_("Name of {0} cannot be {1}").format(doctype, name), nts.NameError)
 
 	special_characters = "<>"
 	if re.findall(f"[{special_characters}]+", name):
 		message = ", ".join(f"'{c}'" for c in special_characters)
-		frappe.throw(_("Name cannot contain special characters like {0}").format(message), frappe.NameError)
+		nts.throw(_("Name cannot contain special characters like {0}").format(message), nts.NameError)
 
 	return name
 
@@ -492,14 +492,14 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 	if not filters:
 		filters = dict()
 	filters.update({fieldname: value})
-	exists = frappe.db.exists(doctype, filters)
+	exists = nts.db.exists(doctype, filters)
 
 	regex = f"^{re.escape(value)}{separator}\\d+$"
 
 	if exists:
-		last = frappe.db.sql(
+		last = nts.db.sql(
 			f"""SELECT `{fieldname}` FROM `tab{doctype}`
-			WHERE `{fieldname}` {frappe.db.REGEX_CHARACTER} %s
+			WHERE `{fieldname}` {nts.db.REGEX_CHARACTER} %s
 			ORDER BY length({fieldname}) DESC,
 			`{fieldname}` DESC LIMIT 1""",
 			regex,
@@ -516,11 +516,11 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _set_amended_name(doc):
-	amend_naming_rule = frappe.db.get_value(
+	amend_naming_rule = nts.db.get_value(
 		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
 	)
 	if not amend_naming_rule:
-		amend_naming_rule = frappe.db.get_single_value(
+		amend_naming_rule = nts.db.get_single_value(
 			"Document Naming Settings", "default_amend_naming", cache=True
 		)
 
@@ -529,7 +529,7 @@ def _set_amended_name(doc):
 
 	am_id = 1
 	am_prefix = doc.amended_from
-	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
+	if nts.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
 		am_id = cint(doc.amended_from.split("-")[-1]) + 1
 		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
 
@@ -553,7 +553,7 @@ def _prompt_autoname(autoname, doc):
 	"""
 	# set from __newname in save.py
 	if not doc.name:
-		frappe.throw(_("Please set the document name"))
+		nts.throw(_("Please set the document name"))
 
 
 def _format_autoname(autoname: str, doc):

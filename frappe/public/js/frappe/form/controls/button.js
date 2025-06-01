@@ -1,4 +1,4 @@
-frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.ControlData {
+nts.ui.form.ControlButton = class ControlButton extends nts.ui.form.ControlData {
 	can_write() {
 		// should be always true in case of button
 		return true;
@@ -34,7 +34,7 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 		// DEPRECATE
 		var me = this;
 		if (this.frm && this.frm.docname) {
-			frappe.call({
+			nts.call({
 				method: "run_doc_method",
 				args: { docs: this.frm.doc, method: this.df.options },
 				btn: this.$input,
@@ -61,7 +61,7 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 			this.df.label = label;
 		}
 		label =
-			(this.df.icon ? frappe.utils.icon(this.df.icon) : "") +
+			(this.df.icon ? nts.utils.icon(this.df.icon) : "") +
 			__(this.df.label, null, this.df.parent);
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(label);

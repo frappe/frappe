@@ -1,10 +1,10 @@
 import json
 
-import frappe
+import nts
 
 
 def execute():
-	reports_data = frappe.get_all(
+	reports_data = nts.get_all(
 		"Report",
 		filters={
 			"json": ["not like", '%%%"order_by": "`tab%%%'],
@@ -15,7 +15,7 @@ def execute():
 	)
 
 	for d in reports_data:
-		doc = frappe.get_doc("Report", d.get("name"))
+		doc = nts.get_doc("Report", d.get("name"))
 
 		if not doc.get("json"):
 			continue

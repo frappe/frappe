@@ -3,7 +3,7 @@ export default class Spacer extends Block {
 	static get toolbox() {
 		return {
 			title: "Spacer",
-			icon: frappe.utils.icon("spacer", "sm"),
+			icon: nts.utils.icon("spacer", "sm"),
 		};
 	}
 
@@ -37,8 +37,8 @@ export default class Spacer extends Block {
 			this.add_settings_button();
 			this.add_new_block_button();
 
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),

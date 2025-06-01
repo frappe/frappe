@@ -1,9 +1,9 @@
-// Copyright (c) 2020, Frappe Technologies and contributors
+// Copyright (c) 2020, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Workspace", {
+nts.ui.form.on("Workspace", {
 	setup: function () {
-		frappe.meta.get_field("Workspace Link", "only_for").no_default = true;
+		nts.meta.get_field("Workspace Link", "only_for").no_default = true;
 	},
 
 	refresh: function (frm) {
@@ -11,8 +11,8 @@ frappe.ui.form.on("Workspace", {
 
 		let url = `/app/${
 			frm.doc.public
-				? frappe.router.slug(frm.doc.title)
-				: "private/" + frappe.router.slug(frm.doc.title)
+				? nts.router.slug(frm.doc.title)
+				: "private/" + nts.router.slug(frm.doc.title)
 		}`;
 		frm.sidebar
 			.add_user_action(__("Go to Workspace"))
@@ -28,7 +28,7 @@ frappe.ui.form.on("Workspace", {
 			frm.doc.for_user ||
 			(frm.doc.public &&
 				!frm.has_perm("write") &&
-				!frappe.user.has_role("Workspace Manager"))
+				!nts.user.has_role("Workspace Manager"))
 		) {
 			frm.trigger("disable_form");
 
@@ -41,7 +41,7 @@ frappe.ui.form.on("Workspace", {
 			}
 		}
 
-		if (frappe.boot.developer_mode) {
+		if (nts.boot.developer_mode) {
 			frm.set_df_property("module", "read_only", 0);
 		}
 

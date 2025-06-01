@@ -1,8 +1,8 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document, bulk_insert
+import nts
+from nts.model.document import Document, bulk_insert
 
 
 class Country(Document):
@@ -12,7 +12,7 @@ class Country(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		code: DF.Data | None
 		country_name: DF.Data
@@ -25,7 +25,7 @@ class Country(Document):
 
 
 def import_country_and_currency():
-	from frappe.geo.doctype.currency.currency import enable_default_currencies
+	from nts.geo.doctype.currency.currency import enable_default_currencies
 
 	countries, currencies = get_countries_and_currencies()
 
@@ -36,7 +36,7 @@ def import_country_and_currency():
 
 
 def get_countries_and_currencies():
-	from frappe.geo.country_info import get_all as get_geo_data
+	from nts.geo.country_info import get_all as get_geo_data
 
 	data = get_geo_data()
 
@@ -46,9 +46,9 @@ def get_countries_and_currencies():
 	added_currencies = set()
 
 	for name, country in data.items():
-		country = frappe._dict(country)
+		country = nts._dict(country)
 		countries.append(
-			frappe.get_doc(
+			nts.get_doc(
 				doctype="Country",
 				name=name,
 				country_name=name,
@@ -62,7 +62,7 @@ def get_countries_and_currencies():
 			added_currencies.add(country.currency)
 
 			currencies.append(
-				frappe.get_doc(
+				nts.get_doc(
 					doctype="Currency",
 					name=country.currency,
 					currency_name=country.currency,

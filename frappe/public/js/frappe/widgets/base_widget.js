@@ -26,8 +26,8 @@ export default class Widget {
 		this.action_area.empty();
 
 		options.allow_sorting &&
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-drag", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("es-line-drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -44,7 +44,7 @@ export default class Widget {
 			}
 			const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
 			const title = this.hidden ? __("Show") : __("Hide");
-			frappe.utils.add_custom_button(
+			nts.utils.add_custom_button(
 				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
 				"show-or-hide-button",
@@ -57,8 +57,8 @@ export default class Widget {
 		}
 
 		options.allow_edit &&
-			frappe.utils.add_custom_button(
-				frappe.utils.icon("es-line-edit-alt", "xs"),
+			nts.utils.add_custom_button(
+				nts.utils.icon("es-line-edit-alt", "xs"),
 				() => this.edit(),
 				"edit-button",
 				__("Edit"),
@@ -96,7 +96,7 @@ export default class Widget {
 
 	set_title(max_chars) {
 		let base = this.title || this.label || this.name;
-		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
+		let title = max_chars ? nts.ellipsis(base, max_chars) : base;
 
 		this.title_field[0].innerHTML = `<span class="ellipsis" title="${__(title)}">${__(
 			title

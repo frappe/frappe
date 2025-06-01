@@ -1,19 +1,19 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 
 import json
 from datetime import date, datetime
 
-import frappe
-from frappe import _
-from frappe.contacts.doctype.contact.contact import get_default_contact
-from frappe.desk.doctype.notification_settings.notification_settings import (
+import nts
+from nts import _
+from nts.contacts.doctype.contact.contact import get_default_contact
+from nts.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 )
-from frappe.desk.reportview import get_filters_cond
-from frappe.model.document import Document
-from frappe.utils import (
+from nts.desk.reportview import get_filters_cond
+from nts.model.document import Document
+from nts.utils import (
 	add_days,
 	add_months,
 	add_years,
@@ -24,7 +24,7 @@ from frappe.utils import (
 	now_datetime,
 	nowdate,
 )
-from frappe.utils.user import get_enabled_system_users
+from nts.utils.user import get_enabled_system_users
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 communication_mapping = {
@@ -39,7 +39,7 @@ communication_mapping = {
 from typing import TYPE_CHECKING, TypeAlias
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.communication.communication import Communication
+	from nts.core.doctype.communication.communication import Communication
 
 
 class Event(Document):
@@ -49,8 +49,8 @@ class Event(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.desk.doctype.event_participants.event_participants import EventParticipants
-		from frappe.types import DF
+		from nts.desk.doctype.event_participants.event_participants import EventParticipants
+		from nts.types import DF
 
 		add_video_conferencing: DF.Check
 		all_day: DF.Check
@@ -94,10 +94,10 @@ class Event(Document):
 			self.validate_from_to_dates("starts_on", "ends_on")
 
 		if self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on):
-			frappe.throw(_("Daily Events should finish on the Same Day."))
+			nts.throw(_("Daily Events should finish on the Same Day."))
 
 		if self.sync_with_google_calendar and not self.google_calendar:
-			frappe.throw(_("Select Google Calendar to which event should be synced."))
+			nts.throw(_("Select Google Calendar to which event should be synced."))
 
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
@@ -109,20 +109,20 @@ class Event(Document):
 		self.sync_communication()
 
 	def on_trash(self):
-		communications = frappe.get_all(
+		communications = nts.get_all(
 			"Communication",
 			filters={"reference_doctype": self.doctype, "reference_name": self.name},
 			pluck="name",
 		)
 		for communication in communications:
-			frappe.delete_doc("Communication", communication, force=True)
+			nts.delete_doc("Communication", communication, force=True)
 
 	def sync_communication(self):
 		if not self.event_participants:
 			return
 
 		for participant in self.event_participants:
-			if communications := frappe.get_all(
+			if communications := nts.get_all(
 				"Communication",
 				filters=[
 					["Communication", "reference_doctype", "=", self.doctype],
@@ -134,15 +134,15 @@ class Event(Document):
 				distinct=True,
 			):
 				for comm in communications:
-					communication = frappe.get_doc("Communication", comm)
+					communication = nts.get_doc("Communication", comm)
 					self.update_communication(participant, communication)
 			else:
-				meta = frappe.get_meta(participant.reference_doctype)
+				meta = nts.get_meta(participant.reference_doctype)
 				if hasattr(meta, "allow_events_in_timeline") and meta.allow_events_in_timeline == 1:
 					self.create_communication(participant)
 
 	def create_communication(self, participant: "EventParticipants"):
-		communication = frappe.new_doc("Communication")
+		communication = nts.new_doc("Communication")
 		self.update_communication(participant, communication)
 		self.communication = communication.name
 
@@ -199,18 +199,18 @@ class Event(Document):
 				participant_contact = participant.reference_docname
 
 			participant.email = (
-				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
+				nts.get_value("Contact", participant_contact, "email_id") if participant_contact else None
 			)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
 	if isinstance(event, str):
 		event = json.loads(event)
 
-	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
+	deleted_participant = nts.get_doc(reference_doctype, reference_docname)
 
-	comms = frappe.get_list(
+	comms = nts.get_list(
 		"Communication",
 		filters=[
 			["Communication", "reference_doctype", "=", event.get("doctype")],
@@ -222,13 +222,13 @@ def delete_communication(event, reference_doctype, reference_docname):
 	)
 
 	for comm in comms:
-		frappe.delete_doc("Communication", comm)
+		nts.delete_doc("Communication", comm)
 
 
 def get_permission_query_conditions(user):
 	if not user:
-		user = frappe.session.user
-	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+		user = nts.session.user
+	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={nts.db.escape(user)})"""
 
 
 def has_permission(doc, user):
@@ -251,30 +251,30 @@ def send_event_digest():
 	for user in users:
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
-			frappe.set_user_lang(user.name, user.language)
+			nts.set_user_lang(user.name, user.language)
 
 			for e in events:
 				e.starts_on = format_datetime(e.starts_on, "hh:mm a")
 				if e.all_day:
 					e.starts_on = "All Day"
 
-			frappe.sendmail(
+			nts.sendmail(
 				recipients=user.email,
-				subject=frappe._("Upcoming Events for Today"),
+				subject=nts._("Upcoming Events for Today"),
 				template="upcoming_events",
 				args={
 					"events": events,
 				},
-				header=[frappe._("Events in Today's Calendar"), "blue"],
+				header=[nts._("Events in Today's Calendar"), "blue"],
 			)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_events(
 	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
-) -> list[frappe._dict]:
-	user = user or frappe.session.user
-	EventLikeDict: TypeAlias = Event | frappe._dict
+) -> list[nts._dict]:
+	user = user or nts.session.user
+	EventLikeDict: TypeAlias = Event | nts._dict
 	resolved_events: list[EventLikeDict] = []
 
 	if isinstance(filters, str):
@@ -286,7 +286,7 @@ def get_events(
 	if "`tabEvent Participants`" in filter_condition:
 		tables.append("`tabEvent Participants`")
 
-	event_candidates: list[EventLikeDict] = frappe.db.sql(
+	event_candidates: list[EventLikeDict] = nts.db.sql(
 		"""
 		SELECT `tabEvent`.name,
 				`tabEvent`.subject,
@@ -427,7 +427,7 @@ def get_events(
 
 
 def delete_events(ref_type, ref_name, delete_event=False):
-	participations = frappe.get_all(
+	participations = nts.get_all(
 		"Event Participants",
 		filters={"reference_doctype": ref_type, "reference_docname": ref_name, "parenttype": "Event"},
 		fields=["parent", "name"],
@@ -436,22 +436,22 @@ def delete_events(ref_type, ref_name, delete_event=False):
 	if participations:
 		for participation in participations:
 			if delete_event:
-				frappe.delete_doc("Event", participation.parent, for_reload=True)
+				nts.delete_doc("Event", participation.parent, for_reload=True)
 			else:
-				total_participants = frappe.get_all(
+				total_participants = nts.get_all(
 					"Event Participants", filters={"parenttype": "Event", "parent": participation.parent}
 				)
 
 				if len(total_participants) <= 1:
-					frappe.db.delete("Event", {"name": participation.parent})
-					frappe.db.delete("Event Participants", {"name": participation.name})
+					nts.db.delete("Event", {"name": participation.parent})
+					nts.db.delete("Event Participants", {"name": participation.name})
 
 
 # Close events if ends_on or repeat_till is less than now_datetime
 def set_status_of_events():
-	events = frappe.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
+	events = nts.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
 	for event in events:
 		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (
 			event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())
 		):
-			frappe.db.set_value("Event", event.name, "status", "Closed")
+			nts.db.set_value("Event", event.name, "status", "Closed")

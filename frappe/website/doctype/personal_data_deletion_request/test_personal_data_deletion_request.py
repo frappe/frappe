@@ -1,28 +1,28 @@
-# Copyright (c) 2019, Frappe Technologies and Contributors
+# Copyright (c) 2019, nts Technologies and Contributors
 # License: MIT. See LICENSE
 from datetime import datetime, timedelta
 
-import frappe
-from frappe.tests.utils import FrappeTestCase
-from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
+import nts
+from nts.tests.utils import ntsTestCase
+from nts.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
 	process_data_deletion_request,
 	remove_unverified_record,
 )
-from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import (
+from nts.website.doctype.personal_data_download_request.test_personal_data_download_request import (
 	create_user_if_not_exists,
 )
 
 
-class TestPersonalDataDeletionRequest(FrappeTestCase):
+class TestPersonalDataDeletionRequest(ntsTestCase):
 	def setUp(self):
 		create_user_if_not_exists(email="test_delete@example.com")
-		self.delete_request = frappe.get_doc(
+		self.delete_request = nts.get_doc(
 			{"doctype": "Personal Data Deletion Request", "email": "test_delete@example.com"}
 		)
 		self.delete_request.save(ignore_permissions=True)
 
 	def test_delete_request(self):
-		email_queue = frappe.get_all("Email Queue", fields=["*"], order_by="creation desc", limit=1)
+		email_queue = nts.get_all("Email Queue", fields=["*"], order_by="creation desc", limit=1)
 
 		self.assertEqual(self.delete_request.status, "Pending Verification")
 		self.assertTrue("Subject: Confirm Deletion of Account" in email_queue[0].message)
@@ -33,7 +33,7 @@ class TestPersonalDataDeletionRequest(FrappeTestCase):
 		self.delete_request.trigger_data_deletion()
 		self.delete_request.reload()
 
-		deleted_user = frappe.get_all(
+		deleted_user = nts.get_all(
 			"User",
 			filters={"name": self.delete_request.name},
 			fields=["first_name", "last_name", "phone", "birth_date"],
@@ -56,10 +56,10 @@ class TestPersonalDataDeletionRequest(FrappeTestCase):
 		self.delete_request.db_set("status", "Pending Verification")
 
 		remove_unverified_record()
-		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))
+		self.assertFalse(nts.db.exists("Personal Data Deletion Request", self.delete_request.name))
 
 	def test_process_auto_request(self):
-		frappe.db.set_single_value("Website Settings", "auto_account_deletion", "1")
+		nts.db.set_single_value("Website Settings", "auto_account_deletion", "1")
 		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
 			hours=-2
 		)

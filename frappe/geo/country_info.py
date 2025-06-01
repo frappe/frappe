@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -7,14 +7,14 @@ import json
 import os
 from functools import lru_cache
 
-import frappe
-from frappe.utils.deprecations import deprecated
-from frappe.utils.momentjs import get_all_timezones
+import nts
+from nts.utils.deprecations import deprecated
+from nts.utils.momentjs import get_all_timezones
 
 
 def get_country_info(country=None):
 	data = get_all()
-	data = frappe._dict(data.get(country, {}))
+	data = nts._dict(data.get(country, {}))
 	if "date_format" not in data:
 		data.date_format = "dd-mm-yyyy"
 	if "time_format" not in data:
@@ -29,7 +29,7 @@ def get_all():
 	return all_data
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def get_country_timezone_info():
 	return _get_country_timezone_info()
 
@@ -48,7 +48,7 @@ def get_translated_countries():
 	from babel.dates import Locale
 
 	translated_dict = {}
-	locale = Locale.parse(frappe.local.lang, sep="-")
+	locale = Locale.parse(nts.local.lang, sep="-")
 
 	# country names && currencies
 	for country, info in get_all().items():

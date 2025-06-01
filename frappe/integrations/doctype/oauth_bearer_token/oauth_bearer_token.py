@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 
 class OAuthBearerToken(Document):
@@ -12,7 +12,7 @@ class OAuthBearerToken(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		access_token: DF.Data | None
 		client: DF.Link | None
@@ -26,6 +26,6 @@ class OAuthBearerToken(Document):
 	# end: auto-generated types
 	def validate(self):
 		if not self.expiration_time:
-			self.expiration_time = frappe.utils.datetime.datetime.strptime(
+			self.expiration_time = nts.utils.datetime.datetime.strptime(
 				self.creation, "%Y-%m-%d %H:%M:%S.%f"
-			) + frappe.utils.datetime.timedelta(seconds=self.expires_in)
+			) + nts.utils.datetime.timedelta(seconds=self.expires_in)

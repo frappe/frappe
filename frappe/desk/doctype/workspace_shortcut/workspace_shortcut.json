@@ -59,20 +59,20 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:frappe.boot.developer_mode",
+   "depends_on": "eval:nts.boot.developer_mode",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
   },
   {
-   "depends_on": "eval:frappe.boot.developer_mode",
+   "depends_on": "eval:nts.boot.developer_mode",
    "fieldname": "restrict_to_domain",
    "fieldtype": "Link",
    "label": "Restrict to Domain",
    "options": "Domain"
   },
   {
-   "depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
+   "depends_on": "eval:doc.type == \"DocType\"  && nts.boot.developer_mode",
    "fieldname": "section_break_5",
    "fieldtype": "Section Break",
    "label": "Count Filter"

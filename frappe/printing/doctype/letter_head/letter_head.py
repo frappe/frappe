@@ -1,10 +1,10 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.utils import flt, is_image
+import nts
+from nts import _
+from nts.model.document import Document
+from nts.utils import flt, is_image
 
 
 class LetterHead(Document):
@@ -14,7 +14,7 @@ class LetterHead(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		align: DF.Literal["Left", "Right", "Center"]
 		content: DF.HTMLEditor | None
@@ -43,10 +43,10 @@ class LetterHead(Document):
 
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
-			frappe.throw(_("Letter Head cannot be both disabled and default"))
+			nts.throw(_("Letter Head cannot be both disabled and default"))
 
 		if not self.is_default and not self.disabled:
-			if not frappe.db.exists("Letter Head", dict(is_default=1)):
+			if not nts.db.exists("Letter Head", dict(is_default=1)):
 				self.is_default = 1
 
 	def set_image(self):
@@ -78,7 +78,7 @@ class LetterHead(Document):
 		self, field, width, height, dimension_prefix, align, html_field, success_msg, failure_msg
 	):
 		if not self.get(field) or not is_image(self.get(field)):
-			frappe.msgprint(failure_msg, alert=True, indicator="orange")
+			nts.msgprint(failure_msg, alert=True, indicator="orange")
 			return
 
 		self.set(width, flt(self.get(width)))
@@ -100,24 +100,24 @@ class LetterHead(Document):
 </div>""",
 		)
 
-		frappe.msgprint(success_msg, alert=True)
+		nts.msgprint(success_msg, alert=True)
 
 	def on_update(self):
 		self.set_as_default()
 
 		# clear the cache so that the new letter head is uploaded
-		frappe.clear_cache()
+		nts.clear_cache()
 
 	def set_as_default(self):
-		from frappe.utils import set_default
+		from nts.utils import set_default
 
 		if self.is_default:
-			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
+			nts.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
 
 			set_default("letter_head", self.name)
 
 			# update control panel - so it loads new letter directly
-			frappe.db.set_default("default_letter_head_content", self.content)
+			nts.db.set_default("default_letter_head_content", self.content)
 		else:
-			frappe.defaults.clear_default("letter_head", self.name)
-			frappe.defaults.clear_default("default_letter_head_content", self.content)
+			nts.defaults.clear_default("letter_head", self.name)
+			nts.defaults.clear_default("default_letter_head_content", self.content)

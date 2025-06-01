@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2021, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -7,11 +7,11 @@ import re
 
 import redis
 
-import frappe
-from frappe.model.base_document import get_controller
-from frappe.utils import cint, strip_html_tags
-from frappe.utils.data import cstr
-from frappe.utils.html_utils import unescape_html
+import nts
+from nts.model.base_document import get_controller
+from nts.utils import cint, strip_html_tags
+from nts.utils.data import cstr
+from nts.utils.html_utils import unescape_html
 
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
 
@@ -21,7 +21,7 @@ def setup_global_search_table():
 	Creates __global_search table
 	:return:
 	"""
-	frappe.db.create_global_search_table()
+	nts.db.create_global_search_table()
 
 
 def reset():
@@ -29,7 +29,7 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.delete("__global_search")
+	nts.db.delete("__global_search")
 
 
 def get_doctypes_with_global_search(with_child_tables=True):
@@ -44,23 +44,23 @@ def get_doctypes_with_global_search(with_child_tables=True):
 		filters = {}
 		if not with_child_tables:
 			filters = {"istable": ["!=", 1], "issingle": ["!=", 1]}
-		for d in frappe.get_all("DocType", fields=["name", "module"], filters=filters):
-			meta = frappe.get_meta(d.name)
+		for d in nts.get_all("DocType", fields=["name", "module"], filters=filters):
+			meta = nts.get_meta(d.name)
 			if len(meta.get_global_search_fields()) > 0:
 				global_search_doctypes.append(d)
 
-		installed_apps = frappe.get_installed_apps()
-		module_app = frappe.local.module_app
+		installed_apps = nts.get_installed_apps()
+		module_app = nts.local.module_app
 
 		doctypes = [
 			d.name
 			for d in global_search_doctypes
-			if module_app.get(frappe.scrub(d.module)) and module_app[frappe.scrub(d.module)] in installed_apps
+			if module_app.get(nts.scrub(d.module)) and module_app[nts.scrub(d.module)] in installed_apps
 		]
 
 		return doctypes
 
-	return frappe.cache.get_value("doctypes_with_global_search", _get)
+	return nts.cache.get_value("doctypes_with_global_search", _get)
 
 
 def rebuild_for_doctype(doctype):
@@ -69,11 +69,11 @@ def rebuild_for_doctype(doctype):
 	searchable fields
 	:param doctype: Doctype
 	"""
-	if frappe.local.conf.get("disable_global_search"):
+	if nts.local.conf.get("disable_global_search"):
 		return
 
 	def _get_filters():
-		filters = frappe._dict({"docstatus": ["!=", 2]})
+		filters = nts._dict({"docstatus": ["!=", 2]})
 		if meta.has_field("enabled"):
 			filters.enabled = 1
 		if meta.has_field("disabled"):
@@ -81,16 +81,16 @@ def rebuild_for_doctype(doctype):
 
 		return filters
 
-	meta = frappe.get_meta(doctype)
+	meta = nts.get_meta(doctype)
 
 	if cint(meta.issingle) == 1:
 		return
 
 	if cint(meta.istable) == 1:
-		parent_doctypes = frappe.get_all(
+		parent_doctypes = nts.get_all(
 			"DocField",
 			fields="parent",
-			filters={"fieldtype": ["in", frappe.model.table_fields], "options": doctype},
+			filters={"fieldtype": ["in", nts.model.table_fields], "options": doctype},
 		)
 		for p in parent_doctypes:
 			rebuild_for_doctype(p.parent)
@@ -104,7 +104,7 @@ def rebuild_for_doctype(doctype):
 	fieldnames = get_selected_fields(meta, parent_search_fields)
 
 	# Get all records from parent doctype table
-	all_records = frappe.get_all(doctype, fields=fieldnames, filters=_get_filters())
+	all_records = nts.get_all(doctype, fields=fieldnames, filters=_get_filters())
 
 	# Children data
 	all_children, child_search_fields = get_children_data(doctype, meta)
@@ -130,7 +130,7 @@ def rebuild_for_doctype(doctype):
 			title, route = "", ""
 			try:
 				if hasattr(get_controller(doctype), "is_website_published") and meta.allow_guest_to_view:
-					d = frappe.get_doc(doctype, doc.name)
+					d = nts.get_doc(doctype, doc.name)
 					published = 1 if d.is_website_published() else 0
 					title = d.get_title()
 					route = d.get("route")
@@ -140,12 +140,12 @@ def rebuild_for_doctype(doctype):
 
 			all_contents.append(
 				{
-					"doctype": frappe.db.escape(doctype),
-					"name": frappe.db.escape(doc.name),
-					"content": frappe.db.escape(" ||| ".join(content or "")),
+					"doctype": nts.db.escape(doctype),
+					"name": nts.db.escape(doc.name),
+					"content": nts.db.escape(" ||| ".join(content or "")),
 					"published": published,
-					"title": frappe.db.escape((title or "")[: int(frappe.db.VARCHAR_LEN)]),
-					"route": frappe.db.escape((route or "")[: int(frappe.db.VARCHAR_LEN)]),
+					"title": nts.db.escape((title or "")[: int(nts.db.VARCHAR_LEN)]),
+					"route": nts.db.escape((route or "")[: int(nts.db.VARCHAR_LEN)]),
 				}
 			)
 	if all_contents:
@@ -153,7 +153,7 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.delete("__global_search", {"doctype": doctype})
+	nts.db.delete("__global_search", {"doctype": doctype})
 
 
 def get_selected_fields(meta, global_search_fields):
@@ -185,23 +185,23 @@ def get_children_data(doctype, meta):
 	}
 
 	"""
-	all_children = frappe._dict()
-	child_search_fields = frappe._dict()
+	all_children = nts._dict()
+	child_search_fields = nts._dict()
 
 	for child in meta.get_table_fields():
-		child_meta = frappe.get_meta(child.options)
+		child_meta = nts.get_meta(child.options)
 		search_fields = child_meta.get_global_search_fields()
 		if search_fields:
 			child_search_fields.setdefault(child.options, search_fields)
 			child_fieldnames = get_selected_fields(child_meta, search_fields)
-			child_records = frappe.get_all(
+			child_records = nts.get_all(
 				child.options,
 				fields=child_fieldnames,
 				filters={"docstatus": ["!=", 2], "parenttype": doctype},
 			)
 
 			for record in child_records:
-				all_children.setdefault(record.parent, frappe._dict()).setdefault(child.options, []).append(
+				all_children.setdefault(record.parent, nts._dict()).setdefault(child.options, []).append(
 					record
 				)
 
@@ -217,7 +217,7 @@ def insert_values_for_multiple_docs(all_contents):
 	for i in range(0, len(values), batch_size):
 		batch_values = values[i : i + batch_size]
 		# ignoring duplicate keys for doctype_name
-		frappe.db.multisql(
+		nts.db.multisql(
 			{
 				"mariadb": """INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
@@ -236,7 +236,7 @@ def update_global_search(doc):
 	`global_search_queue` from given doc
 	:param doc: Document to be added to global search
 	"""
-	if frappe.local.conf.get("disable_global_search"):
+	if nts.local.conf.get("disable_global_search"):
 		return
 
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) or doc.get("disabled"):
@@ -245,7 +245,7 @@ def update_global_search(doc):
 	content = [
 		get_formatted_value(doc.get(field.fieldname), field)
 		for field in doc.meta.get_global_search_fields()
-		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields
+		if doc.get(field.fieldname) and field.fieldtype not in nts.model.table_fields
 	]
 
 	# Get children
@@ -262,7 +262,7 @@ def update_global_search(doc):
 		if hasattr(doc, "is_website_published") and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
-		title = (cstr(doc.get_title()) or "")[: int(frappe.db.VARCHAR_LEN)]
+		title = (cstr(doc.get_title()) or "")[: int(nts.db.VARCHAR_LEN)]
 		route = doc.get("route") if doc else ""
 
 		value = dict(
@@ -278,7 +278,7 @@ def update_global_search(doc):
 
 
 def update_global_search_for_all_web_pages():
-	if frappe.conf.get("disable_global_search"):
+	if nts.conf.get("disable_global_search"):
 		return
 
 	print("Update global search for all web pages...")
@@ -289,12 +289,12 @@ def update_global_search_for_all_web_pages():
 
 
 def get_routes_to_index():
-	apps = frappe.get_installed_apps()
+	apps = nts.get_installed_apps()
 
 	routes_to_index = []
 	for app in apps:
-		base = frappe.get_app_path(app, "www")
-		path_to_index = frappe.get_app_path(app, "www")
+		base = nts.get_app_path(app, "www")
+		path_to_index = nts.get_app_path(app, "www")
 
 		for dirpath, _, filenames in os.walk(path_to_index, topdown=True):
 			for f in filenames:
@@ -315,11 +315,11 @@ def get_routes_to_index():
 def add_route_to_global_search(route):
 	from bs4 import BeautifulSoup
 
-	from frappe.utils import set_request
-	from frappe.website.serve import get_response_content
+	from nts.utils import set_request
+	from nts.website.serve import get_response_content
 
-	frappe.set_user("Guest")
-	frappe.local.no_cache = True
+	nts.set_user("Guest")
+	nts.local.no_cache = True
 
 	try:
 		set_request(method="GET", path=route)
@@ -341,7 +341,7 @@ def add_route_to_global_search(route):
 	except Exception:
 		pass
 
-	frappe.set_user("Administrator")
+	nts.set_user("Administrator")
 
 
 def get_formatted_value(value, field):
@@ -353,7 +353,7 @@ def get_formatted_value(value, field):
 	"""
 
 	if getattr(field, "fieldtype", None) in ["Text", "Text Editor"]:
-		value = unescape_html(frappe.safe_decode(value))
+		value = unescape_html(nts.safe_decode(value))
 		value = HTML_TAGS_PATTERN.subn("", str(value))[0]
 		value = " ".join(value.split())
 	return field.label + " : " + strip_html_tags(str(value))
@@ -369,7 +369,7 @@ def sync_global_search():
 	from itertools import islice
 
 	def get_search_queue_item_generator():
-		while value := frappe.cache.rpop("global_search_queue"):
+		while value := nts.cache.rpop("global_search_queue"):
 			yield value
 
 	item_generator = get_search_queue_item_generator()
@@ -394,18 +394,18 @@ def _get_deduped_search_item_values(items):
 def sync_values(values: list):
 	from pypika.terms import Values
 
-	GlobalSearch = frappe.qb.Table("__global_search")
+	GlobalSearch = nts.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
 
-	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
+	query = nts.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
 
-	if frappe.db.db_type == "postgres":
+	if nts.db.db_type == "postgres":
 		query = query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
 
 	for field in conflict_fields:
-		if frappe.db.db_type == "mariadb":
+		if nts.db.db_type == "mariadb":
 			query = query.on_duplicate_key_update(GlobalSearch[field], Values(field))
-		elif frappe.db.db_type == "postgres":
+		elif nts.db.db_type == "postgres":
 			query = query.do_update(GlobalSearch[field])
 		else:
 			raise NotImplementedError
@@ -416,7 +416,7 @@ def sync_values(values: list):
 def sync_value_in_queue(value):
 	try:
 		# append to search queue if connected
-		frappe.cache.lpush("global_search_queue", json.dumps(value))
+		nts.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
 		sync_value(value)
@@ -428,7 +428,7 @@ def sync_value(value: dict):
 	:param value: dict of { doctype, name, content, published, title, route }
 	"""
 
-	frappe.db.multisql(
+	nts.db.multisql(
 		{
 			"mariadb": """INSERT INTO `__global_search`
 			(`doctype`, `name`, `content`, `published`, `title`, `route`)
@@ -459,10 +459,10 @@ def delete_for_document(doc):
 	been deleted
 	:param doc: Deleted document
 	"""
-	frappe.db.delete("__global_search", {"doctype": doc.doctype, "name": doc.name})
+	nts.db.delete("__global_search", {"doctype": doc.doctype, "name": doc.name})
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def search(text, start=0, limit=20, doctype=""):
 	"""
 	Search for given text in __global_search
@@ -471,15 +471,15 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import (
+	from nts.desk.doctype.global_search_settings.global_search_settings import (
 		get_doctypes_for_global_search,
 	)
-	from frappe.query_builder.functions import Match
+	from nts.query_builder.functions import Match
 
 	results = []
 	sorted_results = []
 
-	allowed_doctypes = set(get_doctypes_for_global_search()) & set(frappe.get_user().get_can_read())
+	allowed_doctypes = set(get_doctypes_for_global_search()) & set(nts.get_user().get_can_read())
 	if not allowed_doctypes or (doctype and doctype not in allowed_doctypes):
 		return []
 
@@ -488,13 +488,13 @@ def search(text, start=0, limit=20, doctype=""):
 		if not word:
 			continue
 
-		global_search = frappe.qb.Table("__global_search")
+		global_search = nts.qb.Table("__global_search")
 		rank = Match(global_search.content).Against(word)
 		query = (
-			frappe.qb.from_(global_search)
+			nts.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
 			.where(rank)
-			.orderby("rank", order=frappe.qb.desc)
+			.orderby("rank", order=nts.qb.desc)
 			.limit(limit)
 		)
 
@@ -515,18 +515,18 @@ def search(text, start=0, limit=20, doctype=""):
 		for r in results:
 			if r.doctype == doctype and r.rank > 0.0:
 				try:
-					meta = frappe.get_meta(r.doctype)
+					meta = nts.get_meta(r.doctype)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = nts.db.get_value(r.doctype, r.name, meta.image_field)
 				except Exception:
-					frappe.clear_messages()
+					nts.clear_messages()
 
 				sorted_results.extend([r])
 
 	return sorted_results
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
@@ -551,13 +551,13 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
-			frappe.db.escape("+" + text + "*")
+			nts.db.escape("+" + text + "*")
 		)
-		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(text)})'
+		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({nts.db.escape(text)})'
 
 		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
 
-		result = frappe.db.multisql(
+		result = nts.db.multisql(
 			{
 				"mariadb": common_query.format(conditions=mariadb_conditions),
 				"postgres": common_query.format(conditions=postgres_conditions),

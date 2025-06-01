@@ -1,4 +1,4 @@
-frappe.ui.OnboardingTour = class OnboardingTour {
+nts.ui.OnboardingTour = class OnboardingTour {
 	constructor() {
 		this.driver_steps = [];
 		this.last_step_saved = null;
@@ -6,8 +6,8 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 	}
 
 	init_driver() {
-		this.driver = new frappe.Driver({
-			className: "frappe-driver",
+		this.driver = new nts.Driver({
+			className: "nts-driver",
 			allowClose: false,
 			padding: 10,
 			overlayClickNext: false,
@@ -18,7 +18,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			closeBtnText: __("Skip"),
 			opacity: 0.5,
 			onHighlighted: (step) => {
-				frappe.ui.next_form_tour = step.options.step_info?.next_form_tour;
+				nts.ui.next_form_tour = step.options.step_info?.next_form_tour;
 				const wait_for_node = setInterval(() => {
 					if (!step.popover.node) return;
 					if (step.options.step_info?.offset_x) {
@@ -41,19 +41,19 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 					if (step.popover.closeBtnNode) {
 						step.popover.closeBtnNode.onclick = () => {
 							this.on_finish && this.on_finish();
-							!frappe.boot.user.onboarding_status[this.tour.name] &&
-								(frappe.boot.user.onboarding_status[this.tour.name] = {});
-							frappe.boot.user.onboarding_status[this.tour.name].is_complete = true;
+							!nts.boot.user.onboarding_status[this.tour.name] &&
+								(nts.boot.user.onboarding_status[this.tour.name] = {});
+							nts.boot.user.onboarding_status[this.tour.name].is_complete = true;
 							if (!this.driver.hasNextStep()) {
-								frappe.boot.user.onboarding_status[
+								nts.boot.user.onboarding_status[
 									this.tour.name
 								].all_steps_completed = true;
 							}
 
-							frappe.call({
-								method: "frappe.desk.doctype.form_tour.form_tour.update_user_status",
+							nts.call({
+								method: "nts.desk.doctype.form_tour.form_tour.update_user_status",
 								args: {
-									value: JSON.stringify(frappe.boot.user.onboarding_status),
+									value: JSON.stringify(nts.boot.user.onboarding_status),
 									step: JSON.stringify(step.options.step_info),
 								},
 							});
@@ -65,13 +65,13 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				// focus on first input.
 				// TODO : later add option to select which input to focus as well.
 				const $input = $(step.node).find("input").get(0);
-				if ($input) frappe.utils.sleep(200).then(() => $input.focus());
+				if ($input) nts.utils.sleep(200).then(() => $input.focus());
 			},
 		});
 	}
 
 	async init({ tour_name, start_step }) {
-		this.tour = await frappe.db.get_doc("Form Tour", tour_name);
+		this.tour = await nts.db.get_doc("Form Tour", tour_name);
 		this.init_driver();
 		this.build_steps();
 		this.update_driver_steps();
@@ -87,18 +87,18 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			const on_next = async (el) => {
 				const step_index = this.driver.steps.indexOf(el);
 				if (step_index == -1 || this.last_step_saved?.name == step.name) return;
-				frappe.boot.user.onboarding_status[this.tour.name] = {
+				nts.boot.user.onboarding_status[this.tour.name] = {
 					steps_complete: step_index,
 				};
 				if (!this.driver.hasNextStep()) {
 					this.on_finish && this.on_finish();
-					frappe.boot.user.onboarding_status[this.tour.name].is_complete = true;
+					nts.boot.user.onboarding_status[this.tour.name].is_complete = true;
 				}
 				this.last_step_saved = step;
-				frappe.call({
-					method: "frappe.desk.doctype.form_tour.form_tour.update_user_status",
+				nts.call({
+					method: "nts.desk.doctype.form_tour.form_tour.update_user_status",
 					args: {
-						value: JSON.stringify(frappe.boot.user.onboarding_status),
+						value: JSON.stringify(nts.boot.user.onboarding_status),
 						step: JSON.stringify(step),
 					},
 				});
@@ -204,7 +204,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			popover: {
 				title,
 				description,
-				position: frappe.router.slug(position || "Bottom"),
+				position: nts.router.slug(position || "Bottom"),
 			},
 			onNext: on_next,
 			step_info: step_info,
@@ -256,15 +256,15 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 	}
 };
 
-frappe.ui.init_onboarding_tour = () => {
+nts.ui.init_onboarding_tour = () => {
 	// As of now Tours are only for desktop as it is annoying on mobile.
 	// Also lot of elements are hidden on mobile so until we find a better way to do it.
 	if (!window.matchMedia("(min-device-width: 992px)").matches) return;
 
-	typeof frappe.boot.onboarding_tours == "undefined" && frappe.boot.onboarding_tours == [];
-	typeof frappe.boot.user.onboarding_status == "undefined" &&
-		frappe.boot.user.onboarding_status == {};
-	let route = frappe.router.current_route;
+	typeof nts.boot.onboarding_tours == "undefined" && nts.boot.onboarding_tours == [];
+	typeof nts.boot.user.onboarding_status == "undefined" &&
+		nts.boot.user.onboarding_status == {};
+	let route = nts.router.current_route;
 	if (route?.[0] === "") return;
 
 	let tour_name;
@@ -274,8 +274,8 @@ frappe.ui.init_onboarding_tour = () => {
 		route = ["List", route[1], "Report"];
 	}
 	if (route[0] != "dashboard-view") {
-		frappe.boot.onboarding_tours &&
-			frappe.boot.onboarding_tours.forEach((tour) => {
+		nts.boot.onboarding_tours &&
+			nts.boot.onboarding_tours.forEach((tour) => {
 				let tour_route = tour[1];
 				let length = Math.min(route.length, tour_route.length);
 				if (length >= 1 && route[0] != tour_route[0]) return;
@@ -290,20 +290,20 @@ frappe.ui.init_onboarding_tour = () => {
 			});
 	}
 	matching_tours = matching_tours.filter((tour) => {
-		if (frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true) return false;
+		if (nts.boot.user.onboarding_status[tour[0]]?.is_complete == true) return false;
 		return true;
 	});
 	matching_tours = matching_tours.map((tour) => {
-		if (frappe.boot.user.onboarding_status[tour[0]]?.steps_complete != undefined) {
-			tour.push(frappe.boot.user.onboarding_status[tour[0]].steps_complete);
+		if (nts.boot.user.onboarding_status[tour[0]]?.steps_complete != undefined) {
+			tour.push(nts.boot.user.onboarding_status[tour[0]].steps_complete);
 		}
 		return tour;
 	});
 	if (matching_tours.length == 0) return;
 	let current_tour = matching_tours.find(
-		(tour) => tour[0] == frappe.ui.currentTourInstance?.tour?.name
+		(tour) => tour[0] == nts.ui.currentTourInstance?.tour?.name
 	);
-	let next_tour = matching_tours.find((tour) => tour[0] == frappe.ui.next_form_tour);
+	let next_tour = matching_tours.find((tour) => tour[0] == nts.ui.next_form_tour);
 	if (current_tour) {
 		tour_name = current_tour[0];
 		start_step = current_tour.at(-1);
@@ -318,7 +318,7 @@ frappe.ui.init_onboarding_tour = () => {
 		} else {
 			start_step += 1;
 		}
-		frappe.ui.next_form_tour = undefined;
+		nts.ui.next_form_tour = undefined;
 	} else {
 		tour_name = matching_tours[0][0];
 		start_step = matching_tours[0].at(-1);
@@ -329,18 +329,18 @@ frappe.ui.init_onboarding_tour = () => {
 		}
 	}
 	if (!tour_name) return;
-	if (frappe.ui.currentTourInstance?.driver) {
-		frappe.ui.currentTourInstance.driver_steps = [];
-		frappe.ui.currentTourInstance.driver.reset(true);
-		frappe.ui.currentTourInstance.update_driver_steps();
+	if (nts.ui.currentTourInstance?.driver) {
+		nts.ui.currentTourInstance.driver_steps = [];
+		nts.ui.currentTourInstance.driver.reset(true);
+		nts.ui.currentTourInstance.update_driver_steps();
 	}
-	const tour = (frappe.ui.currentTourInstance = new frappe.ui.OnboardingTour());
+	const tour = (nts.ui.currentTourInstance = new nts.ui.OnboardingTour());
 	// wait for workspace and/or data to load.
 	const wait_for_data = setInterval(() => {
 		if (cur_page?.page.querySelector(".workspace-sidebar-skeleton")) return;
 		if (cur_page?.page.querySelector(".workspace-skeleton")) return;
 		if (document.body.getAttribute("data-ajax-state") === "complete") {
-			frappe.utils.sleep(500).then(() => {
+			nts.utils.sleep(500).then(() => {
 				tour.init({
 					tour_name,
 					start_step,
@@ -351,6 +351,6 @@ frappe.ui.init_onboarding_tour = () => {
 	}, 100);
 };
 
-frappe.router.on("change", () => {
-	frappe.ui.init_onboarding_tour();
+nts.router.on("change", () => {
+	nts.ui.init_onboarding_tour();
 });

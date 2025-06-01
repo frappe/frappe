@@ -7,13 +7,13 @@ import re
 from collections import Counter
 from contextlib import suppress
 
-import frappe
+import nts
 
 EXCLUDE_EXCEPTIONS = (
-	frappe.AuthenticationError,
-	frappe.CSRFTokenError,  # CSRF covers OAuth too
-	frappe.SecurityException,
-	frappe.InReadOnlyMode,
+	nts.AuthenticationError,
+	nts.CSRFTokenError,  # CSRF covers OAuth too
+	nts.SecurityException,
+	nts.InReadOnlyMode,
 )
 
 LDAP_BASE_EXCEPTION = "LDAPException"
@@ -35,8 +35,8 @@ def _is_ldap_exception(e):
 
 def log_error(title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False):
 	"""Log error to Error Log"""
-	from frappe.monitor import get_trace_id
-	from frappe.utils.sentry import capture_exception
+	from nts.monitor import get_trace_id
+	from nts.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -51,14 +51,14 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 			traceback = message
 
 	title = title or "Error"
-	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
+	traceback = nts.as_unicode(traceback or nts.get_traceback(with_context=True))
 
-	if not frappe.db:
+	if not nts.db:
 		print(f"Failed to log error in db: {title}")
 		return
 
 	trace_id = get_trace_id()
-	error_log = frappe.get_doc(
+	error_log = nts.get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
@@ -70,7 +70,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	# Capture exception data if telemetry is enabled
 	capture_exception(message=f"{title}\n{traceback}")
 
-	if frappe.flags.read_only or defer_insert:
+	if nts.flags.read_only or defer_insert:
 		error_log.deferred_insert()
 	else:
 		return error_log.insert(ignore_permissions=True)
@@ -80,7 +80,7 @@ def log_error_snapshot(exception: Exception):
 	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
 		return
 
-	logger = frappe.logger(with_more_info=True)
+	logger = nts.logger(with_more_info=True)
 
 	try:
 		log_error(title=str(exception), defer_insert=True)
@@ -126,7 +126,7 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 			raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
 
 			if (not response) and raise_error:
-				frappe.throw(error_message, error_type or Exception)
+				nts.throw(error_message, error_type or Exception)
 			return response
 
 		return wrapper_raise_error_on_no_output
@@ -140,14 +140,14 @@ def guess_exception_source(exception: str) -> str | None:
 	E.g.
 
 	- For unhandled exception last python file from apps folder is responsible.
-	- For frappe.throws the exception source is possibly present after skipping frappe.throw frames
+	- For nts.throws the exception source is possibly present after skipping nts.throw frames
 	- For server script the file name contains SERVER_SCRIPT_FILE_PREFIX
 
 	"""
-	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+	from nts.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
 
 	with suppress(Exception):
-		installed_apps = frappe.get_installed_apps()
+		installed_apps = nts.get_installed_apps()
 		app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
 		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
@@ -161,5 +161,5 @@ def guess_exception_source(exception: str) -> str | None:
 				app_name = matches.group("app_name")
 				apps[app_name] += app_priority.get(app_name, 0)
 
-		if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
+		if (probably_source := apps.most_common(1)) and probably_source[0][0] != "nts":
 			return f"{probably_source[0][0]} (app)"

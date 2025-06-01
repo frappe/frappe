@@ -13,7 +13,7 @@ let link_control = computed(() => {
 	if (!link.value) return;
 	link.value.innerHTML = "";
 
-	return frappe.ui.form.make_control({
+	return nts.ui.form.make_control({
 		parent: link.value,
 		df: {
 			...props.df,
@@ -70,7 +70,7 @@ watch(
 <template>
 	<div
 		v-if="slots.label"
-		class="control frappe-control"
+		class="control nts-control"
 		:data-fieldtype="df.fieldtype"
 		:class="{ editable: slots.label }"
 	>

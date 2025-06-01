@@ -1,14 +1,14 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
 import json
 import os
 
-import frappe
-from frappe.model.base_document import get_controller
-from frappe.modules import get_module_path, scrub_dt_dn
-from frappe.query_builder import DocType
-from frappe.utils import get_datetime, now
+import nts
+from nts.model.base_document import get_controller
+from nts.modules import get_module_path, scrub_dt_dn
+from nts.query_builder import DocType
+from nts.utils import get_datetime, now
 
 
 def calculate_hash(path: str) -> str:
@@ -122,7 +122,7 @@ def import_file_by_path(
 
 		for doc in docs:
 			# modified timestamp in db, none if doctype's first import
-			db_modified_timestamp = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
+			db_modified_timestamp = nts.db.get_value(doc["doctype"], doc["name"], "modified")
 			is_db_timestamp_latest = db_modified_timestamp and (
 				get_datetime(doc.get("modified")) <= get_datetime(db_modified_timestamp)
 			)
@@ -131,7 +131,7 @@ def import_file_by_path(
 				stored_hash = None
 				if doc["doctype"] == "DocType":
 					try:
-						stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
+						stored_hash = nts.db.get_value(doc["doctype"], doc["name"], "migration_hash")
 					except Exception:
 						pass
 
@@ -154,7 +154,7 @@ def import_file_by_path(
 
 			if doc["doctype"] == "DocType":
 				doctype_table = DocType("DocType")
-				frappe.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(
+				nts.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(
 					doctype_table.name == doc["name"]
 				).run()
 
@@ -190,13 +190,13 @@ def update_modified(original_modified, doc):
 	if doc["doctype"] == doc["name"] and doc["name"] != "DocType":
 		singles_table = DocType("Singles")
 
-		frappe.qb.update(singles_table).set(singles_table.value, original_modified).where(
+		nts.qb.update(singles_table).set(singles_table.value, original_modified).where(
 			singles_table["field"] == "modified",  # singles_table.field is a method of pypika Selectable
 		).where(singles_table.doctype == doc["name"]).run()
 	else:
 		doctype_table = DocType(doc["doctype"])
 
-		frappe.qb.update(doctype_table).set(doctype_table.modified, original_modified).where(
+		nts.qb.update(doctype_table).set(doctype_table.modified, original_modified).where(
 			doctype_table.name == doc["name"]
 		).run()
 
@@ -209,14 +209,14 @@ def import_doc(
 	reset_permissions=False,
 	path=None,
 ):
-	frappe.flags.in_import = True
+	nts.flags.in_import = True
 	docdict["__islocal"] = 1
 
 	controller = get_controller(docdict["doctype"])
 	if controller and hasattr(controller, "prepare_for_import") and callable(controller.prepare_for_import):
 		controller.prepare_for_import(docdict)
 
-	doc = frappe.get_doc(docdict)
+	doc = nts.get_doc(docdict)
 
 	reset_tree_properties(doc)
 	load_code_properties(doc, path)
@@ -227,7 +227,7 @@ def import_doc(
 	if pre_process:
 		pre_process(doc)
 
-	if frappe.db.exists(doc.doctype, doc.name):
+	if nts.db.exists(doc.doctype, doc.name):
 		delete_old_doc(doc, reset_permissions)
 
 	doc.flags.ignore_links = True
@@ -238,7 +238,7 @@ def import_doc(
 
 	doc.insert()
 
-	frappe.flags.in_import = False
+	nts.flags.in_import = False
 
 	return doc
 
@@ -257,7 +257,7 @@ def load_code_properties(doc, path):
 
 def delete_old_doc(doc, reset_permissions):
 	ignore = []
-	old_doc = frappe.get_doc(doc.doctype, doc.name)
+	old_doc = nts.get_doc(doc.doctype, doc.name)
 
 	if doc.doctype in ignore_values:
 		# update ignore values
@@ -271,7 +271,7 @@ def delete_old_doc(doc, reset_permissions):
 			ignore.append(df.options)
 
 	# delete old
-	frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
+	nts.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
 
 	doc.flags.ignore_children_type = ignore
 

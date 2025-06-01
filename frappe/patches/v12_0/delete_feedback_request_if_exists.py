@@ -1,5 +1,5 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.db.delete("DocType", {"name": "Feedback Request"})
+	nts.db.delete("DocType", {"name": "Feedback Request"})

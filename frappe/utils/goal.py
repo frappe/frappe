@@ -1,14 +1,14 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 from contextlib import suppress
 
-import frappe
-from frappe import _
-from frappe.query_builder.functions import DateFormat, Function
-from frappe.query_builder.utils import DocType
-from frappe.utils.data import add_to_date, cstr, flt, now_datetime
-from frappe.utils.formatters import format_value
+import nts
+from nts import _
+from nts.query_builder.functions import DateFormat, Function
+from nts.query_builder.utils import DocType
+from nts.utils.data import add_to_date, cstr, flt, now_datetime
+from nts.utils.formatters import format_value
 
 
 def get_monthly_results(
@@ -21,10 +21,10 @@ def get_monthly_results(
 	"""Get monthly aggregation values for given field of doctype"""
 
 	Table = DocType(goal_doctype)
-	date_format = "%m-%Y" if frappe.db.db_type != "postgres" else "MM-YYYY"
+	date_format = "%m-%Y" if nts.db.db_type != "postgres" else "MM-YYYY"
 
 	return dict(
-		frappe.qb.get_query(
+		nts.qb.get_query(
 			table=goal_doctype,
 			fields=[
 				DateFormat(Table[date_col], date_format).as_("month_year"),
@@ -38,7 +38,7 @@ def get_monthly_results(
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_monthly_goal_graph_data(
 	title: str,
 	doctype: str,
@@ -70,7 +70,7 @@ def get_monthly_goal_graph_data(
 
 	:return: dict of graph data
 	"""
-	doc = frappe.get_doc(doctype, docname)
+	doc = nts.get_doc(doctype, docname)
 	doc.check_permission()
 
 	meta = doc.meta
@@ -85,12 +85,12 @@ def get_monthly_goal_graph_data(
 	month_to_value_dict = None
 	if history and "{" in cstr(history):
 		with suppress(ValueError):
-			month_to_value_dict = frappe.parse_json(history)
+			month_to_value_dict = nts.parse_json(history)
 
 	if month_to_value_dict is None:  # nosemgrep
 		doc_filter = {}
 		with suppress(ValueError):
-			doc_filter = frappe.parse_json(filters or "{}")
+			doc_filter = nts.parse_json(filters or "{}")
 		if doctype != goal_doctype:
 			doc_filter[goal_doctype_link] = docname
 

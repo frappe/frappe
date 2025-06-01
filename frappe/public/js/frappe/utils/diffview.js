@@ -1,6 +1,6 @@
-frappe.provide("frappe.ui");
+nts.provide("nts.ui");
 
-frappe.ui.DiffView = class DiffView {
+nts.ui.DiffView = class DiffView {
 	constructor(doctype, fieldname, docname) {
 		this.dialog = null;
 		this.handler = null;
@@ -15,7 +15,7 @@ frappe.ui.DiffView = class DiffView {
 
 	make_dialog() {
 		const get_query = () => ({
-			query: "frappe.utils.diff.version_query",
+			query: "nts.utils.diff.version_query",
 			filters: {
 				docname: this.docname,
 				ref_doctype: this.doctype,
@@ -24,7 +24,7 @@ frappe.ui.DiffView = class DiffView {
 			},
 		});
 		const onchange = () => this.compute_diff();
-		return new frappe.ui.Dialog({
+		return new nts.ui.Dialog({
 			title: __("Compare Versions"),
 			fields: [
 				{
@@ -69,8 +69,8 @@ frappe.ui.DiffView = class DiffView {
 		const fieldname = this.fieldname;
 
 		if (from_version && to_version) {
-			frappe
-				.xcall("frappe.utils.diff.get_version_diff", {
+			nts
+				.xcall("nts.utils.diff.get_version_diff", {
 					from_version,
 					to_version,
 					fieldname,

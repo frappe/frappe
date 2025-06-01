@@ -1,8 +1,8 @@
-from frappe.model.base_document import BaseDocument
-from frappe.tests.utils import FrappeTestCase
+from nts.model.base_document import BaseDocument
+from nts.tests.utils import ntsTestCase
 
 
-class TestBaseDocument(FrappeTestCase):
+class TestBaseDocument(ntsTestCase):
 	def test_docstatus(self):
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())

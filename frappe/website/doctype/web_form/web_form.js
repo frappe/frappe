@@ -1,6 +1,6 @@
-frappe.ui.form.on("Web Form", {
+nts.ui.form.on("Web Form", {
 	setup: function () {
-		frappe.meta.docfield_map["Web Form Field"].fieldtype.formatter = (value) => {
+		nts.meta.docfield_map["Web Form Field"].fieldtype.formatter = (value) => {
 			const prefix = {
 				"Page Break": "--red-600",
 				"Section Break": "--blue-600",
@@ -12,14 +12,14 @@ frappe.ui.form.on("Web Form", {
 			return value;
 		};
 
-		frappe.meta.docfield_map["Web Form Field"].fieldname.formatter = (value) => {
+		nts.meta.docfield_map["Web Form Field"].fieldname.formatter = (value) => {
 			if (!value) return;
-			return frappe.unscrub(value);
+			return nts.unscrub(value);
 		};
 
-		frappe.meta.docfield_map["Web Form List Column"].fieldname.formatter = (value) => {
+		nts.meta.docfield_map["Web Form List Column"].fieldname.formatter = (value) => {
 			if (!value) return;
-			return frappe.unscrub(value);
+			return nts.unscrub(value);
 		};
 	},
 
@@ -29,14 +29,14 @@ frappe.ui.form.on("Web Form", {
 			.add_user_action(__("Copy Embed Code"))
 			.attr("href", "#")
 			.on("click", () => {
-				const url = frappe.urllib.get_full_url(frm.doc.route);
+				const url = nts.urllib.get_full_url(frm.doc.route);
 				const code = `<iframe src="${url}" style="border: none; width: 100%; height: inherit;"></iframe>`;
-				frappe.utils.copy_to_clipboard(code, __("Embed code copied"));
+				nts.utils.copy_to_clipboard(code, __("Embed code copied"));
 			});
 
-		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
+		if (frm.doc.is_standard && !nts.boot.developer_mode) {
 			frm.disable_form();
-			frappe.show_alert(
+			nts.show_alert(
 				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
 			);
 		}
@@ -70,7 +70,7 @@ frappe.ui.form.on("Web Form", {
 
 		if (!frm.doc.web_form_fields) {
 			frm.scroll_to_field("web_form_fields");
-			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+			nts.throw(__("Atleast one field is required in Web Form Fields Table"));
 		}
 
 		let page_break_count = frm.doc.web_form_fields.filter(
@@ -78,7 +78,7 @@ frappe.ui.form.on("Web Form", {
 		).length;
 
 		if (page_break_count >= 10) {
-			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+			nts.throw(__("There can be only 9 Page Break fields in a Web Form"));
 		}
 	},
 
@@ -91,7 +91,7 @@ frappe.ui.form.on("Web Form", {
 
 	add_get_fields_button(frm) {
 		frm.add_custom_button(__("Get Fields"), () => {
-			let webform_fieldtypes = frappe.meta
+			let webform_fieldtypes = nts.meta
 				.get_field("Web Form Field", "fieldtype")
 				.options.split("\n");
 
@@ -265,7 +265,7 @@ frappe.ui.form.on("Web Form", {
 		}
 
 		table.on("click", () => {
-			let dialog = new frappe.ui.Dialog({
+			let dialog = new nts.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields,
 				primary_action: function () {
@@ -280,7 +280,7 @@ frappe.ui.form.on("Web Form", {
 				primary_action_label: "Set",
 			});
 
-			frm.filter_group = new frappe.ui.FilterGroup({
+			frm.filter_group = new nts.ui.FilterGroup({
 				parent: dialog.get_field("filter_area").$wrapper,
 				doctype: frm.doc.doc_type,
 				on_change: () => {},
@@ -294,10 +294,10 @@ frappe.ui.form.on("Web Form", {
 	},
 });
 
-frappe.ui.form.on("Web Form List Column", {
+nts.ui.form.on("Web Form List Column", {
 	fieldname: function (frm, doctype, name) {
-		let doc = frappe.get_doc(doctype, name);
-		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
+		let doc = nts.get_doc(doctype, name);
+		let df = nts.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;
 		doc.fieldtype = df.fieldtype;
 		doc.label = df.label;
@@ -305,16 +305,16 @@ frappe.ui.form.on("Web Form List Column", {
 	},
 });
 
-frappe.ui.form.on("Web Form Field", {
+nts.ui.form.on("Web Form Field", {
 	fieldtype: function (frm, doctype, name) {
-		let doc = frappe.get_doc(doctype, name);
+		let doc = nts.get_doc(doctype, name);
 
 		if (doc.fieldtype == "Page Break") {
 			let page_break_count = frm.doc.web_form_fields.filter(
 				(f) => f.fieldtype == "Page Break"
 			).length;
 			page_break_count >= 10 &&
-				frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+				nts.throw(__("There can be only 9 Page Break fields in a Web Form"));
 		}
 
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
@@ -325,8 +325,8 @@ frappe.ui.form.on("Web Form Field", {
 		}
 	},
 	fieldname: function (frm, doctype, name) {
-		let doc = frappe.get_doc(doctype, name);
-		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
+		let doc = nts.get_doc(doctype, name);
+		let df = nts.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;
 
 		doc.label = df.label;
@@ -344,13 +344,13 @@ frappe.ui.form.on("Web Form Field", {
 });
 
 function get_fields_for_doctype(doctype) {
-	return new Promise((resolve) => frappe.model.with_doctype(doctype, resolve)).then(() => {
-		return frappe.meta.get_docfields(doctype).filter((df) => {
+	return new Promise((resolve) => nts.model.with_doctype(doctype, resolve)).then(() => {
+		return nts.meta.get_docfields(doctype).filter((df) => {
 			return (
-				(frappe.model.is_value_type(df.fieldtype) &&
+				(nts.model.is_value_type(df.fieldtype) &&
 					!["lft", "rgt"].includes(df.fieldname)) ||
 				["Table", "Table Multiselect"].includes(df.fieldtype) ||
-				frappe.model.layout_fields.includes(df.fieldtype)
+				nts.model.layout_fields.includes(df.fieldtype)
 			);
 		});
 	});

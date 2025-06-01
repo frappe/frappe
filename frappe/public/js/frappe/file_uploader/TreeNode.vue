@@ -18,11 +18,11 @@
 				:disabled="node.fetching"
 				target="_blank"
 				class="file-doc-link ml-2"
-				v-html="frappe.utils.icon('external-link', 'sm')"
+				v-html="nts.utils.icon('external-link', 'sm')"
 				@click.stop
 			/>
 		</span>
-		<div v-if="node.file_url && frappe.utils.is_image_file(node.file_url)">
+		<div v-if="node.file_url && nts.utils.is_image_file(node.file_url)">
 			<div v-show="isOpen" class="popover" ref="popover" role="tooltip">
 				<img :src="node.file_url" />
 			</div>
@@ -66,10 +66,10 @@ let emit = defineEmits(["node-click", "load-more"]);
 
 let icon = computed(() => {
 	let icons = {
-		open: frappe.utils.icon("folder-open", "md"),
-		closed: frappe.utils.icon("folder-normal", "md"),
-		leaf: frappe.utils.icon("primitive-dot", "xs"),
-		search: frappe.utils.icon("search"),
+		open: nts.utils.icon("folder-open", "md"),
+		closed: nts.utils.icon("folder-normal", "md"),
+		leaf: nts.utils.icon("primitive-dot", "xs"),
+		search: nts.utils.icon("search"),
 	};
 
 	if (props.node.by_search) return icons.search;
@@ -79,7 +79,7 @@ let icon = computed(() => {
 });
 
 let open_file = (filename) => {
-	return frappe.utils.get_form_link("File", filename);
+	return nts.utils.get_form_link("File", filename);
 };
 
 const reference = ref(null);

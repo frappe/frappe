@@ -1,4 +1,4 @@
-frappe.listview_settings["ToDo"] = {
+nts.listview_settings["ToDo"] = {
 	hide_name_column: true,
 	add_fields: ["reference_type", "reference_name"],
 
@@ -17,7 +17,7 @@ frappe.listview_settings["ToDo"] = {
 			return __("Open {0}", [`${__(doc.reference_type)}: ${doc.reference_name}`]);
 		},
 		action: function (doc) {
-			frappe.set_route("Form", doc.reference_type, doc.reference_name);
+			nts.set_route("Form", doc.reference_type, doc.reference_name);
 		},
 	},
 };

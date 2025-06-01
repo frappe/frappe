@@ -1,7 +1,7 @@
 function setup_list_filters() {
 	const { web_form_doctype, web_form_name } = web_form_settings;
 
-	frappe.call('frappe.website.doctype.web_form.web_form.get_form_data', {
+	nts.call('nts.website.doctype.web_form.web_form.get_form_data', {
 		doctype: web_form_doctype, web_form_name
 	})
 	.then((r) => {
@@ -13,8 +13,8 @@ function setup_list_filters() {
 				&& !['Text', 'Text Editor', 'Attach', 'Attach Image', 'Read Only'].includes(df.fieldtype)
 				&& !df.readonly
 		}).map(df => {
-			const value = frappe.utils.get_query_params()[df.fieldname];
-			const f = frappe.ui.form.make_control({
+			const value = nts.utils.get_query_params()[df.fieldname];
+			const f = nts.ui.form.make_control({
 				df: {
 					fieldname: df.fieldname,
 					fieldtype: df.fieldtype,
@@ -22,10 +22,10 @@ function setup_list_filters() {
 					options: df.options,
 					is_filter: true,
 					change: (e) => {
-						const query_params = Object.assign(frappe.utils.get_query_params(), {
+						const query_params = Object.assign(nts.utils.get_query_params(), {
 							[df.fieldname]: f.get_value()
 						})
-						const query_string = frappe.utils.make_query_string(query_params);
+						const query_string = nts.utils.make_query_string(query_params);
 						window.location.replace(query_string)
 					}
 				},
@@ -44,4 +44,4 @@ function setup_list_filters() {
 	});
 }
 
-frappe.ready(setup_list_filters);
+nts.ready(setup_list_filters);

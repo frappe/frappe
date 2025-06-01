@@ -1,19 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies and Contributors
+# Copyright (c) 2015, nts Technologies and Contributors
 # License: MIT. See LICENSE
 import time
 
-import frappe
-from frappe.auth import CookieManager, LoginManager
-from frappe.tests.utils import FrappeTestCase
+import nts
+from nts.auth import CookieManager, LoginManager
+from nts.tests.utils import ntsTestCase
 
 
-class TestActivityLog(FrappeTestCase):
+class TestActivityLog(ntsTestCase):
 	def setUp(self) -> None:
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 
 	def test_activity_log(self):
 		# test user login log
-		frappe.local.form_dict = frappe._dict(
+		nts.local.form_dict = nts._dict(
 			{
 				"cmd": "login",
 				"sid": "Guest",
@@ -22,29 +22,29 @@ class TestActivityLog(FrappeTestCase):
 			}
 		)
 
-		frappe.local.request_ip = "127.0.0.1"
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
+		nts.local.request_ip = "127.0.0.1"
+		nts.local.cookie_manager = CookieManager()
+		nts.local.login_manager = LoginManager()
 
 		auth_log = self.get_auth_log()
-		self.assertFalse(frappe.form_dict.pwd)
+		self.assertFalse(nts.form_dict.pwd)
 		self.assertEqual(auth_log.status, "Success")
 
 		# test user logout log
-		frappe.local.login_manager.logout()
+		nts.local.login_manager.logout()
 		auth_log = self.get_auth_log(operation="Logout")
 		self.assertEqual(auth_log.status, "Success")
 
 		# test invalid login
-		frappe.form_dict.update({"pwd": "password"})
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
+		nts.form_dict.update({"pwd": "password"})
+		self.assertRaises(nts.AuthenticationError, LoginManager)
 		auth_log = self.get_auth_log()
 		self.assertEqual(auth_log.status, "Failed")
 
-		frappe.local.form_dict = frappe._dict()
+		nts.local.form_dict = nts._dict()
 
 	def get_auth_log(self, operation="Login"):
-		names = frappe.get_all(
+		names = nts.get_all(
 			"Activity Log",
 			filters={
 				"user": "Administrator",
@@ -54,45 +54,45 @@ class TestActivityLog(FrappeTestCase):
 		)
 
 		name = names[0]
-		return frappe.get_doc("Activity Log", name)
+		return nts.get_doc("Activity Log", name)
 
 	def test_brute_security(self):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
 
-		frappe.local.form_dict = frappe._dict(
+		nts.local.form_dict = nts._dict(
 			{"cmd": "login", "sid": "Guest", "pwd": self.ADMIN_PASSWORD, "usr": "Administrator"}
 		)
 
-		frappe.local.request_ip = "127.0.0.1"
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
+		nts.local.request_ip = "127.0.0.1"
+		nts.local.cookie_manager = CookieManager()
+		nts.local.login_manager = LoginManager()
 
 		auth_log = self.get_auth_log()
 		self.assertEqual(auth_log.status, "Success")
 
 		# test user logout log
-		frappe.local.login_manager.logout()
+		nts.local.login_manager.logout()
 		auth_log = self.get_auth_log(operation="Logout")
 		self.assertEqual(auth_log.status, "Success")
 
 		# test invalid login
-		frappe.form_dict.update({"pwd": "password"})
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
+		nts.form_dict.update({"pwd": "password"})
+		self.assertRaises(nts.AuthenticationError, LoginManager)
+		self.assertRaises(nts.AuthenticationError, LoginManager)
+		self.assertRaises(nts.AuthenticationError, LoginManager)
 
 		# REMOVE ME: current logic allows allow_consecutive_login_attempts+1 attempts
 		# before raising security exception, remove below line when that is fixed.
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
-		self.assertRaises(frappe.SecurityException, LoginManager)
+		self.assertRaises(nts.AuthenticationError, LoginManager)
+		self.assertRaises(nts.SecurityException, LoginManager)
 		time.sleep(5)
-		self.assertRaises(frappe.AuthenticationError, LoginManager)
+		self.assertRaises(nts.AuthenticationError, LoginManager)
 
-		frappe.local.form_dict = frappe._dict()
+		nts.local.form_dict = nts._dict()
 
 
 def update_system_settings(args):
-	doc = frappe.get_doc("System Settings")
+	doc = nts.get_doc("System Settings")
 	doc.update(args)
 	doc.flags.ignore_mandatory = 1
 	doc.save()

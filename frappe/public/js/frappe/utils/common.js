@@ -1,7 +1,7 @@
 // common file between desk and website
 import md5 from "md5";
 
-frappe.avatar = function (
+nts.avatar = function (
 	user,
 	css_class,
 	title,
@@ -12,15 +12,15 @@ frappe.avatar = function (
 	let user_info;
 	if (user) {
 		// desk
-		user_info = frappe.user_info(user);
+		user_info = nts.user_info(user);
 	} else {
 		// website
-		let full_name = title || frappe.get_cookie("full_name");
+		let full_name = title || nts.get_cookie("full_name");
 		user_info = {
-			image: image_url === null ? frappe.get_cookie("user_image") : image_url,
+			image: image_url === null ? nts.get_cookie("user_image") : image_url,
 			fullname: full_name,
-			abbr: frappe.get_abbr(full_name),
-			color: frappe.get_palette(full_name),
+			abbr: nts.get_abbr(full_name),
+			color: nts.get_palette(full_name),
 		};
 	}
 
@@ -34,7 +34,7 @@ frappe.avatar = function (
 		data_attr = `data-filter="_assign,like,%${user}%"`;
 	}
 
-	return frappe.get_avatar(
+	return nts.get_avatar(
 		css_class,
 		title,
 		image_url || user_info.image,
@@ -43,7 +43,7 @@ frappe.avatar = function (
 	);
 };
 
-frappe.get_avatar = function (css_class, title, image_url = null, remove_color, data_attributes) {
+nts.get_avatar = function (css_class, title, image_url = null, remove_color, data_attributes) {
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
@@ -55,10 +55,10 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
 			</span>`;
 	} else {
-		let abbr = frappe.get_abbr(title);
+		let abbr = nts.get_abbr(title);
 		let style = "";
 		if (!remove_color) {
-			let color = frappe.get_palette(title);
+			let color = nts.get_palette(title);
 			style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 		}
 
@@ -80,7 +80,7 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 	return el.innerHTML;
 };
 
-frappe.avatar_group = function (users, limit = 4, options = {}) {
+nts.avatar_group = function (users, limit = 4, options = {}) {
 	let avatar_action_html = "";
 	const display_users = users.slice(0, limit);
 	const extra_users = users.slice(limit);
@@ -88,11 +88,11 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 
 	let html = display_users
 		.map((user) =>
-			frappe.avatar(user, "avatar-small " + css_class, null, null, false, options.filterable)
+			nts.avatar(user, "avatar-small " + css_class, null, null, false, options.filterable)
 		)
 		.join("");
 	if (extra_users.length === 1) {
-		html += frappe.avatar(
+		html += nts.avatar(
 			extra_users[0],
 			"avatar-small " + css_class,
 			null,
@@ -105,7 +105,7 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 			${html}
 			<span class="avatar avatar-small ${css_class}">
 				<div class="avatar-frame standard-image avatar-extra-count"
-					title="${extra_users.map((u) => frappe.user_info(u).fullname).join(", ")}">
+					title="${extra_users.map((u) => nts.user_info(u).fullname).join(", ")}">
 					+${extra_users.length}
 				</div>
 			</span>
@@ -116,7 +116,7 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 		avatar_action_html = `
 			<span class="avatar avatar-small">
 				<div class="avatar-frame avatar-action">
-					${frappe.utils.icon(options.action_icon, "sm")}
+					${nts.utils.icon(options.action_icon, "sm")}
 				</div>
 			</span>
 		`;
@@ -133,7 +133,7 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 	return $avatar_group;
 };
 
-frappe.ui.scroll = function (element, animate, additional_offset) {
+nts.ui.scroll = function (element, animate, additional_offset) {
 	var header_offset = $(".navbar").height() + $(".page-head").height();
 	var top = $(element).offset().top - header_offset - cint(additional_offset);
 	if (animate) {
@@ -143,7 +143,7 @@ frappe.ui.scroll = function (element, animate, additional_offset) {
 	}
 };
 
-frappe.palette = [
+nts.palette = [
 	["--orange-avatar-bg", "--orange-avatar-color"],
 	["--pink-avatar-bg", "--pink-avatar-color"],
 	["--blue-avatar-bg", "--blue-avatar-color"],
@@ -155,13 +155,13 @@ frappe.palette = [
 	["--gray-avatar-bg", "--gray-avatar-color0"],
 ];
 
-frappe.get_palette = function (txt) {
-	if (!txt) return frappe.palette[8]; // breaks when undefined
+nts.get_palette = function (txt) {
+	if (!txt) return nts.palette[8]; // breaks when undefined
 	var idx = cint((parseInt(md5(txt).substr(4, 2), 16) + 1) / 5.33);
-	return frappe.palette[idx % 8];
+	return nts.palette[idx % 8];
 };
 
-frappe.get_abbr = function (txt, max_length) {
+nts.get_abbr = function (txt, max_length) {
 	if (!txt) return "";
 	var abbr = "";
 	$.each(txt.split(" "), function (i, w) {
@@ -178,15 +178,15 @@ frappe.get_abbr = function (txt, max_length) {
 	return abbr || "?";
 };
 
-frappe.gravatars = {};
-frappe.get_gravatar = function (email_id, size = 0) {
+nts.gravatars = {};
+nts.get_gravatar = function (email_id, size = 0) {
 	var param = size ? "s=" + size : "d=retro";
-	if (!frappe.gravatars[email_id]) {
+	if (!nts.gravatars[email_id]) {
 		// TODO: check if gravatar exists
-		frappe.gravatars[email_id] =
+		nts.gravatars[email_id] =
 			"https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
 	}
-	return frappe.gravatars[email_id];
+	return nts.gravatars[email_id];
 };
 
 // string commons
@@ -236,11 +236,11 @@ window.rstrip = function (s, chars) {
 	return s;
 };
 
-frappe.get_cookie = function getCookie(name) {
-	return frappe.get_cookies()[name];
+nts.get_cookie = function getCookie(name) {
+	return nts.get_cookies()[name];
 };
 
-frappe.get_cookies = function getCookies() {
+nts.get_cookies = function getCookies() {
 	var c = document.cookie,
 		v = 0,
 		cookies = {};
@@ -270,15 +270,15 @@ frappe.get_cookies = function getCookies() {
 	return cookies;
 };
 
-frappe.is_mobile = function () {
+nts.is_mobile = function () {
 	return $(document).width() < 768;
 };
 
-frappe.is_large_screen = function () {
+nts.is_large_screen = function () {
 	return $(document).height() > 1180;
 };
 
-frappe.utils.xss_sanitise = function (string, options) {
+nts.utils.xss_sanitise = function (string, options) {
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
 	let sanitised = string; // un-sanitised string.
 	const DEFAULT_OPTIONS = {
@@ -314,7 +314,7 @@ frappe.utils.xss_sanitise = function (string, options) {
 	return sanitised;
 };
 
-frappe.utils.sanitise_redirect = (url) => {
+nts.utils.sanitise_redirect = (url) => {
 	const is_external = (() => {
 		return (url) => {
 			function domain(url) {
@@ -373,21 +373,21 @@ frappe.utils.sanitise_redirect = (url) => {
 		return url.replace(REGEX_SCRIPT, "");
 	};
 
-	url = frappe.utils.strip_url(url);
+	url = nts.utils.strip_url(url);
 
 	return is_external(url)
 		? ""
-		: sanitise_javascript(frappe.utils.xss_sanitise(url, { strategies: ["js"] }));
+		: sanitise_javascript(nts.utils.xss_sanitise(url, { strategies: ["js"] }));
 };
 
-frappe.utils.strip_url = (url) => {
+nts.utils.strip_url = (url) => {
 	// strips invalid characters from the beginning of the URL
 	// in our case, the url can start with either a protocol, //, or even #
 	// so anything except those characters can be considered invalid
 	return url.replace(/^[^A-Za-z0-9(//)#]+/g, "");
 };
 
-frappe.utils.new_auto_repeat_prompt = function (frm) {
+nts.utils.new_auto_repeat_prompt = function (frm) {
 	const fields = [
 		{
 			fieldname: "frequency",
@@ -408,7 +408,7 @@ frappe.utils.new_auto_repeat_prompt = function (frm) {
 			fieldtype: "Date",
 			label: __("Start Date"),
 			reqd: 1,
-			default: frappe.datetime.nowdate(),
+			default: nts.datetime.nowdate(),
 		},
 		{
 			fieldname: "end_date",
@@ -416,11 +416,11 @@ frappe.utils.new_auto_repeat_prompt = function (frm) {
 			label: __("End Date"),
 		},
 	];
-	frappe.prompt(
+	nts.prompt(
 		fields,
 		function (values) {
-			frappe.call({
-				method: "frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat",
+			nts.call({
+				method: "nts.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat",
 				args: {
 					doctype: frm.doc.doctype,
 					docname: frm.doc.name,
@@ -430,7 +430,7 @@ frappe.utils.new_auto_repeat_prompt = function (frm) {
 				},
 				callback: function (r) {
 					if (r.message) {
-						frappe.show_alert({
+						nts.show_alert({
 							message: __("Auto Repeat created for this document"),
 							indicator: "green",
 						});
@@ -444,8 +444,8 @@ frappe.utils.new_auto_repeat_prompt = function (frm) {
 	);
 };
 
-frappe.utils.get_page_view_count = function (route) {
-	return frappe.call("frappe.website.doctype.web_page_view.web_page_view.get_page_view_count", {
+nts.utils.get_page_view_count = function (route) {
+	return nts.call("nts.website.doctype.web_page_view.web_page_view.get_page_view_count", {
 		path: route,
 	});
 };

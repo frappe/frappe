@@ -13,13 +13,13 @@ import requests
 from filetype import guess_mime
 from werkzeug.test import TestResponse
 
-import frappe
-from frappe.installer import update_site_config
-from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_site_url, get_test_client, get_url
+import nts
+from nts.installer import update_site_config
+from nts.tests.utils import ntsTestCase, patch_hooks
+from nts.utils import cint, get_site_url, get_test_client, get_url
 
 try:
-	_site = frappe.local.site
+	_site = nts.local.site
 except Exception:
 	_site = None
 
@@ -64,8 +64,8 @@ class ThreadWithReturnValue(Thread):
 
 	def run(self):
 		if self._target is not None:
-			with patch("frappe.app.get_site_name", return_value=self.site):
-				header_patch = patch("frappe.get_request_header", new=patch_request_header)
+			with patch("nts.app.get_site_name", return_value=self.site):
+				header_patch = patch("nts.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
 				self._return = self._target(*self._args, **self._kwargs)
@@ -84,7 +84,7 @@ resource_key = {
 }
 
 
-class FrappeAPITestCase(FrappeTestCase):
+class ntsAPITestCase(ntsTestCase):
 	version = ""  # Empty implies v1
 	TEST_CLIENT = get_test_client()
 
@@ -106,14 +106,14 @@ class FrappeAPITestCase(FrappeTestCase):
 
 	@cached_property
 	def sid(self) -> str:
-		from frappe.auth import CookieManager, LoginManager
-		from frappe.utils import set_request
+		from nts.auth import CookieManager, LoginManager
+		from nts.utils import set_request
 
 		set_request(path="/")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as("Administrator")
-		return frappe.session.sid
+		nts.local.cookie_manager = CookieManager()
+		nts.local.login_manager = LoginManager()
+		nts.local.login_manager.login_as("Administrator")
+		return nts.session.sid
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
@@ -131,11 +131,11 @@ class FrappeAPITestCase(FrappeTestCase):
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
 
 	def tearDown(self) -> None:
-		frappe.db.rollback()
+		nts.db.rollback()
 		return super().tearDown()
 
 
-class TestResourceAPI(FrappeAPITestCase):
+class TestResourceAPI(ntsAPITestCase):
 	DOCTYPE = "ToDo"
 	GENERATED_DOCUMENTS: typing.ClassVar = []
 
@@ -143,17 +143,17 @@ class TestResourceAPI(FrappeAPITestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		for _ in range(20):
-			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
+			doc = nts.get_doc({"doctype": "ToDo", "description": nts.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS = []
 			cls.GENERATED_DOCUMENTS.append(doc.name)
-		frappe.db.commit()
+		nts.db.commit()
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()
+		nts.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
-			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
-		frappe.db.commit()
+			nts.delete_doc_if_exists(cls.DOCTYPE, name)
+		nts.db.commit()
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
@@ -176,13 +176,13 @@ class TestResourceAPI(FrappeAPITestCase):
 	def test_get_list_dict(self):
 		# test 4: fetch response as (not) dict
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "as_dict": True})
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], dict)
 
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "as_dict": False})
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
@@ -200,11 +200,11 @@ class TestResourceAPI(FrappeAPITestCase):
 		# test 6: fetch response with fields
 		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
-		json = frappe._dict(response.json)
+		json = nts._dict(response.json)
 		self.assertIn("description", json.data[0])
 
 	def test_create_document(self):
-		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
+		data = {"description": nts.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource(self.DOCTYPE), data)
 		self.assertEqual(response.status_code, 200)
 		docname = response.json["data"]["name"]
@@ -212,7 +212,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.GENERATED_DOCUMENTS.append(docname)
 
 	def test_update_document(self):
-		generated_desc = frappe.mock("paragraph")
+		generated_desc = nts.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
 		random_doc = choice(self.GENERATED_DOCUMENTS)
 
@@ -245,7 +245,7 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.assertTrue(set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"})
 			self.assertEqual(response.json.get("exc_type"), "PermissionError")
 			self.assertEqual(
-				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"
+				response.json.get("exception"), "nts.exceptions.PermissionError: Not permitted"
 			)
 			self.assertIsInstance(response.json.get("exc"), str)
 
@@ -255,7 +255,7 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.assertIsInstance(data[0], dict)
 
 
-class TestMethodAPI(FrappeAPITestCase):
+class TestMethodAPI(ntsAPITestCase):
 	def test_ping(self):
 		# test 2: test for /api/method/ping
 		response = self.get(self.method("ping"))
@@ -264,8 +264,8 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], "pong")
 
 	def test_get_user_info(self):
-		# test 3: test for /api/method/frappe.realtime.get_user_info
-		response = self.get(self.method("frappe.realtime.get_user_info"))
+		# test 3: test for /api/method/nts.realtime.get_user_info
+		response = self.get(self.method("nts.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
@@ -274,20 +274,20 @@ class TestMethodAPI(FrappeAPITestCase):
 		# test 4: Pass authorization token in request
 		global authorization_token
 		generate_admin_keys()
-		user = frappe.get_doc("User", "Administrator")
+		user = nts.get_doc("User", "Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
-		response = self.get(self.method("frappe.auth.get_logged_user"))
+		response = self.get(self.method("nts.auth.get_logged_user"))
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["message"], "Administrator")
 
 		authorization_token = f"{api_key}:INCORRECT"
-		response = self.get(self.method("frappe.auth.get_logged_user"))
+		response = self.get(self.method("nts.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
 		authorization_token = "NonExistentKey:INCORRECT"
-		response = self.get(self.method("frappe.auth.get_logged_user"))
+		response = self.get(self.method("nts.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
 		authorization_token = None
@@ -299,10 +299,10 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 404)
 
 	def test_logs(self):
-		method = "frappe.tests.test_api.test"
+		method = "nts.tests.test_api.test"
 
 		def get_message(resp, msg_type):
-			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+			return nts.parse_json(nts.parse_json(nts.parse_json(resp.json)[msg_type])[0])
 
 		expected_message = "Failed"
 		response = self.get(self.method(method), {"sid": self.sid, "message": expected_message})
@@ -328,7 +328,7 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertIn("Traceback", response.json["exc"])
 
 	def test_array_response(self):
-		method = "frappe.tests.test_api.test_array"
+		method = "nts.tests.test_api.test_array"
 
 		test_data = list(range(5))
 		response = self.post(self.method(method), test_data)
@@ -336,7 +336,7 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], test_data)
 
 
-class TestReadOnlyMode(FrappeAPITestCase):
+class TestReadOnlyMode(ntsAPITestCase):
 	"""During migration if read only mode can be enabled.
 	Test if reads work well and writes are blocked"""
 
@@ -357,20 +357,20 @@ class TestReadOnlyMode(FrappeAPITestCase):
 	def test_blocked_writes(self):
 		with suppress_stdout():
 			response = self.post(
-				self.resource("ToDo"), {"description": frappe.mock("paragraph"), "sid": self.sid}
+				self.resource("ToDo"), {"description": nts.mock("paragraph"), "sid": self.sid}
 			)
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")
 
 
-class TestWSGIApp(FrappeAPITestCase):
+class TestWSGIApp(ntsAPITestCase):
 	def test_request_hooks(self):
 		self.addCleanup(lambda: _test_REQ_HOOK.clear())
 
 		with patch_hooks(
 			{
-				"before_request": ["frappe.tests.test_api.before_request"],
-				"after_request": ["frappe.tests.test_api.after_request"],
+				"before_request": ["nts.tests.test_api.before_request"],
+				"after_request": ["nts.tests.test_api.after_request"],
 			}
 		):
 			self.assertIsNone(_test_REQ_HOOK.get("before_request"))
@@ -391,10 +391,10 @@ def after_request(*args, **kwargs):
 	_test_REQ_HOOK["after_request"] = time()
 
 
-class TestResponse(FrappeAPITestCase):
+class TestResponse(ntsAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
-			"/api/method/frappe.utils.print_format.download_pdf",
+			"/api/method/nts.utils.print_format.download_pdf",
 			{"sid": self.sid, "doctype": "User", "name": "Guest"},
 		)
 		self.assertEqual(response.status_code, 200)
@@ -408,7 +408,7 @@ class TestResponse(FrappeAPITestCase):
 			filters = json.dumps({})
 			fields = json.dumps({"User": ["name"]})
 			return self.post(
-				"/api/method/frappe.core.doctype.data_import.data_import.download_template",
+				"/api/method/nts.core.doctype.data_import.data_import.download_template",
 				{
 					"sid": self.sid,
 					"doctype": "User",
@@ -431,8 +431,8 @@ class TestResponse(FrappeAPITestCase):
 		self.assertIn("text/csv", response.headers["content-type"])
 		self.assertGreater(cint(response.headers["content-length"]), 0)
 
-		from frappe.desk.utils import provide_binary_file
-		from frappe.utils.response import build_response
+		from nts.desk.utils import provide_binary_file
+		from nts.utils.response import build_response
 
 		filename = "دفتر الأستاذ العام"
 		encoded_filename = filename.encode("utf-8").decode("unicode-escape", "ignore") + ".xlsx"
@@ -445,8 +445,8 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
 
 	def test_download_private_file_with_unique_url(self):
-		test_content = frappe.generate_hash()
-		file = frappe.get_doc(
+		test_content = nts.generate_hash()
+		file = nts.get_doc(
 			{
 				"doctype": "File",
 				"file_name": test_content,
@@ -474,23 +474,23 @@ class TestResponse(FrappeAPITestCase):
 
 
 def generate_admin_keys():
-	from frappe.core.doctype.user.user import generate_keys
+	from nts.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	nts.db.commit()
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:
-			frappe.throw(message)
+			nts.throw(message)
 		else:
 			1 / 0
 	else:
-		frappe.msgprint(message)
+		nts.msgprint(message)
 
 
-@frappe.whitelist(allow_guest=True)
+@nts.whitelist(allow_guest=True)
 def test_array(data):
 	return data

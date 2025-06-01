@@ -1,15 +1,15 @@
 from math import ceil
 
-import frappe
-from frappe.utils import markdown, strip_html_tags
+import nts
+from nts.utils import markdown, strip_html_tags
 
 
 def execute():
-	frappe.reload_doc("website", "doctype", "blog_post")
+	nts.reload_doc("website", "doctype", "blog_post")
 
-	for blog in frappe.get_all("Blog Post"):
-		blog = frappe.get_doc("Blog Post", blog.name)
-		frappe.db.set_value("Blog Post", blog.name, "read_time", get_read_time(blog), update_modified=False)
+	for blog in nts.get_all("Blog Post"):
+		blog = nts.get_doc("Blog Post", blog.name)
+		nts.db.set_value("Blog Post", blog.name, "read_time", get_read_time(blog), update_modified=False)
 
 
 def get_read_time(blog):

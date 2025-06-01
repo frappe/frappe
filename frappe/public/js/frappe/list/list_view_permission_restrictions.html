@@ -8,7 +8,7 @@
 			{% for (let key in condition) { %}
 			<tr>
 				<td>{{ __(key) }}</td>
-				<td>{{ frappe.utils.comma_or(condition[key]) }}</td>
+				<td>{{ nts.utils.comma_or(condition[key]) }}</td>
 			</tr>
 			{% } %}
 		{% } %}

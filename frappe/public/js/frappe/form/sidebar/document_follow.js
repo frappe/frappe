@@ -1,12 +1,12 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
+nts.provide("nts.ui.form");
 
-frappe.ui.form.DocumentFollow = class DocumentFollow {
+nts.ui.form.DocumentFollow = class DocumentFollow {
 	constructor(opts) {
 		$.extend(this, opts);
-		if (!frappe.boot.user.document_follow_notify) {
+		if (!nts.boot.user.document_follow_notify) {
 			this.hide_follow_section();
 			return;
 		}
@@ -24,10 +24,10 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 
 	render_sidebar() {
 		const docinfo = this.frm.get_docinfo();
-		const document_follow_enabled = frappe.boot.user.document_follow_notify;
-		const document_can_be_followed = frappe.get_meta(this.frm.doctype).track_changes;
+		const document_follow_enabled = nts.boot.user.document_follow_notify;
+		const document_can_be_followed = nts.get_meta(this.frm.doctype).track_changes;
 		if (
-			frappe.session.user === "Administrator" ||
+			nts.session.user === "Administrator" ||
 			!document_follow_enabled ||
 			!document_can_be_followed
 		) {
@@ -52,12 +52,12 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 	bind_events() {
 		this.follow_document_link.on("click", () => {
 			this.follow_document_link.addClass("text-muted disable-click");
-			frappe.call({
-				method: "frappe.desk.form.document_follow.follow_document",
+			nts.call({
+				method: "nts.desk.form.document_follow.follow_document",
 				args: {
 					doctype: this.frm.doctype,
 					doc_name: this.frm.doc.name,
-					user: frappe.session.user,
+					user: nts.session.user,
 					force: true,
 				},
 				callback: (r) => {
@@ -70,12 +70,12 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 
 		this.unfollow_document_link.on("click", () => {
 			this.unfollow_document_link.addClass("text-muted disable-click");
-			frappe.call({
-				method: "frappe.desk.form.document_follow.unfollow_document",
+			nts.call({
+				method: "nts.desk.form.document_follow.unfollow_document",
 				args: {
 					doctype: this.frm.doctype,
 					doc_name: this.frm.doc.name,
-					user: frappe.session.user,
+					user: nts.session.user,
 				},
 				callback: (r) => {
 					if (r.message) {
@@ -102,9 +102,9 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 	get_followed_user() {
 		var html = "";
 		return new Promise((resolve) => {
-			frappe
+			nts
 				.call({
-					method: "frappe.desk.form.document_follow.get_follow_users",
+					method: "nts.desk.form.document_follow.get_follow_users",
 					args: {
 						doctype: this.frm.doctype,
 						doc_name: this.frm.doc.name,
@@ -115,7 +115,7 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 					for (var d in r.message) {
 						this.count_others++;
 						if (this.count_others < 4) {
-							html += frappe.avatar(r.message[d].user, "avatar-small");
+							html += nts.avatar(r.message[d].user, "avatar-small");
 						}
 						if (this.count_others === 0) {
 							this.followed_by.addClass("hidden");
@@ -127,7 +127,7 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 	}
 
 	follow_action() {
-		frappe.show_alert({
+		nts.show_alert({
 			message: __(
 				"You are now following this document. You will receive daily updates via email. You can change this in User Settings."
 			),
@@ -140,7 +140,7 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 	}
 
 	unfollow_action() {
-		frappe.show_alert({
+		nts.show_alert({
 			message: __("You unfollowed this document"),
 			indicator: "red",
 		});

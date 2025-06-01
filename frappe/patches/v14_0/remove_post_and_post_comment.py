@@ -1,6 +1,6 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.delete_doc_if_exists("DocType", "Post")
-	frappe.delete_doc_if_exists("DocType", "Post Comment")
+	nts.delete_doc_if_exists("DocType", "Post")
+	nts.delete_doc_if_exists("DocType", "Post Comment")

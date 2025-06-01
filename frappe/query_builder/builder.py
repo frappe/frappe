@@ -6,8 +6,8 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
 from pypika.terms import Function
 
-from frappe.query_builder.terms import ParameterizedValueWrapper
-from frappe.utils import get_table_name
+from nts.query_builder.terms import ParameterizedValueWrapper
+from nts.utils import get_table_name
 
 
 class Base:
@@ -20,7 +20,7 @@ class Base:
 	# Added dynamic type hints for engine attribute
 	# which is to be assigned later.
 	if typing.TYPE_CHECKING:
-		from frappe.database.query import Engine
+		from nts.database.query import Engine
 
 		engine: Engine
 

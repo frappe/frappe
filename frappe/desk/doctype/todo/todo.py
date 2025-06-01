@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.model.document import Document
-from frappe.permissions import AUTOMATIC_ROLES
-from frappe.utils import get_fullname, parse_addr
+import nts
+from nts.model.document import Document
+from nts.permissions import AUTOMATIC_ROLES
+from nts.utils import get_fullname, parse_addr
 
 exclude_from_linked_with = True
 
@@ -18,7 +18,7 @@ class ToDo(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		allocated_to: DF.Link | None
 		assigned_by: DF.Link | None
@@ -40,11 +40,11 @@ class ToDo(Document):
 		self._assignment = None
 		if self.is_new():
 			if self.assigned_by == self.allocated_to:
-				assignment_message = frappe._("{0} self assigned this task: {1}").format(
+				assignment_message = nts._("{0} self assigned this task: {1}").format(
 					get_fullname(self.assigned_by), self.description
 				)
 			else:
-				assignment_message = frappe._("{0} assigned {1}: {2}").format(
+				assignment_message = nts._("{0} assigned {1}: {2}").format(
 					get_fullname(self.assigned_by), get_fullname(self.allocated_to), self.description
 				)
 
@@ -53,13 +53,13 @@ class ToDo(Document):
 		else:
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
-				if self.allocated_to == frappe.session.user:
-					removal_message = frappe._("{0} removed their assignment.").format(
-						get_fullname(frappe.session.user)
+				if self.allocated_to == nts.session.user:
+					removal_message = nts._("{0} removed their assignment.").format(
+						get_fullname(nts.session.user)
 					)
 				else:
-					removal_message = frappe._("Assignment of {0} removed by {1}").format(
-						get_fullname(self.allocated_to), get_fullname(frappe.session.user)
+					removal_message = nts._("Assignment of {0} removed by {1}").format(
+						get_fullname(self.allocated_to), get_fullname(nts.session.user)
 					)
 
 				self._assignment = {"text": removal_message, "comment_type": "Assignment Completed"}
@@ -78,18 +78,18 @@ class ToDo(Document):
 		if not (self.reference_type and self.reference_name):
 			return
 
-		frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)
+		nts.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)
 
 	def delete_communication_links(self):
 		# unlink todo from linked comments
-		return frappe.db.delete("Communication Link", {"link_doctype": self.doctype, "link_name": self.name})
+		return nts.db.delete("Communication Link", {"link_doctype": self.doctype, "link_name": self.name})
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):
 			return
 
 		try:
-			assignments = frappe.db.get_values(
+			assignments = nts.db.get_values(
 				"ToDo",
 				{
 					"reference_type": self.reference_type,
@@ -103,15 +103,15 @@ class ToDo(Document):
 			)
 			assignments.reverse()
 
-			if frappe.get_meta(self.reference_type).issingle:
-				frappe.db.set_single_value(
+			if nts.get_meta(self.reference_type).issingle:
+				nts.db.set_single_value(
 					self.reference_type,
 					"_assign",
 					json.dumps(assignments) if assignments else "",
 					update_modified=False,
 				)
 			else:
-				frappe.db.set_value(
+				nts.db.set_value(
 					self.reference_type,
 					self.reference_name,
 					"_assign",
@@ -120,12 +120,12 @@ class ToDo(Document):
 				)
 
 		except Exception as e:
-			if frappe.db.is_table_missing(e) and frappe.flags.in_install:
+			if nts.db.is_table_missing(e) and nts.flags.in_install:
 				# no table
 				return
 
-			elif frappe.db.is_missing_column(e):
-				from frappe.database.schema import add_column
+			elif nts.db.is_missing_column(e):
+				from nts.database.schema import add_column
 
 				add_column(self.reference_type, "_assign", "Text")
 				self.update_in_reference()
@@ -136,41 +136,41 @@ class ToDo(Document):
 	@classmethod
 	def get_owners(cls, filters=None):
 		"""Returns list of owners after applying filters on todo's."""
-		rows = frappe.get_all(cls.DocType, filters=filters or {}, fields=["allocated_to"])
+		rows = nts.get_all(cls.DocType, filters=filters or {}, fields=["allocated_to"])
 		return [parse_addr(row.allocated_to)[1] for row in rows if row.allocated_to]
 
 
 # NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.
 def on_doctype_update():
-	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
+	nts.db.add_index("ToDo", ["reference_type", "reference_name"])
 
 
 def get_permission_query_conditions(user):
 	if not user:
-		user = frappe.session.user
+		user = nts.session.user
 
-	todo_roles = frappe.permissions.get_doctype_roles("ToDo")
+	todo_roles = nts.permissions.get_doctype_roles("ToDo")
 	todo_roles = set(todo_roles) - set(AUTOMATIC_ROLES)
 
-	if any(check in todo_roles for check in frappe.get_roles(user)):
+	if any(check in todo_roles for check in nts.get_roles(user)):
 		return None
 	else:
 		return """(`tabToDo`.allocated_to = {user} or `tabToDo`.assigned_by = {user})""".format(
-			user=frappe.db.escape(user)
+			user=nts.db.escape(user)
 		)
 
 
 def has_permission(doc, ptype="read", user=None):
-	user = user or frappe.session.user
-	todo_roles = frappe.permissions.get_doctype_roles("ToDo", ptype)
+	user = user or nts.session.user
+	todo_roles = nts.permissions.get_doctype_roles("ToDo", ptype)
 	todo_roles = set(todo_roles) - set(AUTOMATIC_ROLES)
 
-	if any(check in todo_roles for check in frappe.get_roles(user)):
+	if any(check in todo_roles for check in nts.get_roles(user)):
 		return True
 	else:
 		return doc.allocated_to == user or doc.assigned_by == user
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def new_todo(description):
-	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+	nts.get_doc({"doctype": "ToDo", "description": description}).insert()

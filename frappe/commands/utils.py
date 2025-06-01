@@ -7,12 +7,12 @@ from shutil import which
 
 import click
 
-import frappe
-from frappe import _
-from frappe.commands import get_site, pass_context
-from frappe.coverage import CodeCoverage
-from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint, update_progress_bar
+import nts
+from nts import _
+from nts.commands import get_site, pass_context
+from nts.coverage import CodeCoverage
+from nts.exceptions import SiteNotSpecifiedError
+from nts.utils import cint, update_progress_bar
 
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
@@ -28,7 +28,7 @@ if typing.TYPE_CHECKING:
 	is_flag=True,
 	default=False,
 	help="Copy the files instead of symlinking",
-	envvar="FRAPPE_HARD_LINK_ASSETS",
+	envvar="nts_HARD_LINK_ASSETS",
 )
 @click.option("--production", is_flag=True, default=False, help="Build assets in production mode")
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
@@ -51,11 +51,11 @@ def build(
 	save_metafiles=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.build import bundle, download_frappe_assets
-	from frappe.gettext.translate import compile_translations
-	from frappe.utils.synchronization import filelock
+	from nts.build import bundle, download_nts_assets
+	from nts.gettext.translate import compile_translations
+	from nts.utils.synchronization import filelock
 
-	frappe.init("")
+	nts.init("")
 
 	if not apps and app:
 		apps = app
@@ -63,13 +63,13 @@ def build(
 	with filelock("bench_build", is_global=True, timeout=10):
 		# dont try downloading assets if force used, app specified or running via CI
 		if not (force or apps or os.environ.get("CI")):
-			# skip building frappe if assets exist remotely
-			skip_frappe = download_frappe_assets(verbose=verbose)
+			# skip building nts if assets exist remotely
+			skip_nts = download_nts_assets(verbose=verbose)
 		else:
-			skip_frappe = False
+			skip_nts = False
 
 		# don't minify in developer_mode for faster builds
-		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		development = nts.local.conf.developer_mode or nts.local.dev_server
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -79,7 +79,7 @@ def build(
 			apps=apps,
 			hard_link=hard_link,
 			verbose=verbose,
-			skip_frappe=skip_frappe,
+			skip_nts=skip_nts,
 			save_metafiles=save_metafiles,
 		)
 
@@ -87,7 +87,7 @@ def build(
 			apps = apps.split(",")
 
 		if not apps:
-			apps = frappe.get_all_apps()
+			apps = nts.get_all_apps()
 
 		for app in apps:
 			print("Compiling translations for", app)
@@ -98,9 +98,9 @@ def build(
 @click.option("--apps", help="Watch assets for specific apps")
 def watch(apps=None):
 	"Watch and compile JS and CSS files as and when they change"
-	from frappe.build import watch
+	from nts.build import watch
 
-	frappe.init("")
+	nts.init("")
 	watch(apps)
 
 
@@ -108,17 +108,17 @@ def watch(apps=None):
 @pass_context
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
-	import frappe.sessions
-	from frappe.website.utils import clear_website_cache
+	import nts.sessions
+	from nts.website.utils import clear_website_cache
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.clear_cache()
+			nts.init(site=site)
+			nts.connect()
+			nts.clear_cache()
 			clear_website_cache()
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -127,15 +127,15 @@ def clear_cache(context):
 @pass_context
 def clear_website_cache(context):
 	"Clear website cache"
-	from frappe.website.utils import clear_website_cache
+	from nts.website.utils import clear_website_cache
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			clear_website_cache()
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -145,16 +145,16 @@ def clear_website_cache(context):
 @pass_context
 def destroy_all_sessions(context, reason=None):
 	"Clear sessions of all users (logs them out)"
-	import frappe.sessions
+	import nts.sessions
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.sessions.clear_all_sessions(reason)
-			frappe.db.commit()
+			nts.init(site=site)
+			nts.connect()
+			nts.sessions.clear_all_sessions(reason)
+			nts.db.commit()
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -171,7 +171,7 @@ def show_config(context, format):
 	sites_config = {}
 	sites_path = os.getcwd()
 
-	from frappe.utils.commands import render_table
+	from nts.utils.commands import render_table
 
 	def transform_config(config, prefix=None):
 		prefix = f"{prefix}." if prefix else ""
@@ -187,14 +187,14 @@ def show_config(context, format):
 		return site_config
 
 	for site in context.sites:
-		frappe.init(site)
+		nts.init(site)
 
 		if len(context.sites) != 1 and format == "text":
 			if context.sites.index(site) != 0:
 				click.echo()
 			click.secho(f"Site {site}", fg="yellow")
 
-		configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)
+		configuration = nts.get_site_config(sites_path=sites_path, site_path=site)
 
 		if format == "text":
 			data = transform_config(configuration)
@@ -204,30 +204,30 @@ def show_config(context, format):
 		if format == "json":
 			sites_config[site] = configuration
 
-		frappe.destroy()
+		nts.destroy()
 
 	if format == "json":
-		click.echo(frappe.as_json(sites_config))
+		click.echo(nts.as_json(sites_config))
 
 
 @click.command("reset-perms")
 @pass_context
 def reset_perms(context):
 	"Reset permissions for all doctypes"
-	from frappe.permissions import reset_perms
+	from nts.permissions import reset_perms
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			for d in frappe.db.sql_list(
+			nts.init(site=site)
+			nts.connect()
+			for d in nts.db.sql_list(
 				"""select name from `tabDocType`
 				where istable=0 and custom=0"""
 			):
-				frappe.clear_cache(doctype=d)
+				nts.clear_cache(doctype=d)
 				reset_perms(d)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -243,8 +243,8 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 	for site in context.sites:
 		ret = ""
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 
 			if args:
 				try:
@@ -266,7 +266,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 				pr.enable()
 
 			try:
-				ret = frappe.get_attr(method)(*args, **kwargs)
+				ret = nts.get_attr(method)(*args, **kwargs)
 			except Exception:
 				# eval is safe here because input is from console
 				ret = eval(method + "(*args, **kwargs)", globals(), locals())  # nosemgrep
@@ -280,12 +280,12 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 				pstats.Stats(pr, stream=s).sort_stats("cumulative").print_stats(0.5)
 				print(s.getvalue())
 
-			if frappe.db:
-				frappe.db.commit()
+			if nts.db:
+				nts.db.commit()
 		finally:
-			frappe.destroy()
+			nts.destroy()
 		if ret:
-			from frappe.utils.response import json_handler
+			from nts.utils.response import json_handler
 
 			print(json.dumps(ret, default=json_handler))
 
@@ -301,14 +301,14 @@ def add_to_email_queue(context, email_path):
 	site = get_site(context)
 
 	if os.path.isdir(email_path):
-		with frappe.init_site(site):
-			frappe.connect()
+		with nts.init_site(site):
+			nts.connect()
 			for email in os.listdir(email_path):
 				with open(os.path.join(email_path, email)) as email_data:
 					kwargs = json.load(email_data)
 					kwargs["delayed"] = True
-					frappe.sendmail(**kwargs)
-					frappe.db.commit()
+					nts.sendmail(**kwargs)
+					nts.db.commit()
 
 
 @click.command("export-doc")
@@ -317,15 +317,15 @@ def add_to_email_queue(context, email_path):
 @pass_context
 def export_doc(context, doctype, docname):
 	"Export a single document to csv"
-	import frappe.modules
+	import nts.modules
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.modules.export_doc(doctype, docname)
+			nts.init(site=site)
+			nts.connect()
+			nts.modules.export_doc(doctype, docname)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -337,15 +337,15 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.doctype.data_import.data_import import export_json
+	from nts.core.doctype.data_import.data_import import export_json
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			export_json(doctype, path, name=name)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -356,15 +356,15 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.doctype.data_import.data_import import export_csv
+	from nts.core.doctype.data_import.data_import import export_csv
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			export_csv(doctype, path)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -374,15 +374,15 @@ def export_csv(context, doctype, path):
 @pass_context
 def export_fixtures(context, app=None):
 	"Export fixtures"
-	from frappe.utils.fixtures import export_fixtures
+	from nts.utils.fixtures import export_fixtures
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			export_fixtures(app=app)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -392,7 +392,7 @@ def export_fixtures(context, app=None):
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.doctype.data_import.data_import import import_doc
+	from nts.core.doctype.data_import.data_import import import_doc
 
 	if not os.path.exists(path):
 		path = os.path.join("..", path)
@@ -402,11 +402,11 @@ def import_doc(context, path, force=False):
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			import_doc(path)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -435,14 +435,14 @@ def import_doc(context, path, force=False):
 @pass_context
 def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
 	"Import documents in bulk from CSV or XLSX using data import"
-	from frappe.core.doctype.data_import.data_import import import_file
+	from nts.core.doctype.data_import.data_import import import_file
 
 	site = get_site(context)
 
-	frappe.init(site=site)
-	frappe.connect()
+	nts.init(site=site)
+	nts.connect()
 	import_file(doctype, file_path, import_type, submit_after_import, console=True)
-	frappe.destroy()
+	nts.destroy()
 
 
 @click.command("bulk-rename")
@@ -451,20 +451,20 @@ def data_import(context, file_path, doctype, import_type=None, submit_after_impo
 @pass_context
 def bulk_rename(context, doctype, path):
 	"Rename multiple records via CSV file"
-	from frappe.model.rename_doc import bulk_rename
-	from frappe.utils.csvutils import read_csv_content
+	from nts.model.rename_doc import bulk_rename
+	from nts.utils.csvutils import read_csv_content
 
 	site = get_site(context)
 
 	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
-	frappe.init(site=site)
-	frappe.connect()
+	nts.init(site=site)
+	nts.connect()
 
 	bulk_rename(doctype, rows, via_console=True)
 
-	frappe.destroy()
+	nts.destroy()
 
 
 @click.command("db-console", context_settings=EXTRA_ARGS_CTX)
@@ -475,7 +475,7 @@ def database(context, extra_args):
 	Enter into the Database console for given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
+	nts.init(site=site)
 	_enter_console(extra_args=extra_args)
 
 
@@ -487,8 +487,8 @@ def mariadb(context, extra_args):
 	Enter into mariadb console for a given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
-	frappe.conf.db_type = "mariadb"
+	nts.init(site=site)
+	nts.conf.db_type = "mariadb"
 	_enter_console(extra_args=extra_args)
 
 
@@ -500,33 +500,33 @@ def postgres(context, extra_args):
 	Enter into postgres console for a given site.
 	"""
 	site = get_site(context)
-	frappe.init(site=site)
-	frappe.conf.db_type = "postgres"
+	nts.init(site=site)
+	nts.conf.db_type = "postgres"
 	_enter_console(extra_args=extra_args)
 
 
 def _enter_console(extra_args=None):
-	from frappe.database import get_command
-	from frappe.utils import get_site_path
+	from nts.database import get_command
+	from nts.utils import get_site_path
 
-	if frappe.conf.db_type == "mariadb":
+	if nts.conf.db_type == "mariadb":
 		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
 	else:
 		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 
 	bin, args, bin_name = get_command(
-		socket=frappe.conf.db_socket,
-		host=frappe.conf.db_host,
-		port=frappe.conf.db_port,
-		user=frappe.conf.db_name,
-		password=frappe.conf.db_password,
-		db_name=frappe.conf.db_name,
+		socket=nts.conf.db_socket,
+		host=nts.conf.db_host,
+		port=nts.conf.db_port,
+		user=nts.conf.db_name,
+		password=nts.conf.db_password,
+		db_name=nts.conf.db_name,
 		extra=list(extra_args) if extra_args else [],
 	)
 	if not bin:
-		frappe.throw(
+		nts.throw(
 			_("{} not found in PATH! This is required to access the console.").format(bin_name),
-			exc=frappe.ExecutableNotFound,
+			exc=nts.ExecutableNotFound,
 		)
 	os.execv(bin, [bin, *args])
 
@@ -544,10 +544,10 @@ def jupyter(context):
 		subprocess.check_output([sys.executable, "-m", "pip", "install", "jupyter"])
 
 	site = get_site(context)
-	frappe.init(site=site)
+	nts.init(site=site)
 
-	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path("jupyter_notebooks"))
-	sites_path = os.path.abspath(frappe.get_site_path(".."))
+	jupyter_notebooks_path = os.path.abspath(nts.get_site_path("jupyter_notebooks"))
+	sites_path = os.path.abspath(nts.get_site_path(".."))
 
 	try:
 		os.stat(jupyter_notebooks_path)
@@ -558,13 +558,13 @@ def jupyter(context):
 	print(
 		f"""
 Starting Jupyter notebook
-Run the following in your first cell to connect notebook to frappe
+Run the following in your first cell to connect notebook to nts
 ```
-import frappe
-frappe.init(site='{site}', sites_path='{sites_path}')
-frappe.connect()
-frappe.local.lang = frappe.db.get_default('lang')
-frappe.db.connect()
+import nts
+nts.init(site='{site}', sites_path='{sites_path}')
+nts.connect()
+nts.local.lang = nts.db.get_default('lang')
+nts.db.connect()
 ```
 	"""
 	)
@@ -580,16 +580,16 @@ frappe.db.connect()
 
 def _console_cleanup():
 	# Execute after_rollback on console close
-	frappe.db.rollback()
-	frappe.destroy()
+	nts.db.rollback()
+	nts.destroy()
 
 
 def store_logs(terminal: "InteractiveShellEmbed") -> None:
 	from contextlib import suppress
 
-	frappe.log_level = 20  # info
+	nts.log_level = 20  # info
 	with suppress(Exception):
-		logger = frappe.logger("ipython")
+		logger = nts.logger("ipython")
 		logger.info("=== bench console session ===")
 		for line in terminal.history_manager.get_range():
 			logger.info(line[2])
@@ -602,9 +602,9 @@ def store_logs(terminal: "InteractiveShellEmbed") -> None:
 def console(context, autoreload=False):
 	"Start ipython console for a site"
 	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect()
-	frappe.local.lang = frappe.db.get_default("lang")
+	nts.init(site=site)
+	nts.connect()
+	nts.local.lang = nts.db.get_default("lang")
 
 	from atexit import register
 
@@ -617,7 +617,7 @@ def console(context, autoreload=False):
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
 
-	all_apps = frappe.get_installed_apps()
+	all_apps = nts.get_installed_apps()
 	failed_to_import = []
 	register(store_logs, terminal)  # Note: atexit runs in reverse order of registration
 
@@ -671,9 +671,9 @@ def transform_database(context, table, engine, row_format, failfast):
 	check_table = []
 	add_line = False
 	skipped = 0
-	frappe.init(site=site)
+	nts.init(site=site)
 
-	if frappe.conf.db_type != "mariadb":
+	if nts.conf.db_type != "mariadb":
 		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
 		sys.exit(1)
 
@@ -681,16 +681,16 @@ def transform_database(context, table, engine, row_format, failfast):
 		click.secho("Values for `--engine` or `--row_format` must be set")
 		sys.exit(1)
 
-	frappe.connect()
+	nts.connect()
 
 	if table == "all":
-		information_schema = frappe.qb.Schema("information_schema")
+		information_schema = nts.qb.Schema("information_schema")
 		queried_tables = (
-			frappe.qb.from_(information_schema.tables)
+			nts.qb.from_(information_schema.tables)
 			.select("table_name")
 			.where(
 				(information_schema.tables.row_format != row_format)
-				& (information_schema.tables.table_schema == frappe.conf.db_name)
+				& (information_schema.tables.table_schema == nts.conf.db_name)
 			)
 			.run()
 		)
@@ -708,7 +708,7 @@ def transform_database(context, table, engine, row_format, failfast):
 			values_to_set += f" ROW_FORMAT={row_format}"
 
 		try:
-			frappe.db.sql(f"ALTER TABLE `{table}`{values_to_set}")
+			nts.db.sql(f"ALTER TABLE `{table}`{values_to_set}")
 			update_progress_bar("Updating table schema", current - skipped, total)
 			add_line = True
 
@@ -727,7 +727,7 @@ def transform_database(context, table, engine, row_format, failfast):
 		err_msg = f"{table}: ERROR {err[0]}: {err[1]}"
 		click.secho(err_msg, fg="yellow")
 
-	frappe.destroy()
+	nts.destroy()
 
 
 @click.command("run-tests")
@@ -769,13 +769,13 @@ def run_tests(
 	"""Run python unit-tests"""
 
 	with CodeCoverage(coverage, app):
-		import frappe
-		import frappe.test_runner
+		import nts
+		import nts.test_runner
 
 		tests = test
 		site = get_site(context)
 
-		allow_tests = frappe.get_conf(site).allow_tests
+		allow_tests = nts.get_conf(site).allow_tests
 
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
@@ -783,11 +783,11 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
-		frappe.init(site)  # init frappe.flags
-		frappe.flags.skip_before_tests = skip_before_tests
-		frappe.flags.skip_test_records = skip_test_records
+		nts.init(site)  # init nts.flags
+		nts.flags.skip_before_tests = skip_before_tests
+		nts.flags.skip_test_records = skip_test_records
 
-		ret = frappe.test_runner.main(
+		ret = nts.test_runner.main(
 			site,
 			app,
 			module,
@@ -811,7 +811,7 @@ def run_tests(
 
 
 @click.command("run-parallel-tests")
-@click.option("--app", help="For App", default="frappe")
+@click.option("--app", help="For App", default="nts")
 @click.option("--build-number", help="Build number", default=1)
 @click.option("--total-builds", help="Total number of builds", default=1)
 @click.option("--with-coverage", is_flag=True, help="Build coverage file")
@@ -832,11 +832,11 @@ def run_parallel_tests(
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
 		if use_orchestrator:
-			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
+			from nts.parallel_test_runner import ParallelTestWithOrchestrator
 
 			ParallelTestWithOrchestrator(app, site=site)
 		else:
-			from frappe.parallel_test_runner import ParallelTestRunner
+			from nts.parallel_test_runner import ParallelTestRunner
 
 			ParallelTestRunner(
 				app,
@@ -873,10 +873,10 @@ def run_ui_tests(
 ):
 	"Run UI tests"
 	site = get_site(context)
-	frappe.init(site)
-	app_base_path = frappe.get_app_source_path(app)
-	site_url = frappe.utils.get_site_url(site)
-	admin_password = frappe.get_conf(site).admin_password
+	nts.init(site)
+	app_base_path = nts.get_app_source_path(app)
+	site_url = nts.utils.get_site_url(site)
+	admin_password = nts.get_conf(site).admin_password
 
 	# override baseUrl using env variable
 	site_env = f"CYPRESS_baseUrl={site_url}"
@@ -885,7 +885,7 @@ def run_ui_tests(
 
 	os.chdir(app_base_path)
 
-	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
+	node_bin = subprocess.getoutput("(cd ../nts && yarn bin)")
 	cypress_path = f"{node_bin}/cypress"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
@@ -912,7 +912,7 @@ def run_ui_tests(
 				"@cypress/code-coverage@^3",
 			]
 		)
-		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
+		nts.commands.popen(f"(cd ../nts && yarn add {packages} --no-lockfile)")
 
 	# run for headless mode
 	run_or_open = f"run --browser {browser}" if headless else "open"
@@ -932,7 +932,7 @@ def run_ui_tests(
 
 	click.secho("Running Cypress...", fg="yellow")
 	try:
-		frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
+		nts.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 	except subprocess.CalledProcessError as e:
 		click.secho("Cypress tests failed", fg="red")
 		raise click.exceptions.Exit(1) from e
@@ -963,18 +963,18 @@ def serve(
 	with_coverage=False,
 ):
 	"Start development web server"
-	import frappe.app
+	import nts.app
 
 	if not context.sites:
 		site = None
 	else:
 		site = context.sites[0]
-	with CodeCoverage(with_coverage, "frappe"):
+	with CodeCoverage(with_coverage, "nts"):
 		if with_coverage:
 			# unable to track coverage with threading enabled
 			no_threading = True
 			no_reload = True
-		frappe.app.serve(
+		nts.app.serve(
 			port=port,
 			profile=profile,
 			proxy=proxy,
@@ -991,34 +991,34 @@ def serve(
 @pass_context
 def request(context, args=None, path=None):
 	"Run a request as an admin"
-	import frappe.api
-	import frappe.handler
+	import nts.api
+	import nts.handler
 
 	for site in context.sites:
 		try:
-			frappe.init(site=site)
-			frappe.connect()
+			nts.init(site=site)
+			nts.connect()
 			if args:
 				if "?" in args:
-					frappe.local.form_dict = frappe._dict(
+					nts.local.form_dict = nts._dict(
 						[a.split("=") for a in args.split("?")[-1].split("&")]
 					)
 				else:
-					frappe.local.form_dict = frappe._dict()
+					nts.local.form_dict = nts._dict()
 
 				if args.startswith("/api/method"):
-					frappe.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
+					nts.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
 			elif path:
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
 
-				frappe.local.form_dict = frappe._dict(args)
+				nts.local.form_dict = nts._dict(args)
 
-			frappe.handler.execute_cmd(frappe.form_dict.cmd)
+			nts.handler.execute_cmd(nts.form_dict.cmd)
 
-			print(frappe.response)
+			print(nts.response)
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -1029,7 +1029,7 @@ def request(context, args=None, path=None):
 @click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
 def make_app(destination, app_name, no_git=False):
 	"Creates a boilerplate app"
-	from frappe.utils import get_sites
+	from nts.utils import get_sites
 
 	if app_name in get_sites():
 		click.secho(
@@ -1037,7 +1037,7 @@ def make_app(destination, app_name, no_git=False):
 		)
 		sys.exit(1)
 
-	from frappe.utils.boilerplate import make_boilerplate
+	from nts.utils.boilerplate import make_boilerplate
 
 	make_boilerplate(destination, app_name, no_git=no_git)
 
@@ -1045,7 +1045,7 @@ def make_app(destination, app_name, no_git=False):
 @click.command("create-patch")
 def create_patch():
 	"Creates a new patch interactively"
-	from frappe.utils.boilerplate import PatchCreator
+	from nts.utils.boilerplate import PatchCreator
 
 	pc = PatchCreator()
 	pc.fetch_user_inputs()
@@ -1060,7 +1060,7 @@ def create_patch():
 @pass_context
 def set_config(context, key, value, global_=False, parse=False):
 	"Insert/Update a value in site_config.json"
-	from frappe.installer import update_site_config
+	from nts.installer import update_site_config
 
 	if parse:
 		import ast
@@ -1075,9 +1075,9 @@ def set_config(context, key, value, global_=False, parse=False):
 		if not context.sites:
 			raise SiteNotSpecifiedError
 		for site in context.sites:
-			frappe.init(site=site)
+			nts.init(site=site)
 			update_site_config(key, value, validate=False)
-			frappe.destroy()
+			nts.destroy()
 
 
 @click.command("version")
@@ -1094,20 +1094,20 @@ def get_version(output):
 	from git import Repo
 	from git.exc import InvalidGitRepositoryError
 
-	from frappe.utils.change_log import get_app_branch
-	from frappe.utils.commands import render_table
+	from nts.utils.change_log import get_app_branch
+	from nts.utils.commands import render_table
 
-	frappe.init("")
+	nts.init("")
 	data = []
 
-	for app in sorted(frappe.get_all_apps()):
-		module = frappe.get_module(app)
-		app_hooks = frappe.get_module(app + ".hooks")
+	for app in sorted(nts.get_all_apps()):
+		module = nts.get_module(app)
+		app_hooks = nts.get_module(app + ".hooks")
 
-		app_info = frappe._dict()
+		app_info = nts._dict()
 
 		try:
-			app_info.commit = Repo(frappe.get_app_source_path(app)).head.object.hexsha[:7]
+			app_info.commit = Repo(nts.get_app_source_path(app)).head.object.hexsha[:7]
 		except InvalidGitRepositoryError:
 			app_info.commit = ""
 
@@ -1136,7 +1136,7 @@ def get_version(output):
 @pass_context
 def rebuild_global_search(context, static_pages=False):
 	"""Setup help table in the current site (called after migrate)"""
-	from frappe.utils.global_search import (
+	from nts.utils.global_search import (
 		add_route_to_global_search,
 		get_doctypes_with_global_search,
 		get_routes_to_index,
@@ -1146,14 +1146,14 @@ def rebuild_global_search(context, static_pages=False):
 
 	for site in context.sites:
 		try:
-			frappe.init(site)
-			frappe.connect()
+			nts.init(site)
+			nts.connect()
 
 			if static_pages:
 				routes = get_routes_to_index()
 				for i, route in enumerate(routes):
 					add_route_to_global_search(route)
-					frappe.local.request = None
+					nts.local.request = None
 					update_progress_bar("Rebuilding Global Search", i, len(routes))
 				sync_global_search()
 			else:
@@ -1163,7 +1163,7 @@ def rebuild_global_search(context, static_pages=False):
 					update_progress_bar("Rebuilding Global Search", i, len(doctypes))
 
 		finally:
-			frappe.destroy()
+			nts.destroy()
 	if not context.sites:
 		raise SiteNotSpecifiedError
 

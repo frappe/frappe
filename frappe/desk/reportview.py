@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 """build query for doclistview and return results"""
@@ -8,22 +8,22 @@ from functools import lru_cache
 
 from sql_metadata import Parser
 
-import frappe
-import frappe.permissions
-from frappe import _
-from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
-from frappe.model.db_query import DatabaseQuery
-from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, format_duration
-from frappe.utils.data import sbool
+import nts
+import nts.permissions
+from nts import _
+from nts.core.doctype.access_log.access_log import make_access_log
+from nts.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
+from nts.model.base_document import get_controller
+from nts.model.db_query import DatabaseQuery
+from nts.model.utils import is_virtual_doctype
+from nts.utils import add_user_info, cint, format_duration
+from nts.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get():
 	args = get_form_params()
 	# If virtual doctype, get data from controller get_list method
@@ -35,8 +35,8 @@ def get():
 	return data
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_list():
 	args = get_form_params()
 
@@ -44,14 +44,14 @@ def get_list():
 		controller = get_controller(args.doctype)
 		data = controller.get_list(args)
 	else:
-		# uncompressed (refactored from frappe.model.db_query.get_list)
+		# uncompressed (refactored from nts.model.db_query.get_list)
 		data = execute(**args)
 
 	return data
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_count() -> int:
 	args = get_form_params()
 
@@ -68,7 +68,7 @@ def get_count() -> int:
 		if args.limit:
 			args.fields = [fieldname]
 			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+			count = nts.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
 		else:
 			args.fields = [f"count({fieldname}) as total_count"]
 			count = execute(**args)[0].get("total_count")
@@ -82,7 +82,7 @@ def execute(doctype, *args, **kwargs):
 
 def get_form_params():
 	"""parse GET request parameters."""
-	data = frappe._dict(frappe.local.form_dict)
+	data = nts._dict(nts.local.form_dict)
 	clean_params(data)
 	validate_args(data)
 	return data
@@ -149,7 +149,7 @@ def validate_filters(data, filters):
 				fieldname = condition[1]
 				if is_standard(fieldname):
 					continue
-				meta = frappe.get_meta(condition[0])
+				meta = nts.get_meta(condition[0])
 				if not meta.get_field(fieldname):
 					raise_invalid_field(fieldname)
 
@@ -166,9 +166,9 @@ def setup_group_by(data):
 	"""Add columns for aggregated values e.g. count(name)"""
 	if data.group_by and data.aggregate_function:
 		if data.aggregate_function.lower() not in ("count", "sum", "avg"):
-			frappe.throw(_("Invalid aggregate function"))
+			nts.throw(_("Invalid aggregate function"))
 
-		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
+		if nts.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			data.fields.append(
 				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
 			)
@@ -181,7 +181,7 @@ def setup_group_by(data):
 
 
 def raise_invalid_field(fieldname):
-	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
+	nts.throw(_("Field not permitted in query") + f": {fieldname}", nts.DataError)
 
 
 def is_standard(fieldname):
@@ -192,7 +192,7 @@ def is_standard(fieldname):
 
 @lru_cache
 def extract_fieldnames(field):
-	from frappe.database.schema import SPECIAL_CHAR_PATTERN
+	from nts.database.schema import SPECIAL_CHAR_PATTERN
 
 	if not SPECIAL_CHAR_PATTERN.findall(field):
 		return [field]
@@ -209,7 +209,7 @@ def extract_fieldnames(field):
 
 def get_meta_and_docfield(fieldname, data):
 	parenttype, fieldname = get_parenttype_and_fieldname(fieldname, data)
-	meta = frappe.get_meta(parenttype)
+	meta = nts.get_meta(parenttype)
 	df = meta.get_field(fieldname)
 	return meta, df
 
@@ -253,7 +253,7 @@ def get_parenttype_and_fieldname(field, data):
 		parts = field.split(".")
 		parenttype = parts[0]
 		fieldname = parts[1]
-		df = frappe.get_meta(data.doctype).get_field(parenttype)
+		df = nts.get_meta(data.doctype).get_field(parenttype)
 		if not df and parenttype.startswith("tab"):
 			# tabChild DocType.fieldname
 			parenttype = parenttype[3:]
@@ -269,7 +269,7 @@ def get_parenttype_and_fieldname(field, data):
 
 def compress(data, args=None):
 	"""separate keys and values"""
-	from frappe.desk.query_report import add_total_row
+	from nts.desk.query_report import add_total_row
 
 	user_info = {}
 
@@ -288,69 +288,69 @@ def compress(data, args=None):
 				add_user_info(user, user_info)
 
 	if args.get("add_total_row"):
-		meta = frappe.get_meta(args.doctype)
+		meta = nts.get_meta(args.doctype)
 		values = add_total_row(values, keys, meta)
 
 	return {"keys": keys, "values": values, "user_info": user_info}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def save_report(name, doctype, report_settings):
 	"""Save reports of type Report Builder from Report View"""
 
-	if frappe.db.exists("Report", name):
-		report = frappe.get_doc("Report", name)
+	if nts.db.exists("Report", name):
+		report = nts.get_doc("Report", name)
 		if report.is_standard == "Yes":
-			frappe.throw(_("Standard Reports cannot be edited"))
+			nts.throw(_("Standard Reports cannot be edited"))
 
 		if report.report_type != "Report Builder":
-			frappe.throw(_("Only reports of type Report Builder can be edited"))
+			nts.throw(_("Only reports of type Report Builder can be edited"))
 
-		if report.owner != frappe.session.user and not report.has_permission("write"):
-			frappe.throw(_("Insufficient Permissions for editing Report"), frappe.PermissionError)
+		if report.owner != nts.session.user and not report.has_permission("write"):
+			nts.throw(_("Insufficient Permissions for editing Report"), nts.PermissionError)
 	else:
-		report = frappe.new_doc("Report")
+		report = nts.new_doc("Report")
 		report.report_name = name
 		report.ref_doctype = doctype
 
 	report.report_type = "Report Builder"
 	report.json = report_settings
 	report.save(ignore_permissions=True)
-	frappe.msgprint(
-		_("Report {0} saved").format(frappe.bold(report.name)),
+	nts.msgprint(
+		_("Report {0} saved").format(nts.bold(report.name)),
 		indicator="green",
 		alert=True,
 	)
 	return report.name
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def delete_report(name):
 	"""Delete reports of type Report Builder from Report View"""
 
-	report = frappe.get_doc("Report", name)
+	report = nts.get_doc("Report", name)
 	if report.is_standard == "Yes":
-		frappe.throw(_("Standard Reports cannot be deleted"))
+		nts.throw(_("Standard Reports cannot be deleted"))
 
 	if report.report_type != "Report Builder":
-		frappe.throw(_("Only reports of type Report Builder can be deleted"))
+		nts.throw(_("Only reports of type Report Builder can be deleted"))
 
-	if report.owner != frappe.session.user and not report.has_permission("delete"):
-		frappe.throw(_("Insufficient Permissions for deleting Report"), frappe.PermissionError)
+	if report.owner != nts.session.user and not report.has_permission("delete"):
+		nts.throw(_("Insufficient Permissions for deleting Report"), nts.PermissionError)
 
 	report.delete(ignore_permissions=True)
-	frappe.msgprint(
-		_("Report {0} deleted").format(frappe.bold(report.name)),
+	nts.msgprint(
+		_("Report {0} deleted").format(nts.bold(report.name)),
 		indicator="green",
 		alert=True,
 	)
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def export_query():
 	"""export from report builder"""
-	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+	from nts.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
@@ -379,15 +379,15 @@ def export_query():
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
 
-	if not frappe.permissions.can_export(doctype):
-		if frappe.permissions.can_export(doctype, is_owner=True):
+	if not nts.permissions.can_export(doctype):
+		if nts.permissions.can_export(doctype, is_owner=True):
 			for row in ret:
-				if row[-1] != frappe.session.user:
-					raise frappe.PermissionError(
+				if row[-1] != nts.session.user:
+					raise nts.PermissionError(
 						_("You are not allowed to export {} doctype").format(doctype)
 					)
 		else:
-			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+			raise nts.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 
 	if add_totals_row:
 		ret = append_totals_row(ret)
@@ -398,7 +398,7 @@ def export_query():
 	data = [[_("Sr"), *labels]]
 	processed_data = []
 
-	if frappe.local.lang == "en" or not translate_values:
+	if nts.local.lang == "en" or not translate_values:
 		data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
 	elif translate_values:
 		translatable_fields = [field["translatable"] for field in fields_info]
@@ -413,15 +413,15 @@ def export_query():
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-		from frappe.utils.xlsxutils import handle_html
+		from nts.utils.xlsxutils import handle_html
 
 		file_extension = "csv"
 		content = get_csv_bytes(
-			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			[[handle_html(nts.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
 			csv_params,
 		)
 	elif file_format_type == "Excel":
-		from frappe.utils.xlsxutils import make_xlsx
+		from nts.utils.xlsxutils import make_xlsx
 
 		file_extension = "xlsx"
 		content = make_xlsx(data, doctype).getvalue()
@@ -471,13 +471,13 @@ def get_field_info(fields, doctype):
 			fieldtype = "Data"
 			translatable = True
 		else:
-			df = frappe.get_meta(parenttype).get_field(fieldname)
+			df = nts.get_meta(parenttype).get_field(fieldname)
 			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text"):
 				name = df.name
 				label = _(df.label)
 				fieldtype = df.fieldtype
 				translatable = getattr(df, "translatable", False)
-			elif df and df.fieldtype == "Link" and frappe.get_meta(df.options).translated_doctype:
+			elif df and df.fieldtype == "Link" and nts.get_meta(df.options).translated_doctype:
 				name = df.name
 				label = _(df.label)
 				fieldtype = df.fieldtype
@@ -508,7 +508,7 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 			continue
 
 		parenttype = parenttype or doctype
-		df = frappe.get_meta(parenttype).get_field(fieldname)
+		df = nts.get_meta(parenttype).get_field(fieldname)
 
 		if df and df.fieldtype == "Duration":
 			index = fields.index(field) + 1
@@ -534,16 +534,16 @@ def parse_field(field: str) -> tuple[str | None, str]:
 	return None, key.strip("`")
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def delete_items():
 	"""delete selected items"""
 	import json
 
-	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
-	doctype = frappe.form_dict.get("doctype")
+	items = sorted(json.loads(nts.form_dict.get("items")), reverse=True)
+	doctype = nts.form_dict.get("doctype")
 
 	if len(items) > 10:
-		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
+		nts.enqueue("nts.desk.reportview.delete_bulk", doctype=doctype, items=items)
 	else:
 		delete_bulk(doctype, items)
 
@@ -552,39 +552,39 @@ def delete_bulk(doctype, items):
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
-			frappe.delete_doc(doctype, d)
+			nts.delete_doc(doctype, d)
 			if len(items) >= 5:
-				frappe.publish_realtime(
+				nts.publish_realtime(
 					"progress",
 					dict(
 						progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d
 					),
-					user=frappe.session.user,
+					user=nts.session.user,
 				)
 			# Commit after successful deletion
-			frappe.db.commit()
+			nts.db.commit()
 		except Exception:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
 			undeleted_items.append(d)
-			frappe.db.rollback()
+			nts.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
-		frappe.clear_messages()
+		nts.clear_messages()
 		delete_bulk(doctype, undeleted_items)
 	elif undeleted_items:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
 			realtime=True,
 			title=_("Bulk Operation Failed"),
 		)
 	else:
-		frappe.msgprint(
+		nts.msgprint(
 			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
 		)
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_sidebar_stats(stats, doctype, filters=None):
 	if filters is None:
 		filters = []
@@ -599,8 +599,8 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	return {"stats": data}
 
 
-@frappe.whitelist()
-@frappe.read_only()
+@nts.whitelist()
+@nts.read_only()
 def get_stats(stats, doctype, filters=None):
 	"""get tag info"""
 	import json
@@ -613,8 +613,8 @@ def get_stats(stats, doctype, filters=None):
 	results = {}
 
 	try:
-		db_columns = frappe.db.get_table_columns(doctype)
-	except (frappe.db.InternalError, frappe.db.ProgrammingError):
+		db_columns = nts.db.get_table_columns(doctype)
+	except (nts.db.InternalError, nts.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
 		db_columns = []
@@ -623,7 +623,7 @@ def get_stats(stats, doctype, filters=None):
 		if column not in db_columns:
 			continue
 		try:
-			tag_count = frappe.get_list(
+			tag_count = nts.get_list(
 				doctype,
 				fields=[column, "count(*)"],
 				filters=[*filters, [column, "!=", ""]],
@@ -634,7 +634,7 @@ def get_stats(stats, doctype, filters=None):
 
 			if column == "_user_tags":
 				results[column] = scrub_user_tags(tag_count)
-				no_tag_count = frappe.get_list(
+				no_tag_count = nts.get_list(
 					doctype,
 					fields=[column, "count(*)"],
 					filters=[*filters, [column, "in", ("", ",")]],
@@ -649,16 +649,16 @@ def get_stats(stats, doctype, filters=None):
 			else:
 				results[column] = tag_count
 
-		except frappe.db.SQLError:
+		except nts.db.SQLError:
 			pass
-		except frappe.db.InternalError:
+		except nts.db.InternalError:
 			# raised when _user_tags column is added on the fly
 			pass
 
 	return results
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_filter_dashboard_data(stats, doctype, filters=None):
 	"""get tags info"""
 	import json
@@ -667,13 +667,13 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 	filters = json.loads(filters or [])
 	stats = {}
 
-	columns = frappe.db.get_table_columns(doctype)
+	columns = nts.db.get_table_columns(doctype)
 	for tag in tags:
 		if tag["name"] not in columns:
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:
-			tagcount = frappe.get_list(
+			tagcount = nts.get_list(
 				doctype,
 				fields=[tag["name"], "count(*)"],
 				filters=[*filters, "ifnull(`%s`,'')!=''" % tag["name"]],
@@ -695,7 +695,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			if stats[tag["name"]]:
 				data = [
 					"No Data",
-					frappe.get_list(
+					nts.get_list(
 						doctype,
 						fields=[tag["name"], "count(*)"],
 						filters=[*filters, "({0} = '' or {0} is null)".format(tag["name"])],

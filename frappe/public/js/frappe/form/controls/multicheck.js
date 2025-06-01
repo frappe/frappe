@@ -1,4 +1,4 @@
-frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.form.Control {
+nts.ui.form.ControlMultiCheck = class ControlMultiCheck extends nts.ui.form.Control {
 	// UI: multiple checkboxes
 	// Value: Array of values
 	// Options: Array of label/value/checked option objects
@@ -59,7 +59,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		} else if (
 			this.df.options &&
 			this.df.options.length > 0 &&
-			frappe.utils.is_json(this.df.options)
+			nts.utils.is_json(this.df.options)
 		) {
 			let args = JSON.parse(this.df.options);
 			if (Array.isArray(args)) {

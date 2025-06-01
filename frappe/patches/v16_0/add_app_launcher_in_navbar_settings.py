@@ -1,14 +1,14 @@
-# Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2023, nts Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-import frappe
+import nts
 
 
 def execute():
-	if frappe.db.exists("Navbar Item", {"item_label": "Apps"}):
+	if nts.db.exists("Navbar Item", {"item_label": "Apps"}):
 		return
 
-	navbar_settings = frappe.get_single("Navbar Settings")
+	navbar_settings = nts.get_single("Navbar Settings")
 	settings_items = navbar_settings.as_dict().settings_dropdown
 
 	view_website_item_idx = -1

@@ -1,8 +1,8 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe
-from frappe.model.document import Document
+import nts
+from nts.model.document import Document
 
 DEFAULT_ENABLED_CURRENCIES = ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF")
 
@@ -14,7 +14,7 @@ class Currency(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		currency_name: DF.Data
 		enabled: DF.Check
@@ -40,8 +40,8 @@ class Currency(Document):
 	# end: auto-generated types
 	# NOTE: During installation country docs are bulk inserted.
 	def validate(self):
-		frappe.clear_cache()
+		nts.clear_cache()
 
 
 def enable_default_currencies():
-	frappe.db.set_value("Currency", {"name": ("in", DEFAULT_ENABLED_CURRENCIES)}, "enabled", 1)
+	nts.db.set_value("Currency", {"name": ("in", DEFAULT_ENABLED_CURRENCIES)}, "enabled", 1)

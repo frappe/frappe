@@ -1,30 +1,30 @@
-frappe.provide("frappe.ui.form");
+nts.provide("nts.ui.form");
 
-frappe.quick_edit = function (doctype, name) {
-	frappe.db.get_doc(doctype, name).then((doc) => {
-		frappe.ui.form.make_quick_entry(doctype, null, null, doc);
+nts.quick_edit = function (doctype, name) {
+	nts.db.get_doc(doctype, name).then((doc) => {
+		nts.ui.form.make_quick_entry(doctype, null, null, doc);
 	});
 };
 
-frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, force) => {
+nts.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, force) => {
 	var trimmed_doctype = doctype.replace(/ /g, "");
 	var controller_name = "QuickEntryForm";
 
-	if (frappe.ui.form[trimmed_doctype + "QuickEntryForm"]) {
+	if (nts.ui.form[trimmed_doctype + "QuickEntryForm"]) {
 		controller_name = trimmed_doctype + "QuickEntryForm";
 	}
 
-	frappe.quick_entry = new frappe.ui.form[controller_name](
+	nts.quick_entry = new nts.ui.form[controller_name](
 		doctype,
 		after_insert,
 		init_callback,
 		doc,
 		force
 	);
-	return frappe.quick_entry.setup();
+	return nts.quick_entry.setup();
 };
 
-frappe.ui.form.QuickEntryForm = class QuickEntryForm {
+nts.ui.form.QuickEntryForm = class QuickEntryForm {
 	constructor(doctype, after_insert, init_callback, doc, force) {
 		this.doctype = doctype;
 		this.after_insert = after_insert;
@@ -35,7 +35,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	setup() {
 		return new Promise((resolve) => {
-			frappe.model.with_doctype(this.doctype, () => {
+			nts.model.with_doctype(this.doctype, () => {
 				this.check_quick_entry_doc();
 				this.set_meta_and_mandatory_fields();
 				if (this.is_quick_entry() || this.force) {
@@ -43,8 +43,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					resolve(this);
 				} else {
 					// no quick entry, open full form
-					frappe.quick_entry = null;
-					frappe
+					nts.quick_entry = null;
+					nts
 						.set_route("Form", this.doctype, this.doc.name)
 						.then(() => resolve(this));
 					// call init_callback for consistency
@@ -57,7 +57,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	}
 
 	set_meta_and_mandatory_fields() {
-		this.meta = frappe.get_meta(this.doctype);
+		this.meta = nts.get_meta(this.doctype);
 		let fields = this.meta.fields;
 
 		this.mandatory = fields.filter((df) => {
@@ -72,7 +72,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	check_quick_entry_doc() {
 		if (!this.doc) {
-			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
+			this.doc = nts.model.get_new_doc(this.doctype, null, null, true);
 		}
 	}
 
@@ -125,7 +125,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	render_dialog() {
 		var me = this;
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new nts.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
 			fields: this.mandatory,
 			doc: this.doc,
@@ -136,7 +136,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		// ctrl+enter to save
 		this.dialog.wrapper.keydown(function (e) {
 			if ((e.ctrlKey || e.metaKey) && e.which == 13) {
-				if (!frappe.request.ajax_count) {
+				if (!nts.request.ajax_count) {
 					// not already working -- double entry
 					me.dialog.get_primary_btn().trigger("click");
 					e.preventDefault();
@@ -145,7 +145,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 			}
 		});
 
-		this.dialog.onhide = () => (frappe.quick_entry = null);
+		this.dialog.onhide = () => (nts.quick_entry = null);
 		this.dialog.show();
 
 		this.dialog.refresh_dependency();
@@ -178,18 +178,18 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		let me = this;
 		return new Promise((resolve) => {
 			me.update_doc();
-			frappe.call({
-				method: "frappe.client.save",
+			nts.call({
+				method: "nts.client.save",
 				args: {
 					doc: me.dialog.doc,
 				},
 				callback: function (r) {
 					if (
 						r?.message?.docstatus === 0 &&
-						frappe.model.can_submit(me.doctype) &&
-						!frappe.model.has_workflow(me.doctype)
+						nts.model.can_submit(me.doctype) &&
+						!nts.model.has_workflow(me.doctype)
 					) {
-						frappe.run_serially([
+						nts.run_serially([
 							() => (me.dialog.working = true),
 							() => {
 								me.dialog.set_primary_action(__("Submit"), function () {
@@ -200,10 +200,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					} else {
 						me.dialog.hide();
 						// delete the old doc
-						frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
+						nts.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
 						me.dialog.doc = r.message;
-						if (frappe._from_link) {
-							frappe.ui.form.update_calling_link(me.dialog.doc);
+						if (nts._from_link) {
+							nts.ui.form.update_calling_link(me.dialog.doc);
 						} else {
 							if (me.after_insert) {
 								me.after_insert(me.dialog.doc);
@@ -229,18 +229,18 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	submit(doc) {
 		var me = this;
-		frappe.call({
-			method: "frappe.client.submit",
+		nts.call({
+			method: "nts.client.submit",
 			args: {
 				doc: doc,
 			},
 			callback: function (r) {
 				me.dialog.hide();
 				// delete the old doc
-				frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
+				nts.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
 				me.dialog.doc = r.message;
-				if (frappe._from_link) {
-					frappe.ui.form.update_calling_link(me.dialog.doc);
+				if (nts._from_link) {
+					nts.ui.form.update_calling_link(me.dialog.doc);
 				} else {
 					if (me.after_insert) {
 						me.after_insert(me.dialog.doc);
@@ -255,10 +255,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	}
 
 	open_form_if_not_list() {
-		let route = frappe.get_route();
+		let route = nts.get_route();
 		let doc = this.dialog.doc;
 		if (route && !(route[0] === "List" && route[1] === doc.doctype)) {
-			frappe.run_serially([() => frappe.set_route("Form", doc.doctype, doc.name)]);
+			nts.run_serially([() => nts.set_route("Form", doc.doctype, doc.name)]);
 		}
 	}
 
@@ -277,13 +277,13 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		this.dialog.hide();
 		this.update_doc();
 		if (set_hooks && this.after_insert) {
-			frappe.route_options = frappe.route_options || {};
-			frappe.route_options.after_save = (frm) => {
+			nts.route_options = nts.route_options || {};
+			nts.route_options.after_save = (frm) => {
 				this.after_insert(frm);
 			};
 		}
 		this.doc.__run_link_triggers = false;
-		frappe.set_route("Form", this.doctype, this.doc.name);
+		nts.set_route("Form", this.doctype, this.doc.name);
 	}
 
 	render_edit_in_full_page_link() {

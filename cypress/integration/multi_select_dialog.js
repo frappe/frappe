@@ -22,9 +22,9 @@ context("MultiSelectDialog", () => {
 
 	function open_multi_select_dialog() {
 		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				new frappe.ui.form.MultiSelectDialog({
+			.its("nts")
+			.then((nts) => {
+				new nts.ui.form.MultiSelectDialog({
 					doctype: "Contact",
 					target: {},
 					setters: {
@@ -47,25 +47,25 @@ context("MultiSelectDialog", () => {
 	it("checks for filters", () => {
 		["search_term", "status", "gender"].forEach((fieldname) => {
 			cy.get_open_dialog()
-				.get(`.frappe-control[data-fieldname="${fieldname}"]`)
+				.get(`.nts-control[data-fieldname="${fieldname}"]`)
 				.should("exist");
 		});
 
 		// add_filters_group: 1 should add a filter group
-		cy.get_open_dialog().get(`.frappe-control[data-fieldname="filter_area"]`).should("exist");
+		cy.get_open_dialog().get(`.nts-control[data-fieldname="filter_area"]`).should("exist");
 	});
 
 	it("checks for child item selection", () => {
 		cy.get_open_dialog().get(`.dt-row-header`).should("not.exist");
 
 		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="allow_child_item_selection"]`)
+			.get(`.nts-control[data-fieldname="allow_child_item_selection"]`)
 			.find('input[data-fieldname="allow_child_item_selection"]')
 			.should("exist")
 			.click({ force: true });
 
 		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="child_selection_area"]`)
+			.get(`.nts-control[data-fieldname="child_selection_area"]`)
 			.should("exist");
 
 		cy.get_open_dialog().get(`.dt-row-header`).should("contain", "Contact");
@@ -77,12 +77,12 @@ context("MultiSelectDialog", () => {
 
 	it("tests more button", () => {
 		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="search_term"]`)
+			.get(`.nts-control[data-fieldname="search_term"]`)
 			.find('input[data-fieldname="search_term"]')
 			.should("exist")
 			.type("Test", { delay: 200 });
 		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="more_child_btn"]`)
+			.get(`.nts-control[data-fieldname="more_child_btn"]`)
 			.should("exist")
 			.as("more-btn");
 
@@ -92,7 +92,7 @@ context("MultiSelectDialog", () => {
 				expect($rows).to.have.length(20);
 			});
 
-		cy.intercept("POST", "api/method/frappe.client.get_list").as("get-more-records");
+		cy.intercept("POST", "api/method/nts.client.get_list").as("get-more-records");
 		cy.get("@more-btn").find("button").click({ force: true });
 		cy.wait("@get-more-records");
 

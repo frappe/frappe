@@ -1,18 +1,18 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe import _
+import nts
+from nts import _
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_event(args, field_map):
 	"""Updates Event (called via calendar) based on passed `field_map`"""
-	args = frappe._dict(json.loads(args))
-	field_map = frappe._dict(json.loads(field_map))
-	w = frappe.get_doc(args.doctype, args.name)
+	args = nts._dict(json.loads(args))
+	field_map = nts._dict(json.loads(field_map))
+	w = nts.get_doc(args.doctype, args.name)
 	w.set(field_map.start, args[field_map.start])
 	w.set(field_map.end, args.get(field_map.end))
 	w.save()
@@ -20,20 +20,20 @@ def update_event(args, field_map):
 
 def get_event_conditions(doctype, filters=None):
 	"""Returns SQL conditions with user permissions and filters for event queries"""
-	from frappe.desk.reportview import get_filters_cond
+	from nts.desk.reportview import get_filters_cond
 
-	if not frappe.has_permission(doctype):
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+	if not nts.has_permission(doctype):
+		nts.throw(_("Not Permitted"), nts.PermissionError)
 
 	return get_filters_cond(doctype, filters, [], with_match_conditions=True)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_events(doctype, start, end, field_map, filters=None, fields=None):
-	field_map = frappe._dict(json.loads(field_map))
-	fields = frappe.parse_json(fields)
+	field_map = nts._dict(json.loads(field_map))
+	fields = nts.parse_json(fields)
 
-	doc_meta = frappe.get_meta(doctype)
+	doc_meta = nts.get_meta(doctype)
 	for d in doc_meta.fields:
 		if d.fieldtype == "Color":
 			field_map.update({"color": d.fieldname})
@@ -54,4 +54,4 @@ def get_events(doctype, start, end, field_map, filters=None, fields=None):
 		[doctype, end_date, ">=", start],
 	]
 	fields = list({field for field in fields if field})
-	return frappe.get_list(doctype, fields=fields, filters=filters)
+	return nts.get_list(doctype, fields=fields, filters=filters)

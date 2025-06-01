@@ -1,8 +1,8 @@
-# Copyright (c) 2019, Frappe Technologies and contributors
+# Copyright (c) 2019, nts Technologies and contributors
 # License: MIT. See LICENSE
 
-# import frappe
-from frappe.model.document import Document
+# import nts
+from nts.model.document import Document
 
 
 class WebsiteRouteRedirect(Document):
@@ -12,7 +12,7 @@ class WebsiteRouteRedirect(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		parent: DF.Data
 		parentfield: DF.Data

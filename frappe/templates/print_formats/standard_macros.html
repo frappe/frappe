@@ -2,7 +2,7 @@
 	{%- if df.fieldtype=="Table" -%}
 		{{ render_table(df, doc) }}
 	{%- elif df.fieldtype=="HTML" and df.options -%}
-		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
+		<div>{{ nts.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code", "Long Text") -%}
 		{{ render_text_field(df, doc) }}
 	{%- elif df.fieldtype in ("Image", "Attach Image")
@@ -28,7 +28,7 @@
 {%- endmacro -%}
 
 {%- macro render_table(df, doc) -%}
-	{%- set table_meta = frappe.get_meta(df.options) -%}
+	{%- set table_meta = nts.get_meta(df.options) -%}
 	{%- set data = doc.get(df.fieldname)[df.start:df.end] -%}
 	{%- if doc.print_templates and
 			doc.print_templates.get(df.fieldname) -%}
@@ -142,7 +142,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		</svg>
 	{% elif df.fieldtype=="Check" and not doc[df.fieldname] %}
 		<!-- empty -->
-	{% elif df.fieldtype in ("Image", "Attach Image") and frappe.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
+	{% elif df.fieldtype in ("Image", "Attach Image") and nts.utils.is_image(doc[doc.meta.get_field(df.fieldname).options]) %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
@@ -157,7 +157,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}
-		{{ frappe.render_template(df.options, {"doc":doc}) }}
+		{{ nts.render_template(df.options, {"doc":doc}) }}
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% else %}
@@ -191,7 +191,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
 	{% if print_heading_template %}
-		{{ frappe.render_template(print_heading_template, {"doc":doc}) }}
+		{{ nts.render_template(print_heading_template, {"doc":doc}) }}
 	{% else %}
 	<div class="print-heading">
 		<h2>

@@ -1,17 +1,17 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import frappe
-from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.core.page.permission_manager.permission_manager import get_roles_and_doctypes
-from frappe.desk.doctype.desktop_icon.desktop_icon import (
+import nts
+from nts.core.doctype.domain_settings.domain_settings import get_active_modules
+from nts.core.page.permission_manager.permission_manager import get_roles_and_doctypes
+from nts.desk.doctype.desktop_icon.desktop_icon import (
 	add_user_icon,
 	clear_desktop_icons_cache,
 	get_desktop_icons,
 )
-from frappe.tests.utils import FrappeTestCase
+from nts.tests.utils import ntsTestCase
 
 
-class TestDomainification(FrappeTestCase):
+class TestDomainification(ntsTestCase):
 	def setUp(self):
 		# create test domain
 		self.new_domain("_Test Domain 1")
@@ -21,10 +21,10 @@ class TestDomainification(FrappeTestCase):
 		self.add_active_domain("_Test Domain 1")
 
 	def tearDown(self):
-		frappe.db.delete("Role", {"name": "_Test Role"})
-		frappe.db.delete("Has Role", {"role": "_Test Role"})
-		frappe.db.delete("Domain", {"name": ("in", ("_Test Domain 1", "_Test Domain 2"))})
-		frappe.delete_doc("DocType", "Test Domainification")
+		nts.db.delete("Role", {"name": "_Test Role"})
+		nts.db.delete("Has Role", {"role": "_Test Role"})
+		nts.db.delete("Domain", {"name": ("in", ("_Test Domain 1", "_Test Domain 2"))})
+		nts.delete_doc("DocType", "Test Domainification")
 		self.remove_from_active_domains(remove_all=True)
 
 	def add_active_domain(self, domain):
@@ -33,7 +33,7 @@ class TestDomainification(FrappeTestCase):
 		if not domain:
 			return
 
-		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
+		domain_settings = nts.get_doc("Domain Settings", "Domain Settings")
 		domain_settings.append("active_domains", {"domain": domain})
 		domain_settings.save()
 
@@ -42,7 +42,7 @@ class TestDomainification(FrappeTestCase):
 		if not (domain or remove_all):
 			return
 
-		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
+		domain_settings = nts.get_doc("Domain Settings", "Domain Settings")
 
 		if remove_all:
 			domain_settings.set("active_domains", [])
@@ -55,10 +55,10 @@ class TestDomainification(FrappeTestCase):
 
 	def new_domain(self, domain):
 		# create new domain
-		frappe.get_doc({"doctype": "Domain", "domain": domain}).insert()
+		nts.get_doc({"doctype": "Domain", "domain": domain}).insert()
 
 	def new_doctype(self, name):
-		return frappe.get_doc(
+		return nts.get_doc(
 			{
 				"doctype": "DocType",
 				"module": "Core",
@@ -70,14 +70,14 @@ class TestDomainification(FrappeTestCase):
 		)
 
 	def test_active_domains(self):
-		self.assertTrue("_Test Domain 1" in frappe.get_active_domains())
-		self.assertFalse("_Test Domain 2" in frappe.get_active_domains())
+		self.assertTrue("_Test Domain 1" in nts.get_active_domains())
+		self.assertFalse("_Test Domain 2" in nts.get_active_domains())
 
 		self.add_active_domain("_Test Domain 2")
-		self.assertTrue("_Test Domain 2" in frappe.get_active_domains())
+		self.assertTrue("_Test Domain 2" in nts.get_active_domains())
 
 		self.remove_from_active_domains("_Test Domain 1")
-		self.assertTrue("_Test Domain 1" not in frappe.get_active_domains())
+		self.assertTrue("_Test Domain 1" not in nts.get_active_domains())
 
 	def test_doctype_and_role_domainification(self):
 		"""
@@ -88,7 +88,7 @@ class TestDomainification(FrappeTestCase):
 		test_doctype = self.new_doctype("Test Domainification")
 		test_doctype.insert()
 
-		test_role = frappe.get_doc({"doctype": "Role", "role_name": "_Test Role"}).insert()
+		test_role = nts.get_doc({"doctype": "Role", "role_name": "_Test Role"}).insert()
 
 		# doctype should be hidden in desktop icon, role permissions
 		results = get_roles_and_doctypes()
@@ -146,7 +146,7 @@ class TestDomainification(FrappeTestCase):
 	def test_module_def_for_domainification(self):
 		"""modules should be hidden if module def's restrict to domain is not in active domains"""
 
-		test_module_def = frappe.get_doc("Module Def", "Contacts")
+		test_module_def = nts.get_doc("Module Def", "Contacts")
 		test_module_def.restrict_to_domain = "_Test Domain 2"
 		test_module_def.save()
 
@@ -160,6 +160,6 @@ class TestDomainification(FrappeTestCase):
 		modules = get_active_modules()
 		self.assertTrue("Contacts" not in modules)
 
-		test_module_def = frappe.get_doc("Module Def", "Contacts")
+		test_module_def = nts.get_doc("Module Def", "Contacts")
 		test_module_def.restrict_to_domain = ""
 		test_module_def.save()

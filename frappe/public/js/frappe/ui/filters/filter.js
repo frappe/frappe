@@ -1,11 +1,11 @@
-frappe.ui.Filter = class {
+nts.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		if (this.value === null || this.value === undefined) {
 			this.value = "";
 		}
 
-		this.utils = frappe.ui.filter_utils;
+		this.utils = nts.ui.filter_utils;
 		this.set_conditions();
 		this.set_conditions_from_config();
 		this.make();
@@ -73,8 +73,8 @@ frappe.ui.Filter = class {
 	}
 
 	set_conditions_from_config() {
-		if (frappe.boot.additional_filters_config) {
-			this.filters_config = frappe.boot.additional_filters_config;
+		if (nts.boot.additional_filters_config) {
+			this.filters_config = nts.boot.additional_filters_config;
 			for (let key of Object.keys(this.filters_config)) {
 				const filter = this.filters_config[key];
 				this.conditions.push([key, __(filter.label)]);
@@ -89,7 +89,7 @@ frappe.ui.Filter = class {
 
 	make() {
 		this.filter_edit_area = $(
-			frappe.render_template("edit_filter", {
+			nts.render_template("edit_filter", {
 				conditions: this.conditions,
 			})
 		);
@@ -100,7 +100,7 @@ frappe.ui.Filter = class {
 	}
 
 	make_select() {
-		this.fieldselect = new frappe.ui.FieldSelect({
+		this.fieldselect = new nts.ui.FieldSelect({
 			parent: this.filter_edit_area.find(".fieldname-select-area"),
 			doctype: this.parent_doctype,
 			parent_doctype: this._parent_doctype,
@@ -275,7 +275,7 @@ frappe.ui.Filter = class {
 				let field = this.filters_config[condition].data;
 				setup_field(field);
 			} else {
-				frappe.xcall(this.filters_config[condition].get_field, args).then((field) => {
+				nts.xcall(this.filters_config[condition].get_field, args).then((field) => {
 					this.filters_config[condition].data = field;
 					setup_field(field);
 				});
@@ -292,7 +292,7 @@ frappe.ui.Filter = class {
 		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.input_class = "input-xs";
-		let f = frappe.ui.form.make_control({
+		let f = nts.ui.form.make_control({
 			df: df,
 			parent: field_area,
 			only_input: true,
@@ -399,7 +399,7 @@ frappe.ui.Filter = class {
 			</button>
 			<button class="btn btn-default btn-xs remove-filter"
 				title="${__("Remove Filter")}">
-				${frappe.utils.icon("close")}
+				${nts.utils.icon("close")}
 			</button>
 		</div>`);
 	}
@@ -435,7 +435,7 @@ frappe.ui.Filter = class {
 
 	toggle_nested_set_conditions(df) {
 		let show_condition =
-			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+			df.fieldtype === "Link" && nts.boot.nested_set_doctypes.includes(df.options);
 		this.nested_set_conditions.forEach((condition) => {
 			this.filter_edit_area
 				.find(`.condition option[value="${condition[0]}"]`)
@@ -444,14 +444,14 @@ frappe.ui.Filter = class {
 	}
 };
 
-frappe.ui.filter_utils = {
+nts.ui.filter_utils = {
 	get_formatted_value(field, value) {
 		if (field.df.fieldname === "docstatus") {
 			value = { 0: "Draft", 1: "Submitted", 2: "Cancelled" }[value] || value;
 		} else if (field.df.original_type === "Check") {
 			value = { 0: "No", 1: "Yes" }[cint(value)];
 		}
-		return frappe.format(value, field.df, { only_value: 1 });
+		return nts.format(value, field.df, { only_value: 1 });
 	},
 
 	get_selected_value(field, condition) {
@@ -486,7 +486,7 @@ frappe.ui.filter_utils = {
 			if (val) {
 				val = val.split(",").map((v) => strip(v));
 			}
-		} else if (frappe.boot.additional_filters_config[condition]) {
+		} else if (nts.boot.additional_filters_config[condition]) {
 			val = field.value || val;
 		}
 		if (val === "%") {
@@ -503,7 +503,7 @@ frappe.ui.filter_utils = {
 	},
 
 	get_default_condition(df) {
-		const meta = frappe.get_meta(df.parent);
+		const meta = nts.get_meta(df.parent);
 		if (df.fieldtype == "Data" && !meta?.is_large_table) {
 			return "like";
 		} else if (df.fieldtype == "Date" || df.fieldtype == "Datetime") {

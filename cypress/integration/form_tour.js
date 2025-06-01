@@ -4,9 +4,9 @@ context.skip("Form Tour", () => {
 		cy.visit("/app");
 		return cy
 			.window()
-			.its("frappe")
-			.then((frappe) => {
-				return frappe.call("frappe.tests.ui_test_helpers.create_form_tour");
+			.its("nts")
+			.then((nts) => {
+				return nts.call("nts.tests.ui_test_helpers.create_form_tour");
 			});
 	});
 
@@ -23,10 +23,10 @@ context.skip("Form Tour", () => {
 	it("navigates a form tour", () => {
 		open_test_form_tour();
 
-		cy.get(".frappe-driver").should("be.visible");
-		cy.get('.frappe-control[data-fieldname="first_name"]').as("first_name");
+		cy.get(".nts-driver").should("be.visible");
+		cy.get('.nts-control[data-fieldname="first_name"]').as("first_name");
 		cy.get("@first_name").should("have.class", "driver-highlighted-element");
-		cy.get(".frappe-driver").findByRole("button", { name: "Next" }).as("next_btn");
+		cy.get(".nts-driver").findByRole("button", { name: "Next" }).as("next_btn");
 
 		// next btn shouldn't move to next step, if first name is not entered
 		cy.get("@next_btn").click();
@@ -40,7 +40,7 @@ context.skip("Form Tour", () => {
 		cy.wait(500);
 
 		// assert field is highlighted
-		cy.get('.frappe-control[data-fieldname="last_name"]').as("last_name");
+		cy.get('.nts-control[data-fieldname="last_name"]').as("last_name");
 		cy.get("@last_name").should("have.class", "driver-highlighted-element");
 
 		// after filling the field, next step should be highlighted
@@ -50,7 +50,7 @@ context.skip("Form Tour", () => {
 		cy.wait(500);
 
 		// assert field is highlighted
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("phone_nos");
+		cy.get('.nts-control[data-fieldname="phone_nos"]').as("phone_nos");
 		cy.get("@phone_nos").should("have.class", "driver-highlighted-element");
 
 		// move to next step
@@ -68,7 +68,7 @@ context.skip("Form Tour", () => {
 		cy.wait(500);
 
 		// assert table field is highlighted
-		cy.get('.grid-row-open .frappe-control[data-fieldname="phone"]').as("phone");
+		cy.get('.grid-row-open .nts-control[data-fieldname="phone"]').as("phone");
 		cy.get("@phone").should("have.class", "driver-highlighted-element");
 		// enter value in a table field
 		let field = cy.fill_table_field("phone_nos", "1", "phone", "1234567890");
@@ -89,6 +89,6 @@ context.skip("Form Tour", () => {
 		// assert save btn is highlighted
 		cy.get(".primary-action").should("have.class", "driver-highlighted-element");
 		cy.wait(500);
-		cy.get(".frappe-driver").findByRole("button", { name: "Save" }).should("be.visible");
+		cy.get(".nts-driver").findByRole("button", { name: "Save" }).should("be.visible");
 	});
 });

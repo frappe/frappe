@@ -1,28 +1,28 @@
-frappe.route_history_queue = [];
+nts.route_history_queue = [];
 const routes_to_skip = ["Form", "social", "setup-wizard", "recorder"];
 
-const save_routes = frappe.utils.debounce(() => {
-	if (frappe.session.user === "Guest") return;
-	const routes = frappe.route_history_queue;
+const save_routes = nts.utils.debounce(() => {
+	if (nts.session.user === "Guest") return;
+	const routes = nts.route_history_queue;
 	if (!routes.length) return;
 
-	frappe.route_history_queue = [];
+	nts.route_history_queue = [];
 
-	frappe
-		.xcall("frappe.desk.doctype.route_history.route_history.deferred_insert", {
+	nts
+		.xcall("nts.desk.doctype.route_history.route_history.deferred_insert", {
 			routes: routes,
 		})
 		.catch(() => {
-			frappe.route_history_queue.concat(routes);
+			nts.route_history_queue.concat(routes);
 		});
 }, 10000);
 
-frappe.router.on("change", () => {
-	const route = frappe.get_route();
+nts.router.on("change", () => {
+	const route = nts.get_route();
 	if (is_route_useful(route)) {
-		frappe.route_history_queue.push({
-			creation: frappe.datetime.now_datetime(),
-			route: frappe.get_route_str(),
+		nts.route_history_queue.push({
+			creation: nts.datetime.now_datetime(),
+			route: nts.get_route_str(),
 		});
 
 		save_routes();

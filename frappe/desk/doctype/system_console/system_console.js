@@ -1,9 +1,9 @@
-// Copyright (c) 2020, Frappe Technologies and contributors
+// Copyright (c) 2020, nts Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("System Console", {
+nts.ui.form.on("System Console", {
 	onload: function (frm) {
-		frappe.ui.keys.add_shortcut({
+		nts.ui.keys.add_shortcut({
 			shortcut: "shift+enter",
 			action: () => frm.page.btn_primary.trigger("click"),
 			page: frm.page,
@@ -85,8 +85,8 @@ frappe.ui.form.on("System Console", {
 
 	refresh_processlist: function (frm) {
 		let timestamp = new Date();
-		frappe
-			.call("frappe.desk.doctype.system_console.system_console.show_processlist")
+		nts
+			.call("nts.desk.doctype.system_console.system_console.show_processlist")
 			.then((r) => {
 				let rows = "";
 				for (let row of r.message) {

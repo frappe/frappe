@@ -1,12 +1,12 @@
-import frappe
+import nts
 
 
 def execute():
-	frappe.reload_doc("contacts", "doctype", "contact_email")
-	frappe.reload_doc("contacts", "doctype", "contact_phone")
-	frappe.reload_doc("contacts", "doctype", "contact")
+	nts.reload_doc("contacts", "doctype", "contact_email")
+	nts.reload_doc("contacts", "doctype", "contact_phone")
+	nts.reload_doc("contacts", "doctype", "contact")
 
-	contact_details = frappe.db.sql(
+	contact_details = nts.db.sql(
 		"""
 		SELECT
 			`name`, `email_id`, `phone`, `mobile_no`, `modified_by`, `creation`, `modified`
@@ -26,7 +26,7 @@ def execute():
 			email_values.append(
 				(
 					1,
-					frappe.generate_hash(length=10),
+					nts.generate_hash(length=10),
 					contact_detail.email_id,
 					"email_ids",
 					"Contact",
@@ -43,7 +43,7 @@ def execute():
 			phone_values.append(
 				(
 					phone_counter,
-					frappe.generate_hash(length=10),
+					nts.generate_hash(length=10),
 					contact_detail.phone,
 					"phone_nos",
 					"Contact",
@@ -62,7 +62,7 @@ def execute():
 			phone_values.append(
 				(
 					phone_counter,
-					frappe.generate_hash(length=10),
+					nts.generate_hash(length=10),
 					contact_detail.mobile_no,
 					"phone_nos",
 					"Contact",
@@ -76,7 +76,7 @@ def execute():
 			)
 
 		if email_values and (count % 10000 == 0 or count == len(contact_details) - 1):
-			frappe.db.sql(
+			nts.db.sql(
 				"""
 				INSERT INTO `tabContact Email`
 					(`idx`, `name`, `email_id`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
@@ -89,7 +89,7 @@ def execute():
 			email_values = []
 
 		if phone_values and (count % 10000 == 0 or count == len(contact_details) - 1):
-			frappe.db.sql(
+			nts.db.sql(
 				"""
 				INSERT INTO `tabContact Phone`
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary_phone`, `is_primary_mobile_no`, `creation`,
@@ -101,5 +101,5 @@ def execute():
 
 			phone_values = []
 
-	frappe.db.add_index("Contact Phone", ["phone"])
-	frappe.db.add_index("Contact Email", ["email_id"])
+	nts.db.add_index("Contact Phone", ["phone"])
+	nts.db.add_index("Contact Email", ["email_id"])

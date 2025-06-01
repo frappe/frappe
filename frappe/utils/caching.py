@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. Check LICENSE
 
 import datetime
@@ -9,7 +9,7 @@ from functools import wraps
 
 import pytz
 
-import frappe
+import nts
 
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
 
@@ -23,12 +23,12 @@ def __generate_request_cache_key(args: tuple, kwargs: dict):
 
 def request_cache(func: Callable) -> Callable:
 	"""Decorator to cache function calls mid-request. Cache is stored in
-	frappe.local.request_cache. The cache only persists for the current request
+	nts.local.request_cache. The cache only persists for the current request
 	and is cleared when the request is over. The function is called just once
 	per request with the same set of (kw)arguments.
 
 	Usage:
-	        from frappe.utils.caching import request_cache
+	        from nts.utils.caching import request_cache
 
 	        @request_cache
 	        def calculate_pi(num_terms=0):
@@ -43,10 +43,10 @@ def request_cache(func: Callable) -> Callable:
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		if not getattr(frappe.local, "initialised", None):
+		if not getattr(nts.local, "initialised", None):
 			return func(*args, **kwargs)
-		if not hasattr(frappe.local, "request_cache"):
-			frappe.local.request_cache = defaultdict(dict)
+		if not hasattr(nts.local, "request_cache"):
+			nts.local.request_cache = defaultdict(dict)
 
 		try:
 			args_key = __generate_request_cache_key(args, kwargs)
@@ -54,10 +54,10 @@ def request_cache(func: Callable) -> Callable:
 			return func(*args, **kwargs)
 
 		try:
-			return frappe.local.request_cache[func][args_key]
+			return nts.local.request_cache[func][args_key]
 		except KeyError:
 			return_val = func(*args, **kwargs)
-			frappe.local.request_cache[func][args_key] = return_val
+			nts.local.request_cache[func][args_key] = return_val
 			return return_val
 
 	return wrapper
@@ -65,15 +65,15 @@ def request_cache(func: Callable) -> Callable:
 
 def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	"""Decorator to cache method calls across requests. The cache is stored in
-	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
+	nts.utils.caching._SITE_CACHE. The cache persists on the parent process.
 	It offers a light-weight cache for the current process without the additional
 	overhead of serializing / deserializing Python objects.
 
 	Note: This cache isn't shared among workers. If you need to share data across
-	workers, use redis (frappe.cache API) instead.
+	workers, use redis (nts.cache API) instead.
 
 	Usage:
-	        from frappe.utils.caching import site_cache
+	        from nts.utils.caching import site_cache
 
 	        @site_cache
 	        def calculate_pi():
@@ -105,22 +105,22 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 		@wraps(func)
 		def site_cache_wrapper(*args, **kwargs):
-			if getattr(frappe.local, "initialised", None):
+			if getattr(nts.local, "initialised", None):
 				func_call_key = json.dumps((args, kwargs))
 
 				if hasattr(func, "ttl") and datetime.datetime.now(pytz.UTC) >= func.expiration:
 					func.clear_cache()
 					func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
 
-				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
-					_SITE_CACHE[func_key][frappe.local.site].pop(
-						next(iter(_SITE_CACHE[func_key][frappe.local.site])), None
+				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][nts.local.site]) >= func.maxsize:
+					_SITE_CACHE[func_key][nts.local.site].pop(
+						next(iter(_SITE_CACHE[func_key][nts.local.site])), None
 					)
 
-				if func_call_key not in _SITE_CACHE[func_key][frappe.local.site]:
-					_SITE_CACHE[func_key][frappe.local.site][func_call_key] = func(*args, **kwargs)
+				if func_call_key not in _SITE_CACHE[func_key][nts.local.site]:
+					_SITE_CACHE[func_key][nts.local.site][func_call_key] = func(*args, **kwargs)
 
-				return _SITE_CACHE[func_key][frappe.local.site][func_call_key]
+				return _SITE_CACHE[func_key][nts.local.site][func_call_key]
 
 			return func(*args, **kwargs)
 
@@ -145,7 +145,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():
-			frappe.cache.delete_keys(func_key)
+			nts.cache.delete_keys(func_key)
 
 		func.clear_cache = clear_cache
 		func.ttl = ttl if not callable(ttl) else 3600
@@ -153,11 +153,11 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
 			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
-			if frappe.cache.exists(func_call_key, user=user, shared=shared):
-				return frappe.cache.get_value(func_call_key, user=user, shared=shared)
+			if nts.cache.exists(func_call_key, user=user, shared=shared):
+				return nts.cache.get_value(func_call_key, user=user, shared=shared)
 			val = func(*args, **kwargs)
 			ttl = getattr(func, "ttl", 3600)
-			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
+			nts.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
 			return val
 
 		return redis_cache_wrapper

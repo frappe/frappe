@@ -1,4 +1,4 @@
-frappe.ui.FilterGroup = class {
+nts.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.filters = this.filters || [];
@@ -107,7 +107,7 @@ frappe.ui.FilterGroup = class {
 		});
 
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
-		frappe.router.on("change", () => {
+		nts.router.on("change", () => {
 			if (this.wrapper && this.wrapper.is(":visible")) {
 				this.hide_popover();
 			}
@@ -169,7 +169,7 @@ frappe.ui.FilterGroup = class {
 			promises.push(() => this.add_filter(...filter));
 		}
 
-		return frappe.run_serially(promises).then(() => this.update_filters());
+		return nts.run_serially(promises).then(() => this.update_filters());
 	}
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
@@ -194,10 +194,10 @@ frappe.ui.FilterGroup = class {
 		if (
 			doctype &&
 			fieldname &&
-			!frappe.meta.has_field(doctype, fieldname) &&
-			frappe.model.is_non_std_field(fieldname)
+			!nts.meta.has_field(doctype, fieldname) &&
+			nts.model.is_non_std_field(fieldname)
 		) {
-			frappe.msgprint({
+			nts.msgprint({
 				message: __("Invalid filter: {0}", [fieldname.bold()]),
 				indicator: "red",
 			});
@@ -242,7 +242,7 @@ frappe.ui.FilterGroup = class {
 			filter_list: this.base_list || this,
 		};
 
-		let filter = new frappe.ui.Filter(args);
+		let filter = new nts.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
 	}
@@ -261,7 +261,7 @@ frappe.ui.FilterGroup = class {
 				if (filter_value.length === 2) {
 					return filter_value[0] === f_value[0] && filter_value[1] === f_value[1];
 				}
-				return frappe.utils.arrays_equal(f_value.slice(0, 4), filter_value.slice(0, 4));
+				return nts.utils.arrays_equal(f_value.slice(0, 4), filter_value.slice(0, 4));
 			});
 	}
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2015, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import os
@@ -7,18 +7,18 @@ from urllib.parse import parse_qs, urlparse
 import dropbox
 from rq.timeouts import JobTimeoutException
 
-import frappe
-from frappe import _
-from frappe.integrations.offsite_backup_utils import (
+import nts
+from nts import _
+from nts.integrations.offsite_backup_utils import (
 	get_chunk_site,
 	get_latest_backup_file,
 	send_email,
 	validate_file_size,
 )
-from frappe.model.document import Document
-from frappe.utils import cint, encode, get_backups_path, get_files_path, get_request_site_address
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.backups import new_backup
+from nts.model.document import Document
+from nts.utils import cint, encode, get_backups_path, get_files_path, get_request_site_address
+from nts.utils.background_jobs import enqueue
+from nts.utils.backups import new_backup
 
 ignore_list = [".DS_Store"]
 
@@ -30,7 +30,7 @@ class DropboxSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		app_access_key: DF.Data | None
 		app_secret_key: DF.Password | None
@@ -46,23 +46,23 @@ class DropboxSettings(Document):
 
 	# end: auto-generated types
 	def onload(self):
-		if not self.app_access_key and frappe.conf.dropbox_access_key:
+		if not self.app_access_key and nts.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
 
 	def validate(self):
 		if self.enabled and self.limit_no_of_backups and self.no_of_backups < 1:
-			frappe.throw(_("Number of DB backups cannot be less than 1"))
+			nts.throw(_("Number of DB backups cannot be less than 1"))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to dropbox"""
 	enqueue(
-		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
+		"nts.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
 		queue="long",
 		timeout=1500,
 	)
-	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+	nts.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
 def take_backups_daily():
@@ -74,21 +74,21 @@ def take_backups_weekly():
 
 
 def take_backups_if(freq):
-	if frappe.db.get_single_value("Dropbox Settings", "backup_frequency") == freq:
+	if nts.db.get_single_value("Dropbox Settings", "backup_frequency") == freq:
 		take_backup_to_dropbox()
 
 
 def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_single_value("Dropbox Settings", "enabled")):
+		if cint(nts.db.get_single_value("Dropbox Settings", "enabled")):
 			validate_file_size()
 
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload:
 				raise Exception
 
-			if cint(frappe.db.get_single_value("Dropbox Settings", "send_email_for_successful_backup")):
+			if cint(nts.db.get_single_value("Dropbox Settings", "send_email_for_successful_backup")):
 				send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
@@ -97,17 +97,17 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 				"upload_db_backup": False,  # considering till worker timeout db backup is uploaded
 			}
 			enqueue(
-				"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
+				"nts.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
 				queue="long",
 				timeout=1500,
 				**args,
 			)
 	except Exception:
 		if isinstance(error_log, str):
-			error_message = error_log + "\n" + frappe.get_traceback()
+			error_message = error_log + "\n" + nts.get_traceback()
 		else:
 			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log, strict=False)]
-			error_message = "\n".join(file_and_error) + "\n" + frappe.get_traceback()
+			error_message = "\n".join(file_and_error) + "\n" + nts.get_traceback()
 
 		send_email(False, "Dropbox", "Dropbox Settings", "send_notifications_to", error_message)
 
@@ -118,7 +118,7 @@ def backup_to_dropbox(upload_db_backup=True):
 	dropbox_client = get_dropbox_client(dropbox_settings)
 
 	if upload_db_backup:
-		if frappe.flags.create_new_backup:
+		if nts.flags.create_new_backup:
 			backup = new_backup(ignore_files=True)
 			filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 			site_config = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_conf))
@@ -152,11 +152,11 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 	if is_fresh_upload():
 		response = get_uploaded_files_meta(dropbox_folder, dropbox_client)
 	else:
-		response = frappe._dict({"entries": []})
+		response = nts._dict({"entries": []})
 
 	path = str(path)
 
-	for f in frappe.get_all(
+	for f in nts.get_all(
 		"File",
 		filters={"is_folder": 0, "is_private": is_private, "uploaded_to_dropbox": 0},
 		fields=["file_url", "name", "file_name"],
@@ -180,7 +180,7 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 					update_file_dropbox_status(f.name)
 					break
 			except Exception:
-				error_log.append(frappe.get_traceback())
+				error_log.append(nts.get_traceback())
 
 		if not found:
 			try:
@@ -188,7 +188,7 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 				update_file_dropbox_status(f.name)
 			except Exception:
 				did_not_upload.append(filepath)
-				error_log.append(frappe.get_traceback())
+				error_log.append(nts.get_traceback())
 
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
@@ -226,8 +226,8 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	except dropbox.exceptions.ApiError as e:
 		if isinstance(e.error, dropbox.files.UploadError):
 			error = f"File Path: {path}\n"
-			error += frappe.get_traceback()
-			frappe.log_error(error)
+			error += nts.get_traceback()
+			nts.log_error(error)
 		else:
 			raise
 
@@ -244,11 +244,11 @@ def create_folder_if_not_exists(folder, dropbox_client):
 
 
 def update_file_dropbox_status(file_name):
-	frappe.db.set_value("File", file_name, "uploaded_to_dropbox", 1, update_modified=False)
+	nts.db.set_value("File", file_name, "uploaded_to_dropbox", 1, update_modified=False)
 
 
 def is_fresh_upload():
-	file_name = frappe.db.get_value("File", {"uploaded_to_dropbox": 1}, "name")
+	file_name = nts.db.get_value("File", {"uploaded_to_dropbox": 1}, "name")
 	return not file_name
 
 
@@ -258,7 +258,7 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 	except dropbox.exceptions.ApiError as e:
 		# folder not found
 		if isinstance(e.error, dropbox.files.ListFolderError):
-			return frappe._dict({"entries": []})
+			return nts._dict({"entries": []})
 		raise
 
 
@@ -281,12 +281,12 @@ def get_dropbox_client(dropbox_settings):
 
 def get_dropbox_settings(redirect_uri=False):
 	# NOTE: access token is kept for legacy dropbox apps
-	settings = frappe.get_doc("Dropbox Settings")
+	settings = nts.get_doc("Dropbox Settings")
 	app_details = {
-		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
+		"app_key": settings.app_access_key or nts.conf.dropbox_access_key,
 		"app_secret": settings.get_password(fieldname="app_secret_key", raise_exception=False)
 		if settings.app_secret_key
-		else frappe.conf.dropbox_secret_key,
+		else nts.conf.dropbox_secret_key,
 		"refresh_token": settings.get_password("dropbox_refresh_token", raise_exception=False),
 		"access_token": settings.get_password("dropbox_access_token", raise_exception=False),
 		"file_backup": settings.file_backup,
@@ -297,7 +297,7 @@ def get_dropbox_settings(redirect_uri=False):
 		app_details.update(
 			{
 				"redirect_uri": get_request_site_address(True)
-				+ "/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish"
+				+ "/api/method/nts.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish"
 			}
 		)
 
@@ -319,7 +319,7 @@ def delete_older_backups(dropbox_client, folder_path, to_keep):
 		dropbox_client.files_delete(os.path.join(folder_path, f.name))
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_dropbox_authorize_url():
 	app_details = get_dropbox_settings(redirect_uri=True)
 	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
@@ -336,18 +336,18 @@ def get_dropbox_authorize_url():
 	return {"auth_url": auth_url, "args": parse_qs(urlparse(auth_url).query)}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def dropbox_auth_finish():
 	app_details = get_dropbox_settings(redirect_uri=True)
-	callback = frappe.form_dict
+	callback = nts.form_dict
 	close = '<p class="text-muted">' + _("Please close this window") + "</p>"
 
 	if not callback.state or not callback.code:
-		frappe.respond_as_web_page(
+		nts.respond_as_web_page(
 			_("Dropbox Setup"),
 			_("Illegal Access Token. Please try again") + close,
 			indicator_color="red",
-			http_status_code=frappe.AuthenticationError.http_status_code,
+			http_status_code=nts.AuthenticationError.http_status_code,
 		)
 		return
 
@@ -362,17 +362,17 @@ def dropbox_auth_finish():
 	token = dropbox_oauth_flow.finish({"state": callback.state, "code": callback.code})
 	set_dropbox_token(token.access_token, token.refresh_token)
 
-	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = "/app/dropbox-settings"
+	nts.local.response["type"] = "redirect"
+	nts.local.response["location"] = "/app/dropbox-settings"
 
 
 def set_dropbox_token(access_token, refresh_token=None):
 	# NOTE: used doc object instead of db.set_value so that password field is set properly
-	dropbox_settings = frappe.get_single("Dropbox Settings")
+	dropbox_settings = nts.get_single("Dropbox Settings")
 	dropbox_settings.dropbox_access_token = access_token
 	if refresh_token:
 		dropbox_settings.dropbox_refresh_token = refresh_token
 
 	dropbox_settings.save()
 
-	frappe.db.commit()
+	nts.db.commit()

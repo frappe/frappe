@@ -1,12 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 
-import frappe
-from frappe.model import no_value_fields, table_fields
-from frappe.model.document import Document
-from frappe.utils import cstr
+import nts
+from nts.model import no_value_fields, table_fields
+from nts.model.document import Document
+from nts.utils import cstr
 
 FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if fieldtype not in table_fields)
 
@@ -18,7 +18,7 @@ class Version(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
+		from nts.types import DF
 
 		data: DF.Code | None
 		docname: DF.Data
@@ -35,12 +35,12 @@ class Version(Document):
 
 	@staticmethod
 	def set_impersonator(data):
-		if not frappe.session:
+		if not nts.session:
 			return
-		if impersonator := frappe.session.data.get("impersonated_by"):
+		if impersonator := nts.session.data.get("impersonated_by"):
 			data["impersonated_by"] = impersonator
 
-		if audit_user := frappe.session.data.get("audit_user"):
+		if audit_user := nts.session.data.get("audit_user"):
 			data["audit_user"] = audit_user
 
 	def set_diff(self, old: Document, new: Document) -> bool:
@@ -50,7 +50,7 @@ class Version(Document):
 			self.set_impersonator(diff)
 			self.ref_doctype = new.doctype
 			self.docname = new.name
-			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
+			self.data = nts.as_json(diff, indent=None, separators=(",", ":"))
 			return True
 		else:
 			return False
@@ -68,7 +68,7 @@ class Version(Document):
 		self.set_impersonator(data)
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
-		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
+		self.data = nts.as_json(data, indent=None, separators=(",", ":"))
 		return True
 
 	def get_data(self):
@@ -99,7 +99,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 	data_import = new.flags.via_data_import
 	updater_reference = new.flags.updater_reference
 
-	out = frappe._dict(
+	out = nts._dict(
 		changed=[],
 		added=[],
 		removed=[],
@@ -174,4 +174,4 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 
 def on_doctype_update():
-	frappe.db.add_index("Version", ["ref_doctype", "docname"])
+	nts.db.add_index("Version", ["ref_doctype", "docname"])

@@ -1,21 +1,21 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
+# Copyright (c) 2018, nts Technologies and contributors
 # License: MIT. See LICENSE
 
 import json
 import os
 from collections import namedtuple
 
-import frappe
-from frappe import _
-from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
-from frappe.model.document import Document
-from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, nowdate, validate_email_address
-from frappe.utils.jinja import validate_template
-from frappe.utils.safe_exec import get_safe_globals
+import nts
+from nts import _
+from nts.core.doctype.role.role import get_info_based_on_role, get_user_info
+from nts.core.doctype.sms_settings.sms_settings import send_sms
+from nts.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from nts.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from nts.model.document import Document
+from nts.modules.utils import export_module_json, get_doc_module
+from nts.utils import add_to_date, cast, nowdate, validate_email_address
+from nts.utils.jinja import validate_template
+from nts.utils.safe_exec import get_safe_globals
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
 FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
@@ -29,8 +29,8 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
-		from frappe.types import DF
+		from nts.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
+		from nts.types import DF
 
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
@@ -85,18 +85,18 @@ class Notification(Document):
 		validate_template(self.message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
-			frappe.throw(_("Please specify which date field must be checked"))
+			nts.throw(_("Please specify which date field must be checked"))
 
 		if self.event == "Value Change" and not self.value_changed:
-			frappe.throw(_("Please specify which value field must be checked"))
+			nts.throw(_("Please specify which value field must be checked"))
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache.hdel("notifications", self.document_type)
+		nts.cache.hdel("notifications", self.document_type)
 
 	def on_update(self):
-		frappe.cache.hdel("notifications", self.document_type)
+		nts.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path and self.message:
 			extension = FORMATS.get(self.message_type, ".md")
@@ -108,7 +108,7 @@ class Notification(Document):
 			if not os.path.exists(path + ".py"):
 				with open(path + ".py", "w") as f:
 					f.write(
-						"""import frappe
+						"""import nts
 
 def get_context(context):
 	# do your magic here
@@ -117,25 +117,25 @@ def get_context(context):
 					)
 
 	def validate_standard(self):
-		if self.is_standard and self.enabled and not frappe.conf.developer_mode:
-			frappe.throw(
+		if self.is_standard and self.enabled and not nts.conf.developer_mode:
+			nts.throw(
 				_("Cannot edit Standard Notification. To edit, please disable this and duplicate it")
 			)
 
 	def validate_condition(self):
-		temp_doc = frappe.new_doc(self.document_type)
+		temp_doc = nts.new_doc(self.document_type)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
+				nts.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
 			except Exception:
-				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
+				nts.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
 	def validate_forbidden_document_types(self):
 		if self.document_type in FORBIDDEN_DOCUMENT_TYPES or (
-			frappe.get_meta(self.document_type).istable and self.event not in DATE_BASED_EVENTS
+			nts.get_meta(self.document_type).istable and self.event not in DATE_BASED_EVENTS
 		):
 			# only date based events are allowed for child tables
-			frappe.throw(
+			nts.throw(
 				_("Cannot set Notification with event {0} on Document Type {1}").format(
 					_(self.event), _(self.document_type)
 				)
@@ -153,7 +153,7 @@ def get_context(context):
 		reference_date_start = reference_date + " 00:00:00.000000"
 		reference_date_end = reference_date + " 23:59:59.000000"
 
-		doc_list = frappe.get_all(
+		doc_list = nts.get_all(
 			self.document_type,
 			fields="name",
 			filters=[
@@ -163,9 +163,9 @@ def get_context(context):
 		)
 
 		for d in doc_list:
-			doc = frappe.get_doc(self.document_type, d.name)
+			doc = nts.get_doc(self.document_type, d.name)
 
-			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
+			if self.condition and not nts.safe_eval(self.condition, None, get_context(doc)):
 				continue
 
 			docs.append(doc)
@@ -209,8 +209,8 @@ def get_context(context):
 				if allow_update and not doc.flags.in_notification_update:
 					fieldname = self.set_property_after_alert
 					value = self.property_value
-					if doc.meta.get_field(fieldname).fieldtype in frappe.model.numeric_fieldtypes:
-						value = frappe.utils.cint(value)
+					if doc.meta.get_field(fieldname).fieldtype in nts.model.numeric_fieldtypes:
+						value = nts.utils.cint(value)
 
 					doc.reload()
 					doc.set(fieldname, value)
@@ -228,7 +228,7 @@ def get_context(context):
 	def create_system_notification(self, doc, context):
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = nts.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
 
@@ -245,7 +245,7 @@ def get_context(context):
 			"document_name": get_reference_name(doc),
 			"subject": subject,
 			"from_user": doc.modified_by or doc.owner,
-			"email_content": frappe.render_template(self.message, context),
+			"email_content": nts.render_template(self.message, context),
 			"attached_file": attachments and json.dumps(attachments[0]),
 		}
 		enqueue_create_notification(users, notification_doc)
@@ -253,11 +253,11 @@ def get_context(context):
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
 
-		from frappe.core.doctype.communication.email import _make as make_communication
+		from nts.core.doctype.communication.email import _make as make_communication
 
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = nts.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -265,7 +265,7 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context)
+		message = nts.render_template(self.message, context)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -288,7 +288,7 @@ def get_context(context):
 				communication_type="Automated Message",
 			).get("name")
 
-		frappe.sendmail(
+		nts.sendmail(
 			recipients=recipients,
 			subject=subject,
 			sender=sender,
@@ -306,7 +306,7 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=nts.render_template(self.message, context),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -314,7 +314,7 @@ def get_context(context):
 	def send_sms(self, doc, context):
 		send_sms(
 			receiver_list=self.get_receiver_list(doc, context),
-			msg=frappe.render_template(self.message, context),
+			msg=nts.render_template(self.message, context),
 		)
 
 	def get_list_of_recipients(self, doc, context):
@@ -323,7 +323,7 @@ def get_context(context):
 		bcc = []
 		for recipient in self.recipients:
 			if recipient.condition:
-				if not frappe.safe_eval(recipient.condition, None, context):
+				if not nts.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.receiver_by_document_field:
 				fields = recipient.receiver_by_document_field.split(",")
@@ -360,7 +360,7 @@ def get_context(context):
 		receiver_list = []
 		for recipient in self.recipients:
 			if recipient.condition:
-				if not frappe.safe_eval(recipient.condition, None, context):
+				if not nts.safe_eval(recipient.condition, None, context):
 					continue
 
 			# For sending messages to the owner's mobile phone number
@@ -383,13 +383,13 @@ def get_context(context):
 		if not self.attach_print:
 			return None
 
-		print_settings = frappe.get_doc("Print Settings", "Print Settings")
+		print_settings = nts.get_doc("Print Settings", "Print Settings")
 		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
 			doc.docstatus == 2 and not print_settings.allow_print_for_cancelled
 		):
 			# ignoring attachment as draft and cancelled documents are not allowed to print
 			status = "Draft" if doc.docstatus == 0 else "Cancelled"
-			frappe.throw(
+			nts.throw(
 				_(
 					"""Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"""
 				).format(status),
@@ -403,7 +403,7 @@ def get_context(context):
 					"name": doc.name,
 					"print_format": self.print_format,
 					"print_letterhead": print_settings.with_letterhead,
-					"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+					"lang": nts.db.get_value("Print Format", self.print_format, "default_print_language")
 					if self.print_format
 					else "en",
 				}
@@ -412,7 +412,7 @@ def get_context(context):
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
 
-		path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name))
+		path = os.path.join(os.path.dirname(module.__file__), nts.scrub(self.name))
 		extension = FORMATS.get(self.message_type, ".md")
 		file_path = path + extension
 
@@ -426,7 +426,7 @@ def get_context(context):
 			return
 
 		if extension == ".md":
-			return frappe.utils.md_to_html(template)
+			return nts.utils.md_to_html(template)
 
 		return template
 
@@ -442,12 +442,12 @@ def get_context(context):
 		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
-		frappe.cache.hdel("notifications", self.document_type)
+		nts.cache.hdel("notifications", self.document_type)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_documents_for_today(notification):
-	notification = frappe.get_doc("Notification", notification)
+	notification = nts.get_doc("Notification", notification)
 	notification.check_permission("read")
 	return [d.name for d in notification.get_documents_for_today()]
 
@@ -457,20 +457,20 @@ def trigger_daily_alerts():
 
 
 def trigger_notifications(doc, method=None):
-	if frappe.flags.in_import or frappe.flags.in_patch:
+	if nts.flags.in_import or nts.flags.in_patch:
 		# don't send notifications while syncing or patching
 		return
 
 	if method == "daily":
-		doc_list = frappe.get_all(
+		doc_list = nts.get_all(
 			"Notification", filters={"event": ("in", ("Days Before", "Days After")), "enabled": 1}
 		)
 		for d in doc_list:
-			alert = frappe.get_doc("Notification", d.name)
+			alert = nts.get_doc("Notification", d.name)
 
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
-				frappe.db.commit()
+				nts.db.commit()
 
 
 def evaluate_alert(doc: Document, alert, event):
@@ -478,16 +478,16 @@ def evaluate_alert(doc: Document, alert, event):
 
 	try:
 		if isinstance(alert, str):
-			alert = frappe.get_doc("Notification", alert)
+			alert = nts.get_doc("Notification", alert)
 
 		context = get_context(doc)
 
 		if alert.condition:
-			if not frappe.safe_eval(alert.condition, None, context):
+			if not nts.safe_eval(alert.condition, None, context):
 				return
 
 		if event == "Value Change" and not doc.is_new():
-			if not frappe.db.has_column(doc.doctype, alert.value_changed):
+			if not nts.db.has_column(doc.doctype, alert.value_changed):
 				alert.db_set("enabled", 0)
 				alert.log_error(f"Notification {alert.name} has been disabled due to missing field")
 				return
@@ -507,29 +507,29 @@ def evaluate_alert(doc: Document, alert, event):
 		alert.send(doc)
 	except TemplateError:
 		message = _("Error while evaluating Notification {0}. Please fix your template.").format(
-			frappe.utils.get_link_to_form("Notification", alert.name)
+			nts.utils.get_link_to_form("Notification", alert.name)
 		)
-		frappe.throw(message, title=_("Error in Notification"))
+		nts.throw(message, title=_("Error in Notification"))
 	except Exception as e:
 		title = str(e)
-		message = frappe.get_traceback(with_context=True)
-		frappe.log_error(title=title, message=message)
+		message = nts.get_traceback(with_context=True)
+		nts.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
-		frappe.throw(msg, title=_("Error in Notification"))
+		nts.throw(msg, title=_("Error in Notification"))
 
 
 def get_context(doc):
-	Frappe = namedtuple("frappe", ["utils"])
+	nts = namedtuple("nts", ["utils"])
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
-		"frappe": Frappe(utils=get_safe_globals().get("frappe").get("utils")),
+		"nts": nts(utils=get_safe_globals().get("nts").get("utils")),
 	}
 
 
 def get_assignees(doc):
 	assignees = []
-	assignees = frappe.get_all(
+	assignees = nts.get_all(
 		"ToDo",
 		filters={"status": "Open", "reference_name": doc.name, "reference_type": doc.doctype},
 		fields=["allocated_to"],
@@ -542,7 +542,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = nts.render_template(template, context) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 

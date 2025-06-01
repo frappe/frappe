@@ -1,22 +1,22 @@
 from datetime import datetime
 
-import frappe
-from frappe.query_builder import Interval, Order
-from frappe.query_builder.functions import Date, Sum, UnixTimestamp
-from frappe.utils import getdate
+import nts
+from nts.query_builder import Interval, Order
+from nts.query_builder.functions import Date, Sum, UnixTimestamp
+from nts.utils import getdate
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_energy_points_heatmap_data(user, date):
 	try:
 		date = getdate(date)
 	except Exception:
 		date = getdate()
 
-	eps_log = frappe.qb.DocType("Energy Point Log")
+	eps_log = nts.qb.DocType("Energy Point Log")
 
 	return dict(
-		frappe.qb.from_(eps_log)
+		nts.qb.from_(eps_log)
 		.select(UnixTimestamp(Date(eps_log.creation)), Sum(eps_log.points))
 		.where(eps_log.user == user)
 		.where(eps_log["type"] != "Review")
@@ -28,9 +28,9 @@ def get_energy_points_heatmap_data(user, date):
 	)
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_energy_points_percentage_chart_data(user, field):
-	result = frappe.get_all(
+	result = nts.get_all(
 		"Energy Point Log",
 		filters={"user": user, "type": ["!=", "Review"]},
 		group_by=field,
@@ -45,10 +45,10 @@ def get_energy_points_percentage_chart_data(user, field):
 	}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_user_rank(user):
 	month_start = datetime.today().replace(day=1)
-	monthly_rank = frappe.get_all(
+	monthly_rank = nts.get_all(
 		"Energy Point Log",
 		group_by="`tabEnergy Point Log`.`user`",
 		filters={"creation": [">", month_start], "type": ["!=", "Review"]},
@@ -57,7 +57,7 @@ def get_user_rank(user):
 		as_list=True,
 	)
 
-	all_time_rank = frappe.get_all(
+	all_time_rank = nts.get_all(
 		"Energy Point Log",
 		group_by="`tabEnergy Point Log`.`user`",
 		filters={"type": ["!=", "Review"]},
@@ -72,24 +72,24 @@ def get_user_rank(user):
 	}
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def update_profile_info(profile_info):
-	profile_info = frappe.parse_json(profile_info)
+	profile_info = nts.parse_json(profile_info)
 	keys = ["location", "interest", "user_image", "bio"]
 
 	for key in keys:
 		if key not in profile_info:
 			profile_info[key] = None
 
-	user = frappe.get_doc("User", frappe.session.user)
+	user = nts.get_doc("User", nts.session.user)
 	user.update(profile_info)
 	user.save()
 	return user
 
 
-@frappe.whitelist()
+@nts.whitelist()
 def get_energy_points_list(start, limit, user):
-	return frappe.db.get_list(
+	return nts.db.get_list(
 		"Energy Point Log",
 		filters={"user": user, "type": ["!=", "Review"]},
 		fields=[

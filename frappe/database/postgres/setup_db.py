@@ -1,36 +1,36 @@
 import os
 
-import frappe
-from frappe.database.db_manager import DbManager
-from frappe.utils import cint
+import nts
+from nts.database.db_manager import DbManager
+from nts.utils import cint
 
 
 def setup_database():
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+	root_conn = get_root_connection(nts.flags.root_login, nts.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
-	root_conn.sql(f'DROP DATABASE IF EXISTS "{frappe.conf.db_name}"')
+	root_conn.sql(f'DROP DATABASE IF EXISTS "{nts.conf.db_name}"')
 
 	# If user exists, just update password
-	if root_conn.sql(f"SELECT 1 FROM pg_roles WHERE rolname='{frappe.conf.db_name}'"):
-		root_conn.sql(f"ALTER USER \"{frappe.conf.db_name}\" WITH PASSWORD '{frappe.conf.db_password}'")
+	if root_conn.sql(f"SELECT 1 FROM pg_roles WHERE rolname='{nts.conf.db_name}'"):
+		root_conn.sql(f"ALTER USER \"{nts.conf.db_name}\" WITH PASSWORD '{nts.conf.db_password}'")
 	else:
-		root_conn.sql(f"CREATE USER \"{frappe.conf.db_name}\" WITH PASSWORD '{frappe.conf.db_password}'")
-	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
-	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_name}"')
+		root_conn.sql(f"CREATE USER \"{nts.conf.db_name}\" WITH PASSWORD '{nts.conf.db_password}'")
+	root_conn.sql(f'CREATE DATABASE "{nts.conf.db_name}"')
+	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{nts.conf.db_name}" TO "{nts.conf.db_name}"')
 	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
 		semver_version_num = psql_version[0].get("server_version_num") or "140000"
 		if cint(semver_version_num) > 150000:
-			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_name}"')
+			root_conn.sql(f'ALTER DATABASE "{nts.conf.db_name}" OWNER TO "{nts.conf.db_name}"')
 	root_conn.close()
 
 
 def bootstrap_database(verbose, source_sql=None):
-	frappe.connect()
+	nts.connect()
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect()
+	nts.connect()
 
-	if "tabDefaultValue" not in frappe.db.get_tables():
+	if "tabDefaultValue" not in nts.db.get_tables():
 		import sys
 
 		from click import secho
@@ -47,47 +47,47 @@ def bootstrap_database(verbose, source_sql=None):
 def import_db_from_sql(source_sql=None, verbose=False):
 	if verbose:
 		print("Starting database import...")
-	db_name = frappe.conf.db_name
+	db_name = nts.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), "framework_postgres.sql")
-	DbManager(frappe.local.db).restore_database(
-		verbose, db_name, source_sql, db_name, frappe.conf.db_password
+	DbManager(nts.local.db).restore_database(
+		verbose, db_name, source_sql, db_name, nts.conf.db_password
 	)
 	if verbose:
 		print("Imported from database %s" % source_sql)
 
 
 def get_root_connection(root_login=None, root_password=None):
-	if not frappe.local.flags.root_connection:
+	if not nts.local.flags.root_connection:
 		if not root_login:
-			root_login = frappe.conf.get("root_login") or None
+			root_login = nts.conf.get("root_login") or None
 
 		if not root_login:
 			root_login = input("Enter postgres super user: ")
 
 		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+			root_password = nts.conf.get("root_password") or None
 
 		if not root_password:
 			from getpass import getpass
 
 			root_password = getpass("Postgres super user password: ")
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
-			socket=frappe.conf.db_socket,
-			host=frappe.conf.db_host,
-			port=frappe.conf.db_port,
+		nts.local.flags.root_connection = nts.database.get_db(
+			socket=nts.conf.db_socket,
+			host=nts.conf.db_host,
+			port=nts.conf.db_port,
 			user=root_login,
 			password=root_password,
 			cur_db_name=root_login,
 		)
 
-	return frappe.local.flags.root_connection
+	return nts.local.flags.root_connection
 
 
 def drop_user_and_database(db_name, root_login, root_password):
 	root_conn = get_root_connection(
-		frappe.flags.root_login or root_login, frappe.flags.root_password or root_password
+		nts.flags.root_login or root_login, nts.flags.root_password or root_password
 	)
 	root_conn.commit()
 	root_conn.sql(

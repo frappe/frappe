@@ -2,13 +2,13 @@ import json
 import os
 from unittest.mock import patch
 
-import frappe
-import frappe.modules.utils
-from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.form.save import savedocs
-from frappe.model.document import Document
-from frappe.model.virtual_doctype import validate_controller
-from frappe.tests.utils import FrappeTestCase
+import nts
+import nts.modules.utils
+from nts.core.doctype.doctype.test_doctype import new_doctype
+from nts.desk.form.save import savedocs
+from nts.model.document import Document
+from nts.model.virtual_doctype import validate_controller
+from nts.tests.utils import ntsTestCase
 
 TEST_DOCTYPE_NAME = "VirtualDoctypeTest"
 TEST_CHILD_DOCTYPE_NAME = "VirtualDoctypeTestChild"
@@ -70,7 +70,7 @@ class VirtualDoctypeTest(Document):
 	@staticmethod
 	def get_list(args):
 		data = VirtualDoctypeTest.get_current_data()
-		return [frappe._dict(doc) for name, doc in data.items()]
+		return [nts._dict(doc) for name, doc in data.items()]
 
 	@staticmethod
 	def get_count(args):
@@ -82,11 +82,11 @@ class VirtualDoctypeTest(Document):
 		return {}
 
 
-class TestVirtualDoctypes(FrappeTestCase):
+class TestVirtualDoctypes(ntsTestCase):
 	@classmethod
 	def setUpClass(cls):
-		frappe.flags.allow_doctype_export = True
-		cls.addClassCleanup(frappe.flags.pop, "allow_doctype_export", None)
+		nts.flags.allow_doctype_export = True
+		cls.addClassCleanup(nts.flags.pop, "allow_doctype_export", None)
 
 		cdt = new_doctype(name=TEST_CHILD_DOCTYPE_NAME, is_virtual=1, istable=1, custom=0).insert()
 		vdt = new_doctype(
@@ -106,7 +106,7 @@ class TestVirtualDoctypes(FrappeTestCase):
 		cls.addClassCleanup(cdt.delete, force=True)
 
 		patch_virtual_doc = patch(
-			"frappe.controllers", new={frappe.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}}
+			"nts.controllers", new={nts.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}}
 		)
 		patch_virtual_doc.start()
 		cls.addClassCleanup(patch_virtual_doc.stop)
@@ -118,7 +118,7 @@ class TestVirtualDoctypes(FrappeTestCase):
 	def test_insert_update_and_load_from_desk(self):
 		"""Insert, update, reload and assert changes"""
 
-		frappe.response.docs = []
+		nts.response.docs = []
 		doc = json.dumps(
 			{
 				"docstatus": 0,
@@ -132,9 +132,9 @@ class TestVirtualDoctypes(FrappeTestCase):
 		)
 		savedocs(doc, "Save")
 
-		docname = frappe.response.docs[0]["name"]
+		docname = nts.response.docs[0]["name"]
 
-		doc = frappe.get_doc(TEST_DOCTYPE_NAME, docname)
+		doc = nts.get_doc(TEST_DOCTYPE_NAME, docname)
 
 		doc.update({"child_table": [{"name": "child-1", "some_fieldname": "child1-field-value"}]})
 
@@ -143,10 +143,10 @@ class TestVirtualDoctypes(FrappeTestCase):
 		self.assertEqual(doc.child_table[0].some_fieldname, "child1-field-value")
 
 	def test_multiple_doc_insert_and_get_list(self):
-		doc1 = frappe.new_doc(doctype=TEST_DOCTYPE_NAME)
+		doc1 = nts.new_doc(doctype=TEST_DOCTYPE_NAME)
 		doc1.append("child_table", {"name": "first", "some_fieldname": "first-value"})
 		doc1.insert()
-		doc2 = frappe.new_doc(doctype=TEST_DOCTYPE_NAME)
+		doc2 = nts.new_doc(doctype=TEST_DOCTYPE_NAME)
 		doc2.append("child_table", {"name": "second", "some_fieldname": "second-value"})
 		doc2.insert()
 
@@ -165,9 +165,9 @@ class TestVirtualDoctypes(FrappeTestCase):
 		self.assertIsInstance(VirtualDoctypeTest.get_count(args), int)
 
 	def test_delete_doc(self):
-		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
+		doc = nts.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
-		frappe.delete_doc(doc.doctype, doc.name)
+		nts.delete_doc(doc.doctype, doc.name)
 
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
 		self.assertNotIn(doc.name, listed_docs)

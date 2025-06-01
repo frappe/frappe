@@ -8,7 +8,7 @@ let map_control = computed(() => {
 	if (!map.value) return;
 	map.value.innerHTML = "";
 
-	return frappe.ui.form.make_control({
+	return nts.ui.form.make_control({
 		parent: map.value,
 		df: { ...props.df, hidden: 0 },
 		frm: true,

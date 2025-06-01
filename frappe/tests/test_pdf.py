@@ -1,16 +1,16 @@
-# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, nts Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import io
 
 from pypdf import PdfReader
 
-import frappe
-import frappe.utils.pdf as pdfgen
-from frappe.core.doctype.file.test_file import make_test_image_file
-from frappe.tests.utils import FrappeTestCase
+import nts
+import nts.utils.pdf as pdfgen
+from nts.core.doctype.file.test_file import make_test_image_file
+from nts.tests.utils import ntsTestCase
 
 
-class TestPdf(FrappeTestCase):
+class TestPdf(ntsTestCase):
 	@property
 	def html(self):
 		return """<style>
@@ -25,9 +25,9 @@ class TestPdf(FrappeTestCase):
 				<a href="http://test.com">Test link 1</a>
 				<a href="/about">Test link 2</a>
 				<a href="login">Test link 3</a>
-				<img src="/assets/frappe/test.jpg">
+				<img src="/assets/nts/test.jpg">
 			</div>
-			<div style="background-image: url('/assets/frappe/bg.jpg')">
+			<div style="background-image: url('/assets/nts/bg.jpg')">
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>"""
 
@@ -78,7 +78,7 @@ class TestPdf(FrappeTestCase):
 		self.assertTrue(reader.decrypt(password))
 
 	def test_pdf_generation_as_a_user(self):
-		frappe.set_user("Administrator")
+		nts.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
 		self.assertTrue(pdf)
 

@@ -21,12 +21,12 @@ context("Control Barcode", () => {
 		get_dialog_with_barcode().as("dialog");
 
 		cy.focused().blur();
-		cy.get(".frappe-control[data-fieldname=barcode]")
+		cy.get(".nts-control[data-fieldname=barcode]")
 			.findByRole("textbox")
 			.type("123456789")
 			.blur();
 		cy.get(
-			'.frappe-control[data-fieldname=barcode] svg[data-barcode-value="123456789"]'
+			'.nts-control[data-fieldname=barcode] svg[data-barcode-value="123456789"]'
 		).should("exist");
 
 		cy.get("@dialog").then((dialog) => {
@@ -40,13 +40,13 @@ context("Control Barcode", () => {
 		get_dialog_with_barcode().as("dialog");
 
 		cy.focused().blur();
-		cy.get(".frappe-control[data-fieldname=barcode]")
+		cy.get(".nts-control[data-fieldname=barcode]")
 			.findByRole("textbox")
 			.type("123456789")
 			.blur();
-		cy.get(".frappe-control[data-fieldname=barcode]").findByRole("textbox").clear().blur();
+		cy.get(".nts-control[data-fieldname=barcode]").findByRole("textbox").clear().blur();
 		cy.get(
-			'.frappe-control[data-fieldname=barcode] svg[data-barcode-value="123456789"]'
+			'.nts-control[data-fieldname=barcode] svg[data-barcode-value="123456789"]'
 		).should("not.exist");
 
 		cy.get("@dialog").then((dialog) => {

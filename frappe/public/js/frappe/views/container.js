@@ -1,12 +1,12 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2015, nts Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // page container
-frappe.provide("frappe.pages");
-frappe.provide("frappe.views");
+nts.provide("nts.pages");
+nts.provide("nts.views");
 
 window.cur_page = null;
-frappe.views.Container = class Container {
+nts.views.Container = class Container {
 	// Container contains pages inside `#container` and manages page creation, switching
 	constructor() {
 		this.container = $("#body").get(0);
@@ -18,13 +18,13 @@ frappe.views.Container = class Container {
 
 		$(document).on("page-change", function () {
 			// set data-route in body
-			var route_str = frappe.get_route_str();
+			var route_str = nts.get_route_str();
 			$("body").attr("data-route", route_str);
 			$("body").attr("data-sidebar", me.has_sidebar() ? 1 : 0);
 		});
 
 		$(document).bind("rename", function (event, dt, old_name, new_name) {
-			frappe.breadcrumbs.rename(dt, old_name, new_name);
+			nts.breadcrumbs.rename(dt, old_name, new_name);
 		});
 	}
 	add_page(label) {
@@ -35,7 +35,7 @@ frappe.views.Container = class Container {
 			.appendTo(this.container)
 			.get(0);
 		page.label = label;
-		frappe.pages[label] = page;
+		nts.pages[label] = page;
 
 		return page;
 	}
@@ -46,7 +46,7 @@ frappe.views.Container = class Container {
 			// if sent the div, get the table
 			page = label;
 		} else {
-			page = frappe.pages[label];
+			page = nts.pages[label];
 		}
 		if (!page) {
 			console.log(__("Page not found") + ": " + label);
@@ -77,20 +77,20 @@ frappe.views.Container = class Container {
 
 		$(document).trigger("page-change");
 
-		this.page._route = frappe.router.get_sub_path();
+		this.page._route = nts.router.get_sub_path();
 		$(this.page).trigger("show");
-		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
-		frappe.breadcrumbs.update();
+		!this.page.disable_scroll_to_top && nts.utils.scroll_to(0);
+		nts.breadcrumbs.update();
 
 		return this.page;
 	}
 	has_sidebar() {
 		var flag = 0;
-		var route_str = frappe.get_route_str();
-		// check in frappe.ui.pages
-		flag = frappe.ui.pages[route_str] && !frappe.ui.pages[route_str].single_column;
+		var route_str = nts.get_route_str();
+		// check in nts.ui.pages
+		flag = nts.ui.pages[route_str] && !nts.ui.pages[route_str].single_column;
 
-		// sometimes frappe.ui.pages is updated later,
+		// sometimes nts.ui.pages is updated later,
 		// so check the dom directly
 		if (!flag) {
 			var page_route = route_str.split("/").slice(0, 2).join("/");
