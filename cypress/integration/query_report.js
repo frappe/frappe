@@ -25,7 +25,7 @@ context("Query Report", () => {
 			.should("have.length", 1)
 			.then(() => {
 				cy.get('#page-query-report input[data-fieldname="user"]').as("input-user");
-				cy.get("@input-user").focus().type("test@erpnext.com", { delay: 100 }).blur();
+				cy.get("@input-user").focus().type("test@productionmanager.com", { delay: 100 }).blur();
 				cy.wait(300);
 				cy.get('#page-query-report input[data-fieldname="doctype"]').as("input-role");
 				cy.get("@input-role").focus().type("Role", { delay: 100 }).blur();

@@ -12,11 +12,11 @@ Some key notes before you open a PR:
 
 Also, if you're new here
 
-- Documentation Guidelines => https://github.com/nts/erpnext/wiki/Updating-Documentation
+- Documentation Guidelines => https://github.com/nts/productionmanager/wiki/Updating-Documentation
 
 - Contribution Guide => https://github.com/nts/nts/blob/develop/.github/CONTRIBUTING.md
 
-- Pull Request Checklist => https://github.com/nts/erpnext/wiki/Pull-Request-Checklist
+- Pull Request Checklist => https://github.com/nts/productionmanager/wiki/Pull-Request-Checklist
 
 -->
 

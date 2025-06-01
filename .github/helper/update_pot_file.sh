@@ -14,7 +14,7 @@ bench generate-pot-file --app nts
 cd ./apps/nts || exit
 
 echo "Configuring git user..."
-git config user.email "developers@erpnext.com"
+git config user.email "developers@productionmanager.com"
 git config user.name "nts-pr-bot"
 
 echo "Setting the correct git remote..."

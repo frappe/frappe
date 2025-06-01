@@ -63,7 +63,7 @@ const argv = yargs
 		description:
 			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 	})
-	.example("node esbuild --apps nts,erpnext", "Run build only for nts and erpnext")
+	.example("node esbuild --apps nts,productionmanager", "Run build only for nts and productionmanager")
 	.example(
 		"node esbuild --files nts/website.bundle.js,nts/desk.bundle.js",
 		"Run build only for specified bundles"
@@ -204,7 +204,7 @@ function get_all_files_to_build(apps) {
 }
 
 function get_files_to_build(files) {
-	// files: ['nts/website.bundle.js', 'erpnext/main.bundle.js']
+	// files: ['nts/website.bundle.js', 'productionmanager/main.bundle.js']
 	let include_patterns = [];
 	let ignore_patterns = [];
 

@@ -8,7 +8,7 @@ Please post on our forums:
 
 for questions about using the `nts Framework`: ~~https://discuss.nts.io~~ => [stackoverflow](https://stackoverflow.com/questions/tagged/nts) tagged under `nts`
 
-for questions about using `ERPNext`: https://discuss.erpnext.com
+for questions about using `productionmanager`: https://discuss.productionmanager.com
 
 for questions about using `bench`, probably the best place to start is the [bench repo](https://github.com/nts/bench)
 
