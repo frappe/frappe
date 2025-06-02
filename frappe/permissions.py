@@ -351,7 +351,7 @@ def has_user_permission(doc, user=None, debug=False):
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and str(docname) not in allowed_docs:
+		if allowed_docs and docname and str(docname) not in allowed_docs:
 			# no user permissions for this doc specified
 			debug and _debug_log(
 				"User doesn't have access to this document because of User Permissions, allowed documents: "
