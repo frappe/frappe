@@ -301,7 +301,7 @@ class NestedSet(Document):
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge and hasattr(self, group_fname):
-			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
+			is_group = frappe.db.get_value(self.doctype, newdn, group_fname) or 0
 			if self.get(group_fname) != is_group:
 				frappe.throw(
 					_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"),
