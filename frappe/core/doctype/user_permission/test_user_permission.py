@@ -216,7 +216,7 @@ class TestUserPermission(IntegrationTestCase):
 		if not frappe.db.exists("Doctype", "Person"):
 			doc = new_doctype(
 				"Person",
-				fields=[{"label": "Person Name", "fieldname": "person_name", "field_type": "Data"}],
+				fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
 				unique=0,
 			)
 			doc.is_tree = 1
@@ -233,8 +233,8 @@ class TestUserPermission(IntegrationTestCase):
 			secret_doc = new_doctype(
 				"Secret",
 				fields=[
-					{"label": "Person", "fieldname": "person", "field_type": "Link"},
-					{"label": "Person Secret", "fieldname": "person_secret", "field_type": "Data"},
+					{"label": "Person", "fieldname": "person", "fieldtype": "Link", "options": "Person"},
+					{"label": "Person Secret", "fieldname": "person_secret", "fieldtype": "Data"},
 				],
 			)
 			secret_doc.insert()
@@ -243,9 +243,16 @@ class TestUserPermission(IntegrationTestCase):
 			{"doctype": "Secret", "person": child_record.name, "person_secret": "Top Secret"}
 		).insert()
 
-		add_user_permissions(
-			get_params(user, "Person", parent_record.name, applicable=["Secret"], hide_descendants=1)
-		)
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": user.name,
+				"allow": "Person",
+				"for_value": parent_record.name,
+				"applicable_for": "Secret",
+				"hide_descendants": 1,
+			}
+		).insert()
 
 		# passes as it should
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
