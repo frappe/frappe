@@ -446,7 +446,8 @@ class DataExporter:
 						value = format_datetime(value)
 					elif fieldtype == "Duration":
 						value = format_duration(value, df.hide_days)
-
+					elif fieldtype == "Text Editor" and value:
+						value = frappe.core.utils.html2text(value)
 				row[_column_start_end.start + i + 1] = value
 
 	def build_response_as_excel(self):
