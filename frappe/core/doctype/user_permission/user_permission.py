@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from collections import defaultdict
 
 import frappe
 from frappe import _
@@ -103,34 +104,78 @@ def get_user_permissions(user=None):
 	if cached_user_permissions is not None:
 		return cached_user_permissions
 
-	out = {}
+	out = defaultdict(list)
 
 	def add_doc_to_perm(perm, doc_name, is_default):
 		# group rules for each type
 		# for example if allow is "Customer", then build all allowed customers
 		# in a list
-		if not out.get(perm.allow):
-			out[perm.allow] = []
-
 		out[perm.allow].append(
 			frappe._dict(
 				{"doc": doc_name, "applicable_for": perm.get("applicable_for"), "is_default": is_default}
 			)
 		)
 
-	try:
-		for perm in frappe.get_all(
+	def get_permissions_grouped_by_allowed(user):
+		grouped = defaultdict(list)
+		for user_perm in frappe.get_all(
 			"User Permission",
 			fields=["allow", "for_value", "applicable_for", "is_default", "hide_descendants"],
 			filters=dict(user=user),
 		):
-			meta = frappe.get_meta(perm.allow)
-			add_doc_to_perm(perm, perm.for_value, perm.is_default)
+			grouped[(user_perm.allow, user_perm.for_value)].append(user_perm)
 
-			if meta.is_nested_set() and not perm.hide_descendants:
-				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
-				for doc in decendants:
-					add_doc_to_perm(perm, doc, False)
+		return grouped
+
+	try:
+		grouped_by_allowed = get_permissions_grouped_by_allowed(user)
+
+		for (doctype, for_value), perms in grouped_by_allowed.items():
+			meta = frappe.get_meta(doctype)
+			# flat doctype, add perms as is
+			if not meta.is_nested_set():
+				for perm in perms:
+					add_doc_to_perm(perm, perm.for_value, perm.is_default)
+				continue
+
+			if meta.is_nested_set():
+				doctypes_to_hide = [p.applicable_for for p in perms if p.hide_descendants == 1]
+
+				# netsed doctype but hide descendent is checked for all document types: doctypes_to_hide = [None]
+				if len(doctypes_to_hide) == 1 and not doctypes_to_hide[0]:
+					for perm in perms:
+						add_doc_to_perm(perm, perm.for_value, perm.is_default)
+				# nested doctype but hide descendants is not checked for any document type
+				elif len(doctypes_to_hide) == 0:
+					for perm in perms:
+						# so add perms for for_value and all it's descendants
+						add_doc_to_perm(perm, perm.for_value, perm.is_default)
+						descendants = frappe.db.get_descendants(doctype, for_value)
+						for descendant in descendants:
+							add_doc_to_perm(perm, descendant, perm.is_default)
+				# nested doctype but hide descendants is checked for one more document types
+				else:
+					linked_doctypes = get_linked_doctypes(doctype)
+
+					# add perms for for_value for all linked doctypes
+					for linked_doctype in linked_doctypes.keys():
+						modified_perm = frappe._dict(
+							allow=doctype, for_value=for_value, applicable_for=linked_doctype, is_default=0
+						)
+
+						add_doc_to_perm(modified_perm, modified_perm.for_value, modified_perm.is_default)
+
+					# add perms for for_value's descedants for all except doctypes to hide
+					for linked_doctype in set(linked_doctypes.keys()) - set(doctypes_to_hide):
+						decendants = frappe.db.get_descendants(doctype, for_value)
+						for descendant in decendants:
+							modified_perm = frappe._dict(
+								allow=doctype,
+								for_value=descendant,
+								applicable_for=linked_doctype,
+								is_default=0,
+							)
+							add_doc_to_perm(modified_perm, modified_perm.for_value, modified_perm.is_default)
 
 		out = frappe._dict(out)
 		frappe.cache.hset("user_permissions", user, out)
