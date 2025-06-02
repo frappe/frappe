@@ -9,13 +9,13 @@
 			@change="
 				($event: Event) => {
 					if (type === 'checkbox') {
-						emit('update:modelValue', ($event.target as HTMLInputElement).checked)
+						data = ($event.target as HTMLInputElement).checked
 					} else {
-						emit('update:modelValue', ($event.target as HTMLInputElement).value)
+						data = ($event.target as HTMLInputElement).value
 					}
 				}
 			"
-			@input="($event: Event) => emit('input', ($event.target as HTMLInputElement).value)"
+			@input="($event: Event) => (data = ($event.target as HTMLInputElement).value)"
 			autocomplete="off"
 			v-bind="attrs"
 			:modelValue="data"
@@ -32,24 +32,20 @@
 </template>
 
 <script setup lang="ts">
-import { useVModel } from "@vueuse/core"
-import { useAttrs } from "vue"
+import { useAttrs, defineModel } from "vue"
 import CrossIcon from "./Icons/Cross.vue"
 
 const props = withDefaults(
 	defineProps<{
-		modelValue?: string | number | boolean | null
 		type?: string
 		hideClearButton?: boolean
 	}>(),
 	{
 		type: "text",
-		modelValue: "",
 	},
 )
 
-const emit = defineEmits(["update:modelValue", "input"])
-const data = useVModel(props, "modelValue", emit)
+const data = defineModel<string | number | boolean | null>({ default: "" })
 
 defineOptions({
 	inheritAttrs: false,

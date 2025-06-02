@@ -2,15 +2,7 @@
 	<div class="flex flex-col gap-5">
 		<!-- Component Filter -->
 		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
-			<TextInput
-				type="text"
-				size="sm"
-				class="w-full"
-				variant="outline"
-				placeholder="Search component"
-				v-model="componentFilter"
-				@input="(e: Event) => (componentFilter = (e.target as HTMLInputElement).value)"
-			/>
+			<Input type="text" variant="outline" placeholder="Search component" v-model="componentFilter" />
 		</div>
 
 		<div class="grid grid-cols-3 items-center gap-x-2 gap-y-4">
@@ -35,8 +27,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { TextInput } from "frappe-ui"
-
+import Input from "@/components/Input.vue"
 import components from "@/data/components"
 
 import LucideIcon from "@/components/LucideIcon.vue"

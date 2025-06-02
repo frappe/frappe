@@ -21,18 +21,20 @@
 		<div class="flex h-full flex-col items-center px-20 py-10">
 			<div class="flex w-full flex-row justify-between">
 				<div class="text-lg font-semibold text-gray-800">All Apps</div>
-				<TextInput
-					class="w-48"
-					placeholder="Search"
-					type="text"
-					variant="outline"
-					autofocus
-					@input="(e: Event) => (searchFilter = (e.target as HTMLInputElement).value)"
-				>
-					<template #prefix>
-						<FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
-					</template>
-				</TextInput>
+				<div class="relative flex">
+					<Input
+						class="w-48"
+						type="text"
+						variant="outline"
+						placeholder="Search"
+						v-model="searchFilter"
+						autofocus
+					>
+						<template #prefix>
+							<FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
+						</template>
+					</Input>
+				</div>
 			</div>
 			<div class="mt-5 grid w-full grid-cols-5 items-start gap-5">
 				<router-link
@@ -79,6 +81,7 @@ import { Dialog } from "frappe-ui"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
+import Input from "@/components/Input.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"

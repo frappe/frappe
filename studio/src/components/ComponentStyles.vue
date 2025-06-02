@@ -1,19 +1,12 @@
 <template>
 	<div v-if="blockController.isAnyBlockSelected()" class="flex select-none flex-col pb-16">
 		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
-			<TextInput
+			<Input
 				ref="searchInput"
 				type="text"
-				class="w-full"
-				size="sm"
 				variant="outline"
 				placeholder="Search properties"
 				v-model="store.stylePropertyFilter"
-				@input="
-					(e: Event) => {
-						store.stylePropertyFilter = (e.target as HTMLInputElement).value
-					}
-				"
 			/>
 		</div>
 		<div class="flex flex-col gap-3">
@@ -36,12 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import { TextInput } from "frappe-ui"
 import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { Ref, computed, ref } from "vue"
+
+import Input from "@/components/Input.vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
 import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
 import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
