@@ -196,6 +196,15 @@ def execute_event(doc: str):
 	return doc
 
 
+@frappe.whitelist()
+def skip_next_execution(doc: str):
+	frappe.only_for("System Manager")
+	doc = json.loads(doc)
+	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
+	doc.last_execution = doc.next_execution
+	return doc.save()
+
+
 def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
 	if frappe.conf.maintenance_mode:
