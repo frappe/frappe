@@ -1,7 +1,6 @@
 frappe.provide("frappe.views");
 
 frappe.views.ListGroupBy = class ListGroupBy {
-
 	get_default_group_by_fields() {
 		// Check if DocType supports assignments (exclude virtual DocTypes)
 		const meta = frappe.get_meta(this.doctype);
