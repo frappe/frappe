@@ -380,6 +380,7 @@ frappe.Application = class Application {
 				if (r.exc) {
 					return;
 				}
+
 				me.redirect_to_login();
 			},
 		});

@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.core.doctype.installed_applications.installed_applications import get_setup_wizard_completed_apps
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
@@ -22,7 +23,12 @@ def get_setup_stages(args):  # nosemgrep
 			"status": _("Updating global settings"),
 			"fail_msg": _("Failed to update global settings"),
 			"tasks": [
-				{"fn": update_global_settings, "args": args, "fail_msg": "Failed to update global settings"}
+				{
+					"fn": update_global_settings,
+					"args": args,
+					"fail_msg": "Failed to update global settings",
+					"app_name": "frappe",
+				}
 			],
 		}
 	]
@@ -47,18 +53,18 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	# Setup complete: do not throw an exception, let the user continue to desk
-	if cint(frappe.db.get_single_value("System Settings", "setup_complete")):
+	if frappe.is_setup_complete():
 		return {"status": "ok"}
 
-	args = parse_args(sanitize_input(args))
-	stages = get_setup_stages(args)
+	kwargs = parse_args(sanitize_input(args))
+	stages = get_setup_stages(kwargs)
 	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
 
 	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=args, is_background_task=True, at_front=True)
+		process_setup_stages.enqueue(stages=stages, user_input=kwargs, is_background_task=True, at_front=True)
 		return {"status": "registered"}
 	else:
-		return process_setup_stages(stages, args)
+		return process_setup_stages(stages, kwargs)
 
 
 @frappe.whitelist()
@@ -87,6 +93,8 @@ def initialize_system_settings_and_user(system_settings_data, user_data):
 def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
 
+	setup_wizard_completed_apps = get_setup_wizard_completed_apps()
+
 	capture("initated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
@@ -100,7 +108,18 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 
 			for task in stage.get("tasks"):
 				current_task = task
+				if task.get("app_name") and task.get("app_name") in setup_wizard_completed_apps:
+					continue
+
+				if "frappe" in setup_wizard_completed_apps:
+					set_missing_values(task)
+
 				task.get("fn")(task.get("args"))
+
+				if task.get("app_name"):
+					enable_setup_wizard_complete(task.get("app_name"))
+				else:
+					enable_setup_wizard_complete("frappe")
 	except Exception:
 		handle_setup_exception(user_input)
 		message = current_task.get("fail_msg") if current_task else "Failed to complete setup"
@@ -121,6 +140,23 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
 	finally:
 		frappe.flags.in_setup_wizard = False
+
+
+def set_missing_values(task):
+	if task and task.get("args"):
+		doc = frappe.get_doc("System Settings")
+		task["args"].update(
+			{
+				"country": doc.country,
+				"time_zone": doc.time_zone,
+				"time_format": doc.time_format,
+				"currency": doc.currency,
+			}
+		)
+
+
+def enable_setup_wizard_complete(app_name):
+	frappe.db.set_value("Installed Application", {"app_name": app_name}, "is_setup_complete", 1)
 
 
 def update_global_settings(args):  # nosemgrep
@@ -166,6 +202,7 @@ def get_setup_complete_hooks(args):  # nosemgrep
 					"fn": frappe.get_attr(method),
 					"args": args,
 					"fail_msg": "Failed to execute method",
+					"app_name": method.split(".")[0],
 				}
 			],
 		}
@@ -183,6 +220,9 @@ def handle_setup_exception(args):  # nosemgrep
 
 
 def update_system_settings(args):  # nosemgrep
+	if not args.get("country"):
+		return
+
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
 	# replace these as float number formats, as they have 0 precision
@@ -309,8 +349,6 @@ def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	# Enable onboarding after install
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
-
-	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
 @frappe.whitelist()

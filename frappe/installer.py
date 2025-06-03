@@ -344,6 +344,8 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		if frappe.flags.in_install:
 			post_install(rebuild_website)
 
+	frappe.get_single("Installed Applications").update_versions()
+
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
