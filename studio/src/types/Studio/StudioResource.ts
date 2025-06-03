@@ -30,6 +30,7 @@ export interface DocumentListResource extends BaseResource {
 	document_type: string
 	fields?: string[]
 	filters?: Filters
+	limit?: number
 }
 
 export interface APIResource extends BaseResource {

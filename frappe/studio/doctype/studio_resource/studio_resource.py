@@ -20,6 +20,7 @@ class StudioResource(Document):
 		fetch_document_using_filters: DF.Check
 		fields: DF.JSON | None
 		filters: DF.JSON | None
+		limit: DF.Int
 		method: DF.Literal["GET", "POST", "PUT", "DELETE"]
 		resource_name: DF.Data
 		resource_type: DF.Literal["Document List", "Document", "API Resource"]
