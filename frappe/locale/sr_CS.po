@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-23 02:58\n"
+"PO-Revision-Date: 2025-06-04 06:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -1364,7 +1364,7 @@ msgstr "Dodaj korisničku dozvolu"
 #. Label of a Check field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Add Video Conferencing"
-msgstr "Dodaj video konferenciju"
+msgstr "Dodaj video-konferenciju"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:298
 msgid "Add a Filter"
@@ -5893,7 +5893,7 @@ msgstr "Kreiraj svoj prvi {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
-msgstr "Kreirajte Vaš radni tok vizuelno koristeći uređivač radnog toka."
+msgstr "Kreirajte Vaš radni tok vizualno koristeći uređivač radnog toka."
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -8469,7 +8469,7 @@ msgstr "Uredite Vaš odgovor"
 
 #: frappe/workflow/doctype/workflow/workflow.js:18
 msgid "Edit your workflow visually using the Workflow Builder."
-msgstr "Vizuelno uredite svoj radni tok pomoću uređivača radnog toka."
+msgstr "Vizualno uredite svoj radni tok pomoću uređivača radnog toka."
 
 #: frappe/public/js/frappe/views/reports/report_view.js:652
 msgid "Edit {0}"
@@ -12986,7 +12986,7 @@ msgstr "Uvod"
 #. Label of a Data field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Intro Video URL"
-msgstr "URL uvodnog video snimka"
+msgstr "URL uvodnog video-snimka"
 
 #. Description of the 'Company Introduction' (Text Editor) field in DocType
 #. 'About Us Settings'
@@ -13626,7 +13626,7 @@ msgstr "Zadatak nije pokrenut."
 
 #: frappe/desk/doctype/event/event.js:55
 msgid "Join video conference with {0}"
-msgstr "Pridruži se video konferenciji sa {0}"
+msgstr "Pridruži se video-konferenciji sa {0}"
 
 #: frappe/public/js/frappe/form/toolbar.js:379
 #: frappe/public/js/frappe/form/toolbar.js:768
@@ -28922,7 +28922,7 @@ msgstr "ID uređivača radnog toka"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
-msgstr "Uređivač radnog toka Vam dozvoljava da vizuelno kreirate radne tokove. Možete prevlačiti i puštati stanja i povezivati ih kako biste napravili tranzicije. Takođe, možete ažurirati njihova svojstva putem bočne trake."
+msgstr "Uređivač radnog toka Vam dozvoljava da vizualno kreirate radne tokove. Možete prevlačiti i puštati stanja i povezivati ih kako biste napravili tranzicije. Takođe, možete ažurirati njihova svojstva putem bočne trake."
 
 #. Label of a JSON field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
