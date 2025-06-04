@@ -2050,7 +2050,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.$tree_footer = $(`<div class="tree-footer col-md-3">
 				<div class="input-group">
 				  <input id="tree-level" type="number" class="form-control" aria-label="Tree Level" value="2">
-					<button class="btn btn-xs btn-primary" data-action="set_tree_level">
+					<button class="btn btn-xs btn-secondary" data-action="set_tree_level">
 						${__("Set Level")}</button>
 					<button class="btn btn-xs btn-secondary" data-action="expand_all_rows">
 						${__("Expand All")}</button>
