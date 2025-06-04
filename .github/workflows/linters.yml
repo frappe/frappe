@@ -76,4 +76,21 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
+<<<<<<< HEAD
           pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp .
+=======
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 .
+
+  precommit:
+    name: 'Pre-Commit'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: pre-commit/action@v3.0.1
+>>>>>>> 9d82fe62cc (ci: skip redis vuln check (#32787))
