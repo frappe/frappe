@@ -1337,7 +1337,6 @@ class Document(BaseDocument, DocRef):
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
 	def clear_cache(self):
-		# TODO: drop db.value_cache
 		frappe.clear_document_cache(self.doctype, self.name)
 
 	def reset_seen(self):

@@ -38,10 +38,12 @@ from frappe.model.base_document import (
 	BaseDocument,
 )
 from frappe.model.document import Document
+from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.types import DocRef
 from frappe.utils import cached_property, cast, cint, cstr
+from frappe.utils.caching import site_cache
 from frappe.utils.data import add_to_date, get_datetime
 
 DEFAULT_FIELD_LABELS = {
@@ -806,13 +808,6 @@ class Meta(Document):
 #######
 
 
-def is_single(doctype):
-	try:
-		return frappe.db.get_value("DocType", doctype, "issingle")
-	except IndexError:
-		raise Exception("Cannot determine whether {} is single".format(doctype))
-
-
 def get_parent_dt(dt):
 	if not frappe.is_table(dt):
 		return ""
@@ -990,3 +985,7 @@ if typing.TYPE_CHECKING:
 
 	class _Meta(Meta, DocType):
 		pass
+
+
+# backward compatibility
+is_single = is_single_doctype
