@@ -19,7 +19,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import TypeAlias, TypedDict
+from typing import Any, Generic, TypeAlias, TypedDict
 
 from werkzeug.test import Client
 
@@ -1153,46 +1153,45 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return safe_eval(code, eval_globals, eval_locals)
 
 
-class cached_property(functools.cached_property):
-	"""
-	A simpler `functools.cached_property` implementation without locks.
-	This isn't needed in Python 3.12+, since lock was removed in newer versions.
-	Hence, in those versions, it returns the `functools.cached_property` object.
+cached_property = functools.cached_property
+if sys.version_info.minor < 12:
+	T = TypeVar("T")
 
-	This does not prevent a possible race condition in multi-threaded usage.
-	The getter function could run more than once on the same instance,
-	with the latest run setting the cached value. If the cached property is
-	idempotent or otherwise not harmful to run more than once on an instance,
-	this is fine. If synchronization is needed, implement the necessary locking
-	inside the decorated getter function or around the cached property access.
-	"""
+	class cached_property(functools.cached_property, Generic[T]):
+		"""
+		A simpler `functools.cached_property` implementation without locks.
+		This isn't needed in Python 3.12+, since lock was removed in newer versions.
+		Hence, in those versions, it returns the `functools.cached_property` object.
 
-	def __new__(cls, func):
-		if sys.version_info.minor >= 12:
-			return functools.cached_property(func)
+		This does not prevent a possible race condition in multi-threaded usage.
+		The getter function could run more than once on the same instance,
+		with the latest run setting the cached value. If the cached property is
+		idempotent or otherwise not harmful to run more than once on an instance,
+		this is fine. If synchronization is needed, implement the necessary locking
+		inside the decorated getter function or around the cached property access.
+		"""
 
-		return super().__new__(cls)
+		def __init__(self, func: Callable[[Any], T]) -> T:
+			self.func = func
+			self.attrname = None
+			self.__doc__ = func.__doc__
+			self.__module__ = func.__module__
 
-	def __init__(self, func):
-		self.func = func
-		self.attrname = None
-		self.__doc__ = func.__doc__
-		self.__module__ = func.__module__
+		def __set_name__(self, owner, name):
+			if self.attrname is None:
+				self.attrname = name
 
-	def __set_name__(self, owner, name):
-		if self.attrname is None:
-			self.attrname = name
+			elif name != self.attrname:
+				raise TypeError(
+					"Cannot assign the same cached_property to two different names "
+					f"({self.attrname!r} and {name!r})."
+				)
 
-		elif name != self.attrname:
-			raise TypeError(
-				"Cannot assign the same cached_property to two different names "
-				f"({self.attrname!r} and {name!r})."
-			)
+		def __get__(self, instance, owner=None) -> T:
+			if instance is None:
+				return self
 
-	def __get__(self, instance, owner=None):
-		if instance is None:
-			return self
-
-		value = self.func(instance)
-		instance.__dict__[self.attrname] = value
-		return value
+			value = self.func(instance)
+			instance.__dict__[self.attrname] = value
+			return value
+# end: custom cached_property implementation
