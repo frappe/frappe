@@ -41,7 +41,7 @@ def make_new_doc(doctype):
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
 
-	if not frappe.model.meta.is_single(doctype):
+	if not doc.meta.issingle:
 		doc["__unsaved"] = 1
 
 	return doc
