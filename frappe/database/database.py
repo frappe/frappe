@@ -762,7 +762,7 @@ class Database:
 
 			return [r]
 
-	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
+	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False, cache=True):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -798,6 +798,7 @@ class Database:
 			else:
 				casted_value = value
 			return_value[fieldname] = casted_value
+			self.value_cache[doctype][fieldname] = casted_value
 
 		return return_value
 
@@ -879,25 +880,8 @@ class Database:
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = frappe.qb.get_query(
-			table="Singles",
-			filters={"doctype": doctype, "field": fieldname},
-			fields="value",
-		).run()
-		val = val[0][0] if val else None
-
-		df = frappe.get_meta(doctype).get_field(fieldname)
-
-		if not df:
-			frappe.throw(
-				_("Field {0} does not exist on {1}").format(
-					frappe.bold(fieldname), frappe.bold(doctype), self.InvalidColumnName
-				)
-			)
-
-		val = cast_fieldtype(df.fieldtype, val)
-
-		self.value_cache[doctype][fieldname] = val
+		doc = self.get_singles_dict(cache=cache)
+		val = doc.get(fieldname)
 
 		return val
 
