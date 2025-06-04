@@ -1,12 +1,18 @@
 <template>
-	<codemirror
-		v-model="model"
-		:extensions="extensions"
-		:tab-size="2"
-		:autofocus="autofocus"
-		:indent-with-tab="true"
-		:style="{ height: height }"
-	/>
+	<div class="flex flex-col">
+		<codemirror
+			v-model="model"
+			:extensions="extensions"
+			:tab-size="2"
+			:autofocus="autofocus"
+			:indent-with-tab="true"
+			:style="{ height: height }"
+		/>
+
+		<Button v-if="showSaveButton" @click="emit('save', model)" class="mt-3 w-full text-base">
+			Save
+		</Button>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -24,6 +30,7 @@ const props = withDefaults(
 		readonly?: boolean
 		height?: string
 		autofocus?: boolean
+		showSaveButton?: boolean
 	}>(),
 	{
 		language: "javascript",
@@ -31,6 +38,7 @@ const props = withDefaults(
 	},
 )
 const model = defineModel<string>()
+const emit = defineEmits(["save"])
 
 const extensions = [getLanguageExtension(), closeBrackets()]
 
