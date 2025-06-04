@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-05-18 09:33+0000\n"
-"PO-Revision-Date: 2025-05-19 07:02\n"
+"PO-Revision-Date: 2025-06-04 11:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3330,7 +3330,7 @@ msgstr "Yedekleme Sıklığı"
 #. Label of the backup_path (Data) field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Backup Path"
-msgstr ""
+msgstr "Yedekleme Yolu"
 
 #: frappe/desk/page/backups/backups.py:98
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -13912,7 +13912,7 @@ msgstr "Tüm güncelleme akışlarını takip edin"
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr ""
+msgstr "Tüm iletişimleri takip eder"
 
 #. Label of the defkey (Data) field in DocType 'DefaultValue'
 #. Label of the key (Data) field in DocType 'Document Share Key'
@@ -14217,11 +14217,11 @@ msgstr "Son 10 Aktif Kullanıcı"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:627
 msgid "Last 14 Days"
-msgstr ""
+msgstr "Son 14 Gün"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:631
 msgid "Last 30 Days"
-msgstr ""
+msgstr "Son 30 Gün"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:651
 msgid "Last 6 Months"
@@ -14229,11 +14229,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:623
 msgid "Last 7 Days"
-msgstr ""
+msgstr "Son 7 Gün"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:635
 msgid "Last 90 Days"
-msgstr ""
+msgstr "Son 90 Gün"
 
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
