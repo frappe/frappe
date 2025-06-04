@@ -1396,7 +1396,7 @@ class Document(BaseDocument, DocRef):
 			self.set("modified_by", frappe.session.user)
 
 		# load but do not reload doc_before_save because before_change or on_change might expect it
-		if not self.get_doc_before_save():
+		if not self.get_doc_before_save() and not self.meta.istable:
 			self.load_doc_before_save()
 
 		# to trigger notification on value change
