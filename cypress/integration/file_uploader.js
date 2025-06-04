@@ -52,4 +52,39 @@ context("FileUploader", () => {
 			.should("have.property", "file_name", "example.json");
 		cy.get(".modal:visible").should("not.exist");
 	});
+
+	describe("Web Link Upload", () => {
+		beforeEach(() => {
+			open_upload_dialog();
+			cy.get_open_dialog().find("button").contains("Link").click();
+		});
+
+		it("should show image URL input when 'Link' is clicked", () => {
+			cy.get(".form-check").should("contain", "Upload to Library");
+		});
+
+		it("should show 'Optimize Image' checkbox when upload to library is selected", () => {
+			cy.get("#upload-to-library").check({ force: true });
+			cy.get("#optimize-image").should("exist");
+		});
+
+		it("should show an error for invalid URL format", () => {
+			const invalidUrl = "not-a-valid-url";
+
+			cy.get_open_dialog().findByPlaceholderText("Attach a web link").type(invalidUrl);
+			cy.get_open_dialog().findByRole("button", { name: "Upload" }).click();
+
+			cy.on("window:alert", (text) => {
+				expect(text).to.contain("The provided URL is not valid.");
+			});
+		});
+
+		it("should show an error when no URL is provided", () => {
+			cy.get_open_dialog().findByRole("button", { name: "Upload" }).click();
+
+			cy.on("window:alert", (text) => {
+				expect(text).to.contain("Invalid URL");
+			});
+		});
+	});
 });

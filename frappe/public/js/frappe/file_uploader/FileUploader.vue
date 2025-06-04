@@ -216,6 +216,14 @@
 			@hide-browser="show_file_browser = false"
 		/>
 		<WebLink ref="web_link" v-if="show_web_link" @hide-web-link="show_web_link = false" />
+        <div v-if="show_web_link" class="form-check mt-2">
+            <input type="checkbox" id="upload-to-library" v-model="upload_to_library" class="form-check-input" />
+            <label for="upload-to-library" class="form-check-label">{{ __("Upload to Library") }}</label>
+        </div>
+        <div v-if="show_web_link && upload_to_library" class="form-check mt-2">
+            <input type="checkbox" id="optimize-image" v-model="optimize_image" class="form-check-input" />
+            <label for="optimize-image" class="form-check-label">{{ __("Optimize Image") }}</label>
+        </div>
 	</div>
 </template>
 
@@ -312,6 +320,8 @@ let google_drive_settings = ref({
 	enabled: false,
 });
 let wrapper_ready = ref(false);
+let upload_to_library = ref(false);
+let optimize_image = ref(false);
 
 // created
 if (props.allow_take_photo) {
@@ -524,19 +534,41 @@ function upload_via_file_browser() {
 		library_file_name: selected_file.value,
 	});
 }
-function upload_via_web_link() {
-	let file_url = web_link.value.url;
-	if (!file_url) {
-		frappe.msgprint(__("Invalid URL"));
-		close_dialog.value = true;
-		return Promise.reject();
-	}
-	file_url = decodeURI(file_url);
-	close_dialog.value = true;
-	return upload_file({
-		file_url,
-	});
-}
+async function upload_via_web_link() {
+    let file_url = web_link.value.url;
+    if (!file_url) {
+        frappe.msgprint(__("Invalid URL"));
+        close_dialog.value = true;
+        return Promise.reject();
+    }
+    file_url = decodeURI(file_url);
+    close_dialog.value = true;
+
+    // Se for para importar para a library, chama o endpoint novo
+    if (upload_to_library.value) {
+        return frappe.call({
+            method: "frappe.core.api.image_import.import_image_from_url",
+            args: {
+                url: file_url,
+                optimize: optimize_image.value,
+            },
+            callback: (r) => {
+                if (props.on_success) {
+                    props.on_success(r.message);
+                }
+            },
+            error: (err) => {
+                frappe.msgprint(__("Failed to import image: ") + err.message);
+            }
+        });
+    }
+
+    // Caso contrário, faz upload normal
+    return upload_file({
+        file_url,
+        private: !props.make_attachments_public
+    });
+} 
 function return_as_dataurl() {
 	let promises = files.value.map((file) =>
 		frappe.dom.file_to_base64(file.file_obj).then((dataurl) => {
@@ -668,6 +700,10 @@ function upload_file(file, i) {
 		if (props.method) {
 			form_data.append("method", props.method);
 		}
+
+		if (file.upload_to_library) {
+            form_data.append("upload_to_library", true);
+        }
 
 		if (file.optimize) {
 			form_data.append("optimize", true);

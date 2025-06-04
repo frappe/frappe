@@ -141,6 +141,7 @@ def upload_file():
 	method = frappe.form_dict.method
 	filename = frappe.form_dict.file_name
 	optimize = frappe.form_dict.optimize
+	upload_to_library = frappe.form_dict.get("upload_to_library")
 	content = None
 
 	if library_file := frappe.form_dict.get("library_file_name"):
@@ -197,6 +198,8 @@ def upload_file():
 				"file_url": file_url,
 				"is_private": cint(is_private),
 				"content": content,
+				"optimize": optimize,
+				"uploaded_to_library": upload_to_library,
 			}
 		).save(ignore_permissions=ignore_permissions)
 
