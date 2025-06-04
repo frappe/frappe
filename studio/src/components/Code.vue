@@ -7,6 +7,7 @@
 			:autofocus="autofocus"
 			:indent-with-tab="true"
 			:style="{ height: height }"
+			:disabled="readonly"
 		/>
 
 		<Button v-if="showSaveButton" @click="emit('save', model)" class="mt-3 w-full text-base">
@@ -23,6 +24,8 @@ import { python } from "@codemirror/lang-python"
 import { html } from "@codemirror/lang-html"
 import { css } from "@codemirror/lang-css"
 import { closeBrackets } from "@codemirror/autocomplete"
+import { EditorView } from "@codemirror/view"
+import { tomorrow } from "thememirror"
 
 const props = withDefaults(
 	defineProps<{
@@ -31,16 +34,32 @@ const props = withDefaults(
 		height?: string
 		autofocus?: boolean
 		showSaveButton?: boolean
+		showLineNumbers?: boolean
 	}>(),
 	{
 		language: "javascript",
 		height: "250px",
+		showLineNumbers: true,
 	},
 )
 const model = defineModel<string>()
 const emit = defineEmits(["save"])
 
-const extensions = [getLanguageExtension(), closeBrackets()]
+const extensions = [
+	getLanguageExtension(),
+	closeBrackets(),
+	tomorrow,
+	EditorView.lineWrapping,
+	EditorView.theme({
+		"&": {
+			fontFamily: "monospace",
+			fontSize: "12px",
+		},
+		".cm-gutters": {
+			display: props.showLineNumbers ? "flex" : "none",
+		}
+	})
+]
 
 function getLanguageExtension() {
 	switch (props.language) {
