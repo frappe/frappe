@@ -236,6 +236,11 @@ class AutoRepeat(Document):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
 		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy=False)
 		self.update_doc(new_doc, reference_doc)
+		new_doc.flags.updater_reference = {
+			"doctype": self.doctype,
+			"docname": self.name,
+			"label": _("via Auto Repeat"),
+		}
 		new_doc.insert(ignore_permissions=True)
 
 		if self.submit_on_creation:
