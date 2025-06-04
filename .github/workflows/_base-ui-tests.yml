@@ -92,13 +92,17 @@ jobs:
             -x '${{ github.event.repository.name }}/public/dist/**' \
             -x '${{ github.event.repository.name }}/public/js/lib/**' \
             -x '**/*.bundle.js' --compact=false --in-place ${{ github.event.repository.name }}
-
+      
       - name: Site Setup
         run: |
           source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
+      - uses: browser-actions/setup-chrome@latest
+      - run: |
+          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+    
       - name: Run Tests
         run: |
           source ${GITHUB_WORKSPACE}/env/bin/activate
@@ -107,6 +111,7 @@ jobs:
               --with-coverage \
               --headless \
               --parallel \
+              --browser ${{ env.BROWSER_PATH }} \
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
