@@ -1252,10 +1252,10 @@ class Database:
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Return `COUNT(*)` for given DocType and filters."""
+		cache_key = (dt, "COUNT(*)")
 		if cache and not filters:
-			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
-			if cache_count is not None:
-				return cache_count
+			if cache_key in self.value_cache:
+				return self.value_cache[cache_key]
 		count = frappe.qb.get_query(
 			table=dt,
 			filters=filters,
@@ -1264,7 +1264,7 @@ class Database:
 			validate_filters=True,
 		).run(debug=debug)[0][0]
 		if not filters and cache:
-			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
+			self.value_cache[cache_key] = count
 		return count
 
 	def estimate_count(self, doctype: str) -> int:
