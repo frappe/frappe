@@ -351,7 +351,12 @@ def export_query():
 	)
 
 	if file_format_type == "CSV":
-		content = get_csv_bytes(xlsx_data, csv_params)
+		from frappe.utils.xlsxutils import handle_html
+
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			csv_params,
+		)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
