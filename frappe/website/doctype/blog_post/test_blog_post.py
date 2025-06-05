@@ -74,9 +74,6 @@ class TestBlogPost(IntegrationTestCase):
 		category_page_link = next(iter(soup.find_all("a", href=re.compile(blog.blog_category))))
 		category_page_url = category_page_link["href"]
 
-		cached_value = frappe.db.value_cache.get(("DocType", "Blog Post", "name"))
-		frappe.db.value_cache[("DocType", "Blog Post", "name")] = (("Blog Post",),)
-
 		# Visit the category page (by following the link found in above stage)
 		set_request(path=category_page_url)
 		category_page_response = get_response()
@@ -85,7 +82,6 @@ class TestBlogPost(IntegrationTestCase):
 		self.assertIn(blog.title, category_page_html)
 
 		# Cleanup
-		frappe.db.value_cache[("DocType", "Blog Post", "name")] = cached_value
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 

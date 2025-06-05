@@ -128,7 +128,7 @@ def get_bootinfo():
 
 
 def remove_apps_with_incomplete_dependencies(bootinfo):
-	remove_apps = []
+	remove_apps = set()
 
 	for app in bootinfo.setup_wizard_not_required_apps:
 		if app in bootinfo.setup_wizard_completed_apps:
@@ -142,7 +142,7 @@ def remove_apps_with_incomplete_dependencies(bootinfo):
 					continue
 
 				if required_app not in bootinfo.setup_wizard_completed_apps:
-					remove_apps.append(app)
+					remove_apps.add(app)
 
 	for app in remove_apps:
 		bootinfo.setup_wizard_not_required_apps.remove(app)

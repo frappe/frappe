@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import time
+import unittest
 from typing import TYPE_CHECKING
 
 import click
@@ -32,8 +33,30 @@ def main(
 	debug: bool = False,
 	debug_exceptions: tuple[Exception] | None = None,
 	selected_categories: list[str] | None = None,
+	lightmode: bool = False,
 ) -> None:
 	"""Main function to run tests"""
+	if lightmode:
+		from frappe.testing.config import TestParameters
+
+		test_params = TestParameters(
+			site=site,
+			app=app,
+			module=module,
+			doctype=doctype,
+			module_def=module_def,
+			verbose=verbose,
+			tests=tests,
+			force=force,
+			profile=profile,
+			junit_xml_output=junit_xml_output,
+			doctype_list_path=doctype_list_path,
+			failfast=failfast,
+			case=case,
+		)
+		run_tests_in_light_mode(test_params)
+		return
+
 	import logging
 
 	from frappe.testing import (
@@ -157,6 +180,26 @@ def main(
 		testing_module_logger.debug(f"Total test run time: {end_time - start_time:.3f} seconds")
 
 
+def run_tests_in_light_mode(test_params):
+	from frappe.testing.loader import FrappeTestLoader
+	from frappe.testing.result import FrappeTestResult
+
+	# init environment
+	frappe.init(test_params.site)
+	if not frappe.db:
+		frappe.connect()
+
+	# disable scheduler
+	global scheduler_disabled_by_user
+	scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
+	if not scheduler_disabled_by_user:
+		frappe.utils.scheduler.disable_scheduler()
+	frappe.clear_cache()
+
+	suite = FrappeTestLoader().discover_tests(test_params)
+	unittest.TextTestRunner(failfast=test_params.failfast, resultclass=FrappeTestResult).run(suite)
+
+
 def _setup_xml_output(junit_xml_output):
 	"""Setup XML output for test results if specified"""
 	global unittest_runner
@@ -246,6 +289,7 @@ def _get_doctypes_for_module_def(app, module_def):
 	default="all",
 	help="Select test category to run",
 )
+@click.option("--lightmode", is_flag=True, default=False)
 @pass_context
 def run_tests(
 	context: CliCtxObj,
@@ -263,6 +307,7 @@ def run_tests(
 	failfast=False,
 	case=None,
 	test_category="all",
+	lightmode=False,
 	debug=False,
 ):
 	"""Run python unit-tests"""
@@ -307,6 +352,7 @@ def run_tests(
 			skip_before_tests=skip_before_tests,
 			debug=debug,
 			selected_categories=[] if test_category == "all" else test_category,
+			lightmode=lightmode,
 		)
 
 

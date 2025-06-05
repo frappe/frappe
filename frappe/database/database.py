@@ -34,7 +34,16 @@ from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.monitor import get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
-from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import (
+	CallbackManager,
+	cint,
+	get_datetime,
+	get_table_name,
+	getdate,
+	now,
+	recursive_defaultdict,
+	sbool,
+)
 from frappe.utils import cast as cast_fieldtype
 
 if TYPE_CHECKING:
@@ -112,7 +121,7 @@ class Database:
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.value_cache = {}
+		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
 
@@ -615,11 +624,8 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		cache_key = None
-		if cache and isinstance(filters, str):
-			cache_key = (doctype, filters, fieldname)
-			if cache_key in self.value_cache:
-				return self.value_cache[cache_key]
+		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
+			return self.value_cache[doctype][filters][fieldname]
 
 		if distinct:
 			order_by = None
@@ -701,8 +707,8 @@ class Database:
 					distinct=distinct,
 				)
 
-		if cache and cache_key:
-			self.value_cache[cache_key] = out
+		if cache and isinstance(filters, str):
+			self.value_cache[doctype][filters][fieldname] = out
 
 		return out
 
@@ -858,9 +864,6 @@ class Database:
 		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
-		if doctype in self.value_cache:
-			del self.value_cache[doctype]
-
 	def get_single_value(self, doctype: str, fieldname: str, cache: bool = True):
 		"""Get property of Single DocType. Cache locally by default
 
@@ -872,10 +875,6 @@ class Database:
 		        # Get the default value of the company from the Global Defaults doctype.
 		        company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
-
-		if doctype not in self.value_cache:
-			self.value_cache[doctype] = {}
-
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
@@ -974,9 +973,6 @@ class Database:
 			query = query.set(column, value)
 
 		query.run(debug=debug)
-
-		if dt in self.value_cache:
-			del self.value_cache[dt]
 
 	def bulk_update(
 		self,
@@ -1252,10 +1248,10 @@ class Database:
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Return `COUNT(*)` for given DocType and filters."""
-		if cache and not filters:
-			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
-			if cache_count is not None:
-				return cache_count
+		cache_key = "COUNT(*)"
+		if cache and not filters and cache_key in self.value_cache[dt]:
+			return self.value_cache[dt][cache_key]
+
 		count = frappe.qb.get_query(
 			table=dt,
 			filters=filters,
@@ -1263,8 +1259,9 @@ class Database:
 			distinct=distinct,
 			validate_filters=True,
 		).run(debug=debug)[0][0]
+
 		if not filters and cache:
-			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
+			self.value_cache[dt][cache_key] = count
 		return count
 
 	def estimate_count(self, doctype: str) -> int:

@@ -286,7 +286,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 
 	get_toolbar_options() {
 		return [
-			[{ header: [1, 2, 3, false] }],
+			[{ header: [1, 2, 3, 4, 5, 6, false] }],
 			[{ size: font_sizes }],
 			["bold", "italic", "underline", "strike", "clean"],
 			[{ color: [] }, { background: [] }],

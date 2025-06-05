@@ -14,7 +14,7 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, get_valid_perms, has_permission
+from frappe.permissions import get_role_permissions, has_permission
 from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
 
 
@@ -710,8 +710,10 @@ def has_match(
 				# so that even if one of the sets allows a match, it is true
 
 				if match:
-					valid_perms = get_valid_perms(doctype=ref_doctype)
-					match = any(perm.get("read") and not perm.get("if_owner") for perm in valid_perms)
+					if not frappe.has_permission(
+						doctype=ref_doctype, ptype="read", throw=False, ignore_share_permissions=True
+					):
+						match = False
 
 				matched_for_doctype = matched_for_doctype or match
 
