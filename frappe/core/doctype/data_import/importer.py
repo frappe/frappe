@@ -268,6 +268,7 @@ class Importer:
 		}
 
 		new_doc.insert()
+		new_doc.save()
 		if meta.is_submittable and self.data_import.submit_after_import:
 			new_doc.submit()
 		return new_doc
