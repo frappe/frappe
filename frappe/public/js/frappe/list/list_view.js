@@ -661,6 +661,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				);
 				$count.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 				$count.css("cursor", "pointer");
+				$count.css("white-space", "nowrap");
 				$count.on("click", () => {
 					me.count_upper_bound = 0;
 					$count.off("click");
@@ -718,7 +719,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.join("");
 
 		const right_html = `
-			<span class="list-count"></span>
+			<span class="list-count" style=""></span>
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Liked by me")}">
 					<svg class="icon icon-sm like-icon">
