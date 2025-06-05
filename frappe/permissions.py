@@ -236,7 +236,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 			"User is owner of document, so permissions are updated to: " + frappe.as_json(permissions)
 		)
 
-	if not has_user_permission(doc, user, debug=debug):
+	if not has_user_permission(doc, user, debug=debug, ptype=ptype):
 		if is_user_owner():
 			# replace with owner permissions
 			permissions = permissions.get("if_owner", {})
@@ -323,7 +323,7 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False):
+def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -334,6 +334,9 @@ def has_user_permission(doc, user=None, debug=False):
 		debug and _debug_log("User is not affected by any user permissions")
 		return True
 
+	doctype = doc.get("doctype")
+	docname = doc.get("name")
+
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
 	apply_strict_user_permissions = (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
@@ -341,8 +344,14 @@ def has_user_permission(doc, user=None, debug=False):
 	if apply_strict_user_permissions:
 		debug and _debug_log("Strict user permissions will be applied")
 
-	doctype = doc.get("doctype")
-	docname = doc.get("name")
+	if (
+		apply_strict_user_permissions
+		and doc.get("__islocal")
+		and ptype == "read"
+		and (not docname or (docname and not frappe.db.exists(doctype, docname, cache=True)))
+	):
+		apply_strict_user_permissions = False
+		debug and _debug_log("Strict permissions will be skipped on local document")
 
 	# STEP 1: ---------------------
 	# check user permissions on self
@@ -372,7 +381,7 @@ def has_user_permission(doc, user=None, debug=False):
 		#
 		# called for both parent and child records
 
-		meta = frappe.get_meta(d.get("doctype"))
+		meta = frappe.get_meta(d.doctype)
 
 		# check all link fields for user permissions
 		for field in meta.get_link_fields():
@@ -381,7 +390,6 @@ def has_user_permission(doc, user=None, debug=False):
 
 			# empty value, do you still want to apply user permissions?
 			if not d.get(field.fieldname) and not apply_strict_user_permissions:
-				# nah, not strict
 				continue
 
 			if field.options not in user_permissions:

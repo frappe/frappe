@@ -417,6 +417,10 @@ class TestPermissions(IntegrationTestCase):
 		self.assertFalse(other_contact.has_permission("read"))
 		self.assertTrue(len(frappe.get_list("Contact")), 1)
 
+		# This is a temporary WIP doc that user is using run_doc_method on
+		local_doc = frappe.copy_doc(other_contact)
+		self.assertTrue(local_doc.has_permission("read"))
+
 		frappe.set_user("Administrator")
 		self.set_strict_user_permissions(0)
 
