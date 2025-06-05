@@ -109,6 +109,7 @@
 				language="javascript"
 				height="60px"
 				:showLineNumbers="false"
+				:completions="getCompletions"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>
@@ -217,5 +218,34 @@ const bindVariable = (propName: string, varName: string) => {
 
 const unbindVariable = (propName: string) => {
 	props.block?.setProp(propName, "")
+}
+
+// visibility conditions
+const getCompletions = (context, syntaxTree) => {
+	let word = context.matchBefore(/\w*/)
+	if (!word) return null
+
+	const completions = []
+
+	Object.keys(store.variables).forEach((variable) => {
+		completions.push({
+			label: variable,
+			type: "variable",
+			detail: "Variable",
+		})
+	})
+
+	Object.keys(store.resources).forEach((resource) => {
+		completions.push({
+			label: resource,
+			type: "data",
+			detail: "Data Source",
+		})
+	})
+	return {
+		from: word.from,
+		to: word.to,
+		options: completions,
+	}
 }
 </script>
