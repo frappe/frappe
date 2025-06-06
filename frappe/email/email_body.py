@@ -320,30 +320,10 @@ class EMail:
 		"""Add custom headers to the email"""
 		if not isinstance(headers, dict):
 			frappe.throw(_("Headers must be a dictionary"))
-		reserved_email_headers = [
-			"Message-Id",
-			"Date",
-			"From",
-			"To",
-			"Cc",
-			"Bcc",
-			"Subject",
-			"Content-Type",
-			"Content-Transfer-Encoding",
-			"MIME-Version",
-			"X-Mailer",
-			"X-Priority",
-			"X-Email-Queue",
-			"Reply-To",
-			"X-Frappe-Site",
-			"X-RateLimit-Remaining",
-			"X-RateLimit-Reset",
-			"X-RateLimit-Limit",
-		]
+
 		for key, value in headers.items():
-			if key in reserved_email_headers:
-				continue  # skip reserved headers
-			if value:
+			if value is not None:
+				key = "X-" + key if not key.startswith("X-") else key
 				self.set_header(key, value)
 
 	def make(self):
