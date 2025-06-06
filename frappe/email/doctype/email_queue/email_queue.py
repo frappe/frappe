@@ -732,7 +732,8 @@ class QueueBuilder:
 
 		mail.set_message_id(self.message_id, self.is_notification)
 
-		mail.add_headers(self.email_headers)
+		if self.email_headers:
+			mail.add_headers(self.email_headers)
 
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
