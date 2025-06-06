@@ -1249,7 +1249,6 @@ def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: 
 	return values
 
 
-<<<<<<< HEAD
 _SingleDocument: TypeAlias = "Document"
 _NewDocument: TypeAlias = "Document"
 
@@ -1307,34 +1306,25 @@ def get_doc(*args, **kwargs):
 
 
 def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
-=======
-def get_settings(setting: str, fieldname: str, /, *, as_dict: bool = False, cache=True):
-	"""Return the value associated with the given fieldname from settings DocType.
-
-	Usage:
-		telemetry_enabled = frappe.get_settings("System Settings", "telemetry_enabled")
-	"""
-
-	if cache:
-		return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
-	else:
-		return frappe.db.get_single_value(setting, fieldname=fieldname, cache=False)
-
-
-def get_last_doc(
-	doctype,
-	filters: FilterSignature | None = None,
-	order_by="creation desc",
-	*,
-	for_update=False,
-):
->>>>>>> caf415f13e (feat: `get_settings` (#32821))
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
 		return get_doc(doctype, d[0], for_update=for_update)
 	else:
 		raise DoesNotExistError(doctype=doctype)
+
+
+def get_settings(setting: str, fieldname: str, /, *, as_dict: bool = False, cache=True):
+	"""Return the value associated with the given fieldname from settings DocType.
+
+	Usage:
+	        telemetry_enabled = frappe.get_settings("System Settings", "telemetry_enabled")
+	"""
+
+	if cache:
+		return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
+	else:
+		return frappe.db.get_single_value(setting, fieldname=fieldname, cache=False)
 
 
 def get_single(doctype):
