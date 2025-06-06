@@ -41,7 +41,7 @@ def get_public_pages_from_doctypes():
 	doctypes_with_web_view = get_doctypes_with_web_view()
 
 	robot_parser_instance = None
-	if robots_txt := frappe.db.get_single_value("Website Settings", "robots_txt"):
+	if robots_txt := frappe.get_settings("Website Settings", "robots_txt"):
 		robot_parser_instance = robotparser.RobotFileParser()
 		robot_parser_instance.parse(robots_txt.splitlines())
 
