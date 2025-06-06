@@ -64,7 +64,7 @@ const extensions = [
 	})
 ]
 const autocompletionOptions = {
-	activeOnTyping: true,
+	activateOnTyping: true,
 	maxRenderedOptions: 10,
 	icons: false,
 	optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
