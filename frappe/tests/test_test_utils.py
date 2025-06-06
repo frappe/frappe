@@ -25,10 +25,10 @@ class TestTestUtils(IntegrationTestCase):
 		with IntegrationTestCase.change_settings(
 			"System Settings", {"logout_on_password_reset": int(not current_setting)}
 		):
-			updated_settings = frappe.get_system_settings("logout_on_password_reset")
+			updated_settings = frappe.get_settings("System Settings", "logout_on_password_reset")
 			self.assertNotEqual(current_setting, updated_settings)
 
-		restored_settings = frappe.get_system_settings("logout_on_password_reset")
+		restored_settings = frappe.get_settings("System Settings", "logout_on_password_reset")
 		self.assertEqual(current_setting, restored_settings)
 
 	def test_time_freezing(self):

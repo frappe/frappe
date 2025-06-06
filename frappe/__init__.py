@@ -1017,7 +1017,7 @@ def get_cached_value(
 	return values
 
 
-def get_settings(setting: str, fieldname: str, *, as_dict: bool = True, cache=True):
+def get_settings(setting: str, fieldname: str, /, *, as_dict: bool = False, cache=True):
 	"""Return the value associated with the given fieldname from settings DocType.
 
 	Usage:
