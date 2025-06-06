@@ -516,6 +516,7 @@ def sendmail(
 	with_container=False,
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
+	email_headers=None,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -544,6 +545,7 @@ def sendmail(
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	:param email_headers: Additional email headers to be added to the email. Example: {"X-Custom-Header": "Value"}
 	"""
 
 	if recipients is None:
@@ -600,6 +602,7 @@ def sendmail(
 		with_container=with_container,
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
+		email_headers=email_headers,
 	)
 
 	# build email queue and send the email if send_now is True.
