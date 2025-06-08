@@ -230,6 +230,17 @@ export default class NumberCardWidget extends Widget {
 			const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 			number_parts = shortened_number.split(" ");
 		}
+
+		// done to add duration support in number card
+		if (df.fieldtype === "Duration") {
+			const duration_options = {
+				hide_days: df.hide_days ? 1 : 0,
+				hide_seconds: df.hide_seconds ? 1 : 0
+			};
+			this.formatted_number = frappe.utils.get_formatted_duration(this.number, duration_options);
+			return;
+		}		
+
 		const symbol = number_parts[1] || "";
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
