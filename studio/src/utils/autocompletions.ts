@@ -9,22 +9,31 @@ export const getCompletions = (context: CompletionContext) => {
 	const cursorPos = context.pos - line.from
 	const textBeforeCursor = lineText.slice(0, cursorPos)
 
-	let word = context.matchBefore(/[\w.]*/)
-	if (!word) return null
+	// Check if we're completing after a dot (property access)
+	const propertyAccessMatch = textBeforeCursor.match(/([\w.]+)\.(\w*)$/)
 
-	const completions: Completion[] = []
+	if (propertyAccessMatch) {
+		const chain = parseObjectChain(textBeforeCursor)
+		const completions: Completion[] = []
+		addNestedCompletions(completions, chain)
 
-	const objectChain = parseObjectChain(textBeforeCursor)
-	if (objectChain.length === 0) {
-		addRootCompletions(completions)
+		return {
+			from: context.pos,
+			options: completions,
+			validFor: /^\w*$/,
+		}
 	} else {
-		addNestedCompletions(completions, objectChain)
-	}
+		let word = context.matchBefore(/\w*/)
+		if (!word || (word.from === word.to && !context.explicit)) return null
 
-	return {
-		from: context.pos,
-		options: completions,
-		validFor: /^\w*$/,
+		const completions: Completion[] = []
+		addRootCompletions(completions)
+
+		return {
+			from: word.from, // Start of the word for replacement
+			options: completions,
+			validFor: /^\w*$/,
+		}
 	}
 }
 
@@ -53,8 +62,7 @@ function parseObjectChain(text: string) {
 
 	const chain = matches[1]
 	// Split by dots and handle array indices
-	console.log()
-	return chain.split(/[.\[\]]/).filter(part => part !== '')
+	return chain.split(/[.\[\]]/).filter((part) => part !== "")
 }
 
 function getNestedValue(obj, chain) {
@@ -64,7 +72,7 @@ function getNestedValue(obj, chain) {
 
 		if (Array.isArray(current) && !isNaN(key)) {
 			current = current[parseInt(key)]
-		} else if (typeof current === 'object') {
+		} else if (typeof current === "object") {
 			current = current[key]
 		} else {
 			return null
@@ -92,7 +100,7 @@ function addNestedCompletions(completions: Completion[], chain) {
 
 	if (Array.isArray(nestedObject)) {
 		addArrayCompletions(completions, nestedObject)
-	} else if (typeof nestedObject === 'object' && nestedObject !== null) {
+	} else if (typeof nestedObject === "object" && nestedObject !== null) {
 		addObjectCompletions(completions, nestedObject)
 	}
 }
@@ -106,8 +114,8 @@ function addArrayCompletions(completions: Completion[], array) {
 		})
 	}
 
-	if (array.length > 0 && typeof array[0] === 'object') {
-		Object.keys(array[0]).forEach(key => {
+	if (array.length > 0 && typeof array[0] === "object") {
+		Object.keys(array[0]).forEach((key) => {
 			completions.push({
 				label: `[0].${key}`,
 				type: "property",
@@ -118,7 +126,7 @@ function addArrayCompletions(completions: Completion[], array) {
 }
 
 function addObjectCompletions(completions: Completion[], obj) {
-	Object.keys(obj).forEach(key => {
+	Object.keys(obj).forEach((key) => {
 		const value = obj[key]
 		let type = "property"
 		let detail = `Property: ${key}`
@@ -126,10 +134,10 @@ function addObjectCompletions(completions: Completion[], obj) {
 		if (Array.isArray(value)) {
 			type = "array"
 			detail = `Array property (${value.length} items)`
-		} else if (typeof value === 'function') {
+		} else if (typeof value === "function") {
 			type = "method"
 			detail = `Method: ${key}()`
-		} else if (typeof value === 'object' && value !== null) {
+		} else if (typeof value === "object" && value !== null) {
 			type = "object"
 			detail = "Object property"
 		} else {
