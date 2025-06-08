@@ -23,7 +23,7 @@ import { javascript } from "@codemirror/lang-javascript"
 import { python } from "@codemirror/lang-python"
 import { html } from "@codemirror/lang-html"
 import { css } from "@codemirror/lang-css"
-import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
+import { autocompletion, closeBrackets, type CompletionContext } from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language"
 import { EditorView } from "@codemirror/view"
 import { tomorrow } from "thememirror"
@@ -36,7 +36,7 @@ const props = withDefaults(
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
-		completions?: Function
+		completions?: Function | null
 	}>(),
 	{
 		language: "javascript",
@@ -66,13 +66,14 @@ const extensions = [
 const autocompletionOptions = {
 	activateOnTyping: true,
 	maxRenderedOptions: 10,
+	closeOnBlur: false,
 	icons: false,
 	optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
 }
 if (props.completions) {
 	autocompletionOptions.override = [
-		(context) => {
-			return props.completions(context, syntaxTree(context.state))
+		(context: CompletionContext) => {
+			return props.completions?.(context, syntaxTree(context.state))
 		}
 	]
 }

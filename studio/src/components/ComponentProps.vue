@@ -133,6 +133,7 @@ import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
+import { getCompletions } from "@/utils/autocompletions"
 
 const props = defineProps<{
 	block?: Block
@@ -218,34 +219,5 @@ const bindVariable = (propName: string, varName: string) => {
 
 const unbindVariable = (propName: string) => {
 	props.block?.setProp(propName, "")
-}
-
-// visibility conditions
-const getCompletions = (context, syntaxTree) => {
-	let word = context.matchBefore(/\w*/)
-	if (!word) return null
-
-	const completions = []
-
-	Object.keys(store.variables).forEach((variable) => {
-		completions.push({
-			label: variable,
-			type: "variable",
-			detail: "Variable",
-		})
-	})
-
-	Object.keys(store.resources).forEach((resource) => {
-		completions.push({
-			label: resource,
-			type: "data",
-			detail: "Data Source",
-		})
-	})
-	return {
-		from: word.from,
-		to: word.to,
-		options: completions,
-	}
 }
 </script>
