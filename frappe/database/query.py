@@ -75,7 +75,6 @@ class Engine:
 			self.query = qb.from_(self.table).delete()
 		else:
 			self.query = qb.from_(self.table)
-			self.query.immutable = False
 			self.apply_fields(fields)
 
 		self.apply_filters(filters)
@@ -96,7 +95,6 @@ class Engine:
 		if group_by:
 			self.query = self.query.groupby(group_by)
 
-		self.query.immutable = True
 		return self.query
 
 	def validate_doctype(self):
