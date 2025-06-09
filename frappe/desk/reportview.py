@@ -862,6 +862,7 @@ def is_user_allowed():
 		"Sales Manager",
 		"Projects Manager",
 		"Workshop Viewer",
+		"Mechanic",
 	]  # list of the user roles can see all projects without assign
 	return any(role in allowed_roles for role in user_roles)
 

@@ -506,3 +506,11 @@ def get_is_workshop_viewer():
 	if role == "Workshop Viewer":
 		return True
 	return False
+
+@frappe.whitelist()
+def get_is_mechanic():
+	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+	if role == "Mechanic":
+		return True
+	return False
+

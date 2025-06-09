@@ -38,6 +38,13 @@ const zoomLevels = {
 	3: 'large'
 };
 
+const columnsByMechanic = {
+	"Quoted": "Quoted",
+	"Quote approved": "Quote approved",
+	"In repair": "In repair",
+	"Repair ready": "Repair ready",
+};
+
 (function () {
 	let kanban_size = KanbanSize.large
 	let same_status_2days = "2 days w/o update"
@@ -86,7 +93,6 @@ const zoomLevels = {
 						const customer_responded = conversations.includes(card.custom_customers_phone_number)
 						cards.push(prepare_card(card, opts, null, customer_responded))
 					}
-
 					var columns = prepare_columns(board.columns);
 					context.commit("update_state", {
 						doctype: opts.doctype,
@@ -795,15 +801,12 @@ const zoomLevels = {
 				dataIdAttr: "data-name",
 				forceFallback: true,
 				onStart: function (e) {
-					console.log("start to render kanban ")
 					wrapper.find(".kanban-card.add-card").fadeOut(200, function () {
 						wrapper.find(".kanban-cards").height("100vh");
 					});
 					// Guardar la posición del scroll de la columna de origen antes de mover la tarjeta
 					const fromColumn = $(e.from).parents(".kanban-column");
 					scrollPos = window.screenX
-					console.log("position ", window.screenX)
-
 				},
 				onEnd: async function (e) {
 					wrapper.find(".kanban-card.add-card").fadeIn(100);
@@ -825,8 +828,6 @@ const zoomLevels = {
 						store.dispatch("update_order_for_single_card", args);
 						return;
 					}
-
-					console.log(`Card ${args.name} moved from ${args.from_colname} to ${args.to_colname}`);
 					
 					// Validate transitions based on destination column
 					let validationPassed = true;
@@ -1343,14 +1344,21 @@ const zoomLevels = {
 	}
 
 	function prepare_columns(columns) {
-		return columns.map(function (col) {
-			return {
+		let cols = [];
+		const isMechanic = frappe.user.has_role("Mechanic");
+		columns.forEach(function (col) {
+			if (isMechanic && !columnsByMechanic[col.column_name]) {
+				return; // Skip columns not in columnsByMechanic
+			}
+			col = {
 				title: col.column_name,
 				status: col.status,
 				order: col.order,
 				indicator: col.indicator || "gray",
 			};
+			cols.push(col);
 		});
+		return cols;
 	}
 
 	function modify_column_field_in_c11n(doc, board, title, action) {
@@ -1714,7 +1722,6 @@ const zoomLevels = {
 			primary_action_label: 'Yes',
 			primary_action: async function() {
 				const { aws_url } = await frappe.db.get_doc("Whatsapp Config")
-				console.log("aws_url => ",aws_url)
 				await frappe.call({
 					method: 'frappe.desk.doctype.kanban_board.kanban_board.call_send_whatsapp_message',
 					args: { aws_url: aws_url, project_name: project_name }

@@ -198,7 +198,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			last_kanban_board: this.board_name,
 		});
 
-		if(! await erpnext.utils.isWorkshopViewer(this.frm)){
+		if(! await erpnext.utils.isWorkshopViewer(this.frm) && !await erpnext.utils.isMechanic(this.frm)){
 			insertFreezeQueuePosition()
 		}else{
 			const sidebar = $(".layout-side-section");
