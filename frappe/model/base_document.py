@@ -898,9 +898,13 @@ class BaseDocument:
 				values_to_fetch += ("docstatus",)
 
 			if not meta.get("is_virtual"):
-				values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True, cache=True)
+				values = frappe.db.get_value(
+					doctype, docname, values_to_fetch, as_dict=True, cache=True, order_by=None
+				)
 				if not values:  # NOTE: DB Value cache does negative caching, which is hard to remove now.
-					values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+					values = frappe.db.get_value(
+						doctype, docname, values_to_fetch, as_dict=True, order_by=None
+					)
 			else:
 				values = frappe.get_doc(doctype, docname).as_dict()
 
