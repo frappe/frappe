@@ -292,6 +292,19 @@ class CardDialog extends WidgetDialog {
 								};
 							}
 						},
+						onchange: function () {
+							if (this.doc.link_type === "Report" && this.doc.link_to) {
+								frappe.db
+									.get_value("Report", this.doc.link_to, "report_type")
+									.then((r) => {
+										if (r?.message?.report_type) {
+											const report_type = r.message.report_type;
+											this.doc.is_query_report =
+												report_type !== "Report Builder";
+										}
+									});
+							}
+						},
 					},
 					{
 						fieldname: "label",
