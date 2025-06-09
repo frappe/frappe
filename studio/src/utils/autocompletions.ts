@@ -136,12 +136,12 @@ function addObjectCompletions(completions: Completion[], obj) {
 			detail = `Array property (${value.length} items)`
 		} else if (typeof value === "function") {
 			type = "method"
-			detail = `Method: ${key}()`
+			detail = "Method"
 		} else if (typeof value === "object" && value !== null) {
 			type = "object"
 			detail = "Object property"
 		} else {
-			detail = `${typeof value}`
+			detail = `${typeof value} property`
 		}
 
 		completions.push({
