@@ -75,4 +75,4 @@ class PrintSettings(Document):
 
 @frappe.whitelist()
 def is_print_server_enabled():
-	return frappe.get_settings("Print Settings", "enable_print_server")
+	return frappe.get_single_value("Print Settings", "enable_print_server")

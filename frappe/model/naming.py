@@ -538,7 +538,7 @@ def _set_amended_name(doc):
 		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
 	)
 	if not amend_naming_rule:
-		amend_naming_rule = frappe.get_settings("Document Naming Settings", "default_amend_naming")
+		amend_naming_rule = frappe.get_single_value("Document Naming Settings", "default_amend_naming")
 
 	if amend_naming_rule == "Default Naming":
 		return

@@ -1017,17 +1017,13 @@ def get_cached_value(
 	return values
 
 
-def get_settings(setting: str, fieldname: str, /, *, as_dict: bool = False, cache=True):
-	"""Return the value associated with the given fieldname from settings DocType.
+def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
+	"""Return the cached value associated with the given fieldname from single DocType.
 
 	Usage:
-		telemetry_enabled = frappe.get_settings("System Settings", "telemetry_enabled")
+		telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
 	"""
-
-	if cache:
-		return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
-	else:
-		return frappe.db.get_single_value(setting, fieldname=fieldname, cache=False)
+	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
 
 
 def get_last_doc(
