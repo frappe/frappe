@@ -38,6 +38,10 @@ class InstalledApplications(Document):
 			):
 				has_setup_wizard = 1
 
+			setup_complete = app_wise_setup_details.get(app.get("app_name")) or 0
+			if app.get("app_name") == "india_compliance":
+				setup_complete = app_wise_setup_details.get("erpnext") or 0
+
 			self.append(
 				"installed_applications",
 				{
@@ -45,7 +49,7 @@ class InstalledApplications(Document):
 					"app_version": app.get("version") or "UNVERSIONED",
 					"git_branch": app.get("branch") or "UNVERSIONED",
 					"has_setup_wizard": has_setup_wizard,
-					"is_setup_complete": app_wise_setup_details.get(app.get("app_name")) or 0,
+					"is_setup_complete": setup_complete,
 				},
 			)
 
