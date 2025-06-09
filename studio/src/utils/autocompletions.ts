@@ -9,8 +9,9 @@ export const getCompletions = (context: CompletionContext) => {
 	const cursorPos = context.pos - line.from
 	const textBeforeCursor = lineText.slice(0, cursorPos)
 
-	// Check if we're completing after a dot (property access)
-	const propertyAccessMatch = textBeforeCursor.match(/([\w.]+)\.(\w*)$/)
+	// Check if we're completing after a dot - property access for an object / object inside an array
+	// items. OR items.data[0].
+	const propertyAccessMatch = textBeforeCursor.match(/([\w.]+(?:\[\d+\])*(?:\.[\w]*)*)\.$/)
 
 	if (propertyAccessMatch) {
 		const chain = parseObjectChain(textBeforeCursor)
@@ -56,13 +57,45 @@ function addRootCompletions(completions: Completion[]) {
 }
 
 function parseObjectChain(text: string) {
-	// Match patterns like: word.word[index].word
-	const matches = text.match(/([\w]+(?:\.[\w]+|\[\d+\])*)\.$/)
+	// Match patterns like word. or word[index].
+	const matches = text.match(/([\w]+(?:\.[\w]+|\[\d+\])*(?:\.[\w]*)*)\.$/)
 	if (!matches) return []
 
 	const chain = matches[1]
-	// Split by dots and handle array indices
-	return chain.split(/[.\[\]]/).filter((part) => part !== "")
+	const parts = []
+	let current = ""
+	let inBrackets = false
+
+	for (let i = 0; i < chain.length; i++) {
+		const char = chain[i]
+
+		if (char === "[") {
+			if (current) {
+				parts.push(current)
+				current = ""
+			}
+			inBrackets = true
+		} else if (char === "]") {
+			if (current) {
+				parts.push(current)
+				current = ""
+			}
+			inBrackets = false
+		} else if (char === "." && !inBrackets) {
+			if (current) {
+				parts.push(current)
+				current = ""
+			}
+		} else {
+			current += char
+		}
+	}
+
+	if (current) {
+		parts.push(current)
+	}
+
+	return parts.filter(part => part !== "")
 }
 
 function getNestedValue(obj, chain) {
@@ -81,7 +114,7 @@ function getNestedValue(obj, chain) {
 	return current
 }
 
-function addNestedCompletions(completions: Completion[], chain) {
+function addNestedCompletions(completions: Completion[], chain: string[]) {
 	const rootKey = chain[0]
 	const remainingChain = chain.slice(1)
 
