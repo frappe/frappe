@@ -944,7 +944,7 @@ class Document(BaseDocument, DocRef):
 		return permissions
 
 	def _set_defaults(self):
-		if frappe.flags.in_import:
+		if frappe.flags.in_import or self.flags.defaults_set:
 			return
 
 		if self.is_new():

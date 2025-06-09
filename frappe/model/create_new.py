@@ -28,7 +28,9 @@ def get_new_doc(doctype, parent_doc=None, parentfield=None, as_dict=False):
 	if as_dict:
 		return doc
 	else:
-		return frappe.get_doc(doc)
+		doc = frappe.get_doc(doc)
+		doc.flags.defaults_set = True
+		return doc
 
 
 def make_new_doc(doctype):
