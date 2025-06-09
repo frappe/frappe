@@ -195,7 +195,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token", "password", "client_credentials"]
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -207,15 +207,20 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client["name"]
 		try:
-			otoken.user = (
-				request.user
-				if request.user
-				else frappe.db.get_value(
+			if request.user:
+				otoken.user = request.user
+			elif request.body and request.body.get("refresh_token"):
+				otoken.user = frappe.db.get_value(
 					"OAuth Bearer Token",
 					{"refresh_token": request.body.get("refresh_token")},
 					"user",
 				)
-			)
+			elif request.grant_type == "client_credentials":
+				otoken.user = frappe.db.get_value(
+					"OAuth Client",
+					request.client["name"],
+					"user"
+				)
 		except Exception:
 			otoken.user = frappe.session.user
 

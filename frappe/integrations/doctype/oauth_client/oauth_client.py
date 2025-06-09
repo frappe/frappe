@@ -22,7 +22,7 @@ class OAuthClient(Document):
 		client_id: DF.Data | None
 		client_secret: DF.Data | None
 		default_redirect_uri: DF.Data
-		grant_type: DF.Literal["Authorization Code", "Implicit"]
+		grant_type: DF.Literal["Authorization Code", "Implicit", "Client Credentials"]
 		redirect_uris: DF.Text | None
 		response_type: DF.Literal["Code", "Token"]
 		scopes: DF.Text
