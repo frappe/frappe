@@ -9,14 +9,12 @@ from typing import Any, NamedTuple, TypeAlias, TypeGuard, TypeVar, cast
 from pypika import Column
 from typing_extensions import Self, override
 
-from .docref import DocRef
-
 Doct: TypeAlias = str
 Fld: TypeAlias = str
 Op: TypeAlias = str
 DateTime: TypeAlias = datetime | date
 _Value: TypeAlias = str | int | float | None | DateTime | Column
-_InputValue: TypeAlias = _Value | DocRef | bool
+_InputValue: TypeAlias = _Value | bool
 Value: TypeAlias = _Value | Sequence[_Value]
 InputValue: TypeAlias = _InputValue | Sequence[_InputValue]
 
@@ -55,10 +53,8 @@ class _FilterTuple(NamedTuple):
 def _type_narrow(v: _InputValue) -> _Value:
 	if isinstance(v, bool):  # beware: bool derives int in _Value
 		return int(v)
-	elif isinstance(v, _Value):
+	elif isinstance(v, _Value):  # type: ignore[redundant-expr]
 		return v
-	elif isinstance(v, DocRef):  # type: ignore[redundant-expr]
-		return v.__value__()
 	else:
 		raise ValueError(
 			f"Value must be one of types: {', '.join(str(t.__name__) for t in _InputValue.__args__)}; found {type(v)}"

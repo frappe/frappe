@@ -22,7 +22,6 @@ from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.types.docref import DocRef
 from frappe.utils import (
 	cached_property,
 	cast_fieldtype,
@@ -475,9 +474,6 @@ class BaseDocument:
 				else:
 					value = get_not_null_defaults(df.fieldtype)
 
-			if hasattr(value, "__value__"):
-				value = value.__value__()
-
 			d[fieldname] = value
 
 		return d
@@ -865,7 +861,7 @@ class BaseDocument:
 			if not docname:
 				continue
 
-			assert isinstance(docname, str | int | DocRef) or (
+			assert isinstance(docname, str | int) or (
 				isinstance(docname, list | tuple | set) and len(docname) == 1
 			), f"Unexpected value for field {df.fieldname}: {docname}"
 

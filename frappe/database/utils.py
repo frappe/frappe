@@ -8,11 +8,10 @@ from functools import cached_property, wraps
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
-from frappe.types import DocRef
 
 Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
-FilterValue = DocRef | str | int | bool
+FilterValue = str | int | bool
 
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
@@ -29,8 +28,6 @@ QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 
 
 def convert_to_value(o: FilterValue):
-	if hasattr(o, "__value__"):
-		return o.__value__()
 	if isinstance(o, bool):
 		return int(o)
 	return o

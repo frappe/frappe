@@ -24,7 +24,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.types import DF, DocRef
+from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
@@ -105,17 +105,12 @@ def get_doc(*args, **kwargs) -> "Document":
 	if not args and kwargs:
 		return get_doc_from_dict(kwargs)
 	else:
-		raise ValueError("First non keyword argument must be a string, dict or DocRef")
+		raise ValueError("First non keyword argument must be a string or dict")
 
 
 @get_doc.register(BaseDocument)
 def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
 	return doc
-
-
-@get_doc.register(DocRef)
-def _docref(doc_ref: DocRef, **kwargs) -> "Document":
-	return get_doc(doc_ref.doctype, doc_ref.name, **kwargs)
 
 
 @get_doc.register(str)
@@ -143,7 +138,7 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
-class Document(BaseDocument, DocRef):
+class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
 
 	doctype: DF.Data
@@ -196,9 +191,6 @@ class Document(BaseDocument, DocRef):
 
 		if isinstance(arg, dict):
 			return self._init_from_kwargs(arg)
-
-		if isinstance(arg, DocRef):
-			return self._init_known_doc(arg.doctype, arg.name, **kwargs)
 
 		raise ValueError(f"Unsupported argument type: {type(arg)}")
 

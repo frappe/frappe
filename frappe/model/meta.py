@@ -41,7 +41,6 @@ from frappe.model.document import Document
 from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
-from frappe.types import DocRef
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
 from frappe.utils.data import add_to_date, get_datetime
