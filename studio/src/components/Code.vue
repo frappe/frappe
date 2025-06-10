@@ -18,15 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, ref, computed, watch } from "vue"
 import { Codemirror } from "vue-codemirror"
-import { json } from "@codemirror/lang-json"
-import { javascript } from "@codemirror/lang-javascript"
-import { python } from "@codemirror/lang-python"
-import { html } from "@codemirror/lang-html"
-import { css } from "@codemirror/lang-css"
 import { autocompletion, closeBrackets, type CompletionContext } from "@codemirror/autocomplete"
-import { syntaxTree } from "@codemirror/language"
+import { LanguageSupport, syntaxTree } from "@codemirror/language"
 import { EditorView } from "@codemirror/view"
 import { tomorrow } from "thememirror"
 import { jsToJson, jsonToJs } from "@/utils/helpers"
@@ -87,49 +82,67 @@ const emitEditorValue = () => {
 	}
 }
 
-const extensions = [
-	getLanguageExtension(),
-	closeBrackets(),
-	tomorrow,
-	EditorView.lineWrapping,
-	EditorView.theme({
-		"&": {
-			fontFamily: "monospace",
-			fontSize: "12px",
-		},
-		".cm-gutters": {
-			display: props.showLineNumbers ? "flex" : "none",
-		},
-	}),
-]
-const autocompletionOptions = {
-	activateOnTyping: true,
-	maxRenderedOptions: 10,
-	closeOnBlur: false,
-	icons: false,
-	optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
-}
-if (props.completions) {
-	autocompletionOptions.override = [
-		(context: CompletionContext) => {
-			return props.completions?.(context, syntaxTree(context.state))
-		},
-	]
-}
-extensions.push(autocompletion(autocompletionOptions))
+const languageExtension = ref<LanguageSupport>()
 
-function getLanguageExtension() {
-	switch (props.language) {
-		case "json":
-			return json()
-		case "javascript":
-			return javascript()
-		case "html":
-			return html()
-		case "python":
-			return python()
-		case "css":
-			return css()
+async function setLanguageExtension() {
+	if (props.language === "json") {
+		languageExtension.value = (await import("@codemirror/lang-json")).json()
+	} else if (props.language === "javascript") {
+		languageExtension.value = (await import("@codemirror/lang-javascript")).javascript()
+	} else if (props.language === "html") {
+		languageExtension.value = (await import("@codemirror/lang-html")).html()
+	} else if (props.language === "css") {
+		languageExtension.value = (await import("@codemirror/lang-css")).css()
+	} else if (props.language === "python") {
+		languageExtension.value = (await import("@codemirror/lang-python")).python()
 	}
 }
+
+onMounted(async () => {
+	await setLanguageExtension()
+})
+
+watch(
+	() => props.language,
+	async () => {
+		await setLanguageExtension()
+	},
+	{ immediate: true },
+)
+
+const extensions = computed(() => {
+	const baseExtensions = [
+		closeBrackets(),
+		tomorrow,
+		EditorView.lineWrapping,
+		EditorView.theme({
+			"&": {
+				fontFamily: "monospace",
+				fontSize: "12px",
+			},
+			".cm-gutters": {
+				display: props.showLineNumbers ? "flex" : "none",
+			},
+		}),
+	]
+	if (languageExtension.value) {
+		baseExtensions.push(languageExtension.value)
+	}
+	const autocompletionOptions = {
+		activateOnTyping: true,
+		maxRenderedOptions: 10,
+		closeOnBlur: false,
+		icons: false,
+		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
+	}
+	if (props.completions) {
+		autocompletionOptions.override = [
+			(context: CompletionContext) => {
+				return props.completions?.(context, syntaxTree(context.state))
+			},
+		]
+	}
+	baseExtensions.push(autocompletion(autocompletionOptions))
+	return baseExtensions
+})
 </script>
