@@ -38,12 +38,14 @@
 			class="w-full"
 			:disabled="disabled"
 		/>
-		<CodeEditor
+		<Code
 			v-else-if="type === 'code'"
+			language="javascript"
 			:modelValue="modelValue"
-			type="JavaScript"
-			:height="height"
 			@update:modelValue="(e) => emit('update:modelValue', e)"
+			:completions="getCompletions"
+			:showLineNumbers="false"
+			:height="height"
 			:disabled="disabled"
 		/>
 		<Input
@@ -63,9 +65,10 @@ import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import InputLabel from "@/components/InputLabel.vue"
+import { getCompletions } from "@/utils/autocompletions"
 
 const props = defineProps({
 	modelValue: {
