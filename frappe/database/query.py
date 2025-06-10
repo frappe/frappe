@@ -143,6 +143,10 @@ class Engine:
 						self.apply_filters(filter)
 					elif isinstance(filter, list | tuple):
 						self.apply_list_filters(filter)
+					else:
+						raise ValueError(f"Unknown filter type: {type(filters)}")
+		else:
+			raise ValueError(f"Unknown filter type: {type(filters)}")
 
 	def apply_list_filters(self, filter: list):
 		if len(filter) == 2:
@@ -154,6 +158,8 @@ class Engine:
 		elif len(filter) == 4:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
+		else:
+			raise ValueError(f"Unknown filter format: {filter}")
 
 	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
 		for field, value in filters.items():
