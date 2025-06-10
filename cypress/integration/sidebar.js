@@ -43,7 +43,7 @@ context("Sidebar", () => {
 			.window()
 			.its("frappe")
 			.then((frappe) => {
-				return frappe.call("frappe.tests.ui_test_helpers.create_blog_post");
+				return frappe.call("frappe.tests.ui_test_helpers.create_web_page");
 			});
 	});
 
@@ -53,7 +53,7 @@ context("Sidebar", () => {
 		}).then((todo) => {
 			verify_attachment_visibility(`todo/${todo.message.name}`, true);
 		});
-		verify_attachment_visibility("blog-post/test-blog-attachment-post", false);
+		verify_attachment_visibility("web-page/test-web-page", false);
 	});
 
 	it("Verify attachment accessibility UX", () => {

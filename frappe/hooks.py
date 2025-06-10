@@ -54,7 +54,6 @@ web_include_icons = [
 email_css = ["email.bundle.css"]
 
 website_route_rules = [
-	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/app/<path:app_path>", "to_route": "app"},
@@ -352,7 +351,6 @@ global_search_doctypes = {
 		{"doctype": "ToDo"},
 		{"doctype": "Note"},
 		{"doctype": "Event"},
-		{"doctype": "Blog Post"},
 		{"doctype": "Dashboard"},
 		{"doctype": "Country"},
 		{"doctype": "Currency"},

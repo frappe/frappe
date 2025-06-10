@@ -47,11 +47,9 @@ class TestSMTP(IntegrationTestCase):
 			password="password",
 			enable_outgoing=1,
 			default_outgoing=1,
-			append_to="Blog Post",
+			append_to="Todo",
 		)
-		self.assertEqual(
-			EmailAccount.find_outgoing(match_by_doctype="Blog Post").email_id, "append_to@gmail.com"
-		)
+		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="Todo").email_id, "append_to@gmail.com")
 
 		# add back the mail_server
 		frappe.conf["mail_server"] = mail_server

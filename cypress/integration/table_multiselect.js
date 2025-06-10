@@ -8,7 +8,7 @@ context("Table MultiSelect", () => {
 	it("select value from multiselect dropdown", () => {
 		cy.new_form("Assignment Rule");
 		cy.fill_field("__newname", name);
-		cy.fill_field("document_type", "Blog Post");
+		cy.fill_field("document_type", "Web Page");
 		cy.get(".section-head").contains("Assignment Rules").scrollIntoView();
 		cy.fill_field("assign_condition", 'status=="Open"', "Code");
 		cy.get('input[data-fieldname="users"]').focus().as("input");
