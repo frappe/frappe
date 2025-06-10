@@ -4,18 +4,9 @@ from datetime import timedelta
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_datetime
 from frappe.utils.data import add_to_date, now_datetime
-
-
-class UnitTestScheduledJobType(UnitTestCase):
-	"""
-	Unit tests for ScheduledJobType.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestScheduledJobType(IntegrationTestCase):

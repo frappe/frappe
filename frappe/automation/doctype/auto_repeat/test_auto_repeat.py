@@ -9,7 +9,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_months, getdate, today
 
 if TYPE_CHECKING:
@@ -30,15 +30,6 @@ def add_custom_fields() -> "CustomField":
 	return create_custom_field("ToDo", df) or frappe.get_doc(
 		"Custom Field", dict(fieldname=df["fieldname"], dt="ToDo")
 	)
-
-
-class UnitTestAutoRepeat(UnitTestCase):
-	"""
-	Unit tests for AutoRepeat.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAutoRepeat(IntegrationTestCase):

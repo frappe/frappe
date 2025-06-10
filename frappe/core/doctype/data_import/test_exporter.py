@@ -3,18 +3,9 @@
 import frappe
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.test_importer import create_doctype_if_not_exists
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 doctype_name = "DocType for Export"
-
-
-class UnitTestDataImport(UnitTestCase):
-	"""
-	Unit tests for DataImport.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestExporter(IntegrationTestCase):
