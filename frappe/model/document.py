@@ -140,14 +140,14 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
-def get_lazy_doc(doctype: str, name: str) -> "Document":
+def get_lazy_doc(doctype: str, name: str, *, for_update=False) -> "Document":
 	if doctype == "DocType":
 		warnings.warn("DocType doesn't support lazy loading", stacklevel=1)
 		return get_doc(doctype, name)
 
 	controller = get_lazy_controller(doctype)
 	if controller:
-		return controller(doctype, name)
+		return controller(doctype, name, for_update=for_update)
 	raise ImportError(doctype)
 
 
