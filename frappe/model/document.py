@@ -194,8 +194,6 @@ class Document(BaseDocument):
 		# since it is used in virtual doctypes and inherited in child classes
 		self.flags.for_update = kwargs.pop("for_update", None)
 		self.load_from_db()
-		if kwargs:  # ad-hoc overrides
-			self._init_from_kwargs(kwargs)
 
 	def _init_dispatch(self, arg, *args, **kwargs):
 		if isinstance(arg, str):
