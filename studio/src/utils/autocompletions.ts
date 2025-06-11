@@ -14,13 +14,14 @@ export const getCompletions = (context: CompletionContext) => {
 	// Check if we're completing after a dot - property access for an object / object inside an array
 	// items. OR items.data[0].
 	const propertyAccessMatch = textBeforeCursor.match(/([\w.]+(?:\[\d+\])*(?:\.[\w]*)*)\.$/)
+	let completionObject
 
 	if (propertyAccessMatch) {
 		const chain = parseObjectChain(textBeforeCursor)
 		const completions: Completion[] = []
 		addNestedCompletions(completions, chain)
 
-		return {
+		completionObject = {
 			from: context.pos,
 			options: completions,
 			validFor: /^\w*$/,
@@ -32,12 +33,24 @@ export const getCompletions = (context: CompletionContext) => {
 		const completions: Completion[] = []
 		addRootCompletions(completions)
 
-		return {
+		completionObject = {
 			from: word.from, // Start of the word for replacement
 			options: completions,
 			validFor: /^\w*$/,
 		}
 	}
+
+	if (context.explicit) {
+		// boost score for custom completions over language completions when explicitly requested
+		return {
+			...completionObject,
+			options: completionObject.options.map((option) => ({
+				...option,
+				boost: 10
+			}))
+		}
+	}
+	return completionObject
 }
 
 function addRootCompletions(completions: Completion[]) {
