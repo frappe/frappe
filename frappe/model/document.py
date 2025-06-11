@@ -1989,14 +1989,8 @@ class LazyDocument:
 		return super().get(key, filters, limit, default)
 
 	@override
-	def extend(self: Document, key, value):
-		# Ensure that table descriptor is triggered at least once
-		if isinstance(key, str) and key in self._table_fieldnames:
-			getattr(self, key, None)
-		return super().extend(key, value)
-
-	@override
 	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
+		# Ensure that table descriptor is triggered at least once
 		if isinstance(key, str) and key in self._table_fieldnames:
 			getattr(self, key, None)
 		return super().append(key, value, position)
