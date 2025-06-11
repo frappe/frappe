@@ -63,7 +63,13 @@
 								}
 							"
 						/>
-						<Code label="Script" language="javascript" height="250px" v-model="pageWatcher.script" />
+						<Code
+							label="Script"
+							language="javascript"
+							height="250px"
+							v-model="pageWatcher.script"
+							:completions="getCompletions"
+						/>
 						<FormControl
 							type="checkbox"
 							label="Run Immediately?"
@@ -105,6 +111,7 @@ import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
+import { getCompletions } from "@/utils/autocompletions"
 
 const props = defineProps<{
 	page: StudioPage
