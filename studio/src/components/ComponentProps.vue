@@ -8,8 +8,18 @@
 			<div class="mb-4 mt-3 flex flex-col gap-3">
 				<div v-for="(config, propName) in componentProps" :key="propName">
 					<div class="flex w-full items-center gap-2">
+						<Code
+							v-if="config.inputType === 'code'"
+							:label="propName"
+							language="javascript"
+							:modelValue="config.modelValue"
+							@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+							:required="config.required"
+							:completions="getCompletions"
+							:showLineNumbers="false"
+						/>
 						<InlineInput
-							v-if="propName !== 'modelValue'"
+							v-else-if="propName !== 'modelValue'"
 							:label="propName"
 							:type="config.inputType"
 							:options="config.options"
@@ -19,7 +29,7 @@
 							class="flex-1"
 						/>
 						<InlineInput
-							v-if="propName === 'modelValue'"
+							v-else-if="propName === 'modelValue'"
 							:label="propName"
 							:type="config.inputType"
 							:options="config.options"

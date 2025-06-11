@@ -1,5 +1,8 @@
 <template>
 	<div class="flex h-full flex-col gap-1.5">
+		<InputLabel :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
+			{{ label }}
+		</InputLabel>
 		<codemirror
 			v-model="code"
 			:extensions="extensions"
@@ -26,17 +29,21 @@ import { EditorView } from "@codemirror/view"
 import { tomorrow } from "thememirror"
 import { jsToJson, jsonToJs } from "@/utils/helpers"
 
+import InputLabel from "@/components/InputLabel.vue"
+
 const props = withDefaults(
 	defineProps<{
 		language: "json" | "javascript" | "html" | "css" | "python"
 		modelValue: string | object | Array<string | object> | null
-		readonly?: boolean
 		height?: string
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
 		completions?: Function | null
 		completionContext?: Record<string, any>
+		label?: string
+		required?: boolean
+		readonly?: boolean
 	}>(),
 	{
 		language: "javascript",

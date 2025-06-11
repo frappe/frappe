@@ -1,9 +1,7 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="
-			type === 'code' || type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'
-		"
+		:class="type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
 	>
 		<InputLabel
 			:class="[
@@ -38,16 +36,6 @@
 			class="w-full"
 			:disabled="disabled"
 		/>
-		<Code
-			v-else-if="type === 'code'"
-			language="javascript"
-			:modelValue="modelValue"
-			@update:modelValue="(e) => emit('update:modelValue', e)"
-			:completions="getCompletions"
-			:showLineNumbers="false"
-			:height="height"
-			:disabled="disabled"
-		/>
 		<Input
 			v-else
 			:type="type"
@@ -65,10 +53,8 @@ import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
-import Code from "@/components/Code.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import { getCompletions } from "@/utils/autocompletions"
 
 const props = defineProps({
 	modelValue: {
