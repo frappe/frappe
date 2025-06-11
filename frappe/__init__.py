@@ -2483,3 +2483,5 @@ if _tune_gc:
 
 # Remove references to pattern that are pre-compiled and loaded to global scopes.
 re.purge()
+
+get_lazy_doc = get_doc
