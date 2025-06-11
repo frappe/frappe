@@ -271,7 +271,6 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				}
 			);
 		}
-
 		const default_kanban =
 			await frappe.db.get_doc('User', frappe.user.name).then(user => user?.default_kanban)
 		console.log("=========> default_kanban:", default_kanban)

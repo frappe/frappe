@@ -191,8 +191,7 @@
     "label": "Default Kanban",
     "oldfieldname": "default_kanban",
     "oldfieldtype": "Select",
-    "options": "Kanban Board",
-    "permlevel": 1
+    "options": "Kanban Board"
    },
    {
     "fieldname": "size_kanban",
