@@ -5,7 +5,7 @@ import { copyObject } from "./helpers"
 
 const store = useStudioStore()
 
-export const getCompletions = (context: CompletionContext) => {
+export const getCompletions = (context: CompletionContext, canEditValues: boolean = false) => {
 	const line = context.state.doc.lineAt(context.pos)
 	const lineText = line.text
 	const cursorPos = context.pos - line.from
@@ -31,7 +31,7 @@ export const getCompletions = (context: CompletionContext) => {
 		if (!word || (word.from === word.to && !context.explicit)) return null
 
 		const completions: Completion[] = []
-		addRootCompletions(completions)
+		addRootCompletions(completions, canEditValues)
 
 		completionObject = {
 			from: word.from, // Start of the word for replacement
@@ -53,12 +53,18 @@ export const getCompletions = (context: CompletionContext) => {
 	return completionObject
 }
 
-function addRootCompletions(completions: Completion[]) {
+function addRootCompletions(completions: Completion[], canEditValues: boolean = false) {
 	Object.keys(store.variables || {}).forEach((variable) => {
 		completions.push({
 			label: variable,
 			type: "variable",
 			detail: "Variable",
+			apply(view, completion, from, to) {
+				let insertText = canEditValues ? `${completion.label}.value` : `${completion.label}`
+				view.dispatch({
+					changes: { from, to, insert: insertText },
+				})
+			},
 		})
 	})
 

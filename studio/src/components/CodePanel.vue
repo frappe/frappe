@@ -68,7 +68,7 @@
 							language="javascript"
 							height="250px"
 							v-model="pageWatcher.script"
-							:completions="getCompletions"
+							:completions="(context: CompletionContext) => getCompletions(context, true)"
 						/>
 						<FormControl
 							type="checkbox"
@@ -112,6 +112,7 @@ import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 import { getCompletions } from "@/utils/autocompletions"
+import { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	page: StudioPage
