@@ -68,14 +68,13 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		if update:
-			self.query = qb.update(self.table)
+			self.query = qb.update(self.table, immutable=False)
 		elif into:
-			self.query = qb.into(self.table)
+			self.query = qb.into(self.table, immutable=False)
 		elif delete:
-			self.query = qb.from_(self.table).delete()
+			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
-			self.query = qb.from_(self.table)
-			self.query.immutable = False
+			self.query = qb.from_(self.table, immutable=False)
 			self.apply_fields(fields)
 
 		self.apply_filters(filters)
