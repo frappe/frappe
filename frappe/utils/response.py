@@ -248,9 +248,6 @@ def json_handler(obj):
 	elif isinstance(obj, Path):
 		return str(obj)
 
-	elif hasattr(obj, "__value__"):  # order imporant: defer to __json__ if implemented
-		return obj.__value__()
-
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
 

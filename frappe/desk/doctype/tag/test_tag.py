@@ -1,16 +1,7 @@
 import frappe
 from frappe.desk.doctype.tag.tag import add_tag
 from frappe.desk.reportview import get_stats
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestTag(UnitTestCase):
-	"""
-	Unit tests for Tag.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestTag(IntegrationTestCase):

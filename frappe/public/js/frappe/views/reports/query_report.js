@@ -669,13 +669,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.prepared_report_name = route_options.prepared_report_name;
 
 			const promises = filters_to_set.map((f) => {
-				return async () => {
+				return () => {
 					let value = route_options[f.df.fieldname];
 					if (typeof value === "string" && value[0] === "[") {
 						// multiselect array
 						value = JSON.parse(value);
 					}
-					await f.set_value(value);
+					f.set_value(value);
 				};
 			});
 			promises.push(() => {
@@ -2050,7 +2050,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.$tree_footer = $(`<div class="tree-footer col-md-3">
 				<div class="input-group">
 				  <input id="tree-level" type="number" class="form-control" aria-label="Tree Level" value="2">
-					<button class="btn btn-xs btn-primary" data-action="set_tree_level">
+					<button class="btn btn-xs btn-secondary" data-action="set_tree_level">
 						${__("Set Level")}</button>
 					<button class="btn btn-xs btn-secondary" data-action="expand_all_rows">
 						${__("Expand All")}</button>

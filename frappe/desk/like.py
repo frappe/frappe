@@ -88,5 +88,5 @@ def remove_like(doctype, name):
 
 
 def add_comment(doctype, name):
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	doc.add_comment("Like", _("Liked"))

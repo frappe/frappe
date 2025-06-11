@@ -23,6 +23,7 @@ class NumberCard(Document):
 		from frappe.types import DF
 
 		aggregate_function_based_on: DF.Literal[None]
+		background_color: DF.Color | None
 		color: DF.Color | None
 		currency: DF.Link | None
 		document_type: DF.Link | None
@@ -39,6 +40,7 @@ class NumberCard(Document):
 		report_field: DF.Literal[None]
 		report_function: DF.Literal["Sum", "Average", "Minimum", "Maximum"]
 		report_name: DF.Link | None
+		show_full_number: DF.Check
 		show_percentage_stats: DF.Check
 		stats_time_interval: DF.Literal["Daily", "Weekly", "Monthly", "Yearly"]
 		type: DF.Literal["Document Type", "Report", "Custom"]

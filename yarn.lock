@@ -1431,10 +1431,10 @@ frappe-charts@^2.0.0-rc26:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc26.tgz#9632d620b92f2043cebd192a8899119f5715524b"
   integrity sha512-0vyXcwcekIeYA6pxCHGcRdG8llC6hpGR91nkbwRGSnBYMKomX2AQtfgTlIKMrE9nmAkewJeZsTx1scni8Ry0iA==
 
-frappe-datatable@1.18.4:
-  version "1.18.4"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.18.4.tgz#320b0fbb5039dd305be8c66f3a4fba73f6627469"
-  integrity sha512-nx8CUROmcb7svSPqtdAmPxcAI9GrOHXiwwz76/pVhsTBSsgqXqWHAyAIQzNDUQai2z2X5f0fYQNcjKZGKTyEqg==
+frappe-datatable@1.19.0:
+  version "1.19.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.19.0.tgz#43d9118603c6d1ecaab31aa21e8278694c17d849"
+  integrity sha512-DN7UIY8zrqagRV93mM4BS1tSNZ++8LT7E2cp3ZJEqeJeS/xQx9EVjhxAtQAEt2+QlDUL4hRYgXhRLH2Exz+K5w==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -1444,6 +1444,15 @@ frappe-gantt@^0.6.0:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.6.1.tgz#57ae0b5f024101fc7cd5ba92f605de97dba9c9a1"
   integrity sha512-1cSU9vLbwypjzaxnCfnEE03Xr3HlAV2S8dRtjxw62o+amkx1A8bBIFd2jp84mcDdTCM77Ij4LzZBslAKZB8oMg==
+
+frappe-quill-image-resize@^3.0.9:
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/frappe-quill-image-resize/-/frappe-quill-image-resize-3.0.9.tgz#35e1d94aca458328be0db03ac25b58171af8c194"
+  integrity sha512-2g38/Z/jbi3gbkCgHRgDe9MVskcjJrUioB3RXhQGhjpGKRgBznyVOLmHAZ1a8sBKAHBfuVz9BRdQulkJUrKg0g==
+  dependencies:
+    lodash "^4.17.4"
+    quill "^1.2.2"
+    raw-loader "^0.5.1"
 
 fs-exists-sync@^0.1.0:
   version "0.1.0"
@@ -2729,15 +2738,6 @@ quill-delta@^5.1.0:
     fast-diff "^1.3.0"
     lodash.clonedeep "^4.5.0"
     lodash.isequal "^4.5.0"
-
-quill-image-resize@^3.0.9:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/quill-image-resize/-/quill-image-resize-3.0.9.tgz#5677fb6257560bff951153ddbdb836758e49f804"
-  integrity sha512-5Dk0nixhbFsCwSWtPU9qqqtfM2gURfaP+pbBhQvAoMJoF4p99xbAibfAI3gsZJkbWUodoK2iAPf1V5oTSpv9ww==
-  dependencies:
-    lodash "^4.17.4"
-    quill "^1.2.2"
-    raw-loader "^0.5.1"
 
 quill-magic-url@^3.0.0:
   version "3.0.2"

@@ -88,6 +88,7 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
+on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
 on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # PDF
@@ -208,6 +209,7 @@ scheduler_events = {
 			"frappe.utils.global_search.sync_global_search",
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
+			"frappe.model.utils.link_count.update_link_count",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -230,7 +232,6 @@ scheduler_events = {
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
 	"hourly_maintenance": [
-		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.desk.form.document_follow.send_hourly_updates",
@@ -568,6 +569,7 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 	"OAuth Bearer Token": 30,
+	"API Request Log": 90,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

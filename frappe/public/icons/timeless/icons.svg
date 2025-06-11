@@ -60,6 +60,14 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M2.10756 9.53547C1.93501 9.82126 1.93501 10.1787 2.10756 10.4645C3.75635 13.1955 6.60531 15 9.84351 15C13.0817 15 15.9307 13.1955 17.5795 10.4645C17.752 10.1787 17.752 9.82127 17.5795 9.53548C15.9307 6.80451 13.0817 5 9.84351 5C6.60531 5 3.75635 6.8045 2.10756 9.53547ZM10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13Z" fill="var(--icon-stroke)"/>
 		<circle cx="10" cy="10" r="1" fill="var(--icon-stroke)"/>
 	</symbol>
+	
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-plus"> 
+		<path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/>
+	</symbol>
+
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-x">
+		<path d="M12.531 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l.427-.473"/><path d="m16.5 3.5 5 5"/><path d="m21.5 3.5-5 5"/>
+	</symbol>
 
 	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-hide">
 		<rect x="3.02185" y="3.89151" width="1.26078" height="18.4481" rx="0.630391" transform="rotate(-45 3.02185 3.89151)" fill="var(--icon-stroke)"/>
@@ -396,7 +404,11 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path d="M8.81836 6.45466L10.7943 4.47873C11.4212 3.85205 12.2714 3.5 13.1578 3.5C14.0443 3.5 14.8945 3.85205 15.5214 4.47873V4.47873C16.1481 5.10568 16.5001 5.95584 16.5001 6.84229C16.5001 7.72873 16.1481 8.5789 15.5214 9.20584L13.5455 11.1818" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M6.45466 8.81824L4.47873 10.7942C3.85205 11.4211 3.5 12.2713 3.5 13.1577C3.5 14.0442 3.85205 14.8943 4.47873 15.5213V15.5213C5.10568 16.148 5.95584 16.5 6.84229 16.5C7.72874 16.5 8.5789 16.148 9.20584 15.5213L11.1818 13.5453" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
-
+	
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-paperclip">
+	<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+	</symbol>
+	
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="icon-map">
 		<g stroke-miterlimit="10">
 		<path d="M11.467 3.458c1.958 1.957 1.958 5.088.027 7.02L7.97 14l-3.523-3.523a4.945 4.945 0 010-6.993l.026-.026a4.922 4.922 0 016.993 0zm0 0c-.026-.026-.026-.026 0 0z"></path>
@@ -728,14 +740,6 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path d="M14.2271 6.59087C15.3567 6.59087 16.2725 5.6751 16.2725 4.54544C16.2725 3.41577 15.3567 2.5 14.2271 2.5C13.0974 2.5 12.1816 3.41577 12.1816 4.54544C12.1816 5.6751 13.0974 6.59087 14.2271 6.59087Z" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
-	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply">
-		<polyline points="9 17 4 12 9 7" />  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
-	</symbol>
-
-	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply-all">
-		<polyline points="7 17 2 12 7 7" />  <polyline points="12 17 7 12 12 7" />  <path d="M22 18v-2a4 4 0 0 0-4-4H7" />
-	</symbol>
-
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-printer">
 		<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>
 	</symbol>
@@ -978,10 +982,20 @@ Tip: use lucide.svg in /icons for all downloaded icons
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-arrow-left-to-line">
 		<path d="M3 19V5" />  <path d="m13 6-6 6 6 6" />  <path d="M7 12h14" />
 	</symbol>
+
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-chevron-up">
 		<path d="m18 15-6-6-6 6" />
 	</symbol>
 	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-chevron-down">
 		<path d="m6 9 6 6 6-6" />
+	</symbol>
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply">
+		<polyline points="9 17 4 12 9 7" />  <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+	</symbol>
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-reply-all">
+		<polyline points="7 17 2 12 7 7" />  <polyline points="12 17 7 12 12 7" />  <path d="M22 18v-2a4 4 0 0 0-4-4H7" />
+	</symbol>
+	<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-copy">
+		<rect width="14" height="14" x="8" y="8" rx="2" ry="2" />  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
 	</symbol>
 </svg>

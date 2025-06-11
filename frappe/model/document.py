@@ -1,14 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
+import itertools
 import json
 import time
+import warnings
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from functools import wraps
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
+from typing_extensions import Self, override
 from werkzeug.exceptions import NotFound
 
 import frappe
@@ -18,12 +21,12 @@ from frappe.core.doctype.server_script.server_script_utils import run_server_scr
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
-from frappe.model.base_document import BaseDocument, get_controller
+from frappe.model.base_document import BaseDocument, D, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
-from frappe.types import DF, DocRef
+from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
@@ -104,17 +107,12 @@ def get_doc(*args, **kwargs) -> "Document":
 	if not args and kwargs:
 		return get_doc_from_dict(kwargs)
 	else:
-		raise ValueError("First non keyword argument must be a string, dict or DocRef")
+		raise ValueError("First non keyword argument must be a string or dict")
 
 
 @get_doc.register(BaseDocument)
 def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
 	return doc
-
-
-@get_doc.register(DocRef)
-def _docref(doc_ref: DocRef, **kwargs) -> "Document":
-	return get_doc(doc_ref.doctype, doc_ref.name, **kwargs)
 
 
 @get_doc.register(str)
@@ -142,7 +140,18 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
-class Document(BaseDocument, DocRef):
+def get_lazy_doc(doctype: str, name: str, *, for_update=None) -> "Document":
+	if doctype == "DocType":
+		warnings.warn("DocType doesn't support lazy loading", stacklevel=1)
+		return get_doc(doctype, name)
+
+	controller = get_lazy_controller(doctype)
+	if controller:
+		return controller(doctype, name, for_update=for_update)
+	raise ImportError(doctype)
+
+
+class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
 
 	doctype: DF.Data
@@ -183,10 +192,8 @@ class Document(BaseDocument, DocRef):
 		self.name = name
 		# for_update is set in flags to avoid changing load_from_db signature
 		# since it is used in virtual doctypes and inherited in child classes
-		self.flags.for_update = kwargs.get("for_update")
+		self.flags.for_update = kwargs.pop("for_update", None)
 		self.load_from_db()
-		if kwargs:  # ad-hoc overrides
-			self._init_from_kwargs(kwargs)
 
 	def _init_dispatch(self, arg, *args, **kwargs):
 		if isinstance(arg, str):
@@ -195,9 +202,6 @@ class Document(BaseDocument, DocRef):
 
 		if isinstance(arg, dict):
 			return self._init_from_kwargs(arg)
-
-		if isinstance(arg, DocRef):
-			return self._init_known_doc(arg.doctype, arg.name, **kwargs)
 
 		raise ValueError(f"Unsupported argument type: {type(arg)}")
 
@@ -292,22 +296,7 @@ class Document(BaseDocument, DocRef):
 					for_update=self.flags.for_update,
 				)
 			else:
-				for_update = ""
-				if self.flags.for_update and frappe.db.db_type != "sqlite":
-					for_update = "FOR UPDATE"
-				# Fast pass for all other doctypes - using raw SQL
-				children = frappe.db.sql(
-					"""SELECT * FROM {table_name}
-					WHERE `parent`= %(parent)s
-						AND `parenttype`= %(parenttype)s
-						AND `parentfield`= %(parentfield)s
-					ORDER BY `idx` ASC {for_update}""".format(
-						table_name=get_table_name(child_doctype, wrap_in_backticks=True),
-						for_update=for_update,
-					),
-					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname},
-					as_dict=True,
-				)
+				children = self._load_child_table_from_db(fieldname, child_doctype)
 
 			if children is None:
 				children = []
@@ -315,6 +304,24 @@ class Document(BaseDocument, DocRef):
 			self.set(fieldname, children)
 
 		return self
+
+	def _load_child_table_from_db(self, fieldname, child_doctype):
+		for_update = ""
+		if self.flags.for_update and frappe.db.db_type != "sqlite":
+			for_update = "FOR UPDATE"
+		# Fast pass for all other doctypes - using raw SQL
+		return frappe.db.sql(
+			"""SELECT * FROM {table_name}
+			WHERE `parent`= %(parent)s
+				AND `parenttype`= %(parenttype)s
+				AND `parentfield`= %(parentfield)s
+			ORDER BY `idx` ASC {for_update}""".format(
+				table_name=get_table_name(child_doctype, wrap_in_backticks=True),
+				for_update=for_update,
+			),
+			{"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname},
+			as_dict=True,
+		)
 
 	def reload(self) -> "Self":
 		"""Reload document from database"""
@@ -705,7 +712,7 @@ class Document(BaseDocument, DocRef):
 				)
 
 		if self.doctype in frappe.db.value_cache:
-			del frappe.db.value_cache[self.doctype]
+			frappe.db.value_cache.pop(self.doctype, None)
 
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
@@ -1320,7 +1327,8 @@ class Document(BaseDocument, DocRef):
 		elif self._action == "update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		self.clear_cache()
+		if not (frappe.flags.in_import and self.is_new()):
+			self.clear_cache()
 
 		if self.flags.get("notify_update", True):
 			self.notify_update()
@@ -1350,7 +1358,12 @@ class Document(BaseDocument, DocRef):
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
-		if frappe.flags.in_patch:
+		if (
+			frappe.flags.in_import
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or frappe.flags.in_install
+		):
 			return
 
 		frappe.publish_realtime(
@@ -1389,7 +1402,7 @@ class Document(BaseDocument, DocRef):
 			self.set("modified_by", frappe.session.user)
 
 		# load but do not reload doc_before_save because before_change or on_change might expect it
-		if not self.get_doc_before_save():
+		if not self.get_doc_before_save() and not self.meta.istable:
 			self.load_doc_before_save()
 
 		# to trigger notification on value change
@@ -1456,13 +1469,12 @@ class Document(BaseDocument, DocRef):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
 		version = frappe.new_doc("Version")
+
+		if not doc_to_compare and not self.flags.updater_reference:
+			return
+
 		if version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
-
-			if not frappe.flags.in_migrate:
-				# follow since you made a change?
-				if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
-					follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def hook(f):
@@ -1871,7 +1883,8 @@ def bulk_insert(
 	doctype: str,
 	documents: Iterable["Document"],
 	ignore_duplicates: bool = False,
-	chunk_size=10_000,
+	chunk_size=1000,
+	commit_chunks=False,
 ):
 	"""Insert simple Documents objects to database in bulk.
 
@@ -1882,31 +1895,37 @@ def bulk_insert(
 	"""
 
 	doctype_meta = frappe.get_meta(doctype)
-	documents = list(documents)
 
 	valid_column_map = {
 		doctype: doctype_meta.get_valid_columns(),
 	}
-	values_map = {
-		doctype: _document_values_generator(documents, valid_column_map[doctype]),
-	}
 
-	for child_table in doctype_meta.get_table_fields():
+	child_table_fields = doctype_meta.get_table_fields()
+	for child_table in child_table_fields:
 		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
-		values_map[child_table.options] = _document_values_generator(
-			[
-				ch_doc
-				for ch_doc in (
-					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
-				)
-			],
-			valid_column_map[child_table.options],
-		)
 
-	for dt, docs in values_map.items():
-		frappe.db.bulk_insert(
-			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
-		)
+	documents = iter(documents)
+	while document_batch := list(itertools.islice(documents, chunk_size)):
+		values_map = {
+			doctype: _document_values_generator(document_batch, valid_column_map[doctype]),
+		}
+
+		for child_table in child_table_fields:
+			values_map[child_table.options] = _document_values_generator(
+				[
+					ch_doc
+					for ch_doc in (
+						child_docs for doc in document_batch for child_docs in doc.get(child_table.fieldname)
+					)
+				],
+				valid_column_map[child_table.options],
+			)
+
+		for dt, docs in values_map.items():
+			frappe.db.bulk_insert(dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates)
+
+		if commit_chunks:
+			frappe.db.commit()
 
 
 def _document_values_generator(
@@ -1926,5 +1945,86 @@ def _document_values_generator(
 
 @frappe.whitelist()
 def unlock_document(doctype: str, name: str):
-	frappe.get_doc(doctype, name).unlock()
+	frappe.get_lazy_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+
+
+def get_lazy_controller(doctype):
+	lazy_controllers = frappe.lazy_controllers.setdefault(frappe.local.site, {})
+	if doctype not in lazy_controllers:
+		meta = frappe.get_meta(doctype)
+		original_controller = get_controller(doctype)
+		if meta.is_virtual:  # not supported
+			lazy_controllers[doctype] = original_controller
+			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
+			return original_controller
+
+		# Dynamically construct a class that subclasses LazyDocument and original controller.
+		lazy_controller = type(f"Lazy{original_controller.__name__}", (LazyDocument, original_controller), {})
+		for fieldname, child_doctype in meta._table_doctypes.items():
+			setattr(lazy_controller, fieldname, LazyChildTable(fieldname, child_doctype))
+
+		lazy_controllers[doctype] = lazy_controller
+	return lazy_controllers[doctype]
+
+
+class LazyDocument:
+	"""Mixin for Document class that implments lazy loading for child tables."""
+
+	@override
+	def load_children_from_db(self: Document):
+		"""Override Document which eagerly loads child tables"""
+		# This is a map of loaded children, it should get erased whenever load_children_from_db is
+		# called to allow reloading lazily again.
+		for fieldname in self._table_fieldnames:
+			self.__dict__.pop(fieldname, None)
+
+	@override
+	def get(self: Document, key, filters=None, limit=None, default=None):
+		# Ensure that table descriptor is triggered at least once
+		if isinstance(key, str) and key in self._table_fieldnames:
+			getattr(self, key, None)
+		return super().get(key, filters, limit, default)
+
+	@override
+	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
+		# Ensure that table descriptor is triggered at least once
+		if isinstance(key, str) and key in self._table_fieldnames:
+			getattr(self, key, None)
+		return super().append(key, value, position)
+
+	@override
+	def db_update_all(self):
+		self.db_update()
+		for fieldname in self._table_fieldnames:
+			if fieldname not in self.__dict__:
+				# Not fetched, can't possibly change so no need to update
+				continue
+			for doc in self.get(fieldname):
+				doc.db_update()
+
+	@override
+	def init_child_tables(self):
+		# Avoid initializing anything, descriptor handles it.
+		return
+
+
+class LazyChildTable:
+	__slots__ = ("doctype", "fieldname")
+
+	def __init__(self, fieldname: str, doctype: str) -> None:
+		self.fieldname = fieldname
+		self.doctype = doctype
+
+	def __get__(self, doc: Document, objtype=None):
+		# Note: avoid any high level access here, can cause recursion
+		fieldname = self.fieldname
+		__dict = doc.__dict__
+		assert fieldname not in __dict, "Descriptor should not override existing values"
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
+		__dict[fieldname] = []
+		# Update __dict__ and convert to Document objects
+		doc.extend(fieldname, children)
+		return __dict[fieldname]
+
+	# Note: Don't implement __set__ method! https://docs.python.org/3/howto/descriptor.html#descriptor-protocol

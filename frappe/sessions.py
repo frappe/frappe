@@ -170,7 +170,7 @@ def get():
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
-	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["setup_complete"] = frappe.is_setup_complete()
 	bootinfo["apps_data"] = {
 		"apps": get_apps() or [],
 		"is_desk_apps": 1 if bool(is_desk_apps(get_apps())) else 0,
@@ -277,7 +277,7 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			user = frappe.get_doc("User", self.data["user"])
+			user = frappe.get_lazy_doc("User", self.data["user"])
 			user_doctype = frappe.qb.DocType("User")
 			(
 				frappe.qb.update(user_doctype)

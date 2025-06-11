@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
+from frappe.utils.caching import http_cache
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
 	get_keys_for_autocomplete,
@@ -217,6 +218,7 @@ class ServerScript(Document):
 
 
 @frappe.whitelist()
+@http_cache(max_age=10 * 60, stale_while_revalidate=6 * 60 * 60)
 def get_autocompletion_items():
 	"""Generate a list of autocompletion strings from the context dict
 	that is used while executing a Server Script.

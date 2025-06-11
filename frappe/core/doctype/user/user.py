@@ -126,6 +126,7 @@ class User(Document):
 		search_bar: DF.Check
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
+		show_absolute_datetime_in_timeline: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
@@ -638,6 +639,7 @@ class User(Document):
 	def add_roles(self, *roles):
 		"""Add roles to user and save"""
 		self.append_roles(*roles)
+		# test_user_permission.create_user depends on this
 		self.save()
 
 	def remove_roles(self, *roles):
@@ -1048,7 +1050,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
+		default_role = frappe.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 

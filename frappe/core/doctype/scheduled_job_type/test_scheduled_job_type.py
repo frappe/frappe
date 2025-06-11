@@ -4,18 +4,9 @@ from datetime import timedelta
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_datetime
 from frappe.utils.data import add_to_date, now_datetime
-
-
-class UnitTestScheduledJobType(UnitTestCase):
-	"""
-	Unit tests for ScheduledJobType.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestScheduledJobType(IntegrationTestCase):
@@ -117,7 +108,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		sjt = frappe.new_doc(
 			"Scheduled Job Type",
 			frequency="Hourly Maintenance",
-			last_execution=get_datetime("2019-01-01 00:00:00"),
+			last_execution=get_datetime("2019-01-01 23:59:00"),
 		)
 		# Should be within one hour
 		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)

@@ -1,4 +1,5 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
+	{% is_mini = frappe.is_mobile() ? true : false %}
 	<span class="flex justify-between m-1 mb-3">
 		<span class="text-color flex">
 			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
@@ -28,13 +29,13 @@
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-					{{ frappe.avatar(doc.owner, "avatar-medium") }}
-					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
-					<span class="text-extra-muted">{{ __("commented") }}</span>
-					<span> · </span>
-					<span class="text-extra-muted">
-						{{ comment_when(doc.communication_date || doc.creation) }}
-					</span>
+						{{ frappe.avatar(doc.owner, "avatar-medium") }}
+						<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
+						<span class="text-extra-muted">{{ __("commented") }}</span>
+						<span> · </span>
+						<span class="text-extra-muted">
+							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
+						</span>
 					{% if (doc.published) { %}
 						<span> · </span>
 						<span class="text-extra-muted" title="{{ __('Visible to website/portal users.') }}">
@@ -46,16 +47,17 @@
 				<span class="margin-right">
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
-				<div>
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
-					<span> . </span>
-					<span class="text-muted">
-						{{ comment_when(doc.communication_date || doc.creation) }}
-					</span>
-					{% if (doc.subject) { %}
-						<div class="text-muted my-1">{{doc.subject}}</div>
-					{% } %}
-				</div>
+					<div>
+						{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
+						<span> . </span>
+
+						<span class="text-muted">
+							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
+						</span>
+						{% if (doc.subject) { %}
+							<div class="text-muted my-1">{{doc.subject}}</div>
+						{% } %}
+					</div>
 			{% } %}
 		</span>
 		<span class="actions" style="flex-shrink: 0">
@@ -69,9 +71,9 @@
 			</span>
 			{% } %}
 
-			{% if (doc._url) { %}
+			{% if (doc._url && !frappe.is_mobile()) { %}
 			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
-				<svg class="es-icon">
+				<svg class="icon">
 					<use href="#icon-link-url"></use>
 				</svg>
 			</a>
@@ -84,9 +86,17 @@
 						<use href="#icon-dot-horizontal"></use>
 					</svg>
 				</a>
+
 				<ul class="dropdown-menu small">
 					<li>
-						<a class="dropdown-item" data-action="copy_link">{{ __('Copy Link') }}</a>
+						<a class="dropdown-item" data-action="copy_link">
+							{{ __('Copy Link') }}
+						</a>
+						{% if (frappe.is_mobile()) { %}
+						<a class="dropdown-item" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+							{{  __("Open Communication") }}
+						</a>
+						{% } %}
 					</li>
 				</ul>
 			</div>

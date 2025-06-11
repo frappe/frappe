@@ -70,7 +70,6 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
-
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -334,7 +333,7 @@ def get_context(context):
 			messages.append("Upload")
 			messages.append("Last")
 			messages.append("First")
-			messages.append("No.:Title of the 'row number' column")
+			messages.append("No.")
 
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
@@ -484,7 +483,7 @@ def get_context(context):
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
+			return frappe.get_last_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
 		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
@@ -559,7 +558,7 @@ def accept(web_form, data):
 	files = []
 	files_to_delete = []
 
-	web_form = frappe.get_doc("Web Form", web_form)
+	web_form = frappe.get_lazy_doc("Web Form", web_form)
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -655,7 +654,7 @@ def accept(web_form, data):
 
 @frappe.whitelist()
 def delete(web_form_name: str, docname: str | int):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -666,7 +665,7 @@ def delete(web_form_name: str, docname: str | int):
 
 @frappe.whitelist()
 def delete_multiple(web_form_name: str, docnames):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
 
@@ -692,7 +691,7 @@ def delete_multiple(web_form_name: str, docnames):
 
 
 def check_webform_perm(doctype, name):
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():
 			return True
@@ -763,7 +762,7 @@ def get_in_list_view_fields(doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)

@@ -12,6 +12,7 @@ import re
 import time
 import typing
 from code import compile_command
+from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar
@@ -640,12 +641,17 @@ def get_time(
 		return time_str
 	elif isinstance(time_str, datetime.timedelta):
 		return (datetime.datetime.min + time_str).time()
+
 	try:
-		return parser.parse(time_str).time()
-	except ParserError as e:
-		if "day" in e.args[1] or "hour must be in" in e.args[0]:
-			return (datetime.datetime.min + parse_timedelta(time_str)).time()
-		raise e
+		# PERF: Our DATE_FORMAT is same as ISO format.
+		return datetime.time.fromisoformat(time_str)
+	except ValueError:
+		try:
+			return parser.parse(time_str).time()
+		except ParserError as e:
+			if "day" in e.args[1] or "hour must be in" in e.args[0]:
+				return (datetime.datetime.min + parse_timedelta(time_str)).time()
+			raise e
 
 
 def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
@@ -2704,6 +2710,11 @@ def mock(type, size=1, locale="en"):
 	from frappe.utils import squashify
 
 	return squashify(results)
+
+
+# Recursive default dict with arbitrary levels of nesting
+def recursive_defaultdict():
+	return defaultdict(recursive_defaultdict)
 
 
 # This is used in test to count memory overhead of default imports.

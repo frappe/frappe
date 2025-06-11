@@ -1,16 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestModuleProfile(UnitTestCase):
-	"""
-	Unit tests for ModuleProfile.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestModuleProfile(IntegrationTestCase):

@@ -4,18 +4,9 @@ import json
 
 import frappe
 from frappe.templates.includes.comments.comments import add_comment
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
 from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
-
-
-class UnitTestComment(UnitTestCase):
-	"""
-	Unit tests for Comment.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestComment(IntegrationTestCase):

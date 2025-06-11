@@ -68,13 +68,13 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		if update:
-			self.query = qb.update(self.table)
+			self.query = qb.update(self.table, immutable=False)
 		elif into:
-			self.query = qb.into(self.table)
+			self.query = qb.into(self.table, immutable=False)
 		elif delete:
-			self.query = qb.from_(self.table).delete()
+			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
-			self.query = qb.from_(self.table)
+			self.query = qb.from_(self.table, immutable=False)
 			self.apply_fields(fields)
 
 		self.apply_filters(filters)
@@ -95,6 +95,7 @@ class Engine:
 		if group_by:
 			self.query = self.query.groupby(group_by)
 
+		self.query.immutable = True
 		return self.query
 
 	def validate_doctype(self):
@@ -141,6 +142,10 @@ class Engine:
 						self.apply_filters(filter)
 					elif isinstance(filter, list | tuple):
 						self.apply_list_filters(filter)
+					else:
+						raise ValueError(f"Unknown filter type: {type(filters)}")
+		else:
+			raise ValueError(f"Unknown filter type: {type(filters)}")
 
 	def apply_list_filters(self, filter: list):
 		if len(filter) == 2:
@@ -152,6 +157,8 @@ class Engine:
 		elif len(filter) == 4:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
+		else:
+			raise ValueError(f"Unknown filter format: {filter}")
 
 	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
 		for field, value in filters.items():

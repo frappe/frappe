@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import TYPE_CHECKING
 
 import frappe
+from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (
 	cint,
@@ -137,7 +138,7 @@ class EMail:
 			recipients = split_emails(recipients)
 
 		# remove null
-		recipients = filter(None, (strip(r) for r in recipients))
+		recipients = [r for r in (strip(r) for r in recipients) if r]
 
 		self.sender = sender
 		self.reply_to = reply_to or sender
@@ -314,6 +315,16 @@ class EMail:
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
 		self.set_header("In-Reply-To", in_reply_to)
+
+	def add_headers(self, headers):
+		"""Add custom headers to the email"""
+		if not isinstance(headers, dict):
+			frappe.throw(_("Headers must be a dictionary"))
+
+		for key, value in headers.items():
+			if value is not None:
+				key = "X-" + key if not key.startswith("X-") else key
+				self.set_header(key, value)
 
 	def make(self):
 		"""build into msg_root"""

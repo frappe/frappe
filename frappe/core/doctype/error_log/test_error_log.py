@@ -5,17 +5,8 @@ from unittest.mock import patch
 from ldap3.core.exceptions import LDAPException, LDAPInappropriateAuthenticationResult
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils.error import _is_ldap_exception, guess_exception_source
-
-
-class UnitTestErrorLog(UnitTestCase):
-	"""
-	Unit tests for ErrorLog.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestErrorLog(IntegrationTestCase):

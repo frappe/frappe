@@ -45,7 +45,6 @@ def after_install():
 		# only set home_page if the value doesn't exist in the db
 		if not frappe.db.get_default("desktop:home_page"):
 			frappe.db.set_default("desktop:home_page", "setup-wizard")
-			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
 	from frappe.tests.utils.generators import _clear_test_log
@@ -136,7 +135,7 @@ def before_tests():
 	frappe.clear_cache()
 
 	# complete setup if missing
-	if not cint(frappe.db.get_single_value("System Settings", "setup_complete")):
+	if not frappe.is_setup_complete():
 		complete_setup_wizard()
 
 	frappe.db.set_single_value("Website Settings", "disable_signup", 0)

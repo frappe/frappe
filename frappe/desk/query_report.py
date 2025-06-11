@@ -708,13 +708,6 @@ def has_match(
 
 				# each doctype could have multiple conflicting user permission doctypes, hence using OR
 				# so that even if one of the sets allows a match, it is true
-
-				if match:
-					if not frappe.has_permission(
-						doctype=ref_doctype, ptype="read", throw=False, ignore_share_permissions=True
-					):
-						match = False
-
 				matched_for_doctype = matched_for_doctype or match
 
 				if matched_for_doctype:

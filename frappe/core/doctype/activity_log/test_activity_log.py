@@ -4,16 +4,7 @@ import time
 
 import frappe
 from frappe.auth import CookieManager, LoginManager
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestActivityLog(UnitTestCase):
-	"""
-	Unit tests for ActivityLog.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestActivityLog(IntegrationTestCase):

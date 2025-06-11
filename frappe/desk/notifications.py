@@ -25,7 +25,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
+	if frappe.flags.in_install or not frappe.is_setup_complete():
 		return out
 
 	config = get_notification_config()
@@ -251,7 +251,7 @@ def get_open_count(doctype: str, name: str, items=None):
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
 
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	doc.check_permission()
 	meta = doc.meta
 	links = meta.get_dashboard_data()

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.custom.doctype.customize_form.customize_form import reset_customization
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string, set_request
 from frappe.website.doctype.blog_post.blog_post import get_blog_list
 from frappe.website.serve import get_response
@@ -14,15 +14,6 @@ from frappe.website.utils import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Post"]
-
-
-class UnitTestBlogPost(UnitTestCase):
-	"""
-	Unit tests for BlogPost.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestBlogPost(IntegrationTestCase):
@@ -74,9 +65,6 @@ class TestBlogPost(IntegrationTestCase):
 		category_page_link = next(iter(soup.find_all("a", href=re.compile(blog.blog_category))))
 		category_page_url = category_page_link["href"]
 
-		cached_value = frappe.db.value_cache.get(("DocType", "Blog Post", "name"))
-		frappe.db.value_cache[("DocType", "Blog Post", "name")] = (("Blog Post",),)
-
 		# Visit the category page (by following the link found in above stage)
 		set_request(path=category_page_url)
 		category_page_response = get_response()
@@ -85,7 +73,6 @@ class TestBlogPost(IntegrationTestCase):
 		self.assertIn(blog.title, category_page_html)
 
 		# Cleanup
-		frappe.db.value_cache[("DocType", "Blog Post", "name")] = cached_value
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
 

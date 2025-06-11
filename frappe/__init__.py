@@ -76,7 +76,8 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.types.lazytranslatedstring import _LazyTranslate
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
 
-controllers: dict[str, "Document"] = {}
+controllers: dict[str, type] = {}
+lazy_controllers: dict[str, type] = {}
 local = Local()
 cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
@@ -516,6 +517,7 @@ def sendmail(
 	with_container=False,
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
+	email_headers=None,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -544,6 +546,7 @@ def sendmail(
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	"""
 
 	if recipients is None:
@@ -600,6 +603,7 @@ def sendmail(
 		with_container=with_container,
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
+		email_headers=email_headers,
 	)
 
 	# build email queue and send the email if send_now is True.
@@ -666,7 +670,7 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or (is_guest and method not in guest_methods):
-		summary = _("You are not permitted to access this resource.")
+		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
@@ -843,7 +847,7 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 
 	if doc:
 		if isinstance(doc, str):
-			doc = get_doc(doctype, doc)
+			doc = get_lazy_doc(doctype, doc)
 
 		doctype = doc.doctype
 
@@ -977,6 +981,8 @@ def get_document_cache_key(doctype: str, name: str):
 
 
 def clear_document_cache(doctype: str, name: str | None = None) -> None:
+	frappe.db.value_cache.pop(doctype, None)
+
 	def clear_in_redis():
 		if name is not None:
 			cache.delete_value(get_document_cache_key(doctype, name))
@@ -1013,6 +1019,15 @@ def get_cached_value(
 	if as_dict:
 		return _dict(zip(fieldname, values, strict=False))
 	return values
+
+
+def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
+	"""Return the cached value associated with the given fieldname from single DocType.
+
+	Usage:
+		telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
+	"""
+	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
 
 
 def get_last_doc(
@@ -1931,6 +1946,18 @@ def get_active_domains():
 	return get_active_domains()
 
 
+@request_cache
+def is_setup_complete():
+	setup_complete = False
+	if not frappe.db.table_exists("Installed Application"):
+		return setup_complete
+
+	if all(frappe.get_all("Installed Application", {"has_setup_wizard": 1}, pluck="is_setup_complete")):
+		setup_complete = True
+
+	return setup_complete
+
+
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
@@ -1967,7 +1994,7 @@ import frappe._optimizations
 from frappe.cache_manager import clear_cache, reset_metadata_version
 from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
-from frappe.model.document import get_doc
+from frappe.model.document import get_doc, get_lazy_doc
 from frappe.model.meta import get_meta
 from frappe.realtime import publish_progress, publish_realtime
 from frappe.utils import get_traceback, mock, parse_json, safe_eval
