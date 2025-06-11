@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-full flex-col gap-1.5">
+	<div class="flex h-full w-full flex-col gap-1.5">
 		<InputLabel :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 			{{ label }}
 		</InputLabel>
@@ -48,7 +48,7 @@ const props = withDefaults(
 	{
 		language: "javascript",
 		modelValue: null,
-		height: "250px",
+		height: "auto",
 		showLineNumbers: true,
 		completions: null,
 	},
@@ -63,6 +63,7 @@ const setEditorValue = () => {
 			value = jsToJson(value)
 		}
 	} catch (e) {
+		console.log("Error while converting value to JSON", e)
 		// do nothing
 	}
 	code.value = value

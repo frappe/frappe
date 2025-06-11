@@ -19,7 +19,6 @@
 	@apply !bg-transparent text-gray-600;
 }
 .cm-editor {
-	height: 100%;
 	width: 100%;
 	border: 1px solid #d1d5db; /* gray-300 */
 	border-radius: 0.375rem;

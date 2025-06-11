@@ -63,13 +63,7 @@
 								}
 							"
 						/>
-						<CodeEditor
-							label="Script"
-							type="JavaScript"
-							height="250px"
-							:showLineNumbers="true"
-							v-model="pageWatcher.script"
-						/>
+						<Code label="Script" language="javascript" height="250px" v-model="pageWatcher.script" />
 						<FormControl
 							type="checkbox"
 							label="Run Immediately?"
@@ -104,7 +98,7 @@ import { ref } from "vue"
 import { createListResource, Dialog, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 import { StudioPage } from "@/types/Studio/StudioPage"
 import { SelectOption } from "@/types"
 import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
