@@ -274,31 +274,31 @@ frappe.views.ListViewSelect = class ListViewSelect {
 
 		const default_kanban =
 			await frappe.db.get_doc('User', frappe.user.name).then(user => user?.default_kanban)
-
+		console.log("=========> default_kanban:", default_kanban)
 		if(default_kanban){
 			frappe.db.exists("Kanban Board", default_kanban).then((exists) => {
 				if (exists) {
-					// set kanban default per user.
 					frappe.set_route("list", this.doctype, "kanban", default_kanban);
 				} else {
 					fetch_kanban_board(this.doctype);
 				}
 			});
 			return null;
-		}
-
-		const last_opened_kanban =
+		}else{
+			const last_opened_kanban =
 			frappe.model.user_settings[this.doctype]["Kanban"]?.last_kanban_board;
-		if (!last_opened_kanban) {
-			fetch_kanban_board(this.doctype);
-		} else {
-			frappe.db.exists("Kanban Board", last_opened_kanban).then((exists) => {
-				if (exists) {
-					frappe.set_route("list", this.doctype, "kanban", last_opened_kanban);
-				} else {
-					fetch_kanban_board(this.doctype);
-				}
-			});
+			console.log("=========> last_opened_kanban:", last_opened_kanban)
+			if (!last_opened_kanban) {
+				fetch_kanban_board(this.doctype);
+			} else {
+				frappe.db.exists("Kanban Board", last_opened_kanban).then((exists) => {
+					if (exists) {
+						frappe.set_route("list", this.doctype, "kanban", last_opened_kanban);
+					} else {
+						fetch_kanban_board(this.doctype);
+					}
+				});
+			}
 		}
 	}
 

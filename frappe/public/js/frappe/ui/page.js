@@ -853,7 +853,6 @@ frappe.ui.Page = class Page {
 				</div>
 			</div>
 		`);
-
 		if (!parent) parent = this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
