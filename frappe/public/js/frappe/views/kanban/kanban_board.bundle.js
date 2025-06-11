@@ -1343,9 +1343,9 @@ const columnsByMechanic = {
 		})
 	}
 
-	function prepare_columns(columns) {
+	async function prepare_columns(columns) {
 		let cols = [];
-		const isMechanic = frappe.user.has_role("Mechanic");
+		const isMechanic = await erpnext.utils.isMechanic(this.frm);
 		columns.forEach(function (col) {
 			if (isMechanic && !columnsByMechanic[col.column_name]) {
 				return; // Skip columns not in columnsByMechanic
