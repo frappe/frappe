@@ -754,7 +754,7 @@ class TestLazyDocument(IntegrationTestCase):
 		for method in ("append", "extend", "db_update_all", "get"):
 			compare_signatures(original_class, lazy_class, method)
 
-	def test_append_extend(self):
+	def test_append_extend_update(self):
 		guest = frappe.get_lazy_doc("User", "Guest")
 		_ = guest.append("roles")
 		self.assertEqual(len(guest.roles), 2)
@@ -762,3 +762,13 @@ class TestLazyDocument(IntegrationTestCase):
 		guest = frappe.get_lazy_doc("User", "Guest")
 		_ = guest.extend("roles", [{}])
 		self.assertEqual(len(guest.roles), 2)
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.update({"roles": [{"role": "Administrator"}]})
+		self.assertEqual(len(guest.roles), 1)
+		self.assertEqual(guest.roles[0].role, "Administrator")
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.set("roles", [{"role": "Administrator"}])
+		self.assertEqual(len(guest.roles), 1)
+		self.assertEqual(guest.roles[0].role, "Administrator")
