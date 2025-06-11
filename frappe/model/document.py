@@ -2005,6 +2005,11 @@ class LazyDocument:
 			for doc in self.get(fieldname):
 				doc.db_update()
 
+	@override
+	def init_child_tables(self):
+		# Avoid initializing anything, descriptor handles it.
+		return
+
 
 class LazyChildTable:
 	__slots__ = ("doctype", "fieldname")

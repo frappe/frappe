@@ -772,3 +772,7 @@ class TestLazyDocument(IntegrationTestCase):
 		_ = guest.set("roles", [{"role": "Administrator"}])
 		self.assertEqual(len(guest.roles), 1)
 		self.assertEqual(guest.roles[0].role, "Administrator")
+
+	def test_for_update(self):
+		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
+		self.assertTrue(guest.flags.for_update)
