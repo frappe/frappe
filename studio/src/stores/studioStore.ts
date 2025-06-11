@@ -13,6 +13,7 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
+	copyObject,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -30,6 +31,7 @@ import { studioVariables } from "@/data/studioVariables"
 import { Variable } from "@/types/Studio/StudioPageVariable"
 import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
+import { RouteLocationNormalized } from "vue-router"
 
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = reactive({

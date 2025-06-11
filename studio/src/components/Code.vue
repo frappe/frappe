@@ -21,7 +21,7 @@
 import { onMounted, ref, computed, watch } from "vue"
 import { Codemirror } from "vue-codemirror"
 import { autocompletion, closeBrackets, type CompletionContext } from "@codemirror/autocomplete"
-import { LanguageSupport, syntaxTree } from "@codemirror/language"
+import { LanguageSupport } from "@codemirror/language"
 import { EditorView } from "@codemirror/view"
 import { tomorrow } from "thememirror"
 import { jsToJson, jsonToJs } from "@/utils/helpers"
@@ -36,6 +36,7 @@ const props = withDefaults(
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
 		completions?: Function | null
+		completionContext?: Record<string, any>
 	}>(),
 	{
 		language: "javascript",
@@ -138,7 +139,7 @@ const extensions = computed(() => {
 	if (props.completions) {
 		autocompletionOptions.override = [
 			(context: CompletionContext) => {
-				return props.completions?.(context, syntaxTree(context.state))
+				return props.completions?.(context)
 			},
 		]
 	}

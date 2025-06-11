@@ -1,5 +1,7 @@
 import useStudioStore from "@/stores/studioStore"
 import type { Completion, CompletionContext } from "@codemirror/autocomplete"
+import router from "@/router/studio_router"
+import { copyObject } from "./helpers"
 
 const store = useStudioStore()
 
@@ -53,6 +55,12 @@ function addRootCompletions(completions: Completion[]) {
 			type: "data",
 			detail: "Data Source",
 		})
+	})
+
+	completions.push({
+		label: "route",
+		type: "variable",
+		detail: "Vue Router Route",
 	})
 }
 
@@ -124,6 +132,9 @@ function addNestedCompletions(completions: Completion[], chain: string[]) {
 		targetObject = store.variables[rootKey]
 	} else if (store.resources && store.resources[rootKey]) {
 		targetObject = store.resources[rootKey]
+	} else if (rootKey === "route") {
+		// Use the Vue Router instance by replacing active page's route params
+		targetObject = getRouteObject()
 	}
 
 	if (!targetObject) return
@@ -138,7 +149,8 @@ function addNestedCompletions(completions: Completion[], chain: string[]) {
 	}
 }
 
-function addArrayCompletions(completions: Completion[], array) {
+function addArrayCompletions(completions: Completion[], array: any[]) {
+	if (array.length === 0) return
 	for (let i = 0; i < Math.min(array.length, 5); i++) {
 		completions.push({
 			label: `[${i}]`,
@@ -147,7 +159,7 @@ function addArrayCompletions(completions: Completion[], array) {
 		})
 	}
 
-	if (array.length > 0 && typeof array[0] === "object") {
+	if (typeof array[0] === "object") {
 		Object.keys(array[0]).forEach((key) => {
 			completions.push({
 				label: `[0].${key}`,
@@ -158,7 +170,7 @@ function addArrayCompletions(completions: Completion[], array) {
 	}
 }
 
-function addObjectCompletions(completions: Completion[], obj) {
+function addObjectCompletions(completions: Completion[], obj: Record<string, any>) {
 	Object.keys(obj).forEach((key) => {
 		const value = obj[key]
 		let type = "property"
@@ -183,4 +195,18 @@ function addObjectCompletions(completions: Completion[], obj) {
 			detail: detail,
 		})
 	})
+}
+
+function getRouteObject() {
+	if (!store.activePage) return ""
+
+	const newRoute = copyObject(router.currentRoute.value)
+	// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
+	const paramNames = (store.activePage.route.match(/:\w+/g) || []).map(param => param.slice(1))
+	newRoute.params = paramNames.reduce((params, name) => {
+		params[name] = ""
+		return params
+	}, {} as Record<string, string>)
+
+	return newRoute
 }
