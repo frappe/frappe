@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
 import { Codemirror } from "vue-codemirror"
-import { autocompletion, closeBrackets, type CompletionContext } from "@codemirror/autocomplete"
+import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
 import { LanguageSupport } from "@codemirror/language"
 import { EditorView } from "@codemirror/view"
 import { tomorrow } from "thememirror"
@@ -40,7 +40,6 @@ const props = withDefaults(
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
 		completions?: Function | null
-		completionContext?: Record<string, any>
 		label?: string
 		required?: boolean
 		readonly?: boolean
@@ -92,18 +91,28 @@ const emitEditorValue = () => {
 }
 
 const languageExtension = ref<LanguageSupport>()
+const autocompleteExtension = ref()
 
 async function setLanguageExtension() {
-	if (props.language === "json") {
-		languageExtension.value = (await import("@codemirror/lang-json")).json()
-	} else if (props.language === "javascript") {
-		languageExtension.value = (await import("@codemirror/lang-javascript")).javascript()
-	} else if (props.language === "html") {
-		languageExtension.value = (await import("@codemirror/lang-html")).html()
-	} else if (props.language === "css") {
-		languageExtension.value = (await import("@codemirror/lang-css")).css()
-	} else if (props.language === "python") {
-		languageExtension.value = (await import("@codemirror/lang-python")).python()
+	const importMap = {
+		json: () => import("@codemirror/lang-json"),
+		javascript: () => import("@codemirror/lang-javascript"),
+		html: () => import("@codemirror/lang-html"),
+		css: () => import("@codemirror/lang-css"),
+		python: () => import("@codemirror/lang-python"),
+	}
+
+	const languageImport = importMap[props.language]
+	if (!languageImport) return
+
+	const module = await languageImport()
+	languageExtension.value = (module as any)[props.language]()
+
+	if (props.completions) {
+		const languageData = (module as any)[`${props.language}Language`]
+		autocompleteExtension.value = languageData.data.of({
+			autocomplete: props.completions,
+		})
 	}
 }
 
@@ -137,19 +146,15 @@ const extensions = computed(() => {
 	if (languageExtension.value) {
 		baseExtensions.push(languageExtension.value)
 	}
+	if (autocompleteExtension.value) {
+		baseExtensions.push(autocompleteExtension.value)
+	}
 	const autocompletionOptions = {
 		activateOnTyping: true,
 		maxRenderedOptions: 10,
 		closeOnBlur: false,
 		icons: false,
 		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
-	}
-	if (props.completions) {
-		autocompletionOptions.override = [
-			(context: CompletionContext) => {
-				return props.completions?.(context)
-			},
-		]
 	}
 	baseExtensions.push(autocompletion(autocompletionOptions))
 	return baseExtensions
