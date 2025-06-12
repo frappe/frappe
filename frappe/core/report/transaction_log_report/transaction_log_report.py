@@ -30,7 +30,7 @@ def get_data(filters=None):
 				integrity = False
 			else:
 				integrity = check_data_integrity(
-					l.chaining_hash, l.transaction_hash, l.previous_hash, previous_hash[0][0]
+					l.chaining_hash, l.transaction_hash, l.previous_hash, previous_hash[0]["chaining_hash"]
 				)
 
 			result.append(
@@ -72,7 +72,7 @@ def check_data_integrity(chaining_hash, transaction_hash, registered_previous_ha
 
 def calculate_chain(transaction_hash, previous_hash):
 	sha = hashlib.sha256()
-	sha.update(str(transaction_hash) + str(previous_hash))
+	sha.update(transaction_hash.encode("utf-8") + previous_hash.encode("utf-8"))
 	return sha.hexdigest()
 
 
