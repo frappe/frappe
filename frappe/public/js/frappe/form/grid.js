@@ -164,7 +164,7 @@ export default class Grid {
 	}
 
 	get_random_name() {
-		return crypto.randomUUID().slice(0, 8);
+		return Math.random().toString(36).slice(2, 10);
 	}
 
 	set_doc_url() {
