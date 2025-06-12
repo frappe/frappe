@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:05\n"
+"PO-Revision-Date: 2025-06-12 14:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -7077,12 +7077,12 @@ msgstr "Borttagen DocType"
 #. Name of a DocType
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Document"
-msgstr "Papperskorg"
+msgstr "Raderad Dokument"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Deleted Documents"
-msgstr "Papperskorg"
+msgstr "Raderade Dokument"
 
 #. Label of the deleted_name (Data) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -13708,7 +13708,7 @@ msgstr "Är Installation Klar?"
 #: frappe/core/doctype/doctype/doctype_list.js:64
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Single"
-msgstr "Är Enskild"
+msgstr "Är Singel"
 
 #. Label of the is_skipped (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -19028,7 +19028,7 @@ msgstr "Tillåtna Roller"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr "Personal"
+msgstr "Personlig"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -20178,7 +20178,7 @@ msgstr "Publik"
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Public Files (MB)"
-msgstr "Publika Filer (MB)"
+msgstr "Allmänna Filer (MB)"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -30772,7 +30772,7 @@ msgstr "på_godkänn"
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_trash"
-msgstr "på_papperskorg"
+msgstr "on_trash"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
