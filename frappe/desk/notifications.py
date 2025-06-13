@@ -253,9 +253,6 @@ def get_open_count(doctype: str, name: str, items=None):
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
 
-<<<<<<< HEAD
-	doc = frappe.get_doc(doctype, name)
-=======
 	# None of the count queries should take more than 1s individually
 	frappe.db.set_execution_timeout(1)
 
@@ -268,8 +265,7 @@ def get_open_count(doctype: str, name: str, items=None):
 
 
 def _get_linked_document_counts(doctype: str, name: str, items=None):
-	doc = frappe.get_lazy_doc(doctype, name)
->>>>>>> 7345b6b078 (perf: Limit get_open_count to 1s for each count query (#32920))
+	doc = frappe.get_doc(doctype, name)
 	doc.check_permission()
 	meta = doc.meta
 	links = meta.get_dashboard_data()
