@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject } from "vue"
+import { computed, ref, watch, useAttrs, inject, hasInjectionContext } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -97,6 +97,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
 import { CanvasProps } from "@/types/StudioCanvas"
+import type { RepeaterContext } from "@/types"
 
 const props = withDefaults(
 	defineProps<{
@@ -138,7 +139,7 @@ const componentName = computed(() => {
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
-const repeaterContext = inject("repeaterContext", {})
+const repeaterContext = hasInjectionContext() ? inject<RepeaterContext>("repeaterContext") : {}
 const getEvaluationContext = () => {
 	return {
 		...store.variables,
@@ -261,6 +262,9 @@ const getClickedComponent = (e: MouseEvent) => {
 const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, e)
+	if (repeaterContext) {
+		block.setRepeaterDataItem((repeaterContext as RepeaterContext).dataItem)
+	}
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {

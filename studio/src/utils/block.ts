@@ -1,4 +1,4 @@
-import { BlockOptions, BlockStyleMap, Slot } from "@/types"
+import type { BlockOptions, BlockStyleMap, CustomCompletion, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -29,6 +29,8 @@ class Block implements BlockOptions {
 	visibilityCondition?: string
 	classes?: string[]
 	parentSlotName?: string
+	// temporary property
+	repeaterDataItem?: Record<string, any> | null
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
@@ -65,6 +67,15 @@ class Block implements BlockOptions {
 
 		this.componentEvents = options.componentEvents || {}
 		this.initializeSlots()
+
+		// Define as non-reactive property
+		Object.defineProperty(this, "repeaterDataItem", {
+			value: options.repeaterDataItem || null,
+			writable: true,
+			enumerable: false,
+			configurable: true
+		})
+
 		if (options.parentSlotName) {
 			this.parentSlotName = options.parentSlotName
 		}
@@ -585,6 +596,34 @@ class Block implements BlockOptions {
 	// repeater
 	isRepeater() {
 		return this.componentName === "Repeater"
+	}
+
+	setRepeaterDataItem(repeaterDataItem: Record<string, any>) {
+		// temporarily set repeater data item on selected block for autocompletions
+		this.repeaterDataItem = repeaterDataItem
+	}
+
+	getRepeaterDataCompletions(): CustomCompletion[] | undefined {
+		if (this.repeaterDataItem) {
+			return [
+				{
+					item: this.repeaterDataItem,
+					completion: {
+						label: "dataItem",
+						type: "data",
+						detail: "Repeater Data Item",
+					}
+				},
+				{
+					item: "dataIndex",
+					completion: {
+						label: "dataIndex",
+						type: "data",
+						detail: "Repeater Data Index",
+					}
+				}
+			]
+		}
 	}
 
 	// events

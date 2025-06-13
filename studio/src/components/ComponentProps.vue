@@ -119,7 +119,13 @@
 				language="javascript"
 				height="60px"
 				:showLineNumbers="false"
-				:completions="getCompletions"
+				:completions="
+					(context: CompletionContext) => {
+						return block?.repeaterDataItem
+							? getCompletions(context, false, block?.getRepeaterDataCompletions())
+							: getCompletions(context)
+					}
+				"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>
@@ -144,6 +150,7 @@ import IconButton from "@/components/IconButton.vue"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { getCompletions } from "@/utils/autocompletions"
+import { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	block?: Block
