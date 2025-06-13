@@ -347,7 +347,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	if (
 		apply_strict_user_permissions
 		and doc.get("__islocal")
-		and ptype == "read"
+		and ptype in ("read", "write")
 		and (not docname or (docname and not frappe.db.exists(doctype, docname, cache=True)))
 	):
 		apply_strict_user_permissions = False
