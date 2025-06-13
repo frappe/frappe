@@ -1,11 +1,12 @@
 import useStudioStore from "@/stores/studioStore"
 import type { Completion, CompletionContext } from "@codemirror/autocomplete"
+import type { CustomCompletion } from "@/types"
 import router from "@/router/studio_router"
 import { copyObject } from "./helpers"
 
 const store = useStudioStore()
 
-export const getCompletions = (context: CompletionContext, canEditValues: boolean = false) => {
+export const getCompletions = (context: CompletionContext, canEditValues: boolean = false, customCompletions?: CustomCompletion[]) => {
 	const line = context.state.doc.lineAt(context.pos)
 	const lineText = line.text
 	const cursorPos = context.pos - line.from
@@ -19,7 +20,7 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 	if (propertyAccessMatch) {
 		const chain = parseObjectChain(textBeforeCursor)
 		const completions: Completion[] = []
-		addNestedCompletions(completions, chain)
+		addNestedCompletions(completions, chain, customCompletions)
 
 		completionObject = {
 			from: context.pos,
@@ -31,7 +32,7 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 		if (!word || (word.from === word.to && !context.explicit)) return null
 
 		const completions: Completion[] = []
-		addRootCompletions(completions, canEditValues)
+		addRootCompletions(completions, canEditValues, customCompletions)
 
 		completionObject = {
 			from: word.from, // Start of the word for replacement
@@ -53,7 +54,7 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 	return completionObject
 }
 
-function addRootCompletions(completions: Completion[], canEditValues: boolean = false) {
+function addRootCompletions(completions: Completion[], canEditValues: boolean = false, customCompletions?: CustomCompletion[]) {
 	Object.keys(store.variables || {}).forEach((variable) => {
 		completions.push({
 			label: variable,
@@ -81,6 +82,14 @@ function addRootCompletions(completions: Completion[], canEditValues: boolean = 
 		type: "variable",
 		detail: "Vue Router Route",
 	})
+
+	if (customCompletions) {
+		customCompletions.forEach(({ item, completion }) => {
+			completions.push({
+				...completion,
+			})
+		})
+	}
 }
 
 function parseObjectChain(text: string) {
@@ -141,7 +150,7 @@ function getNestedValue(obj, chain) {
 	return current
 }
 
-function addNestedCompletions(completions: Completion[], chain: string[]) {
+function addNestedCompletions(completions: Completion[], chain: string[], customCompletions?: CustomCompletion[]) {
 	const rootKey = chain[0]
 	const remainingChain = chain.slice(1)
 
@@ -154,6 +163,11 @@ function addNestedCompletions(completions: Completion[], chain: string[]) {
 	} else if (rootKey === "route") {
 		// Use the Vue Router instance by replacing active page's route params
 		targetObject = getRouteObject()
+	} else if (customCompletions) {
+		const custom = customCompletions.find(c => c.completion.label === rootKey)
+		if (custom && typeof custom.item === "object") {
+			targetObject = custom.item
+		}
 	}
 
 	if (!targetObject) return
