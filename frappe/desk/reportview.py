@@ -768,6 +768,22 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 	return match_conditions
 
 
+def build_qb_match_conditions(doctype, user=None) -> list:
+	match_filters = build_match_conditions(doctype, user, False)
+	criterion = []
+	if match_filters:
+		from frappe import qb
+
+		_dt = qb.DocType(doctype)
+
+		for filter in match_filters:
+			for d, names in filter.items():
+				fieldname = d.lower().replace(" ", "_")
+				criterion.append(_dt[fieldname].isin(names))
+
+	return criterion
+
+
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
 	if isinstance(filters, str):
 		filters = json.loads(filters)
