@@ -10,6 +10,7 @@ import traceback
 import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
+from sys import intern as intern_string
 from time import time
 from typing import TYPE_CHECKING, Any
 
@@ -484,7 +485,7 @@ class Database:
 		if not result:
 			return []
 
-		keys = [column[0] for column in self._cursor.description]
+		keys = [intern_string(column[0]) for column in self._cursor.description]
 		return [_dict(zip(keys, row, strict=False)) for row in result]
 
 	@staticmethod
