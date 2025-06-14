@@ -19,6 +19,7 @@ import json
 import os
 import typing
 from datetime import datetime
+from sys import intern as intern_string
 
 import click
 
@@ -504,6 +505,10 @@ class Meta(Document):
 				self.is_large_table = True
 
 	def init_field_caches(self):
+		# intern fieldnames
+		for field in self.fields:
+			field.fieldname = intern_string(field.fieldname)
+
 		# field map
 		self._fields = {field.fieldname: field for field in self.fields}
 
