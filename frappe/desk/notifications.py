@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Literal
 
 from bs4 import BeautifulSoup
 
@@ -25,7 +26,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
+	if frappe.flags.in_install or not frappe.is_setup_complete():
 		return out
 
 	config = get_notification_config()
@@ -251,7 +252,19 @@ def get_open_count(doctype: str, name: str, items=None):
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
 
-	doc = frappe.get_doc(doctype, name)
+	# None of the count queries should take more than 1s individually
+	frappe.db.set_execution_timeout(1)
+
+	try:
+		return _get_linked_document_counts(doctype, name, items)
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):
+			return {"count": []}
+		raise
+
+
+def _get_linked_document_counts(doctype: str, name: str, items=None):
+	doc = frappe.get_lazy_doc(doctype, name)
 	doc.check_permission()
 	meta = doc.meta
 	links = meta.get_dashboard_data()
@@ -342,18 +355,16 @@ def get_external_links(doctype, name, links):
 	return {"doctype": doctype, "count": total_count, "open_count": open_count}
 
 
-def get_doc_count(doctype, filters):
-	return len(
-		frappe.get_all(
-			doctype,
-			fields="name",
-			filters=filters,
-			limit=100,
-			distinct=True,
-			ignore_ifnull=True,
-			order_by=None,
+def get_doc_count(doctype, filters) -> int | Literal["?"]:
+	try:
+		docs = frappe.get_all(
+			doctype, filters=filters, limit=100, distinct=True, ignore_ifnull=True, order_by=None
 		)
-	)
+		return len(docs)
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):  # Skip fetching correct count if it's too slow
+			return "?"
+		raise
 
 
 def get_dynamic_link_filters(doctype, links, fieldname):

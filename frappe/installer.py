@@ -332,6 +332,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
 
+	frappe.client_cache.erase_persistent_caches()
 	frappe.flags.in_install = False
 
 
@@ -344,6 +345,8 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		if frappe.flags.in_install:
 			post_install(rebuild_website)
 
+	frappe.get_single("Installed Applications").update_versions()
+
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
@@ -353,6 +356,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -417,6 +421,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	for fn in frappe.get_hooks("after_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
+
+	frappe.client_cache.erase_persistent_caches()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False

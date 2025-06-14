@@ -312,7 +312,7 @@ def get_doc_permissions(doctype: str, docname: str):
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
 	"""
-	doc = frappe.get_doc(doctype, docname)
+	doc = frappe.get_lazy_doc(doctype, docname)
 	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
 
 
@@ -325,7 +325,7 @@ def get_password(doctype: str, name: str, fieldname: str):
 	:param fieldname: `fieldname` of the password property
 	"""
 	frappe.only_for("System Manager")
-	return frappe.get_doc(doctype, name).get_password(fieldname)
+	return frappe.get_lazy_doc(doctype, name).get_password(fieldname)
 
 
 from frappe.deprecation_dumpster import get_js as _get_js
@@ -361,7 +361,7 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_doc(doctype, docname)
+	doc = frappe.get_lazy_doc(doctype, docname)
 	doc.check_permission()
 
 	file = frappe.get_doc(

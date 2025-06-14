@@ -576,7 +576,7 @@ def get_tests_CompatFrappeTestCase():
 		traceback.print_stack(limit=10)
 
 	def _rollback_db():
-		frappe.db.value_cache = {}
+		frappe.db.value_cache.clear()
 		frappe.db.rollback()
 
 	def _restore_thread_locals(flags):

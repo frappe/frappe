@@ -7,20 +7,11 @@ from rauth import OAuth2Service
 import frappe
 from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.utils.oauth import login_via_oauth2
 
 TEST_GITHUB_USER = "githublogin@example.com"
-
-
-class UnitTestSocialLoginKey(UnitTestCase):
-	"""
-	Unit tests for SocialLoginKey.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestSocialLoginKey(IntegrationTestCase):

@@ -12,6 +12,7 @@ import re
 import time
 import typing
 from code import compile_command
+from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar
@@ -2709,6 +2710,11 @@ def mock(type, size=1, locale="en"):
 	from frappe.utils import squashify
 
 	return squashify(results)
+
+
+# Recursive default dict with arbitrary levels of nesting
+def recursive_defaultdict():
+	return defaultdict(recursive_defaultdict)
 
 
 # This is used in test to count memory overhead of default imports.

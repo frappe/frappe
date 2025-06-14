@@ -34,6 +34,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	make_form(doctype) {
+		frappe.frappe_toolbar.add_back_button();
 		this.page.frm = new frappe.ui.form.Form(
 			doctype,
 			this.page,

@@ -4,18 +4,9 @@ import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
-
-
-class UnitTestTodo(UnitTestCase):
-	"""
-	Unit tests for Todo.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestToDo(IntegrationTestCase):

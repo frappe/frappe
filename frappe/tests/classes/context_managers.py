@@ -46,12 +46,14 @@ def freeze_time(time_to_freeze: Any, is_utc: bool = False, *args: Any, **kwargs:
 
 @UnitTestCase.registerAs(staticmethod)
 @contextmanager
-def set_user(user: str) -> None:
+def set_user(user: str):
 	"""Temporarily: set the user."""
-	old_user = frappe.session.user
-	frappe.set_user(user)
-	yield
-	frappe.set_user(old_user)
+	try:
+		old_user = frappe.session.user
+		frappe.set_user(user)
+		yield
+	finally:
+		frappe.set_user(old_user)
 
 
 @UnitTestCase.registerAs(staticmethod)
@@ -88,8 +90,6 @@ def change_settings(doctype, settings_dict=None, /, commit=False, **settings) ->
 	for key, value in settings_dict.items():
 		setattr(settings, key, value)
 	settings.save(ignore_permissions=True)
-	# singles are cached by default, clear to avoid flake
-	frappe.db.value_cache[settings] = {}
 	if commit:
 		frappe.db.commit()
 	yield

@@ -197,7 +197,7 @@ def get_list_context(context, doctype, web_form_name=None):
 
 	# get context from web form module
 	if web_form_name:
-		web_form = frappe.get_doc("Web Form", web_form_name)
+		web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
 
 	# get path from '/templates/' folder of the doctype

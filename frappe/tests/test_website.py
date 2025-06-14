@@ -252,7 +252,6 @@ class TestWebsite(IntegrationTestCase):
 			self.assertEqual(response.status_code, 404)
 
 	def test_printview_page(self):
-		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
 		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)

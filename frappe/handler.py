@@ -128,7 +128,7 @@ def upload_file():
 		else:
 			raise frappe.PermissionError
 	else:
-		user: User = frappe.get_doc("User", frappe.session.user)
+		user: User = frappe.get_lazy_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -210,7 +210,7 @@ def check_write_permission(doctype: str | None = None, name: str | None = None):
 		return
 
 	try:
-		doc = frappe.get_doc(doctype, name)
+		doc = frappe.get_lazy_doc(doctype, name)
 	except frappe.DoesNotExistError:
 		# doc has not been inserted yet, name is set to "new-some-doctype"
 		# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files

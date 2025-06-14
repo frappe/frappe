@@ -24,6 +24,9 @@ $threshold: 34;
 
 	@include media-breakpoint-down(xs) {
 		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
+		.timeline-dot {
+			margin-left: -2px;
+		}
 	}
 	&:before {
 		content: " ";
@@ -177,5 +180,17 @@ $threshold: 34;
 			margin-top: var(--margin-sm);
 			--icon-stroke: var(--text-color);
 		}
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	.new-timeline {
+		.timeline-item {
+			margin-left: 0px;
+		}
+	}
+	.up {
+		position: relative;
+		bottom: 1px;
 	}
 }

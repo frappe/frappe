@@ -8,6 +8,14 @@
 <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-underline">
 	<path d="M6 4v6a6 6 0 0 0 12 0V4" />  <line x1="4" x2="20" y1="20" y2="20" />
 </symbol>
+<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-plus"> 
+	<path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/>
+</symbol>
+
+<symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-funnel-x">
+	<path d="M12.531 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l.427-.473"/><path d="m16.5 3.5 5 5"/><path d="m21.5 3.5-5 5"/>
+</symbol>
+
 <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="icon-file-plus-2">
 	<path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4" />  <path d="M14 2v4a2 2 0 0 0 2 2h4" />  <path d="M3 15h6" />  <path d="M6 12v6" />
 </symbol>

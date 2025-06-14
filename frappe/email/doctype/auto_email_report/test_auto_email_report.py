@@ -3,18 +3,9 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_link_to_form, today
 from frappe.utils.data import is_html
-
-
-class UnitTestAutoEmailReport(UnitTestCase):
-	"""
-	Unit tests for AutoEmailReport.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAutoEmailReport(IntegrationTestCase):

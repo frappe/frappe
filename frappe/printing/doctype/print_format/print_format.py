@@ -140,11 +140,10 @@ class PrintFormat(Document):
 
 
 @frappe.whitelist()
-def make_default(name):
+def make_default(name: str):
 	"""Set print format as default"""
-	frappe.has_permission("Print Format", "write")
-
 	print_format = frappe.get_doc("Print Format", name)
+	print_format.check_permission("write")
 
 	doctype = frappe.get_doc("DocType", print_format.doc_type)
 	if doctype.custom:
