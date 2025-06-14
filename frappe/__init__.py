@@ -619,16 +619,19 @@ allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
+
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
 
-	Use as:
+	- Use as:
 
-	        @frappe.whitelist()
-	        def myfunc(param1, param2):
-	                pass
+	```python
+	@frappe.whitelist()
+	def myfunc(param1, param2):
+	    pass
+	```
 	"""
 
 	if not methods:
