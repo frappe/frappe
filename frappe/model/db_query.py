@@ -275,10 +275,32 @@ from {tables}
 		# query dict
 		args.tables = self.tables[0]
 
-		# left join parent, child tables
+		user_permissions = {}
+
+		if self.tables[1:]:
+			# Add a condition to check if the child table exists; otherwise, it may result in a maximum recursion error if the cache doesn't exist. Also, adding this inside the loop doesn't seem ideal.
+			user_permissions = frappe.permissions.get_user_permissions(self.user)
+
 		for child in self.tables[1:]:
+			child_link_fields = frappe.get_meta(child.replace("`tab", "").replace("`", "")).get_link_fields()
+
+			child_conditions = ""
+
+			for child_df in child_link_fields:
+				if child_df.get("ignore_user_permissions"):
+					continue
+				user_permission_values = user_permissions.get(child_df.get("options"), {})
+				docs = [
+					p["doc"]
+					for p in user_permission_values
+					if not p.get("applicable_for") or p.get("applicable_for") == self.doctype
+				]
+				if docs:
+					values = ", ".join(frappe.db.escape(d, percent=False) for d in docs)
+					child_conditions += f" AND {child}.`{child_df.fieldname}` IN ({values})"
+
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name}) {child_conditions}"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -1001,6 +1023,12 @@ from {tables}
 	def add_user_permissions(self, user_permissions):
 		doctype_link_fields = self.doctype_meta.get_link_fields()
 
+		# child_table_link_fields = self.doctype_meta.get_child_table_link_fields()
+		# print(self.doctype_meta.get_all_children(), "get_all_children \n")
+
+		# print(self.doctype_meta, "self.doctype_meta \n\n")
+		# print(child_table_link_fields, "child_table_link_fields \n\n")
+
 		# append current doctype with fieldname as 'name' as first link field
 		doctype_link_fields.append(
 			dict(
@@ -1026,6 +1054,8 @@ from {tables}
 						f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
 					)
 					condition = empty_value_condition + " or "
+
+				# print(user_permission_values, "user_permission_values \n\n\n")
 
 				for permission in user_permission_values:
 					if not permission.get("applicable_for"):
