@@ -18,7 +18,11 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
+			// Clear any selected date and trigger change so that dependent listeners (e.g. report filters)
+			// detect that the value has been emptied and can refresh automatically.
 			this.datepicker.clear();
+			// Manually fire the change event because datepicker.clear() does not emit it.
+			this.$input && this.$input.trigger("change");
 			return;
 		}
 
