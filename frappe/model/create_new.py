@@ -37,6 +37,17 @@ def make_new_doc(doctype):
 	set_user_and_static_default_values(doc)
 
 	doc._fix_numeric_types()
+
+	# Ensure mandatory numeric fields don't get auto-filled with 0.0/0
+	meta = frappe.get_meta(doctype)
+	for df in meta.get("fields"):
+		if (
+			df.reqd
+			and df.fieldtype in ("Float", "Currency", "Percent")
+			and doc.get(df.fieldname) in (0, 0.0)
+		):
+			doc[df.fieldname] = None
+
 	doc = doc.get_valid_dict(sanitize=False)
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
