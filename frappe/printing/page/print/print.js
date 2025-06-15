@@ -684,7 +684,8 @@ frappe.ui.form.PrintView = class {
 		this._req = frappe.call({
 			method: "frappe.www.printview.get_html_and_style",
 			args: {
-				doc: this.frm.doc,
+				doc: this.frm.doc.doctype,
+				name: this.frm.doc.name,
 				print_format: this.selected_format(),
 				no_letterhead: !this.with_letterhead() ? 1 : 0,
 				letterhead: this.get_letterhead(),
