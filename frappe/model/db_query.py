@@ -1023,12 +1023,6 @@ from {tables}
 	def add_user_permissions(self, user_permissions):
 		doctype_link_fields = self.doctype_meta.get_link_fields()
 
-		# child_table_link_fields = self.doctype_meta.get_child_table_link_fields()
-		# print(self.doctype_meta.get_all_children(), "get_all_children \n")
-
-		# print(self.doctype_meta, "self.doctype_meta \n\n")
-		# print(child_table_link_fields, "child_table_link_fields \n\n")
-
 		# append current doctype with fieldname as 'name' as first link field
 		doctype_link_fields.append(
 			dict(
@@ -1054,8 +1048,6 @@ from {tables}
 						f"ifnull(`tab{self.doctype}`.`{df.get('fieldname')}`, '')=''"
 					)
 					condition = empty_value_condition + " or "
-
-				# print(user_permission_values, "user_permission_values \n\n\n")
 
 				for permission in user_permission_values:
 					if not permission.get("applicable_for"):
