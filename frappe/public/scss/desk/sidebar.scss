@@ -101,7 +101,8 @@ body {
 		flex-wrap: nowrap;
 
 		gap: 2px;
-		overflow: hidden;
+		overflow-y: auto;
+		overflow-x: hidden;
 		position: static;
 		font-size: var(--text-base);
 		// transition: width 200ms;
@@ -252,7 +253,7 @@ body {
 		}
 		.body-sidebar-top {
 			width: 100%;
-			overflow-y: hidden;
+			overflow-y: auto;
 		}
 		.sidebar-item-container {
 			width: 100%;
