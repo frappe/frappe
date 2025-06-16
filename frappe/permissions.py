@@ -360,7 +360,7 @@ def has_user_permission(doc, user=None, debug=False):
 							condition = False
 							break
 			else:
-				condition = str(docname) not in allowed_docs
+				condition = not docname or str(docname) not in allowed_docs
 
 			if condition:
 				# no user permissions for this doc specified
