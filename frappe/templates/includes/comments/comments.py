@@ -6,7 +6,6 @@ import frappe
 from frappe import _, scrub
 from frappe.rate_limiter import rate_limit
 from frappe.utils.html_utils import clean_html
-from frappe.website.doctype.blog_settings.blog_settings import get_comment_limit
 from frappe.website.utils import clear_cache
 
 URLS_COMMENT_PATTERN = re.compile(
@@ -16,7 +15,7 @@ EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="reference_name", limit=get_comment_limit, seconds=60 * 60)
+@rate_limit(key="reference_name", limit=5, seconds=60 * 60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	if frappe.session.user == "Guest":
 		if reference_doctype not in ("Blog Post", "Web Page"):
