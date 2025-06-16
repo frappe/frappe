@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:05\n"
+"PO-Revision-Date: 2025-06-16 15:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -1137,7 +1137,7 @@ msgstr ""
 #. Label of the add_translate_data (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Translate Data"
-msgstr ""
+msgstr "Fordítási adatok hozzáadása"
 
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -1988,7 +1988,7 @@ msgstr ""
 
 #: frappe/model/document.py:550
 msgid "Amendment Not Allowed"
-msgstr ""
+msgstr "Módosítás nem engedélyezett"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:207
 msgid "Amendment naming rules updated."
@@ -2863,7 +2863,7 @@ msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:227
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "Az automatikus ismétlés sikertelen. Kérjük, engedélyezze az automatikus ismétlést a problémák megoldása után."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2911,7 +2911,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:128
 msgid "Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
-msgstr ""
+msgstr "Automatikusan alkalmazott szűrő a friss adatokra. Ezt a viselkedést a listanézet beállításai között kikapcsolhatja."
 
 #. Label of the auto_account_deletion (Int) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3761,7 +3761,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:76
 msgctxt "Email Recipients"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of the cmd (Data) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -4732,7 +4732,7 @@ msgstr ""
 #. Label of the client_script (Code) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Client script"
-msgstr ""
+msgstr "Ügyfélszkript"
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23
@@ -5070,7 +5070,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:32
 msgid "Communication secret not set"
-msgstr ""
+msgstr "A kommunikációs kulcs nincs beállítva"
 
 #. Name of a DocType
 #: frappe/website/doctype/company_history/company_history.json
@@ -5193,7 +5193,7 @@ msgstr ""
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Condition description"
-msgstr ""
+msgstr "Feltétel leírás"
 
 #. Label of the conditions (Table) field in DocType 'Document Naming Rule'
 #. Label of the conditions (Section Break) field in DocType 'Workflow
@@ -5250,7 +5250,7 @@ msgstr ""
 
 #: frappe/integrations/oauth2.py:120
 msgid "Confirm Access"
-msgstr ""
+msgstr "Hozzáférés megerősítése"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:93
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:101
@@ -5556,7 +5556,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up: "
-msgstr ""
+msgstr "Nem sikerült elindulni: "
 
 #: frappe/public/js/frappe/web_form/web_form.js:359
 msgid "Couldn't save, please check the data you have entered"
@@ -7164,7 +7164,7 @@ msgstr ""
 #. 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr ""
+msgstr "Automatikus újbóli szűrők kikapcsolása"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -9045,7 +9045,7 @@ msgstr ""
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:51
 msgid "End"
-msgstr ""
+msgstr "Vége"
 
 #. Label of the end_date (Date) field in DocType 'Auto Repeat'
 #. Label of the end_date (Date) field in DocType 'Audit Trail'
@@ -9743,7 +9743,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:59
 msgid "Failed to get site info"
-msgstr ""
+msgstr "Nem sikerült lekérni a webhely adatait"
 
 #: frappe/model/virtual_doctype.py:63
 msgid "Failed to import virtual doctype {}, is controller file present?"
@@ -9763,7 +9763,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:94
 msgid "Failed to request login to Frappe Cloud"
-msgstr ""
+msgstr "Nem sikerült bejelentkezést kérni a Frappe Cloud-ba"
 
 #: frappe/email/doctype/email_queue/email_queue.py:297
 msgid "Failed to send email with subject:"
@@ -9779,7 +9779,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:74
 msgid "Failed while calling API {0}"
-msgstr ""
+msgstr "Sikertelen API hívása közben {0}"
 
 #. Label of the failing_scheduled_jobs (Table) field in DocType 'System Health
 #. Report'
