@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:04\n"
+"PO-Revision-Date: 2025-06-16 15:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -3865,7 +3865,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:76
 msgctxt "Email Recipients"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of the cmd (Data) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
