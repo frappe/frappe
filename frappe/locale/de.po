@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:05\n"
+"PO-Revision-Date: 2025-06-16 15:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -885,7 +885,7 @@ msgstr "API-Schlüssel kann nicht neu generiert werden"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "API Logging"
-msgstr ""
+msgstr "API-Protokollierung"
 
 #. Label of the api_method (Data) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -895,7 +895,7 @@ msgstr "API-Methode"
 #. Name of a DocType
 #: frappe/core/doctype/api_request_log/api_request_log.json
 msgid "API Request Log"
-msgstr ""
+msgstr "API-Anfrage-Protokoll"
 
 #. Label of the api_secret (Password) field in DocType 'User'
 #. Label of the api_secret (Password) field in DocType 'Email Account'
@@ -4349,7 +4349,7 @@ msgstr "Es können nicht mehrere Drucker einem Druckformat zugeordnet werden."
 
 #: frappe/public/js/frappe/form/grid.js:1128
 msgid "Cannot import table with more than 5000 rows."
-msgstr ""
+msgstr "Tabelle mit mehr als 5000 Zeilen kann nicht importiert werden."
 
 #: frappe/model/document.py:1100
 msgid "Cannot link cancelled document: {0}"
@@ -4647,7 +4647,7 @@ msgstr "Aktivieren, falls der Benutzer gezwungen sein soll, vor dem Speichern ei
 #. Description of the 'Show Full Number' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M)."
-msgstr ""
+msgstr "Aktivieren Sie diese Option, um den vollständigen numerischen Wert anzuzeigen (z.B. 1.234.567 statt 1,2M)."
 
 #: frappe/email/doctype/newsletter/newsletter.js:20
 msgid "Checking broken links..."
@@ -5192,7 +5192,7 @@ msgstr "Kommentarlimit pro Stunde"
 
 #: frappe/desk/form/utils.py:75
 msgid "Comment publicity can only be updated by the original author or a System Manager."
-msgstr ""
+msgstr "Die Öffentlichkeit von Kommentaren kann nur vom ursprünglichen Autor oder einem Systemmanager geändert werden."
 
 #: frappe/model/meta.py:59 frappe/public/js/frappe/form/controls/comment.js:9
 #: frappe/public/js/frappe/model/meta.js:209
@@ -6436,7 +6436,7 @@ msgstr "Täglich lang"
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Daily Maintenance"
-msgstr ""
+msgstr "Tägliche Wartung"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -8246,7 +8246,7 @@ msgstr "Laden Sie Ihre Daten herunter"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:49
 msgid "Download as CSV"
-msgstr ""
+msgstr "Als CSV downloaden"
 
 #: frappe/contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
@@ -8354,7 +8354,7 @@ msgstr "Doppelter Name"
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Duplicate Row"
-msgstr ""
+msgstr "Zeile duplizieren"
 
 #: frappe/public/js/frappe/form/form.js:209
 msgid "Duplicate current row"
@@ -8727,7 +8727,7 @@ msgstr "E-Mail-Konto nicht eingerichtet. Bitte erstellen Sie ein neues E-Mail-Ko
 
 #: frappe/email/doctype/email_account/email_account.py:578
 msgid "Email Account {0} Disabled"
-msgstr ""
+msgstr "E-Mail-Konto {0} Deaktiviert"
 
 #. Label of the email_id (Data) field in DocType 'Address'
 #. Label of the email_id (Data) field in DocType 'Contact'
@@ -8789,7 +8789,7 @@ msgstr "E-Mail-Gruppen-Mitglied"
 #. Label of the email_header (Data) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Email Header"
-msgstr ""
+msgstr "E-Mail-Kopfzeile"
 
 #. Label of the email_id (Data) field in DocType 'Contact Email'
 #. Label of the email_id (Data) field in DocType 'User Email'
@@ -8939,7 +8939,7 @@ msgstr "E-Mail nicht mit {0} bestätigt"
 
 #: frappe/email/doctype/email_queue/email_queue.js:19
 msgid "Email queue is currently suspended. Resume to automatically send other emails."
-msgstr ""
+msgstr "Die E-Mail-Warteschlange ist derzeit unterbrochen. Fortsetzen, um automatisch andere E-Mails zu versenden."
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -9609,7 +9609,7 @@ msgstr "Führen Sie das Konsolenskript aus"
 
 #: frappe/public/js/frappe/ui/dropdown_console.js:125
 msgid "Executing Code"
-msgstr ""
+msgstr "Code wird ausgeführt"
 
 #: frappe/desk/doctype/system_console/system_console.js:18
 msgid "Executing..."
@@ -11817,7 +11817,7 @@ msgstr "hat Rolle"
 #. Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Has Setup Wizard"
-msgstr ""
+msgstr "Hat einen Setup-Assistenten"
 
 #. Label of the has_web_view (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -12231,7 +12231,7 @@ msgstr "Stündlich lang"
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Hourly Maintenance"
-msgstr ""
+msgstr "Stündliche Wartung"
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
@@ -14272,11 +14272,11 @@ msgstr "Letzte 10 aktive Benutzer"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:628
 msgid "Last 14 Days"
-msgstr ""
+msgstr "Letze 14 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:632
 msgid "Last 30 Days"
-msgstr ""
+msgstr "Letzte 30 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:652
 msgid "Last 6 Months"
@@ -14284,11 +14284,11 @@ msgstr "Letzte 6 Monate"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:624
 msgid "Last 7 Days"
-msgstr ""
+msgstr "Letze 7 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:636
 msgid "Last 90 Days"
-msgstr ""
+msgstr "Letzte 90 Tage"
 
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14995,7 +14995,7 @@ msgstr "Protokoll"
 #. Label of the log_api_requests (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Log API Requests"
-msgstr ""
+msgstr "API-Anfragen protokollieren"
 
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -15522,7 +15522,7 @@ msgstr "Maximale Länge"
 #. Label of the max_report_rows (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max Report Rows"
-msgstr ""
+msgstr "Max. Berichtszeilen"
 
 #. Label of the max_value (Int) field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
@@ -16730,11 +16730,11 @@ msgstr "Weiter"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:684
 msgid "Next 14 Days"
-msgstr ""
+msgstr "Nächste 14 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:688
 msgid "Next 30 Days"
-msgstr ""
+msgstr "Nächste 30 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:704
 msgid "Next 6 Months"
@@ -16742,7 +16742,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:680
 msgid "Next 7 Days"
-msgstr ""
+msgstr "Nächste 7 Tage"
 
 #. Label of the next_action_email_template (Link) field in DocType 'Workflow
 #. Document State'
@@ -18106,7 +18106,7 @@ msgstr "Modul oder Werkzeug öffnen"
 
 #: frappe/public/js/frappe/ui/keyboard.js:366
 msgid "Open console"
-msgstr ""
+msgstr "Konsole öffnen"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -23251,7 +23251,7 @@ msgstr "E-Mail senden am"
 #. Label of the send_email (Check) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Send Email On State"
-msgstr ""
+msgstr "E-Mail senden bei Status"
 
 #. Description of the 'Send Print as PDF' (Check) field in DocType 'Print
 #. Settings'
@@ -26629,7 +26629,7 @@ msgstr "Dieser Wert ergibt sich aus dem Feld {1} von {0}"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "This value specifies the max number of rows that can be rendered in report view. "
-msgstr ""
+msgstr "Dieser Wert gibt die maximale Anzahl von Zeilen an, die in der Berichtsansicht dargestellt werden können. "
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -26852,7 +26852,7 @@ msgstr "Zeitstempel"
 
 #: frappe/desk/doctype/system_console/system_console.js:41
 msgid "Tip: Try the new dropdown console using"
-msgstr ""
+msgstr "Tipp: Probieren Sie die neue Dropdown-Konsole mit"
 
 #. Label of the title (Data) field in DocType 'DocType State'
 #. Label of the method (Data) field in DocType 'Error Log'
@@ -27018,7 +27018,7 @@ msgstr "Um diesen Schritt als JSON zu exportieren, verknüpfen Sie ihn in einem 
 
 #: frappe/email/doctype/email_account/email_account.js:126
 msgid "To generate password click {0}"
-msgstr ""
+msgstr "Um ein Passwort zu generieren, klicken Sie auf {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:857
 msgid "To get the updated report, click on {0}."
@@ -27026,7 +27026,7 @@ msgstr "Klicken Sie auf {0}, um den aktualisierten Bericht abzurufen."
 
 #: frappe/email/doctype/email_account/email_account.js:139
 msgid "To know more click {0}"
-msgstr ""
+msgstr "Für weitere Informationen klicken Sie auf {0}"
 
 #. Description of the 'Console' (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -28925,7 +28925,7 @@ msgstr "Sichtbarkeit"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:41
 msgid "Visible to website/portal users."
-msgstr ""
+msgstr "Für Website-/Portalbenutzer sichtbar."
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -29672,11 +29672,11 @@ msgstr "Arbeitsbereiche"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:753
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
-msgstr ""
+msgstr "Möchten Sie diesen Kommentar veröffentlichen? Das bedeutet, dass er für die Benutzer der Website/des Portals sichtbar wird."
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:757
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
-msgstr ""
+msgstr "Möchten Sie die Veröffentlichung dieses Kommentars aufheben? Dann ist er für die Benutzer der Website/des Portals nicht mehr sichtbar."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:41
 msgid "Wrapping up"
@@ -29880,7 +29880,7 @@ msgstr "Sie sind nicht berechtigt auf diese Seite zuzugreifen."
 
 #: frappe/__init__.py:669
 msgid "You are not permitted to access this resource. Login to access"
-msgstr ""
+msgstr "Sie haben keinen Zugriff auf diese Ressource. Melden Sie sich an, um darauf zuzugreifen"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
@@ -30040,7 +30040,7 @@ msgstr "Von Ihnen erstellt"
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:247
 msgctxt "Form timeline"
 msgid "You created this document {0}"
-msgstr ""
+msgstr "Sie haben dieses Dokument {0} erstellt"
 
 #: frappe/client.py:417
 msgid "You do not have Read or Select Permissions for {}"
@@ -30256,7 +30256,7 @@ msgstr "Sie haben sich als ein anderer Benutzer über eine andere Registerkarte 
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:57
 msgid "Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
-msgstr ""
+msgstr "Ihre CSV-Datei wird generiert und erscheint im Bereich „Anhänge“, sobald sie fertig ist. Sie werden außerdem benachrichtigt, sobald die Datei zum Download bereitsteht."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:397
 msgid "Your Country"
@@ -31010,7 +31010,7 @@ msgstr "über Zuweisungsregel"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
 msgid "via Auto Repeat"
-msgstr ""
+msgstr "über automatische Wiederholung"
 
 #: frappe/core/doctype/data_import/importer.py:271
 #: frappe/core/doctype/data_import/importer.py:292
@@ -31302,7 +31302,7 @@ msgstr "Von {0} erstellt"
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:250
 msgctxt "Form timeline"
 msgid "{0} created this document {1}"
-msgstr ""
+msgstr "{0} hat dieses Dokument {1} erstellt"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:33
 msgid "{0} d"
