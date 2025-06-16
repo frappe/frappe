@@ -341,7 +341,8 @@ def has_user_permission(doc, user=None, debug=False):
 	# STEP 1: ---------------------
 	# check user permissions on self
 	if doctype in user_permissions:
-		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
+		doctype_up = user_permissions.get(doctype, [])
+		allowed_docs = get_allowed_docs_for_doctype(doctype_up, doctype)
 
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
@@ -352,20 +353,12 @@ def has_user_permission(doc, user=None, debug=False):
 				if parent := doc.get(doc.nsm_parent_field):
 					from frappe.utils.nestedset import get_ancestors_of
 
+					doc_hide_descendants = {d.doc: d.hide_descendants for d in doctype_up}
+
 					for d in [parent, *get_ancestors_of(doctype, parent)]:
-						if d in allowed_docs:
-							try:
-								up = frappe.get_doc(
-									"User Permission",
-									{"allow": doctype, "for_value": d, "user": user},
-									fields=["hide_descendants"],
-								)
-							except frappe.DoesNotExistError:
-								frappe.clear_last_message()
-								continue
-							if not up.hide_descendants:
-								condition = False
-								break
+						if d in allowed_docs and not doc_hide_descendants[d]:
+							condition = False
+							break
 			else:
 				condition = str(docname) not in allowed_docs
 
