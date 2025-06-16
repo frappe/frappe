@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:05\n"
+"PO-Revision-Date: 2025-06-16 15:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -780,7 +780,7 @@ msgstr ""
 #. Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Access Control"
-msgstr ""
+msgstr "Ustawienia dostępu"
 
 #. Label of the access_key_id (Data) field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -1902,7 +1902,7 @@ msgstr ""
 #. Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allowed embedding domains"
-msgstr ""
+msgstr "Dozwolone domeny osadzania"
 
 #: frappe/public/js/frappe/form/form.js:1256
 msgid "Allowing DocType, DocType. Be careful!"
@@ -2001,7 +2001,7 @@ msgstr ""
 
 #: frappe/model/document.py:550
 msgid "Amendment Not Allowed"
-msgstr ""
+msgstr "Zmiana niedozwolona"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:207
 msgid "Amendment naming rules updated."
@@ -3059,7 +3059,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:85
 msgctxt "Email Recipients"
 msgid "BCC"
-msgstr ""
+msgstr "BCC"
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:31
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:181
