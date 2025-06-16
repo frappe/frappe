@@ -5,6 +5,8 @@ import calendar
 import datetime
 from datetime import timedelta
 from email.utils import formataddr
+from frappe.utils.pdf import get_pdf
+
 
 import frappe
 from frappe import _
@@ -44,14 +46,12 @@ class AutoEmailReport(Document):
 		data_modified_till: DF.Int
 		day_of_week: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 		description: DF.TextEditor | None
-		dynamic_date_period: DF.Literal[
-			"", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"
-		]
+		dynamic_date_period: DF.Literal["", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"]
 		email_to: DF.SmallText
 		enabled: DF.Check
 		filter_meta: DF.Text | None
 		filters: DF.Text | None
-		format: DF.Literal["HTML", "XLSX", "CSV"]
+		format: DF.Literal["HTML", "XLSX", "CSV", "PDF"]
 		frequency: DF.Literal["Daily", "Weekdays", "Weekly", "Monthly"]
 		from_date_field: DF.Literal[None]
 		no_of_rows: DF.Int
@@ -109,7 +109,7 @@ class AutoEmailReport(Document):
 
 	def validate_report_format(self):
 		"""check if user has select correct report format"""
-		valid_report_formats = ["HTML", "XLSX", "CSV"]
+		valid_report_formats = ["HTML", "XLSX", "CSV","PDF"]
 		if self.format not in valid_report_formats:
 			frappe.throw(
 				_("{0} is not a valid report format. Report format should one of the following {1}").format(
@@ -184,8 +184,30 @@ class AutoEmailReport(Document):
 			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			return to_csv(xlsx_data)
 
+		elif self.format == "PDF":
+			from frappe.desk.query_report import get_report_result
+			from frappe.utils.pdf import get_pdf
+
+			report = frappe.get_doc("Report", self.report)
+			report_doctype = report.ref_doctype
+
+			filters = frappe.parse_json(self.filters) if self.filters else {}
+
+			# ✅ Unpack the tuple properly
+			columns, data, *_ = get_report_result(report, filters)
+
+			columns, data = make_links(columns, data)
+			columns = update_field_types(columns)
+
+			html = self.get_html_table(columns, data)
+
+			# ✅ Landscape PDF output
+			return get_pdf(html, options={"orientation": "Landscape"})
+
+
 		else:
 			frappe.throw(_("Invalid Output Format"))
+
 
 	def get_html_table(self, columns=None, data=None):
 		date_time = global_date_format(now()) + " " + format_time(now())
@@ -342,40 +364,77 @@ def send_monthly():
 	for report in frappe.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
 		frappe.get_doc("Auto Email Report", report.name).send()
 
-
 def make_links(columns, data):
 	for row in data:
 		doc_name = row.get("name")
 		for col in columns:
-			if not row.get(col.fieldname):
+			fieldname = col.get("fieldname")
+			fieldtype = col.get("fieldtype")
+			options = col.get("options")
+			parent = col.get("parent")
+
+			if not fieldname or not row.get(fieldname):
 				continue
 
-			if col.fieldtype == "Link":
-				if col.options and col.options != "Currency":
-					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
-			elif col.fieldtype == "Dynamic Link":
-				if col.options and row.get(col.options):
-					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
-			elif col.fieldtype == "Currency":
+			if fieldtype == "Link":
+				if options and options != "Currency":
+					row[fieldname] = get_link_to_form(options, row[fieldname])
+			elif fieldtype == "Dynamic Link":
+				if options and row.get(options):
+					row[fieldname] = get_link_to_form(row[options], row[fieldname])
+			elif fieldtype == "Currency":
 				doc = None
-				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
-					if frappe.db.exists(col.parent, doc_name):
-						doc = frappe.get_doc(col.parent, doc_name)
+				if doc_name and parent and not frappe.get_meta(parent).istable:
+					if frappe.db.exists(parent, doc_name):
+						doc = frappe.get_doc(parent, doc_name)
 
-				# Pass the Document to get the currency based on docfield option
-				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
+				row[fieldname] = frappe.format_value(row[fieldname], col, doc=doc)
+
 	return columns, data
 
 
+# def make_links(columns, data):
+# 	for row in data:
+# 		doc_name = row.get("name")
+# 		for col in columns:
+# 			if not row.get(col.fieldname):
+# 				continue
+
+# 			if col.fieldtype == "Link":
+# 				if col.options and col.options != "Currency":
+# 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
+# 			elif col.fieldtype == "Dynamic Link":
+# 				if col.options and row.get(col.options):
+# 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
+# 			elif col.fieldtype == "Currency":
+# 				doc = None
+# 				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
+# 					if frappe.db.exists(col.parent, doc_name):
+# 						doc = frappe.get_doc(col.parent, doc_name)
+
+# 				# Pass the Document to get the currency based on docfield option
+# 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
+# 	return columns, data
+
 def update_field_types(columns):
 	for col in columns:
-		if col.fieldtype in ("Link", "Dynamic Link", "Currency") and col.options != "Currency":
-			col.fieldtype = "Data"
-			col.options = ""
+		fieldtype = col.get("fieldtype")
+		options = col.get("options")
+
+		if fieldtype in ("Link", "Dynamic Link", "Currency") and options != "Currency":
+			col["fieldtype"] = "Data"
+			col["options"] = ""
 	return columns
 
+# def update_field_types(columns):
+# 	for col in columns:
+# 		if col.fieldtype in ("Link", "Dynamic Link", "Currency") and col.options != "Currency":
+# 			col.fieldtype = "Data"
+# 			col.options = ""
+# 	return columns
 
-DATE_FORMAT = "%Y-%m-%d"
+
+# DATE_FORMAT = "%Y-%m-%d"
 
 
 def get_half_year_start(as_str=False):
