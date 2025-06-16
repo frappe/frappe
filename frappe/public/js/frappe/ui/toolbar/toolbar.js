@@ -201,10 +201,7 @@ frappe.ui.toolbar.Toolbar = class {
 			frappe.set_route("List", doctype);
 		});
 	}
-	show_app_logo() {
-		this.navbar.html("");
-		this.navbar.html(this.app_logo);
-	}
+
 	set_app_logo(logo_url) {
 		$(".navbar-brand .app-logo").attr("src", logo_url);
 	}

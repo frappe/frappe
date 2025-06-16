@@ -182,7 +182,6 @@ frappe.Application = class Application {
 		}
 		frappe.router.on("change", () => {
 			$(".tooltip").hide();
-			if (frappe.frappe_toolbar && frappe.is_mobile()) frappe.frappe_toolbar.show_app_logo();
 		});
 	}
 
