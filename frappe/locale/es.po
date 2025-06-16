@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-11 14:04\n"
+"PO-Revision-Date: 2025-06-16 15:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -26351,19 +26351,19 @@ msgstr "Este tablero Kanban será privado"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:666
 msgid "This Month"
-msgstr ""
+msgstr "Este mes"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:670
 msgid "This Quarter"
-msgstr ""
+msgstr "Este cuarto"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:662
 msgid "This Week"
-msgstr ""
+msgstr "Esta Semana"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:674
 msgid "This Year"
-msgstr ""
+msgstr "Este año"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -29752,7 +29752,7 @@ msgstr "Si"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:727
 msgid "Yesterday"
-msgstr ""
+msgstr "Ayer"
 
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
