@@ -2,7 +2,8 @@
 # License: MIT. See LICENSE
 
 import re
-import string
+from collections.abc import Callable
+from contextlib import contextmanager
 from functools import cached_property, wraps
 
 import frappe
@@ -109,3 +110,48 @@ def dangerously_reconnect_on_connection_abort(func):
 			raise
 
 	return wrapper
+
+
+def _should_execute_in_new_transaction() -> bool:
+	"""Evaluate if the current request is a GET request and frappe.in_test is False"""
+
+	request = getattr(frappe.local, "request", False)
+	return request and request.method == "GET" and not frappe.in_test
+
+
+@contextmanager
+def execute_in_new_transaction(
+	condition: Callable | bool = _should_execute_in_new_transaction, commit: bool = True
+):
+	"""
+	Execute a block of code in new transaction, based on some condtion.
+	By default, it will execute in a new transaction if the context is
+	a GET request and frappe.in_test is False.
+
+	This is useful when you want to commit something in an otherwise safe request
+	or without affecting the current transaction.
+
+	:param condition: A callable or boolean to determine if the block should be executed in a new transaction.
+	:param commit: By default, the transaction will be committed after the block is executed.
+		Set to False if you want to handle committing / rolling back the transaction manually.
+	"""
+
+	if callable(condition):
+		condition = condition()
+
+	if not condition:
+		yield
+		return
+
+	original_db = frappe.local.db
+	frappe.connect(set_admin_as_user=False)
+	new_db = frappe.local.db
+
+	try:
+		yield
+	finally:
+		if commit:
+			new_db.commit()
+
+		new_db.close()
+		frappe.local.db = original_db

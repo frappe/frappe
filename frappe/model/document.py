@@ -6,7 +6,6 @@ import json
 import time
 import warnings
 from collections.abc import Generator, Iterable
-from contextlib import contextmanager
 from functools import wraps
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
@@ -18,6 +17,7 @@ import frappe
 from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
+from frappe.database.utils import execute_in_new_transaction
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
@@ -1626,10 +1626,10 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(
-					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
-				)
-				frappe.local.flags.commit = True
+				with execute_in_new_transaction():
+					frappe.db.set_value(
+						self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
+					)
 
 	def add_viewed(self, user=None, force=False, unique_views=False):
 		"""Add a view log for the current document"""
@@ -1655,8 +1655,8 @@ class Document(BaseDocument):
 		if frappe.flags.read_only:
 			view_log.deferred_insert()
 		else:
-			view_log.insert(ignore_permissions=True)
-			frappe.local.flags.commit = True
+			with execute_in_new_transaction():
+				view_log.insert(ignore_permissions=True)
 
 		return view_log
 
