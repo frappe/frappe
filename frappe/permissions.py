@@ -370,6 +370,9 @@ def has_user_permission(doc, user=None, debug=False):
 				)
 				push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
 				return False
+			else:
+				debug and _debug_log(f"User Has access to {docname} via User Permissions.")
+
 		else:
 			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
