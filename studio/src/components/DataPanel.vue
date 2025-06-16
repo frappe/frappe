@@ -112,10 +112,10 @@
 								default="String"
 								@change="() => setInitialValue()"
 							/>
-							<CodeEditor
+							<Code
 								v-if="variableRef.variable_type === 'Object'"
 								label="Initial Value"
-								type="JavaScript"
+								language="javascript"
 								height="250px"
 								:showLineNumbers="true"
 								v-model="variableRef.initial_value"
@@ -165,7 +165,7 @@ import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"

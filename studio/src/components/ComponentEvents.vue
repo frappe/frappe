@@ -97,8 +97,10 @@ import { SelectOption } from "@/types"
 import { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
 import Link from "@/components/Link.vue"
 import Grid from "@/components/Grid.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
-import { DocTypeField } from "@/types"
+import Code from "@/components/Code.vue"
+import { getCompletions } from "@/utils/autocompletions"
+import type { DocTypeField } from "@/types"
+import type { CompletionContext } from "@codemirror/autocomplete"
 import { toast } from "vue-sonner"
 
 const props = defineProps<{
@@ -312,13 +314,18 @@ const actions: ActionConfigurations = {
 	],
 	"Run Script": [
 		{
-			component: CodeEditor,
+			component: Code,
 			getProps: () => {
 				return {
 					label: "Script",
-					type: "JavaScript",
+					language: "javascript",
 					modelValue: newEvent.value.script,
-					showLineNumbers: true,
+					height: "250px",
+					completions: (context: CompletionContext) => {
+						return props.block?.repeaterDataItem
+							? getCompletions(context, false, props.block?.getRepeaterDataCompletions())
+							: getCompletions(context)
+					},
 				}
 			},
 			events: {

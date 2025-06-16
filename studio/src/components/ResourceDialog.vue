@@ -117,12 +117,12 @@
 						<InputLabel>Transform Results</InputLabel>
 					</div>
 
-					<CodeEditor
+					<Code
 						v-if="newResource.transform_results"
 						v-model="newResource.transform"
-						type="JavaScript"
+						language="javascript"
 						height="150px"
-						:showLineNumbers="true"
+						:completions="getCompletions"
 					/>
 				</template>
 			</div>
@@ -156,13 +156,14 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog } from "frappe-ui"
 import Link from "@/components/Link.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
 import { DocTypeField } from "@/types"
 import { NewResource, ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { isObjectEmpty } from "@/utils/helpers"
+import { getCompletions } from "@/utils/autocompletions"
 
 const props = defineProps<{
 	resource?: Resource | null
