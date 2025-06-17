@@ -30,7 +30,7 @@ dependencies = [
     "pydyf==0.11.0",
     "Werkzeug==3.1.3",
     "Whoosh~=2.7.4",
-    "beautifulsoup4~=4.12.2",
+    "beautifulsoup4~=4.13.4",
     "bleach-allowlist~=1.0.3",
     "bleach[css]~=6.0.0",
     "chardet~=5.1.0",
