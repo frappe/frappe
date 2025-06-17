@@ -6,6 +6,7 @@ import requests
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.utils import toggle_test_mode
 
 authorization_token = None
 
@@ -87,8 +88,12 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_copy_document(self):
 		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
+		toggle_test_mode(False)
+		try:
+			response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
+		finally:
+			toggle_test_mode(True)
 
-		response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 
