@@ -134,7 +134,6 @@ const extensions = computed(() => {
 	const baseExtensions = [
 		closeBrackets(),
 		tomorrow,
-		EditorView.lineWrapping,
 		EditorView.theme({
 			"&": {
 				fontFamily: "monospace",

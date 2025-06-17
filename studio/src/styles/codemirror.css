@@ -20,9 +20,8 @@
 }
 .cm-editor {
 	width: 100%;
-	border: 1px solid #d1d5db; /* gray-300 */
-	border-radius: 0.375rem;
 	user-select: text;
+	@apply rounded border border-outline-gray-2;
 }
 .cm-placeholder {
 	@apply !leading-6 !text-gray-500;
@@ -40,7 +39,7 @@
 	outline: none !important;
 }
 .cm-tooltip-autocomplete {
-	@apply !rounded-lg !shadow-md !bg-white !p-1.5 !border-none;
+	@apply !rounded-lg !shadow-md !bg-surface-white !p-1.5 !border-none;
 }
 .cm-tooltip-autocomplete > ul {
 	font-family: 'Inter' !important;
