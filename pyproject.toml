@@ -67,7 +67,7 @@ dependencies = [
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
     "rq==2.4.0",
-    "rsa>=4.1",
+    "rsa~=4.9",
     "semantic-version~=2.10.0",
     "sentry-sdk~=1.45.1",
     "sqlparse~=0.5.0",
