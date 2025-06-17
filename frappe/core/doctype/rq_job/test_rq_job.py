@@ -26,6 +26,12 @@ def wait_for_completion(job: Job):
 class TestRQJob(IntegrationTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
+	def setUp(self) -> None:
+		# Cleanup all pending jobs
+		for job in frappe.get_all("RQ Job", {"status": "queued"}):
+			frappe.get_doc("RQ Job", job.name).cancel()
+		return super().setUp()
+
 	def check_status(self, job: Job, status, wait=True):
 		if wait:
 			wait_for_completion(job)
