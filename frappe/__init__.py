@@ -83,6 +83,7 @@ cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
+in_test = False
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 
 if _dev_server:
@@ -219,7 +220,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 			"in_install_db": False,
 			"in_install_app": False,
 			"in_import": False,
-			"in_test": False,
+			"in_test": in_test,
 			"mute_messages": False,
 			"ignore_links": False,
 			"mute_emails": False,
