@@ -92,8 +92,6 @@ def application(request: Request):
 	response = None
 
 	try:
-		rollback = True
-
 		init_request(request)
 
 		validate_auth()
@@ -132,17 +130,16 @@ def application(request: Request):
 
 	except Exception as e:
 		response = handle_exception(e)
+		if db := getattr(frappe.local, "db", None):
+			db.rollback()
 
 	else:
-		rollback = sync_database(rollback)
+		sync_database()
 
 	finally:
 		# Important note:
 		# this function *must* always return a response, hence any exception thrown outside of
 		# try..catch block like this finally block needs to be handled appropriately.
-
-		if rollback and request.method in UNSAFE_HTTP_METHODS and frappe.db:
-			frappe.db.rollback()
 
 		try:
 			run_after_request_hooks(request, response)
@@ -397,21 +394,22 @@ def handle_exception(e):
 	return response
 
 
-def sync_database(rollback: bool) -> bool:
+def sync_database():
 	# if HTTP method would change server state, commit if necessary
-	if frappe.db and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS):
-		frappe.db.commit()
-		rollback = False
-	elif frappe.db:
-		frappe.db.rollback()
-		rollback = False
+
+	db = getattr(frappe.local, "db", None)
+	if not db:
+		# db is not initialized, can't commit or rollback
+		return
+
+	if frappe.local.request.method in UNSAFE_HTTP_METHODS or frappe.local.flags.commit:
+		db.commit()
+	else:
+		db.rollback()
 
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
-		if session.update():
-			rollback = False
-
-	return rollback
+		session.update()
 
 
 # Always initialize sentry SDK if the DSN is sent
