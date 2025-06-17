@@ -87,7 +87,7 @@ dependencies = [
     "google-auth-oauthlib~=1.2.2",
     "google-auth~=2.40.3",
     "posthog~=5.0.0",
-    "vobject~=0.9.7",
+    "vobject~=0.9.9",
     "pycountry~=24.6.1",
 ]
 
