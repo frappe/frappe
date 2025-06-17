@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAttrs, defineModel } from "vue"
+import { useAttrs } from "vue"
 import CrossIcon from "./Icons/Cross.vue"
 
 const props = withDefaults(

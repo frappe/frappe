@@ -70,11 +70,10 @@
 		}"
 	>
 		<template #body-content>
-			<CodeEditor
-				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
-				type="HTML"
+			<Code
+				:modelValue="block.getSlotContent(store.selectedSlot?.slotName) || ''"
+				language="html"
 				height="60vh"
-				:showLineNumbers="true"
 				:showSaveButton="true"
 				@save="
 					(val) => {
@@ -83,7 +82,6 @@
 						store.showSlotEditorDialog = false
 					}
 				"
-				required
 			/>
 		</template>
 	</Dialog>
@@ -95,7 +93,7 @@ import { Dialog } from "frappe-ui"
 import BoxResizer from "@/components/BoxResizer.vue"
 import PaddingHandler from "@/components/PaddingHandler.vue"
 import MarginHandler from "@/components/MarginHandler.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"

@@ -1,0 +1,66 @@
+.cm-editor {
+	user-select: text;
+	padding: 0px !important;
+	position: relative !important;
+}
+.cm-gutters {
+	@apply !border-0 !bg-transparent !px-1.5 !text-xs !leading-6 !text-gray-500;
+}
+.cm-foldGutter span {
+	@apply !hidden !opacity-0;
+}
+.cm-gutterElement {
+	@apply !text-left;
+}
+.cm-activeLine {
+	@apply !bg-transparent;
+}
+.cm-activeLineGutter {
+	@apply !bg-transparent text-gray-600;
+}
+.cm-editor {
+	width: 100%;
+	user-select: text;
+	@apply rounded border border-outline-gray-2;
+}
+.cm-placeholder {
+	@apply !leading-6 !text-gray-500;
+}
+.cm-scroller {
+	@apply !font-mono !leading-6 !text-gray-600;
+}
+.cm-matchingBracket {
+	font-weight: 500 !important;
+	background: none !important;
+	border-bottom: 1px solid #000 !important;
+	outline: none !important;
+}
+.cm-focused {
+	outline: none !important;
+}
+.cm-tooltip-autocomplete {
+	@apply !rounded-lg !shadow-md !bg-surface-white !p-1.5 !border-none;
+}
+.cm-tooltip-autocomplete > ul {
+	font-family: 'Inter' !important;
+}
+.cm-tooltip-autocomplete ul li[aria-selected='true'] {
+	@apply !rounded !bg-gray-200/80;
+	color: #000 !important;
+}
+.cm-completionLabel {
+	margin-right: 1rem !important;
+}
+.cm-completionDetail {
+	margin-left: auto !important;
+}
+.inline-expression .cm-content {
+	padding: 0 !important;
+	line-height: 26px !important;
+}
+.inline-expression .cm-placeholder {
+	line-height: 26px !important;
+}
+.inline-expression .cm-gutters {
+	line-height: 26px !important;
+}

@@ -8,8 +8,20 @@
 			<div class="mb-4 mt-3 flex flex-col gap-3">
 				<div v-for="(config, propName) in componentProps" :key="propName">
 					<div class="flex w-full items-center gap-2">
+						<Code
+							v-if="config.inputType === 'code'"
+							:label="propName"
+							language="javascript"
+							:modelValue="config.modelValue"
+							@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+							:required="config.required"
+							:completions="
+								(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
+							"
+							:showLineNumbers="false"
+						/>
 						<InlineInput
-							v-if="propName !== 'modelValue'"
+							v-else-if="propName !== 'modelValue'"
 							:label="propName"
 							:type="config.inputType"
 							:options="config.options"
@@ -19,7 +31,7 @@
 							class="flex-1"
 						/>
 						<InlineInput
-							v-if="propName === 'modelValue'"
+							v-else-if="propName === 'modelValue'"
 							:label="propName"
 							:type="config.inputType"
 							:options="config.options"
@@ -105,13 +117,15 @@
 			<div class="mt-7 flex items-center justify-between text-sm font-medium">
 				<h3 class="cursor-pointer text-base text-gray-900">Visibility Condition</h3>
 			</div>
-			<CodeEditor
+			<Code
+				language="javascript"
+				height="60px"
+				:showLineNumbers="false"
+				:completions="
+					(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
+				"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
-				type="JavaScript"
-				:showLineNumbers="false"
-				height="60px"
-				class="w-full"
 			/>
 		</div>
 
@@ -131,13 +145,16 @@ import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
+const getCompletions = useStudioCompletions()
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}

@@ -20,7 +20,7 @@ export default defineConfig({
 			frappeProxy: true,
 			lucideIcons: true,
 		}),
-		vue()
+		vue(),
 	],
 	resolve: {
 		alias: {

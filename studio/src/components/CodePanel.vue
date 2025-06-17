@@ -63,12 +63,12 @@
 								}
 							"
 						/>
-						<CodeEditor
+						<Code
 							label="Script"
-							type="JavaScript"
+							language="javascript"
 							height="250px"
-							:showLineNumbers="true"
 							v-model="pageWatcher.script"
+							:completions="getCompletions"
 						/>
 						<FormControl
 							type="checkbox"
@@ -104,17 +104,20 @@ import { ref } from "vue"
 import { createListResource, Dialog, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
+import Code from "@/components/Code.vue"
 import { StudioPage } from "@/types/Studio/StudioPage"
 import { SelectOption } from "@/types"
 import { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const props = defineProps<{
 	page: StudioPage
 }>()
+
+const getCompletions = useStudioCompletions(true)
 
 const studioPageWatchers = createListResource({
 	doctype: "Studio Page Watcher",

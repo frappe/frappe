@@ -1,9 +1,7 @@
 <template>
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="
-			type === 'code' || type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'
-		"
+		:class="type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
 	>
 		<InputLabel
 			:class="[
@@ -38,14 +36,6 @@
 			class="w-full"
 			:disabled="disabled"
 		/>
-		<CodeEditor
-			v-else-if="type === 'code'"
-			:modelValue="modelValue"
-			type="JavaScript"
-			:height="height"
-			@update:modelValue="(e) => emit('update:modelValue', e)"
-			:disabled="disabled"
-		/>
 		<Input
 			v-else
 			:type="type"
@@ -63,7 +53,6 @@ import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
-import CodeEditor from "@/components/CodeEditor.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import InputLabel from "@/components/InputLabel.vue"
 

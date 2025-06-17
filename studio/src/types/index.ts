@@ -1,5 +1,6 @@
 import Block from "../utils/block"
 import { VuePropDefault } from "@/types/vue"
+import type { Completion } from "@codemirror/autocomplete"
 
 export type ObjectLiteral = Record<string, any>
 export type StyleValue = string | number | null | undefined
@@ -110,3 +111,16 @@ export type RightPanelOptions = "Properties" | "Events" | "Styles"
 export type HashString = `#${string}`
 
 export type RGBString = `rgb(${number}, ${number}, ${number})`
+
+// repeater
+export type RepeaterContext = {
+	dataItem: Record<string, any>
+	dataIndex: number
+	dataKey?: string
+}
+
+// completions
+export type CompletionSource = {
+	item: any,
+	completion: Completion
+}
