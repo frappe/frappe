@@ -40,7 +40,7 @@ dependencies = [
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
-    "ipython~=8.15.0",
+    "ipython~=8.37.0",
     "ldap3~=2.9",
     "markdown2~=2.5.3",
     "MarkupSafe~=3.0.2",
