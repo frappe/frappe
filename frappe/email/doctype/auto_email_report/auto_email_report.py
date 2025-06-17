@@ -401,7 +401,7 @@ def update_field_types(columns):
 			col["options"] = ""
 	return columns
 
-# DATE_FORMAT = "%Y-%m-%d"
+DATE_FORMAT = "%Y-%m-%d"
 
 
 def get_half_year_start(as_str=False):
