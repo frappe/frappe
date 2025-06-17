@@ -9,7 +9,7 @@
 			:tab-size="2"
 			:autofocus="autofocus"
 			:indent-with-tab="true"
-			:style="{ height: height }"
+			:style="{ height: height, maxHeight: maxHeight }"
 			:disabled="readonly"
 			@ready="setEditorValue"
 			@blur="emitEditorValue"
@@ -36,6 +36,7 @@ const props = withDefaults(
 		language: "json" | "javascript" | "html" | "css" | "python"
 		modelValue: string | object | Array<string | object> | null
 		height?: string
+		maxHeight?: string
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
@@ -48,6 +49,7 @@ const props = withDefaults(
 		language: "javascript",
 		modelValue: null,
 		height: "auto",
+		maxHeight: "250px",
 		showLineNumbers: true,
 		completions: null,
 	},
