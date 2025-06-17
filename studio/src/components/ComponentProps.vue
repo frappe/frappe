@@ -15,7 +15,9 @@
 							:modelValue="config.modelValue"
 							@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
 							:required="config.required"
-							:completions="getCompletions"
+							:completions="
+								(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
+							"
 							:showLineNumbers="false"
 						/>
 						<InlineInput
@@ -119,7 +121,9 @@
 				language="javascript"
 				height="60px"
 				:showLineNumbers="false"
-				:completions="getCompletions"
+				:completions="
+					(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
+				"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>
@@ -144,15 +148,13 @@ import IconButton from "@/components/IconButton.vue"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
-import { CompletionContext } from "@codemirror/autocomplete"
+import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
-const getCompletions = useStudioCompletions({
-	customSources: props.block?.getRepeaterDataCompletions(),
-})
+const getCompletions = useStudioCompletions()
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}

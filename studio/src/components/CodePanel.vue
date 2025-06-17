@@ -117,7 +117,7 @@ const props = defineProps<{
 	page: StudioPage
 }>()
 
-const getCompletions = useStudioCompletions({ canEditValues: true })
+const getCompletions = useStudioCompletions(true)
 
 const studioPageWatchers = createListResource({
 	doctype: "Studio Page Watcher",

@@ -6,13 +6,7 @@ import router from "@/router/studio_router"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
-export const useStudioCompletions = ({
-	customSources = [],
-	canEditValues = false,
-}: Partial<{
-	customSources: CompletionSource[]
-	canEditValues: boolean
-}> = {}) => {
+export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const store = useStudioStore()
 
 	const routeObject = computed(() => {
@@ -71,7 +65,7 @@ export const useStudioCompletions = ({
 		return sources
 	})
 
-	return (context: CompletionContext) => {
+	return (context: CompletionContext, customSources: CompletionSource[] = []) => {
 		return getCompletions(context, [...completionSources.value, ...customSources])
 	}
 }
