@@ -79,7 +79,7 @@ dependencies = [
     "tomli~=2.2.1",
     "uuid-utils~=0.11.0",
     "xlrd~=2.0.2",
-    "zxcvbn~=4.4.28",
+    "zxcvbn~=4.5.0",
     "markdownify~=0.14.1",
 
     # integration dependencies
