@@ -56,7 +56,7 @@ dependencies = [
     "pyOpenSSL~=25.1.0",
     "pydantic~=2.11.7",
     "pyotp~=2.9.0",
-    "python-dateutil~=2.8.2",
+    "python-dateutil~=2.9.0",
     "pytz==2023.3",
     "rauth~=0.7.3",
     "redis~=6.2.0",
