@@ -186,7 +186,6 @@ class AutoEmailReport(Document):
 
 		elif self.format == "PDF":
 			from frappe.desk.query_report import get_report_result
-			from frappe.utils.pdf import get_pdf
 
 			report = frappe.get_doc("Report", self.report)
 			report_doctype = report.ref_doctype
@@ -392,30 +391,6 @@ def make_links(columns, data):
 
 	return columns, data
 
-
-# def make_links(columns, data):
-# 	for row in data:
-# 		doc_name = row.get("name")
-# 		for col in columns:
-# 			if not row.get(col.fieldname):
-# 				continue
-
-# 			if col.fieldtype == "Link":
-# 				if col.options and col.options != "Currency":
-# 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
-# 			elif col.fieldtype == "Dynamic Link":
-# 				if col.options and row.get(col.options):
-# 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
-# 			elif col.fieldtype == "Currency":
-# 				doc = None
-# 				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
-# 					if frappe.db.exists(col.parent, doc_name):
-# 						doc = frappe.get_doc(col.parent, doc_name)
-
-# 				# Pass the Document to get the currency based on docfield option
-# 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
-# 	return columns, data
-
 def update_field_types(columns):
 	for col in columns:
 		fieldtype = col.get("fieldtype")
@@ -425,14 +400,6 @@ def update_field_types(columns):
 			col["fieldtype"] = "Data"
 			col["options"] = ""
 	return columns
-
-# def update_field_types(columns):
-# 	for col in columns:
-# 		if col.fieldtype in ("Link", "Dynamic Link", "Currency") and col.options != "Currency":
-# 			col.fieldtype = "Data"
-# 			col.options = ""
-# 	return columns
-
 
 # DATE_FORMAT = "%Y-%m-%d"
 
