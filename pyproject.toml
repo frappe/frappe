@@ -83,9 +83,9 @@ dependencies = [
     "markdownify~=1.1.0",
 
     # integration dependencies
-    "google-api-python-client~=2.2.0",
-    "google-auth-oauthlib~=0.4.4",
-    "google-auth~=1.29.0",
+    "google-api-python-client~=2.172.0",
+    "google-auth-oauthlib~=1.2.2",
+    "google-auth~=2.40.3",
     "posthog~=3.21.0",
     "vobject~=0.9.7",
     "pycountry~=24.6.1",
