@@ -8,6 +8,7 @@ from functools import cached_property, wraps
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
+from frappe.utils import CallbackManager
 
 Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
@@ -109,3 +110,37 @@ def dangerously_reconnect_on_connection_abort(func):
 			raise
 
 	return wrapper
+
+
+def commit_after_response(func):
+	"""
+	Runs and commits some queries after response is sent.
+	Works only if in a request context and not in tests.
+	Calls function immediately otherwise.
+	"""
+
+	request = getattr(frappe.local, "request", False)
+	if not request or frappe.in_test:
+		func()
+		return
+
+	callback_manager = getattr(request, "commit_after_response", None)
+	if callback_manager is None:
+		# if no callback manager, create one
+		callback_manager = CallbackManager()
+		request.commit_after_response = callback_manager
+
+		# add a function to run queries and commit after response
+		def run_queries_and_commit():
+			db = getattr(frappe.local, "db", None)
+			if not db:
+				# try reconnecting to the database
+				frappe.connect(set_admin_as_user=False)
+				db = frappe.local.db
+
+			callback_manager.run()
+			db.commit()  # nosemgrep
+
+		request.after_response.add(run_queries_and_commit)
+
+	callback_manager.add(func)
