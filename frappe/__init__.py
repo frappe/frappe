@@ -83,7 +83,9 @@ cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
 STANDARD_USERS = ("Guest", "Administrator")
 
+# this global may be subsequently changed by frappe.tests.utils.toggle_test_mode()
 in_test = False
+
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 
 if _dev_server:
