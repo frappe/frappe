@@ -12,7 +12,7 @@ import click
 import requests
 
 import frappe
-from frappe.tests.utils import make_test_records
+from frappe.tests.utils import make_test_records, toggle_test_mode
 
 from .testing.environment import _decorate_all_methods_and_functions_with_type_checker
 from .testing.result import TestResult
@@ -53,7 +53,7 @@ class ParallelTestRunner:
 		if self.dry_run:
 			return
 
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
 		_decorate_all_methods_and_functions_with_type_checker()

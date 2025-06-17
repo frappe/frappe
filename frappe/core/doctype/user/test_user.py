@@ -25,6 +25,7 @@ from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
@@ -212,13 +213,15 @@ class TestUser(IntegrationTestCase):
 
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")
-			frappe.flags.in_test = False
-			user.new_password = "password"
-			self.assertRaises(frappe.exceptions.ValidationError, user.save)
-			user.reload()
-			user.new_password = "Eastern_43A1W"
-			user.save()
-			frappe.flags.in_test = True
+			toggle_test_mode(False)
+			try:
+				user.new_password = "password"
+				self.assertRaises(frappe.exceptions.ValidationError, user.save)
+				user.reload()
+				user.new_password = "Eastern_43A1W"
+				user.save()
+			finally:
+				toggle_test_mode(True)
 
 	def test_comment_mentions(self):
 		comment = """

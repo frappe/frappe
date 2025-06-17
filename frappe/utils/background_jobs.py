@@ -243,7 +243,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.init(site, force=True)
 		frappe.connect()
 		if os.environ.get("CI"):
-			frappe.flags.in_test = True
+			from frappe.tests.utils import toggle_test_mode
+
+			toggle_test_mode(True)
 
 		if user:
 			frappe.set_user(user)
