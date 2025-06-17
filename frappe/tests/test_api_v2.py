@@ -88,6 +88,8 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_copy_document(self):
 		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
+
+		# disabled temporarily to assert that `docstatus` is not copied outside of tests
 		toggle_test_mode(False)
 		try:
 			response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
