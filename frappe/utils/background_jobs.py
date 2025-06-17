@@ -139,7 +139,7 @@ def enqueue(
 			"unknown", "v17", "Using enqueue with `job_name` is deprecated, use `job_id` instead."
 		)
 
-	if not is_async and not frappe.flags.in_test:
+	if not is_async and not frappe.in_test:
 		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
@@ -148,7 +148,7 @@ def enqueue(
 			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead.",
 		)
 
-	call_directly = now or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 

@@ -94,7 +94,7 @@ def get_comment_list(doctype, name):
 
 
 def get_home_page():
-	if frappe.local.flags.home_page and not frappe.flags.in_test:
+	if frappe.local.flags.home_page and not frappe.in_test:
 		return frappe.local.flags.home_page
 
 	def _get_home_page():

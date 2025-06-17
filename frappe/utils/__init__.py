@@ -269,7 +269,7 @@ def has_gravatar(email: str) -> str:
 	"""Return gravatar url if user has set an avatar at gravatar.com."""
 	import requests
 
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_test:
+	if frappe.flags.in_import or frappe.flags.in_install or frappe.in_test:
 		# no gravatar if via upload
 		# since querying gravatar for every item will be slow
 		return ""

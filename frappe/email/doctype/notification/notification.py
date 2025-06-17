@@ -322,7 +322,7 @@ def get_context(context):
 			"frappe.email.doctype.notification.notification.evaluate_alert",
 			doc=doc,
 			alert=self,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 			enqueue_after_commit=enqueue_after_commit,
 		)
 

@@ -81,7 +81,7 @@ def make_access_log(
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
 	# dont commit in test mode. It must be tempting to put this block along with the in_request in the
 	# whitelisted method...yeah, don't do it. That part would be executed possibly on a read only DB conn
-	if not frappe.flags.in_test or in_request:
+	if not frappe.in_test or in_request:
 		frappe.db.commit()
 
 

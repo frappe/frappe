@@ -199,7 +199,7 @@ def get_csrf_token():
 
 def generate_csrf_token():
 	frappe.local.session.data.csrf_token = frappe.generate_hash()
-	if not frappe.flags.in_test:
+	if not frappe.in_test:
 		frappe.local.session_obj.update(force=True)
 
 

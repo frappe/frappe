@@ -641,7 +641,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 
 		# validate argument types only if request is present
-		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
+		in_request_or_test = lambda: getattr(local, "request", None) or in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
@@ -741,7 +741,7 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 	:param roles: Permitted role(s)
 	"""
 
-	if local.flags.in_test or local.session.user == "Administrator":
+	if in_test or local.session.user == "Administrator":
 		return
 
 	if isinstance(roles, str):
@@ -768,7 +768,7 @@ def get_domain_data(module):
 		else:
 			return _dict()
 	except ImportError:
-		if local.flags.in_test:
+		if in_test:
 			return _dict()
 		else:
 			raise
@@ -1596,7 +1596,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	fields_to_clear = ["name", "owner", "creation", "modified", "modified_by"]
 
-	if not local.flags.in_test:
+	if not in_test:
 		fields_to_clear.append("docstatus")
 
 	if isinstance(doc, BaseDocument) or hasattr(doc, "as_dict"):

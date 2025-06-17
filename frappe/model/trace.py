@@ -90,7 +90,7 @@ class TracedValue:
 
 		"""
 		if value in self.forbidden_values:
-			if frappe.flags.in_test:
+			if frappe.in_test:
 				frappe.throw(f"{self.field_name} cannot be set to {value}", AssertionError)
 			else:
 				frappe.throw(f"{self.field_name} cannot be set to {value}")
@@ -99,7 +99,7 @@ class TracedValue:
 			try:
 				self.custom_validation(obj, value)
 			except Exception as e:
-				if frappe.flags.in_test:
+				if frappe.in_test:
 					frappe.throw(str(e), AssertionError)
 				else:
 					frappe.throw(str(e))

@@ -109,7 +109,7 @@ class SMTPServer:
 			frappe.request.after_response.add(self.quit)
 		elif frappe.job:
 			frappe.job.after_job.add(self.quit)
-		elif not frappe.flags.in_test:
+		elif not frappe.in_test:
 			# Console?
 			import atexit
 

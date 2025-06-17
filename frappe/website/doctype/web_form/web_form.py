@@ -79,10 +79,7 @@ class WebForm(WebsiteGenerator):
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
 		in_user_env = not (
-			frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.flags.in_test
-			or frappe.flags.in_fixtures
+			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms

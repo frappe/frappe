@@ -59,7 +59,7 @@ class UserPermissions:
 
 			return user
 
-		if not frappe.flags.in_install_db and not frappe.flags.in_test:
+		if not frappe.flags.in_install_db and not frappe.in_test:
 			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
 			if user_doc:
 				self.doc = frappe.get_doc(user_doc)

@@ -632,7 +632,7 @@ class InboundMail(Email):
 	def process(self):
 		"""Create communication record from email."""
 		if self.is_sender_same_as_receiver() and not self.is_reply():
-			if frappe.flags.in_test:
+			if frappe.in_test:
 				print("WARN: Cannot pull email. Sender same as recipient inbox")
 			raise SentEmailInInboxError
 

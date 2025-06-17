@@ -182,7 +182,7 @@ class EmailQueue(Document):
 				message = ctx.build_message(recipient.recipient)
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
-				elif not frappe.flags.in_test or frappe.flags.testing_email:
+				elif not frappe.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
 						is_newsletter = self.reference_doctype == "Newsletter"
 						ctx.frappe_mail_client.send_raw(
@@ -200,7 +200,7 @@ class EmailQueue(Document):
 
 				ctx.update_recipient_status_to_sent(recipient)
 
-			if frappe.flags.in_test and not frappe.flags.testing_email:
+			if frappe.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = message
 				return
 
@@ -773,7 +773,7 @@ class QueueBuilder:
 					job_name=frappe.utils.get_job_name(
 						"send_bulk_emails_for", self.reference_doctype, self.reference_name
 					),
-					now=frappe.flags.in_test or send_now,
+					now=frappe.in_test or send_now,
 					queue="long",
 				)
 

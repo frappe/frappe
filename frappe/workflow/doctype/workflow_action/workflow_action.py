@@ -122,7 +122,7 @@ def process_workflow_actions(doc, state):
 			doc=doc,
 			transitions=next_possible_transitions,
 			enqueue_after_commit=True,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 		)
 
 

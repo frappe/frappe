@@ -115,6 +115,6 @@ def flush_webhook_execution_queue():
 			"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
 			doc=instance.doc,
 			webhook=instance.webhook,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 			queue=instance.webhook.background_jobs_queue or "default",
 		)
