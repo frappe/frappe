@@ -120,7 +120,7 @@ export type RepeaterContext = {
 }
 
 // completions
-export type CustomCompletion = {
+export type CompletionSource = {
 	item: any,
 	completion: Completion
 }

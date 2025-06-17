@@ -119,13 +119,7 @@
 				language="javascript"
 				height="60px"
 				:showLineNumbers="false"
-				:completions="
-					(context: CompletionContext) => {
-						return block?.repeaterDataItem
-							? getCompletions(context, false, block?.getRepeaterDataCompletions())
-							: getCompletions(context)
-					}
-				"
+				:completions="getCompletions"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>
@@ -149,13 +143,16 @@ import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
-import { getCompletions } from "@/utils/autocompletions"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
+const getCompletions = useStudioCompletions({
+	customSources: props.block?.getRepeaterDataCompletions(),
+})
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}

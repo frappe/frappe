@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap, CustomCompletion, Slot } from "@/types"
+import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -603,7 +603,7 @@ class Block implements BlockOptions {
 		this.repeaterDataItem = repeaterDataItem
 	}
 
-	getRepeaterDataCompletions(): CustomCompletion[] | undefined {
+	getRepeaterDataCompletions(): CompletionSource[] {
 		if (this.repeaterDataItem) {
 			return [
 				{
@@ -624,6 +624,7 @@ class Block implements BlockOptions {
 				}
 			]
 		}
+		return []
 	}
 
 	// events

@@ -1,12 +1,7 @@
-import useStudioStore from "@/stores/studioStore"
 import type { Completion, CompletionContext } from "@codemirror/autocomplete"
-import type { CustomCompletion } from "@/types"
-import router from "@/router/studio_router"
-import { copyObject } from "./helpers"
+import type { CompletionSource } from "@/types"
 
-const store = useStudioStore()
-
-export const getCompletions = (context: CompletionContext, canEditValues: boolean = false, customCompletions?: CustomCompletion[]) => {
+export const getCompletions = (context: CompletionContext, sources?: CompletionSource[]) => {
 	const line = context.state.doc.lineAt(context.pos)
 	const lineText = line.text
 	const cursorPos = context.pos - line.from
@@ -20,7 +15,7 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 	if (propertyAccessMatch) {
 		const chain = parseObjectChain(textBeforeCursor)
 		const completions: Completion[] = []
-		addNestedCompletions(completions, chain, customCompletions)
+		addNestedCompletions(completions, chain, sources)
 
 		completionObject = {
 			from: context.pos,
@@ -32,7 +27,7 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 		if (!word || (word.from === word.to && !context.explicit)) return null
 
 		const completions: Completion[] = []
-		addRootCompletions(completions, canEditValues, customCompletions)
+		addRootCompletions(completions, sources)
 
 		completionObject = {
 			from: word.from, // Start of the word for replacement
@@ -54,42 +49,12 @@ export const getCompletions = (context: CompletionContext, canEditValues: boolea
 	return completionObject
 }
 
-function addRootCompletions(completions: Completion[], canEditValues: boolean = false, customCompletions?: CustomCompletion[]) {
-	Object.keys(store.variables || {}).forEach((variable) => {
+function addRootCompletions(completions: Completion[], sources?: CompletionSource[]) {
+	sources?.forEach(source => {
 		completions.push({
-			label: variable,
-			type: "variable",
-			detail: "Variable",
-			apply(view, completion, from, to) {
-				let insertText = canEditValues ? `${completion.label}.value` : `${completion.label}`
-				view.dispatch({
-					changes: { from, to, insert: insertText },
-				})
-			},
+			...source.completion
 		})
 	})
-
-	Object.keys(store.resources || {}).forEach((resource) => {
-		completions.push({
-			label: resource,
-			type: "data",
-			detail: "Data Source",
-		})
-	})
-
-	completions.push({
-		label: "route",
-		type: "variable",
-		detail: "Vue Router Route",
-	})
-
-	if (customCompletions) {
-		customCompletions.forEach(({ item, completion }) => {
-			completions.push({
-				...completion,
-			})
-		})
-	}
 }
 
 function parseObjectChain(text: string) {
@@ -134,14 +99,14 @@ function parseObjectChain(text: string) {
 	return parts.filter(part => part !== "")
 }
 
-function getNestedValue(obj, chain) {
+function getNestedValue(obj: Record<string, any>, chain: string[]) {
 	let current = obj
 	for (const key of chain) {
 		if (current === null || current === undefined) return null
 
-		if (Array.isArray(current) && !isNaN(key)) {
+		if (Array.isArray(current) && !isNaN(parseInt(key))) {
 			current = current[parseInt(key)]
-		} else if (typeof current === "object") {
+		} else if (typeof current === "object" && !Array.isArray(current)) {
 			current = current[key]
 		} else {
 			return null
@@ -150,24 +115,14 @@ function getNestedValue(obj, chain) {
 	return current
 }
 
-function addNestedCompletions(completions: Completion[], chain: string[], customCompletions?: CustomCompletion[]) {
+function addNestedCompletions(completions: Completion[], chain: string[], sources?: CompletionSource[]) {
 	const rootKey = chain[0]
 	const remainingChain = chain.slice(1)
 
 	let targetObject = null
-
-	if (store.variables && store.variables[rootKey]) {
-		targetObject = store.variables[rootKey]
-	} else if (store.resources && store.resources[rootKey]) {
-		targetObject = store.resources[rootKey]
-	} else if (rootKey === "route") {
-		// Use the Vue Router instance by replacing active page's route params
-		targetObject = getRouteObject()
-	} else if (customCompletions) {
-		const custom = customCompletions.find(c => c.completion.label === rootKey)
-		if (custom && typeof custom.item === "object") {
-			targetObject = custom.item
-		}
+	const source = sources?.find(c => c.completion.label === rootKey)
+	if (source && typeof source.item === "object") {
+		targetObject = source.item
 	}
 
 	if (!targetObject) return
@@ -228,18 +183,4 @@ function addObjectCompletions(completions: Completion[], obj: Record<string, any
 			detail: detail,
 		})
 	})
-}
-
-function getRouteObject() {
-	if (!store.activePage) return ""
-
-	const newRoute = copyObject(router.currentRoute.value)
-	// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
-	const paramNames = (store.activePage.route.match(/:\w+/g) || []).map(param => param.slice(1))
-	newRoute.params = paramNames.reduce((params, name) => {
-		params[name] = ""
-		return params
-	}, {} as Record<string, string>)
-
-	return newRoute
 }

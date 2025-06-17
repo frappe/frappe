@@ -98,15 +98,18 @@ import { Actions, ActionConfigurations, ComponentEvent } from "@/types/Component
 import Link from "@/components/Link.vue"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
-import { getCompletions } from "@/utils/autocompletions"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
-import type { CompletionContext } from "@codemirror/autocomplete"
 import { toast } from "vue-sonner"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
+const getCompletions = useStudioCompletions({
+	customSources: props.block?.getRepeaterDataCompletions(),
+	canEditValues: true,
+})
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
@@ -321,11 +324,7 @@ const actions: ActionConfigurations = {
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "250px",
-					completions: (context: CompletionContext) => {
-						return props.block?.repeaterDataItem
-							? getCompletions(context, false, props.block?.getRepeaterDataCompletions())
-							: getCompletions(context)
-					},
+					completions: getCompletions,
 				}
 			},
 			events: {

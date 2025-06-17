@@ -163,13 +163,14 @@ import Filters from "@/components/Filters.vue"
 import { DocTypeField } from "@/types"
 import { NewResource, ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { isObjectEmpty } from "@/utils/helpers"
-import { getCompletions } from "@/utils/autocompletions"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const props = defineProps<{
 	resource?: Resource | null
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource", "editResource"])
+const getCompletions = useStudioCompletions()
 
 const emptyResource: NewResource = {
 	// source
