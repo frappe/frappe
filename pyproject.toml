@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-    "Babel~=2.13.1",
+    "Babel~=2.16.0",
     "Click~=8.2.0",
     "filelock~=3.13.1",
     "filetype~=1.2.0",
