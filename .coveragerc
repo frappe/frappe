@@ -4,6 +4,7 @@ omit =
     .github/*
     commands/*
     **/test_*.py
+core = sysmon
 
 [report]
 exclude_lines =
