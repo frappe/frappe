@@ -138,7 +138,17 @@ def commit_after_response(func):
 				frappe.connect(set_admin_as_user=False)
 				db = frappe.local.db
 
-			callback_manager.run()
+			savepoint_name = "commit_after_response"
+
+			while callback_manager._functions():
+				_func = callback_manager._functions.popleft()
+				try:
+					db.savepoint(savepoint_name)
+					_func()
+				except Exception:
+					db.rollback(save_point=savepoint_name)
+					frappe.log_error(title="Error executing commit_after_response callback")
+
 			db.commit()  # nosemgrep
 
 		request.after_response.add(run_queries_and_commit)
