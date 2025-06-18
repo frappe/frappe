@@ -5,9 +5,6 @@ on:
     types: [frappe-framework-change]
   pull_request:
   workflow_dispatch:
-  schedule:
-    # Run everday at midnight UTC / 5:30 IST
-    - cron: "0 0 * * *"
 
 concurrency:
   group: server-${{ github.event_name }}-${{ github.event.number }}
@@ -46,7 +43,7 @@ jobs:
     with:
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
+      enable-coverage: true
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
     secrets: inherit
