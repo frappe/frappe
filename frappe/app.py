@@ -177,14 +177,13 @@ def init_request(request):
 		# site does not exist
 		raise NotFound
 
+	frappe.connect(set_admin_as_user=False)
 	if frappe.local.conf.maintenance_mode:
-		frappe.connect()
 		if frappe.local.conf.allow_reads_during_maintenance:
 			setup_read_only_mode()
 		else:
 			raise frappe.SessionStopped("Session Stopped")
-	else:
-		frappe.connect(set_admin_as_user=False)
+
 	if request.path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
