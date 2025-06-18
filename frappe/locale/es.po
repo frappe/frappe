@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-16 15:29\n"
+"PO-Revision-Date: 2025-06-18 15:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -26355,7 +26355,7 @@ msgstr "Este mes"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:670
 msgid "This Quarter"
-msgstr "Este cuarto"
+msgstr "Este trimestre"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:662
 msgid "This Week"
