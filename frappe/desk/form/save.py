@@ -10,7 +10,7 @@ from frappe.monitor import add_data_to_monitor
 from frappe.utils.telemetry import capture_doc
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "PUT"])
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
@@ -39,7 +39,7 @@ def savedocs(doc, action):
 	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "PUT"])
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
 	doc = frappe.get_doc(doctype, name)
@@ -52,6 +52,20 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
 
 
+<<<<<<< HEAD
+=======
+@frappe.whitelist(methods=["POST", "PUT"])
+def discard(doctype: str, name: str | int):
+	"""discard a draft document"""
+	doc = frappe.get_doc(doctype, name)
+	capture_doc(doc, "Discard")
+
+	doc.discard()
+	send_updated_docs(doc)
+	frappe.msgprint(frappe._("Discarded"), indicator="red", alert=True)
+
+
+>>>>>>> 3bb70a905d (fix: restrict method types in few whitelisted funcs (#32984))
 def send_updated_docs(doc):
 	from .load import get_docinfo
 
