@@ -21,7 +21,6 @@ declare module 'vue' {
     BoxResizer: typeof import('./src/components/BoxResizer.vue')['default']
     CardList: typeof import('./src/components/AppLayout/CardList.vue')['default']
     Code: typeof import('./src/components/Code.vue')['default']
-    CodeEditor: typeof import('./src/components/CodeEditor.vue')['default']
     CodePanel: typeof import('./src/components/CodePanel.vue')['default']
     CollapsibleSection: typeof import('./src/components/CollapsibleSection.vue')['default']
     ColorInput: typeof import('./src/components/ColorInput.vue')['default']
