@@ -125,11 +125,8 @@ def application(request: Request):
 		else:
 			raise NotFound
 
-	except HTTPException as e:
-		return e
-
 	except Exception as e:
-		response = handle_exception(e)
+		response = e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
 		if db := getattr(frappe.local, "db", None):
 			db.rollback()
 
