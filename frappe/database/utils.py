@@ -112,6 +112,30 @@ def dangerously_reconnect_on_connection_abort(func):
 	return wrapper
 
 
+class CommitAfterResponseManager(CallbackManager):
+	__slots__ = ()
+
+	def run(self):
+		db = getattr(frappe.local, "db", None)
+		if not db:
+			# try reconnecting to the database
+			frappe.connect(set_admin_as_user=False)
+			db = frappe.local.db
+
+		savepoint_name = "commit_after_response"
+
+		while self._functions:
+			_func = self._functions.popleft()
+			try:
+				db.savepoint(savepoint_name)
+				_func()
+			except Exception:
+				db.rollback(save_point=savepoint_name)
+				frappe.log_error(title="Error executing commit_after_response callback")
+
+		db.commit()  # nosemgrep
+
+
 def commit_after_response(func):
 	"""
 	Runs and commits some queries after response is sent.
@@ -127,30 +151,8 @@ def commit_after_response(func):
 	callback_manager = getattr(request, "commit_after_response", None)
 	if callback_manager is None:
 		# if no callback manager, create one
-		callback_manager = CallbackManager()
+		callback_manager = CommitAfterResponseManager()
 		request.commit_after_response = callback_manager
-
-		# add a function to run queries and commit after response
-		def run_queries_and_commit():
-			db = getattr(frappe.local, "db", None)
-			if not db:
-				# try reconnecting to the database
-				frappe.connect(set_admin_as_user=False)
-				db = frappe.local.db
-
-			savepoint_name = "commit_after_response"
-
-			while callback_manager._functions():
-				_func = callback_manager._functions.popleft()
-				try:
-					db.savepoint(savepoint_name)
-					_func()
-				except Exception:
-					db.rollback(save_point=savepoint_name)
-					frappe.log_error(title="Error executing commit_after_response callback")
-
-			db.commit()  # nosemgrep
-
-		request.after_response.add(run_queries_and_commit)
+		request.after_response.add(callback_manager.run)
 
 	callback_manager.add(func)
