@@ -154,7 +154,6 @@ watchdog = "~=3.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.2.2"
-pdbpp = "~=0.10.3"
 
 [tool.ruff]
 line-length = 110
