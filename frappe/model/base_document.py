@@ -20,6 +20,7 @@ from frappe.model import (
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
 from frappe.model.naming import set_new_name
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.utils import (
@@ -77,10 +78,25 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string.
 	"""
+	from frappe.model.document import LazyChildTable, LazyDocument
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
-		site_controllers[doctype] = import_controller(doctype)
+		original_controller = import_controller(doctype)
+		meta = frappe.get_meta(doctype)
+
+		if doctype == "DocType" or is_virtual_doctype(doctype):
+			site_controllers[doctype] = original_controller
+		else:
+			lazy_controller = type(
+				f"Lazy{original_controller.__name__}",
+				(LazyDocument, original_controller),
+				{},
+			)
+			for fieldname, child_doctype in meta._table_doctypes.items():
+				setattr(lazy_controller, fieldname, LazyChildTable(fieldname, child_doctype))
+
+			site_controllers[doctype] = lazy_controller
 
 	return site_controllers[doctype]
 

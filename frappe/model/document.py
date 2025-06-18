@@ -140,15 +140,7 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
-def get_lazy_doc(doctype: str, name: str, *, for_update=None) -> "Document":
-	if doctype == "DocType":
-		warnings.warn("DocType doesn't support lazy loading", stacklevel=1)
-		return get_doc(doctype, name)
-
-	controller = get_lazy_controller(doctype)
-	if controller:
-		return controller(doctype, name, for_update=for_update)
-	raise ImportError(doctype)
+get_lazy_doc = get_doc
 
 
 class Document(BaseDocument):
@@ -1940,25 +1932,6 @@ def _document_values_generator(
 def unlock_document(doctype: str, name: str):
 	frappe.get_lazy_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
-
-
-def get_lazy_controller(doctype):
-	lazy_controllers = frappe.lazy_controllers.setdefault(frappe.local.site, {})
-	if doctype not in lazy_controllers:
-		meta = frappe.get_meta(doctype)
-		original_controller = get_controller(doctype)
-		if meta.is_virtual:  # not supported
-			lazy_controllers[doctype] = original_controller
-			warnings.warn("Virtual doctypes don't support lazy loading", stacklevel=2)
-			return original_controller
-
-		# Dynamically construct a class that subclasses LazyDocument and original controller.
-		lazy_controller = type(f"Lazy{original_controller.__name__}", (LazyDocument, original_controller), {})
-		for fieldname, child_doctype in meta._table_doctypes.items():
-			setattr(lazy_controller, fieldname, LazyChildTable(fieldname, child_doctype))
-
-		lazy_controllers[doctype] = lazy_controller
-	return lazy_controllers[doctype]
 
 
 class LazyDocument:
