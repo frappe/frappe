@@ -128,7 +128,7 @@ def application(request: Request):
 	except Exception as e:
 		response = e.get_response(request.environ) if isinstance(e, HTTPException) else handle_exception(e)
 		if db := getattr(frappe.local, "db", None):
-			db.rollback()
+			db.rollback(chain=True)
 
 	else:
 		sync_database()
@@ -398,9 +398,9 @@ def sync_database():
 
 	# if HTTP method would change server state, commit if necessary
 	if frappe.local.request.method in UNSAFE_HTTP_METHODS or frappe.local.flags.commit:
-		db.commit()
+		db.commit(chain=True)
 	else:
-		db.rollback()
+		db.rollback(chain=True)
 
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
