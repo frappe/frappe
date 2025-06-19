@@ -29,8 +29,8 @@ from frappe.utils.data import add_to_date
 
 @frappe.whitelist()
 def clear():
+	# updating session causes a commit, explicit commit not needed
 	frappe.local.session_obj.update(force=True)
-	frappe.local.db.commit()
 	clear_user_cache(frappe.session.user)
 	frappe.response["message"] = _("Cache Cleared")
 
@@ -96,7 +96,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 
 	logout_feed(user, reason)
 	frappe.db.delete("Sessions", {"sid": sid})
-	frappe.db.commit()
+	frappe.db.commit(chain=True)
 
 	frappe.cache.hdel("session", sid)
 
@@ -433,7 +433,7 @@ class Session:
 
 			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
-			frappe.db.commit()
+			frappe.db.commit(chain=True)
 			updated_in_db = True
 			frappe.cache.hset("session", self.sid, self.data)
 
