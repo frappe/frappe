@@ -185,24 +185,31 @@ class Document(BaseDocument):
 		self.flags.pop("ignore_children", None)
 
 		for df in self._get_table_fields():
+			args = {
+				"filters": {
+					"parent": str(self.name),
+					"parenttype": self.doctype,
+					"parentfield": df.fieldname,
+				},
+				"order_by": "idx asc",
+				"as_dict": True,
+				"for_update": self.flags.for_update,
+			}
 			# Make sure not to query the DB for a child table, if it is a virtual one.
 			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
 			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
 			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
-				self.set(df.fieldname, [])
-				continue
-
-			children = (
-				frappe.db.get_values(
-					df.options,
-					{"parent": str(self.name), "parenttype": self.doctype, "parentfield": df.fieldname},
-					"*",
-					as_dict=True,
-					order_by="idx asc",
-					for_update=self.flags.for_update,
+				controller = get_controller(df.options)
+				children = controller.get_list({"fields": "*", **args}) or []
+			else:
+				children = (
+					frappe.db.get_values(
+						df.options,
+						fieldname="*",
+						**args,
+					)
+					or []
 				)
-				or []
-			)
 
 			self.set(df.fieldname, children)
 
