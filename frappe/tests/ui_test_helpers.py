@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.permissions import AUTOMATIC_ROLES
+from frappe.tests.test_helpers import create_test_blog_category
 from frappe.utils import add_to_date, now
 
 UI_TEST_USER = "frappe@example.com"
@@ -83,6 +84,13 @@ def prepare_webform_test():
 		frappe.delete_doc("Note", note, force=True)
 
 	frappe.delete_doc_if_exists("Web Form", "note")
+
+
+@whitelist_for_tests
+def create_doctype_for_attachment():
+	create_test_blog_category()
+	doc = frappe.get_doc("Test Blog Category", "_Test Blog Category 2")
+	return doc
 
 
 @whitelist_for_tests
