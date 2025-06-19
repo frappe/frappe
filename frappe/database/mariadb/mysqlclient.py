@@ -147,15 +147,12 @@ class MariaDBConnectionUtil:
 		if frappe.conf.db_ssl_ca:
 			ssl_config = {
 				"ca": frappe.conf.db_ssl_ca,
-				"check_hostname": frappe.conf.get("db_ssl_check_hostname", True)
+				"check_hostname": frappe.conf.get("db_ssl_check_hostname", True),
 			}
 
 			# Add client certificates for mutual SSL if available
 			if frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-				ssl_config.update({
-					"cert": frappe.conf.db_ssl_cert,
-					"key": frappe.conf.db_ssl_key
-				})
+				ssl_config.update({"cert": frappe.conf.db_ssl_cert, "key": frappe.conf.db_ssl_key})
 
 			conn_settings["ssl"] = ssl_config
 
