@@ -1606,10 +1606,9 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Option"),
 			)
 
-		if not (meta.is_virtual == child_doctype_meta.is_virtual):
-			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
+		if meta.is_virtual and not child_doctype_meta.is_virtual:
 			frappe.throw(
-				_("Child Table {0} for field {1}" + error_msg).format(
+				_("Child Table {0} for field {1} should be virtual").format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
 				title=_("Invalid Option"),
