@@ -1147,7 +1147,7 @@ class Database:
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
 
-	def commit(self):
+	def commit(self, *, chain=False):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
@@ -1158,12 +1158,15 @@ class Database:
 
 		self.before_commit.run()
 
-		self.sql("commit")
-		self.begin()  # explicitly start a new transaction
+		if chain:
+			self.sql("commit and chain")
+		else:
+			self.sql("commit")
+			self.begin()
 
 		self.after_commit.run()
 
-	def rollback(self, *, save_point=None):
+	def rollback(self, *, save_point=None, chain=False):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
@@ -1173,8 +1176,11 @@ class Database:
 
 			self.before_rollback.run()
 
-			self.sql("rollback")
-			self.begin()
+			if chain:
+				self.sql("rollback and chain")
+			else:
+				self.sql("rollback")
+				self.begin()
 
 			self.after_rollback.run()
 		else:
