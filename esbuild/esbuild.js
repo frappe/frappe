@@ -523,7 +523,7 @@ function run_build_command_for_apps(apps) {
 			log(
 				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
 			);
-			execSync("yarn install", { encoding: "utf8", stdio: "inherit" });
+			execSync("yarn install --frozen-lockfile", { encoding: "utf8", stdio: "inherit" });
 		}
 
 		log("\nRunning build command for", chalk.bold(app));
