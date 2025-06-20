@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-08 09:34+0000\n"
-"PO-Revision-Date: 2025-06-12 14:56\n"
+"PO-Revision-Date: 2025-06-20 16:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -11280,7 +11280,7 @@ msgstr "Hämta Fält"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "Get Header and Footer wkhtmltopdf variables"
-msgstr "Hämta Sidhuvud och Sidfot wkhtmltopdf variabler"
+msgstr "Hämta Brevhuvud och Brevfot wkhtmltopdf variabler"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:86
 msgid "Get Items"
@@ -11848,12 +11848,12 @@ msgstr "HTML från bilaga {0}"
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Header Script"
-msgstr "Sidhuvud Skript"
+msgstr "Brevhuvud Skript"
 
 #. Label of the sb2 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Header and Breadcrumbs"
-msgstr "Sidhuvud och Brödsmulor"
+msgstr "Brevhuvud och Brödsmulor"
 
 #. Label of the section_break_38 (Tab Break) field in DocType 'Website
 #. Settings'
@@ -11863,7 +11863,7 @@ msgstr "Sidhuvud, Robotar"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
-msgstr "Skript för Sidhuvud/Sidfot kan användas för att lägga till dynamisk beteende."
+msgstr "Skript för Brevhuvud/Brevfot kan användas för att lägga till dynamisk beteende."
 
 #. Label of the webhook_headers (Table) field in DocType 'Webhook'
 #. Label of the headers (Code) field in DocType 'Webhook Request Log'
@@ -14546,7 +14546,7 @@ msgstr "Brevhuvud"
 #. Label of the source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Based On"
-msgstr "Sidhuvud Baserad På"
+msgstr "Brevhuvud Baserad På"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
@@ -21293,7 +21293,7 @@ msgstr "Upprepa"
 #. Label of the repeat_header_footer (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Repeat Header and Footer"
-msgstr "Upprepa Sidhuvud och Sidfot"
+msgstr "Upprepa Brevhuvud och Brevfot"
 
 #. Label of the repeat_on (Select) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -26151,7 +26151,7 @@ msgstr "Följande Tilldelning Dagar är återkommande: {0}"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "The following Header Script will add the current date to an element in 'Header HTML' with class 'header-content'"
-msgstr "Följande Sidhuvud Skript kommer att lägga till aktuell datum till ett element i \"Sidhuvud HTML\" med klass \"header-content\""
+msgstr "Följande Brevhuvud Skript kommer att lägga till aktuell datum till ett element i \"Brevhuvud HTML\" med klass \"header-content\""
 
 #: frappe/core/doctype/data_import/importer.py:1086
 msgid "The following values are invalid: {0}. Values must be one of {1}"
