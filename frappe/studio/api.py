@@ -53,3 +53,26 @@ def check_app_permission() -> bool:
 	):
 		return True
 	return False
+
+
+@frappe.whitelist()
+def get_app_components(app_name: str) -> set[str]:
+	pages = frappe.get_all(
+		"Studio Page",
+		filters=dict(studio_app=app_name, published=1),
+		pluck="blocks",
+	)
+	components = set()
+
+	def add_blocks(block: dict):
+		components.add(block.get("componentName"))
+		for child in block.get("children", []):
+			add_blocks(child)
+
+	for blocks in pages:
+		if isinstance(blocks, str):
+			blocks = frappe.parse_json(blocks)
+		root_block = blocks[0]
+		add_blocks(root_block)
+
+	return components
