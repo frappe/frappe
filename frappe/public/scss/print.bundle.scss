@@ -51,7 +51,7 @@
 .filter-row div {
 	display: inline-block;
 }
-// prevent order list from continued numbering
+// prevent <ol> numbering conflicts
 .ql-editor {
 	counter-reset: none;
 }
