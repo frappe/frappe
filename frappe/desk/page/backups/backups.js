@@ -40,7 +40,32 @@ frappe.pages["backups"].on_page_load = function (wrapper) {
 			});
 		}
 	});
-
+	page.add_inner_button(
+        __("Create Backup"),
+        function () {
+            const message = [
+                __("Are you sure you want to create a backup now?"),
+                `<ul>
+                    <li>${__("This process may take a few minutes.")}</li>
+                    <li>${__("This process may delete the oldest backups files")}</li>
+                </ul>`
+            ]
+            frappe.confirm(message.join(""), () => {
+                frappe.call({
+                    method: "frappe.desk.page.backups.backups.create_backup",
+                    callback: function(r){
+                        frappe.show_alert({
+                            indicator: "green",
+                            message: __("Backup has started and is running in the background."),
+                            subtitle: __("You can keep using the system while we save your data."),
+                        })
+                    }
+                });
+            });
+        },
+        null,
+        "primary"
+    );
 	frappe.breadcrumbs.add("Setup");
 
 	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));
