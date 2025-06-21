@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_site_path, get_url
 from frappe.utils.data import convert_utc_to_system_timezone
+from frappe.utils.backups import scheduled_backup
 
 
 def get_time(path: Path):
@@ -118,3 +119,15 @@ def get_downloadable_links(backup_files):
 	for key in ["backup_path_files", "backup_path_private_files"]:
 		path = backup_files[key]
 		backup_files[key] = get_url("/".join(path.split("/")[-2:]))
+
+@frappe.whitelist()
+def create_backup():
+	frappe.enqueue(_create_backup, queue="long")
+
+def _create_backup():
+	try:
+		scheduled_backup(
+			ignore_files=False,
+		)
+	except:
+		frappe.log_error(title="Failed to create backup", message=frappe.get_traceback())
