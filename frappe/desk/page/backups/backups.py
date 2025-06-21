@@ -126,8 +126,7 @@ def create_backup():
 
 def _create_backup():
 	try:
-		scheduled_backup(
-			ignore_files=False,
-		)
+		scheduled_backup(ignore_files=False)
 	except:
 		frappe.log_error(title="Failed to create backup", message=frappe.get_traceback())
+
