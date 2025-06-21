@@ -274,10 +274,9 @@ class Document(BaseDocument):
 		for fieldname, child_doctype in self._table_fieldnames.items():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
 			if not is_doctype and is_virtual_doctype(child_doctype):
-				self.set(fieldname, [])
-				continue
+				children = self.get(fieldname)
 
-			if is_doctype:
+			elif is_doctype:
 				# This special handling is required because of bootstrapping code that doesn't
 				# handle failures correctly.
 				children = frappe.db.get_values(
