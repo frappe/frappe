@@ -154,7 +154,15 @@ function add_existing_filter(frm, df) {
 }
 
 function edit_filters() {
-	let field_doctype = props.field.df.options;
+	const field_doctype = props.field.df.options;
+
+	if (!field_doctype) {
+		frappe.throw({
+			message: __("Please select a DocType before setting filters in Options"),
+			title: __("DocType Missing"),
+		});
+	}
+
 	const { frm } = store;
 
 	make_dialog(frm);
