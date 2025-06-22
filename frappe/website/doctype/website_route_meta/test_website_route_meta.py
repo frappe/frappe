@@ -1,20 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Post"]
-
-
-class UnitTestWebsiteRouteMeta(UnitTestCase):
-	"""
-	Unit tests for WebsiteRouteMeta.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestWebsiteRouteMeta(IntegrationTestCase):

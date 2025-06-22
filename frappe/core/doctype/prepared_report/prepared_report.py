@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, now
 from frappe.utils.background_jobs import enqueue
 
 # If prepared report runs for longer than this time it's automatically considered as failed
-FAILURE_THRESHOLD = 60 * 60
+FAILURE_THRESHOLD = 6 * 60 * 60
 REPORT_TIMEOUT = 25 * 60
 
 
@@ -80,11 +80,17 @@ class PreparedReport(Document):
 			prepared_report=self.name,
 			timeout=timeout or REPORT_TIMEOUT,
 			enqueue_after_commit=True,
+			at_front_when_starved=True,
 		)
 
 	def get_prepared_data(self, with_file_name=False):
 		if attachments := get_attachments(self.doctype, self.name):
-			attachment = attachments[0]
+			attachment = None
+			for f in attachments or []:
+				if f.file_url.endswith(".gz"):
+					attachment = f
+					break
+
 			attached_file = frappe.get_doc("File", attachment.name)
 
 			if with_file_name:
@@ -236,7 +242,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 		frappe.scrub(report_name), frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H-M")
 	)
 	encoded_content = frappe.safe_encode(frappe.as_json(data, indent=None, separators=(",", ":")))
-	compressed_content = gzip.compress(encoded_content)
+	compressed_content = gzip.compress(encoded_content, compresslevel=5)
 
 	# Call save() file function to upload and attach the file
 	_file = frappe.get_doc(
@@ -296,3 +302,67 @@ def has_permission(doc, user):
 		return True
 
 	return doc.report_name in user.get_all_reports().keys()
+
+
+@frappe.whitelist()
+def enqueue_json_to_csv_conversion(prepared_report_name):
+	"""Call this to enqueue the conversion in background."""
+	enqueue(method=convert_json_to_csv, queue="long", prepared_report_name=prepared_report_name)
+
+
+def convert_json_to_csv(prepared_report_name):
+	"""Background job: Fetch JSON file, convert to CSV, attach CSV to Prepared Report."""
+
+	import csv
+	from io import StringIO
+
+	doc = frappe.get_doc("Prepared Report", prepared_report_name)
+	json_content, file_name = doc.get_prepared_data(with_file_name=True)
+
+	if not json_content:
+		frappe.log_error(f"No JSON content found for {prepared_report_name}", "CSV Conversion")
+		return
+
+	parsed = json.loads(json_content)
+
+	columns = parsed.get("columns", [])
+	result = parsed.get("result", [])
+
+	if not columns or not result:
+		frappe.log_error("Columns or result is empty", "CSV Conversion")
+		return
+
+	fieldnames = [col.get("fieldname") for col in columns if col.get("fieldname")]
+
+	output = StringIO()
+	writer = csv.DictWriter(output, fieldnames=fieldnames)
+	writer.writeheader()
+	for row in result:
+		writer.writerow({key: row.get(key, "") for key in fieldnames})
+
+	csv_content = output.getvalue().encode("utf-8")
+
+	_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"csv_{file_name[:-8]}.csv",
+			"attached_to_doctype": "Prepared Report",
+			"attached_to_name": prepared_report_name,
+			"content": csv_content,
+			"is_private": 1,
+		}
+	)
+	_file.save(ignore_permissions=True)
+
+	frappe.get_doc(
+		{
+			"doctype": "Notification Log",
+			"subject": "Your CSV file is ready for download",
+			"email_content": f'Click <a href="{_file.file_url}" target="_blank">here</a> to download the file.',
+			"for_user": frappe.session.user,
+			"type": "Alert",
+			"document_type": "File",
+			"document_name": _file.name,
+			"link": _file.file_url,
+		}
+	).insert(ignore_permissions=True)

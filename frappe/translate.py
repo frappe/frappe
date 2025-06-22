@@ -810,7 +810,6 @@ def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
-
 	strings_in_target_app_but_not_in_source_app = list(
 		set(strings_in_target_app) - set(strings_in_source_app)
 	)
@@ -922,18 +921,6 @@ def update_translations_for_source(source=None, translation_dict=None):
 		doc.save()
 
 	return translation_records
-
-
-@frappe.whitelist()
-def get_translations(source_text):
-	if is_html(source_text):
-		source_text = strip_html_tags(source_text)
-
-	return frappe.db.get_list(
-		"Translation",
-		fields=["name", "language", "translated_text as translation"],
-		filters={"source_text": source_text},
-	)
 
 
 @frappe.whitelist(allow_guest=True)

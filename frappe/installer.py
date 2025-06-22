@@ -332,6 +332,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
 
+	frappe.client_cache.erase_persistent_caches()
 	frappe.flags.in_install = False
 
 
@@ -344,6 +345,8 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		if frappe.flags.in_install:
 			post_install(rebuild_website)
 
+	frappe.get_single("Installed Applications").update_versions()
+
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
@@ -353,6 +356,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -417,6 +421,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	for fn in frappe.get_hooks("after_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
+
+	frappe.client_cache.erase_persistent_caches()
 
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
@@ -583,16 +589,20 @@ def make_site_config(
 			if db_type:
 				site_config["db_type"] = db_type
 
-			if db_socket:
-				site_config["db_socket"] = db_socket
+			if db_type == "sqlite":
+				site_config["db_name"] = db_name
 
-			if db_host:
-				site_config["db_host"] = db_host
+			else:
+				if db_socket:
+					site_config["db_socket"] = db_socket
 
-			if db_port:
-				site_config["db_port"] = db_port
+				if db_host:
+					site_config["db_host"] = db_host
 
-			site_config["db_user"] = db_user or db_name
+				if db_port:
+					site_config["db_port"] = db_port
+
+				site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -834,6 +844,9 @@ def is_partial(sql_file_path: str) -> bool:
 	:param sql_file_path: path to the database dump file
 	:return: True if the database dump is a partial backup, False otherwise
 	"""
+	if frappe.conf.db_type == "sqlite":
+		return False
+
 	header = get_db_dump_header(sql_file_path)
 	return "Partial Backup" in header
 

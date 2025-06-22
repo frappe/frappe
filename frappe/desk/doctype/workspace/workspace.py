@@ -89,6 +89,10 @@ class Workspace(Document):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
 
+		for shortcut in self.get("shortcuts"):
+			if shortcut.type == "Report":
+				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
+
 		if not self.app and self.module:
 			from frappe.modules.utils import get_module_app
 
@@ -231,7 +235,7 @@ def disable_saving_as_public():
 		frappe.flags.in_install
 		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
-		or frappe.flags.in_test
+		or frappe.in_test
 		or frappe.flags.in_fixtures
 		or frappe.flags.in_migrate
 	)

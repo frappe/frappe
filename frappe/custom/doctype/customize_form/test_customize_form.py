@@ -6,19 +6,10 @@ import json
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Custom Field", "Property Setter"]
-
-
-class UnitTestCustomizeForm(UnitTestCase):
-	"""
-	Unit tests for CustomizeForm.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestCustomizeForm(IntegrationTestCase):

@@ -11,8 +11,8 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 		{% set appsCount = apps|length if apps|length <= 6 else 6 %}
 		<div class="apps" style="grid-template-columns: repeat({{ appsCount }}, 1fr);">
 			{% for app in apps %}
-			<a href="{{ app.route }}" class="app-icon">
-				<div class="app-logo">
+			<a class="app-icon" style="cursor: pointer;">
+				<div class="app-logo app-name-cls" app-name="{{ app.name }}" app-route="{{ app.route }}">
 					<img src="{{ app.logo }}" />
 					<div
 						app-name="{{ app.name }}"
@@ -73,7 +73,25 @@ endblock -%} {%- block footer -%} {%- endblock -%} {% block content %}
 			},
 		});
 	});
+
+	$(".app-name-cls").on("click", function (e) {
+		localStorage.current_app = $(this).attr("app-name");
+		localStorage.current_route = $(this).attr("app-route");
+
+		frappe.call({
+			method: "frappe.apps.get_incomplete_setup_route",
+			args: { current_app: localStorage.current_app, app_route:localStorage.current_route },
+			callback: function (r) {
+				window.location.href = r.message;
+			},
+		})
+
+	});
+
 	$(".logout-btn").on("click", function () {
+		localStorage.current_app = "";
+		localStorage.current_route = "";
+
 		frappe.call({
 			method: "logout",
 			callback: function () {

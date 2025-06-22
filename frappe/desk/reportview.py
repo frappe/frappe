@@ -19,6 +19,8 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
+DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -50,26 +52,43 @@ def get_list():
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_count() -> int:
+def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		count = frappe.call(controller.get_count, args=args, **args)
-	else:
-		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
-		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
-		args.order_by = None
+		return frappe.call(controller.get_count, args=args, **args)
 
-		if args.limit:
-			args.fields = [fieldname]
-			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+	args.distinct = sbool(args.distinct)
+	distinct = "distinct " if args.distinct else ""
+	args.limit = cint(args.limit)
+	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	args.order_by = None
+
+	# args.limit is specified to avoid getting accurate count.
+	if not args.limit:
+		args.fields = [f"count({fieldname}) as total_count"]
+		return execute(**args)[0].get("total_count")
+
+	args.fields = [fieldname]
+	partial_query = execute(**args, run=0)
+
+	# Count queries are notoriously unpredictable based on the type of filters used.
+	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
+	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
+	# Users can request accurate count by dropping limit from arguments.
+	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
+
+	try:
+		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
+			count = None
 		else:
-			args.fields = [f"count({fieldname}) as total_count"]
-			count = execute(**args)[0].get("total_count")
+			raise
+
+	if count == args.limit or count is None:
+		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
 
 	return count
 
@@ -224,8 +243,9 @@ def update_wildcard_field_param(data):
 
 
 def clean_params(data):
-	for param in ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join"):
-		data.pop(param, None)
+	for param in DISALLOWED_PARAMS:
+		if param in data:
+			del data[param]
 
 
 def parse_json(data):
@@ -295,7 +315,7 @@ def compress(data, args=None):
 	return {"keys": keys, "values": values, "user_info": user_info}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "PUT"])
 def save_report(name, doctype, report_settings):
 	"""Save reports of type Report Builder from Report View"""
 
@@ -325,7 +345,7 @@ def save_report(name, doctype, report_settings):
 	return report.name
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "DELETE"])
 def delete_report(name):
 	"""Delete reports of type Report Builder from Report View"""
 
@@ -409,7 +429,7 @@ def export_query():
 				_(value) if translatable_fields[idx] else value for idx, value in enumerate(row)
 			]
 			processed_data.append(processed_row)
-			data.extend(processed_data)
+		data.extend(processed_data)
 
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
@@ -535,7 +555,7 @@ def parse_field(field: str) -> tuple[str | None, str]:
 	return None, key.strip("`")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
 	import json
@@ -559,7 +579,9 @@ def delete_bulk(doctype, items):
 				frappe.publish_realtime(
 					"progress",
 					dict(
-						progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d
+						progress=[i + 1, len(items)],
+						title=_("Deleting {0}").format(_(doctype)),
+						description=d,
 					),
 					user=frappe.session.user,
 				)

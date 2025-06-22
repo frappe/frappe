@@ -6,17 +6,21 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import suppress
 from functools import wraps
+from types import NoneType
 
 import frappe
 
 _SITE_CACHE = defaultdict(dict)
+_KWD_MARK = object()  # sentinel for separating args from kwargs
 
 
-def __generate_request_cache_key(args: tuple, kwargs: dict) -> int:
+def __generate_request_cache_key(args: tuple, kwargs: dict) -> tuple:
 	"""Generate a key for the cache."""
+
 	if not kwargs:
-		return hash(args)
-	return hash((args, frozenset(kwargs.items())))
+		return args
+
+	return (args, _KWD_MARK, frozenset(kwargs.items()))
 
 
 def request_cache(func: Callable) -> Callable:
@@ -59,7 +63,11 @@ def request_cache(func: Callable) -> Callable:
 
 		try:
 			return _cache[func][args_key]
+		except TypeError:
+			# args_key is not hashable
+			return func(*args, **kwargs)
 		except KeyError:
+			# cache miss
 			return_val = func(*args, **kwargs)
 			_cache[func][args_key] = return_val
 			return return_val
@@ -101,11 +109,9 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	"""
 
 	def time_cache_wrapper(func: Callable | None = None) -> Callable:
-		func_key = f"{func.__module__}.{func.__name__}"
-
 		def clear_cache():
 			"""Clear cache for this function for all sites if not specified."""
-			_SITE_CACHE[func_key].clear()
+			_SITE_CACHE[func].clear()
 
 		func.clear_cache = clear_cache
 
@@ -122,7 +128,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if not site:
 				return func(*args, **kwargs)
 
-			arguments_key = f"{site}::{__generate_request_cache_key(args, kwargs)}"
+			arguments_key = (site, __generate_request_cache_key(args, kwargs))
 
 			if hasattr(func, "ttl") and time.monotonic() >= func.expiration:
 				func.clear_cache()
@@ -133,10 +139,12 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			#   2. Other thread can pop the exact elemement we are reading if maxsize is hit.
 
 			# NOTE: Keep a local reference to dictionary of interest so it doesn't get swapped
-			function_cache = _SITE_CACHE[func_key]
+			function_cache = _SITE_CACHE[func]
 
 			try:
 				return function_cache[arguments_key]
+
+			# not handling TypeError here, expecting arguments_key to be hashable
 			except (KeyError, RuntimeError):
 				# NOTE: This is just a cache miss or dictionary was modified while reading it
 				pass
@@ -179,7 +187,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
-			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
+			func_call_key = f"{func_key}::{hash(__generate_request_cache_key(args, kwargs))}"
 			cached_val = frappe.cache.get_value(func_call_key, user=user, shared=shared)
 			if cached_val is not None:
 				return cached_val
@@ -199,3 +207,63 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 	if callable(ttl):
 		return wrapper(ttl)
 	return wrapper
+
+
+def http_cache(
+	*,
+	public: bool = False,
+	max_age: int | None = None,
+	stale_while_revalidate: int | None = None,
+) -> Callable:
+	"""Decorator to send cache-control response from whitelisted endpoints.
+
+	Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+
+	args:
+		public: Results can be cached by proxy if set to True, otherwise only client (browser) can
+				cache results.
+		max_age: Cache Time-To-Live
+		stale_while_revalidate: Duration for which stale response can be served while revalidation
+								occurs.
+	"""
+	assert isinstance(stale_while_revalidate, int | NoneType)
+	assert isinstance(max_age, int | NoneType)
+
+	cache_headers = []
+	if public:
+		cache_headers.append("public")
+	else:
+		cache_headers.append("private")
+	if max_age is not None:
+		cache_headers.append(f"max-age={max_age}")
+	if stale_while_revalidate is not None:
+		cache_headers.append(f"stale-while-revalidate={stale_while_revalidate}")
+	cache_headers = ",".join(cache_headers)
+
+	def outer(func: Callable) -> Callable:
+		qualified_name = f"{func.__module__}.{func.__name__}"
+
+		@wraps(func)
+		def inner(*args, **kwargs):
+			ret = func(*args, **kwargs)
+			if frappe.request and frappe.request.method == "GET" and qualified_name in frappe.request.path:
+				frappe.local.response_headers.set("Cache-Control", cache_headers)
+			return ret
+
+		return inner
+
+	return outer
+
+
+def deprecated_local_cache(namespace, key, generator, regenerate_if_none=False):
+	if namespace not in frappe.local.cache:
+		frappe.local.cache[namespace] = {}
+
+	if key not in frappe.local.cache[namespace]:
+		frappe.local.cache[namespace][key] = generator()
+
+	elif frappe.local.cache[namespace][key] is None and regenerate_if_none:
+		# if key exists but the previous result was None
+		frappe.local.cache[namespace][key] = generator()
+
+	return frappe.local.cache[namespace][key]

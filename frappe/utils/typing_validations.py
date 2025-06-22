@@ -124,8 +124,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		prepared_args = dict(zip(arg_names, args, strict=False))
 
 	# check if type hints dont match the default values
-	func_signature = frappe._cached_inspect_signature(func)
-	func_params = dict(func_signature.parameters)
+	func_params = frappe._get_cached_signature_params(func)[0]
 
 	# check if the argument types are correct
 	for current_arg, current_arg_type in annotations.items():

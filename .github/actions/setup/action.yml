@@ -8,7 +8,7 @@ inputs:
   node-version:
     description: 'Node.js version to use'
     required: false
-    default: '20'
+    default: '22'
   build-assets:
     required: false
     description: 'Wether to build assets'
@@ -100,10 +100,10 @@ runs:
     run: |
       # Install System Dependencies
       start_time=$(date +%s)
-
+      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
       sudo apt -qq update
       sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq install libcups2-dev redis-server mariadb-client
+      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev
 
       wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
       sudo apt install /tmp/wkhtmltox.deb
@@ -121,6 +121,7 @@ runs:
       python -m venv ${GITHUB_WORKSPACE}/env
       source ${GITHUB_WORKSPACE}/env/bin/activate
       pip install --quiet --upgrade pip
+      pip cache remove mysqlclient
 
       pip install --quiet frappe-bench
 
@@ -166,9 +167,6 @@ runs:
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
 
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "FLUSH PRIVILEGES";
-      elif [ "$DB" == "postgres" ]; then
-        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
-        echo "${{ inputs.db-root-password }}" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
       fi
 
   - shell: bash -e {0}

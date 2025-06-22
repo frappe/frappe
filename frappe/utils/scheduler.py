@@ -14,7 +14,6 @@ import random
 import time
 from typing import NoReturn
 
-import setproctitle
 from croniter import CroniterBadCronError
 from filelock import FileLock, Timeout
 
@@ -36,18 +35,14 @@ def cprint(*args, **kwargs):
 		pass
 
 
-def _proctitle(message):
-	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
-
-
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
-	Specify scheduler_interval in seconds in common_site_config.json"""
+	Specify scheduler_tick_interval in seconds in common_site_config.json"""
 
 	tick = get_scheduler_tick()
 	set_niceness()
 
-	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+	lock_path = _get_scheduler_lock_file()
 
 	try:
 		lock = FileLock(lock_path)
@@ -57,9 +52,27 @@ def start_scheduler() -> NoReturn:
 		return
 
 	while True:
-		_proctitle("idle")
 		time.sleep(sleep_duration(tick))
 		enqueue_events_for_all_sites()
+
+
+def _get_scheduler_lock_file() -> True:
+	return os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+
+
+def is_schduler_process_running() -> bool:
+	"""Checks if any other process is holding the lock.
+
+	Note: FLOCK is held by process until it exits, this function just checks if process is
+	running or not. We can't determine if process is stuck somehwere.
+	"""
+	try:
+		lock = FileLock(_get_scheduler_lock_file())
+		lock.acquire(blocking=False)
+		lock.release()
+		return False
+	except Timeout:
+		return True
 
 
 def sleep_duration(tick):
@@ -99,7 +112,6 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
-		_proctitle(f"scheduling events for {site}")
 		frappe.init(site)
 		frappe.connect()
 		if is_scheduler_inactive():
@@ -158,9 +170,7 @@ def is_scheduler_disabled(verbose=True) -> bool:
 			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
 		return True
 
-	scheduler_disabled = not frappe.utils.cint(
-		frappe.db.get_single_value("System Settings", "enable_scheduler")
-	)
+	scheduler_disabled = not frappe.get_system_settings("enable_scheduler")
 	if scheduler_disabled:
 		if verbose:
 			cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
@@ -200,15 +210,23 @@ def schedule_jobs_based_on_activity(check_time=None):
 		return True
 
 
+@redis_cache(ttl=60 * 60)
 def is_dormant(check_time=None):
-	# Assume never dormant if developer_mode is enabled
-	if frappe.conf.developer_mode:
+	from frappe.utils.frappecloud import on_frappecloud
+
+	if frappe.conf.developer_mode or not on_frappecloud():
 		return False
-	last_activity_log_timestamp = _get_last_creation_timestamp("Activity Log")
-	since = (frappe.get_system_settings("dormant_days") or 4) * 86400
-	if not last_activity_log_timestamp:
+	threshold = cint(frappe.get_system_settings("dormant_days")) * 86400
+	if not threshold:
+		return False
+
+	last_activity = frappe.db.get_value(
+		"User", filters={}, fieldname="last_active", order_by="last_active desc"
+	)
+
+	if not last_activity:
 		return True
-	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= since:
+	if ((check_time or now_datetime()) - last_activity).total_seconds() >= threshold:
 		return True
 	return False
 

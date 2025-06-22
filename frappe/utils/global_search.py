@@ -197,7 +197,7 @@ def get_children_data(doctype, meta):
 			child_records = frappe.get_all(
 				child.options,
 				fields=child_fieldnames,
-				filters={"docstatus": ["!=", 1], "parenttype": doctype},
+				filters={"docstatus": ["!=", 2], "parenttype": doctype},
 			)
 
 			for record in child_records:
@@ -226,6 +226,9 @@ def insert_values_for_multiple_docs(all_contents):
 				(doctype, name, content, published, title, route)
 				VALUES {}
 				ON CONFLICT("name", "doctype") DO NOTHING""".format(", ".join(batch_values)),
+				"sqlite": """INSERT OR IGNORE INTO `__global_search`
+				(doctype, name, content, published, title, route)
+				VALUES {} """.format(", ".join(batch_values)),
 			}
 		)
 
@@ -373,7 +376,7 @@ def sync_global_search():
 			yield value
 
 	item_generator = get_search_queue_item_generator()
-	while search_items := tuple(islice(item_generator, 10_000)):
+	while search_items := tuple(islice(item_generator, 1000)):
 		values = _get_deduped_search_item_values(search_items)
 		sync_values(values)
 
@@ -448,6 +451,10 @@ def sync_value(value: dict):
 				`title`=%(title)s,
 				`route`=%(route)s
 		""",
+			"sqlite": """INSERT OR REPLACE INTO `__global_search`
+			(`doctype`, `name`, `content`, `published`, `title`, `route`)
+			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+		""",
 		},
 		value,
 	)
@@ -489,10 +496,11 @@ def search(text, start=0, limit=20, doctype=""):
 			continue
 
 		global_search = frappe.qb.Table("__global_search")
-		rank = Match(global_search.content).Against(word).as_("rank")
+		rank = Match(global_search.content).Against(word)
 		query = (
 			frappe.qb.from_(global_search)
-			.select(global_search.doctype, global_search.name, global_search.content, rank)
+			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
+			.where(rank)
 			.orderby("rank", order=frappe.qb.desc)
 			.limit(limit)
 		)
@@ -517,6 +525,8 @@ def search(text, start=0, limit=20, doctype=""):
 					meta = frappe.get_meta(r.doctype)
 					if meta.image_field:
 						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+					if meta.title_field:
+						r.title = frappe.db.get_value(r.doctype, r.name, meta.title_field)
 				except Exception:
 					frappe.clear_messages()
 

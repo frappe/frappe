@@ -240,11 +240,30 @@ function get_version_timeline_content(version_doc, frm) {
 			}
 		}
 	});
+
+	if (data.created_by && updater_reference) {
+		let message = get_user_message(
+			version_doc.owner,
+			__("You created this document {0}", [updater_reference_link], "Form timeline"),
+			__(
+				"{0} created this document {1}",
+				[get_user_link(version_doc.owner), updater_reference_link],
+				"Form timeline"
+			)
+		);
+		out.push(get_version_comment(version_doc, message));
+	}
 	const impersonated_by = data.impersonated_by;
 
 	if (impersonated_by) {
 		const impersonated_msg = __("Impersonated by {0}", [get_user_link(impersonated_by)]);
 		out = out.map((message) => `${message} · ${impersonated_msg.bold()}`);
+	}
+
+	const audit_user = data.audit_user;
+	if (audit_user) {
+		const audit_msg = __("[Action taken by {0}]", [audit_user]);
+		out = out.map((message) => `${message} · ${audit_msg.bold()}`);
 	}
 	return out;
 }

@@ -75,10 +75,9 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 				new_password: value || "",
 			},
 			callback: function (r) {
-				if (r.message) {
-					let score = r.message.score;
-					var indicators = ["red", "red", "orange", "blue", "green"];
-					me.set_strength_indicator(indicators[score]);
+				if (r.message.score !== undefined && r.message.score !== null) {
+					const indicators = ["red", "red", "orange", "blue", "green"];
+					me.set_strength_indicator(indicators[r.message.score]);
 				}
 			},
 		});

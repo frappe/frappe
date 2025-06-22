@@ -163,7 +163,7 @@ def remove_orphan_doctypes():
 			continue
 		try:
 			get_controller(doctype=doctype)
-		except ImportError:
+		except (ImportError, frappe.DoesNotExistError):
 			orphan_doctypes.append(doctype)
 		except Exception:
 			continue

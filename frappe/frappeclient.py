@@ -369,12 +369,19 @@ class FrappeClient:
 			print(response.text)
 			raise
 
-		if rjson and ("exc" in rjson) and rjson["exc"]:
+		if rjson and (rjson.get("exc") or rjson.get("exc_type") or rjson.get("errors")):
 			try:
-				exc = json.loads(rjson["exc"])[0]
-				exc = "FrappeClient Request Failed\n\n" + exc
+				exception = ""
+				if rjson.get("exc"):
+					exception = json.loads(rjson["exc"])[0]
+				elif rjson.get("exc_type"):  # Just have type available
+					exception = json.loads(rjson["exc_type"])[0]
+				elif errors := rjson.get("errrors"):
+					exception = errors[0].get("exception") or errors[0].get("type")
+
+				exc = "FrappeClient Request Failed\n\n" + exception
 			except Exception:
-				exc = rjson["exc"]
+				exc = rjson.get("exc")
 
 			raise FrappeException(exc)
 		if "message" in rjson:

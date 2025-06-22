@@ -3,7 +3,14 @@
   {
    "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
    "action_type": "Server Action",
+   "group": "Actions",
    "label": "Execute"
+  },
+  {
+   "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.skip_next_execution",
+   "action_type": "Server Action",
+   "group": "Actions",
+   "label": "Skip Next Execution"
   }
  ],
  "creation": "2024-02-23 10:41:33.059393",
@@ -67,7 +74,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Frequency",
-   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
+   "options": "All\nHourly\nHourly Long\nHourly Maintenance\nDaily\nDaily Long\nDaily Maintenance\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
    "read_only": 1,
    "reqd": 1
   },
@@ -110,7 +117,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2025-01-13 10:39:39.975031",
+ "modified": "2025-06-03 09:26:47.961601",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
@@ -130,6 +137,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

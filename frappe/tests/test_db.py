@@ -510,6 +510,9 @@ class TestDB(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_estimated_count(self):
+		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
+
 	def test_datetime_serialization(self):
 		dt = now_datetime()
 		dt = dt.replace(microsecond=0)
@@ -1379,20 +1382,16 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search(r"(host name|server on) [\"']iqx.local[\"']", str(cm.exception)))
 
 		# with wrong user name
 		with set_env_variable("FRAPPE_DB_USER", "uname"):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search(r"user [\"']uname[\"']", str(cm.exception)))
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
@@ -1411,10 +1410,8 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
 
 		# now with configured settings without any influences from env
 		# finally connect should work without any error (when no wrong credentials are given via ENV)

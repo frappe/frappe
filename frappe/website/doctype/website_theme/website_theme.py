@@ -55,7 +55,7 @@ class WebsiteTheme(Document):
 			not self.custom
 			and frappe.local.conf.get("developer_mode")
 			and not frappe.flags.in_import
-			and not frappe.flags.in_test
+			and not frappe.in_test
 		):
 			self.export_doc()
 
@@ -65,7 +65,7 @@ class WebsiteTheme(Document):
 		return (
 			not self.custom
 			and not frappe.local.conf.get("developer_mode")
-			and not (frappe.flags.in_import or frappe.flags.in_test or frappe.flags.in_migrate)
+			and not (frappe.flags.in_import or frappe.in_test or frappe.flags.in_migrate)
 		)
 
 	def on_trash(self):

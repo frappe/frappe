@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
@@ -65,12 +66,14 @@ class SystemSettings(Document):
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
+		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
-		minimum_password_score: DF.Literal["2", "3", "4"]
+		max_report_rows: DF.Int
+		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -91,6 +94,7 @@ class SystemSettings(Document):
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		show_absolute_datetime_in_timeline: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -240,3 +244,8 @@ def clear_system_settings_cache():
 	frappe.client_cache.delete_value(cache_key)
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
+
+
+def sync_system_settings():
+	if frappe.db.get_single_value("System Settings", "currency") is None:
+		frappe.db.set_single_value("System Settings", "currency", frappe.defaults.get_defaults()["currency"])

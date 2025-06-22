@@ -13,7 +13,7 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import timeout
 
 
@@ -28,15 +28,6 @@ def get_test_webhook(config):
 		yield wh
 	finally:
 		wh.delete()
-
-
-class UnitTestWebhook(UnitTestCase):
-	"""
-	Unit tests for Webhook.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestWebhook(IntegrationTestCase):
@@ -134,12 +125,12 @@ class TestWebhook(IntegrationTestCase):
 	def test_webhook_trigger_with_enabled_webhooks(self):
 		"""Test webhook trigger for enabled webhooks"""
 
-		frappe.cache.delete_value("webhooks")
+		frappe.client_cache.delete_value("webhooks")
 
 		# Insert the user to db
 		self.test_user.insert()
 
-		webhooks = frappe.cache.get_value("webhooks")
+		webhooks = frappe.client_cache.get_value("webhooks")
 		self.assertTrue("User" in webhooks)
 		self.assertEqual(len(webhooks.get("User")), 1)
 

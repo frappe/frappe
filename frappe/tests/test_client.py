@@ -155,6 +155,25 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
 
+	def test_client_validatate_link(self):
+		from frappe.client import validate_link
+
+		# Basic test
+		self.assertTrue(validate_link("User", "Guest"))
+
+		# fixes capitalization
+		if frappe.db.db_type == "mariadb":
+			self.assertEqual(validate_link("User", "GueSt"), {"name": "Guest"})
+
+		# Fetch
+		self.assertEqual(validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1})
+
+		# Permissions
+		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			self.assertEqual(
+				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
+			)
+
 	def test_client_insert(self):
 		from frappe.client import insert
 

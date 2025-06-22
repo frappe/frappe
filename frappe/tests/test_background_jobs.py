@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
+from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
@@ -93,7 +94,7 @@ def after_job(*args, **kwargs):
 @contextmanager
 def freeze_local():
 	locals = frappe.local
-	frappe.local = frappe.Local()
+	frappe.local = Local()
 	yield locals
 	frappe.local = locals
 

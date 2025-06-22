@@ -66,7 +66,7 @@ class Webhook(Document):
 		self.preview_document = None
 
 	def on_update(self):
-		frappe.cache.delete_value("webhooks")
+		frappe.client_cache.delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:

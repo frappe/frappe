@@ -25,6 +25,7 @@
   "float_precision",
   "currency_precision",
   "rounding_method",
+  "show_absolute_datetime_in_timeline",
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
@@ -96,6 +97,7 @@
   "advanced_tab",
   "prepared_report_section",
   "max_auto_email_report_per_user",
+  "max_report_rows",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -103,7 +105,9 @@
   "allow_error_traceback",
   "enable_telemetry",
   "search_section",
-  "link_field_results_limit"
+  "link_field_results_limit",
+  "api_logging_section",
+  "log_api_requests"
  ],
  "fields": [
   {
@@ -278,7 +282,7 @@
   },
   {
    "default": "1",
-   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",
+   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong.",
    "fieldname": "enable_password_policy",
    "fieldtype": "Check",
    "label": "Enable Password Policy"
@@ -289,7 +293,7 @@
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
-   "options": "2\n3\n4"
+   "options": "1\n2\n3\n4"
   },
   {
    "fieldname": "brute_force_security",
@@ -402,7 +406,7 @@
   },
   {
    "default": "4",
-   "description": "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.",
+   "description": "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler.",
    "fieldname": "dormant_days",
    "fieldtype": "Int",
    "label": "Run Jobs only Daily if Inactive For (Days)"
@@ -699,12 +703,36 @@
    "fieldname": "hide_empty_read_only_fields",
    "fieldtype": "Check",
    "label": "Hide Empty Read-Only Fields"
+  },
+  {
+   "default": "100000",
+   "description": "This value specifies the max number of rows that can be rendered in report view. ",
+   "fieldname": "max_report_rows",
+   "fieldtype": "Int",
+   "label": "Max Report Rows"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_absolute_datetime_in_timeline",
+   "fieldtype": "Check",
+   "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "fieldname": "api_logging_section",
+   "fieldtype": "Section Break",
+   "label": "API Logging"
+  },
+  {
+   "default": "0",
+   "fieldname": "log_api_requests",
+   "fieldtype": "Check",
+   "label": "Log API Requests"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-12-03 16:23:09.410614",
+ "modified": "2025-06-05 20:54:53.538436",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -719,6 +747,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

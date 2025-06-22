@@ -89,13 +89,14 @@
 	padding-left: 15px;
 	padding-right: 15px;
 }
-
-.report-view {
-	width: calc(100% - 220px);
-	.result {
-		.dt-row:last-child:not(.dt-row-filter) {
-			.dt-cell {
-				border-bottom: 1px solid var(--border-color);
+@include media-breakpoint-up(sm) {
+	.report-view {
+		width: calc(100% - 220px);
+		.result {
+			.dt-row:last-child:not(.dt-row-filter) {
+				.dt-cell {
+					border-bottom: 1px solid var(--border-color);
+				}
 			}
 		}
 	}
@@ -296,4 +297,13 @@
 
 .input-group > * {
 	margin-right: 10px;
+}
+.check-filter-area {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.datatable-wrapper {
+	padding-left: var(--padding-md);
+	padding-right: var(--padding-md);
 }

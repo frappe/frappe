@@ -41,6 +41,17 @@ def handle(request: Request):
 	        `DELETE` will delete
 	"""
 
+	if frappe.get_system_settings("log_api_requests"):
+		doc = frappe.get_doc(
+			{
+				"doctype": "API Request Log",
+				"path": request.path,
+				"user": frappe.session.user,
+				"method": request.method,
+			}
+		)
+		doc.deferred_insert()
+
 	try:
 		endpoint, arguments = API_URL_MAP.bind_to_environ(request.environ).match()
 	except NotFound:  # Wrap 404 - backward compatiblity

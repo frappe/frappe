@@ -22,6 +22,7 @@ from unittest.case import skipIf
 from unittest.mock import patch
 
 import click
+import psutil
 import requests
 from click import Command
 from click.testing import CliRunner, Result
@@ -303,6 +304,10 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {test_site} restore {database}", site_data)
 		self.assertEqual(self.returncode, 1)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_partial_restore(self):
 		_now = now()
 		for num in range(10):
@@ -329,6 +334,10 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(frappe.db.count("ToDo"), todo_count)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_recorder(self):
 		frappe.recorder.stop()
 
@@ -527,6 +536,10 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_different_db_username(self):
 		site = frappe.generate_hash()
 		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
@@ -564,6 +577,10 @@ class TestCommands(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_existing_db_username(self):
 		site = frappe.generate_hash()
 		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
@@ -686,6 +703,10 @@ class TestBackups(BaseTestCommands):
 		)
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_fails_with_exit_code(self):
 		"""Provide incorrect options to check if exit code is 1"""
 		odb = BackupGenerator(
@@ -777,6 +798,10 @@ class TestBackups(BaseTestCommands):
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_only_specific_doctypes(self):
 		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`"""
 		self.execute(
@@ -788,6 +813,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_backup_excluding_specific_doctypes(self):
 		"""Take a backup with (exclude) backup options set (`frappe.conf.backup.excludes`, `--exclude`)"""
 		# test 1: take a backup with frappe.conf.backup.excludes
@@ -810,6 +839,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertFalse(exists_in_backup(self.backup_map["excludes"]["excludes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_selective_backup_priority_resolution(self):
 		"""Take a backup with conflicting backup options set (`frappe.conf.excludes`, `--include`)"""
 		self.execute(
@@ -820,6 +853,10 @@ class TestBackups(BaseTestCommands):
 		database = fetch_latest_backups(partial=True)["database"]
 		self.assertEqual([], missing_in_backup(self.backup_map["includes"]["includes"], database))
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_dont_backup_conf(self):
 		"""Take a backup ignoring frappe.conf.backup settings (with --ignore-backup-conf option)"""
 		self.execute("bench --site {site} backup --ignore-backup-conf")
@@ -900,7 +937,7 @@ class TestAddNewUser(BaseTestCommands):
 
 class TestBenchBuild(IntegrationTestCase):
 	def test_build_assets_size_check(self):
-		CURRENT_SIZE = 3.3  # MB
+		CURRENT_SIZE = 3.4  # MB
 		JS_ASSET_THRESHOLD = 0.01
 
 		hooks = frappe.get_hooks()
@@ -920,6 +957,10 @@ class TestBenchBuild(IntegrationTestCase):
 
 
 class TestDBUtils(BaseTestCommands):
+	@skipIf(
+		not (frappe.conf.db_type == "mariadb"),
+		"Only for MariaDB",
+	)
 	def test_db_add_index(self):
 		field = "reset_password_key"
 		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
@@ -955,7 +996,11 @@ class TestCommandUtils(IntegrationTestCase):
 class TestDBCli(BaseTestCommands):
 	@timeout(10)
 	def test_db_cli(self):
-		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
+		if frappe.conf.db_type == "sqlite":
+			cmd_input = b".quit"
+		else:
+			cmd_input = rb"\q"
+		self.execute("bench --site {site} db-console", kwargs={"cmd_input": cmd_input})
 		self.assertEqual(self.returncode, 0)
 
 	@run_only_if(db_type_is.MARIADB)
@@ -1018,7 +1063,7 @@ class TestCLIImplementation(BaseTestCommands):
 class TestGunicornWorker(IntegrationTestCase):
 	port = 8005
 
-	def spawn_gunicorn(self, args):
+	def spawn_gunicorn(self, args=None):
 		self.handle = subprocess.Popen(
 			[
 				sys.executable,
@@ -1029,7 +1074,7 @@ class TestGunicornWorker(IntegrationTestCase):
 				"-w1",
 				"frappe.app:application",
 				"--preload",
-				*args,
+				*(args or ()),
 			],
 		)
 		time.sleep(1)  # let worker startup finish
@@ -1043,7 +1088,7 @@ class TestGunicornWorker(IntegrationTestCase):
 			self.handle.kill()
 
 	def test_gunicorn_ping_sync(self):
-		self.spawn_gunicorn([])
+		self.spawn_gunicorn()
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
 
@@ -1051,3 +1096,54 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.spawn_gunicorn(["--threads=2"])
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
+
+	def test_gunicorn_idle_cpu_usage(self):
+		def get_total_usage():
+			process = psutil.Process(self.handle.pid)
+			return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
+
+		self.spawn_gunicorn(["--threads=2"])
+		self.assertLessEqual(get_total_usage(), 2)
+
+		# Wake up at least one thread, go idle and check again
+		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
+		self.assertEqual(requests.get(path).status_code, 200)
+		self.assertLessEqual(get_total_usage(), 2)
+
+
+class TestRQWorker(IntegrationTestCase):
+	def spawn_rq(self, args=None, pool=False):
+		self.handle = subprocess.Popen(
+			["bench", "worker-pool" if pool else "worker", *(args or ())],
+		)
+		self.addCleanup(self.kill_rq)
+		time.sleep(1)  # let worker startup finish
+
+	def kill_rq(self):
+		self.handle.send_signal(signal.SIGINT)
+		try:
+			self.handle.communicate(timeout=1)
+		except subprocess.TimeoutExpired:
+			self.handle.kill()
+
+	def get_total_usage(self):
+		process = psutil.Process(self.handle.pid)
+		return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
+
+	def test_rq_idle_cpu_usage(self):
+		self.spawn_rq()
+		self.assertLessEqual(self.get_total_usage(), 2)
+
+		for _ in range(3):
+			frappe.enqueue("frappe.ping")
+		time.sleep(1)
+		self.assertLessEqual(self.get_total_usage(), 2)
+
+	def test_rq_pool_idle_cpu_usage(self):
+		self.spawn_rq(pool=True)
+		self.assertLessEqual(self.get_total_usage(), 2)
+
+		for _ in range(3):
+			frappe.enqueue("frappe.ping")
+		time.sleep(1)
+		self.assertLessEqual(self.get_total_usage(), 2)

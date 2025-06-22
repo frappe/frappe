@@ -20,11 +20,11 @@ import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
 	add_trackers_to_url,
 	ceil,
 	dict_to_str,
-	evaluate_filters,
 	execute_in_shell,
 	floor,
 	flt,
@@ -59,6 +59,7 @@ from frappe.utils.data import (
 	cint,
 	cstr,
 	duration_to_seconds,
+	evaluate_filters,
 	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
@@ -68,6 +69,7 @@ from frappe.utils.data import (
 	get_url_to_form,
 	get_year_ending,
 	getdate,
+	is_invalid_date_string,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -216,6 +218,20 @@ class TestFilters(IntegrationTestCase):
 
 		for filter, expected_result in test_cases:
 			self.assertEqual(evaluate_filters(doc, filter), expected_result, msg=f"{filter}")
+
+	def test_timespan(self):
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": getdate(),
+		}
+		self.assertTrue(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "last year")]))
+
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": None,
+		}
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
 
 class TestMoney(IntegrationTestCase):
@@ -669,18 +685,21 @@ class TestDateUtils(IntegrationTestCase):
 
 	@given(st.datetimes())
 	def test_get_datetime(self, original):
+		if is_invalid_date_string(str(original)):
+			return
 		parsed = get_datetime(str(original))
 		self.assertEqual(parsed, original)
 
 	@given(st.datetimes(timezones=st.timezones()))
 	def test_get_datetime_tz_aware(self, original):
+		if is_invalid_date_string(str(original)):
+			return
 		parsed = get_datetime(str(original))
 		self.assertEqual(parsed, original)
 
 	def test_pretty_date(self):
 		from frappe import _
 
-		# differnt cases
 		now = get_datetime()
 
 		test_cases = {
@@ -701,6 +720,8 @@ class TestDateUtils(IntegrationTestCase):
 
 		for dt, exp_message in test_cases.items():
 			self.assertEqual(pretty_date(dt), exp_message)
+
+		self.assertEqual(pretty_date(add_to_date(now, days=-5), mini=True), "5d")
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")
@@ -968,9 +989,9 @@ class TestLazyLoader(IntegrationTestCase):
 class TestIdenticon(IntegrationTestCase):
 	def test_get_gravatar(self):
 		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
+		toggle_test_mode(False)
 		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("http"))
 

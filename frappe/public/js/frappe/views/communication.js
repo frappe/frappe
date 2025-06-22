@@ -23,11 +23,11 @@ frappe.views.CommunicationComposer = class {
 			title: this.title || this.subject || __("New Email"),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
-			primary_action_label: __("Send"),
+			primary_action_label: __("Send", null, "Send Email"),
 			primary_action() {
 				me.send_action();
 			},
-			secondary_action_label: __("Discard"),
+			secondary_action_label: __("Discard", null, "Discard Email"),
 			secondary_action() {
 				me.dialog.hide();
 				me.clear_cache();
@@ -50,11 +50,14 @@ frappe.views.CommunicationComposer = class {
 		let me = this;
 		const fields = [
 			{
-				label: __("To"),
+				label: __("To", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				reqd: 0,
 				fieldname: "recipients",
 				default: this.get_default_recipients("recipients"),
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
 				fieldtype: "Button",
@@ -70,16 +73,22 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "more_options",
 			},
 			{
-				label: __("CC"),
+				label: __("CC", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
 				default: this.get_default_recipients("cc"),
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
-				label: __("BCC"),
+				label: __("BCC", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
 				default: this.get_default_recipients("bcc"),
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
 				label: __("Schedule Send At"),
@@ -182,7 +191,7 @@ frappe.views.CommunicationComposer = class {
 			});
 
 			fields.unshift({
-				label: __("From"),
+				label: __("From", null, "Email Sender"),
 				fieldtype: "Select",
 				reqd: 1,
 				fieldname: "sender",
@@ -970,5 +979,17 @@ frappe.views.CommunicationComposer = class {
 
 		const text = frappe.utils.html2text(html);
 		return text.replace(/\n{3,}/g, "\n\n");
+	}
+
+	sanitize_emails(control) {
+		let emails = control.get_value();
+		if (!emails) return;
+		let sanitized = emails
+			.split(",")
+			.map((email) => frappe.utils.xss_sanitise(email.trim()))
+			.join(",");
+		if (sanitized != emails) {
+			control.set_value(sanitized);
+		}
 	}
 };

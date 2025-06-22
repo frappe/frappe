@@ -32,7 +32,7 @@ class PersonalDataDownloadRequest(Document):
 			"generate_file_and_send_mail",
 			queue="short",
 			personal_data=personal_data,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 		)
 
 	def generate_file_and_send_mail(self, personal_data):

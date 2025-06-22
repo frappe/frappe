@@ -42,6 +42,8 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		if (frappe.user.has_role("System Manager")) {
 			this.add_insights_banner();
+			this.add_crm_banner();
+			this.add_helpdesk_banner();
 		}
 	}
 
@@ -279,25 +281,9 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.get_stats();
 	}
 
-	add_insights_banner() {
+	add_banner(message, link, cta) {
 		try {
-			if (this.list_view.view != "Report") {
-				return;
-			}
-
-			if (localStorage.getItem("show_insights_banner") == "false") {
-				return;
-			}
-
-			if (this.insights_banner) {
-				this.insights_banner.remove();
-			}
-
-			const message = __("Get more insights with");
-			const link = "https://frappe.io/s/insights";
-			const cta = "Frappe Insights";
-
-			this.insights_banner = $(`
+			this.banner = $(`
 				<div class="sidebar-section">
 					${message} <a href="${link}" target="_blank" style="color: var(--text-color)">${cta} &rarr; </a>
 				</div>
@@ -305,5 +291,44 @@ frappe.views.ListSidebar = class ListSidebar {
 		} catch (error) {
 			console.error(error);
 		}
+	}
+
+	add_insights_banner() {
+		if (this.list_view.view != "Report") {
+			return;
+		}
+
+		if (localStorage.getItem("show_insights_banner") == "false") {
+			return;
+		}
+
+		const message = __("Get more insights with");
+		const link = "https://frappe.io/s/insights";
+		const cta = "Frappe Insights";
+		this.add_banner(message, link, cta);
+	}
+
+	add_crm_banner() {
+		if (this.list_view.meta.module != "CRM" || this.list_view.view != "List") {
+			return;
+		}
+
+		const message = "";
+		const link =
+			"https://frappe.io/crm?utm_source=crm-sidebar&utm_medium=sidebar&utm_campaign=frappe-ad";
+		const cta = __("Switch to Frappe CRM for smarter sales");
+		this.add_banner(message, link, cta);
+	}
+
+	add_helpdesk_banner() {
+		if (this.list_view.meta.module != "Support" || this.list_view.view != "List") {
+			return;
+		}
+
+		const message = "";
+		const link =
+			"https://frappe.io/helpdesk?utm_source=support-sidebar&utm_medium=sidebar&utm_campaign=frappe-ad";
+		const cta = __("Upgrade your support experience with Frappe Helpdesk");
+		this.add_banner(message, link, cta);
 	}
 };

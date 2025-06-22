@@ -33,9 +33,11 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def pdf_header_html(soup, head, content, styles, html_id, css):
+def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
+	if not path:
+		path = "templates/print_formats/pdf_header_footer.html"
 	return frappe.render_template(
-		"templates/print_formats/pdf_header_footer.html",
+		path,
 		{
 			"head": head,
 			"content": content,
@@ -75,8 +77,10 @@ def _guess_template_error_line_number(template) -> int | None:
 				return frame.lineno
 
 
-def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css)
+def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
+	return pdf_header_html(
+		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css, path=path
+	)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
@@ -316,7 +320,8 @@ def prepare_header_footer(soup: BeautifulSoup):
 			toggle_visible_pdf(content)
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
-			html = frappe.get_attr(hook_func[-1])(
+			html = frappe.call(
+				hook_func[-1],
 				soup=soup,
 				head=head,
 				content=content,

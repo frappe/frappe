@@ -235,7 +235,7 @@ def get_comments(doctype, doc_name, frequency, user):
 
 def is_document_followed(doctype, doc_name, user):
 	return frappe.db.exists(
-		"Document Follow", {"ref_doctype": doctype, "ref_docname": doc_name, "user": user}
+		"Document Follow", {"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user}
 	)
 
 

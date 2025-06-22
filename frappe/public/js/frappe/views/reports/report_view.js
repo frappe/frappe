@@ -30,7 +30,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.report_doc = doc;
 				this.report_doc.json = JSON.parse(this.report_doc.json);
 
-				this.filters = this.report_doc.json.filters;
+				this.filters = [
+					...(Array.isArray(this.report_doc.json.filters)
+						? this.report_doc.json.filters
+						: []),
+					...this.parse_filters_from_route_options(),
+				];
+
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
@@ -96,9 +102,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const message = __(
 			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 		);
-		this.$paging_area
-			.find(".level-left")
-			.after(`<span class="comparison-message text-extra-muted">${message}</span>`);
+		this.$paging_area.before(
+			`<span class="comparison-message text-extra-muted">${message}</span>`
+		);
 	}
 
 	setup_sort_selector() {
@@ -144,6 +150,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (!this.group_by) {
 			this.init_chart();
 		}
+
+		this.set_link_title_field_value();
+	}
+
+	set_link_title_field_value() {
+		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
+			let link_title = await this.get_link_title_field_value(
+				this.link_title_doctype_fields[key],
+				key
+			);
+
+			if (link_title !== undefined) {
+				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+					el.innerHTML = link_title;
+				});
+			}
+		});
+	}
+
+	async get_link_title_field_value(doctype, value) {
+		return (
+			frappe.utils.get_link_title(doctype, value) ||
+			(await frappe.utils.fetch_link_title(doctype, value))
+		);
 	}
 
 	set_dirty_state_for_custom_report() {
@@ -293,6 +323,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_datatable(values) {
+		this.link_title_doctype_fields = [];
 		this.$datatable_wrapper.empty();
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
@@ -702,7 +733,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	is_editable(df, data) {
-		return (
+		if (
 			df &&
 			frappe.model.can_write(this.doctype) &&
 			// not a submitted doc or field is allowed to edit after submit
@@ -713,10 +744,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			!df.is_virtual &&
 			!df.hidden &&
 			// not a standard field i.e., owner, modified_by, etc.
-			frappe.model.is_non_std_field(df.fieldname) &&
-			df.read_only_depends_on &&
-			!this.evaluate_read_only_depends_on(df.read_only_depends_on, data)
-		);
+			frappe.model.is_non_std_field(df.fieldname)
+		) {
+			// don't check read_only_depends_on if there's child table fields
+			return (
+				this.meta.fields.some((df) => df.fieldtype === "Table") ||
+				(df.read_only_depends_on &&
+					!this.evaluate_read_only_depends_on(df.read_only_depends_on, data))
+			);
+		}
+		return false;
 	}
 
 	get_data(values) {
@@ -1161,6 +1198,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				if (Array.isArray(row)) {
 					doc = row.reduce((acc, curr) => {
 						if (!curr.column.docfield) return acc;
+
+						if (
+							curr.column.docfield.fieldtype == "Link" &&
+							frappe.boot.link_title_doctypes.includes(
+								curr.column.docfield.options
+							) &&
+							curr.html
+						) {
+							this.link_title_doctype_fields[curr.content] =
+								curr.column.docfield.options;
+						}
 						acc[curr.column.docfield.fieldname] = curr.content;
 						return acc;
 					}, {});

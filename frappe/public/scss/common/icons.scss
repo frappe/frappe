@@ -9,7 +9,9 @@
 	background-position: 50% 50%;
 	fill: var(--icon-fill);
 	stroke: var(--icon-stroke);
-	stroke-width: 1.25px;
+	stroke-width: 1.5px;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
 .es-icon {

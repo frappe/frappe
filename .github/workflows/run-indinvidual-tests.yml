@@ -60,7 +60,7 @@ jobs:
 
     services:
       mysql:
-        image: mariadb:11.3
+        image: mariadb:11.8
         env:
           MARIADB_ROOT_PASSWORD: db_root
         ports:
@@ -79,7 +79,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           check-latest: true
 
       - name: Add to Hosts

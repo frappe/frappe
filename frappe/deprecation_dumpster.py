@@ -202,42 +202,6 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 
 ### Party starts here
 
-if typing.TYPE_CHECKING:
-	from werkzeug.local import Local
-
-
-def get_local_with_deprecations() -> "Local":
-	from werkzeug.local import Local
-
-	class DeprecatedLocalAttribute:
-		def __init__(self, name, warning):
-			self.name = name
-			self.warning = warning
-
-		def __get__(self, obj, type=None):
-			self.warning()
-			return obj.__getattr__(self.name)
-
-		def __set__(self, obj, value):
-			return obj.__setattr__(self.name, value)
-
-		def __delete__(self, obj):
-			return obj.__delattr__(self.name)
-
-	class LocalWithDeprecations(Local):
-		"""Can deprecate local attributes."""
-
-		# sites_path = DeprecatedLocalAttribute(
-		# 	"sites_path",
-		# 	lambda: deprecation_warning(
-		# 		"2024-12-06",
-		# 		"v17",
-		# 		"'local.sites_path' will be deprecated: use 'frappe.bench.sites.path instead'",
-		# 	),
-		# )
-
-	return LocalWithDeprecations()
-
 
 def _old_deprecated(func):
 	return deprecated(
@@ -342,7 +306,7 @@ def read_multi_pdf(output) -> bytes:
 
 
 @deprecated("frappe.gzip_compress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
-def gzip_compress(data, compresslevel=9):
+def gzip_compress(data, compresslevel=5):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
@@ -612,7 +576,7 @@ def get_tests_CompatFrappeTestCase():
 		traceback.print_stack(limit=10)
 
 	def _rollback_db():
-		frappe.db.value_cache = {}
+		frappe.db.value_cache.clear()
 		frappe.db.rollback()
 
 	def _restore_thread_locals(flags):

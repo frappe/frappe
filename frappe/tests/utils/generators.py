@@ -414,7 +414,7 @@ class TestRecordManager:
 		temp_file.replace(self.log_file)
 
 
-def _after_install_clear_test_log():
+def _clear_test_log():
 	log_file_path = frappe.get_site_path(PERSISTENT_TEST_LOG_FILE)
 	if os.path.exists(log_file_path):
 		os.remove(log_file_path)

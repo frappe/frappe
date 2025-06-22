@@ -1,23 +1,33 @@
 frappe.ui.AppsSwitcher = class AppsSwitcher {
-	constructor(sidebar_wrapper) {
-		this.drop_down_state = false;
-		this.sidebar_wrapper = sidebar_wrapper;
+	constructor(sidebar) {
+		this.sidebar = sidebar;
+		this.sidebar_wrapper = $(this.sidebar.wrapper.find(".body-sidebar"));
+		this.drop_down_expanded = false;
+		this.make();
 		this.setup_app_switcher();
+		this.set_hover();
+	}
+
+	make() {
+		this.wrapper = $(
+			frappe.render_template("apps_switcher", {
+				app_logo_url: frappe.boot.app_data[0].app_logo_url,
+				app_title: __(frappe.boot.app_data[0].app_title),
+			})
+		).prependTo(this.sidebar_wrapper);
+		this.app_switcher_dropdown = $(".app-switcher-dropdown");
 	}
 
 	setup_app_switcher() {
 		this.app_switcher_menu = $(".app-switcher-menu");
-		$(".app-switcher-dropdown").on("click", () => {
-			this.app_switcher_menu.toggleClass("hidden");
+		$(".app-switcher-dropdown").on("click", (e) => {
+			this.toggle_app_menu();
+			e.stopImmediatePropagation();
 		});
-
-		// hover out of the sidebar  move this to sidebar.js
-		this.sidebar_wrapper.find(".body-sidebar").on("mouseleave", () => {
-			this.app_switcher_menu.addClass("hidden");
-
-			// hide any expanded menus as they leave a blank space in the sidebar
-			this.sidebar_wrapper.find(".drop-icon[data-state='opened'").click();
-		});
+	}
+	toggle_app_menu() {
+		this.toggle_active();
+		this.app_switcher_menu.toggleClass("hidden");
 	}
 	create_app_data_map() {
 		frappe.boot.app_data_map = {};
@@ -53,7 +63,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 	}
 
 	add_private_app() {
-		let private_pages = frappe.app.sidebar.all_pages.filter((p) => p.public === 0);
+		let private_pages = this.sidebar.all_pages.filter((p) => p.public === 0);
 		if (private_pages.length === 0) return;
 
 		const app = {
@@ -86,6 +96,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 			let item = $(e.delegateTarget);
 			let route = item.attr("data-app-route");
 			this.app_switcher_menu.toggleClass("hidden");
+			this.toggle_active();
 
 			if (item.attr("data-app-name") == "settings") {
 				frappe.quick_edit("Workspace Settings");
@@ -143,12 +154,44 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 			.find(".app-switcher-dropdown .sidebar-item-label")
 			.html(app_data.app_title);
 
-		$(".navbar-brand .app-logo").attr("src", app_data.app_logo_url);
+		frappe.frappe_toolbar.set_app_logo(app_data.app_logo_url);
 
 		if (frappe.current_app === app) return;
 		frappe.current_app = app;
 
 		// re-render the sidebar
 		frappe.app.sidebar.make_sidebar();
+	}
+
+	set_hover() {
+		const me = this;
+
+		this.app_switcher_dropdown.on("mouseover", function () {
+			if ($(this).hasClass("active-sidebar")) return;
+			$(this).addClass("hover");
+
+			if (!me.sidebar.sidebar_expanded) {
+				$(this).removeClass("hover");
+			}
+		});
+
+		this.app_switcher_dropdown.on("mouseleave", function () {
+			$(this).removeClass("hover");
+		});
+	}
+
+	toggle_active() {
+		this.toggle_dropdown();
+		this.app_switcher_dropdown.toggleClass("active-sidebar");
+		if (!this.sidebar.sidebar_expanded) {
+			this.app_switcher_dropdown.removeClass("active-sidebar");
+		}
+	}
+	toggle_dropdown() {
+		if (this.drop_down_expanded) {
+			this.drop_down_expanded = false;
+		} else {
+			this.drop_down_expanded = true;
+		}
 	}
 };

@@ -178,3 +178,48 @@ class TestResult(unittest.TextTestResult):
 
 
 SLOW_TEST_THRESHOLD = 2
+
+
+class FrappeTestResult(unittest.TextTestResult):
+	def __init__(self, stream, descriptions, verbosity):
+		super().__init__(stream, descriptions, verbosity)
+
+	def startTest(self, test):
+		self.tb_locals = True
+		self._started_at = time.monotonic()
+		super().startTest(test)
+		super(unittest.TextTestResult, self).startTest(test)
+		test_class = unittest.util.strclass(test.__class__)
+		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
+			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+			self.current_test_class = test_class
+
+	def getTestMethodName(self, test):
+		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
+
+	def addSuccess(self, test):
+		super(unittest.TextTestResult, self).addSuccess(test)
+		elapsed = time.monotonic() - self._started_at
+		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
+		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
+
+	def addError(self, test, err):
+		super(unittest.TextTestResult, self).addError(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addFailure(self, test, err):
+		super(unittest.TextTestResult, self).addFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addSkip(self, test, reason):
+		super(unittest.TextTestResult, self).addSkip(test, reason)
+		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
+
+	def addExpectedFailure(self, test, err):
+		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addUnexpectedSuccess(self, test):
+		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")

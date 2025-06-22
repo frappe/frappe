@@ -6,7 +6,7 @@ import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.core.doctype.server_script.server_script import ServerScript
 from frappe.frappeclient import FrappeClient, FrappeException
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_site_url
 
 scripts = [
@@ -108,15 +108,6 @@ doc.save()
 ]
 
 
-class UnitTestServerScript(UnitTestCase):
-	"""
-	Unit tests for ServerScript.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
-
-
 class TestServerScript(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -166,7 +157,7 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
 
 	def test_permission_query(self):
-		if frappe.conf.db_type == "mariadb":
+		if frappe.conf.db_type != "postgres":
 			self.assertTrue("where (1 = 1)" in frappe.db.get_list("ToDo", run=False))
 		else:
 			self.assertTrue("where (1 = '1')" in frappe.db.get_list("ToDo", run=False))

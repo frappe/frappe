@@ -83,7 +83,7 @@ class RateLimiter:
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,
-			"X-RateLimit-Remaining": self.remaining,
+			"X-RateLimit-Remaining": round(self.remaining, -6),
 		}
 		if self.rejected:
 			headers["Retry-After"] = self.reset
@@ -152,6 +152,9 @@ def rate_limit(
 				frappe.throw(_("Either key or IP flag is required."))
 
 			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
+
+			if not callable(seconds):
+				cache_key += f":{seconds}".encode()
 
 			value = frappe.cache.get(cache_key)
 			if not value:

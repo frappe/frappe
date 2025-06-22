@@ -172,7 +172,6 @@ frappe.views.BaseList = class BaseList {
 		this.page.main.addClass("layout-main-list");
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.hide_page_form && this.page.page_form.hide();
-		this.hide_sidebar && this.$page.addClass("no-list-sidebar");
 		this.setup_page_head();
 	}
 
@@ -277,7 +276,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_side_bar() {
-		if (this.hide_sidebar || !frappe.boot.desk_settings.list_sidebar) return;
+		if (this.page.disable_sidebar_toggle) {
+			return;
+		}
+
 		this.list_sidebar = new frappe.views.ListSidebar({
 			doctype: this.doctype,
 			stats: this.stats,
@@ -639,6 +641,40 @@ class FilterArea {
 			300
 		);
 		this.setup();
+		if (frappe.is_mobile()) this.setup_mobile(list_view);
+	}
+	setup_mobile(list_view) {
+		const me = this;
+		this.standard_filters_visible = false;
+		this.standard_filters_wrapper.hide();
+		this.list_view.page.page_form.css("justify-content", "flex-end");
+		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
+					<span class="filter-icon button-icon">
+						${frappe.utils.icon("funnel-plus")}
+					</span>
+				</button>
+			</div>`)
+			.prependTo(this.$filter_list_wrapper.find(".filter-selector"))
+			.on("click", function () {
+				me.toggle_standard_filter();
+			});
+		let children = list_view.page.page_form.children();
+		list_view.page.page_form.append(children.get().reverse());
+	}
+
+	toggle_standard_filter() {
+		if (this.standard_filters_visible) {
+			this.standard_filters_visible = false;
+			this.standard_filters_wrapper.hide();
+		} else {
+			this.standard_filters_visible = true;
+			this.standard_filters_wrapper.show();
+		}
+		let icon_name = !this.standard_filters_visible ? "funnel-plus" : "funnel-x";
+		this.$filter_list_wrapper
+			.find(".filter-toggle")
+			.find("use")
+			.attr("href", `#icon-${icon_name}`);
 	}
 
 	setup() {
@@ -834,8 +870,9 @@ class FilterArea {
 			doctype_fields
 				.filter(
 					(df) =>
-						df.fieldname === title_field ||
-						(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))
+						(df.fieldname === title_field ||
+							(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))) &&
+						frappe.perm.has_perm(this.list_view.doctype, df.permlevel)
 				)
 				.map((df) => {
 					let options = df.options;

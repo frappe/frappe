@@ -14,9 +14,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
-					${frappe.utils.icon("close", "xs", "es-icon")}
-				</a>
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
@@ -25,11 +22,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
 		this.$link = this.$input_area.find(".link-btn");
-		this.$link_clear = this.$input_area.find(".btn-clear");
-		this.$link_clear.on("click", function () {
-			me.$link.toggle(false);
-			me.$input.val("").focus();
-		});
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();
 		this.$input.on("focus", function () {
@@ -73,13 +65,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const name = this.get_input_value();
 			this.$link.toggle(true);
 			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
-			this.$link_clear.toggle(true);
 		}
 	}
 
 	hide_link_and_clear_buttons() {
 		this.$link.toggle(false);
-		this.$link_clear.toggle(false);
 	}
 
 	get_options() {
@@ -144,7 +134,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			frappe.utils.add_link_title(this.df.options, value, label);
 		}
 
-		return this.validate_and_set_in_model(value, e, true);
+		return this.validate_and_set_in_model(value, e);
 	}
 	parse(value) {
 		return strip_html(value);
@@ -685,11 +675,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// to avoid unnecessary request
 		if (value) {
 			return frappe
-				.xcall("frappe.client.validate_link", {
-					doctype: options,
-					docname: value,
-					fields: columns_to_fetch,
-				})
+				.xcall(
+					"frappe.client.validate_link",
+					{
+						doctype: options,
+						docname: value,
+						fields: columns_to_fetch,
+					},
+					"GET",
+					{ cache: !columns_to_fetch.length }
+				)
 				.then((response) => {
 					if (!this.docname || !columns_to_fetch.length) {
 						return response.name;

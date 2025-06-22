@@ -15,47 +15,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Backup",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dropbox Settings",
-   "link_count": 0,
-   "link_to": "Dropbox Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "S3 Backup Settings",
-   "link_count": 0,
-   "link_to": "S3 Backup Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Drive",
-   "link_count": 0,
-   "link_to": "Google Drive",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Google Services",
    "link_count": 0,
    "onboard": 0,

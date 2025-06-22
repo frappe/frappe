@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 200
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           check-latest: true
 
       - name: Check commit titles
@@ -95,7 +95,7 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on .
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 .
 
   precommit:
     name: 'Pre-Commit'

@@ -252,7 +252,6 @@ class TestWebsite(IntegrationTestCase):
 			self.assertEqual(response.status_code, 404)
 
 	def test_printview_page(self):
-		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
 		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)
@@ -340,12 +339,12 @@ class TestWebsite(IntegrationTestCase):
 	def test_safe_render(self):
 		content = get_response_content("/_test/_test_safe_render_on")
 		self.assertNotIn("Safe Render On", content)
-		self.assertIn("frappe.exceptions.ValidationError: Illegal template", content)
+		self.assertIn("Show Error", content)
 
 		content = get_response_content("/_test/_test_safe_render_off")
 		self.assertIn("Safe Render Off", content)
 		self.assertIn("test.__test", content)
-		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
+		self.assertNotIn("Show Error", content)
 
 	def test_never_render(self):
 		from pathlib import Path

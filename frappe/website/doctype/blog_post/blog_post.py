@@ -69,8 +69,7 @@ class BlogPost(WebsiteGenerator):
 
 		if not self.blog_intro:
 			content = get_html_content_based_on_type(self, "content", self.content_type)
-			self.blog_intro = content[:200]
-			self.blog_intro = strip_html_tags(self.blog_intro)
+			self.blog_intro = strip_html_tags(content)[:200]
 
 		if self.blog_intro:
 			self.blog_intro = self.blog_intro[:200]
@@ -100,6 +99,7 @@ class BlogPost(WebsiteGenerator):
 
 			# Extract images first before the standard image extraction to ensure they are public.
 			extract_images_from_doc(self, "content", is_private=False)
+			extract_images_from_doc(self, "content_md", is_private=False)
 
 	def reset_featured_for_other_blogs(self):
 		all_posts = frappe.get_all("Blog Post", {"featured": 1})
@@ -330,7 +330,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	if txt:
 		conditions.append(
-			'(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape("%" + txt + "%"))
+			"(t1.content like {0} or t1.title like {0})".format(frappe.db.escape("%" + txt + "%"))
 		)
 
 	if conditions:

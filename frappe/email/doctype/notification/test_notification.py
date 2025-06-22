@@ -8,7 +8,7 @@ import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 from .notification import trigger_notifications
 
@@ -23,15 +23,6 @@ def get_test_notification(config):
 	finally:
 		notification.delete()
 		frappe.db.commit()
-
-
-class UnitTestNotification(UnitTestCase):
-	"""
-	Unit tests for Notification.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestNotification(IntegrationTestCase):
@@ -466,7 +457,7 @@ class TestNotification(IntegrationTestCase):
 			frappe.db.delete("Notification Log", {"subject": n.subject})
 
 			user = frappe.get_doc("User", "test@example.com")
-			user.birth_date = frappe.utils.add_days(user.birth_date, 1)
+			user.birth_date = frappe.utils.add_days(user.birth_date, 1).date()
 			user.save()
 
 			user.reload()
@@ -510,6 +501,7 @@ class TestNotification(IntegrationTestCase):
 		self.assertEqual(notification.enabled, 1)
 
 
+# ruff: noqa: RUF001
 """
 PROOF OF TEST for TestNotificationOffsetRange below.
 

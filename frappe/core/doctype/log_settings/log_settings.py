@@ -154,6 +154,8 @@ LOG_DOCTYPES = [
 	"Email Queue",
 	"Email Queue Recipient",
 	"Error Log",
+	"OAuth Bearer Token",
+	"API Request Log",
 ]
 
 

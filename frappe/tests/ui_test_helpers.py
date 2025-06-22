@@ -7,7 +7,7 @@ UI_TEST_USER = "frappe@example.com"
 
 
 def whitelist_for_tests(fn):
-	if frappe.request and not frappe.flags.in_test and not getattr(frappe.local, "dev_server", 0):
+	if frappe.request and not frappe.in_test and not frappe._dev_server:
 		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
 
 	return frappe.whitelist()(fn)
@@ -499,6 +499,9 @@ def setup_image_doctype():
 @whitelist_for_tests
 def setup_inbox():
 	frappe.db.delete("User Email")
+	doc = frappe.new_doc("Email Account")
+	doc.email_id = "email_linking@example.com"
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 	user = frappe.get_doc("User", frappe.session.user)
 	user.append("user_emails", {"email_account": "Email Linking"})

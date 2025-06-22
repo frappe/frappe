@@ -54,7 +54,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	if is_custom_module and not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 		frappe.throw("Invalid export path: " + Path(path).as_posix())
 	with open(path, "w+") as txtfile:
-		txtfile.write(frappe.as_json(doc_export))
+		txtfile.write(frappe.as_json(doc_export) + "\n")
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 

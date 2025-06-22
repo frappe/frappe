@@ -26,6 +26,7 @@ class WorkspaceShortcut(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		report_ref_doctype: DF.Link | None
 		restrict_to_domain: DF.Link | None
 		stats_filter: DF.Code | None
 		type: DF.Literal["DocType", "Report", "Page", "Dashboard", "URL"]

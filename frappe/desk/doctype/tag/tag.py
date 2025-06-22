@@ -115,7 +115,7 @@ class DocTags:
 			frappe.db.sql(
 				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
 			)
-			doc = frappe.get_doc(self.dt, dn)
+			doc = frappe.get_lazy_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:
 			if frappe.db.is_missing_column(e):

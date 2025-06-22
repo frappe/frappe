@@ -55,7 +55,7 @@ def delete_doc(
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
 			if not ignore_missing:
-				raise frappe.DoesNotExistError
+				raise frappe.DoesNotExistError(doctype=doctype)
 			else:
 				return False
 
@@ -107,7 +107,7 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except frappe.QueryTimeoutError:
+			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
@@ -153,7 +153,7 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.flags.in_test,
+					now=frappe.in_test,
 					enqueue_after_commit=True,
 				)
 
@@ -256,7 +256,7 @@ def check_permission_and_not_submitted(doc):
 
 def check_if_doc_is_linked(doc, method="Delete"):
 	"""
-	Raises excption if the given doc(dt, dn) is linked in another record.
+	Raises exception if the given document is linked in another record.
 	"""
 	from frappe.model.rename_doc import get_link_fields
 

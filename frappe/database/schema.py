@@ -275,9 +275,9 @@ class DbColumn:
 			self.table.change_type.append(self)
 
 		# unique
-		if (self.unique and not current_def["unique"]) and column_type not in ("text", "longtext"):
+		if (self.unique and not current_def.get("unique")) and column_type not in ("text", "longtext"):
 			self.table.add_unique.append(self)
-		elif (current_def["unique"] and not self.unique) and column_type not in ("text", "longtext"):
+		elif (current_def.get("unique") and not self.unique) and column_type not in ("text", "longtext"):
 			self.table.drop_unique.append(self)
 
 		# default
@@ -289,21 +289,21 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# nullability
-		if self.not_nullable is not None and (self.not_nullable != current_def["not_nullable"]):
+		if self.not_nullable is not None and (self.not_nullable != current_def.get("not_nullable")):
 			self.table.change_nullability.append(self)
 
 		# index should be applied or dropped irrespective of type change
-		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):
+		if (current_def.get("index") and not self.set_index) and column_type not in ("text", "longtext"):
 			self.table.drop_index.append(self)
 
-		elif (not current_def["index"] and self.set_index) and column_type not in ("text", "longtext"):
+		elif (not current_def.get("index") and self.set_index) and column_type not in ("text", "longtext"):
 			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):
 		if "decimal" in current_def["type"]:
 			return self.default_changed_for_decimal(current_def)
 		else:
-			cur_default = current_def["default"]
+			cur_default = current_def.get("default")
 			new_default = self.default
 			if cur_default == "NULL" or cur_default is None:
 				cur_default = None
@@ -410,11 +410,20 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 
 def add_column(doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False):
 	frappe.db.commit()
-	query = "alter table `tab{}` add column if not exists {} {}".format(
-		doctype,
-		column_name,
-		get_definition(fieldtype, precision, length),
-	)
+	if frappe.db.db_type == "sqlite":
+		if column_name in frappe.db.get_table_columns(doctype):
+			return
+		query = "alter table `tab{}` add column {} {}".format(
+			doctype,
+			column_name,
+			get_definition(fieldtype, precision, length),
+		)
+	else:
+		query = "alter table `tab{}` add column if not exists {} {}".format(
+			doctype,
+			column_name,
+			get_definition(fieldtype, precision, length),
+		)
 
 	if not_null:
 		query += " not null"

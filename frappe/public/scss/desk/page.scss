@@ -25,7 +25,7 @@
 		}
 	}
 
-	@include media-breakpoint-up(md) {
+	@media (min-width: 992px) {
 		// only for small screens
 		.sidebar-toggle-btn {
 			display: none;

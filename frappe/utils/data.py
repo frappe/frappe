@@ -12,6 +12,7 @@ import re
 import time
 import typing
 from code import compile_command
+from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Literal, Optional, TypeVar
@@ -640,12 +641,17 @@ def get_time(
 		return time_str
 	elif isinstance(time_str, datetime.timedelta):
 		return (datetime.datetime.min + time_str).time()
+
 	try:
-		return parser.parse(time_str).time()
-	except ParserError as e:
-		if "day" in e.args[1] or "hour must be in" in e.args[0]:
-			return (datetime.datetime.min + parse_timedelta(time_str)).time()
-		raise e
+		# PERF: Our DATE_FORMAT is same as ISO format.
+		return datetime.time.fromisoformat(time_str)
+	except ValueError:
+		try:
+			return parser.parse(time_str).time()
+		except ParserError as e:
+			if "day" in e.args[1] or "hour must be in" in e.args[0]:
+				return (datetime.datetime.min + parse_timedelta(time_str)).time()
+			raise e
 
 
 def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
@@ -898,6 +904,14 @@ def get_timespan_date_range(
 	today = getdate()
 
 	match timespan:
+		case "last 7 days":
+			return (add_to_date(today, days=-7), today)
+		case "last 14 days":
+			return (add_to_date(today, days=-14), today)
+		case "last 30 days":
+			return (add_to_date(today, days=-30), today)
+		case "last 90 days":
+			return (add_to_date(today, days=-90), today)
 		case "last week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=-7)),
@@ -938,6 +952,21 @@ def get_timespan_date_range(
 			return (get_quarter_start(today), get_quarter_ending(today))
 		case "this year":
 			return (get_year_start(today), get_year_ending(today))
+		case "next 7 days":
+			return (
+				today,
+				add_to_date(today, days=7),
+			)
+		case "next 14 days":
+			return (
+				today,
+				add_to_date(today, days=14),
+			)
+		case "next 30 days":
+			return (
+				today,
+				add_to_date(today, days=30),
+			)
 		case "next week":
 			return (
 				get_first_day_of_week(add_to_date(today, days=7)),
@@ -1669,7 +1698,7 @@ def escape_html(text: str) -> str:
 	return "".join(html_escape_table.get(c, c) for c in text)
 
 
-def pretty_date(iso_datetime: datetime.datetime | str) -> str:
+def pretty_date(iso_datetime: datetime.datetime | str, mini=False) -> str:
 	"""Return a localized string representation of the delta to the current system time.
 
 	For example, "1 hour ago", "2 days ago", "in 5 seconds", etc.
@@ -1683,7 +1712,12 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 		iso_datetime = get_datetime(iso_datetime)
 	now_dt = now_datetime()
 	locale = frappe.local.lang.replace("-", "_") if frappe.local.lang else None
-	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
+	return format_timedelta(
+		iso_datetime - now_dt,
+		add_direction=not mini,
+		locale=locale,
+		format="long" if not mini else "narrow",
+	)
 
 
 def comma_or(some_list: list | tuple, add_quotes=True) -> str:
@@ -1753,7 +1787,11 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 	return (cstr(sep)).join(cstr(a).strip() for a in filter(None, some_list))
 
 
-def get_url(uri: str | None = None, full_address: bool = False) -> str:
+def get_url(
+	uri: str | None = None,
+	full_address: bool = False,
+	allow_header_override: bool = True,
+) -> str:
 	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
@@ -1763,7 +1801,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	if not host_name:
 		request_host_name = get_host_name_from_request()
 
-		if request_host_name:
+		if request_host_name and allow_header_override:
 			host_name = request_host_name
 
 		elif frappe.local.site:
@@ -1874,7 +1912,7 @@ def get_link_to_report(
 					for value in v
 				)
 			else:
-				conditions.append(str(k) + "=" + str(v))
+				conditions.append(str(k) + "=" + quote(str(v)))
 
 		filters = "&".join(conditions)
 
@@ -1973,6 +2011,14 @@ def filter_operator_is(value: str, pattern: str) -> bool:
 		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
 
 
+def filter_operator_timespan(value: str, pattern: str) -> bool:
+	if not value:
+		return False
+
+	date_range = get_timespan_date_range(pattern)
+	return date_range[0] <= getdate(value) <= date_range[1]
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -1991,6 +2037,7 @@ operator_map = {
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
 	"is": filter_operator_is,
+	"Timespan": filter_operator_timespan,
 }
 
 
@@ -2009,7 +2056,8 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
 		val1 = cast(fieldtype, val1)
-		val2 = cast(fieldtype, val2)
+		if condition != "Timespan":
+			val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 
@@ -2040,7 +2088,7 @@ def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "
 
 	f = frappe._dict(doctype=ft[0], fieldname=ft[1], operator=ft[2], value=ft[3])
 
-	sanitize_column(f.fieldname)
+	f.fieldname = sanitize_column(f.fieldname)
 
 	valid_operators = (
 		"=",
@@ -2107,12 +2155,12 @@ def make_filter_dict(filters):
 	return _filter
 
 
-def sanitize_column(column_name: str) -> None:
+def sanitize_column(column_name: str) -> str:
 	return _sanitize_column(column_name, (frappe.db and frappe.db.db_type) or None)
 
 
 @lru_cache(maxsize=1024)
-def _sanitize_column(column_name: str, db_type: str) -> None:
+def _sanitize_column(column_name: str, db_type: str) -> str:
 	import sqlparse
 
 	from frappe import _
@@ -2137,7 +2185,7 @@ def _sanitize_column(column_name: str, db_type: str) -> None:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();].*")
+	regex = re.compile("^.*[,'();\n].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -2155,6 +2203,8 @@ def _sanitize_column(column_name: str, db_type: str) -> None:
 
 	elif regex.match(column_name):
 		_raise_exception()
+
+	return column_name
 
 
 def scrub_urls(html: str) -> str:
@@ -2597,6 +2647,74 @@ def map_trackers(url_trackers: dict, create: bool = False):
 		frappe_trackers["utm_content"] = url_content
 
 	return frappe_trackers
+
+
+def bold(text: str | int | float) -> str:
+	"""Return `text` wrapped in `<strong>` tags."""
+	return f"<strong>{text}</strong>"
+
+
+def safe_encode(param, encoding="utf-8"):
+	try:
+		param = param.encode(encoding)
+	except Exception:
+		pass
+	return param
+
+
+def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+	"""
+	Method to safely decode data into a string
+
+	:param param: The data to be decoded
+	:param encoding: The encoding to decode into
+	:param fallback_map: A fallback map to reference in case of a LookupError
+	:return:
+	"""
+	try:
+		param = param.decode(encoding)
+	except LookupError:
+		try:
+			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
+		except Exception:
+			pass
+	except Exception:
+		pass
+	return param
+
+
+def as_unicode(text, encoding: str = "utf-8") -> str:
+	"""Convert to unicode if required."""
+	if isinstance(text, str):
+		return text
+	elif text is None:
+		return ""
+	elif isinstance(text, bytes):
+		return str(text, encoding)
+	else:
+		return str(text)
+
+
+def mock(type, size=1, locale="en"):
+	import faker
+
+	results = []
+	fake = faker.Faker(locale)
+	if type not in dir(fake):
+		raise ValueError("Not a valid mock type.")
+	else:
+		for _ in range(size):
+			data = getattr(fake, type)()
+			results.append(data)
+
+	from frappe.utils import squashify
+
+	return squashify(results)
+
+
+# Recursive default dict with arbitrary levels of nesting
+def recursive_defaultdict():
+	return defaultdict(recursive_defaultdict)
 
 
 # This is used in test to count memory overhead of default imports.

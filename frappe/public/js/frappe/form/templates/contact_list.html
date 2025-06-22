@@ -1,3 +1,9 @@
+<p>
+	<button class="btn btn-xs btn-default btn-contact">
+		{{ __("New Contact") }}
+	</button>
+</p>
+
 <div class="clearfix"></div>
 {% for (const contact of contact_list) { %}
 	<div class="address-box">
@@ -84,9 +90,3 @@
 {% if (!contact_list.length) { %}
 	<p class="text-muted small">{%= __("No contacts added yet.") %}</p>
 {% } %}
-
-<p>
-	<button class="btn btn-xs btn-default btn-contact">
-		{{ __("New Contact") }}
-	</button>
-</p>

@@ -16,7 +16,7 @@ on:
       node-version:
         required: false
         type: number
-        default: 20
+        default: 22
       db-artifact-url:
         required: false
         type: string
@@ -33,7 +33,7 @@ jobs:
       DB_ROOT_PASSWORD: db_root
     services:
       mariadb:
-        image: mariadb:11.3
+        image: mariadb:11.8
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3

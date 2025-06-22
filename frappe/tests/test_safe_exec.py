@@ -2,6 +2,7 @@ import types
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils.jinja import get_jenv
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
@@ -127,3 +128,17 @@ class TestSafeExec(IntegrationTestCase):
 class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):
 		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
+
+
+class TestJinjaGlobals(IntegrationTestCase):
+	def test_jenv_thread_safety(self):
+		first = get_jenv()
+		# reinit to create a new local ctx, this "simulates" two request running in two diff
+		# thread.
+		frappe.init(frappe.local.site, force=True)
+		second = get_jenv()
+		self.assertIsNot(first, second)
+		self.assertIsNot(first.globals, second.globals)
+		self.assertIsNot(first.filters, second.filters)
+		self.assertIsNot(first.globals["frappe"], second.globals["frappe"])
+		self.assertIsNot(first.globals["frappe"]["form_dict"], second.globals["frappe"]["form_dict"])

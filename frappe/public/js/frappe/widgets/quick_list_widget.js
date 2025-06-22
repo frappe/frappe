@@ -37,12 +37,13 @@ export default class QuickListWidget extends Widget {
 
 		this.add_new_button.appendTo(this.action_area);
 		this.add_new_button.on("click", () => {
-			frappe.set_route(
-				frappe.utils.generate_route({
-					type: "doctype",
-					name: this.document_type,
-					doc_view: "New",
-				})
+			frappe.ui.form.make_quick_entry(
+				this.document_type,
+				// Callback to ensure no redirection after insert
+				() => {
+					this.body.empty();
+					this.set_body(); // Refresh the quicklist
+				}
 			);
 		});
 	}
@@ -158,10 +159,11 @@ export default class QuickListWidget extends Widget {
 				</div>
 			`).appendTo($quick_list_item);
 		}
-
-		$(`<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`).appendTo(
-			$quick_list_item
-		);
+		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`;
+		if (frappe.utils.is_rtl(frappe.boot.lang)) {
+			icon_to_append = `<div class="left-arrow">${frappe.utils.icon("left", "xs")}</div>`;
+		}
+		$(icon_to_append).appendTo($quick_list_item);
 
 		$quick_list_item.click((e) => {
 			if (e.ctrlKey || e.metaKey) {

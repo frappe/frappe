@@ -13,7 +13,7 @@
 				<div class="text-center">
 					{{ __("Drag and drop files here or upload from") }}
 				</div>
-				<div class="mt-2 text-center">
+				<div class="mt-3 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg
 							width="30"
@@ -150,7 +150,7 @@
 						<div class="mt-1">{{ __("Camera") }}</div>
 					</button>
 					<button
-						v-if="google_drive_settings.enabled"
+						v-if="allow_google_drive && google_drive_settings.enabled"
 						class="btn btn-file-upload"
 						@click="show_google_drive_picker"
 					>
@@ -164,7 +164,7 @@
 						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium text-center">
+				<div class="mt-3 text-center" v-if="upload_notes">
 					{{ upload_notes }}
 				</div>
 			</div>
@@ -288,6 +288,9 @@ const props = defineProps({
 	allow_toggle_optimize: {
 		default: true,
 	},
+	allow_google_drive: {
+		default: true,
+	},
 });
 
 // variables
@@ -315,7 +318,7 @@ if (props.allow_take_photo) {
 	allow_take_photo.value = window.navigator.mediaDevices;
 }
 
-if (frappe.user_id !== "Guest") {
+if (frappe.user_id !== "Guest" && props.allow_google_drive) {
 	frappe.call({
 		// method only available after login
 		method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
@@ -595,23 +598,22 @@ function upload_file(file, i) {
 					}
 				} else if (xhr.status === 403) {
 					file.failed = true;
-					let response = JSON.parse(xhr.responseText);
-					file.error_message = `Not permitted. ${response._error_message || ""}.`;
-
-					try {
-						// Append server messages which are useful hint for perm issues
-						let server_messages = JSON.parse(response._server_messages);
-
-						server_messages.forEach((m) => {
-							m = JSON.parse(m);
-							file.error_message += `\n ${m.message} `;
-						});
-					} catch (e) {
-						console.warning("Failed to parse server message", e);
+					let response = parse_error_response(xhr.responseText);
+					file.error_message = `Not permitted. ${response.error_message || ""}.`;
+					if (response.server_messages.length) {
+						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
 					file.failed = true;
 					file.error_message = "Size exceeds the maximum allowed file size.";
+				} else if (xhr.status === 417) {
+					// regular frappe.throw() in backend
+					file.failed = true;
+					file.error_message = null;
+					let response = parse_error_response(xhr.responseText);
+					if (response.server_messages.length) {
+						file.error_message = response.server_messages.join("\n");
+					}
 				} else {
 					file.failed = true;
 					file.error_message =
@@ -678,6 +680,26 @@ function upload_file(file, i) {
 
 		xhr.send(form_data);
 	});
+}
+function parse_error_response(response_text) {
+	let response = JSON.parse(response_text);
+	let error_message = response._error_message;
+	let server_messages = [];
+
+	try {
+		server_messages.push(
+			...JSON.parse(response._server_messages).map((m) => {
+				let parsed = JSON.parse(m);
+				return parsed.message;
+			})
+		);
+	} catch (e) {
+		console.warning("Failed to parse server message", e);
+	}
+	return {
+		error_message,
+		server_messages,
+	};
 }
 function capture_image() {
 	const capture = new frappe.ui.Capture({

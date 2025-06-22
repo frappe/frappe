@@ -51,3 +51,7 @@
 .filter-row div {
 	display: inline-block;
 }
+// prevent <ol> numbering conflicts
+.ql-editor {
+	counter-reset: none;
+}

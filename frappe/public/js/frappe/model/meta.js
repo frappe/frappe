@@ -287,7 +287,6 @@ $.extend(frappe.meta, {
 	get_field_currency: function (df, doc) {
 		var currency = frappe.boot.sysdefaults.currency || "USD";
 		if (!doc && cur_frm) doc = cur_frm.doc;
-
 		if (df && df.options) {
 			if (df.options.indexOf(":") != -1) {
 				var options = df.options.split(":");
@@ -299,7 +298,8 @@ $.extend(frappe.meta, {
 						if (!docname && cur_frm) {
 							docname = cur_frm.doc[options[1]];
 						}
-					} else {
+					}
+					if (!docname) {
 						// Try to get default value, useful for cases like Company overridden in session defaults
 						docname = frappe.defaults.get_user_default(options[1]);
 					}

@@ -49,6 +49,13 @@ frappe.PermissionEngine = class PermissionEngine {
 			label: __("Document Type"),
 			fieldtype: "Link",
 			options: "DocType",
+			get_query: function () {
+				return {
+					filters: {
+						istable: 0,
+					},
+				};
+			},
 			change: function () {
 				frappe.set_route("permission-manager", this.get_value());
 			},

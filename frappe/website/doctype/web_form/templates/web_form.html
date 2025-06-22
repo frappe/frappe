@@ -69,7 +69,7 @@
 				<div class="title">
 					<div class="web-form-title ellipsis">
 						{% if show_list and not is_new %}
-							<h1 class="ellipsis">{{ _(web_form_title) }}</h1>
+							<h1 class="ellipsis">{{ _(web_form_title) or _(title) }}</h1>
 							<p class="ellipsis">{{ _(title) }}</p>
 						{% else %}
 							<h1 class="ellipsis">{{ _(title) }}</h1>

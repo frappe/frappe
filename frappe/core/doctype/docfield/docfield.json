@@ -48,6 +48,7 @@
   "in_list_view",
   "in_standard_filter",
   "in_preview",
+  "sticky",
   "column_break_35",
   "in_filter",
   "in_global_search",
@@ -108,8 +109,7 @@
    "oldfieldtype": "Select",
    "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
-   "search_index": 1,
-   "sort_options": 1
+   "search_index": 1
   },
   {
    "bold": 1,
@@ -320,7 +320,6 @@
    "fieldname": "permlevel",
    "fieldtype": "Int",
    "label": "Perm Level",
-   "non_negative": 1,
    "oldfieldname": "permlevel",
    "oldfieldtype": "Int",
    "print_width": "50px",
@@ -601,13 +600,20 @@
    "fieldname": "make_attachment_public",
    "fieldtype": "Check",
    "label": "Make Attachment Public (by default)"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
+   "fieldname": "sticky",
+   "fieldtype": "Check",
+   "label": "Sticky"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-10-15 23:33:03.926033",
+ "modified": "2025-01-30 14:58:19.746600",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

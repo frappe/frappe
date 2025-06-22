@@ -20,7 +20,7 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -59,15 +59,6 @@ def make_test_image_file(private=False):
 		yield _test_file
 	finally:
 		_test_file.delete()
-
-
-class UnitTestFile(UnitTestCase):
-	"""
-	Unit tests for File.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestSimpleFile(IntegrationTestCase):

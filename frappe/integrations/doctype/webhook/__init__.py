@@ -41,7 +41,7 @@ def run_webhooks(doc, method):
 		return
 
 	# load all webhooks from cache / DB
-	webhooks = frappe.cache.get_value("webhooks", get_all_webhooks)
+	webhooks = frappe.client_cache.get_value("webhooks", generator=get_all_webhooks)
 
 	# get webhooks for this doctype
 	webhooks_for_doc = webhooks.get(doc.doctype, None)
@@ -115,6 +115,6 @@ def flush_webhook_execution_queue():
 			"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
 			doc=instance.doc,
 			webhook=instance.webhook,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 			queue=instance.webhook.background_jobs_queue or "default",
 		)

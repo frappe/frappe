@@ -189,7 +189,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
-		$(`<a href="${this.df.documentation_url}" target="_blank" title="${__("Documentation")}">
+		$(`<a
+			href="${frappe.utils.escape_html(this.df.documentation_url)}"
+			target="_blank"
+			title="${frappe.utils.escape_html(__("Documentation"))}"
+		>
 			${frappe.utils.icon("help", "sm")}
 		</a>`).appendTo($help);
 	}

@@ -22,21 +22,13 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
-
-
-class UnitTestUser(UnitTestCase):
-	"""
-	Unit tests for User.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestUser(IntegrationTestCase):
@@ -200,9 +192,9 @@ class TestUser(IntegrationTestCase):
 			self.assertFalse(result.get("feedback", None))
 
 		# Test Password with Password Strenth Policy Set
-		with change_settings("System Settings", enable_password_policy=1, minimum_password_score=2):
-			# Score 1; should now fail
-			result = test_password_strength("bee2ve")
+		with change_settings("System Settings", enable_password_policy=1, minimum_password_score=1):
+			# Score 0; should now fail
+			result = test_password_strength("zxcvbn")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
 			self.assertRaises(
 				frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
@@ -211,19 +203,25 @@ class TestUser(IntegrationTestCase):
 				frappe.exceptions.ValidationError, handle_password_test_fail, result
 			)  # test backwards compatibility
 
+			# Score 1; should pass
+			result = test_password_strength("bee2ve")
+			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
+
 			# Score 4; should pass
 			result = test_password_strength("Eastern_43A1W")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")
-			frappe.flags.in_test = False
-			user.new_password = "password"
-			self.assertRaises(frappe.exceptions.ValidationError, user.save)
-			user.reload()
-			user.new_password = "Eastern_43A1W"
-			user.save()
-			frappe.flags.in_test = True
+			toggle_test_mode(False)
+			try:
+				user.new_password = "password"
+				self.assertRaises(frappe.exceptions.ValidationError, user.save)
+				user.reload()
+				user.new_password = "Eastern_43A1W"
+				user.save()
+			finally:
+				toggle_test_mode(True)
 
 	def test_comment_mentions(self):
 		comment = """
@@ -492,6 +490,7 @@ def test_user(
 		user.append_roles(*roles)
 		user.insert()
 		yield user
+		commit and frappe.db.commit()
 	finally:
 		user.delete(force=True, ignore_permissions=True)
 		commit and frappe.db.commit()
