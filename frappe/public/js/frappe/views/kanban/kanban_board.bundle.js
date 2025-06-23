@@ -1347,7 +1347,6 @@ const columnsByMechanic = {
 		let cols = [];
 		const isAdmin = frappe.user.has_role("Administrator");
 		const isMechanic = !isAdmin && frappe.user.has_role("Mechanic");
-		console.log("=========> isAdmin:", isAdmin, "isMechanic:", isMechanic)
 		columns.forEach(function (col) {
 			if (isMechanic && !columnsByMechanic[col.column_name]) {
 				return; // Skip columns not in columnsByMechanic

@@ -392,7 +392,6 @@ class NotificationsView extends BaseNotificationsView {
 
 	setup_notification_listeners() {
 		frappe.realtime.on("notification", (event) => {
-			console.log(event)
 			const data = JSON.parse(event)
 			frappe.show_alert(data.subject, 43200)
 			// frappe.msgprint(data.email_content, data.subject );
