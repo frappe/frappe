@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-22 09:34+0000\n"
-"PO-Revision-Date: 2025-06-22 16:41\n"
+"PO-Revision-Date: 2025-06-23 16:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -3727,7 +3727,7 @@ msgstr "Masovna operacija je uspešno završena"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:131
 msgid "Bulk PDF Export"
-msgstr "Masovan izvoz PDV"
+msgstr "Masovan izvoz PDF"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -10292,7 +10292,7 @@ msgstr "Filtrirani po \"{0}\""
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Filters"
-msgstr "FIlteri"
+msgstr "Filteri"
 
 #. Label of the filters_config (Code) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -10706,7 +10706,7 @@ msgstr "Za više adresa, unesite adrese u različitim redovima, na primer e.g. t
 
 #: frappe/core/doctype/data_export/exporter.py:197
 msgid "For updating, you can update only selective columns."
-msgstr "Za ažuriranje, možete ažurirati samo selektivne kolone."
+msgstr "Za ažuriranje, možete ažurirati samo određene kolone."
 
 #: frappe/core/doctype/doctype/doctype.py:1751
 msgid "For {0} at level {1} in {2} in row {3}"
@@ -10861,7 +10861,7 @@ msgstr "Frappe Light"
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Frappe Mail"
-msgstr "Frappe imejl"
+msgstr "Frappe Mail"
 
 #: frappe/email/doctype/email_account/email_account.py:547
 msgid "Frappe Mail OAuth Error"
@@ -14053,7 +14053,7 @@ msgstr "Ciljna stranica"
 
 #: frappe/public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
-msgstr "Landscape"
+msgstr "Pejzažni"
 
 #. Name of a DocType
 #. Label of the language (Link) field in DocType 'System Settings'
@@ -14875,7 +14875,7 @@ msgstr "Prijava nije uspela, pokušajte ponovo"
 
 #: frappe/email/doctype/email_account/email_account.py:144
 msgid "Login Id is required"
-msgstr "Potreba je ID za prijavu"
+msgstr "Neophodan je ID za prijavu"
 
 #. Label of the login_methods_section (Section Break) field in DocType 'System
 #. Settings'
@@ -15843,7 +15843,7 @@ msgstr "Modul za izvoz"
 
 #: frappe/modules/utils.py:273
 msgid "Module {} not found"
-msgstr "Module {} nije pronađen"
+msgstr "Modul {} nije pronađen"
 
 #. Group in Package's connections
 #. Label of a Card Break in the Build Workspace
@@ -21238,13 +21238,13 @@ msgstr "Naziv izveštaja, polje izveštaja i funkcija su neophodni za kreiranje 
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Report Ref DocType"
-msgstr "Referentni DocType izveštaja"
+msgstr "Referentni DocType izveštaj"
 
 #. Label of the report_reference_doctype (Data) field in DocType 'Onboarding
 #. Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Report Reference Doctype"
-msgstr "Referentni DocType izveštaja"
+msgstr "Referentni DocType izveštaj"
 
 #. Label of the report_type (Select) field in DocType 'Report'
 #. Label of the report_type (Data) field in DocType 'Onboarding Step'
@@ -21360,7 +21360,7 @@ msgstr "Podaci zahteva"
 #. Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Request Description"
-msgstr "Opsi zahteva"
+msgstr "Opis zahteva"
 
 #. Label of the request_headers (Code) field in DocType 'Recorder'
 #. Label of the request_headers (Code) field in DocType 'Integration Request'
@@ -21825,13 +21825,13 @@ msgstr "Dodeljene uloge"
 #: frappe/core/doctype/role_profile/role_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Roles HTML"
-msgstr "HTML uloga"
+msgstr "HTML uloge"
 
 #. Label of the roles_html (HTML) field in DocType 'Role Permission for Page
 #. and Report'
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Roles Html"
-msgstr "HTML uloga"
+msgstr "HTML uloge"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:7
 msgid "Roles can be set for users from their User page."
@@ -26872,7 +26872,7 @@ msgstr "Gore"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:13
 msgid "Top 10"
-msgstr "Najbolji 10"
+msgstr "Najboljih 10"
 
 #. Name of a DocType
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
