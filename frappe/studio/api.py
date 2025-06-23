@@ -75,4 +75,4 @@ def get_app_components(app_name: str) -> set[str]:
 		root_block = blocks[0]
 		add_blocks(root_block)
 
-	return components
+	return list(components)
