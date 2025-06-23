@@ -44,8 +44,8 @@
 					:key="app.name"
 				>
 					<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
-					<UseTimeAgo v-slot="{ timeAgo }" :time="app.modified">
-						<p class="mt-1 block text-xs text-gray-500">Edited {{ timeAgo }}</p>
+					<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
+						<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
 					</UseTimeAgo>
 				</router-link>
 			</div>
