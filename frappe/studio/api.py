@@ -1,6 +1,8 @@
 import frappe
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
+from studio.constants import NON_VUE_COMPONENTS
+
 
 @frappe.whitelist()
 def get_doctype_fields(doctype: str) -> list[dict]:
@@ -65,7 +67,8 @@ def get_app_components(app_name: str) -> set[str]:
 	components = set()
 
 	def add_blocks(block: dict):
-		components.add(block.get("componentName"))
+		if block.get("componentName") not in NON_VUE_COMPONENTS:
+			components.add(block.get("componentName"))
 		for child in block.get("children", []):
 			add_blocks(child)
 
