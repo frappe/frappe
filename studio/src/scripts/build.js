@@ -5,7 +5,7 @@ const appName = args[0]
 const components = args[2]
 
 if (!appName) {
-	console.error("App name is required. Use --app_name=<app_name> to specify the app.")
+	console.error("App name is required")
 	process.exit(1)
 }
 
