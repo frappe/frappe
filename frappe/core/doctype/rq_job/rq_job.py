@@ -112,6 +112,16 @@ class RQJob(Document):
 		except InvalidJobOperation:
 			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
+	@check_permissions
+	def cancel(self):
+		if self.status == "queued":
+			self.job.cancel()
+		else:
+			frappe.msgprint(
+				_("Job is in {0} state and can't be cancelled").format(self.status),
+				title=_("Invalid Operation"),
+			)
+
 	@staticmethod
 	def get_count(filters=None) -> int:
 		return len(RQJob.get_matching_job_ids(filters))

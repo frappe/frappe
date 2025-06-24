@@ -79,7 +79,6 @@ import "./frappe/views/pageview.js";
 import "./frappe/ui/toolbar/awesome_bar.js";
 import "./frappe/ui/notifications/notifications.js";
 import "./frappe/ui/toolbar/search.js";
-import "./frappe/ui/dropdown_console.js";
 import "./frappe/ui/toolbar/tag_utils.js";
 import "./frappe/ui/toolbar/search.html";
 import "./frappe/ui/toolbar/search_utils.js";

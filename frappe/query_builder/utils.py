@@ -80,15 +80,18 @@ def Table(*args, **kwargs):
 
 
 def execute_query(query, *args, **kwargs):
-	child_queries = query._child_queries if isinstance(query._child_queries, list) else []
+	child_queries = query._child_queries
 	query, params = prepare_query(query)
-	result = frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
-	execute_child_queries(child_queries, result)
+	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
+
+	if child_queries and isinstance(child_queries, list) and result:
+		execute_child_queries(child_queries, result)
+
 	return result
 
 
 def execute_child_queries(queries, result):
-	if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
+	if not isinstance(result[0], dict) or not result[0].name:
 		return
 	parent_names = [d.name for d in result]
 	for child_query in queries:
@@ -126,7 +129,7 @@ def prepare_query(query):
 			if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 
-	return query, param_collector.get_parameters()
+	return query, param_collector.parameters
 
 
 def patch_query_execute():

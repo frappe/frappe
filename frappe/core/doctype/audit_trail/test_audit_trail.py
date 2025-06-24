@@ -2,17 +2,8 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import today
-
-
-class UnitTestAuditTrail(UnitTestCase):
-	"""
-	Unit tests for AuditTrail.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAuditTrail(IntegrationTestCase):

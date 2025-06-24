@@ -472,6 +472,11 @@ async function write_assets_json(metafile) {
 }
 
 async function update_assets_json_in_cache() {
+	// Redis won't be present during docker image build
+	if (process.env.FRAPPE_DOCKER_BUILD) {
+		return;
+	}
+
 	// update assets_json cache in redis, so that it can be read directly by python
 	let client = get_redis_subscriber("redis_cache");
 	// handle error event to avoid printing stack traces
@@ -523,7 +528,7 @@ function run_build_command_for_apps(apps) {
 			log(
 				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
 			);
-			execSync("yarn install", { encoding: "utf8", stdio: "inherit" });
+			execSync("yarn install --frozen-lockfile", { encoding: "utf8", stdio: "inherit" });
 		}
 
 		log("\nRunning build command for", chalk.bold(app));

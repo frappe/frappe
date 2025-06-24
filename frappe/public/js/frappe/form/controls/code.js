@@ -29,6 +29,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				style="position: absolute; top: 32px; right: 5px;"
 				onmouseover="this.classList.add('btn-default')"
 				onmouseout="this.classList.remove('btn-default')"
+				title="${__("Copy to Clipboard")}"
 			>
 				<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
 					<use class="" href="#es-line-copy-light"></use>

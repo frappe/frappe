@@ -154,7 +154,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 			.find(".app-switcher-dropdown .sidebar-item-label")
 			.html(app_data.app_title);
 
-		$(".navbar-brand .app-logo").attr("src", app_data.app_logo_url);
+		frappe.frappe_toolbar.set_app_logo(app_data.app_logo_url);
 
 		if (frappe.current_app === app) return;
 		frappe.current_app = app;

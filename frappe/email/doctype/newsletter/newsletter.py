@@ -210,7 +210,7 @@ class Newsletter(WebsiteGenerator):
 		args["message"] = self.get_message(medium="email")
 
 		is_auto_commit_set = bool(frappe.db.auto_commit_on_many_writes)
-		frappe.db.auto_commit_on_many_writes = not frappe.flags.in_test
+		frappe.db.auto_commit_on_many_writes = not frappe.in_test
 
 		frappe.sendmail(
 			subject=self.subject,
@@ -421,7 +421,7 @@ def send_scheduled_email():
 			frappe.db.set_value("Newsletter", newsletter_name, "email_sent", 0)
 			newsletter.log_error("Failed to send newsletter")
 
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			frappe.db.commit()
 
 	frappe.flags.is_scheduler_running = False

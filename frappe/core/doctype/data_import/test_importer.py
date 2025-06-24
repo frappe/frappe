@@ -2,20 +2,11 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils import format_duration, getdate
 
 doctype_name = "DocType for Import"
-
-
-class UnitTestDataImport(UnitTestCase):
-	"""
-	Unit tests for DataImport.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestImporter(IntegrationTestCase):

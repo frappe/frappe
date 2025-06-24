@@ -196,7 +196,7 @@ def get_website_rules():
 
 		return rules
 
-	if frappe.local.dev_server:
+	if frappe._dev_server:
 		# dont cache in development
 		return _get()
 

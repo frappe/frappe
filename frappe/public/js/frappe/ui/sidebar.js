@@ -74,6 +74,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// sort apps based on # of workspaces
 		frappe.boot.app_data.sort((a, b) => (a.workspaces.length < b.workspaces.length ? 1 : -1));
 		frappe.current_app = frappe.boot.app_data[0].app_name;
+		frappe.frappe_toolbar.set_app_logo(frappe.boot.app_logo_url);
 	}
 
 	set_active_workspace_item() {

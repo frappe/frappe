@@ -4,16 +4,7 @@ import textwrap
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestEmailQueue(UnitTestCase):
-	"""
-	Unit tests for EmailQueue.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestEmailQueue(IntegrationTestCase):

@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.model.trace import TracedDocument, traced_field
 from frappe.tests import UnitTestCase
+from frappe.tests.utils import toggle_test_mode
 
 
 def create_mock_meta(doctype):
@@ -107,9 +108,9 @@ class TestTracedFieldContext(UnitTestCase):
 	def test_traced_field_context_not_in_test_mode(self):
 		doc = TestDocument()
 
-		# Temporarily set frappe.flags.in_test to False
-		original_in_test = frappe.flags.in_test
-		frappe.flags.in_test = False
+		# Temporarily set frappe.in_test to False
+		original_in_test = frappe.in_test
+		toggle_test_mode(False)
 
 		try:
 			with self.trace_fields(TestDocument, test_field={"forbidden_values": ["forbidden"]}):
@@ -120,7 +121,7 @@ class TestTracedFieldContext(UnitTestCase):
 				self.assertEqual(doc.test_field, "allowed")
 		finally:
 			# Restore the original in_test flag
-			frappe.flags.in_test = original_in_test
+			toggle_test_mode(original_in_test)
 
 		# After context
 		doc.test_field = "forbidden"

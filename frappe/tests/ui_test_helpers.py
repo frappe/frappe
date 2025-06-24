@@ -7,7 +7,7 @@ UI_TEST_USER = "frappe@example.com"
 
 
 def whitelist_for_tests(fn):
-	if frappe.request and not frappe.flags.in_test and not getattr(frappe.local, "dev_server", 0):
+	if frappe.request and not frappe.in_test and not frappe._dev_server:
 		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
 
 	return frappe.whitelist()(fn)

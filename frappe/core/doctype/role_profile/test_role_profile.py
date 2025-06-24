@@ -1,18 +1,9 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Role"]
-
-
-class UnitTestRoleProfile(UnitTestCase):
-	"""
-	Unit tests for RoleProfile.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestRoleProfile(IntegrationTestCase):

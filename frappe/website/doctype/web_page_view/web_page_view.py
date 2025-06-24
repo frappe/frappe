@@ -93,10 +93,7 @@ def make_view_log(
 	view.visitor_id = visitor_id
 
 	try:
-		if frappe.flags.read_only:
-			view.deferred_insert()
-		else:
-			view.insert(ignore_permissions=True)
+		view.deferred_insert()
 	except Exception:
 		frappe.clear_last_message()
 

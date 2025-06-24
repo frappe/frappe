@@ -9,18 +9,9 @@ from dateutil.relativedelta import relativedelta
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_last_day, getdate
 from frappe.utils.dateutils import get_period, get_period_ending
-
-
-class UnitTestDashboardChart(UnitTestCase):
-	"""
-	Unit tests for DashboardChart.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestDashboardChart(IntegrationTestCase):

@@ -376,7 +376,7 @@ def sync_global_search():
 			yield value
 
 	item_generator = get_search_queue_item_generator()
-	while search_items := tuple(islice(item_generator, 10_000)):
+	while search_items := tuple(islice(item_generator, 1000)):
 		values = _get_deduped_search_item_values(search_items)
 		sync_values(values)
 

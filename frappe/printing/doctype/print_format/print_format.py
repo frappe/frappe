@@ -70,7 +70,7 @@ class PrintFormat(Document):
 			and not frappe.local.conf.get("developer_mode")
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install
-			and not frappe.flags.in_test
+			and not frappe.in_test
 		):
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
@@ -140,11 +140,10 @@ class PrintFormat(Document):
 
 
 @frappe.whitelist()
-def make_default(name):
+def make_default(name: str):
 	"""Set print format as default"""
-	frappe.has_permission("Print Format", "write")
-
 	print_format = frappe.get_doc("Print Format", name)
+	print_format.check_permission("write")
 
 	doctype = frappe.get_doc("DocType", print_format.doc_type)
 	if doctype.custom:

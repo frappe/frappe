@@ -52,6 +52,7 @@ def report_error(status_code):
 		case ApiVersion.V2:
 			error_log = {"type": exc_type.__name__}
 			if allow_traceback:
+				print(traceback)
 				error_log["exception"] = traceback
 			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
 			frappe.local.response.errors = [error_log]
@@ -247,9 +248,6 @@ def json_handler(obj):
 
 	elif isinstance(obj, Path):
 		return str(obj)
-
-	elif hasattr(obj, "__value__"):  # order imporant: defer to __json__ if implemented
-		return obj.__value__()
 
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")

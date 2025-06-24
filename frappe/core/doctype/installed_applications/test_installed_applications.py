@@ -6,16 +6,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	InvalidAppOrder,
 	update_installed_apps_order,
 )
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestInstalledApplications(UnitTestCase):
-	"""
-	Unit tests for InstalledApplications.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestInstalledApplications(IntegrationTestCase):
