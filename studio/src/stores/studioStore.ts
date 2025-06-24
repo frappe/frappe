@@ -230,6 +230,25 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// build
+	function generateAppBuild() {
+		if (!activeApp.value) return
+		return studioApps.runDocMethod.submit({
+			name: activeApp.value.name,
+			method: "generate_app_build",
+		}, {
+			onSuccess() {
+				toast.success("App build generated")
+			},
+			onError(error: any) {
+				toast.error("Failed to generate app build", {
+					description: error.messages.join(", "),
+					duration: Infinity,
+				})
+			},
+		})
+	}
+
 	// styles
 	const stylePropertyFilter = ref<string | null>(null)
 
@@ -329,6 +348,8 @@ const useStudioStore = defineStore("store", () => {
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
+		// app build
+		generateAppBuild,
 		// styles
 		stylePropertyFilter,
 		// data
