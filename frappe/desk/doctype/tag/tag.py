@@ -111,15 +111,8 @@ class DocTags:
 			tl = unique(filter(lambda x: x, tl))
 			tags = "," + ",".join(tl)
 		try:
-<<<<<<< HEAD
-			frappe.db.sql(
-				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
-			)
-			doc = frappe.get_doc(self.dt, dn)
-=======
 			frappe.db.set_value(self.dt, dn, "_user_tags", tags, update_modified=False)
-			doc = frappe.get_lazy_doc(self.dt, dn)
->>>>>>> 09060637fa (fix(tag): use db.set_value (#33072))
+			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:
 			if frappe.db.is_missing_column(e):
