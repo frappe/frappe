@@ -12,7 +12,7 @@ frappe.report_utils = {
 
 		let labels = get_column_values(x_field);
 		let datasets = y_fields.map((y_field) => ({
-			name: frappe.model.unscrub(y_field),
+			name: __(frappe.model.unscrub(y_field)),
 			values: get_column_values(y_field).map((d) => Number(d)),
 		}));
 
