@@ -36,7 +36,7 @@
 	  "src/scripts/tsToJSONGenerator.ts",
 	  "src/utils/tsToJSON/index.ts",
 	  "src/utils/tsToJSON/customParser.ts"
-	],
+, "src/utils/build.js"	],
 	"exclude": [
 	  "node_modules"
 	]

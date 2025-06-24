@@ -1,11 +1,15 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
 
+import os
+import subprocess
+
 import frappe
 from frappe.model.document import Document
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
+from studio.api import get_app_components
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -73,3 +77,16 @@ class StudioApp(WebsiteGenerator):
 		return frappe.get_all(
 			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
 		)
+
+	@frappe.whitelist()
+	def generate_app_build(self):
+		if not frappe.has_permission("Studio App", ptype="write"):
+			frappe.throw("You do not have permission to generate the app build", frappe.PermissionError)
+
+		try:
+			components = get_app_components(self.name)
+			command = f"yarn build-studio-app {self.name} --components {','.join(components)}"
+			studio_app_path = frappe.get_app_source_path("studio")
+			frappe.commands.popen(command, cwd=studio_app_path, raise_err=True)
+		except Exception as e:
+			raise Exception(f"Build process failed: {str(e)}")
