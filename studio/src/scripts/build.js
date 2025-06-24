@@ -1,4 +1,6 @@
+import { writeFileSync } from "fs"
 import { FRAPPE_UI_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
+import { resolve } from "path"
 
 const args = process.argv.slice(2)
 const appName = args[0]
@@ -17,7 +19,7 @@ export async function generateAppBuild(appName, components) {
 	const componentList = components ? components.split(",") : []
 	const componentSources = findComponentSources(componentList)
 	const rendererContent = getRendererContent(componentSources)
-	console.log("Generating app build for:", appName, rendererContent)
+	const rendererPath = writeRendererFile(appName, rendererContent)
 }
 
 function findComponentSources(appComponents) {
@@ -46,24 +48,39 @@ function getRendererContent(componentSources) {
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
 		.join("\n")
 
+	const componentRegistrations = [
+		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
+	].join("\n")
+
 	const rendererContent = `import "./index.css"
-		import { createApp } from "vue"
-		import { createPinia } from "pinia"
-		import "./setupFrappeUIResource"
-		import app_router from "@/router/app_router"
-		import AppRenderer from "./AppRenderer.vue"
-		import { resourcesPlugin } from "frappe-ui"
+import { createApp } from "vue"
+import { createPinia } from "pinia"
+import "./setupFrappeUIResource"
+import app_router from "@/router/app_router"
+import AppRenderer from "./AppRenderer.vue"
+import { resourcesPlugin } from "frappe-ui"
 
-		${frappeUIImports}
-		${studioImports}
+${frappeUIImports}
+${studioImports}
 
-		const app = createApp(AppRenderer)
-		const pinia = createPinia()
+const app = createApp(AppRenderer)
+const pinia = createPinia()
 
-		app.use(app_router)
-		app.use(pinia)
-		app.use(resourcesPlugin)
-		app.mount("#app")
-	`
+app.use(app_router)
+app.use(pinia)
+app.use(resourcesPlugin)
+
+${componentRegistrations}
+
+app.mount("#app")`
 	return rendererContent
+}
+
+function writeRendererFile(appName, content) {
+	const rendererPath = resolve(`src/renderer-${appName}.ts`)
+
+	writeFileSync(rendererPath, content)
+	console.log(`Renderer file created at: ${rendererPath}`)
+	return rendererPath
 }
