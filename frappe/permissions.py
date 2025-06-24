@@ -351,11 +351,8 @@ def has_user_permission(doc, user=None, debug=False):
 			not_permitted = True
 			if doc.meta.is_tree and ptype == "create":
 				if parent := doc.get(doc.nsm_parent_field):
-					from frappe.utils.nestedset import get_ancestors_of
-
 					doc_hide_descendants = {d.doc: d.hide_descendants for d in doctype_up}
-
-					for d in [parent, *get_ancestors_of(doctype, parent)]:
+					for d in _get_parent_and_ancestors(doctype, parent):
 						if d in allowed_docs and not doc_hide_descendants[d]:
 							not_permitted = False
 							break
@@ -886,3 +883,11 @@ def handle_does_not_exist_error(fn):
 		return fn(e, *args, **kwargs)
 
 	return wrapper
+
+
+def _get_parent_and_ancestors(doctype, parent):
+	yield parent
+
+	from frappe.utils.nestedset import get_ancestors_of
+
+	yield from get_ancestors_of(doctype, parent)
