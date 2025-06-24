@@ -348,7 +348,7 @@ def has_user_permission(doc, user=None, debug=False):
 
 		# only check if allowed_docs is not empty
 		if allowed_docs:
-			condition = True
+			not_permitted = True
 			if doc.meta.is_tree and ptype == "create":
 				if parent := doc.get(doc.nsm_parent_field):
 					from frappe.utils.nestedset import get_ancestors_of
@@ -357,12 +357,12 @@ def has_user_permission(doc, user=None, debug=False):
 
 					for d in [parent, *get_ancestors_of(doctype, parent)]:
 						if d in allowed_docs and not doc_hide_descendants[d]:
-							condition = False
+							not_permitted = False
 							break
 			else:
-				condition = not docname or str(docname) not in allowed_docs
+				not_permitted = not docname or str(docname) not in allowed_docs
 
-			if condition:
+			if not_permitted:
 				# no user permissions for this doc specified
 				debug and _debug_log(
 					"User doesn't have access to this document because of User Permissions, allowed documents: "
@@ -370,11 +370,8 @@ def has_user_permission(doc, user=None, debug=False):
 				)
 				push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
 				return False
-			else:
-				debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
-		else:
-			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
+		debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
