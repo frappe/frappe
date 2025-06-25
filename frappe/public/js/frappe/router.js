@@ -195,7 +195,11 @@ frappe.router = {
 				}
 			}
 			if (!frappe.workspaces[private_workspace]) {
-				frappe.msgprint(__("Workspace <b>{0}</b> does not exist", [route[1]]));
+				frappe.msgprint(
+					__("Workspace <b>{0}</b> does not exist", [
+						frappe.utils.xss_sanitise(route[1]),
+					])
+				);
 				return ["Workspaces"];
 			}
 			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
