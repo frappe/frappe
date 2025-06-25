@@ -209,6 +209,7 @@ scheduler_events = {
 			"frappe.utils.global_search.sync_global_search",
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
+			"frappe.model.utils.link_count.update_link_count",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -231,7 +232,6 @@ scheduler_events = {
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
 	"hourly_maintenance": [
-		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.desk.form.document_follow.send_hourly_updates",
@@ -248,30 +248,20 @@ scheduler_events = {
 	],
 	"daily_long": [],
 	"daily_maintenance": [
-		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
-		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
-		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 	],
 	"weekly_long": [
-		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
 		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
-	],
-	"monthly_long": [
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
 	],
 }
 
@@ -569,6 +559,7 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 	"OAuth Bearer Token": 30,
+	"API Request Log": 90,
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

@@ -2,16 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestTranslation(UnitTestCase):
-	"""
-	Unit tests for Translation.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestTranslation(IntegrationTestCase):

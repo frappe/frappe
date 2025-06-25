@@ -44,7 +44,6 @@ jobs:
     timeout-minutes: 30
     env:
       NODE_ENV: "production"
-      PYTHONOPTIMIZE: 2
       # noisy 3rd party library warnings
       PYTHONWARNINGS: "ignore"
       DB_ROOT_PASSWORD: db_root
@@ -56,7 +55,7 @@ jobs:
         index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
     services:
       mariadb:
-        image: mariadb:11.3
+        image: mariadb:11.8
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
@@ -99,6 +98,10 @@ jobs:
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
+      - uses: browser-actions/setup-chrome@latest
+      - run: |
+          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+
       - name: Run Tests
         run: |
           source ${GITHUB_WORKSPACE}/env/bin/activate
@@ -107,6 +110,7 @@ jobs:
               --with-coverage \
               --headless \
               --parallel \
+              --browser ${{ env.BROWSER_PATH }} \
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb

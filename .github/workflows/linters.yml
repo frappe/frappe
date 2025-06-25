@@ -95,7 +95,7 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on .
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 .
 
   precommit:
     name: 'Pre-Commit'

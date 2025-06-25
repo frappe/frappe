@@ -218,7 +218,7 @@ class SocialLoginKey(Document):
 			"provider_name": "Keycloak",
 			"enable_social_login": 1,
 			"custom_base_url": 1,
-			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak/keycloak",
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak",
 			"api_endpoint": "/protocol/openid-connect/userinfo",
 			"api_endpoint_args": None,
 			"authorize_url": "/protocol/openid-connect/auth",

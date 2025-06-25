@@ -60,7 +60,7 @@ def get_context(context) -> PrintContext:
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
-		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
 	set_link_titles(doc)
 
@@ -340,7 +340,7 @@ def get_html_and_style(
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name)
 	else:
 		document = frappe.get_doc(json.loads(doc))
 
@@ -371,7 +371,7 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name)
 	else:
 		document = frappe.get_doc(json.loads(doc))
 

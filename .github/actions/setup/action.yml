@@ -100,7 +100,7 @@ runs:
     run: |
       # Install System Dependencies
       start_time=$(date +%s)
-
+      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
       sudo apt -qq update
       sudo apt -qq remove mysql-server mysql-client
       sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev
@@ -121,6 +121,7 @@ runs:
       python -m venv ${GITHUB_WORKSPACE}/env
       source ${GITHUB_WORKSPACE}/env/bin/activate
       pip install --quiet --upgrade pip
+      pip cache remove mysqlclient
 
       pip install --quiet frappe-bench
 

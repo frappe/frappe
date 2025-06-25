@@ -159,7 +159,7 @@ class EmailAccount(Document):
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
+		if frappe.local.flags.in_patch or frappe.in_test:
 			return
 
 		use_oauth = self.auth_method == "OAuth"
@@ -363,9 +363,7 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not (
-			self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.flags.in_test
-		)
+		raise_exception = not (self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.in_test)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
@@ -565,7 +563,7 @@ class EmailAccount(Document):
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def _disable_broken_incoming_account(self, description):
-		if frappe.flags.in_test:
+		if frappe.in_test:
 			return
 		self.db_set("enable_incoming", 0)
 

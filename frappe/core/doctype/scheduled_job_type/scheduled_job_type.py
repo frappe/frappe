@@ -4,6 +4,7 @@
 import hashlib
 import json
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 import click
 from croniter import CroniterBadCronError, croniter
@@ -13,6 +14,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
+
+parse_cron = lru_cache(croniter)  # Cache parsed cron-expressions
 
 
 class ScheduledJobType(Document):
@@ -132,10 +135,10 @@ class ScheduledJobType(Document):
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
 
-		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
+		next_execution = parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 		if self.frequency in ("Hourly Maintenance", "Daily Maintenance"):
 			next_execution += timedelta(minutes=maintenance_offset)
-		return croniter(self.cron_format, last_execution).get_next(datetime)
+		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 
 	def execute(self):
 		if frappe.job:
@@ -194,6 +197,15 @@ def execute_event(doc: str):
 	doc = json.loads(doc)
 	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
 	return doc
+
+
+@frappe.whitelist()
+def skip_next_execution(doc: str):
+	frappe.only_for("System Manager")
+	doc = json.loads(doc)
+	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
+	doc.last_execution = doc.next_execution
+	return doc.save()
 
 
 def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):

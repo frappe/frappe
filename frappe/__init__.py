@@ -76,11 +76,15 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.types.lazytranslatedstring import _LazyTranslate
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
 
-controllers: dict[str, "Document"] = {}
+controllers: dict[str, type] = {}
+lazy_controllers: dict[str, type] = {}
 local = Local()
 cache: Optional["RedisWrapper"] = None
 client_cache: Optional["ClientCache"] = None
 STANDARD_USERS = ("Guest", "Administrator")
+
+# this global may be subsequently changed by frappe.tests.utils.toggle_test_mode()
+in_test = False
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 
@@ -218,7 +222,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 			"in_install_db": False,
 			"in_install_app": False,
 			"in_import": False,
-			"in_test": False,
+			"in_test": in_test,
 			"mute_messages": False,
 			"ignore_links": False,
 			"mute_emails": False,
@@ -262,7 +266,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": [], "icons": []}
 	local.session = _dict()
-	local.dev_server = _dev_server
+	local.dev_server = _dev_server  # only for backwards compatibility
 	local.qb = get_query_builder(local.conf.db_type)
 	if not cache or not client_cache:
 		setup_redis_cache_connection()
@@ -516,6 +520,7 @@ def sendmail(
 	with_container=False,
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
+	email_headers=None,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -544,6 +549,7 @@ def sendmail(
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	"""
 
 	if recipients is None:
@@ -600,6 +606,7 @@ def sendmail(
 		with_container=with_container,
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
+		email_headers=email_headers,
 	)
 
 	# build email queue and send the email if send_now is True.
@@ -636,7 +643,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 
 		# validate argument types only if request is present
-		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
+		in_request_or_test = lambda: getattr(local, "request", None) or in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
@@ -736,7 +743,7 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 	:param roles: Permitted role(s)
 	"""
 
-	if local.flags.in_test or local.session.user == "Administrator":
+	if in_test or local.session.user == "Administrator":
 		return
 
 	if isinstance(roles, str):
@@ -763,7 +770,7 @@ def get_domain_data(module):
 		else:
 			return _dict()
 	except ImportError:
-		if local.flags.in_test:
+		if in_test:
 			return _dict()
 		else:
 			raise
@@ -843,7 +850,7 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 
 	if doc:
 		if isinstance(doc, str):
-			doc = get_doc(doctype, doc)
+			doc = get_lazy_doc(doctype, doc)
 
 		doctype = doc.doctype
 
@@ -977,6 +984,8 @@ def get_document_cache_key(doctype: str, name: str):
 
 
 def clear_document_cache(doctype: str, name: str | None = None) -> None:
+	frappe.db.value_cache.pop(doctype, None)
+
 	def clear_in_redis():
 		if name is not None:
 			cache.delete_value(get_document_cache_key(doctype, name))
@@ -1013,6 +1022,15 @@ def get_cached_value(
 	if as_dict:
 		return _dict(zip(fieldname, values, strict=False))
 	return values
+
+
+def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
+	"""Return the cached value associated with the given fieldname from single DocType.
+
+	Usage:
+		telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
+	"""
+	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
 
 
 def get_last_doc(
@@ -1580,7 +1598,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	fields_to_clear = ["name", "owner", "creation", "modified", "modified_by"]
 
-	if not local.flags.in_test:
+	if not in_test:
 		fields_to_clear.append("docstatus")
 
 	if isinstance(doc, BaseDocument) or hasattr(doc, "as_dict"):
@@ -1931,6 +1949,18 @@ def get_active_domains():
 	return get_active_domains()
 
 
+@request_cache
+def is_setup_complete():
+	setup_complete = False
+	if not frappe.db.table_exists("Installed Application"):
+		return setup_complete
+
+	if all(frappe.get_all("Installed Application", {"has_setup_wizard": 1}, pluck="is_setup_complete")):
+		setup_complete = True
+
+	return setup_complete
+
+
 @whitelist(allow_guest=True)
 def ping():
 	return "pong"
@@ -1967,7 +1997,7 @@ import frappe._optimizations
 from frappe.cache_manager import clear_cache, reset_metadata_version
 from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
-from frappe.model.document import get_doc
+from frappe.model.document import get_doc, get_lazy_doc
 from frappe.model.meta import get_meta
 from frappe.realtime import publish_progress, publish_realtime
 from frappe.utils import get_traceback, mock, parse_json, safe_eval

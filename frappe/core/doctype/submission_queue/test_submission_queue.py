@@ -5,20 +5,11 @@ import time
 import typing
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils.background_jobs import get_queue
 
 if typing.TYPE_CHECKING:
 	from rq.job import Job
-
-
-class UnitTestSubmissionQueue(UnitTestCase):
-	"""
-	Unit tests for SubmissionQueue.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestSubmissionQueue(IntegrationTestCase):

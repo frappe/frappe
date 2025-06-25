@@ -136,7 +136,7 @@ class PersonalDataDeletionRequest(Document):
 			"_anonymize_data",
 			queue="long",
 			timeout=3000,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 		)
 
 	def notify_user_after_deletion(self):

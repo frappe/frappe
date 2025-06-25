@@ -3,16 +3,7 @@
 import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.form.assign_to import add as assign_task
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestNotificationLog(UnitTestCase):
-	"""
-	Unit tests for NotificationLog.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestNotificationLog(IntegrationTestCase):

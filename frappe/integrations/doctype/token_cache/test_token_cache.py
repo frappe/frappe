@@ -1,18 +1,9 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Connected App", "Token Cache"]
-
-
-class UnitTestTokenCache(UnitTestCase):
-	"""
-	Unit tests for TokenCache.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestTokenCache(IntegrationTestCase):

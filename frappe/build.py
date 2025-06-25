@@ -52,7 +52,7 @@ def build_missing_files():
 		folder = os.path.join(sites_path, "assets", "frappe", "dist", type)
 		current_asset_files.extend(os.listdir(folder))
 
-	development = frappe.local.conf.developer_mode or frappe.local.dev_server
+	development = frappe.local.conf.developer_mode or frappe._dev_server
 	build_mode = "development" if development else "production"
 
 	assets_json = frappe.read_file("assets/assets.json")

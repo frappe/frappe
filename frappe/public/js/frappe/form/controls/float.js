@@ -5,16 +5,17 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 	}
 
 	format_for_input(value) {
-		var number_format;
-		if (this.df.fieldtype === "Float" && this.df.options && this.df.options.trim()) {
-			number_format = this.get_number_format();
+		if (value === null || value === undefined || isNaN(Number(value))) {
+			return "";
 		}
-		var formatted_value = format_number(value, number_format, this.get_precision());
-		return isNaN(Number(value)) ? "" : formatted_value;
+
+		return format_number(value, this.get_number_format(), this.get_precision());
 	}
 
 	get_number_format() {
-		var currency = frappe.meta.get_field_currency(this.df, this.get_doc());
+		if (this.df.fieldtype === "Float" && !this.df.options?.trim()) return;
+
+		const currency = frappe.meta.get_field_currency(this.df, this.get_doc());
 		return get_number_format(currency);
 	}
 

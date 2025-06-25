@@ -33,6 +33,7 @@ def setup_test_user(set_user=False):
 
 	yield test_user
 
+	test_user.reload()
 	test_user.remove_roles("Blogger")
 	test_user.add_roles(*user_roles)
 
@@ -1202,6 +1203,8 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("\\'", query)
 		self.assertNotIn("ifnull", query)
 		self.assertFalse(frappe.get_all("DocField", {"name": None}))
+		self.assertFalse(frappe.get_all("DocField", {"parent": None}))
+		self.assertNotIn("0", frappe.get_all("DocField", {"parent": None}, run=0))
 
 	def test_ifnull_fallback_types(self):
 		query = frappe.get_all("DocField", {"fieldname": ("!=", None)}, run=0)

@@ -529,10 +529,28 @@ class FormTimeline extends BaseTimeline {
 		).click(() => {
 			this.compose_mail(communication_doc, true);
 		});
-		actions.append(reply);
-		actions.append(reply_all);
+		if (frappe.is_mobile()) {
+			this.add_dropdown_item(communication_box, [reply, reply_all]);
+		} else {
+			actions.append(reply);
+			actions.append(reply_all);
+		}
 	}
-
+	add_dropdown_item(timeline_box, menu_items) {
+		let more_actions = timeline_box.find(".more-actions > .dropdown-menu > li");
+		menu_items.forEach((m) => {
+			let action_name = m[0].classList[1];
+			let formatted_action_name =
+				String(action_name).charAt(0).toUpperCase() + String(action_name).slice(1);
+			m.empty();
+			m.append(
+				__("{0}", [frappe.utils.to_title_case(formatted_action_name.replace("-", " "))])
+			);
+			m.removeClass();
+			m.addClass("dropdown-item");
+			more_actions.append(m);
+		});
+	}
 	compose_mail(communication_doc = null, reply_all = false) {
 		const args = {
 			doc: this.frm.doc,
@@ -645,12 +663,13 @@ class FormTimeline extends BaseTimeline {
 
 		let edit_button = $();
 		let current_user = frappe.session.user;
-		if (["Administrator", doc.owner].includes(current_user)) {
-			edit_button = $(`<button class="btn btn-link action-btn">${__("Edit")}</a>`).click(
-				() => {
-					edit_button.edit_mode ? edit_box.submit() : edit_button.toggle_edit_mode();
-				}
-			);
+		let can_edit = ["Administrator", doc.owner].includes(current_user);
+		if (can_edit) {
+			edit_button = $(
+				`<button class="btn edit btn-link action-btn">${__("Edit")}</a>`
+			).click(() => {
+				edit_button.edit_mode ? edit_box.submit() : edit_button.toggle_edit_mode();
+			});
 		}
 
 		edit_button.toggle_edit_mode = () => {
@@ -662,8 +681,14 @@ class FormTimeline extends BaseTimeline {
 			content_wrapper.toggle(!edit_button.edit_mode);
 		};
 		let actions_wrapper = comment_wrapper.find(".custom-actions");
-		actions_wrapper.append(edit_button);
-		actions_wrapper.append(dismiss_button);
+		if (frappe.is_mobile()) {
+			if (can_edit) {
+				this.add_dropdown_item(comment_wrapper, [edit_button]);
+			}
+		} else {
+			actions_wrapper.append(edit_button);
+			actions_wrapper.append(dismiss_button);
+		}
 	}
 
 	make_editable(container) {

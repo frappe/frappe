@@ -235,7 +235,7 @@ def disable_saving_as_public():
 		frappe.flags.in_install
 		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
-		or frappe.flags.in_test
+		or frappe.in_test
 		or frappe.flags.in_fixtures
 		or frappe.flags.in_migrate
 	)

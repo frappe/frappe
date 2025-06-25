@@ -25,7 +25,7 @@ class SystemConsole(Document):
 	# end: auto-generated types
 
 	def run(self):
-		frappe.only_for("System Manager")
+		frappe.only_for(["System Manager", "Administrator"])
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":
@@ -49,7 +49,7 @@ class SystemConsole(Document):
 		frappe.db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def execute_code(doc):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()

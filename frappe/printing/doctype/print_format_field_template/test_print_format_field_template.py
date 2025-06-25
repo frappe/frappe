@@ -2,16 +2,7 @@
 # See license.txt
 
 # import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestPrintFormatFieldTemplate(UnitTestCase):
-	"""
-	Unit tests for PrintFormatFieldTemplate.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestPrintFormatFieldTemplate(IntegrationTestCase):

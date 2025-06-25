@@ -20,6 +20,7 @@ import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
 	add_trackers_to_url,
 	ceil,
@@ -988,9 +989,9 @@ class TestLazyLoader(IntegrationTestCase):
 class TestIdenticon(IntegrationTestCase):
 	def test_get_gravatar(self):
 		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
+		toggle_test_mode(False)
 		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("http"))
 

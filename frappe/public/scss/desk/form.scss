@@ -115,6 +115,11 @@
 
 .form-section.card-section.hide-border {
 	border-bottom: none;
+	padding-bottom: 0;
+
+	&:not(:has(.section-head)) {
+		padding-top: 0;
+	}
 }
 
 .form-dashboard-section {

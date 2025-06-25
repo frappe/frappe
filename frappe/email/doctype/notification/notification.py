@@ -233,7 +233,7 @@ def get_context(context):
 		)
 
 		for d in doc_list:
-			doc = frappe.get_doc(self.document_type, d.name)
+			doc = frappe.get_lazy_doc(self.document_type, d.name)
 
 			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
@@ -282,7 +282,7 @@ def get_context(context):
 		self.db_set("datetime_last_run", now)  # set reference now for next run
 
 		for d in doc_list:
-			doc = frappe.get_doc(self.document_type, d.name)
+			doc = frappe.get_lazy_doc(self.document_type, d.name)
 
 			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
@@ -322,7 +322,7 @@ def get_context(context):
 			"frappe.email.doctype.notification.notification.evaluate_alert",
 			doc=doc,
 			alert=self,
-			now=frappe.flags.in_test,
+			now=frappe.in_test,
 			enqueue_after_commit=enqueue_after_commit,
 		)
 
@@ -443,7 +443,7 @@ def get_context(context):
 				communication_type="Automated Message",
 			).get("name")
 			# set the outgoing email account because we did in fact send it via sendmail above
-			comm = frappe.get_doc("Communication", communication)
+			comm = frappe.get_lazy_doc("Communication", communication)
 			comm.get_outgoing_email_account()
 
 		frappe.sendmail(
