@@ -267,7 +267,12 @@ class Session:
 			self.data.data.update(
 				{
 					"last_updated": frappe.utils.now(),
+<<<<<<< HEAD
 					"session_expiry": get_expiry_period(self.device),
+=======
+					"creation": frappe.utils.now(),
+					"session_expiry": get_expiry_period(),
+>>>>>>> bdab7e30f8 (fix: Remember session creation (#33082))
 					"full_name": self.full_name,
 					"user_type": self.user_type,
 					"device": self.device,
