@@ -704,7 +704,7 @@ function get(name: string) {
 }
 
 function isFrappeUIComponent(name: string) {
-	return name in FRAPPE_UI_COMPONENTS
+	return FRAPPE_UI_COMPONENTS.includes(name)
 }
 
 function getProxyComponent(name: string) {
