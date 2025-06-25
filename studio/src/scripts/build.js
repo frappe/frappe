@@ -1,6 +1,12 @@
-import { writeFileSync } from "fs"
 import { FRAPPE_UI_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
-import { resolve } from "path"
+import { writeFileSync } from "fs"
+import { build } from "vite"
+import vue from "@vitejs/plugin-vue"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import frappeui from "frappe-ui/vite/index.js"
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
 const args = process.argv.slice(2)
 const appName = args[0]
@@ -19,7 +25,8 @@ export async function generateAppBuild(appName, components) {
 	const componentList = components ? components.split(",") : []
 	const componentSources = findComponentSources(componentList)
 	const rendererContent = getRendererContent(componentSources)
-	const rendererPath = writeRendererFile(appName, rendererContent)
+	writeRendererFile(appName, rendererContent)
+	await buildWithVite(appName)
 }
 
 function findComponentSources(appComponents) {
@@ -78,9 +85,56 @@ app.mount("#app")`
 }
 
 function writeRendererFile(appName, content) {
-	const rendererPath = resolve(`src/renderer-${appName}.ts`)
+	const rendererPath = path.resolve(`src/renderer-${appName}.js`)
 
 	writeFileSync(rendererPath, content)
 	console.log(`Renderer file created at: ${rendererPath}`)
-	return rendererPath
+}
+
+async function buildWithVite(appName) {
+	const entryFile = `../renderer-${appName}.js`
+
+	console.log(`Building ${appName} with Vite`)
+	await build({
+		root: path.resolve(__dirname, "../"),
+		server: {
+			// explicitly set origin of generated assets (images, fonts, etc) during development.
+			// Required for the app renderer running on webserver port
+			// https://vite.dev/guide/backend-integration
+			origin: "http://127.0.0.1:8080",
+			allowedHosts: true,
+		},
+		plugins: [
+			vue(),
+			frappeui({
+				frappeProxy: true,
+				lucideIcons: true,
+			}),
+		],
+		resolve: {
+			alias: {
+				vue: "vue/dist/vue.esm-bundler.js",
+				"@": path.resolve(__dirname, "../"),
+			},
+		},
+		build: {
+			rollupOptions: {
+				input: {
+					main: path.resolve(__dirname, entryFile),
+				},
+				output: {
+					entryFileNames: `renderer-${appName}.[hash].js`,
+					chunkFileNames: `[name]-${appName}.[hash].js`,
+					assetFileNames: `[name]-${appName}.[hash][ext]`,
+				},
+			},
+			outDir: path.resolve(__dirname, `../../../studio/public/frontend/builds/${appName}`),
+			emptyOutDir: true,
+			target: "es2015",
+			sourcemap: true,
+			chunkSizeWarningLimit: 1000,
+		},
+	})
+
+	console.log(`Vite build completed for ${appName}`)
 }
