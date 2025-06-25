@@ -4,9 +4,9 @@ import getBlockTemplate from "./blockTemplate"
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
-import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
-import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
-import { Variable } from "@/types/Studio/StudioPageVariable"
+import type { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
+import type { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
+import type { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))

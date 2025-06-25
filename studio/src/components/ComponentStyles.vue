@@ -46,7 +46,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 
-import { StyleValue } from "@/types"
+import type { StyleValue } from "@/types"
 
 const props = defineProps({
 	block: {

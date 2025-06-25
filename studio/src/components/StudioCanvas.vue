@@ -18,7 +18,7 @@
 
 		<div
 			class="fixed flex gap-40"
-			:class="canvasStore.editingMode === 'page' ? 'h-full': ''"
+			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -99,7 +99,7 @@ import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
-import { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
+import type { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
 import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
 

@@ -170,8 +170,8 @@ import Code from "@/components/Code.vue"
 import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioResources, studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { Variable } from "@/types/Studio/StudioPageVariable"
-import { NewResource, Resource } from "@/types/Studio/StudioResource"
+import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { NewResource, Resource } from "@/types/Studio/StudioResource"
 import { toast } from "vue-sonner"
 
 /**

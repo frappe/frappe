@@ -1,5 +1,5 @@
 import Block from "../utils/block"
-import { VuePropDefault } from "@/types/vue"
+import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
 
 export type ObjectLiteral = Record<string, any>

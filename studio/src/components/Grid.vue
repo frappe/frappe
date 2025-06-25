@@ -95,7 +95,7 @@ import Draggable from "vuedraggable"
 
 import Link from "@/components/Link.vue"
 import { generateId } from "@/utils/helpers"
-import { GridColumn, GridRow } from "@/types/doctype"
+import type { GridColumn, GridRow } from "@/types/doctype"
 
 const props = defineProps<{
 	label?: string

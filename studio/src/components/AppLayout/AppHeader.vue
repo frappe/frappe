@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 import LucideIcon from "../LucideIcon.vue"
-import { AppHeaderProps } from "@/types/studio_components/AppHeader"
+import type { AppHeaderProps } from "@/types/studio_components/AppHeader"
 
 defineProps<AppHeaderProps>()
 </script>

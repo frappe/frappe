@@ -79,9 +79,7 @@
 										@click.stop="toggleSlotExpanded(slot)"
 									/>
 									<SlotIcon class="h-3 w-3" />
-									<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">
-										#{{ slotName }}
-									</span>
+									<span class="min-h-[1em] min-w-[2em] truncate" :title="slot.slotName">#{{ slotName }}</span>
 								</div>
 
 								<div v-if="Array.isArray(slot.slotContent) && isSlotExpanded(slot)">
@@ -107,7 +105,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
-import { Slot } from "@/types"
+import type { Slot } from "@/types"
 
 const props = withDefaults(
 	defineProps<{

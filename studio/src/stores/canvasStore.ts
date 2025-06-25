@@ -4,7 +4,7 @@ import type Block from "@/utils/block"
 import { getBlockCopy, getBlockInstance } from "@/utils/helpers"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
-import { EditingMode, BlockOptions } from "@/types"
+import type { EditingMode, BlockOptions } from "@/types"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)

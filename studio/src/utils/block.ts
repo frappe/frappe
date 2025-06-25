@@ -8,8 +8,8 @@ import useCanvasStore from "@/stores/canvasStore"
 import components from "@/data/components";
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
-import { StyleValue } from "@/types"
-import { ComponentEvent } from "@/types/ComponentEvent"
+import type { StyleValue } from "@/types"
+import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {

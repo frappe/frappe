@@ -63,7 +63,7 @@ import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headl
 import { ComputedRef, computed, ref } from "vue"
 import CrossIcon from "@/components/Icons/Cross.vue"
 
-import { SelectOption } from "@/types"
+import type { SelectOption } from "@/types"
 
 const emit = defineEmits(["update:modelValue"])
 

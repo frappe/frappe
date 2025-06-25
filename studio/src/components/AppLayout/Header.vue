@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
-import { HeaderProps } from "@/types/studio_components/Header"
+import type { HeaderProps } from "@/types/studio_components/Header"
 
 withDefaults(defineProps<HeaderProps>(), {
 	menuItems: () => [],

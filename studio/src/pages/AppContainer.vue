@@ -12,7 +12,7 @@ import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
 
-import { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/types/Studio/StudioPage"
 import Block from "@/utils/block"
 
 const store = useAppStore()

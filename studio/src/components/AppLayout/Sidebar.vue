@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
-import { SidebarProps } from "@/types/studio_components/Sidebar"
+import type { SidebarProps } from "@/types/studio_components/Sidebar"
 
 withDefaults(defineProps<SidebarProps>(), {
 	menuItems: () => [],

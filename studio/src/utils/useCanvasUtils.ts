@@ -1,4 +1,4 @@
-import { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@/types/StudioCanvas"
 import Block from "@/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
@@ -6,7 +6,7 @@ import { useCanvasHistory } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "vue-sonner"
 import useCanvasStore from "@/stores/canvasStore"
-import { StudioMode } from "@/types"
+import type { StudioMode } from "@/types"
 
 const canvasStore = useCanvasStore()
 

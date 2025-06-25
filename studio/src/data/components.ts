@@ -13,7 +13,7 @@ import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
-import { FrappeUIComponents, FrappeUIComponent } from "@/types"
+import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
 export const COMPONENTS: FrappeUIComponents = {
 	Alert: {

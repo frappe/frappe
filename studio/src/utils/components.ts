@@ -1,6 +1,6 @@
 import components from "@/data/components"
-import { ComponentProp, ComponentProps } from "@/types"
-import { VueProp, VuePropType } from "@/types/vue"
+import type { ComponentProp, ComponentProps } from "@/types"
+import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"

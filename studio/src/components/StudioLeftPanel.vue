@@ -85,7 +85,7 @@ import IconButton from "@/components/IconButton.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { LeftPanelOptions } from "@/types"
+import type { LeftPanelOptions } from "@/types"
 
 const sidebarMenu = [
 	{

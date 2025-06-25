@@ -1,4 +1,4 @@
-import { BlockOptions, BlockStyleMap } from "@/types";
+import type { BlockOptions, BlockStyleMap } from "@/types";
 
 function getBlockTemplate(
 	type:

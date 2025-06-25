@@ -96,7 +96,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
 
-import { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
 
 const props = withDefaults(

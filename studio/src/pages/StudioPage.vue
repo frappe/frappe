@@ -31,9 +31,9 @@
 						class="absolute left-0 right-0 top-0 z-20 flex items-center justify-between bg-white p-[0.4rem] text-sm text-ink-gray-8 shadow-sm"
 					>
 						<div class="flex items-center gap-1 pl-2 text-xs">
-							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">{{
-								store.activePage?.page_title
-							}}</a>
+							<a @click="canvasStore.exitFragmentMode" class="cursor-pointer">
+								{{ store.activePage?.page_title }}
+							</a>
 							<FeatherIcon name="chevron-right" class="h-3 w-3" />
 							<span class="flex items-center gap-2">
 								{{ canvasStore.fragmentData.fragmentName }}
@@ -84,7 +84,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
 import { getRootBlock } from "@/utils/helpers"
-import { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 
 const route = useRoute()
