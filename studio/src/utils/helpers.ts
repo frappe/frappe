@@ -1,7 +1,6 @@
 import { reactive, toRaw, h, Ref, toRefs } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
-import * as frappeUI from "frappe-ui"
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
@@ -224,7 +223,7 @@ function jsonToJs(json: string): any {
 		if (typeof value === "string" && value.startsWith("function")) {
 			// provide access to render function & frappeUI lib for editing props
 			const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
-			return newFunc({"h": h, "frappeUI": frappeUI})
+			return newFunc({"h": h})
 		}
 		return value
 	}

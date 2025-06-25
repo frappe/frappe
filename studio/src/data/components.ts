@@ -1,5 +1,5 @@
-import { defineAsyncComponent, h } from "vue"
-import * as frappeUI from "frappe-ui"
+import { defineAsyncComponent, h, resolveComponent } from "vue"
+import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
 import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
 import SplitView from "@/components/AppLayout/SplitView.vue"
@@ -249,17 +249,17 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					icon: () => h(frappeUI.FeatherIcon, { name: "edit-2" }),
+					icon: () => h("FeatherIcon", { name: "edit-2" }),
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					icon: () => h(frappeUI.FeatherIcon, { name: "users" }),
+					icon: () => h("FeatherIcon", { name: "users" }),
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					icon: () => h(frappeUI.FeatherIcon, { name: "trash" }),
+					icon: () => h("FeatherIcon", { name: "trash" }),
 				},
 			],
 			button: { label: "Actions" },
@@ -316,7 +316,7 @@ export const COMPONENTS: FrappeUIComponents = {
 						return row.name
 					},
 					prefix: function ({ row }: { row: any }) {
-						return h(frappeUI.Avatar, {
+						return h("Avatar", {
 							shape: "circle",
 							image: row.user_image,
 							size: "sm",
@@ -704,7 +704,7 @@ function get(name: string) {
 }
 
 function isFrappeUIComponent(name: string) {
-	return name in frappeUI
+	return name in FRAPPE_UI_COMPONENTS
 }
 
 function getProxyComponent(name: string) {
@@ -712,19 +712,19 @@ function getProxyComponent(name: string) {
 }
 
 function getProps(name: string) {
-	if (name in frappeUI) {
-		return frappeUI[name]?.props
-	} else {
-		return COMPONENTS[name]?.props
+	const component = resolveComponent(name)
+	if (typeof component === "string" || !component) {
+		return {}
 	}
+	return component?.props || {}
 }
 
 function getEmits(name: string) {
-	if (name in frappeUI) {
-		return frappeUI[name]?.emits
-	} else {
-		return COMPONENTS[name]?.emits
+	const component = resolveComponent(name)
+	if (typeof component === "string" || !component) {
+		return []
 	}
+	return component?.emits || []
 }
 
 export default {
