@@ -704,7 +704,7 @@ on:
 
 jobs:
   tests:
-    name: ${{ matrix.test }} tests
+    name: ${{{{ matrix.test }}}} tests
     runs-on: ubuntu-latest
 
     strategy:
@@ -807,9 +807,9 @@ jobs:
           bench execute frappe.utils.install.complete_setup_wizard
           bench set-config allow_tests true
 
-      - name: Run ${{ matrix.test }} tests
+      - name: Run ${{{{ matrix.test }}}} tests
         working-directory: /home/runner/frappe-bench
-        run: ${{ matrix.run }}
+        run: ${{{{ matrix.run }}}}
         env:
           TYPE: server
 """
