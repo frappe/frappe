@@ -702,16 +702,22 @@ on:
       - {branch_name}
   pull_request:
 
-concurrency:
-  group: {branch_name}-{app_name}-${{{{ github.event.number }}}}
-  cancel-in-progress: true
-
 jobs:
   tests:
+    name: ${{ matrix.test }} tests
     runs-on: ubuntu-latest
+
     strategy:
-      fail-fast: false
-    name: Server
+      matrix:
+        include:
+          - test: unit
+            run: bench run-tests --app {app_name}
+          - test: ui
+            run: |
+              echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+              nohup bench start &> bench.log &
+              sleep 10
+              bench run-ui-tests {app_name} --headless
 
     services:
       redis-cache:
@@ -793,12 +799,17 @@ jobs:
           bench build
         env:
           CI: 'Yes'
-
-      - name: Run Tests
+      
+      - name: Setup Site
         working-directory: /home/runner/frappe-bench
         run: |
-          bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app {app_name}
+          bench use test_site
+          bench execute frappe.utils.install.complete_setup_wizard
+          bench set-config allow_tests true
+
+      - name: Run ${{ matrix.test }} tests
+        working-directory: /home/runner/frappe-bench
+        run: ${{ matrix.run }}
         env:
           TYPE: server
 """
