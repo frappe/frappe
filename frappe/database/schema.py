@@ -276,7 +276,7 @@ class DbColumn:
 
 		# type
 		if current_def["type"] != column_type and not (
-			# XXX: MariaDB JSON is same as longtext and informatio schema still returns longtext
+			# XXX: MariaDB JSON is same as longtext and information schema still returns longtext
 			current_def["type"] == "longtext" and column_type == "json" and frappe.db.db_type == "mariadb"
 		):
 			self.table.change_type.append(self)
@@ -344,7 +344,7 @@ class DbColumn:
 
 			elif (
 				current_def["default"]
-				and float(current_def["default"]) == 0.0
+				and flt(current_def["default"]) == 0.0
 				and self.default in ("", None, 0.0)
 			):
 				return False

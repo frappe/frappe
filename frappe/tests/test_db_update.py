@@ -178,14 +178,11 @@ class TestDBUpdate(IntegrationTestCase):
 class TestDBUpdateSanityChecks(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_no_unnecessary_migrates(self):
-		def reload_all():
-			for doctype in frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name"):
+		for doctype in frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name"):
+			with self.subTest(f"Check {doctype}"):
 				frappe.reload_doctype(doctype, force=True)
-
-		# Warmup
-		reload_all()
-		with self.assertQueryCount(0, query_type=("alter",)):
-			reload_all()
+				with self.assertQueryCount(0, query_type=("alter",)):
+					frappe.reload_doctype(doctype, force=True)
 
 
 def get_fieldtype_from_def(field_def):
