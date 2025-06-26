@@ -12,7 +12,7 @@ interface ComponentTypes {
 }
 const componentTypes = jsonTypes as ComponentTypes
 
-const componentFolders = {
+const componentFolders: Record<string, string> = {
 	DateTimePicker: "DatePicker",
 	DateRangePicker: "DatePicker",
 }
@@ -154,27 +154,29 @@ function getComponentEvents(componentName: string) {
 
 async function getComponentTemplate(componentName: string): Promise<string> {
 	let rawTemplate = null
+	let modules: Record<string, unknown> = {}
 
 	if (components.isFrappeUIComponent(componentName)) {
 		try {
+			modules = import.meta.glob("../../../node_modules/frappe-ui/src/components/*.vue", { query: "?raw", eager: true })
 			// ?raw to get raw content of a file as string
-			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
-		} catch (error) {
-			let folderName = componentFolders[componentName] || componentName
-			try {
+			rawTemplate = modules[`../../../node_modules/frappe-ui/src/components/${componentName}.vue`]
+			if (!rawTemplate) {
 				// try finding the vue file inside component folder
-				rawTemplate = await import(
-					`../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue?raw`
-				)
-			} catch (error) {
-				console.error(`Error loading component template ${componentName}:`, error)
-				return ""
+				modules = import.meta.glob("../../../node_modules/frappe-ui/src/components/**/*.vue", { query: "?raw", eager: true })
+				let folderName = componentFolders[componentName] || componentName
+				rawTemplate = modules[`../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`]
 			}
+			console.log(`Loaded component template for ${componentName}`, rawTemplate)
+		} catch (error) {
+			console.error(`Error loading component template ${componentName}:`, error)
+			return ""
 		}
 	} else {
 		try {
 			// extract studio component template
-			rawTemplate = await import(`@/components/AppLayout/${componentName}.vue?raw`)
+			modules = import.meta.glob("@/components/AppLayout/*.vue", { query: "?raw", eager: true })
+			rawTemplate = modules[`@/components/AppLayout/${componentName}.vue`]
 		} catch (error) {
 			console.warn(`Failed to load component template ${componentName}:`, error)
 			return ""
