@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, hasInjectionContext } from "vue"
+import { computed, ref, watch, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
@@ -139,7 +139,7 @@ const componentName = computed(() => {
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
-const repeaterContext = hasInjectionContext() ? inject<RepeaterContext>("repeaterContext") : {}
+const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
 const getEvaluationContext = () => {
 	return {
 		...store.variables,
