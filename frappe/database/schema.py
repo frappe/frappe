@@ -332,7 +332,13 @@ class DbColumn:
 	def default_changed_for_decimal(self, current_def):
 		try:
 			if current_def["default"] in ("", None) and self.default in ("", None):
-				# both none, empty
+				return False
+
+			elif (
+				current_def["default"]
+				and float(current_def["default"]) == 0.0
+				and self.default in ("", None, 0.0)
+			):
 				return False
 
 			elif current_def["default"] in ("", None):
