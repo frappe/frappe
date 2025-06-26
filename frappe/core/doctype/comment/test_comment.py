@@ -8,6 +8,8 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_model_utils import set_user
 
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Page"]
+
 
 class TestComment(IntegrationTestCase):
 	def setUp(self):
@@ -102,7 +104,7 @@ class TestComment(IntegrationTestCase):
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
-		test_blog = frappe.get_doc("Test Blog Post", "_Test Blog Post 1")
+		test_blog = frappe.get_doc("Web Page", "test-web-page-1")
 		with set_user("Guest"):
 			self.assertRaises(
 				frappe.ValidationError,
@@ -110,7 +112,7 @@ class TestComment(IntegrationTestCase):
 				comment="Good comment with 10 chars",
 				comment_email=some_system_user,
 				comment_by="Good Tester",
-				reference_doctype="Test Blog Post",
+				reference_doctype="Web Page",
 				reference_name=test_blog.name,
-				route=f"blog/{test_blog.doctype}/{test_blog.name}",
+				route=test_blog.route,
 			)

@@ -46,28 +46,6 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	if route:
 		clear_cache(route)
 
-	if doc.get("route"):
-		url = f"{frappe.utils.get_request_site_address()}/{doc.route}#{comment.name}"
-	else:
-		url = f"{frappe.utils.get_request_site_address()}/app/{scrub(doc.doctype)}/{doc.name}#comment-{comment.name}"
-
-	content = comment.content + "<p><a href='{}' style='font-size: 80%'>{}</a></p>".format(
-		url, _("View Comment")
-	)
-
-	if doc.doctype != "Blog Post" or doc.enable_email_notification:
-		# notify creator
-		creator_email = frappe.db.get_value("User", doc.owner, "email") or doc.owner
-		subject = _("New Comment on {0}: {1}").format(doc.doctype, doc.get_title())
-
-		frappe.sendmail(
-			recipients=creator_email,
-			subject=subject,
-			message=content,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
-		)
-
 	# revert with template if all clear (no backlinks)
 	template = frappe.get_template("templates/includes/comments/comment.html")
 	return template.render({"comment": comment.as_dict()})
