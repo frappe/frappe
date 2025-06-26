@@ -175,6 +175,9 @@ class DBTable:
 		pass
 
 
+NOT_NULL_TYPES = ("Check", "Int", "Currency", "Float", "Percent")
+
+
 class DbColumn:
 	def __init__(
 		self,
@@ -216,13 +219,14 @@ class DbColumn:
 		default = None
 		unique = False
 
+		if self.fieldtype in NOT_NULL_TYPES:
+			null = False
+
 		if self.fieldtype in ("Check", "Int"):
 			default = cint(self.default)
-			null = False
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default = flt(self.default)
-			null = False
 
 		elif (
 			self.default
@@ -289,7 +293,11 @@ class DbColumn:
 			self.table.set_default.append(self)
 
 		# nullability
-		if self.not_nullable is not None and (self.not_nullable != current_def.get("not_nullable")):
+		if (
+			self.not_nullable is not None
+			and (self.not_nullable != current_def.get("not_nullable"))
+			and self.fieldtype not in NOT_NULL_TYPES
+		):
 			self.table.change_nullability.append(self)
 
 		# index should be applied or dropped irrespective of type change
