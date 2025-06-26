@@ -25662,7 +25662,7 @@ msgstr "Editor de texto"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr "Gracias."
+msgstr "Gracias"
 
 #: frappe/www/contact.py:39
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
