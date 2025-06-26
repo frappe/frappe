@@ -169,6 +169,7 @@ def convert_to_int(value):
 
 def convert_to_float(value):
 	try:
+		print("==============> convert_to_float: ",value)
 		# Convertir el valor a un float para manejar cadenas numéricas y números
 		float_value = float(value)
 		return float_value
@@ -526,48 +527,34 @@ def capitalize_first_letter(text):
     return " ".join(word.capitalize() for word in text.split())
  
 def format_address_detail_to_print(text):
-	if not text:
-		return ""
-	
-	address = text.get('address_line1')
-	address2 = text.get('address_line2')
-	zip_code = text.get('pincode')
-	city = text.get('city')
-	country = text.get('country')
-	
-	address = address.strip() if address else None
-	address2 = address2.strip() if address2 else None
-	zip_code = zip_code.strip() if zip_code else None
-	city = city.strip() if city else None
-	country = _(country.strip()) if country else None
-	
-	address_parts = []
-	if address:
-		address_parts.append(address)
-	if address2:
-		address_parts.append(address2)
-	
-	if(address or address2):
-		address_parts.append("\n")    
+    if not isinstance(text, dict):
+        return ""
 
-	# Concatenar zip_code y city en una sola línea
-	zip_city = ""
-	if zip_code:
-		zip_city += zip_code
-	if city:
-		if zip_code:
-			zip_city += " "
-		zip_city += city
+    def safe_strip(val):
+        return val.strip() if isinstance(val, str) else None
 
-	if zip_city:  # Solo agregar si no está vacío
-		address_parts.append(zip_city)
+    address_line1 = safe_strip(text.get('address_line1'))
+    address_line2 = safe_strip(text.get('address_line2'))
+    zip_code      = safe_strip(text.get('pincode'))
+    city          = safe_strip(text.get('city'))
+    country_raw   = text.get('country')
+    country       = _(safe_strip(country_raw)) if country_raw else None
 
-	# Agregar el país en una línea aparte si existe
-	if country:
-		address_parts.append(country)
+    address_parts = []
 
-	# Unir las partes de la dirección con <br> para separar las líneas
-	return "<br>".join(address_parts)
+    if address_line1:
+        address_parts.append(address_line1)
+    if address_line2:
+        address_parts.append(address_line2)
+
+    zip_city = f"{zip_code or ''} {city or ''}".strip()
+    if zip_city:
+        address_parts.append(zip_city)
+
+    if country:
+        address_parts.append(country)
+
+    return "<br>".join(address_parts)
 
 
 def filter_customer(data, customer_name):

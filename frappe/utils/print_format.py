@@ -190,43 +190,40 @@ def read_multi_pdf(output: PdfWriter) -> bytes:
 
 
 def format_address_detail_to_print(text):
-	if not text:
-		return ""
+    # Si no viene un diccionario, devolvemos cadena vacía
+    if not isinstance(text, dict):
+        return ""
 
-	address = text.get('address_line1')
-	address2 = text.get('address_line2')
-	zip_code = text.get('pincode')
-	city = text.get('city')
-	country = text.get('country')
+    # Helper seguro: strip solo si es str y no está vacío
+    def safe_strip(val):
+        return val.strip() if isinstance(val, str) and val.strip() else None
 
-	address = address.strip() if address else None
-	address2 = address2.strip() if address2 else None
-	zip_code = zip_code.strip() if zip_code else None
-	city = city.strip() if city else None
-	country = _(country.strip()) if country else None
+    # Campos limpiados
+    address     = safe_strip(text.get("address_line1"))
+    address2    = safe_strip(text.get("address_line2"))
+    zip_code    = safe_strip(text.get("pincode"))
+    city        = safe_strip(text.get("city"))
+    country_raw = text.get("country")
+    country     = _(safe_strip(country_raw)) if country_raw else None
 
-	address_parts = []
-	if address:
-		address_parts.append(address)
-	if address2:
-		address_parts.append(address2)
-	if (address or address2):
-		address_parts.append("<br>")
+    # Construir la lista de líneas de la dirección
+    parts = []
+    if address:
+        parts.append(address)
+    if address2:
+        parts.append(address2)
 
-	zip_city = ""
-	if zip_code:
-		zip_city += zip_code
-	if city:
-		if zip_code:
-			zip_city += " "
-		zip_city += city
-	if zip_city:
-		address_parts.append(zip_city)
+    # Línea combinada: [pincode] [city]
+    zip_city = " ".join(filter(None, [zip_code, city]))
+    if zip_city:
+        parts.append(zip_city)
 
-	if country:
-		address_parts.append(country)
+    # País en su propia línea (opcional)
+    if country:
+        parts.append(country)
 
-	return "<br>".join(address_parts)
+    # Unir con <br> sin líneas vacías intermedias
+    return "<br>".join(parts)
 
 
 def convert_to_int(value):
