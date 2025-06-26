@@ -1,0 +1,19 @@
+[data-frappe-skip-link] {
+	// Make sure that the element is not affected by other absolute-positioned elements,
+	// and by its initial relative position (parent margin).
+	display: inline-block;
+	position: absolute;
+	z-index: 16777271;
+	top: 0;
+	left: 0;
+
+	// Make sure that the element is visible with sufficient contrast once focused
+	// (assuming that the base colors have enough contrast).
+	background: inherit;
+	color: inherit;
+	text-decoration: underline;
+
+	&:not(:focus, :active) {
+		@extend .sr-only;
+	}
+}

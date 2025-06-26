@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import hljs from "./syntax_highlight";
+import { setup_skip_links } from "./skip_links";
 
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
@@ -670,4 +671,5 @@ frappe.ready(function () {
 	frappe.show_language_picker();
 	frappe.setup_videos();
 	frappe.realtime.init(window.socketio_port, true); // lazy connection
+	setup_skip_links();
 });

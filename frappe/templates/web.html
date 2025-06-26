@@ -1,6 +1,12 @@
 {% extends base_template_path %}
 {% block hero %}{% endblock %}
 
+{%- block skip_link -%}
+<a role="link" tabindex="0" href="#" data-frappe-skip-link=".page-content-wrapper main">
+	{{ _('Skip to main content') }}
+</a>
+{%- endblock -%}
+
 {% block content %}
 
 {% macro main_content() %}
