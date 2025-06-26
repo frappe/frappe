@@ -175,6 +175,19 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
 
+class TestDBUpdateSanityChecks(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_no_unnecessary_migrates(self):
+		def reload_all():
+			for doctype in frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name"):
+				frappe.reload_doctype(doctype, force=True)
+
+		# Warmup
+		reload_all()
+		with self.assertQueryCount(0, query_type=("alter",)):
+			reload_all()
+
+
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))
 	fieldtype = fieldtuple[0]
