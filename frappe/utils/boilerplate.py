@@ -704,15 +704,15 @@ on:
 
 jobs:
   tests:
-    name: ${{{{ matrix.test }}}} tests
+    name: ${{{{ matrix.test }}}} Tests
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         include:
-          - test: unit
+          - test: Unit
             run: bench run-tests --app {app_name}
-          - test: ui
+          - test: UI
             run: |
               echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
               nohup bench start &> bench.log &
@@ -807,7 +807,7 @@ jobs:
           bench execute frappe.utils.install.complete_setup_wizard
           bench set-config allow_tests true
 
-      - name: Run ${{{{ matrix.test }}}} tests
+      - name: Run ${{{{ matrix.test }}}} Tests
         working-directory: /home/runner/frappe-bench
         run: ${{{{ matrix.run }}}}
         env:
