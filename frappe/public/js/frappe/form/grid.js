@@ -142,7 +142,26 @@ export default class Grid {
 		if (this.df.on_setup) {
 			this.df.on_setup(this);
 		}
+
+		this.set_form_grid_height();
 	}
+
+	/**
+	 * Sets the height of the form grid based on its scroll height.
+	 */
+	set_form_grid_height() {
+		frappe.utils.debounce(() => {
+			let form_grid_height = this.form_grid[0]?.scrollHeight || 0;
+			if (form_grid_height > window.innerHeight - 150) {
+				this.form_grid.css("height", "80vh");
+				this.form_grid.css("overflow", "auto");
+			} else {
+				this.form_grid.css("height", "auto");
+				this.form_grid.css("overflow", "unset");
+			}
+		}, 100)();
+	}
+
 	set_grid_description() {
 		let description_wrapper = $(this.parent).find(".grid-description");
 		if (this.df.description) {
@@ -288,6 +307,7 @@ export default class Grid {
 		if (selected_children.length == this.grid_pagination.page_length) {
 			this.scroll_to_top();
 		}
+		this.set_form_grid_height();
 	}
 
 	delete_all_rows() {
@@ -887,6 +907,8 @@ export default class Grid {
 					}
 				}
 			}
+
+			this.set_form_grid_height();
 
 			return d;
 		}

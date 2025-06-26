@@ -18,6 +18,9 @@
 	padding: 0 !important;
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
+	position: sticky;
+	top: 0;
+	z-index: 2;
 
 	.grid-row {
 		background-color: var(--subtle-fg);
