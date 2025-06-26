@@ -316,20 +316,25 @@ class DbColumn:
 		else:
 			cur_default = current_def.get("default")
 			new_default = self.default
-			if cur_default == "NULL" or cur_default is None:
+			if cur_default == "NULL":
 				cur_default = None
 			else:
 				# Strip quotes from default value
 				# eg. database returns default value as "'System Manager'"
-				cur_default = cur_default.lstrip("'").rstrip("'")
+				cur_default = cur_default.lstrip("'").rstrip("'").replace("\\\\", "\\")
 
 			fieldtype = self.fieldtype
+			db_field_type = frappe.db.type_map.get(fieldtype)
 			if fieldtype in ["Int", "Check"]:
 				cur_default = cint(cur_default)
 				new_default = cint(new_default)
 			elif fieldtype in ["Currency", "Float", "Percent"]:
 				cur_default = flt(cur_default)
 				new_default = flt(new_default)
+			elif db_field_type and db_field_type[0] in ("varchar", "longtext", "text"):
+				new_default = cstr(new_default)
+				if not current_def.get("not_nullable"):
+					cur_default = cstr(cur_default)
 			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
