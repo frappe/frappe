@@ -2,7 +2,6 @@ import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/type
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 import components from "@/data/components";
@@ -629,11 +628,6 @@ class Block implements BlockOptions {
 
 	// events
 	addEvent(event: ComponentEvent) {
-		const pageName = event.page
-		if (pageName) {
-			const store = useStudioStore()
-			event.page = store.getAppPageRoute(pageName)
-		}
 		this.componentEvents[event.event] = event
 	}
 

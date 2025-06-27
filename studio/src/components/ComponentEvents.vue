@@ -41,6 +41,9 @@
 								if (newEvent.isEditing) {
 									block?.updateEvent(newEvent)
 								} else {
+									if (newEvent.page) {
+										newEvent.page = store.getAppPageRoute(newEvent.page)
+									}
 									block?.addEvent(newEvent)
 								}
 								showAddEventDialog = false
