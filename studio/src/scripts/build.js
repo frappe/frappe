@@ -97,6 +97,7 @@ async function buildWithVite(appName) {
 	console.log(`Building ${appName} with Vite`)
 	await build({
 		root: path.resolve(__dirname, "../"),
+		base: "/assets/studio/frontend/builds/",
 		server: {
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
 			// Required for the app renderer running on webserver port
@@ -120,12 +121,7 @@ async function buildWithVite(appName) {
 		build: {
 			rollupOptions: {
 				input: {
-					main: path.resolve(__dirname, entryFile),
-				},
-				output: {
-					entryFileNames: `renderer-${appName}.[hash].js`,
-					chunkFileNames: `[name]-${appName}.[hash].js`,
-					assetFileNames: `[name]-${appName}.[hash][ext]`,
+					studioRenderer: path.resolve(__dirname, entryFile),
 				},
 			},
 			outDir: path.resolve(__dirname, `../../../studio/public/frontend/builds/${appName}`),
@@ -133,6 +129,9 @@ async function buildWithVite(appName) {
 			target: "es2015",
 			sourcemap: true,
 			chunkSizeWarningLimit: 1000,
+		},
+		optimizeDeps: {
+			include: ["frappe-ui > feather-icons", "showdown", "engine.io-client"],
 		},
 	})
 
