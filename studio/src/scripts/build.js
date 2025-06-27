@@ -66,7 +66,7 @@ import { createPinia } from "pinia"
 import "./setupFrappeUIResource"
 import app_router from "@/router/app_router"
 import AppRenderer from "./AppRenderer.vue"
-import { resourcesPlugin } from "frappe-ui"
+import { resourcesPlugin, FeatherIcon } from "frappe-ui"
 
 ${frappeUIImports}
 ${studioImports}
@@ -79,6 +79,7 @@ app.use(pinia)
 app.use(resourcesPlugin)
 
 ${componentRegistrations}
+app.component("FeatherIcon", FeatherIcon)
 
 app.mount("#app")`
 	return rendererContent
