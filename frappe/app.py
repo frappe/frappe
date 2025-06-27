@@ -403,7 +403,7 @@ def sync_database():
 
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
-		session.update()
+		frappe.request.after_response.add(session.update)
 
 
 # Always initialize sentry SDK if the DSN is sent
