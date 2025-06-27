@@ -1534,7 +1534,9 @@ def money_in_words(
 	number_format = get_number_format()
 
 	fraction_units = frappe.db.get_value("Currency", main_currency, "fraction_units", cache=True)
-	fraction_length = math.ceil(math.log10(fraction_units)) or number_format.precision
+	fraction_length = (
+		math.ceil(math.log10(fraction_units)) if fraction_units and fraction_units > 0 else 0
+	) or number_format.precision
 
 	n = f"%.{fraction_length}f" % number
 
