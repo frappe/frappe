@@ -152,37 +152,55 @@ function getComponentEvents(componentName: string) {
 	return components.getEmits(componentName) || []
 }
 
+// ?raw to get raw content of a file as string
+const frappeUIModules = import.meta.glob(
+	"../../../node_modules/frappe-ui/src/components/**/*.vue",
+	{ query: "?raw" }
+)
+
+const studioModules = import.meta.glob(
+	"@/components/AppLayout/*.vue",
+	{ query: "?raw" }
+)
+
+const templateCache = new Map<string, string>()
+
 async function getComponentTemplate(componentName: string): Promise<string> {
+	if (templateCache.has(componentName)) {
+		return templateCache.get(componentName) || ""
+	}
+
 	let rawTemplate = null
-	let modules: Record<string, unknown> = {}
 
 	if (components.isFrappeUIComponent(componentName)) {
 		try {
-			modules = import.meta.glob("../../../node_modules/frappe-ui/src/components/*.vue", { query: "?raw", eager: true })
-			// ?raw to get raw content of a file as string
-			rawTemplate = modules[`../../../node_modules/frappe-ui/src/components/${componentName}.vue`]
-			if (!rawTemplate) {
+			let modulePath = `../../../node_modules/frappe-ui/src/components/${componentName}.vue`
+			if (frappeUIModules[modulePath]) {
+				rawTemplate = await frappeUIModules[modulePath]()
+			} else {
 				// try finding the vue file inside component folder
-				modules = import.meta.glob("../../../node_modules/frappe-ui/src/components/**/*.vue", { query: "?raw", eager: true })
-				let folderName = componentFolders[componentName] || componentName
-				rawTemplate = modules[`../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`]
+				const folderName = componentFolders[componentName] || componentName
+				modulePath = `../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`
+				if (frappeUIModules[modulePath]) {
+					rawTemplate = await frappeUIModules[modulePath]()
+				}
 			}
-			console.log(`Loaded component template for ${componentName}`, rawTemplate)
 		} catch (error) {
 			console.error(`Error loading component template ${componentName}:`, error)
 			return ""
 		}
 	} else {
-		try {
-			// extract studio component template
-			modules = import.meta.glob("@/components/AppLayout/*.vue", { query: "?raw", eager: true })
-			rawTemplate = modules[`@/components/AppLayout/${componentName}.vue`]
-		} catch (error) {
-			console.warn(`Failed to load component template ${componentName}:`, error)
-			return ""
+		const modulePath = `/src/components/AppLayout/${componentName}.vue`;
+		if (studioModules[modulePath]) {
+			rawTemplate = await studioModules[modulePath]()
 		}
 	}
-	return rawTemplate?.default || ""
+
+	const template = rawTemplate?.default || ""
+	if (template) {
+		templateCache.set(componentName, template)
+	}
+	return template
 }
 
 async function getComponentSlots(componentName: string) {
