@@ -1,5 +1,8 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
+import json
+import os
+
 import frappe
 from frappe.model.document import Document
 from frappe.website.page_renderers.document_page import DocumentPage
@@ -59,6 +62,10 @@ class StudioApp(WebsiteGenerator):
 		context.is_developer_mode = frappe.conf.developer_mode
 		context.site_name = frappe.local.site
 
+		manifest = self.get_assets_from_manifest()
+		context.stylesheets = manifest.get("stylesheets", [])
+		context.script = manifest.get("script")
+
 	def autoname(self):
 		if not self.name:
 			self.name = f"app-{frappe.generate_hash(length=8)}"
@@ -86,3 +93,45 @@ class StudioApp(WebsiteGenerator):
 			frappe.commands.popen(command, cwd=studio_app_path, raise_err=True)
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
+
+	def get_assets_from_manifest(self):
+		"""
+		Read the Vite manifest file for this app and return asset paths
+		https://vite.dev/guide/backend-integration.html#backend-integration
+		"""
+		try:
+			manifest_path = os.path.join(
+				frappe.get_app_source_path("studio"),
+				"studio",
+				"public",
+				"frontend",
+				"builds",
+				self.name,
+				".vite",
+				"manifest.json",
+			)
+			if not os.path.exists(manifest_path):
+				return None
+
+			with open(manifest_path) as f:
+				manifest = json.load(f)
+
+			# find the entry point for a studio app
+			entry_key = f"renderer-{self.name}.js"
+			entry = manifest[entry_key]
+			base_path = f"/assets/studio/frontend/builds/{self.name}/"
+			result = {
+				"script": f"{base_path}{entry['file']}",
+				"stylesheets": [f"{base_path}{css_file}" for css_file in entry.get("css", [])],
+			}
+
+			# add any imported CSS files
+			for chunk_key, chunk_data in manifest.items():
+				if chunk_key != entry_key and "css" in chunk_data:
+					result["stylesheets"].extend(f"{base_path}{css_file}" for css_file in chunk_data["css"])
+
+			return result
+
+		except Exception as e:
+			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
+			return None
