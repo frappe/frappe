@@ -173,13 +173,8 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 		f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}"
 	)
 
-<<<<<<< HEAD
 	start_time = time.time()
-	frappe.db.begin()
-=======
-	start_time = time.monotonic()
 	frappe.db.commit()
->>>>>>> b63b00da34 (fix: Commit before starting a patch (#33133))
 	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:
