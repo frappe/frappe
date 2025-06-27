@@ -18,12 +18,7 @@ EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 @rate_limit(key="reference_name", limit=5, seconds=60 * 60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	if frappe.session.user == "Guest":
-		if reference_doctype not in ("Blog Post", "Web Page"):
-			return
-
-		if reference_doctype == "Blog Post" and not frappe.db.get_single_value(
-			"Blog Settings", "allow_guest_to_comment"
-		):
+		if reference_doctype not in ("Web Page"):
 			return
 
 		if frappe.db.exists("User", comment_email):
