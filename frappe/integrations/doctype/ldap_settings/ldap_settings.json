@@ -7,6 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
+  "column_break_39",
+  "default_to_ldap_login",
   "ldap_server_settings_section",
   "ldap_directory_server",
   "column_break_4",
@@ -296,12 +298,22 @@
    "fieldname": "do_not_create_new_user",
    "fieldtype": "Check",
    "label": "Do Not Create New User "
+  },
+  {
+   "fieldname": "column_break_39",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_to_ldap_login",
+   "fieldtype": "Check",
+   "label": "Default to LDAP Login"
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:03:28.700269",
+ "modified": "2025-06-27 19:24:39.917376",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
@@ -320,6 +332,7 @@
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

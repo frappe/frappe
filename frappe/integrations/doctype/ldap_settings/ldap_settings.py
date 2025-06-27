@@ -37,6 +37,7 @@ class LDAPSettings(Document):
 
 		base_dn: DF.Data
 		default_role: DF.Link | None
+		default_to_ldap_login: DF.Check
 		default_user_type: DF.Link
 		do_not_create_new_user: DF.Check
 		enabled: DF.Check
@@ -169,10 +170,11 @@ class LDAPSettings(Document):
 	@staticmethod
 	def get_ldap_client_settings() -> dict:
 		# return the settings to be used on the client side.
-		result = {"enabled": False}
+		result = {"enabled": False, "default_to_ldap_login": False}
 		ldap = frappe.get_cached_doc("LDAP Settings")
 		if ldap.enabled:
 			result["enabled"] = True
+			result["default_to_ldap_login"] = ldap.default_to_ldap_login
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
 		return result
 
