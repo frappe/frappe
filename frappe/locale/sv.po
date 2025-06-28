@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-06-28 17:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -27343,7 +27343,7 @@ msgstr "Ångra Senaste Åtgärd"
 
 #: frappe/database/query.py:1495
 msgid "Unescaped quotes in string literal: {0}"
-msgstr ""
+msgstr "Oescapede citattecken i sträng literal: {0}"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:109
 #: frappe/public/js/frappe/form/toolbar.js:876
@@ -29634,7 +29634,7 @@ msgstr "Du har inte behörighet att slutföra åtgärd"
 
 #: frappe/database/query.py:529
 msgid "You do not have permission to access field: {0}"
-msgstr ""
+msgstr "Du har inte åtkomstbehörighet till fält: {0}"
 
 #: frappe/desk/query_report.py:861
 msgid "You do not have permission to access {0}: {1}."
@@ -30905,7 +30905,7 @@ msgstr "{0} fält kan inte anges som unikt i {1}, eftersom det inte finns unika 
 
 #: frappe/database/query.py:708
 msgid "{0} fields cannot contain backticks (`): {1}"
-msgstr ""
+msgstr "{0} fält får inte innehålla bakåttecken (`): {1}"
 
 #: frappe/core/doctype/data_import/importer.py:1068
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
