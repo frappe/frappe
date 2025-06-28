@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-06-28 17:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -14547,7 +14547,7 @@ msgstr ""
 
 #: frappe/database/query.py:116
 msgid "Limit must be a non-negative integer"
-msgstr ""
+msgstr "Granica mora biti cijeli broj koji nije negativan"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
