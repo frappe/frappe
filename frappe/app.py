@@ -68,6 +68,11 @@ if frappe._tune_gc:
 
 # end: module pre-loading
 
+# better werkzeug default
+# this is necessary because frappe desk sends most requests as form data
+# and some of them can exceed werkzeug's default limit of 500kb
+Request.max_form_memory_size = None
+
 
 def after_response_wrapper(app):
 	"""Wrap a WSGI application to call after_response hooks after we have responded.
