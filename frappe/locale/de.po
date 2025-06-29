@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-06-29 17:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1676,11 +1676,11 @@ msgstr "Warnungen und Benachrichtigungen"
 
 #: frappe/database/query.py:1608
 msgid "Alias cannot be a SQL keyword: {0}"
-msgstr ""
+msgstr "Alias darf kein SQL-Schlüsselwort sein: {0}"
 
 #: frappe/database/query.py:1533
 msgid "Alias must be a string"
-msgstr ""
+msgstr "Alias muss ein String sein"
 
 #. Label of the align (Select) field in DocType 'Letter Head'
 #. Label of the footer_align (Select) field in DocType 'Letter Head'
@@ -8794,7 +8794,7 @@ msgstr "Einbettungscode kopiert"
 
 #: frappe/database/query.py:1537
 msgid "Empty alias is not allowed"
-msgstr ""
+msgstr "Leerer Alias ist nicht erlaubt"
 
 #: frappe/public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
@@ -11847,7 +11847,7 @@ msgstr "Buttons ausblenden"
 #. Label of the hide_cta (Check) field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
 msgid "Hide CTA"
-msgstr "CTA ausblenden"
+msgstr "Aufruf zum Handeln ausblenden"
 
 #. Label of the allow_copy (Check) field in DocType 'DocType'
 #. Label of the allow_copy (Check) field in DocType 'Customize Form'
@@ -11859,7 +11859,7 @@ msgstr "Kopie ausblenden"
 #. Label of the hide_custom (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Hide Custom DocTypes and Reports"
-msgstr "Benutzerdefinierte Dokumenttypen und Berichte ausblenden"
+msgstr "Benutzerdefinierte DocTypes und Berichte ausblenden"
 
 #. Label of the hide_days (Check) field in DocType 'DocField'
 #. Label of the hide_days (Check) field in DocType 'Custom Field'
@@ -11868,7 +11868,7 @@ msgstr "Benutzerdefinierte Dokumenttypen und Berichte ausblenden"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Days"
-msgstr "Tage verstecken"
+msgstr "Tage ausblenden"
 
 #. Label of the hide_descendants (Check) field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
@@ -11888,7 +11888,7 @@ msgstr "Fehler ausblenden"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:488
 msgid "Hide Label"
-msgstr ""
+msgstr "Bezeichnung ausblenden"
 
 #. Label of the hide_login (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -11898,7 +11898,7 @@ msgstr "Login ausblenden"
 #: frappe/public/js/form_builder/form_builder.bundle.js:43
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Hide Preview"
-msgstr "Vorschau verbergen"
+msgstr "Vorschau ausblenden"
 
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -11949,7 +11949,7 @@ msgstr "Details ausblenden"
 #. Label of the hide_footer (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Hide footer"
-msgstr "Fußzeile verstecken"
+msgstr "Fußzeile ausblenden"
 
 #. Label of the hide_footer_in_auto_email_reports (Check) field in DocType
 #. 'System Settings'
@@ -11965,7 +11965,7 @@ msgstr "Registrierung in der Fußzeile ausblenden"
 #. Label of the hide_navbar (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Hide navbar"
-msgstr "Navigationsleiste verstecken"
+msgstr "Navigationsleiste ausblenden"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -12001,7 +12001,7 @@ msgstr "Hinweis: Geben Sie Symbole, Zahlen und Großbuchstaben in das Passwort e
 #: frappe/www/contact.py:22 frappe/www/login.html:170 frappe/www/me.html:76
 #: frappe/www/message.html:29
 msgid "Home"
-msgstr "Startseite"
+msgstr "Start"
 
 #. Label of the home_page (Data) field in DocType 'Role'
 #. Label of the home_page (Data) field in DocType 'Website Settings'
@@ -12054,7 +12054,7 @@ msgstr "Stündliche Wartung"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hourly rate limit for generating password reset links"
-msgstr "Stundensatzlimit zum Generieren von Links zum Zurücksetzen von Passwörtern"
+msgstr "Stündliches Limit zum Generieren von Links zum Zurücksetzen von Passwörtern"
 
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
@@ -12099,7 +12099,7 @@ msgstr "ID (Name)"
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "ID (name) of the entity whose property is to be set"
-msgstr "ID (Name) der Einheit, deren Eigenschaft festgelegt werden muss"
+msgstr "ID (Name) der Entität, deren Eigenschaft festgelegt werden muss"
 
 #. Description of the 'Section ID' (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -13271,7 +13271,7 @@ msgstr "Ungültige Aggregatfunktion"
 
 #: frappe/database/query.py:1542
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
-msgstr ""
+msgstr "Ungültiges Alias-Format: {0}. Alias muss ein einfacher Bezeichner sein."
 
 #: frappe/database/query.py:1468
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
@@ -13315,7 +13315,7 @@ msgstr "Ungültiger Ausdruck im Filter {0} ({1}) gesetzt"
 
 #: frappe/database/query.py:1301
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
-msgstr ""
+msgstr "Ungültiges Feldformat für SELECT: {0}. Feldnamen müssen einfach, mit ` (backtick), tabellenqualifiziert, mit Alias oder '*' sein."
 
 #: frappe/database/query.py:734
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
@@ -13548,12 +13548,12 @@ msgstr "Ist Hauptkontakt"
 #. Label of the is_primary_mobile_no (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Mobile"
-msgstr "Ist primär mobil"
+msgstr "Ist primäre Handynummer"
 
 #. Label of the is_primary_phone (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Phone"
-msgstr "Ist das Haupttelefon"
+msgstr "Ist Haupttelefon"
 
 #. Label of the is_private (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -13574,7 +13574,7 @@ msgstr "Ist Veröffentlicht Feld"
 
 #: frappe/core/doctype/doctype/doctype.py:1515
 msgid "Is Published Field must be a valid fieldname"
-msgstr "Ist Veröffentlicht Feld muss eine gültige Feldname sein"
+msgstr "Ist Veröffentlicht Feld muss ein gültiger Feldname sein"
 
 #. Label of the is_query_report (Check) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -15480,7 +15480,7 @@ msgstr "Treffen"
 #: frappe/email/doctype/notification/notification.js:196
 #: frappe/integrations/doctype/webhook/webhook.js:96
 msgid "Meets Condition?"
-msgstr "Bedingungen erfüllen?"
+msgstr "Bedingung erfüllt?"
 
 #. Group in Email Group's connections
 #: frappe/email/doctype/email_group/email_group.json
@@ -15500,7 +15500,7 @@ msgstr "Speichernutzung in MB"
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Mention"
-msgstr "Erwähnen"
+msgstr "Erwähnung"
 
 #. Label of the enable_email_mention (Check) field in DocType 'Notification
 #. Settings'
@@ -15561,7 +15561,7 @@ msgstr "Nachricht"
 #. Label of the message_examples (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Message Examples"
-msgstr "Mitteilungsbeispiele"
+msgstr "Nachrichtenbeispiele"
 
 #. Label of the message_id (Small Text) field in DocType 'Communication'
 #. Label of the message_id (Small Text) field in DocType 'Email Queue'
@@ -15573,11 +15573,11 @@ msgstr "Nachrichten-ID"
 #. Label of the message_parameter (Data) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Message Parameter"
-msgstr "Mitteilungsparameter"
+msgstr "Nachrichtenparameter"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr "Mitteilung gesendet"
+msgstr "Nachricht gesendet"
 
 #. Label of the message_type (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -15599,7 +15599,7 @@ msgstr "Nachricht nicht eingerichtet"
 #. Description of the 'Success message' (Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Message to be displayed on successful completion"
-msgstr "Nachricht, die nach erfolgreichem Abschluss angezeigt werden soll"
+msgstr "Nachricht, die nach erfolgreicher Fertigstellung angezeigt werden soll"
 
 #. Label of the message_id (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
@@ -15646,17 +15646,17 @@ msgstr "Meta-Titel"
 #. Label of the meta_description (Small Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta description"
-msgstr ""
+msgstr "Meta-Beschreibung"
 
 #. Label of the meta_image (Attach Image) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta image"
-msgstr ""
+msgstr "Meta-Bild"
 
 #. Label of the meta_title (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta title"
-msgstr ""
+msgstr "Meta-Titel"
 
 #: frappe/website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
@@ -15739,17 +15739,17 @@ msgstr "Minuten"
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes After"
-msgstr ""
+msgstr "Minuten danach"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes Before"
-msgstr ""
+msgstr "Minuten vorher"
 
 #. Label of the minutes_offset (Int) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes Offset"
-msgstr ""
+msgstr "Minuten Versatz"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:103
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:108
@@ -15792,11 +15792,11 @@ msgstr "Fehlender Wert"
 #: frappe/public/js/workflow_builder/store.js:97
 #: frappe/workflow/doctype/workflow/workflow.js:71
 msgid "Missing Values Required"
-msgstr "Angaben zu fehlenden Werten erforderlich"
+msgstr "Fehlende Werte erforderlich"
 
 #: frappe/www/login.py:107
 msgid "Mobile"
-msgstr "Mobil"
+msgstr "Mobiltelefon"
 
 #. Label of the mobile_no (Data) field in DocType 'Contact'
 #. Label of the mobile_no (Data) field in DocType 'User'
@@ -15931,7 +15931,7 @@ msgstr "Module"
 #. Label of the modules_html (HTML) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Modules HTML"
-msgstr "Modul-HTML"
+msgstr "Modul HTML"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -15988,7 +15988,7 @@ msgstr "Monatlich"
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Monthly Long"
-msgstr "Monatlich lang"
+msgstr "Monatlich Lang"
 
 #: frappe/public/js/frappe/form/link_selector.js:39
 #: frappe/public/js/frappe/form/multi_select_dialog.js:45
@@ -16005,7 +16005,7 @@ msgstr "Weiter"
 #. Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "More Info"
-msgstr "Weitere Informationen"
+msgstr "Weitere Info"
 
 #. Label of the more_info (Section Break) field in DocType 'Contact'
 #. Label of the additional_info (Section Break) field in DocType 'Activity Log'
@@ -16088,7 +16088,7 @@ msgstr "Gehe zu Zeilennummer"
 #. Description of the 'Next on Click' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Move to next step when clicked inside highlighted area."
-msgstr "Zum nächsten Schritt bewegen, wenn innerhalb des markierten Bereichs geklickt wird."
+msgstr "Zum nächsten Schritt gehen, wenn innerhalb des markierten Bereichs geklickt wird."
 
 #. Description of the 'Parent Element Selector' (Data) field in DocType 'Form
 #. Tour Step'
@@ -16583,7 +16583,7 @@ msgstr "Nächste 30 Tage"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:704
 msgid "Next 6 Months"
-msgstr ""
+msgstr "Nächste 6 Monate"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:680
 msgid "Next 7 Days"
@@ -16612,11 +16612,11 @@ msgstr "Nächste Formular-Tour"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:696
 msgid "Next Month"
-msgstr ""
+msgstr "Nächster Monat"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:700
 msgid "Next Quarter"
-msgstr ""
+msgstr "Nächstes Quartal"
 
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -16646,7 +16646,7 @@ msgstr "Nächstes Synchronisierungstoken"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:692
 msgid "Next Week"
-msgstr ""
+msgstr "Nächste Woche"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:708
 msgid "Next Year"
@@ -19714,7 +19714,7 @@ msgstr "Druck-Kopfzeile"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide"
-msgstr "Beim Drucken verbergen"
+msgstr "Drucken ausblenden"
 
 #. Label of the print_hide_if_no_value (Check) field in DocType 'DocField'
 #. Label of the print_hide_if_no_value (Check) field in DocType 'Custom Field'
@@ -19724,7 +19724,7 @@ msgstr "Beim Drucken verbergen"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide If No Value"
-msgstr "Druck verbergen wenn ohne Wert"
+msgstr "Drucken ausblenden wenn kein Wert"
 
 #: frappe/public/js/frappe/views/communication.js:165
 msgid "Print Language"
@@ -24564,7 +24564,7 @@ msgstr "Beginnt am"
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "State"
-msgstr "Bundesland"
+msgstr ""
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:24
 msgid "State Properties"
