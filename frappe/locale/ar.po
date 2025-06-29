@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-06-29 17:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -24354,7 +24354,7 @@ msgstr "يبدأ يوم"
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "State"
-msgstr "حالة"
+msgstr ""
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:24
 msgid "State Properties"
