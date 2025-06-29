@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-28 17:46\n"
+"PO-Revision-Date: 2025-06-29 17:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5598,7 +5598,7 @@ msgstr "Kunde inte mappa kolumn {0} till fält {1}"
 
 #: frappe/database/query.py:564
 msgid "Could not parse field: {0}"
-msgstr "Kunde inte tolka fält: {0}"
+msgstr "Kunde inte parsa fält: {0}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up: "
@@ -9272,7 +9272,7 @@ msgstr "Fel i {0}.get_list: {1}"
 
 #: frappe/database/query.py:231
 msgid "Error parsing nested filters: {0}"
-msgstr "Fel vid tolkning av nästlade filter: {0}"
+msgstr "Fel vid parsning av nästlade filter: {0}"
 
 #: frappe/email/doctype/email_account/email_account.py:670
 msgid "Error while connecting to email account {0}"
