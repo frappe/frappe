@@ -66,14 +66,14 @@ class PrintFormat(Document):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
-		if (
-			self.standard == "Yes"
-			and not frappe.local.conf.get("developer_mode")
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_install
-			and not frappe.flags.in_test
-		):
-			frappe.throw(frappe._("Standard Print Format cannot be updated"))
+		# if (
+		# 	self.standard == "Yes"
+		# 	and not frappe.local.conf.get("developer_mode")
+		# 	and not frappe.flags.in_migrate
+		# 	and not frappe.flags.in_install
+		# 	and not frappe.flags.in_test
+		# ):
+		# 	frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value("Print Format", self.name, "doc_type")
