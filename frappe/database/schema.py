@@ -347,7 +347,7 @@ class DbColumn:
 			if cur_default in ("", None) and self.default in ("", None):
 				return False
 
-			elif cur_default and flt(cur_default) == 0.0 and self.default in ("", None, 0.0):
+			elif flt(cur_default) == 0.0 and flt(self.default) == 0.0:
 				return False
 
 			elif cur_default in ("", None):
