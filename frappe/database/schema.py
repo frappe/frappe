@@ -331,6 +331,8 @@ class DbColumn:
 			elif fieldtype in ["Currency", "Float", "Percent"]:
 				cur_default = flt(cur_default)
 				new_default = flt(new_default)
+			elif fieldtype == "Time":
+				return self.default_changed_for_time(cur_default, new_default)
 			elif db_field_type and db_field_type[0] in ("varchar", "longtext", "text"):
 				new_default = cstr(new_default)
 				if not current_def.get("not_nullable"):
@@ -369,6 +371,24 @@ class DbColumn:
 				return float(cur_default) != float(self.default)
 		except TypeError:
 			return True
+
+	def default_changed_for_time(self, cur_default: str, new_default: str):
+		from datetime import datetime
+
+		# Normalize time values to HH:MM:SS.ssssss format, from formats: HH:MM:SS.ssssss, HH:MM:SS, HH:MM
+		def normalize_time(val):
+			if not val:
+				return None
+			for fmt in ("%H:%M:%S.%f", "%H:%M:%S", "%H:%M"):
+				try:
+					return datetime.strptime(val, fmt).time().strftime("%H:%M:%S.%f")
+				except ValueError:
+					continue
+			return val
+
+		cur = normalize_time(cur_default)
+		new = normalize_time(new_default)
+		return cur != new
 
 
 def validate_column_name(n):
