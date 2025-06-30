@@ -354,7 +354,7 @@ def export_query():
 		from frappe.utils.xlsxutils import handle_html
 
 		content = get_csv_bytes(
-			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
 			csv_params,
 		)
 		file_extension = "csv"
