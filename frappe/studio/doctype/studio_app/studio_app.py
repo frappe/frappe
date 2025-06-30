@@ -4,7 +4,6 @@ import json
 import os
 
 import frappe
-from frappe.model.document import Document
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -118,6 +117,8 @@ class StudioApp(WebsiteGenerator):
 
 			# find the entry point for a studio app
 			entry_key = f"renderer-{self.name}.js"
+			entry_key = next((key for key in manifest if key.endswith(entry_key)), entry_key)
+
 			entry = manifest[entry_key]
 			base_path = f"/assets/studio/frontend/builds/{self.name}/"
 			result = {
