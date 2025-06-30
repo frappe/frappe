@@ -47,11 +47,10 @@
 						>
 							<template #target="{ togglePopover }">
 								<IconButton
-									:icon="isVariableBound(config.modelValue) ? 'Link2Off' : 'Link2'"
+									:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
 									:label="
 										isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'
 									"
-									iconComponent="LucideIcon"
 									placement="bottom"
 									@click="
 										() => {
@@ -145,6 +144,8 @@ import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
+import Link2 from "~icons/lucide/link-2"
+import Link2Off from "~icons/lucide/link-2-off"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"

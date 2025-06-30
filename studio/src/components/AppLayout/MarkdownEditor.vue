@@ -11,7 +11,7 @@
 					@click="applyFormat(tool)"
 					:title="`${tool.title} ${tool.shortcut ? `(${tool.shortcut})` : ''}`"
 				>
-					<LucideIcon :name="tool.icon" class="h-3 w-3" />
+					<component :is="tool.icon" class="h-3 w-3" />
 				</Button>
 			</div>
 
@@ -27,13 +27,26 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue"
-import LucideIcon from "@/components/LucideIcon.vue"
 import { useDark } from "@vueuse/core"
 import { marked } from "marked"
 import ace from "ace-builds"
 import "ace-builds/src-min-noconflict/mode-markdown"
 import "ace-builds/src-min-noconflict/theme-chrome"
 import "ace-builds/src-min-noconflict/theme-twilight"
+
+import LucideBold from "~icons/lucide/bold"
+import LucideItalic from "~icons/lucide/italic"
+import LucideHeading1 from "~icons/lucide/heading-1"
+import LucideHeading2 from "~icons/lucide/heading-2"
+import LucideHeading3 from "~icons/lucide/heading-3"
+import LucideQuote from "~icons/lucide/quote"
+import LucideCode from "~icons/lucide/code"
+import LucideLink from "~icons/lucide/link"
+import LucideImage from "~icons/lucide/image"
+import LucideList from "~icons/lucide/list"
+import LucideListOrdered from "~icons/lucide/list-ordered"
+import LucideMinus from "~icons/lucide/minus"
+import LucideCornerDownLeft from "~icons/lucide/corner-down-left"
 
 import type { MarkdownEditorProps } from "@/types/studio_components/MarkdownEditor"
 
@@ -58,19 +71,40 @@ type Tool = {
 	shortcut: string
 }
 const tools = ref<Tool[]>([
-	{ id: "bold", icon: "Bold", title: "Bold", prefix: "**", suffix: "**", shortcut: "Ctrl+B" },
-	{ id: "italic", icon: "Italic", title: "Italic", prefix: "_", suffix: "_", shortcut: "Ctrl+I" },
-	{ id: "h1", icon: "Heading1", title: "Heading 1", prefix: "# ", suffix: "", shortcut: "Ctrl+1" },
-	{ id: "h2", icon: "Heading2", title: "Heading 2", prefix: "## ", suffix: "", shortcut: "Ctrl+2" },
-	{ id: "h3", icon: "Heading3", title: "Heading 3", prefix: "### ", suffix: "", shortcut: "Ctrl+3" },
-	{ id: "quote", icon: "Quote", title: "Quote", prefix: "> ", suffix: "", shortcut: "Ctrl+Q" },
-	{ id: "code", icon: "Code", title: "Code Block", prefix: "```\n", suffix: "\n```", shortcut: "Ctrl+K" },
-	{ id: "link", icon: "Link", title: "Link", prefix: "[", suffix: "](url)", shortcut: "Ctrl+L" },
-	{ id: "image", icon: "Image", title: "Image", prefix: "![", suffix: "](url)", shortcut: "Ctrl+P" },
-	{ id: "list", icon: "List", title: "List", prefix: "- ", suffix: "", shortcut: "Ctrl+U" },
-	{ id: "olist", icon: "ListOrdered", title: "Numbered List", prefix: "1. ", suffix: "", shortcut: "Ctrl+O" },
-	{ id: "hr", icon: "Minus", title: "Horizontal Rule", prefix: "\n---\n", suffix: "", shortcut: "Ctrl+R" },
-	{ id: "br", icon: "CornerDownLeft", title: "Line Break", prefix: "", suffix: "", shortcut: "Ctrl+Enter" },
+	{ id: "bold", icon: LucideBold, title: "Bold", prefix: "**", suffix: "**", shortcut: "Ctrl+B" },
+	{ id: "italic", icon: LucideItalic, title: "Italic", prefix: "_", suffix: "_", shortcut: "Ctrl+I" },
+	{ id: "h1", icon: LucideHeading1, title: "Heading 1", prefix: "# ", suffix: "", shortcut: "Ctrl+1" },
+	{ id: "h2", icon: LucideHeading2, title: "Heading 2", prefix: "## ", suffix: "", shortcut: "Ctrl+2" },
+	{ id: "h3", icon: LucideHeading3, title: "Heading 3", prefix: "### ", suffix: "", shortcut: "Ctrl+3" },
+	{ id: "quote", icon: LucideQuote, title: "Quote", prefix: "> ", suffix: "", shortcut: "Ctrl+Q" },
+	{ id: "code", icon: LucideCode, title: "Code Block", prefix: "```\n", suffix: "\n```", shortcut: "Ctrl+K" },
+	{ id: "link", icon: LucideLink, title: "Link", prefix: "[", suffix: "](url)", shortcut: "Ctrl+L" },
+	{ id: "image", icon: LucideImage, title: "Image", prefix: "![", suffix: "](url)", shortcut: "Ctrl+P" },
+	{ id: "list", icon: LucideList, title: "List", prefix: "- ", suffix: "", shortcut: "Ctrl+U" },
+	{
+		id: "olist",
+		icon: LucideListOrdered,
+		title: "Numbered List",
+		prefix: "1. ",
+		suffix: "",
+		shortcut: "Ctrl+O",
+	},
+	{
+		id: "hr",
+		icon: LucideMinus,
+		title: "Horizontal Rule",
+		prefix: "\n---\n",
+		suffix: "",
+		shortcut: "Ctrl+R",
+	},
+	{
+		id: "br",
+		icon: LucideCornerDownLeft,
+		title: "Line Break",
+		prefix: "",
+		suffix: "",
+		shortcut: "Ctrl+Enter",
+	},
 ])
 
 const compiledMarkdown = computed(() => {

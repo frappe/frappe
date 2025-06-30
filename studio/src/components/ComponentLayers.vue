@@ -32,7 +32,7 @@
 								class="h-3 w-3"
 								@click.stop="toggleExpanded(element)"
 							/>
-							<LucideIcon :name="element.getIcon()" class="h-3 w-3" />
+							<component :is="element.getIcon()" class="h-3 w-3" />
 							<span
 								class="min-h-[1em] min-w-[2em] truncate"
 								:contenteditable="element.editable"
@@ -103,7 +103,6 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
-import LucideIcon from "./LucideIcon.vue"
 import SlotIcon from "@/components/Icons/SlotIcon.vue"
 import type { Slot } from "@/types"
 
