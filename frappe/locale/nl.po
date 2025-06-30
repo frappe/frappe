@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-06-30 18:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid " to your browser"
-msgstr "naar uw browser"
+msgstr " naar uw browser"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -32,7 +32,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr ""
+msgstr "Bedrijfsgeschiedenis"
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -50,7 +50,7 @@ msgstr ""
 
 #: frappe/utils/csvutils.py:246
 msgid "\"{0}\" is not a valid Google Sheets URL"
-msgstr ""
+msgstr "&quot;{0}&quot; is geen geldige Google Spreadsheets-URL"
 
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:21
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:22
@@ -59,16 +59,16 @@ msgstr ""
 
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:36
 msgid "${values.doctype_name} has been added to queue for optimization"
-msgstr ""
+msgstr "${values.doctype_name} is toegevoegd aan de wachtrij voor optimalisatie"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "&copy; Frappe Technologies Pvt. Ltd. and contributors"
-msgstr ""
+msgstr "&copy; Frappe Technologies Pvt. Ltd. en bijdragers"
 
 #. Label of the head_html (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "&lt;head&gt; HTML"
-msgstr ""
+msgstr "&lt;head&gt; HTML"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
@@ -76,7 +76,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1354
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr ""
+msgstr "&#39;In Global Search&#39; niet toegestaan voor type {0} in rij {1}"
 
 #: frappe/public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -88,7 +88,7 @@ msgstr "'In lijst weergave' niet toegestaan voor type {0} in rij {1}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:156
 msgid "'Recipients' not specified"
-msgstr ""
+msgstr "&#39;Ontvangers&#39; niet gespecificeerd"
 
 #: frappe/utils/__init__.py:256
 msgid "'{0}' is not a valid URL"
@@ -96,15 +96,15 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1348
 msgid "'{0}' not allowed for type {1} in row {2}"
-msgstr ""
+msgstr "&#39;{0}&#39; niet toegestaan voor type {1} in rij {2}"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:302
 msgid "(Mandatory)"
-msgstr ""
+msgstr "(Verplicht)"
 
 #: frappe/model/rename_doc.py:704
 msgid "** Failed: {0} to {1}: {2}"
-msgstr ""
+msgstr "** Mislukt: {0} tot {1}: {2}"
 
 #: frappe/public/js/frappe/list/list_settings.js:135
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:111
@@ -120,11 +120,11 @@ msgstr ""
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "0 is highest"
-msgstr ""
+msgstr "0 is het hoogst"
 
 #: frappe/public/js/frappe/form/grid_row.js:876
 msgid "1 = True & 0 = False"
-msgstr ""
+msgstr "1 = Waar & 0 = Onwaar"
 
 #. Description of the 'Fraction Units' (Int) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -134,7 +134,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/reminders.js:19
 msgid "1 Day"
-msgstr ""
+msgstr "1 dag"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:374
 msgid "1 Google Calendar Event synced."
@@ -142,7 +142,7 @@ msgstr "1 Google Agenda-evenement gesynchroniseerd."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:953
 msgid "1 Report"
-msgstr ""
+msgstr "1 rapport"
 
 #: frappe/website/doctype/blog_post/blog_post.py:380
 msgid "1 comment"
@@ -150,11 +150,11 @@ msgstr "1 reactie"
 
 #: frappe/tests/test_utils.py:711
 msgid "1 day ago"
-msgstr ""
+msgstr "1 dag geleden"
 
 #: frappe/public/js/frappe/form/reminders.js:17
 msgid "1 hour"
-msgstr ""
+msgstr "1 uur"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:52
 #: frappe/tests/test_utils.py:709
@@ -173,7 +173,7 @@ msgstr "1 maand geleden"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "1 van 2"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -181,7 +181,7 @@ msgstr "1 record wordt geëxporteerd"
 
 #: frappe/tests/test_utils.py:706
 msgid "1 second ago"
-msgstr ""
+msgstr "1 seconde geleden"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:62
 #: frappe/tests/test_utils.py:713
@@ -195,31 +195,31 @@ msgstr "1 jaar geleden"
 
 #: frappe/tests/test_utils.py:710
 msgid "2 hours ago"
-msgstr ""
+msgstr "2 uur geleden"
 
 #: frappe/tests/test_utils.py:716
 msgid "2 months ago"
-msgstr ""
+msgstr "2 maanden geleden"
 
 #: frappe/tests/test_utils.py:714
 msgid "2 weeks ago"
-msgstr ""
+msgstr "2 weken geleden"
 
 #: frappe/tests/test_utils.py:718
 msgid "2 years ago"
-msgstr ""
+msgstr "2 jaren geleden"
 
 #: frappe/tests/test_utils.py:708
 msgid "3 minutes ago"
-msgstr ""
+msgstr "3 minuten geleden"
 
 #: frappe/public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minuten"
 
 #: frappe/public/js/frappe/form/reminders.js:18
 msgid "4 hours"
-msgstr ""
+msgstr "4 uren"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
@@ -227,7 +227,7 @@ msgstr "5 records"
 
 #: frappe/tests/test_utils.py:712
 msgid "5 days ago"
-msgstr ""
+msgstr "5 dagen geleden"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:36
 msgid "; not allowed in condition"
@@ -237,17 +237,17 @@ msgstr "; niet toegelaten in conditie"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr ""
+msgstr "<="
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:601
 msgid "<b>{0}</b> is not a valid URL"
-msgstr ""
+msgstr "<b>{0}</b> is geen geldige URL"
 
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -578,7 +578,7 @@ msgstr "Een nieuw account is aangemaakt voor u op {0}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:400
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
-msgstr ""
+msgstr "Er is een terugkerende {0} {1} voor u gemaakt via Auto Repeat {2}."
 
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -771,7 +771,7 @@ msgstr ""
 #: frappe/core/doctype/access_log/access_log.json
 #: frappe/core/workspace/users/users.json
 msgid "Access Log"
-msgstr ""
+msgstr "Toegangslogboek"
 
 #. Label of the access_token (Data) field in DocType 'OAuth Bearer Token'
 #. Label of the access_token (Password) field in DocType 'Token Cache'
@@ -787,13 +787,13 @@ msgstr ""
 
 #: frappe/auth.py:491
 msgid "Access not allowed from this IP Address"
-msgstr ""
+msgstr "Toegang niet toegestaan vanaf dit IP-adres"
 
 #. Label of the account_section (Section Break) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Account"
-msgstr ""
+msgstr "Rekening"
 
 #. Label of the account_deletion_settings_section (Section Break) field in
 #. DocType 'Website Settings'
@@ -814,7 +814,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr ""
+msgstr "Gebruikersaccounts"
 
 #: frappe/public/js/frappe/form/dashboard.js:510
 msgid "Accurate count can not be fetched, click here to view all documents"
@@ -939,7 +939,7 @@ msgstr ""
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/www/third_party_apps.html:34
 msgid "Active Sessions"
-msgstr ""
+msgstr "Actieve Sessies"
 
 #. Group in User's connections
 #: frappe/core/doctype/user/user.json
@@ -1224,15 +1224,15 @@ msgstr ""
 #: frappe/public/js/frappe/utils/dashboard_utils.js:263
 #: frappe/public/js/frappe/views/reports/query_report.js:251
 msgid "Add to Dashboard"
-msgstr ""
+msgstr "Toevoegen aan dashboard"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:99
 msgid "Add to ToDo"
-msgstr ""
+msgstr "Toevoegen aan taak"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
-msgstr ""
+msgstr "Voeg toe aan tabel"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:99
 msgid "Add to this activity by mailing to {0}"
@@ -1265,7 +1265,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/link_selector.js:180
 #: frappe/public/js/frappe/form/link_selector.js:202
 msgid "Added {0} ({1})"
-msgstr ""
+msgstr "Toegevoegd {0} ({1})"
 
 #. Label of the additional_permissions (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -1288,14 +1288,14 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address"
-msgstr ""
+msgstr "Adres"
 
 #. Label of the address_line1 (Data) field in DocType 'Address'
 #. Label of the address_line1 (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr ""
+msgstr "Adres Lijn 1"
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
@@ -1333,12 +1333,12 @@ msgstr ""
 
 #: frappe/contacts/doctype/address/address.py:206
 msgid "Addresses"
-msgstr ""
+msgstr "Adressen"
 
 #. Name of a report
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.json
 msgid "Addresses And Contacts"
-msgstr ""
+msgstr "Adressen en Contacten"
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -1352,7 +1352,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
-msgstr ""
+msgstr "Toediening"
 
 #. Name of a role
 #: frappe/contacts/doctype/salutation/salutation.json
@@ -1375,7 +1375,7 @@ msgstr ""
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Administrator"
-msgstr ""
+msgstr "Beheerder"
 
 #: frappe/core/doctype/user/user.py:1213
 msgid "Administrator Logged In"
@@ -2464,11 +2464,11 @@ msgstr ""
 
 #: frappe/desk/doctype/notification_log/notification_log.py:153
 msgid "Assignment Update on {0}"
-msgstr ""
+msgstr "Opdrachtupdate op {0}"
 
 #: frappe/desk/form/assign_to.py:78
 msgid "Assignment for {0} {1}"
-msgstr ""
+msgstr "Toewijzing voor {0} {1}"
 
 #: frappe/desk/doctype/todo/todo.py:62
 msgid "Assignment of {0} removed by {1}"
@@ -2479,7 +2479,7 @@ msgstr ""
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:255
 msgid "Assignments"
-msgstr ""
+msgstr "opdrachten"
 
 #: frappe/public/js/frappe/form/grid_row.js:680
 msgid "At least one column is required to show in the grid."
@@ -2508,7 +2508,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:152
 msgid "Attach Document Print"
-msgstr ""
+msgstr "Toevoegen Document Print"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2539,7 +2539,7 @@ msgstr ""
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
-msgstr ""
+msgstr "Voeg bestanden / url's toe en voeg in de tabel toe."
 
 #. Label of the attached_file (Code) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
