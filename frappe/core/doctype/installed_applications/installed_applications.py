@@ -26,6 +26,8 @@ class InstalledApplications(Document):
 	# end: auto-generated types
 
 	def update_versions(self):
+		self.reload_doc_if_required()
+
 		app_wise_setup_details = self.get_app_wise_setup_details()
 
 		self.delete_key("installed_applications")
@@ -63,6 +65,12 @@ class InstalledApplications(Document):
 				as_list=True,
 			)
 		)
+
+	def reload_doc_if_required(self):
+		if frappe.db.has_column("Installed Application", "is_setup_complete"):
+			return
+
+		frappe.reload_doc("core", "doctype", "installed_application")
 
 
 @frappe.whitelist()
