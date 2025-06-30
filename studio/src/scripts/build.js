@@ -1,5 +1,6 @@
 import { FRAPPE_UI_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
 import { writeFileSync } from "fs"
+import fs from "fs"
 import { build } from "vite"
 import vue from "@vitejs/plugin-vue"
 import path from "node:path"
@@ -27,6 +28,7 @@ export async function generateAppBuild(appName, components) {
 	const rendererContent = getRendererContent(componentSources)
 	writeRendererFile(appName, rendererContent)
 	await buildWithVite(appName)
+	cleanupRendererFile(appName)
 }
 
 function findComponentSources(appComponents) {
@@ -138,4 +140,14 @@ async function buildWithVite(appName) {
 	})
 
 	console.log(`Vite build completed for ${appName}`)
+}
+
+function cleanupRendererFile(appName) {
+	const rendererPath = path.resolve(`src/renderer-${appName}.js`)
+	try {
+		fs.unlinkSync(rendererPath)
+		console.log(`Cleanup up temporary renderer file: ${rendererPath}`)
+	} catch (error) {
+		console.warn(`Could not clean up temporary renderer file: ${rendererPath} - ${error.message}`)
+	}
 }
