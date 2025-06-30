@@ -831,7 +831,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(self.meta.get_label(field.fieldname))
+							frappe.bold(_(self.meta.get_label(field.fieldname)))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -1561,7 +1561,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = self.meta.get_label(parentfield)
+			label = _(self.meta.get_label(parentfield))
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
