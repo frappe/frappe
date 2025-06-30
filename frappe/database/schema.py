@@ -316,7 +316,7 @@ class DbColumn:
 		else:
 			cur_default = current_def.get("default")
 			new_default = self.default
-			if cur_default == "NULL":
+			if cur_default == "NULL" or cur_default is None:
 				cur_default = None
 			else:
 				# Strip quotes from default value
