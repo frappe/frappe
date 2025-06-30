@@ -1,17 +1,5 @@
 import { defineAsyncComponent, h, resolveComponent } from "vue"
 import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
-import Header from "@/components/AppLayout/Header.vue"
-import Sidebar from "@/components/AppLayout/Sidebar.vue"
-import SplitView from "@/components/AppLayout/SplitView.vue"
-import Repeater from "@/components/AppLayout/Repeater.vue"
-import CardList from "@/components/AppLayout/CardList.vue"
-import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import Audio from "@/components/AppLayout/Audio.vue"
-import ImageView from "@/components/AppLayout/ImageView.vue"
-import TextBlock from "@/components/AppLayout/TextBlock.vue"
-import AppHeader from "@/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
-import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
@@ -594,13 +582,11 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Repeater",
 		title: "Repeater",
 		icon: LucideRepeat,
-		props: Repeater.props,
 	},
 	Header: {
 		name: "Header",
 		title: "Header",
 		icon: LucideFrame,
-		props: Header.props,
 		initialState: {
 			title: "Frappe",
 			menuItems: [
@@ -613,7 +599,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Sidebar",
 		title: "Sidebar",
 		icon: LucideSidebar,
-		props: Sidebar.props,
 		initialState: {
 			title: "Frappe",
 			menuItems: [
@@ -627,14 +612,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "SplitView",
 		title: "Split View",
 		icon: LucideSquareSplitHorizontal,
-		props: SplitView.props,
 		initialSlots: ["left", "right"],
 	},
 	AvatarCard: {
 		name: "AvatarCard",
 		title: "Avatar Card",
 		icon: LucideImage,
-		props: AvatarCard.props,
 		initialState: {
 			title: "Up&Up",
 			subtitle: "Coldplay",
@@ -645,8 +628,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "CardList",
 		title: "Card List",
 		icon: LucideList,
-		props: CardList.props,
-		emits: CardList.emits,
 		initialState: {
 			title: "Card List",
 			cards: [
@@ -667,7 +648,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Audio",
 		title: "Audio",
 		icon: LucideMusic,
-		props: Audio.props,
 		initialState: {
 			file: "https://cdn.uppbeat.io/audio-output/208/3691/main-version/streaming-previews/STREAMING-achievement-philip-anderson-main-version-01-31-13804.mp3",
 		},
@@ -676,7 +656,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "ImageView",
 		title: "Image View",
 		icon: LucideImage,
-		props: ImageView.props,
 		initialState: {
 			image: "https://blocks.astratic.com/img/general-img-square.png",
 			size: "xs",
@@ -686,7 +665,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "TextBlock",
 		title: "Text Block",
 		icon: LucideType,
-		props: TextBlock.props,
 		initialState: {
 			fontSize: "text-md",
 			fontWeight: "font-normal",
@@ -696,7 +674,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "AppHeader",
 		title: "App Header",
 		icon: LucideFrame,
-		props: AppHeader.props,
 		initialState: {
 			title: "Frappe",
 		},
@@ -705,7 +682,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "BottomTabs",
 		title: "Bottom Tabs",
 		icon: LucideArrowRightLeft,
-		props: BottomTabs.props,
 		initialState: {
 			tabs: [
 				{
@@ -725,7 +701,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "MarkdownEditor",
 		title: "Markdown",
 		icon: LucideFilePenLine,
-		props: MarkdownEditor.props,
 		initialState: {
 			modelValue: "# This is a markdown editor",
 		},
