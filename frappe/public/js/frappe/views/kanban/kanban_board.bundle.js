@@ -27,9 +27,9 @@ const ProjectStatusOptions = {
 };
 
 const KanbanSize = {
-    small: "small",
-    medium: "medium",
-    large: "large"
+	small: "small",
+	medium: "medium",
+	large: "large"
 };
 
 const zoomLevels = {
@@ -378,7 +378,7 @@ const columnsByMechanic = {
 						return countByColumn;
 					} else return ''
 				},
-				update_kanban_size_range: function(context, value){
+				update_kanban_size_range: function (context, value) {
 					context.state.kanban_size_range = value
 				},
 			},
@@ -446,7 +446,7 @@ const columnsByMechanic = {
 				return state.empty_state;
 			}, show_empty_state);
 
-			store.watch((state)=>{
+			store.watch((state) => {
 				update_kanban_size(state.kanban_size_range)
 				return state.kanban_size_range
 			})
@@ -643,7 +643,7 @@ const columnsByMechanic = {
 			}
 		}
 
-		function update_kanban_size(size){
+		function update_kanban_size(size) {
 			kanban_size = size
 		}
 
@@ -686,7 +686,7 @@ const columnsByMechanic = {
 		}
 
 		let loading = false
-		function make_dom(call=false) {
+		function make_dom(call = false) {
 			self.$kanban_column = $(
 				frappe.render_template("kanban_column", {
 					title: column.title,
@@ -732,7 +732,7 @@ const columnsByMechanic = {
 					}
 				})
 			}
-			if(call){
+			if (call) {
 				frappe.call({
 					method: 'frappe.desk.reportview.get',
 					args: {
@@ -755,9 +755,9 @@ const columnsByMechanic = {
 		// Función para filtrar y ordenar los proyectos
 		function filterAndSortProjects(cards) {
 			return cards
-			.filter(card => card.column !== 'In queue' && card.column !== 'In parking')
-			// Ordenar los resultados por doc.modified (de más viejo a más nuevo)
-			.sort((a, b) => new Date(a.status_modified) - new Date(b.status_modified));
+				.filter(card => card.column !== 'In queue' && card.column !== 'In parking')
+				// Ordenar los resultados por doc.modified (de más viejo a más nuevo)
+				.sort((a, b) => new Date(a.status_modified) - new Date(b.status_modified));
 		}
 
 
@@ -811,7 +811,7 @@ const columnsByMechanic = {
 				onEnd: async function (e) {
 					wrapper.find(".kanban-card.add-card").fadeIn(100);
 					wrapper.find(".kanban-cards").height("auto");
-					
+
 					// update order
 					const args = {
 						name: decodeURIComponent($(e.item).attr("data-name")),
@@ -828,10 +828,10 @@ const columnsByMechanic = {
 						store.dispatch("update_order_for_single_card", args);
 						return;
 					}
-					
+
 					// Validate transitions based on destination column
 					let validationPassed = true;
-					
+
 					// Quality check approved validation
 					if (args.to_colname === "Quality check approved") {
 						await validate_project_quotations_and_requirements(args)
@@ -843,7 +843,7 @@ const columnsByMechanic = {
 								validationPassed = false;
 							});
 					}
-					
+
 					// Completed validation
 					if (args.to_colname === "Completed") {
 						await validate_project_loan_car(args)
@@ -855,12 +855,12 @@ const columnsByMechanic = {
 								validationPassed = false;
 							});
 					}
-					
+
 					// Remote diagnose to Completed special case
 					if (args.from_colname === "Remote diagnose" && args.to_colname === "Completed") {
 						showSentMessageAfterRemoteDiagnoseDialog(args.name);
 					}
-					
+
 					// Only update if all validations passed
 					if (validationPassed) {
 						store.dispatch("update_order_for_single_card", args);
@@ -1029,11 +1029,15 @@ const columnsByMechanic = {
 			}
 
 			if (card.column === ProjectStatusOptions.RemoteDiagnose) {
-				render_fields.push(...['remote_diagnostic_date','remote_diagnostic_time']);
+				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time']);
 			}
 
 			if (![ProjectStatusOptions.InQueue, ProjectStatusOptions.InParking].includes(card.column)) {
 				render_fields = render_fields.filter(field => field !== "queue_position");
+			}
+
+			if(card.column === ProjectStatusOptions.InQueue) {
+				render_fields = render_fields.filter(field => field !== "parking_date")
 			}
 
 			for (let field_name of render_fields) {
@@ -1077,7 +1081,7 @@ const columnsByMechanic = {
 			const $assignees_group = get_assignees_group();
 
 			// if(kanban_size == KanbanSize.large){
-				html += `<span class="kanban-assignments"></span>${cur_list.get_like_html(card)}`;
+			html += `<span class="kanban-assignments"></span>${cur_list.get_like_html(card)}`;
 			// }
 
 			if (card.conversation) {
@@ -1106,15 +1110,15 @@ const columnsByMechanic = {
 			}
 			html += '</div>'
 
-				self.$card
+			self.$card
 				.find(".kanban-card-meta")
 				.empty()
 				.append(html);
 
 			// if (kanban_size == KanbanSize.large) {
-				self.$card
-					.find(".kanban-assignments")
-					.append($assignees_group);
+			self.$card
+				.find(".kanban-assignments")
+				.append($assignees_group);
 			// }
 		}
 
@@ -1164,7 +1168,7 @@ const columnsByMechanic = {
 				[QuotationStatus.PaymentReady]: { color: '#005bed' }
 			}
 
-			if(status === "No") return ''
+			if (status === "No") return ''
 
 			return `<i class="fa fa-file ${opts[status]?.class ?? ''}" style="color:${opts[status]?.color ?? 'red'}" title="${status}"></i>`;
 		}
@@ -1323,11 +1327,11 @@ const columnsByMechanic = {
 		return differenceInDays >= 1;
 	}
 
-	async function last_message_from_customer(phone_numbers){
+	async function last_message_from_customer(phone_numbers) {
 		const conversations = await frappe.db.get_list('Conversation', {
-			filters:{
-					from: ["in", phone_numbers],
-					last_message_from_customer: 1
+			filters: {
+				from: ["in", phone_numbers],
+				last_message_from_customer: 1
 			},
 			fields: ["from"],
 		})
@@ -1487,7 +1491,7 @@ const columnsByMechanic = {
 		const settings = await frappe
 			.call("frappe.desk.form.load.getdoc", { doctype: "User", name: user })
 			.then((r) => {
-			return r.docs && r.docs.length ? r.docs[0] : {size_kanban: KanbanSize.large}
+				return r.docs && r.docs.length ? r.docs[0] : { size_kanban: KanbanSize.large }
 			});
 		const value = settings.size_kanban ?? KanbanSize.large
 		store.dispatch("update_kanban_size_range", value)
@@ -1499,12 +1503,12 @@ const columnsByMechanic = {
 		return value
 	}
 
-	function setup_zoom_component(){
+	function setup_zoom_component() {
 		const zoomSlider = document.getElementById('zoom-slider');
 		const zoomIn = document.getElementById('zoom-icon-in');
 		const zoomOut = document.getElementById('zoom-icon-out');
 
-		setTimeout(()=>{},1000)
+		setTimeout(() => { }, 1000)
 		zoomIn.addEventListener('click', () => {
 			if (zoomSlider.value < 3) {
 				zoomSlider.value = parseInt(zoomSlider.value) + 1;
@@ -1594,7 +1598,7 @@ const columnsByMechanic = {
 		return zoomState;
 	}
 
-	function validate_project_quotations_and_requirements(args){
+	function validate_project_quotations_and_requirements(args) {
 		return new Promise(async (resolve, reject) => {
 			const project = await frappe.db.get_doc('Project', args.name)
 			const incomplete_requirements = project.requirements.filter(requirement => !requirement.completed)
@@ -1609,7 +1613,7 @@ const columnsByMechanic = {
 				fields: ["name", "status"]
 			})
 
-			if(!quotations?.length && !incomplete_requirements.length) {
+			if (!quotations?.length && !incomplete_requirements.length) {
 				resolve()
 				return
 			}
@@ -1618,11 +1622,11 @@ const columnsByMechanic = {
 		})
 	}
 
-	function validate_project_loan_car(args){
+	function validate_project_loan_car(args) {
 		return new Promise(async (resolve, reject) => {
-			const loan_car = await frappe.db.get_list('Loan car', { fields: ["name", "status"], filters: [["project", "=", args.name],["status", "!=", "Paid"], ["status", "!=", "Done"], ["status", "!=", "Cancelled"]] })
+			const loan_car = await frappe.db.get_list('Loan car', { fields: ["name", "status"], filters: [["project", "=", args.name], ["status", "!=", "Paid"], ["status", "!=", "Done"], ["status", "!=", "Cancelled"]] })
 
-			if(!loan_car.length) {
+			if (!loan_car.length) {
 				resolve()
 				return
 			}
@@ -1638,12 +1642,12 @@ const columnsByMechanic = {
 			title: 'Confirm',
 			fields: buildFields(args, quotations, incomplete_requirements),
 			primary_action_label: 'Confirm',
-			primary_action: function() {
+			primary_action: function () {
 				dialog.hide();
 				resolve()
 			},
 			secondary_action_label: 'Cancel',
-			secondary_action: function() {
+			secondary_action: function () {
 				frappe.db.set_value("Project", args.name, "status", args.from_colname)
 				reject()
 				dialog.hide();
@@ -1656,7 +1660,7 @@ const columnsByMechanic = {
 		dialog.show();
 	}
 
-	function buildFields(args, quotations, incomplete_requirements){
+	function buildFields(args, quotations, incomplete_requirements) {
 		const quotation_fields = [
 			{
 				fieldtype: 'HTML',
@@ -1698,11 +1702,11 @@ const columnsByMechanic = {
 
 		let fields = []
 
-		if(quotations.length){
+		if (quotations.length) {
 			fields.push(...quotation_fields)
 		}
 
-		if(incomplete_requirements.length){
+		if (incomplete_requirements.length) {
 			fields.push(...requirements_fields)
 		}
 
@@ -1721,7 +1725,7 @@ const columnsByMechanic = {
 				},
 			],
 			primary_action_label: 'Yes',
-			primary_action: async function() {
+			primary_action: async function () {
 				const { aws_url } = await frappe.db.get_doc("Whatsapp Config")
 				await frappe.call({
 					method: 'frappe.desk.doctype.kanban_board.kanban_board.call_send_whatsapp_message',
@@ -1730,7 +1734,7 @@ const columnsByMechanic = {
 				dialog.hide();
 			},
 			secondary_action_label: 'No',
-			secondary_action: function() {
+			secondary_action: function () {
 				dialog.hide();
 			}
 		});
@@ -1738,7 +1742,7 @@ const columnsByMechanic = {
 		dialog.show();
 	}
 
-	function showLoanCarNotPaidAlert(loan_car, reject){
+	function showLoanCarNotPaidAlert(loan_car, reject) {
 		const dialog = new frappe.ui.Dialog({
 			title: 'Loan Car Alert',
 			fields: [
@@ -1748,7 +1752,7 @@ const columnsByMechanic = {
 				},
 			],
 			primary_action_label: 'Ok',
-			primary_action: function() {
+			primary_action: function () {
 				reject()
 				dialog.hide();
 			},
