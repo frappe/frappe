@@ -59,12 +59,22 @@ def check_app_permission() -> bool:
 
 @frappe.whitelist()
 def get_app_components(app_name: str) -> set[str]:
+	import re
+
 	pages = frappe.get_all(
 		"Studio Page",
 		filters=dict(studio_app=app_name, published=1),
 		pluck="blocks",
 	)
 	components = set()
+
+	def add_h_function_components(text: str) -> set[str]:
+		"""Extract component names from h(ComponentName...) function calls"""
+		pattern = r"\bh\(\s*([A-Z][a-zA-Z0-9_]*)"
+
+		matches = re.findall(pattern, text)
+		for match in matches:
+			components.add(match)
 
 	def add_blocks(block: dict):
 		if block.get("componentName") not in NON_VUE_COMPONENTS:
@@ -81,6 +91,7 @@ def get_app_components(app_name: str) -> set[str]:
 
 	for blocks in pages:
 		if isinstance(blocks, str):
+			add_h_function_components(blocks)
 			blocks = frappe.parse_json(blocks)
 		root_block = blocks[0]
 		add_blocks(root_block)
