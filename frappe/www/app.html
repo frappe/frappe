@@ -51,7 +51,7 @@
 
 			if (!window.frappe) window.frappe = {};
 
-			frappe.boot = {{ boot | json }};
+			frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
 			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
 

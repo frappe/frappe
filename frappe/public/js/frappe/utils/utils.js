@@ -1787,7 +1787,6 @@ Object.assign(frappe.utils, {
 			__("Generate Tracking URL")
 		);
 	},
-
 	/**
 	 * Checks if a value is empty.
 	 *

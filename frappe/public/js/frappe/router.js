@@ -170,7 +170,11 @@ frappe.router = {
 			// private workspace
 			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
 			if (!frappe.workspaces[private_workspace]) {
-				frappe.msgprint(__("Workspace <b>{0}</b> does not exist", [route[1]]));
+				frappe.msgprint(
+					__("Workspace <b>{0}</b> does not exist", [
+						frappe.utils.xss_sanitise(route[1]),
+					])
+				);
 				return ["Workspaces"];
 			}
 			route = ["Workspaces", "private", frappe.workspaces[private_workspace].name];

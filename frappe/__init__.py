@@ -34,6 +34,7 @@ from typing import (
 )
 
 import click
+import orjson
 from werkzeug.datastructures import Headers
 
 import frappe
@@ -743,7 +744,7 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 	:param roles: Permitted role(s)
 	"""
 
-	if in_test or local.session.user == "Administrator":
+	if local.session.user == "Administrator":
 		return
 
 	if isinstance(roles, str):
@@ -1265,7 +1266,7 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 	if not db:
 		connect()
 
-	installed = json.loads(db.get_global("installed_apps") or "[]")
+	installed = orjson.loads(db.get_global("installed_apps") or "[]")
 
 	if _ensure_on_bench:
 		all_apps = cache.get_value("all_apps", get_all_apps)
@@ -1601,7 +1602,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	if not in_test:
 		fields_to_clear.append("docstatus")
 
-	if isinstance(doc, BaseDocument) or hasattr(doc, "as_dict"):
+	if isinstance(doc, BaseDocument):
 		d = doc.as_dict()
 	elif isinstance(doc, MappingProxyType):  # global test record
 		d = dict(doc)

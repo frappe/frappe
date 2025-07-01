@@ -372,6 +372,7 @@ def run_tests(
 )
 @click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
 @click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
+@click.option("--lightmode", is_flag=True, default=False, help="Skips all before test setup")
 @pass_context
 def run_parallel_tests(
 	context: CliCtxObj,
@@ -381,6 +382,7 @@ def run_parallel_tests(
 	with_coverage=False,
 	use_orchestrator=False,
 	dry_run=False,
+	lightmode=False,
 ):
 	from traceback_with_variables import activate_by_import
 
@@ -401,6 +403,7 @@ def run_parallel_tests(
 				build_number=build_number,
 				total_builds=total_builds,
 				dry_run=dry_run,
+				lightmode=lightmode,
 			)
 		mode = "Orchestrator" if use_orchestrator else "Parallel"
 		banner = f"""

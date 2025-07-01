@@ -175,7 +175,6 @@ frappe.ui.toolbar.Toolbar = class {
 				frappe.utils.generate_tracking_url,
 				__("Generate Tracking URL")
 			);
-
 			if (frappe.model.can_read("RQ Job")) {
 				frappe.search.utils.make_function_searchable(function () {
 					frappe.set_route("List", "RQ Job");

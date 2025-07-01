@@ -5,6 +5,7 @@ import functools
 import logging
 import os
 
+import orjson
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -64,6 +65,11 @@ import frappe.website.router  # Website router
 import frappe.website.website_generator  # web page doctypes
 
 # end: module pre-loading
+
+# better werkzeug default
+# this is necessary because frappe desk sends most requests as form data
+# and some of them can exceed werkzeug's default limit of 500kb
+Request.max_form_memory_size = None
 
 
 def after_response_wrapper(app):
@@ -297,11 +303,9 @@ def set_cors_headers(response):
 
 
 def make_form_dict(request: Request):
-	import json
-
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
-		args = json.loads(request_data)
+		args = orjson.loads(request_data)
 	else:
 		args = {}
 		args.update(request.args or {})
@@ -404,7 +408,7 @@ def sync_database():
 
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
-		session.update()
+		frappe.request.after_response.add(session.update)
 
 
 # Always initialize sentry SDK if the DSN is sent

@@ -29,12 +29,13 @@ TEST_WEIGHT_OVERRIDES = {
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
+	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False):
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
+		self.lightmode = lightmode
 		self.test_file_list = []
 		self.total_test_weight = 0
 		self.test_result = None
@@ -56,8 +57,9 @@ class ParallelTestRunner:
 		toggle_test_mode(True)
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
-		_decorate_all_methods_and_functions_with_type_checker()
-		self.before_test_setup()
+		if not self.lightmode:
+			_decorate_all_methods_and_functions_with_type_checker()
+			self.before_test_setup()
 
 	def before_test_setup(self):
 		start_time = time.monotonic()
@@ -103,9 +105,12 @@ class ParallelTestRunner:
 			frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
-		from frappe.deprecation_dumpster import compat_preload_test_records_upfront
 
-		compat_preload_test_records_upfront([(module, path, filename)])
+		if not self.lightmode:
+			from frappe.deprecation_dumpster import compat_preload_test_records_upfront
+
+			compat_preload_test_records_upfront([(module, path, filename)])
+
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)

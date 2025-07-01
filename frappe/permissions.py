@@ -356,21 +356,34 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	# STEP 1: ---------------------
 	# check user permissions on self
 	if doctype in user_permissions:
-		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
+		doctype_up = user_permissions.get(doctype, [])
+		allowed_docs = get_allowed_docs_for_doctype(doctype_up, doctype)
 
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and docname and str(docname) not in allowed_docs:
-			# no user permissions for this doc specified
-			debug and _debug_log(
-				"User doesn't have access to this document because of User Permissions, allowed documents: "
-				+ str(allowed_docs)
-			)
-			push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
-			return False
-		else:
-			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
+		if allowed_docs:
+			not_permitted = True
+			if doc.meta.is_tree and ptype == "create":
+				if parent := doc.get(doc.nsm_parent_field):
+					doc_hide_descendants = {d.doc: d.hide_descendants for d in doctype_up}
+					for d in _get_parent_and_ancestors(doctype, parent):
+						if d in allowed_docs and not doc_hide_descendants[d]:
+							not_permitted = False
+							break
+			else:
+				not_permitted = not docname or str(docname) not in allowed_docs
+
+			if not_permitted:
+				# no user permissions for this doc specified
+				debug and _debug_log(
+					"User doesn't have access to this document because of User Permissions, allowed documents: "
+					+ str(allowed_docs)
+				)
+				push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
+				return False
+
+		debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
@@ -879,3 +892,11 @@ def handle_does_not_exist_error(fn):
 		return fn(e, *args, **kwargs)
 
 	return wrapper
+
+
+def _get_parent_and_ancestors(doctype, parent):
+	yield parent
+
+	from frappe.utils.nestedset import get_ancestors_of
+
+	yield from get_ancestors_of(doctype, parent)

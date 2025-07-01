@@ -90,3 +90,26 @@ button#update {
 	max-width: 100%;
 	vertical-align: middle;
 }
+.field-icon {
+	left: 9px;
+	top: 5px;
+	position: absolute;
+	z-index: 2;
+	fill: var(--text-light);
+}
+.password-field {
+	position: relative;
+
+	input {
+		padding-left: 35px;
+	}
+
+	.toggle-password {
+		right: 9px;
+		top: 5px;
+		position: absolute;
+		z-index: 2;
+		cursor: pointer;
+		font-size: 12px;
+	}
+}

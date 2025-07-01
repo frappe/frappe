@@ -41,7 +41,10 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 							);
 						},
 						() => {
-							this.parse_validate_and_set_in_model("");
+							frappe.model.clear_doc(this.df.options, row.name);
+
+							this.frm.dirty();
+							this.refresh();
 
 							return this.frm.script_manager.trigger(
 								`${this.df.fieldname}_remove`,

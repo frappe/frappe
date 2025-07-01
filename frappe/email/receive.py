@@ -162,10 +162,14 @@ class EmailServer:
 		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
-		if cint(self.settings.use_imap):
-			self.imap.logout()
-		else:
-			self.pop.quit()
+		try:
+			if cint(self.settings.use_imap):
+				self.imap.logout()
+			else:
+				self.pop.quit()
+		except imaplib.IMAP4.abort:
+			self.connect()
+			self.logout()
 		return
 
 	def get_messages(self, folder="INBOX"):
@@ -280,8 +284,9 @@ class EmailServer:
 		except imaplib.IMAP4.abort:
 			if self.retry_count < self.retry_limit:
 				self.connect()
-				self.get_messages(folder)
 				self.retry_count += 1
+				self.get_messages(folder)
+
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				raise LoginLimitExceeded(e) from e

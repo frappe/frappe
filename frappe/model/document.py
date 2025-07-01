@@ -1201,7 +1201,9 @@ class Document(BaseDocument):
 		self.docstatus = DocStatus.CANCELLED
 		return self.save()
 
-	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
+	def _rename(
+		self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True
+	):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
@@ -1238,7 +1240,7 @@ class Document(BaseDocument):
 		self.run_method("on_discard")
 
 	@frappe.whitelist()
-	def rename(self, name: str, merge=False, force=False, validate_rename=True):
+	def rename(self, name: str | int, merge=False, force=False, validate_rename=True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
