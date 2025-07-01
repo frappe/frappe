@@ -424,7 +424,12 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 			if not dry_run:
 				if doctype.issingle:
+<<<<<<< HEAD
 					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
+=======
+					frappe.delete_doc(doctype.name, doctype.name, ignore_on_trash=True, force=True)
+					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True, force=True)
+>>>>>>> 2118ad737c (fix: Delete single doctypes from DB when uninstalling app (#33180))
 				else:
 					drop_doctypes.append(doctype.name)
 
