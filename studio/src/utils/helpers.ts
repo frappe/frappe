@@ -218,12 +218,13 @@ function jsToJson(obj: ObjectLiteral): string {
 }
 
 function jsonToJs(json: string): any {
+	const registeredComponents = window.__APP_COMPONENTS__ || {}
 	const reviver = (_key: string, value: any) => {
 		// Convert functions back to functions
 		if (typeof value === "string" && value.startsWith("function")) {
 			// provide access to render function & frappeUI lib for editing props
 			const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
-			return newFunc({"h": h})
+			return newFunc({"h": h, ...registeredComponents})
 		}
 		return value
 	}

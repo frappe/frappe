@@ -17,10 +17,12 @@ studio.use(studio_router)
 studio.use(resourcesPlugin)
 studio.use(pinia)
 registerGlobalComponents(studio)
+window.__APP_COMPONENTS__ = studio._context.components
 
 declare global {
 	interface Window {
 		site_url: string
+		__APP_COMPONENTS__: any
 		[key: string]: string
 	}
 }

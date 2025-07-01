@@ -62,13 +62,13 @@ function getRendererContent(componentSources) {
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
 
-	const rendererContent = `import "./index.css"
+	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "./setupFrappeUIResource"
+import "@/setupFrappeUIResource"
 import app_router from "@/router/app_router"
-import AppRenderer from "./AppRenderer.vue"
-import { resourcesPlugin, FeatherIcon } from "frappe-ui"
+import AppRenderer from "@/AppRenderer.vue"
+import { resourcesPlugin } from "frappe-ui"
 
 ${frappeUIImports}
 ${studioImports}
@@ -81,7 +81,7 @@ app.use(pinia)
 app.use(resourcesPlugin)
 
 ${componentRegistrations}
-app.component("FeatherIcon", FeatherIcon)
+window.__APP_COMPONENTS__ = app._context.components
 
 app.mount("#app")`
 	return rendererContent
