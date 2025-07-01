@@ -277,17 +277,20 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					icon: () => h("FeatherIcon", { name: "edit-2" }),
+					// @ts-ignore
+					icon: () => h(FeatherIcon, { name: "edit-2" }),
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					icon: () => h("FeatherIcon", { name: "users" }),
+					// @ts-ignore
+					icon: () => h(FeatherIcon, { name: "users" }),
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					icon: () => h("FeatherIcon", { name: "trash" }),
+					// @ts-ignore
+					icon: () => h(FeatherIcon, { name: "trash" }),
 				},
 			],
 			button: { label: "Actions" },
@@ -344,7 +347,8 @@ export const COMPONENTS: FrappeUIComponents = {
 						return row.name
 					},
 					prefix: function ({ row }: { row: any }) {
-						return h("Avatar", {
+						// @ts-ignore
+						return h(Avatar, {
 							shape: "circle",
 							image: row.user_image,
 							size: "sm",
