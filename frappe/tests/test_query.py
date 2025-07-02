@@ -868,8 +868,8 @@ class TestQuery(IntegrationTestCase):
 
 		test2user = frappe.get_doc("User", "test2@example.com")
 		test2user.add_roles("Blogger")
-		frappe.set_user("test2@example.com")
-		data = frappe.qb.get_query("Nested DocType", ignore_permissions=False).run(as_dict=1)
+		with self.set_user("test2@example.com"):
+			data = frappe.qb.get_query("Nested DocType", ignore_permissions=False).run(as_dict=1)
 
 		# Children of the permitted node should be accessible
 		self.assertTrue(any(d.name == "Level 2 A" for d in data))
@@ -879,7 +879,6 @@ class TestQuery(IntegrationTestCase):
 		self.assertFalse(any(d.name == "Level 2 B" for d in data))
 
 		update("Nested DocType", "All", 0, "if_owner", 1)  # Reset to default
-		frappe.set_user("Administrator")
 
 	def test_is_set_is_not_set(self):
 		"""Test is set and is not set filters"""

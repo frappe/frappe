@@ -56,7 +56,6 @@ email_css = ["email.bundle.css"]
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/app/<path:app_path>", "to_route": "app"},
 ]
@@ -225,9 +224,7 @@ scheduler_events = {
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
-	"hourly": [
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
-	],
+	"hourly": [],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
@@ -362,7 +359,6 @@ global_search_doctypes = {
 		{"doctype": "Dashboard"},
 		{"doctype": "Country"},
 		{"doctype": "Currency"},
-		{"doctype": "Newsletter"},
 		{"doctype": "Letter Head"},
 		{"doctype": "Workflow"},
 		{"doctype": "Web Page"},

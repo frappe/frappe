@@ -187,9 +187,30 @@ def run_setup_success(args):  # nosemgrep
 
 def get_stages_hooks(args):  # nosemgrep
 	stages = []
-	for method in frappe.get_hooks("setup_wizard_stages"):
-		stages += frappe.get_attr(method)(args)
+
+	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
+	for app_name in installed_apps:
+		setup_wizard_stages = frappe.get_hooks(app_name=app_name).get("setup_wizard_stages")
+		if not setup_wizard_stages:
+			continue
+
+		for method in setup_wizard_stages:
+			_stages = frappe.get_attr(method)(args)
+			update_app_details_in_stages(_stages, app_name)
+			stages += _stages
+
 	return stages
+
+
+def update_app_details_in_stages(_stages, app_name):
+	for stage in _stages:
+		for key in stage:
+			if key != "tasks":
+				continue
+
+			for task in stage[key]:
+				if task.get("app_name") is None:
+					task["app_name"] = app_name
 
 
 def get_setup_complete_hooks(args):  # nosemgrep
