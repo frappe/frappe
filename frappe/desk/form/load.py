@@ -187,7 +187,7 @@ def get_attachments(dt, dn):
 
 
 def get_versions(doc: "Document") -> list[dict]:
-	if not doc.meta.track_changes or frappe.session.user == "Administrator":
+	if not doc.meta.track_changes:
 		return []
 
 	def filter_changed_logs(
@@ -260,7 +260,8 @@ def get_versions(doc: "Document") -> list[dict]:
 		limit=10,
 		order_by="creation desc",
 	)
-
+	if frappe.session.user == "Administrator":
+		return versions
 	all_fields = doc.meta.fields.copy()
 	for table_field in doc.meta.get_table_fields():
 		all_fields += frappe.get_meta(table_field.options).fields or []
