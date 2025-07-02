@@ -9,6 +9,12 @@ import frappeui from "frappe-ui/vite/index.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
+// create a temp directory for app renderers in studio app folder
+const TEMP_DIR = path.resolve(__dirname, "../../../.temp-app-renderers")
+if (!fs.existsSync(TEMP_DIR)) {
+	fs.mkdirSync(TEMP_DIR, { recursive: true })
+}
+
 const args = process.argv.slice(2)
 const appName = args[0]
 const components = args[2]
@@ -26,9 +32,9 @@ export async function generateAppBuild(appName, components) {
 	const componentList = components ? components.split(",") : []
 	const componentSources = findComponentSources(componentList)
 	const rendererContent = getRendererContent(componentSources)
-	writeRendererFile(appName, rendererContent)
-	await buildWithVite(appName)
-	cleanupRendererFile(appName)
+	const tempRendererPath = writeRendererFile(appName, rendererContent)
+	await buildWithVite(appName, tempRendererPath)
+	deleteRendererFile(tempRendererPath)
 }
 
 function findComponentSources(appComponents) {
@@ -88,15 +94,14 @@ app.mount("#app")`
 }
 
 function writeRendererFile(appName, content) {
-	const rendererPath = path.resolve(`src/renderer-${appName}.js`)
+	const rendererPath = path.resolve(TEMP_DIR, `renderer-${appName}.js`)
 
 	writeFileSync(rendererPath, content)
 	console.log(`Renderer file created at: ${rendererPath}`)
+	return rendererPath
 }
 
-async function buildWithVite(appName) {
-	const entryFile = `../renderer-${appName}.js`
-
+async function buildWithVite(appName, entryFilePath) {
 	console.log(`Building ${appName} with Vite`)
 	await build({
 		root: path.resolve(__dirname, "../"),
@@ -125,7 +130,7 @@ async function buildWithVite(appName) {
 			manifest: true,
 			rollupOptions: {
 				input: {
-					studioRenderer: path.resolve(__dirname, entryFile),
+					studioRenderer: path.resolve(__dirname, entryFilePath),
 				},
 			},
 			outDir: path.resolve(__dirname, `../../../studio/public/frontend/builds/${appName}`),
@@ -142,12 +147,11 @@ async function buildWithVite(appName) {
 	console.log(`Vite build completed for ${appName}`)
 }
 
-function cleanupRendererFile(appName) {
-	const rendererPath = path.resolve(`src/renderer-${appName}.js`)
+function deleteRendererFile(rendererPath) {
 	try {
 		fs.unlinkSync(rendererPath)
-		console.log(`Cleanup up temporary renderer file: ${rendererPath}`)
+		console.log(`Deleted temporary renderer file: ${rendererPath}`)
 	} catch (error) {
-		console.warn(`Could not clean up temporary renderer file: ${rendererPath} - ${error.message}`)
+		console.warn(`Could not delete temporary renderer file: ${rendererPath} - ${error.message}`)
 	}
 }
