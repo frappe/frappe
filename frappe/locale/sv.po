@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-30 18:20\n"
+"PO-Revision-Date: 2025-07-02 18:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -15203,7 +15203,7 @@ msgstr "Man"
 
 #: frappe/www/me.html:56
 msgid "Manage 3rd party apps"
-msgstr "Hantera tredjepartsappar"
+msgstr "Hantera Tredjepartsappar"
 
 #. Description of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
