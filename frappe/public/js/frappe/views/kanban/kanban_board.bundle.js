@@ -1036,6 +1036,10 @@ const columnsByMechanic = {
 				render_fields = render_fields.filter(field => field !== "queue_position");
 			}
 
+			if(card.column === ProjectStatusOptions.InQueue) {
+				render_fields = render_fields.filter(field => field !== "parking_date")
+			}
+
 			for (let field_name of render_fields) {
 				let field =
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
