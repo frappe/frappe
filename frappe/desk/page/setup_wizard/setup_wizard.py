@@ -369,7 +369,9 @@ def _get_default_roles() -> set[str]:
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	# Enable onboarding after install
+	frappe.clear_cache(doctype="System Settings")
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
+	frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
 
 
 @frappe.whitelist()
