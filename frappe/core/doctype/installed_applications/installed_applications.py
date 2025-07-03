@@ -54,6 +54,8 @@ class InstalledApplications(Document):
 			)
 
 		self.save()
+		frappe.clear_cache(doctype="System Settings")
+		frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
 
 	def get_app_wise_setup_details(self):
 		"""Get app wise setup details from the Installed Application doctype"""
