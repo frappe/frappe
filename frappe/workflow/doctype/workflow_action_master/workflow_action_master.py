@@ -12,7 +12,11 @@ class WorkflowActionMaster(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_action_master_task.workflow_action_master_task import (
+			WorkflowActionMasterTask,
+		)
 
+		workflow_action_master_tasks: DF.Table[WorkflowActionMasterTask]
 		workflow_action_name: DF.Data
 	# end: auto-generated types
 

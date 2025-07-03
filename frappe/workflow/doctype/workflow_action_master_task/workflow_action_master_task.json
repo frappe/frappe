@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-03 15:48:52.902509",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "server_script",
+  "enabled",
+  "execute_asynchronously"
+ ],
+ "fields": [
+  {
+   "fieldname": "server_script",
+   "fieldtype": "Link",
+   "in_preview": 1,
+   "label": "Server Script",
+   "options": "Server Script"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_preview": 1,
+   "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Spawns a separate job to execute instead of being sequentially executed with other jobs",
+   "fieldname": "execute_asynchronously",
+   "fieldtype": "Check",
+   "in_preview": 1,
+   "label": "Execute Asynchronously"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-03 17:47:34.907596",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow Action Master Task",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

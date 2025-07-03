@@ -7,7 +7,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "workflow_action_name"
+  "workflow_action_name",
+  "workflow_action_master_tasks"
  ],
  "fields": [
   {
@@ -17,12 +18,19 @@
    "label": "Workflow Action Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "workflow_action_master_tasks",
+   "fieldtype": "Table",
+   "label": "Workflow Action Master Tasks",
+   "options": "Workflow Action Master Task",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-flag",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:04:05.108415",
+ "modified": "2025-07-03 15:53:37.001170",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action Master",
@@ -40,6 +48,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
