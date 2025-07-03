@@ -177,7 +177,7 @@
    "fieldname": "text_align",
    "fieldtype": "Select",
    "label": "Text Align",
-   "options": "Left\nCenter\nRight"
+   "options": "Left Align\nCenter Align\nRight Align" 
   },
   {
    "depends_on": "insert_style",
@@ -339,7 +339,7 @@
  "is_published_field": "published",
  "links": [],
  "make_attachments_public": 1,
- "modified": "2024-04-12 10:30:49.022735",
+ "modified": "2025-07-03 20:34:52.133050",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

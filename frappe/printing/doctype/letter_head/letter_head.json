@@ -120,7 +120,7 @@
    "fieldname": "align",
    "fieldtype": "Select",
    "label": "Align",
-   "options": "Left\nRight\nCenter"
+   "options": "Left Align\nRight Align\nCenter Align"
   },
   {
    "fieldname": "image_height",
@@ -157,7 +157,7 @@
    "fieldname": "footer_align",
    "fieldtype": "Select",
    "label": "Align",
-   "options": "Left\nRight\nCenter"
+   "options": "Left Align\nRight Align\nCenter Align"
   },
   {
    "default": "HTML",
@@ -200,7 +200,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2024-04-12 10:30:25.793932",
+ "modified": "2025-07-03 20:32:12.237629",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
