@@ -306,11 +306,10 @@ class Database:
 			):
 				raise
 
+		self.log_query(query, query_type, values, debug)
 		if debug:
 			time_end = time()
 			frappe.log(f"Execution time: {(time_end - time_start) * 1000:.3f} ms")
-
-		self.log_query(query, query_type, values, debug)
 
 		if auto_commit:
 			self.commit()
