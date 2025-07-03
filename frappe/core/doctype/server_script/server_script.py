@@ -80,7 +80,9 @@ class ServerScript(Document):
 		rate_limit_seconds: DF.Int
 		reference_doctype: DF.Link | None
 		script: DF.Code
-		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
+		script_type: DF.Literal[
+			"DocType Event", "Scheduler Event", "Permission Query", "API", "Workflow Task"
+		]
 	# end: auto-generated types
 
 	def validate(self):
