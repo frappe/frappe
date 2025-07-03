@@ -204,6 +204,19 @@ class ServerScript(Document):
 
 		safe_exec(self.script, script_filename=self.name)
 
+	def execute_workflow_task(self, doc: Document):
+		"""
+		Specific to Workflow Tasks via Workflow Action Master
+		"""
+		if self.script_type != "Workflow Task":
+			raise frappe.DoesNotExistError
+
+		safe_exec(
+			self.script,
+			_locals={"doc": doc},
+			script_filename=self.name,
+		)
+
 	def get_permission_query_conditions(self, user: str) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
 
