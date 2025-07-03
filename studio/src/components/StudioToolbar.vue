@@ -84,6 +84,14 @@
 			>
 				Build
 			</Button>
+			<TabButtons
+				:buttons="[
+					{ label: 'Dev', value: 'Development' },
+					{ label: 'Prod', value: 'Production' },
+				]"
+				:modelValue="store.activeApp?.mode"
+				@update:modelValue="(value: string) => store.updateActiveApp('mode', value)"
+			/>
 			<Button
 				size="sm"
 				variant="solid"
@@ -112,6 +120,7 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
+import { TabButtons } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

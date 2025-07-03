@@ -37,6 +37,7 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data | None
+		mode: DF.Literal["Development", "Production"]
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types

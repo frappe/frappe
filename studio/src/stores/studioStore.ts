@@ -69,9 +69,15 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
-	async function setAppHome(appName: string, pageName: string) {
-		await studioApps.setValue.submit({ name: appName, app_home: pageName })
-		setApp(appName)
+	function updateActiveApp(key: string, value: string) {
+		studioApps.setValue.submit(
+			{ name: activeApp.value?.name, [key]: value },
+			{
+				onSuccess() {
+					setApp(activeApp.value!.name)
+				},
+			},
+		)
 	}
 
 	async function deleteAppPage(appName: string, page: StudioPage) {
@@ -331,7 +337,7 @@ const useStudioStore = defineStore("store", () => {
 		// studio app
 		activeApp,
 		setApp,
-		setAppHome,
+		updateActiveApp,
 		deleteAppPage,
 		duplicateAppPage,
 		appPages,

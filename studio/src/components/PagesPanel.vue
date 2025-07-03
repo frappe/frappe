@@ -74,7 +74,7 @@ const getPageMenu = (page: StudioPage) => {
 			icon: "home",
 			condition: () => !isAppHome(page),
 			onClick: () => {
-				store.setAppHome(app.name, page.name)
+				store.updateActiveApp("app_home", page.name)
 			},
 		},
 		{
