@@ -126,6 +126,14 @@ def apply_workflow(doc, action):
 	if next_state.update_field:
 		doc.set(next_state.update_field, next_state.update_value)
 
+	sync_tasks, async_tasks = get_workflow_tasks(action)
+
+	# execute order-sensitive tasks. Also ensures if the previous fails the next doesn't continue
+	frappe.enqueue(execute_sync_tasks, tasks=sync_tasks, doc=doc, enqueue_after_commit=True)
+
+	# tasks that can be executed freely
+	execute_async_tasks(async_tasks, doc)
+
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
@@ -375,3 +383,44 @@ def set_workflow_state_on_action(doc, workflow_name, action):
 		if state.doc_status == docstatus:
 			doc.set(workflow_state_field, state.state)
 			return
+
+
+def get_workflow_tasks(action):
+	workflow_action_master_task_doc = frappe.qb.DocType("Workflow Action Master Task")
+	query = (
+		frappe.qb.from_(workflow_action_master_task_doc)
+		.where(workflow_action_master_task_doc.parent == action)
+		.where(workflow_action_master_task_doc.enabled)
+		.select(
+			workflow_action_master_task_doc.server_script,
+			workflow_action_master_task_doc.execute_asynchronously,
+		)
+		.orderby(workflow_action_master_task_doc.idx)
+	)
+	tasks = query.run(as_dict=True)
+	sync_tasks = []
+	async_tasks = []
+
+	for task in tasks:
+		if task.execute_asynchronously:
+			async_tasks.append(task.server_script)
+		else:
+			sync_tasks.append(task.server_script)
+
+	return sync_tasks, async_tasks
+
+
+def execute_sync_tasks(tasks, doc):
+	for task in tasks:
+		doc.load_from_db()
+		execute_task(task, doc)
+
+
+def execute_async_tasks(tasks, doc):
+	for task in tasks:
+		frappe.enqueue(execute_task, task=task, doc=doc, enqueue_after_commit=True)
+
+
+def execute_task(task, doc):
+	server_script = frappe.get_doc("Server Script", task)
+	server_script.execute_workflow_task(doc)
