@@ -282,9 +282,11 @@ def get_events(
 
 	filter_condition = get_filters_cond("Event", filters, [])
 
-	tables = ["`tabEvent`"]
+	joins = []
 	if "`tabEvent Participants`" in filter_condition:
-		tables.append("`tabEvent Participants`")
+		joins.append("LEFT JOIN `tabEvent Participants` ON `tabEvent`.`name` = `tabEvent Participants`.`parent`")
+	if "`tabDynamic Link`" in filter_condition:
+		joins.append("LEFT JOIN `tabDynamic Link` ON `tabEvent`.`name` = `tabDynamic Link`.`parent`")
 
 	event_candidates: list[EventLikeDict] = frappe.db.sql(
 		"""
@@ -307,7 +309,8 @@ def get_events(
 				`tabEvent`.friday,
 				`tabEvent`.saturday,
 				`tabEvent`.sunday
-		FROM {tables}
+		FROM `tabEvent`
+		{joins}
 		WHERE (
 				(
 					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
@@ -338,7 +341,7 @@ def get_events(
 			)
 		AND `tabEvent`.status='Open'
 		ORDER BY `tabEvent`.starts_on""".format(
-			tables=", ".join(tables),
+			joins=" ".join(joins),
 			filter_condition=filter_condition,
 			reminder_condition="AND `tabEvent`.send_reminder = 1" if for_reminder else "",
 		),
