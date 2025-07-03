@@ -39,8 +39,6 @@ def handle_rpc_call(method: str):
 def create_doc(doctype: str):
 	data = get_request_form_data()
 	data.pop("doctype", None)
-	if (name := data.get("name")) and isinstance(name, str):
-		frappe.flags.api_name_set = True
 	return frappe.new_doc(doctype, **data).insert()
 
 
