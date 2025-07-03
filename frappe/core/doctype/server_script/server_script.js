@@ -129,6 +129,21 @@ select name from \`tabPerson\`
 where tenant_id = 2
 order by creation desc
 </code></pre>
+
+<hr>
+
+<h4>Workflow Task</h4>
+<p>Execute when a particular <a href="/app/workflow-action-master">Workflow Action Master</a> is executed.</p>
+<p>Gets the document which the action is being applied on in the <code>doc</code> variable.</p>
+<code><pre>
+# create a customer with the same name as the given document
+
+customer = frappe.new_doc("Customer")
+customer.customer_name = doc.first_name + " " + doc.last_name # we get this from the workflow action
+customer.customer_type = "Company"
+
+c.save()
+</code></pre>
 `);
 	},
 });
