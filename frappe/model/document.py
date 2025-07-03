@@ -647,6 +647,7 @@ class Document(BaseDocument):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
 		if (frappe.flags.api_name_set or self.flags.name_set) and not force:
+			frappe.flags.api_name_set = False
 			return
 
 		autoname = self.meta.autoname or ""
