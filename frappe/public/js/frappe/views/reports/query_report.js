@@ -1004,7 +1004,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				})
 			).then((r) => {
 				const data = r.message;
-				// Rememeber the name of Prepared Report doc
+				// Remember the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
 				let alert_message =
 					`<a href='/app/prepared-report/${data.name}'>` +
