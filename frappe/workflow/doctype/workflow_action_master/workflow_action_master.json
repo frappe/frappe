@@ -23,14 +23,13 @@
    "fieldname": "workflow_action_master_tasks",
    "fieldtype": "Table",
    "label": "Workflow Action Master Tasks",
-   "options": "Workflow Action Master Task",
-   "reqd": 1
+   "options": "Workflow Action Master Task"
   }
  ],
  "icon": "fa fa-flag",
  "idx": 1,
  "links": [],
- "modified": "2025-07-03 15:53:37.001170",
+ "modified": "2025-07-03 19:08:20.050242",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action Master",
