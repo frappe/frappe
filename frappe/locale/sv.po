@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-07-02 18:42\n"
+"PO-Revision-Date: 2025-07-03 19:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -18839,22 +18839,22 @@ msgstr "Tillåtna Roller"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr "Personlig"
+msgstr "Personligt"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Personal Data Deletion Request"
-msgstr "Personlig Data Borttagning Begäran"
+msgstr "Personligt Data Borttagning Begäran"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Personal Data Deletion Step"
-msgstr "Personlig Data Borttagning Steg"
+msgstr "Personligt Data Borttagning Steg"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Personal Data Download Request"
-msgstr "Personlig data Nedladdning Begäran"
+msgstr "Personligt Data Nedladdning Begäran"
 
 #. Label of the phone (Data) field in DocType 'Address'
 #. Label of the phone (Data) field in DocType 'Contact'
