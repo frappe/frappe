@@ -1,7 +1,7 @@
+from typing import Literal
+
 import frappe
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
-
-from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
 
 
 @frappe.whitelist()
@@ -58,16 +58,22 @@ def check_app_permission() -> bool:
 
 
 @frappe.whitelist()
-def get_app_components(app_name: str) -> set[str]:
+def get_app_components(app_name: str, field: Literal["blocks", "draft_blocks"] = "blocks") -> set[str]:
 	import re
+
+	from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
+
+	filters = dict(studio_app=app_name, published=1)
+	filters[field] = ("is", "set")
 
 	pages = frappe.get_all(
 		"Studio Page",
-		filters=dict(studio_app=app_name, published=1),
-		pluck="blocks",
+		filters=filters,
+		pluck=field,
 	)
-	components = set()
-	components.update(DEFAULT_COMPONENTS)
+	if not pages:
+		return set()
+	components = set(DEFAULT_COMPONENTS)
 
 	def add_h_function_components(text: str) -> set[str]:
 		"""Extract component names from h(ComponentName...) function calls"""
@@ -91,10 +97,12 @@ def get_app_components(app_name: str) -> set[str]:
 					add_block_components(slot_child)
 
 	for blocks in pages:
+		if not blocks:
+			continue
 		if isinstance(blocks, str):
 			add_h_function_components(blocks)
 			blocks = frappe.parse_json(blocks)
 		root_block = blocks[0]
 		add_block_components(root_block)
 
-	return list(components)
+	return components

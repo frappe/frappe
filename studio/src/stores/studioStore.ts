@@ -248,17 +248,11 @@ const useStudioStore = defineStore("store", () => {
 			method: "generate_app_build",
 		}, {
 			onSuccess() {
-				toast.success("App build generated", {
-					duration: Infinity,
-					action: {
-						label: "View App",
-						onClick: openPageInBrowser(activeApp.value!, activePage.value!)
-					}
-				})
+				toast.success("App build generated")
 			},
 			onError(error: any) {
 				toast.error("Failed to generate app build", {
-					description: error.messages.join(", "),
+					description: error?.messages?.join(", "),
 					duration: Infinity,
 				})
 			},
