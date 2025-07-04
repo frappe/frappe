@@ -43,7 +43,7 @@ class StudioApp(WebsiteGenerator):
 	# end: auto-generated types
 
 	website = frappe._dict(
-		template="templates/generators/renderer.html",
+		template="templates/generators/app_renderer.html",
 		page_title_field="app_title",
 		condition_field="published",
 	)
@@ -62,9 +62,13 @@ class StudioApp(WebsiteGenerator):
 		context.is_developer_mode = frappe.conf.developer_mode
 		context.site_name = frappe.local.site
 
-		manifest = self.get_assets_from_manifest()
-		context.stylesheets = manifest.get("stylesheets", [])
-		context.script = manifest.get("script")
+		if self.mode == "Production":
+			context.template = "templates/generators/app_renderer.html"
+			manifest = self.get_assets_from_manifest()
+			context.stylesheets = manifest.get("stylesheets", [])
+			context.script = manifest.get("script")
+		else:
+			context.template = "templates/generators/studio_renderer.html"
 
 	def autoname(self):
 		if not self.name:

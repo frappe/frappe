@@ -14,11 +14,6 @@
 		{% if script %}
 			<script type="module" src="{{ script }}" crossorigin></script>
 		{% endif %}
-
-		<!-- <script type="module" crossorigin src="/assets/studio/frontend/assets/renderer-DWfG0iV-.js"></script>
-		<link rel="modulepreload" crossorigin href="/assets/studio/frontend/assets/globals-D0S4HWws.js">
-		<link rel="stylesheet" crossorigin href="/assets/studio/frontend/assets/globals-Bjqs8RAi.css">
-		<link rel="stylesheet" crossorigin href="/assets/studio/frontend/assets/studio-C-ak1fhQ.css"> -->
 	</head>
 	<body class="h-full">
 		<div id="app" class="h-full"></div>
@@ -31,8 +26,5 @@
 			window.app_title = "{{ app_title }}";
 			window.app_pages = {{ app_pages|tojson }};
 		</script>
-			<!-- workaround for HMR in renderer during development -->
-			<!-- <script type="module" src="http://{{ site_name }}:8080/@vite/client"></script>
-			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script> -->
 	</body>
 </html>
