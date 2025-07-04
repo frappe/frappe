@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-27 17:34\n"
+"PO-Revision-Date: 2025-07-04 19:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -909,7 +909,7 @@ msgstr "API тајна"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "ASC"
-msgstr "ASC"
+msgstr "РАСТУЋЕ"
 
 #. Label of a standard help item
 #. Type: Action
@@ -1676,11 +1676,11 @@ msgstr "Упозорења и обавештења"
 
 #: frappe/database/query.py:1608
 msgid "Alias cannot be a SQL keyword: {0}"
-msgstr ""
+msgstr "Псеудоним не може бити SQL резервисана реч: {0}"
 
 #: frappe/database/query.py:1533
 msgid "Alias must be a string"
-msgstr ""
+msgstr "Псеудоним мора бити текст"
 
 #. Label of the align (Select) field in DocType 'Letter Head'
 #. Label of the footer_align (Select) field in DocType 'Letter Head'
@@ -4571,7 +4571,7 @@ msgstr "Зависне табеле се приказују као табеле 
 
 #: frappe/database/query.py:660
 msgid "Child query fields for '{0}' must be a list or tuple."
-msgstr ""
+msgstr "Зависна поља упита за '{0}' морају бити врсте листа или tuple."
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:651
 msgid "Choose Existing Card or create New Card"
@@ -5601,7 +5601,7 @@ msgstr "Није било могуће мапирати колону {0} на п
 
 #: frappe/database/query.py:564
 msgid "Could not parse field: {0}"
-msgstr ""
+msgstr "Није могуће обрадити поље: {0}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up: "
@@ -6139,7 +6139,7 @@ msgstr "Прилагођено поље је успешно преименова
 
 #: frappe/api/v2.py:148
 msgid "Custom get_list method for {0} must return a QueryBuilder object or None, got {1}"
-msgstr ""
+msgstr "Прилагођена get_list метода за {0} мора вратити QueryBuilder објекат или None, добијено {1}"
 
 #. Label of the custom (Check) field in DocType 'DocType'
 #. Label of the custom (Check) field in DocType 'Website Theme'
@@ -6557,7 +6557,7 @@ msgstr "Дан у недељи"
 #: frappe/public/js/frappe/form/controls/duration.js:27
 msgctxt "Duration"
 msgid "Days"
-msgstr ""
+msgstr "Дани"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -8795,7 +8795,7 @@ msgstr "Код за уградњу је копиран"
 
 #: frappe/database/query.py:1537
 msgid "Empty alias is not allowed"
-msgstr ""
+msgstr "Празан псеудоним није дозвољен"
 
 #: frappe/public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
@@ -8803,7 +8803,7 @@ msgstr "Празна колона"
 
 #: frappe/database/query.py:1455
 msgid "Empty string arguments are not allowed"
-msgstr ""
+msgstr "Аргументи као празан текст нису дозвољени"
 
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
@@ -9271,11 +9271,11 @@ msgstr "Грешка у формату штампе на линији {0}: {1}"
 
 #: frappe/api/v2.py:156
 msgid "Error in {0}.get_list: {1}"
-msgstr ""
+msgstr "Грешка у {0}.get_list: {1}"
 
 #: frappe/database/query.py:231
 msgid "Error parsing nested filters: {0}"
-msgstr ""
+msgstr "Грешка приликом обраде угњеждених филтера: {0}"
 
 #: frappe/email/doctype/email_account/email_account.py:670
 msgid "Error while connecting to email account {0}"
@@ -9475,7 +9475,7 @@ msgstr "Прошири све"
 
 #: frappe/database/query.py:352
 msgid "Expected 'and' or 'or' operator, found: {0}"
-msgstr ""
+msgstr "Очекиван је оператор 'and' или 'or', пронађено: {0}"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:23
 msgid "Experimental"
@@ -10078,7 +10078,7 @@ msgstr "Поља морају бити листа или тупле када ј�
 
 #: frappe/database/query.py:611
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
-msgstr ""
+msgstr "Поља морају бити текст, листа, tuple, pypika поље или pypika функција"
 
 #. Description of the 'Search Fields' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -10247,11 +10247,11 @@ msgstr "Филтер вредности"
 
 #: frappe/database/query.py:358
 msgid "Filter condition missing after operator: {0}"
-msgstr ""
+msgstr "Недостаје услов филтера након оператора: {0}"
 
 #: frappe/database/query.py:425
 msgid "Filter fields cannot contain backticks (`)."
-msgstr ""
+msgstr "Поља филтера не могу садржати backticks (`)."
 
 #: frappe/printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
@@ -11001,7 +11001,7 @@ msgstr "Функција {0} није на листи дозвољених."
 
 #: frappe/database/query.py:1417
 msgid "Function {0} requires arguments but none were provided"
-msgstr ""
+msgstr "Функција {0} захтева аргументе, али ни један није наведен"
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further nodes can be only created under 'Group' type nodes"
@@ -11486,7 +11486,7 @@ msgstr "Поље Груписано по је неопходно за креир
 
 #: frappe/database/query.py:750
 msgid "Group By must be a string"
-msgstr ""
+msgstr "Груписано по мора бити текст"
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Group Node"
@@ -13160,7 +13160,7 @@ msgstr "Неважећи URL фајла"
 #: frappe/database/query.py:427 frappe/database/query.py:454
 #: frappe/database/query.py:464 frappe/database/query.py:487
 msgid "Invalid Filter"
-msgstr ""
+msgstr "Неважећи филтер"
 
 #: frappe/public/js/form_builder/store.js:221
 msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
@@ -13272,23 +13272,23 @@ msgstr "Неважећа агрегатна функција"
 
 #: frappe/database/query.py:1542
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
-msgstr ""
+msgstr "Неважећи формат псеудонима: {0}. Псеудоним мора бити једноставан идентификатор."
 
 #: frappe/database/query.py:1468
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
-msgstr ""
+msgstr "Неважећи формат аргумента: {0}. Дозвољени су само наводницима обухваћени текстови или једноставни називи поља."
 
 #: frappe/database/query.py:1444
 msgid "Invalid argument type: {0}. Only strings, numbers, and None are allowed."
-msgstr ""
+msgstr "Неважећа врста аргумента: {0}. Дозвољени су текст, број и None."
 
 #: frappe/database/query.py:460
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
-msgstr ""
+msgstr "Неважећи карактери у називу поља: {0}. Дозвољена су слова, бројеви и доње црте."
 
 #: frappe/database/query.py:575
 msgid "Invalid characters in table name: {0}"
-msgstr ""
+msgstr "Неважећи карактери у називу табеле: {0}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:399
 msgid "Invalid column"
@@ -13296,11 +13296,11 @@ msgstr "Неважећа колона"
 
 #: frappe/database/query.py:381
 msgid "Invalid condition type in nested filters: {0}"
-msgstr ""
+msgstr "Неважећа врста услова у угњежденим филтерима: {0}"
 
 #: frappe/database/query.py:787
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
-msgstr ""
+msgstr "Неважећи смер у Сортирај по: {0}. Мора бити 'РАСТУЋЕ' или 'ОПАДАЈУЋЕ'."
 
 #: frappe/model/document.py:1014 frappe/model/document.py:1028
 msgid "Invalid docstatus"
@@ -13316,15 +13316,15 @@ msgstr "Неважећи израз постављен у филтеру {0} ({1
 
 #: frappe/database/query.py:1301
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
-msgstr ""
+msgstr "Неважећи формат поља за SELECT: {0}. Називи поља морају бити једноставни, у оквиру backticks, са префиксом табеле, са псеудонимом или '*'."
 
 #: frappe/database/query.py:734
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
-msgstr ""
+msgstr "Неважећи формат поља у {0}: {1}. Користите 'field', 'link_field.field', or 'child_table.field'."
 
 #: frappe/database/query.py:1620
 msgid "Invalid field name in function: {0}. Only simple field names are allowed."
-msgstr ""
+msgstr "Неважећи назив поља у функцији: {0}. Дозвољени су само једноставни називи поља."
 
 #: frappe/utils/data.py:2196
 msgid "Invalid field name {0}"
@@ -13332,7 +13332,7 @@ msgstr "Неважећи назив поља {0}"
 
 #: frappe/database/query.py:668
 msgid "Invalid field type: {0}"
-msgstr ""
+msgstr "Неважећа врста поља: {0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1085
 msgid "Invalid fieldname '{0}' in autoname"
@@ -13344,11 +13344,11 @@ msgstr "Неважећа путања фајла: {0}"
 
 #: frappe/database/query.py:364
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
-msgstr ""
+msgstr "Неважећи услов филтера: {0}. Очекивана је листа или tuple."
 
 #: frappe/database/query.py:450
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
-msgstr ""
+msgstr "Неважећи формат поља за филтер: {0}. Користите 'fieldname' или 'link_fieldname.target_fieldname'."
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:201
 msgid "Invalid filter: {0}"
@@ -13356,11 +13356,11 @@ msgstr "Неважећи филтер: {0}"
 
 #: frappe/database/query.py:1422
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
-msgstr ""
+msgstr "Неважећа врста аргумента функције: {0}. Дозвољени су искључиво текстови, бројеви, листе и None."
 
 #: frappe/database/query.py:1383
 msgid "Invalid function dictionary format"
-msgstr ""
+msgstr "Неважећи формат речника функције"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:67
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:424
@@ -13389,15 +13389,15 @@ msgstr "Неважећи аргументи захтева"
 
 #: frappe/database/query.py:410
 msgid "Invalid simple filter format: {0}"
-msgstr ""
+msgstr "Неважећи једноставни формат филтера: {0}"
 
 #: frappe/database/query.py:341
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
-msgstr ""
+msgstr "Неважећи почетак услова за филтер: {0}. Очекивана је листа или tuple."
 
 #: frappe/database/query.py:1489
 msgid "Invalid string literal format: {0}"
-msgstr ""
+msgstr "Неважећи формат текстуалног израза: {0}"
 
 #: frappe/core/doctype/data_import/importer.py:430
 msgid "Invalid template file for import"
@@ -14558,7 +14558,7 @@ msgstr "Лимит"
 
 #: frappe/database/query.py:116
 msgid "Limit must be a non-negative integer"
-msgstr ""
+msgstr "Ограничење мора бити позитиван цео број"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -15735,7 +15735,7 @@ msgstr "Мањи"
 #: frappe/public/js/frappe/form/controls/duration.js:30
 msgctxt "Duration"
 msgid "Minutes"
-msgstr ""
+msgstr "Минути"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -16324,7 +16324,7 @@ msgstr "Негативна вредност"
 
 #: frappe/database/query.py:333
 msgid "Nested filters must be provided as a list or tuple."
-msgstr ""
+msgstr "Угњеждени филтери морају бити предати као листа или tuple."
 
 #: frappe/utils/nestedset.py:94
 msgid "Nested set error. Please contact the Administrator."
@@ -17622,7 +17622,7 @@ msgstr "Помак Y"
 
 #: frappe/database/query.py:121
 msgid "Offset must be a non-negative integer"
-msgstr ""
+msgstr "Помак мора бити позитиван цео број"
 
 #: frappe/www/update-password.html:38
 msgid "Old Password"
@@ -18070,7 +18070,7 @@ msgstr "Редослед"
 
 #: frappe/database/query.py:767
 msgid "Order By must be a string"
-msgstr ""
+msgstr "Сортирај по мора бити текст"
 
 #. Label of the sb0 (Section Break) field in DocType 'About Us Settings'
 #. Label of the company_history (Table) field in DocType 'About Us Settings'
@@ -19417,7 +19417,7 @@ msgstr "Објаве у категорији {0}"
 
 #: frappe/database/query.py:1518
 msgid "Potentially dangerous content in string literal: {0}"
-msgstr ""
+msgstr "Потенцијално опасан садржај у текстуалном изразу: {0}"
 
 #. Label of the precision (Select) field in DocType 'DocField'
 #. Label of the precision (Select) field in DocType 'Custom Field'
@@ -22550,7 +22550,7 @@ msgstr "Претраживање ..."
 #: frappe/public/js/frappe/form/controls/duration.js:35
 msgctxt "Duration"
 msgid "Seconds"
-msgstr ""
+msgstr "Секунди"
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: frappe/public/js/form_builder/components/Section.vue:263
@@ -27354,7 +27354,7 @@ msgstr "Поништи последњу радњу"
 
 #: frappe/database/query.py:1495
 msgid "Unescaped quotes in string literal: {0}"
-msgstr ""
+msgstr "Наводници нису правилно избегнути у текстуалном изразу: {0}"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:109
 #: frappe/public/js/frappe/form/toolbar.js:876
@@ -27462,7 +27462,7 @@ msgstr "Отказана претплата"
 #: frappe/database/query.py:653 frappe/database/query.py:1387
 #: frappe/database/query.py:1397
 msgid "Unsupported function or invalid field name: {0}"
-msgstr ""
+msgstr "Неподржана функција или неисправан назив поља: {0}"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:72
 msgid "Untitled Column"
@@ -29645,7 +29645,7 @@ msgstr "Немате довољно дозвола да довршите ову 
 
 #: frappe/database/query.py:529
 msgid "You do not have permission to access field: {0}"
-msgstr ""
+msgstr "Немате дозволу за приступ пољу: {0}"
 
 #: frappe/desk/query_report.py:861
 msgid "You do not have permission to access {0}: {1}."
@@ -30916,7 +30916,7 @@ msgstr "{0} поље не може бити постављено као једи
 
 #: frappe/database/query.py:708
 msgid "{0} fields cannot contain backticks (`): {1}"
-msgstr ""
+msgstr "Поља {0} не смеју да садрже backticks (`): {1}"
 
 #: frappe/core/doctype/data_import/importer.py:1068
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
@@ -31010,7 +31010,7 @@ msgstr "{0} је обавезно"
 
 #: frappe/database/query.py:485
 msgid "{0} is not a child table of {1}"
-msgstr ""
+msgstr "{0} није зависна табела од {1}"
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.py:50
 msgid "{0} is not a field of doctype {1}"
