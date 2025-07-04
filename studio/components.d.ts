@@ -52,7 +52,6 @@ declare module 'vue' {
     InputLabel: typeof import('./src/components/InputLabel.vue')['default']
     Link: typeof import('./src/components/Link.vue')['default']
     LucideCalendar: typeof import('~icons/lucide/calendar')['default']
-    LucideIcon: typeof import('./src/components/LucideIcon.vue')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
     ObjectBrowser: typeof import('./src/components/ObjectBrowser.vue')['default']
