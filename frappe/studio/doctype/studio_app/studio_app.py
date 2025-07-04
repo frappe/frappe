@@ -62,13 +62,17 @@ class StudioApp(WebsiteGenerator):
 		context.is_developer_mode = frappe.conf.developer_mode
 		context.site_name = frappe.local.site
 
-		if self.mode == "Production":
+		if self.mode == "Development":
+			context.template = "templates/generators/studio_renderer.html"
+		else:
 			context.template = "templates/generators/app_renderer.html"
 			manifest = self.get_assets_from_manifest()
-			context.stylesheets = manifest.get("stylesheets", [])
-			context.script = manifest.get("script")
-		else:
-			context.template = "templates/generators/studio_renderer.html"
+			if manifest:
+				context.stylesheets = manifest.get("stylesheets", [])
+				context.script = manifest.get("script")
+			else:
+				context.template = "templates/generators/studio_renderer.html"
+				context.assets_not_found = True
 
 	def autoname(self):
 		if not self.name:

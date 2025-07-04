@@ -25,5 +25,11 @@
 		{% else %}
 			<script type="module" src="/src/renderer.ts"></script>
 		{% endif %}
+
+		{% if assets_not_found %}
+		<script>
+			console.error("Studio App is running in Production mode, but app assets are missing. Currently, using the default renderer as a fallback. To fix this:\n1. Please publish the app to generate assets \n2. Or switch to Development mode in the Studio App document")
+		</script>
+		{% endif %}
 	</body>
 </html>
