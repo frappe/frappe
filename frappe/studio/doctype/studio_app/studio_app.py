@@ -96,8 +96,6 @@ class StudioApp(WebsiteGenerator):
 
 		# check if build is required
 		draft_components = get_app_components(self.name, "draft_blocks")
-		if not draft_components:
-			return  # no changes, everything is already published
 		components = get_app_components(self.name)
 		if not draft_components.symmetric_difference(components):
 			return
