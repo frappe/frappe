@@ -76,18 +76,10 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
-			<Button
-				size="sm"
-				variant="subtle"
-				:disabled="canvasStore.editingMode === 'fragment'"
-				@click="() => store.generateAppBuild()"
-			>
-				Build
-			</Button>
 			<TabButtons
 				:buttons="[
-					{ label: 'Dev', value: 'Development' },
-					{ label: 'Prod', value: 'Production' },
+					{ label: 'Dev', icon: 'code', value: 'Development' },
+					{ label: 'Prod', icon: 'package', value: 'Production' },
 				]"
 				:modelValue="store.activeApp?.mode"
 				@update:modelValue="(value: string) => store.updateActiveApp('mode', value)"
@@ -96,6 +88,7 @@
 				size="sm"
 				variant="solid"
 				:disabled="canvasStore.editingMode === 'fragment'"
+				:loading="publishing"
 				@click="
 					() => {
 						publishing = true
@@ -111,7 +104,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip } from "frappe-ui"
+import { Tooltip, Popover, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
@@ -120,7 +113,6 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
-import { TabButtons } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

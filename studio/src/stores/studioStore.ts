@@ -191,11 +191,15 @@ const useStudioStore = defineStore("store", () => {
 
 	async function publishPage() {
 		if (!selectedPage.value) return
+
+		if (activeApp.value?.mode === "Production") {
+			await generateAppBuild()
+		}
 		return studioPages.runDocMethod
 			.submit(
 				{
-				name: selectedPage.value,
-				method: "publish",
+					name: selectedPage.value,
+					method: "publish",
 				},
 				{
 					onError(error: any) {
@@ -244,7 +248,13 @@ const useStudioStore = defineStore("store", () => {
 			method: "generate_app_build",
 		}, {
 			onSuccess() {
-				toast.success("App build generated")
+				toast.success("App build generated", {
+					duration: Infinity,
+					action: {
+						label: "View App",
+						onClick: openPageInBrowser(activeApp.value!, activePage.value!)
+					}
+				})
 			},
 			onError(error: any) {
 				toast.error("Failed to generate app build", {
