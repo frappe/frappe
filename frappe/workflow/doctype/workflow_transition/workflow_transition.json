@@ -12,6 +12,7 @@
   "allowed",
   "allow_self_approval",
   "send_email_to_creator",
+  "transition_tasks",
   "conditions",
   "condition",
   "column_break_7",
@@ -99,17 +100,24 @@
    "fieldname": "send_email_to_creator",
    "fieldtype": "Check",
    "label": "Send Email To Creator"
+  },
+  {
+   "fieldname": "transition_tasks",
+   "fieldtype": "Link",
+   "label": "Transition Tasks",
+   "options": "Workflow Transition Tasks"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-24 02:47:44.188152",
+ "modified": "2025-07-04 15:56:34.345888",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Transition",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
