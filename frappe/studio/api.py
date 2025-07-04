@@ -1,7 +1,7 @@
 import frappe
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
-from studio.constants import NON_VUE_COMPONENTS
+from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
 
 
 @frappe.whitelist()
@@ -67,6 +67,7 @@ def get_app_components(app_name: str) -> set[str]:
 		pluck="blocks",
 	)
 	components = set()
+	components.update(DEFAULT_COMPONENTS)
 
 	def add_h_function_components(text: str) -> set[str]:
 		"""Extract component names from h(ComponentName...) function calls"""
@@ -76,24 +77,24 @@ def get_app_components(app_name: str) -> set[str]:
 		for match in matches:
 			components.add(match)
 
-	def add_blocks(block: dict):
+	def add_block_components(block: dict):
 		if block.get("componentName") not in NON_VUE_COMPONENTS:
 			components.add(block.get("componentName"))
 		for child in block.get("children", []):
-			add_blocks(child)
+			add_block_components(child)
 
 		if slots := block.get("componentSlots"):
 			for slot in slots.values():
 				if isinstance(slot.get("slotContent"), str):
 					continue
 				for slot_child in slot.get("slotContent"):
-					add_blocks(slot_child)
+					add_block_components(slot_child)
 
 	for blocks in pages:
 		if isinstance(blocks, str):
 			add_h_function_components(blocks)
 			blocks = frappe.parse_json(blocks)
 		root_block = blocks[0]
-		add_blocks(root_block)
+		add_block_components(root_block)
 
 	return list(components)
