@@ -1,7 +1,3 @@
-"""
-Hook để tự động thiết lập S3 bucket sau khi cài đặt site
-"""
-
 import frappe
 from frappe.utils.s3_auto_setup import setup_s3_for_site, add_s3_to_site_config, get_s3_credentials
 
@@ -33,10 +29,7 @@ def setup_s3_for_new_site():
             success = add_s3_to_site_config(site_name, s3_config)
             
             if success:
-                print(f"✅ Đã tạo và cấu hình S3 bucket '{s3_config['s3_bucket']}' cho site {site_name}")
-                # Cập nhật lại frappe.conf để sử dụng ngay
-                frappe.destroy()
-                frappe.init(site_name)
+                print(f"Đã tạo và cấu hình S3 bucket '{s3_config['s3_bucket']}' cho site {site_name}")
             else:
                 print(f"Cảnh báo: Không thể cập nhật site_config.json cho site {site_name}")
         else:
