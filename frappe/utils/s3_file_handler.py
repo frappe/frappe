@@ -8,13 +8,14 @@ from io import BytesIO
 
 def write_file_to_s3(file_doc):
     """
-    Trình xử lý tệp lưu trữ lên S3 cho Frappe, thay thế cơ chế ghi tệp mặc định
+    Trình xử lý tệp lưu trữ lên S3 cho Frappe, thay thế cơ chế ghi tệp mặc định.
+    Giới hạn kích thước tệp tối đa là 200MB.
     """
     s3_config = get_s3_config()
     if not s3_config:
         # Fallback: Nếu S3 fail → lưu local
         return file_doc.save_file_on_filesystem()
-    
+
     try:
         # Kết nối S3 client
         s3_client = boto3.client(
@@ -22,23 +23,29 @@ def write_file_to_s3(file_doc):
             aws_access_key_id=s3_config['aws_access_key_id'],
             aws_secret_access_key=s3_config['aws_secret_access_key'],
             endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-            region_name=s3_config.get('aws_default_region', 'us-east-1')
+            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
         )
-        
+
+        # Kiểm tra kích thước file
+        file_size = len(file_doc._content)
+        max_size = 200 * 1024 * 1024  # 200MB
+
+        if file_size > max_size:
+            frappe.throw("Tệp tải lên vượt quá giới hạn 200MB. Vui lòng chọn tệp nhỏ hơn.")
+
         # Tạo S3 key
         s3_key = generate_s3_key(file_doc.file_name)
-        
-        # Kiểm tra kích thước tệp để tải lên (>50MB)
-        file_size = len(file_doc._content)
+
+        # Ngưỡng dùng multipart upload (tùy chọn, mặc định 50MB)
         chunk_threshold = 50 * 1024 * 1024  # 50MB
-        
+
         if file_size > chunk_threshold:
-            # Sử dụng tải lên nhiều phần cho các tệp lớn
+            # Tải lên nhiều phần nếu tệp lớn hơn 50MB
             return upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key)
         else:
-            # Xử lý tải lên các tệp nhỏ
+            # Tải lên trực tiếp
             return upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key)
-        
+
     except Exception as e:
         frappe.logger().error(f"Failed to upload {file_doc.file_name} to S3: {str(e)}")
         return file_doc.save_file_on_filesystem()

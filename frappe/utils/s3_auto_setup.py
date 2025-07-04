@@ -1,0 +1,179 @@
+import os
+import json
+import string
+import random
+import frappe
+import boto3
+from botocore.exceptions import ClientError
+
+
+def generate_bucket_name(site_name):
+    """Tạo tên bucket S3 duy nhất cho từng site"""
+    # Loại bỏ dấu chấm và thay bằng dấu gạch ngang vì tên bucket S3 không được chứa dấu chấm
+    safe_site_name = site_name.replace('.', '-').replace('_', '-').lower()
+    
+    # Thêm hậu tố ngẫu nhiên để đảm bảo không trùng lặp
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    
+    bucket_name = f"frappe-{safe_site_name}-{random_suffix}"
+    
+    # Đảm bảo tên bucket tuân thủ quy định của S3 (3-63 ký tự)
+    if len(bucket_name) > 63:
+        bucket_name = bucket_name[:63]
+    
+    return bucket_name
+
+
+def get_s3_credentials():
+    """Lấy thông tin xác thực S3 từ cấu hình chung hoặc biến môi trường"""
+    try:
+        # Ưu tiên lấy từ cấu hình chung của site
+        common_config = frappe.get_common_site_config()
+        
+        aws_access_key = common_config.get('aws_access_key_id')
+        aws_secret_key = common_config.get('aws_secret_access_key')
+        aws_region = common_config.get('aws_region', 'ap-southeast-1')
+        
+        if not aws_access_key or not aws_secret_key:
+            # Nếu không có, lấy từ biến môi trường hệ thống
+            import os
+            aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
+            aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+            aws_region = os.getenv('AWS_DEFAULT_REGION', 'ap-southeast-1')
+        
+        if not aws_access_key or not aws_secret_key:
+            return None
+            
+        return {
+            'aws_access_key_id': aws_access_key,
+            'aws_secret_access_key': aws_secret_key,
+            'region': aws_region
+        }
+    except Exception as e:
+        frappe.log_error(f"Lỗi khi lấy thông tin S3: {str(e)}", "S3 Auto Setup")
+        return None
+
+
+def create_s3_bucket(bucket_name, region='ap-southeast-1'):
+    """Tạo một S3 bucket với tên chỉ định"""
+    try:
+        credentials = get_s3_credentials()
+        if not credentials:
+            return False, "Không tìm thấy thông tin xác thực S3"
+        
+        # Tạo đối tượng S3 client
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=credentials['aws_access_key_id'],
+            aws_secret_access_key=credentials['aws_secret_access_key'],
+            region_name=region
+        )
+        
+        # Kiểm tra xem bucket đã tồn tại chưa
+        try:
+            s3_client.head_bucket(Bucket=bucket_name)
+            return True, f"Bucket {bucket_name} đã tồn tại"
+        except ClientError as e:
+            error_code = int(e.response['Error']['Code'])
+            if error_code == 404:
+                # Bucket chưa tồn tại → tiếp tục tạo
+                pass
+            else:
+                return False, f"Lỗi kiểm tra bucket: {str(e)}"
+        
+        # Tạo bucket
+        if region == 'us-east-1':
+            # Khu vực us-east-1 không cần cấu hình vị trí
+            s3_client.create_bucket(Bucket=bucket_name)
+        else:
+            s3_client.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={'LocationConstraint': region}
+            )
+        
+        # Đặt policy để cho phép truy cập public thư mục /public (tuỳ chọn)
+        try:
+            bucket_policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Sid": "PublicReadGetObject",
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Action": "s3:GetObject",
+                        "Resource": f"arn:aws:s3:::{bucket_name}/public/*"
+                    }
+                ]
+            }
+            
+            s3_client.put_bucket_policy(
+                Bucket=bucket_name,
+                Policy=json.dumps(bucket_policy)
+            )
+        except Exception as e:
+            # Nếu thiết lập policy thất bại, ghi log nhưng không làm hỏng quy trình
+            frappe.log_error(f"Cảnh báo: Không thể đặt policy cho bucket {bucket_name}: {str(e)}", "S3 Auto Setup")
+        
+        return True, f"Đã tạo bucket {bucket_name} thành công"
+        
+    except ImportError:
+        return False, "Chưa cài đặt thư viện boto3. Cần chạy: pip install boto3"
+    except Exception as e:
+        return False, f"Lỗi khi tạo bucket: {str(e)}"
+
+
+def setup_s3_for_site(site_name):
+    """Tạo S3 bucket và trả về cấu hình để lưu vào site_config.json"""
+    try:
+        credentials = get_s3_credentials()
+        if not credentials:
+            return None
+        
+        # Sinh tên bucket
+        bucket_name = generate_bucket_name(site_name)
+        
+        # Tạo bucket
+        success, message = create_s3_bucket(bucket_name, credentials['region'])
+        
+        if success:
+            # Trả về cấu hình S3 để thêm vào site_config.json
+            s3_config = {
+                's3_bucket': bucket_name,
+                'aws_access_key_id': credentials['aws_access_key_id'],
+                'aws_secret_access_key': credentials['aws_secret_access_key'],
+                'aws_s3_endpoint_url': f"https://s3.{credentials['region']}.amazonaws.com"
+            }
+            
+            print(f"Đã tạo và cấu hình S3 bucket '{bucket_name}' cho site {site_name}")
+            return s3_config
+        else:
+            frappe.log_error(f"Không thể tạo bucket S3 cho site {site_name}: {message}", "S3 Auto Setup")
+            return None
+            
+    except Exception as e:
+        frappe.log_error(f"Lỗi khi thiết lập S3 cho site {site_name}: {str(e)}", "S3 Auto Setup")
+        return None
+
+
+def add_s3_to_site_config(site_name, s3_config):
+    """Thêm cấu hình S3 vào file site_config.json của site"""
+    try:
+        site_config_path = os.path.join(frappe.local.sites_path, site_name, "site_config.json")
+        
+        if os.path.exists(site_config_path):
+            with open(site_config_path, 'r') as f:
+                current_config = json.load(f)
+        else:
+            current_config = {}
+        
+        # Thêm các thông tin cấu hình S3 vào
+        current_config.update(s3_config)
+        
+        # Ghi lại file site_config.json
+        with open(site_config_path, 'w') as f:
+            json.dump(current_config, f, indent=1, sort_keys=True)
+        
+        return True
+    except Exception as e:
+        frappe.log_error(f"Lỗi khi thêm cấu hình S3 cho site {site_name}: {str(e)}", "S3 Auto Setup")
+        return False
