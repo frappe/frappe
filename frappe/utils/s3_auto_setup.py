@@ -5,6 +5,7 @@ import random
 import frappe
 import boto3
 from botocore.exceptions import ClientError
+from frappe.utils import get_site_path
 
 
 def generate_bucket_name(site_name):
@@ -133,8 +134,8 @@ def setup_s3_for_site(site_name):
 def add_s3_to_site_config(site_name, s3_config):
     """Thêm cấu hình S3 vào file site_config.json của site"""
     try:
-        site_config_path = os.path.join(frappe.local.sites_path, site_name, "site_config.json")
-        
+        site_config_path = os.path.join(site_name, "site_config.json")
+
         if os.path.exists(site_config_path):
             with open(site_config_path, 'r') as f:
                 current_config = json.load(f)
@@ -146,9 +147,10 @@ def add_s3_to_site_config(site_name, s3_config):
         
         # Ghi lại file site_config.json
         with open(site_config_path, 'w') as f:
-            json.dump(current_config, f, indent=1, sort_keys=True)
-        
+            json.dump(current_config, f, indent=2, sort_keys=True)
+
         return True
+
     except Exception as e:
-        frappe.log_error(f"Lỗi khi thêm cấu hình S3 cho site {site_name}: {str(e)}", "S3 Auto Setup")
+        frappe.log_error(f"Lỗi khi ghi site_config cho site {site_name}: {str(e)}", "S3 Auto Setup")
         return False
