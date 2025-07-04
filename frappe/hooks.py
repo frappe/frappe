@@ -13,7 +13,10 @@ develop_version = "15.x.x-develop"
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
-after_install = "frappe.utils.install.after_install"
+after_install = [
+	"frappe.utils.install.after_install",
+	"frappe.utils.s3_site_setup.setup_s3_for_new_site"
+]
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 

@@ -15,7 +15,7 @@ def generate_bucket_name(site_name):
     # Thêm hậu tố ngẫu nhiên để đảm bảo không trùng lặp
     random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
     
-    bucket_name = f"frappe-{safe_site_name}-{random_suffix}"
+    bucket_name = f"nextgrp-{safe_site_name}-{random_suffix}"
     
     # Đảm bảo tên bucket tuân thủ quy định của S3 (3-63 ký tự)
     if len(bucket_name) > 63:
@@ -83,7 +83,6 @@ def create_s3_bucket(bucket_name, region='ap-southeast-1'):
         
         # Tạo bucket
         if region == 'us-east-1':
-            # Khu vực us-east-1 không cần cấu hình vị trí
             s3_client.create_bucket(Bucket=bucket_name)
         else:
             s3_client.create_bucket(
@@ -91,32 +90,9 @@ def create_s3_bucket(bucket_name, region='ap-southeast-1'):
                 CreateBucketConfiguration={'LocationConstraint': region}
             )
         
-        # Đặt policy để cho phép truy cập public thư mục /public (tuỳ chọn)
-        try:
-            bucket_policy = {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Sid": "PublicReadGetObject",
-                        "Effect": "Allow",
-                        "Principal": "*",
-                        "Action": "s3:GetObject",
-                        "Resource": f"arn:aws:s3:::{bucket_name}/public/*"
-                    }
-                ]
-            }
-            
-            s3_client.put_bucket_policy(
-                Bucket=bucket_name,
-                Policy=json.dumps(bucket_policy)
-            )
-        except Exception as e:
-            # Nếu thiết lập policy thất bại, ghi log nhưng không làm hỏng quy trình
-            frappe.log_error(f"Cảnh báo: Không thể đặt policy cho bucket {bucket_name}: {str(e)}", "S3 Auto Setup")
-        
         return True, f"Đã tạo bucket {bucket_name} thành công"
         
-    except ImportError:
+    except ImportError as ie:
         return False, "Chưa cài đặt thư viện boto3. Cần chạy: pip install boto3"
     except Exception as e:
         return False, f"Lỗi khi tạo bucket: {str(e)}"
@@ -144,7 +120,6 @@ def setup_s3_for_site(site_name):
                 'aws_s3_endpoint_url': f"https://s3.{credentials['region']}.amazonaws.com"
             }
             
-            print(f"Đã tạo và cấu hình S3 bucket '{bucket_name}' cho site {site_name}")
             return s3_config
         else:
             frappe.log_error(f"Không thể tạo bucket S3 cho site {site_name}: {message}", "S3 Auto Setup")
