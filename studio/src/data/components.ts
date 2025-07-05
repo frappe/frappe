@@ -718,10 +718,6 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 	}
 })
 
-function get(name: string) {
-	return COMPONENTS[name]
-}
-
 function isFrappeUIComponent(name: string) {
 	return FRAPPE_UI_COMPONENTS.includes(name)
 }
@@ -750,7 +746,6 @@ export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	names: Object.keys(COMPONENTS),
-	get,
 	getProxyComponent,
 	getProps,
 	getEmits,

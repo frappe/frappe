@@ -9,6 +9,10 @@ import App from "./App.vue"
 import { resourcesPlugin, frappeRequest } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
+import { COMPONENTS } from "@/data/components"
+import Block from "@/utils/block"
+Block.setComponents(COMPONENTS)
+
 const studio = createApp(App)
 const pinia = createPinia()
 

@@ -4,10 +4,9 @@ import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useCanvasStore from "@/stores/canvasStore"
 
-import components from "@/data/components";
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
-import type { StyleValue } from "@/types"
+import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
@@ -31,6 +30,9 @@ class Block implements BlockOptions {
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
 
+	// @editor-only
+	private static components: FrappeUIComponents | null = null
+
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
 		this.blockName = options.blockName || this.componentName
@@ -51,14 +53,14 @@ class Block implements BlockOptions {
 
 		// get component props
 		if (!options.componentProps) {
-			this.componentProps = copyObject(components.get(options.componentName)?.initialState)
+			this.componentProps = copyObject(Block.components?.[options.componentName]?.initialState)
 		} else {
 			this.componentProps = options.componentProps
 		}
 
 		this.componentSlots = options.componentSlots || {}
 		if (!options.componentSlots) {
-			let slots = components.get(options.componentName)?.initialSlots || []
+			let slots = Block.components?.[options.componentName]?.initialSlots || []
 			slots.forEach((slot) => {
 				this.addSlot(slot)
 			})
@@ -85,6 +87,14 @@ class Block implements BlockOptions {
 			child.parentBlock = this;
 			return reactive(new Block(child))
 		})
+	}
+
+	static setComponents(components: FrappeUIComponents) {
+		Block.components = components
+	}
+
+	static getComponents() {
+		return Block.components
 	}
 
 	generateComponentId(componentName?: string | null): string {
@@ -221,7 +231,7 @@ class Block implements BlockOptions {
 
 	getIcon() {
 		if (this.isRoot()) return "Hash"
-		return components.get(this.componentName)?.icon
+		return Block.components?.[this.componentName]?.icon
 	}
 
 	getBlockDescription() {
@@ -229,11 +239,11 @@ class Block implements BlockOptions {
 	}
 
 	editInFragmentMode() {
-		return components.get(this.componentName)?.editInFragmentMode
+		return Block.components?.[this.componentName]?.editInFragmentMode
 	}
 
 	getProxyComponent() {
-		return components.get(this.componentName)?.proxyComponent
+		return Block.components?.[this.componentName]?.proxyComponent
 	}
 
 	// styles
