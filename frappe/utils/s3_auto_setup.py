@@ -5,7 +5,7 @@ import random
 import frappe
 import boto3
 from botocore.exceptions import ClientError
-from frappe.utils import get_site_path
+from pathlib import Path
 
 
 def generate_bucket_name(site_name):
@@ -134,9 +134,9 @@ def setup_s3_for_site(site_name):
 def add_s3_to_site_config(site_name, s3_config):
     """Thêm cấu hình S3 vào file site_config.json của site"""
     try:
-        site_config_path = os.path.join(site_name, "site_config.json")
+        site_config_path = Path(frappe.get_site_path("site_config.json"), site=site_name)
 
-        if os.path.exists(site_config_path):
+        if site_config_path.exists():
             with open(site_config_path, 'r') as f:
                 current_config = json.load(f)
         else:
