@@ -87,14 +87,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue"
+import { ref, computed, watch, resolveComponent } from "vue"
 import { FormControl, createResource, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 
 import { isObjectEmpty, confirm } from "@/utils/helpers"
-import { getComponentEvents } from "@/utils/components"
 
 import type { SelectOption } from "@/types"
 import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
@@ -143,6 +142,14 @@ const eventOptions = computed(() => {
 		"keypress",
 	]
 })
+
+function getComponentEvents(name: string) {
+	const component = resolveComponent(name)
+	if (typeof component === "string" || !component) {
+		return []
+	}
+	return component?.emits || []
+}
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
 watch(

@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from "vue"
+import { computed, watch, ref, resolveComponent } from "vue"
 import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
@@ -157,9 +157,19 @@ const props = defineProps<{
 const store = useStudioStore()
 const getCompletions = useStudioCompletions()
 
+const componentInstance = computed(() => {
+	if (!props.block?.componentName) return {}
+	const component = resolveComponent(props.block?.componentName)
+	if (typeof component === "string" || !component) {
+		return {}
+	}
+	return component
+})
+
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
-	const propConfig = getComponentProps(props.block.componentName) || {}
+
+	const propConfig = getComponentProps(props.block.componentName, componentInstance.value)
 	if (!propConfig) return {}
 
 	Object.entries(propConfig).forEach(([propName, config]) => {

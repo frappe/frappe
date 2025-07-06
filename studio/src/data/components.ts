@@ -1,4 +1,4 @@
-import { defineAsyncComponent, h, resolveComponent } from "vue"
+import { defineAsyncComponent, h } from "vue"
 import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
@@ -726,28 +726,10 @@ function getProxyComponent(name: string) {
 	return proxyComponentMap.get(name)
 }
 
-function getProps(name: string) {
-	const component = resolveComponent(name)
-	if (typeof component === "string" || !component) {
-		return {}
-	}
-	return component?.props || {}
-}
-
-function getEmits(name: string) {
-	const component = resolveComponent(name)
-	if (typeof component === "string" || !component) {
-		return []
-	}
-	return component?.emits || []
-}
-
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
-	getProps,
-	getEmits,
 	isFrappeUIComponent,
 }

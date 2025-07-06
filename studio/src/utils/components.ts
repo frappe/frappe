@@ -4,6 +4,7 @@ import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"
+import { ConcreteComponent } from "vue"
 
 interface ComponentTypes {
 	[componentName: string]: {
@@ -17,8 +18,9 @@ const componentFolders: Record<string, string> = {
 	DateRangePicker: "DatePicker",
 }
 
-function getComponentProps(componentName: string) {
-	const props = components.getProps(componentName)
+function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
+	if (typeof component === "string") return {}
+	const props = component.props
 	if (!props) return {}
 
 	if ("modelModifiers" in props) {
@@ -147,11 +149,6 @@ function getSinglePropType(propTypes: string | string[]) {
 	return "string"
 }
 
-// events
-function getComponentEvents(componentName: string) {
-	return components.getEmits(componentName) || []
-}
-
 // ?raw to get raw content of a file as string
 const frappeUIModules = import.meta.glob(
 	"../../../node_modules/frappe-ui/src/components/**/*.vue",
@@ -232,4 +229,4 @@ async function getComponentSlots(componentName: string) {
 	return slots
 }
 
-export { getComponentProps, getComponentEvents, getComponentTemplate, getComponentSlots }
+export { getComponentProps, getComponentTemplate, getComponentSlots }
