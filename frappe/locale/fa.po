@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-29 17:47\n"
+"PO-Revision-Date: 2025-07-06 19:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -977,7 +977,7 @@ msgstr "اضافه / حذف ستون ها"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
-msgstr "افزودن / به روز رسانی"
+msgstr "افزودن / به‌روزرسانی"
 
 #: frappe/core/page/permission_manager/permission_manager.js:442
 msgid "Add A New Rule"
@@ -3542,7 +3542,7 @@ msgstr "برون‌بُرد PDF انبوه"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
-msgstr "به روز رسانی انبوه"
+msgstr "به‌روزرسانی انبوه"
 
 #: frappe/model/workflow.py:254
 msgid "Bulk approval only support up to 500 documents."
@@ -3902,7 +3902,7 @@ msgstr "نمی‌توان حذف کرد"
 
 #: frappe/model/base_document.py:1161
 msgid "Cannot Update After Submit"
-msgstr "پس از ارسال امکان به روز رسانی وجود ندارد"
+msgstr "پس از ارسال امکان به‌روزرسانی وجود ندارد"
 
 #: frappe/core/doctype/file/file.py:621
 msgid "Cannot access file path {0}"
@@ -7097,7 +7097,7 @@ msgstr "غیرفعال کردن پاورقی استاندارد ایمیل"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable System Update Notification"
-msgstr "غیرفعال کردن اعلان به روز رسانی سیستم"
+msgstr "غیرفعال کردن اعلان به‌روزرسانی سیستم"
 
 #. Label of the disable_user_pass_login (Check) field in DocType 'System
 #. Settings'
@@ -10509,7 +10509,7 @@ msgstr "برای چندین آدرس، آدرس را در خطوط مختلف و
 
 #: frappe/core/doctype/data_export/exporter.py:197
 msgid "For updating, you can update only selective columns."
-msgstr "برای به روز رسانی، می‌توانید فقط ستون های انتخابی را به روز کنید."
+msgstr "برای به‌روزرسانی، می‌توانید فقط ستون های انتخابی را به روز کنید."
 
 #: frappe/core/doctype/doctype/doctype.py:1751
 msgid "For {0} at level {1} in {2} in row {3}"
@@ -13663,7 +13663,7 @@ msgstr "نمای کانبان"
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
-msgstr "تمام فیدهای به روز رسانی را پیگیری کنید"
+msgstr "تمام فیدهای به‌روزرسانی را پیگیری کنید"
 
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
@@ -14083,7 +14083,7 @@ msgstr "آخرین همگام سازی شد"
 #: frappe/model/meta.py:57 frappe/public/js/frappe/model/meta.js:205
 #: frappe/public/js/frappe/model/model.js:130
 msgid "Last Updated By"
-msgstr "آخرین به روز رسانی توسط"
+msgstr "آخرین به‌روزرسانی توسط"
 
 #: frappe/model/meta.py:56 frappe/public/js/frappe/model/meta.js:204
 #: frappe/public/js/frappe/model/model.js:126
@@ -16303,7 +16303,7 @@ msgstr "گذرواژه جدید نمی‌تواند مشابه گذرواژه ق
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
-msgstr "به روز رسانی های جدید در دسترس هستند"
+msgstr "به‌روزرسانی های جدید در دسترس هستند"
 
 #. Description of the 'Disable signups' (Check) field in DocType 'Website
 #. Settings'
@@ -16671,7 +16671,7 @@ msgstr "هیچ تغییری برای همگام سازی وجود ندارد"
 
 #: frappe/core/doctype/data_import/importer.py:298
 msgid "No changes to update"
-msgstr "هیچ تغییری برای به روز رسانی وجود ندارد"
+msgstr "هیچ تغییری برای به‌روزرسانی وجود ندارد"
 
 #: frappe/website/doctype/blog_post/blog_post.py:378
 msgid "No comments yet"
@@ -17112,7 +17112,7 @@ msgstr "چیزی برای نشان دادن نیست"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:129
 msgid "Nothing to update"
-msgstr "چیزی برای به روز رسانی نیست"
+msgstr "چیزی برای به‌روزرسانی نیست"
 
 #. Label of the notification (Tab Break) field in DocType 'Auto Repeat'
 #. Label of a Link in the Tools Workspace
@@ -22560,7 +22560,7 @@ msgstr "فیلدهایی را برای درج انتخاب کنید"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:148
 msgid "Select Fields To Update"
-msgstr "فیلدهای به روز رسانی را انتخاب کنید"
+msgstr "فیلدهای به‌روزرسانی را انتخاب کنید"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:21
 msgid "Select Filters"
@@ -23865,7 +23865,7 @@ msgstr "Single Type ها فقط یک رکورد دارند و هیچ جدولی 
 
 #: frappe/database/database.py:284
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
-msgstr "سایت در حالت فقط خواندنی برای نگهداری یا به روز رسانی سایت در حال اجرا است، این عمل در حال حاضر قابل انجام نیست. لطفاً بعداً دوباره امتحان کنید."
+msgstr "سایت در حالت فقط خواندنی برای نگهداری یا به‌روزرسانی سایت در حال اجرا است، این عمل در حال حاضر قابل انجام نیست. لطفاً بعداً دوباره امتحان کنید."
 
 #: frappe/public/js/frappe/views/file/file_view.js:337
 msgid "Size"
@@ -25652,7 +25652,7 @@ msgstr "سند انتخاب شده {0} یک {1} نیست."
 
 #: frappe/utils/response.py:338
 msgid "The system is being updated. Please refresh again after a few moments."
-msgstr "سیستم در حال به روز رسانی است. لطفاً پس از چند لحظه دوباره بازخوانی کنید."
+msgstr "سیستم در حال به‌روزرسانی است. لطفاً پس از چند لحظه دوباره بازخوانی کنید."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
@@ -27258,24 +27258,24 @@ msgstr "رویدادهای آینده برای امروز"
 #: frappe/printing/page/print_format_builder/print_format_builder.js:765
 #: frappe/public/js/frappe/form/grid_row.js:411
 msgid "Update"
-msgstr "به روز رسانی"
+msgstr "به‌روزرسانی"
 
 #. Label of the update_amendment_naming (Button) field in DocType 'Document
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Amendment Naming"
-msgstr "به روز رسانی اصلاحیه نامگذاری"
+msgstr "به‌روزرسانی اصلاحیه نامگذاری"
 
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Update Existing Records"
-msgstr "به روز رسانی رکوردهای موجود"
+msgstr "به‌روزرسانی رکوردهای موجود"
 
 #. Label of the update_field (Select) field in DocType 'Workflow Document
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Update Field"
-msgstr "فیلد به روز رسانی"
+msgstr "فیلد به‌روزرسانی"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
@@ -27284,7 +27284,7 @@ msgstr "به‌روزرسانی ترتیب حل هوک‌ها"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:45
 msgid "Update Order"
-msgstr "سفارش به روز رسانی"
+msgstr "سفارش به‌روزرسانی"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:494
 msgid "Update Password"
@@ -27294,33 +27294,33 @@ msgstr "به‌روزرسانی گذرواژه"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Counter"
-msgstr "به روز رسانی شمارنده سری"
+msgstr "به‌روزرسانی شمارنده سری"
 
 #. Label of the update_series_start (Button) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Number"
-msgstr "به روز رسانی شماره سری"
+msgstr "به‌روزرسانی شماره سری"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Update Settings"
-msgstr "به روز رسانی تنظیمات"
+msgstr "به‌روزرسانی تنظیمات"
 
 #: frappe/public/js/frappe/views/translation_manager.js:13
 msgid "Update Translations"
-msgstr "به روز رسانی ترجمه ها"
+msgstr "به‌روزرسانی ترجمه ها"
 
 #. Label of the update_value (Small Text) field in DocType 'Bulk Update'
 #. Label of the update_value (Data) field in DocType 'Workflow Document State'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Update Value"
-msgstr "به روز رسانی مقدار"
+msgstr "به‌روزرسانی مقدار"
 
 #: frappe/utils/change_log.py:381
 msgid "Update from Frappe Cloud"
-msgstr "به روز رسانی از Frappe Cloud"
+msgstr "به‌روزرسانی از Frappe Cloud"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:375
 msgid "Update {0} records"
@@ -27359,7 +27359,7 @@ msgstr "در حال بروز رسانی"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:49
 msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
-msgstr "به روز رسانی وضعیت های صف ایمیل. ایمیل ها در اجرای زمان‌بندی شده بعدی دریافت خواهند شد."
+msgstr "به‌روزرسانی وضعیت های صف ایمیل. ایمیل ها در اجرای زمان‌بندی شده بعدی دریافت خواهند شد."
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:17
 msgid "Updating counter may lead to document name conflicts if not done properly"
@@ -27367,7 +27367,7 @@ msgstr "اگر به‌درستی انجام نشود، به‌روزرسانی �
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:23
 msgid "Updating global settings"
-msgstr "به روز رسانی تنظیمات جهانی"
+msgstr "به‌روزرسانی تنظیمات جهانی"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
@@ -27375,15 +27375,15 @@ msgstr "در حال به‌روزرسانی گزینه‌های سری نام‌
 
 #: frappe/public/js/frappe/form/toolbar.js:136
 msgid "Updating related fields..."
-msgstr "به روز رسانی فیلدهای مرتبط..."
+msgstr "به‌روزرسانی فیلدهای مرتبط..."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:95
 msgid "Updating {0}"
-msgstr "در حال به روز رسانی {0}"
+msgstr "در حال به‌روزرسانی {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:36
 msgid "Updating {0} of {1}, {2}"
-msgstr "در حال به روز رسانی {0} از {1}، {2}"
+msgstr "در حال به‌روزرسانی {0} از {1}، {2}"
 
 #: frappe/public/js/billing.bundle.js:131
 msgid "Upgrade plan"
@@ -29215,7 +29215,7 @@ msgstr "شما مجاز به ارسال ایمیل های مرتبط با این
 
 #: frappe/website/doctype/web_form/web_form.py:566
 msgid "You are not allowed to update this Web Form Document"
-msgstr "شما مجاز به به روز رسانی این سند فرم وب نیستید"
+msgstr "شما مجاز به به‌روزرسانی این سند فرم وب نیستید"
 
 #: frappe/public/js/frappe/request.js:37
 msgid "You are not connected to Internet. Retry after sometime."
@@ -29235,7 +29235,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr "شما اکنون این سند را دنبال می‌کنید. به روز رسانی های روزانه را از طریق ایمیل دریافت خواهید کرد. می‌توانید این مورد را در تنظیمات کاربر تغییر دهید."
+msgstr "شما اکنون این سند را دنبال می‌کنید. به‌روزرسانی های روزانه را از طریق ایمیل دریافت خواهید کرد. می‌توانید این مورد را در تنظیمات کاربر تغییر دهید."
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:86
 msgid "You are only allowed to update order, do not remove or add apps."
@@ -29694,7 +29694,7 @@ msgstr "نشست شما منقضی شده است، لطفا برای ادامه 
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:15
 msgid "Your site is undergoing maintenance or being updated."
-msgstr "سایت شما در حال تعمیر یا به روز رسانی است."
+msgstr "سایت شما در حال تعمیر یا به‌روزرسانی است."
 
 #: frappe/templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
