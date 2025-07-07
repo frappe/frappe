@@ -526,11 +526,13 @@ frappe.ui.Page = class Page {
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
-		// alt shortcut
-		frappe.ui.keys
-			.get_shortcut_group(parent.get(0))
-			.add($link, $link.find(".menu-item-label"));
-
+		// if an shortcut is already set, dont set an alt Shortcut
+		if (!shortcut) {
+			// alt shortcut
+			frappe.ui.keys
+				.get_shortcut_group(parent.get(0))
+				.add($link, $link.find(".menu-item-label"));
+		}
 		return $link;
 	}
 

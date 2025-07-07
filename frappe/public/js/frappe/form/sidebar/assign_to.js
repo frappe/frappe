@@ -178,13 +178,6 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				onchange: () => me.assign_to_me(),
 			},
 			{
-				label: __("Assign To User Group"),
-				fieldtype: "Link",
-				fieldname: "assign_to_user_group",
-				options: "User Group",
-				onchange: () => me.user_group_list(),
-			},
-			{
 				fieldtype: "MultiSelectPills",
 				fieldname: "assign_to",
 				label: __("Assign To"),
@@ -195,6 +188,13 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 						enabled: 1,
 					});
 				},
+			},
+			{
+				label: __("Assign To User Group"),
+				fieldtype: "Link",
+				fieldname: "assign_to_user_group",
+				options: "User Group",
+				onchange: () => me.user_group_list(),
 			},
 			{
 				fieldtype: "Section Break",

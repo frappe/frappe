@@ -7,19 +7,29 @@
  "engine": "InnoDB",
  "field_order": [
   "client_id",
-  "app_name",
   "user",
   "allowed_roles",
   "cb_1",
   "client_secret",
-  "skip_authorization",
-  "sb_1",
-  "scopes",
-  "cb_3",
-  "redirect_uris",
   "default_redirect_uri",
+  "skip_authorization",
+  "client_metadata_section",
+  "app_name",
+  "scopes",
+  "column_break_htfq",
+  "redirect_uris",
+  "section_break_ggiv",
+  "client_uri",
+  "software_id",
+  "tos_uri",
+  "contacts",
+  "column_break_ziii",
+  "logo_uri",
+  "software_version",
+  "policy_uri",
   "sb_advanced",
   "grant_type",
+  "token_endpoint_auth_method",
   "cb_2",
   "response_type"
  ],
@@ -27,13 +37,13 @@
   {
    "fieldname": "client_id",
    "fieldtype": "Data",
-   "label": "App Client ID",
+   "label": "Client ID",
    "read_only": 1
   },
   {
    "fieldname": "app_name",
    "fieldtype": "Data",
-   "label": "App Name",
+   "label": "App Name (Client Name)",
    "reqd": 1
   },
   {
@@ -50,7 +60,7 @@
   {
    "fieldname": "client_secret",
    "fieldtype": "Data",
-   "label": "App Client Secret",
+   "label": "Client Secret",
    "read_only": 1
   },
   {
@@ -61,20 +71,12 @@
    "label": "Skip Authorization"
   },
   {
-   "fieldname": "sb_1",
-   "fieldtype": "Section Break"
-  },
-  {
    "default": "all openid",
    "description": "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project",
    "fieldname": "scopes",
    "fieldtype": "Text",
    "label": "Scopes",
    "reqd": 1
-  },
-  {
-   "fieldname": "cb_3",
-   "fieldtype": "Column Break"
   },
   {
    "description": "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook",
@@ -121,10 +123,85 @@
    "fieldtype": "Table MultiSelect",
    "label": "Allowed Roles",
    "options": "OAuth Client Role"
+  },
+  {
+   "fieldname": "client_metadata_section",
+   "fieldtype": "Section Break",
+   "label": "Client Metadata"
+  },
+  {
+   "depends_on": "eval: doc.client_uri",
+   "description": "URL of a web page providing information about the client.",
+   "fieldname": "client_uri",
+   "fieldtype": "Data",
+   "label": "Client URI"
+  },
+  {
+   "fieldname": "column_break_htfq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.client_uri",
+   "description": "URL that references a logo for the client.",
+   "fieldname": "logo_uri",
+   "fieldtype": "Data",
+   "label": "Logo URI"
+  },
+  {
+   "fieldname": "section_break_ggiv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.software_id",
+   "description": "Unique ID assigned by the client developer used to identify the client software to be dynamically registered.\n<br>\n<b>Should remain same</b> across multiple versions or updates of the software.",
+   "fieldname": "software_id",
+   "fieldtype": "Data",
+   "label": "Software ID"
+  },
+  {
+   "fieldname": "column_break_ziii",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.software_version",
+   "description": "A version identifier string for the client software.\n<br>\nThe value of the should change on any update of the client software with the same Software ID.",
+   "fieldname": "software_version",
+   "fieldtype": "Data",
+   "label": "Software Version"
+  },
+  {
+   "depends_on": "eval: doc.tos_uri",
+   "description": "URL that points to a human-readable terms of service document for the client. Should be shown to end-user before authorizing.",
+   "fieldname": "tos_uri",
+   "fieldtype": "Data",
+   "label": "TOS URI"
+  },
+  {
+   "depends_on": "eval: doc.policy_uri",
+   "description": "URL that points to a human-readable policy document for the client. Should be shown to end-user before authorizing.",
+   "fieldname": "policy_uri",
+   "fieldtype": "Data",
+   "label": "Policy URI"
+  },
+  {
+   "depends_on": "eval: doc.contacts",
+   "description": "New lines separated list of strings representing ways to contact people responsible for this client, typically email addresses.",
+   "fieldname": "contacts",
+   "fieldtype": "Small Text",
+   "label": "Contacts"
+  },
+  {
+   "default": "Client Secret Basic",
+   "description": "Value of \"None\" implies a public client. In such a case Client Secret is not given to the client and token exchange makes use of PKCE.",
+   "fieldname": "token_endpoint_auth_method",
+   "fieldtype": "Select",
+   "label": "Token Endpoint Auth Method",
+   "options": "Client Secret Basic\nClient Secret Post\nNone"
   }
  ],
+ "grid_page_length": 50,
  "links": [],
- "modified": "2024-04-29 12:07:07.946980",
+ "modified": "2025-07-04 14:07:36.146393",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",
@@ -143,6 +220,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

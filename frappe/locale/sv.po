@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-29 17:46\n"
+"PO-Revision-Date: 2025-07-03 19:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -297,17 +297,17 @@ msgid "<div class=\"well\">\n"
 "</div>\n"
 "<br>\n"
 msgstr "<div class=\"well\">\n"
-"    Redigera lista över Nummer Serier i ruta. Regler:\n"
+"    Redigera lista över Namngivning Serier i ruta. Regler:\n"
 "    <ul>\n"
-"        <li>Varje Nummer Serie Prefix på ny linje.</li>\n"
+"        <li>Varje Namngivning Serie Prefix på ny linje.</li>\n"
 "        <li>Tillåtna specialtecken är \"/\" och \"-\"</li>\n"
 "        <li>\n"
-"            Alternativt, ange antal siffror i Nummer Serie med punkt (.)\n"
-"            följt av hasch (#). Till exempel, \". ####\" betyder att Nummer Serie\n"
+"            Alternativt, ange antal siffror i Namngivning Serie med punkt (.)\n"
+"            följt av hasch (#). Till exempel, \". ####\" betyder att Namngivning Serie\n"
 "            kommer att ha fyra siffror. Standard är fem siffror.\n"
 "        </li>\n"
 "        <li>\n"
-"            Du kan också använda variabler i Nummer Serie namn genom att sätta dem\n"
+"            Du kan också använda variabler i Namngivning Serie namn genom att sätta dem\n"
 "            mellan (.) punkter\n"
 "            <br>\n"
 "            Variabler som stöds:\n"
@@ -321,8 +321,8 @@ msgstr "<div class=\"well\">\n"
 "                    <code>.{fieldname}.</code> - fältnamn på dokument t.ex.\n"
 "                    <code>branch</code>\n"
 "                </li>\n"
-"                <li><code>.FY.</code> - Bokföringsår (erfordrar ERPNext installation)</li>\n"
-"                <li><code>.ABBR.</code> - Bolagsförkortning (erfordrar ERPNext installation)</li>\n"
+"                <li><code>.FY.</code> - Bokföringsår (erfordrar Affärssystem installation)</li>\n"
+"                <li><code>.ABBR.</code> - Bolagsförkortning (erfordrar Affärssystem installation)</li>\n"
 "            </ul>\n"
 "        </li>\n"
 "    </ul>\n"
@@ -2124,12 +2124,12 @@ msgstr "Ändra"
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amend Counter"
-msgstr "Ändra Nummer Serie Sekvens"
+msgstr "Ändra Namngivning Serie Sekvens"
 
 #. Name of a DocType
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 msgid "Amended Document Naming Settings"
-msgstr "Ändrade Dokument Namn Inställningar"
+msgstr "Ändrad Dokument Namngivning Inställningar"
 
 #. Label of the amended_documents_section (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -2154,7 +2154,7 @@ msgstr "Ändring"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amendment Naming Override"
-msgstr "Ändring Nummer Serie Åsidosättande "
+msgstr "Ändring Namngivning Serie Åsidosättande"
 
 #: frappe/model/document.py:549
 msgid "Amendment Not Allowed"
@@ -2162,7 +2162,7 @@ msgstr "Ändring Ej Tillåten"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:207
 msgid "Amendment naming rules updated."
-msgstr "Ändring av Nummer Serie uppdaterad."
+msgstr "Ändring Namngivning Regler uppdaterad."
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:345
 msgid "An error occurred while setting Session Defaults"
@@ -3011,7 +3011,7 @@ msgstr "Autokomplettera"
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Autoincrement"
-msgstr "Stega upp"
+msgstr "Autoökning"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3771,7 +3771,7 @@ msgstr "Skugg Knapp"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "By \"Naming Series\" field"
-msgstr "Efter \"Nummer Serie\"."
+msgstr "Efter \"Namngivning Serie\""
 
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
@@ -3988,7 +3988,7 @@ msgstr "Kan inte byta namn eftersom kolumn {0} redan finns under DocType."
 
 #: frappe/core/doctype/doctype/doctype.py:1163
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
-msgstr "Kan bara ändra till/från Autoincrement namngivningsregel när det inte finns några data i doctype"
+msgstr "Kan bara ändra till/från Autoökning namngivning regel när det inte finns några data i doctype"
 
 #. Description of the 'Apply User Permission On' (Link) field in DocType 'User
 #. Type'
@@ -5283,7 +5283,7 @@ msgid "Configure how amended documents will be named.<br>\n\n"
 "Default Naming will make the amended document to behave same as new documents."
 msgstr "Konfigurera hur ändrade dokument ska namnges.\n\n"
 "Standard är att följa ändring sekvens som lägger till version nummer i slutet av ursprungliga namn.\n"
-"Standard Nummer Serie gör att ändrade dokument fungerar på samma sätt som nya dokument."
+"Standard Namngivning Serie gör att ändrade dokument fungerar på samma sätt som nya dokument."
 
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -6211,7 +6211,7 @@ msgstr "Anpassa Formulär Fält"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Customize properties, naming, fields and more for standard doctypes"
-msgstr "Anpassa egenskaper, namn, fält och mer för standard doctypes"
+msgstr "Anpassa egenskaper, namngivning, fält och mer för standard doctypes"
 
 #: frappe/public/js/frappe/views/file/file_view.js:144
 msgid "Cut"
@@ -6629,7 +6629,7 @@ msgstr "Standard Adress Mall kan inte tas bort"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Amendment Naming"
-msgstr "Standard Ändring Namn"
+msgstr "Standard Ändring Namngivning"
 
 #. Label of the default_app (Select) field in DocType 'System Settings'
 #. Label of the default_app (Select) field in DocType 'User'
@@ -6667,7 +6667,7 @@ msgstr "Standard Brevhuvud"
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Naming"
-msgstr "Standard Nummer Serie"
+msgstr "Standard Namngivning Serie"
 
 #. Label of the default_outgoing (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -7724,17 +7724,17 @@ msgstr "Dokument Namn måste vara sträng"
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Document Naming Rule"
-msgstr "Dokument Namn Regel"
+msgstr "Dokument Namngivning Regel"
 
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "Document Naming Rule Condition"
-msgstr "Dokument Namn Regel Villkor"
+msgstr "Dokument Namngivning Regel Villkor"
 
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Document Naming Settings"
-msgstr "Dokument Namn Inställningar"
+msgstr "Dokument Namngivning Inställningar"
 
 #: frappe/model/document.py:476
 msgid "Document Queued"
@@ -7927,7 +7927,7 @@ msgstr "Dokument namn ändrad från {0} till {1}"
 
 #: frappe/public/js/frappe/form/toolbar.js:164
 msgid "Document renaming from {0} to {1} has been queued"
-msgstr "Dokument namn byte från {0} till {1} är i kö"
+msgstr "Dokument namn ändring från {0} till {1} är i kö"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:397
 msgid "Document type is required to create a dashboard chart"
@@ -9748,7 +9748,7 @@ msgstr "Misslyckades att exportera python typ tips"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:249
 msgid "Failed to generate names from the series"
-msgstr "Misslyckades att skapa namn serie"
+msgstr "Misslyckades att skapa namn från serie"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:75
 msgid "Failed to generate preview of series"
@@ -11129,7 +11129,7 @@ msgstr "Hämta PDF"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Get a preview of generated names with a series."
-msgstr "Förhandsgranskning av Nummer Serie."
+msgstr "Förhandsvisning av Namngivning Serie."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:305
 msgid "Get more insights with"
@@ -12335,7 +12335,7 @@ msgstr "Om du uppdaterar, välj \"Skriv över\" annars kommer befintliga rader i
 
 #: frappe/core/doctype/data_export/exporter.py:188
 msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
-msgstr "Om du laddar upp ny information, blir \"Nummer Serie\" obligatorisk, om det finns."
+msgstr "Om du laddar upp ny information, blir \"Namngivning Serie\" erfordrad, om det finns."
 
 #: frappe/core/doctype/data_export/exporter.py:186
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
@@ -13188,7 +13188,7 @@ msgstr "Ogiltig E-post Server. Rätta till och försök igen."
 
 #: frappe/model/naming.py:101
 msgid "Invalid Naming Series: {}"
-msgstr "Ogiltig Nummer Serie: {}"
+msgstr "Ogiltig Namngivning Serie: {}"
 
 #: frappe/core/doctype/rq_job/rq_job.py:113
 #: frappe/core/doctype/rq_job/rq_job.py:122
@@ -13369,7 +13369,7 @@ msgstr "Ogiltig namn typ (heltal) för varchar namn kolumn"
 
 #: frappe/model/naming.py:62
 msgid "Invalid naming series {}: dot (.) missing"
-msgstr "Ogiltig nummer serie {}: punkt (.) saknas"
+msgstr "Ogiltig namngivning serie {}: punkt (.) saknas"
 
 #: frappe/core/doctype/data_import/importer.py:453
 msgid "Invalid or corrupted content for import"
@@ -15203,7 +15203,7 @@ msgstr "Man"
 
 #: frappe/www/me.html:56
 msgid "Manage 3rd party apps"
-msgstr "Hantera tredjepartsappar"
+msgstr "Hantera Tredjepartsappar"
 
 #. Description of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -16245,17 +16245,17 @@ msgstr "Namngivning Alternativ:\n"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Naming Rule"
-msgstr "Nummer Serie Regel"
+msgstr "Namngivining Regel"
 
 #. Label of the naming_series_tab (Tab Break) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr "Nummer Serie"
+msgstr "Namngivning Serie"
 
 #: frappe/model/naming.py:260
 msgid "Naming Series mandatory"
-msgstr "Nummer Serie erfordras"
+msgstr "Namngivning Serie erfordras"
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #. Label of the top_bar (Section Break) field in DocType 'Website Settings'
@@ -18839,22 +18839,22 @@ msgstr "Tillåtna Roller"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr "Personlig"
+msgstr "Personligt"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Personal Data Deletion Request"
-msgstr "Personlig Data Borttagning Begäran"
+msgstr "Personligt Data Borttagning Begäran"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Personal Data Deletion Step"
-msgstr "Personlig Data Borttagning Steg"
+msgstr "Personligt Data Borttagning Steg"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Personal Data Download Request"
-msgstr "Personlig data Nedladdning Begäran"
+msgstr "Personligt Data Nedladdning Begäran"
 
 #. Label of the phone (Data) field in DocType 'Address'
 #. Label of the phone (Data) field in DocType 'Contact'
@@ -19259,7 +19259,7 @@ msgstr "Ange följande dokument i Översikt Panel som standard."
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:120
 msgid "Please set the series to be used."
-msgstr "Ange Nummer Serie som ska användas"
+msgstr "Ange Namngivning Serie som ska användas."
 
 #: frappe/core/doctype/system_settings/system_settings.py:126
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
@@ -19537,7 +19537,7 @@ msgstr "Förhandsgransknig Läge"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Preview of generated names"
-msgstr "Förhandsgranskning av genererade namn"
+msgstr "Förhandsvisning av skapade namn"
 
 #: frappe/public/js/frappe/views/render_preview.js:19
 msgid "Preview on {0}"
@@ -23201,20 +23201,20 @@ msgstr "Sekvens ID"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Series List for this Transaction"
-msgstr "Nummer Serie Lista för denna Transaktion"
+msgstr "Namngivning Serie Lista för denna Transaktion"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:115
 msgid "Series Updated for {}"
-msgstr "Nummer Serie uppdaterad för {}"
+msgstr "Namngivning Serie uppdaterad för {}"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:223
 msgid "Series counter for {} updated to {} successfully"
-msgstr "Nummer Serie räknare för {} är uppdaterad till {}"
+msgstr "Namngivning Serie räknare för {} är uppdaterad till {}"
 
 #: frappe/core/doctype/doctype/doctype.py:1109
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
-msgstr "Nummer Serie {0} används redan i {1}"
+msgstr "Namngivning Serie {0} används redan i {1}"
 
 #. Option for the 'Action Type' (Select) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
@@ -23357,7 +23357,7 @@ msgstr "Ange gräns"
 #. DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Set Naming Series options on your transactions."
-msgstr "Ange Nummer Serie alternativ för transaktioner"
+msgstr "Ange Namngivning Serie alternativ för transaktioner."
 
 #. Label of the new_password (Password) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -23602,7 +23602,7 @@ msgstr "Konfigurering Klar"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Setup Series for transactions"
-msgstr "Ange Nummer Serie för Transaktioner"
+msgstr "Ange Namngivning Serie för Transaktioner"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:236
 msgid "Setup failed"
@@ -25989,7 +25989,7 @@ msgstr "Det fanns fel när e-post skickades. Försök igen."
 
 #: frappe/model/naming.py:494
 msgid "There were some errors setting the name, please contact the administrator"
-msgstr "Det uppstod några fel vid namn angivning, kontakta administratören"
+msgstr "Det uppstod några fel vid namngivning, kontakta administratör"
 
 #. Description of the 'Announcement Widget' (Text Editor) field in DocType
 #. 'Navbar Settings'
@@ -26340,12 +26340,12 @@ msgstr "Tid Intervall"
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series"
-msgstr "Tid Nummer Serie"
+msgstr "Tid Namngivning Serie"
 
 #. Label of the based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series Based On"
-msgstr "Tid Nummer Serie Baserad på"
+msgstr "Tid Namngivning Serie Baserad på"
 
 #. Label of the time_taken (Duration) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -26390,7 +26390,7 @@ msgstr "Tid i sekunder att behålla QR Kod Bild på server. Min: <strong>240</st
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:413
 msgid "Time series based on is required to create a dashboard chart"
-msgstr "Tid Nummer Serier baserade på erfordras för att skapa Översikt Panel"
+msgstr "Tid Namngivning Serie baserade på erfordras för att skapa Översikt Panel"
 
 #: frappe/public/js/frappe/form/controls/time.js:124
 msgid "Time {0} must be in format: {1}"
@@ -26453,7 +26453,7 @@ msgstr "Timeout (i Sekunder)"
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Timeseries"
-msgstr "Tid Nummer Serie"
+msgstr "Tid Namngivning Serie"
 
 #. Label of the timespan (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27088,7 +27088,7 @@ msgstr "Försök igen"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Try a Naming Series"
-msgstr "Prova Nummer Serie"
+msgstr "Prova Namngivning Serie"
 
 #: frappe/printing/page/print/print.js:189
 #: frappe/printing/page/print/print.js:195
@@ -27491,7 +27491,7 @@ msgstr "Uppdatera"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Amendment Naming"
-msgstr "Uppdatera Ändring Namn"
+msgstr "Uppdatera Ändrad Namngivning"
 
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -27521,13 +27521,13 @@ msgstr "Uppdatera lösenord"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Counter"
-msgstr "Uppdatera Nummer Serie Räknare"
+msgstr "Uppdatera Namngivning Serie Räknare"
 
 #. Label of the update_series_start (Button) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Number"
-msgstr "Uppdatera Nummer Serie Sekvens"
+msgstr "Uppdatera Namngivning Serie Sekvens"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -27590,7 +27590,7 @@ msgstr "Uppdatera E-post kö status. E-post kommer att hämtas vid nästa schema
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:17
 msgid "Updating counter may lead to document name conflicts if not done properly"
-msgstr "Uppdatering av räknare kan leda till dokument namn konflikter om det inte görs på rätt sätt"
+msgstr "Uppdatering av räknare kan leda till dokument namngivning konflikter om det inte görs på rätt sätt"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:23
 msgid "Updating global settings"
@@ -27598,7 +27598,7 @@ msgstr "Uppdaterar Standard Inställningar"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr "Uppdaterar Nummer Serie Alternativ"
+msgstr "Uppdaterar Namngivning Serie Alternativ"
 
 #: frappe/public/js/frappe/form/toolbar.js:136
 msgid "Updating related fields..."
@@ -28550,7 +28550,7 @@ msgstr "Varning: DATAFÖRLUST ÖVERHÄNGANDE! Om du fortsätter kommer följande
 
 #: frappe/core/doctype/doctype/doctype.py:1125
 msgid "Warning: Naming is not set"
-msgstr "Varning: Namngivning är inte satt"
+msgstr "Varning: Namngivning är inte angiven"
 
 #: frappe/public/js/frappe/model/meta.js:182
 msgid "Warning: Unable to find {0} in any table related to {1}"
@@ -28559,7 +28559,7 @@ msgstr "Varning: Kan inte hitta {0} i någon tabell relaterad till {1}"
 #. Description of the 'Counter' (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Warning: Updating counter may lead to document name conflicts if not done properly"
-msgstr "Varning: Uppdatering av räknare kan leda till dokument namn konflikter om det inte görs på rätt sätt"
+msgstr "Varning: Uppdatering av räknare kan leda till dokument namngivning konflikter om det inte görs på rätt sätt"
 
 #: frappe/website/doctype/help_article/templates/help_article.html:24
 msgid "Was this article helpful?"

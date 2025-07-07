@@ -54,6 +54,7 @@ class SocialLoginKey(Document):
 		icon: DF.Data | None
 		provider_name: DF.Data
 		redirect_url: DF.Data | None
+		show_in_resource_metadata: DF.Check
 		sign_ups: DF.Literal["", "Allow", "Deny"]
 		social_login_provider: DF.Literal[
 			"Custom",
