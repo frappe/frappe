@@ -150,36 +150,39 @@ function getSinglePropType(propTypes: string | string[]) {
 }
 
 // ?raw to get raw content of a file as string
-const frappeUIModules = import.meta.glob(
-	"../../../node_modules/frappe-ui/src/components/**/*.vue",
-	{ query: "?raw" }
+const frappeUIModules: Record<string, string> = import.meta.glob(
+	[
+		"../../../node_modules/frappe-ui/src/components/**/*.vue",
+		"!**/*.story.vue",
+	],
+	{ query: "?raw", eager: true, import: "default" }
 )
 
-const studioModules = import.meta.glob(
+const studioModules: Record<string, string> = import.meta.glob(
 	"@/components/AppLayout/*.vue",
-	{ query: "?raw" }
+	{ query: "?raw", eager: true, import: "default" }
 )
 
 const templateCache = new Map<string, string>()
 
-async function getComponentTemplate(componentName: string): Promise<string> {
+function getComponentTemplate(componentName: string): string {
 	if (templateCache.has(componentName)) {
 		return templateCache.get(componentName) || ""
 	}
 
-	let rawTemplate = null
+	let rawTemplate = ""
 
 	if (components.isFrappeUIComponent(componentName)) {
 		try {
 			let modulePath = `../../../node_modules/frappe-ui/src/components/${componentName}.vue`
 			if (frappeUIModules[modulePath]) {
-				rawTemplate = await frappeUIModules[modulePath]()
+				rawTemplate = frappeUIModules[modulePath]
 			} else {
 				// try finding the vue file inside component folder
 				const folderName = componentFolders[componentName] || componentName
 				modulePath = `../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`
 				if (frappeUIModules[modulePath]) {
-					rawTemplate = await frappeUIModules[modulePath]()
+					rawTemplate = frappeUIModules[modulePath]
 				}
 			}
 		} catch (error) {
@@ -187,13 +190,13 @@ async function getComponentTemplate(componentName: string): Promise<string> {
 			return ""
 		}
 	} else {
-		const modulePath = `/src/components/AppLayout/${componentName}.vue`;
+		const modulePath = `/src/components/AppLayout/${componentName}.vue`
 		if (studioModules[modulePath]) {
-			rawTemplate = await studioModules[modulePath]()
+			rawTemplate = studioModules[modulePath]
 		}
 	}
 
-	const template = rawTemplate?.default || ""
+	const template = rawTemplate || ""
 	if (template) {
 		templateCache.set(componentName, template)
 	}
