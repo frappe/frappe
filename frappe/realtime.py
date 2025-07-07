@@ -84,6 +84,8 @@ def publish_realtime(
 
 
 def flush_realtime_log():
+	if not hasattr(frappe.local, "_realtime_log"):
+		return
 	for args in frappe.local._realtime_log:
 		frappe.realtime.emit_via_redis(*args)
 
