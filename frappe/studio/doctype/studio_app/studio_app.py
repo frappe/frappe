@@ -117,8 +117,7 @@ class StudioApp(WebsiteGenerator):
 				frappe.get_app_source_path("studio"),
 				"studio",
 				"public",
-				"frontend",
-				"builds",
+				"app_builds",
 				self.name,
 				".vite",
 				"manifest.json",
@@ -134,7 +133,7 @@ class StudioApp(WebsiteGenerator):
 			entry_key = next((key for key in manifest if key.endswith(entry_key)), entry_key)
 
 			entry = manifest[entry_key]
-			base_path = f"/assets/studio/frontend/builds/{self.name}/"
+			base_path = f"/assets/studio/app_builds/{self.name}/"
 			result = {
 				"script": f"{base_path}{entry['file']}",
 				"stylesheets": [f"{base_path}{css_file}" for css_file in entry.get("css", [])],

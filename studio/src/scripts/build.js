@@ -105,7 +105,7 @@ async function buildWithVite(appName, entryFilePath) {
 	console.log(`Building ${appName} with Vite`)
 	await build({
 		root: path.resolve(__dirname, "../"),
-		base: "/assets/studio/frontend/builds/",
+		base: "/assets/studio/app_builds/",
 		server: {
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
 			// Required for the app renderer running on webserver port
@@ -133,7 +133,7 @@ async function buildWithVite(appName, entryFilePath) {
 					studioRenderer: path.resolve(__dirname, entryFilePath),
 				},
 			},
-			outDir: path.resolve(__dirname, `../../../studio/public/frontend/builds/${appName}`),
+			outDir: path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`),
 			emptyOutDir: true,
 			target: "es2015",
 			sourcemap: true,
