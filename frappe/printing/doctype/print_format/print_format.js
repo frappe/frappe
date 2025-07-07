@@ -23,7 +23,7 @@ frappe.ui.form.on("Print Format", {
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
-		if (!frm.is_new()) {
+		if (!frm.is_new() && frm.doc.print_format_for === "Doctype") {
 			if (!frm.doc.custom_format) {
 				frm.add_custom_button(__("Edit Format"), function () {
 					if (!frm.doc.doc_type) {
@@ -70,6 +70,11 @@ frappe.ui.form.on("Print Format", {
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
+	},
+	print_format_for: function (frm) {
+		if (frm.doc.print_format_for === "Report") {
+			frm.set_value("print_format_type", "JS");
+		}
 	},
 	hide_absolute_value_field: function (frm) {
 		// TODO: make it work with frm.doc.doc_type

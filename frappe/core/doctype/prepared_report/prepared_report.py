@@ -242,7 +242,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 		frappe.scrub(report_name), frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H-M")
 	)
 	encoded_content = frappe.safe_encode(frappe.as_json(data, indent=None, separators=(",", ":")))
-	compressed_content = gzip.compress(encoded_content)
+	compressed_content = gzip.compress(encoded_content, compresslevel=5)
 
 	# Call save() file function to upload and attach the file
 	_file = frappe.get_doc(

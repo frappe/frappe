@@ -4,6 +4,7 @@
 import hashlib
 import json
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 import click
 from croniter import CroniterBadCronError, croniter
@@ -13,6 +14,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
+
+parse_cron = lru_cache(croniter)  # Cache parsed cron-expressions
 
 
 class ScheduledJobType(Document):
@@ -132,10 +135,10 @@ class ScheduledJobType(Document):
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
 
-		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
+		next_execution = parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 		if self.frequency in ("Hourly Maintenance", "Daily Maintenance"):
 			next_execution += timedelta(minutes=maintenance_offset)
-		return croniter(self.cron_format, last_execution).get_next(datetime)
+		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 
 	def execute(self):
 		if frappe.job:

@@ -11,6 +11,7 @@ from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
 
+import orjson
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
@@ -31,6 +32,7 @@ from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.number_format import NumberFormat
+from frappe.utils.response import json_handler
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
@@ -189,6 +191,7 @@ def get_safe_globals():
 	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
+		orjson=SAFE_ORJSON,
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
@@ -278,6 +281,7 @@ def get_safe_globals():
 				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
 			),
 			lang=getattr(frappe.local, "lang", "en"),
+			json_handler=json_handler,
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -287,7 +291,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=frappe.local.dev_server,
+		dev_server=frappe._dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
@@ -715,6 +719,8 @@ VALID_UTILS = (
 	"get_abbr",
 	"get_month",
 	"sha256_hash",
+	"parse_json",
+	"orjson_dumps",
 )
 
 
@@ -729,3 +735,8 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_getiter_": iter,
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
 }
+
+SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)
+for key, val in vars(orjson).items():
+	if key.startswith("OPT_"):
+		SAFE_ORJSON[key] = val

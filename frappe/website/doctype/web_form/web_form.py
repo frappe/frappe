@@ -79,10 +79,7 @@ class WebForm(WebsiteGenerator):
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
 		in_user_env = not (
-			frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.flags.in_test
-			or frappe.flags.in_fixtures
+			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms
@@ -289,6 +286,25 @@ def get_context(context):
 			"Validation Error",
 			"No {0} found",
 			"Create a new {0}",
+			"Drag and drop files here or upload from",
+			"My Device",
+			"Link",
+			"Camera",
+			"Upload",
+			"Set all public",
+			"Set all private",
+			"Public",
+			"Private",
+			"Optimize",
+			"Drop files here",
+			"Take Photo",
+			"No Images",
+			"Total Images",
+			"Preview",
+			"Submit",
+			"Capture",
+			"Attach a web link",
+			"← Back to upload files",
 			self.title,
 			self.introduction_text,
 			self.success_title,

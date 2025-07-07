@@ -45,6 +45,9 @@ from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
 from frappe.utils.data import add_to_date, get_datetime
 
+ListOrTuple = list | tuple
+SerializableTypes = str | int | float | datetime
+
 DEFAULT_FIELD_LABELS = {
 	"name": _lt("ID"),
 	"creation": _lt("Created On"),
@@ -176,31 +179,7 @@ class Meta(Document):
 		self.check_if_large_table()
 
 	def as_dict(self, no_nulls=False):
-		def serialize(doc):
-			if isinstance(doc, dict):
-				return doc.copy()
-			out = {}
-			for key, value in doc.__dict__.items():
-				if isinstance(value, list | tuple):
-					if not value or not isinstance(value[0], BaseDocument):
-						# non standard list object, skip
-						continue
-
-					value = [serialize(d) for d in value]
-
-				if (not no_nulls and value is None) or isinstance(
-					value, str | int | float | datetime | list | tuple
-				):
-					out[key] = value
-
-			# set empty lists for unset table fields
-			for fieldname in TABLE_DOCTYPES_FOR_DOCTYPE.keys():
-				if out.get(fieldname) is None:
-					out[fieldname] = []
-
-			return out
-
-		return serialize(self)
+		return _serialize(self, no_nulls=no_nulls)
 
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]})
@@ -975,6 +954,41 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 		# insert_after is an invalid fieldname, add these fields to the end
 		for fields in insert_after_map.values():
 			field_order.extend(fields)
+
+
+CACHE_PROPERTIES = frozenset(
+	(
+		"_fields",
+		"_table_fields",
+		"_table_doctypes",
+		*(prop for prop, value in vars(Meta).items() if isinstance(value, cached_property)),
+	)
+)
+
+
+def _serialize(doc, no_nulls=False, *, is_child=False):
+	out = {}
+	for key, value in doc.__dict__.items():
+		if not is_child:
+			if key in CACHE_PROPERTIES:
+				continue
+
+			if isinstance(value, ListOrTuple):
+				if value and isinstance(value[0], BaseDocument):
+					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
+
+				continue
+
+		if (not no_nulls and value is None) or isinstance(value, SerializableTypes):
+			out[key] = value
+
+	if not is_child:
+		# set empty lists for unset table fields
+		for fieldname in TABLE_DOCTYPES_FOR_DOCTYPE:
+			if out.get(fieldname) is None:
+				out[fieldname] = []
+
+	return out
 
 
 if typing.TYPE_CHECKING:

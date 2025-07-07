@@ -25,7 +25,7 @@ def test_password_strength(password: str, user_inputs: "Iterable[object] | None"
 		# will still be checked.
 		password = password[:128]
 
-	result = zxcvbn(password, user_inputs)
+	result = zxcvbn(password, user_inputs, max_length=128)
 	result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
 	return result
 

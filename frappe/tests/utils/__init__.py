@@ -26,6 +26,12 @@ def check_orpahned_doctypes():
 		)
 
 
+def toggle_test_mode(enable: bool):
+	"""Enable or disable `frappe.in_test` (and related deprecated flag)"""
+	frappe.in_test = enable
+	frappe.local.flags.in_test = enable
+
+
 from frappe.deprecation_dumpster import (
 	get_tests_CompatFrappeTestCase,
 )

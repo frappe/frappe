@@ -56,7 +56,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
 			new_context.update(new_context.doc.as_dict())
 
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			pathname = pathname or frappe.local.request.path
 			new_context["pathname"] = pathname.strip("/ ")
 		new_context.update(list_context)

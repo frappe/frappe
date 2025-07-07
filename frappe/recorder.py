@@ -360,7 +360,7 @@ def start(
 @administrator_only
 def stop(*args, **kwargs):
 	frappe.client_cache.set_value(RECORDER_INTERCEPT_FLAG, False)
-	frappe.enqueue(post_process, now=frappe.flags.in_test)
+	frappe.enqueue(post_process, now=frappe.in_test)
 
 
 @frappe.whitelist()

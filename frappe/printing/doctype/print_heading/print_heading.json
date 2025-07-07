@@ -37,10 +37,11 @@
  "icon": "fa fa-font",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:03:35.269553",
+ "modified": "2025-06-26 05:40:55.559700",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Heading",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -56,10 +57,11 @@
   },
   {
    "read": 1,
-   "role": "All"
+   "role": "Desk User"
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "print_heading",
  "sort_field": "creation",
  "sort_order": "DESC",

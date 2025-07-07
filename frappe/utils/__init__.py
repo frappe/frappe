@@ -21,6 +21,7 @@ from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from typing import Any, Generic, TypeAlias, TypedDict
 
+import orjson
 from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
@@ -269,7 +270,7 @@ def has_gravatar(email: str) -> str:
 	"""Return gravatar url if user has set an avatar at gravatar.com."""
 	import requests
 
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_test:
+	if frappe.flags.in_import or frappe.flags.in_install or frappe.in_test:
 		# no gravatar if via upload
 		# since querying gravatar for every item will be slow
 		return ""
@@ -830,18 +831,7 @@ def get_site_info():
 		site_info.update(frappe.get_attr(method_name)(site_info) or {})
 
 	# dumps -> loads to prevent datatype conflicts
-	return json.loads(frappe.as_json(site_info))
-
-
-def parse_json(val: str):
-	"""
-	Parses json if string else return
-	"""
-	if isinstance(val, str):
-		val = json.loads(val)
-	if isinstance(val, dict):
-		val = frappe._dict(val)
-	return val
+	return orjson.loads(frappe.as_json(site_info))
 
 
 def get_db_count(*args):
@@ -862,7 +852,7 @@ def get_db_count(*args):
 	for doctype in args:
 		db_count[doctype] = frappe.db.count(doctype)
 
-	return json.loads(frappe.as_json(db_count))
+	return orjson.loads(frappe.as_json(db_count))
 
 
 def call(fn, *args, **kwargs):
@@ -878,12 +868,12 @@ def call(fn, *args, **kwargs):
 	        via terminal:
 	                bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
-	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+	return orjson.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
 
 
 def get_safe_filters(filters):
 	try:
-		filters = json.loads(filters)
+		filters = orjson.loads(filters)
 
 		if isinstance(filters, int | float):
 			filters = frappe.as_unicode(filters)
@@ -1043,7 +1033,7 @@ def safe_json_loads(*args):
 
 	for arg in args:
 		try:
-			arg = json.loads(arg)
+			arg = orjson.loads(arg)
 		except Exception:
 			pass
 

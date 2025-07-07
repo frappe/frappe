@@ -6,6 +6,7 @@ import requests
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.utils import toggle_test_mode
 
 authorization_token = None
 
@@ -88,7 +89,13 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_copy_document(self):
 		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
 
-		response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
+		# disabled temporarily to assert that `docstatus` is not copied outside of tests
+		toggle_test_mode(False)
+		try:
+			response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
+		finally:
+			toggle_test_mode(True)
+
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 
@@ -106,7 +113,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_delete_document(self):
 		doc_to_delete = choice(self.GENERATED_DOCUMENTS)
-		response = self.delete(self.resource(self.DOCTYPE, doc_to_delete))
+		response = self.delete(self.resource(self.DOCTYPE, doc_to_delete), data={"sid": self.sid})
 		self.assertEqual(response.status_code, 202)
 		self.assertDictEqual(response.json, {"data": "ok"})
 

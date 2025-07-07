@@ -20,8 +20,8 @@ import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
-	add_trackers_to_url,
 	ceil,
 	dict_to_str,
 	execute_in_shell,
@@ -34,7 +34,6 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
-	map_trackers,
 	money_in_words,
 	parse_and_map_trackers_from_url,
 	parse_timedelta,
@@ -53,6 +52,7 @@ from frappe.utils.change_log import (
 )
 from frappe.utils.data import (
 	add_to_date,
+	add_trackers_to_url,
 	add_years,
 	cast,
 	cint,
@@ -69,6 +69,7 @@ from frappe.utils.data import (
 	get_year_ending,
 	getdate,
 	is_invalid_date_string,
+	map_trackers,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -268,6 +269,11 @@ class TestMoney(IntegrationTestCase):
 					expected_words,
 					f"{words} is not the same as {expected_words}",
 				)
+
+	def test_money_in_words_without_fraction(self):
+		# VND doesn't have fractions
+		words = money_in_words("42.01", "VND")
+		self.assertEqual(words, "VND Forty Two only.")
 
 
 class TestDataManipulation(IntegrationTestCase):
@@ -988,9 +994,9 @@ class TestLazyLoader(IntegrationTestCase):
 class TestIdenticon(IntegrationTestCase):
 	def test_get_gravatar(self):
 		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
+		toggle_test_mode(False)
 		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("http"))
 

@@ -86,7 +86,7 @@ class AutoRepeat(Document):
 		validate_template(self.message or "")
 
 	def before_insert(self):
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			start_date = getdate(self.start_date)
 			today_date = getdate(today())
 			if start_date <= today_date:
@@ -112,7 +112,7 @@ class AutoRepeat(Document):
 			frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
 
 	def validate_reference_doctype(self):
-		if frappe.flags.in_test or frappe.flags.in_patch:
+		if frappe.in_test or frappe.flags.in_patch:
 			return
 		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
 			frappe.throw(
@@ -229,7 +229,7 @@ class AutoRepeat(Document):
 
 			self.disable_auto_repeat()
 
-			if self.reference_document and not frappe.flags.in_test:
+			if self.reference_document and not frappe.in_test:
 				self.notify_error_to_user(error_log)
 
 	def make_new_document(self):
