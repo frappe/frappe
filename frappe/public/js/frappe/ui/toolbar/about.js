@@ -24,12 +24,6 @@ frappe.ui.misc.about = function () {
 				</p>
 
 				<p>
-					<i class='fa fa-graduation-cap fa-fw'></i>
-					${__("Frappe School")}:
-					<a href='https://frappe.school' target='_blank'>https://frappe.school</a>
-				</p>
-
-				<p>
 					<i class='fa fa-file-text fa-fw'></i>
 					${__("Frappe Blog")}:
 					<a href='https://frappe.io/blog' target='_blank'>https://frappe.io/blog</a>
