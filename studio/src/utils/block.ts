@@ -3,6 +3,8 @@ import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useCanvasStore from "@/stores/canvasStore"
+import LucideHash from "~icons/lucide/hash"
+import LucideAppWindow from "~icons/lucide/app-window"
 
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
@@ -17,7 +19,6 @@ class Block implements BlockOptions {
 	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
 	blockName: string
-	originalElement?: string | undefined
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
@@ -25,6 +26,7 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
+	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
 	// temporary property
@@ -230,7 +232,8 @@ class Block implements BlockOptions {
 	}
 
 	getIcon() {
-		if (this.isRoot()) return "Hash"
+		if (this.isRoot()) return LucideHash
+		if (this.componentName === "container") return LucideAppWindow
 		return Block.components?.[this.componentName]?.icon
 	}
 
