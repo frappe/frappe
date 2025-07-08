@@ -1192,7 +1192,10 @@ export default class Grid {
 				data.push([__("The CSV format is case sensitive")]);
 				data.push([__("Do not edit headers which are preset in the template")]);
 				data.push(["------"]);
-				$.each(frappe.get_meta(this.df.options).fields, (i, df) => {
+
+				const fields = this.frm ? frappe.get_meta(this.df.options).fields : this.df.fields;
+
+				$.each(fields, (i, df) => {
 					// don't include the read-only field in the template
 					if (frappe.model.is_value_type(df.fieldtype)) {
 						data[1].push(df.label);
@@ -1207,7 +1210,9 @@ export default class Grid {
 				});
 
 				// add data
-				$.each(this.frm.doc[this.df.fieldname] || [], (i, d) => {
+				const values = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
+
+				$.each(values || [], (i, d) => {
 					var row = [];
 					$.each(data[2], (i, fieldname) => {
 						var value = d[fieldname];
