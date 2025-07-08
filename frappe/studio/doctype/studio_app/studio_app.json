@@ -11,7 +11,6 @@
   "route",
   "column_break_aroi",
   "app_home",
-  "mode",
   "published"
  ],
  "fields": [
@@ -50,13 +49,6 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Published"
-  },
-  {
-   "default": "Development",
-   "fieldname": "mode",
-   "fieldtype": "Select",
-   "label": "Mode",
-   "options": "Development\nProduction"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -66,7 +58,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-07-04 11:34:43.172691",
+ "modified": "2025-07-08 12:00:13.847967",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

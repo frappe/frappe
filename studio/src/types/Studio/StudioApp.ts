@@ -14,7 +14,6 @@ export interface StudioApp {
 	route: string
 	/**	App Home : Link to the Studio Page */
 	app_home: string
-	mode: "Development" | "Production"
 }
 
 export type NewStudioApp = Pick<StudioApp, "app_title" | "route">
