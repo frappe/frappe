@@ -218,6 +218,19 @@ class ServerScript(Document):
 		if locals["conditions"]:
 			return locals["conditions"]
 
+	def execute_workflow_task(self, doc: Document):
+		"""
+		Specific to Workflow Tasks via Workflow Action Master
+		"""
+		if self.script_type != "Workflow Task":
+			raise frappe.DoesNotExistError
+
+		safe_exec(
+			self.script,
+			_locals={"doc": doc},
+			script_filename=self.name,
+		)
+
 
 @frappe.whitelist()
 @http_cache(max_age=10 * 60, stale_while_revalidate=6 * 60 * 60)

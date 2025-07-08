@@ -19,6 +19,7 @@ class WorkflowTransitionTask(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		server_script: DF.Link | None
 		task: DF.Literal[None]
 	# end: auto-generated types
 

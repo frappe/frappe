@@ -147,10 +147,15 @@ def apply_workflow(doc, action):
 		sync_tasks = []
 		async_tasks = []
 		for workflow_transition in workflow_transitions:
-			try:
-				task_method = frappe.get_attr(tasks[workflow_transition.task])
-			except KeyError:
-				frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
+			# edge-case with user-defined server scripts
+			if workflow_transition.task == "Server Script":
+				server_script = frappe.get_doc("Server Script", workflow_transition.server_script)
+				task_method = server_script.execute_workflow_task
+			else:  # normal app-defined tasks
+				try:
+					task_method = frappe.get_attr(tasks[workflow_transition.task])
+				except KeyError:
+					frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
 
 			if workflow_transition.execute_asynchronously:
 				async_tasks.append(task_method)

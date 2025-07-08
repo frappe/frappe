@@ -16,4 +16,14 @@ frappe.ui.form.on("Workflow Transition Tasks", {
 				);
 			});
 	},
+
+	setup: function (frm) {
+		frm.set_query("server_script", "tasks", () => {
+			return {
+				filters: {
+					script_type: "Workflow Task",
+				},
+			};
+		});
+	},
 });

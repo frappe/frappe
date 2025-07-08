@@ -135,4 +135,4 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 
 @frappe.whitelist(methods=["GET"])
 def get_workflow_methods():
-	return [i["name"] for i in frappe.get_hooks("workflow_methods")]
+	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + ["Server Script"]
