@@ -126,6 +126,40 @@ def apply_workflow(doc, action):
 	if next_state.update_field:
 		doc.set(next_state.update_field, next_state.update_value)
 
+	if transition.transition_tasks:
+		workflow_transitions = frappe.db.get_all(
+			"Workflow Transition Task", {"parent": transition.transition_tasks, "enabled": True}, ["*"]
+		)
+		workflow_transitions.sort(key=lambda i: i["idx"])
+
+		"""app-specific actions defined by the user
+		Example:
+		def create_customer(doc):
+			<your-code>
+
+		this goes in the hooks.py
+		workflow_methods = [{"name": "Create a customer", "method":
+					 		"frappe.dotted.path.create_customer"}]
+		"""
+
+		tasks = {i["name"]: i["method"] for i in frappe.get_hooks("workflow_methods")}
+
+		sync_tasks = []
+		async_tasks = []
+		for workflow_transition in workflow_transitions:
+			task_method = frappe.get_attr(tasks[workflow_transition.task])
+
+			if workflow_transition.execute_asynchronously:
+				async_tasks.append(task_method)
+			else:
+				sync_tasks.append(task_method)
+
+		for sync_task in sync_tasks:
+			sync_task(doc)
+
+		for async_task in async_tasks:
+			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
+
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
