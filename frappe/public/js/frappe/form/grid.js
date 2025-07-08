@@ -1100,7 +1100,7 @@ export default class Grid {
 
 	setup_allow_bulk_edit() {
 		let me = this;
-		if (this.frm && this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) {
+		if (this.df.allow_bulk_edit) {
 			// download
 			this.setup_download();
 
