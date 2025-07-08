@@ -131,3 +131,8 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 			group_by=workflow_state_field,
 		)
 		return [r for r in result if r[workflow_state_field]]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_workflow_methods():
+	return [i["name"] for i in frappe.get_hooks("workflow_methods")]
