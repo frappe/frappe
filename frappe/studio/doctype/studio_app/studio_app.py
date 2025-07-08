@@ -1,11 +1,13 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
+import json
+import os
 
 import frappe
-from frappe.model.document import Document
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
+from studio.api import get_app_components
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -19,8 +21,31 @@ class StudioAppRenderer(DocumentPage):
 		return False
 
 	def find_app_for_path(self):
-		app_route = self.path.split("/")[0]
+		_path = self.path.split("/")
+		if self.is_preview():
+			app_route = _path[1]
+		else:
+			app_route = _path[0]
 		return frappe.db.get_value("Studio App", dict(route=app_route), "name")
+
+	def update_context(self):
+		super().update_context()
+		if self.is_preview():
+			self.context.is_preview = True
+			self.context.app_route = f"dev/{self.context.app_route}"
+			self.context.template = "templates/generators/studio_renderer.html"
+		else:
+			self.context.template = "templates/generators/app_renderer.html"
+			manifest = self.context.doc.get_assets_from_manifest()
+			if manifest:
+				self.context.stylesheets = manifest.get("stylesheets", [])
+				self.context.script = manifest.get("script")
+			else:
+				self.context.template = "templates/generators/studio_renderer.html"
+				self.context.assets_not_found = True
+
+	def is_preview(self):
+		return self.path.startswith("dev/")
 
 
 class StudioApp(WebsiteGenerator):
@@ -40,7 +65,7 @@ class StudioApp(WebsiteGenerator):
 	# end: auto-generated types
 
 	website = frappe._dict(
-		template="templates/generators/renderer.html",
+		template="templates/generators/app_renderer.html",
 		page_title_field="app_title",
 		condition_field="published",
 	)
@@ -73,3 +98,64 @@ class StudioApp(WebsiteGenerator):
 		return frappe.get_all(
 			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
 		)
+
+	@frappe.whitelist()
+	def generate_app_build(self):
+		if not frappe.has_permission("Studio App", ptype="write"):
+			frappe.throw("You do not have permission to generate the app build", frappe.PermissionError)
+
+		# check if build is required
+		draft_components = get_app_components(self.name, "draft_blocks")
+		components = get_app_components(self.name)
+		if not draft_components.symmetric_difference(components):
+			return
+
+		try:
+			command = f"yarn build-studio-app {self.name} --components {','.join(list(components))}"
+			studio_app_path = frappe.get_app_source_path("studio")
+			frappe.commands.popen(command, cwd=studio_app_path, raise_err=True)
+		except Exception as e:
+			raise Exception(f"Build process failed: {str(e)}")
+
+	def get_assets_from_manifest(self):
+		"""
+		Read the Vite manifest file for this app and return asset paths
+		https://vite.dev/guide/backend-integration.html#backend-integration
+		"""
+		try:
+			manifest_path = os.path.join(
+				frappe.get_app_source_path("studio"),
+				"studio",
+				"public",
+				"app_builds",
+				self.name,
+				".vite",
+				"manifest.json",
+			)
+			if not os.path.exists(manifest_path):
+				return None
+
+			with open(manifest_path) as f:
+				manifest = json.load(f)
+
+			# find the entry point for a studio app
+			entry_key = f"renderer-{self.name}.js"
+			entry_key = next((key for key in manifest if key.endswith(entry_key)), entry_key)
+
+			entry = manifest[entry_key]
+			base_path = f"/assets/studio/app_builds/{self.name}/"
+			result = {
+				"script": f"{base_path}{entry['file']}",
+				"stylesheets": [f"{base_path}{css_file}" for css_file in entry.get("css", [])],
+			}
+
+			# add any imported CSS files
+			for chunk_key, chunk_data in manifest.items():
+				if chunk_key != entry_key and "css" in chunk_data:
+					result["stylesheets"].extend(f"{base_path}{css_file}" for css_file in chunk_data["css"])
+
+			return result
+
+		except Exception as e:
+			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
+			return None

@@ -5,9 +5,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-app-renderer",
+		"build": "vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-studio-renderer",
+		"build-studio-app": "node src/scripts/build.js",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
-		"copy-app-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/renderer.html",
+		"copy-studio-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/studio_renderer.html",
 		"serve": "vite preview",
 		"extract-frappeui-types": "tsx src/scripts/tsToJSONGenerator.ts frappeui",
 		"extract-studio-types": "tsx src/scripts/tsToJSONGenerator.ts studio"
@@ -26,7 +27,6 @@
 		"codemirror": "^6.0.1",
 		"feather-icons": "^4.28.0",
 		"frappe-ui": "0.1.149",
-		"lucide-vue-next": "^0.468.0",
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
 		"thememirror": "^2.0.1",

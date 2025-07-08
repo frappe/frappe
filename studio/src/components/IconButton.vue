@@ -1,31 +1,28 @@
 <template>
 	<Tooltip :disabled="!label" :placement="tooltipPlacement" :text="label" :hover-delay="hoverDelay">
 		<button class="flex gap-2 text-sm text-gray-600 hover:text-gray-900" v-bind="attrs">
-			<FeatherIcon v-if="iconComponent === 'FeatherIcon'" :name="icon" :class="iconClasses" />
-			<LucideIcon v-else :name="icon" :class="iconClasses" />
+			<FeatherIcon v-if="typeof icon === 'string'" :name="icon" :class="iconClasses" />
+			<component v-else :is="icon" :class="iconClasses" />
 		</button>
 	</Tooltip>
 </template>
 
 <script setup lang="ts">
 import { FeatherIcon, Tooltip } from "frappe-ui"
-import { computed, useAttrs } from "vue"
-import LucideIcon from "@/components/LucideIcon.vue"
+import { computed, useAttrs, type Component } from "vue"
 
 const props = withDefaults(
 	defineProps<{
-		icon: string
+		icon: string | Component
 		label?: string
 		size?: "sm" | "md" | "lg"
 		hoverDelay?: number
 		tooltipPlacement?: "top" | "right" | "bottom" | "left"
-		iconComponent?: "FeatherIcon" | "LucideIcon"
 	}>(),
 	{
 		size: "md",
 		hoverDelay: 0.1,
 		tooltipPlacement: "right",
-		iconComponent: "FeatherIcon",
 	},
 )
 

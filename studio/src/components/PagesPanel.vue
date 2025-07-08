@@ -11,7 +11,8 @@
 						class="flex items-center gap-1 truncate text-base"
 						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
 					>
-						{{ page.page_title }} - <span class="text-xs">{{ getPageRoute(page) }}</span>
+						{{ page.page_title }} -
+						<span class="text-xs">{{ getPageRoute(page) }}</span>
 					</div>
 					<Badge v-if="isAppHome(page)" variant="outline" size="sm" class="text-xs" theme="blue">
 						App Home
@@ -47,7 +48,7 @@
 
 <script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
-import { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
 
@@ -73,7 +74,7 @@ const getPageMenu = (page: StudioPage) => {
 			icon: "home",
 			condition: () => !isAppHome(page),
 			onClick: () => {
-				store.setAppHome(app.name, page.name)
+				store.updateActiveApp("app_home", page.name)
 			},
 		},
 		{

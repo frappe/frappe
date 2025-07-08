@@ -16,5 +16,6 @@ app.use(app_router)
 app.use(pinia)
 app.use(resourcesPlugin)
 registerGlobalComponents(app)
+window.__APP_COMPONENTS__ = app._context.components
 
 app.mount("#app")

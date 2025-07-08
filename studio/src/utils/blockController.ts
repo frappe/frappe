@@ -1,7 +1,7 @@
 import { CSSProperties } from "vue"
 import Block from "./block"
 
-import { StyleValue, BlockStyleMap } from "@/types"
+import type { StyleValue, BlockStyleMap } from "@/types"
 import useCanvasStore from "@/stores/canvasStore"
 
 const canvasStore = useCanvasStore()

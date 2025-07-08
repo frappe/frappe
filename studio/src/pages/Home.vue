@@ -83,7 +83,7 @@ import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
-import { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
+import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 

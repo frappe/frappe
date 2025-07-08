@@ -47,11 +47,10 @@
 						>
 							<template #target="{ togglePopover }">
 								<IconButton
-									:icon="isVariableBound(config.modelValue) ? 'Link2Off' : 'Link2'"
+									:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
 									:label="
 										isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'
 									"
-									iconComponent="LucideIcon"
 									placement="bottom"
 									@click="
 										() => {
@@ -134,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from "vue"
+import { computed, watch, ref, resolveComponent } from "vue"
 import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
@@ -145,6 +144,8 @@ import type { SelectOption, Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
+import Link2 from "~icons/lucide/link-2"
+import Link2Off from "~icons/lucide/link-2-off"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
@@ -156,9 +157,19 @@ const props = defineProps<{
 const store = useStudioStore()
 const getCompletions = useStudioCompletions()
 
+const componentInstance = computed(() => {
+	if (!props.block?.componentName) return {}
+	const component = resolveComponent(props.block?.componentName)
+	if (typeof component === "string" || !component) {
+		return {}
+	}
+	return component
+})
+
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
-	const propConfig = getComponentProps(props.block.componentName) || {}
+
+	const propConfig = getComponentProps(props.block.componentName, componentInstance.value)
 	if (!propConfig) return {}
 
 	Object.entries(propConfig).forEach(([propName, config]) => {

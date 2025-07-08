@@ -22,7 +22,7 @@
 import { Avatar, FeatherIcon } from "frappe-ui"
 import { ref } from "vue"
 
-import { AvatarCardProps } from "@/types/studio_components/AvatarCard"
+import type { AvatarCardProps } from "@/types/studio_components/AvatarCard"
 
 defineProps<AvatarCardProps>()
 

@@ -4,3 +4,4 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+studio.studio.doctype.studio_page.patches.replace_frappeUI_namespace_references

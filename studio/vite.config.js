@@ -14,6 +14,10 @@ export default defineConfig({
 		// https://vite.dev/guide/backend-integration
 		origin: "http://127.0.0.1:8080",
 		allowedHosts: true,
+		watch: {
+			// unplugin-vue-components generates this file which causes HMR while building other studio apps
+			ignored: ["**/components.d.ts"],
+		},
 	},
 	plugins: [
 		frappeui({

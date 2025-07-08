@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- Built with Frappe Studio -->
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/assets/studio/frontend/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ app_title }}</title>
+
+		{% for stylesheet in stylesheets %}
+			<link rel="stylesheet" href="{{ stylesheet }}" crossorigin>
+		{% endfor %}
+
+		{% if script %}
+			<script type="module" src="{{ script }}" crossorigin></script>
+		{% endif %}
+	</head>
+	<body class="h-full">
+		<div id="app" class="h-full"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+		<script>
+			window.csrf_token = "{{ csrf_token }}";
+			window.app_name = "{{ app_name }}";
+			window.app_route = "{{ app_route }}";
+			window.app_title = "{{ app_title }}";
+			window.app_pages = {{ app_pages|tojson }};
+		</script>
+	</body>
+</html>

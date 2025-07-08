@@ -38,7 +38,7 @@ import { useScreenSize } from "@/utils/useScreenSize"
 
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
-import { Field } from "@/types/ComponentEvent"
+import type { Field } from "@/types/ComponentEvent"
 
 const props = defineProps<{
 	block: Block

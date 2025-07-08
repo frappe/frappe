@@ -56,8 +56,7 @@
 							v-if="store.activePage && store.activePage.published"
 							class="h-[14px] w-[14px] !text-gray-700 dark:!text-gray-200"
 							@click="store.openPageInBrowser(store.activeApp!, store.activePage)"
-						>
-						</FeatherIcon>
+						></FeatherIcon>
 					</div>
 				</template>
 				<template #body="{ isOpen }">
@@ -76,11 +75,20 @@
 			</Popover>
 		</div>
 
-		<div class="absolute right-3 flex items-center">
+		<div class="absolute right-3 flex items-center gap-2">
+			<Button
+				size="sm"
+				variant="subtle"
+				:disabled="canvasStore.editingMode === 'fragment'"
+				@click="() => store.openPageInBrowser(store.activeApp!, store.activePage!, true)"
+			>
+				Preview
+			</Button>
 			<Button
 				size="sm"
 				variant="solid"
 				:disabled="canvasStore.editingMode === 'fragment'"
+				:loading="publishing"
 				@click="
 					() => {
 						publishing = true
@@ -96,7 +104,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip } from "frappe-ui"
+import { Tooltip, Popover } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 

@@ -24,10 +24,10 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { LeftPanelOptions, RightPanelOptions, SelectOption, StudioMode } from "@/types"
+import type { LeftPanelOptions, RightPanelOptions, SelectOption, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
-import { Variable } from "@/types/Studio/StudioPageVariable"
+import type { Variable } from "@/types/Studio/StudioPageVariable"
 import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
@@ -69,9 +69,15 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
-	async function setAppHome(appName: string, pageName: string) {
-		await studioApps.setValue.submit({ name: appName, app_home: pageName })
-		setApp(appName)
+	function updateActiveApp(key: string, value: string) {
+		studioApps.setValue.submit(
+			{ name: activeApp.value?.name, [key]: value },
+			{
+				onSuccess() {
+					setApp(activeApp.value!.name)
+				},
+			},
+		)
 	}
 
 	async function deleteAppPage(appName: string, page: StudioPage) {
@@ -185,11 +191,13 @@ const useStudioStore = defineStore("store", () => {
 
 	async function publishPage() {
 		if (!selectedPage.value) return
+
+		await generateAppBuild()
 		return studioPages.runDocMethod
 			.submit(
 				{
-				name: selectedPage.value,
-				method: "publish",
+					name: selectedPage.value,
+					method: "publish",
 				},
 				{
 					onError(error: any) {
@@ -214,10 +222,13 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	function openPageInBrowser(app: StudioApp, page: StudioPage) {
+	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${page.route}`
+		if (preview) {
+			route = `/dev${route}`
+		}
 		if (import.meta.env.DEV) {
-			route = `${window.site_url}/${app.route}${page.route}`
+			route = `${window.site_url}${route}`
 		}
 
 		const targetWindow = window.open(route, "studio-preview")
@@ -228,6 +239,25 @@ const useStudioStore = defineStore("store", () => {
 				targetWindow?.location.reload()
 			}, 50)
 		}
+	}
+
+	// build
+	function generateAppBuild() {
+		if (!activeApp.value) return
+		return studioApps.runDocMethod.submit({
+			name: activeApp.value.name,
+			method: "generate_app_build",
+		}, {
+			onSuccess() {
+				toast.success("App build generated")
+			},
+			onError(error: any) {
+				toast.error("Failed to generate app build", {
+					description: error?.messages?.join(", "),
+					duration: Infinity,
+				})
+			},
+		})
 	}
 
 	// styles
@@ -312,7 +342,7 @@ const useStudioStore = defineStore("store", () => {
 		// studio app
 		activeApp,
 		setApp,
-		setAppHome,
+		updateActiveApp,
 		deleteAppPage,
 		duplicateAppPage,
 		appPages,
@@ -329,6 +359,8 @@ const useStudioStore = defineStore("store", () => {
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
+		// app build
+		generateAppBuild,
 		// styles
 		stylePropertyFilter,
 		// data

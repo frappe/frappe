@@ -1,13 +1,12 @@
 import { reactive, toRaw, h, Ref, toRefs } from "vue"
 import Block from "./block"
 import getBlockTemplate from "./blockTemplate"
-import * as frappeUI from "frappe-ui"
 import { createDocumentResource, createListResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
-import { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
-import { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
-import { Variable } from "@/types/Studio/StudioPageVariable"
+import type { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
+import type { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
+import type { Variable } from "@/types/Studio/StudioPageVariable"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
@@ -219,12 +218,13 @@ function jsToJson(obj: ObjectLiteral): string {
 }
 
 function jsonToJs(json: string): any {
+	const registeredComponents = window.__APP_COMPONENTS__ || {}
 	const reviver = (_key: string, value: any) => {
 		// Convert functions back to functions
 		if (typeof value === "string" && value.startsWith("function")) {
 			// provide access to render function & frappeUI lib for editing props
 			const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
-			return newFunc({"h": h, "frappeUI": frappeUI})
+			return newFunc({"h": h, ...registeredComponents})
 		}
 		return value
 	}

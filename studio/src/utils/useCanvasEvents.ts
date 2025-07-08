@@ -7,7 +7,7 @@ import {
 } from "@/utils/helpers";
 import { clamp, useEventListener } from "@vueuse/core";
 import { Ref } from "vue";
-import { CanvasProps, CanvasHistory } from "@/types/StudioCanvas"
+import type { CanvasProps, CanvasHistory } from "@/types/StudioCanvas"
 
 const store = useStudioStore();
 

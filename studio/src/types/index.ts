@@ -1,5 +1,6 @@
+import type { FunctionalComponent } from "vue"
 import Block from "../utils/block"
-import { VuePropDefault } from "@/types/vue"
+import type { VuePropDefault } from "@/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
 
 export type ObjectLiteral = Record<string, any>
@@ -15,6 +16,7 @@ export interface BlockOptions {
 	componentProps?: Record<string, any>
 	componentSlots?: Record<string, Slot>
 	componentEvents?: Record<string, any>
+	originalElement?: string
 	children?: Array<Block | BlockOptions>
 	baseStyles?: BlockStyleMap
 	rawStyles?: BlockStyleMap
@@ -73,7 +75,7 @@ export type ExpressionEvaluationContext = Record<string, any> | undefined
 export interface FrappeUIComponent {
 	name: string,
 	title: string,
-	icon: string,
+	icon: string | FunctionalComponent,
 	initialState?: Record<string, any>,
 	initialSlots?: Array<string>,
 	props?: Array<Record<string, any>>,

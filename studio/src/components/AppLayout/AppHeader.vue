@@ -4,10 +4,10 @@
 	>
 		<div class="w-full">
 			<div class="flex w-full items-center justify-center">
-				<LucideIcon
+				<component
 					v-if="!hideBackButton"
-					class="absolute left-4 h-6 w-6"
-					name="ChevronLeft"
+					:is="LucideChevronLeft"
+					class="absolute left-4 h-6 w-6 cursor-pointer text-gray-600 hover:text-gray-900"
 					@click="() => $router.back()"
 				/>
 				<div class="flex cursor-pointer items-center justify-center gap-2">
@@ -28,8 +28,8 @@
 
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
-import LucideIcon from "../LucideIcon.vue"
-import { AppHeaderProps } from "@/types/studio_components/AppHeader"
+import LucideChevronLeft from "~icons/lucide/chevron-left"
+import type { AppHeaderProps } from "@/types/studio_components/AppHeader"
 
 defineProps<AppHeaderProps>()
 </script>

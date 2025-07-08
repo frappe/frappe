@@ -160,8 +160,8 @@ import Code from "@/components/Code.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 
-import { DocTypeField } from "@/types"
-import { NewResource, ResourceType, Resource } from "@/types/Studio/StudioResource"
+import type { DocTypeField } from "@/types"
+import type { NewResource, ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 

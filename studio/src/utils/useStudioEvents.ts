@@ -11,7 +11,7 @@ import {
 	setClipboardData,
 } from "@/utils/helpers"
 import Block from "@/utils/block"
-import { BlockOptions } from "@/types"
+import type { BlockOptions } from "@/types"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

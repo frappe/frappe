@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router"
+import AppContainer from "@/pages/AppContainer.vue"
 
 const routes = [
 	{
 		path: "/:pageRoute(.*)*",
 		name: "AppContainer",
-		component: () => import("@/pages/AppContainer.vue"),
+		component: AppContainer,
 		props: true,
 	},
 ]
@@ -32,7 +33,7 @@ const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
 		router.addRoute({
 			path: page.route,
 			name: page.page_title,
-			component: () => import("@/pages/AppContainer.vue"),
+			component: AppContainer,
 			props: true,
 			meta: {
 				isDynamic: true,

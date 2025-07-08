@@ -16,7 +16,7 @@
 					<div
 						class="flex flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
 					>
-						<LucideIcon :name="component.icon" class="h-6 w-6" />
+						<component :is="component.icon" class="h-6 w-6" />
 					</div>
 					<span class="truncate text-xs">{{ component.title }}</span>
 				</div>
@@ -30,7 +30,6 @@ import { computed, ref } from "vue"
 import Input from "@/components/Input.vue"
 import components from "@/data/components"
 
-import LucideIcon from "@/components/LucideIcon.vue"
 import useCanvasStore from "@/stores/canvasStore"
 
 const canvasStore = useCanvasStore()

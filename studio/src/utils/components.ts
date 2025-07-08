@@ -1,9 +1,10 @@
 import components from "@/data/components"
-import { ComponentProp, ComponentProps } from "@/types"
-import { VueProp, VuePropType } from "@/types/vue"
+import type { ComponentProp, ComponentProps } from "@/types"
+import type { VueProp, VuePropType } from "@/types/vue"
 
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"
+import { ConcreteComponent } from "vue"
 
 interface ComponentTypes {
 	[componentName: string]: {
@@ -12,13 +13,14 @@ interface ComponentTypes {
 }
 const componentTypes = jsonTypes as ComponentTypes
 
-const componentFolders = {
+const componentFolders: Record<string, string> = {
 	DateTimePicker: "DatePicker",
 	DateRangePicker: "DatePicker",
 }
 
-function getComponentProps(componentName: string) {
-	const props = components.getProps(componentName)
+function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
+	if (typeof component === "string") return {}
+	const props = component.props
 	if (!props) return {}
 
 	if ("modelModifiers" in props) {
@@ -147,40 +149,58 @@ function getSinglePropType(propTypes: string | string[]) {
 	return "string"
 }
 
-// events
-function getComponentEvents(componentName: string) {
-	return components.getEmits(componentName) || []
-}
+// ?raw to get raw content of a file as string
+const frappeUIModules: Record<string, string> = import.meta.glob(
+	[
+		"../../../node_modules/frappe-ui/src/components/**/*.vue",
+		"!**/*.story.vue",
+	],
+	{ query: "?raw", eager: true, import: "default" }
+)
 
-async function getComponentTemplate(componentName: string): Promise<string> {
-	let rawTemplate = null
+const studioModules: Record<string, string> = import.meta.glob(
+	"@/components/AppLayout/*.vue",
+	{ query: "?raw", eager: true, import: "default" }
+)
+
+const templateCache = new Map<string, string>()
+
+function getComponentTemplate(componentName: string): string {
+	if (templateCache.has(componentName)) {
+		return templateCache.get(componentName) || ""
+	}
+
+	let rawTemplate = ""
 
 	if (components.isFrappeUIComponent(componentName)) {
 		try {
-			// ?raw to get raw content of a file as string
-			rawTemplate = await import(`../../../node_modules/frappe-ui/src/components/${componentName}.vue?raw`)
-		} catch (error) {
-			let folderName = componentFolders[componentName] || componentName
-			try {
+			let modulePath = `../../../node_modules/frappe-ui/src/components/${componentName}.vue`
+			if (frappeUIModules[modulePath]) {
+				rawTemplate = frappeUIModules[modulePath]
+			} else {
 				// try finding the vue file inside component folder
-				rawTemplate = await import(
-					`../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue?raw`
-				)
-			} catch (error) {
-				console.error(`Error loading component template ${componentName}:`, error)
-				return ""
+				const folderName = componentFolders[componentName] || componentName
+				modulePath = `../../../node_modules/frappe-ui/src/components/${folderName}/${componentName}.vue`
+				if (frappeUIModules[modulePath]) {
+					rawTemplate = frappeUIModules[modulePath]
+				}
 			}
-		}
-	} else {
-		try {
-			// extract studio component template
-			rawTemplate = await import(`@/components/AppLayout/${componentName}.vue?raw`)
 		} catch (error) {
-			console.warn(`Failed to load component template ${componentName}:`, error)
+			console.error(`Error loading component template ${componentName}:`, error)
 			return ""
 		}
+	} else {
+		const modulePath = `/src/components/AppLayout/${componentName}.vue`
+		if (studioModules[modulePath]) {
+			rawTemplate = studioModules[modulePath]
+		}
 	}
-	return rawTemplate?.default || ""
+
+	const template = rawTemplate || ""
+	if (template) {
+		templateCache.set(componentName, template)
+	}
+	return template
 }
 
 async function getComponentSlots(componentName: string) {
@@ -212,4 +232,4 @@ async function getComponentSlots(componentName: string) {
 	return slots
 }
 
-export { getComponentProps, getComponentEvents, getComponentTemplate, getComponentSlots }
+export { getComponentProps, getComponentTemplate, getComponentSlots }

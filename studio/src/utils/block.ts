@@ -2,14 +2,14 @@ import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/type
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import LucideHash from "~icons/lucide/hash"
+import LucideAppWindow from "~icons/lucide/app-window"
 
-import components from "@/data/components";
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
-import { StyleValue } from "@/types"
-import { ComponentEvent } from "@/types/ComponentEvent"
+import type { StyleValue, FrappeUIComponents } from "@/types"
+import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 class Block implements BlockOptions {
@@ -19,7 +19,6 @@ class Block implements BlockOptions {
 	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
 	blockName: string
-	originalElement?: string | undefined
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
@@ -27,10 +26,14 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
+	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
+
+	// @editor-only
+	private static components: FrappeUIComponents | null = null
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
@@ -52,14 +55,14 @@ class Block implements BlockOptions {
 
 		// get component props
 		if (!options.componentProps) {
-			this.componentProps = copyObject(components.get(options.componentName)?.initialState)
+			this.componentProps = copyObject(Block.components?.[options.componentName]?.initialState)
 		} else {
 			this.componentProps = options.componentProps
 		}
 
 		this.componentSlots = options.componentSlots || {}
 		if (!options.componentSlots) {
-			let slots = components.get(options.componentName)?.initialSlots || []
+			let slots = Block.components?.[options.componentName]?.initialSlots || []
 			slots.forEach((slot) => {
 				this.addSlot(slot)
 			})
@@ -86,6 +89,14 @@ class Block implements BlockOptions {
 			child.parentBlock = this;
 			return reactive(new Block(child))
 		})
+	}
+
+	static setComponents(components: FrappeUIComponents) {
+		Block.components = components
+	}
+
+	static getComponents() {
+		return Block.components
 	}
 
 	generateComponentId(componentName?: string | null): string {
@@ -221,8 +232,9 @@ class Block implements BlockOptions {
 	}
 
 	getIcon() {
-		if (this.isRoot()) return "Hash"
-		return components.get(this.componentName)?.icon
+		if (this.isRoot()) return LucideHash
+		if (this.componentName === "container") return LucideAppWindow
+		return Block.components?.[this.componentName]?.icon
 	}
 
 	getBlockDescription() {
@@ -230,11 +242,11 @@ class Block implements BlockOptions {
 	}
 
 	editInFragmentMode() {
-		return components.get(this.componentName)?.editInFragmentMode
+		return Block.components?.[this.componentName]?.editInFragmentMode
 	}
 
 	getProxyComponent() {
-		return components.get(this.componentName)?.proxyComponent
+		return Block.components?.[this.componentName]?.proxyComponent
 	}
 
 	// styles
@@ -629,11 +641,6 @@ class Block implements BlockOptions {
 
 	// events
 	addEvent(event: ComponentEvent) {
-		const pageName = event.page
-		if (pageName) {
-			const store = useStudioStore()
-			event.page = store.getAppPageRoute(pageName)
-		}
 		this.componentEvents[event.event] = event
 	}
 
