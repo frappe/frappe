@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -16,7 +16,10 @@ class WorkflowTransitionTask(Document):
 
 		enabled: DF.Check
 		execute_asynchronously: DF.Check
-		task: DF.Autocomplete | None
+		parent: DF.Data
+		parentfield: DF.Data
+		parenttype: DF.Data
+		task: DF.Literal[None]
 	# end: auto-generated types
 
 	pass
