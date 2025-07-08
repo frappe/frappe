@@ -4,6 +4,8 @@ import os
 import uuid
 from datetime import datetime
 from io import BytesIO
+import unicodedata
+import re
 
 
 def write_file_to_s3(file_doc):
@@ -51,27 +53,41 @@ def write_file_to_s3(file_doc):
         return file_doc.save_file_on_filesystem()
 
 
+def normalize_filename(filename):
+    # Loại bỏ dấu, chỉ giữ ASCII an toàn
+    nfkd_form = unicodedata.normalize('NFKD', filename)
+    only_ascii = nfkd_form.encode('ASCII', 'ignore').decode('ASCII')
+    safe = re.sub(r'[^\w\s.-]', '', only_ascii).strip()
+    return safe
+
 def upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key):
-    """Tải lên các tệp nhỏ (<50MB) trong một request duy nhất"""
-    s3_client.upload_fileobj(
-        BytesIO(file_doc._content), 
-        s3_config['s3_bucket'], 
-        s3_key,
-        ExtraArgs={
-            'ContentType': file_doc.content_type or 'application/octet-stream',
-            'Metadata': {
-                'original_filename': file_doc.file_name,
-                'uploaded_by': frappe.session.user
+    if not file_doc._content or len(file_doc._content) == 0:
+        frappe.throw(f"Nội dung tệp {file_doc.file_name} rỗng — không thể tải lên.")
+
+    try:
+        original_name = normalize_filename(file_doc.file_name)
+
+        s3_client.upload_fileobj(
+            BytesIO(file_doc._content), 
+            s3_config['s3_bucket'], 
+            s3_key,
+            ExtraArgs={
+                'ContentType': file_doc.content_type or 'application/octet-stream',
+                'Metadata': {
+                    'original_filename': original_name,
+                    'uploaded_by': frappe.session.user
+                }
             }
-        }
-    )
-    
-    # Set S3 URL
-    file_doc.file_url = generate_s3_url(s3_config, s3_key)
-    file_doc.is_private = 0
-    
-    frappe.logger().info(f"File {file_doc.file_name} uploaded to S3: {file_doc.file_url}")
-    
+        )
+    except Exception as e:
+        frappe.logger().error(f"Upload failed for {file_doc.file_name}: {str(e)}")
+        frappe.throw(f"Tải lên thất bại cho {file_doc.file_name}: {str(e)}")
+
+    presigned_url = generate_presigned_url(s3_config['s3_bucket'], s3_key)
+
+    file_doc.file_url = presigned_url
+    file_doc.is_private = 1
+
     return {
         "file_name": file_doc.file_name,
         "file_url": file_doc.file_url
@@ -79,87 +95,113 @@ def upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key):
 
 
 def upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key):
-    """Upload các tệp lớn (>50MB) bằng cách sử dụng tải lên nhiều phần"""
-    # Bắt đầu tải lên nhiều phần
-    response = s3_client.create_multipart_upload(
-        Bucket=s3_config['s3_bucket'],
-        Key=s3_key,
-        ContentType=file_doc.content_type or 'application/octet-stream',
-        Metadata={
-            'original_filename': file_doc.file_name,
-            'uploaded_by': frappe.session.user
-        }
-    )
-    
-    upload_id = response['UploadId']
-    parts = []
-    chunk_size = 5 * 1024 * 1024
-    
+    """Upload các tệp lớn (>50MB) bằng cách sử dụng multipart upload"""
+    if not file_doc._content or len(file_doc._content) == 0:
+        frappe.throw(f"Nội dung tệp {file_doc.file_name} rỗng — không thể tải lên.")
+
     try:
-        # Tải tệp lên theo từng phần
+        # Bắt đầu multipart upload
+        response = s3_client.create_multipart_upload(
+            Bucket=s3_config['s3_bucket'],
+            Key=s3_key,
+            ContentType=file_doc.content_type or 'application/octet-stream',
+            Metadata={
+                'original_filename': normalize_filename(file_doc.file_name),
+                'uploaded_by': frappe.session.user
+            }
+        )
+        upload_id = response['UploadId']
+        parts = []
+        chunk_size = 5 * 1024 * 1024  # 5MB
         content = file_doc._content
+
+        # Upload từng phần
         for i, chunk_start in enumerate(range(0, len(content), chunk_size)):
             chunk_end = min(chunk_start + chunk_size, len(content))
             chunk_data = content[chunk_start:chunk_end]
-            
-            part_response = s3_client.upload_part(
-                Bucket=s3_config['s3_bucket'],
-                Key=s3_key,
-                PartNumber=i + 1,
-                UploadId=upload_id,
-                Body=chunk_data
-            )
-            
-            parts.append({
-                'ETag': part_response['ETag'],
-                'PartNumber': i + 1
-            })
-            
-            # Log progress cho các tệp lớn
-            progress = (chunk_end / len(content)) * 100
-            if i % 5 == 0:  # Log mỗi 5 chunk
-                frappe.logger().info(f"Upload progress for {file_doc.file_name}: {progress:.1f}%")
-        
-        # Hoàn tất tải lên nhiều phần
+
+            try:
+                part_response = s3_client.upload_part(
+                    Bucket=s3_config['s3_bucket'],
+                    Key=s3_key,
+                    PartNumber=i + 1,
+                    UploadId=upload_id,
+                    Body=chunk_data
+                )
+
+                parts.append({
+                    'ETag': part_response['ETag'],
+                    'PartNumber': i + 1
+                })
+
+                # Ghi log tiến độ mỗi 5 phần
+                if i % 5 == 0:
+                    progress = (chunk_end / len(content)) * 100
+                    frappe.logger().info(f"Upload progress for {file_doc.file_name}: {progress:.1f}%")
+
+            except Exception as part_error:
+                frappe.logger().error(f"Upload part {i+1} failed: {str(part_error)}")
+                raise part_error
+
+        # Hoàn tất upload
         s3_client.complete_multipart_upload(
             Bucket=s3_config['s3_bucket'],
             Key=s3_key,
             UploadId=upload_id,
             MultipartUpload={'Parts': parts}
         )
-        
-        # Set S3 URL
-        file_doc.file_url = generate_s3_url(s3_config, s3_key)
-        file_doc.is_private = 0
-        
+
+        # Gán presigned URL
+        presigned_url = generate_presigned_url(s3_config['s3_bucket'], s3_key)
+        file_doc.file_url = presigned_url
+        file_doc.is_private = 1
+
         frappe.logger().info(f"Large file {file_doc.file_name} uploaded to S3 successfully: {file_doc.file_url}")
-        
+
         return {
             "file_name": file_doc.file_name,
             "file_url": file_doc.file_url
         }
-        
+
     except Exception as e:
-        # Hủy bỏ việc tải lên nhiều phần khi có lỗi
+        # Huỷ multipart upload nếu có lỗi
         try:
             s3_client.abort_multipart_upload(
                 Bucket=s3_config['s3_bucket'],
                 Key=s3_key,
                 UploadId=upload_id
             )
-        except:
-            pass
-        raise e
+            frappe.logger().warning(f"Aborted multipart upload for {file_doc.file_name}")
+        except Exception as abort_error:
+            frappe.logger().error(f"Abort multipart upload failed: {str(abort_error)}")
+        frappe.logger().error(f"Upload failed for {file_doc.file_name}: {str(e)}")
+        frappe.throw(f"Tải lên thất bại cho {file_doc.file_name}: {str(e)}")
 
+def generate_presigned_url(bucket_name, key, expiration=3600):
+    """Tạo presigned URL để truy cập file riêng tư trong S3"""
+    s3_config = get_s3_config()
+    if not s3_config:
+        return None
 
-def generate_s3_url(s3_config, s3_key):
-    """Tạo URL S3 dựa trên cấu hình endpoint"""
-    if s3_config.get('aws_s3_endpoint_url') and 'amazonaws.com' not in s3_config['aws_s3_endpoint_url']:
-        # Custom S3 endpoint
-        return f"{s3_config['aws_s3_endpoint_url']}/{s3_config['s3_bucket']}/{s3_key}"
-    else:
-        # AWS S3
-        return f"https://{s3_config['s3_bucket']}.s3.amazonaws.com/{s3_key}"
+    try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=s3_config['aws_access_key_id'],
+            aws_secret_access_key=s3_config['aws_secret_access_key'],
+            endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+        )
+
+        url = s3_client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={'Bucket': bucket_name, 'Key': key},
+            ExpiresIn=expiration  # Mặc định: 1 tiếng
+        )
+        return url
+
+    except Exception as e:
+        frappe.log_error(f"Lỗi khi tạo presigned URL: {str(e)}", "S3 Presigned URL")
+        return None
 
 
 def delete_file_from_s3(file_doc, only_thumbnail=False):
@@ -175,7 +217,7 @@ def delete_file_from_s3(file_doc, only_thumbnail=False):
             aws_access_key_id=s3_config['aws_access_key_id'],
             aws_secret_access_key=s3_config['aws_secret_access_key'],
             endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-            region_name=s3_config.get('aws_default_region', 'us-east-1')
+            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
         )
         
         # Trích xuất S3 key từ file_url
@@ -212,7 +254,7 @@ def get_s3_config():
         'aws_access_key_id': conf.get('aws_access_key_id'),
         'aws_secret_access_key': conf.get('aws_secret_access_key'),
         'aws_s3_endpoint_url': conf.get('aws_s3_endpoint_url'),
-        'aws_default_region': conf.get('aws_default_region', 'us-east-1')
+        'aws_default_region': conf.get('aws_default_region', 'ap-southeast-1')
     }
 
 
@@ -257,7 +299,7 @@ def test_s3_connection():
             aws_access_key_id=s3_config['aws_access_key_id'],
             aws_secret_access_key=s3_config['aws_secret_access_key'],
             endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-            region_name=s3_config.get('aws_default_region', 'us-east-1')
+            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
         )
         
         # Kiểm tra bằng cách liệt kê các buckets
