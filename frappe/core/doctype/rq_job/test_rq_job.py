@@ -18,16 +18,13 @@ from frappe.utils.background_jobs import is_job_enqueued
 class TestRQJob(FrappeTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
-<<<<<<< HEAD
-	@timeout(seconds=60)
-=======
 	def setUp(self) -> None:
 		# Cleanup all pending jobs
 		for job in frappe.get_all("RQ Job", {"status": "queued"}):
 			frappe.get_doc("RQ Job", job.name).cancel()
 		return super().setUp()
 
->>>>>>> 7e2b4955f8 (test: Cancel pending jobs in RQ tests (#32970))
+	@timeout(seconds=60)
 	def check_status(self, job: Job, status, wait=True):
 		while wait:
 			if not (job.is_queued or job.is_started):
