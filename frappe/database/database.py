@@ -265,16 +265,11 @@ class Database:
 			):
 				raise
 
-		self.log_query(query, query_type, values, debug)
+		self.log_query(query, values, debug, explain)
 		if debug:
 			time_end = time()
 			frappe.log(f"Execution time: {time_end - time_start:.2f} sec")
 
-<<<<<<< HEAD
-		self.log_query(query, values, debug, explain)
-
-=======
->>>>>>> 35c1cc0276 (fix(DX): print execution time after printing query (#33207))
 		if auto_commit:
 			self.commit()
 
