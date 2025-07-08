@@ -76,14 +76,14 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
-			<TabButtons
-				:buttons="[
-					{ label: 'Dev', icon: 'code', value: 'Development' },
-					{ label: 'Prod', icon: 'package', value: 'Production' },
-				]"
-				:modelValue="store.activeApp?.mode"
-				@update:modelValue="(value: string) => store.updateActiveApp('mode', value)"
-			/>
+			<Button
+				size="sm"
+				variant="subtle"
+				:disabled="canvasStore.editingMode === 'fragment'"
+				@click="() => store.openPageInBrowser(store.activeApp!, store.activePage!, true)"
+			>
+				Preview
+			</Button>
 			<Button
 				size="sm"
 				variant="solid"
@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip, Popover, TabButtons } from "frappe-ui"
+import { Tooltip, Popover } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 

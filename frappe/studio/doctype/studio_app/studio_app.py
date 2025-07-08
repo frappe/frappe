@@ -21,8 +21,31 @@ class StudioAppRenderer(DocumentPage):
 		return False
 
 	def find_app_for_path(self):
-		app_route = self.path.split("/")[0]
+		_path = self.path.split("/")
+		if self.is_preview():
+			app_route = _path[1]
+		else:
+			app_route = _path[0]
 		return frappe.db.get_value("Studio App", dict(route=app_route), "name")
+
+	def update_context(self):
+		super().update_context()
+		if self.is_preview():
+			self.context.is_preview = True
+			self.context.app_route = f"dev/{self.context.app_route}"
+			self.context.template = "templates/generators/studio_renderer.html"
+		else:
+			self.context.template = "templates/generators/app_renderer.html"
+			manifest = self.context.doc.get_assets_from_manifest()
+			if manifest:
+				self.context.stylesheets = manifest.get("stylesheets", [])
+				self.context.script = manifest.get("script")
+			else:
+				self.context.template = "templates/generators/studio_renderer.html"
+				self.context.assets_not_found = True
+
+	def is_preview(self):
+		return self.path.startswith("dev/")
 
 
 class StudioApp(WebsiteGenerator):
@@ -61,18 +84,6 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = self.get_studio_pages()
 		context.is_developer_mode = frappe.conf.developer_mode
 		context.site_name = frappe.local.site
-
-		if self.mode == "Development":
-			context.template = "templates/generators/studio_renderer.html"
-		else:
-			context.template = "templates/generators/app_renderer.html"
-			manifest = self.get_assets_from_manifest()
-			if manifest:
-				context.stylesheets = manifest.get("stylesheets", [])
-				context.script = manifest.get("script")
-			else:
-				context.template = "templates/generators/studio_renderer.html"
-				context.assets_not_found = True
 
 	def autoname(self):
 		if not self.name:

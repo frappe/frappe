@@ -192,9 +192,7 @@ const useStudioStore = defineStore("store", () => {
 	async function publishPage() {
 		if (!selectedPage.value) return
 
-		if (activeApp.value?.mode === "Production") {
-			await generateAppBuild()
-		}
+		await generateAppBuild()
 		return studioPages.runDocMethod
 			.submit(
 				{
@@ -224,10 +222,13 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	function openPageInBrowser(app: StudioApp, page: StudioPage) {
+	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${page.route}`
+		if (preview) {
+			route = `/dev${route}`
+		}
 		if (import.meta.env.DEV) {
-			route = `${window.site_url}/${app.route}${page.route}`
+			route = `${window.site_url}${route}`
 		}
 
 		const targetWindow = window.open(route, "studio-preview")
