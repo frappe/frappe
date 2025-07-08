@@ -13,11 +13,11 @@ class WorkflowTransitionTasks(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-		from frappe.workflow.doctype.workflow_transition_action_task.workflow_transition_action_task import (
-			WorkflowTransitionActionTask,
+		from frappe.workflow.doctype.workflow_transition_task.workflow_transition_task import (
+			WorkflowTransitionTask,
 		)
 
-		tasks: DF.Table[WorkflowTransitionActionTask]
+		tasks: DF.Table[WorkflowTransitionTask]
 	# end: auto-generated types
 
 	pass
