@@ -147,7 +147,10 @@ def apply_workflow(doc, action):
 		sync_tasks = []
 		async_tasks = []
 		for workflow_transition in workflow_transitions:
-			task_method = frappe.get_attr(tasks[workflow_transition.task])
+			try:
+				task_method = frappe.get_attr(tasks[workflow_transition.task])
+			except KeyError:
+				frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
 
 			if workflow_transition.execute_asynchronously:
 				async_tasks.append(task_method)
