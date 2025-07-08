@@ -162,9 +162,11 @@ def apply_workflow(doc, action):
 			else:
 				sync_tasks.append(task_method)
 
+		# will execute in the same transaction as the rest of the transition
 		for sync_task in sync_tasks:
 			sync_task(doc)
 
+		# will spawn separate background jobs. Use for asynchronous, optional tasks.
 		for async_task in async_tasks:
 			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
 
