@@ -1224,12 +1224,16 @@ export default class Grid {
 						}
 
 						const fieldnames = data[me.csv_row_index.fieldname];
+						const fields = me.frm
+							? frappe.get_meta(me.df.options).fields
+							: me.df.fields;
+
 						const row_field_df = {};
 
-						for (let fieldname of fieldnames) {
-							row_field_df[fieldname] = me.frm
-								? frappe.meta.get_docfield(me.df.options, fieldname)
-								: me.df.fields.find((d) => d.fieldname === fieldname);
+						for (const df of fields) {
+							if (df && df.fieldname) {
+								row_field_df[df.fieldname] = df;
+							}
 						}
 
 						// inserting rows into table
