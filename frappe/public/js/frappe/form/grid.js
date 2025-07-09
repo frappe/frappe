@@ -1133,38 +1133,81 @@ export default class Grid {
 							}
 							// row #2 contains fieldnames;
 							var fieldnames = data[2];
-							me.frm.clear_table(me.df.fieldname);
-							$.each(data, (i, row) => {
-								if (i > 6) {
-									var blank_row = true;
-									$.each(row, function (ci, value) {
-										if (value) {
-											blank_row = false;
-											return false;
-										}
-									});
 
-									if (!blank_row) {
-										var d = me.frm.add_child(me.df.fieldname);
-										$.each(row, (ci, value) => {
-											var fieldname = fieldnames[ci];
-											var df = frappe.meta.get_docfield(
-												me.df.options,
-												fieldname
-											);
-											if (df) {
-												d[fieldnames[ci]] = value_formatter_map[
-													df.fieldtype
-												]
-													? value_formatter_map[df.fieldtype](value)
-													: value;
+							if (me.frm) {
+								me.frm.clear_table(me.df.fieldname);
+
+								$.each(data, (i, row) => {
+									if (i > 6) {
+										var blank_row = true;
+										$.each(row, function (ci, value) {
+											if (value) {
+												blank_row = false;
+												return false;
 											}
 										});
-									}
-								}
-							});
 
-							me.frm.refresh_field(me.df.fieldname);
+										if (!blank_row) {
+											var d = me.frm.add_child(me.df.fieldname);
+											$.each(row, (ci, value) => {
+												var fieldname = fieldnames[ci];
+												var df = frappe.meta.get_docfield(
+													me.df.options,
+													fieldname
+												);
+												if (df) {
+													d[fieldnames[ci]] = value_formatter_map[
+														df.fieldtype
+													]
+														? value_formatter_map[df.fieldtype](value)
+														: value;
+												}
+											});
+										}
+									}
+								});
+
+								me.frm.refresh_field(me.df.fieldname);
+							} else {
+								me.df.data = [];
+
+								$.each(data, (i, row) => {
+									if (i > 6) {
+										var blank_row = true;
+										$.each(row, function (ci, value) {
+											if (value) {
+												blank_row = false;
+												return false;
+											}
+										});
+
+										if (!blank_row) {
+											var d = {};
+											$.each(row, (ci, value) => {
+												const fieldname = fieldnames[ci];
+												const fields = me.df.fields;
+												const field = fields.find(
+													(d) => d.fieldname === fieldname
+												);
+
+												if (field) {
+													d[fieldnames[ci]] = value_formatter_map[
+														field.fieldtype
+													]
+														? value_formatter_map[field.fieldtype](
+																value
+														  )
+														: value;
+												}
+											});
+											me.df.data.push(d);
+										}
+									}
+								});
+
+								me.refresh();
+							}
+
 							frappe.msgprint({
 								message: __("Table updated"),
 								title: __("Success"),
