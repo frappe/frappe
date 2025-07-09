@@ -96,4 +96,18 @@ watch(
 	},
 	{ immediate: true },
 )
+
+watch(
+	() => props.filters,
+	() => {
+		options.update({
+			params: {
+				doctype: props.doctype,
+				txt: searchText.value,
+				filters: props.filters,
+			},
+		})
+		options.reload()
+	},
+)
 </script>
