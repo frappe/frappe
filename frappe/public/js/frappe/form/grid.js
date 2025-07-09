@@ -1099,125 +1099,10 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
-		let me = this;
-		if (this.df.allow_bulk_edit) {
-			// download
-			this.setup_download();
+		if (!this.df.allow_bulk_edit) return;
 
-			const value_formatter_map = {
-				Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
-				Int: (val) => cint(val),
-				Check: (val) => cint(val),
-				Float: (val) => flt(val),
-				Currency: (val) => flt(val),
-			};
-
-			// upload
-			frappe.flags.no_socketio = true;
-			$(this.wrapper)
-				.find(".grid-upload")
-				.removeClass("hidden")
-				.on("click", () => {
-					new frappe.ui.FileUploader({
-						as_dataurl: true,
-						allow_multiple: false,
-						restrictions: {
-							allowed_file_types: [".csv"],
-						},
-						on_success(file) {
-							var data = frappe.utils.csv_to_array(
-								frappe.utils.get_decoded_string(file.dataurl)
-							);
-							if (cint(data.length) - 7 > 5000) {
-								frappe.throw(__("Cannot import table with more than 5000 rows."));
-							}
-							// row #2 contains fieldnames;
-							var fieldnames = data[2];
-
-							if (me.frm) {
-								me.frm.clear_table(me.df.fieldname);
-
-								$.each(data, (i, row) => {
-									if (i > 6) {
-										var blank_row = true;
-										$.each(row, function (ci, value) {
-											if (value) {
-												blank_row = false;
-												return false;
-											}
-										});
-
-										if (!blank_row) {
-											var d = me.frm.add_child(me.df.fieldname);
-											$.each(row, (ci, value) => {
-												var fieldname = fieldnames[ci];
-												var df = frappe.meta.get_docfield(
-													me.df.options,
-													fieldname
-												);
-												if (df) {
-													d[fieldnames[ci]] = value_formatter_map[
-														df.fieldtype
-													]
-														? value_formatter_map[df.fieldtype](value)
-														: value;
-												}
-											});
-										}
-									}
-								});
-
-								me.frm.refresh_field(me.df.fieldname);
-							} else {
-								me.df.data = [];
-
-								$.each(data, (i, row) => {
-									if (i > 6) {
-										var blank_row = true;
-										$.each(row, function (ci, value) {
-											if (value) {
-												blank_row = false;
-												return false;
-											}
-										});
-
-										if (!blank_row) {
-											var d = {};
-											$.each(row, (ci, value) => {
-												const fieldname = fieldnames[ci];
-												const fields = me.df.fields;
-												const field = fields.find(
-													(d) => d.fieldname === fieldname
-												);
-
-												if (field) {
-													d[fieldnames[ci]] = value_formatter_map[
-														field.fieldtype
-													]
-														? value_formatter_map[field.fieldtype](
-																value
-														  )
-														: value;
-												}
-											});
-											me.df.data.push(d);
-										}
-									}
-								});
-
-								me.refresh();
-							}
-
-							frappe.msgprint({
-								message: __("Table updated"),
-								title: __("Success"),
-								indicator: "green",
-							});
-						},
-					});
-					return false;
-				});
-		}
+		this.setup_download();
+		this.setup_upload();
 	}
 
 	setup_download() {
@@ -1271,6 +1156,121 @@ export default class Grid {
 				});
 
 				frappe.tools.downloadify(data, null, title);
+				return false;
+			});
+	}
+
+	setup_upload() {
+		const value_formatter_map = {
+			Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
+			Int: (val) => cint(val),
+			Check: (val) => cint(val),
+			Float: (val) => flt(val),
+			Currency: (val) => flt(val),
+		};
+
+		let me = this;
+
+		frappe.flags.no_socketio = true;
+		$(this.wrapper)
+			.find(".grid-upload")
+			.removeClass("hidden")
+			.on("click", () => {
+				new frappe.ui.FileUploader({
+					as_dataurl: true,
+					allow_multiple: false,
+					restrictions: {
+						allowed_file_types: [".csv"],
+					},
+					on_success(file) {
+						var data = frappe.utils.csv_to_array(
+							frappe.utils.get_decoded_string(file.dataurl)
+						);
+						if (cint(data.length) - 7 > 5000) {
+							frappe.throw(__("Cannot import table with more than 5000 rows."));
+						}
+						// row #2 contains fieldnames;
+						var fieldnames = data[2];
+
+						if (me.frm) {
+							me.frm.clear_table(me.df.fieldname);
+
+							$.each(data, (i, row) => {
+								if (i > 6) {
+									var blank_row = true;
+									$.each(row, function (ci, value) {
+										if (value) {
+											blank_row = false;
+											return false;
+										}
+									});
+
+									if (!blank_row) {
+										var d = me.frm.add_child(me.df.fieldname);
+										$.each(row, (ci, value) => {
+											var fieldname = fieldnames[ci];
+											var df = frappe.meta.get_docfield(
+												me.df.options,
+												fieldname
+											);
+											if (df) {
+												d[fieldnames[ci]] = value_formatter_map[
+													df.fieldtype
+												]
+													? value_formatter_map[df.fieldtype](value)
+													: value;
+											}
+										});
+									}
+								}
+							});
+
+							me.frm.refresh_field(me.df.fieldname);
+						} else {
+							me.df.data = [];
+
+							$.each(data, (i, row) => {
+								if (i > 6) {
+									var blank_row = true;
+									$.each(row, function (ci, value) {
+										if (value) {
+											blank_row = false;
+											return false;
+										}
+									});
+
+									if (!blank_row) {
+										var d = {};
+										$.each(row, (ci, value) => {
+											const fieldname = fieldnames[ci];
+											const fields = me.df.fields;
+											const field = fields.find(
+												(d) => d.fieldname === fieldname
+											);
+
+											if (field) {
+												d[fieldnames[ci]] = value_formatter_map[
+													field.fieldtype
+												]
+													? value_formatter_map[field.fieldtype](value)
+													: value;
+											}
+										});
+										me.df.data.push(d);
+									}
+								}
+							});
+
+							me.refresh();
+						}
+
+						frappe.msgprint({
+							message: __("Table updated"),
+							title: __("Success"),
+							indicator: "green",
+						});
+					},
+				});
 				return false;
 			});
 	}
