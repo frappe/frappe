@@ -168,14 +168,16 @@ def convert_to_int(value):
 
 
 def convert_to_float(value):
-	try:
-		print("==============> convert_to_float: ",value)
-		# Convertir el valor a un float para manejar cadenas numéricas y números
-		float_value = float(value)
-		return float_value
-	except ValueError:
-		# Si el valor no se puede convertir a float, lanzar un error
-		raise ValueError("The input value is not a number or a numeric string")
+    try:
+        float_value = float(value)
+        # Verifica si el número es entero (sin parte decimal significativa)
+        if float_value.is_integer():
+            return int(float_value)  # Devuelve como entero
+        else:
+            return float_value       # Devuelve como flotante
+    except ValueError:
+        raise ValueError("The input value is not a number or a numeric string")
+
 
 
 def format_dates(value):

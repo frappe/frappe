@@ -234,10 +234,15 @@ def convert_to_int(value):
 
 
 def convert_to_float(value):
-	try:
-		return float(value)
-	except ValueError:
-		raise ValueError("The input value is not a number or a numeric string")
+    try:
+        float_value = float(value)
+        # Verifica si el número es entero (sin parte decimal significativa)
+        if float_value.is_integer():
+            return int(float_value)  # Devuelve como entero
+        else:
+            return float_value       # Devuelve como flotante
+    except ValueError:
+        raise ValueError("The input value is not a number or a numeric string")
 
 
 @frappe.whitelist(allow_guest=True)
