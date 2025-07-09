@@ -19,8 +19,8 @@ frappe.ui.form.close_grid_form = function () {
 };
 
 export default class Grid {
-	constructor(opts) {
-		$.extend(this, opts);
+	constructor(options) {
+		$.extend(this, options);
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
@@ -44,6 +44,15 @@ export default class Grid {
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
 		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
+
+		// for bulk update csv file structure
+		this.csv_row_index = {
+			title: 0,
+			label: 1,
+			fieldname: 2,
+			description: 3,
+			data: 7,
+		};
 	}
 
 	get perm() {
@@ -1128,13 +1137,15 @@ export default class Grid {
 				$.each(fields, (i, df) => {
 					// don't include the read-only field in the template
 					if (frappe.model.is_value_type(df.fieldtype)) {
-						data[1].push(df.label);
-						data[2].push(df.fieldname);
+						data[this.csv_row_index.label].push(df.label);
+						data[this.csv_row_index.fieldname].push(df.fieldname);
+
 						let description = (df.description || "") + " ";
 						if (df.fieldtype === "Date") {
 							description += frappe.boot.sysdefaults.date_format;
 						}
-						data[3].push(description);
+						data[this.csv_row_index.description].push(description);
+
 						docfields.push(df);
 					}
 				});
