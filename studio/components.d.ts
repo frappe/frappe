@@ -38,6 +38,7 @@ declare module 'vue' {
     DataPanel: typeof import('./src/components/DataPanel.vue')['default']
     DimensionInput: typeof import('./src/components/DimensionInput.vue')['default']
     EmptyState: typeof import('./src/components/EmptyState.vue')['default']
+    ExportAppDialog: typeof import('./src/components/ExportAppDialog.vue')['default']
     EyeDropper: typeof import('./src/components/Icons/EyeDropper.vue')['default']
     Filters: typeof import('./src/components/Filters.vue')['default']
     FitContainer: typeof import('./src/components/AppLayout/FitContainer.vue')['default']

@@ -4,6 +4,7 @@
 			<Dropdown
 				:options="[
 					{ label: 'Back to Dashboard', icon: 'arrow-left', onClick: () => $router.push({ name: 'Home' }) },
+					{ label: 'Export App', icon: 'download', onClick: () => (showExportAppDialog = true) },
 					{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() },
 				]"
 			>
@@ -14,7 +15,11 @@
 					</div>
 				</template>
 			</Dropdown>
-
+			<ExportAppDialog
+				v-model:showDialog="showExportAppDialog"
+				:appName="store.activeApp?.app_name!"
+				:appTitle="store.activeApp?.app_title!"
+			/>
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"
@@ -110,6 +115,7 @@ import useCanvasStore from "@/stores/canvasStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
+import ExportAppDialog from "@/components/ExportAppDialog.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
@@ -119,4 +125,5 @@ const canvasStore = useCanvasStore()
 const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")
+const showExportAppDialog = ref(false)
 </script>

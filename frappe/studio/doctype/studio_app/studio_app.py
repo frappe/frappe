@@ -4,6 +4,7 @@ import json
 import os
 
 import frappe
+from frappe.modules.export_file import export_to_files
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -159,3 +160,18 @@ class StudioApp(WebsiteGenerator):
 		except Exception as e:
 			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
 			return None
+
+	@frappe.whitelist()
+	def export_app(self, target_module: str):
+		export_to_files(
+			record_list=[["Studio App", self.name, "studio_app"]],
+			record_module=target_module,
+			create_init=True,
+		)
+
+		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
+			export_to_files(
+				record_list=[["Studio Page", page, "studio_page"]],
+				record_module=target_module,
+				create_init=True,
+			)
