@@ -1121,16 +1121,23 @@ from {tables}
 		if not parameters:
 			return
 
-		blacklisted_sql_functions = {
-			"sleep",
-		}
 		_lower = parameters.lower()
-
-		if "select" in _lower and "from" in _lower:
-			frappe.throw(_("Cannot use sub-query in order by"))
 
 		if ORDER_GROUP_PATTERN.match(_lower):
 			frappe.throw(_("Illegal SQL Query"))
+
+		subquery_indicators = {
+			r"union",
+			r"intersect",
+			r"select\b.*\bfrom",
+		}
+
+		if any(re.search("\b" + pattern + "\b", _lower) for pattern in subquery_indicators):
+			frappe.throw(_("Cannot use sub-query here."))
+
+		blacklisted_sql_functions = {
+			"sleep",
+		}
 
 		for field in parameters.split(","):
 			field = field.strip()
@@ -1145,7 +1152,7 @@ from {tables}
 
 			# Check for SQL function using regex with word boundaries and optional whitespace before parenthesis
 			for func in blacklisted_sql_functions:
-				if re.search(r"\b" + re.escape(func) + r"\s*\(", field.lower()):
+				if re.search(r"\b" + re.escape(func) + r"\W*\(", field.lower()):
 					frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
