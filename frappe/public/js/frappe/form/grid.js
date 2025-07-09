@@ -1176,14 +1176,6 @@ export default class Grid {
 	}
 
 	setup_upload() {
-		const value_formatter_map = {
-			Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
-			Int: (val) => cint(val),
-			Check: (val) => cint(val),
-			Float: (val) => flt(val),
-			Currency: (val) => flt(val),
-		};
-
 		const me = this;
 
 		frappe.flags.no_socketio = true;
@@ -1198,92 +1190,83 @@ export default class Grid {
 						allowed_file_types: [".csv"],
 					},
 					on_success(file) {
+						function clear_table() {
+							if (me.frm) {
+								me.frm.clear_table(me.df.fieldname);
+							} else {
+								me.df.data = [];
+							}
+						}
+
+						function refresh_table() {
+							if (me.frm) {
+								me.frm.refresh_field(me.df.fieldname);
+							} else {
+								me.refresh();
+							}
+						}
+
+						function get_row_field(fieldname) {
+							if (me.frm) {
+								return frappe.meta.get_docfield(me.df.options, fieldname);
+							}
+
+							return me.df.fields.find((d) => d.fieldname === fieldname);
+						}
+
+						const value_formatter_map = {
+							Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
+							Int: (val) => cint(val),
+							Check: (val) => cint(val),
+							Float: (val) => flt(val),
+							Currency: (val) => flt(val),
+						};
+
+						// read csv file
 						const data = frappe.utils.csv_to_array(
 							frappe.utils.get_decoded_string(file.dataurl)
 						);
 
-						if (cint(data.length) - 7 > 5000) {
+						if (cint(data.length) - me.csv_row_index.data > 5000) {
 							frappe.throw(__("Cannot import table with more than 5000 rows."));
 						}
 
-						// row #2 contains fieldnames;
-						const fieldnames = data[2];
+						const fieldnames = data[me.csv_row_index.fieldname];
 
-						if (me.frm) {
-							me.frm.clear_table(me.df.fieldname);
+						// inserting rows into table
+						clear_table();
 
-							$.each(data, (i, row) => {
-								if (i > 6) {
-									let blank_row = true;
+						for (let i = me.csv_row_index.data; i < data.length; i++) {
+							const row = data[i];
 
-									$.each(row, function (ci, value) {
-										if (value) {
-											blank_row = false;
-											return false;
-										}
-									});
+							// Check if row is not entirely blank
+							const has_value = row.some((value) => !!value);
+							if (!has_value) continue;
 
-									if (!blank_row) {
-										const d = me.frm.add_child(me.df.fieldname);
+							let d = {};
 
-										$.each(row, (ci, value) => {
-											const fieldname = fieldnames[ci];
-											const df = frappe.meta.get_docfield(
-												me.df.options,
-												fieldname
-											);
-											if (df) {
-												d[fieldnames[ci]] = value_formatter_map[
-													df.fieldtype
-												]
-													? value_formatter_map[df.fieldtype](value)
-													: value;
-											}
-										});
-									}
-								}
-							});
+							if (me.frm) {
+								d = me.frm.add_child(me.df.fieldname);
+							}
 
-							me.frm.refresh_field(me.df.fieldname);
-						} else {
-							me.df.data = [];
+							for (let ci = 0; ci < row.length; ci++) {
+								const value = row[ci];
+								const fieldname = fieldnames[ci];
+								const field = get_row_field(fieldname);
 
-							$.each(data, (i, row) => {
-								if (i > 6) {
-									let blank_row = true;
+								if (!field) continue;
 
-									$.each(row, function (ci, value) {
-										if (value) {
-											blank_row = false;
-											return false;
-										}
-									});
+								d[fieldname] = value_formatter_map[field.fieldtype]
+									? value_formatter_map[field.fieldtype](value)
+									: value;
+							}
 
-									if (!blank_row) {
-										let d = {};
-
-										$.each(row, (ci, value) => {
-											const fieldname = fieldnames[ci];
-											const fields = me.df.fields;
-											const field = fields.find(
-												(d) => d.fieldname === fieldname
-											);
-
-											if (field) {
-												d[fieldnames[ci]] = value_formatter_map[
-													field.fieldtype
-												]
-													? value_formatter_map[field.fieldtype](value)
-													: value;
-											}
-										});
-										me.df.data.push(d);
-									}
-								}
-							});
-
-							me.refresh();
+							if (!me.frm) {
+								me.df.data.push(d);
+							}
 						}
+
+						refresh_table();
 
 						frappe.msgprint({
 							message: __("Table updated"),
