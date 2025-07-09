@@ -42,13 +42,13 @@ class Webhook(Document):
 		timeout: DF.Int
 		webhook_data: DF.Table[WebhookData]
 		webhook_docevent: DF.Literal[
-			"after_insert",
-			"on_update",
-			"on_submit",
-			"on_cancel",
-			"on_trash",
-			"on_update_after_submit",
-			"on_change",
+			"After Insert",
+			"On Update",
+			"On Submit",
+			"On Cancel",
+			"On Trash",
+			"On Update After Commit",
+			"On Change",
 		]
 		webhook_doctype: DF.Link
 		webhook_headers: DF.Table[WebhookHeader]
@@ -72,9 +72,9 @@ class Webhook(Document):
 		if self.webhook_doctype:
 			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
 			if not is_submittable and self.webhook_docevent in [
-				"on_submit",
-				"on_cancel",
-				"on_update_after_submit",
+				"On Submit",
+				"On Cancel",
+				"On Update After Submit",
 			]:
 				frappe.throw(_("DocType must be Submittable for the selected Doc Event"))
 

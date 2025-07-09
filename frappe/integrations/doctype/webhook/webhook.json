@@ -56,7 +56,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Doc Event",
-   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
+   "options": "After Insert\nOn Update\nOn Submit\nOn Cancel\nOn Trash\nOn Update After Commit\nOn Change",
    "set_only_once": 1
   },
   {
@@ -189,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-10-28 12:21:52.172428",
+ "modified": "2025-07-09 16:01:59.142710",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
@@ -209,6 +209,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
