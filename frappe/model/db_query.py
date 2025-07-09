@@ -1133,8 +1133,6 @@ from {tables}
 			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
-			if field.count('"') % 2 or field.count("'") % 2 or field.count("`") % 2:
-				frappe.throw(_("Invalid field name: {0}").format(field))
 			field = field.strip()
 			full_field_name = "." in field and field.startswith("`tab")
 
