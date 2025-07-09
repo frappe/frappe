@@ -1106,13 +1106,15 @@ export default class Grid {
 	}
 
 	setup_download() {
-		let title = this.df.label || frappe.model.unscrub(this.df.fieldname);
+		const title = this.df.label || frappe.model.unscrub(this.df.fieldname);
+
 		$(this.wrapper)
 			.find(".grid-download")
 			.removeClass("hidden")
 			.on("click", () => {
-				var data = [];
-				var docfields = [];
+				const data = [];
+				const docfields = [];
+
 				data.push([__("Bulk Edit {0}", [title])]);
 				data.push([]);
 				data.push([]);
@@ -1141,9 +1143,10 @@ export default class Grid {
 				const values = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
 
 				$.each(values || [], (i, d) => {
-					var row = [];
+					const row = [];
+
 					$.each(data[2], (i, fieldname) => {
-						var value = d[fieldname];
+						let value = d[fieldname];
 
 						// format date
 						if (docfields[i].fieldtype === "Date" && value) {
@@ -1152,6 +1155,7 @@ export default class Grid {
 
 						row.push(value || "");
 					});
+
 					data.push(row);
 				});
 
@@ -1169,7 +1173,7 @@ export default class Grid {
 			Currency: (val) => flt(val),
 		};
 
-		let me = this;
+		const me = this;
 
 		frappe.flags.no_socketio = true;
 		$(this.wrapper)
@@ -1183,21 +1187,24 @@ export default class Grid {
 						allowed_file_types: [".csv"],
 					},
 					on_success(file) {
-						var data = frappe.utils.csv_to_array(
+						const data = frappe.utils.csv_to_array(
 							frappe.utils.get_decoded_string(file.dataurl)
 						);
+
 						if (cint(data.length) - 7 > 5000) {
 							frappe.throw(__("Cannot import table with more than 5000 rows."));
 						}
+
 						// row #2 contains fieldnames;
-						var fieldnames = data[2];
+						const fieldnames = data[2];
 
 						if (me.frm) {
 							me.frm.clear_table(me.df.fieldname);
 
 							$.each(data, (i, row) => {
 								if (i > 6) {
-									var blank_row = true;
+									let blank_row = true;
+
 									$.each(row, function (ci, value) {
 										if (value) {
 											blank_row = false;
@@ -1206,10 +1213,11 @@ export default class Grid {
 									});
 
 									if (!blank_row) {
-										var d = me.frm.add_child(me.df.fieldname);
+										const d = me.frm.add_child(me.df.fieldname);
+
 										$.each(row, (ci, value) => {
-											var fieldname = fieldnames[ci];
-											var df = frappe.meta.get_docfield(
+											const fieldname = fieldnames[ci];
+											const df = frappe.meta.get_docfield(
 												me.df.options,
 												fieldname
 											);
@@ -1231,7 +1239,8 @@ export default class Grid {
 
 							$.each(data, (i, row) => {
 								if (i > 6) {
-									var blank_row = true;
+									let blank_row = true;
+
 									$.each(row, function (ci, value) {
 										if (value) {
 											blank_row = false;
@@ -1240,7 +1249,8 @@ export default class Grid {
 									});
 
 									if (!blank_row) {
-										var d = {};
+										let d = {};
+
 										$.each(row, (ci, value) => {
 											const fieldname = fieldnames[ci];
 											const fields = me.df.fields;
