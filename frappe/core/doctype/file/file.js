@@ -1,6 +1,25 @@
 frappe.ui.form.on("File", {
 	refresh: function (frm) {
-		if (frm.doc.file_url) {
+		if (frm.doc.file_url && frm.doc.file_url.startsWith("s3://")) {
+			// Nếu file được lưu trên S3 (dùng API trung gian để stream)
+			frm.add_custom_button(__("View File"), () => {
+				frappe.call({
+					method: "frappe.utils.s3_file_handler.get_temp_s3_link",
+					args: {
+						file_name: frm.doc.name,
+						expiration: 600
+					},
+					callback: function (r) {
+						if (r && r.message) {
+							window.open(r.message);  // mở presigned URL
+						} else {
+							frappe.msgprint(__("Không thể tạo link xem file"));
+						}
+					}
+				});
+			});
+		} else if (frm.doc.file_url) {
+			// Trường hợp file local hoặc không phải s3://
 			frm.add_custom_button(__("View File"), () => {
 				if (!frappe.utils.is_url(frm.doc.file_url)) {
 					window.open(window.location.origin + frm.doc.file_url);

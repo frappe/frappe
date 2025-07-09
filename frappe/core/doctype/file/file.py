@@ -199,6 +199,9 @@ class File(Document):
 	def validate_file_path(self):
 		if self.is_remote_file:
 			return
+		
+		if self.file_url and self.file_url.startswith("s3://"):
+			return
 
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
 		if not os.path.realpath(self.get_full_path()).startswith(base_path):
@@ -211,10 +214,10 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
-		if not self.file_url.startswith(("/files/", "/private/files/")):
+		if not self.file_url.startswith(("/files/", "/private/files/", "http://", "https://", "s3://")):
 			# Probably an invalid URL since it doesn't start with http either
 			frappe.throw(
-				_("URL must start with http:// or https://"),
+				_("URL must start with http://, https://, /files/, or s3://"),
 				title=_("Invalid URL"),
 			)
 
@@ -352,6 +355,9 @@ class File(Document):
 
 	def validate_file_on_disk(self):
 		"""Validates existence file"""
+		if self.file_url and self.file_url.startswith("s3://"):
+			return
+		
 		full_path = self.get_full_path()
 
 		if full_path.startswith(URL_PREFIXES):
@@ -583,7 +589,11 @@ class File(Document):
 		return self._content
 
 	def get_full_path(self):
-		"""Returns file path from given file name"""
+		"""Returns file path from given file name or file_url"""
+
+		# Bỏ qua xử lý nếu là file lưu trên S3
+		if self.file_url and self.file_url.startswith("s3://"):
+			return self.file_url
 
 		file_path = self.file_url or self.file_name
 
@@ -616,6 +626,7 @@ class File(Document):
 			frappe.throw(_("File name cannot have {0}").format(os.path.sep))
 
 		return file_path
+
 
 	def write_file(self):
 		"""write file to disk with a random name (to compare)"""

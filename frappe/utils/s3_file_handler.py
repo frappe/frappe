@@ -76,16 +76,15 @@ def upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key):
                 'Metadata': {
                     'original_filename': original_name,
                     'uploaded_by': frappe.session.user
-                }
+                },
             }
         )
     except Exception as e:
         frappe.logger().error(f"Upload failed for {file_doc.file_name}: {str(e)}")
         frappe.throw(f"Tải lên thất bại cho {file_doc.file_name}: {str(e)}")
 
-    presigned_url = generate_presigned_url(s3_config['s3_bucket'], s3_key)
-
-    file_doc.file_url = presigned_url
+    # Không dùng presigned URL nữa — chỉ lưu dạng S3 URL
+    file_doc.file_url = f"s3://{s3_config['s3_bucket']}/{s3_key}"
     file_doc.is_private = 1
 
     return {
@@ -151,9 +150,8 @@ def upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key):
             MultipartUpload={'Parts': parts}
         )
 
-        # Gán presigned URL
-        presigned_url = generate_presigned_url(s3_config['s3_bucket'], s3_key)
-        file_doc.file_url = presigned_url
+        # Gán s3:// URL để dùng qua API trung gian
+        file_doc.file_url = f"s3://{s3_config['s3_bucket']}/{s3_key}"
         file_doc.is_private = 1
 
         frappe.logger().info(f"Large file {file_doc.file_name} uploaded to S3 successfully: {file_doc.file_url}")
@@ -177,31 +175,49 @@ def upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key):
         frappe.logger().error(f"Upload failed for {file_doc.file_name}: {str(e)}")
         frappe.throw(f"Tải lên thất bại cho {file_doc.file_name}: {str(e)}")
 
-def generate_presigned_url(bucket_name, key, expiration=3600):
-    """Tạo presigned URL để truy cập file riêng tư trong S3"""
-    s3_config = get_s3_config()
-    if not s3_config:
-        return None
 
-    try:
-        s3_client = boto3.client(
-            's3',
-            aws_access_key_id=s3_config['aws_access_key_id'],
-            aws_secret_access_key=s3_config['aws_secret_access_key'],
-            endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
-        )
+@frappe.whitelist()
+def get_temp_s3_link(file_name, expiration=600):
+	if not file_name:
+		frappe.throw("Thiếu tên file")
 
-        url = s3_client.generate_presigned_url(
-            ClientMethod='get_object',
-            Params={'Bucket': bucket_name, 'Key': key},
-            ExpiresIn=expiration  # Mặc định: 1 tiếng
-        )
-        return url
+	file_doc = frappe.get_doc("File", file_name)
 
-    except Exception as e:
-        frappe.log_error(f"Lỗi khi tạo presigned URL: {str(e)}", "S3 Presigned URL")
-        return None
+	if not file_doc.file_url or not file_doc.file_url.startswith("s3://"):
+		frappe.throw("Tệp không lưu trên S3")
+
+	s3_config = get_s3_config()
+	if not s3_config:
+		frappe.throw("Thiếu cấu hình S3")
+
+	bucket, key = extract_bucket_and_key(file_doc.file_url)
+
+	s3_client = boto3.client(
+		's3',
+		aws_access_key_id=s3_config['aws_access_key_id'],
+		aws_secret_access_key=s3_config['aws_secret_access_key'],
+		endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+		region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+	)
+
+	try:
+		url = s3_client.generate_presigned_url(
+			ClientMethod='get_object',
+			Params={'Bucket': bucket, 'Key': key},
+			ExpiresIn=int(expiration)
+		)
+		return url
+
+	except Exception as e:
+		frappe.log_error(f"Lỗi tạo presigned URL: {str(e)}", "S3 View Link")
+		frappe.throw("Không thể tạo link tạm thời")
+
+def extract_bucket_and_key(s3_url):
+    if s3_url.startswith("s3://"):
+        path = s3_url[5:]
+        bucket, key = path.split("/", 1)
+        return bucket, key
+    frappe.throw("Định dạng S3 URL không hợp lệ")
 
 
 def delete_file_from_s3(file_doc, only_thumbnail=False):
