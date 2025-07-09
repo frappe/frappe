@@ -19,8 +19,8 @@ frappe.ui.form.close_grid_form = function () {
 };
 
 export default class Grid {
-	constructor(opt) {
-		$.extend(this, opt);
+	constructor(opts) {
+		$.extend(this, opts);
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
