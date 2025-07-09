@@ -1,5 +1,6 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
+let debounce_timer;
 
 frappe.ui.form.on("Assignment Rule", {
 	refresh: function (frm) {
@@ -73,5 +74,34 @@ frappe.ui.form.on("Assignment Rule", {
 				frm.set_df_property("due_date_based_on", "hidden", !options.length)
 			);
 		}
+	},
+	user_group: function (frm) {
+		clearTimeout(debounce_timer); // Adding debounce to avoid multiple calls
+		let existing_users = frm.doc.users.map((row) => row.user); // Storing current users to avoid duplicates
+		debounce_timer = setTimeout(() => {
+			let selected_group = (frm.doc.user_group || []).map((row) => row.user_group).pop();
+			if (typeof selected_group === ("undefined" || null || "")) {
+				return; // If no group is selected, do nothing
+			} else {
+				frappe.call({
+					// Did want to directly make a db call to fetch users from the group
+					method: "frappe.core.doctype.user_group.user_group.get_users_from_group",
+					args: {
+						user_group: selected_group,
+					},
+					callback: function (r) {
+						if (r.message) {
+							r.message.forEach((user) => {
+								if (!existing_users.includes(user.user)) {
+									let row = frm.add_child("users");
+									row.user = user.user;
+								}
+							});
+							frm.refresh_field("users");
+						}
+					},
+				});
+			}
+		}, 500); // Not too long or too short, just enough to avoid multiple calls
 	},
 });

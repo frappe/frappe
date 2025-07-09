@@ -24,6 +24,7 @@
   "assignment_days",
   "assign_to_users_section",
   "rule",
+  "user_group",
   "field",
   "users",
   "last_user"
@@ -150,11 +151,18 @@
    "fieldtype": "Select",
    "label": "Field",
    "mandatory_depends_on": "eval: doc.rule == 'Based on Field'"
+  },
+  {
+   "depends_on": "eval: doc.rule !== 'Based on Field'",
+   "fieldname": "user_group",
+   "fieldtype": "Table MultiSelect",
+   "label": "User Group",
+   "options": "Assignment Rule Group"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:01:27.590910",
+ "modified": "2025-07-10 04:21:56.932768",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
@@ -174,6 +182,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
