@@ -1206,14 +1206,6 @@ export default class Grid {
 							}
 						}
 
-						function get_row_field(fieldname) {
-							if (me.frm) {
-								return frappe.meta.get_docfield(me.df.options, fieldname);
-							}
-
-							return me.df.fields.find((d) => d.fieldname === fieldname);
-						}
-
 						const value_formatter_map = {
 							Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
 							Int: (val) => cint(val),
@@ -1232,6 +1224,13 @@ export default class Grid {
 						}
 
 						const fieldnames = data[me.csv_row_index.fieldname];
+						const row_field_df = {};
+
+						for (let fieldname of fieldnames) {
+							row_field_df[fieldname] = me.frm
+								? frappe.meta.get_docfield(me.df.options, fieldname)
+								: me.df.fields.find((d) => d.fieldname === fieldname);
+						}
 
 						// inserting rows into table
 						clear_table();
@@ -1252,12 +1251,12 @@ export default class Grid {
 							for (let ci = 0; ci < row.length; ci++) {
 								const value = row[ci];
 								const fieldname = fieldnames[ci];
-								const field = get_row_field(fieldname);
+								const df = row_field_df[fieldname];
 
-								if (!field) continue;
+								if (!df) continue;
 
-								d[fieldname] = value_formatter_map[field.fieldtype]
-									? value_formatter_map[field.fieldtype](value)
+								d[fieldname] = value_formatter_map[df.fieldtype]
+									? value_formatter_map[df.fieldtype](value)
 									: value;
 							}
 
