@@ -1246,11 +1246,7 @@ export default class Grid {
 							const has_value = row.some((value) => !!value);
 							if (!has_value) continue;
 
-							let d = {};
-
-							if (me.frm) {
-								d = me.frm.add_child(me.df.fieldname);
-							}
+							const d = me.frm ? me.frm.add_child(me.df.fieldname) : {};
 
 							for (let ci = 0; ci < row.length; ci++) {
 								const value = row[ci];
