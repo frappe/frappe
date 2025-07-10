@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
+DEFAULT_WORKFLOW_TASKS = ["Webhook", "Server Script"]
+
+
 class WorkflowStateError(frappe.ValidationError):
 	pass
 
@@ -148,9 +151,16 @@ def apply_workflow(doc, action):
 		async_tasks = []
 		for workflow_transition in workflow_transitions:
 			# edge-case with user-defined server scripts
-			if workflow_transition.task == "Server Script":
-				server_script = frappe.get_doc("Server Script", workflow_transition.server_script)
-				task_method = server_script.execute_workflow_task
+			if workflow_transition.task in DEFAULT_WORKFLOW_TASKS:
+				match workflow_transition.task:
+					case "Webhook":
+						webhook = frappe.get_doc("Webhook", workflow_transition.link)
+						task_method = webhook.execute_for_doc
+
+					case "Server Script":
+						server_script = frappe.get_doc("Server Script", workflow_transition.link)
+						task_method = server_script.execute_workflow_task
+
 			else:  # normal app-defined tasks
 				try:
 					task_method = frappe.get_attr(tasks[workflow_transition.task])

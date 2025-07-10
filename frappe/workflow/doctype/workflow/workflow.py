@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS
 from frappe.utils import cint
 
 
@@ -135,4 +136,4 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 
 @frappe.whitelist(methods=["GET"])
 def get_workflow_methods():
-	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + ["Server Script"]
+	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS

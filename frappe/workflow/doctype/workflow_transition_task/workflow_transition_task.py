@@ -16,10 +16,10 @@ class WorkflowTransitionTask(Document):
 
 		enabled: DF.Check
 		execute_asynchronously: DF.Check
+		link: DF.DynamicLink | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		server_script: DF.Link | None
 		task: DF.Literal[None]
 	# end: auto-generated types
 
