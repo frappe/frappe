@@ -56,7 +56,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Doc Event",
-   "options": "After Insert\nOn Update\nOn Submit\nOn Cancel\nOn Trash\nOn Update After Commit\nOn Change",
+   "options": "After Insert\nOn Update\nOn Submit\nOn Cancel\nOn Trash\nOn Update After Commit\nOn Change\nWorkflow Transition",
    "set_only_once": 1
   },
   {
@@ -189,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2025-07-09 16:01:59.142710",
+ "modified": "2025-07-09 17:22:38.276809",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
