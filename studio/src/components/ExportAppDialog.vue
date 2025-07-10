@@ -7,8 +7,7 @@
 		}"
 		@after-leave="
 			() => {
-				exportConfig.targetApp = ''
-				exportConfig.targetModule = ''
+				targetApp = ''
 			}
 		"
 	>
@@ -19,16 +18,9 @@
 					:required="true"
 					type="autocomplete"
 					placeholder="Select the target Frappe App"
-					:modelValue="exportConfig.targetApp"
-					@update:modelValue="(v: SelectOption) => (exportConfig.targetApp = v.value || '')"
+					:modelValue="targetApp"
+					@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
 					:options="targetAppOptions"
-				/>
-				<Link
-					label="Module"
-					:required="true"
-					doctype="Module Def"
-					:filters="targetModuleFilters"
-					v-model="exportConfig.targetModule"
 				/>
 			</div>
 		</template>
@@ -40,9 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref } from "vue"
 import { FormControl, Button, call } from "frappe-ui"
-import Link from "@/components/Link.vue"
 import type { SelectOption } from "@/types"
 import { studioApps } from "@/data/studioApps"
 import { toast } from "vue-sonner"
@@ -53,12 +44,8 @@ const props = defineProps<{
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
-const exportConfig = ref({
-	targetApp: "",
-	targetModule: "",
-})
+const targetApp = ref("")
 let targetAppOptions: string[] = []
-let targetModuleFilters = ref({})
 
 call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data: string[]) => {
 	if (typeof data === "string") {
@@ -67,23 +54,12 @@ call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data:
 	targetAppOptions = data || []
 })
 
-watch(
-	() => exportConfig.value.targetApp,
-	(targetApp) => {
-		if (targetApp) {
-			targetModuleFilters.value = { app_name: targetApp }
-		} else {
-			targetModuleFilters.value = {}
-		}
-	},
-)
-
 function exportApp() {
 	return studioApps.runDocMethod.submit(
 		{
 			name: props.appName,
 			method: "export_app",
-			target_module: exportConfig.value.targetModule,
+			target_app: targetApp.value,
 		},
 		{
 			onSuccess() {
