@@ -8,7 +8,6 @@ from frappe.model.workflow import (
 	apply_workflow,
 	get_common_transition_actions,
 )
-from frappe.query_builder import DocType
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
 from frappe.utils import random_string
@@ -126,6 +125,21 @@ class TestWorkflow(IntegrationTestCase):
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
+	# app-defined workflow task tests start here
+	def test_sync_tasks(self, doc=None):
+		"""test simple workflow"""
+		todo = doc or self.test_default_condition()
+
+		apply_workflow(todo, "Approve")
+
+		# refer create_new_task()
+		self.assertTrue(
+			frappe.db.exists("Note", {"title": "workflow - " + todo.name, "content": "workflow test"})
+		)
+		self.assertTrue(frappe.db.exists("Customer", {"customer_name": "workflow - " + todo.name}))
+
+		return todo
+
 
 def create_todo_workflow():
 	from frappe.tests.ui_test_helpers import UI_TEST_USER
@@ -139,6 +153,26 @@ def create_todo_workflow():
 		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
 		if frappe.db.exists("User", UI_TEST_USER):
 			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+
+	server_script = frappe.new_doc("Server Script")
+	server_script.name = random_string(length=10)
+	server_script.script_type = "Workflow Task"
+	server_script.script = """
+# create a customer with the same name as the given document
+customer = frappe.new_doc("Customer")
+customer.customer_name = "workflow - " + doc.name
+customer.customer_type = "Company"
+
+customer.save()
+	"""
+	server_script.save()
+
+	pending_to_approved_transition = frappe.new_doc("Workflow Transition Tasks")
+	pending_to_approved_transition.name = random_string(length=10)
+	pending_to_approved_transition.append("tasks", {"task": "Create Note"})
+	pending_to_approved_transition.append("tasks", {"task": "Server Script", "link": server_script.name})
+
+	pending_to_approved_transition.save()
 
 	workflow = frappe.new_doc("Workflow")
 	workflow.workflow_name = "Test ToDo"
@@ -160,6 +194,7 @@ def create_todo_workflow():
 			next_state="Approved",
 			allowed=TEST_ROLE,
 			allow_self_approval=1,
+			transition_tasks=pending_to_approved_transition.name,
 		),
 	)
 	workflow.append(
@@ -183,3 +218,11 @@ def create_todo_workflow():
 
 def create_new_todo():
 	return frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10)).insert()
+
+
+def create_new_note(doc):
+	note = frappe.new_doc("Note")
+	note.title = "workflow - " + doc.name
+	note.content = "workflow test"
+
+	note.save()
