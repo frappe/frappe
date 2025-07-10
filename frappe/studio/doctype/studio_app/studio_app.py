@@ -2,9 +2,11 @@
 # For license information, please see license.txt
 import json
 import os
+from pathlib import Path
 
 import frappe
-from frappe.modules.export_file import export_to_files
+from frappe.modules import scrub
+from frappe.modules.export_file import export_to_files, strip_default_fields
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -162,16 +164,28 @@ class StudioApp(WebsiteGenerator):
 			return None
 
 	@frappe.whitelist()
-	def export_app(self, target_module: str):
-		export_to_files(
-			record_list=[["Studio App", self.name, "studio_app"]],
-			record_module=target_module,
-			create_init=True,
-		)
+	def export_app(self, target_app: str):
+		app_path = frappe.get_app_source_path(target_app, "studio", self.name)
+		frappe.create_folder(app_path, with_init=True)
 
+		write_document_file(self, folder=app_path)
+
+		page_folder_path = os.path.join(app_path, "studio_page")
+		frappe.create_folder(page_folder_path, with_init=True)
 		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
-			export_to_files(
-				record_list=[["Studio Page", page, "studio_page"]],
-				record_module=target_module,
-				create_init=True,
-			)
+			page_doc = frappe.get_doc("Studio Page", page)
+			write_document_file(page_doc, folder=page_folder_path)
+
+
+def write_document_file(doc, folder=None):
+	doc_export = doc.as_dict(no_nulls=True)
+	doc.run_method("before_export", doc_export)
+	doc_export = strip_default_fields(doc, doc_export)
+
+	fname = scrub(doc.name)
+	path = os.path.join(folder, f"{fname}.json")
+	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
+		frappe.throw("Invalid export path: " + Path(path).as_posix())
+	with open(path, "w+") as txtfile:
+		txtfile.write(frappe.as_json(doc_export) + "\n")
+	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
