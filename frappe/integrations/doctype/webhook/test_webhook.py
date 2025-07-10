@@ -47,7 +47,7 @@ class TestWebhook(IntegrationTestCase):
 			{
 				"name": frappe.generate_hash(),
 				"webhook_doctype": "User",
-				"webhook_docevent": "after_insert",
+				"webhook_docevent": "After Insert",
 				"request_url": "https://httpbin.org/post",
 				"condition": "doc.email",
 				"enabled": True,
@@ -55,7 +55,7 @@ class TestWebhook(IntegrationTestCase):
 			{
 				"name": frappe.generate_hash(),
 				"webhook_doctype": "User",
-				"webhook_docevent": "after_insert",
+				"webhook_docevent": "After Insert",
 				"request_url": "https://httpbin.org/post",
 				"condition": "doc.first_name",
 				"enabled": False,
@@ -91,7 +91,7 @@ class TestWebhook(IntegrationTestCase):
 
 		webhook_fields = {
 			"webhook_doctype": "User",
-			"webhook_docevent": "after_insert",
+			"webhook_docevent": "After Insert",
 			"request_url": "https://httpbin.org/post",
 		}
 
@@ -144,7 +144,7 @@ class TestWebhook(IntegrationTestCase):
 	def test_validate_doc_events(self):
 		"Test creating a submit-related webhook for a non-submittable DocType"
 
-		self.webhook.webhook_docevent = "on_submit"
+		self.webhook.webhook_docevent = "On Submit"
 		self.assertRaises(frappe.ValidationError, self.webhook.save)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
@@ -227,7 +227,7 @@ class TestWebhook(IntegrationTestCase):
 		wh_config = {
 			"doctype": "Webhook",
 			"webhook_doctype": "Note",
-			"webhook_docevent": "on_change",
+			"webhook_docevent": "On Change",
 			"enabled": 1,
 			"request_url": "https://httpbin.org/post",
 			"request_method": "POST",
@@ -272,7 +272,7 @@ class TestWebhook(IntegrationTestCase):
 		wh_config = {
 			"doctype": "Webhook",
 			"webhook_doctype": "Note",
-			"webhook_docevent": "after_insert",
+			"webhook_docevent": "After Insert",
 			"enabled": 1,
 			"request_url": "https://httpbin.org/anything/{{ doc.doctype }}",
 			"is_dynamic_url": 1,
@@ -304,7 +304,7 @@ class TestWebhook(IntegrationTestCase):
 		wh_config = {
 			"doctype": "Webhook",
 			"webhook_doctype": "Note",
-			"webhook_docevent": "after_insert",
+			"webhook_docevent": "After Insert",
 			"enabled": 1,
 			"request_url": "https://httpbin.org/anything/{{doc.doctype}}",
 			"is_dynamic_url": 0,
