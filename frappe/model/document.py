@@ -1298,6 +1298,11 @@ class Document(BaseDocument):
 
 		try:
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
+			# Match the previous doc for all child tables, so we can use get_doc_before_save() or has_value_changed() on them
+			for child in self._get_table_fields():
+				for row in self.get(child.fieldname):
+					row._doc_before_save = next((x for x in self._doc_before_save.get(child.fieldname) if x.name == row.name), None)
+					
 		except frappe.DoesNotExistError:
 			if raise_exception:
 				raise
