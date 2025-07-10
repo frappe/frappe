@@ -1267,9 +1267,8 @@ export default class Grid {
 
 						refresh_table();
 
-						frappe.msgprint({
+						frappe.show_alert({
 							message: __("Table updated"),
-							title: __("Success"),
 							indicator: "green",
 						});
 					},
