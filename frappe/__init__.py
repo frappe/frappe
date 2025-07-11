@@ -45,7 +45,7 @@ from frappe.utils.translations import _, _lt, set_user_lang
 
 # Local application imports
 from .exceptions import *
-from .types import FilterSignature, _dict
+from .types import _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -699,147 +699,11 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 
 
-def new_doc(
-	doctype: str,
-	*,
-	parent_doc: Optional["Document"] = None,
-	parentfield: str | None = None,
-	as_dict: bool = False,
-	**kwargs,
-) -> "Document":
-	"""Return a new document of the given DocType with defaults set.
-
-	:param doctype: DocType of the new document.
-	:param parent_doc: [optional] add to parent document.
-	:param parentfield: [optional] add against this `parentfield`.
-	:param as_dict: [optional] return as dictionary instead of Document.
-	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
-	"""
-
-	from frappe.model.create_new import get_new_doc
-
-	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
-
-	return new_doc.update(kwargs)
-
-
 def set_value(doctype, docname, fieldname, value=None):
 	"""Set document value. Calls `frappe.client.set_value`"""
 	import frappe.client
 
 	return frappe.client.set_value(doctype, docname, fieldname, value)
-
-
-def get_cached_doc(*args: Any, **kwargs: Any) -> "Document":
-	"""Identical to `frappe.get_doc`, but return from cache if available."""
-	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
-		return doc
-
-	# Not found in cache, fetch from DB
-	doc = get_doc(*args, **kwargs)
-
-	# Store in cache
-	if not key:
-		key = get_document_cache_key(doc.doctype, doc.name)
-
-	_set_document_in_cache(key, doc)
-
-	return doc
-
-
-def _set_document_in_cache(key: str, doc: "Document") -> None:
-	cache.set_value(key, doc, expires_in_sec=3600)
-
-
-def can_cache_doc(args) -> str | None:
-	"""
-	Determine if document should be cached based on get_doc params.
-	Return cache key if doc can be cached, None otherwise.
-	"""
-
-	if not args:
-		return
-
-	doctype = args[0]
-	name = doctype if len(args) == 1 or args[1] is None else args[1]
-
-	# Only cache if both doctype and name are strings
-	if isinstance(doctype, str) and isinstance(name, str):
-		return get_document_cache_key(doctype, name)
-
-
-def get_document_cache_key(doctype: str, name: str):
-	return f"document_cache::{doctype}::{name}"
-
-
-def clear_document_cache(doctype: str, name: str | None = None) -> None:
-	frappe.db.value_cache.pop(doctype, None)
-
-	def clear_in_redis():
-		if name is not None:
-			cache.delete_value(get_document_cache_key(doctype, name))
-		else:
-			cache.delete_keys(get_document_cache_key(doctype, ""))
-
-	clear_in_redis()
-	if hasattr(db, "after_commit"):
-		db.after_commit.add(clear_in_redis)
-		db.after_rollback.add(clear_in_redis)
-
-	if doctype == "System Settings" and hasattr(local, "system_settings"):
-		delattr(local, "system_settings")
-
-	if doctype == "Website Settings" and hasattr(local, "website_settings"):
-		delattr(local, "website_settings")
-
-
-def get_cached_value(
-	doctype: str, name: str | dict, fieldname: str | Iterable[str] = "name", as_dict: bool = False
-) -> Any:
-	try:
-		doc = get_cached_doc(doctype, name)
-	except DoesNotExistError:
-		clear_last_message()
-		return
-
-	if isinstance(fieldname, str):
-		if as_dict:
-			throw("Cannot make dict for single fieldname")
-		return doc.get(fieldname)
-
-	values = [doc.get(f) for f in fieldname]
-	if as_dict:
-		return _dict(zip(fieldname, values, strict=False))
-	return values
-
-
-def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
-	"""Return the cached value associated with the given fieldname from single DocType.
-
-	Usage:
-		telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
-	"""
-	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
-
-
-def get_last_doc(
-	doctype,
-	filters: FilterSignature | None = None,
-	order_by="creation desc",
-	*,
-	for_update=False,
-):
-	"""Get last created document of this type."""
-	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
-	if d:
-		return get_doc(doctype, d[0], for_update=for_update)
-	else:
-		raise DoesNotExistError(doctype=doctype)
-
-
-def get_single(doctype):
-	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
-	return get_doc(doctype, doctype)
 
 
 def get_meta_module(doctype):
@@ -883,11 +747,6 @@ def delete_doc(
 		ignore_missing,
 		delete_permanently,
 	)
-
-
-def delete_doc_if_exists(doctype, name, force=0):
-	"""Delete document if exists."""
-	delete_doc(doctype, name, force=force, ignore_missing=True)
 
 
 def reload_doctype(doctype, force=False, reset_permissions=False):
@@ -1373,50 +1232,6 @@ def import_doc(path):
 	import_doc(path)
 
 
-def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
-	"""No_copy fields also get copied."""
-	import copy
-	from types import MappingProxyType
-
-	from frappe.model.base_document import BaseDocument
-
-	def remove_no_copy_fields(d):
-		for df in d.meta.get("fields", {"no_copy": 1}):
-			if hasattr(d, df.fieldname):
-				d.set(df.fieldname, None)
-
-	fields_to_clear = ["name", "owner", "creation", "modified", "modified_by"]
-
-	if not in_test:
-		fields_to_clear.append("docstatus")
-
-	if isinstance(doc, BaseDocument):
-		d = doc.as_dict()
-	elif isinstance(doc, MappingProxyType):  # global test record
-		d = dict(doc)
-	else:
-		d = doc
-
-	newdoc = get_doc(copy.deepcopy(d))
-	newdoc.set("__islocal", 1)
-	for fieldname in [*fields_to_clear, "amended_from", "amendment_date"]:
-		newdoc.set(fieldname, None)
-
-	if not ignore_no_copy:
-		remove_no_copy_fields(newdoc)
-
-	for d in newdoc.get_all_children():
-		d.set("__islocal", 1)
-
-		for fieldname in fields_to_clear:
-			d.set(fieldname, None)
-
-		if not ignore_no_copy:
-			remove_no_copy_fields(d)
-
-	return newdoc
-
-
 def respond_as_web_page(
 	title,
 	html,
@@ -1733,7 +1548,20 @@ import frappe._optimizations
 from frappe.cache_manager import clear_cache, reset_metadata_version
 from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
-from frappe.model.document import get_doc, get_lazy_doc
+from frappe.model.document import (
+	get_doc,
+	get_lazy_doc,
+	copy_doc,
+	new_doc,
+	get_cached_doc,
+	can_cache_doc,
+	get_document_cache_key,
+	clear_document_cache,
+	get_cached_value,
+	get_single_value,
+	get_last_doc,
+	get_single,
+)
 from frappe.model.meta import get_meta
 from frappe.realtime import publish_progress, publish_realtime
 from frappe.utils import get_traceback, mock, parse_json, safe_eval, create_folder
@@ -1745,6 +1573,7 @@ from frappe.email import sendmail
 
 # for backwards compatibility
 format = format_value
+delete_doc_if_exists = delete_doc
 
 frappe._optimizations.optimize_all()
 frappe._optimizations.register_fault_handler()
