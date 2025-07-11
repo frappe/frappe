@@ -247,4 +247,3 @@ frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
 frappe.patches.v15_0.migrate_to_utm
 frappe.patches.v16_0.add_module_deprecation_warning
-frappe.patches.v16_0.remove_integrations_workspace_links
