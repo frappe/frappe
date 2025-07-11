@@ -1301,7 +1301,7 @@ class Document(BaseDocument):
 			# Match the previous doc for all child tables, so we can use get_doc_before_save() or has_value_changed() on them
 			for child in self._get_table_fields():
 				for row in self.get(child.fieldname):
-					row._doc_before_save = next((x for x in self._doc_before_save.get(child.fieldname) if x.name == row.name), None)
+					row._doc_before_save = next((d for d in self._doc_before_save.get(child.fieldname, []) if d.name == row.name), None)
 					
 		except frappe.DoesNotExistError:
 			if raise_exception:
