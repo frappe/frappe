@@ -24,16 +24,12 @@ from collections.abc import Callable, Iterable
 from typing import (
 	TYPE_CHECKING,
 	Any,
-	Generic,
 	Literal,
 	Optional,
 	TypeAlias,
-	TypeVar,
 	Union,
-	overload,
 )
 
-import click
 import orjson
 from werkzeug.datastructures import Headers
 
@@ -49,7 +45,7 @@ from frappe.utils.local import Local, LocalProxy, release_local
 
 # Local application imports
 from .exceptions import *
-from .types import Filters, FilterSignature, FilterTuple, _dict
+from .types import FilterSignature, _dict
 from .utils.jinja import (
 	get_email_from_template,
 	get_jenv,
@@ -63,7 +59,6 @@ __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
 	from logging import Logger
-	from types import ModuleType
 
 	from werkzeug.wrappers import Request
 
@@ -1166,7 +1161,7 @@ def rename_doc(
 	)
 
 
-def get_module(modulename: str) -> "ModuleType":
+def get_module(modulename: str):
 	"""Return a module object for given Python module name using `importlib.import_module`."""
 	return importlib.import_module(modulename)
 

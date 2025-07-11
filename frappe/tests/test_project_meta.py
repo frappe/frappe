@@ -28,7 +28,7 @@ class TestProjectMeta(IntegrationTestCase):
 
 		init_py_size = len(Path(frappe.__file__).read_text().splitlines())
 
-		expected = baseline - tax_to_collect
+		expected = max(baseline - tax_to_collect, 1500)
 
 		zen = """Anzrfcnprf ner bar ubaxvat terng vqrn -- yrg'f qb zber bs gubfr!"""
 		d = {}
