@@ -42,6 +42,7 @@ from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
 from frappe.utils.local import Local, LocalProxy, release_local
+from frappe.utils.translations import _, _lt, set_user_lang
 
 # Local application imports
 from .exceptions import *
@@ -69,7 +70,6 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
-	from frappe.types.lazytranslatedstring import _LazyTranslate
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
 
 controllers: dict[str, type] = {}
@@ -87,66 +87,6 @@ _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
-
-
-def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
-	"""Return translated string in current lang, if exists.
-	Usage:
-	        _('Change')
-	        _('Change', context='Coins')
-	"""
-	from frappe.translate import get_all_translations
-	from frappe.utils import is_html, strip_html_tags
-
-	if not hasattr(local, "lang"):
-		local.lang = lang or "en"
-
-	if not lang:
-		lang = local.lang
-
-	non_translated_string = msg
-
-	if is_html(msg):
-		msg = strip_html_tags(msg)
-
-	# msg should always be unicode
-	msg = as_unicode(msg).strip()
-
-	translated_string = ""
-
-	all_translations = get_all_translations(lang)
-	if context:
-		string_key = f"{msg}:{context}"
-		translated_string = all_translations.get(string_key)
-
-	if not translated_string:
-		translated_string = all_translations.get(msg)
-
-	return translated_string or non_translated_string
-
-
-def _lt(msg: str, lang: str | None = None, context: str | None = None) -> "_LazyTranslate":
-	"""Lazily translate a string.
-
-
-	This function returns a "lazy string" which when casted to string via some operation applies
-	translation first before casting.
-
-	This is only useful for translating strings in global scope or anything that potentially runs
-	before `frappe.init()`
-
-	Note: Result is not guaranteed to equivalent to pure strings for all operations.
-	"""
-	from .types.lazytranslatedstring import _LazyTranslate
-
-	return _LazyTranslate(msg, lang, context)
-
-
-def set_user_lang(user: str, user_language: str | None = None) -> None:
-	"""Guess and set user language for the session. `frappe.local.lang`"""
-	from frappe.translate import get_user_lang
-
-	local.lang = get_user_lang(user) or user_language
 
 
 # local-globals
