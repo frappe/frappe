@@ -1561,6 +1561,7 @@ from frappe.model.document import (
 	get_single_value,
 	get_last_doc,
 	get_single,
+	_set_document_in_cache,
 )
 from frappe.model.meta import get_meta
 from frappe.realtime import publish_progress, publish_realtime
