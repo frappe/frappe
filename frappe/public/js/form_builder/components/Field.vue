@@ -337,10 +337,20 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		}
 	}
 }
+
 .btn-filter-applied {
 	background-color: var(--gray-300) !important;
+
 	&:hover {
 		background-color: var(--gray-400) !important;
+	}
+
+	[data-theme="dark"] & {
+		background-color: var(--gray-700) !important;
+
+		&:hover {
+			background-color: var(--gray-800) !important;
+		}
 	}
 }
 </style>
