@@ -158,7 +158,7 @@ function edit_filters() {
 
 	if (!field_doctype) {
 		frappe.throw({
-			message: __("Please select a DocType before setting filters in Options"),
+			message: __("Please select a DocType in options before setting filters"),
 			title: __("DocType Missing"),
 		});
 	}
