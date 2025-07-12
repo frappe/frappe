@@ -69,7 +69,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	set_upload_options() {
 		let options = {
-			allow_multiple: false,
+			allow_multiple: true,
+			folder: this.df.folder || "Home/Attachments",
+			allow_folder_creation: true,
 			on_success: (file) => {
 				this.on_upload_complete(file);
 				this.toggle_reload_button();
@@ -136,11 +138,21 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 
 	async on_upload_complete(attachment) {
 		if (this.frm) {
-			await this.parse_validate_and_set_in_model(attachment.file_url);
-			this.frm.attachments.update_attachment(attachment);
+			const attachments = Array.isArray(attachment) ? attachment : [attachment];
+			for (const att of attachments) {
+				await this.parse_validate_and_set_in_model(att.file_url);
+				this.frm.attachments.update_attachment(att);
+			}
+			if (attachments.length > 0) {
+				this.set_value(attachments[0].file_url);
+			}
 			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+		} else {
+			const attachments = Array.isArray(attachment) ? attachment : [attachment];
+			if (attachments.length > 0) {
+				this.set_value(attachments[0].file_url);
+			}
 		}
-		this.set_value(attachment.file_url);
 	}
 
 	toggle_reload_button() {

@@ -239,6 +239,8 @@ frappe.ui.form.Attachments = class Attachments {
 			docname: this.frm.docname,
 			frm: this.frm,
 			folder: "Home/Attachments",
+			allow_multiple: true,
+			allow_folder_creation: true,
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
 			},
@@ -255,11 +257,14 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 	attachment_uploaded(attachment) {
 		this.dialog && this.dialog.hide();
-		this.update_attachment(attachment);
+		const attachments = Array.isArray(attachment) ? attachment : [attachment];
+		for (const att of attachments) {
+			this.update_attachment(att);
+		}
 		this.frm.sidebar.reload_docinfo();
 
-		if (this.fieldname) {
-			this.frm.set_value(this.fieldname, attachment.file_url);
+		if (this.fieldname && attachments.length > 0) {
+			this.frm.set_value(this.fieldname, attachments[0].file_url);
 		}
 	}
 	update_attachment(attachment) {
