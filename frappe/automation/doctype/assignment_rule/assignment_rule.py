@@ -399,3 +399,77 @@ def get_repeated(values: Iterable) -> list:
 			unique.add(value)
 
 	return [str(x) for x in repeated]
+
+
+def sync_users_from_group(doc, method=None):
+	"""Executed when ever there is a update in user group members"""
+
+	group_name = doc.name
+
+	# Cache old members in before_update, this is useful where users who
+	# are not part of group.For the  individual users.
+	if method == "before_update":
+		old = frappe.get_all("User Group Member", filters={"parent": group_name}, pluck="user") or []
+		doc._old_members = set(old)
+		return
+
+	# Check the changed members
+	old_members = getattr(doc, "_old_members", set()) or set()
+	members_updated_group = (
+		frappe.get_all("User Group Member", filters={"parent": group_name}, pluck="user") or []
+	)
+	new_members = set(members_updated_group)
+
+	added = new_members - old_members
+	removed = old_members - new_members
+
+	# If the user group update doesn't affect the assigned users, return.
+	if not (added or removed):
+		return
+
+	# Get all the Assignment Rules Documents which are assigned to this updated group
+	rule_names = (
+		frappe.get_all("Assignment Rule Group", filters={"user_group": group_name}, pluck="parent") or []
+	)
+	if not rule_names:
+		return
+
+	# Get all the rules with the assigned groups
+	rows = (
+		frappe.get_all(
+			"Assignment Rule Group",
+			filters={"parent": ["in", rule_names]},
+			fields=["parent as rule", "user_group"],
+		)
+		or []
+	)
+
+	groups_by_rule = {}
+	for row in rows:
+		groups_by_rule.setdefault(row.rule, []).append(row.user_group)
+
+	# For each document add or remove users where
+	for rule_name, groups_list in groups_by_rule.items():
+		if not groups_list:
+			continue
+
+		rule = frappe.get_doc("Assignment Rule", rule_name)
+
+		# add newly added users
+		for user in added:
+			if not any(row.user == user for row in rule.get("users") or []):
+				rule.append("users", {"user": user})
+
+		# remove users who left this group and are in no other group of this rule
+		for user in removed:
+			other = [group for group in groups_list if group != group_name]
+			still_in = False
+			if other:
+				still_in = frappe.db.exists("User Group Member", {"parent": ["in", other], "user": user})
+			if not still_in:
+				for user_row in list(rule.get("users") or []):
+					if user_row.user == user:
+						rule.remove(user_row)
+						break
+
+		rule.save(ignore_permissions=True)

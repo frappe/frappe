@@ -153,6 +153,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.core.doctype.file.utils.attach_files_to_document",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.sync_users_from_group",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
