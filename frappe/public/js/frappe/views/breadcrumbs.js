@@ -49,6 +49,12 @@ frappe.breadcrumbs = {
 	},
 
 	update() {
+		// update the current workspace in local storage
+		const active_route = frappe.get_route();
+		if (active_route[0] === "Workspaces" && active_route[1]) {
+			localStorage.setItem("current_workspace", active_route[1]);
+		}
+
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
 		this.clear();
@@ -120,9 +126,18 @@ frappe.breadcrumbs = {
 	},
 
 	set_workspace(breadcrumbs) {
+		const stored_workspace = localStorage.getItem("current_workspace");
+		// if the current workspace is stored in local storage, use it, otherwise use the workspace from the doctype's module
+		if (stored_workspace) {
+			this.append_breadcrumb_element(
+				`/app/${frappe.router.slug(stored_workspace)}`,
+				__(stored_workspace)
+			);
+			return;
+		}
+
 		// try and get module from doctype or other settings
 		// then get the workspace for that module
-
 		this.setup_modules();
 		var from_module = this.get_doctype_module(breadcrumbs.doctype);
 
