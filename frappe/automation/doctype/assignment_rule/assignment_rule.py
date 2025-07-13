@@ -404,6 +404,10 @@ def get_repeated(values: Iterable) -> list:
 def sync_users_from_group(doc, method=None):
 	"""Executed when ever there is a update in user group members"""
 
+	# Execute the hook only if it's fired by User Group Doctype.
+	if doc.doctype != "User Group":
+		return
+
 	group_name = doc.name
 
 	# Cache old members in before_update, this is useful where users who
