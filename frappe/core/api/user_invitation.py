@@ -75,18 +75,19 @@ def accept_invitation(key: str) -> None:
 		invitation.user = user.email
 		invitation.save(ignore_permissions=True)
 		after_accept_fns = []
-		try:
-			user_invitation_hook = frappe.get_hooks("user_invitation", app_name=invitation.app_name)
-			after_accept_key = "after_accept"
-			# assume the values will always be valid dot paths to functions
-			if isinstance(user_invitation_hook, dict) and isinstance(
-				user_invitation_hook.get(after_accept_key), list
-			):
-				for after_accept in user_invitation_hook.get(after_accept_key):
-					if isinstance(after_accept, str):
-						after_accept_fns.append(frappe.get_attr(after_accept))
-		except Exception:
-			pass
+		if invitation.app_name != " ":
+			try:
+				user_invitation_hook = frappe.get_hooks("user_invitation", app_name=invitation.app_name)
+				after_accept_key = "after_accept"
+				# assume the values will always be valid dot paths to functions
+				if isinstance(user_invitation_hook, dict) and isinstance(
+					user_invitation_hook.get(after_accept_key), list
+				):
+					for after_accept in user_invitation_hook.get(after_accept_key):
+						if isinstance(after_accept, str):
+							after_accept_fns.append(frappe.get_attr(after_accept))
+			except Exception:
+				pass
 		for after_accept_fn in after_accept_fns:
 			after_accept_fn(invitation)
 	user = frappe.get_doc("User", invitation.email)
