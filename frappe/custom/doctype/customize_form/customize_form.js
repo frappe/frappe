@@ -247,61 +247,68 @@ frappe.ui.form.on("Customize Form", {
 							doctype: "Custom Field",
 							filters: { dt: frm.doc.doc_type },
 							fields: ["fieldname", "label", "fieldtype"],
-							order_by: "idx"
+							order_by: "idx",
 						},
-						callback: function(r) {
+						callback: function (r) {
 							let custom_fields = r.message || [];
-							
-							let custom_fields_options = custom_fields.map(field => ({
+
+							let custom_fields_options = custom_fields.map((field) => ({
 								label: `${field.label || field.fieldname}`,
 								value: field.fieldname,
-								description: `Type: ${field.fieldtype}`
+								description: `Type: ${field.fieldtype}`,
 							}));
 
-							let default_custom_fields = custom_fields.map(f => f.fieldname).join(",");
+							let default_custom_fields = custom_fields
+								.map((f) => f.fieldname)
+								.join(",");
 
-							frappe.prompt([
-								{
-									fieldtype: "Link",
-									fieldname: "module",
-									options: "Module Def",
-									label: __("Module to Export"),
-									reqd: 1,
+							frappe.prompt(
+								[
+									{
+										fieldtype: "Link",
+										fieldname: "module",
+										options: "Module Def",
+										label: __("Module to Export"),
+										reqd: 1,
+									},
+									{
+										fieldtype: "MultiSelect",
+										fieldname: "custom_fields",
+										label: __("Custom Fields to Export"),
+										description: __(
+											"Select which custom fields to include in the export. Leave empty to export all custom fields."
+										),
+										options: custom_fields_options,
+										default: default_custom_fields,
+									},
+									{
+										fieldtype: "Check",
+										fieldname: "sync_on_migrate",
+										label: __("Sync on Migrate"),
+										default: 1,
+									},
+									{
+										fieldtype: "Check",
+										fieldname: "with_permissions",
+										label: __("Export Custom Permissions"),
+										default: 0,
+									},
+								],
+								function (data) {
+									frappe.call({
+										method: "frappe.modules.utils.export_customizations",
+										args: {
+											doctype: frm.doc.doc_type,
+											module: data.module,
+											sync_on_migrate: data.sync_on_migrate,
+											with_permissions: data.with_permissions,
+											custom_fields: data.custom_fields || "",
+										},
+									});
 								},
-								{
-									fieldtype: "MultiSelect",
-									fieldname: "custom_fields",
-									label: __("Custom Fields to Export"),
-									description: __("Select which custom fields to include in the export. Leave empty to export all custom fields."),
-									options: custom_fields_options,
-									default: default_custom_fields,
-								},
-								{
-									fieldtype: "Check",
-									fieldname: "sync_on_migrate",
-									label: __("Sync on Migrate"),
-									default: 1,
-								},
-								{
-									fieldtype: "Check",
-									fieldname: "with_permissions",
-									label: __("Export Custom Permissions"),
-									default: 0,
-								},
-							], function(data) {
-								frappe.call({
-									method: "frappe.modules.utils.export_customizations",
-									args: {
-										doctype: frm.doc.doc_type,
-										module: data.module,
-										sync_on_migrate: data.sync_on_migrate,
-										with_permissions: data.with_permissions,
-										custom_fields: data.custom_fields || ""
-									}
-								});
-								
-							}, __("Select Module"));
-						}
+								__("Select Module")
+							);
+						},
 					});
 				},
 				__("Actions")

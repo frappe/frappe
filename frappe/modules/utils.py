@@ -53,7 +53,11 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 
 @frappe.whitelist()
 def export_customizations(
-	module: str, doctype: str, sync_on_migrate: bool = False, with_permissions: bool = False, custom_fields: str | None = None
+	module: str,
+	doctype: str,
+	sync_on_migrate: bool = False,
+	with_permissions: bool = False,
+	custom_fields: str | None = None,
 ):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 	This will be synced with bench migrate"""
@@ -65,13 +69,12 @@ def export_customizations(
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
 	all_custom_fields = frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}, order_by="name")
-	
+
 	if custom_fields:
-		selected_fieldnames = set([f.strip() for f in custom_fields.split(',') if f.strip()])
+		selected_fieldnames = set([f.strip() for f in custom_fields.split(",") if f.strip()])
 		selected_custom_fields = [cf for cf in all_custom_fields if cf.fieldname in selected_fieldnames]
 	else:
 		selected_custom_fields = all_custom_fields
-
 
 	custom = {
 		"custom_fields": selected_custom_fields,
