@@ -8,7 +8,6 @@ from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
 from studio.api import get_app_components
-from studio.utils import camel_case_to_kebab_case
 
 
 class StudioAppRenderer(DocumentPage):
@@ -86,13 +85,15 @@ class StudioApp(WebsiteGenerator):
 
 	def autoname(self):
 		if not self.name:
-			self.name = f"app-{frappe.generate_hash(length=8)}"
+			self.name = self.app_title.lower().replace(" ", "-")
 
 	def before_insert(self):
 		if not self.app_title:
 			self.app_title = "My App"
 		if not self.route:
-			self.route = f"{camel_case_to_kebab_case(self.app_title, True)}-{frappe.generate_hash(length=4)}"
+			if not self.name:
+				self.autoname()
+			self.route = self.name
 
 	def get_studio_pages(self):
 		return frappe.get_all(

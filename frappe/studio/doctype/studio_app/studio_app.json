@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:app_name",
  "creation": "2024-09-25 20:56:56.296301",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -58,11 +57,11 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-07-08 12:00:13.847967",
+ "modified": "2025-07-14 12:50:59.049640",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
- "naming_rule": "By fieldname",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
