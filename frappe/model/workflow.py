@@ -131,9 +131,11 @@ def apply_workflow(doc, action):
 
 	if transition.transition_tasks:
 		workflow_transitions = frappe.db.get_all(
-			"Workflow Transition Task", {"parent": transition.transition_tasks, "enabled": True}, ["*"]
+			"Workflow Transition Task",
+			{"parent": transition.transition_tasks, "enabled": True},
+			["task", "link", "asynchronous"],
+			order_by="idx",
 		)
-		workflow_transitions.sort(key=lambda i: i["idx"])
 
 		"""app-specific actions defined by the user
 		Example:
