@@ -18,6 +18,7 @@ class TestWorkflow(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		make_test_records("User")
+		cls.enterClassContext(cls.enable_safe_exec())
 
 	def setUp(self):
 		self.patcher = patch("frappe.attach_print", return_value={})
