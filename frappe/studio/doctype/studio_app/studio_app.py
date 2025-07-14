@@ -95,6 +95,10 @@ class StudioApp(WebsiteGenerator):
 				self.autoname()
 			self.route = self.name
 
+	def on_trash(self):
+		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
+			frappe.delete_doc("Studio Page", page, force=True)
+
 	def get_studio_pages(self):
 		return frappe.get_all(
 			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
