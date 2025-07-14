@@ -72,6 +72,7 @@ def export_customizations(
 	else:
 		selected_custom_fields = all_custom_fields
 
+
 	custom = {
 		"custom_fields": selected_custom_fields,
 		"property_setters": frappe.get_all(

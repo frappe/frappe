@@ -299,6 +299,7 @@ frappe.ui.form.on("Customize Form", {
 										custom_fields: data.custom_fields || ""
 									}
 								});
+								
 							}, __("Select Module"));
 						}
 					});
