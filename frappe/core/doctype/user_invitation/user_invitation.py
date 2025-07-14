@@ -32,7 +32,7 @@ class UserInvitation(Document):
 		self.key = frappe.generate_hash(length=12)
 		self.invited_by = frappe.session.user
 		self.status = "Pending"
-		if self.app_name == None:
+		if self.app_name is None:
 			self.app_name = " "
 
 	def after_insert(self):
