@@ -108,14 +108,14 @@ class FrappeClient:
 		)
 
 	def get_list(
-			self,
-			doctype,
-			fields='["name"]',
-			filters=None,
-			limit_start=0,
-			limit_page_length=None,
-			order_by=None,
-			group_by=None
+		self,
+		doctype,
+		fields='["name"]',
+		filters=None,
+		limit_start=0,
+		limit_page_length=None,
+		order_by=None,
+		group_by=None,
 	):
 		"""Return list of records of a particular type."""
 		if not isinstance(fields, str):
