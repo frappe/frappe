@@ -394,8 +394,7 @@ def insert_translations():
 	]
 
 	for doc in translation:
-		if not frappe.db.exists(doc):
-			frappe.get_doc(doc).insert()
+		frappe.get_doc(doc).insert(ignore_if_duplicate=True)
 
 
 @whitelist_for_tests
