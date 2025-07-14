@@ -167,6 +167,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.show_save = false;
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
+		this.export_dialog = null;
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
