@@ -27,7 +27,7 @@ class TestFrappeClient(IntegrationTestCase):
 				{"doctype": "Note", "title": "sixpence"},
 			]
 		)
-		records = server.get_list("Note", fields=["title"])
+		records = server.get_list("Note", fields=["title"], order_by="creation desc")
 		records = [r.get("title") for r in records]
 
 		self.assertIn("Sing", records)
@@ -35,6 +35,8 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertIn("song", records)
 		self.assertIn("of", records)
 		self.assertIn("sixpence", records)
+
+		self.assertEqual(records[0], "sixpence")
 
 	def test_create_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
