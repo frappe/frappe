@@ -137,7 +137,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertTrue(
 			frappe.db.exists("Note", {"title": "workflow - " + todo.name, "content": "workflow test"})
 		)
-		self.assertTrue(frappe.db.exists("Customer", {"customer_name": "workflow - " + todo.name}))
+		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + todo.name}))
 
 		return todo
 
@@ -159,12 +159,11 @@ def create_todo_workflow():
 	server_script.name = random_string(length=10)
 	server_script.script_type = "Workflow Task"
 	server_script.script = """
-# create a customer with the same name as the given document
-customer = frappe.new_doc("Customer")
-customer.customer_name = "workflow - " + doc.name
-customer.customer_type = "Company"
+# create a domain with the same name as the given document
+domain = frappe.new_doc("Domain")
+domain = "workflow - " + doc.name
 
-customer.save()
+domain.save()
 	"""
 	server_script.save()
 
