@@ -35,7 +35,7 @@ def invite_by_email(
 	if not email_list:
 		frappe.throw(frappe._("No email addresses found"))
 	existing_user_emails = frappe.db.get_all("User", filters={"email": ["in", email_list]}, pluck="email")
-	existing_invited_emails_filters = {"email": ["in", email_list]}
+	existing_invited_emails_filters = {"email": ["in", email_list], "status": "Pending"}
 	if not is_app_framework:
 		existing_invited_emails_filters["role"] = ["in", allowed_roles]
 	existing_invited_emails = frappe.db.get_all(
