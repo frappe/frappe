@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-07-03 19:06\n"
+"PO-Revision-Date: 2025-07-13 20:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3796,19 +3796,19 @@ msgstr "Efter skript"
 #. DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Label of the bypass_2fa_for_retricted_ip_users (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
-msgstr "Frångå Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
+msgstr "Ignorera Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
 
 #. Label of the bypass_restrict_ip_check_if_2fa_enabled (Check) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -5269,7 +5269,7 @@ msgstr "Konfigurera Kolumner"
 
 #: frappe/core/doctype/recorder/recorder_list.js:200
 msgid "Configure Recorder"
-msgstr "Konfigurera Inspelare"
+msgstr "Konfigurera Inspelning"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
@@ -20529,17 +20529,17 @@ msgstr "Mottagare"
 #. Name of a DocType
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Recorder"
-msgstr "Inspelare"
+msgstr "Inspelning"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder_query/recorder_query.json
 msgid "Recorder Query"
-msgstr "Inspelare Fråga"
+msgstr "Inspelning Fråga"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder_suggested_index/recorder_suggested_index.json
 msgid "Recorder Suggested Index"
-msgstr "Spela in Föreslagna Index"
+msgstr "Inspelning Föreslagna Index"
 
 #: frappe/core/doctype/user_permission/user_permission_help.html:2
 msgid "Records for following doctypes will be filtered"
@@ -21385,7 +21385,7 @@ msgstr "Begäran Beskrivning"
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Request Headers"
-msgstr "Rubriker för Begäran"
+msgstr "Begäran Rubriker"
 
 #. Label of the request_id (Data) field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json

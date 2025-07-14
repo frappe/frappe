@@ -1,5 +1,6 @@
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
+	on_grid = false;
 	make_input() {
 		super.make_input();
 		this.make_picker();
@@ -68,7 +69,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			maxDate: this.df.max_date,
 			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			onSelect: () => {
-				this.$input.trigger("change");
+				if (!this.on_grid) {
+					this.$input.trigger("change");
+				}
 			},
 			onShow: () => {
 				this.datepicker.$datepicker

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-06-27 08:47+0000\n"
-"PO-Revision-Date: 2025-06-29 17:46\n"
+"PO-Revision-Date: 2025-07-11 20:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -882,7 +882,7 @@ msgstr "API Anahtarı yeniden oluşturulamaz."
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "API Logging"
-msgstr ""
+msgstr "API Günlüğü"
 
 #. Label of the api_method (Data) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -892,7 +892,7 @@ msgstr "API Yöntemi"
 #. Name of a DocType
 #: frappe/core/doctype/api_request_log/api_request_log.json
 msgid "API Request Log"
-msgstr ""
+msgstr "API İstek Günlüğü"
 
 #. Label of the api_secret (Password) field in DocType 'User'
 #. Label of the api_secret (Password) field in DocType 'Email Account'
@@ -8186,7 +8186,7 @@ msgstr "Çoklu İsim"
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Duplicate Row"
-msgstr ""
+msgstr "Satırı Çoğalt"
 
 #: frappe/public/js/frappe/form/form.js:209
 msgid "Duplicate current row"
@@ -8216,7 +8216,7 @@ msgstr "Süre"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Dynamic"
-msgstr ""
+msgstr "Dinamik"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
@@ -8270,7 +8270,7 @@ msgstr "Dinamik Şablon"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "ESC"
-msgstr ""
+msgstr "ESC"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -8618,7 +8618,7 @@ msgstr "E-posta Grubu Üyesi"
 #. Label of the email_header (Data) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Email Header"
-msgstr ""
+msgstr "E-posta Başlığı"
 
 #. Label of the email_id (Data) field in DocType 'Contact Email'
 #. Label of the email_id (Data) field in DocType 'User Email'
@@ -16572,11 +16572,11 @@ msgstr "Sonraki"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:684
 msgid "Next 14 Days"
-msgstr ""
+msgstr "Önümüzdeki 14 Gün"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:688
 msgid "Next 30 Days"
-msgstr ""
+msgstr "Önümüzdeki 30 gün"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:704
 msgid "Next 6 Months"
@@ -16584,7 +16584,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:680
 msgid "Next 7 Days"
-msgstr ""
+msgstr "Önümüzdeki 7 Gün"
 
 #. Label of the next_action_email_template (Link) field in DocType 'Workflow
 #. Document State'
