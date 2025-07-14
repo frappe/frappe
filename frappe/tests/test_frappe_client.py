@@ -27,7 +27,7 @@ class TestFrappeClient(IntegrationTestCase):
 				{"doctype": "Note", "title": "sixpence"},
 			]
 		)
-		records = server.get_list("Note", fields=["title"], order_by="creation desc")
+		records = server.get_list("Note", fields=["title"])
 		records = [r.get("title") for r in records]
 
 		self.assertIn("Sing", records)
@@ -35,8 +35,6 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertIn("song", records)
 		self.assertIn("of", records)
 		self.assertIn("sixpence", records)
-
-		self.assertEqual(records[0], "sixpence")
 
 	def test_create_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
@@ -53,6 +51,25 @@ class TestFrappeClient(IntegrationTestCase):
 		doc_list = server.get_list("Note")
 
 		self.assertTrue(len(doc_list))
+
+	def test_list_summary(self):
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server.insert_many(
+			[
+				{"doctype": "Note", "title": "Sing", "content": "Frappe"},
+				{"doctype": "Note", "title": "a", "content": "Frappe"},
+				{"doctype": "Note", "title": "song", "content": "ERPNext"},
+				{"doctype": "Note", "title": "of", "content": "ERPNext"},
+				{"doctype": "Note", "title": "sixpence", "content": "Frappe"},
+			]
+		)
+		notes = server.get_list("Note", fields=["title"], order_by="creation desc")
+
+		notes = [d.get("title") for d in notes]
+		self.assertEqual(notes[0], "sixpence")
+
+		records = server.get_list("Note", fields=["content"], group_by="content")
+		self.assertEqual(len(records), 2)
 
 	def test_get_doc(self):
 		USER = "Administrator"
