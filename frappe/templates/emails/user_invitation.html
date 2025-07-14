@@ -1,11 +1,11 @@
 <span style = "display: block; margin-bottom: 1.5rem;">
-  Hello,
+  {{ _("Hello,") }}
 </span>
 <span style = "display: block; margin-bottom: 1rem;">
-  You've been invited to join {{ site_name }} on {{ title }}.
+  {{ _("You've been invited to join {0} on {1}.").format(site_name, title) }}
 </span>
 <span style = "display: block; margin-bottom: 0.5rem;">
-  Click below to get started:
+  {{ _("Click below to get started:") }}
 </span>
 <a
   href = "{{ invite_link }}"
@@ -13,8 +13,8 @@
   class = "btn btn-primary"
   style = "display: block; margin-bottom: 1rem; width: fit-content"
 >
-  Accept Invitation
+  {{ _("Accept Invitation") }}
 </a>
 <span>
-  If you have any questions, reach out to your system administrator.
+  {{ _("If you have any questions, reach out to your system administrator.") }}
 </span>

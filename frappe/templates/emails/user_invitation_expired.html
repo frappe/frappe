@@ -1,9 +1,9 @@
 <span style = "display: block; margin-bottom: 1.5rem;">
-  Hello,
+  {{ _("Hello,") }}
 </span>
 <span style = "display: block; margin-bottom: 1rem;">
-  Your invitation to join {{ site_name }} on {{ title }} has expired.
+  {{ _("Your invitation to join {0} on {1} has expired.").format(site_name, title) }}
 </span>
 <span style = "display: block;">
-  You can ask your team to resend the invitation if you'd still like to join.
+  {{ _("You can ask your team to resend the invitation if you'd still like to join.") }}
 </span>
