@@ -124,7 +124,6 @@ frappe.breadcrumbs = {
 			__(breadcrumbs.workspace)
 		);
 	},
-
 	set_workspace(breadcrumbs) {
 		const stored_workspace = localStorage.getItem("current_workspace");
 		// if the current workspace is stored in local storage, use it, otherwise use the workspace from the doctype's module
