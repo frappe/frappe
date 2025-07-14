@@ -1107,11 +1107,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="indicator-pill ${
-				indicator[1]
-			} filterable no-indicator-dot ellipsis"
+			return `<span class="indicator-pill ${indicator[1]} filterable no-indicator-dot ellipsis"
 				data-filter='${indicator[2]}' title='${title}'>
-				<span class="ellipsis"> ${__(indicator[0])}</span>
+				<span class="ellipsis"> ${indicator[0]}</span>
 			</span>`;
 		}
 		return "";
@@ -1120,7 +1118,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_indicator_dot(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
 		if (!indicator) return "";
-		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
+		return `<span class='indicator ${indicator[1]}' title='${indicator[0]}'></span>`;
 	}
 
 	get_image_url(doc) {
