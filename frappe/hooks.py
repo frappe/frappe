@@ -238,6 +238,7 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"daily_long": [],
 	"daily_maintenance": [
