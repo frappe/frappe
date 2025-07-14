@@ -14,8 +14,8 @@ class WorkflowTransitionTask(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		asynchronous: DF.Check
 		enabled: DF.Check
-		execute_asynchronously: DF.Check
 		link: DF.DynamicLink | None
 		parent: DF.Data
 		parentfield: DF.Data

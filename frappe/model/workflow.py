@@ -170,7 +170,7 @@ def apply_workflow(doc, action):
 				except KeyError:
 					frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
 
-			if workflow_transition.execute_asynchronously:
+			if workflow_transition.asynchronous:
 				async_tasks.append(task_method)
 			else:
 				sync_tasks.append(task_method)
