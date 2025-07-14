@@ -161,7 +161,7 @@ def create_todo_workflow():
 	server_script.script = """
 # create a domain with the same name as the given document
 domain = frappe.new_doc("Domain")
-domain = "workflow - " + doc.name
+domain.domain = "workflow - " + doc.name
 
 domain.save()
 	"""
