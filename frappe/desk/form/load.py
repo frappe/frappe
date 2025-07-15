@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
 import typing
 from urllib.parse import quote_plus
 
@@ -190,68 +189,14 @@ def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
 
-	def filter_changed_logs(
-		changed_logs: list[dict], meta_fields: dict, read_perm: list, write_perm: list
-	) -> list[dict]:
-		"""Filter DocFields based on read/write permissions."""
-		if not changed_logs:
-			return []
-		filtered_fields = []
-		for field in changed_logs:
-			fieldname = field[0]
-
-			field_meta = meta_fields.get(fieldname)
-			if not field_meta:
-				filtered_fields.append(field)
-				continue
-			if field_meta.permlevel in read_perm or field_meta.permlevel in write_perm:
-				filtered_fields.append(field)
-		return filtered_fields
-
-	def filter_added_or_removed_logs(
-		logs: list[list], meta_fields: dict, read_perm: list, write_perm: list
-	) -> list[list]:
-		"""Filter child table fields based on read/write permissions."""
+	def filter_logs(logs, allowed_fields: list[str]):
 		if not logs:
 			return []
-		filtered_fields = []
-		for field in logs:
-			fieldname = field[0]
-
-			field_meta = meta_fields.get(fieldname)
-			if not field_meta:
-				filtered_fields.append(field)
-				continue
-			if field_meta.permlevel in read_perm or field_meta.permlevel in write_perm:
-				filtered_fields.append(field)
-		return filtered_fields
-
-	def filter_row_changed(
-		logs: list[list], meta_fields: dict, read_perm: list, write_perm: list
-	) -> list[list]:
-		"""Filter row changed logs based on read/write permissions."""
-		if not logs:
-			return []
-		filtered_fields = []
+		filtered_logs = []
 		for log in logs:
-			fields = log[3]
-			log_field_meta = meta_fields.get(log[0])
-
-			if not log_field_meta or (
-				log_field_meta.permlevel not in read_perm and log_field_meta.permlevel not in write_perm
-			):
-				filtered_fields.append(log)
-				continue
-			for field in fields:
-				fieldname = field[0]
-
-				field_meta = meta_fields.get(fieldname)
-				if not field_meta:
-					filtered_fields.append(log)
-					continue
-				if field_meta.permlevel in read_perm or field_meta.permlevel in write_perm:
-					filtered_fields.append(log)
-		return filtered_fields
+			if log[0] in allowed_fields:
+				filtered_logs.append(log)
+		return filtered_logs
 
 	versions = frappe.get_all(
 		"Version",
@@ -260,44 +205,32 @@ def get_versions(doc: "Document") -> list[dict]:
 		limit=10,
 		order_by="creation desc",
 	)
-	if frappe.session.user == "Administrator":
-		return versions
-	all_fields = doc.meta.fields.copy()
-	for table_field in doc.meta.get_table_fields():
-		all_fields += frappe.get_meta(table_field.options).fields or []
-	all_fields = {item.get("fieldname"): item for item in all_fields}
 
 	has_read_permission = doc.get_permlevel_access(permission_type="read")
-	has_write_permission = doc.get_permlevel_access(permission_type="write")
+
+	if frappe.session.user == "Administrator" or not has_read_permission:
+		return versions
+
+	allowed_fields = []
+
+	for field in doc.meta.fields:
+		if field.permlevel in has_read_permission:
+			allowed_fields.append(field.fieldname)
+
+	for table_field in doc.meta.get_table_fields():
+		nested_fields = frappe.get_meta(table_field.options).fields or []
+		for field in nested_fields:
+			if field.permlevel in has_read_permission:
+				allowed_fields.append(field.fieldname)
 
 	for version in versions:
-		data = json.loads(version.data)
-		# Iterate over logs and remove any fields that the user does not have permission to read or write.
-		data["changed"] = filter_changed_logs(
-			data.get("changed", []),
-			all_fields,
-			has_read_permission,
-			has_write_permission,
-		)
-		data["added"] = filter_added_or_removed_logs(
-			data.get("added", []),
-			all_fields,
-			has_read_permission,
-			has_write_permission,
-		)
-		data["removed"] = filter_added_or_removed_logs(
-			data.get("removed", []),
-			all_fields,
-			has_read_permission,
-			has_write_permission,
-		)
-		data["row_changed"] = filter_row_changed(
-			data.get("row_changed", []),
-			all_fields,
-			has_read_permission,
-			has_write_permission,
-		)
-		version.data = json.dumps(data)
+		data = frappe.parse_json(version.data)
+		# Iterate over logs and remove any fields that the user does not have permission to
+		data["changed"] = filter_logs(data.get("changed", []), allowed_fields)
+		data["added"] = filter_logs(data.get("added", []), allowed_fields)
+		data["removed"] = filter_logs(data.get("removed", []), allowed_fields)
+		data["row_changed"] = filter_logs(data.get("row_changed", []), allowed_fields)
+		version.data = frappe.utils.orjson_dumps(data)
 	return versions
 
 
@@ -349,7 +282,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
-			c.attachments = json.dumps(
+			c.attachments = frappe.utils.orjson_dumps(
 				frappe.get_all(
 					"File",
 					fields=["file_url", "is_private"],
@@ -590,7 +523,7 @@ def update_user_info(docinfo):
 @frappe.whitelist()
 def get_user_info_for_viewers(users):
 	user_info = {}
-	for user in json.loads(users):
+	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
 
 	return user_info
