@@ -72,7 +72,7 @@ def invite_by_email(
 def _get_invitation(key: str) -> Document:
 	result = frappe.db.get_all("User Invitation", filters={"key": key}, pluck="name")
 	if not result:
-		frappe.throw("Invalid key")
+		frappe.throw(_("Invalid key"))
 	return frappe.get_doc("User Invitation", result[0])
 
 
@@ -129,7 +129,7 @@ def _set_reset_password_key(user: Document) -> str:
 def accept_invitation(key: str) -> None:
 	invitation = _get_invitation(key)
 	if invitation.status == "Expired":
-		frappe.throw("Invitation is expired")
+		frappe.throw(_("Invitation is expired"))
 	if invitation.status == "Pending":
 		user = _upsert_user(invitation.email, invitation.role)
 		_accept_invitation(invitation, user.email)
