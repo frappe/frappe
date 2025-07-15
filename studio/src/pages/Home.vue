@@ -64,10 +64,17 @@
 					},
 				],
 			}"
+			@after-leave="newApp = { ...emptyAppState }"
 		>
 			<template #body-content>
 				<div class="flex flex-col gap-3">
-					<FormControl label="App Title" type="text" variant="outline" v-model="newApp.app_title" />
+					<FormControl
+						label="Title"
+						type="text"
+						variant="outline"
+						v-model="newApp.app_title"
+						@input="setAppRoute"
+					/>
 					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
 				</div>
 			</template>
@@ -117,8 +124,11 @@ const createStudioApp = (app: NewStudioApp) => {
 		})
 		.then((res: StudioApp) => {
 			showDialog.value = false
-			newApp.value = { ...emptyAppState }
 			router.push({ name: "StudioApp", params: { appID: res.name } })
 		})
+}
+
+function setAppRoute(e: Event) {
+	newApp.value.route = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
 }
 </script>
