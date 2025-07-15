@@ -33,7 +33,7 @@ class UserInvitation(Document):
 		self.invited_by = frappe.session.user
 		self.status = "Pending"
 		if self.app_name is None:
-			self.app_name = " "
+			self.app_name = "frappe"
 
 	def after_insert(self):
 		invite_link = frappe.utils.get_url(
@@ -72,19 +72,7 @@ class UserInvitation(Document):
 			)
 
 	def get_email_title(self):
-		return f"Frappe {(self.app_name if self.app_name != ' ' else 'framework').capitalize()}"
-
-	def create_user_if_not_exists(self, ignore_permissions=False):
-		user_doctype = "User"
-		if frappe.db.exists(user_doctype, self.email):
-			return frappe.get_doc(user_doctype, self.email)
-		return frappe.get_doc(
-			doctype=user_doctype,
-			user_type="System User",
-			email=self.email,
-			first_name=self.email.split("@")[0].title(),
-			send_welcome_email=False,
-		).insert(ignore_permissions)
+		return f"Frappe {(self.app_name if self.app_name != "frappe" else 'framework').capitalize()}"
 
 	def get_redirect_to_path(self):
 		return f"{'' if self.redirect_to_path.startswith('/') else '/'}{self.redirect_to_path}"
@@ -95,12 +83,11 @@ class UserInvitation(Document):
 
 def mark_expired_invitations() -> None:
 	days = 3
-	user_invitation_doctype = "User Invitation"
 	invitations_to_expire = frappe.db.get_all(
-		user_invitation_doctype,
+		"User Invitation",
 		filters={"status": "Pending", "creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
 	)
 	for invitation in invitations_to_expire:
-		invitation = frappe.get_doc(user_invitation_doctype, invitation.name)
+		invitation = frappe.get_doc("User Invitation", invitation.name)
 		invitation.status = "Expired"
 		invitation.save()

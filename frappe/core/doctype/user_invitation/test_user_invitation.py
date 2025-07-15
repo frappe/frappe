@@ -114,7 +114,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			email=invited_email,
 			role="System Manager",
 			redirect_to_path="/abc",
-			app_name=" ",  # " " represents Framework
+			app_name="frappe",
 		).insert()
 		self.assertEqual(len(self.get_sent_email_names()), 1)
 		email_to_invite = emails[2]
@@ -135,7 +135,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			email=emails[0],
 			role="System Manager",
 			redirect_to_path="/abc",
-			app_name=" ",  # " " represents Framework
+			app_name="frappe",
 		).insert()
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
 		accept_invitation(invitation.key)
@@ -152,7 +152,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			email=emails[0],
 			role="System Manager",
 			redirect_to_path="/abc",
-			app_name=" ",  # " " represents Framework
+			app_name="frappe",
 		).insert()
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
 		original_disable_user_pass_login = frappe.get_system_settings("disable_user_pass_login")
@@ -174,7 +174,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			email=emails[0],
 			role="System Manager",
 			redirect_to_path="/abc",
-			app_name=" ",  # " " represents Framework
+			app_name="frappe",
 		)
 
 	def get_sent_email_names(self):
