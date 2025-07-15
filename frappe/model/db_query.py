@@ -1137,6 +1137,14 @@ from {tables}
 
 		blacklisted_sql_functions = {
 			"sleep",
+			"benchmark",
+			"extractvalue",
+			"database",
+			"user",
+			"current_user",
+			"version",
+			"substr",
+			"substring",
 		}
 
 		for field in parameters.split(","):
