@@ -759,7 +759,14 @@ class QueueBuilder:
 		if not queue_separately:
 			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
-			send_now and q.send()
+			if send_now:
+				frappe.enqueue_doc(
+					q.doctype,
+					q.name,
+					queue="short",
+					enqueue_after_commit=True,
+					at_front_when_starved=True,
+				)
 			return q
 		else:
 			if send_now and len(final_recipients) >= 1000:
