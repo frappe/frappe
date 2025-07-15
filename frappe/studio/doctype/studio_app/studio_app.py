@@ -58,7 +58,7 @@ class StudioApp(WebsiteGenerator):
 
 		app_home: DF.Link | None
 		app_name: DF.Data | None
-		app_title: DF.Data | None
+		app_title: DF.Data
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
@@ -75,7 +75,7 @@ class StudioApp(WebsiteGenerator):
 		context.csrf_token = csrf_token
 		context.no_cache = 1
 
-		context.app_name = self.name
+		context.app_name = self.app_name
 		context.app_route = self.route
 		context.app_title = self.app_title
 		context.base_url = frappe.utils.get_url(self.route)
@@ -85,7 +85,7 @@ class StudioApp(WebsiteGenerator):
 
 	def autoname(self):
 		if not self.name:
-			self.name = self.app_title.lower().replace(" ", "-")
+			self.name = self.app_name or self.app_title.lower().replace(" ", "-")
 
 	def before_insert(self):
 		if not self.app_title:

@@ -73,9 +73,10 @@
 						type="text"
 						variant="outline"
 						v-model="newApp.app_title"
-						@input="setAppRoute"
+						@input="setAppFields"
 					/>
 					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
+					<FormControl label="App Name" type="text" variant="outline" v-model="newApp.app_name" />
 				</div>
 			</template>
 		</Dialog>
@@ -84,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Dialog } from "frappe-ui"
+import { Dialog, FormControl } from "frappe-ui"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
@@ -98,6 +99,7 @@ const showDialog = ref(false)
 const emptyAppState = {
 	app_title: "",
 	route: "",
+	app_name: "",
 }
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
@@ -121,6 +123,7 @@ const createStudioApp = (app: NewStudioApp) => {
 		.submit({
 			app_title: app.app_title,
 			route: app.route,
+			app_name: app.app_name,
 		})
 		.then((res: StudioApp) => {
 			showDialog.value = false
@@ -128,7 +131,8 @@ const createStudioApp = (app: NewStudioApp) => {
 		})
 }
 
-function setAppRoute(e: Event) {
-	newApp.value.route = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
+function setAppFields(e: Event) {
+	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
+	newApp.value.route = newApp.value.app_name = kebabCasedTitle
 }
 </script>
