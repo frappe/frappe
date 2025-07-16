@@ -1,5 +1,5 @@
 [pre_model_sync]
-frappe.patches.v16_0.enable_setup_complete #25-06-2025 re-run-patch
+frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()

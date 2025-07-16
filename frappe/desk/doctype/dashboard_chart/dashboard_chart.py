@@ -10,7 +10,7 @@ from frappe.boot import get_allowed_report_names
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, get_datetime, getdate, has_common, now_datetime, nowdate
+from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
 from frappe.utils.dateutils import (
@@ -313,8 +313,8 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 		for d in result:
 			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
-				d[1] += cint(data[data_index][1])
-				count += cint(data[data_index][2])
+				d[1] += flt(data[data_index][1])
+				count += flt(data[data_index][2])
 				data_index += 1
 			if chart_type == "Average" and count != 0:
 				d[1] = d[1] / count

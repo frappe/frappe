@@ -1,4 +1,5 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
+	on_grid = false;
 	set_formatted_input(value) {
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;

@@ -270,6 +270,11 @@ class TestMoney(IntegrationTestCase):
 					f"{words} is not the same as {expected_words}",
 				)
 
+	def test_money_in_words_without_fraction(self):
+		# VND doesn't have fractions
+		words = money_in_words("42.01", "VND")
+		self.assertEqual(words, "VND Forty Two only.")
+
 
 class TestDataManipulation(IntegrationTestCase):
 	def test_scrub_urls(self):

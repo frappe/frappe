@@ -3,7 +3,7 @@ import os
 from . import __version__ as app_version
 
 app_name = "frappe"
-app_title = "Framework"
+app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
@@ -62,10 +62,6 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": r"/desk(.*)", "target": r"/app\1"},
-	{
-		"source": "/.well-known/openid-configuration",
-		"target": "/api/method/frappe.integrations.oauth2.openid_configuration",
-	},
 ]
 
 base_template = "templates/base.html"
@@ -221,6 +217,7 @@ scheduler_events = {
 	},
 	"all": [
 		"frappe.email.queue.flush",
+		"frappe.email.queue.retry_sending_emails",
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
@@ -417,6 +414,7 @@ before_request = [
 	"frappe.recorder.record",
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
+	"frappe.integrations.oauth2.set_cors_for_privileged_requests",
 ]
 
 after_request = [

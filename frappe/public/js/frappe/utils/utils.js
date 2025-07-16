@@ -816,6 +816,9 @@ Object.assign(frappe.utils, {
 
 			var audio = $("#sound-" + name)[0];
 			audio.volume = audio.getAttribute("volume");
+			if (!audio.paused) {
+				audio.currentTime = 0;
+			}
 			audio.play();
 		} catch (e) {
 			console.log("Cannot play sound", name, e);

@@ -306,11 +306,10 @@ class Database:
 			):
 				raise
 
+		self.log_query(query, query_type, values, debug)
 		if debug:
 			time_end = time()
 			frappe.log(f"Execution time: {(time_end - time_start) * 1000:.3f} ms")
-
-		self.log_query(query, query_type, values, debug)
 
 		if auto_commit:
 			self.commit()
@@ -552,7 +551,6 @@ class Database:
 		        # returns default date_format
 		        frappe.db.get_value("System Settings", None, "date_format")
 		"""
-
 		result = self.get_values(
 			doctype,
 			filters,
@@ -731,9 +729,20 @@ class Database:
 		:param filters: Filters (dict).
 		:param doctype: DocType name.
 		"""
+
+		from frappe.model.meta import get_default_df
+
+		meta = frappe.get_meta(doctype)
+
+		def _cast(field, val):
+			df = meta.get_field(field) or get_default_df(field)
+			if not df:
+				return val
+			return cast_fieldtype(df.fieldtype, val)
+
 		if fields == "*" or isinstance(filters, dict):
 			# check if single doc matches with filters
-			values = self.get_singles_dict(doctype)
+			values = self.get_singles_dict(doctype, cast=True)
 			if isinstance(filters, dict):
 				for key, value in filters.items():
 					if values.get(key) != value:
@@ -760,6 +769,9 @@ class Database:
 				return []
 
 			r = _dict(r)
+			for k, v in r.items():
+				r[k] = _cast(k, v)
+
 			if update:
 				r.update(update)
 
@@ -864,7 +876,16 @@ class Database:
 		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
-	def get_single_value(self, doctype: str, fieldname: str, cache: bool = True):
+	def get_single_value(
+		self,
+		doctype: str,
+		fieldname: str,
+		cache: bool = True,
+		*,
+		debug=False,
+		for_update=False,
+		run=True,
+	):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -875,17 +896,23 @@ class Database:
 		        # Get the default value of the company from the Global Defaults doctype.
 		        company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
-		if cache and fieldname in self.value_cache[doctype]:
+		from frappe.model.meta import get_default_df
+
+		if cache and not for_update and run and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
 		val = frappe.qb.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
-		).run()
+			for_update=for_update,
+		).run(debug=debug, run=run)
+		if not run:
+			return val
+
 		val = val[0][0] if val else None
 
-		df = frappe.get_meta(doctype).get_field(fieldname)
+		df = frappe.get_meta(doctype).get_field(fieldname) or get_default_df(fieldname)
 
 		if not df:
 			frappe.throw(
@@ -896,7 +923,8 @@ class Database:
 
 		val = cast_fieldtype(df.fieldtype, val)
 
-		self.value_cache[doctype][fieldname] = val
+		if cache and not for_update and run:
+			self.value_cache[doctype][fieldname] = val
 
 		return val
 
@@ -1513,6 +1541,18 @@ class Database:
 		                        continue # Do some processing.
 		"""
 		raise NotImplementedError
+
+	def get_routines(self):
+		information_schema = frappe.qb.Schema("information_schema")
+		return (
+			frappe.qb.from_(information_schema.routines)
+			.select(information_schema.routines.routine_name)
+			.where(
+				(information_schema.routines.routine_type.isin(["FUNCTION", "PROCEDURE"]))
+				& (information_schema.routines.routine_schema.eq(frappe.conf.db_name))
+			)
+			.run(as_dict=1, pluck="routine_name")
+		)
 
 
 @contextmanager

@@ -316,7 +316,7 @@ class DbColumn:
 		else:
 			cur_default = current_def.get("default")
 			new_default = self.default
-			if cur_default == "NULL":
+			if cur_default == "NULL" or cur_default is None:
 				cur_default = None
 			else:
 				# Strip quotes from default value
@@ -331,6 +331,8 @@ class DbColumn:
 			elif fieldtype in ["Currency", "Float", "Percent"]:
 				cur_default = flt(cur_default)
 				new_default = flt(new_default)
+			elif fieldtype == "Time":
+				return self.default_changed_for_time(cur_default, new_default)
 			elif db_field_type and db_field_type[0] in ("varchar", "longtext", "text"):
 				new_default = cstr(new_default)
 				if not current_def.get("not_nullable"):
@@ -338,18 +340,17 @@ class DbColumn:
 			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
+		cur_default = current_def["default"]
+		if cur_default == "NULL":
+			cur_default = None
 		try:
-			if current_def["default"] in ("", None) and self.default in ("", None):
+			if cur_default in ("", None) and self.default in ("", None):
 				return False
 
-			elif (
-				current_def["default"]
-				and flt(current_def["default"]) == 0.0
-				and self.default in ("", None, 0.0)
-			):
+			elif flt(cur_default) == 0.0 and flt(self.default) == 0.0:
 				return False
 
-			elif current_def["default"] in ("", None):
+			elif cur_default in ("", None):
 				try:
 					# check if new default value is valid
 					float(self.default)
@@ -363,9 +364,27 @@ class DbColumn:
 
 			else:
 				# NOTE float() raise ValueError when "" or None is passed
-				return float(current_def["default"]) != float(self.default)
+				return float(cur_default) != float(self.default)
 		except TypeError:
 			return True
+
+	def default_changed_for_time(self, cur_default: str, new_default: str):
+		from datetime import datetime
+
+		# Normalize time values to HH:MM:SS.ssssss format, from formats: HH:MM:SS.ssssss, HH:MM:SS, HH:MM
+		def normalize_time(val):
+			if not val:
+				return None
+			for fmt in ("%H:%M:%S.%f", "%H:%M:%S", "%H:%M"):
+				try:
+					return datetime.strptime(val, fmt).time().strftime("%H:%M:%S.%f")
+				except ValueError:
+					continue
+			return val
+
+		cur = normalize_time(cur_default)
+		new = normalize_time(new_default)
+		return cur != new
 
 
 def validate_column_name(n):

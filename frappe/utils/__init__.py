@@ -1143,6 +1143,20 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return safe_eval(code, eval_globals, eval_locals)
 
 
+def create_folder(path, with_init=False):
+	"""Create a folder in the given path and add an `__init__.py` file (optional).
+
+	:param path: Folder path.
+	:param with_init: Create `__init__.py` in the new folder."""
+	from frappe.utils import touch_file
+
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+		if with_init:
+			touch_file(os.path.join(path, "__init__.py"))
+
+
 cached_property = functools.cached_property
 if sys.version_info.minor < 12:
 	T = TypeVar("T")
