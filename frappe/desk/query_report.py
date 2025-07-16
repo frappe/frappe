@@ -376,6 +376,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
 	visible_idx = form_params.visible_idx
+	include_hidden_columns = form_params.include_hidden_columns
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
@@ -389,8 +390,19 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 		return
 
+<<<<<<< HEAD
 	format_duration_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
+=======
+	format_fields(data)
+	xlsx_data, column_widths = build_xlsx_data(
+		data,
+		visible_idx,
+		include_indentation,
+		include_filters=include_filters,
+		include_hidden_columns=include_hidden_columns,
+	)
+>>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 
 	if file_format_type == "CSV":
 		content = get_csv_bytes(xlsx_data, csv_params)
@@ -416,7 +428,18 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
+<<<<<<< HEAD
 def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
+=======
+def build_xlsx_data(
+	data,
+	visible_idx,
+	include_indentation,
+	include_filters=False,
+	ignore_visible_idx=False,
+	include_hidden_columns=False,
+):
+>>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -440,7 +463,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 	column_widths = []
 
 	for column in data.columns:
-		if column.get("hidden"):
+		if column.get("hidden") and not cint(include_hidden_columns):
 			continue
 		result[0].append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -455,7 +478,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 			row_data = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):
-					if column.get("hidden"):
+					if column.get("hidden") and not cint(include_hidden_columns):
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
