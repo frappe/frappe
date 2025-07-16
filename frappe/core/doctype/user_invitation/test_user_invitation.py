@@ -10,7 +10,8 @@ from frappe.core.doctype.user_invitation.user_invitation import mark_expired_inv
 from frappe.tests import IntegrationTestCase
 
 emails = [
-	"test_user_invite1@example.com" "test_user_invite2@example.com",
+	"test_user_invite1@example.com",
+	"test_user_invite2@example.com",
 	"test_user_invite3@example.com",
 	"test_user_invite4@example.com",
 	"test_user_invite5@example.com",
