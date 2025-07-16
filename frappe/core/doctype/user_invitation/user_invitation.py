@@ -3,6 +3,7 @@
 
 import frappe
 import frappe.utils
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -29,20 +30,21 @@ class UserInvitation(Document):
 
 	def before_insert(self):
 		frappe.utils.validate_email_address(self.email, throw=True)
-		self.key = frappe.generate_hash(length=12)
 		self.invited_by = frappe.session.user
 		self.status = "Pending"
 		if self.app_name is None:
 			self.app_name = "frappe"
 
 	def after_insert(self):
+		key = frappe.generate_hash()
+		self.db_set("key", frappe.utils.sha256_hash(key))
 		invite_link = frappe.utils.get_url(
-			f"/api/method/frappe.core.api.user_invitation.accept_invitation?key={self.key}"
+			f"/api/method/frappe.core.api.user_invitation.accept_invitation?key={key}"
 		)
 		email_title = self.get_email_title()
 		frappe.sendmail(
 			recipients=self.email,
-			subject=f"You've been invited to join {email_title}",
+			subject=_("You've been invited to join {0}").format(email_title),
 			template="user_invitation",
 			args={"title": email_title, "invite_link": invite_link, "site_name": self.get_site_name()},
 			now=True,
@@ -54,31 +56,74 @@ class UserInvitation(Document):
 			email_title = self.get_email_title()
 			frappe.sendmail(
 				recipients=self.email,
-				subject=f"Invitation to join {email_title} revoked",
+				subject=_("Invitation to join {0} revoked").format(email_title),
 				template="user_invitation_revoked",
 				args={"title": email_title, "site_name": self.get_site_name()},
 				now=True,
 			)
 
-	def on_update(self):
-		if self.has_value_changed("status") and self.status == "Expired":
-			email_title = self.get_email_title()
-			frappe.sendmail(
-				recipients=self.email,
-				subject=f"Invitation to join {email_title} expired",
-				template="user_invitation_expired",
-				args={"title": email_title, "site_name": self.get_site_name()},
-				now=True,
-			)
+	def expire(self):
+		self.status = "Expired"
+		self.save()
+		email_title = self.get_email_title()
+		invited_by_user = frappe.get_doc("User", self.invited_by)
+		frappe.sendmail(
+			recipients=invited_by_user.email,
+			subject=_("Invitation to join {0} expired").format(email_title),
+			template="user_invitation_expired",
+			args={"title": email_title, "site_name": self.get_site_name()},
+			now=False,
+		)
+
+	def accept(self, ignore_permissions: bool = False):
+		accepted_now = self._accept()
+		if not accepted_now:
+			return
+		user = self._upsert_user()
+		self.save(ignore_permissions)
+		user.save(ignore_permissions)
+		self._run_after_accept_hooks(user)
 
 	def get_email_title(self):
-		return f"Frappe {(self.app_name if self.app_name != "frappe" else 'framework').capitalize()}"
+		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
 
 	def get_redirect_to_path(self):
-		return f"{'' if self.redirect_to_path.startswith('/') else '/'}{self.redirect_to_path}"
+		start_index = 1 if self.redirect_to_path.startswith("/") else 0
+		return self.redirect_to_path[start_index:]
 
 	def get_site_name(self):
 		return frappe.utils.get_url(self.get_redirect_to_path())
+
+	def _accept(self):
+		if self.status == "Accepted":
+			return False
+		if self.status == "Expired":
+			frappe.throw(title=_("Error"), msg=_("Invitation is expired"))
+		self.status = "Accepted"
+		self.accepted_at = frappe.utils.now()
+		self.user = self.email
+		return True
+
+	def _upsert_user(self):
+		user: Document | None = None
+		if frappe.db.exists("User", self.user):
+			user = frappe.get_doc("User", self.user)
+		else:
+			user = frappe.new_doc("User")
+			user.user_type = "System User"
+			user.email = self.email
+			user.first_name = self.email.split("@")[0].title()
+			user.send_welcome_email = False
+			user.insert()
+		user.append_roles(self.role)
+		return user
+
+	def _run_after_accept_hooks(self, user: Document):
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+		if not isinstance(user_invitation_hook, dict):
+			return
+		for dot_path in user_invitation_hook.get("after_accept") or []:
+			frappe.call(dot_path, invitation=self, user=user)
 
 
 def mark_expired_invitations() -> None:
@@ -89,5 +134,6 @@ def mark_expired_invitations() -> None:
 	)
 	for invitation in invitations_to_expire:
 		invitation = frappe.get_doc("User Invitation", invitation.name)
-		invitation.status = "Expired"
-		invitation.save()
+		invitation.expire()
+		# to avoid losing work in case the job times out without finishing
+		frappe.db.commit()  # nosemgrep

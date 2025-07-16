@@ -238,7 +238,6 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
-		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"daily_long": [],
 	"daily_maintenance": [
@@ -248,6 +247,7 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",

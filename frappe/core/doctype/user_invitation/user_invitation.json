@@ -26,15 +26,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "role",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Role",
-   "options": "Role",
-   "read_only_depends_on": "eval:Boolean(doc.creation)",
-   "reqd": 1
-  },
-  {
    "fieldname": "invited_by",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -88,12 +79,21 @@
    "fieldtype": "Data",
    "label": "Key",
    "read_only": 1
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "Role",
+   "read_only_depends_on": "eval:Boolean(doc.creation)",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 10:51:04.661106",
+ "modified": "2025-07-16 13:19:22.932245",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",
@@ -110,23 +110,23 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "User Invitation Manager",
-   "select": 1,
-   "share": 1,
-   "write": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Accepted"
+  },
+  {
+   "color": "Orange",
+   "title": "Pending"
+  },
+  {
+   "color": "Yellow",
+   "title": "Expired"
+  }
+ ]
 }
