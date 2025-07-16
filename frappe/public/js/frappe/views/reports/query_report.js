@@ -1570,6 +1570,27 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
+		if (this.report_settings.export_hidden_fields) {
+			const hidden_fields = [];
+			this.columns.forEach((column) => {
+				if (column.hidden) {
+					hidden_fields.push(column.label);
+				}
+			});
+			extra_fields.push(
+				{
+					fieldname: "column_break_1",
+					fieldtype: "Column Break",
+				},
+				{
+					label: __("Include hidden columns"),
+					fieldname: "include_hidden_columns",
+					description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
+					fieldtype: "Check",
+				}
+			);
+		}
+
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
@@ -1577,7 +1598,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				file_format,
 				include_indentation,
 				include_filters,
+<<<<<<< HEAD
 				export_in_background,
+=======
+>>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 				include_hidden_columns,
 				csv_delimiter,
 				csv_quoting,
@@ -1607,7 +1631,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					csv_quoting,
 					include_indentation,
 					include_filters,
+<<<<<<< HEAD
 					export_in_background,
+=======
+>>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 					include_hidden_columns,
 				};
 				if (export_in_background) {
