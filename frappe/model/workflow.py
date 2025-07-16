@@ -147,10 +147,7 @@ def apply_workflow(doc, action):
 					 		"frappe.dotted.path.create_customer"}]
 		"""
 
-		if frappe.in_test:
-			tasks = {"Create Note": "frappe.workflow.doctype.workflow.test_workflow.create_new_note"}
-		else:
-			tasks = {i["name"]: i["method"] for i in frappe.get_hooks("workflow_methods")}
+		tasks = {i["name"]: i["method"] for i in frappe.get_hooks("workflow_methods")}
 
 		sync_tasks = []
 		async_tasks = []
