@@ -1,5 +1,12 @@
 .download-backups {
 	font-size: var(--text-base);
+	height: 100vh;
+	align-items: center;
+    justify-content: center;
+}
+.no-backup-message{
+    min-height: 50vh;
+	text-align: center;
 }
 
 .download-backup-card {
