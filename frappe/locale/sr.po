@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-13 09:36+0000\n"
-"PO-Revision-Date: 2025-07-15 20:16\n"
+"PO-Revision-Date: 2025-07-16 20:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -2326,7 +2326,7 @@ msgstr "Назив апликације"
 #. Label of the app_name (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "App Name (Client Name)"
-msgstr ""
+msgstr "Назив апликације (назив клијента)"
 
 #: frappe/modules/utils.py:280
 msgid "App not found for module: {0}"
@@ -2891,7 +2891,7 @@ msgstr "Аутор"
 #. Label of the authorization_tab (Tab Break) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Authorization"
-msgstr ""
+msgstr "Ауторизација"
 
 #. Label of the authorization_code (Password) field in DocType 'Google
 #. Calendar'
@@ -4816,7 +4816,7 @@ msgstr "Информације о клијенту"
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Client Metadata"
-msgstr ""
+msgstr "Метаподаци клијента"
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -4843,18 +4843,18 @@ msgstr "Тајна клијента"
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Client Secret Basic"
-msgstr ""
+msgstr "Основна тајна клијента"
 
 #. Option for the 'Token Endpoint Auth Method' (Select) field in DocType 'OAuth
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Client Secret Post"
-msgstr ""
+msgstr "Client Secret Post"
 
 #. Label of the client_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Client URI"
-msgstr ""
+msgstr "URI клијента"
 
 #. Label of the client_urls (Section Break) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -5339,7 +5339,7 @@ msgstr "Услови"
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Config"
-msgstr ""
+msgstr "Конфигурација"
 
 #. Label of the configuration_section (Section Break) field in DocType 'Social
 #. Login Key'
@@ -8935,7 +8935,7 @@ msgstr "Омогући коментаре"
 #. 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Enable Dynamic Client Registration"
-msgstr ""
+msgstr "Омогући динамичку регистрацију клијента"
 
 #. Label of the enable_email_notification (Check) field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -12168,7 +12168,7 @@ msgstr "Како треба да се форматира ова валута? У
 #. Description of the 'Resource Name' (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Human-readable name intended for display to the end user."
-msgstr ""
+msgstr "Људски читљив назив намењен за приказивање крајњем кориснику."
 
 #. Paragraph text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
@@ -13435,7 +13435,7 @@ msgstr "Неважећи назив поља {0}"
 
 #: frappe/model/db_query.py:1133
 msgid "Invalid field name: {0}"
-msgstr ""
+msgstr "Неважећи назив поља: {0}"
 
 #: frappe/database/query.py:668
 msgid "Invalid field type: {0}"
@@ -15166,7 +15166,7 @@ msgstr "Пријављивање са {0}"
 #. Label of the logo_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Logo URI"
-msgstr ""
+msgstr "Лого URI"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
@@ -15779,7 +15779,7 @@ msgstr "Мета наслов за SEO"
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Metadata"
-msgstr ""
+msgstr "Метаподаци"
 
 #. Label of the method (Data) field in DocType 'Access Log'
 #. Label of the method (Data) field in DocType 'API Request Log'
@@ -17694,7 +17694,7 @@ msgstr "OAuth опсег"
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "OAuth Settings"
-msgstr ""
+msgstr "OAuth подешавања"
 
 #: frappe/email/doctype/email_account/email_account.js:250
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
@@ -19474,7 +19474,7 @@ msgstr "Молимо Вас да користите важећи LDAP филте
 
 #: frappe/templates/emails/file_backup_notification.html:4
 msgid "Please use following links to download file backup."
-msgstr ""
+msgstr "Молимо Вас да користите следеће линкове да преузмете резервну копију фајла."
 
 #: frappe/utils/password.py:218
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
@@ -19483,7 +19483,7 @@ msgstr "Молимо Вас да посетите https://frappecloud.com/docs/s
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Policy URI"
-msgstr ""
+msgstr "URI политике"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -19848,7 +19848,7 @@ msgstr "Шаблон поља формата за штампу"
 #. Label of the print_format_for (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format For"
-msgstr ""
+msgstr "Формат штампе за"
 
 #. Label of the print_format_help (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -19862,7 +19862,7 @@ msgstr "Врста формата штампе"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1576
 msgid "Print Format not found"
-msgstr ""
+msgstr "Формат штампе није пронађен"
 
 #: frappe/www/printview.py:451
 msgid "Print Format {0} is disabled"
@@ -20029,7 +20029,7 @@ msgstr "Приватни фајлови (МБ)"
 
 #: frappe/templates/emails/file_backup_notification.html:6
 msgid "Private Files Backup:"
-msgstr ""
+msgstr "Резервна копија приватних фајлова:"
 
 #. Description of the 'Auto Reply Message' (Text Editor) field in DocType
 #. 'Email Account'
@@ -20155,7 +20155,7 @@ msgstr "Јавни фајлови (МБ)"
 
 #: frappe/templates/emails/file_backup_notification.html:5
 msgid "Public Files Backup:"
-msgstr ""
+msgstr "Резервна копија јавних фајлова:"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -21724,27 +21724,27 @@ msgstr "Ресетуј своју лозинку"
 #. Label of the resource_tab (Tab Break) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Resource"
-msgstr ""
+msgstr "Ресурс"
 
 #. Label of the resource_documentation (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Resource Documentation"
-msgstr ""
+msgstr "Документација о ресурсу"
 
 #. Label of the resource_name (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Resource Name"
-msgstr ""
+msgstr "Назив ресурса"
 
 #. Label of the resource_policy_uri (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Resource Policy URI"
-msgstr ""
+msgstr "URI политике ресурса"
 
 #. Label of the resource_tos_uri (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Resource TOS URI"
-msgstr ""
+msgstr "URI услова коришћења ресурса"
 
 #. Label of the response (Text Editor) field in DocType 'Email Template'
 #. Label of the response_section (Section Break) field in DocType 'Integration
@@ -22613,7 +22613,7 @@ msgstr "Опсези"
 #. Label of the scopes_supported (Small Text) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Scopes Supported"
-msgstr ""
+msgstr "Подржани опсег"
 
 #. Label of the report_script (Code) field in DocType 'Report'
 #. Label of the script (Code) field in DocType 'Server Script'
@@ -23923,7 +23923,7 @@ msgstr "Прикажи све"
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Auth Server Metadata"
-msgstr ""
+msgstr "Прикажи метаподатке ауторизационог сервера"
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -24046,7 +24046,7 @@ msgstr "Прикажи листу процеса"
 #. 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Protected Resource Metadata"
-msgstr ""
+msgstr "Прикажи метаподатке заштићеног ресурса"
 
 #: frappe/core/doctype/error_log/error_log.js:9
 msgid "Show Related Errors"
@@ -24078,7 +24078,7 @@ msgstr "Прикажи бочну траку"
 #. DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Social Login Key as Authorization Server"
-msgstr ""
+msgstr "Прикажи кључ за пријављивање путем друштвених мрежа као ауторизациони сервер"
 
 #: frappe/public/js/frappe/list/list_sidebar.html:77
 #: frappe/public/js/frappe/list/list_view.js:1704
@@ -24114,7 +24114,7 @@ msgstr "Прикажи след грешке"
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Show Values over Chart"
-msgstr ""
+msgstr "Прикажи вредности изнад графикона"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:204
 msgid "Show Warnings"
@@ -24173,7 +24173,7 @@ msgstr "Прикажи у одељку модула"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Show in Resource Metadata"
-msgstr ""
+msgstr "Прикажи у метаподацима ресурса"
 
 #. Label of the show_in_filter (Check) field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
@@ -24516,12 +24516,12 @@ msgstr "Привремено неуспешно"
 #. Label of the software_id (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Software ID"
-msgstr ""
+msgstr "ID софтвера"
 
 #. Label of the software_version (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Software Version"
-msgstr ""
+msgstr "Верзија софтвера"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
@@ -25666,7 +25666,7 @@ msgstr "Т"
 #. Label of the tos_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "TOS URI"
-msgstr ""
+msgstr "URI услова коришћења"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
