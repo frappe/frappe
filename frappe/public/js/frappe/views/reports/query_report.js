@@ -1489,6 +1489,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		let extra_fields = null;
 		if (this.tree_report) {
+<<<<<<< HEAD
 			extra_fields = [
 				{
 					label: __("Include indentation"),
@@ -1496,6 +1497,44 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldtype: "Check",
 				},
 			];
+=======
+			extra_fields.push({
+				label: __("Include indentation"),
+				fieldname: "include_indentation",
+				fieldtype: "Check",
+			});
+		}
+
+		if (this.filters.length > 0) {
+			extra_fields.push({
+				label: __("Include filters"),
+				fieldname: "include_filters",
+				fieldtype: "Check",
+			});
+		}
+
+		if (this.report_settings.export_hidden_cols) {
+			const hidden_fields = [];
+			this.columns.forEach((column) => {
+				if (column.hidden) {
+					hidden_fields.push(column.label);
+				}
+			});
+			if (hidden_fields.length) {
+				extra_fields.push(
+					{
+						fieldname: "column_break_1",
+						fieldtype: "Column Break",
+					},
+					{
+						label: __("Include hidden columns"),
+						fieldname: "include_hidden_columns",
+						description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
+						fieldtype: "Check",
+					}
+				);
+			}
+>>>>>>> 725659972e (fix: export query report hidden columns (#33350))
 		}
 
 		this.export_dialog = frappe.report_utils.get_export_dialog(
