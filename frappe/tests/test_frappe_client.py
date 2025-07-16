@@ -56,11 +56,11 @@ class TestFrappeClient(IntegrationTestCase):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert_many(
 			[
-				{"doctype": "Note", "title": "Sing", "content": "Frappe"},
-				{"doctype": "Note", "title": "a", "content": "Frappe"},
-				{"doctype": "Note", "title": "song", "content": "ERPNext"},
-				{"doctype": "Note", "title": "of", "content": "ERPNext"},
-				{"doctype": "Note", "title": "sixpence", "content": "Frappe"},
+				{"doctype": "Note", "title": "Sing"},
+				{"doctype": "Note", "title": "a"},
+				{"doctype": "Note", "title": "song"},
+				{"doctype": "Note", "title": "of"},
+				{"doctype": "Note", "title": "sixpence"},
 			]
 		)
 		notes = server.get_list("Note", fields=["title"], order_by="creation desc")
@@ -68,8 +68,9 @@ class TestFrappeClient(IntegrationTestCase):
 		notes = [d.get("title") for d in notes]
 		self.assertEqual(notes[0], "sixpence")
 
-		records = server.get_list("Note", fields=["content"], group_by="content")
-		self.assertEqual(len(records), 2)
+		users = server.get_list("User", fields=["count(name) as user_count"], filters={"user_type": "System User"}, group_by="user_type")
+		system_users = server.get_list("User", fields=["count(name) as system_user_count"], filters={"user_type": "System User"}, group_by="user_type")
+		self.assertEqual(users[0]['user_count'], system_users[0]['system_user_count'])
 
 	def test_get_doc(self):
 		USER = "Administrator"
