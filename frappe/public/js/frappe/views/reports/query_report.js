@@ -1622,25 +1622,27 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-		if (this.report_settings.export_hidden_fields) {
+		if (this.report_settings.export_hidden_cols) {
 			const hidden_fields = [];
 			this.columns.forEach((column) => {
 				if (column.hidden) {
 					hidden_fields.push(column.label);
 				}
 			});
-			extra_fields.push(
-				{
-					fieldname: "column_break_1",
-					fieldtype: "Column Break",
-				},
-				{
-					label: __("Include hidden columns"),
-					fieldname: "include_hidden_columns",
-					description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
-					fieldtype: "Check",
-				}
-			);
+			if (hidden_fields.length) {
+				extra_fields.push(
+					{
+						fieldname: "column_break_1",
+						fieldtype: "Column Break",
+					},
+					{
+						label: __("Include hidden columns"),
+						fieldname: "include_hidden_columns",
+						description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
+						fieldtype: "Check",
+					}
+				);
+			}
 		}
 
 		this.export_dialog = frappe.report_utils.get_export_dialog(
