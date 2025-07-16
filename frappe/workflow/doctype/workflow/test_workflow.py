@@ -25,6 +25,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.patcher.start()
 		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
+		create_domain_workflow()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -129,17 +130,29 @@ class TestWorkflow(IntegrationTestCase):
 	# app-defined workflow task tests start here
 	def test_sync_tasks(self, doc=None):
 		"""test simple workflow"""
-		todo = doc or self.test_default_condition()
+		domain = frappe.new_doc("Domain")
+		domain.domain = random_string(length=10)
+		domain.save()
 
-		apply_workflow(todo, "Approve")
+		with self.patch_hooks(
+			{
+				"workflow_methods": [
+					{
+						"name": "Create Note",
+						"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
+					}
+				]
+			}
+		):
+			apply_workflow(domain, "Approve")
 
 		# refer create_new_task()
 		self.assertTrue(
-			frappe.db.exists("Note", {"title": "workflow - " + todo.name, "content": "workflow test"})
+			frappe.db.exists("Note", {"title": "workflow - " + domain.name, "content": "workflow test"})
 		)
-		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + todo.name}))
+		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + domain.name}))
 
-		return todo
+		return domain
 
 
 def create_todo_workflow():
@@ -147,6 +160,60 @@ def create_todo_workflow():
 
 	if frappe.db.exists("Workflow", "Test ToDo"):
 		frappe.delete_doc("Workflow", "Test ToDo")
+
+	TEST_ROLE = "Test Approver"
+
+	if not frappe.db.exists("Role", TEST_ROLE):
+		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
+		if frappe.db.exists("User", UI_TEST_USER):
+			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+
+	workflow = frappe.new_doc("Workflow")
+	workflow.workflow_name = "Test ToDo"
+	workflow.document_type = "ToDo"
+	workflow.workflow_state_field = "workflow_state"
+	workflow.is_active = 1
+	workflow.send_email_alert = 1
+	workflow.append("states", dict(state="Pending", allow_edit="All"))
+	workflow.append(
+		"states",
+		dict(state="Approved", allow_edit=TEST_ROLE, update_field="status", update_value="Closed"),
+	)
+	workflow.append("states", dict(state="Rejected", allow_edit=TEST_ROLE))
+	workflow.append(
+		"transitions",
+		dict(
+			state="Pending",
+			action="Approve",
+			next_state="Approved",
+			allowed=TEST_ROLE,
+			allow_self_approval=1,
+		),
+	)
+	workflow.append(
+		"transitions",
+		dict(
+			state="Pending",
+			action="Reject",
+			next_state="Rejected",
+			allowed=TEST_ROLE,
+			allow_self_approval=1,
+		),
+	)
+	workflow.append(
+		"transitions",
+		dict(state="Rejected", action="Review", next_state="Pending", allowed="All", allow_self_approval=1),
+	)
+	workflow.insert(ignore_permissions=True)
+
+	return workflow
+
+
+def create_domain_workflow():
+	from frappe.tests.ui_test_helpers import UI_TEST_USER
+
+	if frappe.db.exists("Workflow", "Test Domain"):
+		frappe.delete_doc("Workflow", "Test Domain")
 
 	TEST_ROLE = "Test Approver"
 
@@ -175,8 +242,8 @@ domain.save()
 	pending_to_approved_transition.save()
 
 	workflow = frappe.new_doc("Workflow")
-	workflow.workflow_name = "Test ToDo"
-	workflow.document_type = "ToDo"
+	workflow.workflow_name = "Test Domain"
+	workflow.document_type = "Domain"
 	workflow.workflow_state_field = "workflow_state"
 	workflow.is_active = 1
 	workflow.send_email_alert = 1
