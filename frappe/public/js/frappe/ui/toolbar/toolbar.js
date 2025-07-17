@@ -4,6 +4,8 @@
 frappe.provide("frappe.ui.toolbar");
 frappe.provide("frappe.search");
 
+// This class manages the top navigation toolbar in Frappe, including search, notifications, and user menu
+
 frappe.ui.toolbar.Toolbar = class {
 	constructor() {
 		$("header").replaceWith(
