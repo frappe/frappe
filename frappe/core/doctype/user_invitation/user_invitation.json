@@ -6,7 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "email",
-  "role",
+  "roles",
   "invited_by",
   "status",
   "email_sent_at",
@@ -81,11 +81,10 @@
    "read_only": 1
   },
   {
-   "fieldname": "role",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Role",
-   "options": "Role",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "User Role",
    "read_only_depends_on": "eval:Boolean(doc.creation)",
    "reqd": 1
   }
@@ -93,7 +92,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 13:19:22.932245",
+ "modified": "2025-07-17 12:34:04.684152",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",

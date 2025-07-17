@@ -14,6 +14,7 @@ class UserInvitation(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.user_role.user_role import UserRole
 		from frappe.types import DF
 
 		accepted_at: DF.Datetime | None
@@ -23,7 +24,7 @@ class UserInvitation(Document):
 		invited_by: DF.Link | None
 		key: DF.Data | None
 		redirect_to_path: DF.Data
-		role: DF.Link
+		roles: DF.TableMultiSelect[UserRole]
 		status: DF.Literal["Pending", "Accepted", "Expired"]
 		user: DF.Link | None
 	# end: auto-generated types
@@ -115,7 +116,7 @@ class UserInvitation(Document):
 			user.first_name = self.email.split("@")[0].title()
 			user.send_welcome_email = False
 			user.insert()
-		user.append_roles(self.role)
+		user.append_roles(*[r.role for r in self.roles])
 		return user
 
 	def _run_after_accept_hooks(self, user: Document):

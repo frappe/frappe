@@ -5,7 +5,7 @@ from frappe import _
 
 @frappe.whitelist(methods=["POST"])
 def invite_by_email(
-	emails: str, role: str, redirect_to_path: str, app_name: str = "frappe"
+	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
 ) -> dict[str, list[str]]:
 	# validate `app_name`
 	if app_name not in frappe.get_installed_apps():
@@ -18,7 +18,9 @@ def invite_by_email(
 		frappe.only_for(only_for or [])
 		# validate role
 		allowed_roles = user_invitation_hook.get("allowed_roles") or []
-		if role not in allowed_roles:
+		for role in roles:
+			if role in allowed_roles:
+				continue
 			frappe.throw(title=_("Invalid role"), msg=_("{0} is not in the allowed roles").format(role))
 	else:
 		frappe.only_for(["System Manager"])
@@ -33,19 +35,20 @@ def invite_by_email(
 	existing_user_emails = frappe.db.get_all("User", filters={"email": ["in", email_list]}, pluck="email")
 	existing_invited_emails = frappe.db.get_all(
 		"User Invitation",
-		filters={"email": ["in", email_list], "status": "Pending", "app_name": app_name, "role": role},
+		filters={"email": ["in", email_list], "status": "Pending", "app_name": app_name},
 		pluck="email",
 	)
 
 	# create invitation documents
 	to_invite = list(set(email_list) - set(existing_user_emails) - set(existing_invited_emails))
 	for email in to_invite:
-		invitation = frappe.new_doc("User Invitation")
-		invitation.email = email
-		invitation.role = role
-		invitation.app_name = app_name
-		invitation.redirect_to_path = redirect_to_path
-		invitation.insert()
+		frappe.get_doc(
+			doctype="User Invitation",
+			email=email,
+			roles=[dict(role=role) for role in roles],
+			app_name=app_name,
+			redirect_to_path=redirect_to_path,
+		).insert()
 
 	return {
 		"existing_user_emails": existing_user_emails,
