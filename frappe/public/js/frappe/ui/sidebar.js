@@ -203,7 +203,7 @@ frappe.ui.Sidebar = class Sidebar {
 			parent_pages = parent_pages.filter((p) => p.public && app_workspaces.includes(p.name));
 		}
 
-		this.build_sidebar_section("All", parent_pages);
+		this.build_sidebar_section("Frappe App", parent_pages);
 
 		// Scroll sidebar to selected page if it is not in viewport.
 		this.wrapper.find(".selected").length &&
