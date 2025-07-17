@@ -39,7 +39,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Pending\nAccepted\nExpired",
+   "options": "Pending\nAccepted\nExpired\nCancelled",
    "read_only": 1
   },
   {
@@ -85,14 +85,14 @@
    "fieldtype": "Table MultiSelect",
    "label": "Roles",
    "options": "User Role",
-   "reqd": 1,
-   "set_only_once": 1
+   "read_only_depends_on": "eval:Boolean(doc.creation)",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 13:06:10.458029",
+ "modified": "2025-07-17 15:21:38.316619",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",
@@ -126,6 +126,10 @@
   {
    "color": "Yellow",
    "title": "Expired"
+  },
+  {
+   "color": "Red",
+   "title": "Cancelled"
   }
  ]
 }

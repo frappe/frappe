@@ -25,7 +25,7 @@ class UserInvitation(Document):
 		key: DF.Data | None
 		redirect_to_path: DF.Data
 		roles: DF.TableMultiSelect[UserRole]
-		status: DF.Literal["Pending", "Accepted", "Expired"]
+		status: DF.Literal["Pending", "Accepted", "Expired", "Cancelled"]
 		user: DF.Link | None
 	# end: auto-generated types
 
@@ -52,29 +52,22 @@ class UserInvitation(Document):
 		)
 		self.db_set("email_sent_at", frappe.utils.now())
 
-	def after_delete(self):
-		if self.status == "Pending":
-			email_title = self.get_email_title()
-			frappe.sendmail(
-				recipients=self.email,
-				subject=_("Invitation to join {0} revoked").format(email_title),
-				template="user_invitation_revoked",
-				args={"title": email_title, "site_name": self.get_site_name()},
-				now=True,
-			)
-
 	def expire(self):
+		if self.status == "Expired":
+			return
+		prev_status = self.status
 		self.status = "Expired"
 		self.save()
-		email_title = self.get_email_title()
-		invited_by_user = frappe.get_doc("User", self.invited_by)
-		frappe.sendmail(
-			recipients=invited_by_user.email,
-			subject=_("Invitation to join {0} expired").format(email_title),
-			template="user_invitation_expired",
-			args={"title": email_title, "site_name": self.get_site_name()},
-			now=False,
-		)
+		if prev_status == "Pending":
+			email_title = self.get_email_title()
+			invited_by_user = frappe.get_doc("User", self.invited_by)
+			frappe.sendmail(
+				recipients=invited_by_user.email,
+				subject=_("Invitation to join {0} expired").format(email_title),
+				template="user_invitation_expired",
+				args={"title": email_title, "site_name": self.get_site_name()},
+				now=False,
+			)
 
 	def accept(self, ignore_permissions: bool = False):
 		accepted_now = self._accept()
@@ -84,6 +77,23 @@ class UserInvitation(Document):
 		self.save(ignore_permissions)
 		user.save(ignore_permissions)
 		self._run_after_accept_hooks(user)
+
+	@frappe.whitelist()
+	def cancel_invite(self):
+		if self.status == "Cancelled":
+			return
+		prev_status = self.status
+		self.status = "Cancelled"
+		self.save()
+		if prev_status == "Pending":
+			email_title = self.get_email_title()
+			frappe.sendmail(
+				recipients=self.email,
+				subject=_("Invitation to join {0} cancelled").format(email_title),
+				template="user_invitation_cancelled",
+				args={"title": email_title, "site_name": self.get_site_name()},
+				now=True,
+			)
 
 	def get_email_title(self):
 		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
@@ -100,6 +110,8 @@ class UserInvitation(Document):
 			return False
 		if self.status == "Expired":
 			frappe.throw(title=_("Error"), msg=_("Invitation is expired"))
+		if self.status == "Cancelled":
+			frappe.throw(title=_("Error"), msg=_("Invitation is cancelled"))
 		self.status = "Accepted"
 		self.accepted_at = frappe.utils.now()
 		self.user = self.email

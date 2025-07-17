@@ -59,6 +59,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(invitation.status, "Pending")
 		self.assertIsInstance(invitation.email_sent_at, str)
 		self.assertIsInstance(invitation.key, str)
+		self.assertIsInstance(invitation.roles, list)
 		sent_emails = self.get_email_messages()
 		self.assertEqual(len(sent_emails), 1)
 		self.assertIn("invited", sent_emails[0].message.lower())
@@ -72,32 +73,32 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(len(emails), 2)
 		self.assertIn("expired", emails[0].message.lower())
 
-	def test_delete_pending_invitation(self):
+	def test_cancel_pending_invitation(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		self.assertEqual(invitation.status, "Pending")
-		frappe.delete_doc("User Invitation", invitation.name)
+		invitation.cancel_invite()
 		sent_emails = self.get_email_messages(False)
 		self.assertEqual(len(sent_emails), 2)
-		self.assertIn("revoked", sent_emails[0].message.lower())
+		self.assertIn("cancelled", sent_emails[0].message.lower())
 
-	def test_delete_accepted_invitation(self):
+	def test_cancel_accepted_invitation(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		invitation.status = "Accepted"
 		invitation.save()
-		frappe.delete_doc("User Invitation", invitation.name)
+		invitation.cancel_invite()
 		self.assertEqual(len(self.get_email_names(False)), 1)
 
-	def test_delete_expired_invitation(self):
+	def test_cancel_expired_invitation(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		invitation.expire()
 		self.assertEqual(len(self.get_email_names(False)), 2)
-		frappe.delete_doc("User Invitation", invitation.name)
+		invitation.cancel_invite()
 		self.assertEqual(len(self.get_email_names(False)), 2)
 
 	def test_mark_expired_invitations(self):
@@ -122,7 +123,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		frappe.get_doc(
 			doctype="User Invitation",
 			email=invited_email,
-			role="System Manager",
+			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",
 		).insert()
@@ -130,7 +131,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		email_to_invite = emails[3]
 		res = invite_by_email(
 			emails=", ".join([user_email, invited_email, email_to_invite]),
-			role="System Manager",
+			roles=["System Manager"],
 			redirect_to_path="/xyz",
 		)
 		self.assertSequenceEqual(res["existing_user_emails"], [user_email])
@@ -143,7 +144,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		invitation = frappe.get_doc(
 			doctype="User Invitation",
 			email=emails[1],
-			role="System Manager",
+			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",
 		).insert()
@@ -161,7 +162,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		invitation = frappe.get_doc(
 			doctype="User Invitation",
 			email=emails[1],
-			role="System Manager",
+			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",
 		).insert()
@@ -184,7 +185,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		return frappe.get_doc(
 			doctype="User Invitation",
 			email=emails[1],
-			role="System Manager",
+			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",
 		)
