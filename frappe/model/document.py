@@ -1837,30 +1837,24 @@ class Document(BaseDocument):
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
-	def deferred_insert(self) -> None:
-		"""Push the document to redis temporarily and insert later.
+def deferred_insert(self) -> None:
+	"""Push the document to redis temporarily and insert later.
 
-		WARN: This doesn't guarantee insertion as redis can be restarted
-		before data is flushed to database.
-		"""
+	WARN: This doesn't guarantee insertion as redis can be restarted
+	before data is flushed to database.
+	"""
+	from frappe.deferred_insert import deferred_insert
+	from frappe.utils import now_datetime
 
-		from frappe.deferred_insert import deferred_insert
+	self.set_user_and_timestamp()
 
-		self.set_user_and_timestamp()
+	doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 
-		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
-		deferred_insert(doctype=self.doctype, records=doc)
+	# Ensure modified timestamp is present before deferring
+	doc["modified"] = now_datetime()
 
-	def __str__(self):
-		return f"{self.doctype} ({self.name or 'unsaved'})"
+	deferred_insert(doctype=self.doctype, records=doc)
 
-	def __repr__(self):
-		doctype = f"doctype={self.doctype}"
-		name = self.name or "unsaved"
-		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
-		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
-
-		return f"<{self.__class__.__name__}: {doctype} {name}{docstatus}{parent}>"
 
 
 def execute_action(__doctype, __name, __action, **kwargs):
