@@ -37,6 +37,9 @@ class UserInvitation(Document):
 			self.app_name = "frappe"
 
 	def after_insert(self):
+		self._after_insert()
+
+	def _after_insert(self):
 		key = frappe.generate_hash()
 		self.db_set("key", frappe.utils.sha256_hash(key))
 		invite_link = frappe.utils.get_url(
@@ -51,6 +54,7 @@ class UserInvitation(Document):
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())
+		return key
 
 	def expire(self):
 		if self.status == "Expired":

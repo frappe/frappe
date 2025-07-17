@@ -59,6 +59,10 @@ def invite_by_email(
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def accept_invitation(key: str) -> None:
+	_accept_invitation(key, False)
+
+
+def _accept_invitation(key: str, in_test: bool) -> None:
 	# get invitation
 	hashed_key = frappe.utils.sha256_hash(key)
 	invitation_name = frappe.db.get_value("User Invitation", filters={"key": hashed_key})
@@ -82,7 +86,7 @@ def accept_invitation(key: str) -> None:
 	# GET requests do not cause an implicit commit
 	frappe.db.commit()  # nosemgrep
 
-	if not frappe.local.flags.in_test and not should_update_password:
+	if not in_test and not should_update_password:
 		frappe.local.login_manager.login_as(invitation.email)
 
 	# set response

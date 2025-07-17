@@ -5,7 +5,7 @@ import re
 
 import frappe
 import frappe.utils
-from frappe.core.api.user_invitation import accept_invitation, invite_by_email
+from frappe.core.api.user_invitation import _accept_invitation, invite_by_email
 from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
 from frappe.tests import IntegrationTestCase
 
@@ -149,7 +149,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			app_name="frappe",
 		).insert()
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
-		accept_invitation(self.get_key_from_recent_email())
+		self.assertEqual(len(self.get_email_names(False)), 1)
+		key = invitation._after_insert()
+		self.assertEqual(len(self.get_email_names(False)), 2)
+		_accept_invitation(key, True)
 		res = frappe.local.response
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(""))}/update-password\\?key=.+&redirect_to=/abc$"
@@ -169,7 +172,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
 		original_disable_user_pass_login = frappe.get_system_settings("disable_user_pass_login")
 		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 1)
-		accept_invitation(self.get_key_from_recent_email())
+		self.assertEqual(len(self.get_email_names(False)), 1)
+		key = invitation._after_insert()
+		self.assertEqual(len(self.get_email_names(False)), 2)
+		_accept_invitation(key, True)
 		frappe.db.set_single_value(
 			"System Settings", "disable_user_pass_login", original_disable_user_pass_login
 		)
@@ -197,15 +203,4 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def get_email_messages(self, sent_only=True):
 		filters = {"status": "Sent"} if sent_only else None
 		return frappe.db.get_all("Email Queue", filters=filters, fields=["message"])
-
-	def get_key_from_email_message(self, message: str):
-		start_index = message.find("key=")
-		self.assertGreater(start_index, -1)
-		end_index = message.find(")", start_index)
-		self.assertGreater(end_index, -1)
-		return message[start_index + 6 : end_index]
-
-	def get_key_from_recent_email(self):
-		sent_emails = self.get_email_messages()
-		self.assertTrue(len(sent_emails) > 0)
-		return self.get_key_from_email_message(sent_emails[0].message)
+	
