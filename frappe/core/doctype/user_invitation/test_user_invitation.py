@@ -155,7 +155,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		_accept_invitation(key, True)
 		res = frappe.local.response
 		self.assertEqual(res.type, "redirect")
-		pattern = f"^{re.escape(frappe.utils.get_url(""))}/update-password\\?key=.+&redirect_to=/abc$"
+		pattern = f"^{re.escape(frappe.utils.get_url(''))}/update-password\\?key=.+&redirect_to=/abc$"
 		self.assertRegex(res.location, pattern)
 		user = frappe.get_doc("User", invitation.email)
 		frappe.delete_doc("User Invitation", invitation.name)
@@ -181,7 +181,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		)
 		res = frappe.local.response
 		self.assertEqual(res.type, "redirect")
-		pattern = f"^{re.escape(frappe.utils.get_url(""))}/abc$"
+		pattern = f"^{re.escape(frappe.utils.get_url(''))}/abc$"
 		self.assertRegex(res.location, pattern)
 		user = frappe.get_doc("User", invitation.email)
 		frappe.delete_doc("User Invitation", invitation.name)
@@ -203,4 +203,3 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def get_email_messages(self, sent_only=True):
 		filters = {"status": "Sent"} if sent_only else None
 		return frappe.db.get_all("Email Queue", filters=filters, fields=["message"])
-	
