@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 import datetime
+import inspect
 import os
 import re
 import sqlite3
@@ -86,6 +87,20 @@ class SQLiteSearch(ABC):
 	- Filtering by user-defined criteria
 	- Permission-aware search results via query-level filtering
 	"""
+
+	@staticmethod
+	def scoring_function(func):
+		"""
+		Decorator to mark methods as scoring functions that should be automatically
+		included in the scoring pipeline.
+
+		Usage:
+		    @SQLiteSearch.scoring_function
+		    def custom_boost(self, row, query, query_words):
+		        return 1.5
+		"""
+		func._is_scoring_function = True
+		return func
 
 	def __init__(self, db_name=None):
 		# Use class-level INDEX_NAME if db_name not provided
@@ -565,6 +580,12 @@ class SQLiteSearch(ABC):
 		if "modified" in self.schema["metadata_fields"]:
 			pipeline.append(self._get_recency_boost)
 
+		# Automatically discover and add decorated scoring functions
+		for attr_name in dir(self):
+			attr = getattr(self, attr_name)
+			if callable(attr) and hasattr(attr, "_is_scoring_function"):
+				pipeline.append(attr)
+
 		return pipeline
 
 	def _calculate_advanced_score(self, row, query, query_words):
@@ -572,8 +593,6 @@ class SQLiteSearch(ABC):
 		Calculate the final score by executing the scoring pipeline.
 		The final score is the product of all scores returned by the pipeline methods.
 		"""
-		import inspect
-
 		pipeline = self.get_scoring_pipeline()
 		final_score = 1.0
 
