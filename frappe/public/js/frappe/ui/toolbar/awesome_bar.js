@@ -339,6 +339,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			});
 		}
 	}
+	// Adds calculator option to evaluate expressions typed in the search bar
+
 
 	make_calculator(txt) {
 		function getDecimalPlaces(num) {
