@@ -22,8 +22,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Email",
-   "read_only_depends_on": "eval:Boolean(doc.creation)",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "invited_by",
@@ -65,7 +65,7 @@
    "fieldname": "app_name",
    "fieldtype": "Select",
    "label": "App Name",
-   "read_only_depends_on": "eval:Boolean(doc.creation)"
+   "set_only_once": 1
   },
   {
    "fieldname": "redirect_to_path",
@@ -85,14 +85,14 @@
    "fieldtype": "Table MultiSelect",
    "label": "Roles",
    "options": "User Role",
-   "read_only_depends_on": "eval:Boolean(doc.creation)",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 12:34:04.684152",
+ "modified": "2025-07-17 13:06:10.458029",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",
