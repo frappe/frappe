@@ -387,6 +387,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		}
 	}
+	// Adds an option to generate a random password if user types "random"
+
 
 	make_random(txt) {
 		if (txt.toLowerCase().includes("random")) {
