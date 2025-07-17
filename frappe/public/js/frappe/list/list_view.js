@@ -544,21 +544,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return args;
 	}
+before_refresh() {
+	if (frappe.route_options && this.filter_area) {
+		this.filters = this.parse_filters_from_route_options();
+		frappe.route_options = null;
 
-	before_refresh() {
-		if (frappe.route_options && this.filter_area) {
-			this.filters = this.parse_filters_from_route_options();
-			frappe.route_options = null;
-
-			if (this.filters.length > 0) {
-				return this.filter_area
-					.clear(false)
-					.then(() => this.filter_area.set(this.filters));
-			}
+		if (this.filters.length > 0) {
+			return this.filter_area
+				.clear(false)
+				.then(() => {
+					// Clear the search bar input after filters are reset
+					const searchInput = document.querySelector('.search-bar input');
+					if (searchInput) searchInput.value = '';
+					
+					return this.filter_area.set(this.filters);
+				});
 		}
-
-		return Promise.resolve();
 	}
+
+	return Promise.resolve();
+}
 
 	parse_filters_from_settings() {
 		return (this.settings.filters || []).map((f) => {
