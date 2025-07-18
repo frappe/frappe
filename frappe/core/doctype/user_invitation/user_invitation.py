@@ -48,38 +48,34 @@ class UserInvitation(Document):
 
 	@frappe.whitelist()
 	def cancel_invite(self):
-		if self.status == "Cancelled":
+		if self.status != "Pending":
 			return
-		prev_status = self.status
 		self.status = "Cancelled"
 		self.save()
-		if prev_status == "Pending":
-			email_title = self._get_email_title()
-			frappe.sendmail(
-				recipients=self.email,
-				subject=_("Invitation to join {0} cancelled").format(email_title),
-				template="user_invitation_cancelled",
-				args={"title": email_title, "site_name": self._get_site_name()},
-				now=True,
-			)
+		email_title = self._get_email_title()
+		frappe.sendmail(
+			recipients=self.email,
+			subject=_("Invitation to join {0} cancelled").format(email_title),
+			template="user_invitation_cancelled",
+			args={"title": email_title, "site_name": self._get_site_name()},
+			now=True,
+		)
 
 	@frappe.whitelist()
 	def expire(self):
-		if self.status == "Expired":
+		if self.status != "Pending":
 			return
-		prev_status = self.status
 		self.status = "Expired"
 		self.save()
-		if prev_status == "Pending":
-			email_title = self._get_email_title()
-			invited_by_user = frappe.get_doc("User", self.invited_by)
-			frappe.sendmail(
-				recipients=invited_by_user.email,
-				subject=_("Invitation to join {0} expired").format(email_title),
-				template="user_invitation_expired",
-				args={"title": email_title, "site_name": self._get_site_name()},
-				now=False,
-			)
+		email_title = self._get_email_title()
+		invited_by_user = frappe.get_doc("User", self.invited_by)
+		frappe.sendmail(
+			recipients=invited_by_user.email,
+			subject=_("Invitation to join {0} expired").format(email_title),
+			template="user_invitation_expired",
+			args={"title": email_title, "site_name": self._get_site_name()},
+			now=False,
+		)
 
 	def _validate_invite(self):
 		self._validate_app_name()
@@ -88,7 +84,7 @@ class UserInvitation(Document):
 		if frappe.db.get_value(
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
-			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
+			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
 
 	def _after_insert(self):
 		key = frappe.generate_hash()
@@ -169,7 +165,7 @@ class UserInvitation(Document):
 	def _validate_email(self):
 		frappe.utils.validate_email_address(self.email, throw=True)
 		if frappe.db.exists("User", self.email):
-			frappe.throw(title=_("Invalid email"), msg=_("User already exists"))
+			frappe.throw(title=_("Invalid email"), msg=_("user already exists"))
 
 	@classmethod
 	def validate_app_name(cls, app_name: str):

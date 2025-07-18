@@ -16,14 +16,17 @@ def invite_by_email(
 	# check `only_for`
 	only_for = ["System Manager"]
 	if app_name != "frappe":
-		only_for = user_invitation_hook.get("only_for") or []
+		if isinstance(user_invitation_hook, dict):
+			only_for = user_invitation_hook.get("only_for") or []
+		else:
+			only_for = []
 	frappe.only_for(only_for)
 
 	# validate emails
 	frappe.utils.validate_email_address(emails, throw=True)
 	email_list = frappe.utils.split_emails(emails)
 	if not email_list:
-		frappe.throw(title=_("Error"), msg=_("no email addresses to invite"))
+		frappe.throw(title=_("Invalid input"), msg=_("no email addresses to invite"))
 
 	# get relevant data from the database
 	existing_user_emails = frappe.db.get_all("User", filters={"email": ["in", email_list]}, pluck="email")
