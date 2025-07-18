@@ -67,7 +67,7 @@ def run_webhooks(doc, method):
 		elif frappe.safe_eval(webhook.condition, eval_locals=get_context(doc)):
 			trigger_webhook = True
 
-		if trigger_webhook and event and frappe.scrub(webhook.webhook_docevent) == event:
+		if trigger_webhook and event and webhook.webhook_docevent == event:
 			_add_webhook_to_queue(webhook, doc)
 
 
