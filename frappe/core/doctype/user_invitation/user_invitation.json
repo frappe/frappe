@@ -99,7 +99,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 13:06:29.787237",
+ "modified": "2025-07-18 14:17:04.265194",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",
@@ -107,7 +107,6 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
