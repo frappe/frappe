@@ -3,9 +3,9 @@
     {% if files|length == 0 %}
     <div class="no-backup-container">
         <div class="backup-message">
-            No Backups taken yet
+            {{ _("No Backups taken yet")}}
             <br>
-            Click on Download Files Button to start the backup
+            {{ _("Click on Download Files Button to start the backup")}}
         </div>
     </div>
     {% endif %}
