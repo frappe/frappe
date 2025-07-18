@@ -1,6 +1,7 @@
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 
 
 @frappe.whitelist(methods=["POST"])
@@ -8,22 +9,15 @@ def invite_by_email(
 	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
 ) -> dict[str, list[str]]:
 	# validate `app_name`
-	if app_name not in frappe.get_installed_apps():
-		frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
+	UserInvitation.validate_app_name(app_name)
 
 	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
 
+	# check `only_for`
+	only_for = ["System Manager"]
 	if app_name != "frappe":
-		only_for = user_invitation_hook.get("only_for")
-		frappe.only_for(only_for or [])
-		# validate role
-		allowed_roles = user_invitation_hook.get("allowed_roles") or []
-		for role in roles:
-			if role in allowed_roles:
-				continue
-			frappe.throw(title=_("Invalid role"), msg=_("{0} is not in the allowed roles").format(role))
-	else:
-		frappe.only_for(["System Manager"])
+		only_for = user_invitation_hook.get("only_for") or []
+	frappe.only_for(only_for)
 
 	# validate emails
 	frappe.utils.validate_email_address(emails, throw=True)

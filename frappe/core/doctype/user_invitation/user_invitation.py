@@ -30,48 +30,12 @@ class UserInvitation(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
-		frappe.utils.validate_email_address(self.email, throw=True)
+		self._validate_invite()
 		self.invited_by = frappe.session.user
 		self.status = "Pending"
-		if self.app_name is None:
-			self.app_name = "frappe"
 
 	def after_insert(self):
 		self._after_insert()
-
-	def _after_insert(self):
-		key = frappe.generate_hash()
-		self.db_set("key", frappe.utils.sha256_hash(key))
-		invite_link = frappe.utils.get_url(
-			f"/api/method/frappe.core.api.user_invitation.accept_invitation?key={key}"
-		)
-		email_title = self.get_email_title()
-		frappe.sendmail(
-			recipients=self.email,
-			subject=_("You've been invited to join {0}").format(email_title),
-			template="user_invitation",
-			args={"title": email_title, "invite_link": invite_link, "site_name": self.get_site_name()},
-			now=True,
-		)
-		self.db_set("email_sent_at", frappe.utils.now())
-		return key
-
-	def expire(self):
-		if self.status == "Expired":
-			return
-		prev_status = self.status
-		self.status = "Expired"
-		self.save()
-		if prev_status == "Pending":
-			email_title = self.get_email_title()
-			invited_by_user = frappe.get_doc("User", self.invited_by)
-			frappe.sendmail(
-				recipients=invited_by_user.email,
-				subject=_("Invitation to join {0} expired").format(email_title),
-				template="user_invitation_expired",
-				args={"title": email_title, "site_name": self.get_site_name()},
-				now=False,
-			)
 
 	def accept(self, ignore_permissions: bool = False):
 		accepted_now = self._accept()
@@ -90,24 +54,58 @@ class UserInvitation(Document):
 		self.status = "Cancelled"
 		self.save()
 		if prev_status == "Pending":
-			email_title = self.get_email_title()
+			email_title = self._get_email_title()
 			frappe.sendmail(
 				recipients=self.email,
 				subject=_("Invitation to join {0} cancelled").format(email_title),
 				template="user_invitation_cancelled",
-				args={"title": email_title, "site_name": self.get_site_name()},
+				args={"title": email_title, "site_name": self._get_site_name()},
 				now=True,
 			)
 
-	def get_email_title(self):
-		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
+	@frappe.whitelist()
+	def expire(self):
+		if self.status == "Expired":
+			return
+		prev_status = self.status
+		self.status = "Expired"
+		self.save()
+		if prev_status == "Pending":
+			email_title = self._get_email_title()
+			invited_by_user = frappe.get_doc("User", self.invited_by)
+			frappe.sendmail(
+				recipients=invited_by_user.email,
+				subject=_("Invitation to join {0} expired").format(email_title),
+				template="user_invitation_expired",
+				args={"title": email_title, "site_name": self._get_site_name()},
+				now=False,
+			)
 
-	def get_redirect_to_path(self):
-		start_index = 1 if self.redirect_to_path.startswith("/") else 0
-		return self.redirect_to_path[start_index:]
+	def _validate_invite(self):
+		self._validate_app_name()
+		self._validate_roles()
+		self._validate_email()
+		if frappe.db.get_value(
+			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
+		):
+			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
 
-	def get_site_name(self):
-		return frappe.utils.get_url(self.get_redirect_to_path())
+	def _after_insert(self):
+		key = frappe.generate_hash()
+		self.db_set("key", frappe.utils.sha256_hash(key))
+		invite_link = frappe.utils.get_url(
+			f"/api/method/frappe.core.api.user_invitation.accept_invitation?key={key}"
+		)
+		email_title = self._get_email_title()
+		frappe.sendmail(
+			recipients=self.email,
+			subject=_("You've been invited to join {0}").format(email_title),
+			template="user_invitation",
+			args={"title": email_title, "invite_link": invite_link, "site_name": self._get_site_name()},
+			now=True,
+		)
+		self.db_set("email_sent_at", frappe.utils.now())
+		return key
 
 	def _accept(self):
 		if self.status == "Accepted":
@@ -141,6 +139,44 @@ class UserInvitation(Document):
 			return
 		for dot_path in user_invitation_hook.get("after_accept") or []:
 			frappe.call(dot_path, invitation=self, user=user)
+
+	def _get_email_title(self):
+		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
+
+	def _get_site_name(self):
+		return frappe.utils.get_url(self.get_redirect_to_path())
+
+	def _validate_app_name(self):
+		UserInvitation.validate_app_name(self.app_name)
+
+	def _validate_roles(self):
+		if self.app_name == "frappe":
+			return
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+		allowed_roles: list[str] = []
+		if isinstance(user_invitation_hook, dict):
+			allowed_roles = user_invitation_hook.get("allowed_roles") or []
+		for r in self.roles:
+			if r.role in allowed_roles:
+				continue
+			frappe.throw(
+				title=_("Invalid role"),
+				msg=_("{0} is not an allowed role for {1}").format(r.role, self.app_name),
+			)
+
+	def _validate_email(self):
+		frappe.utils.validate_email_address(self.email, throw=True)
+		if frappe.db.exists("User", self.email):
+			frappe.throw(title=_("Invalid email"), msg=_("User already exists"))
+
+	@classmethod
+	def validate_app_name(cls, app_name: str):
+		if app_name not in frappe.get_installed_apps():
+			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
+
+	def get_redirect_to_path(self):
+		start_index = 1 if self.redirect_to_path.startswith("/") else 0
+		return self.redirect_to_path[start_index:]
 
 
 def mark_expired_invitations() -> None:
