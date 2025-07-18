@@ -181,7 +181,14 @@ def get_temp_s3_link(file_name, expiration=600):
 	if not file_name:
 		frappe.throw("Thiếu tên file")
 
-	file_doc = frappe.get_doc("File", file_name)
+	# If file_name is actually an S3 URL, find the file by URL
+	if file_name.startswith("s3://"):
+		file_doc = frappe.db.get_value("File", {"file_url": file_name}, "name")
+		if not file_doc:
+			frappe.throw("Không tìm thấy file với S3 URL này")
+		file_doc = frappe.get_doc("File", file_doc)
+	else:
+		file_doc = frappe.get_doc("File", file_name)
 
 	if not file_doc.file_url or not file_doc.file_url.startswith("s3://"):
 		frappe.throw("Tệp không lưu trên S3")

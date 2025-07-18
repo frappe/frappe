@@ -159,11 +159,36 @@ Object.assign(frappe.utils, {
 		filename = cstr(filename);
 		if (frappe.utils.is_url(filename)) {
 			return filename;
-		} else if (filename.indexOf("/") === -1) {
-			return "files/" + filename;
-		} else {
-			return filename;
 		}
+		// Nếu là file lưu trên S3 (bắt đầu bằng s3://)
+		if (filename.startsWith("s3://")) {
+			return new Promise((resolve, reject) => {
+				frappe.call({
+					method: "frappe.utils.s3_file_handler.get_temp_s3_link",
+					args: {
+						file_name: filename,  // Pass S3 URL directly
+						expiration: 600
+					},
+					callback: function (r) {
+						if (!r.exc && r.message) {
+							resolve(r.message);
+						} else {
+							reject("Không lấy được liên kết S3");
+						}
+					},
+					error: function () {
+						reject("Lỗi khi gọi API tạo link S3");
+					}
+				});
+			});
+		}
+
+		// Nếu chỉ có tên file → tạo đường dẫn mặc định
+		if (filename.indexOf("/") === -1) {
+			return "files/" + filename;
+		}
+
+		return filename;
 	},
 	replace_newlines(t) {
 		return t ? t.replace(/\n/g, "<br>") : "";

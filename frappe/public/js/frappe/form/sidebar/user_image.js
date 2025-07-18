@@ -14,15 +14,35 @@ frappe.ui.form.set_user_image = function (frm) {
 
 	// if image field has value
 	if (image) {
-		image = window.cordova && image.indexOf("http") === -1 ? frappe.base_url + image : image;
-
-		image_section.find(".sidebar-image").attr("src", image).removeClass("hide");
-
-		image_section.find(".sidebar-standard-image").addClass("hide");
-
-		title_image.css("background-image", `url("${image}")`).html("");
-
-		image_actions.find(".sidebar-image-change, .sidebar-image-remove").show();
+		// Handle S3 URLs
+		if (image.startsWith("s3://")) {
+			frappe.utils.get_file_link(image).then(url => {
+				image_section.find(".sidebar-image").attr("src", url).removeClass("hide");
+				image_section.find(".sidebar-standard-image").addClass("hide");
+				title_image.css("background-image", `url("${url}")`).html("");
+				image_actions.find(".sidebar-image-change, .sidebar-image-remove").show();
+			}).catch(err => {
+				console.warn("Cannot get S3 URL for form image:", err);
+				// Fallback to default avatar
+				var title = frm.get_title();
+				image_section.find(".sidebar-image").attr("src", null).addClass("hide");
+				image_section
+					.find(".sidebar-standard-image")
+					.removeClass("hide")
+					.find(".standard-image")
+					.html(frappe.get_abbr(title));
+				title_image.css("background-image", "").html(frappe.get_abbr(title));
+				image_actions.find(".sidebar-image-change").show();
+				image_actions.find(".sidebar-image-remove").hide();
+			});
+		} else {
+			image = window.cordova && image.indexOf("http") === -1 ? frappe.base_url + image : image;
+			
+			image_section.find(".sidebar-image").attr("src", image).removeClass("hide");
+			image_section.find(".sidebar-standard-image").addClass("hide");
+			title_image.css("background-image", `url("${image}")`).html("");
+			image_actions.find(".sidebar-image-change, .sidebar-image-remove").show();
+		}
 	} else {
 		image_section.find(".sidebar-image").attr("src", null).addClass("hide");
 

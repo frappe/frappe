@@ -1,24 +1,25 @@
 <p>
-	{{_("Hello")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},
+	{{_("Xin chào")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},
 </p>
 {% set site_link = "<a href='" + site_url + "'>" + site_url + "</a>" %}
-<p>{{_("A new account has been created for you at {0}").format(site_link)}}.</p>
-<p>{{_("Your login id is")}}: <b>{{ user }}</b>
-<p>{{_("Click on the link below to complete your registration and set a new password")}}.</p>
+<p>{{_("Cảm ơn bạn đã Đăng ký sử dụng GRPNext")}}.</p>
+<p>{{_("Một tài khoản mới đã được tạo cho bạn tại {0}").format(site_link)}}.</p>
+<p>{{_("ID đăng nhập của bạn là")}}: <b>{{ user }}</b>
+<p>{{_("Nhấp vào liên kết bên dưới để hoàn tất đăng ký và đặt lại mật khẩu")}}.</p>
 
 <p style="margin: 15px 0px;">
-	<a href="{{ link }}" rel="nofollow" class="btn btn-primary">{{ _("Complete Registration") }}</a>
+	<a href="{{ link }}" rel="nofollow" class="btn btn-primary">{{ _("Hoàn tất đăng ký") }}</a>
 </p>
 
 {% if created_by != "Administrator" %}
 <br>
 <p style="margin-top: 15px">
-	{{_("Thanks")}},<br>
+	{{_("Cảm ơn")}},<br>
 	{{ created_by }}
 </p>
 {% endif %}
 <br>
 <p>
-	{{_("You can also copy-paste following link in your browser")}}<br>
+	{{_("Bạn cũng có thể sao chép và dán liên kết sau vào trình duyệt của mình")}}<br>
 	<a href="{{ link }}">{{ link }}</a>
 </p>

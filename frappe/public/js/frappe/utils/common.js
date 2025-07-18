@@ -43,17 +43,51 @@ frappe.avatar = function (
 	);
 };
 
-frappe.get_avatar = function (css_class, title, image_url = null, remove_color, data_attributes) {
+frappe.get_avatar = function (css_class, title, image_url = null, remove_color, data_attributes = "") {
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
 	let el = document.createElement("div");
 
 	if (image_url) {
-		el.innerHTML = `
-			<span class="avatar ${css_class}" ${data_attributes}>
-				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
+		// For S3 URLs, create placeholder and update async
+		if (image_url.startsWith("s3://")) {
+			// Create placeholder with initials first
+			let abbr = frappe.get_abbr(title);
+			let style = "";
+			if (!remove_color) {
+				let color = frappe.get_palette(title);
+				style = `background-color: var(${color[0]}); color: var(${color[1]})`;
+			}
+
+			if (css_class === "avatar-small" || css_class == "avatar-xs") {
+				abbr = abbr.substr(0, 1);
+			}
+
+			let placeholder_id = "avatar-" + Math.random().toString(36).substr(2, 9);
+			el.innerHTML = `<span class="avatar ${css_class}" ${data_attributes} id="${placeholder_id}">
+				<div class="avatar-frame standard-image" style="${style}">
+					${abbr}
+				</div>
 			</span>`;
+
+			// Async load S3 image
+			frappe.utils.get_file_link(image_url).then(url => {
+				setTimeout(() => {
+					let avatar_el = document.getElementById(placeholder_id);
+					if (avatar_el) {
+						avatar_el.innerHTML = `<span class="avatar-frame" style='background-image: url("${url}")'></span>`;
+					}
+				}, 100);
+			}).catch(err => {
+				console.warn("Cannot get S3 URL for avatar:", err);
+			});
+		} else {
+			el.innerHTML = `
+				<span class="avatar ${css_class}" ${data_attributes}>
+					<span class="avatar-frame" style='background-image: url("${image_url}")'></span>
+				</span>`;
+		}
 	} else {
 		let abbr = frappe.get_abbr(title);
 		let style = "";
@@ -79,6 +113,7 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 
 	return el.innerHTML;
 };
+
 
 frappe.avatar_group = function (users, limit = 4, options = {}) {
 	let avatar_action_html = "";

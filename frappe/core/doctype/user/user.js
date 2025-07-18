@@ -250,9 +250,19 @@ frappe.ui.form.on("User", {
 			if (frappe.session.user == doc.name) {
 				// update display settings
 				if (doc.user_image) {
-					frappe.boot.user_info[frappe.session.user].image = frappe.utils.get_file_link(
-						doc.user_image
-					);
+					// Handle S3 URLs with async/await
+					if (doc.user_image.startsWith("s3://")) {
+						frappe.utils.get_file_link(doc.user_image).then(url => {
+							frappe.boot.user_info[frappe.session.user].image = url;
+						}).catch(err => {
+							console.warn("Cannot get S3 URL for user avatar:", err);
+							frappe.boot.user_info[frappe.session.user].image = "";
+						});
+					} else {
+						frappe.boot.user_info[frappe.session.user].image = frappe.utils.get_file_link(
+							doc.user_image
+						);
+					}
 				}
 			}
 		}

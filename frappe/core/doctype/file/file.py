@@ -421,6 +421,18 @@ class File(Document):
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
 			return
+		
+		# Handle S3 files
+		if self.file_url.startswith("s3://"):
+			try:
+				content = self._get_s3_content()
+				if isinstance(content, str):
+					content = content.encode()
+				self.content_hash = get_content_hash(content)
+			except Exception as e:
+				frappe.logger().error(f"Failed to generate content hash for S3 file {self.file_url}: {str(e)}")
+			return
+		
 		file_name = self.file_url.split("/")[-1]
 		try:
 			file_path = get_files_path(file_name, is_private=self.is_private)
@@ -558,6 +570,9 @@ class File(Document):
 		return files
 
 	def exists_on_disk(self):
+		if self.file_url and self.file_url.startswith("s3://"):
+			return self._check_s3_file_exists()
+		
 		return os.path.exists(self.get_full_path())
 
 	def get_content(self) -> bytes:
@@ -574,6 +589,10 @@ class File(Document):
 
 		if self.file_url:
 			self.validate_file_url()
+
+		if self.file_url and self.file_url.startswith("s3://"):
+			return self._get_s3_content()
+		
 		file_path = self.get_full_path()
 
 		# read the file
@@ -587,6 +606,79 @@ class File(Document):
 				pass
 
 		return self._content
+	
+	def _get_s3_content(self) -> bytes:
+		"""Download file content from S3"""
+		try:
+			# Import S3 handler functions
+			from frappe.utils.s3_file_handler import get_s3_config, extract_bucket_and_key
+			import boto3
+			
+			s3_config = get_s3_config()
+			if not s3_config:
+				frappe.throw(_("S3 configuration not found"))
+			
+			# Extract bucket and key from S3 URL
+			bucket, key = extract_bucket_and_key(self.file_url)
+			
+			# Create S3 client
+			s3_client = boto3.client(
+				's3',
+				aws_access_key_id=s3_config['aws_access_key_id'],
+				aws_secret_access_key=s3_config['aws_secret_access_key'],
+				endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+				region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+			)
+			
+			# Download file content
+			response = s3_client.get_object(Bucket=bucket, Key=key)
+			self._content = response['Body'].read()
+			
+			try:
+				# for plain text files
+				self._content = self._content.decode()
+			except UnicodeDecodeError:
+				# for .png, .jpg, etc - keep as bytes
+				pass
+				
+			return self._content
+			
+		except Exception as e:
+			frappe.logger().error(f"Failed to download S3 file {self.file_url}: {str(e)}")
+			frappe.throw(_("Cannot download file from S3: {0}").format(str(e)))
+
+	def _check_s3_file_exists(self) -> bool:
+		"""Check if file exists on S3"""
+		try:
+			from frappe.utils.s3_file_handler import get_s3_config, extract_bucket_and_key
+			import boto3
+			from botocore.exceptions import ClientError
+			
+			s3_config = get_s3_config()
+			if not s3_config:
+				return False
+			
+			bucket, key = extract_bucket_and_key(self.file_url)
+			
+			s3_client = boto3.client(
+				's3',
+				aws_access_key_id=s3_config['aws_access_key_id'],
+				aws_secret_access_key=s3_config['aws_secret_access_key'],
+				endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+				region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+			)
+			
+			try:
+				s3_client.head_object(Bucket=bucket, Key=key)
+				return True
+			except ClientError as e:
+				if e.response['Error']['Code'] == '404':
+					return False
+				raise
+				
+		except Exception as e:
+			frappe.logger().error(f"Failed to check S3 file existence {self.file_url}: {str(e)}")
+			return False
 
 	def get_full_path(self):
 		"""Returns file path from given file name or file_url"""

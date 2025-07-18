@@ -116,11 +116,11 @@ frappe.ui.form.on("File", {
 
 async function getRealFileUrl(file_doc) {
 	if (file_doc.file_url.startsWith("s3://")) {
-		// Lấy presigned URL từ backend
+		// Lấy presigned URL từ backend - pass S3 URL instead of doc name
 		const res = await frappe.call({
 			method: "frappe.utils.s3_file_handler.get_temp_s3_link",
 			args: {
-				file_name: file_doc.name,
+				file_name: file_doc.file_url,
 				expiration: 600,
 			},
 		});
