@@ -57,7 +57,7 @@ class UserInvitation(Document):
 			recipients=self.email,
 			subject=_("Invitation to join {0} cancelled").format(email_title),
 			template="user_invitation_cancelled",
-			args={"title": email_title, "site_name": self._get_site_name()},
+			args={"title": email_title},
 			now=True,
 		)
 
@@ -73,7 +73,7 @@ class UserInvitation(Document):
 			recipients=invited_by_user.email,
 			subject=_("Invitation to join {0} expired").format(email_title),
 			template="user_invitation_expired",
-			args={"title": email_title, "site_name": self._get_site_name()},
+			args={"title": email_title},
 			now=False,
 		)
 
@@ -97,7 +97,7 @@ class UserInvitation(Document):
 			recipients=self.email,
 			subject=_("You've been invited to join {0}").format(email_title),
 			template="user_invitation",
-			args={"title": email_title, "invite_link": invite_link, "site_name": self._get_site_name()},
+			args={"title": email_title, "invite_link": invite_link},
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())
@@ -140,9 +140,6 @@ class UserInvitation(Document):
 
 	def _get_email_title(self):
 		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
-
-	def _get_site_name(self):
-		return frappe.utils.get_url(self.get_redirect_to_path())
 
 	def _validate_app_name(self):
 		UserInvitation.validate_app_name(self.app_name)
