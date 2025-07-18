@@ -41,10 +41,10 @@ class UserInvitation(Document):
 		accepted_now = self._accept()
 		if not accepted_now:
 			return
-		user = self._upsert_user()
+		user, user_inserted = self._upsert_user()
 		self.save(ignore_permissions)
 		user.save(ignore_permissions)
-		self._run_after_accept_hooks(user)
+		self._run_after_accept_hooks(user, user_inserted)
 
 	@frappe.whitelist()
 	def cancel_invite(self):
@@ -121,6 +121,7 @@ class UserInvitation(Document):
 
 	def _upsert_user(self):
 		user: Document | None = None
+		user_inserted = False
 		if frappe.db.exists("User", self.user):
 			user = frappe.get_doc("User", self.user)
 		else:
@@ -130,15 +131,16 @@ class UserInvitation(Document):
 			user.first_name = self.email.split("@")[0].title()
 			user.send_welcome_email = False
 			user.insert()
+			user_inserted = True
 		user.append_roles(*[r.role for r in self.roles])
-		return user
+		return user, user_inserted
 
-	def _run_after_accept_hooks(self, user: Document):
+	def _run_after_accept_hooks(self, user: Document, user_inserted: bool):
 		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
 		if not isinstance(user_invitation_hook, dict):
 			return
 		for dot_path in user_invitation_hook.get("after_accept") or []:
-			frappe.call(dot_path, invitation=self, user=user)
+			frappe.call(dot_path, invitation=self, user=user, user_inserted=user_inserted)
 
 	def _get_email_title(self):
 		return frappe.get_hooks("app_title", app_name=self.app_name)[0]
