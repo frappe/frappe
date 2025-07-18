@@ -152,6 +152,23 @@ frappe.ui.form.on("Auto Email Report", {
 								: [];
 						};
 					}
+					// Handle Select fields that need dynamic options (like year)
+					if (val.fieldtype === "Select" && val.fieldname === "year" && !val.options) {
+						if (reference_report?.onload) {
+							const methodMatch = reference_report.onload.toString().match(/method:\s*["']([^"']+)["']/);
+							if (methodMatch?.[1]) {
+								frappe.call({
+									method: methodMatch[1],
+									callback: function (r) {
+										if (r.message) {
+											const years = typeof r.message === "string" ? r.message.split("\n") : r.message;
+											val.options = years.map(year => ({ value: year.trim(), label: year.trim() }));
+										}
+									}
+								});
+							}
+						}
+					}
 					report_filters_list.push(val);
 				}
 			});
