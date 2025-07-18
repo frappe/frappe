@@ -186,7 +186,7 @@ def enqueue_webhook(doc, webhook) -> None:
 			if i != 2:
 				continue
 			else:
-				if webhook.webhook_docevent == "Workflow Transition":
+				if webhook.webhook_docevent == "workflow_transition":
 					raise e
 
 
