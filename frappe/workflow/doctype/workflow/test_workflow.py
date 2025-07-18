@@ -222,17 +222,7 @@ def create_domain_workflow():
 		if frappe.db.exists("User", UI_TEST_USER):
 			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
 
-	server_script = frappe.new_doc("Server Script")
-	server_script.name = random_string(length=10)
-	server_script.script_type = "Workflow Task"
-	server_script.script = """
-# create a domain with the same name as the given document
-domain = frappe.new_doc("Domain")
-domain.domain = "workflow - " + doc.name
-
-domain.save()
-	"""
-	server_script.save()
+	server_script = create_new_server_script()
 
 	pending_to_approved_transition = frappe.new_doc("Workflow Transition Tasks")
 	pending_to_approved_transition.name = random_string(length=10)
@@ -293,3 +283,19 @@ def create_new_note(doc):
 	note.content = "workflow test"
 
 	note.save()
+
+
+def create_new_server_script():
+	server_script = frappe.new_doc("Server Script")
+	server_script.name = random_string(length=10)
+	server_script.script_type = "Workflow Task"
+	server_script.script = """
+# create a domain with the same name as the given document
+domain = frappe.new_doc("Domain")
+domain.domain = "workflow - " + doc.name
+
+domain.save()
+	"""
+	server_script.save()
+
+	return server_script
