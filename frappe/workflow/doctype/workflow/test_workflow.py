@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 from unittest.mock import patch
 
+import responses
+
 import frappe
 from frappe.model.workflow import (
 	WorkflowTransitionError,
@@ -30,6 +32,7 @@ class TestWorkflow(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.patcher.stop()
+
 		frappe.delete_doc("Workflow", "Test ToDo")
 
 	def test_default_condition(self):
@@ -129,7 +132,19 @@ class TestWorkflow(IntegrationTestCase):
 
 	# app-defined workflow task tests start here
 	def test_sync_tasks(self, doc=None):
-		"""test simple workflow"""
+		"""test workflow with workflow tasks (server scripts, webhooks and app-defined methods)"""
+
+		# for webhooks
+		self.responses = responses.RequestsMock()
+		self.responses.start()
+
+		self.responses.add(
+			responses.POST,
+			"https://workflowtasks.org/post",
+			status=200,
+			json={},
+		)
+
 		domain = frappe.new_doc("Domain")
 		domain.domain = random_string(length=10)
 		domain.save()
@@ -151,6 +166,11 @@ class TestWorkflow(IntegrationTestCase):
 			frappe.db.exists("Note", {"title": "workflow - " + domain.name, "content": "workflow test"})
 		)
 		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + domain.name}))
+		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://workflowtasks.org/post"}))
+
+		# for webhooks
+		self.responses.stop()
+		self.responses.reset()
 
 		return domain
 
@@ -223,11 +243,13 @@ def create_domain_workflow():
 			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
 
 	server_script = create_new_server_script()
+	webhook = create_new_webhook()
 
 	pending_to_approved_transition = frappe.new_doc("Workflow Transition Tasks")
 	pending_to_approved_transition.name = random_string(length=10)
 	pending_to_approved_transition.append("tasks", {"task": "Create Note"})
 	pending_to_approved_transition.append("tasks", {"task": "Server Script", "link": server_script.name})
+	pending_to_approved_transition.append("tasks", {"task": "Webhook", "link": webhook.name})
 
 	pending_to_approved_transition.save()
 
@@ -299,3 +321,15 @@ domain.save()
 	server_script.save()
 
 	return server_script
+
+
+def create_new_webhook():
+	webhook = frappe.new_doc("Webhook")
+	webhook.__newname = random_string(10)
+	webhook.webhook_docevent = "workflow_transition"
+	webhook.webhook_doctype = "Domain"
+	webhook.request_method = "POST"
+	webhook.request_url = "https://workflowtasks.org/post"
+	webhook.save()
+
+	return webhook
