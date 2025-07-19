@@ -117,7 +117,8 @@ def setup_s3_for_site(site_name):
                 's3_bucket': bucket_name,
                 'aws_access_key_id': credentials['aws_access_key_id'],
                 'aws_secret_access_key': credentials['aws_secret_access_key'],
-                'aws_s3_endpoint_url': f"https://s3.{credentials['region']}.amazonaws.com"
+                'aws_s3_endpoint_url': f"https://s3.{credentials['region']}.amazonaws.com",
+                'aws_default_region': credentials['region']
             }
             
             return s3_config

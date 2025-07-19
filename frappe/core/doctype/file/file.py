@@ -831,6 +831,17 @@ class File(Document):
 				msg += ".<br>" + _("You can increase the limit from System Settings.")
 			frappe.throw(msg, exc=MaxFileSizeReachedError)
 
+		# Kiểm tra site storage quota
+		try:
+			quota_check = frappe.call("frappe.api.storage.check_storage_quota", 
+									 required_size_bytes=file_size)
+			if not quota_check.get("allowed", True):
+				frappe.throw(_("Site storage quota exceeded: {0}").format(quota_check.get("message", "")), 
+						   exc=MaxFileSizeReachedError)
+		except Exception as e:
+			# Log error nhưng không block upload để tránh break existing functionality
+			frappe.log_error(f"Error checking site storage quota: {str(e)}")
+
 		return file_size
 
 	def delete_file_data_content(self, only_thumbnail=False):

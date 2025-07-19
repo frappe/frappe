@@ -124,6 +124,7 @@ async function getRealFileUrl(file_doc) {
 				expiration: 600,
 			},
 		});
+		console.log("S3 URL:", res);
 		return res.message || "";
 	} else if (!frappe.utils.is_url(file_doc.file_url)) {
 		return window.location.origin + file_doc.file_url;

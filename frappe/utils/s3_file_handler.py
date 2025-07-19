@@ -178,46 +178,45 @@ def upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key):
 
 @frappe.whitelist()
 def get_temp_s3_link(file_name, expiration=600):
-	if not file_name:
-		frappe.throw("Thiếu tên file")
+    if not file_name:
+        frappe.throw("Thiếu tên file")
 
-	# If file_name is actually an S3 URL, find the file by URL
-	if file_name.startswith("s3://"):
-		file_doc = frappe.db.get_value("File", {"file_url": file_name}, "name")
-		if not file_doc:
-			frappe.throw("Không tìm thấy file với S3 URL này")
-		file_doc = frappe.get_doc("File", file_doc)
-	else:
-		file_doc = frappe.get_doc("File", file_name)
+    # Tìm theo file_url hoặc name
+    if file_name.startswith("s3://"):
+        file_doc = frappe.db.get_value("File", {"file_url": file_name}, "name")
+        if not file_doc:
+            frappe.throw("Không tìm thấy file với S3 URL này")
+        file_doc = frappe.get_doc("File", file_doc)
+    else:
+        file_doc = frappe.get_doc("File", file_name)
 
-	if not file_doc.file_url or not file_doc.file_url.startswith("s3://"):
-		frappe.throw("Tệp không lưu trên S3")
+    if not file_doc.file_url or not file_doc.file_url.startswith("s3://"):
+        frappe.throw("Tệp không lưu trên S3")
 
-	s3_config = get_s3_config()
-	if not s3_config:
-		frappe.throw("Thiếu cấu hình S3")
+    s3_config = get_s3_config()
+    if not s3_config:
+        frappe.throw("Thiếu cấu hình S3")
 
-	bucket, key = extract_bucket_and_key(file_doc.file_url)
+    bucket, key = extract_bucket_and_key(file_doc.file_url)
 
-	s3_client = boto3.client(
-		's3',
-		aws_access_key_id=s3_config['aws_access_key_id'],
-		aws_secret_access_key=s3_config['aws_secret_access_key'],
-		endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-		region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
-	)
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=s3_config['aws_access_key_id'],
+        aws_secret_access_key=s3_config['aws_secret_access_key'],
+        endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+        region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+    )
 
-	try:
-		url = s3_client.generate_presigned_url(
-			ClientMethod='get_object',
-			Params={'Bucket': bucket, 'Key': key},
-			ExpiresIn=int(expiration)
-		)
-		return url
-
-	except Exception as e:
-		frappe.log_error(f"Lỗi tạo presigned URL: {str(e)}", "S3 View Link")
-		frappe.throw("Không thể tạo link tạm thời")
+    try:
+        url = s3_client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={'Bucket': bucket, 'Key': key},
+            ExpiresIn=int(expiration)
+        )
+        return url
+    except Exception as e:
+        frappe.log_error(f"Lỗi tạo presigned URL: {str(e)}", "S3 View Link")
+        frappe.throw("Không thể tạo link tạm thời")
 
 def extract_bucket_and_key(s3_url):
     if s3_url.startswith("s3://"):
