@@ -6,8 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "app_name",
   "app_title",
+  "app_name",
   "route",
   "column_break_aroi",
   "app_home",
@@ -40,7 +40,8 @@
   {
    "fieldname": "app_title",
    "fieldtype": "Data",
-   "label": "App Title"
+   "label": "App Title",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -58,7 +59,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-07-08 12:00:13.847967",
+ "modified": "2025-07-15 10:57:08.869756",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
