@@ -16,4 +16,6 @@ export interface StudioApp {
 	app_home: string
 }
 
-export type NewStudioApp = Pick<StudioApp, "app_title" | "route">
+export type NewStudioApp = Pick<StudioApp, "app_title" | "route" | "app_name"> & {
+	app_name_placeholder?: string
+}

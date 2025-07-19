@@ -56,19 +56,39 @@
 			:options="{
 				title: 'New App',
 				width: 'md',
-				actions: [
-					{
-						label: 'Create',
-						variant: 'solid',
-						onClick: () => createStudioApp(newApp),
-					},
-				],
 			}"
+			@after-leave="
+				() => {
+					newApp = { ...emptyAppState }
+					appCreationError = ''
+				}
+			"
 		>
 			<template #body-content>
 				<div class="flex flex-col gap-3">
-					<FormControl label="App Title" type="text" variant="outline" v-model="newApp.app_title" />
+					<FormControl
+						label="Title"
+						type="text"
+						variant="outline"
+						v-model="newApp.app_title"
+						@input="setAppFields"
+						:required="true"
+					/>
 					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
+					<FormControl
+						label="App Name"
+						type="text"
+						variant="outline"
+						v-model="newApp.app_name"
+						:placeholder="newApp.app_name_placeholder"
+					/>
+				</div>
+			</template>
+
+			<template #actions>
+				<div class="space-y-1">
+					<ErrorMessage class="mb-2" :message="appCreationError" />
+					<Button variant="solid" label="Create" @click="() => createStudioApp(newApp)" class="w-full" />
 				</div>
 			</template>
 		</Dialog>
@@ -77,7 +97,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Dialog } from "frappe-ui"
+import { Dialog, FormControl } from "frappe-ui"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
@@ -91,6 +111,8 @@ const showDialog = ref(false)
 const emptyAppState = {
 	app_title: "",
 	route: "",
+	app_name: "",
+	app_name_placeholder: "",
 }
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
@@ -109,16 +131,29 @@ const fetchApps = () => {
 
 watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
 
+const appCreationError = ref("")
 const createStudioApp = (app: NewStudioApp) => {
-	studioApps.insert
-		.submit({
+	studioApps.insert.submit(
+		{
 			app_title: app.app_title,
 			route: app.route,
-		})
-		.then((res: StudioApp) => {
-			showDialog.value = false
-			newApp.value = { ...emptyAppState }
-			router.push({ name: "StudioApp", params: { appID: res.name } })
-		})
+			app_name: app.app_name,
+		},
+		{
+			onSuccess(res: StudioApp) {
+				showDialog.value = false
+				appCreationError.value = ""
+				router.push({ name: "StudioApp", params: { appID: res.name } })
+			},
+			onError(error: any) {
+				appCreationError.value = error.messages.join(", ")
+			},
+		},
+	)
+}
+
+function setAppFields(e: Event) {
+	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
+	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
 }
 </script>
