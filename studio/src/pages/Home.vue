@@ -56,15 +56,13 @@
 			:options="{
 				title: 'New App',
 				width: 'md',
-				actions: [
-					{
-						label: 'Create',
-						variant: 'solid',
-						onClick: () => createStudioApp(newApp),
-					},
-				],
 			}"
-			@after-leave="newApp = { ...emptyAppState }"
+			@after-leave="
+				() => {
+					newApp = { ...emptyAppState }
+					appCreationError = ''
+				}
+			"
 		>
 			<template #body-content>
 				<div class="flex flex-col gap-3">
@@ -84,6 +82,13 @@
 						v-model="newApp.app_name"
 						:placeholder="newApp.app_name_placeholder"
 					/>
+				</div>
+			</template>
+
+			<template #actions>
+				<div class="space-y-1">
+					<ErrorMessage class="mb-2" :message="appCreationError" />
+					<Button variant="solid" label="Create" @click="() => createStudioApp(newApp)" class="w-full" />
 				</div>
 			</template>
 		</Dialog>
@@ -126,17 +131,25 @@ const fetchApps = () => {
 
 watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
 
+const appCreationError = ref("")
 const createStudioApp = (app: NewStudioApp) => {
-	studioApps.insert
-		.submit({
+	studioApps.insert.submit(
+		{
 			app_title: app.app_title,
 			route: app.route,
 			app_name: app.app_name,
-		})
-		.then((res: StudioApp) => {
-			showDialog.value = false
-			router.push({ name: "StudioApp", params: { appID: res.name } })
-		})
+		},
+		{
+			onSuccess(res: StudioApp) {
+				showDialog.value = false
+				appCreationError.value = ""
+				router.push({ name: "StudioApp", params: { appID: res.name } })
+			},
+			onError(error: any) {
+				appCreationError.value = error.messages.join(", ")
+			},
+		},
+	)
 }
 
 function setAppFields(e: Event) {
