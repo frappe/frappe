@@ -133,7 +133,9 @@ class SiteMigration:
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
 		* Sync Frappe's internal language master
-		* Flush deferred inserts made during maintenance mode.
+		* Flush all deferred inserts that were queued during maintenance mode,
+		  ensuring they are committed to the database before continuing migration.
+
 		* Sync Portal Menu Items
 		* Sync Installed Applications Version History
 		* Execute `after_migrate` hooks
