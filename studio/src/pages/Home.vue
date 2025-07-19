@@ -74,9 +74,16 @@
 						variant="outline"
 						v-model="newApp.app_title"
 						@input="setAppFields"
+						:required="true"
 					/>
 					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
-					<FormControl label="App Name" type="text" variant="outline" v-model="newApp.app_name" />
+					<FormControl
+						label="App Name"
+						type="text"
+						variant="outline"
+						v-model="newApp.app_name"
+						:placeholder="newApp.app_name_placeholder"
+					/>
 				</div>
 			</template>
 		</Dialog>
@@ -100,6 +107,7 @@ const emptyAppState = {
 	app_title: "",
 	route: "",
 	app_name: "",
+	app_name_placeholder: "",
 }
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
@@ -133,6 +141,6 @@ const createStudioApp = (app: NewStudioApp) => {
 
 function setAppFields(e: Event) {
 	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
-	newApp.value.route = newApp.value.app_name = kebabCasedTitle
+	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
 }
 </script>
