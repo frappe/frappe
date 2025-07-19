@@ -14,12 +14,32 @@ URLS_COMMENT_PATTERN = re.compile(
 EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", re.IGNORECASE)
 
 
+def get_limit():
+	method = frappe.get_hooks("comment_rate_limit")
+	if not method:
+		return 5
+	else:
+		limit = frappe.call(method[0])
+		return limit
+
+
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="reference_name", limit=5, seconds=60 * 60)
+# @rate_limit(key="reference_name", limit=get_limit, seconds=60 * 60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	if frappe.session.user == "Guest":
-		if reference_doctype not in ("Web Page"):
+		allowed_doctypes = ["Web Page"]
+		comments_permission_config = frappe.get_hooks("has_comment_permission")
+		guest_allowed = False
+		if len(comments_permission_config):
+			if comments_permission_config["doctype"]:
+				allowed_doctypes.append(comments_permission_config["doctype"][0])
+				check_permission_method = comments_permission_config["method"]
+				guest_allowed = frappe.call(check_permission_method[0], ref_doctype=reference_doctype)
+		if reference_doctype not in allowed_doctypes:
 			return
+
+		if not guest_allowed:
+			frappe.throw(_("Please login to post a comment."))
 
 		if frappe.db.exists("User", comment_email):
 			frappe.throw(_("Please login to post a comment."))
