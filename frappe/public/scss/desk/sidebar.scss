@@ -81,7 +81,7 @@ body {
 }
 
 .body-sidebar {
-	width: 50px;
+	width: 54px;
 	background: var(--subtle-accent);
 	border-right: 1px solid var(--sidebar-border-color);
 
@@ -89,7 +89,7 @@ body {
 	flex-direction: column;
 	height: 100vh;
 	z-index: 1030;
-	padding: 8px 8px 10px 8px;
+	padding: 10px;
 
 	.body-sidebar-top {
 		flex: 1 1;
@@ -139,7 +139,7 @@ body {
 		}
 
 		&:first-child {
-			margin-top: 24px;
+			margin-top: 16px;
 		}
 
 		.sidebar-item-container {
@@ -248,7 +248,8 @@ body {
 		.app-switcher-dropdown {
 			width: 100%;
 			left: 0px;
-			padding: 3px;
+			display: flex;
+			align-items: center;
 		}
 		.body-sidebar-top {
 			width: 100%;
@@ -303,7 +304,7 @@ body {
 	.body-sidebar-container.expanded {
 		position: relative;
 		.body-sidebar {
-			padding: 8px 8px 10px 8px;
+			padding: 10px;
 			width: var(--left-sidebar-width);
 			height: 100%;
 			position: absolute;
@@ -334,15 +335,17 @@ body {
 	text-decoration: none;
 	width: 38px;
 	height: 38px;
-	padding: 3px;
-	margin-left: -2px;
+	display: flex;
+	align-items: center;
 	.standard-sidebar-item {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
 		padding-top: 1px;
 		padding-bottom: 1px;
 		.d-flex {
 			width: 161px;
 		}
-		gap: 30px;
 	}
 	.sidebar-item-control {
 		margin: 2px;
