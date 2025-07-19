@@ -117,7 +117,8 @@
 .layout-side-section {
 	@include get_textstyle("sm", "regular");
 	// padding-right: 30px;
-	min-width: var(--sidebar-width);
+	width: var(--sidebar-width);
+	flex-shrink: 0;
 	border-left: 1px solid var(--border-color);
 
 	.sidebar-section {

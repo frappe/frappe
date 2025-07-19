@@ -93,7 +93,8 @@
 }
 
 .layout-main-section-wrapper {
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 }
 
 .layout-main-section.frappe-card {
@@ -174,6 +175,7 @@
 .layout-main {
 	display: flex;
 	flex-direction: row;
+	overflow-x: hidden;
 }
 
 .layout-main-section {
