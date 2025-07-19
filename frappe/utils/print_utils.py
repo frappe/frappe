@@ -87,6 +87,9 @@ def get_print(
 			if pdf:
 				return pdf
 
+	for hook in frappe.get_hooks("on_print_pdf"):
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
 	return get_pdf(html, options=pdf_options, output=output)
 
 
