@@ -80,6 +80,7 @@ website_generators = ["Studio App"]
 
 # before_install = "studio.install.before_install"
 # after_install = "studio.install.after_install"
+after_migrate = "studio.migrate.after_migrate"
 
 # Uninstallation
 # ------------
