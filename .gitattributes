@@ -1,0 +1,31 @@
+# Handle line endings
+*.py text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.csv text eol=lf
+*.sh text eol=lf
+
+# Mark binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.svg binary
+
+# linguist overrides (for GitHub language stats)
+*.py linguist-language=Python
+*.js linguist-language=JavaScript
+*.json linguist-language=JSON
+*.md linguist-language=Markdown
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.csv linguist-language=CSV
+
+# Prevent diff for lock files
+yarn.lock -diff
+package-lock.json -diff 
