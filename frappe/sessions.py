@@ -184,6 +184,7 @@ def get():
 	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo["is_workshop_viewer"] = get_is_workshop_viewer()
+	bootinfo["is_mechanic"] = get_is_mechanic()
 
 	return bootinfo
 
