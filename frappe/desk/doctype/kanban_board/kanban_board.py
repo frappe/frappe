@@ -390,8 +390,8 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         SELECT
             queue_position,
             name, status,
-            DATE_FORMAT(appointment_date, '%Y-%m-%d') AS appointment_date,
-            DATE_FORMAT(status_modified, '%Y-%m-%d') AS status_modified
+            appointment_date,
+            status_modified
         FROM
             `tabProject`
         """,
@@ -424,13 +424,30 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             
             # Handle appointment_date as secondary sort
             appointment_date = project.get('appointment_date')
-            if appointment_date and appointment_date != 'None':
+            if appointment_date and appointment_date != 'None' and str(appointment_date) != 'None':
                 try:
-                    # Convert date string to datetime object for proper sorting
-                    date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
-                    # For fixed appointments, use the date as primary sort, queue_position as secondary
+                    # Handle different date formats that might come from the database
+                    if isinstance(appointment_date, str):
+                        # Try different date formats
+                        date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d-%m-%Y']
+                        date_obj = None
+                        for fmt in date_formats:
+                            try:
+                                date_obj = datetime.strptime(appointment_date, fmt)
+                                break
+                            except ValueError:
+                                continue
+                        if date_obj is None:
+                            # If no format worked, use far future date
+                            date_obj = datetime(9999, 12, 31)
+                    elif hasattr(appointment_date, 'date'):
+                        # If it's already a datetime object, convert to date
+                        date_obj = appointment_date if isinstance(appointment_date, datetime) else datetime.combine(appointment_date, datetime.min.time())
+                    else:
+                        date_obj = datetime(9999, 12, 31)
+                    
                     return (queue_position_int, date_obj)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, AttributeError):
                     # If date conversion fails, treat as no date
                     return (queue_position_int, datetime(9999, 12, 31))
             else:
@@ -440,14 +457,26 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         # For other columns, sort by status_modified (oldest first)
         else:
             status_modified = project.get('status_modified')
-            if isinstance(status_modified, str):
-                try:
-                    status_modified_date = datetime.strptime(status_modified, '%Y-%m-%d')
-                except ValueError:
+            try:
+                if isinstance(status_modified, str):
+                    # Try different date formats for status_modified
+                    date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d-%m-%Y']
+                    status_modified_date = None
+                    for fmt in date_formats:
+                        try:
+                            status_modified_date = datetime.strptime(status_modified, fmt)
+                            break
+                        except ValueError:
+                            continue
+                    if status_modified_date is None:
+                        status_modified_date = datetime(9999, 12, 31)
+                elif isinstance(status_modified, datetime):
+                    status_modified_date = status_modified
+                elif hasattr(status_modified, 'date'):
+                    status_modified_date = datetime.combine(status_modified, datetime.min.time())
+                else:
                     status_modified_date = datetime(9999, 12, 31)
-            elif isinstance(status_modified, datetime):
-                status_modified_date = status_modified
-            else:
+            except (ValueError, TypeError, AttributeError):
                 status_modified_date = datetime(9999, 12, 31)
             
             # Use a high number for queue_position to ensure these come after "In queue"/"In parking"
