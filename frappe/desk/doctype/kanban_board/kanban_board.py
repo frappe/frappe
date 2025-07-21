@@ -288,6 +288,17 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 
 
 def get_order_for_column(board, colname):
+    # For Project doctype, use custom sorting for "In queue" and "In parking" columns
+    if board.reference_doctype == "Project" and colname in ["In queue", "In parking"]:
+        # Get all projects with proper sorting
+        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+        
+        # Filter projects for this specific column
+        column_projects = [p['name'] for p in projects_ordered if p.get('status') == colname]
+        
+        return frappe.as_json(column_projects)
+    
+    # For other doctypes or columns, use the original logic
     filters = [[board.reference_doctype, board.field_name, "=", colname]]
     if board.filters:
         filters.append(frappe.parse_json(board.filters)[0])
