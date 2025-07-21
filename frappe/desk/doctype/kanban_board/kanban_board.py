@@ -443,40 +443,22 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Raw queue_position: {queue_pos} (type: {type(queue_pos)})")
             
             if queue_pos is None or queue_pos == '' or queue_pos == 0:
-                queue_position_int = 999999  # Put empty queue_position at the end
+                queue_position_decimal = 999999.0  # Put empty queue_position at the end
             else:
                 try:
-                    # Handle different types of queue_position values
-                    if isinstance(queue_pos, (int, float)):
-                        # Direct numeric value (from decimal conversion in reportview.py)
-                        queue_position_int = int(queue_pos)
-                    elif isinstance(queue_pos, str):
-                        # Handle queue_position strings like "15-07", "19-07", etc.
-                        # These are position numbers, not dates - extract the number before the dash
-                        if '-' in str(queue_pos):
-                            try:
-                                # Extract the number before the dash (e.g., "15" from "15-07")
-                                queue_position_int = int(queue_pos.split('-')[0])
-                            except (ValueError, IndexError):
-                                # If extraction fails, treat as invalid
-                                queue_position_int = 999999
-                        elif '/' in str(queue_pos):
-                            try:
-                                # Extract the number before the slash (e.g., "15" from "15/07")
-                                queue_position_int = int(queue_pos.split('/')[0])
-                            except (ValueError, IndexError):
-                                # If extraction fails, treat as invalid
-                                queue_position_int = 999999
-                        else:
-                            # Try to convert string to number directly
-                            queue_position_int = int(float(queue_pos))
-                    else:
-                        # Fallback for any other type
-                        queue_position_int = int(float(str(queue_pos)))
+                    # Handle queue_position as decimal values (like "11.5")
+                    queue_pos_str = str(queue_pos)
+                    
+                    # Try to convert to decimal for proper sorting
+                    try:
+                        queue_position_decimal = float(queue_pos_str)
+                    except (ValueError, TypeError):
+                        # If conversion fails, treat as invalid
+                        queue_position_decimal = 999999.0
                 except (ValueError, TypeError):
-                    queue_position_int = 999999  # Put invalid queue_position at the end
+                    queue_position_decimal = 999999.0  # Put invalid queue_position at the end
             
-            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Processed queue_position_int: {queue_position_int}")
+            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Processed queue_position_decimal: {queue_position_decimal}")
             
             # Handle appointment_date as secondary sort
             appointment_date = project.get('appointment_date')
@@ -485,15 +467,36 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                 try:
                     # Handle different date formats that might come from the database
                     if isinstance(appointment_date, str):
-                        # Try different date formats
-                        date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d-%m-%Y']
-                        date_obj = None
-                        for fmt in date_formats:
+                        # Check if appointment_date has format like "15-07" or "19/07"
+                        if '-' in appointment_date and len(appointment_date.split('-')) == 2:
+                            day_month = appointment_date.split('-')
+                            # Assume current year if only day-month is provided
+                            current_year = datetime.now().year
                             try:
-                                date_obj = datetime.strptime(appointment_date, fmt)
-                                break
-                            except ValueError:
-                                continue
+                                date_obj = datetime(current_year, int(day_month[1]), int(day_month[0]))
+                            except (ValueError, IndexError):
+                                # If conversion fails, try other formats
+                                date_obj = None
+                        elif '/' in appointment_date and len(appointment_date.split('/')) == 2:
+                            day_month = appointment_date.split('/')
+                            # Assume current year if only day-month is provided
+                            current_year = datetime.now().year
+                            try:
+                                date_obj = datetime(current_year, int(day_month[1]), int(day_month[0]))
+                            except (ValueError, IndexError):
+                                # If conversion fails, try other formats
+                                date_obj = None
+                        else:
+                            # Try standard date formats
+                            date_formats = ['%d-%m-%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S']
+                            date_obj = None
+                            for fmt in date_formats:
+                                try:
+                                    date_obj = datetime.strptime(appointment_date, fmt)
+                                    break
+                                except ValueError:
+                                    continue
+                        
                         if date_obj is None:
                             # If no format worked, use far future date
                             date_obj = datetime(9999, 12, 31)
@@ -503,17 +506,17 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                     else:
                         date_obj = datetime(9999, 12, 31)
                     
-                    sort_key_result = (queue_position_int, date_obj)
+                    sort_key_result = (queue_position_decimal, date_obj)
                     frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key: {sort_key_result}")
                     return sort_key_result
                 except (ValueError, TypeError, AttributeError):
                     # If date conversion fails, treat as no date
-                    sort_key_result = (queue_position_int, datetime(9999, 12, 31))
+                    sort_key_result = (queue_position_decimal, datetime(9999, 12, 31))
                     frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (date error): {sort_key_result}")
                     return sort_key_result
             else:
                 # If no appointment_date, use a far future date to sort after dated items
-                sort_key_result = (queue_position_int, datetime(9999, 12, 31))
+                sort_key_result = (queue_position_decimal, datetime(9999, 12, 31))
                 frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (no date): {sort_key_result}")
                 return sort_key_result
         

@@ -116,7 +116,13 @@ def execute(doctype, *args, **kwargs):
 	if doctype == "Project" and len(kwargs.get("fields")) > 0:
 		if "`tabProject`.`queue_position`" in kwargs.get("fields"):
 			kwargs["fields"].remove("`tabProject`.`queue_position`")
-			kwargs["fields"].append("cast(queue_position as decimal) as queue_position")
+			# Simply cast queue_position to decimal
+			kwargs["fields"].append("""
+				CASE
+					WHEN queue_position IS NULL OR queue_position = '' OR queue_position = 0 THEN 999999
+					ELSE CAST(queue_position AS DECIMAL)
+				END AS queue_position
+			""")
 		if kwargs.get("order_by") and "`tabProject`.`queue_position`" in kwargs.get("order_by"):
 			kwargs["order_by"] = kwargs["order_by"].replace(
 				"`tabProject`.`queue_position`", "queue_position"
@@ -872,6 +878,16 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
 		args = get_form_params()
 		args["filters"] = filters
 		args["page_length"] = page_length
+
+	# Ensure Project doctype has queue_position field properly handled for sorting
+	if args.get("doctype") == "Project" and args.get("fields"):
+		if isinstance(args["fields"], list) and "queue_position" in args["fields"]:
+			args["fields"].remove("queue_position")
+			args["fields"].append("cast(queue_position as decimal) as queue_position")
+		
+		# Also handle order_by if it includes queue_position
+		if args.get("order_by") and "queue_position" in args.get("order_by"):
+			args["order_by"] = args["order_by"].replace("queue_position", "cast(queue_position as decimal)")
 
 	if is_virtual_doctype(args["doctype"]):
 		controller = get_controller(args["doctype"])
