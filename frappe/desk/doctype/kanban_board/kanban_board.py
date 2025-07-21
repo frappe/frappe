@@ -367,6 +367,34 @@ def call_freeze_queue_position_message(aws_url):
             )
 
 @frappe.whitelist()
+def refresh_kanban_project_order(board_name):
+    """Refresh the order of Project kanban board columns based on queue_position and appointment_date"""
+    try:
+        board = frappe.get_doc("Kanban Board", board_name)
+        
+        if board.reference_doctype != "Project":
+            return {"status": "error", "message": "This function only works for Project kanban boards"}
+        
+        # Get the correctly sorted projects
+        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+        
+        # Update each column's order
+        for column in board.columns:
+            column_projects = [p['name'] for p in projects_ordered if p.get('status') == column.column_name]
+            column.order = frappe.as_json(column_projects)
+            frappe.logger().info(f"[KANBAN REFRESH] Updated column '{column.column_name}' with {len(column_projects)} projects")
+        
+        # Save the board
+        board.save(ignore_permissions=True)
+        
+        frappe.logger().info(f"[KANBAN REFRESH] Successfully refreshed kanban board: {board_name}")
+        return {"status": "success", "message": f"Kanban board '{board_name}' order refreshed successfully"}
+        
+    except Exception as e:
+        frappe.logger().error(f"[KANBAN REFRESH] Error refreshing kanban board {board_name}: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+@frappe.whitelist()
 def kanban_project_refresh(name:str):
     sleep(2)
     frappe.publish_realtime("kanban_project_refresh")
@@ -397,14 +425,23 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         """,
         as_dict=True,
     )
+    
+    # Debug logging
+    frappe.logger().info(f"[KANBAN DEBUG] Total projects fetched: {len(projects)}")
 
     def sort_key(project):
         status = project.get('status')
         
         # Apply queue_position + appointment_date sorting only to "In queue" and "In parking" columns
         if status in ["In queue", "In parking"]:
+            # Debug logging for In queue projects
+            project_name = project.get('name')
+            frappe.logger().info(f"[KANBAN DEBUG] Processing {status} project: {project_name}")
+            
             # Convert queue_position from string/decimal to integer, handle None/empty values
             queue_pos = project.get('queue_position')
+            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Raw queue_position: {queue_pos} (type: {type(queue_pos)})")
+            
             if queue_pos is None or queue_pos == '' or queue_pos == 0:
                 queue_position_int = 999999  # Put empty queue_position at the end
             else:
@@ -414,12 +451,24 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                         # Direct numeric value (from decimal conversion in reportview.py)
                         queue_position_int = int(queue_pos)
                     elif isinstance(queue_pos, str):
-                        # Check if it's a date-like string (contains '-' or '/')
-                        if '-' in str(queue_pos) or '/' in str(queue_pos):
-                            # This appears to be a date, treat as very high number to put at end
-                            queue_position_int = 999998
+                        # Handle queue_position strings like "15-07", "19-07", etc.
+                        # These are position numbers, not dates - extract the number before the dash
+                        if '-' in str(queue_pos):
+                            try:
+                                # Extract the number before the dash (e.g., "15" from "15-07")
+                                queue_position_int = int(queue_pos.split('-')[0])
+                            except (ValueError, IndexError):
+                                # If extraction fails, treat as invalid
+                                queue_position_int = 999999
+                        elif '/' in str(queue_pos):
+                            try:
+                                # Extract the number before the slash (e.g., "15" from "15/07")
+                                queue_position_int = int(queue_pos.split('/')[0])
+                            except (ValueError, IndexError):
+                                # If extraction fails, treat as invalid
+                                queue_position_int = 999999
                         else:
-                            # Try to convert string to number
+                            # Try to convert string to number directly
                             queue_position_int = int(float(queue_pos))
                     else:
                         # Fallback for any other type
@@ -427,8 +476,11 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                 except (ValueError, TypeError):
                     queue_position_int = 999999  # Put invalid queue_position at the end
             
+            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Processed queue_position_int: {queue_position_int}")
+            
             # Handle appointment_date as secondary sort
             appointment_date = project.get('appointment_date')
+            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Raw appointment_date: {appointment_date}")
             if appointment_date and appointment_date != 'None' and str(appointment_date) != 'None':
                 try:
                     # Handle different date formats that might come from the database
@@ -451,13 +503,19 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                     else:
                         date_obj = datetime(9999, 12, 31)
                     
-                    return (queue_position_int, date_obj)
+                    sort_key_result = (queue_position_int, date_obj)
+                    frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key: {sort_key_result}")
+                    return sort_key_result
                 except (ValueError, TypeError, AttributeError):
                     # If date conversion fails, treat as no date
-                    return (queue_position_int, datetime(9999, 12, 31))
+                    sort_key_result = (queue_position_int, datetime(9999, 12, 31))
+                    frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (date error): {sort_key_result}")
+                    return sort_key_result
             else:
                 # If no appointment_date, use a far future date to sort after dated items
-                return (queue_position_int, datetime(9999, 12, 31))
+                sort_key_result = (queue_position_int, datetime(9999, 12, 31))
+                frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (no date): {sort_key_result}")
+                return sort_key_result
         
         # For other columns, sort by status_modified (oldest first)
         else:
@@ -488,7 +546,15 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             return (float('inf'), status_modified_date)
 
     # Sort projects using the custom sort key
-    return sorted(projects, key=sort_key)
+    sorted_projects = sorted(projects, key=sort_key)
+    
+    # Debug logging for final order
+    in_queue_projects = [p for p in sorted_projects if p.get('status') == 'In queue']
+    frappe.logger().info(f"[KANBAN DEBUG] Final 'In queue' order:")
+    for i, p in enumerate(in_queue_projects):
+        frappe.logger().info(f"[KANBAN DEBUG] {i+1}. {p.get('name')} - queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
+    
+    return sorted_projects
 
     
 @frappe.whitelist()
