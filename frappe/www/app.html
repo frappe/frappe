@@ -68,7 +68,7 @@
 				});
 			{%- endfor -%}
 
-			if (frappe.boot.is_workshop_viewer) {
+			if (frappe.boot.is_workshop_viewer || frappe.boot.is_mechanic) {
 				setTimeout(() => {
 					const web_component_button = document.getElementById("show-icons");
 					web_component_button.style.display = "none";
