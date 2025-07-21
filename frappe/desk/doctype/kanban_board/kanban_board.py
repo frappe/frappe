@@ -124,16 +124,22 @@ def update_order(board_name, order):
     """Save the order of cards in columns"""
     board = frappe.get_doc("Kanban Board", board_name)
     doctype = board.reference_doctype
+    updated_cards = []
+    
     if doctype == "Project":
+        # Get projects with correct sorting by queue_position and appointment_date
         projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
-        order_parse = order
-        if isinstance(order, str):
-            order_parse = json.loads(order)
-        if isinstance(projects_ordered, str):
-            projects_ordered = json.dumps(projects_ordered)
-        projects_ordered = order_column_by_project_order(projects_ordered, order_parse)
-        order = json.dumps(projects_ordered)
-        updated_cards = []
+        
+        # Convert to the expected format for kanban columns
+        projects_by_status = {}
+        for project in projects_ordered:
+            status = project.get('status')
+            if status not in projects_by_status:
+                projects_by_status[status] = []
+            projects_by_status[status].append(project['name'])
+        
+        # Use our correctly sorted order instead of the incoming order
+        order = json.dumps(projects_by_status)
 
     if not frappe.has_permission(doctype, "write"):
         # Return board data from db
@@ -371,44 +377,69 @@ def kanban_project_refresh(name:str):
 # ==================== CUSTOM FUNCTIONS ====================
 
 def get_projects_ordered_by_queue_position_and_appointment_date():
+    """
+    Orders project cards by queue_position and appointment_date for specific columns only.
+    
+    Requirements:
+    - For "In queue" and "In parking" columns: sort by queue_position (ascending), then by appointment_date
+    - For other columns: sort by status_modified (oldest first)
+    - Database returns queue_position as string, so conversion to integer is needed
+    """
     projects = frappe.db.sql(
         """
         SELECT
-            COALESCE(cast(queue_position as decimal), 0) as queue_position,
+            queue_position,
             name, status,
             DATE_FORMAT(appointment_date, '%Y-%m-%d') AS appointment_date,
             DATE_FORMAT(status_modified, '%Y-%m-%d') AS status_modified
         FROM
             `tabProject`
-        ORDER BY
-            queue_position ASC;
         """,
         as_dict=True,
     )
 
-    def sort_key(x):
-        queue_position = x['queue_position']
-        appointment_date = x['appointment_date']
-        status = x['status']
-        status_modified = x['status_modified']
-
-        # Caso 1: Si el status es "In queue" o "In parking", ordenar por queue_position y appointment_date
+    def sort_key(project):
+        status = project.get('status')
+        
+        # Apply queue_position + appointment_date sorting only to "In queue" and "In parking" columns
         if status in ["In queue", "In parking"]:
-            if appointment_date:
-                try:
-                    # Convertir la fecha string a objeto datetime
-                    date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
-                    return (queue_position, date_obj)
-                except ValueError:
-                    # Si hay un error al convertir la fecha, usar una fecha lejana
-                    return (queue_position, datetime(9999, 12, 31))
+            # Convert queue_position from string to integer, handle None/empty values
+            queue_pos = project.get('queue_position')
+            if queue_pos is None or queue_pos == '' or queue_pos == 0:
+                queue_position_int = 999999  # Put empty queue_position at the end
             else:
-                # Si no hay fecha, usar una fecha lejana
-                return (queue_position, datetime(9999, 12, 31))
-
-        # Caso 2: Si el status es diferente, ordenar solo por status_modified (de más viejo a más nuevo)
+                try:
+                    # Handle both string and numeric queue_position
+                    if isinstance(queue_pos, str):
+                        # Check if it's a date-like string (contains '-' or '/')
+                        if '-' in str(queue_pos) or '/' in str(queue_pos):
+                            # This appears to be a date, treat as very high number to put at end
+                            queue_position_int = 999998
+                        else:
+                            queue_position_int = int(float(queue_pos))  # Handle decimal strings
+                    else:
+                        queue_position_int = int(queue_pos)
+                except (ValueError, TypeError):
+                    queue_position_int = 999999  # Put invalid queue_position at the end
+            
+            # Handle appointment_date as secondary sort
+            appointment_date = project.get('appointment_date')
+            if appointment_date and appointment_date != 'None':
+                try:
+                    # Convert date string to datetime object for proper sorting
+                    date_obj = datetime.strptime(appointment_date, '%Y-%m-%d')
+                    # For fixed appointments, use the date as primary sort, queue_position as secondary
+                    return (queue_position_int, date_obj)
+                except (ValueError, TypeError):
+                    # If date conversion fails, treat as no date
+                    return (queue_position_int, datetime(9999, 12, 31))
+            else:
+                # If no appointment_date, use a far future date to sort after dated items
+                return (queue_position_int, datetime(9999, 12, 31))
+        
+        # For other columns, sort by status_modified (oldest first)
         else:
-            # Convertir status_modified a datetime si es una cadena
+            status_modified = project.get('status_modified')
             if isinstance(status_modified, str):
                 try:
                     status_modified_date = datetime.strptime(status_modified, '%Y-%m-%d')
@@ -418,12 +449,14 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                 status_modified_date = status_modified
             else:
                 status_modified_date = datetime(9999, 12, 31)
-
-            # Usar queue_position como un valor arbitrario para asegurar la consistencia de la tupla
+            
+            # Use a high number for queue_position to ensure these come after "In queue"/"In parking"
             return (float('inf'), status_modified_date)
 
-    # Ordenar los proyectos con la clave de ordenamiento personalizada
+    # Sort projects using the custom sort key
     return sorted(projects, key=sort_key)
+
+    
 @frappe.whitelist()
 def call_send_whatsapp_message(aws_url: str, project_name: str):
     project = frappe.get_doc('Project', project_name)
