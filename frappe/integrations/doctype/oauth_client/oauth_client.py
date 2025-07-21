@@ -1,7 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import datetime
+import time
+
 import frappe
+import frappe.utils
 from frappe import _
 from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE
@@ -21,12 +25,20 @@ class OAuthClient(Document):
 		app_name: DF.Data
 		client_id: DF.Data | None
 		client_secret: DF.Data | None
+		client_uri: DF.Data | None
+		contacts: DF.SmallText | None
 		default_redirect_uri: DF.Data
 		grant_type: DF.Literal["Authorization Code", "Implicit"]
+		logo_uri: DF.Data | None
+		policy_uri: DF.Data | None
 		redirect_uris: DF.Text | None
 		response_type: DF.Literal["Code", "Token"]
 		scopes: DF.Text
 		skip_authorization: DF.Check
+		software_id: DF.Data | None
+		software_version: DF.Data | None
+		token_endpoint_auth_method: DF.Literal["Client Secret Basic", "Client Secret Post", "None"]
+		tos_uri: DF.Data | None
 		user: DF.Link | None
 	# end: auto-generated types
 
@@ -55,3 +67,18 @@ class OAuthClient(Document):
 		"""Returns true if session user is allowed to use this client."""
 		allowed_roles = {d.role for d in self.allowed_roles}
 		return bool(allowed_roles & set(frappe.get_roles()))
+
+	def is_public_client(self) -> bool:
+		return self.token_endpoint_auth_method == "None"
+
+	def client_id_issued_at(self) -> int:
+		"""Returns UNIX timestamp (seconds since epoch) of the client creation time."""
+
+		if isinstance(self.creation, datetime.datetime):
+			return int(self.creation.timestamp())
+
+		try:
+			d = datetime.datetime.fromisoformat(self.creation)
+			return int(d.timestamp())
+		except Exception:
+			return int(frappe.utils.now_datetime().timestamp())

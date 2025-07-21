@@ -1,8 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
-import json
 import os
+
+import orjson
 
 import frappe
 from frappe.model.base_document import get_controller
@@ -108,9 +109,10 @@ def import_file_by_path(
 		docs = read_doc_from_file(path)
 	except OSError:
 		print(f"{path} missing")
-		return
+		return False
 
 	calculated_hash = calculate_hash(path)
+	imported = False
 
 	if docs:
 		if not isinstance(docs, list):
@@ -147,6 +149,7 @@ def import_file_by_path(
 				reset_permissions=reset_permissions,
 				path=path,
 			)
+			imported = True
 
 			if doc["doctype"] == "DocType":
 				doctype_table = DocType("DocType")
@@ -163,7 +166,7 @@ def import_file_by_path(
 			if new_modified_timestamp:
 				update_modified(new_modified_timestamp, doc)
 
-	return True
+	return imported
 
 
 def read_doc_from_file(path):
@@ -171,7 +174,7 @@ def read_doc_from_file(path):
 	if os.path.exists(path):
 		with open(path) as f:
 			try:
-				doc = json.loads(f.read())
+				doc = orjson.loads(f.read())
 			except ValueError:
 				print(f"bad json: {path}")
 				raise

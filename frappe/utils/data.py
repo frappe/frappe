@@ -19,6 +19,7 @@ from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+import orjson
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -81,6 +82,15 @@ URL_NOTATION_PATTERN = re.compile(
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 HTML_TAG_PATTERN = re.compile("<[^>]+>")
 MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
+
+# these options are necessary to use orjson with frappe
+#
+# OPT_PASSTHROUGH_DATETIME allows datetime objects to be passed through
+# to the default function without conversion by orjson
+# frappe converts datetime objects differently (__str__) from orjson (RFC 3339)
+#
+# OPT_NON_STR_KEYS slightly reduces performance of orjson, but allows for non-string keys in dicts
+DEFAULT_ORJSON_OPTIONS = orjson.OPT_PASSTHROUGH_DATETIME | orjson.OPT_NON_STR_KEYS
 
 
 class Weekday(Enum):
@@ -1517,14 +1527,15 @@ def money_in_words(
 		main_currency = d.get("currency", "INR")
 
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
-			"Cent"
-		)
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True)
 
 	number_format = get_number_format()
 
 	fraction_units = frappe.db.get_value("Currency", main_currency, "fraction_units", cache=True)
-	fraction_length = math.ceil(math.log10(fraction_units)) or number_format.precision
+	if fraction_units:
+		fraction_length = math.ceil(math.log10(fraction_units))
+	elif not fraction_units or not fraction_currency:
+		fraction_units = fraction_length = 0
 
 	n = f"%.{fraction_length}f" % number
 
@@ -2439,9 +2450,33 @@ def guess_date_format(date_string: str) -> str:
 
 def validate_json_string(string: str) -> None:
 	try:
-		json.loads(string)
+		orjson.loads(string)
 	except (TypeError, ValueError):
 		raise frappe.ValidationError
+
+
+def parse_json(val: str):
+	"""
+	Parses json if string else return
+	"""
+	if isinstance(val, str):
+		val = orjson.loads(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
+	return val
+
+
+def orjson_dumps(obj, default=None, option=None, decode=True):
+	"""A wrapper around `orjson.dumps`, with some default options set"""
+
+	if option is not None:
+		# user defined options are merged with the default options
+		option = option | DEFAULT_ORJSON_OPTIONS
+	else:
+		option = DEFAULT_ORJSON_OPTIONS
+
+	value = orjson.dumps(obj, default, option)
+	return value.decode() if decode else value
 
 
 class _UserInfo(typing.TypedDict):
@@ -2565,6 +2600,82 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
+def bold(text: str | int | float) -> str:
+	"""Return `text` wrapped in `<strong>` tags."""
+	return f"<strong>{text}</strong>"
+
+
+def safe_encode(param, encoding="utf-8"):
+	try:
+		param = param.encode(encoding)
+	except Exception:
+		pass
+	return param
+
+
+def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+	"""
+	Method to safely decode data into a string
+
+	:param param: The data to be decoded
+	:param encoding: The encoding to decode into
+	:param fallback_map: A fallback map to reference in case of a LookupError
+	:return:
+	"""
+	try:
+		param = param.decode(encoding)
+	except LookupError:
+		try:
+			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
+		except Exception:
+			pass
+	except Exception:
+		pass
+	return param
+
+
+def as_unicode(text, encoding: str = "utf-8") -> str:
+	"""Convert to unicode if required."""
+	if isinstance(text, str):
+		return text
+	elif text is None:
+		return ""
+	elif isinstance(text, bytes):
+		return str(text, encoding)
+	else:
+		return str(text)
+
+
+def mock(type, size=1, locale="en"):
+	import faker
+
+	results = []
+	fake = faker.Faker(locale)
+	if type not in dir(fake):
+		raise ValueError("Not a valid mock type.")
+	else:
+		for _ in range(size):
+			data = getattr(fake, type)()
+			results.append(data)
+
+	from frappe.utils import squashify
+
+	return squashify(results)
+
+
+# Recursive default dict with arbitrary levels of nesting
+def recursive_defaultdict():
+	return defaultdict(recursive_defaultdict)
+
+
+# This is used in test to count memory overhead of default imports.
+def _get_rss_memory_usage():
+	import psutil
+
+	rss = psutil.Process().memory_info().rss // (1024 * 1024)
+	return rss
+
+
 def add_trackers_to_url(
 	url: str,
 	source: str,
@@ -2647,79 +2758,3 @@ def map_trackers(url_trackers: dict, create: bool = False):
 		frappe_trackers["utm_content"] = url_content
 
 	return frappe_trackers
-
-
-def bold(text: str | int | float) -> str:
-	"""Return `text` wrapped in `<strong>` tags."""
-	return f"<strong>{text}</strong>"
-
-
-def safe_encode(param, encoding="utf-8"):
-	try:
-		param = param.encode(encoding)
-	except Exception:
-		pass
-	return param
-
-
-def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
-	"""
-	Method to safely decode data into a string
-
-	:param param: The data to be decoded
-	:param encoding: The encoding to decode into
-	:param fallback_map: A fallback map to reference in case of a LookupError
-	:return:
-	"""
-	try:
-		param = param.decode(encoding)
-	except LookupError:
-		try:
-			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
-		except Exception:
-			pass
-	except Exception:
-		pass
-	return param
-
-
-def as_unicode(text, encoding: str = "utf-8") -> str:
-	"""Convert to unicode if required."""
-	if isinstance(text, str):
-		return text
-	elif text is None:
-		return ""
-	elif isinstance(text, bytes):
-		return str(text, encoding)
-	else:
-		return str(text)
-
-
-def mock(type, size=1, locale="en"):
-	import faker
-
-	results = []
-	fake = faker.Faker(locale)
-	if type not in dir(fake):
-		raise ValueError("Not a valid mock type.")
-	else:
-		for _ in range(size):
-			data = getattr(fake, type)()
-			results.append(data)
-
-	from frappe.utils import squashify
-
-	return squashify(results)
-
-
-# Recursive default dict with arbitrary levels of nesting
-def recursive_defaultdict():
-	return defaultdict(recursive_defaultdict)
-
-
-# This is used in test to count memory overhead of default imports.
-def _get_rss_memory_usage():
-	import psutil
-
-	rss = psutil.Process().memory_info().rss // (1024 * 1024)
-	return rss

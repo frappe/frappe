@@ -3,7 +3,7 @@ import os
 from . import __version__ as app_version
 
 app_name = "frappe"
-app_title = "Framework"
+app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
@@ -56,17 +56,12 @@ email_css = ["email.bundle.css"]
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/app/<path:app_path>", "to_route": "app"},
 ]
 
 website_redirects = [
 	{"source": r"/desk(.*)", "target": r"/app\1"},
-	{
-		"source": "/.well-known/openid-configuration",
-		"target": "/api/method/frappe.integrations.oauth2.openid_configuration",
-	},
 ]
 
 base_template = "templates/base.html"
@@ -222,12 +217,11 @@ scheduler_events = {
 	},
 	"all": [
 		"frappe.email.queue.flush",
+		"frappe.email.queue.retry_sending_emails",
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
-	"hourly": [
-		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
-	],
+	"hourly": [],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
@@ -362,7 +356,6 @@ global_search_doctypes = {
 		{"doctype": "Dashboard"},
 		{"doctype": "Country"},
 		{"doctype": "Currency"},
-		{"doctype": "Newsletter"},
 		{"doctype": "Letter Head"},
 		{"doctype": "Workflow"},
 		{"doctype": "Web Page"},
@@ -421,6 +414,7 @@ before_request = [
 	"frappe.recorder.record",
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
+	"frappe.integrations.oauth2.set_cors_for_privileged_requests",
 ]
 
 after_request = [

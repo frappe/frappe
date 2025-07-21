@@ -131,7 +131,7 @@ class LoginManager:
 				self.make_session(resume=True)
 				self.get_user_info()
 				self.set_user_info(resume=True)
-			except AttributeError:
+			except (AttributeError, frappe.DoesNotExistError):
 				self.user = "Guest"
 				self.get_user_info()
 				self.make_session()

@@ -105,7 +105,7 @@ def get_user_permissions(user=None):
 
 	out = {}
 
-	def add_doc_to_perm(perm, doc_name, is_default):
+	def add_doc_to_perm(perm, doc_name, is_default, hide_descendants):
 		# group rules for each type
 		# for example if allow is "Customer", then build all allowed customers
 		# in a list
@@ -114,7 +114,12 @@ def get_user_permissions(user=None):
 
 		out[perm.allow].append(
 			frappe._dict(
-				{"doc": doc_name, "applicable_for": perm.get("applicable_for"), "is_default": is_default}
+				{
+					"doc": doc_name,
+					"applicable_for": perm.get("applicable_for"),
+					"is_default": is_default,
+					"hide_descendants": hide_descendants,
+				}
 			)
 		)
 
@@ -125,12 +130,12 @@ def get_user_permissions(user=None):
 			filters=dict(user=user),
 		):
 			meta = frappe.get_meta(perm.allow)
-			add_doc_to_perm(perm, perm.for_value, perm.is_default)
+			add_doc_to_perm(perm, perm.for_value, perm.is_default, perm.hide_descendants)
 
 			if meta.is_nested_set() and not perm.hide_descendants:
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:
-					add_doc_to_perm(perm, doc, False)
+					add_doc_to_perm(perm, doc, False, False)
 
 		out = frappe._dict(out)
 		frappe.cache.hset("user_permissions", user, out)

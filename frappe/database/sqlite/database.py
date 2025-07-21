@@ -477,7 +477,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			if not self.is_nested_transaction_error(e):
 				raise e
 
-	def commit(self):
+	def commit(self, chain=None):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if not self._conn:
 			self.connect()
@@ -497,7 +497,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		self.after_commit.run()
 
-	def rollback(self, *, save_point=None):
+	def rollback(self, *, save_point=None, chain=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if not self._conn:
 			self.connect()

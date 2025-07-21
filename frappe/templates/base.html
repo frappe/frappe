@@ -95,7 +95,7 @@
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>
-		frappe.boot = {{ boot | json }}
+		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 	</script>

@@ -4,6 +4,7 @@ from contextlib import AbstractContextManager, contextmanager
 from types import MappingProxyType
 
 import frappe
+from frappe.database.utils import get_query_type
 from frappe.utils import cint
 
 from ..utils.generators import get_missing_records_module_overrides, make_test_records
@@ -112,7 +113,7 @@ class IntegrationTestCase(UnitTestCase):
 		self._secondary_connection.rollback()
 
 	@contextmanager
-	def assertQueryCount(self, count: int) -> AbstractContextManager[None]:
+	def assertQueryCount(self, count: int, query_type: tuple[str] | None = None):
 		queries = []
 
 		def _sql_with_count(*args, **kwargs):
@@ -124,6 +125,8 @@ class IntegrationTestCase(UnitTestCase):
 			orig_sql = frappe.db.__class__.sql
 			frappe.db.__class__.sql = _sql_with_count
 			yield
+			if query_type:
+				queries = [q for q in queries if get_query_type(q) in query_type]
 			self.assertLessEqual(len(queries), count, msg="Queries executed: \n" + "\n\n".join(queries))
 		finally:
 			frappe.db.__class__.sql = orig_sql

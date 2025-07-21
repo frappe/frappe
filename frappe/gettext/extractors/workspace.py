@@ -68,6 +68,16 @@ def extract(fileobj, *args, **kwargs):
 		for shortcut in data.get("shortcuts", [])
 		if shortcut.get("format")
 	)
+	yield from (
+		(
+			None,
+			"_",
+			quick_list.get("label"),
+			[f"Label of a quick_list in the {workspace_name} Workspace"],
+		)
+		for quick_list in data.get("quick_lists", [])
+		if quick_list.get("label")
+	)
 
 	content = json.loads(data.get("content", "[]"))
 	for item in content:

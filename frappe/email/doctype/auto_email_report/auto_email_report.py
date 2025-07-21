@@ -9,6 +9,7 @@ from email.utils import formataddr
 import frappe
 from frappe import _
 from frappe.desk.query_report import build_xlsx_data
+from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import (
@@ -29,6 +30,7 @@ from frappe.utils import (
 	validate_email_address,
 )
 from frappe.utils.csvutils import to_csv
+from frappe.utils.pdf import get_pdf
 from frappe.utils.xlsxutils import make_xlsx
 
 
@@ -51,7 +53,7 @@ class AutoEmailReport(Document):
 		enabled: DF.Check
 		filter_meta: DF.Text | None
 		filters: DF.Text | None
-		format: DF.Literal["HTML", "XLSX", "CSV"]
+		format: DF.Literal["HTML", "XLSX", "CSV", "PDF"]
 		frequency: DF.Literal["Daily", "Weekdays", "Weekly", "Monthly"]
 		from_date_field: DF.Literal[None]
 		no_of_rows: DF.Int
@@ -109,7 +111,7 @@ class AutoEmailReport(Document):
 
 	def validate_report_format(self):
 		"""check if user has select correct report format"""
-		valid_report_formats = ["HTML", "XLSX", "CSV"]
+		valid_report_formats = ["HTML", "XLSX", "CSV", "PDF"]
 		if self.format not in valid_report_formats:
 			frappe.throw(
 				_("{0} is not a valid report format. Report format should one of the following {1}").format(
@@ -183,6 +185,16 @@ class AutoEmailReport(Document):
 
 			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			return to_csv(xlsx_data)
+
+		elif self.format == "PDF":
+			columns, data = make_links(columns, data)
+			columns = update_field_types(columns)
+			options = {}
+
+			if len(columns) > 8:
+				options["orientation"] = "landscape"
+			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
+			return get_pdf(html, options)
 
 		else:
 			frappe.throw(_("Invalid Output Format"))

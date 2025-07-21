@@ -266,6 +266,7 @@ class Session:
 			self.data.data.update(
 				{
 					"last_updated": frappe.utils.now(),
+					"creation": frappe.utils.now(),
 					"session_expiry": get_expiry_period(),
 					"full_name": self.full_name,
 					"user_type": self.user_type,

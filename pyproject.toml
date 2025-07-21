@@ -15,7 +15,7 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.44",
     "Jinja2~=3.1.6",
-    "Pillow~=11.2.1",
+    "Pillow~=11.3.0",
     "PyJWT~=2.10.1",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
@@ -47,6 +47,7 @@ dependencies = [
     "num2words~=0.5.14",
     "oauthlib~=3.2.2",
     "openpyxl~=3.1.5",
+    "orjson~=3.10.18",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers~=9.0.7",

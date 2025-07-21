@@ -91,6 +91,7 @@
 	&:active {
 		background: var(--btn-default-hover-bg);
 		color: var(--text-color);
+		z-index: unset;
 	}
 }
 

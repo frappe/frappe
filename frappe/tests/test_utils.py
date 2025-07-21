@@ -22,7 +22,6 @@ from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
-	add_trackers_to_url,
 	ceil,
 	dict_to_str,
 	execute_in_shell,
@@ -35,7 +34,6 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
-	map_trackers,
 	money_in_words,
 	parse_and_map_trackers_from_url,
 	parse_timedelta,
@@ -54,6 +52,7 @@ from frappe.utils.change_log import (
 )
 from frappe.utils.data import (
 	add_to_date,
+	add_trackers_to_url,
 	add_years,
 	cast,
 	cint,
@@ -70,6 +69,7 @@ from frappe.utils.data import (
 	get_year_ending,
 	getdate,
 	is_invalid_date_string,
+	map_trackers,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -269,6 +269,11 @@ class TestMoney(IntegrationTestCase):
 					expected_words,
 					f"{words} is not the same as {expected_words}",
 				)
+
+	def test_money_in_words_without_fraction(self):
+		# VND doesn't have fractions
+		words = money_in_words("42.01", "VND")
+		self.assertEqual(words, "VND Forty Two only.")
 
 
 class TestDataManipulation(IntegrationTestCase):

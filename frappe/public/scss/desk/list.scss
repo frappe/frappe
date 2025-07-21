@@ -442,6 +442,9 @@ input.list-header-checkbox {
 	.sort-selector {
 		.btn-group {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
+			.btn:focus {
+				z-index: unset;
+			}
 		}
 	}
 }

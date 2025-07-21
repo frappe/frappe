@@ -288,6 +288,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.issingle",
    "fieldname": "allow_import",
    "fieldtype": "Check",
    "label": "Allow Import (via Data Import Tool)"
@@ -784,7 +785,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2025-05-21 21:58:59.947374",
+ "modified": "2025-06-24 07:46:34.380662",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
