@@ -126,21 +126,10 @@ def update_order(board_name, order):
     doctype = board.reference_doctype
     updated_cards = []
     
-    if doctype == "Project":
-        # Get projects with correct sorting by queue_position and appointment_date
-        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
-        
-        # Convert to the expected format for kanban columns
-        projects_by_status = {}
-        for project in projects_ordered:
-            status = project.get('status')
-            if status not in projects_by_status:
-                projects_by_status[status] = []
-            projects_by_status[status].append(project['name'])
-        
-        # Use our correctly sorted order instead of the incoming order
-        order = json.dumps(projects_by_status)
-
+    # For Project doctype, we only override the order during initial load,
+    # not during user drag & drop operations
+    # The frontend will pass a special flag to indicate when to apply automatic sorting
+    
     if not frappe.has_permission(doctype, "write"):
         # Return board data from db
         return board, updated_cards
@@ -288,8 +277,8 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 
 
 def get_order_for_column(board, colname):
-    # For Project doctype, use custom sorting for "In queue" and "In parking" columns
-    if board.reference_doctype == "Project" and colname in ["In queue", "In parking"]:
+    # For Project doctype, use custom sorting for all columns during initial load
+    if board.reference_doctype == "Project":
         # Get all projects with proper sorting
         projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
         
@@ -298,7 +287,7 @@ def get_order_for_column(board, colname):
         
         return frappe.as_json(column_projects)
     
-    # For other doctypes or columns, use the original logic
+    # For other doctypes, use the original logic
     filters = [[board.reference_doctype, board.field_name, "=", colname]]
     if board.filters:
         filters.append(frappe.parse_json(board.filters)[0])
@@ -414,22 +403,27 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         
         # Apply queue_position + appointment_date sorting only to "In queue" and "In parking" columns
         if status in ["In queue", "In parking"]:
-            # Convert queue_position from string to integer, handle None/empty values
+            # Convert queue_position from string/decimal to integer, handle None/empty values
             queue_pos = project.get('queue_position')
             if queue_pos is None or queue_pos == '' or queue_pos == 0:
                 queue_position_int = 999999  # Put empty queue_position at the end
             else:
                 try:
-                    # Handle both string and numeric queue_position
-                    if isinstance(queue_pos, str):
+                    # Handle different types of queue_position values
+                    if isinstance(queue_pos, (int, float)):
+                        # Direct numeric value (from decimal conversion in reportview.py)
+                        queue_position_int = int(queue_pos)
+                    elif isinstance(queue_pos, str):
                         # Check if it's a date-like string (contains '-' or '/')
                         if '-' in str(queue_pos) or '/' in str(queue_pos):
                             # This appears to be a date, treat as very high number to put at end
                             queue_position_int = 999998
                         else:
-                            queue_position_int = int(float(queue_pos))  # Handle decimal strings
+                            # Try to convert string to number
+                            queue_position_int = int(float(queue_pos))
                     else:
-                        queue_position_int = int(queue_pos)
+                        # Fallback for any other type
+                        queue_position_int = int(float(str(queue_pos)))
                 except (ValueError, TypeError):
                     queue_position_int = 999999  # Put invalid queue_position at the end
             
