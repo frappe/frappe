@@ -872,29 +872,43 @@ def is_user_allowed():
 	]  # list of the user roles can see all projects without assign
 	return any(role in allowed_roles for role in user_roles)
 
-
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
-	if args is None:
-		args = get_form_params()
-		args["filters"] = filters
-		args["page_length"] = page_length
+    if args is None:
+        args = get_form_params()
+        args["filters"] = filters
+        args["page_length"] = page_length
 
-	# Ensure Project doctype has queue_position field properly handled for sorting
-	if args.get("doctype") == "Project" and args.get("fields"):
-		if isinstance(args["fields"], list) and "queue_position" in args["fields"]:
-			args["fields"].remove("queue_position")
-			args["fields"].append("cast(queue_position as decimal) as queue_position")
-		
-		# Also handle order_by if it includes queue_position
-		if args.get("order_by") and "queue_position" in args.get("order_by"):
-			args["order_by"] = args["order_by"].replace("queue_position", "cast(queue_position as decimal)")
+    if args.get("doctype") == "Project" and args.get("fields"):
+        print("==========> Fields before:", args["fields"])
 
-	if is_virtual_doctype(args["doctype"]):
-		controller = get_controller(args["doctype"])
-		data = compress(controller.get_list(args))
-	else:
-		data = execute(**args)
-	return data
+        # Eliminar cualquier campo con queue_position
+        args["fields"] = [
+            f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()
+        ]
+        args["fields"].append("cast(queue_position as decimal) as queue_position")
+
+        # Forzar orden si no viene explícito
+        if not args.get("order_by"):
+            args["order_by"] = "cast(queue_position as decimal)"
+        else:
+            args["order_by"] = re.sub(
+                r"`?tabProject`?\.`?queue_position`?",
+                "cast(queue_position as decimal)",
+                args["order_by"]
+            )
+
+        print("==========> Fields after:", args["fields"])
+        print("==========> Order By:", args["order_by"])
+
+    if is_virtual_doctype(args["doctype"]):
+        controller = get_controller(args["doctype"])
+        data = compress(controller.get_list(args))
+    else:
+        data = execute(**args)
+
+    return data
+
+
 
 
 def is_default_project_request(args):
