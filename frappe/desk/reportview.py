@@ -872,6 +872,8 @@ def is_user_allowed():
 	]  # list of the user roles can see all projects without assign
 	return any(role in allowed_roles for role in user_roles)
 
+import re
+
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
     if args is None:
         args = get_form_params()
@@ -879,15 +881,14 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
         args["page_length"] = page_length
 
     if args.get("doctype") == "Project" and args.get("fields"):
-        print("==========> Fields before:", args["fields"])
 
-        # Eliminar cualquier campo con queue_position
+        # Eliminar cualquier campo con queue_position para evitar duplicados
         args["fields"] = [
             f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()
         ]
         args["fields"].append("cast(queue_position as decimal) as queue_position")
 
-        # Forzar orden si no viene explícito
+        # Forzar orden por queue_position si no viene explícito
         if not args.get("order_by"):
             args["order_by"] = "cast(queue_position as decimal)"
         else:
@@ -897,18 +898,23 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
                 args["order_by"]
             )
 
-        print("==========> Fields after:", args["fields"])
-        print("==========> Order By:", args["order_by"])
-
+    # Ejecutar la consulta
     if is_virtual_doctype(args["doctype"]):
         controller = get_controller(args["doctype"])
         data = compress(controller.get_list(args))
     else:
         data = execute(**args)
 
+    # 🔍 Mostrar name, queue_position y appointment_date (solo si es lista de dicts)
+    if isinstance(data, list):
+        frappe.logger().info("=== Proyectos obtenidos ===")
+        for row in data:
+            name = row.get("name")
+            queue_position = row.get("queue_position")
+            appointment_date = row.get("appointment_date")
+            frappe.logger().info(f"{name} | Queue: {queue_position} | Appointment: {appointment_date}")
+
     return data
-
-
 
 
 def is_default_project_request(args):
