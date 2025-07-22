@@ -130,34 +130,36 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(invitation.status, "Expired")
 
 	def test_invite_by_email_api(self):
-		user_email = emails[1]
-		user = frappe.get_doc(
-			doctype="User",
-			user_type="Website User",
-			email=user_email,
-			first_name="Test1",
-			send_welcome_email=False,
-		).insert()
-		invited_email = emails[2]
-		frappe.get_doc(
+		accepted_invite_email = emails[1]
+		invitation = frappe.get_doc(
 			doctype="User Invitation",
-			email=invited_email,
+			email=accepted_invite_email,
 			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",
 		).insert()
+		invitation.status = "Accepted"
+		invitation.save()
 		self.assertEqual(len(self.get_email_names(False)), 1)
+		pending_invite_email = emails[2]
+		frappe.get_doc(
+			doctype="User Invitation",
+			email=pending_invite_email,
+			roles=[dict(role="System Manager")],
+			redirect_to_path="/abc",
+			app_name="frappe",
+		).insert()
+		self.assertEqual(len(self.get_email_names(False)), 2)
 		email_to_invite = emails[3]
 		res = invite_by_email(
-			emails=", ".join([user_email, invited_email, email_to_invite]),
+			emails=", ".join([accepted_invite_email, pending_invite_email, email_to_invite]),
 			roles=["System Manager"],
 			redirect_to_path="/xyz",
 		)
-		self.assertSequenceEqual(res["existing_user_emails"], [user_email])
-		self.assertSequenceEqual(res["existing_invited_emails"], [invited_email])
+		self.assertSequenceEqual(res["accepted_invite_emails"], [accepted_invite_email])
+		self.assertSequenceEqual(res["pending_invite_emails"], [pending_invite_email])
 		self.assertSequenceEqual(res["invited_emails"], [email_to_invite])
-		self.assertEqual(len(self.get_email_names(False)), 2)
-		frappe.delete_doc("User", user.name)
+		self.assertEqual(len(self.get_email_names(False)), 3)
 
 	def test_accept_invitation_api_pass_redirect(self):
 		invitation = frappe.get_doc(
