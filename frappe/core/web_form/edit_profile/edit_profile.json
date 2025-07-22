@@ -18,11 +18,7 @@
  "list_columns": [],
  "login_required": 1,
  "max_attachment_size": 0,
-<<<<<<< HEAD
- "modified": "2023-01-18 10:26:26.766414",
-=======
  "modified": "2025-07-22 19:31:20.283749",
->>>>>>> 6cb5f7287a (feat: allow user to change timezone (#33419))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "edit-profile",
