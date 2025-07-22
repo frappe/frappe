@@ -186,10 +186,14 @@ def update_order(board_name, order):
                     if card not in sorted_cards:
                         sorted_cards.append(card)
                 
+                print(f"\n[KANBAN UPDATE] Original order for '{col_name}': {cards}\n")
+                print(f"\n[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}\n")
+                
                 # Update the column order with our sorted order
                 for column in board.columns:
                     if column.column_name == col_name:
                         column.order = json.dumps(sorted_cards)
+                        print(f"\n[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}\n")
                         frappe.logger().info(f"[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}")
             else:
                 # For other columns, keep the order as is
@@ -248,6 +252,26 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
         except IndexError as e:
             print(e)
 
+    # Special handling for Project doctype
+    if doctype == "Project" and to_colname in ["In queue", "In parking"]:
+        print(f"\n[KANBAN SINGLE CARD] Special handling for Project with status '{to_colname}'\n")
+        
+        # Get the correctly sorted projects
+        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+        
+        # Get sorted order for the destination column
+        sorted_cards = [p['name'] for p in projects_ordered if p.get('status') == to_colname]
+        
+        # Make sure the moved card is in the list
+        if docname not in sorted_cards:
+            sorted_cards.append(docname)
+        
+        print(f"\n[KANBAN SINGLE CARD] Original to_col_order: {to_col_order}\n")
+        print(f"\n[KANBAN SINGLE CARD] Sorted order for '{to_colname}': {sorted_cards}\n")
+        
+        # Use the sorted order for the destination column
+        to_col_order = sorted_cards
+    
     # save updated order
     board.columns[from_col_idx].order = frappe.as_json(from_col_order)
     board.columns[to_col_idx].order = frappe.as_json(to_col_order)
@@ -562,6 +586,13 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         # Default if all parsing attempts fail
         return datetime(9999, 12, 31)
     
+    # Print raw data before sorting for debugging
+    print("\n[KANBAN DEBUG] Raw data before sorting:")
+    for p in special_order_projects:
+        queue_pos = p.get('queue_position')
+        appointment_date = p.get('appointment_date')
+        print(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_pos: {queue_pos}, type: {type(queue_pos)}, appointment_date: {appointment_date}, type: {type(appointment_date)}")
+    
     # Sort the special order projects
     sorted_special_projects = sorted(
         special_order_projects,
@@ -572,12 +603,14 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     )
     
     # Log all projects in special order statuses after sorting
+    print("\n[KANBAN DEBUG] Projects in special order statuses after sorting:")
     frappe.logger().info(f"[KANBAN DEBUG] Projects in special order statuses after sorting:")
     for p in sorted_special_projects:
         queue_pos = p.get('queue_position')
         parsed_queue_pos = parse_queue_position(queue_pos)
         appointment_date = p.get('appointment_date')
         parsed_date = parse_appointment_date(appointment_date)
+        print(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, raw queue_pos: {queue_pos}, parsed: {parsed_queue_pos}, raw date: {appointment_date}, parsed: {parsed_date}")
         frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, raw queue_pos: {queue_pos}, parsed: {parsed_queue_pos}, raw date: {appointment_date}, parsed: {parsed_date}")
     
     # Combine the sorted special projects with the regular projects (maintaining original order)
