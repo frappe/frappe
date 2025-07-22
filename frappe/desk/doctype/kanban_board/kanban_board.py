@@ -126,27 +126,88 @@ def update_order(board_name, order):
     doctype = board.reference_doctype
     updated_cards = []
     
-    # For Project doctype, we only override the order during initial load,
-    # not during user drag & drop operations
-    # The frontend will pass a special flag to indicate when to apply automatic sorting
-    
     if not frappe.has_permission(doctype, "write"):
         # Return board data from db
         return board, updated_cards
 
     fieldname = board.field_name
     order_dict = json.loads(order)
+    
+    # Special handling for Project doctype
+    if doctype == "Project":
+        print(f"\n\n[KANBAN UPDATE] Processing update_order for Project kanban board: {board_name}\n\n")
+        frappe.logger().info(f"[KANBAN UPDATE] Processing update_order for Project kanban board: {board_name}")
+        
+        # Get the correctly sorted projects for special columns
+        special_order_statuses = ["In queue", "In parking"]
+        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+        
+        # Create a map of column name to sorted project names
+        sorted_columns = {}
+        for status in special_order_statuses:
+            sorted_columns[status] = [p['name'] for p in projects_ordered if p.get('status') == status]
+            print(f"\n[KANBAN UPDATE] Sorted order for '{status}': {sorted_columns[status]}\n")
+            frappe.logger().info(f"[KANBAN UPDATE] Sorted order for '{status}': {sorted_columns[status]}")
+            
+        # Log the incoming order from frontend for comparison
+        print(f"\n[KANBAN UPDATE] Order received from frontend: {order_dict}\n")
+        
+        # If order_dict is empty, we need to build it from the current board state
+        if not order_dict:
+            print("\n[KANBAN UPDATE] Order dict is empty, building from current board state\n")
+            order_dict = {}
+            for column in board.columns:
+                try:
+                    # Get the current order from the column
+                    current_order = json.loads(column.order or '[]')
+                    order_dict[column.column_name] = current_order
+                    print(f"\n[KANBAN UPDATE] Current order for '{column.column_name}': {current_order}\n")
+                except Exception as e:
+                    print(f"\n[KANBAN UPDATE] Error parsing column order: {e}\n")
+                    order_dict[column.column_name] = []
+        
+        # Apply our custom sorting only to special columns, keep user's drag-drop order for others
+        for col_name, cards in order_dict.items():
+            # Update the project status if it changed
+            for card in cards:
+                column = frappe.get_value(doctype, {"name": card}, fieldname)
+                if column != col_name:
+                    frappe.set_value(doctype, card, fieldname, col_name)
+                    updated_cards.append(dict(name=card, column=col_name))
+            
+            # For special columns, use our sorted order instead of the order from the frontend
+            if col_name in special_order_statuses and col_name in sorted_columns:
+                # Get the intersection of cards in this column and our sorted order
+                # This ensures we only include cards that are actually in this column
+                sorted_cards = [card for card in sorted_columns[col_name] if card in cards]
+                
+                # Add any cards that might be in the column but not in our sorted list (edge case)
+                for card in cards:
+                    if card not in sorted_cards:
+                        sorted_cards.append(card)
+                
+                # Update the column order with our sorted order
+                for column in board.columns:
+                    if column.column_name == col_name:
+                        column.order = json.dumps(sorted_cards)
+                        frappe.logger().info(f"[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}")
+            else:
+                # For other columns, keep the order as is
+                for column in board.columns:
+                    if column.column_name == col_name:
+                        column.order = json.dumps(cards)
+    else:
+        # Standard behavior for non-Project doctypes
+        for col_name, cards in order_dict.items():
+            for card in cards:
+                column = frappe.get_value(doctype, {"name": card}, fieldname)
+                if column != col_name:
+                    frappe.set_value(doctype, card, fieldname, col_name)
+                    updated_cards.append(dict(name=card, column=col_name))
 
-    for col_name, cards in order_dict.items():
-        for card in cards:
-            column = frappe.get_value(doctype, {"name": card}, fieldname)
-            if column != col_name:
-                frappe.set_value(doctype, card, fieldname, col_name)
-                updated_cards.append(dict(name=card, column=col_name))
-
-        for column in board.columns:
-            if column.column_name == col_name:
-                column.order = json.dumps(cards)
+            for column in board.columns:
+                if column.column_name == col_name:
+                    column.order = json.dumps(cards)
 
     return board.save(ignore_permissions=True), updated_cards
 
@@ -154,6 +215,8 @@ def update_order(board_name, order):
 @frappe.whitelist()
 def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
     """Save the order of cards in columns"""
+    print(f"\n\n[KANBAN SINGLE CARD] Moving card {docname} from {from_colname} to {to_colname}, old_index: {old_index}, new_index: {new_index}\n\n")
+    
     board = frappe.get_doc("Kanban Board", board_name)
     doctype = board.reference_doctype
 
@@ -410,9 +473,11 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     
     Requirements:
     - For "In queue" and "In parking" columns: sort by queue_position (ascending), then by appointment_date
-    - For other columns: sort by status_modified (oldest first)
-    - Database returns queue_position as string, so conversion to integer is needed
+    - For other columns: maintain original order
+    - Database returns queue_position as string, so conversion to float is needed for proper sorting
     """
+    print("\n[KANBAN DEBUG] Starting get_projects_ordered_by_queue_position_and_appointment_date()\n")
+    
     projects = frappe.db.sql(
         """
         SELECT
@@ -427,129 +492,96 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     )
     
     # Debug logging
+    print(f"\n[KANBAN DEBUG] Total projects fetched: {len(projects)}\n")
     frappe.logger().info(f"[KANBAN DEBUG] Total projects fetched: {len(projects)}")
-
-    def sort_key(project):
-        status = project.get('status')
+    
+    # Separate projects into two groups: those that need special ordering and those that don't
+    special_order_statuses = ["In queue", "In parking"]
+    special_order_projects = [p for p in projects if p.get('status') in special_order_statuses]
+    regular_projects = [p for p in projects if p.get('status') not in special_order_statuses]
+    
+    print(f"\n[KANBAN DEBUG] Projects in special order statuses: {len(special_order_projects)}\n")
+    print(f"\n[KANBAN DEBUG] Projects in regular statuses: {len(regular_projects)}\n")
+    
+    # Log all projects in special order statuses before sorting
+    frappe.logger().info(f"[KANBAN DEBUG] Projects in special order statuses before sorting:")
+    for p in special_order_projects:
+        frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
+    
+    def parse_queue_position(queue_pos):
+        """Parse queue_position to float, handling edge cases"""
+        if queue_pos is None or queue_pos == '' or queue_pos == 0:
+            return 999999.0  # Put empty queue_position at the end
         
-        # Apply queue_position + appointment_date sorting only to "In queue" and "In parking" columns
-        if status in ["In queue", "In parking"]:
-            # Debug logging for In queue projects
-            project_name = project.get('name')
-            frappe.logger().info(f"[KANBAN DEBUG] Processing {status} project: {project_name}")
-            
-            # Convert queue_position from string/decimal to integer, handle None/empty values
-            queue_pos = project.get('queue_position')
-            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Raw queue_position: {queue_pos} (type: {type(queue_pos)})")
-            
-            if queue_pos is None or queue_pos == '' or queue_pos == 0:
-                queue_position_decimal = 999999.0  # Put empty queue_position at the end
-            else:
-                try:
-                    # Handle queue_position as decimal values (like "11.5")
-                    queue_pos_str = str(queue_pos)
-                    
-                    # Try to convert to decimal for proper sorting
+        try:
+            # Cast queue_position to float for proper sorting
+            return float(str(queue_pos).replace(',', '.'))  # Handle comma as decimal separator
+        except (ValueError, TypeError):
+            return 999999.0  # Put invalid queue_position at the end
+    
+    def parse_appointment_date(appointment_date):
+        """Parse appointment_date to datetime object, handling various formats"""
+        if not appointment_date or appointment_date == 'None' or str(appointment_date) == 'None':
+            return datetime(9999, 12, 31)  # Far future date for items without appointment date
+        
+        try:
+            # Handle different date formats
+            if isinstance(appointment_date, str):
+                # Handle day-month format (e.g., "15-07" or "19/07")
+                if '-' in appointment_date and len(appointment_date.split('-')) == 2:
+                    day_month = appointment_date.split('-')
+                    current_year = datetime.now().year
                     try:
-                        queue_position_decimal = float(queue_pos_str)
-                    except (ValueError, TypeError):
-                        # If conversion fails, treat as invalid
-                        queue_position_decimal = 999999.0
-                except (ValueError, TypeError):
-                    queue_position_decimal = 999999.0  # Put invalid queue_position at the end
+                        return datetime(current_year, int(day_month[1]), int(day_month[0]))
+                    except (ValueError, IndexError):
+                        pass  # Continue to next format if this fails
+                
+                elif '/' in appointment_date and len(appointment_date.split('/')) == 2:
+                    day_month = appointment_date.split('/')
+                    current_year = datetime.now().year
+                    try:
+                        return datetime(current_year, int(day_month[1]), int(day_month[0]))
+                    except (ValueError, IndexError):
+                        pass  # Continue to next format if this fails
+                
+                # Try standard date formats
+                date_formats = ['%d-%m-%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S']
+                for fmt in date_formats:
+                    try:
+                        return datetime.strptime(appointment_date, fmt)
+                    except ValueError:
+                        continue
             
-            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Processed queue_position_decimal: {queue_position_decimal}")
-            
-            # Handle appointment_date as secondary sort
-            appointment_date = project.get('appointment_date')
-            frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Raw appointment_date: {appointment_date}")
-            if appointment_date and appointment_date != 'None' and str(appointment_date) != 'None':
-                try:
-                    # Handle different date formats that might come from the database
-                    if isinstance(appointment_date, str):
-                        # Check if appointment_date has format like "15-07" or "19/07"
-                        if '-' in appointment_date and len(appointment_date.split('-')) == 2:
-                            day_month = appointment_date.split('-')
-                            # Assume current year if only day-month is provided
-                            current_year = datetime.now().year
-                            try:
-                                date_obj = datetime(current_year, int(day_month[1]), int(day_month[0]))
-                            except (ValueError, IndexError):
-                                # If conversion fails, try other formats
-                                date_obj = None
-                        elif '/' in appointment_date and len(appointment_date.split('/')) == 2:
-                            day_month = appointment_date.split('/')
-                            # Assume current year if only day-month is provided
-                            current_year = datetime.now().year
-                            try:
-                                date_obj = datetime(current_year, int(day_month[1]), int(day_month[0]))
-                            except (ValueError, IndexError):
-                                # If conversion fails, try other formats
-                                date_obj = None
-                        else:
-                            # Try standard date formats
-                            date_formats = ['%d-%m-%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S']
-                            date_obj = None
-                            for fmt in date_formats:
-                                try:
-                                    date_obj = datetime.strptime(appointment_date, fmt)
-                                    break
-                                except ValueError:
-                                    continue
-                        
-                        if date_obj is None:
-                            # If no format worked, use far future date
-                            date_obj = datetime(9999, 12, 31)
-                    elif hasattr(appointment_date, 'date'):
-                        # If it's already a datetime object, convert to date
-                        date_obj = appointment_date if isinstance(appointment_date, datetime) else datetime.combine(appointment_date, datetime.min.time())
-                    else:
-                        date_obj = datetime(9999, 12, 31)
-                    
-                    sort_key_result = (queue_position_decimal, date_obj)
-                    frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key: {sort_key_result}")
-                    return sort_key_result
-                except (ValueError, TypeError, AttributeError):
-                    # If date conversion fails, treat as no date
-                    sort_key_result = (queue_position_decimal, datetime(9999, 12, 31))
-                    frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (date error): {sort_key_result}")
-                    return sort_key_result
-            else:
-                # If no appointment_date, use a far future date to sort after dated items
-                sort_key_result = (queue_position_decimal, datetime(9999, 12, 31))
-                frappe.logger().info(f"[KANBAN DEBUG] {project_name} - Final sort key (no date): {sort_key_result}")
-                return sort_key_result
+            # If it's already a datetime object, use it directly
+            elif hasattr(appointment_date, 'date'):
+                return appointment_date if isinstance(appointment_date, datetime) else datetime.combine(appointment_date, datetime.min.time())
         
-        # For other columns, sort by status_modified (oldest first)
-        else:
-            status_modified = project.get('status_modified')
-            try:
-                if isinstance(status_modified, str):
-                    # Try different date formats for status_modified
-                    date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d-%m-%Y']
-                    status_modified_date = None
-                    for fmt in date_formats:
-                        try:
-                            status_modified_date = datetime.strptime(status_modified, fmt)
-                            break
-                        except ValueError:
-                            continue
-                    if status_modified_date is None:
-                        status_modified_date = datetime(9999, 12, 31)
-                elif isinstance(status_modified, datetime):
-                    status_modified_date = status_modified
-                elif hasattr(status_modified, 'date'):
-                    status_modified_date = datetime.combine(status_modified, datetime.min.time())
-                else:
-                    status_modified_date = datetime(9999, 12, 31)
-            except (ValueError, TypeError, AttributeError):
-                status_modified_date = datetime(9999, 12, 31)
-            
-            # Use a high number for queue_position to ensure these come after "In queue"/"In parking"
-            return (float('inf'), status_modified_date)
-
-    # Sort projects using the custom sort key
-    sorted_projects = sorted(projects, key=sort_key)
+        except (ValueError, TypeError, AttributeError):
+            pass  # If all parsing attempts fail, use default
+        
+        # Default if all parsing attempts fail
+        return datetime(9999, 12, 31)
+    
+    # Sort the special order projects
+    sorted_special_projects = sorted(
+        special_order_projects,
+        key=lambda p: (
+            parse_queue_position(p.get('queue_position')),
+            parse_appointment_date(p.get('appointment_date'))
+        )
+    )
+    
+    # Log all projects in special order statuses after sorting
+    frappe.logger().info(f"[KANBAN DEBUG] Projects in special order statuses after sorting:")
+    for p in sorted_special_projects:
+        queue_pos = p.get('queue_position')
+        parsed_queue_pos = parse_queue_position(queue_pos)
+        appointment_date = p.get('appointment_date')
+        parsed_date = parse_appointment_date(appointment_date)
+        frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, raw queue_pos: {queue_pos}, parsed: {parsed_queue_pos}, raw date: {appointment_date}, parsed: {parsed_date}")
+    
+    # Combine the sorted special projects with the regular projects (maintaining original order)
+    sorted_projects = sorted_special_projects + regular_projects
     
     # Debug logging for final order
     in_queue_projects = [p for p in sorted_projects if p.get('status') == 'In queue']

@@ -875,44 +875,46 @@ def is_user_allowed():
 import re
 
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
+    """
+    Fetches data with filters and other arguments for Project doctype.
+    Modified to ensure queue_position is cast to decimal for proper sorting.
+    """
     if args is None:
         args = get_form_params()
         args["filters"] = filters
         args["page_length"] = page_length
 
+    # Ensure queue_position is cast to decimal for Project doctype
     if args.get("doctype") == "Project" and args.get("fields"):
+        # Remove any existing queue_position field to avoid duplicates
+        args["fields"] = [f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()]
+        # Add queue_position as decimal with explicit NULLIF to handle empty strings
+        args["fields"].append("cast(NULLIF(queue_position, '') as decimal(10,2)) as queue_position")
+        
+        # Ensure appointment_date is included
+        if not any("appointment_date" in f.lower() for f in args["fields"]):
+            args["fields"].append("appointment_date")
+        
+        # Ensure status is included
+        if not any("status" in f.lower() and not "status_modified" in f.lower() for f in args["fields"]):
+            args["fields"].append("status")
+        
+        # Remove order_by to allow sorting in Python
+        if args.get("order_by"):
+            args.pop("order_by")
 
-        # Eliminar cualquier campo con queue_position para evitar duplicados
-        args["fields"] = [
-            f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()
-        ]
-        args["fields"].append("cast(queue_position as decimal) as queue_position")
+    # Execute query
+    data = execute(**args)
 
-        # Forzar orden por queue_position si no viene explícito
-        if not args.get("order_by"):
-            args["order_by"] = "cast(queue_position as decimal)"
-        else:
-            args["order_by"] = re.sub(
-                r"`?tabProject`?\.`?queue_position`?",
-                "cast(queue_position as decimal)",
-                args["order_by"]
-            )
-
-    # Ejecutar la consulta
-    if is_virtual_doctype(args["doctype"]):
-        controller = get_controller(args["doctype"])
-        data = compress(controller.get_list(args))
-    else:
-        data = execute(**args)
-
-    # 🔍 Mostrar name, queue_position y appointment_date (solo si es lista de dicts)
-    if isinstance(data, list):
-        frappe.logger().info("=== Proyectos obtenidos ===")
-        for row in data:
-            name = row.get("name")
-            queue_position = row.get("queue_position")
-            appointment_date = row.get("appointment_date")
-            frappe.logger().info(f"{name} | Queue: {queue_position} | Appointment: {appointment_date}")
+    # Debug logging
+    if args.get("doctype") == "Project":
+        frappe.logger().info(f"[REPORTVIEW DEBUG] Fetched {len(data)} projects")
+        for i, row in enumerate(data[:5]):
+            queue_pos = row.get('queue_position')
+            queue_pos_type = type(queue_pos).__name__
+            appointment_date = row.get('appointment_date')
+            status = row.get('status')
+            frappe.logger().info(f"[REPORTVIEW DEBUG] Sample row {i+1}: name={row.get('name')}, status={status}, queue_position={queue_pos} (type: {queue_pos_type}), appointment_date={appointment_date}")
 
     return data
 
