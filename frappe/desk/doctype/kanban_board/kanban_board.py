@@ -182,19 +182,28 @@ def update_order(board_name, order):
                 # Obtenemos todos los proyectos que deberían estar en esta columna
                 sorted_cards = sorted_columns[col_name]
                 
-                # Verificamos si hay alguna tarjeta en el frontend que no esté en nuestro orden calculado
+                # Find cards in frontend that are not in our sorted order
                 missing_cards = [card for card in cards if card not in sorted_cards]
                 if missing_cards:
                     frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(missing_cards)} cards in frontend not in sorted order: {missing_cards}")
-                    # Añadimos las tarjetas faltantes al final del orden calculado
+                    # Add missing cards to the end of our sorted order
                     sorted_cards.extend(missing_cards)
                 
-                # Verificamos si hay tarjetas en nuestro orden calculado que no estén en el frontend
+                # Find cards in sorted order that are not in frontend
                 extra_cards = [card for card in sorted_cards if card not in cards]
                 if extra_cards:
                     frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(extra_cards)} cards in sorted order not in frontend: {extra_cards}")
-                    # Eliminamos las tarjetas que no están en el frontend
-                    sorted_cards = [card for card in sorted_cards if card in cards]
+                    
+                # Verificar si hay proyectos en la base de datos con este estado que no estén en nuestro orden calculado
+                projects_with_status = frappe.get_all("Project", filters={"status": col_name}, fields=["name"])
+                db_project_names = [p.name for p in projects_with_status]
+                
+                # Encontrar proyectos en la base de datos que no estén en nuestro orden calculado
+                missing_from_sorted = [p for p in db_project_names if p not in sorted_cards]
+                if missing_from_sorted:
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(missing_from_sorted)} projects in database with status '{col_name}' not in sorted order: {missing_from_sorted}")
+                    # Añadir estos proyectos al final de nuestro orden calculado
+                    sorted_cards.extend(missing_from_sorted)
                 
                 frappe.logger("debug").info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
                 frappe.logger("debug").info(f"[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}")
@@ -285,6 +294,17 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
             frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Found {len(missing_cards)} cards in frontend not in sorted order: {missing_cards}")
             # Añadimos las tarjetas faltantes al final del orden calculado
             sorted_cards.extend(missing_cards)
+            
+        # Verificar si hay proyectos en la base de datos con este estado que no estén en nuestro orden calculado
+        projects_with_status = frappe.get_all("Project", filters={"status": to_colname}, fields=["name"])
+        db_project_names = [p.name for p in projects_with_status]
+        
+        # Encontrar proyectos en la base de datos que no estén en nuestro orden calculado
+        missing_from_sorted = [p for p in db_project_names if p not in sorted_cards]
+        if missing_from_sorted:
+            frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Found {len(missing_from_sorted)} projects in database with status '{to_colname}' not in sorted order: {missing_from_sorted}")
+            # Añadir estos proyectos al final de nuestro orden calculado
+            sorted_cards.extend(missing_from_sorted)
         
         frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Original to_col_order: {to_col_order}")
         frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Sorted order for '{to_colname}': {sorted_cards}")
@@ -583,6 +603,16 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             return datetime(9999, 12, 31)  # Far future date for items without appointment date
         
         frappe.logger("debug").info(f"[KANBAN DEBUG] Parsing appointment_date: {appointment_date}, type: {type(appointment_date).__name__}")
+        
+        # Si ya es un objeto datetime, lo devolvemos directamente
+        if isinstance(appointment_date, datetime):
+            frappe.logger("debug").info(f"[KANBAN DEBUG] appointment_date ya es un objeto datetime, devolviéndolo directamente")
+            return appointment_date
+            
+        # Si es un objeto date, lo convertimos a datetime
+        if hasattr(appointment_date, 'year') and hasattr(appointment_date, 'month') and hasattr(appointment_date, 'day'):
+            frappe.logger("debug").info(f"[KANBAN DEBUG] appointment_date es un objeto date, convirtiéndolo a datetime")
+            return datetime(appointment_date.year, appointment_date.month, appointment_date.day)
         
         try:
             # Handle different date formats
