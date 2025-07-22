@@ -1049,7 +1049,7 @@ const columnsByMechanic = {
 				let value = frappe.format(field_name === "model" ? `${card.doc[field_name]} - ${card.doc.dsg_model}` : card.doc[field_name], field)
 				let title = !/^<a/.test(value) ? value : ''
 				fields.push(`
-					<div class="text-muted text-truncate" title="${title}">
+					<div class="text-muted text-truncate">
 						${label}
 						<span>${value}</span>
 					</div>
