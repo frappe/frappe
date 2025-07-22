@@ -933,17 +933,19 @@ class Database:
 		return self.get_single_value(*args, **kwargs)
 
 	def set_value(
-		self,
-		dt: str,
-		dn: FilterValue | dict,
-		field: str,
-		val=None,
-		modified=None,
-		modified_by=None,
-		update_modified=True,
-		debug=False,
-	):
-		"""Set a single value in the database, do not call the ORM triggers
+    self,
+    dt: str,
+    dn: FilterValue | dict,
+    field: str,
+    val=None,
+    modified=None,
+    modified_by=None,
+    update_modified=True,
+    debug=False,
+):
+		if isinstance(dn, dict):
+			raise TypeError("Parameter 'dn' should not be a dict. Use a string or list of strings instead.")
+"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
 
 		**Warning:** this function will not call Document events and should be avoided in normal cases.
