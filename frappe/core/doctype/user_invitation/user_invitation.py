@@ -49,7 +49,7 @@ class UserInvitation(Document):
 	@frappe.whitelist()
 	def cancel_invite(self):
 		if self.status != "Pending":
-			return
+			return False
 		self.status = "Cancelled"
 		self.save()
 		email_title = self._get_email_title()
@@ -60,6 +60,7 @@ class UserInvitation(Document):
 			args={"title": email_title},
 			now=True,
 		)
+		return True
 
 	@frappe.whitelist()
 	def expire(self):

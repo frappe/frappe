@@ -5,7 +5,12 @@ import re
 
 import frappe
 import frappe.utils
-from frappe.core.api.user_invitation import _accept_invitation, invite_by_email
+from frappe.core.api.user_invitation import (
+	_accept_invitation,
+	cancel_invitation,
+	get_pending_invitations,
+	invite_by_email,
+)
 from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
 from frappe.tests import IntegrationTestCase
 
@@ -38,6 +43,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def tearDownClass(cls):
 		super().tearDownClass()
 		IntegrationTestUserInvitation.delete_all_invitations()
+		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")
 		for user_email in emails:
 			if frappe.db.exists("User", user_email):
@@ -45,6 +51,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		# some of the code under test commit internally
 		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def delete_all_user_roles(cls):
+		frappe.db.sql("DELETE FROM `tabUser Role`")
 
 	@classmethod
 	def delete_all_invitations(cls):
@@ -57,6 +67,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		IntegrationTestUserInvitation.delete_all_invitations()
+		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")
 
 	def test_insert_invitation(self):
@@ -194,6 +205,34 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		user = frappe.get_doc("User", invitation.email)
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
+
+	def test_get_pending_invitations_api(self):
+		invitation = self.get_dummy_invitation()
+		invitation.insert()
+		invitation.reload()
+		pending_invitations = get_pending_invitations("frappe")
+		self.assertEqual(len(pending_invitations), 1)
+		pending_invitation = pending_invitations[0]
+		self.assertEqual(pending_invitation["name"], invitation.name)
+		self.assertEqual(pending_invitation["email"], invitation.email)
+		roles = pending_invitation["roles"]
+		self.assertIsInstance(roles, list)
+		self.assertSequenceEqual(roles, list(map(lambda r: r.role, invitation.roles)))
+
+	def test_cancel_invitation_api(self):
+		invitation = self.get_dummy_invitation()
+		invitation.insert()
+		invitation.reload()
+		self.assertEqual(invitation.status, "Pending")
+		self.assertEqual(len(self.get_email_names()), 1)
+		res = cancel_invitation(invitation.name, "frappe")
+		self.assertTrue(res["cancelled_now"])
+		invitation.reload()
+		self.assertEqual(invitation.status, "Cancelled")
+		self.assertEqual(len(self.get_email_names()), 2)
+		res = cancel_invitation(invitation.name, "frappe")
+		self.assertFalse(res["cancelled_now"])
+		self.assertEqual(len(self.get_email_names()), 2)
 
 	def get_dummy_invitation(self):
 		return frappe.get_doc(

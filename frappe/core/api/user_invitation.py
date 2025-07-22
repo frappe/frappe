@@ -8,19 +8,7 @@ from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 def invite_by_email(
 	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
 ) -> dict[str, list[str]]:
-	# validate `app_name`
-	UserInvitation.validate_app_name(app_name)
-
-	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
-
-	# check `only_for`
-	only_for = ["System Manager"]
-	if app_name != "frappe":
-		if isinstance(user_invitation_hook, dict):
-			only_for = user_invitation_hook.get("only_for") or []
-		else:
-			only_for = []
-	frappe.only_for(only_for)
+	_app_only_for(app_name)
 
 	# validate emails
 	frappe.utils.validate_email_address(emails, throw=True)
@@ -57,6 +45,75 @@ def invite_by_email(
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def accept_invitation(key: str) -> None:
 	_accept_invitation(key, False)
+
+
+# `app_name` is required for security
+@frappe.whitelist(methods=["PATCH"])
+def cancel_invitation(name: str, app_name: str):
+	_app_only_for(app_name)
+
+	if not frappe.db.exists("User Invitation", name):
+		frappe.throw(title=_("Error"), msg=_("invitation not found"))
+
+	invitation = frappe.get_doc("User Invitation", name)
+	if invitation.app_name != app_name:
+		# message is not specific enough for security
+		frappe.throw(title=_("Error"), msg=_("invitation not found"))
+
+	if invitation.status == "Cancelled":
+		return {"cancelled_now": False}
+
+	if invitation.status != "Pending":
+		frappe.throw(title=_("Error"), msg=_("invitation cannot be cancelled"))
+
+	return {"cancelled_now": invitation.cancel_invite()}
+
+
+@frappe.whitelist(methods=["GET"])
+def get_pending_invitations(app_name: str):
+	_app_only_for(app_name)
+
+	return list(
+		map(
+			lambda invite: {
+				"name": invite.name,
+				"email": invite.email,
+				"roles": list(
+					map(
+						lambda r: r.role,
+						frappe.db.get_all(
+							"User Role",
+							fields=["role"],
+							filters={"parent": invite.name},
+							ignore_permissions=True,
+						),
+					)
+				),
+			},
+			frappe.db.get_all(
+				"User Invitation",
+				fields=["name", "email"],
+				filters={"status": "Pending", "app_name": app_name},
+				ignore_permissions=True,
+			),
+		)
+	)
+
+
+def _app_only_for(app_name: str):
+	# validate `app_name`
+	UserInvitation.validate_app_name(app_name)
+
+	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
+
+	# check `only_for`
+	only_for = ["System Manager"]
+	if app_name != "frappe":
+		if isinstance(user_invitation_hook, dict):
+			only_for = user_invitation_hook.get("only_for") or []
+		else:
+			only_for = []
+	frappe.only_for(only_for)
 
 
 def _accept_invitation(key: str, in_test: bool) -> None:
