@@ -235,7 +235,6 @@ class User(Document):
 		if self.user_emails:
 			ask_pass_update()
 		self.validate_allowed_modules()
-		self.validate_user_image()
 		self.set_time_zone()
 		if self.restrict_ip:
 			self.validate_ip_addr()
@@ -298,10 +297,6 @@ class User(Document):
 			self.set("block_modules", [])
 			for d in module_profile.get("block_modules"):
 				self.append("block_modules", {"module": d.module})
-
-	def validate_user_image(self):
-		if self.user_image and len(self.user_image) > 2000:
-			frappe.throw(_("Not a valid User Image."))
 
 	def on_update(self):
 		# clear new password

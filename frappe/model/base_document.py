@@ -2,9 +2,13 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import os
 import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
+from urllib.parse import urlparse
+
+import requests
 
 import frappe
 from frappe import _, _dict
@@ -1190,6 +1194,72 @@ class BaseDocument:
 
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+	def _validate_and_sanitize_attach_images(self):
+		"""
+		Check `Attach Image` fields to ensure that the contents are valid
+		Also sanitize if they contain SVG data
+		"""
+
+		for field in self.meta.get("fields", {"fieldtype": "Attach Image"}):
+			if not self.has_value_changed(field.fieldname):
+				continue
+
+			image_url = self.get(field.fieldname)
+			if not image_url:
+				continue
+
+			parsed = urlparse(image_url)
+
+			# Handle URLs
+			if parsed.scheme and parsed.netloc:
+				response = requests.head(image_url, allow_redirects=True, timeout=5)
+				response.raise_for_status()
+				content_type = response.headers.get("Content-Type", "")
+				if not content_type.startswith("image/") or content_type == "image/svg+xml":
+					frappe.throw(_("Invalid {0} URL.").format(_(field.label, context=field.parent)))
+
+			# Handle data URIs
+			elif parsed.scheme == "data":
+				content_type = parsed.path.split(";")[0]
+				if not content_type.startswith("image/"):
+					frappe.throw(_("Invalid {0} URL.").format(_(field.label, context=field.parent)))
+
+				# For SVG data URIs, sanitize
+				if content_type == "image/svg+xml":
+					from frappe.utils.image import sanitize_data_uri_svg
+
+					try:
+						sanitized = sanitize_data_uri_svg(image_url)
+						self.set(field.fieldname, sanitized)
+					except Exception:
+						frappe.throw(
+							_("Invalid SVG content in {0}").format(_(field.label, context=field.parent))
+						)
+
+			# Validate file paths
+			elif parsed.path:
+				allowed_paths = ("/files", "/private/files")
+				normalized_path = os.path.normpath(parsed.path)
+				if not any(normalized_path.startswith(path) for path in allowed_paths):
+					frappe.throw(_("Invalid {0} URL.").format(_(field.label, context=field.parent)))
+
+				from mimetypes import guess_type
+
+				content_type = guess_type(image_url)[0]
+				if not content_type or not content_type.startswith("image/"):
+					frappe.throw(_("Invalid {0}.").format(_(field.label, context=field.parent)))
+
+				# For SVG files, sanitize
+				if content_type == "image/svg+xml":
+					from frappe.utils.image import sanitize_file_svg
+
+					try:
+						sanitize_file_svg(parsed.path)
+					except Exception:
+						frappe.throw(
+							_("Invalid SVG content in {0}").format(_(field.label, context=field.parent))
+						)
 
 	def _sync_autoname_field(self):
 		"""Keep autoname field in sync with `name`"""

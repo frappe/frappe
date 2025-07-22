@@ -457,6 +457,70 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_user_image_validation(self):
+		user = frappe.get_doc("User", "test@example.com")
+
+		# Test valid HTTP URL
+		user.user_image = "https://github.com/frappe.png"
+		user.save()
+
+		# Test invalid HTTP URL (not an image)
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "https://github.com/frappe"
+		with self.assertRaises(frappe.ValidationError):
+			user.save()
+
+		# Test valid base64 encoded image
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+		user.save()
+
+		# Test invalid base64 encoded data
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "data:text/plain;base64,SGVsbG8gV29ybGQ="
+		with self.assertRaises(frappe.ValidationError):
+			user.save()
+
+		# Test valid file path
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "/files/image.png"
+		user.save()
+
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "/private/files/image.png"
+		user.save()
+
+		# Test invalid file path
+		user = frappe.get_doc("User", "test@example.com")
+		user.user_image = "/files/../../../Desktop/x.png"
+		with self.assertRaises(frappe.ValidationError):
+			user.save()
+
+		# Test SVG sanitization - scripts should be removed
+		user = frappe.get_doc("User", "test@example.com")
+		malicious_svg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert("xss")</script><circle cx="50" cy="50" r="40"/></svg>'
+		import base64
+
+		encoded = base64.b64encode(malicious_svg.encode("utf-8")).decode("utf-8")
+		user.user_image = f"data:image/svg+xml;base64,{encoded}"
+		user.save()
+		# Reload and check that script was removed
+		user = frappe.get_doc("User", "test@example.com")
+		decoded = base64.b64decode(user.user_image.split("base64,")[1]).decode("utf-8")
+		self.assertNotIn("<script", decoded.lower())
+		self.assertIn("<circle", decoded.lower())  # Legitimate SVG content should remain
+
+		# Test SVG with event handlers
+		user = frappe.get_doc("User", "test@example.com")
+		svg_with_events = '<svg xmlns="http://www.w3.org/2000/svg"><circle onclick="alert(1)" cx="50" cy="50" r="40"/></svg>'
+		encoded = base64.b64encode(svg_with_events.encode("utf-8")).decode("utf-8")
+		user.user_image = f"data:image/svg+xml;base64,{encoded}"
+		user.save()
+		user = frappe.get_doc("User", "test@example.com")
+		decoded = base64.b64decode(user.user_image.split("base64,")[1]).decode("utf-8")
+		self.assertNotIn("onclick", decoded.lower())
+		self.assertIn("<circle", decoded.lower())
+
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
