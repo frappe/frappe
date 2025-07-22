@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:35+0000\n"
-"PO-Revision-Date: 2025-07-21 21:50\n"
+"PO-Revision-Date: 2025-07-22 21:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -11344,7 +11344,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Grid Page Length"
-msgstr ""
+msgstr "Rács Oldal hossza"
 
 #: frappe/public/js/frappe/ui/keyboard.js:127
 msgid "Grid Shortcuts"
@@ -12130,7 +12130,7 @@ msgstr ""
 #. Description of the 'Anonymous responses' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, all responses on the web form will be submitted anonymously"
-msgstr ""
+msgstr "Ha engedélyezve van, a webes űrlapra adott összes válasz névtelenül kerül benyújtásra."
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
@@ -12575,7 +12575,7 @@ msgstr ""
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:19
 msgid "In Minutes"
-msgstr ""
+msgstr "Percben"
 
 #. Label of the in_preview (Check) field in DocType 'DocField'
 #. Label of the in_preview (Check) field in DocType 'Custom Field'
@@ -13036,7 +13036,7 @@ msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:111
 msgid "Invalid Code. Please try again."
-msgstr ""
+msgstr "Érvénytelen kód. Kérjük próbáld újra."
 
 #: frappe/integrations/doctype/webhook/webhook.py:87
 msgid "Invalid Condition: {}"
