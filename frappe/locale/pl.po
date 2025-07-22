@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:35+0000\n"
-"PO-Revision-Date: 2025-07-21 21:50\n"
+"PO-Revision-Date: 2025-07-22 21:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1632,7 +1632,7 @@ msgstr "Zezwól na dużą liczbę edycji"
 #. Label of the allow_edit (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow Bulk Editing"
-msgstr ""
+msgstr "Zezwalaj na masową edycję"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -1780,7 +1780,8 @@ msgstr ""
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow editing even if the doctype has a workflow set up.\n\n"
 "Does nothing if a workflow isn't set up."
-msgstr ""
+msgstr "Opcja \"Zezwalaj na masową edycję\" pozwala na edycję wielu rekordów naraz, nawet jeśli dany typ dokumentu ma zdefiniowany obieg pracy.\n"
+"Jeśli obieg pracy nie jest ustawiony, opcja ta nie ma żadnego wpływu."
 
 #. Label of the allow_events_in_timeline (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -7122,7 +7123,7 @@ msgstr "Wyłącz automatyczne odświeżanie"
 #. 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr ""
+msgstr "Wyłącz automatyczne filtry aktualności"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
