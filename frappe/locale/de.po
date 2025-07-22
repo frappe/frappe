@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:35+0000\n"
-"PO-Revision-Date: 2025-07-21 21:50\n"
+"PO-Revision-Date: 2025-07-22 21:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -19626,7 +19626,7 @@ msgstr "Vorbereiteter Bericht"
 #. Name of a report
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.json
 msgid "Prepared Report Analytics"
-msgstr ""
+msgstr "Vorbereitete Berichtsanalytik"
 
 #. Name of a role
 #: frappe/core/doctype/prepared_report/prepared_report.json
