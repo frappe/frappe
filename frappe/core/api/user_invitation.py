@@ -77,31 +77,28 @@ def cancel_invitation(name: str, app_name: str):
 def get_pending_invitations(app_name: str):
 	_app_only_for(app_name)
 
-	return list(
-		map(
-			lambda invite: {
-				"name": invite.name,
-				"email": invite.email,
-				"roles": list(
-					map(
-						lambda r: r.role,
-						frappe.db.get_all(
-							"User Role",
-							fields=["role"],
-							filters={"parent": invite.name},
-							ignore_permissions=True,
-						),
-					)
-				),
-			},
-			frappe.db.get_all(
-				"User Invitation",
-				fields=["name", "email"],
-				filters={"status": "Pending", "app_name": app_name},
-				ignore_permissions=True,
-			),
-		)
+	pending_invitations = frappe.db.get_all(
+		"User Invitation",
+		fields=["name", "email"],
+		filters={"status": "Pending", "app_name": app_name},
+		ignore_permissions=True,
 	)
+	res = []
+	for pending_invitation in pending_invitations:
+		roles = frappe.db.get_all(
+			"User Role",
+			fields=["role"],
+			filters={"parent": pending_invitation.name},
+			ignore_permissions=True,
+		)
+		res.append(
+			{
+				"name": pending_invitation.name,
+				"email": pending_invitation.email,
+				"roles": [r.role for r in roles],
+			}
+		)
+	return res
 
 
 def _app_only_for(app_name: str):

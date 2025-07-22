@@ -219,7 +219,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(pending_invitation["email"], invitation.email)
 		roles = pending_invitation["roles"]
 		self.assertIsInstance(roles, list)
-		self.assertSequenceEqual(roles, list(map(lambda r: r.role, invitation.roles)))
+		self.assertSequenceEqual(roles, [r.role for r in invitation.roles])
 
 	def test_cancel_invitation_api(self):
 		invitation = self.get_dummy_invitation()
