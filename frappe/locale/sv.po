@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:35+0000\n"
-"PO-Revision-Date: 2025-07-21 21:50\n"
+"PO-Revision-Date: 2025-07-22 21:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -20257,12 +20257,12 @@ msgstr "Lila"
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Push Notification Settings"
-msgstr "Tryck ut Avisering Inställningar"
+msgstr "Skicka ut Avisering Inställningar"
 
 #. Label of a Card Break in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Push Notifications"
-msgstr "Tryck ut Aviseringar"
+msgstr "Skicka ut Aviseringar"
 
 #. Label of the push_to_google_calendar (Check) field in DocType 'Google
 #. Calendar'
@@ -25966,7 +25966,7 @@ msgstr "Nästa Schemalagda datum kan inte vara senare än Slut Datum."
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:29
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
-msgstr "Tryck ut Relä Server URL nyckel (`push_relay_server_url`) saknas i webbplats konfiguration"
+msgstr "Skicka ut Relä Server URL nyckel (`push_relay_server_url`) saknas i webbplats konfiguration"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:367
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
