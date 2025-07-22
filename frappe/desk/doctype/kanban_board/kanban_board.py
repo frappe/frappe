@@ -178,14 +178,23 @@ def update_order(board_name, order):
             
             # For special columns, use our sorted order instead of the order from the frontend
             if col_name in special_order_statuses and col_name in sorted_columns:
-                # Get the intersection of cards in this column and our sorted order
-                # This ensures we only include cards that are actually in this column
-                sorted_cards = [card for card in sorted_columns[col_name] if card in cards]
+                # Forzar el reordenamiento completo de las columnas especiales
+                # Obtenemos todos los proyectos que deberían estar en esta columna
+                sorted_cards = sorted_columns[col_name]
                 
-                # Add any cards that might be in the column but not in our sorted list (edge case)
-                for card in cards:
-                    if card not in sorted_cards:
-                        sorted_cards.append(card)
+                # Verificamos si hay alguna tarjeta en el frontend que no esté en nuestro orden calculado
+                missing_cards = [card for card in cards if card not in sorted_cards]
+                if missing_cards:
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(missing_cards)} cards in frontend not in sorted order: {missing_cards}")
+                    # Añadimos las tarjetas faltantes al final del orden calculado
+                    sorted_cards.extend(missing_cards)
+                
+                # Verificamos si hay tarjetas en nuestro orden calculado que no estén en el frontend
+                extra_cards = [card for card in sorted_cards if card not in cards]
+                if extra_cards:
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(extra_cards)} cards in sorted order not in frontend: {extra_cards}")
+                    # Eliminamos las tarjetas que no están en el frontend
+                    sorted_cards = [card for card in sorted_cards if card in cards]
                 
                 frappe.logger("debug").info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
                 frappe.logger("debug").info(f"[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}")
@@ -264,7 +273,18 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
         
         # Make sure the moved card is in the list
         if docname not in sorted_cards:
+            frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Card {docname} not found in sorted order, adding it")
+            # Actualizamos el status del proyecto en la base de datos para asegurar que aparezca en la columna correcta
+            frappe.db.set_value("Project", docname, "status", to_colname)
+            # Añadimos la tarjeta al final del orden calculado
             sorted_cards.append(docname)
+        
+        # Verificamos si hay tarjetas en el frontend que no estén en nuestro orden calculado
+        missing_cards = [card for card in to_col_order if card not in sorted_cards and card != docname]
+        if missing_cards:
+            frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Found {len(missing_cards)} cards in frontend not in sorted order: {missing_cards}")
+            # Añadimos las tarjetas faltantes al final del orden calculado
+            sorted_cards.extend(missing_cards)
         
         frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Original to_col_order: {to_col_order}")
         frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Sorted order for '{to_colname}': {sorted_cards}")
@@ -488,6 +508,20 @@ def kanban_project_refresh(name:str):
     frappe.publish_realtime("list_update",{"doctype":"Project", "user":"support@tvsgroup.nl", "name": name})
     return "called kanban_project_refresh"
 
+@frappe.whitelist()
+def force_refresh_kanban_order(board_name):
+    """Endpoint para forzar la actualización del orden del tablero Kanban desde el frontend"""
+    frappe.logger("debug").info(f"[KANBAN FORCE REFRESH] Forzando actualización del orden para el tablero: {board_name}")
+    
+    try:
+        result = refresh_kanban_project_order(board_name)
+        # Notificar a todos los clientes que deben actualizar su vista
+        frappe.publish_realtime("kanban_board_update", {"board_name": board_name})
+        return result
+    except Exception as e:
+        frappe.logger("debug").error(f"[KANBAN FORCE REFRESH] Error al forzar actualización: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 
 # ==================== CUSTOM FUNCTIONS ====================
 
@@ -545,44 +579,92 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     def parse_appointment_date(appointment_date):
         """Parse appointment_date to datetime object, handling various formats"""
         if not appointment_date or appointment_date == 'None' or str(appointment_date) == 'None':
+            frappe.logger("debug").info(f"[KANBAN DEBUG] Empty appointment_date: {appointment_date}, returning far future date")
             return datetime(9999, 12, 31)  # Far future date for items without appointment date
+        
+        frappe.logger("debug").info(f"[KANBAN DEBUG] Parsing appointment_date: {appointment_date}, type: {type(appointment_date).__name__}")
         
         try:
             # Handle different date formats
             if isinstance(appointment_date, str):
-                # Handle day-month format (e.g., "15-07" or "19/07")
-                if '-' in appointment_date and len(appointment_date.split('-')) == 2:
-                    day_month = appointment_date.split('-')
-                    current_year = datetime.now().year
-                    try:
-                        return datetime(current_year, int(day_month[1]), int(day_month[0]))
-                    except (ValueError, IndexError):
-                        pass  # Continue to next format if this fails
+                # Handle day-month format with year (e.g., "15-07-2025" or "19-07-25")
+                if '-' in appointment_date:
+                    parts = appointment_date.split('-')
+                    
+                    # Handle DD-MM-YYYY format (e.g., "15-07-2025")
+                    if len(parts) == 3:
+                        try:
+                            day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+                            # Handle 2-digit year
+                            if year < 100:
+                                year += 2000
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Parsed DD-MM-YYYY: day={day}, month={month}, year={year}")
+                            return datetime(year, month, day)
+                        except (ValueError, IndexError) as e:
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Failed to parse DD-MM-YYYY: {e}")
+                            pass
+                    
+                    # Handle DD-MM format (e.g., "15-07")
+                    elif len(parts) == 2:
+                        try:
+                            day, month = int(parts[0]), int(parts[1])
+                            current_year = datetime.now().year
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Parsed DD-MM: day={day}, month={month}, year={current_year}")
+                            return datetime(current_year, month, day)
+                        except (ValueError, IndexError) as e:
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Failed to parse DD-MM: {e}")
+                            pass
                 
-                elif '/' in appointment_date and len(appointment_date.split('/')) == 2:
-                    day_month = appointment_date.split('/')
-                    current_year = datetime.now().year
-                    try:
-                        return datetime(current_year, int(day_month[1]), int(day_month[0]))
-                    except (ValueError, IndexError):
-                        pass  # Continue to next format if this fails
+                # Handle day-month format with slashes (e.g., "15/07/2025" or "19/07")
+                elif '/' in appointment_date:
+                    parts = appointment_date.split('/')
+                    
+                    # Handle DD/MM/YYYY format
+                    if len(parts) == 3:
+                        try:
+                            day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+                            # Handle 2-digit year
+                            if year < 100:
+                                year += 2000
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Parsed DD/MM/YYYY: day={day}, month={month}, year={year}")
+                            return datetime(year, month, day)
+                        except (ValueError, IndexError) as e:
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Failed to parse DD/MM/YYYY: {e}")
+                            pass
+                    
+                    # Handle DD/MM format
+                    elif len(parts) == 2:
+                        try:
+                            day, month = int(parts[0]), int(parts[1])
+                            current_year = datetime.now().year
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Parsed DD/MM: day={day}, month={month}, year={current_year}")
+                            return datetime(current_year, month, day)
+                        except (ValueError, IndexError) as e:
+                            frappe.logger("debug").info(f"[KANBAN DEBUG] Failed to parse DD/MM: {e}")
+                            pass
                 
                 # Try standard date formats
-                date_formats = ['%d-%m-%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S']
+                date_formats = ['%d-%m-%Y', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y', '%m/%d/%Y']
                 for fmt in date_formats:
                     try:
-                        return datetime.strptime(appointment_date, fmt)
+                        result = datetime.strptime(appointment_date, fmt)
+                        frappe.logger("debug").info(f"[KANBAN DEBUG] Parsed with format {fmt}: {result}")
+                        return result
                     except ValueError:
                         continue
             
             # If it's already a datetime object, use it directly
             elif hasattr(appointment_date, 'date'):
-                return appointment_date if isinstance(appointment_date, datetime) else datetime.combine(appointment_date, datetime.min.time())
+                result = appointment_date if isinstance(appointment_date, datetime) else datetime.combine(appointment_date, datetime.min.time())
+                frappe.logger("debug").info(f"[KANBAN DEBUG] Using datetime object directly: {result}")
+                return result
         
-        except (ValueError, TypeError, AttributeError):
+        except (ValueError, TypeError, AttributeError) as e:
+            frappe.logger("debug").info(f"[KANBAN DEBUG] Exception parsing date: {e}")
             pass  # If all parsing attempts fail, use default
         
         # Default if all parsing attempts fail
+        frappe.logger("debug").info(f"[KANBAN DEBUG] All parsing attempts failed for {appointment_date}, returning far future date")
         return datetime(9999, 12, 31)
     
     # Print raw data before sorting for debugging
@@ -593,6 +675,7 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         frappe.logger("debug").info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_pos: {queue_pos}, type: {type(queue_pos).__name__}, appointment_date: {appointment_date}, type: {type(appointment_date).__name__}")
     
     # Sort the special order projects
+    # Primero ordenamos por queue_position (ascendente) y luego por appointment_date (ascendente)
     sorted_special_projects = sorted(
         special_order_projects,
         key=lambda p: (
@@ -600,6 +683,22 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             parse_appointment_date(p.get('appointment_date'))
         )
     )
+    
+    # Verificamos si hay algún proyecto con queue_position None o vacío
+    # y los movemos al final de la lista para cada status
+    in_queue_projects = [p for p in sorted_special_projects if p.get('status') == 'In queue']
+    in_parking_projects = [p for p in sorted_special_projects if p.get('status') == 'In parking']
+    
+    # Reordenamos los proyectos 'In queue' para que los que tienen queue_position None o vacío vayan al final
+    in_queue_with_position = [p for p in in_queue_projects if p.get('queue_position') not in [None, '', 0]]
+    in_queue_without_position = [p for p in in_queue_projects if p.get('queue_position') in [None, '', 0]]
+    
+    # Reordenamos los proyectos 'In parking' para que los que tienen queue_position None o vacío vayan al final
+    in_parking_with_position = [p for p in in_parking_projects if p.get('queue_position') not in [None, '', 0]]
+    in_parking_without_position = [p for p in in_parking_projects if p.get('queue_position') in [None, '', 0]]
+    
+    # Reconstruimos la lista de proyectos especiales ordenados
+    sorted_special_projects = in_queue_with_position + in_queue_without_position + in_parking_with_position + in_parking_without_position
     
     # Log all projects in special order statuses after sorting
     frappe.logger("debug").info("[KANBAN DEBUG] Projects in special order statuses after sorting:")
