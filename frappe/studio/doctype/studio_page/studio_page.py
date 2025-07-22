@@ -80,6 +80,9 @@ class StudioPage(Document):
 		if duplicate_variable_names:
 			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
 
+	def before_export(self, doc):
+		doc.name = frappe.scrub(doc.page_title)
+
 	@frappe.whitelist()
 	def publish(self, **kwargs):
 		frappe.form_dict.update(kwargs)

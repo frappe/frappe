@@ -195,7 +195,7 @@ def write_document_file(doc, folder=None):
 	doc.run_method("before_export", doc_export)
 	doc_export = strip_default_fields(doc, doc_export)
 
-	fname = scrub(doc.name)
+	fname = scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 		frappe.throw("Invalid export path: " + Path(path).as_posix())
