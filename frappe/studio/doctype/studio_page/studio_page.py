@@ -83,6 +83,9 @@ class StudioPage(Document):
 	def before_export(self, doc):
 		doc.name = frappe.scrub(doc.page_title)
 
+	def before_import(self):
+		self.name = self.page_name
+
 	@frappe.whitelist()
 	def publish(self, **kwargs):
 		frappe.form_dict.update(kwargs)
