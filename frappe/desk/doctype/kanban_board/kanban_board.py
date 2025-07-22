@@ -10,6 +10,9 @@ from frappe import _
 from frappe.model.document import Document
 from datetime import datetime
 
+# Configurar el nivel de log para asegurar que los mensajes de debug se muestren
+frappe.logger("debug").setLevel("DEBUG")
+frappe.logger("debug").info("✅ Configuración de logging para Kanban Board activada")
 
 
 class KanbanBoard(Document):
@@ -135,7 +138,7 @@ def update_order(board_name, order):
     
     # Special handling for Project doctype
     if doctype == "Project":
-        frappe.logger().info(f"[KANBAN UPDATE] Processing update_order for Project kanban board: {board_name}")
+        frappe.logger("debug").info(f"[KANBAN UPDATE] Processing update_order for Project kanban board: {board_name}")
         
         # Get the correctly sorted projects for special columns
         special_order_statuses = ["In queue", "In parking"]
@@ -145,23 +148,23 @@ def update_order(board_name, order):
         sorted_columns = {}
         for status in special_order_statuses:
             sorted_columns[status] = [p['name'] for p in projects_ordered if p.get('status') == status]
-            frappe.logger().info(f"[KANBAN UPDATE] Sorted order for '{status}': {sorted_columns[status]}")
+            frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted order for '{status}': {sorted_columns[status]}")
             
         # Log the incoming order from frontend for comparison
-        frappe.logger().info(f"[KANBAN UPDATE] Order received from frontend: {order_dict}")
+        frappe.logger("debug").info(f"[KANBAN UPDATE] Order received from frontend: {order_dict}")
         
         # If order_dict is empty, we need to build it from the current board state
         if not order_dict:
-            frappe.logger().info("[KANBAN UPDATE] Order dict is empty, building from current board state")
+            frappe.logger("debug").info("[KANBAN UPDATE] Order dict is empty, building from current board state")
             order_dict = {}
             for column in board.columns:
                 try:
                     # Get the current order from the column
                     current_order = json.loads(column.order or '[]')
                     order_dict[column.column_name] = current_order
-                    frappe.logger().info(f"[KANBAN UPDATE] Current order for '{column.column_name}': {current_order}")
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Current order for '{column.column_name}': {current_order}")
                 except Exception as e:
-                    frappe.logger().info(f"[KANBAN UPDATE] Error parsing column order: {e}")
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Error parsing column order: {e}")
                     order_dict[column.column_name] = []
         
         # Apply our custom sorting only to special columns, keep user's drag-drop order for others
@@ -184,14 +187,14 @@ def update_order(board_name, order):
                     if card not in sorted_cards:
                         sorted_cards.append(card)
                 
-                frappe.logger().info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
-                frappe.logger().info(f"[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}")
+                frappe.logger("debug").info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
+                frappe.logger("debug").info(f"[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}")
                 
                 # Update the column order with our sorted order
                 for column in board.columns:
                     if column.column_name == col_name:
                         column.order = json.dumps(sorted_cards)
-                        frappe.logger().info(f"[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}")
+                        frappe.logger("debug").info(f"[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}")
             else:
                 # For other columns, keep the order as is
                 for column in board.columns:
@@ -216,7 +219,7 @@ def update_order(board_name, order):
 @frappe.whitelist()
 def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
     """Save the order of cards in columns"""
-    frappe.logger().info(f"[KANBAN SINGLE CARD] Moving card {docname} from {from_colname} to {to_colname}, old_index: {old_index}, new_index: {new_index}")
+    frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Moving card {docname} from {from_colname} to {to_colname}, old_index: {old_index}, new_index: {new_index}")
     
     board = frappe.get_doc("Kanban Board", board_name)
     doctype = board.reference_doctype
@@ -245,13 +248,13 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
 
             to_col_order.insert(new_index, from_col_order.pop(old_index))
         except ValueError:
-            frappe.logger().info("[KANBAN SINGLE CARD] docname no se encuentra en from_col_order.")
+            frappe.logger("debug").info("[KANBAN SINGLE CARD] docname no se encuentra en from_col_order.")
         except IndexError as e:
-            frappe.logger().info(f"[KANBAN SINGLE CARD] Error: {e}")
+            frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Error: {e}")
 
     # Special handling for Project doctype
     if doctype == "Project" and to_colname in ["In queue", "In parking"]:
-        frappe.logger().info(f"[KANBAN SINGLE CARD] Special handling for Project with status '{to_colname}'")
+        frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Special handling for Project with status '{to_colname}'")
         
         # Get the correctly sorted projects
         projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
@@ -263,8 +266,8 @@ def update_order_for_single_card(board_name, docname, from_colname, to_colname, 
         if docname not in sorted_cards:
             sorted_cards.append(docname)
         
-        frappe.logger().info(f"[KANBAN SINGLE CARD] Original to_col_order: {to_col_order}")
-        frappe.logger().info(f"[KANBAN SINGLE CARD] Sorted order for '{to_colname}': {sorted_cards}")
+        frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Original to_col_order: {to_col_order}")
+        frappe.logger("debug").info(f"[KANBAN SINGLE CARD] Sorted order for '{to_colname}': {sorted_cards}")
         
         # Use the sorted order for the destination column
         to_col_order = sorted_cards
@@ -466,16 +469,16 @@ def refresh_kanban_project_order(board_name):
         for column in board.columns:
             column_projects = [p['name'] for p in projects_ordered if p.get('status') == column.column_name]
             column.order = frappe.as_json(column_projects)
-            frappe.logger().info(f"[KANBAN REFRESH] Updated column '{column.column_name}' with {len(column_projects)} projects")
+            frappe.logger("debug").info(f"[KANBAN REFRESH] Updated column '{column.column_name}' with {len(column_projects)} projects")
         
         # Save the board
         board.save(ignore_permissions=True)
         
-        frappe.logger().info(f"[KANBAN REFRESH] Successfully refreshed kanban board: {board_name}")
+        frappe.logger("debug").info(f"[KANBAN REFRESH] Successfully refreshed kanban board: {board_name}")
         return {"status": "success", "message": f"Kanban board '{board_name}' order refreshed successfully"}
         
     except Exception as e:
-        frappe.logger().error(f"[KANBAN REFRESH] Error refreshing kanban board {board_name}: {str(e)}")
+        frappe.logger("debug").error(f"[KANBAN REFRESH] Error refreshing kanban board {board_name}: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
@@ -497,7 +500,7 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     - For other columns: maintain original order
     - Database returns queue_position as string, so conversion to float is needed for proper sorting
     """
-    frappe.logger().info("[KANBAN DEBUG] Starting get_projects_ordered_by_queue_position_and_appointment_date()")
+    frappe.logger("debug").info("[KANBAN DEBUG] Starting get_projects_ordered_by_queue_position_and_appointment_date()")
     
     projects = frappe.db.sql(
         """
@@ -513,20 +516,20 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     )
     
     # Debug logging
-    frappe.logger().info(f"[KANBAN DEBUG] Total projects fetched: {len(projects)}")
+    frappe.logger("debug").info(f"[KANBAN DEBUG] Total projects fetched: {len(projects)}")
     
     # Separate projects into two groups: those that need special ordering and those that don't
     special_order_statuses = ["In queue", "In parking"]
     special_order_projects = [p for p in projects if p.get('status') in special_order_statuses]
     regular_projects = [p for p in projects if p.get('status') not in special_order_statuses]
     
-    frappe.logger().info(f"[KANBAN DEBUG] Projects in special order statuses: {len(special_order_projects)}")
-    frappe.logger().info(f"[KANBAN DEBUG] Projects in regular statuses: {len(regular_projects)}")
+    frappe.logger("debug").info(f"[KANBAN DEBUG] Projects in special order statuses: {len(special_order_projects)}")
+    frappe.logger("debug").info(f"[KANBAN DEBUG] Projects in regular statuses: {len(regular_projects)}")
     
     # Log all projects in special order statuses before sorting
-    frappe.logger().info(f"[KANBAN DEBUG] Projects in special order statuses before sorting:")
+    frappe.logger("debug").info(f"[KANBAN DEBUG] Projects in special order statuses before sorting:")
     for p in special_order_projects:
-        frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
+        frappe.logger("debug").info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
     
     def parse_queue_position(queue_pos):
         """Parse queue_position to float, handling edge cases"""
@@ -583,11 +586,11 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
         return datetime(9999, 12, 31)
     
     # Print raw data before sorting for debugging
-    frappe.logger().info("[KANBAN DEBUG] Raw data before sorting:")
+    frappe.logger("debug").info("[KANBAN DEBUG] Raw data before sorting:")
     for p in special_order_projects:
         queue_pos = p.get('queue_position')
         appointment_date = p.get('appointment_date')
-        frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_pos: {queue_pos}, type: {type(queue_pos).__name__}, appointment_date: {appointment_date}, type: {type(appointment_date).__name__}")
+        frappe.logger("debug").info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, queue_pos: {queue_pos}, type: {type(queue_pos).__name__}, appointment_date: {appointment_date}, type: {type(appointment_date).__name__}")
     
     # Sort the special order projects
     sorted_special_projects = sorted(
@@ -599,22 +602,22 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
     )
     
     # Log all projects in special order statuses after sorting
-    frappe.logger().info("[KANBAN DEBUG] Projects in special order statuses after sorting:")
+    frappe.logger("debug").info("[KANBAN DEBUG] Projects in special order statuses after sorting:")
     for p in sorted_special_projects:
         queue_pos = p.get('queue_position')
         parsed_queue_pos = parse_queue_position(queue_pos)
         appointment_date = p.get('appointment_date')
         parsed_date = parse_appointment_date(appointment_date)
-        frappe.logger().info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, raw queue_pos: {queue_pos}, parsed: {parsed_queue_pos}, raw date: {appointment_date}, parsed: {parsed_date}")
+        frappe.logger("debug").info(f"[KANBAN DEBUG] {p.get('name')} - status: {p.get('status')}, raw queue_pos: {queue_pos}, parsed: {parsed_queue_pos}, raw date: {appointment_date}, parsed: {parsed_date}")
     
     # Combine the sorted special projects with the regular projects (maintaining original order)
     sorted_projects = sorted_special_projects + regular_projects
     
     # Debug logging for final order
     in_queue_projects = [p for p in sorted_projects if p.get('status') == 'In queue']
-    frappe.logger().info(f"[KANBAN DEBUG] Final 'In queue' order:")
+    frappe.logger("debug").info(f"[KANBAN DEBUG] Final 'In queue' order:")
     for i, p in enumerate(in_queue_projects):
-        frappe.logger().info(f"[KANBAN DEBUG] {i+1}. {p.get('name')} - queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
+        frappe.logger("debug").info(f"[KANBAN DEBUG] {i+1}. {p.get('name')} - queue_position: {p.get('queue_position')}, appointment_date: {p.get('appointment_date')}")
     
     return sorted_projects
 
