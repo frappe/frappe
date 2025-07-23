@@ -297,7 +297,7 @@
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2025-06-17 15:31:01.945146",
+ "modified": "2025-07-23 17:46:08.183584",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",
@@ -306,6 +306,7 @@
  "permissions": [
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
