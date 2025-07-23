@@ -41,17 +41,17 @@ class UserInvitation(Document):
 		accepted_now = self._accept()
 		if not accepted_now:
 			return
-		user, user_inserted = self._upsert_user()
+		user, user_inserted = self._upsert_user(ignore_permissions)
 		self.save(ignore_permissions)
 		user.save(ignore_permissions)
 		self._run_after_accept_hooks(user, user_inserted)
 
 	@frappe.whitelist()
-	def cancel_invite(self):
+	def cancel_invite(self, ignore_permissions: bool = False):
 		if self.status != "Pending":
 			return False
 		self.status = "Cancelled"
-		self.save()
+		self.save(ignore_permissions)
 		email_title = self._get_email_title()
 		frappe.sendmail(
 			recipients=self.email,
@@ -116,7 +116,7 @@ class UserInvitation(Document):
 		self.user = self.email
 		return True
 
-	def _upsert_user(self):
+	def _upsert_user(self, ignore_permissions: bool = False):
 		user: Document | None = None
 		user_inserted = False
 		if frappe.db.exists("User", self.user):
@@ -127,7 +127,7 @@ class UserInvitation(Document):
 			user.email = self.email
 			user.first_name = self.email.split("@")[0].title()
 			user.send_welcome_email = False
-			user.insert()
+			user.insert(ignore_permissions)
 			user_inserted = True
 		user.append_roles(*[r.role for r in self.roles])
 		return user, user_inserted

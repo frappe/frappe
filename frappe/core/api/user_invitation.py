@@ -37,7 +37,7 @@ def invite_by_email(
 			roles=[dict(role=role) for role in roles],
 			app_name=app_name,
 			redirect_to_path=redirect_to_path,
-		).insert()
+		).insert(ignore_permissions=True)
 
 	return {
 		"accepted_invite_emails": accepted_invite_emails,
@@ -70,7 +70,7 @@ def cancel_invitation(name: str, app_name: str):
 	if invitation.status != "Pending":
 		frappe.throw(title=_("Error"), msg=_("invitation cannot be cancelled"))
 
-	return {"cancelled_now": invitation.cancel_invite()}
+	return {"cancelled_now": invitation.cancel_invite(ignore_permissions=True)}
 
 
 @frappe.whitelist(methods=["GET"])
@@ -78,19 +78,11 @@ def get_pending_invitations(app_name: str):
 	_app_only_for(app_name)
 
 	pending_invitations = frappe.db.get_all(
-		"User Invitation",
-		fields=["name", "email"],
-		filters={"status": "Pending", "app_name": app_name},
-		ignore_permissions=True,
+		"User Invitation", fields=["name", "email"], filters={"status": "Pending", "app_name": app_name}
 	)
 	res = []
 	for pending_invitation in pending_invitations:
-		roles = frappe.db.get_all(
-			"User Role",
-			fields=["role"],
-			filters={"parent": pending_invitation.name},
-			ignore_permissions=True,
-		)
+		roles = frappe.db.get_all("User Role", fields=["role"], filters={"parent": pending_invitation.name})
 		res.append(
 			{
 				"name": pending_invitation.name,
