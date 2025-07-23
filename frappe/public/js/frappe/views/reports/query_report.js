@@ -1743,8 +1743,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				row.is_total_row = true;
 				return row;
 			}, {});
-			if (!totalRow["currency"]) {
-					totalRow["currency"] = rows[0]["currency"];
+			if (!totalRow["currency"] && rows.length) {
+				totalRow["currency"] = rows[0]["currency"];
 			}
 			rows.push(totalRow);
 		}
