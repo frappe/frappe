@@ -83,6 +83,10 @@ class UserInvitation(Document):
 		self._validate_roles()
 		self._validate_email()
 		if frappe.db.get_value(
+			"User Invitation", filters={"email": self.email, "status": "Accepted", "app_name": self.app_name}
+		):
+			frappe.throw(title=_("Error"), msg=_("invitation already accepted"))
+		if frappe.db.get_value(
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
@@ -162,8 +166,6 @@ class UserInvitation(Document):
 
 	def _validate_email(self):
 		frappe.utils.validate_email_address(self.email, throw=True)
-		if frappe.db.exists("User", self.email):
-			frappe.throw(title=_("Invalid email"), msg=_("user already exists"))
 
 	@classmethod
 	def validate_app_name(cls, app_name: str):
