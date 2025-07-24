@@ -81,28 +81,36 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		const link_field = this.get_link_field();
+		// Trim the value to remove spaces or only if space is only input
+		if (value && typeof value === "string") {
+			value = value.trim();
+		}
 
 		if (value) {
-			if (this.frm) {
-				const new_row = frappe.model.add_child(
-					this.frm.doc,
-					this.df.options,
-					this.df.fieldname
-				);
-				new_row[link_field.fieldname] = value;
-				this.rows = this.frm.doc[this.df.fieldname];
+			// Only create a pill if the value is a real item from the autocomplete list.
+			// This prevents creating a pill from raw text when the user clicks away.
+			if (this.awesomplete.get_item(value)) {
+				if (this.frm) {
+					const new_row = frappe.model.add_child(
+						this.frm.doc,
+						this.df.options,
+						this.df.fieldname
+					);
+					new_row[link_field.fieldname] = value;
+					this.rows = this.frm.doc[this.df.fieldname];
 
-				this.frm.script_manager.trigger(
-					`${this.df.fieldname}_add`,
-					this.df.options,
-					new_row.name
-				);
-			} else {
-				this.rows.push({
-					[link_field.fieldname]: value,
-				});
+					this.frm.script_manager.trigger(
+						`${this.df.fieldname}_add`,
+						this.df.options,
+						new_row.name
+					);
+				} else {
+					this.rows.push({
+						[link_field.fieldname]: value,
+					});
+				}
+				frappe.utils.add_link_title(link_field.options, value, label);
 			}
-			frappe.utils.add_link_title(link_field.options, value, label);
 		}
 		this._rows_list = this.rows.map((row) => row[link_field.fieldname]);
 		return this.rows;
@@ -165,9 +173,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		const link_field = this.get_link_field();
 		const encoded_value = encodeURIComponent(value);
 		const pill_name = frappe.utils.get_link_title(link_field.options, value) || value;
+		const safe_pill_name = frappe.utils.escape_html(pill_name); // Sanitize the value before making it a HTML pill
+
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
-				<span class="btn-link-to-form">${__(pill_name)}</span>
+				<span class="btn-link-to-form">${__(safe_pill_name)}</span>
 				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;
