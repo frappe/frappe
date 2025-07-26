@@ -226,7 +226,8 @@ def get_permission_query_conditions(user: Document | None) -> str | None:
 	allowed_apps = get_allowed_apps(user)
 	if not allowed_apps:
 		return "false"
-	return f'`tabUser Invitation`.app_name IN ({", ".join([f"\"{app}\"" for app in allowed_apps])})'
+	allowed_apps_str = ", ".join([f'"{app}"' for app in allowed_apps])
+	return f"`tabUser Invitation`.app_name IN ({allowed_apps_str})"
 
 
 def has_permission(
