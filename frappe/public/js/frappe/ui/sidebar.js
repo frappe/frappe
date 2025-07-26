@@ -343,6 +343,16 @@ frappe.ui.Sidebar = class Sidebar {
 				path = "/app/private/" + frappe.router.slug(item.name.split("-")[0]);
 			}
 		}
+		const iconFixes = {
+		"users": "user",
+		"file": "file-text",
+		"tag": "tags",
+		"list": "table",
+		"check": "check-circle"
+	};
+	if (item.icon && iconFixes[item.icon]) {
+		item.icon = iconFixes[item.icon];
+	}
 
 		return $(`
 			<div
