@@ -168,8 +168,8 @@ class UserInvitation(Document):
 	def _validate_email(self):
 		frappe.utils.validate_email_address(self.email, throw=True)
 
-	@classmethod
-	def validate_app_name(cls, app_name: str):
+	@staticmethod
+	def validate_app_name(app_name: str):
 		if app_name not in frappe.get_installed_apps():
 			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
 
