@@ -168,14 +168,28 @@ class UserInvitation(Document):
 	def _validate_email(self):
 		frappe.utils.validate_email_address(self.email, throw=True)
 
+	def get_redirect_to_path(self):
+		start_index = 1 if self.redirect_to_path.startswith("/") else 0
+		return self.redirect_to_path[start_index:]
+
 	@staticmethod
 	def validate_app_name(app_name: str):
 		if app_name not in frappe.get_installed_apps():
 			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
 
-	def get_redirect_to_path(self):
-		start_index = 1 if self.redirect_to_path.startswith("/") else 0
-		return self.redirect_to_path[start_index:]
+	@staticmethod
+	def static_app_only_for(app_name: str) -> None:
+		UserInvitation.validate_app_name(app_name)
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
+		only_for: list[str] = []
+		if isinstance(user_invitation_hook, dict):
+			only_for = user_invitation_hook.get("only_for") or []
+		if "System Manager" not in only_for:
+			only_for.append("System Manager")
+		frappe.only_for(only_for)
+
+	def app_only_for(self) -> None:
+		UserInvitation.static_app_only_for(self.app_name)
 
 
 def mark_expired_invitations() -> None:
