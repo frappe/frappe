@@ -111,6 +111,7 @@ permission_query_conditions = {
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
+	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -128,6 +129,7 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
+	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -566,3 +568,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 ]
+
+user_invitation = {
+	"only_for": ["System Manager"],
+}

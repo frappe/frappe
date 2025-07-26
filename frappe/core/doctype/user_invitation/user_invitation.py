@@ -5,6 +5,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.model.document import Document
+from frappe.permissions import get_roles
 
 
 class UserInvitation(Document):
@@ -188,3 +189,41 @@ def mark_expired_invitations() -> None:
 		invitation.expire()
 		# to avoid losing work in case the job times out without finishing
 		frappe.db.commit()  # nosemgrep
+
+
+def get_allowed_apps(user: Document | None) -> list[str]:
+	user_roles = set(get_user_roles(user))
+	allowed_apps: list[str] = []
+	for app in frappe.get_installed_apps():
+		user_invitation_hooks = frappe.get_hooks("user_invitation", app_name=app)
+		if not isinstance(user_invitation_hooks, dict):
+			continue
+		only_for = user_invitation_hooks.get("only_for") or []
+		if set(only_for) & user_roles:
+			allowed_apps.append(app)
+	return allowed_apps
+
+
+def get_permission_query_conditions(user: Document | None) -> str | None:
+	user = get_user(user)
+	user_roles = get_user_roles(user)
+	if "System Manager" in user_roles:
+		return
+	allowed_apps = get_allowed_apps(user)
+	if not allowed_apps:
+		return "false"
+	return f'`tabUser Invitation`.app_name IN ({", ".join([f"\"{app}\"" for app in allowed_apps])})'
+
+
+def has_permission(
+	doc: UserInvitation, user: Document | None = None, permission_type: str | None = None
+) -> bool:
+	return permission_type != "delete" and doc.app_name in get_allowed_apps(user)
+
+
+def get_user_roles(user: Document | None) -> list[str]:
+	return get_roles(get_user(user))
+
+
+def get_user(user: Document | None) -> Document:
+	return user or frappe.session.user

@@ -69,6 +69,7 @@
   {
    "fieldname": "app_name",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "App Name",
    "reqd": 1,
    "set_only_once": 1
@@ -99,7 +100,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 14:17:04.265194",
+ "modified": "2025-07-26 11:52:46.984800",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Invitation",

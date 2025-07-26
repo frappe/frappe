@@ -100,12 +100,11 @@ def _app_only_for(app_name: str):
 	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
 
 	# check `only_for`
-	only_for = ["System Manager"]
-	if app_name != "frappe":
-		if isinstance(user_invitation_hook, dict):
-			only_for = user_invitation_hook.get("only_for") or []
-		else:
-			only_for = []
+	only_for = []
+	if isinstance(user_invitation_hook, dict):
+		only_for = user_invitation_hook.get("only_for") or []
+	if "System Manager" not in only_for:
+		only_for.append("System Manager")
 	frappe.only_for(only_for)
 
 
