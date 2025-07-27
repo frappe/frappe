@@ -46,14 +46,14 @@ class RealTimeClient {
 
 		// Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-			this.socket = io(this.get_host(port), {
+			this.socket = io(this.get_namespace(), {
 				secure: true,
 				withCredentials: true,
 				reconnectionAttempts: 3,
 				autoConnect: !lazy_connect,
 			});
 		} else if (window.location.protocol == "http:") {
-			this.socket = io(this.get_host(port), {
+			this.socket = io(this.get_namespace(), {
 				withCredentials: true,
 				reconnectionAttempts: 3,
 				autoConnect: !lazy_connect,
@@ -113,9 +113,19 @@ class RealTimeClient {
 		});
 	}
 
+	get_namespace() {
+		return `/${frappe.boot.sitename}`
+	}
+	
 	get_host(port = 9000) {
 		let host = window.location.origin;
-		if (window.dev_server) {
+		let onLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+		let hasPort = window.location.port !== '';
+		let isHttp = window.location.protocol === 'http:';
+
+		let usePortBasedUrlForSocketIO = onLocalhost ||hasPort||isHttp;
+
+		if (usePortBasedUrlForSocketIO &&  window.dev_server) {
 			let parts = host.split(":");
 			port = frappe.boot.socketio_port || port.toString() || "9000";
 			if (parts.length > 2) {
@@ -123,7 +133,7 @@ class RealTimeClient {
 			}
 			host = host + ":" + port;
 		}
-		return host + `/${frappe.boot.sitename}`;
+		return host;
 	}
 
 	subscribe(task_id, opts) {
