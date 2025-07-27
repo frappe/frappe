@@ -5,7 +5,8 @@ function get_url(socket, path) {
 	if (!path) {
 		path = "";
 	}
-	let url = socket.request.headers.origin;
+	let referer = new URL(socket.request.headers.referer);
+	let url = socket.request.headers.origin || referer.origin;
 	if (conf.developer_mode) {
 		let [protocol, host, port] = url.split(":");
 		port = conf.webserver_port;
