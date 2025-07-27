@@ -30,7 +30,7 @@ class StudioPage(Document):
 		page_name: DF.Data | None
 		page_title: DF.Data | None
 		published: DF.Check
-		resources: DF.TableMultiSelect[StudioPageResource]
+		resources: DF.Table[StudioPageResource]
 		route: DF.Data | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
