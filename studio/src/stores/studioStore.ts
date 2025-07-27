@@ -302,7 +302,6 @@ const useStudioStore = defineStore("store", () => {
 				resource_name: resource.resource_name,
 				value: newResource,
 				resource_id: resource.resource_id,
-				resource_child_table_id: resource.name,
 			}
 		})
 
@@ -312,7 +311,6 @@ const useStudioStore = defineStore("store", () => {
 			resources.value[item.resource_name] = item.value
 			if (!item.value) return
 			resources.value[item.resource_name].resource_id = item.resource_id
-			resources.value[item.resource_name].resource_child_table_id = item.resource_child_table_id
 		})
 	}
 
