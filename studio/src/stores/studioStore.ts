@@ -185,6 +185,7 @@ const useStudioStore = defineStore("store", () => {
 		const args = {
 			name: selectedPage.value,
 			draft_blocks: pageData,
+			_skip_validate: true,
 		}
 		return studioPages.setValue.submit(args)
 			.then((page: StudioPage) => {
@@ -197,7 +198,7 @@ const useStudioStore = defineStore("store", () => {
 
 	function updateActivePage(key: string, value: string) {
 		return studioPages.setValue.submit(
-			{ name: activePage.value?.name, [key]: value },
+			{ name: activePage.value?.name, [key]: value, _skip_validate: true },
 			{
 				onSuccess() {
 					activePage.value![key] = value

@@ -66,10 +66,15 @@ class StudioPage(Document):
 		if not app_home:
 			frappe.db.set_value("Studio App", self.studio_app, "app_home", self.name)
 
-	def validate(self):
+	def before_validate(self):
 		# vue router needs a leading slash
 		if not self.route.startswith("/"):
 			self.route = f"/{self.route}"
+
+	def validate(self):
+		if hasattr(self, "_skip_validate"):
+			# passed from the frontend for faster page saves when variables & resources are not changed
+			return
 
 		self.validate_variables()
 		self.process_resources()
