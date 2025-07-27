@@ -50,12 +50,27 @@ frappe.breadcrumbs = {
 	},
 
 	update() {
-		// update the current workspace in local storage
+		// Update current workspace in local storage
+		const current_workspace = localStorage.getItem("current_workspace");
 		const active_route = frappe.get_route();
+		const previous_route = frappe.route_history?.[frappe.route_history.length - 2];
+
+		// Determine navigation type
+		const is_awesomebar_navigation = this.detectAwesomebarNavigation(
+			active_route,
+			previous_route
+		);
+		const is_direct_access = !frappe.route_history || frappe.route_history.length <= 1;
+
+		// Clear workspace on direct access or awesomebar navigation
+		if ((is_direct_access || is_awesomebar_navigation) && current_workspace) {
+			localStorage.removeItem("current_workspace");
+		}
+
+		// Set new workspace if navigating to Workspaces
 		if (active_route[0] === "Workspaces" && active_route[1]) {
 			localStorage.setItem("current_workspace", active_route[1]);
 		}
-
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
 		this.clear();
@@ -90,6 +105,48 @@ frappe.breadcrumbs = {
 		}
 
 		this.toggle(true);
+	},
+
+	detectAwesomebarNavigation(active_route, previous_route) {
+		if (!previous_route || !active_route[0]) return false;
+
+		// List to List navigation with different doctypes
+		if (
+			active_route[0] === "List" &&
+			previous_route[0] === "List" &&
+			active_route[1] !== previous_route[1]
+		) {
+			return true;
+		}
+
+		// List to Form navigation with different doctypes
+		if (
+			active_route[0] === "Form" &&
+			previous_route[0] === "List" &&
+			active_route[1] !== previous_route[1]
+		) {
+			return true;
+		}
+
+		// Form to List navigation with different doctypes
+		if (
+			active_route[0] === "List" &&
+			previous_route[0] === "Form" &&
+			active_route[1] !== previous_route[1]
+		) {
+			return true;
+		}
+
+		// Form to Form navigation with different doctypes
+		if (
+			active_route[0] === "Form" &&
+			previous_route[0] === "Form" &&
+			active_route[1] !== previous_route[1]
+		) {
+			return true;
+		}
+
+		return false;
 	},
 
 	set_custom_breadcrumbs(breadcrumbs) {
