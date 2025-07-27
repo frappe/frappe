@@ -72,6 +72,7 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 		self.validate_variables()
+		self.process_resources()
 
 	def validate_variables(self):
 		# check for duplicate variable names and show the duplicate variable name
@@ -79,6 +80,48 @@ class StudioPage(Document):
 		duplicate_variable_names = set(x for x in variable_names if variable_names.count(x) > 1)
 		if duplicate_variable_names:
 			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
+
+	def process_resources(self):
+		for resource in self.resources:
+			self.validate_resources(resource)
+			self.set_resource_json_fields(resource)
+
+	def validate_resources(self, resource):
+		if resource.resource_type == "API Resource" and not resource.url:
+			frappe.throw(_("Please set API URL for Data Source {0}").format(resource.name))
+
+		else:
+			if resource.resource_type in ["Document", "Document List"] and not resource.document_type:
+				frappe.throw(_("Please set Document Type for Data Source {0}").format(resource.name))
+
+			if resource.resource_type == "Document List" and not resource.fields:
+				frappe.throw(_("Please set fields to fetch for Data Source {0}").format(resource.name))
+
+			if resource.resource_type == "Document":
+				if resource.fetch_document_using_filters:
+					if not resource.filters:
+						frappe.throw(
+							_("Please set filters to fetch the Data Source {0}").format(resource.name)
+						)
+					resource.document_name = ""
+				else:
+					if not resource.document_name:
+						frappe.throw(
+							_("Please set the document name to fetch the Data Source {0}").format(
+								resource.name
+							)
+						)
+					resource.filters = []
+
+	def set_resource_json_fields(self, resource):
+		if isinstance(resource.fields, list):
+			resource.fields = frappe.as_json(resource.fields, indent=None)
+
+		if isinstance(resource.filters, list):
+			resource.filters = frappe.as_json(resource.filters, indent=None)
+
+		if isinstance(resource.whitelisted_methods, list):
+			resource.whitelisted_methods = frappe.as_json(resource.whitelisted_methods, indent=None)
 
 	def before_export(self, doc):
 		doc.name = frappe.scrub(doc.page_title)
