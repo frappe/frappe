@@ -127,24 +127,6 @@ const useStudioStore = defineStore("store", () => {
 		return Object.values(appPages.value).find((page) => page.name === pageName)?.route
 	}
 
-	function exportApp() {
-		if (!activeApp.value) return
-		return studioApps.runDocMethod.submit({
-			name: activeApp.value.name,
-			method: "export_app",
-		}, {
-			onSuccess() {
-				toast.success("App exported successfully")
-			},
-			onError(error: any) {
-				toast.error("Failed to export app", {
-					description: error?.messages?.join(", "),
-					duration: Infinity,
-				})
-			},
-		})
-	}
-
 	// studio pages
 	const activePage = ref<StudioPage | null>(null)
 	const pageBlocks = ref<Block[]>([])
@@ -365,7 +347,6 @@ const useStudioStore = defineStore("store", () => {
 		appPages,
 		setAppPages,
 		getAppPageRoute,
-		exportApp,
 		// studio pages
 		pageBlocks,
 		selectedPage,
