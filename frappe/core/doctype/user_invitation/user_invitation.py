@@ -48,11 +48,11 @@ class UserInvitation(Document):
 		self._run_after_accept_hooks(user, user_inserted)
 
 	@frappe.whitelist()
-	def cancel_invite(self, ignore_permissions: bool = False):
+	def cancel_invite(self):
 		if self.status != "Pending":
 			return False
 		self.status = "Cancelled"
-		self.save(ignore_permissions)
+		self.save()
 		email_title = self._get_email_title()
 		frappe.sendmail(
 			recipients=self.email,

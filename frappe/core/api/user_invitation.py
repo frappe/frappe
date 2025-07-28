@@ -70,7 +70,8 @@ def cancel_invitation(name: str, app_name: str):
 	if invitation.status != "Pending":
 		frappe.throw(title=_("Error"), msg=_("Invitation cannot be cancelled"))
 
-	return {"cancelled_now": invitation.cancel_invite(ignore_permissions=True)}
+	invitation.flags.ignore_permissions = True
+	return {"cancelled_now": invitation.cancel_invite()}
 
 
 @frappe.whitelist(methods=["GET"])
