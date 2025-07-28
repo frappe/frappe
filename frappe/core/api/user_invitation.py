@@ -52,7 +52,7 @@ def accept_invitation(key: str) -> None:
 
 
 # `app_name` is required for security
-@frappe.whitelist(methods=["PATCH"])
+@frappe.whitelist(methods=["PATCH", "POST"])
 def cancel_invitation(name: str, app_name: str):
 	UserInvitation.validate_role(app_name)
 
