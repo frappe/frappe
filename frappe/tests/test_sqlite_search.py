@@ -92,8 +92,6 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			todo.insert()
 			self.test_todos.append(todo)
 
-		frappe.db.commit()
-
 	def tearDown(self):
 		"""Clean up test data after each test."""
 		# Delete test documents
@@ -109,7 +107,6 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			except Exception:
 				pass
 
-		frappe.db.commit()
 		super().tearDown()
 
 	def test_index_lifecycle_and_status_methods(self):
