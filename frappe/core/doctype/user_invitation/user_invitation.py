@@ -178,7 +178,7 @@ class UserInvitation(Document):
 			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
 
 	@staticmethod
-	def static_app_only_for(app_name: str) -> None:
+	def validate_role(app_name: str) -> None:
 		UserInvitation.validate_app_name(app_name)
 		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
 		only_for: list[str] = []
@@ -187,9 +187,6 @@ class UserInvitation(Document):
 		if "System Manager" not in only_for:
 			only_for.append("System Manager")
 		frappe.only_for(only_for)
-
-	def app_only_for(self) -> None:
-		UserInvitation.static_app_only_for(self.app_name)
 
 
 def mark_expired_invitations() -> None:

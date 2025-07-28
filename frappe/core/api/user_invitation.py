@@ -8,7 +8,7 @@ from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 def invite_by_email(
 	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
 ) -> dict[str, list[str]]:
-	UserInvitation.static_app_only_for(app_name)
+	UserInvitation.validate_role(app_name)
 
 	# validate emails
 	frappe.utils.validate_email_address(emails, throw=True)
@@ -54,7 +54,7 @@ def accept_invitation(key: str) -> None:
 # `app_name` is required for security
 @frappe.whitelist(methods=["PATCH"])
 def cancel_invitation(name: str, app_name: str):
-	UserInvitation.static_app_only_for(app_name)
+	UserInvitation.validate_role(app_name)
 
 	if not frappe.db.exists("User Invitation", name):
 		frappe.throw(title=_("Error"), msg=_("invitation not found"))
@@ -75,7 +75,7 @@ def cancel_invitation(name: str, app_name: str):
 
 @frappe.whitelist(methods=["GET"])
 def get_pending_invitations(app_name: str):
-	UserInvitation.static_app_only_for(app_name)
+	UserInvitation.validate_role(app_name)
 
 	pending_invitations = frappe.db.get_all(
 		"User Invitation", fields=["name", "email"], filters={"status": "Pending", "app_name": app_name}
