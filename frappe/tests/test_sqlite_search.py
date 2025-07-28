@@ -159,7 +159,9 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		self.assertFalse(os.path.exists(self.search.db_path))
 
 		# Dropping non-existent index should not raise error
-		self.search.drop_index()  # Should not raise error	def test_basic_search_functionality(self):
+		self.search.drop_index()  # Should not raise error
+
+	def test_basic_search_functionality(self):
 		"""Test core search functionality with various query types."""
 		# Build index first
 		self.search.build_index()
