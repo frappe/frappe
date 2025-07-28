@@ -16,6 +16,7 @@ from typing import Any
 from bs4 import BeautifulSoup
 
 import frappe
+from frappe.model.document import Document
 from frappe.utils import update_progress_bar
 
 
@@ -46,7 +47,7 @@ class IndexWarning:
 		return self.message
 
 
-class SQLiteFTS5IndexMissingError(Exception):
+class SQLiteSearchIndexMissingError(Exception):
 	pass
 
 
@@ -358,28 +359,6 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			self.db_path = original_db_path
 
-	def index_doc(self, doc):
-		"""Index a single document in background."""
-		if not self.is_search_enabled():
-			return
-		frappe.enqueue(
-			"frappe.search.sqlite_fts5.index_document",
-			search_class=self.__class__.__name__,
-			doctype=doc.doctype,
-			docname=doc.name,
-		)
-
-	def remove_doc(self, doc):
-		"""Remove a single document from the index."""
-		if not self.is_search_enabled():
-			return
-		frappe.enqueue(
-			"frappe.search.sqlite_fts5.remove_document",
-			search_class=self.__class__.__name__,
-			doctype=doc.doctype,
-			docname=doc.name,
-		)
-
 	# Status and Validation Methods
 
 	def index_exists(self):
@@ -402,7 +381,7 @@ class SQLiteSearch(ABC):
 	def raise_if_not_indexed(self):
 		"""Raise exception if search index doesn't exist."""
 		if not self.index_exists():
-			raise SQLiteFTS5IndexMissingError("Search index does not exist. Please build the index first.")
+			raise SQLiteSearchIndexMissingError("Search index does not exist. Please build the index first.")
 
 	def get_documents(self):
 		"""Get all records to be indexed."""
@@ -847,7 +826,7 @@ class SQLiteSearch(ABC):
 			return conn
 		except sqlite3.Error as e:
 			frappe.log_error(f"Failed to connect to search database: {e}")
-			raise SQLiteFTS5IndexMissingError(f"Search database connection failed: {e}") from e
+			raise SQLiteSearchIndexMissingError(f"Search database connection failed: {e}") from e
 
 	def _set_pragmas(self, cursor, is_read=False):
 		"""Set SQLite performance pragmas."""
@@ -874,8 +853,8 @@ class SQLiteSearch(ABC):
 			cursor.execute(f"""
                 CREATE VIRTUAL TABLE IF NOT EXISTS search_fts USING fts5(
                     doc_id UNINDEXED,
-                    {', '.join([f"{field}" for field in text_fields])},
-                    {', '.join([f"{field} UNINDEXED" for field in metadata_fields])},
+                    {", ".join([f"{field}" for field in text_fields])},
+                    {", ".join([f"{field} UNINDEXED" for field in metadata_fields])},
                     tokenize="{tokenizer}"
                 )
             """)
@@ -973,7 +952,7 @@ class SQLiteSearch(ABC):
 		finally:
 			conn.close()
 
-	def _index_doc(self, doctype, docname):
+	def index_doc(self, doctype, docname):
 		"""Index a single document."""
 		doc = frappe.get_doc(doctype, docname)
 		self.raise_if_not_indexed()
@@ -981,7 +960,7 @@ class SQLiteSearch(ABC):
 		if document:
 			self._index_documents([document])
 
-	def _remove_doc(self, doctype, docname):
+	def remove_doc(self, doctype, docname):
 		"""Remove a single document from the index."""
 		self.raise_if_not_indexed()
 		doc_id = f"{doctype}:{docname}"
@@ -1327,21 +1306,99 @@ class SQLiteSearch(ABC):
 # Module-level Functions for background tasks
 
 
-def index_document(search_class, doctype, docname):
-	"""Index a single document from a search class (background job)."""
-	# Get the search class instance
-	search_cls = frappe.get_module(search_class)
-	search = search_cls()
-	if not search.is_search_enabled():
-		return
-	search._index_doc(doctype, docname)
+def build_index_if_not_exists():
+	"""Build index if it doesn't exist."""
+	search_classes = get_search_classes()
+
+	for SearchClass in search_classes:
+		build_index(SearchClass, force=False)
 
 
-def remove_document(search_class, doctype, docname):
-	"""Remove a single document from index (background job)."""
-	# Get the search class instance
-	search_cls = frappe.get_module(search_class)
-	search = search_cls()
+def build_index(
+	SearchClass: type[SQLiteSearch] | None = None, search_class_path: str | None = None, force: bool = False
+):
+	"""Build search index for SearchClass"""
+	if not SearchClass and not search_class_path:
+		raise ValueError("Either SearchClass or search_class_path must be provided")
+
+	if search_class_path:
+		SearchClass = frappe.get_attr(search_class_path)
+
+	search = SearchClass()
 	if not search.is_search_enabled():
 		return
-	search._remove_doc(doctype, docname)
+	if not search.index_exists() or force:
+		print(f"{SearchClass.__name__}: Index does not exist, building...")
+		search.build_index()
+
+
+def build_index_in_background():
+	"""Enqueue index building in background."""
+	search_classes = get_search_classes()
+	for SearchClass in search_classes:
+		search = SearchClass()
+		if not search.is_search_enabled():
+			return
+		search_class_path = f"{SearchClass.__module__}.{SearchClass.__name__}"
+		print(f"Enqueuing {search_class_path}.build_index")
+		frappe.enqueue(
+			"frappe.search.sqlite_search.build_index",
+			queue="long",
+			job_id=search_class_path,
+			deduplicate=True,
+			# build_index args
+			search_class_path=search_class_path,
+			force=True,
+		)
+
+
+def update_doc_index(doc: Document, method=None):
+	search_classes = get_search_classes()
+
+	for SearchClass in search_classes:
+		search = SearchClass()
+
+		if not (search.is_search_enabled() and search.index_exists()):
+			return
+
+		for doctype, config in search.doc_configs.items():
+			if doc.doctype == doctype:
+				fields = config.get("fields", [])
+				if not fields:
+					continue
+
+				any_field_changed = any(doc.has_value_changed(field) for field in fields)
+				if any_field_changed:
+					print(f"Enqueuing {search.__class__.__name__}.index_doc for {doc.doctype}:{doc.name}")
+					search.index_doc(doctype, doc.name)
+
+
+def delete_doc_index(doc: Document, method=None):
+	search_classes = get_search_classes()
+
+	for SearchClass in search_classes:
+		search = SearchClass()
+
+		if not (search.is_search_enabled() and search.index_exists()):
+			return
+
+		for doctype, config in search.doc_configs.items():
+			if doc.doctype == doctype:
+				fields = config.get("fields", [])
+				if not fields:
+					continue
+
+				print(f"Enqueuing {search.__class__.__name__}.remove_doc for {doc.doctype}:{doc.name}")
+				search.remove_doc(doctype, doc.name)
+
+
+def get_search_classes() -> list[type[SQLiteSearch]]:
+	module_paths = frappe.get_hooks("sqlite_search")
+	search_classes = [frappe.get_attr(path) for path in module_paths]
+
+	for search_class in search_classes:
+		# validate if search classes extend from SQLiteSearch
+		if not issubclass(search_class, SQLiteSearch):
+			raise TypeError(f"Search class {search_class.__name__} must extend SQLiteSearch")
+
+	return search_classes
