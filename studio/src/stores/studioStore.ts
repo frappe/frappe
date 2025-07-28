@@ -69,14 +69,11 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
-	function updateActiveApp(key: string, value: string) {
-		studioApps.setValue.submit(
-			{ name: activeApp.value?.name, [key]: value },
-			{
-				onSuccess() {
-					setApp(activeApp.value!.name)
-				},
-			},
+	function updateActiveApp(key: string | Record<string, any>, value?: string) {
+		const valuesToUpdate = typeof key === "object" ? key : { [key]: value }
+		return studioApps.setValue.submit(
+			{ name: activeApp.value?.name, ...valuesToUpdate },
+			{ onSuccess: () => setApp(activeApp.value!.name) }
 		)
 	}
 

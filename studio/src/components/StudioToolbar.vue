@@ -15,11 +15,7 @@
 					</div>
 				</template>
 			</Dropdown>
-			<ExportAppDialog
-				v-model:showDialog="showExportAppDialog"
-				:appName="store.activeApp?.app_name!"
-				:appTitle="store.activeApp?.app_title!"
-			/>
+			<ExportAppDialog v-model:showDialog="showExportAppDialog" />
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"

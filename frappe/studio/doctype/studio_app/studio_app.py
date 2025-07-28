@@ -62,6 +62,8 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
+		frappe_app: DF.Literal[None]
+		is_standard: DF.Check
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
@@ -97,6 +99,10 @@ class StudioApp(WebsiteGenerator):
 			if not self.name:
 				self.autoname()
 			self.route = self.name
+
+	def on_update(self):
+		if self.is_standard:
+			self.export_app()
 
 	def on_trash(self):
 		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
@@ -168,9 +174,8 @@ class StudioApp(WebsiteGenerator):
 			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
 			return None
 
-	@frappe.whitelist()
-	def export_app(self, target_app: str):
-		app_path = frappe.get_app_source_path(target_app, "studio", self.name)
+	def export_app(self):
+		app_path = frappe.get_app_source_path(self.frappe_app, "studio", self.name)
 		frappe.create_folder(app_path, with_init=True)
 
 		write_document_file(self, folder=app_path)

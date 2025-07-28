@@ -2,7 +2,7 @@
 	<Dialog
 		v-model="showDialog"
 		:options="{
-			title: `Export ${props.appTitle} App`,
+			title: `Export ${store.activeApp?.app_title} App`,
 			dialog: 'sm',
 		}"
 		@after-leave="
@@ -35,16 +35,13 @@
 import { ref } from "vue"
 import { FormControl, Button, call } from "frappe-ui"
 import type { SelectOption } from "@/types"
-import { studioApps } from "@/data/studioApps"
 import { toast } from "vue-sonner"
+import useStudioStore from "@/stores/studioStore"
 
-const props = defineProps<{
-	appName: string
-	appTitle: string
-}>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
-const targetApp = ref("")
+const store = useStudioStore()
+const targetApp = ref(store.activeApp?.frappe_app)
 let targetAppOptions: string[] = []
 
 call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data: string[]) => {
@@ -55,23 +52,22 @@ call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data:
 })
 
 function exportApp() {
-	return studioApps.runDocMethod.submit(
-		{
-			name: props.appName,
-			method: "export_app",
-			target_app: targetApp.value,
-		},
-		{
-			onSuccess() {
+	store
+		.updateActiveApp({
+			is_standard: 1,
+			frappe_app: targetApp.value,
+		})
+		.then(
+			() => {
 				toast.success("App exported successfully")
+				showDialog.value = false
 			},
-			onError(error: any) {
+			(error: any) => {
 				toast.error("Failed to export app", {
 					description: error?.messages?.join(", "),
 					duration: Infinity,
 				})
 			},
-		},
-	)
+		)
 }
 </script>
