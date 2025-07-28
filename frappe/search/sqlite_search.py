@@ -374,6 +374,15 @@ class SQLiteSearch(ABC):
 		except sqlite3.Error:
 			return False
 
+	def drop_index(self):
+		"""Drop the search index by removing the database file."""
+		if os.path.exists(self.db_path):
+			try:
+				os.unlink(self.db_path)
+			except OSError as e:
+				frappe.log_error(f"Failed to remove search index file {self.db_path}: {e}")
+				raise
+
 	def is_search_enabled(self):
 		"""Override this to enable/disable search"""
 		return True
@@ -1162,9 +1171,13 @@ class SQLiteSearch(ABC):
 
 		soup = BeautifulSoup(content, "html.parser")
 
-		# Replace links with [link] before getting text
+		# Extract text content from links before removing HTML tags
 		for link in soup.find_all("a"):
-			link.replace_with("[link]")
+			link_text = link.get_text().strip()
+			if link_text:
+				link.replace_with(link_text)
+			else:
+				link.replace_with("[link]")
 
 		text = soup.get_text(separator=" ").strip()  # remove tags
 		text = re.sub(r"https?://[^\s]+", "[link]", text)  # replace standalone links
