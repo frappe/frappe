@@ -34,7 +34,16 @@ from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.monitor import get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
-from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import (
+	CallbackManager,
+	cint,
+	get_datetime,
+	get_table_name,
+	getdate,
+	now,
+	recursive_defaultdict,
+	sbool,
+)
 from frappe.utils import cast as cast_fieldtype
 
 if TYPE_CHECKING:
@@ -112,7 +121,7 @@ class Database:
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.value_cache = {}
+		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
 
@@ -297,11 +306,10 @@ class Database:
 			):
 				raise
 
+		self.log_query(query, query_type, values, debug)
 		if debug:
 			time_end = time()
 			frappe.log(f"Execution time: {(time_end - time_start) * 1000:.3f} ms")
-
-		self.log_query(query, query_type, values, debug)
 
 		if auto_commit:
 			self.commit()
@@ -543,7 +551,6 @@ class Database:
 		        # returns default date_format
 		        frappe.db.get_value("System Settings", None, "date_format")
 		"""
-
 		result = self.get_values(
 			doctype,
 			filters,
@@ -615,11 +622,8 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		cache_key = None
-		if cache and isinstance(filters, str):
-			cache_key = (doctype, filters, fieldname)
-			if cache_key in self.value_cache:
-				return self.value_cache[cache_key]
+		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
+			return self.value_cache[doctype][filters][fieldname]
 
 		if distinct:
 			order_by = None
@@ -701,8 +705,8 @@ class Database:
 					distinct=distinct,
 				)
 
-		if cache and cache_key:
-			self.value_cache[cache_key] = out
+		if cache and isinstance(filters, str):
+			self.value_cache[doctype][filters][fieldname] = out
 
 		return out
 
@@ -725,9 +729,20 @@ class Database:
 		:param filters: Filters (dict).
 		:param doctype: DocType name.
 		"""
+
+		from frappe.model.meta import get_default_df
+
+		meta = frappe.get_meta(doctype)
+
+		def _cast(field, val):
+			df = meta.get_field(field) or get_default_df(field)
+			if not df:
+				return val
+			return cast_fieldtype(df.fieldtype, val)
+
 		if fields == "*" or isinstance(filters, dict):
 			# check if single doc matches with filters
-			values = self.get_singles_dict(doctype)
+			values = self.get_singles_dict(doctype, cast=True)
 			if isinstance(filters, dict):
 				for key, value in filters.items():
 					if values.get(key) != value:
@@ -754,6 +769,9 @@ class Database:
 				return []
 
 			r = _dict(r)
+			for k, v in r.items():
+				r[k] = _cast(k, v)
+
 			if update:
 				r.update(update)
 
@@ -858,10 +876,16 @@ class Database:
 		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
-		if doctype in self.value_cache:
-			del self.value_cache[doctype]
-
-	def get_single_value(self, doctype: str, fieldname: str, cache: bool = True):
+	def get_single_value(
+		self,
+		doctype: str,
+		fieldname: str,
+		cache: bool = True,
+		*,
+		debug=False,
+		for_update=False,
+		run=True,
+	):
 		"""Get property of Single DocType. Cache locally by default
 
 		:param doctype: DocType of the single object whose value is requested
@@ -872,21 +896,23 @@ class Database:
 		        # Get the default value of the company from the Global Defaults doctype.
 		        company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
+		from frappe.model.meta import get_default_df
 
-		if doctype not in self.value_cache:
-			self.value_cache[doctype] = {}
-
-		if cache and fieldname in self.value_cache[doctype]:
+		if cache and not for_update and run and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
 		val = frappe.qb.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
-		).run()
+			for_update=for_update,
+		).run(debug=debug, run=run)
+		if not run:
+			return val
+
 		val = val[0][0] if val else None
 
-		df = frappe.get_meta(doctype).get_field(fieldname)
+		df = frappe.get_meta(doctype).get_field(fieldname) or get_default_df(fieldname)
 
 		if not df:
 			frappe.throw(
@@ -897,7 +923,8 @@ class Database:
 
 		val = cast_fieldtype(df.fieldtype, val)
 
-		self.value_cache[doctype][fieldname] = val
+		if cache and not for_update and run:
+			self.value_cache[doctype][fieldname] = val
 
 		return val
 
@@ -974,9 +1001,6 @@ class Database:
 			query = query.set(column, value)
 
 		query.run(debug=debug)
-
-		if dt in self.value_cache:
-			del self.value_cache[dt]
 
 	def bulk_update(
 		self,
@@ -1151,7 +1175,7 @@ class Database:
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
 
-	def commit(self):
+	def commit(self, *, chain=False):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
@@ -1162,12 +1186,15 @@ class Database:
 
 		self.before_commit.run()
 
-		self.sql("commit")
-		self.begin()  # explicitly start a new transaction
+		if chain:
+			self.sql("commit and chain")
+		else:
+			self.sql("commit")
+			self.begin()
 
 		self.after_commit.run()
 
-	def rollback(self, *, save_point=None):
+	def rollback(self, *, save_point=None, chain=False):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
@@ -1177,8 +1204,11 @@ class Database:
 
 			self.before_rollback.run()
 
-			self.sql("rollback")
-			self.begin()
+			if chain:
+				self.sql("rollback and chain")
+			else:
+				self.sql("rollback")
+				self.begin()
 
 			self.after_rollback.run()
 		else:
@@ -1252,10 +1282,10 @@ class Database:
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Return `COUNT(*)` for given DocType and filters."""
-		if cache and not filters:
-			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
-			if cache_count is not None:
-				return cache_count
+		cache_key = "COUNT(*)"
+		if cache and not filters and cache_key in self.value_cache[dt]:
+			return self.value_cache[dt][cache_key]
+
 		count = frappe.qb.get_query(
 			table=dt,
 			filters=filters,
@@ -1263,8 +1293,9 @@ class Database:
 			distinct=distinct,
 			validate_filters=True,
 		).run(debug=debug)[0][0]
+
 		if not filters and cache:
-			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
+			self.value_cache[dt][cache_key] = count
 		return count
 
 	def estimate_count(self, doctype: str) -> int:
@@ -1510,6 +1541,18 @@ class Database:
 		                        continue # Do some processing.
 		"""
 		raise NotImplementedError
+
+	def get_routines(self):
+		information_schema = frappe.qb.Schema("information_schema")
+		return (
+			frappe.qb.from_(information_schema.routines)
+			.select(information_schema.routines.routine_name)
+			.where(
+				(information_schema.routines.routine_type.isin(["FUNCTION", "PROCEDURE"]))
+				& (information_schema.routines.routine_schema.eq(frappe.conf.db_name))
+			)
+			.run(as_dict=1, pluck="routine_name")
+		)
 
 
 @contextmanager

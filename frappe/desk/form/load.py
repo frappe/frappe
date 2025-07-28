@@ -59,7 +59,7 @@ def getdoc(doctype, name):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
+def getdoctype(doctype, with_parent=False):
 	"""load doctype"""
 
 	docs = []
@@ -74,9 +74,6 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 		docs = get_meta_bundle(doctype)
 
 	frappe.response["user_settings"] = get_user_settings(parent_dt or doctype)
-
-	if cached_timestamp and docs[0].modified == cached_timestamp:
-		return "use_cache"
 
 	frappe.response.docs.extend(docs)
 
@@ -96,7 +93,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
-		doc = frappe.get_doc(doctype, name)
+		doc = frappe.get_lazy_doc(doctype, name)
 		doc.check_permission("read")
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
@@ -205,7 +202,7 @@ def get_versions(doc: "Document") -> list[dict]:
 def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	doc.check_permission("read")
 
 	return _get_communications(doctype, name, cint(start), cint(limit))

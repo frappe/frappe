@@ -661,6 +661,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				);
 				$count.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 				$count.css("cursor", "pointer");
+				$count.css("white-space", "nowrap");
 				$count.on("click", () => {
 					me.count_upper_bound = 0;
 					$count.off("click");
@@ -718,7 +719,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.join("");
 
 		const right_html = `
-			<span class="list-count"></span>
+			<span class="list-count" style=""></span>
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Liked by me")}">
 					<svg class="icon icon-sm like-icon">
@@ -1157,11 +1158,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="indicator-pill ${
-				indicator[1]
-			} filterable no-indicator-dot ellipsis"
+			return `<span class="indicator-pill ${indicator[1]} filterable no-indicator-dot ellipsis"
 				data-filter='${indicator[2]}' title='${title}'>
-				<span class="ellipsis"> ${__(indicator[0])}</span>
+				<span class="ellipsis"> ${indicator[0]}</span>
 			</span>`;
 		}
 		return "";
@@ -1170,7 +1169,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_indicator_dot(doc) {
 		const indicator = frappe.get_indicator(doc, this.doctype);
 		if (!indicator) return "";
-		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
+		return `<span class='indicator ${indicator[1]}' title='${indicator[0]}'></span>`;
 	}
 
 	get_image_url(doc) {
@@ -2177,7 +2176,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk delete
-		if (frappe.model.can_delete(doctype) && !frappe.model.has_workflow(doctype)) {
+		if (frappe.model.can_delete(doctype) && is_bulk_edit_allowed(doctype)) {
 			actions_menu_items.push(bulk_delete());
 		}
 

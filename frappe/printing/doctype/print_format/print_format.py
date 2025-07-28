@@ -26,7 +26,7 @@ class PrintFormat(Document):
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
 		disabled: DF.Check
-		doc_type: DF.Link
+		doc_type: DF.Link | None
 		font: DF.Data | None
 		font_size: DF.Int
 		format_data: DF.Code | None
@@ -43,9 +43,11 @@ class PrintFormat(Document):
 		pdf_generator: DF.Literal["wkhtmltopdf"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
+		print_format_for: DF.Literal["DocType", "Report"]
 		print_format_type: DF.Literal["Jinja", "JS"]
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
+		report: DF.Link | None
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
@@ -57,6 +59,10 @@ class PrintFormat(Document):
 			filters={"document_type": self.doc_type},
 		)
 		self.set_onload("print_templates", templates)
+
+	def before_save(self):
+		if self.print_format_for == "Report":
+			self.print_format_type = "JS"
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -70,7 +76,7 @@ class PrintFormat(Document):
 			and not frappe.local.conf.get("developer_mode")
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_install
-			and not frappe.flags.in_test
+			and not frappe.in_test
 		):
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
@@ -90,6 +96,9 @@ class PrintFormat(Document):
 
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
+
+		if self.print_format_for == "Report" and not self.report:
+			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 
 	def extract_images(self):
 		from frappe.core.doctype.file.utils import extract_images_from_html
@@ -140,11 +149,10 @@ class PrintFormat(Document):
 
 
 @frappe.whitelist()
-def make_default(name):
+def make_default(name: str):
 	"""Set print format as default"""
-	frappe.has_permission("Print Format", "write")
-
 	print_format = frappe.get_doc("Print Format", name)
+	print_format.check_permission("write")
 
 	doctype = frappe.get_doc("DocType", print_format.doc_type)
 	if doctype.custom:

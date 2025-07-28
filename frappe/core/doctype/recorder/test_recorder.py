@@ -8,18 +8,9 @@ import frappe.recorder
 from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import set_request
-
-
-class UnitTestRecorder(UnitTestCase):
-	"""
-	Unit tests for Recorder.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestRecorder(IntegrationTestCase):

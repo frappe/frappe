@@ -66,6 +66,7 @@ class SystemSettings(Document):
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
+		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
@@ -93,6 +94,7 @@ class SystemSettings(Document):
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		show_absolute_datetime_in_timeline: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -222,9 +224,6 @@ def load():
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 
 
-cache_key = frappe.get_document_cache_key("System Settings", "System Settings")
-
-
 def get_system_settings(key: str):
 	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not (system_settings := getattr(frappe.local, "system_settings", None)):
@@ -239,7 +238,7 @@ def get_system_settings(key: str):
 
 
 def clear_system_settings_cache():
-	frappe.client_cache.delete_value(cache_key)
+	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
 

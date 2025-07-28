@@ -11,6 +11,7 @@ from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
 
+import orjson
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
@@ -30,7 +31,9 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.caching import site_cache
 from frappe.utils.number_format import NumberFormat
+from frappe.utils.response import json_handler
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
@@ -79,7 +82,7 @@ class FrappePrintCollector(PrintCollector):
 
 def is_safe_exec_enabled() -> bool:
 	# server scripts can only be enabled via common_site_config.json
-	return bool(frappe.get_common_site_config(cached=bool(frappe.request)).get(SAFE_EXEC_CONFIG_KEY))
+	return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))
 
 
 def safe_exec(
@@ -113,13 +116,14 @@ def safe_exec(
 
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
-		exec(
-			compile_restricted(script, filename=filename, policy=FrappeTransformer),
-			exec_globals,
-			_locals,
-		)
+		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals
+
+
+@site_cache(maxsize=32)
+def _compile_code(script: str, filename: str, mode: str = "exec"):
+	return compile_restricted(script, filename=filename, policy=FrappeTransformer, mode=mode)
 
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
@@ -135,11 +139,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
-	return eval(
-		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
-		eval_globals,
-		eval_locals,
-	)
+	return eval(_compile_code(code, filename="<safe_eval>", mode="eval"), eval_globals, eval_locals)
 
 
 def _validate_safe_eval_syntax(code):
@@ -177,7 +177,7 @@ def get_safe_globals():
 		time_format = "HH:mm:ss"
 		number_format = NumberFormat.from_string("#,###.##")
 
-	add_data_utils(datautils)
+	datautils.update(SAFE_DATA_UTILS)
 
 	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
 
@@ -189,6 +189,7 @@ def get_safe_globals():
 	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
+		orjson=SAFE_ORJSON,
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
@@ -231,13 +232,13 @@ def get_safe_globals():
 			get_fullname=frappe.utils.get_fullname,
 			get_gravatar=frappe.utils.get_gravatar_url,
 			full_name=frappe.local.session.data.full_name
-			if getattr(frappe.local, "session", None)
+			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
 			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
-				if getattr(frappe.local, "session", None)
+				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 				else "",
 			),
 			make_get_request=frappe.integrations.utils.make_get_request,
@@ -278,6 +279,7 @@ def get_safe_globals():
 				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
 			),
 			lang=getattr(frappe.local, "lang", "en"),
+			json_handler=json_handler,
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -287,15 +289,13 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=frappe.local.dev_server,
+		dev_server=frappe._dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
 	)
 
-	add_module_properties(
-		frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
-	)
+	out.frappe.update(SAFE_EXCEPTIONS)
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -563,7 +563,7 @@ def _validate_attribute_read(object, name):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
 	if name.startswith("_"):
-		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
+		raise AttributeError(f'"{name}" is an invalid attribute name because it starts with "_"')
 
 
 def _write(obj):
@@ -583,13 +583,8 @@ def _write(obj):
 	return obj
 
 
-def add_data_utils(data):
-	for key, obj in frappe.utils.data.__dict__.items():
-		if key in VALID_UTILS:
-			data[key] = obj
-
-
-def add_module_properties(module, data, filter_method):
+def get_module_properties(module, filter_method):
+	data = {}
 	for key, obj in module.__dict__.items():
 		if key.startswith("_"):
 			# ignore
@@ -598,6 +593,7 @@ def add_module_properties(module, data, filter_method):
 		if filter_method(obj):
 			# only allow functions
 			data[key] = obj
+	return data
 
 
 VALID_UTILS = (
@@ -715,7 +711,12 @@ VALID_UTILS = (
 	"get_abbr",
 	"get_month",
 	"sha256_hash",
+	"parse_json",
+	"orjson_dumps",
 )
+
+
+SAFE_DATA_UTILS = {key: frappe.utils.data.__dict__[key] for key in VALID_UTILS}
 
 
 WHITELISTED_SAFE_EVAL_GLOBALS = {
@@ -729,3 +730,12 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_getiter_": iter,
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
 }
+
+SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)
+for key, val in vars(orjson).items():
+	if key.startswith("OPT_"):
+		SAFE_ORJSON[key] = val
+
+SAFE_EXCEPTIONS = get_module_properties(
+	frappe.exceptions, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
+)

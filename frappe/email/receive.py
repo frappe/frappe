@@ -67,6 +67,8 @@ class EmailServer:
 	"""Wrapper for POP server to pull emails."""
 
 	def __init__(self, args=None):
+		self.retry_limit = 3
+		self.retry_count = 0
 		self.settings = args or frappe._dict()
 
 	def connect(self):
@@ -160,10 +162,14 @@ class EmailServer:
 		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
-		if cint(self.settings.use_imap):
-			self.imap.logout()
-		else:
-			self.pop.quit()
+		try:
+			if cint(self.settings.use_imap):
+				self.imap.logout()
+			else:
+				self.pop.quit()
+		except imaplib.IMAP4.abort:
+			self.connect()
+			self.logout()
 		return
 
 	def get_messages(self, folder="INBOX"):
@@ -177,7 +183,7 @@ class EmailServer:
 
 		for i, uid in enumerate(email_list[:100]):
 			try:
-				self.retrieve_message(uid, i + 1)
+				self.retrieve_message(uid, i + 1, folder)
 			except (_socket.timeout, LoginLimitExceeded):
 				# get whatever messages were retrieved
 				break
@@ -216,6 +222,9 @@ class EmailServer:
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
+
+		if uid_validity is None:
+			frappe.flags.initial_sync = True
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
@@ -258,7 +267,7 @@ class EmailServer:
 
 		return match[0] if match else None
 
-	def retrieve_message(self, uid, msg_num):
+	def retrieve_message(self, uid, msg_num, folder):
 		try:
 			if cint(self.settings.use_imap):
 				status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
@@ -272,6 +281,11 @@ class EmailServer:
 		except _socket.timeout:
 			# propagate this error to break the loop
 			raise
+		except imaplib.IMAP4.abort:
+			if self.retry_count < self.retry_limit:
+				self.connect()
+				self.retry_count += 1
+				self.get_messages(folder)
 
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
@@ -626,13 +640,16 @@ class InboundMail(Email):
 	def process(self):
 		"""Create communication record from email."""
 		if self.is_sender_same_as_receiver() and not self.is_reply():
-			if frappe.flags.in_test:
+			if frappe.in_test:
 				print("WARN: Cannot pull email. Sender same as recipient inbox")
 			raise SentEmailInInboxError
 
 		communication = self.is_exist_in_system()
 		if communication:
 			communication.update_db(uid=self.uid)
+			data = self.as_dict()
+			if data.get("bcc") and not communication.bcc:
+				communication.update_db(bcc=data.get("bcc"))
 			communication.reload()
 			return communication
 
@@ -901,6 +918,7 @@ class InboundMail(Email):
 			"sender": self.from_email,
 			"recipients": self.decode_email(self.mail.get("To") or ""),
 			"cc": self.decode_email(self.mail.get("CC") or ""),
+			"bcc": self.decode_email(self.mail.get("BCC") or ""),
 			"email_account": self.email_account.name,
 			"communication_medium": "Email",
 			"uid": self.uid,

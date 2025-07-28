@@ -1,13 +1,17 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import inspect
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
 import frappe
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.note.note import Note
+from frappe.model.document import LazyChildTable
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, now_datetime, set_request
@@ -139,6 +143,16 @@ class TestDocument(IntegrationTestCase):
 		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
+		user = frappe.get_doc("User", "Administrator")
+		user.load_doc_before_save()
+		role1 = user.roles[0]
+		role2 = user.roles[1]
+
+		role1.role = "New Role"
+
+		self.assertTrue(role1.has_value_changed("role"))
+		self.assertFalse(role2.has_value_changed("role"))
+
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
@@ -206,6 +220,9 @@ class TestDocument(IntegrationTestCase):
 		d.insert()
 
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
+
+		d.append("roles", {"role": ("Guest", "Administrator")})
+		self.assertRaises(AssertionError, d._validate_links)
 
 	def test_validate(self):
 		d = self.test_insert()
@@ -658,3 +675,114 @@ class TestDocumentWebView(IntegrationTestCase):
 		)
 		self.assertEqual(sent_docs - all_docs, set(), "All docs should be inserted")
 		self.assertEqual(sent_child_docs - all_child_docs, set(), "All child docs should be inserted")
+
+
+class TestLazyDocument(IntegrationTestCase):
+	def test_lazy_documents(self):
+		# Warmup meta etc
+		_ = frappe.get_lazy_doc("User", "Guest")
+		eager_guest: User = frappe.get_doc("User", "Guest")
+
+		# Only one query for parent document
+		with self.assertQueryCount(1):
+			guest: User = frappe.get_lazy_doc("User", "Guest")
+			self.assertEqual(guest.user_type, "Website User")
+
+		# Only one query for one table access
+		with self.assertQueryCount(1):
+			guest_role = guest.roles[0]
+			self.assertEqual(guest_role.role, "Guest")
+			self.assertIsInstance(guest_role, type(eager_guest.roles[0]))
+
+		# Only one query for one table access
+		with self.assertQueryCount(1):
+			_ = guest.role_profiles
+
+		# No queries for repeat access, same object
+		with self.assertQueryCount(0):
+			guest_role_repeat_access = guest.roles[0]
+		self.assertIs(guest_role, guest_role_repeat_access)
+
+		# Same object after first access
+		with self.assertQueryCount(0):
+			self.assertIs(guest.roles, guest.get("roles"))
+
+		# things accessing __dict__ by default should be updated too
+		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
+
+	def test_lazy_doc_efficient_saves(self):
+		# Only touched tables and self should be updated
+		guest = frappe.get_lazy_doc("User", "Guest")
+		with self.assertQueryCount(1):
+			guest.db_update_all()
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.roles
+		with self.assertQueryCount(1 + len(guest.roles)):
+			guest.db_update_all()
+
+		# Save should works, it won't be efficient because internal code will just trigger fetching
+		# of child tables to resave them.
+		guest.save()
+
+	def test_lazy_magic(self):
+		self.assertIsNone(getattr(LazyChildTable, "__set__", None))
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		# table fields will be populated on first access
+		self.assertIsNone(guest.__dict__.get("roles"))
+		roles = guest.roles
+		self.assertIs(guest.__dict__.get("roles"), roles)
+
+		# Allow overriding from user code
+		roles_copy = deepcopy(roles)
+		guest.roles = roles_copy
+		self.assertIs(guest.__dict__.get("roles"), roles_copy)
+
+		with patch(f"{LazyChildTable.__module__}.{LazyChildTable.__name__}.__get__") as getter:
+			_ = guest.roles
+			self.assertFalse(getter.called)
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		with patch(f"{LazyChildTable.__module__}.{LazyChildTable.__name__}.__get__") as getter:
+			_ = guest.roles
+			self.assertTrue(getter.called)
+
+		# Ensure same method signature
+		eager_guest: User = frappe.get_doc("User", "Guest")
+		original_class = eager_guest.__class__
+		lazy_class = guest.__class__
+
+		def compare_signatures(a, b, attr):
+			a_sig = inspect.signature(getattr(a, attr)).parameters
+			b_sig = inspect.signature(getattr(b, attr)).parameters
+
+			for (param_a, value_a), (param_b, value_b) in zip(a_sig.items(), b_sig.items(), strict=True):
+				self.assertEqual(param_a, param_b)
+				self.assertEqual(value_a.default, value_b.default)
+
+		for method in ("append", "extend", "db_update_all", "get"):
+			compare_signatures(original_class, lazy_class, method)
+
+	def test_append_extend_update(self):
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.append("roles")
+		self.assertEqual(len(guest.roles), 2)
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.extend("roles", [{}])
+		self.assertEqual(len(guest.roles), 2)
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.update({"roles": [{"role": "Administrator"}]})
+		self.assertEqual(len(guest.roles), 1)
+		self.assertEqual(guest.roles[0].role, "Administrator")
+
+		guest = frappe.get_lazy_doc("User", "Guest")
+		_ = guest.set("roles", [{"role": "Administrator"}])
+		self.assertEqual(len(guest.roles), 1)
+		self.assertEqual(guest.roles[0].role, "Administrator")
+
+	def test_for_update(self):
+		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
+		self.assertTrue(guest.flags.for_update)

@@ -28,13 +28,17 @@ frappe.ui.toolbar.Toolbar = class {
 	make() {
 		this.bind_events();
 		$(document).trigger("toolbar_setup");
-		$(".navbar-brand .app-logo").on("click", () => {
+		this.navbar = $(".navbar-brand");
+		this.app_logo = this.navbar.find(".app-logo");
+		this.bind_click();
+	}
+	bind_click() {
+		$(".navbar-brand .app-logo").on("click", (event) => {
 			frappe.app.sidebar.set_height();
 			frappe.app.sidebar.toggle_sidebar();
 			frappe.app.sidebar.prevent_scroll();
 		});
 	}
-
 	bind_events() {
 		// clear all custom menus on page change
 		$(document).on("page-change", function () {
@@ -173,7 +177,6 @@ frappe.ui.toolbar.Toolbar = class {
 				frappe.utils.generate_tracking_url,
 				__("Generate Tracking URL")
 			);
-
 			if (frappe.model.can_read("RQ Job")) {
 				frappe.search.utils.make_function_searchable(function () {
 					frappe.set_route("List", "RQ Job");
@@ -186,6 +189,33 @@ frappe.ui.toolbar.Toolbar = class {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
 			this.notifications = new frappe.ui.Notifications();
 		}
+	}
+
+	add_back_button() {
+		if (!frappe.is_mobile()) return;
+		this.navbar = $(".navbar-brand");
+		let doctype = frappe.get_route()[1];
+		let list_view_route = `/app/${frappe.router.convert_from_standard_route([
+			"list",
+			doctype,
+		])}`;
+		this.navbar.attr("href", list_view_route);
+		this.navbar.html("");
+		this.navbar.html(frappe.utils.icon("arrow-left", "md"));
+	}
+	show_app_logo() {
+		let route = frappe.get_route();
+		if (route[0] == "List") {
+			this.navbar.html("");
+			this.navbar.html(this.app_logo);
+			this.navbar.attr("href", "");
+			this.bind_click();
+		} else if (route[0] == "Form") {
+			this.add_back_button();
+		}
+	}
+	set_app_logo(logo_url) {
+		$(".navbar-brand .app-logo").attr("src", logo_url);
 	}
 };
 

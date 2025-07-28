@@ -1,17 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
-
-
-class UnitTestEmailDomain(UnitTestCase):
-	"""
-	Unit tests for EmailDomain.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestDomain(IntegrationTestCase):

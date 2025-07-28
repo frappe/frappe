@@ -212,55 +212,17 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
-	get_from_localstorage: function (doctype) {
-		if (localStorage["_doctype:" + doctype]) {
-			return JSON.parse(localStorage["_doctype:" + doctype]);
-		}
-	},
-
-	set_in_localstorage: function (doctype, docs) {
-		try {
-			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
-		} catch (e) {
-			// if quota is exceeded, clear local storage and set item
-			console.warn("localStorage quota exceeded, clearing doctype cache");
-			frappe.model.clear_local_storage();
-			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
-		}
-	},
-
-	clear_local_storage: function () {
-		for (var key in localStorage) {
-			if (key.startsWith("_doctype:")) {
-				localStorage.removeItem(key);
-			}
-		}
-	},
-
 	with_doctype: function (doctype, callback, async) {
 		if (locals.DocType[doctype]) {
 			callback && callback();
 			return Promise.resolve();
 		} else {
-			let cached_timestamp = null;
-			let meta = null;
-
-			let cached_docs = frappe.model.get_from_localstorage(doctype);
-
-			if (cached_docs) {
-				meta = cached_docs.filter((doc) => doc.name === doctype)[0];
-				if (meta) {
-					cached_timestamp = meta.modified;
-				}
-			}
-
 			return frappe.call({
 				method: "frappe.desk.form.load.getdoctype",
 				type: "GET",
 				args: {
 					doctype: doctype,
 					with_parent: 1,
-					cached_timestamp: cached_timestamp,
 				},
 				async: async,
 				callback: function (r) {
@@ -268,12 +230,7 @@ $.extend(frappe.model, {
 						frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
 					}
-					if (r.message == "use_cache") {
-						frappe.model.sync(meta);
-					} else {
-						frappe.model.set_in_localstorage(doctype, r.docs);
-						meta = r.docs[0];
-					}
+					let meta = r.docs[0];
 					frappe.model.init_doctype(meta);
 
 					if (r.user_settings) {
@@ -293,13 +250,7 @@ $.extend(frappe.model, {
 			// meta has sugar, like __js and other properties that doc won't have
 			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
 		}
-		for (const asset_key of [
-			"__list_js",
-			"__custom_list_js",
-			"__calendar_js",
-			"__map_js",
-			"__tree_js",
-		]) {
+		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -858,7 +809,7 @@ $.extend(frappe.model, {
 			let meta = frappe.get_meta(doctype);
 			let default_views = ["List", "Report", "Dashboard", "Kanban"];
 
-			if (meta.is_calendar_and_gantt && frappe.views.calendar[doctype]) {
+			if (meta.is_calendar_and_gantt) {
 				let views = ["Calendar", "Gantt"];
 				default_views.push(...views);
 			}

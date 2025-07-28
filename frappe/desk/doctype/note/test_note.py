@@ -2,16 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestNote(UnitTestCase):
-	"""
-	Unit tests for Note.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestNote(IntegrationTestCase):

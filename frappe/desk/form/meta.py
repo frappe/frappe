@@ -16,9 +16,6 @@ ASSET_KEYS = (
 	"__css",
 	"__list_js",
 	"__calendar_js",
-	"__map_js",
-	"__linked_with",
-	"__messages",
 	"__print_formats",
 	"__workflow_docs",
 	"__form_grid_templates",
@@ -60,9 +57,6 @@ class FormMeta(Meta):
 		if self.get("__assets_loaded", False):
 			return
 
-		self.add_search_fields()
-		self.add_linked_document_type()
-
 		if not self.istable:
 			self.add_code()
 			self.add_custom_script()
@@ -77,15 +71,10 @@ class FormMeta(Meta):
 
 	def as_dict(self, no_nulls=False):
 		d = super().as_dict(no_nulls=no_nulls)
+		__dict = self.__dict__
 
 		for k in ASSET_KEYS:
-			d[k] = self.get(k)
-
-		# d['fields'] = d.get('fields', [])
-
-		for i, df in enumerate(d.get("fields") or []):
-			for k in ("search_fields", "is_custom_field", "linked_document_type"):
-				df[k] = self.get("fields")[i].get(k)
+			d[k] = __dict.get(k)
 
 		return d
 
@@ -186,19 +175,6 @@ class FormMeta(Meta):
 		self.set("__custom_js", form_script)
 		self.set("__custom_list_js", list_script)
 
-	def add_search_fields(self):
-		"""add search fields found in the doctypes indicated by link fields' options"""
-		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
-			if df.options:
-				try:
-					search_fields = frappe.get_meta(df.options).search_fields
-				except frappe.DoesNotExistError:
-					self._show_missing_doctype_msg(df)
-
-				if search_fields:
-					search_fields = search_fields.split(",")
-					df.search_fields = [sf.strip() for sf in search_fields]
-
 	def _show_missing_doctype_msg(self, df):
 		# A link field is referring to non-existing doctype, this usually happens when
 		# customizations are removed or some custom app is removed but hasn't cleaned
@@ -216,14 +192,6 @@ class FormMeta(Meta):
 			)
 
 		frappe.throw(msg, title=_("Missing DocType"))
-
-	def add_linked_document_type(self):
-		for df in self.get("fields", {"fieldtype": "Link"}):
-			if df.options:
-				try:
-					df.linked_document_type = frappe.get_meta(df.options).document_type
-				except frappe.DoesNotExistError:
-					self._show_missing_doctype_msg(df)
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql(

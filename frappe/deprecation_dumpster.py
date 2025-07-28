@@ -306,7 +306,7 @@ def read_multi_pdf(output) -> bytes:
 
 
 @deprecated("frappe.gzip_compress", "unknown", "v17", "Use py3 methods directly (this was compat for py2).")
-def gzip_compress(data, compresslevel=9):
+def gzip_compress(data, compresslevel=5):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
@@ -576,7 +576,7 @@ def get_tests_CompatFrappeTestCase():
 		traceback.print_stack(limit=10)
 
 	def _rollback_db():
-		frappe.db.value_cache = {}
+		frappe.db.value_cache.clear()
 		frappe.db.rollback()
 
 	def _restore_thread_locals(flags):

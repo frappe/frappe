@@ -29,7 +29,7 @@ class RoleProfile(Document):
 		self.clear_cache()
 		self.queue_action(
 			"update_all_users",
-			now=frappe.flags.in_test or frappe.flags.in_install,
+			now=frappe.in_test or frappe.flags.in_install,
 			enqueue_after_commit=True,
 			queue="long",
 		)

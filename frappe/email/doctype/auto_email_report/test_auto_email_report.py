@@ -1,20 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from io import BytesIO
+
+from pypdf import PdfReader
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_link_to_form, today
 from frappe.utils.data import is_html
-
-
-class UnitTestAutoEmailReport(UnitTestCase):
-	"""
-	Unit tests for AutoEmailReport.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAutoEmailReport(IntegrationTestCase):
@@ -36,6 +30,11 @@ class TestAutoEmailReport(IntegrationTestCase):
 		auto_email_report.format = "XLSX"
 
 		data = auto_email_report.get_report_content()
+
+		auto_email_report.format = "PDF"
+
+		data = auto_email_report.get_report_content()
+		PdfReader(stream=BytesIO(data))
 
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()

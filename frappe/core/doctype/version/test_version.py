@@ -4,17 +4,8 @@ import copy
 
 import frappe
 from frappe.core.doctype.version.version import get_diff
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
-
-
-class UnitTestVersion(UnitTestCase):
-	"""
-	Unit tests for Version.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestVersion(IntegrationTestCase):

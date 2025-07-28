@@ -170,9 +170,7 @@ def is_scheduler_disabled(verbose=True) -> bool:
 			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
 		return True
 
-	scheduler_disabled = not frappe.utils.cint(
-		frappe.db.get_single_value("System Settings", "enable_scheduler")
-	)
+	scheduler_disabled = not frappe.get_system_settings("enable_scheduler")
 	if scheduler_disabled:
 		if verbose:
 			cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")

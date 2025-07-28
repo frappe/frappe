@@ -55,6 +55,7 @@ frappe.views.CommunicationComposer = class {
 				reqd: 0,
 				fieldname: "recipients",
 				default: this.get_default_recipients("recipients"),
+				ignore_validation: true,
 				onchange: function () {
 					me.sanitize_emails(this);
 				},
@@ -77,6 +78,7 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
 				default: this.get_default_recipients("cc"),
+				ignore_validation: true,
 				onchange: function () {
 					me.sanitize_emails(this);
 				},
@@ -86,6 +88,7 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
 				default: this.get_default_recipients("bcc"),
+				ignore_validation: true,
 				onchange: function () {
 					me.sanitize_emails(this);
 				},

@@ -6,7 +6,7 @@
 </div>
 
 <div align="center">
-	<a target="_blank" href="#LICENSE" title="License: MIT"><img src="https://img.shields.io/badge/License-MIT-success.svg"></a>
+	<a target="_blank" href="LICENSE" title="License: MIT"><img src="https://img.shields.io/badge/License-MIT-success.svg"></a>
 	<a href="https://codecov.io/gh/frappe/frappe"><img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/></a>
 </div>
 <div align="center">
@@ -103,13 +103,10 @@ To setup the repository locally follow the steps mentioned below:
 2. In a separate terminal window, run the following commands:
    ```
    # Create a new site
-   bench new-site frappe.dev
-   
-   # Map your site to localhost
-   bench --site frappe.dev add-to-hosts
+   bench new-site frappe.localhost
    ```
 
-3. Open the URL `http://frappe.dev:8000/app` in your browser, you should see the app running
+3. Open the URL `http://frappe.localhost:8000/app` in your browser, you should see the app running
 
 ## Learning and community
 

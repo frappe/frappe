@@ -47,6 +47,7 @@
 		.search {
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
+			background-color: var(--fg-color);
 		}
 	}
 
@@ -339,8 +340,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
-		margin-top: 1rem;
-		margin-left: 1rem;
+		margin-top: 0.6rem;
+		margin-left: 0.5rem;
 	}
 
 	.grid-static-col[data-fieldtype="Code"],

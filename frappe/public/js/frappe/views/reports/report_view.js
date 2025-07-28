@@ -20,6 +20,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.page_title = __("Report:") + " " + this.page_title;
 		this.view = "Report";
 
+		this.link_title_doctype_fields = [];
+
 		const route = frappe.get_route();
 		if (route.length === 4) {
 			this.report_name = route[3];
@@ -102,9 +104,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const message = __(
 			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 		);
-		this.$paging_area
-			.find(".level-left")
-			.after(`<span class="comparison-message text-extra-muted">${message}</span>`);
+		this.$paging_area.before(
+			`<span class="comparison-message text-extra-muted">${message}</span>`
+		);
 	}
 
 	setup_sort_selector() {
@@ -150,6 +152,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (!this.group_by) {
 			this.init_chart();
 		}
+
 		this.set_link_title_field_value();
 	}
 
@@ -159,7 +162,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.link_title_doctype_fields[key],
 				key
 			);
-			document.querySelector(`a[data-name="${key}"]`).innerHTML = link_title;
+
+			if (link_title !== undefined) {
+				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+					el.innerHTML = link_title;
+				});
+			}
 		});
 	}
 
@@ -317,7 +325,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_datatable(values) {
-		this.link_title_doctype_fields = [];
 		this.$datatable_wrapper.empty();
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
@@ -1195,10 +1202,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 						if (
 							curr.column.docfield.fieldtype == "Link" &&
-							frappe.boot.link_title_doctypes.includes(
-								curr.column.docfield.options
-							) &&
-							curr.html
+							frappe.boot.link_title_doctypes.includes(curr.column.docfield.options)
 						) {
 							this.link_title_doctype_fields[curr.content] =
 								curr.column.docfield.options;

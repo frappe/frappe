@@ -13,6 +13,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
+from frappe.utils.data import get_link_to_form
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
 from frappe.utils.password import delete_all_passwords_for
@@ -153,7 +154,7 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.flags.in_test,
+					now=frappe.in_test,
 					enqueue_after_commit=True,
 				)
 
@@ -367,8 +368,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=""):
-	doc_link = f'<a href="/app/Form/{doc.doctype}/{doc.name}">{doc.name}</a>'
-	reference_link = f'<a href="/app/Form/{reference_doctype}/{reference_docname}">{reference_docname}</a>'
+	doc_link = get_link_to_form(doc.doctype, doc.name, doc.name)
+	reference_link = get_link_to_form(reference_doctype, reference_docname, reference_docname)
 
 	# hack to display Single doctype only once in message
 	if reference_doctype == reference_docname:

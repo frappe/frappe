@@ -139,7 +139,7 @@ def enqueue(
 			"unknown", "v17", "Using enqueue with `job_name` is deprecated, use `job_id` instead."
 		)
 
-	if not is_async and not frappe.flags.in_test:
+	if not is_async and not frappe.in_test:
 		from frappe.deprecation_dumpster import deprecation_warning
 
 		deprecation_warning(
@@ -148,7 +148,7 @@ def enqueue(
 			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead.",
 		)
 
-	call_directly = now or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
@@ -243,7 +243,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.init(site, force=True)
 		frappe.connect()
 		if os.environ.get("CI"):
-			frappe.flags.in_test = True
+			from frappe.tests.utils import toggle_test_mode
+
+			toggle_test_mode(True)
 
 		if user:
 			frappe.set_user(user)
@@ -270,7 +272,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		retval = method(**kwargs)
 
 	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
-		frappe.db.rollback()
+		frappe.db.rollback(chain=True)
 
 		if retry < 5 and (
 			isinstance(e, frappe.RetryBackgroundJobError)
@@ -291,15 +293,15 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			raise
 
 	except Exception as e:
-		frappe.db.rollback()
+		frappe.db.rollback(chain=True)
 		frappe.log_error(title=method_name)
 		frappe.monitor.add_data_to_monitor(exception=e.__class__.__name__)
-		frappe.db.commit()
+		frappe.db.commit(chain=True)
 		print(frappe.get_traceback())
 		raise
 
 	else:
-		frappe.db.commit()
+		frappe.db.commit(chain=True)
 		return retval
 
 	finally:

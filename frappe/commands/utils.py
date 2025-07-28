@@ -77,7 +77,7 @@ def build(
 			skip_frappe = False
 
 		# don't minify in developer_mode for faster builds
-		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		development = frappe.local.conf.developer_mode or frappe._dev_server
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -175,7 +175,7 @@ def destroy_all_sessions(context: CliCtxObj, reason=None):
 @click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
 def show_config(context: CliCtxObj, format):
-	"Print configuration file to STDOUT in speified format"
+	"Print configuration file to STDOUT in specified format"
 
 	if not context.sites:
 		raise SiteNotSpecifiedError

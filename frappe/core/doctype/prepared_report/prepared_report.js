@@ -44,6 +44,24 @@ frappe.ui.form.on("Prepared Report", {
 				frappe.route_options = { prepared_report_name: frm.doc.name };
 				frappe.set_route("query-report", frm.doc.report_name);
 			});
+			let csv_attached = (frm.get_files() || []).some((f) => f.file_url.endsWith(".csv"));
+			if (!csv_attached) {
+				frm.add_custom_button(__("Download as CSV"), function () {
+					frappe.call({
+						method: "frappe.core.doctype.prepared_report.prepared_report.enqueue_json_to_csv_conversion",
+						args: {
+							prepared_report_name: frm.doc.name,
+						},
+						callback: function () {
+							frappe.msgprint(
+								__(
+									"Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
+								)
+							);
+						},
+					});
+				});
+			}
 		}
 	},
 });

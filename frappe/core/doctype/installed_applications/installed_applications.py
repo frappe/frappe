@@ -26,17 +26,55 @@ class InstalledApplications(Document):
 	# end: auto-generated types
 
 	def update_versions(self):
+		self.reload_doc_if_required()
+
+		app_wise_setup_details = self.get_app_wise_setup_details()
+
 		self.delete_key("installed_applications")
 		for app in frappe.utils.get_installed_apps_info():
+			has_setup_wizard = 0
+			if app.get("app_name") == "frappe" or frappe.get_hooks(app_name=app.get("app_name")).get(
+				"setup_wizard_stages"
+			):
+				has_setup_wizard = 1
+
+			setup_complete = app_wise_setup_details.get(app.get("app_name")) or 0
+			if app.get("app_name") == "india_compliance":
+				setup_complete = app_wise_setup_details.get("erpnext") or 0
+
 			self.append(
 				"installed_applications",
 				{
 					"app_name": app.get("app_name"),
 					"app_version": app.get("version") or "UNVERSIONED",
 					"git_branch": app.get("branch") or "UNVERSIONED",
+					"has_setup_wizard": has_setup_wizard,
+					"is_setup_complete": setup_complete,
 				},
 			)
+
 		self.save()
+		frappe.clear_cache(doctype="System Settings")
+		frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
+
+	def get_app_wise_setup_details(self):
+		"""Get app wise setup details from the Installed Application doctype"""
+		return frappe._dict(
+			frappe.get_all(
+				"Installed Application",
+				fields=["app_name", "is_setup_complete"],
+				filters={"has_setup_wizard": 1},
+				as_list=True,
+			)
+		)
+
+	def reload_doc_if_required(self):
+		if frappe.db.has_column("Installed Application", "is_setup_complete"):
+			return
+
+		frappe.reload_doc("core", "doctype", "installed_application")
+		frappe.reload_doc("core", "doctype", "installed_applications")
+		frappe.reload_doc("integrations", "doctype", "webhook")
 
 
 @frappe.whitelist()
@@ -85,3 +123,57 @@ def get_installed_app_order() -> list[str]:
 	frappe.only_for("System Manager")
 
 	return frappe.get_installed_apps(_ensure_on_bench=True)
+
+
+@frappe.request_cache
+def get_setup_wizard_completed_apps():
+	"""Get list of apps that have completed setup wizard"""
+	return frappe.get_all(
+		"Installed Application",
+		filters={"has_setup_wizard": 1, "is_setup_complete": 1},
+		pluck="app_name",
+	)
+
+
+@frappe.request_cache
+def get_setup_wizard_not_required_apps():
+	"""Get list of apps that do not require setup wizard"""
+	return frappe.get_all(
+		"Installed Application",
+		filters={"has_setup_wizard": 0},
+		pluck="app_name",
+	)
+
+
+@frappe.request_cache
+def get_apps_with_incomplete_dependencies(current_app):
+	"""Get apps with incomplete dependencies."""
+	dependent_apps = ["frappe"]
+
+	if apps := frappe.get_hooks("required_apps", app_name=current_app):
+		dependent_apps.extend(apps)
+
+	parsed_apps = []
+	for apps in dependent_apps:
+		apps = apps.split("/")
+		parsed_apps.extend(apps)
+
+	pending_apps = get_setup_wizard_pending_apps(parsed_apps)
+
+	return pending_apps
+
+
+@frappe.request_cache
+def get_setup_wizard_pending_apps(apps=None):
+	"""Get list of apps that have completed setup wizard"""
+
+	filters = {"has_setup_wizard": 1, "is_setup_complete": 0}
+	if apps:
+		filters["app_name"] = ["in", apps]
+
+	return frappe.get_all(
+		"Installed Application",
+		filters=filters,
+		order_by="idx",
+		pluck="app_name",
+	)

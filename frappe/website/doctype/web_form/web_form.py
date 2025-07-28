@@ -70,7 +70,6 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
-
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -80,10 +79,7 @@ class WebForm(WebsiteGenerator):
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
 		in_user_env = not (
-			frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.flags.in_test
-			or frappe.flags.in_fixtures
+			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms
@@ -290,6 +286,34 @@ def get_context(context):
 			"Validation Error",
 			"No {0} found",
 			"Create a new {0}",
+			"Camera",
+			"Delete",
+			"Drag and drop files here or upload from",
+			"Following fields have missing values::Error message in web form",
+			"Link",
+			"Load More",
+			"Message",
+			"Missing Values Required:Error message in web form",
+			"My Device",
+			"No comments yet.",
+			"No more items to display",
+			"Set all private",
+			"Set all public",
+			"Start a new discussion",
+			"Upload",
+			"Link",
+			"Public",
+			"Private",
+			"Optimize",
+			"Drop files here",
+			"Take Photo",
+			"No Images",
+			"Total Images",
+			"Preview",
+			"Submit",
+			"Capture",
+			"Attach a web link",
+			"← Back to upload files",
 			self.title,
 			self.introduction_text,
 			self.success_title,
@@ -334,7 +358,7 @@ def get_context(context):
 			messages.append("Upload")
 			messages.append("Last")
 			messages.append("First")
-			messages.append("No.:Title of the 'row number' column")
+			messages.append("No.")
 
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
@@ -377,7 +401,7 @@ def get_context(context):
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
 		if self.show_list and frappe.form_dict.is_new:
-			context.title = _("New {0}").format(context.title)
+			context.title = _("New {0}").format(_(context.title))
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
 			frappe.session.user != "Guest" or not self.login_required
@@ -484,7 +508,7 @@ def get_context(context):
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
+			return frappe.get_lazy_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
 		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
@@ -559,7 +583,7 @@ def accept(web_form, data):
 	files = []
 	files_to_delete = []
 
-	web_form = frappe.get_doc("Web Form", web_form)
+	web_form = frappe.get_lazy_doc("Web Form", web_form)
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -655,7 +679,7 @@ def accept(web_form, data):
 
 @frappe.whitelist()
 def delete(web_form_name: str, docname: str | int):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -666,7 +690,7 @@ def delete(web_form_name: str, docname: str | int):
 
 @frappe.whitelist()
 def delete_multiple(web_form_name: str, docnames):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
 
@@ -692,7 +716,7 @@ def delete_multiple(web_form_name: str, docnames):
 
 
 def check_webform_perm(doctype, name):
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():
 			return True
@@ -763,7 +787,7 @@ def get_in_list_view_fields(doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)

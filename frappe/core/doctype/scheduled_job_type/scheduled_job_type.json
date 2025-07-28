@@ -3,7 +3,14 @@
   {
    "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
    "action_type": "Server Action",
+   "group": "Actions",
    "label": "Execute"
+  },
+  {
+   "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.skip_next_execution",
+   "action_type": "Server Action",
+   "group": "Actions",
+   "label": "Skip Next Execution"
   }
  ],
  "creation": "2024-02-23 10:41:33.059393",
@@ -110,7 +117,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2025-05-05 18:24:38.816989",
+ "modified": "2025-06-03 09:26:47.961601",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
