@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 import json
 import os
+import shutil
 from pathlib import Path
 
 import frappe
@@ -107,6 +108,10 @@ class StudioApp(WebsiteGenerator):
 	def on_trash(self):
 		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
 			frappe.delete_doc("Studio Page", page, force=True)
+
+		if self.is_standard:
+			path = frappe.get_app_source_path(self.frappe_app, "studio", self.name)
+			shutil.rmtree(path, ignore_errors=True)
 
 	def get_studio_pages(self):
 		return frappe.get_all(
