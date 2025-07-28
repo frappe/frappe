@@ -396,7 +396,9 @@ class SQLiteSearch(ABC):
 		"""Get all records to be indexed."""
 		records = []
 		for doctype, config in self.doc_configs.items():
-			docs = frappe.db.get_all(doctype, fields=config["fields"], filters=config.get("filters", {}))
+			docs = frappe.qb.get_query(
+				doctype, fields=config["fields"], filters=config.get("filters", {})
+			).run(as_dict=True)
 
 			for doc in docs:
 				doc.doctype = doctype
