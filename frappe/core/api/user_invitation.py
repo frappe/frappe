@@ -14,7 +14,7 @@ def invite_by_email(
 	frappe.utils.validate_email_address(emails, throw=True)
 	email_list = frappe.utils.split_emails(emails)
 	if not email_list:
-		frappe.throw(title=_("Invalid input"), msg=_("no email addresses to invite"))
+		frappe.throw(title=_("Invalid input"), msg=_("No email addresses to invite"))
 
 	# get relevant data from the database
 	accepted_invite_emails = frappe.db.get_all(
@@ -57,18 +57,18 @@ def cancel_invitation(name: str, app_name: str):
 	UserInvitation.validate_role(app_name)
 
 	if not frappe.db.exists("User Invitation", name):
-		frappe.throw(title=_("Error"), msg=_("invitation not found"))
+		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
 	invitation = frappe.get_doc("User Invitation", name)
 	if invitation.app_name != app_name:
 		# message is not specific enough for security
-		frappe.throw(title=_("Error"), msg=_("invitation not found"))
+		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
 	if invitation.status == "Cancelled":
 		return {"cancelled_now": False}
 
 	if invitation.status != "Pending":
-		frappe.throw(title=_("Error"), msg=_("invitation cannot be cancelled"))
+		frappe.throw(title=_("Error"), msg=_("Invitation cannot be cancelled"))
 
 	return {"cancelled_now": invitation.cancel_invite(ignore_permissions=True)}
 
