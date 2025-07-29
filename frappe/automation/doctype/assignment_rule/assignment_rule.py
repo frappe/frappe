@@ -313,6 +313,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 						filters={
 							"reference_type": doc.doctype,
 							"reference_name": str(doc.name),
+							"status": "Open",
 						},
 						pluck="name",
 					)

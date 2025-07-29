@@ -239,7 +239,7 @@ def clear(doctype, name, ignore_permissions=False):
 	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to", "name"],
-		filters=dict(reference_type=doctype, reference_name=name),
+		filters=dict(reference_type=doctype, reference_name=name, status="Open"),
 	)
 	if not assignments:
 		return False
