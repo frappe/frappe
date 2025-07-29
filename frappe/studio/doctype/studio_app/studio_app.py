@@ -107,7 +107,7 @@ class StudioApp(WebsiteGenerator):
 			frappe.delete_doc("Studio Page", page, force=True)
 
 		if self.is_standard:
-			path = frappe.get_app_source_path(self.frappe_app, "studio", self.name)
+			path = self.get_folder_path()
 			delete_file(path)
 
 	def get_studio_pages(self):
@@ -192,7 +192,7 @@ class StudioApp(WebsiteGenerator):
 		self.save()
 
 	def export_app(self):
-		app_path = frappe.get_app_source_path(self.frappe_app, "studio", self.name)
+		app_path = self.get_folder_path()
 		frappe.create_folder(app_path, with_init=True)
 
 		write_document_file(self, folder=app_path)
@@ -205,3 +205,6 @@ class StudioApp(WebsiteGenerator):
 		):
 			page_doc = frappe.get_doc("Studio Page", page)
 			write_document_file(page_doc, folder=page_folder_path)
+
+	def get_folder_path(self):
+		return frappe.get_app_source_path(self.frappe_app, "studio", self.name)
