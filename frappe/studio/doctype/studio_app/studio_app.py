@@ -193,7 +193,13 @@ class StudioApp(WebsiteGenerator):
 		)
 
 		self.is_standard = 1
-		self.frappe_app = target_app
+		self.save()
+
+	@frappe.whitelist()
+	def disable_app_export(self):
+		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
+
+		self.is_standard = 0
 		self.save()
 
 	def export_app(self):

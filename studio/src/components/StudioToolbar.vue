@@ -4,7 +4,6 @@
 			<Dropdown
 				:options="[
 					{ label: 'Back to Dashboard', icon: 'arrow-left', onClick: () => $router.push({ name: 'Home' }) },
-					{ label: 'Export App', icon: 'download', onClick: () => (showExportAppDialog = true) },
 					{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() },
 				]"
 			>
@@ -77,6 +76,15 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
+			<Tooltip text="App Export Settings" :hoverDelay="0.6">
+				<Button
+					size="sm"
+					variant="subtle"
+					:icon="LucideArrowUpFromLine"
+					label="Export App"
+					@click="() => (showExportAppDialog = true)"
+				/>
+			</Tooltip>
 			<Button
 				size="sm"
 				variant="subtle"
@@ -115,6 +123,7 @@ import ExportAppDialog from "@/components/ExportAppDialog.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
+import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
