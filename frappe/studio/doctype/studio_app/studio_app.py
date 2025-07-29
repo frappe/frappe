@@ -101,14 +101,19 @@ class StudioApp(WebsiteGenerator):
 	def on_update(self):
 		if self.is_standard:
 			self.export_app()
+		if self.has_value_changed("is_standard") and not self.is_standard:
+			self.delete_app_folder()
 
 	def on_trash(self):
 		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
 			frappe.delete_doc("Studio Page", page, force=True)
 
 		if self.is_standard:
-			path = self.get_folder_path()
-			delete_file(path)
+			self.delete_app_folder()
+
+	def delete_app_folder(self):
+		path = self.get_folder_path()
+		delete_file(path)
 
 	def get_studio_pages(self):
 		return frappe.get_all(
