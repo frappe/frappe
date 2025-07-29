@@ -180,10 +180,39 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
 		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
 
+	def test_casted_get_value_singles(self):
+		telemetry = frappe.db.get_value("System Settings", None, "enable_telemetry")
+		self.assertEqual(type(telemetry), int)
+		telemetry = frappe.db.get_value("System Settings", "System Settings", "enable_telemetry")
+		self.assertEqual(type(telemetry), int)
+
+		# Edge case in calling get_value
+		dt_name = frappe.db.get_value("DocType", "DocType", "name")
+		self.assertEqual(dt_name, "DocType")
+
+		timestamp = frappe.db.get_value("System Settings", None, "modified")
+		self.assertEqual(type(timestamp), datetime.datetime)
+
 	def test_singles_get_values_variant(self):
 		[[lang, date_format]] = frappe.db.get_values("System Settings", fieldname=["language", "date_format"])
 		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
 		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
+
+	def test_get_value_casts_singles(self):
+		doc = frappe.get_doc("System Settings")
+		results = frappe.db.get_value("System Settings", None, ["language", "date_format"], as_dict=True)
+		self.assertEqual(doc.language, results.language)
+		self.assertEqual(doc.date_format, results.date_format)
+
+		# Multiple fields as ordered result
+		doc = frappe.get_doc("System Settings")
+		[lang, date_format] = frappe.db.get_value("System Settings", None, ["language", "date_format"])
+		self.assertEqual(doc.language, lang)
+		self.assertEqual(doc.date_format, date_format)
+
+		# single field as dict
+		results = frappe.db.get_value("System Settings", None, "enable_telemetry", as_dict=True)
+		self.assertEqual(results, {"enable_telemetry": doc.enable_telemetry})
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True

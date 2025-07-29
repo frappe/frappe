@@ -167,6 +167,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.show_save = false;
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
+		this.export_dialog = null;
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -1481,10 +1482,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	print_report(print_settings) {
-		const custom_format = this.report_settings.html_format || null;
+	async print_report(print_settings) {
+		let custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == "Landscape";
+
+		if (print_settings.report) {
+			custom_format = await this.get_report_print_format(print_settings.report);
+		}
 
 		this.make_access_log("Print", "PDF");
 		frappe.render_grid({
@@ -1502,15 +1507,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	pdf_report(print_settings) {
+	async pdf_report(print_settings) {
 		const base_url = frappe.urllib.get_base_url();
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == "Landscape";
 
-		const custom_format = this.report_settings.html_format || null;
+		let custom_format = this.report_settings.html_format || null;
 		const columns = this.get_columns_for_print(print_settings, custom_format);
 		const data = this.get_data_for_print();
 		const applied_filters = this.get_filter_values();
+
+		if (print_settings.report) {
+			custom_format = await this.get_report_print_format(print_settings.report);
+		}
 
 		const filters_html = this.get_filters_html_for_print();
 		const template = print_settings.columns || !custom_format ? "print_grid" : custom_format;
@@ -1552,6 +1561,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings.report_name = `${__(this.report_name)}.pdf`;
 		}
 		frappe.render_pdf(html, print_settings);
+	}
+
+	async get_report_print_format(report_name) {
+		const filters = {
+			name: report_name,
+			disabled: 0,
+		};
+		const r = await frappe.db.get_value("Print Format", filters, ["html", "css"]);
+		if (r && r.message && r.message.html) {
+			const css = r.message.css || "";
+			const html = r.message.html || "";
+			return `<style>${css}</style>${html}`;
+		} else {
+			frappe.msgprint(__("Print Format not found"));
+			return null;
+		}
 	}
 
 	get_filters_html_for_print() {
@@ -1597,6 +1622,29 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
+		if (this.report_settings.export_hidden_cols) {
+			const hidden_fields = [];
+			this.columns.forEach((column) => {
+				if (column.hidden) {
+					hidden_fields.push(column.label);
+				}
+			});
+			if (hidden_fields.length) {
+				extra_fields.push(
+					{
+						fieldname: "column_break_1",
+						fieldtype: "Column Break",
+					},
+					{
+						label: __("Include hidden columns"),
+						fieldname: "include_hidden_columns",
+						description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
+						fieldtype: "Check",
+					}
+				);
+			}
+		}
+
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
@@ -1604,6 +1652,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				file_format,
 				include_indentation,
 				include_filters,
+				include_hidden_columns,
 				csv_delimiter,
 				csv_quoting,
 				csv_decimal_sep,
@@ -1644,6 +1693,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					csv_decimal_sep,
 					include_indentation,
 					include_filters,
+					include_hidden_columns,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -1693,7 +1743,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				row.is_total_row = true;
 				return row;
 			}, {});
-
+			if (!totalRow?.currency && rows[0]?.currency) {
+				totalRow.currency = rows[0].currency;
+			}
 			rows.push(totalRow);
 		}
 		return rows;

@@ -1,6 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from io import BytesIO
+
+from pypdf import PdfReader
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -27,6 +30,11 @@ class TestAutoEmailReport(IntegrationTestCase):
 		auto_email_report.format = "XLSX"
 
 		data = auto_email_report.get_report_content()
+
+		auto_email_report.format = "PDF"
+
+		data = auto_email_report.get_report_content()
+		PdfReader(stream=BytesIO(data))
 
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()

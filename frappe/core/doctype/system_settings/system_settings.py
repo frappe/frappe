@@ -224,9 +224,6 @@ def load():
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 
 
-cache_key = frappe.get_document_cache_key("System Settings", "System Settings")
-
-
 def get_system_settings(key: str):
 	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not (system_settings := getattr(frappe.local, "system_settings", None)):
@@ -241,7 +238,7 @@ def get_system_settings(key: str):
 
 
 def clear_system_settings_cache():
-	frappe.client_cache.delete_value(cache_key)
+	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
 

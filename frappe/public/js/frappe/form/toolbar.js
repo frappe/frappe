@@ -282,7 +282,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 		if (
 			this.frm.save_disabled &&
 			indicator &&
-			[__("Saved"), __("Not Saved")].includes(indicator[0])
+			[
+				__("Saved", null, this.frm.doctype),
+				__("Not Saved", null, this.frm.doctype),
+			].includes(indicator[0])
 		) {
 			return;
 		}

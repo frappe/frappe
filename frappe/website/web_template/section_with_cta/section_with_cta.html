@@ -1,6 +1,8 @@
 <div class="section-cta-container">
 	<div class="section-cta">
+		{%- if title -%}
 		<h2 class="title mt-0">{{ _(title) }}</h2>
+		{%- endif -%}
 		{%- if subtitle -%}
 		<p class="subtitle">{{ _(subtitle) }}</p>
 		{%- endif -%}

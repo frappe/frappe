@@ -75,6 +75,7 @@ def _new_site(
 	except Exception:
 		enable_scheduler = False
 
+	clear_site_locks()
 	make_site_dirs()
 	if rollback_callback:
 		rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
@@ -670,6 +671,14 @@ def get_conf_params(db_name=None, db_password=None):
 		db_password = random_string(16)
 
 	return {"db_name": db_name, "db_password": db_password}
+
+
+def clear_site_locks():
+	import shutil
+	from pathlib import Path
+
+	path = Path(frappe.get_site_path("locks"))
+	shutil.rmtree(path, ignore_errors=True)
 
 
 def make_site_dirs():

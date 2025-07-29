@@ -52,6 +52,36 @@ class TestFrappeClient(IntegrationTestCase):
 
 		self.assertTrue(len(doc_list))
 
+	def test_list_summary(self):
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		server.insert_many(
+			[
+				{"doctype": "Note", "title": "Sing"},
+				{"doctype": "Note", "title": "a"},
+				{"doctype": "Note", "title": "song"},
+				{"doctype": "Note", "title": "of"},
+				{"doctype": "Note", "title": "sixpence"},
+			]
+		)
+		notes = server.get_list("Note", fields=["title"], order_by="creation desc")
+
+		notes = [d.get("title") for d in notes]
+		self.assertEqual(notes[0], "sixpence")
+
+		getlist_users = server.get_list(
+			"User",
+			fields=["count(name) as user_count"],
+			filters={"user_type": "System User"},
+			group_by="user_type",
+		)
+		getall_users = frappe.db.get_all(
+			"User",
+			fields=["count(name) as system_user_count"],
+			filters={"user_type": "System User"},
+			group_by="user_type",
+		)
+		self.assertEqual(getlist_users[0]["user_count"], getall_users[0]["system_user_count"])
+
 	def test_get_doc(self):
 		USER = "Administrator"
 		TITLE = "get_this"

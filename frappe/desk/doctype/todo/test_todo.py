@@ -6,7 +6,7 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Web Page"]
 
 
 class TestToDo(IntegrationTestCase):
@@ -93,8 +93,8 @@ class TestToDo(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 
-		test_user.add_roles("Blogger")
-		add_permission("ToDo", "Blogger")
+		test_user.add_roles("Website Manager")
+		add_permission("ToDo", "Website Manager")
 
 		frappe.set_user("test4@example.com")
 
@@ -103,7 +103,7 @@ class TestToDo(IntegrationTestCase):
 		self.assertFalse(todo1.has_permission("write"))
 
 		frappe.set_user("Administrator")
-		test_user.remove_roles("Blogger")
+		test_user.remove_roles("Website Manager")
 		reset_perms("ToDo")
 		clear_permissions_cache("ToDo")
 		frappe.db.rollback()
