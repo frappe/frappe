@@ -5,11 +5,6 @@
 			title: 'Export Settings',
 			size: 'xl',
 		}"
-		@after-leave="
-			() => {
-				targetApp = ''
-			}
-		"
 	>
 		<template #body-content>
 			<div class="flex flex-col space-y-4">

@@ -14,7 +14,7 @@
 					</div>
 				</template>
 			</Dropdown>
-			<ExportAppDialog v-model:showDialog="showExportAppDialog" />
+			<ExportAppDialog v-if="!isObjectEmpty(store.activeApp)" v-model:showDialog="showExportAppDialog" />
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"
@@ -124,6 +124,7 @@ import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
+import { isObjectEmpty } from "@/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
