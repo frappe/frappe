@@ -86,10 +86,14 @@ def upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key):
     # Không dùng presigned URL nữa — chỉ lưu dạng S3 URL
     file_doc.file_url = f"s3://{s3_config['s3_bucket']}/{s3_key}"
     file_doc.is_private = 1
-
+    
+    # Ensure attachment fields are preserved
     return {
         "file_name": file_doc.file_name,
-        "file_url": file_doc.file_url
+        "file_url": file_doc.file_url,
+        "attached_to_doctype": file_doc.attached_to_doctype,
+        "attached_to_name": file_doc.attached_to_name,
+        "attached_to_field": file_doc.attached_to_field
     }
 
 
@@ -158,7 +162,10 @@ def upload_large_file_to_s3(file_doc, s3_client, s3_config, s3_key):
 
         return {
             "file_name": file_doc.file_name,
-            "file_url": file_doc.file_url
+            "file_url": file_doc.file_url,
+            "attached_to_doctype": file_doc.attached_to_doctype,
+            "attached_to_name": file_doc.attached_to_name,
+            "attached_to_field": file_doc.attached_to_field
         }
 
     except Exception as e:
