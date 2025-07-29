@@ -611,15 +611,38 @@ class SQLiteSearch(ABC):
 		return 1.0 / (1.0 + bm25_score) if bm25_score > 0 else 0.5
 
 	def _get_title_boost(self, row, query, query_words):
-		"""Calculate the title matching boost."""
+		"""Calculate the title matching boost based on percentage of words matched."""
 		original_title = (row["original_title"] or "").lower()
 		query_lower = query.lower()
 
+		# Check for exact phrase match first (highest boost)
 		if query_lower in original_title:
 			return TITLE_EXACT_MATCH_BOOST
-		if any(word.lower() in original_title for word in query_words):
-			return TITLE_PARTIAL_MATCH_BOOST
-		return 1.0
+
+		# Calculate percentage of query words that match in title
+		if not query_words:
+			return 1.0
+
+		matched_words = 0
+		for word in query_words:
+			if word.lower() in original_title:
+				matched_words += 1
+
+		if matched_words == 0:
+			return 1.0
+
+		# Calculate match percentage
+		match_percentage = matched_words / len(query_words)
+
+		# Scale the boost between TITLE_PARTIAL_MATCH_BOOST (2.0) and TITLE_EXACT_MATCH_BOOST (5.0)
+		# based on the percentage of words matched
+		min_boost = TITLE_PARTIAL_MATCH_BOOST  # 2.0
+		max_boost = TITLE_EXACT_MATCH_BOOST  # 5.0
+
+		# Linear interpolation: boost = min_boost + (max_boost - min_boost) * match_percentage
+		boost = min_boost + (max_boost - min_boost) * match_percentage
+
+		return boost
 
 	def _get_recency_boost(self, row, query):
 		"""Calculate the time-based recency boost."""
