@@ -5,6 +5,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
+from studio.export import delete_file, write_document_file
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -27,6 +28,8 @@ class StudioPage(Document):
 		blocks: DF.JSON | None
 		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
 		draft_blocks: DF.JSON | None
+		frappe_app: DF.Literal[None]
+		is_standard: DF.Check
 		page_name: DF.Data | None
 		page_title: DF.Data | None
 		published: DF.Check
@@ -78,6 +81,18 @@ class StudioPage(Document):
 
 		self.validate_variables()
 		self.process_resources()
+
+	def on_update(self):
+		if self.is_standard:
+			self.export_page()
+
+	def export_page(self):
+		write_document_file(self, folder=self.get_folder_path())
+
+	def on_trash(self):
+		if self.is_standard:
+			path = self.get_folder_path()
+			delete_file(path)
 
 	def validate_variables(self):
 		# check for duplicate variable names and show the duplicate variable name
@@ -160,6 +175,9 @@ class StudioPage(Document):
 					", ".join([f"{page.page_title} - {page.route}" for page in other_pages]),
 				)
 			)
+
+	def get_folder_path(self):
+		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_page")
 
 
 @frappe.whitelist()

@@ -37,6 +37,7 @@ import { FormControl, Button, call } from "frappe-ui"
 import type { SelectOption } from "@/types"
 import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
+import { studioApps } from "@/data/studioApps"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
@@ -52,22 +53,24 @@ call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data:
 })
 
 function exportApp() {
-	store
-		.updateActiveApp({
-			is_standard: 1,
-			frappe_app: targetApp.value,
-		})
-		.then(
-			() => {
+	return studioApps.runDocMethod.submit(
+		{
+			name: store.activeApp?.app_name,
+			method: "enable_app_export",
+			target_app: targetApp.value,
+		},
+		{
+			onSuccess: () => {
 				toast.success("App exported successfully")
 				showDialog.value = false
 			},
-			(error: any) => {
+			onError: (error: any) => {
 				toast.error("Failed to export app", {
 					description: error?.messages?.join(", "),
 					duration: Infinity,
 				})
 			},
-		)
+		},
+	)
 }
 </script>

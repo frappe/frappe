@@ -69,7 +69,7 @@
    "depends_on": "is_standard",
    "fieldname": "frappe_app",
    "fieldtype": "Select",
-   "label": "Frappe App",
+   "label": "Frappe App (for export)",
    "mandatory_depends_on": "is_standard"
   }
  ],
@@ -80,7 +80,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-07-28 13:48:38.651775",
+ "modified": "2025-07-28 18:19:40.202789",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
