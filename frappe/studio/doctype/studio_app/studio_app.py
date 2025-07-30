@@ -99,7 +99,7 @@ class StudioApp(WebsiteGenerator):
 			self.route = self.name
 
 	def on_update(self):
-		if frappe.flags.in_import:
+		if frappe.flags.in_import or not frappe.conf.developer_mode:
 			return
 
 		if self.is_standard:

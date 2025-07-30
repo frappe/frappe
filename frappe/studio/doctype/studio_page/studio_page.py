@@ -83,14 +83,13 @@ class StudioPage(Document):
 		self.process_resources()
 
 	def on_update(self):
-		if frappe.flags.in_import:
-			return
-
-		if self.is_standard:
-			self.export_page()
+		self.export_page()
 
 	def export_page(self):
-		write_document_file(self, folder=self.get_folder_path())
+		if frappe.flags.in_import or not frappe.conf.developer_mode:
+			return
+		if self.is_standard:
+			write_document_file(self, folder=self.get_folder_path())
 
 	def on_trash(self):
 		if self.is_standard:

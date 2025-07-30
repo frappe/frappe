@@ -8,13 +8,14 @@ def get_context(context):
 	frappe.db.commit()
 	context.csrf_token = csrf_token
 	context.site_url = get_site_url()
+	context.is_developer_mode = frappe.conf.developer_mode
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def get_context_for_dev():
 	if not frappe.conf.developer_mode:
 		frappe.throw(frappe._("This method is only meant for developer mode"))
-	return frappe._dict({"site_url": get_site_url()})
+	return frappe._dict({"site_url": get_site_url(), "is_developer_mode": frappe.conf.developer_mode})
 
 
 def get_site_url() -> str:

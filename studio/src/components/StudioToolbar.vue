@@ -14,7 +14,7 @@
 					</div>
 				</template>
 			</Dropdown>
-			<ExportAppDialog v-if="!isObjectEmpty(store.activeApp)" v-model:showDialog="showExportAppDialog" />
+			<ExportAppDialog v-if="canExportApp" v-model:showDialog="showExportAppDialog" />
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"
@@ -76,7 +76,7 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
-			<Tooltip text="App Export Settings" :hoverDelay="0.6">
+			<Tooltip text="App Export Settings" :hoverDelay="0.6" v-if="canExportApp">
 				<Button
 					size="sm"
 					variant="subtle"
@@ -132,4 +132,5 @@ const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
+const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 </script>
