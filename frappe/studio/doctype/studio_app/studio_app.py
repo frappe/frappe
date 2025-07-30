@@ -104,7 +104,7 @@ class StudioApp(WebsiteGenerator):
 
 		if self.is_standard:
 			self.export_app()
-		if self.has_value_changed("is_standard") and not self.is_standard:
+		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
 
 	def on_trash(self):
