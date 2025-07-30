@@ -83,7 +83,7 @@ function exportApp() {
 			onError: (error: any) => {
 				toast.error("Failed to export app", {
 					description: error?.messages?.join(", "),
-					duration: Infinity,
+					duration: 500,
 				})
 			},
 		},
@@ -104,7 +104,7 @@ function disableAppExport() {
 			onError: (error: any) => {
 				toast.error("Failed to disable app export", {
 					description: error?.messages?.join(", "),
-					duration: Infinity,
+					duration: 500,
 				})
 			},
 		},
