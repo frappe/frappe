@@ -13,14 +13,16 @@ def after_migrate():
 
 def sync_app():
 	for app in frappe.get_installed_apps():
-		if app == "studio":
-			continue
-
 		studio_folder_path = frappe.get_app_source_path(app, "studio")
 		if not os.path.exists(studio_folder_path):
 			continue
 
-		for app_name in os.listdir(studio_folder_path):
+		if app == "studio":
+			app_list = frappe.get_file_items(frappe.get_app_path("studio", "studio_apps.txt"))
+		else:
+			app_list = os.listdir(studio_folder_path)
+
+		for app_name in app_list:
 			print(f"Syncing Studio App {app_name} for {app}")
 			if os.path.isdir(os.path.join(studio_folder_path, app_name)):
 				app_folder = os.path.join(studio_folder_path, app_name)
