@@ -1207,7 +1207,8 @@ export default class GridRow {
 				var fieldtype = $(this).attr("data-fieldtype");
 
 				let ctrl_key = e.metaKey || e.ctrlKey;
-				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
+				let can_add_rows = !(me.grid.cannot_add_rows || (me.grid.df && me.grid.df.cannot_add_rows));
+				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB && can_add_rows) {
 					me.add_new_row_using_keys(e);
 					return;
 				}
@@ -1248,7 +1249,7 @@ export default class GridRow {
 
 					if (is_last_column) {
 						// last row
-						if (me.doc.idx === values.length) {
+						if (me.doc.idx === values.length && can_add_rows) {
 							setTimeout(function () {
 								me.grid.add_new_row(null, null, true);
 								me.grid.grid_rows[
