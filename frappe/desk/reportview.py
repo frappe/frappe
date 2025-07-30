@@ -937,30 +937,50 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
             def sort_key(project):
                 # Handle queue_position - convert to integer or use default high value
                 queue_pos = project.get('queue_position')
-                try:
-                    queue_position_int = int(float(queue_pos)) if queue_pos not in (None, "", 0) else 999999
-                except (ValueError, TypeError):
-                    queue_position_int = 999999
+                
+                # First determine if queue_position is valid
+                has_valid_queue_pos = False
+                queue_position_int = 999999  # Default high value for invalid/NULL
+                
+                if queue_pos not in (None, "", 0):
+                    try:
+                        # Convert to integer and validate
+                        queue_position_int = int(float(queue_pos))
+                        has_valid_queue_pos = True
+                    except (ValueError, TypeError):
+                        # Invalid format, keep default high value
+                        pass
                 
                 # Handle appointment_date - convert to datetime or use default future date
                 appt_date = project.get('appointment_date')
-                if not appt_date:
-                    return (queue_position_int, datetime(9999, 12, 31))
-                    
-                try:
-                    # Convert string date to datetime if needed
-                    if isinstance(appt_date, str):
-                        date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
-                    else:
-                        # Handle date object by converting to datetime
-                        from datetime import date
-                        if isinstance(appt_date, date) and not isinstance(appt_date, datetime):
-                            date_obj = datetime.combine(appt_date, datetime.min.time())
+                has_valid_date = False
+                default_date = datetime(9999, 12, 31)
+                date_obj = default_date
+                
+                if appt_date:
+                    try:
+                        # Convert string date to datetime if needed
+                        if isinstance(appt_date, str):
+                            date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
+                            has_valid_date = True
                         else:
-                            date_obj = appt_date
-                    return (queue_position_int, date_obj)
-                except (ValueError, TypeError):
-                    return (queue_position_int, datetime(9999, 12, 31))
+                            # Handle date object by converting to datetime
+                            from datetime import date
+                            if isinstance(appt_date, date) and not isinstance(appt_date, datetime):
+                                date_obj = datetime.combine(appt_date, datetime.min.time())
+                                has_valid_date = True
+                            elif isinstance(appt_date, datetime):
+                                date_obj = appt_date
+                                has_valid_date = True
+                    except (ValueError, TypeError):
+                        # Invalid date format, keep default date
+                        pass
+                
+                # Create a sorting tuple with priority flags
+                # Format: (has_valid_queue_pos, queue_position_int, has_valid_date, date_obj)
+                # This ensures projects with queue_position are always first, then sorted by queue_position value
+                # Then projects with only dates, sorted by date
+                return (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
             
             # Sort the special status projects and combine with other projects
             data = sorted(special_status_projects, key=sort_key) + other_projects
