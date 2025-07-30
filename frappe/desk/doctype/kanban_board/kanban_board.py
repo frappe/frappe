@@ -167,7 +167,8 @@ def update_order(board_name, order):
                     frappe.logger("debug").info(f"[KANBAN UPDATE] Error parsing column order: {e}")
                     order_dict[column.column_name] = []
         
-        # Apply our custom sorting only to special columns, keep user's drag-drop order for others
+        # Primero, actualizar el estado de los proyectos según lo que viene del frontend
+        # Esto asegura que los cambios recientes se apliquen primero
         for col_name, cards in order_dict.items():
             # Update the project status if it changed
             for card in cards:
@@ -175,34 +176,33 @@ def update_order(board_name, order):
                 if column != col_name:
                     frappe.set_value(doctype, card, fieldname, col_name)
                     updated_cards.append(dict(name=card, column=col_name))
-            
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Updated card {card} status from {column} to {col_name}")
+        
+        # Después de actualizar todos los estados, refrescar la lista de proyectos ordenados
+        # para incluir los cambios recientes
+        if updated_cards:
+            frappe.logger("debug").info(f"[KANBAN UPDATE] Cards were updated, refreshing ordered projects")
+            projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+            # Actualizar sorted_columns con la nueva información
+            for status in special_order_statuses:
+                sorted_columns[status] = [p['name'] for p in projects_ordered if p.get('status') == status]
+                frappe.logger("debug").info(f"[KANBAN UPDATE] Refreshed sorted order for '{status}': {sorted_columns[status]}")
+        
+        # Ahora aplicar el orden a las columnas
+        for col_name, cards in order_dict.items():
             # For special columns, use our sorted order instead of the order from the frontend
             if col_name in special_order_statuses and col_name in sorted_columns:
-                # Forzar el reordenamiento completo de las columnas especiales
-                # Obtenemos todos los proyectos que deberían estar en esta columna
-                sorted_cards = sorted_columns[col_name]
-                
-                # Find cards in frontend that are not in our sorted order
-                missing_cards = [card for card in cards if card not in sorted_cards]
-                if missing_cards:
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(missing_cards)} cards in frontend not in sorted order: {missing_cards}")
-                    # Add missing cards to the end of our sorted order
-                    sorted_cards.extend(missing_cards)
-                
-                # Find cards in sorted order that are not in frontend
-                extra_cards = [card for card in sorted_cards if card not in cards]
-                if extra_cards:
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(extra_cards)} cards in sorted order not in frontend: {extra_cards}")
-                    
-                # Verificar si hay proyectos en la base de datos con este estado que no estén en nuestro orden calculado
+                # Obtener el estado actual de la base de datos para esta columna
                 projects_with_status = frappe.get_all("Project", filters={"status": col_name}, fields=["name"])
                 db_project_names = [p.name for p in projects_with_status]
                 
-                # Encontrar proyectos en la base de datos que no estén en nuestro orden calculado
+                # Usar el orden calculado pero respetando el estado actual de la base de datos
+                sorted_cards = [p for p in sorted_columns[col_name] if p in db_project_names]
+                
+                # Añadir cualquier proyecto que esté en la base de datos pero no en nuestro orden calculado
                 missing_from_sorted = [p for p in db_project_names if p not in sorted_cards]
                 if missing_from_sorted:
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Found {len(missing_from_sorted)} projects in database with status '{col_name}' not in sorted order: {missing_from_sorted}")
-                    # Añadir estos proyectos al final de nuestro orden calculado
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Adding {len(missing_from_sorted)} projects from database to sorted order for '{col_name}': {missing_from_sorted}")
                     sorted_cards.extend(missing_from_sorted)
                 
                 frappe.logger("debug").info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
