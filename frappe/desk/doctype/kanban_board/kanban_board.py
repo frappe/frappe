@@ -144,12 +144,20 @@ def update_order(board_name, order):
 		# Get all projects with proper sorting
 		projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
 		
+		# Log the projects ordered for debugging
+		frappe.logger("debug").info(f"[KANBAN UPDATE] Projects ordered by queue_position and appointment_date:")
+		for i, p in enumerate(projects_ordered[:10]):
+			frappe.logger("debug").info(f"[KANBAN UPDATE] #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
+		
 		# Process each column
 		for col_name, cards in order_dict.items():
 			# Check if this column needs special ordering
 			if col_name in special_order_statuses:
 				# Get the sorted cards for this column
 				sorted_cards = [p['name'] for p in projects_ordered if p.get('status') == col_name]
+				
+				# Log the sorted cards for this column
+				frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted cards for column '{col_name}': {sorted_cards}")
 				
 				# Update the order_dict with the sorted cards
 				order_dict[col_name] = sorted_cards
@@ -164,10 +172,12 @@ def update_order(board_name, order):
 						frappe.set_value(doctype, card, fieldname, col_name)
 						updated_cards.append(dict(name=card, column=col_name))
 						
-				# Update the column order
+				# Update the column order with the properly sorted cards
 				for column in board.columns:
 					if column.column_name == col_name:
+						# Make sure we're using the sorted order
 						column.order = frappe.as_json(sorted_cards)
+						frappe.logger("debug").info(f"[KANBAN UPDATE] Updated column order for '{col_name}': {column.order}")
 			else:
 				# Standard processing for other columns
 				for card in cards:
@@ -571,19 +581,14 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             # Log the values for debugging
             frappe.logger("debug").info(f"[KANBAN DEBUG] Project {project.get('name')}, plate={project.get('plate')}, queue_pos={queue_pos}, valid_queue_pos={has_valid_queue_pos}, appt_date={appt_date}")
             
-            # Create a two-tier sorting system:
-            # 1. First tier: Projects with valid queue_position (0) vs projects without (1)
-            # 2. Second tier: For projects with queue_position, sort by that value
-            #                 For projects without queue_position, sort by date
+            # Simple sorting logic: always sort by queue_position first (if valid), then by appointment_date
+            # For queue_position, use the actual value if valid, or a very high number (999999) if not valid
+            # This ensures projects with valid queue_position always come first in ascending order
             
-            if has_valid_queue_pos:
-                # If project has a valid queue_position, use it as primary sort key
-                # First element 0 ensures these projects come first
-                return (0, queue_position_int, date_obj)
-            else:
-                # If project doesn't have a valid queue_position, sort by date
-                # First element 1 ensures these projects come after those with queue_position
-                return (1, 0 if has_valid_date else 1, date_obj)
+            # For projects without valid queue_position, they will all have the same high queue_position value (999999),
+            # so they will be sorted by appointment_date
+            
+            return (queue_position_int, date_obj)
         
         # Log original project order
         frappe.logger("debug").info(f"[KANBAN SORT] Original order of {len(projects)} projects:")

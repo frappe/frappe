@@ -984,19 +984,14 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
                 # Log the values for debugging
                 frappe.logger().info(f"[REPORTVIEW DEBUG] Project {project.get('name')}, plate={project.get('plate')}, queue_pos={queue_pos}, valid_queue_pos={has_valid_queue_pos}, appt_date={appt_date}")
                 
-                # Create a two-tier sorting system:
-                # 1. First tier: Projects with valid queue_position (0) vs projects without (1)
-                # 2. Second tier: For projects with queue_position, sort by that value
-                #                 For projects without queue_position, sort by date
+                # Simple sorting logic: always sort by queue_position first (if valid), then by appointment_date
+                # For queue_position, use the actual value if valid, or a very high number (999999) if not valid
+                # This ensures projects with valid queue_position always come first in ascending order
                 
-                if has_valid_queue_pos:
-                    # If project has a valid queue_position, use it as primary sort key
-                    # First element 0 ensures these projects come first
-                    return (0, queue_position_int, date_obj)
-                else:
-                    # If project doesn't have a valid queue_position, sort by date
-                    # First element 1 ensures these projects come after those with queue_position
-                    return (1, 0 if has_valid_date else 1, date_obj)
+                # For projects without valid queue_position, they will all have the same high queue_position value (999999),
+                # so they will be sorted by appointment_date
+                
+                return (queue_position_int, date_obj)
             
             # Sort the special status projects and combine with other projects
             sorted_special_projects = sorted(special_status_projects, key=sort_key)
