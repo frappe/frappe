@@ -574,14 +574,54 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             # Then projects with only dates, sorted by date
             return (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
         
+        # Log original project order
+        frappe.logger("debug").info(f"[KANBAN SORT] Original order of {len(projects)} projects:")
+        for i, p in enumerate(projects[:10]):  # Log first 10 projects to avoid excessive logging
+            frappe.logger("debug").info(f"[KANBAN SORT] Original #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}")
+        
         # Sort the projects
         sorted_projects = sorted(projects, key=sort_key)
         
-        # Log some debug info
-        frappe.logger("debug").info(f"[KANBAN SORT] Sorted {len(sorted_projects)} projects")
-        if sorted_projects and len(sorted_projects) > 0:
-            sample = sorted_projects[0]
-            frappe.logger("debug").info(f"[KANBAN SORT] First sorted project: {sample.get('name')} - queue_pos: {sample.get('queue_position')} - date: {sample.get('appointment_date')}")
+        # Log sorted project order
+        frappe.logger("debug").info(f"[KANBAN SORT] Sorted order of {len(sorted_projects)} projects:")
+        for i, p in enumerate(sorted_projects[:10]):  # Log first 10 projects to avoid excessive logging
+            frappe.logger("debug").info(f"[KANBAN SORT] Sorted #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
+        
+        # Log sorting criteria for first few projects to understand the sorting logic
+        if sorted_projects:
+            frappe.logger("debug").info("[KANBAN SORT] Sorting criteria details:")
+            for i, p in enumerate(sorted_projects[:5]):
+                queue_pos = p.get('queue_position')
+                has_valid_queue_pos = False
+                queue_position_int = 999999
+                
+                if queue_pos not in (None, "", 0):
+                    try:
+                        queue_position_int = int(float(queue_pos))
+                        has_valid_queue_pos = True
+                    except (ValueError, TypeError):
+                        pass
+                        
+                appt_date = p.get('appointment_date')
+                has_valid_date = False
+                date_obj = None
+                
+                if appt_date:
+                    try:
+                        if isinstance(appt_date, str):
+                            date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
+                            has_valid_date = True
+                        else:
+                            from datetime import date
+                            if isinstance(appt_date, date):
+                                date_obj = appt_date
+                                has_valid_date = True
+                    except (ValueError, TypeError):
+                        pass
+                
+                sort_tuple = (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
+                frappe.logger("debug").info(f"[KANBAN SORT] #{i+1} {p.get('name')} - Sort tuple: {sort_tuple}")
+        
         
         return sorted_projects
         

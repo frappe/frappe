@@ -933,6 +933,11 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
         if special_status_projects:
             frappe.logger().info(f"[REPORTVIEW SORT] Applying custom sorting for {len(special_status_projects)} projects with special status")
             
+            # Log original project order
+            frappe.logger().info(f"[REPORTVIEW SORT] Original order of {len(special_status_projects)} projects:")
+            for i, p in enumerate(special_status_projects[:10]):  # Log first 10 projects to avoid excessive logging
+                frappe.logger().info(f"[REPORTVIEW SORT] Original #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
+            
             # Define a sorting key function
             def sort_key(project):
                 # Handle queue_position - convert to integer or use default high value
@@ -983,12 +988,54 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
                 return (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
             
             # Sort the special status projects and combine with other projects
-            data = sorted(special_status_projects, key=sort_key) + other_projects
+            sorted_special_projects = sorted(special_status_projects, key=sort_key)
+            data = sorted_special_projects + other_projects
+            
+            # Log sorted project order
+            frappe.logger().info(f"[REPORTVIEW SORT] Sorted order of {len(sorted_special_projects)} projects:")
+            for i, p in enumerate(sorted_special_projects[:10]):  # Log first 10 projects to avoid excessive logging
+                frappe.logger().info(f"[REPORTVIEW SORT] Sorted #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
+            
+            # Log sorting criteria for first few projects to understand the sorting logic
+            if sorted_special_projects:
+                frappe.logger().info("[REPORTVIEW SORT] Sorting criteria details:")
+                for i, p in enumerate(sorted_special_projects[:5]):
+                    queue_pos = p.get('queue_position')
+                    has_valid_queue_pos = False
+                    queue_position_int = 999999
+                    
+                    if queue_pos not in (None, "", 0):
+                        try:
+                            queue_position_int = int(float(queue_pos))
+                            has_valid_queue_pos = True
+                        except (ValueError, TypeError):
+                            pass
+                            
+                    appt_date = p.get('appointment_date')
+                    has_valid_date = False
+                    date_obj = None
+                    
+                    if appt_date:
+                        try:
+                            if isinstance(appt_date, str):
+                                date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
+                                has_valid_date = True
+                            else:
+                                from datetime import date
+                                if isinstance(appt_date, date):
+                                    date_obj = appt_date
+                                    has_valid_date = True
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    sort_tuple = (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
+                    frappe.logger().info(f"[REPORTVIEW SORT] #{i+1} {p.get('name')} - Sort tuple: {sort_tuple}")
             
             # Log sample of sorted data for debugging
             if data:
                 sample = data[0]
                 frappe.logger().info(f"[REPORTVIEW SORT] First sorted project: {sample.get('name')} - status: {sample.get('status')} - queue_pos: {sample.get('queue_position')} - date: {sample.get('appointment_date')}")
+
 
     # Debug logging (only log first 3 items to reduce log volume)
     if args.get("doctype") == "Project" and data:
