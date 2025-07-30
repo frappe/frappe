@@ -207,6 +207,9 @@ class StudioApp(WebsiteGenerator):
 		self.save()
 
 	def export_app(self):
+		if not self.frappe_app:
+			frappe.throw("Frappe App must be set to export the Studio App.")
+
 		app_path = self.create_app_folder()
 		self.export_studio_pages(app_path)
 		self.add_to_studio_apps_txt()
