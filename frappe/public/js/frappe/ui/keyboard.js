@@ -198,7 +198,7 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+g",
+	shortcut: "ctrl+k",
 	action: function (e) {
 		$("#navbar-search").focus();
 		e.preventDefault();
