@@ -20,6 +20,7 @@
 						:required="true"
 						type="autocomplete"
 						placeholder="Select the target Frappe App"
+						:description="`App will be exported to ${targetApp || 'frappe_app_name'}/studio/${scrub(store.activeApp?.app_name)}`"
 						:modelValue="targetApp"
 						@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
 						:options="targetAppOptions"
@@ -41,6 +42,7 @@ import type { SelectOption } from "@/types"
 import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
+import { scrub } from "@/utils/helpers"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 

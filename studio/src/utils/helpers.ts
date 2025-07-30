@@ -684,6 +684,11 @@ function throttle<T extends (...args: any[]) => void>(func: T, wait: number = 10
 	return invoke
 }
 
+function scrub(txt: string | null | undefined) {
+	if (!txt) return ""
+	return txt.replace(/ |-/g, "_").toLowerCase()
+}
+
 export {
 	getBlockString,
 	getBlockInstance,
@@ -735,4 +740,5 @@ export {
 	setClipboardData,
 	getErrorMessage,
 	throttle,
+	scrub,
 }
