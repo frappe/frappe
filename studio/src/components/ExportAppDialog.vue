@@ -5,12 +5,6 @@
 			title: 'Export Settings',
 			size: 'xl',
 		}"
-		@after-leave="
-			() => {
-				enableExport = false
-				targetApp = ''
-			}
-		"
 	>
 		<template #body-content>
 			<div class="flex flex-col space-y-4">
@@ -41,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import { FormControl, Button, call, Switch } from "frappe-ui"
 import type { SelectOption } from "@/types"
 import { toast } from "vue-sonner"
@@ -53,8 +47,18 @@ import SettingItem from "@/components/SettingItem.vue"
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
 const store = useStudioStore()
-const enableExport = ref(store.activeApp?.is_standard || false)
-const targetApp = ref(store.activeApp?.frappe_app)
+const enableExport = ref(false)
+const targetApp = ref("")
+
+watch(
+	() => [store.activeApp?.app_name, store.activeApp?.is_standard, store.activeApp?.frappe_app],
+	() => {
+		enableExport.value = Boolean(store.activeApp?.is_standard)
+		targetApp.value = store.activeApp?.frappe_app || ""
+	},
+	{ immediate: true },
+)
+
 let targetAppOptions: string[] = []
 
 call("frappe.core.doctype.module_def.module_def.get_installed_apps").then((data: string[]) => {
