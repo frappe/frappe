@@ -8,24 +8,23 @@
 	>
 		<template #body-content>
 			<div class="flex flex-col space-y-4">
-				<Switch
-					size="sm"
-					label="Enable App Export"
-					description="Exports app changes to an existing Frappe App"
-					v-model="enableExport"
-				/>
-				<div v-if="enableExport" class="flex flex-col space-y-1.5">
-					<span class="text-base font-medium leading-normal text-ink-gray-8">Frappe App</span>
+				<SettingItem label="Enable App Export" description="Exports app changes to an existing Frappe App">
+					<Switch size="sm" v-model="enableExport" />
+				</SettingItem>
+
+				<SettingItem
+					v-if="enableExport"
+					label="Frappe App"
+					:description="`App will be exported to ${targetApp || 'frappe_app_name'}/studio/${scrub(store.activeApp?.app_name)}`"
+				>
 					<FormControl
-						:required="true"
 						type="autocomplete"
-						placeholder="Select the target Frappe App"
-						:description="`App will be exported to ${targetApp || 'frappe_app_name'}/studio/${scrub(store.activeApp?.app_name)}`"
+						placeholder="Target Frappe App"
 						:modelValue="targetApp"
 						@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
 						:options="targetAppOptions"
 					/>
-				</div>
+				</SettingItem>
 			</div>
 		</template>
 
@@ -43,6 +42,7 @@ import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
 import { scrub } from "@/utils/helpers"
+import SettingItem from "@/components/SettingItem.vue"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 

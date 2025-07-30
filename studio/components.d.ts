@@ -69,6 +69,7 @@ declare module 'vue' {
     ResourceDialog: typeof import('./src/components/ResourceDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingItem: typeof import('./src/components/SettingItem.vue')['default']
     Sidebar: typeof import('./src/components/AppLayout/Sidebar.vue')['default']
     SlotIcon: typeof import('./src/components/Icons/SlotIcon.vue')['default']
     SplitView: typeof import('./src/components/AppLayout/SplitView.vue')['default']
