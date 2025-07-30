@@ -193,6 +193,7 @@ class StudioApp(WebsiteGenerator):
 		)
 
 		self.is_standard = 1
+		self.frappe_app = target_app
 		self.save()
 
 	@frappe.whitelist()
