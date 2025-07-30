@@ -568,11 +568,22 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                     # Invalid date format, keep default date
                     pass
             
-            # Create a sorting tuple with priority flags
-            # Format: (has_valid_queue_pos, queue_position_int, has_valid_date, date_obj)
-            # This ensures projects with queue_position are always first, then sorted by queue_position value
-            # Then projects with only dates, sorted by date
-            return (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
+            # Log the values for debugging
+            frappe.logger("debug").info(f"[KANBAN DEBUG] Project {project.get('name')}, plate={project.get('plate')}, queue_pos={queue_pos}, valid_queue_pos={has_valid_queue_pos}, appt_date={appt_date}")
+            
+            # Create a two-tier sorting system:
+            # 1. First tier: Projects with valid queue_position (0) vs projects without (1)
+            # 2. Second tier: For projects with queue_position, sort by that value
+            #                 For projects without queue_position, sort by date
+            
+            if has_valid_queue_pos:
+                # If project has a valid queue_position, use it as primary sort key
+                # First element 0 ensures these projects come first
+                return (0, queue_position_int, date_obj)
+            else:
+                # If project doesn't have a valid queue_position, sort by date
+                # First element 1 ensures these projects come after those with queue_position
+                return (1, 0 if has_valid_date else 1, date_obj)
         
         # Log original project order
         frappe.logger("debug").info(f"[KANBAN SORT] Original order of {len(projects)} projects:")
