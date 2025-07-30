@@ -136,16 +136,61 @@ def update_order(board_name, order):
 	fieldname = board.field_name
 	order_dict = json.loads(order)
 
-	for col_name, cards in order_dict.items():
-		for card in cards:
-			column = frappe.get_value(doctype, {"name": card}, fieldname)
-			if column != col_name:
-				frappe.set_value(doctype, card, fieldname, col_name)
-				updated_cards.append(dict(name=card, column=col_name))
+	# Special handling for Project doctype with In queue or In parking status
+	if doctype == "Project":
+		# Get the statuses that need special ordering
+		special_order_statuses = ["In queue", "In parking"]
+		
+		# Get all projects with proper sorting
+		projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+		
+		# Process each column
+		for col_name, cards in order_dict.items():
+			# Check if this column needs special ordering
+			if col_name in special_order_statuses:
+				# Get the sorted cards for this column
+				sorted_cards = [p['name'] for p in projects_ordered if p.get('status') == col_name]
+				
+				# Update the order_dict with the sorted cards
+				order_dict[col_name] = sorted_cards
+				
+				# Log the sorting
+				frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted column '{col_name}' with {len(sorted_cards)} projects")
+				
+				# Update each card's status if needed
+				for card in sorted_cards:
+					column = frappe.get_value(doctype, {"name": card}, fieldname)
+					if column != col_name:
+						frappe.set_value(doctype, card, fieldname, col_name)
+						updated_cards.append(dict(name=card, column=col_name))
+						
+				# Update the column order
+				for column in board.columns:
+					if column.column_name == col_name:
+						column.order = frappe.as_json(sorted_cards)
+			else:
+				# Standard processing for other columns
+				for card in cards:
+					column = frappe.get_value(doctype, {"name": card}, fieldname)
+					if column != col_name:
+						frappe.set_value(doctype, card, fieldname, col_name)
+						updated_cards.append(dict(name=card, column=col_name))
+				
+				for column in board.columns:
+					if column.column_name == col_name:
+						column.order = json.dumps(cards)
+	else:
+		# Standard processing for non-Project doctypes
+		for col_name, cards in order_dict.items():
+			for card in cards:
+				column = frappe.get_value(doctype, {"name": card}, fieldname)
+				if column != col_name:
+					frappe.set_value(doctype, card, fieldname, col_name)
+					updated_cards.append(dict(name=card, column=col_name))
 
-		for column in board.columns:
-			if column.column_name == col_name:
-				column.order = json.dumps(cards)
+			for column in board.columns:
+				if column.column_name == col_name:
+					column.order = json.dumps(cards)
 
 	return board.save(ignore_permissions=True), updated_cards
 
@@ -459,6 +504,69 @@ def force_refresh_kanban_order(board_name):
 
 
 # ==================== CUSTOM FUNCTIONS ====================
+
+def get_projects_ordered_by_queue_position_and_appointment_date():
+    """Get projects ordered by queue_position and appointment_date
+    
+    This function retrieves all projects and sorts them according to the following rules:
+    1. For projects with status "In queue" or "In parking", sort by queue_position (ascending) and then by appointment_date (ascending)
+    2. For projects with NULL queue_position, they are placed at the end
+    3. For projects with NULL appointment_date, they are placed after those with dates
+    """
+    frappe.logger("debug").info("[KANBAN SORT] Getting ordered projects by queue_position and appointment_date")
+    
+    try:
+        # Get all projects with relevant fields
+        projects = frappe.get_all(
+            "Project",
+            fields=["name", "status", "queue_position", "appointment_date"],
+            filters={
+                "status": ["in", ["In queue", "In parking"]]
+            }
+        )
+        
+        # Define a sorting key function
+        def sort_key(project):
+            # Handle queue_position
+            queue_pos = project.get('queue_position')
+            try:
+                if queue_pos and str(queue_pos).strip():
+                    queue_position_int = int(float(queue_pos))
+                else:
+                    queue_position_int = 999999  # Default high value for NULL/empty
+            except (ValueError, TypeError):
+                queue_position_int = 999999
+            
+            # Handle appointment_date
+            appt_date = project.get('appointment_date')
+            if appt_date:
+                try:
+                    if isinstance(appt_date, str):
+                        # Parse string date to datetime object
+                        date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
+                    else:
+                        # Already a datetime object
+                        date_obj = appt_date
+                    return (queue_position_int, date_obj)
+                except (ValueError, TypeError):
+                    return (queue_position_int, datetime(9999, 12, 31))  # Default far future date
+            else:
+                return (queue_position_int, datetime(9999, 12, 31))  # Default far future date
+        
+        # Sort the projects
+        sorted_projects = sorted(projects, key=sort_key)
+        
+        # Log some debug info
+        frappe.logger("debug").info(f"[KANBAN SORT] Sorted {len(sorted_projects)} projects")
+        if sorted_projects and len(sorted_projects) > 0:
+            sample = sorted_projects[0]
+            frappe.logger("debug").info(f"[KANBAN SORT] First sorted project: {sample.get('name')} - queue_pos: {sample.get('queue_position')} - date: {sample.get('appointment_date')}")
+        
+        return sorted_projects
+        
+    except Exception as e:
+        frappe.logger("debug").error(f"[KANBAN SORT] Error sorting projects: {str(e)}")
+        return []
 
 @frappe.whitelist()
 def call_send_whatsapp_message(aws_url: str, project_name: str):

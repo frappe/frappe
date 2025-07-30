@@ -877,44 +877,104 @@ import re
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
     """
     Fetches data with filters and other arguments for Project doctype.
-    Modified to ensure queue_position is cast to decimal for proper sorting.
+    Applies custom sorting for Project cards with "In queue" or "In parking" status
+    based on queue_position (ascending) and appointment_date (ascending).
     """
+    from datetime import datetime
+    
+    # Initialize args if not provided
     if args is None:
         args = get_form_params()
         args["filters"] = filters
-        args["page_length"] = page_length
+        if page_length:
+            args["page_length"] = page_length
 
-    # Ensure queue_position is cast to decimal for Project doctype
+    # Special handling for Project doctype
     if args.get("doctype") == "Project" and args.get("fields"):
-        # Remove any existing queue_position field to avoid duplicates
-        args["fields"] = [f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()]
-        # Add queue_position as decimal with explicit NULLIF to handle empty strings
-        args["fields"].append("cast(NULLIF(queue_position, '') as decimal(10,2)) as queue_position")
+        # Optimize field handling
+        fields = args["fields"]
         
-        # Ensure appointment_date is included
-        if not any("appointment_date" in f.lower() for f in args["fields"]):
-            args["fields"].append("appointment_date")
+        # Ensure we have all required fields for sorting
+        required_fields = {
+            "queue_position": "cast(NULLIF(queue_position, '') as decimal(10,2)) as queue_position",
+            "appointment_date": "appointment_date",
+            "status": "status"
+        }
         
-        # Ensure status is included
-        if not any("status" in f.lower() and not "status_modified" in f.lower() for f in args["fields"]):
-            args["fields"].append("status")
+        # Remove existing versions of required fields to avoid duplicates
+        fields = [f for f in fields if not any(rf in f.replace("`", "").lower() for rf in required_fields.keys())]
         
-        # Remove order_by to allow sorting in Python
-        if args.get("order_by"):
-            args.pop("order_by")
+        # Add required fields for sorting
+        fields.extend(required_fields.values())
+        args["fields"] = fields
+        
+        # Remove order_by to allow custom sorting in Python
+        args.pop("order_by", None)
 
     # Execute query
     data = execute(**args)
 
-    # Debug logging
-    if args.get("doctype") == "Project":
+    # Apply custom sorting for Project doctype
+    if args.get("doctype") == "Project" and data:
+        # Define statuses that need special ordering
+        special_order_statuses = ["In queue", "In parking"]
+        
+        # Separate projects by status
+        special_status_projects = []
+        other_projects = []
+        
+        for project in data:
+            if project.get('status') in special_order_statuses:
+                special_status_projects.append(project)
+            else:
+                other_projects.append(project)
+        
+        # Apply sorting if we have projects with special statuses
+        if special_status_projects:
+            frappe.logger().info(f"[REPORTVIEW SORT] Applying custom sorting for {len(special_status_projects)} projects with special status")
+            
+            # Define a sorting key function
+            def sort_key(project):
+                # Handle queue_position - convert to integer or use default high value
+                queue_pos = project.get('queue_position')
+                try:
+                    queue_position_int = int(float(queue_pos)) if queue_pos not in (None, "", 0) else 999999
+                except (ValueError, TypeError):
+                    queue_position_int = 999999
+                
+                # Handle appointment_date - convert to datetime or use default future date
+                appt_date = project.get('appointment_date')
+                if not appt_date:
+                    return (queue_position_int, datetime(9999, 12, 31))
+                    
+                try:
+                    # Convert string date to datetime if needed
+                    if isinstance(appt_date, str):
+                        date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
+                    else:
+                        # Handle date object by converting to datetime
+                        from datetime import date
+                        if isinstance(appt_date, date) and not isinstance(appt_date, datetime):
+                            date_obj = datetime.combine(appt_date, datetime.min.time())
+                        else:
+                            date_obj = appt_date
+                    return (queue_position_int, date_obj)
+                except (ValueError, TypeError):
+                    return (queue_position_int, datetime(9999, 12, 31))
+            
+            # Sort the special status projects and combine with other projects
+            data = sorted(special_status_projects, key=sort_key) + other_projects
+            
+            # Log sample of sorted data for debugging
+            if data:
+                sample = data[0]
+                frappe.logger().info(f"[REPORTVIEW SORT] First sorted project: {sample.get('name')} - status: {sample.get('status')} - queue_pos: {sample.get('queue_position')} - date: {sample.get('appointment_date')}")
+
+    # Debug logging (only log first 3 items to reduce log volume)
+    if args.get("doctype") == "Project" and data:
         frappe.logger().info(f"[REPORTVIEW DEBUG] Fetched {len(data)} projects")
-        for i, row in enumerate(data[:5]):
-            queue_pos = row.get('queue_position')
-            queue_pos_type = type(queue_pos).__name__
-            appointment_date = row.get('appointment_date')
-            status = row.get('status')
-            frappe.logger().info(f"[REPORTVIEW DEBUG] Sample row {i+1}: name={row.get('name')}, status={status}, queue_position={queue_pos} (type: {queue_pos_type}), appointment_date={appointment_date}")
+        for i, row in enumerate(data[:3]):
+            frappe.logger().info(f"[REPORTVIEW DEBUG] Row {i+1}: name={row.get('name')}, status={row.get('status')}, queue_position={row.get('queue_position')}, appointment_date={row.get('appointment_date')}")
 
     return data
 
