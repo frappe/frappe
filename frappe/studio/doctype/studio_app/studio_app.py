@@ -207,11 +207,17 @@ class StudioApp(WebsiteGenerator):
 		self.save()
 
 	def export_app(self):
+		app_path = self.create_app_folder()
+		self.export_studio_pages(app_path)
+		self.add_to_studio_apps_txt()
+
+	def create_app_folder(self) -> str:
 		app_path = self.get_folder_path()
 		frappe.create_folder(app_path, with_init=True)
-
 		write_document_file(self, folder=app_path)
+		return app_path
 
+	def export_studio_pages(self, app_path):
 		page_folder_path = os.path.join(app_path, "studio_page")
 		frappe.create_folder(page_folder_path, with_init=True)
 
@@ -220,6 +226,22 @@ class StudioApp(WebsiteGenerator):
 		):
 			page_doc = frappe.get_doc("Studio Page", page)
 			write_document_file(page_doc, folder=page_folder_path)
+
+	def add_to_studio_apps_txt(self):
+		if self.frappe_app != "studio":
+			return
+
+		apps = None
+		app_folder_name = frappe.scrub(self.name)
+		with open(frappe.get_app_path("studio", "studio_apps.txt")) as f:
+			content = f.read()
+			if app_folder_name not in content.splitlines():
+				apps = list(filter(None, content.splitlines()))
+				apps.append(app_folder_name)
+
+			if apps:
+				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
+					f.write("\n".join(apps))
 
 	def get_folder_path(self):
 		return frappe.get_app_source_path(self.frappe_app, "studio", self.name)
