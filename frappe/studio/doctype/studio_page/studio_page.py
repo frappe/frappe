@@ -93,7 +93,7 @@ class StudioPage(Document):
 
 	def on_trash(self):
 		if self.is_standard:
-			path = self.get_folder_path()
+			path = self.get_folder_path(with_filename=True)
 			delete_file(path)
 
 	def validate_variables(self):
@@ -146,10 +146,13 @@ class StudioPage(Document):
 			resource.whitelisted_methods = frappe.as_json(resource.whitelisted_methods, indent=None)
 
 	def before_export(self, doc):
-		doc.name = frappe.scrub(doc.page_title)
+		doc.name = self.get_export_docname()
 
 	def before_import(self):
 		self.name = self.page_name
+
+	def get_export_docname(self):
+		return frappe.scrub(self.page_title)
 
 	@frappe.whitelist()
 	def publish(self, **kwargs):
@@ -178,8 +181,14 @@ class StudioPage(Document):
 				)
 			)
 
-	def get_folder_path(self):
-		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_page")
+	def get_folder_path(self, with_filename: bool = False) -> str:
+		path = ["studio", self.studio_app, "studio_page"]
+		if with_filename:
+			path.append(self.get_file_name())
+		return frappe.get_app_source_path(self.frappe_app, *path)
+
+	def get_file_name(self):
+		return f"{self.get_export_docname()}.json"
 
 
 @frappe.whitelist()

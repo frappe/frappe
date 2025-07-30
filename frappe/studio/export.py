@@ -21,6 +21,11 @@ def write_document_file(doc, folder=None):
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 
-def delete_file(path=None):
-	if os.path.exists(path):
+def delete_folder(path=None):
+	if path and os.path.exists(path):
 		shutil.rmtree(path, ignore_errors=True)
+
+
+def delete_file(path: str | None = None):
+	if path and os.path.exists(path):
+		os.remove(path)

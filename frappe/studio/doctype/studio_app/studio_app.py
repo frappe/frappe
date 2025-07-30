@@ -8,7 +8,7 @@ from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
 from studio.api import get_app_components
-from studio.export import delete_file, write_document_file
+from studio.export import delete_folder, write_document_file
 
 
 class StudioAppRenderer(DocumentPage):
@@ -116,7 +116,7 @@ class StudioApp(WebsiteGenerator):
 
 	def delete_app_folder(self):
 		path = self.get_folder_path()
-		delete_file(path)
+		delete_folder(path)
 
 	def get_studio_pages(self):
 		return frappe.get_all(
