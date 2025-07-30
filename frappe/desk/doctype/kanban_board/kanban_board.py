@@ -136,101 +136,80 @@ def update_order(board_name, order):
     fieldname = board.field_name
     order_dict = json.loads(order)
     
-    # Special handling for Project doctype
-    if doctype == "Project":
-        frappe.logger("debug").info(f"[KANBAN UPDATE] Processing update_order for Project kanban board: {board_name}")
+    # Primero procesamos todos los cambios de estado (columna) para todas las tarjetas
+    # Esto garantiza que los cambios de estado se apliquen primero a la base de datos
+    for col_name, cards in order_dict.items():
+        for card in cards:
+            column = frappe.get_value(doctype, {"name": card}, fieldname)
+            if column != col_name:
+                frappe.set_value(doctype, card, fieldname, col_name)
+                updated_cards.append(dict(name=card, column=col_name))
+                frappe.logger("debug").info(f"[KANBAN UPDATE] Card {card} moved from {column} to {col_name}")
+    
+    # Manejo especial para el doctype Project - ordenamiento por queue_position y appointment_date
+    if doctype == "Project" and (updated_cards or board_name.startswith("Project")):
+        frappe.logger("debug").info(f"[KANBAN UPDATE] Processing Project kanban board: {board_name}")
         
-        # Get the correctly sorted projects for special columns
-        special_order_statuses = ["In queue", "In parking"]
-        projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
+        # Columnas que requieren ordenamiento especial
+        special_order_columns = ["In queue", "In parking"]
         
-        # Create a map of column name to sorted project names
-        sorted_columns = {}
-        for status in special_order_statuses:
-            sorted_columns[status] = [p['name'] for p in projects_ordered if p.get('status') == status]
-            frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted order for '{status}': {sorted_columns[status]}")
+        # Obtener proyectos ordenados por queue_position y appointment_date
+        try:
+            sorted_projects = get_projects_ordered_by_queue_position_and_appointment_date()
+            frappe.logger("debug").info(f"[KANBAN UPDATE] Got {len(sorted_projects)} sorted projects")
             
-        # Log the incoming order from frontend for comparison
-        frappe.logger("debug").info(f"[KANBAN UPDATE] Order received from frontend: {order_dict}")
-        
-        # If order_dict is empty, we need to build it from the current board state
-        if not order_dict:
-            frappe.logger("debug").info("[KANBAN UPDATE] Order dict is empty, building from current board state")
-            order_dict = {}
-            for column in board.columns:
-                try:
-                    # Get the current order from the column
-                    current_order = json.loads(column.order or '[]')
-                    order_dict[column.column_name] = current_order
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Current order for '{column.column_name}': {current_order}")
-                except Exception as e:
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Error parsing column order: {e}")
-                    order_dict[column.column_name] = []
-        
-        # Primero, actualizar el estado de los proyectos según lo que viene del frontend
-        # Esto asegura que los cambios recientes se apliquen primero
-        for col_name, cards in order_dict.items():
-            # Update the project status if it changed
-            for card in cards:
-                column = frappe.get_value(doctype, {"name": card}, fieldname)
-                if column != col_name:
-                    frappe.set_value(doctype, card, fieldname, col_name)
-                    updated_cards.append(dict(name=card, column=col_name))
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Updated card {card} status from {column} to {col_name}")
-        
-        # Después de actualizar todos los estados, refrescar la lista de proyectos ordenados
-        # para incluir los cambios recientes
-        if updated_cards:
-            frappe.logger("debug").info(f"[KANBAN UPDATE] Cards were updated, refreshing ordered projects")
-            projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
-            # Actualizar sorted_columns con la nueva información
-            for status in special_order_statuses:
-                sorted_columns[status] = [p['name'] for p in projects_ordered if p.get('status') == status]
-                frappe.logger("debug").info(f"[KANBAN UPDATE] Refreshed sorted order for '{status}': {sorted_columns[status]}")
-        
-        # Ahora aplicar el orden a las columnas
-        for col_name, cards in order_dict.items():
-            # For special columns, use our sorted order instead of the order from the frontend
-            if col_name in special_order_statuses and col_name in sorted_columns:
-                # Obtener el estado actual de la base de datos para esta columna
-                projects_with_status = frappe.get_all("Project", filters={"status": col_name}, fields=["name"])
-                db_project_names = [p.name for p in projects_with_status]
-                
-                # Usar el orden calculado pero respetando el estado actual de la base de datos
-                sorted_cards = [p for p in sorted_columns[col_name] if p in db_project_names]
-                
-                # Añadir cualquier proyecto que esté en la base de datos pero no en nuestro orden calculado
-                missing_from_sorted = [p for p in db_project_names if p not in sorted_cards]
-                if missing_from_sorted:
-                    frappe.logger("debug").info(f"[KANBAN UPDATE] Adding {len(missing_from_sorted)} projects from database to sorted order for '{col_name}': {missing_from_sorted}")
-                    sorted_cards.extend(missing_from_sorted)
-                
-                frappe.logger("debug").info(f"[KANBAN UPDATE] Original order for '{col_name}': {cards}")
-                frappe.logger("debug").info(f"[KANBAN UPDATE] Applying sorted order to column '{col_name}': {sorted_cards}")
-                
-                # Update the column order with our sorted order
-                for column in board.columns:
-                    if column.column_name == col_name:
-                        column.order = json.dumps(sorted_cards)
-                        frappe.logger("debug").info(f"[KANBAN UPDATE] Applied sorted order to column '{col_name}': {sorted_cards}")
-            else:
-                # For other columns, keep the order as is
+            # Crear un mapa de columna -> proyectos ordenados
+            column_to_projects = {}
+            for col in special_order_columns:
+                column_to_projects[col] = [p['name'] for p in sorted_projects if p.get('status') == col]
+                frappe.logger("debug").info(f"[KANBAN UPDATE] {len(column_to_projects[col])} projects in '{col}'")
+            
+            # Aplicar el orden especial solo a las columnas que lo requieren
+            for col_name, cards in order_dict.items():
+                if col_name in special_order_columns:
+                    # Obtener el estado actual de la base de datos para esta columna
+                    current_db_projects = frappe.get_all("Project", 
+                                                        filters={"status": col_name}, 
+                                                        fields=["name"])
+                    current_db_names = [p.name for p in current_db_projects]
+                    
+                    # Obtener proyectos ordenados para esta columna
+                    sorted_cards = column_to_projects.get(col_name, [])
+                    
+                    # Filtrar para incluir solo proyectos que realmente están en esta columna según la DB
+                    sorted_cards = [p for p in sorted_cards if p in current_db_names]
+                    
+                    # Añadir proyectos que están en la DB pero no en nuestra lista ordenada
+                    missing_cards = [p for p in current_db_names if p not in sorted_cards]
+                    if missing_cards:
+                        frappe.logger("debug").info(f"[KANBAN UPDATE] Adding {len(missing_cards)} missing cards to '{col_name}'")
+                        sorted_cards.extend(missing_cards)
+                    
+                    frappe.logger("debug").info(f"[KANBAN UPDATE] Final order for '{col_name}': {sorted_cards}")
+                    
+                    # Actualizar el orden en la columna del tablero
+                    for column in board.columns:
+                        if column.column_name == col_name:
+                            column.order = json.dumps(sorted_cards)
+                else:
+                    # Para otras columnas, mantener el orden tal como viene del frontend
+                    for column in board.columns:
+                        if column.column_name == col_name:
+                            column.order = json.dumps(cards)
+        except Exception as e:
+            frappe.logger("error").error(f"[KANBAN UPDATE] Error processing Project kanban: {str(e)}")
+            # En caso de error, volvemos al comportamiento estándar
+            for col_name, cards in order_dict.items():
                 for column in board.columns:
                     if column.column_name == col_name:
                         column.order = json.dumps(cards)
     else:
-        # Standard behavior for non-Project doctypes
+        # Comportamiento estándar para otros doctypes
         for col_name, cards in order_dict.items():
-            for card in cards:
-                column = frappe.get_value(doctype, {"name": card}, fieldname)
-                if column != col_name:
-                    frappe.set_value(doctype, card, fieldname, col_name)
-                    updated_cards.append(dict(name=card, column=col_name))
-
             for column in board.columns:
                 if column.column_name == col_name:
                     column.order = json.dumps(cards)
-
+    
     return board.save(ignore_permissions=True), updated_cards
 
 
