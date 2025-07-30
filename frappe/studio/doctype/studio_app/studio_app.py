@@ -99,6 +99,9 @@ class StudioApp(WebsiteGenerator):
 			self.route = self.name
 
 	def on_update(self):
+		if frappe.flags.in_import:
+			return
+
 		if self.is_standard:
 			self.export_app()
 		if self.has_value_changed("is_standard") and not self.is_standard:
