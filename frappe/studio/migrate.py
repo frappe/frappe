@@ -35,5 +35,4 @@ def sync_pages(app_folder):
 	for page in os.listdir(studio_page_folder):
 		if page.endswith(".json"):
 			page_path = os.path.join(studio_page_folder, page)
-			print(f"Syncing Studio Page {page} from {app_folder}")
 			import_file_by_path(page_path)
