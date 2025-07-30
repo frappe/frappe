@@ -19,7 +19,7 @@
 				>
 					<FormControl
 						type="autocomplete"
-						placeholder="Target Frappe App"
+						placeholder="Select App"
 						:modelValue="targetApp"
 						@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
 						:options="targetAppOptions"
