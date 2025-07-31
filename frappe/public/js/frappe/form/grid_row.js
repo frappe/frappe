@@ -1205,8 +1205,6 @@ export default class GridRow {
 				var fieldtype = $(this).attr("data-fieldtype");
 
 				let ctrl_key = e.metaKey || e.ctrlKey;
-
-				// Check if the cannot_add_rows is true for the grid or the df
 				let can_add_rows = !(me.grid.cannot_add_rows || (me.grid.df && me.grid.df.cannot_add_rows));
 
 				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB && can_add_rows) {
