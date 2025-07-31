@@ -1192,6 +1192,7 @@ export default class GridRow {
 
 	set_arrow_keys(field) {
 		var me = this;
+		let can_add_rows = !(me.grid.cannot_add_rows || (me.grid.df && me.grid.df.cannot_add_rows));
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
@@ -1205,7 +1206,6 @@ export default class GridRow {
 				var fieldtype = $(this).attr("data-fieldtype");
 
 				let ctrl_key = e.metaKey || e.ctrlKey;
-				let can_add_rows = !(me.grid.cannot_add_rows || (me.grid.df && me.grid.df.cannot_add_rows));
 
 				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB && can_add_rows) {
 					me.add_new_row_using_keys(e);
