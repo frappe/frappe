@@ -99,11 +99,7 @@ class StudioApp(WebsiteGenerator):
 			self.route = self.name
 
 	def on_update(self):
-		if frappe.flags.in_import or not frappe.conf.developer_mode:
-			return
-
-		if self.is_standard:
-			self.export_app()
+		self.export_app()
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
 			self.delete_app_folder()
 
@@ -117,6 +113,11 @@ class StudioApp(WebsiteGenerator):
 	def delete_app_folder(self):
 		path = self.get_folder_path()
 		delete_folder(path)
+
+	def after_rename(self, old, new, merge=False):
+		self.export_app()
+		old_path = self.get_folder_path(old)
+		delete_folder(old_path)
 
 	def get_studio_pages(self):
 		return frappe.get_all(
@@ -207,6 +208,9 @@ class StudioApp(WebsiteGenerator):
 		self.save()
 
 	def export_app(self):
+		if frappe.flags.in_import or not frappe.conf.developer_mode or not self.is_standard:
+			return
+
 		if not self.frappe_app:
 			frappe.throw("Frappe App must be set to export the Studio App.")
 
@@ -246,5 +250,5 @@ class StudioApp(WebsiteGenerator):
 				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
 					f.write("\n".join(apps))
 
-	def get_folder_path(self):
-		return frappe.get_app_source_path(self.frappe_app, "studio", self.name)
+	def get_folder_path(self, name: str | None = None):
+		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
