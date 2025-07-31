@@ -563,9 +563,8 @@ export default class GridRow {
 
 				fields += `
 					<div class='control-input flex align-center form-control fields_order sortable-handle sortable'
-						style='display: block; margin-bottom: 5px; padding: 0 8px; cursor: pointer; height: 32px;' data-fieldname='${
-							docfield.fieldname
-						}'
+						style='display: block; margin-bottom: 5px; padding: 0 8px; cursor: pointer; height: 32px;' data-fieldname='${docfield.fieldname
+					}'
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
@@ -1035,10 +1034,9 @@ export default class GridRow {
 							.find(".awesomplete > ul:first-of-type")
 							.css(
 								"top",
-								`${
-									element_position.bottom
-										? element_position.bottom
-										: event.clientY + 20
+								`${element_position.bottom
+									? element_position.bottom
+									: event.clientY + 20
 								}px`
 							);
 					});
@@ -1207,7 +1205,10 @@ export default class GridRow {
 				var fieldtype = $(this).attr("data-fieldtype");
 
 				let ctrl_key = e.metaKey || e.ctrlKey;
+
+				// Check if the cannot_add_rows is true for the grid or the df
 				let can_add_rows = !(me.grid.cannot_add_rows || (me.grid.df && me.grid.df.cannot_add_rows));
+
 				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB && can_add_rows) {
 					me.add_new_row_using_keys(e);
 					return;
