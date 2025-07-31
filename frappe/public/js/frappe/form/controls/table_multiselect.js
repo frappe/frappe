@@ -81,12 +81,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		const link_field = this.get_link_field();
-		// Trim the value to remove spaces or only if space is only input
-		if (value && typeof value === "string") {
-			value = value.trim();
-		}
 
-		if (value) {
+		if (value && typeof value === "string") {
+			// Trim the value to remove spaces or only if space is only input
+			value = value.trim();
+
 			// Only create a pill if the value is a real item from the autocomplete list.
 			// This prevents creating a pill from raw text when the user clicks away.
 			if (this.awesomplete.get_item(value)) {
@@ -173,11 +172,10 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		const link_field = this.get_link_field();
 		const encoded_value = encodeURIComponent(value);
 		const pill_name = frappe.utils.get_link_title(link_field.options, value) || value;
-		const safe_pill_name = frappe.utils.escape_html(pill_name); // Sanitize the value before making it a HTML pill
 
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
-				<span class="btn-link-to-form">${__(safe_pill_name)}</span>
+				<span class="btn-link-to-form">${__(frappe.utils.escape_html(pill_name))}</span>
 				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;
