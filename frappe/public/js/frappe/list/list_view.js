@@ -1818,7 +1818,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			action: () => this.toggle_side_bar(),
 			condition: () => !this.page.disable_sidebar_toggle,
 			standard: true,
-			shortcut: "Ctrl+K",
+			shortcut: "Ctrl+G",
 		});
 
 		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode) {

@@ -49,6 +49,7 @@
   "email_append_to",
   "sender_field",
   "sender_name_field",
+  "recipient_account_field",
   "subject_field",
   "section_break_8",
   "sort_field",
@@ -415,6 +416,12 @@
    "fieldname": "protect_attached_files",
    "fieldtype": "Check",
    "label": "Protect Attached Files"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "recipient_account_field",
+   "fieldtype": "Data",
+   "label": "Recipient Account Field"
   }
  ],
  "hide_toolbar": 1,
@@ -423,7 +430,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-27 18:22:32.618603",
+ "modified": "2025-07-19 12:23:41.564203",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
