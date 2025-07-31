@@ -90,6 +90,13 @@ class StudioPage(Document):
 			return
 		if self.is_standard:
 			write_document_file(self, folder=self.get_folder_path())
+			self.delete_old_page_file()
+
+	def delete_old_page_file(self):
+		if self.has_value_changed("page_title"):
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save:
+				delete_file(self.get_folder_path(), f"{frappe.scrub(doc_before_save.page_title)}.json")
 
 	def on_trash(self):
 		if self.is_standard:
