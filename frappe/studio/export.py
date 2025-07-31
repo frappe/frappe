@@ -26,6 +26,9 @@ def delete_folder(path=None):
 		shutil.rmtree(path, ignore_errors=True)
 
 
-def delete_file(path: str | None = None):
-	if path and os.path.exists(path):
+def delete_file(path, *joins):
+	if not path:
+		return
+	path = os.path.join(path, *joins)
+	if os.path.exists(path):
 		os.remove(path)
