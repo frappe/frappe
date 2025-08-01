@@ -115,6 +115,9 @@ class StudioApp(WebsiteGenerator):
 		delete_folder(path)
 
 	def after_rename(self, old, new, merge=False):
+		if not can_export(self):
+			return
+
 		self.export_app()
 		old_path = self.get_folder_path(old)
 		delete_folder(old_path)
