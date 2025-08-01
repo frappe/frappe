@@ -24,7 +24,7 @@ def before_app_uninstall(app_name):
 		frappe.delete_doc("Studio App", studio_app)
 
 
-def sync_studio_apps(app_name):
+def sync_studio_apps(app_name: str | None = None):
 	apps = [app_name] if app_name else frappe.get_installed_apps()
 
 	for app in apps:
