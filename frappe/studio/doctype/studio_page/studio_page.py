@@ -5,7 +5,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import delete_file, write_document_file
+from studio.export import can_export, delete_file, write_document_file
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -86,9 +86,7 @@ class StudioPage(Document):
 		self.export_page()
 
 	def export_page(self):
-		if frappe.flags.in_import or not frappe.conf.developer_mode:
-			return
-		if self.is_standard:
+		if can_export(self):
 			write_document_file(self, folder=self.get_folder_path())
 			self.delete_old_page_file()
 
@@ -99,7 +97,7 @@ class StudioPage(Document):
 				delete_file(self.get_folder_path(), f"{frappe.scrub(doc_before_save.page_title)}.json")
 
 	def on_trash(self):
-		if self.is_standard:
+		if can_export(self):
 			path = self.get_folder_path(with_filename=True)
 			delete_file(path)
 

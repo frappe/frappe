@@ -32,3 +32,14 @@ def delete_file(path, *joins):
 	path = os.path.join(path, *joins)
 	if os.path.exists(path):
 		os.remove(path)
+
+
+def can_export(doc) -> bool:
+	"""Check if exporting is allowed for the doc based on the current site flags"""
+	return (
+		doc.is_standard
+		and frappe.conf.developer_mode
+		and not frappe.flags.in_install
+		and not frappe.flags.in_uninstall
+		and not frappe.flags.in_import
+	)
