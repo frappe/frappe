@@ -82,7 +82,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 		const link_field = this.get_link_field();
 
-		if (value && typeof value === "string") {
+		if (value) {
 			// Trim the value to remove spaces or only if space is only input
 			value = value.trim();
 

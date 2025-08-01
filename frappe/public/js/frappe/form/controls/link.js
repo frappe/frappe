@@ -225,7 +225,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 
 				// Sanitize label and description before using them to build HTML
-
 				let _label = frappe.utils.escape_html(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (
