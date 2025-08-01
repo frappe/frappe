@@ -178,8 +178,9 @@ watch(
 )
 
 usePageMeta(() => {
+	const page_title = store.activePage?.page_title
 	return {
-		title: `${store.activePage?.page_title} | Frappe Studio`,
+		title: page_title ? `${page_title} | Frappe Studio` : "Frappe Studio",
 	}
 })
 </script>
