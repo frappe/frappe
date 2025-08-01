@@ -36,19 +36,30 @@
 					</Input>
 				</div>
 			</div>
-			<div class="mt-5 grid w-full grid-cols-5 items-start gap-5">
-				<router-link
-					class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
-					v-for="app in appList"
-					:to="{ name: 'StudioApp', params: { appID: app.name } }"
-					:key="app.name"
-				>
-					<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
-					<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
-						<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
-					</UseTimeAgo>
-				</router-link>
-			</div>
+
+			<section class="mt-5 w-full">
+				<div v-if="!appList.length && !searchFilter" class="col-span-full">
+					<p class="mt-4 text-base text-gray-500">
+						You don't have any apps yet. Click on the "+ New App" button to create a new app
+					</p>
+				</div>
+				<div v-else-if="!appList.length" class="col-span-full">
+					<p class="mt-4 text-base text-gray-500">No matching apps found</p>
+				</div>
+				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
+					<router-link
+						class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
+						v-for="app in appList"
+						:to="{ name: 'StudioApp', params: { appID: app.name } }"
+						:key="app.name"
+					>
+						<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
+						<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
+							<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
+						</UseTimeAgo>
+					</router-link>
+				</div>
+			</section>
 		</div>
 
 		<Dialog
@@ -106,6 +117,7 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
+import EmptyState from "@/components/EmptyState.vue"
 
 const showDialog = ref(false)
 const emptyAppState = {
