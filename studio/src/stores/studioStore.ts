@@ -167,6 +167,7 @@ const useStudioStore = defineStore("store", () => {
 		const args = {
 			name: selectedPage.value,
 			draft_blocks: pageData,
+			_skip_validate: true,
 		}
 		return studioPages.setValue.submit(args)
 			.then((page: StudioPage) => {
@@ -179,7 +180,7 @@ const useStudioStore = defineStore("store", () => {
 
 	function updateActivePage(key: string, value: string) {
 		return studioPages.setValue.submit(
-			{ name: activePage.value?.name, [key]: value },
+			{ name: activePage.value?.name, [key]: value, _skip_validate: true },
 			{
 				onSuccess() {
 					activePage.value![key] = value
@@ -284,7 +285,6 @@ const useStudioStore = defineStore("store", () => {
 				resource_name: resource.resource_name,
 				value: newResource,
 				resource_id: resource.resource_id,
-				resource_child_table_id: resource.name,
 			}
 		})
 
@@ -294,7 +294,6 @@ const useStudioStore = defineStore("store", () => {
 			resources.value[item.resource_name] = item.value
 			if (!item.value) return
 			resources.value[item.resource_name].resource_id = item.resource_id
-			resources.value[item.resource_name].resource_child_table_id = item.resource_child_table_id
 		})
 	}
 

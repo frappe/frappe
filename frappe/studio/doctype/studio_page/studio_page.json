@@ -21,7 +21,10 @@
   "scripts_tab",
   "watchers",
   "section_break_fmxt",
-  "client_scripts"
+  "client_scripts",
+  "export_tab",
+  "is_standard",
+  "frappe_app"
  ],
  "fields": [
   {
@@ -77,7 +80,7 @@
   },
   {
    "fieldname": "resources",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Resources",
    "options": "Studio Page Resource"
   },
@@ -116,11 +119,33 @@
   {
    "fieldname": "section_break_fmxt",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "export_tab",
+   "fieldtype": "Tab Break",
+   "label": "Export"
+  },
+  {
+   "default": "0",
+   "fetch_from": "studio_app.is_standard",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only": 1
+  },
+  {
+   "depends_on": "is_standard",
+   "fetch_from": "studio_app.frappe_app",
+   "fieldname": "frappe_app",
+   "fieldtype": "Select",
+   "label": "Frappe App (for export)",
+   "mandatory_depends_on": "is_standard",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 18:53:26.580465",
+ "modified": "2025-07-28 19:29:04.647092",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

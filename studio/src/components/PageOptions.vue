@@ -6,8 +6,12 @@
 				type="text"
 				variant="outline"
 				class="w-full"
-				:modelValue="page.page_title"
-				@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
+				v-model="pageTitle"
+				@change="
+					() => {
+						store.updateActivePage('page_title', pageTitle)
+					}
+				"
 			/>
 
 			<div class="flex w-full flex-col gap-1">
@@ -18,11 +22,11 @@
 						type="text"
 						variant="outline"
 						class="w-full"
-						:modelValue="pageRoute"
 						:hideClearButton="true"
-						@update:modelValue="
-							(val: string) => {
-								store.updateActivePage('route', val.startsWith('/') ? val : `/${val}`)
+						v-model="pageRoute"
+						@change="
+							() => {
+								store.updateActivePage('route', pageRoute.startsWith('/') ? pageRoute : `/${pageRoute}`)
 							}
 						"
 					/>
@@ -56,6 +60,8 @@ const props = defineProps<{
 }>()
 
 const inputRef = ref<InstanceType<typeof Input> | null>(null)
+
+const pageTitle = ref(props.page.page_title || "")
 const pageRoute = ref(props.page.route)
 const setPageRoute = () => {
 	// remove leading slash from route because app route prefix will be <app.route>/ so that user doesn't have to type the leading slash

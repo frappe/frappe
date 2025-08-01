@@ -8,6 +8,7 @@ from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
 from studio.api import get_app_components
+from studio.export import can_export, delete_folder, write_document_file
 
 
 class StudioAppRenderer(DocumentPage):
@@ -59,6 +60,8 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
+		frappe_app: DF.Literal[None]
+		is_standard: DF.Check
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
@@ -95,9 +98,29 @@ class StudioApp(WebsiteGenerator):
 				self.autoname()
 			self.route = self.name
 
+	def on_update(self):
+		self.export_app()
+		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
+			self.delete_app_folder()
+
 	def on_trash(self):
 		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
 			frappe.delete_doc("Studio Page", page, force=True)
+
+		if can_export(self):
+			self.delete_app_folder()
+
+	def delete_app_folder(self):
+		path = self.get_folder_path()
+		delete_folder(path)
+
+	def after_rename(self, old, new, merge=False):
+		if not can_export(self):
+			return
+
+		self.export_app()
+		old_path = self.get_folder_path(old)
+		delete_folder(old_path)
 
 	def get_studio_pages(self):
 		return frappe.get_all(
@@ -164,3 +187,71 @@ class StudioApp(WebsiteGenerator):
 		except Exception as e:
 			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
 			return None
+
+	@frappe.whitelist()
+	def enable_app_export(self, target_app: str):
+		frappe.db.set_value(
+			"Studio Page",
+			{"studio_app": self.name},
+			{
+				"is_standard": 1,
+				"frappe_app": target_app,
+			},
+		)
+
+		self.is_standard = 1
+		self.frappe_app = target_app
+		self.save()
+
+	@frappe.whitelist()
+	def disable_app_export(self):
+		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
+
+		self.is_standard = 0
+		self.save()
+
+	def export_app(self):
+		if not can_export(self):
+			return
+
+		if not self.frappe_app:
+			frappe.throw("Frappe App must be set to export the Studio App.")
+
+		app_path = self.create_app_folder()
+		self.export_studio_pages(app_path)
+		self.add_to_studio_apps_txt()
+
+	def create_app_folder(self) -> str:
+		app_path = self.get_folder_path()
+		frappe.create_folder(app_path, with_init=True)
+		write_document_file(self, folder=app_path)
+		return app_path
+
+	def export_studio_pages(self, app_path):
+		page_folder_path = os.path.join(app_path, "studio_page")
+		frappe.create_folder(page_folder_path, with_init=True)
+
+		for page in frappe.get_all(
+			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
+		):
+			page_doc = frappe.get_doc("Studio Page", page)
+			write_document_file(page_doc, folder=page_folder_path)
+
+	def add_to_studio_apps_txt(self):
+		if self.frappe_app != "studio":
+			return
+
+		apps = None
+		app_folder_name = frappe.scrub(self.name)
+		with open(frappe.get_app_path("studio", "studio_apps.txt")) as f:
+			content = f.read()
+			if app_folder_name not in content.splitlines():
+				apps = list(filter(None, content.splitlines()))
+				apps.append(app_folder_name)
+
+			if apps:
+				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
+					f.write("\n".join(apps))
+
+	def get_folder_path(self, name: str | None = None):
+		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)

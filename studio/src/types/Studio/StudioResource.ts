@@ -2,12 +2,8 @@ export type ResourceType = "API Resource" | "Document List" | "Document"
 export type Filters = Record<string, string | string[]>
 
 interface BaseResource {
-	/**	Child Table record name linked to page */
-	name?: string
-	resource_child_table_id?: string
-	/**	Resource ID */
+	/**	Child Table record name = Resource ID */
 	resource_id: string
-	/**	Resource Name */
 	resource_name: string
 	resource_type: ResourceType
 	transform_results?: boolean
@@ -30,7 +26,7 @@ export interface DocumentListResource extends BaseResource {
 	document_type: string
 	fields?: string[]
 	filters?: Filters
-	limit?: number
+	limit?: number | null
 }
 
 export interface APIResource extends BaseResource {
@@ -41,12 +37,6 @@ export interface APIResource extends BaseResource {
 }
 
 export type Resource = DocumentResource | DocumentListResource | APIResource
-
-export type NewResource = Omit<Resource, "resource_child_table_id"> & {
-	source: "New Data Source" | "Existing Data Source"
-	[key: string]: any
-}
-
 
 // result
 export type DocumentResult = Record<string, any>

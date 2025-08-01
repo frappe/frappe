@@ -14,7 +14,7 @@
 					</div>
 				</template>
 			</Dropdown>
-
+			<ExportAppDialog v-if="canExportApp" v-model:showDialog="showExportAppDialog" />
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"
@@ -76,6 +76,15 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
+			<Tooltip text="App Export Settings" :hoverDelay="0.6" v-if="canExportApp">
+				<Button
+					size="sm"
+					variant="subtle"
+					:icon="LucideArrowUpFromLine"
+					label="Export App"
+					@click="() => (showExportAppDialog = true)"
+				/>
+			</Tooltip>
 			<Button
 				size="sm"
 				variant="subtle"
@@ -110,13 +119,18 @@ import useCanvasStore from "@/stores/canvasStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
+import ExportAppDialog from "@/components/ExportAppDialog.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
+import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
+import { isObjectEmpty } from "@/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")
+const showExportAppDialog = ref(false)
+const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 </script>

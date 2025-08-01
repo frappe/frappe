@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 studio.studio.doctype.studio_page.patches.replace_frappeUI_namespace_references
 studio.studio.doctype.studio_app.patches.rename_studio_app_based_on_app_title
+studio.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page_resource_child_table
