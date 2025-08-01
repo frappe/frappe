@@ -11,6 +11,7 @@ frappe.ui.form.on("Studio App", {
 
 		if (!frappe.boot.developer_mode) {
 			frm.set_df_property("is_standard", "read_only", 1);
+			frm.set_df_property("frappe_app", "read_only", 1);
 		}
 	},
 });
