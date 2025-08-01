@@ -49,6 +49,7 @@ class Webhook(Document):
 			"on_trash",
 			"on_update_after_submit",
 			"on_change",
+			"workflow_transition",
 		]
 		webhook_doctype: DF.Link
 		webhook_headers: DF.Table[WebhookHeader]
@@ -67,6 +68,9 @@ class Webhook(Document):
 
 	def on_update(self):
 		frappe.client_cache.delete_value("webhooks")
+
+	def execute_for_doc(self, doc: Document):
+		enqueue_webhook(doc, self)
 
 	def validate_docevent(self):
 		if self.webhook_doctype:
@@ -144,7 +148,8 @@ def get_context(doc):
 def enqueue_webhook(doc, webhook) -> None:
 	request_url = headers = data = r = None
 	try:
-		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
+		if not isinstance(webhook, Document):
+			webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
 			request_url = frappe.render_template(webhook.request_url, get_context(doc))
@@ -180,6 +185,9 @@ def enqueue_webhook(doc, webhook) -> None:
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
+			else:
+				if webhook.webhook_docevent == "workflow_transition":
+					raise e
 
 
 def log_request(

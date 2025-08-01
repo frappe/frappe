@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"292vrD2W3o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"k8RquSngSk\",\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"FVMFcgsiyK\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking\",\"col\":4}}]",
+ "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"FVMFcgsiyK\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -63,48 +63,6 @@
    "label": "Contact Us Settings",
    "link_count": 0,
    "link_to": "Contact Us Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "icon": "",
-   "is_query_report": 0,
-   "label": "Blog",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Blog Post",
-   "link_count": 0,
-   "link_to": "Blog Post",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Blogger",
-   "link_count": 0,
-   "link_to": "Blogger",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Blog Category",
-   "link_count": 0,
-   "link_to": "Blog Category",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -279,14 +237,6 @@
  "roles": [],
  "sequence_id": 14.0,
  "shortcuts": [
-  {
-   "color": "Green",
-   "format": "{} Published",
-   "label": "Blog Post",
-   "link_to": "Blog Post",
-   "stats_filter": "{\"published\":\"1\"}",
-   "type": "DocType"
-  },
   {
    "color": "Green",
    "format": "{} Published",

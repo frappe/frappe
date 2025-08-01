@@ -18,7 +18,9 @@ let properties = computed(() => {
 	if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = __("Transition Properties");
 		return store.transitionfields.filter((df) =>
-			["action", "allowed", "allow_self_approval", "condition"].includes(df.fieldname)
+			["action", "allowed", "allow_self_approval", "condition", "transition_tasks"].includes(
+				df.fieldname
+			)
 		);
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = __("State Properties");

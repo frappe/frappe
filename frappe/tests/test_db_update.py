@@ -1,3 +1,5 @@
+import random
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
@@ -178,7 +180,16 @@ class TestDBUpdate(IntegrationTestCase):
 class TestDBUpdateSanityChecks(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_no_unnecessary_migrates(self):
-		for doctype in frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name"):
+		doctypes = frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name")
+
+		# Migrating all doctypes takes way too long of a time.
+		# NOTE: This test mostly won't be flaky, if it fails randomly, it is because it tests
+		# randomly.
+		# DO NOT IGNORE FAILURES.
+		random.shuffle(doctypes)
+		doctypes = doctypes[:20]
+
+		for doctype in doctypes:
 			with self.subTest(f"Check {doctype}"):
 				frappe.reload_doctype(doctype, force=True)
 				with self.assertQueryCount(0, query_type=("alter",)):

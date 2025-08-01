@@ -25,7 +25,7 @@ frappe.has_indicator = function (doctype) {
 
 frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	if (doc.__unsaved) {
-		return [__("Not Saved"), "orange"];
+		return [__("Not Saved", null, doctype), "orange"];
 	}
 
 	if (!doctype) doctype = doc.doctype;
@@ -64,25 +64,25 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 			}
 			if (!colour) colour = "gray";
 
-			return [__(value), colour, workflow_fieldname + ",=," + value];
+			return [__(value, null, doctype), colour, workflow_fieldname + ",=," + value];
 		}
 	}
 
 	// draft if document is submittable
 	if (is_submittable && doc.docstatus == 0 && !settings.has_indicator_for_draft) {
-		return [__("Draft"), "red", "docstatus,=,0"];
+		return [__("Draft", null, doctype), "red", "docstatus,=,0"];
 	}
 
 	// cancelled
 	if (is_submittable && doc.docstatus == 2 && !settings.has_indicator_for_cancelled) {
-		return [__("Cancelled"), "red", "docstatus,=,2"];
+		return [__("Cancelled", null, doctype), "red", "docstatus,=,2"];
 	}
 
 	// based on document state
 	if (doc.status && meta && meta.states && meta.states.find((d) => d.title === doc.status)) {
 		let state = meta.states.find((d) => d.title === doc.status);
 		let color_class = frappe.scrub(state.color, "-");
-		return [__(doc.status), color_class, "status,=," + doc.status];
+		return [__(doc.status, null, doctype), color_class, "status,=," + doc.status];
 	}
 
 	if (settings.get_indicator) {
@@ -92,29 +92,33 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 
 	// if submittable
 	if (is_submittable && doc.docstatus == 1) {
-		return [__("Submitted"), "blue", "docstatus,=,1"];
+		return [__("Submitted", null, doctype), "blue", "docstatus,=,1"];
 	}
 
 	// based on status
 	if (doc.status) {
-		return [__(doc.status), frappe.utils.guess_colour(doc.status), "status,=," + doc.status];
+		return [
+			__(doc.status, null, doctype),
+			frappe.utils.guess_colour(doc.status),
+			"status,=," + doc.status,
+		];
 	}
 
 	// based on enabled
 	if (frappe.meta.has_field(doctype, "enabled")) {
 		if (doc.enabled) {
-			return [__("Enabled"), "blue", "enabled,=,1"];
+			return [__("Enabled", null, doctype), "blue", "enabled,=,1"];
 		} else {
-			return [__("Disabled"), "grey", "enabled,=,0"];
+			return [__("Disabled", null, doctype), "grey", "enabled,=,0"];
 		}
 	}
 
 	// based on disabled
 	if (frappe.meta.has_field(doctype, "disabled")) {
 		if (doc.disabled) {
-			return [__("Disabled"), "grey", "disabled,=,1"];
+			return [__("Disabled", null, doctype), "grey", "disabled,=,1"];
 		} else {
-			return [__("Enabled"), "blue", "disabled,=,0"];
+			return [__("Enabled", null, doctype), "blue", "disabled,=,0"];
 		}
 	}
 };

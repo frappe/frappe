@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-04 16:41:15.904217",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "task",
+  "asynchronous",
+  "enabled",
+  "link"
+ ],
+ "fields": [
+  {
+   "fieldname": "task",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Task",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Enabled"
+  },
+  {
+   "depends_on": "eval: [\"Server Script\", \"Webhook\"].includes(doc.task)",
+   "fetch_if_empty": 1,
+   "fieldname": "link",
+   "fieldtype": "Dynamic Link",
+   "label": "Link",
+   "mandatory_depends_on": "eval: [\"Server Script\", \"Webhook\"].includes(doc.task)",
+   "options": "task"
+  },
+  {
+   "default": "0",
+   "description": "Spawns actions in a background job",
+   "fieldname": "asynchronous",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Asynchronous"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-14 12:13:18.108225",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow Transition Task",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

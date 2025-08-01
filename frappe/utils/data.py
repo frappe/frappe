@@ -1911,8 +1911,10 @@ def get_link_to_report(
 	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
 	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
 	"""
+	from frappe import _
+
 	if not label:
-		label = name
+		label = _(name)
 
 	if filters:
 		conditions = []

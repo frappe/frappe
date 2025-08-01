@@ -5,11 +5,16 @@ import json
 import frappe
 from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_model_utils import set_user
-from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Page"]
 
 
 class TestComment(IntegrationTestCase):
+	def setUp(self):
+		setup_for_tests()
+
 	def test_comment_creation(self):
 		test_doc = frappe.get_doc(doctype="ToDo", description="test")
 		test_doc.insert()
@@ -42,16 +47,16 @@ class TestComment(IntegrationTestCase):
 
 	# test via blog
 	def test_public_comment(self):
-		test_blog = make_test_blog()
+		test_blog = frappe.get_doc("Test Blog Post", "_Test Blog Post 1")
 
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		frappe.db.delete("Comment", {"reference_doctype": "Test Blog Post"})
 		add_comment_args = {
 			"comment": "Good comment with 10 chars",
 			"comment_email": "test@test.com",
 			"comment_by": "Good Tester",
 			"reference_doctype": test_blog.doctype,
 			"reference_name": test_blog.name,
-			"route": test_blog.route,
+			"route": f"blog/{test_blog.doctype}/{test_blog.name}",
 		}
 		add_comment(**add_comment_args)
 
@@ -64,7 +69,7 @@ class TestComment(IntegrationTestCase):
 			1,
 		)
 
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		frappe.db.delete("Comment", {"reference_doctype": "Test Blog Post"})
 
 		add_comment_args.update(comment="pleez vizits my site http://mysite.com", comment_by="bad commentor")
 		add_comment(**add_comment_args)
@@ -81,7 +86,7 @@ class TestComment(IntegrationTestCase):
 		)
 
 		# test for filtering html and css injection elements
-		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
+		frappe.db.delete("Comment", {"reference_doctype": "Test Blog Post"})
 
 		add_comment_args.update(comment="<script>alert(1)</script>Comment", comment_by="hacker")
 		add_comment(**add_comment_args)
@@ -96,26 +101,10 @@ class TestComment(IntegrationTestCase):
 
 		test_blog.delete()
 
-	@IntegrationTestCase.change_settings("Blog Settings", {"allow_guest_to_comment": 0})
-	def test_guest_cannot_comment(self):
-		test_blog = make_test_blog()
-		with set_user("Guest"):
-			self.assertEqual(
-				add_comment(
-					comment="Good comment with 10 chars",
-					comment_email="mail@example.org",
-					comment_by="Good Tester",
-					reference_doctype="Blog Post",
-					reference_name=test_blog.name,
-					route=test_blog.route,
-				),
-				None,
-			)
-
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
-		test_blog = make_test_blog()
+		test_blog = frappe.get_doc("Web Page", "test-web-page-1")
 		with set_user("Guest"):
 			self.assertRaises(
 				frappe.ValidationError,
@@ -123,7 +112,7 @@ class TestComment(IntegrationTestCase):
 				comment="Good comment with 10 chars",
 				comment_email=some_system_user,
 				comment_by="Good Tester",
-				reference_doctype="Blog Post",
+				reference_doctype="Web Page",
 				reference_name=test_blog.name,
 				route=test_blog.route,
 			)

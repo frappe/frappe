@@ -846,11 +846,6 @@
    "link_fieldname": "user"
   },
   {
-   "group": "Profile",
-   "link_doctype": "Blogger",
-   "link_fieldname": "user"
-  },
-  {
    "group": "Logs",
    "link_doctype": "Access Log",
    "link_fieldname": "user"
