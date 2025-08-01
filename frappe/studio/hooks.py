@@ -80,7 +80,7 @@ website_generators = ["Studio App"]
 
 # before_install = "studio.install.before_install"
 # after_install = "studio.install.after_install"
-after_migrate = "studio.migrate.after_migrate"
+after_migrate = "studio.sync.after_migrate"
 
 # Uninstallation
 # ------------
@@ -94,14 +94,14 @@ after_migrate = "studio.migrate.after_migrate"
 # Name of the app being installed is passed as an argument
 
 # before_app_install = "studio.utils.before_app_install"
-# after_app_install = "studio.utils.after_app_install"
+after_app_install = "studio.sync.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-# before_app_uninstall = "studio.utils.before_app_uninstall"
+before_app_uninstall = "studio.sync.before_app_uninstall"
 # after_app_uninstall = "studio.utils.after_app_uninstall"
 
 # Desk Notifications
