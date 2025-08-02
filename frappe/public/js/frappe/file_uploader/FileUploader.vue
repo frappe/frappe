@@ -268,6 +268,7 @@ const props = defineProps({
 			max_number_of_files: null,
 			allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
 			crop_image_aspect_ratio: null, // 1, 16 / 9, 4 / 3, NaN (free)
+			unsupported_preview_types:[] // ['image/tiff', 'image/heic']
 		}),
 	},
 	attach_doc_image: {
@@ -447,10 +448,12 @@ function add_files(file_array) {
 	}
 }
 function check_restrictions(file) {
-	let { max_file_size, allowed_file_types = [] } = props.restrictions;
+	let { max_file_size, allowed_file_types = [], unsupported_preview_types = ["image/tiff", "image/heic"] } = props.restrictions;
 
 	let is_correct_type = true;
 	let valid_file_size = true;
+	let has_unsupported_preview = false;
+
 
 	if (allowed_file_types && allowed_file_types.length) {
 		is_correct_type = allowed_file_types.some((type) => {
@@ -472,6 +475,21 @@ function check_restrictions(file) {
 		valid_file_size = file.size < max_file_size;
 	}
 
+	 // Check for unsupported preview types (warning only, doesn't block upload)
+	if (unsupported_preview_types && unsupported_preview_types.length) {
+        has_unsupported_preview = unsupported_preview_types.some((type) => {
+           if (type.includes("/")) {
+				if (!file.type) return false;
+				return file.type.match(type);
+			}
+			// otherwise this is likely an extension
+			if (type[0] === ".") {
+				return file.name.toLowerCase().endsWith(type.toLowerCase());
+			}
+			return false;
+        });
+    }
+
 	if (!is_correct_type) {
 		console.warn("File skipped because of invalid file type", file);
 		frappe.show_alert({
@@ -489,6 +507,13 @@ function check_restrictions(file) {
 			indicator: "orange",
 		});
 	}
+	if (has_unsupported_preview) {
+        console.warn("File has unsupported preview type but will be uploaded", file);
+        frappe.show_alert({
+            message: __('File "{0}" preview is not supported but file will be uploaded', [file.name]),
+            indicator: "yellow",
+        });
+    }
 
 	return is_correct_type && valid_file_size;
 }
