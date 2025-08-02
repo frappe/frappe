@@ -270,6 +270,7 @@ class Mention {
 		const containerPos = this.quill.container.getBoundingClientRect();
 		const mentionCharPos = this.quill.getBounds(this.mentionCharPos);
 		const containerHeight = this.mentionContainer.offsetHeight;
+		const containerWidth = this.mentionContainer.offsetWidth;
 
 		let topPos = this.options.offsetTop;
 		let leftPos = this.options.offsetLeft;
@@ -282,10 +283,10 @@ class Mention {
 			leftPos += mentionCharPos.left;
 		}
 
+		// Check if container would overflow right edge
 		if (this.containerRightIsNotVisible(leftPos, containerPos)) {
-			const containerWidth = this.mentionContainer.offsetWidth + this.options.offsetLeft;
 			const quillWidth = containerPos.width;
-			leftPos = quillWidth - containerWidth;
+			leftPos = quillWidth - containerWidth - this.options.offsetLeft;
 		}
 
 		// handle vertical positioning
@@ -327,6 +328,15 @@ class Mention {
 
 				topPos = overMentionCharPos - containerHeight;
 			}
+		}
+
+		// Ensure tooltip doesn't overflow the viewport
+		if (topPos + containerPos.top < 0) {
+			topPos = -containerPos.top + this.options.offsetTop;
+		}
+
+		if (topPos + containerPos.top + containerHeight > window.innerHeight) {
+			topPos = window.innerHeight - containerHeight - containerPos.top;
 		}
 
 		this.mentionContainer.style.top = `${topPos}px`;
