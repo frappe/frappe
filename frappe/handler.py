@@ -276,13 +276,23 @@ def download_file(file_url: str):
 	Endpoints : download_file, frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
-	file: "File" = frappe.get_doc("File", {"file_url": file_url})
-	if not file.is_downloadable():
-		raise frappe.PermissionError
+	try:
+		file: "File" = frappe.get_doc("File", {"file_url": file_url})
+		if not file.is_downloadable():
+			raise frappe.PermissionError
 
-	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = file.get_content()
-	frappe.local.response.type = "download"
+		# Sử dụng tên file thực tế thay vì basename của URL
+		filename = file.file_name or os.path.basename(file_url)
+		frappe.local.response.filename = filename
+		frappe.local.response.filecontent = file.get_content()
+		frappe.local.response.type = "download"
+	except frappe.DoesNotExistError:
+		frappe.throw("File not found")
+	except frappe.PermissionError:
+		frappe.throw("You do not have permission to download this file")
+	except Exception as e:
+		frappe.logger().error(f"Failed to download file {file_url}: {str(e)}")
+		frappe.throw(f"Không thể tải file: {str(e)}")
 
 
 def get_attr(cmd):

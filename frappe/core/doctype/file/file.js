@@ -90,7 +90,14 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name) {
 			file_url = file_url.replace(/#/g, "%23");
 		}
-		window.open(file_url);
+		
+		// Xử lý download file S3
+		if (frm.doc.file_url && frm.doc.file_url.startsWith("s3://")) {
+			// Gọi API download thay vì mở URL trực tiếp
+			window.location.href = `/api/method/frappe.handler.download_file?file_url=${encodeURIComponent(file_url)}`;
+		} else {
+			window.open(file_url);
+		}
 	},
 
 	optimize: function (frm) {

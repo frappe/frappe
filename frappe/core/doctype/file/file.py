@@ -613,6 +613,7 @@ class File(Document):
 			# Import S3 handler functions
 			from frappe.utils.s3_file_handler import get_s3_config, extract_bucket_and_key
 			import boto3
+			from botocore.exceptions import ClientError, NoCredentialsError
 			
 			s3_config = get_s3_config()
 			if not s3_config:
@@ -631,18 +632,26 @@ class File(Document):
 			)
 			
 			# Download file content
-			response = s3_client.get_object(Bucket=bucket, Key=key)
-			self._content = response['Body'].read()
-			
 			try:
-				# for plain text files
-				self._content = self._content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc - keep as bytes
-				pass
+				response = s3_client.get_object(Bucket=bucket, Key=key)
+				self._content = response['Body'].read()
 				
-			return self._content
-			
+				try:
+					# for plain text files
+					self._content = self._content.decode()
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc - keep as bytes
+					pass
+					
+				return self._content
+			except ClientError as e:
+				if e.response['Error']['Code'] == 'NoSuchKey':
+					frappe.throw(_("File not found on S3: {0}").format(self.file_url))
+				else:
+					raise
+					
+		except NoCredentialsError:
+			frappe.throw(_("S3 credentials not configured properly"))
 		except Exception as e:
 			frappe.logger().error(f"Failed to download S3 file {self.file_url}: {str(e)}")
 			frappe.throw(_("Cannot download file from S3: {0}").format(str(e)))

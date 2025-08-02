@@ -206,15 +206,15 @@ def get_temp_s3_link(file_name, expiration=600):
 
     bucket, key = extract_bucket_and_key(file_doc.file_url)
 
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=s3_config['aws_access_key_id'],
-        aws_secret_access_key=s3_config['aws_secret_access_key'],
-        endpoint_url=s3_config.get('aws_s3_endpoint_url'),
-        region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
-    )
-
     try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=s3_config['aws_access_key_id'],
+            aws_secret_access_key=s3_config['aws_secret_access_key'],
+            endpoint_url=s3_config.get('aws_s3_endpoint_url'),
+            region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
+        )
+
         url = s3_client.generate_presigned_url(
             ClientMethod='get_object',
             Params={'Bucket': bucket, 'Key': key},
