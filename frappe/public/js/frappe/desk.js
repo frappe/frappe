@@ -281,13 +281,7 @@ frappe.Application = class Application {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 
-			let current_app = localStorage.current_app;
-			if (current_app) {
-				frappe.boot.setup_complete =
-					frappe.boot.setup_wizard_not_required_apps?.includes(current_app) ||
-					frappe.boot.setup_wizard_completed_apps?.includes(current_app);
-			}
-
+			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
 			frappe.router.setup();
 		} else {

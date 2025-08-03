@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-07-20 09:35+0000\n"
-"PO-Revision-Date: 2025-07-26 22:36\n"
+"PO-Revision-Date: 2025-07-31 23:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1768,7 +1768,8 @@ msgstr "اجازه ویرایش پس از ارسال"
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow editing even if the doctype has a workflow set up.\n\n"
 "Does nothing if a workflow isn't set up."
-msgstr ""
+msgstr "حتی اگر doctype دارای گردش کار تنظیم شده باشد، ویرایش را مجاز می‌کند.\n\n"
+"اگر گردش کار تنظیم نشده باشد، کاری انجام نمی‌دهد."
 
 #. Label of the allow_events_in_timeline (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -2051,7 +2052,7 @@ msgstr "تجزیه و تحلیل"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
-msgstr "اجداد از"
+msgstr "بالادست‌های"
 
 #. Label of the announcement_widget (Text Editor) field in DocType 'Navbar
 #. Settings'
@@ -3225,7 +3226,7 @@ msgstr "اطلاعات پایه"
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
 msgid "Before"
-msgstr ""
+msgstr "قبل از"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -5730,7 +5731,7 @@ msgstr "فیلد سفارشی {0} در {1} ایجاد شد"
 #: frappe/public/js/frappe/model/model.js:125
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:479
 msgid "Created On"
-msgstr "ایجاد شد"
+msgstr "ایجاد شده در"
 
 #: frappe/public/js/frappe/desk.js:523
 #: frappe/public/js/frappe/views/treeview.js:393
@@ -6690,11 +6691,11 @@ msgstr "مقدار پیش‌فرض"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/user/user.json
 msgid "Defaults"
-msgstr "پیش‌فرض ها"
+msgstr "پیش‌فرض‌ها"
 
 #: frappe/email/doctype/email_account/email_account.py:243
 msgid "Defaults Updated"
-msgstr "پیش‌فرض ها به روز شد"
+msgstr "پیش‌فرض‌ها به روز شد"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -6924,11 +6925,11 @@ msgstr "بستگی دارد به"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:32
 msgid "Descendants Of"
-msgstr "نوادگان از"
+msgstr "زیرمجموعه‌های"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:33
 msgid "Descendants Of (inclusive)"
-msgstr "نوادگان (شامل)"
+msgstr "زیرمجموعه‌های (شامل خودش)"
 
 #. Label of the description (Small Text) field in DocType 'Assignment Rule'
 #. Label of the description (Small Text) field in DocType 'Reminder'
@@ -7112,7 +7113,7 @@ msgstr "غیر فعال کردن Refresh خودکار"
 #. 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr "فیلترهای خودکار اخیر را غیرفعال کنید"
+msgstr "غیرفعال کردن فیلترهای اخیر خودکار"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -7557,7 +7558,7 @@ msgstr "اقدامات سند"
 #: frappe/core/doctype/user/user.json
 #: frappe/email/doctype/document_follow/document_follow.json
 msgid "Document Follow"
-msgstr "دنبال سند"
+msgstr "دنبال کردن سند"
 
 #: frappe/desk/form/document_follow.py:94
 msgid "Document Follow Notification"
@@ -9087,7 +9088,7 @@ msgstr "نوع موجودیت"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:16
 msgid "Equals"
-msgstr "برابر است"
+msgstr "برابر با"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -11968,7 +11969,7 @@ msgstr "ساعت ها"
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "How should this currency be formatted? If not set, will use system defaults"
-msgstr "این ارز چگونه باید فرمت شود؟ اگر تنظیم نشود، از پیش‌فرض های سیستم استفاده می‌کند"
+msgstr "این ارز چگونه باید فرمت شود؟ اگر تنظیم نشود، از پیش‌فرض‌های سیستم استفاده می‌کند"
 
 #. Description of the 'Resource Name' (Data) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
@@ -12532,7 +12533,7 @@ msgstr "در حال درون‌بُرد {0} از {1}، {2}"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:20
 msgid "In"
-msgstr "که در"
+msgstr "یکی از"
 
 #. Description of the 'Force User to Reset Password' (Int) field in DocType
 #. 'System Settings'
@@ -13356,7 +13357,7 @@ msgstr "دعوت به عنوان کاربر"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
-msgstr "است"
+msgstr "هست"
 
 #. Label of the is_active (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -14108,7 +14109,7 @@ msgstr "آخرین فعالیت"
 #. Label of the last_execution (Datetime) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr "آخرین اعدام"
+msgstr "آخرین اجرا"
 
 #. Label of the last_heartbeat (Datetime) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -14161,7 +14162,7 @@ msgstr "آخرین تاریخ بازنشانی گذرواژه"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:648
 msgid "Last Quarter"
-msgstr "سه ماهه آخر"
+msgstr "سه ماهه گذشته"
 
 #. Label of the last_reset_password_key_generated_on (Datetime) field in
 #. DocType 'User'
@@ -14437,7 +14438,7 @@ msgstr "تم روشن"
 #: frappe/core/doctype/comment/comment.json
 #: frappe/public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
-msgstr "پسندیدن"
+msgstr "شبیه"
 
 #. Label of the like_limit (Int) field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_settings/blog_settings.json
@@ -15960,7 +15961,7 @@ msgstr "مطالب بیشتر برای پایین صفحه."
 
 #: frappe/public/js/frappe/ui/sort_selector.js:193
 msgid "Most Used"
-msgstr "بیشترین استفاده شده"
+msgstr "پرکاربردترین"
 
 #: frappe/utils/password.py:76
 msgid "Most probably your password is too long."
@@ -17027,15 +17028,15 @@ msgstr "مجاز نیست: کاربر غیرفعال"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
-msgstr "نه اجداد"
+msgstr "بالادست نیست از"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:34
 msgid "Not Descendants Of"
-msgstr "نه فرزندان"
+msgstr "زیرمجموعه‌اش نیست"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:17
 msgid "Not Equals"
-msgstr "برابر نیست"
+msgstr "برابر نیست با"
 
 #: frappe/app.py:387 frappe/www/404.html:3
 msgid "Not Found"
@@ -17048,11 +17049,11 @@ msgstr "مفید نیست"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:21
 msgid "Not In"
-msgstr "نه در"
+msgstr "هیچ‌کدام از"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:19
 msgid "Not Like"
-msgstr "نه مانند"
+msgstr "شبیه نیست به"
 
 #: frappe/public/js/frappe/form/linked_with.js:45
 msgid "Not Linked to any record"
@@ -20990,7 +20991,7 @@ msgstr ""
 
 #: frappe/public/js/form_builder/components/Section.vue:279
 msgid "Remove last column"
-msgstr ""
+msgstr "حذف آخرین ستون"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:130
 msgid "Remove page break"
@@ -27954,7 +27955,7 @@ msgstr ""
 #. Label of the defaults (Table) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Defaults"
-msgstr "پیش‌فرض های کاربر"
+msgstr "پیش‌فرض‌های کاربر"
 
 #. Label of the user_details_tab (Tab Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
