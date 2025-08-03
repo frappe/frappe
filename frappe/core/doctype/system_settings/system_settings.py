@@ -23,6 +23,7 @@ class SystemSettings(Document):
 		allow_guests_to_upload_files: DF.Check
 		allow_login_after_fail: DF.Int
 		allow_login_using_mobile_number: DF.Check
+		allow_mobile_login_with_otp: DF.Check
 		allow_login_using_user_name: DF.Check
 		allow_older_web_view_links: DF.Check
 		allowed_file_extensions: DF.SmallText | None
@@ -137,6 +138,7 @@ class SystemSettings(Document):
 			frappe.flags.update_last_reset_password_date = True
 
 		self.validate_user_pass_login()
+		self.validate_mobile_otp_settings()
 		self.validate_backup_limit()
 		self.validate_file_extensions()
 
@@ -163,6 +165,22 @@ class SystemSettings(Document):
 				_(
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 				)
+			)
+
+	def validate_mobile_otp_settings(self):
+		"""Validate mobile OTP login settings."""
+		if not self.allow_mobile_login_with_otp:
+			return
+
+		# Mobile login must be enabled first
+		if not self.allow_login_using_mobile_number:
+			frappe.throw(_("Enable 'Allow Login using Mobile Number' first before enabling mobile OTP login."))
+
+		# Check SMS settings
+		sms_gateway_url = frappe.db.get_single_value("SMS Settings", "sms_gateway_url")
+		if not sms_gateway_url:
+			frappe.throw(
+				_("SMS Settings must be configured before enabling mobile OTP login. Please setup SMS Settings first.")
 			)
 
 	def validate_backup_limit(self):
@@ -224,9 +242,6 @@ def load():
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 
 
-cache_key = frappe.get_document_cache_key("System Settings", "System Settings")
-
-
 def get_system_settings(key: str):
 	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not (system_settings := getattr(frappe.local, "system_settings", None)):
@@ -241,7 +256,7 @@ def get_system_settings(key: str):
 
 
 def clear_system_settings_cache():
-	frappe.client_cache.delete_value(cache_key)
+	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
 

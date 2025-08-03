@@ -613,7 +613,7 @@ class Test_OpenLDAP(LDAP_TestCase, TestCase):
 			"ldap_group": "Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Website Manager"},
 		{"doctype": "LDAP Group Mapping", "ldap_group": "Group3", "erpnext_role": "Accounts User"},
 	]
 	LDAP_USERNAME_FIELD = "uid"
@@ -637,7 +637,7 @@ class Test_ActiveDirectory(LDAP_TestCase, TestCase):
 			"ldap_group": "Domain Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Website Manager"},
 		{
 			"doctype": "LDAP Group Mapping",
 			"ldap_group": "Enterprise Administrators",

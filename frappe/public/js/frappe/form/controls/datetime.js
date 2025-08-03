@@ -1,5 +1,6 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
+		this.datetime_format = "DD-MM-YYYY HH:mm:ss";
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
@@ -10,9 +11,24 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		} else if (value.toLowerCase() === "now") {
 			value = frappe.datetime.now_datetime();
 		}
+		let should_refresh = this.last_value && this.last_value !== value;
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
-		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		if (!should_refresh) {
+			if (this.datepicker.selectedDates.length > 0) {
+				// if date is selected but different from value, refresh
+				const selected_date = moment(this.datepicker.selectedDates[0]).format(
+					this.datetime_format
+				);
+				should_refresh = selected_date !== value;
+			} else {
+				// if datepicker has no selected date, refresh
+				should_refresh = true;
+			}
+		}
+		if (should_refresh) {
+			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		}
 	}
 
 	get_start_date() {

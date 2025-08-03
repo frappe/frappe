@@ -158,6 +158,7 @@ class DocType(Document):
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		read_only: DF.Check
+		recipient_account_field: DF.Data | None
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
 		row_format: DF.Literal["Dynamic", "Compressed"]

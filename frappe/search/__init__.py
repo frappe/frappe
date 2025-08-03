@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.search.full_text_search import FullTextSearch
+from frappe.search.sqlite_search import SQLiteSearch
 from frappe.search.website_search import WebsiteSearch
 from frappe.utils import cint
 

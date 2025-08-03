@@ -39,6 +39,7 @@
   "disable_user_pass_login",
   "login_methods_section",
   "allow_login_using_mobile_number",
+  "allow_mobile_login_with_otp",
   "allow_login_using_user_name",
   "column_break_uhqk",
   "login_with_email_link",
@@ -251,6 +252,14 @@
    "fieldname": "allow_login_using_mobile_number",
    "fieldtype": "Check",
    "label": "Allow Login using Mobile Number"
+  },
+  {
+   "default": "0",
+   "depends_on": "allow_login_using_mobile_number",
+   "description": "When enabled, users can login with mobile number using OTP instead of password. Requires SMS Settings to be configured.",
+   "fieldname": "allow_mobile_login_with_otp",
+   "fieldtype": "Check",
+   "label": "Allow Mobile Login with OTP"
   },
   {
    "default": "0",

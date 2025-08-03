@@ -3,7 +3,7 @@ import os
 from . import __version__ as app_version
 
 app_name = "frappe"
-app_title = "Framework"
+app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
@@ -54,7 +54,6 @@ web_include_icons = [
 email_css = ["email.bundle.css"]
 
 website_route_rules = [
-	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/app/<path:app_path>", "to_route": "app"},
@@ -111,6 +110,7 @@ permission_query_conditions = {
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
+	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -128,6 +128,7 @@ has_permission = {
 	"File": "frappe.core.doctype.file.file.has_permission",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
+	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -153,6 +154,7 @@ doc_events = {
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 			"frappe.core.doctype.permission_log.permission_log.make_perm_log",
+			"frappe.search.sqlite_search.update_doc_index",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -163,6 +165,7 @@ doc_events = {
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.search.sqlite_search.delete_doc_index",
 		],
 		"on_update_after_submit": [
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -205,6 +208,7 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
+			"frappe.search.sqlite_search.build_index_if_not_exists",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -217,6 +221,7 @@ scheduler_events = {
 	},
 	"all": [
 		"frappe.email.queue.flush",
+		"frappe.email.queue.retry_sending_emails",
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
@@ -247,6 +252,7 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"weekly_long": [
 		"frappe.desk.form.document_follow.send_weekly_updates",
@@ -275,7 +281,10 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
-after_migrate = ["frappe.website.doctype.website_theme.website_theme.after_migrate"]
+after_migrate = [
+	"frappe.website.doctype.website_theme.website_theme.after_migrate",
+	"frappe.search.sqlite_search.build_index_in_background",
+]
 
 otp_methods = ["OTP App", "Email", "SMS"]
 
@@ -351,7 +360,6 @@ global_search_doctypes = {
 		{"doctype": "ToDo"},
 		{"doctype": "Note"},
 		{"doctype": "Event"},
-		{"doctype": "Blog Post"},
 		{"doctype": "Dashboard"},
 		{"doctype": "Country"},
 		{"doctype": "Currency"},
@@ -565,3 +573,7 @@ persistent_cache_keys = [
 	"rate-limit-counter-*",
 	"rl:*",
 ]
+
+user_invitation = {
+	"only_for": ["System Manager"],
+}

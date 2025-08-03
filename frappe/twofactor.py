@@ -158,11 +158,15 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		return True
 	if not tmp_id:
 		tmp_id = frappe.form_dict.get("tmp_id")
+	
 	hotp_token = frappe.cache.get(tmp_id + "_token")
 	otp_secret = frappe.cache.get(tmp_id + "_otp_secret")
+	user = frappe.cache.get(tmp_id + "_usr")
+	
 	if not otp_secret:
 		raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
+	# Standard 2FA verification
 	tracker = get_login_attempt_tracker(login_manager.user)
 
 	hotp = pyotp.HOTP(otp_secret)

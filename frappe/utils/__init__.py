@@ -142,6 +142,9 @@ def validate_phone_number(phone_number, throw=False):
 	if not phone_number:
 		return False
 
+	if not isinstance(phone_number, str):
+		phone_number = str(phone_number)
+
 	phone_number = phone_number.strip()
 	match = PHONE_NUMBER_PATTERN.match(phone_number)
 
@@ -1141,6 +1144,20 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	from frappe.utils.safe_exec import safe_eval
 
 	return safe_eval(code, eval_globals, eval_locals)
+
+
+def create_folder(path, with_init=False):
+	"""Create a folder in the given path and add an `__init__.py` file (optional).
+
+	:param path: Folder path.
+	:param with_init: Create `__init__.py` in the new folder."""
+	from frappe.utils import touch_file
+
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+		if with_init:
+			touch_file(os.path.join(path, "__init__.py"))
 
 
 cached_property = functools.cached_property

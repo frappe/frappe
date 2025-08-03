@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
+DEFAULT_WORKFLOW_TASKS = ["Webhook", "Server Script"]
+
+
 class WorkflowStateError(frappe.ValidationError):
 	pass
 
@@ -125,6 +128,59 @@ def apply_workflow(doc, action):
 	# update any additional field
 	if next_state.update_field:
 		doc.set(next_state.update_field, next_state.update_value)
+
+	if transition.transition_tasks:
+		workflow_transitions = frappe.db.get_all(
+			"Workflow Transition Task",
+			{"parent": transition.transition_tasks, "enabled": True},
+			["task", "link", "asynchronous"],
+			order_by="idx",
+		)
+
+		"""app-specific actions defined by the user
+		Example:
+		def create_customer(doc):
+			<your-code>
+
+		this goes in the hooks.py
+		workflow_methods = [{"name": "Create a customer", "method":
+					 		"frappe.dotted.path.create_customer"}]
+		"""
+
+		tasks = {i["name"]: i["method"] for i in frappe.get_hooks("workflow_methods")}
+
+		sync_tasks = []
+		async_tasks = []
+		for workflow_transition in workflow_transitions:
+			# edge-case with user-defined server scripts
+			if workflow_transition.task in DEFAULT_WORKFLOW_TASKS:
+				match workflow_transition.task:
+					case "Webhook":
+						webhook = frappe.get_doc("Webhook", workflow_transition.link)
+						task_method = webhook.execute_for_doc
+
+					case "Server Script":
+						server_script = frappe.get_doc("Server Script", workflow_transition.link)
+						task_method = server_script.execute_workflow_task
+
+			else:  # normal app-defined tasks
+				try:
+					task_method = frappe.get_attr(tasks[workflow_transition.task])
+				except KeyError:
+					frappe.throw(_('There is no task called "{}"').format(workflow_transition.task))
+
+			if workflow_transition.asynchronous:
+				async_tasks.append(task_method)
+			else:
+				sync_tasks.append(task_method)
+
+		# will execute in the same transaction as the rest of the transition
+		for sync_task in sync_tasks:
+			sync_task(doc)
+
+		# will spawn separate background jobs. Use for asynchronous, optional tasks.
+		for async_task in async_tasks:
+			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
 
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
