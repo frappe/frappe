@@ -146,8 +146,8 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 			elif df.fieldtype == "Datetime" and df.default.lower() == "now":
 				doc[df.fieldname] = now_datetime()
 
-		if df.fieldtype == "Time":
-			doc[df.fieldname] = nowtime()
+			elif df.fieldtype == "Time" and df.default.lower() == "now":
+				doc[df.fieldname] = nowtime()
 
 	if parent_doc:
 		doc["parent"] = parent_doc.name
