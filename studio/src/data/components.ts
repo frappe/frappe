@@ -332,6 +332,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "John Doe",
 			autocomplete: "off",
 		},
+		additionalProps: { modelValue: { required: false } }
 	},
 	ListView: {
 		name: "ListView",
@@ -726,10 +727,15 @@ function getProxyComponent(name: string) {
 	return proxyComponentMap.get(name)
 }
 
+function get(name: string): FrappeUIComponent | undefined {
+	return COMPONENTS[name] || undefined
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
 	isFrappeUIComponent,
+	get,
 }

@@ -20,7 +20,7 @@ const componentFolders: Record<string, string> = {
 
 function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
 	if (typeof component === "string") return {}
-	const props = component.props
+	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
 
 	if ("modelModifiers" in props) {
