@@ -197,8 +197,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name,
 		});
+		const isWorkshopViewer = await erpnext.utils.isWorkshopViewer(this.frm);
+		const isMechanic = await erpnext.utils.isMechanic(this.frm);
+		const isJuniorMechanic = await erpnext.utils.isJuniorMechanic(this.frm);
+		const isSeniorMechanic = await erpnext.utils.isSeniorMechanic(this.frm);
 
-		if(! await erpnext.utils.isWorkshopViewer(this.frm) && !await erpnext.utils.isMechanic(this.frm)){
+		if(!isWorkshopViewer && !isMechanic && !isJuniorMechanic && !isSeniorMechanic){
 			insertFreezeQueuePosition()
 		}else{
 			const sidebar = $(".layout-side-section");

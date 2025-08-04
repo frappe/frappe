@@ -69,7 +69,7 @@
 			{%- endfor -%}
 
 			// Hide the tools button for workshop viewers and mechanics
-			if (frappe.boot.is_workshop_viewer || frappe.boot.is_mechanic) {
+			if (frappe.boot.is_workshop_viewer || frappe.boot.is_mechanic || frappe.boot.is_junior_mechanic || frappe.boot.is_senior_mechanic) {
 				setTimeout(() => {
 					const web_component_button = document.getElementById("show-icons");
 					if (web_component_button) {

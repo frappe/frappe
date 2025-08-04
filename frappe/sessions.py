@@ -185,6 +185,8 @@ def get():
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo["is_workshop_viewer"] = get_is_workshop_viewer()
 	bootinfo["is_mechanic"] = get_is_mechanic()
+	bootinfo["is_junior_mechanic"] = get_is_junior_mechanic()
+	bootinfo["is_senior_mechanic"] = get_is_senior_mechanic()
 
 	return bootinfo
 
@@ -515,3 +517,16 @@ def get_is_mechanic():
 		return True
 	return False
 
+@frappe.whitelist()
+def get_is_junior_mechanic():
+	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+	if role == "Junior Mechanic":
+		return True
+	return False
+
+@frappe.whitelist()
+def get_is_senior_mechanic():
+	role = frappe.db.get_value("User", frappe.session.user, "role_profile_name")
+	if role == "Senior Mechanic":
+		return True
+	return False

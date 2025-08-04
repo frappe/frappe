@@ -39,6 +39,8 @@ const zoomLevels = {
 };
 
 const columnsByMechanic = {
+	"In queue": "In queue",
+	"In parking": "In parking",
 	"Quoted": "Quoted",
 	"Quote approved": "Quote approved",
 	"In repair": "In repair",
@@ -1349,12 +1351,12 @@ const columnsByMechanic = {
 
 	function prepare_columns(columns) {
 		let cols = [];
-		const isAdmin = frappe.user.has_role("Administrator");
-		const isMechanic = !isAdmin && frappe.user.has_role("Mechanic");
+		// const isAdmin = frappe.user.has_role("Administrator");
+		// const isMechanic = !isAdmin && frappe.user.has_role("Mechanic");
 		columns.forEach(function (col) {
-			if (isMechanic && !columnsByMechanic[col.column_name]) {
-				return; // Skip columns not in columnsByMechanic
-			}
+			// if (isMechanic && !columnsByMechanic[col.column_name]) {
+			// 	return; // Skip columns not in columnsByMechanic
+			// }
 			col = {
 				title: col.column_name,
 				status: col.status,
