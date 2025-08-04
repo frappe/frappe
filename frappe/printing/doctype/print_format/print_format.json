@@ -6,13 +6,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "print_format_for",
   "doc_type",
+  "report",
   "module",
   "default_print_language",
   "column_break_3",
   "standard",
   "custom_format",
   "disabled",
+  "pdf_generator",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -42,14 +45,15 @@
  ],
  "fields": [
   {
+   "depends_on": "eval:doc.print_format_for == \"DocType\"",
    "fieldname": "doc_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "DocType",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.print_format_for == \"DocType\"",
+   "options": "DocType"
   },
   {
    "fieldname": "module",
@@ -87,7 +91,7 @@
    "label": "Custom Format"
   },
   {
-   "depends_on": "custom_format",
+   "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
    "fieldname": "section_break_6",
    "fieldtype": "Section Break"
   },
@@ -97,16 +101,18 @@
    "fieldname": "print_format_type",
    "fieldtype": "Select",
    "label": "Print Format Type",
-   "options": "Jinja\nJS"
+   "options": "Jinja\nJS",
+   "read_only_depends_on": "eval:doc.print_format_for == \"Report\""
   },
   {
    "default": "0",
+   "depends_on": "custom_format",
    "fieldname": "raw_printing",
    "fieldtype": "Check",
    "label": "Raw Printing"
   },
   {
-   "depends_on": "eval:!doc.raw_printing",
+   "depends_on": "eval:(!doc.raw_printing) || (doc.print_format_for == \"Report\")",
    "fieldname": "html",
    "fieldtype": "Code",
    "label": "HTML",
@@ -255,12 +261,37 @@
    "fieldtype": "Select",
    "label": "Page Number",
    "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
+  },
+  {
+   "default": "wkhtmltopdf",
+   "fieldname": "pdf_generator",
+   "fieldtype": "Select",
+   "label": "PDF Generator",
+   "options": "wkhtmltopdf"
+  },
+  {
+   "default": "DocType",
+   "fieldname": "print_format_for",
+   "fieldtype": "Select",
+   "label": "Print Format For",
+   "options": "DocType\nReport"
+  },
+  {
+   "depends_on": "eval:doc.print_format_for == \"Report\"",
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Report",
+   "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
+   "options": "Report"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:03:34.964767",
+ "modified": "2025-07-02 11:07:42.812225",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -283,6 +314,7 @@
    "select": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

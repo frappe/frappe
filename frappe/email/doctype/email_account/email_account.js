@@ -115,6 +115,34 @@ function set_default_max_attachment_size(frm) {
 		});
 	}
 }
+function add_helpful_links(frm) {
+	// For better UX
+	if (frm.doc.service === "GMail") {
+		frm.set_df_property(
+			"password",
+			"description",
+			__("To generate password click {0}", [
+				"<a href='https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237' target='_blank'>" +
+					__("here") +
+					"</a>",
+			])
+		);
+	} else {
+		frm.set_df_property("password", "description", "");
+	}
+
+	if (frm.doc.service === "Frappe Mail") {
+		frm.set_df_property(
+			"api_secret",
+			"description",
+			__("To know more click {0}", [
+				"<a href='https://github.com/frappe/mail' target='_blank'>" + __("here") + "</a>",
+			])
+		);
+	} else {
+		frm.set_df_property("api_secret", "description", "");
+	}
+}
 
 frappe.ui.form.on("Email Account", {
 	service: function (frm) {
@@ -126,6 +154,7 @@ frappe.ui.form.on("Email Account", {
 				frm.set_value(key, value);
 			});
 		}
+		add_helpful_links(frm);
 	},
 
 	use_imap: function (frm) {

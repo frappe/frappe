@@ -20,6 +20,7 @@
   "base_url",
   "configuration_section",
   "sign_ups",
+  "show_in_resource_metadata",
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -172,11 +173,19 @@
    "fieldtype": "Select",
    "label": "Sign ups",
    "options": "\nAllow\nDeny"
+  },
+  {
+   "default": "1",
+   "description": "Allows clients to view this as an Authorization Server when querying the <code>/.well-known/oauth-protected-resource</code> end point.",
+   "fieldname": "show_in_resource_metadata",
+   "fieldtype": "Check",
+   "label": "Show in Resource Metadata"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-06 15:22:46.342392",
+ "modified": "2025-07-03 12:47:01.696817",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",
@@ -195,6 +204,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

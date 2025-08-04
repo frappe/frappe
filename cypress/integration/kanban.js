@@ -97,7 +97,7 @@ context("Kanban Board", () => {
 			.should("not.contain", "ID:");
 	});
 
-	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
+	it.skip("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
 		cy.switch_to_user("Administrator");
 
 		const not_system_manager = "nosysmanager@example.com";

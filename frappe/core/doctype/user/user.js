@@ -268,6 +268,10 @@ frappe.ui.form.on("User", {
 			}
 			if (!found) {
 				frm.add_custom_button(__("Create User Email"), function () {
+					if (!frm.doc.email) {
+						frappe.msgprint(__("Email is mandatory to create User Email"));
+						return;
+					}
 					frm.events.create_user_email(frm);
 				});
 			}
@@ -366,7 +370,11 @@ frappe.ui.form.on("User", {
 		}
 	},
 	setup_impersonation: function (frm) {
-		if (frappe.session.user === "Administrator" && frm.doc.name != "Administrator") {
+		if (
+			frappe.session.user === "Administrator" &&
+			frm.doc.name != "Administrator" &&
+			!frm.is_new()
+		) {
 			frm.add_custom_button(__("Impersonate"), () => {
 				if (frm.doc.restrict_ip) {
 					frappe.msgprint({

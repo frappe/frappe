@@ -25,7 +25,7 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import get_controller
+from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -121,6 +121,7 @@ class DocType(Document):
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
 		force_re_route_to_default_view: DF.Check
+		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
 		icon: DF.Data | None
@@ -153,11 +154,15 @@ class DocType(Document):
 		]
 		nsm_parent_field: DF.Data | None
 		permissions: DF.Table[DocPerm]
+		protect_attached_files: DF.Check
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		read_only: DF.Check
+		recipient_account_field: DF.Data | None
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
+		row_format: DF.Literal["Dynamic", "Compressed"]
+		rows_threshold_for_grid_search: DF.Int
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
@@ -193,7 +198,6 @@ class DocType(Document):
 		self.validate_name()
 
 		self.set_defaults_for_single_and_table()
-		self.set_defaults_for_autoincremented()
 		self.scrub_field_names()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
@@ -279,10 +283,6 @@ class DocType(Document):
 			self.allow_import = 0
 			self.permissions = []
 
-	def set_defaults_for_autoincremented(self):
-		if self.autoname and self.autoname == "autoincrement":
-			self.allow_rename = 0
-
 	def set_default_in_list_view(self):
 		"""Set default in-list-view for first 4 mandatory fields"""
 		not_allowed_in_list_view = get_fields_not_allowed_in_list_view(self.meta)
@@ -323,7 +323,7 @@ class DocType(Document):
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
-		if frappe.flags.in_patch or frappe.flags.in_test:
+		if frappe.flags.in_patch or frappe.in_test:
 			return
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
@@ -335,7 +335,7 @@ class DocType(Document):
 		if self.is_virtual and self.custom:
 			frappe.throw(_("Not allowed to create custom Virtual DocType."), CannotCreateStandardDoctypeError)
 
-		if frappe.conf.get("developer_mode"):
+		if frappe.conf.developer_mode and not self.owner:
 			self.owner = "Administrator"
 			self.modified_by = "Administrator"
 
@@ -402,9 +402,9 @@ class DocType(Document):
 				frappe.db.sql(query)
 
 	def validate_document_type(self):
-		if self.document_type == "Transaction":
+		if self.document_type == "Transaction":  # type: ignore[comparison-overlap]
 			self.document_type = "Document"
-		if self.document_type == "Master":
+		if self.document_type == "Master":  # type: ignore[comparison-overlap]
 			self.document_type = "Setup"
 
 	def validate_website(self):
@@ -595,7 +595,7 @@ class DocType(Document):
 			global_search_fields_after_update.append("name")
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
-			now = (not frappe.request) or frappe.flags.in_test or frappe.flags.in_install
+			now = (not frappe.request) or frappe.in_test or frappe.flags.in_install
 			frappe.enqueue("frappe.utils.global_search.rebuild_for_doctype", now=now, doctype=self.name)
 
 	def set_base_class_for_controller(self):
@@ -1008,7 +1008,7 @@ class DocType(Document):
 	def get_max_idx(self):
 		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
-		return max_idx and max_idx[0][0] or 0
+		return (max_idx and max_idx[0][0]) or 0
 
 	def validate_name(self, name=None):
 		if not name:
@@ -1147,10 +1147,8 @@ def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool
 		autoname_before_save = get_autoname_before_save(dt)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
-		if (
-			is_autoname_autoincrement
-			and autoname_before_save != "autoincrement"
-			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
+		if (is_autoname_autoincrement and autoname_before_save != "autoincrement") or (
+			not is_autoname_autoincrement and autoname_before_save == "autoincrement"
 		):
 			if dt.doctype == "Customize Form":
 				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
@@ -1266,7 +1264,7 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		if fieldname in Document._reserved_keywords:
+		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
 					frappe.bold(docname),
@@ -1277,7 +1275,7 @@ def validate_fields(meta: Meta):
 
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(
-			filter(None, map(lambda df: df.fieldname == fieldname and str(df.idx) or None, fields))
+			filter(None, map(lambda df: (df.fieldname == fieldname and str(df.idx)) or None, fields))
 		)
 		if len(duplicates) > 1:
 			frappe.throw(

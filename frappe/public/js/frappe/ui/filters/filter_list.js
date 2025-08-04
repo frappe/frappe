@@ -268,6 +268,7 @@ frappe.ui.FilterGroup = class {
 	get_filters() {
 		return this.filters
 			.filter((f) => f.field)
+			.filter((f) => f.get_selected_value() != null)
 			.map((f) => {
 				return f.get_value();
 			});

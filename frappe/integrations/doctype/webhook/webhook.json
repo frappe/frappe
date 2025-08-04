@@ -56,7 +56,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Doc Event",
-   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
+   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change\nworkflow_transition",
    "set_only_once": 1
   },
   {
@@ -130,7 +130,7 @@
    "fieldname": "webhook_json",
    "fieldtype": "Code",
    "label": "JSON Request Body",
-   "options": "JSON"
+   "options": "Jinja"
   },
   {
    "fieldname": "sb_security",
@@ -189,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-07-22 09:23:32.642172",
+ "modified": "2025-07-18 18:22:38.276809",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

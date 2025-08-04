@@ -38,10 +38,19 @@ class EmailGroup(Document):
 		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
 		email_field = next(
-			d.fieldname
-			for d in meta.fields
-			if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options == "Email"
+			(
+				d.fieldname
+				for d in meta.fields
+				if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options == "Email"
+			),
+			None,
 		)
+		if not email_field:
+			frappe.throw(
+				_("No Email field found in {0}").format(doctype),
+				title=_("Invalid Doctype"),
+			)
+
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
 		added = 0
 
@@ -93,7 +102,7 @@ class EmailGroup(Document):
 
 	def on_trash(self):
 		for d in frappe.get_all("Email Group Member", "name", {"email_group": self.name}):
-			frappe.delete_doc("Email Group Member", d.name)
+			frappe.delete_doc("Email Group Member", d.name, force=True)
 
 
 @frappe.whitelist()

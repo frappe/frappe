@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.email.smtp
 from frappe import _
+from frappe.database.utils import commit_after_response
 from frappe.email.email_body import get_message_id
 from frappe.utils import (
 	cint,
@@ -78,8 +79,8 @@ def make(
 			category=DeprecationWarning,
 		)
 
-	if doctype and name and not frappe.has_permission(doctype=doctype, ptype="email", doc=name):
-		raise frappe.PermissionError(f"You are not allowed to send emails related to: {doctype} {name}")
+	if doctype and name:
+		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 
 	return _make(
 		doctype=doctype,
@@ -142,7 +143,7 @@ def _make(
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm: "Communication" = frappe.get_doc(
+	comm: Communication = frappe.get_doc(
 		{
 			"doctype": "Communication",
 			"subject": subject,
@@ -272,7 +273,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
 def mark_email_as_seen(name: str | None = None):
-	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
+	commit_after_response(lambda: _mark_email_as_seen(name))
 	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
 
 
@@ -281,8 +282,6 @@ def _mark_email_as_seen(name):
 		update_communication_as_read(name)
 	except Exception:
 		frappe.log_error("Unable to mark as seen", None, "Communication", name)
-
-	frappe.db.commit()  # nosemgrep: after_response requires explicit commit
 
 
 def update_communication_as_read(name):

@@ -34,6 +34,12 @@ class TestResult(unittest.TextTestResult):
 		self._old_stdout = []
 		self._old_stderr = []
 
+	def _setupStdout(self):
+		pass
+
+	def _restoreStdout(self):
+		pass
+
 	def startTestRun(self):
 		if not sys.warnoptions:
 			import warnings
@@ -44,16 +50,18 @@ class TestResult(unittest.TextTestResult):
 			warnings.filterwarnings("module", category=FrappeDeprecationWarning)
 
 		# capture class & module setup & teardown in order to show it above the first test of the class
-		self._old_stderr.append(sys.stderr)
-		self._old_stdout.append(sys.stdout)
-		self._module_or_class_stdout_capture = io.StringIO()
-		self._module_or_class_stderr_capture = io.StringIO()
-		sys.stdout = self._module_or_class_stdout_capture
-		sys.stderr = self._module_or_class_stderr_capture
+		if self.buffer:
+			self._old_stderr.append(sys.stderr)
+			self._old_stdout.append(sys.stdout)
+			self._module_or_class_stdout_capture = io.StringIO()
+			self._module_or_class_stderr_capture = io.StringIO()
+			sys.stdout = self._module_or_class_stdout_capture
+			sys.stderr = self._module_or_class_stderr_capture
 
 	def stopTestRun(self):
-		sys.stdout = self._old_stdout.pop()
-		sys.stderr = self._old_stderr.pop()
+		if self.buffer:
+			sys.stdout = self._old_stdout.pop()
+			sys.stderr = self._old_stderr.pop()
 
 	def startTest(self, test):
 		self.tb_locals = True
@@ -87,23 +95,25 @@ class TestResult(unittest.TextTestResult):
 				logger.info(f"records created: {', '.join(records)}")
 			self.stream.flush()
 
-		self._old_stderr.append(sys.stderr)
-		self._old_stdout.append(sys.stdout)
-		self._test_stdout_capture = io.StringIO()
-		self._test_stderr_capture = io.StringIO()
-		sys.stdout = self._test_stdout_capture
-		sys.stderr = self._test_stderr_capture
+		if self.buffer:
+			self._old_stderr.append(sys.stderr)
+			self._old_stdout.append(sys.stdout)
+			self._test_stdout_capture = io.StringIO()
+			self._test_stderr_capture = io.StringIO()
+			sys.stdout = self._test_stdout_capture
+			sys.stderr = self._test_stderr_capture
 
 	def stopTest(self, test):
 		super().stopTest(test)
-		sys.stdout = self._old_stderr.pop()
-		sys.stderr = self._old_stdout.pop()
-		for line in self._test_stdout_capture.getvalue().splitlines():
-			self.stream.write(f"       ▹  {line}\n")
-			self.stream.flush()
-		for line in self._test_stderr_capture.getvalue().splitlines():
-			self.stream.write(f"       ▸  {line}\n")
-			self.stream.flush()
+		if self.buffer:
+			sys.stdout = self._old_stderr.pop()
+			sys.stderr = self._old_stdout.pop()
+			for line in self._test_stdout_capture.getvalue().splitlines():
+				self.stream.write(f"       ▹  {line}\n")
+				self.stream.flush()
+			for line in self._test_stderr_capture.getvalue().splitlines():
+				self.stream.write(f"       ▸  {line}\n")
+				self.stream.flush()
 
 	def getTestMethodName(self, test):
 		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
@@ -168,3 +178,47 @@ class TestResult(unittest.TextTestResult):
 
 
 SLOW_TEST_THRESHOLD = 2
+
+
+class FrappeTestResult(unittest.TextTestResult):
+	def __init__(self, stream, descriptions, verbosity):
+		super().__init__(stream, descriptions, verbosity)
+
+	def startTest(self, test):
+		self.tb_locals = True
+		self._started_at = time.monotonic()
+		super(unittest.TextTestResult, self).startTest(test)
+		test_class = unittest.util.strclass(test.__class__)
+		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
+			click.echo(f"\n{unittest.util.strclass(test.__class__)}")
+			self.current_test_class = test_class
+
+	def getTestMethodName(self, test):
+		return test._testMethodName if hasattr(test, "_testMethodName") else str(test)
+
+	def addSuccess(self, test):
+		super(unittest.TextTestResult, self).addSuccess(test)
+		elapsed = time.monotonic() - self._started_at
+		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
+		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")
+
+	def addError(self, test, err):
+		super(unittest.TextTestResult, self).addError(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addFailure(self, test, err):
+		super(unittest.TextTestResult, self).addFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addSkip(self, test, reason):
+		super(unittest.TextTestResult, self).addSkip(test, reason)
+		click.echo(f"  {click.style(' = ', fg='white')} {self.getTestMethodName(test)}")
+
+	def addExpectedFailure(self, test, err):
+		super(unittest.TextTestResult, self).addExpectedFailure(test, err)
+		click.echo(f"  {click.style(' ✖ ', fg='red')} {self.getTestMethodName(test)}")
+
+	def addUnexpectedSuccess(self, test):
+		super(unittest.TextTestResult, self).addUnexpectedSuccess(test)
+		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}")

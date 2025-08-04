@@ -14,8 +14,9 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, has_permission
+from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
+from frappe.utils.caching import request_cache
 
 
 def get_report_doc(report_name):
@@ -39,18 +40,18 @@ def get_report_doc(report_name):
 
 	if not doc.is_permitted():
 		frappe.throw(
-			_("You don't have access to Report: {0}").format(report_name),
+			_("You don't have access to Report: {0}").format(_(doc.name)),
 			frappe.PermissionError,
 		)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):
 		frappe.throw(
-			_("You don't have permission to get a report on: {0}").format(doc.ref_doctype),
+			_("You don't have permission to get a report on: {0}").format(_(doc.ref_doctype)),
 			frappe.PermissionError,
 		)
 
 	if doc.disabled:
-		frappe.throw(_("Report {0} is disabled").format(report_name))
+		frappe.throw(_("Report {0} is disabled").format(_(report_name)))
 
 	return doc
 
@@ -90,7 +91,7 @@ def generate_report_result(
 
 	result = normalize_result(result, columns)
 
-	if report.custom_columns:
+	if report.get("custom_columns"):
 		# saved columns (with custom columns / with different column order)
 		columns = report.custom_columns
 
@@ -110,6 +111,10 @@ def generate_report_result(
 
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
+
+	if isinstance(filters, dict) and filters.get("translate_data"):
+		total_row = cint(report.add_total_row) and result and not skip_total_row
+		result = translate_report_data(result, total_row)
 
 	return {
 		"result": result,
@@ -165,7 +170,7 @@ def get_script(report_name):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['%s']={}" % report_name
+		script = "frappe.query_reports['{}']={{}}".format(report_name)
 
 	return {
 		"script": render_include(script),
@@ -195,10 +200,10 @@ def run(
 	parent_field=None,
 	are_default_filters=True,
 ):
-	validate_filters_permissions(report_name, filters, user)
-	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
+	validate_filters_permissions(report_name, filters, user)
+	report = get_report_doc(report_name)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
 			_("Must have report permission to access this report."),
@@ -207,7 +212,7 @@ def run(
 
 	result = None
 
-	if sbool(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.get("custom_filters"):
 		filters = report.custom_filters
 
 	try:
@@ -229,7 +234,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if sbool(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
 
 	return result
@@ -314,7 +319,6 @@ def export_query():
 	csv_params = pop_csv_params(form_params)
 	clean_params(form_params)
 	parse_json(form_params)
-
 	report_name = form_params.report_name
 	frappe.permissions.can_export(
 		frappe.get_cached_value("Report", report_name, "ref_doctype"),
@@ -326,6 +330,7 @@ def export_query():
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx
+	include_hidden_columns = form_params.include_hidden_columns
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
@@ -341,13 +346,22 @@ def export_query():
 		)
 		return
 
-	format_duration_fields(data)
+	format_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(
-		data, visible_idx, include_indentation, include_filters=include_filters
+		data,
+		visible_idx,
+		include_indentation,
+		include_filters=include_filters,
+		include_hidden_columns=include_hidden_columns,
 	)
 
 	if file_format_type == "CSV":
-		content = get_csv_bytes(xlsx_data, csv_params)
+		from frappe.utils.xlsxutils import handle_html
+
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
+			csv_params,
+		)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
@@ -355,21 +369,48 @@ def export_query():
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
 
+	if include_filters:
+		for value in (data.filters or {}).values():
+			suffix = ""
+			if isinstance(value, list):
+				suffix = "_" + ",".join(value)
+			elif isinstance(value, str) and value not in {"Yes", "No"}:
+				suffix = f"_{value}"
+
+			if valid_report_name(report_name, suffix):
+				report_name += suffix
+
 	provide_binary_file(report_name, file_extension, content)
 
 
-def format_duration_fields(data: frappe._dict) -> None:
+def valid_report_name(report_name, suffix):
+	if len(report_name) + len(suffix) < 200:
+		return True
+	return False
+
+
+def format_fields(data: frappe._dict) -> None:
 	for i, col in enumerate(data.columns):
-		if col.get("fieldtype") != "Duration":
-			continue
+		if col.get("fieldtype") == "Duration":
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				if row[index]:
+					row[index] = format_duration(row[index])
+		elif col.get("fieldtype") == "Currency" and col.get("precision"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				if row[index]:
+					row[index] = round(row[index], col.get("precision"))
 
-		for row in data.result:
-			index = col.get("fieldname") if isinstance(row, dict) else i
-			if row[index]:
-				row[index] = format_duration(row[index])
 
-
-def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
+def build_xlsx_data(
+	data,
+	visible_idx,
+	include_indentation,
+	include_filters=False,
+	ignore_visible_idx=False,
+	include_hidden_columns=False,
+):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -409,7 +450,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 
 	column_data = []
 	for column in data.columns:
-		if column.get("hidden"):
+		if column.get("hidden") and not cint(include_hidden_columns):
 			continue
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -425,7 +466,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 			row_data = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):
-					if column.get("hidden"):
+					if column.get("hidden") and not cint(include_hidden_columns):
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
@@ -516,7 +557,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field, names=None):
 	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
+		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
 	filters = {}
 	if names:
@@ -586,7 +627,7 @@ def save_report(reference_report, report_name, columns, filters):
 				"reference_report": reference_report,
 			}
 		).insert(ignore_permissions=True)
-		frappe.msgprint(_("{0} saved successfully").format(new_report.name))
+		frappe.msgprint(_("{0} saved successfully").format(_(new_report.name)))
 		return new_report.name
 
 
@@ -683,6 +724,9 @@ def has_match(
 						match = False
 						break
 
+					if match:
+						match = has_unrestricted_read_access(doctype=ref_doctype, user=frappe.session.user)
+
 				# each doctype could have multiple conflicting user permission doctypes, hence using OR
 				# so that even if one of the sets allows a match, it is true
 				matched_for_doctype = matched_for_doctype or match
@@ -697,6 +741,32 @@ def has_match(
 			break
 
 	return resultant_match
+
+
+@request_cache
+def has_unrestricted_read_access(doctype, user):
+	roles = get_roles(user)
+
+	permission_filters = {
+		"parent": doctype,
+		"role": ["in", roles],
+		"permlevel": 0,
+		"read": 1,
+		"if_owner": 0,
+	}
+
+	standard_perm_exists = frappe.db.exists(
+		"DocPerm",
+		permission_filters,
+	)
+
+	custom_perm_exists = frappe.db.exists(
+		"Custom DocPerm",
+		permission_filters,
+	)
+
+	has_perm = bool(custom_perm_exists or standard_perm_exists)
+	return has_perm
 
 
 def get_linked_doctypes(columns, data):
@@ -799,9 +869,21 @@ def validate_filters_permissions(report_name, filters=None, user=None):
 	for field in report.filters:
 		if field.fieldname in filters and field.fieldtype == "Link":
 			linked_doctype = field.options
-			if not has_permission(doctype=linked_doctype, doc=filters[field.fieldname], user=user):
+			if not has_permission(
+				doctype=linked_doctype, ptype="read", doc=filters[field.fieldname], user=user
+			) and not has_permission(
+				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
 						linked_doctype, filters[field.fieldname]
 					)
 				)
+
+
+def translate_report_data(data, total_row):
+	for d in data[:-1] if total_row else data:
+		for field, value in d.items():
+			if isinstance(value, str):
+				d[field] = _(value)
+	return data

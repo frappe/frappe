@@ -51,4 +51,33 @@ context("List View", () => {
 				cy.get(".list-row-container:visible").should("contain", "Approved");
 			});
 	});
+
+	it("Adds a button to each list view row", () => {
+		// Get a ToDo with a reference name
+		cy.call("frappe.client.get_value", {
+			doctype: "ToDo",
+			filters: {
+				reference_name: ["is", "set"],
+			},
+			fieldname: "name",
+		}).then((r) => {
+			const todo_name = r.message.name;
+			cy.go_to_list("ToDo");
+
+			// Check if the 'Open' button is present in the ToDo list view
+			cy.get(".btn-default[data-name='" + todo_name + "']")
+				.should((el) => {
+					expect(el).to.exist;
+				})
+				.click();
+
+			cy.window()
+				.its("cur_frm")
+				.then((frm) => {
+					// Routes to the reference document
+					expect(frm.doc.doctype).to.equal("ToDo");
+					expect(frm.doc.name).to.not.equal(todo_name);
+				});
+		});
+	});
 });

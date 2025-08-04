@@ -50,7 +50,7 @@ def get_translated_countries():
 	# country names && currencies
 	for country, info in get_all().items():
 		country_name = locale.territories.get((info.get("code") or "").upper())
-		if country_name:
+		if country_name and country != country_name:
 			translated_dict[country] = country_name
 
 	return translated_dict

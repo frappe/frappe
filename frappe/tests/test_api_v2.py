@@ -6,6 +6,7 @@ import requests
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.utils import toggle_test_mode
 
 authorization_token = None
 
@@ -33,6 +34,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		frappe.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
@@ -84,9 +86,34 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertIsInstance(docname, str)
 		self.GENERATED_DOCUMENTS.append(docname)
 
+	def test_copy_document(self):
+		doc = frappe.get_doc(self.DOCTYPE, self.GENERATED_DOCUMENTS[0])
+
+		# disabled temporarily to assert that `docstatus` is not copied outside of tests
+		toggle_test_mode(False)
+		try:
+			response = self.get(self.resource(self.DOCTYPE, doc.name, "copy"))
+		finally:
+			toggle_test_mode(True)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+
+		self.assertEqual(data["doctype"], self.DOCTYPE)
+		self.assertEqual(data["description"], doc.description)
+		self.assertEqual(data["status"], doc.status)
+		self.assertEqual(data["priority"], doc.priority)
+
+		self.assertNotIn("name", data)
+		self.assertNotIn("creation", data)
+		self.assertNotIn("modified", data)
+		self.assertNotIn("modified_by", data)
+		self.assertNotIn("owner", data)
+		self.assertNotIn("docstatus", data)
+
 	def test_delete_document(self):
 		doc_to_delete = choice(self.GENERATED_DOCUMENTS)
-		response = self.delete(self.resource(self.DOCTYPE, doc_to_delete))
+		response = self.delete(self.resource(self.DOCTYPE, doc_to_delete), data={"sid": self.sid})
 		self.assertEqual(response.status_code, 202)
 		self.assertDictEqual(response.json, {"data": "ok"})
 
@@ -161,7 +188,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 
 	def test_shorthand_controller_methods(self):
 		shorthand_response = self.get(self.method("User", "get_all_roles"), {"sid": self.sid})
-		self.assertIn("Blogger", shorthand_response.json["data"])
+		self.assertIn("Website Manager", shorthand_response.json["data"])
 
 		expanded_response = self.get(
 			self.method("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}

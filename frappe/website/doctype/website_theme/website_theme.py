@@ -55,7 +55,7 @@ class WebsiteTheme(Document):
 			not self.custom
 			and frappe.local.conf.get("developer_mode")
 			and not frappe.flags.in_import
-			and not frappe.flags.in_test
+			and not frappe.in_test
 		):
 			self.export_doc()
 
@@ -65,7 +65,7 @@ class WebsiteTheme(Document):
 		return (
 			not self.custom
 			and not frappe.local.conf.get("developer_mode")
-			and not (frappe.flags.in_import or frappe.flags.in_test or frappe.flags.in_migrate)
+			and not (frappe.flags.in_import or frappe.in_test or frappe.flags.in_migrate)
 		)
 
 	def on_trash(self):
@@ -154,7 +154,7 @@ class WebsiteTheme(Document):
 def get_active_theme() -> Optional["WebsiteTheme"]:
 	if website_theme := frappe.get_website_settings("website_theme"):
 		try:
-			return frappe.get_cached_doc("Website Theme", website_theme)
+			return frappe.client_cache.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			pass

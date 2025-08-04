@@ -14,6 +14,7 @@ from PIL import Image, ImageFile, ImageOps
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.exceptions import DoesNotExistError
 from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
@@ -151,9 +152,10 @@ class File(Document):
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.validate_empty_folder()
+		self.validate_protected_file()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
+			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
@@ -382,8 +384,11 @@ class File(Document):
 			filters = {
 				"content_hash": self.content_hash,
 				"is_private": self.is_private,
-				"name": ("!=", self.name),
 			}
+
+			if self.name:
+				filters.update({"name": ("!=", self.name)})
+
 			if self.attached_to_doctype and self.attached_to_name:
 				filters.update(
 					{
@@ -465,6 +470,36 @@ class File(Document):
 		"""Throw exception if folder is not empty"""
 		if self.is_folder and frappe.get_all("File", filters={"folder": self.name}, limit=1):
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
+
+	def validate_protected_file(self):
+		"""Throw an exception if this file is attached to a doctype that protects files.
+
+		Allows deleting the attached file if the linked document is in draft. If submitted,
+		deletion is not allowed. If canceled, requires delete permissions on the linked document.
+		"""
+		if not (self.attached_to_doctype and self.attached_to_name):
+			return
+
+		try:
+			ref_doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+		except DoesNotExistError:
+			return
+
+		if ref_doc.docstatus == 0:
+			# If the document is not submitted yet, users can correct wrong attachments
+			return
+
+		if not ref_doc.meta.protect_attached_files:
+			return
+
+		if ref_doc.docstatus == 2 and ref_doc.has_permission("delete"):
+			# Deletion must still be possible if users have the permission to delete the linked document
+			return
+
+		frappe.throw(
+			msg=_("This file is attached to a protected document and cannot be deleted."),
+			title=_("Protected File"),
+		)
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
@@ -656,9 +691,13 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
+			file_doc: File = frappe.get_cached_doc("File", duplicate_file.name)
 			if file_doc.exists_on_disk():
-				self.file_url = duplicate_file.file_url
+				if self.exists_on_disk():
+					if not self.file_url:
+						self.file_url = duplicate_file.file_url
+				else:
+					self.file_url = duplicate_file.file_url
 				file_exists = True
 
 		if not file_exists:
@@ -728,7 +767,7 @@ class File(Document):
 
 		self.add_comment_in_reference_doc(
 			"Attachment",
-			_("Added {0}").format(f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}"),
+			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
 		)
 
 	def add_comment_in_reference_doc(self, comment_type, text):
@@ -797,6 +836,7 @@ class File(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	frappe.db.add_index("File", ["file_url(100)"])
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
@@ -817,6 +857,8 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		except ModuleNotFoundError:
+			return False
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return False

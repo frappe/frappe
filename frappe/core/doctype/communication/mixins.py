@@ -81,7 +81,7 @@ class CommunicationEmailMixin:
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
-			assignees = set(self.get_assignees())
+			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
 				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):

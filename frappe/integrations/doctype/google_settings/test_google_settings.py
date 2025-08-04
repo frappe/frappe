@@ -2,18 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 from .google_settings import get_file_picker_settings
-
-
-class UnitTestGoogleSettings(UnitTestCase):
-	"""
-	Unit tests for GoogleSettings.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestGoogleSettings(IntegrationTestCase):

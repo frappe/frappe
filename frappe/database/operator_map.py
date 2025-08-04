@@ -95,7 +95,14 @@ def func_between(key: Field, value: list | tuple) -> frappe.qb:
 
 def func_is(key, value):
 	"Wrapper for IS"
-	return Coalesce(key, "") != "" if value.lower() == "set" else Coalesce(key, "") == ""
+
+	match value.lower():
+		case "set":
+			return key != ""
+		case "not set":
+			return key.isnull() | (key == "")
+		case _:
+			raise ValueError("`is` operator only supports `set` and `not set` as value")
 
 
 def func_timespan(key: Field, value: str) -> frappe.qb:
@@ -134,6 +141,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"between": func_between,
 	"is": func_is,
 	"timespan": func_timespan,
-	"nested_set": NestedSetHierarchy,
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
+
+NESTED_SET_OPERATORS = frozenset(NestedSetHierarchy)

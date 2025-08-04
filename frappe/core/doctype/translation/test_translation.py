@@ -2,16 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestTranslation(UnitTestCase):
-	"""
-	Unit tests for Translation.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestTranslation(IntegrationTestCase):
@@ -26,14 +17,15 @@ class TestTranslation(IntegrationTestCase):
 
 	def test_doctype(self):
 		translation_data = get_translation_data()
-		for key, val in translation_data.items():
-			frappe.local.lang = key
+		for lang, (source_string, new_translation) in translation_data.items():
+			frappe.local.lang = lang
+			original_translation = _(source_string)
 
-			translation = create_translation(key, val)
-			self.assertEqual(_(val[0]), val[1])
+			docname = create_translation(lang, source_string, new_translation)
+			self.assertEqual(_(source_string), new_translation)
 
-			frappe.delete_doc("Translation", translation.name)
-			self.assertEqual(_(val[0]), val[0])
+			frappe.delete_doc("Translation", docname)
+			self.assertEqual(_(source_string), original_translation)
 
 	def test_parent_language(self):
 		data = {
@@ -46,9 +38,9 @@ class TestTranslation(IntegrationTestCase):
 			},
 		}
 
-		for ss, lm in data.items():
-			for l, st in lm.items():
-				create_translation(l, (ss, st))
+		for source_string, translations in data.items():
+			for lang, translation in translations.items():
+				create_translation(lang, source_string, translation)
 
 		frappe.local.lang = "es"
 
@@ -69,6 +61,7 @@ class TestTranslation(IntegrationTestCase):
 		self.assertNotEqual(_(source, lang="de"), _(source, lang="es"))
 
 	def test_html_content_data_translation(self):
+		# ruff: noqa: RUF001
 		source = """
 			<span style="color: rgb(51, 51, 51); font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
 			small;">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to
@@ -86,7 +79,7 @@ class TestTranslation(IntegrationTestCase):
 			los procesadores Intel Core i5 e i7 de quinta generación con Intel HD Graphics 6000 son capaces de hacerlo.
 		"""
 
-		create_translation("es", [source, target])
+		create_translation("es", source, target)
 
 		source = """
 			<span style="font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
@@ -116,10 +109,11 @@ def get_translation_data():
 	}
 
 
-def create_translation(key, val):
-	translation = frappe.new_doc("Translation")
-	translation.language = key
-	translation.source_text = val[0]
-	translation.translated_text = val[1]
-	translation.save()
-	return translation
+def create_translation(lang, source_string, new_translation) -> str:
+	doc = frappe.new_doc("Translation")
+	doc.language = lang
+	doc.source_text = source_string
+	doc.translated_text = new_translation
+	doc.save()
+
+	return doc.name

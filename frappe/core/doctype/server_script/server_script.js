@@ -16,12 +16,14 @@ frappe.ui.form.on("Server Script", {
 			});
 		}
 
-		frappe
-			.call("frappe.core.doctype.server_script.server_script.get_autocompletion_items")
-			.then((r) => r.message)
-			.then((items) => {
-				frm.set_df_property("script", "autocompletions", items);
-			});
+		setTimeout(() => {
+			frappe
+				.call("frappe.core.doctype.server_script.server_script.get_autocompletion_items")
+				.then((r) => r.message)
+				.then((items) => {
+					frm.set_df_property("script", "autocompletions", items);
+				});
+		}, 100);
 
 		frm.trigger("check_safe_exec");
 	},
@@ -126,6 +128,21 @@ conditions = f'tenant_id = {tenant_id}'
 select name from \`tabPerson\`
 where tenant_id = 2
 order by creation desc
+</code></pre>
+
+<hr>
+
+<h4>Workflow Task</h4>
+<p>Execute when a particular <a href="/app/workflow-action-master">Workflow Action Master</a> is executed.</p>
+<p>Gets the document which the action is being applied on in the <code>doc</code> variable.</p>
+<code><pre>
+# create a customer with the same name as the given document
+
+customer = frappe.new_doc("Customer")
+customer.customer_name = doc.first_name + " " + doc.last_name # we get this from the workflow action
+customer.customer_type = "Company"
+
+c.save()
 </code></pre>
 `);
 	},

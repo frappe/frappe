@@ -10,7 +10,7 @@ from frappe.boot import get_allowed_report_names
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, get_datetime, getdate, has_common, now_datetime, nowdate
+from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
 from frappe.utils.dateutils import (
@@ -56,7 +56,7 @@ def get_permission_query_conditions(user):
 			or `tabDashboard Chart`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
 
 	return f"""
-		((`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average')
+		((`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average', 'Group By')
 		and {doctype_condition})
 		or
 		(`tabDashboard Chart`.`chart_type` = 'Report'
@@ -125,7 +125,7 @@ def get(
 		filters = []
 
 	# don't include cancelled documents
-	filters.append([chart.document_type, "docstatus", "<", 2, False])
+	filters.append([chart.document_type, "docstatus", "<", 2])
 
 	if chart.chart_type == "Group By":
 		chart_config = get_group_by_chart_config(chart, filters)
@@ -196,8 +196,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	from_date = from_date.strftime("%Y-%m-%d")
 	to_date = to_date
 
-	filters.append([doctype, datefield, ">=", from_date, False])
-	filters.append([doctype, datefield, "<=", to_date, False])
+	filters.append([doctype, datefield, ">=", from_date])
+	filters.append([doctype, datefield, "<=", to_date])
 
 	data = frappe.get_list(
 		doctype,
@@ -231,8 +231,8 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
 	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", f"{year_start_date}", False])
-	filters.append([doctype, datefield, "<", f"{next_year_start_date}", False])
+	filters.append([doctype, datefield, ">", f"{year_start_date}"])
+	filters.append([doctype, datefield, "<", f"{next_year_start_date}"])
 
 	if frappe.db.db_type == "mariadb":
 		timestamp_field = f"unix_timestamp({datefield})"
@@ -313,8 +313,8 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 		for d in result:
 			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
-				d[1] += cint(data[data_index][1])
-				count += cint(data[data_index][2])
+				d[1] += flt(data[data_index][1])
+				count += flt(data[data_index][2])
 				data_index += 1
 			if chart_type == "Average" and count != 0:
 				d[1] = d[1] / count
@@ -349,6 +349,7 @@ class DashboardChart(Document):
 		chart_name: DF.Data
 		chart_type: DF.Literal["Count", "Sum", "Average", "Group By", "Custom", "Report"]
 		color: DF.Color | None
+		currency: DF.Link | None
 		custom_options: DF.Code | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None

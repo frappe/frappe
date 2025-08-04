@@ -47,8 +47,7 @@ class Page(Document):
 			if frappe.db.exists("Page", self.name):
 				cnt = frappe.db.sql(
 					"""select name from tabPage
-					where name like "%s-%%" order by name desc limit 1"""
-					% self.name
+					where name like "{}-%" order by name desc limit 1""".format(self.name)
 				)
 				if cnt:
 					cnt = cint(cnt[0][0].split("-")[-1]) + 1

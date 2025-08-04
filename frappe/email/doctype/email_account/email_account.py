@@ -10,6 +10,7 @@ from poplib import error_proto
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.frappemail import FrappeMail
@@ -60,6 +61,7 @@ class EmailAccount(Document):
 		from frappe.types import DF
 
 		add_signature: DF.Check
+		always_bcc: DF.Data | None
 		always_use_account_email_id_as_sender: DF.Check
 		always_use_account_name_as_sender_name: DF.Check
 		api_key: DF.Data | None
@@ -101,6 +103,7 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
+		sent_folder_name: DF.Data | None
 		service: DF.Literal[
 			"", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
 		]
@@ -142,6 +145,9 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+		if self.service == "Sendgrid":
+			self.login_id = "apikey"
+
 		if self.service == "Frappe Mail":
 			self.use_imap = 0
 			self.always_use_account_email_id_as_sender = 1
@@ -153,7 +159,7 @@ class EmailAccount(Document):
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
+		if frappe.local.flags.in_patch or frappe.in_test:
 			return
 
 		use_oauth = self.auth_method == "OAuth"
@@ -199,7 +205,7 @@ class EmailAccount(Document):
 	def validate_frappe_mail_settings(self):
 		if self.service == "Frappe Mail":
 			frappe_mail_client = self.get_frappe_mail_client()
-			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
+			frappe_mail_client.validate()
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
@@ -248,6 +254,10 @@ class EmailAccount(Document):
 			enable_outgoing=self.enable_outgoing,
 			used_oauth=self.auth_method == "OAuth",
 		)
+
+	def clear_cache(self):
+		super().clear_cache()
+		frappe.client_cache.delete_value("automatic_linking_email")
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -353,9 +363,7 @@ class EmailAccount(Document):
 
 	@property
 	def _password(self):
-		raise_exception = not (
-			self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.flags.in_test
-		)
+		raise_exception = not (self.auth_method == "OAuth" or self.no_smtp_authentication or frappe.in_test)
 		return self.get_password(raise_exception=raise_exception)
 
 	@property
@@ -421,7 +429,7 @@ class EmailAccount(Document):
 
 		if _raise_error:
 			frappe.throw(
-				_("Please setup default Email Account from Settings > Email Account"),
+				_("Please setup default outgoing Email Account from Tools > Email Account"),
 				frappe.OutgoingEmailError,
 			)
 
@@ -555,27 +563,24 @@ class EmailAccount(Document):
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def _disable_broken_incoming_account(self, description):
-		if frappe.flags.in_test:
+		if frappe.in_test:
 			return
 		self.db_set("enable_incoming", 0)
 
-		for user in get_system_managers(only_name=True):
-			try:
-				assign_to.add(
-					{
-						"assign_to": [user],
-						"doctype": self.doctype,
-						"name": self.name,
-						"description": description,
-						"priority": "High",
-						"notify": 1,
-					}
-				)
-			except assign_to.DuplicateToDoError:
-				pass
+		users = get_system_managers(only_name=True)
+		notification = {
+			"document_type": self.doctype,
+			"document_name": self.name,
+			"subject": description,
+			"from_user": "Administrator",
+			"email_header": _("Email Account {0} Disabled").format(self.email_id or self.name),
+		}
+		enqueue_create_notification(users, notification)
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
+		frappe.cache.set_value(
+			f"{self.name}:email-account-failed-attempts", value, expires_in_sec=2 * 60 * 60
+		)
 
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache.get_value(f"{self.name}:email-account-failed-attempts"))
@@ -774,7 +779,10 @@ class EmailAccount(Document):
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 			message = safe_encode(message)
-			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+			sent_folder_name = self.sent_folder_name or "Sent"
+			email_server.imap.append(
+				sent_folder_name, "\\Seen", imaplib.Time2Internaldate(time.time()), message
+			)
 		except Exception:
 			self.log_error("Unable to add to Sent folder")
 
@@ -876,6 +884,7 @@ def pull(now=False):
 		.select(
 			doctype.name,
 			doctype.auth_method,
+			doctype.backend_app_flow,
 			doctype.connected_app,
 			doctype.connected_user,
 		)
@@ -1034,3 +1043,20 @@ def set_email_password(email_account, password):
 			return False
 
 	return True
+
+
+def get_automatic_email_link():
+	def check_db():
+		return frappe.db.get_value(
+			"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+		)
+
+	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db)
+
+
+def on_doctype_update() -> None:
+	frappe.db.add_unique(
+		"Email Account",
+		["email_id", "enable_incoming", "enable_outgoing"],
+		constraint_name="unique_email_account_type",
+	)

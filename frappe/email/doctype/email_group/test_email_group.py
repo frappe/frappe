@@ -1,17 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import validate_url
-
-
-class UnitTestEmailGroup(UnitTestCase):
-	"""
-	Unit tests for EmailGroup.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestEmailGroup(IntegrationTestCase):

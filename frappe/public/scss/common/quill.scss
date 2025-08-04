@@ -310,6 +310,11 @@
 	.mention {
 		--user-mention-bg-color: var(--control-bg);
 	}
+	p {
+		img {
+			max-width: 500px;
+		}
+	}
 }
 
 .ql-mention-list {
@@ -336,4 +341,8 @@
 	left: 8px;
 	color: var(--text-muted);
 	font-style: normal;
+}
+
+.ql-bubble .ql-editor img {
+	max-width: 500px !important;
 }

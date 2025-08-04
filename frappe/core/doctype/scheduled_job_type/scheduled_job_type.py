@@ -1,10 +1,10 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import contextlib
+import hashlib
 import json
 from datetime import datetime, timedelta
-from random import randint
+from functools import lru_cache
 
 import click
 from croniter import CroniterBadCronError, croniter
@@ -14,6 +14,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
+
+parse_cron = lru_cache(croniter)  # Cache parsed cron-expressions
 
 
 class ScheduledJobType(Document):
@@ -31,8 +33,10 @@ class ScheduledJobType(Document):
 			"All",
 			"Hourly",
 			"Hourly Long",
+			"Hourly Maintenance",
 			"Daily",
 			"Daily Long",
+			"Daily Maintenance",
 			"Weekly",
 			"Weekly Long",
 			"Monthly",
@@ -43,7 +47,7 @@ class ScheduledJobType(Document):
 		]
 		last_execution: DF.Datetime | None
 		method: DF.Data
-		next_execution: DF.Datetime | None
+		scheduler_event: DF.Link | None
 		server_script: DF.Link | None
 		stopped: DF.Check
 	# end: auto-generated types
@@ -94,13 +98,18 @@ class ScheduledJobType(Document):
 	@property
 	def rq_job_id(self):
 		"""Unique ID created to deduplicate jobs with single RQ call."""
-		return f"scheduled_job::{self.name}"
+		return f"scheduled_job||{self.name}"
 
 	@property
 	def next_execution(self):
 		return self.get_next_execution()
 
 	def get_next_execution(self):
+		# Maintenance jobs run at random time, the time is specific to the site though.
+		# This is done to avoid scheduling all maintenance task on all sites at the same time in
+		# multitenant deployments.
+		maintenance_offset = int(hashlib.sha1(frappe.local.site.encode()).hexdigest(), 16) % 60
+
 		CRON_MAP = {
 			"Yearly": "0 0 1 1 *",
 			"Annual": "0 0 1 1 *",
@@ -110,8 +119,10 @@ class ScheduledJobType(Document):
 			"Weekly Long": "0 0 * * 0",
 			"Daily": "0 0 * * *",
 			"Daily Long": "0 0 * * *",
+			"Daily Maintenance": "0 0 * * *",
 			"Hourly": "0 * * * *",
 			"Hourly Long": "0 * * * *",
+			"Hourly Maintenance": "0 * * * *",
 			"All": f"*/{(frappe.get_conf().scheduler_interval or 240) // 60} * * * *",
 		}
 
@@ -123,12 +134,11 @@ class ScheduledJobType(Document):
 		# immediately, even when it's meant to be daily.
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
-		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
 
-		jitter = 0
-		if "Long" in self.frequency:
-			jitter = randint(1, 600)
-		return next_execution + timedelta(seconds=jitter)
+		next_execution = parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
+		if self.frequency in ("Hourly Maintenance", "Daily Maintenance"):
+			next_execution += timedelta(minutes=maintenance_offset)
+		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 
 	def execute(self):
 		if frappe.job:
@@ -175,7 +185,7 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return "long" if ("Long" in self.frequency) else "default"
+		return "long" if ("Long" in self.frequency or "Maintenance" in self.frequency) else "default"
 
 	def on_trash(self):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})
@@ -189,8 +199,19 @@ def execute_event(doc: str):
 	return doc
 
 
+@frappe.whitelist()
+def skip_next_execution(doc: str):
+	frappe.only_for("System Manager")
+	doc = json.loads(doc)
+	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
+	doc.last_execution = doc.next_execution
+	return doc.save()
+
+
 def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
+	if frappe.conf.maintenance_mode:
+		raise frappe.InReadOnlyMode("Scheduled jobs can't run in maintenance mode.")
 	try:
 		frappe.get_doc("Scheduled Job Type", scheduled_job_type).execute()
 	except Exception:
@@ -234,24 +255,34 @@ def insert_event_jobs(events: list, event_type: str) -> list:
 	return event_jobs
 
 
-def insert_single_event(frequency: str, event: str, cron_format: str | None = None):
-	cron_expr = {"cron_format": cron_format} if cron_format else {}
-
+def insert_single_event(frequency: str, event: str, cron_format: str | None = ""):
 	try:
 		frappe.get_attr(event)
 	except Exception as e:
 		click.secho(f"{event} is not a valid method: {e}", fg="yellow")
+		return
 
-	doc = frappe.get_doc(
-		{
-			"doctype": "Scheduled Job Type",
-			"method": event,
-			"cron_format": cron_format,
-			"frequency": frequency,
-		}
-	)
+	doc: ScheduledJobType
 
-	if not frappe.db.exists("Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}):
+	if job_name := frappe.db.exists("Scheduled Job Type", {"method": event}):
+		doc = frappe.get_doc("Scheduled Job Type", job_name)
+
+		# Update only frequency and cron_format fields if they are different
+		# Maintain existing values of other fields
+		if doc.frequency != frequency or doc.cron_format != cron_format:
+			doc.cron_format = cron_format
+			doc.frequency = frequency
+			doc.save()
+	else:
+		doc = frappe.get_doc(
+			{
+				"doctype": "Scheduled Job Type",
+				"method": event,
+				"cron_format": cron_format,
+				"frequency": frequency,
+			}
+		)
+
 		savepoint = "scheduled_job_type_creation"
 		try:
 			frappe.db.savepoint(savepoint)
@@ -265,6 +296,9 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = No
 def clear_events(scheduler_events: dict):
 	def event_exists(event) -> bool:
 		if event.server_script:
+			return True
+
+		if event.scheduler_event:
 			return True
 
 		freq = frappe.scrub(event.frequency)

@@ -4,7 +4,6 @@
 import frappe
 
 
-@frappe.whitelist()
 def get(name):
 	"""
 	Return the :term:`doclist` of the `Page` specified by `name`
@@ -23,11 +22,10 @@ def get(name):
 
 
 @frappe.whitelist(allow_guest=True)
-def getpage():
+def getpage(name: str):
 	"""
 	Load the page from `frappe.form` and send it via `frappe.response`
 	"""
-	page = frappe.form_dict.get("name")
-	doc = get(page)
 
+	doc = get(name)
 	frappe.response.docs.append(doc)

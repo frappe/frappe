@@ -54,6 +54,7 @@ class SocialLoginKey(Document):
 		icon: DF.Data | None
 		provider_name: DF.Data
 		redirect_url: DF.Data | None
+		show_in_resource_metadata: DF.Check
 		sign_ups: DF.Literal["", "Allow", "Deny"]
 		social_login_provider: DF.Literal[
 			"Custom",
@@ -218,7 +219,7 @@ class SocialLoginKey(Document):
 			"provider_name": "Keycloak",
 			"enable_social_login": 1,
 			"custom_base_url": 1,
-			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak/keycloak",
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak",
 			"api_endpoint": "/protocol/openid-connect/userinfo",
 			"api_endpoint_args": None,
 			"authorize_url": "/protocol/openid-connect/auth",

@@ -23,7 +23,7 @@ def get_context(context):
 		frappe.msgprint(_("Log in to access this page."))
 		frappe.redirect(f"/login?{urlencode({'redirect-to': frappe.request.path})}")
 
-	elif frappe.db.get_value("User", frappe.session.user, "user_type", order_by=None) == "Website User":
+	elif frappe.session.data.user_type == "Website User":
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	try:
@@ -35,15 +35,6 @@ def get_context(context):
 	csrf_token = frappe.sessions.get_csrf_token()
 
 	frappe.db.commit()
-
-	boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-
-	# remove script tags from boot
-	boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
-
-	# TODO: Find better fix
-	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
-	boot_json = json.dumps(boot_json)
 
 	hooks = frappe.get_hooks()
 	app_include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
@@ -63,7 +54,7 @@ def get_context(context):
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
-			"boot": boot if context.get("for_mobile") else boot_json,
+			"boot": boot,
 			"desk_theme": boot.get("desk_theme") or "Light",
 			"csrf_token": csrf_token,
 			"google_analytics_id": frappe.conf.get("google_analytics_id"),

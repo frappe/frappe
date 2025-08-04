@@ -152,6 +152,10 @@ table.no-border, table.no-border td {
 	margin: 3px 0px 3px;
 }
 
+.print-format .ql-snow p {
+	margin-top: 0px;
+}
+
 .print-format table td pre {
 	white-space: normal;
 	word-break: normal;

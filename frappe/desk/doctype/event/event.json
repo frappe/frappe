@@ -247,9 +247,9 @@
    "fieldname": "google_calendar_event_id",
    "fieldtype": "Data",
    "label": "Google Calendar Event ID",
+   "length": 320,
    "no_copy": 1,
-   "read_only": 1,
-   "length": 320
+   "read_only": 1
   },
   {
    "default": "0",
@@ -287,16 +287,17 @@
   },
   {
    "fieldname": "google_meet_link",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Google Meet Link",
    "no_copy": 1,
    "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:03:25.511756",
+ "modified": "2025-06-17 15:31:01.945146",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",
@@ -309,7 +310,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All",
+   "role": "Desk User",
    "share": 1,
    "write": 1
   },
@@ -325,9 +326,19 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sender_field": "sender",
  "sort_field": "creation",
  "sort_order": "DESC",

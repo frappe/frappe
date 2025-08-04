@@ -77,7 +77,7 @@ def get_language(lang_list: list | None = None) -> str:
 			return parent_language
 
 	# fallback to language set in System Settings or "en"
-	return frappe.db.get_default("lang") or "en"
+	return frappe.get_system_settings("language") or "en"
 
 
 @functools.lru_cache
@@ -100,7 +100,7 @@ def get_user_lang(user: str | None = None) -> str:
 	# User.language => Session Defaults => frappe.local.lang => 'en'
 	return (
 		frappe.get_cached_value("User", user, "language")
-		or frappe.db.get_default("lang")
+		or frappe.get_system_settings("language")
 		or frappe.local.lang
 		or "en"
 	)
@@ -130,6 +130,16 @@ def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
 
 	return get_all_translations(frappe.local.lang)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_app_translations():
+	if frappe.session.user != "Guest":
+		language = frappe.db.get_value("User", frappe.session.user, "language")
+	else:
+		language = frappe.db.get_single_value("System Settings", "language")
+
+	return get_all_translations(language)
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
@@ -471,8 +481,8 @@ def get_messages_from_report(name):
 	)
 
 	if report.columns:
-		context = (
-			"Column of report '%s'" % report.name
+		context = "Column of report '{}'".format(
+			report.name
 		)  # context has to match context in `prepare_columns` in query_report.js
 		messages.extend([(None, report_column.label, context) for report_column in report.columns])
 
@@ -800,7 +810,6 @@ def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
-
 	strings_in_target_app_but_not_in_source_app = list(
 		set(strings_in_target_app) - set(strings_in_source_app)
 	)
@@ -914,24 +923,9 @@ def update_translations_for_source(source=None, translation_dict=None):
 	return translation_records
 
 
-@frappe.whitelist()
-def get_translations(source_text):
-	if is_html(source_text):
-		source_text = strip_html_tags(source_text)
-
-	return frappe.db.get_list(
-		"Translation",
-		fields=["name", "language", "translated_text as translation"],
-		filters={"source_text": source_text},
-	)
-
-
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
-
-	def get_language_codes():
-		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
 		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
@@ -939,7 +933,11 @@ def get_all_languages(with_language_name: bool = False) -> list:
 	if with_language_name:
 		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
 	else:
-		return frappe.cache.get_value("languages", get_language_codes)
+		languages = frappe.client_cache.get_value("languages")
+		if not languages:
+			languages = frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
+			frappe.client_cache.set_value("languages", languages)
+		return languages
 
 
 def get_preferred_language_cookie():

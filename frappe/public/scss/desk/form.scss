@@ -115,6 +115,11 @@
 
 .form-section.card-section.hide-border {
 	border-bottom: none;
+	padding-bottom: 0;
+
+	&:not(:has(.section-head)) {
+		padding-top: 0;
+	}
 }
 
 .form-dashboard-section {
@@ -131,7 +136,6 @@
 .control-label,
 .grid-heading-row {
 	color: var(--text-muted);
-	@include get_textstyle("sm", "regular");
 }
 
 .control-label {
@@ -499,8 +503,9 @@
 
 				&.active {
 					font-weight: 600;
-					border-bottom: 1px solid var(--primary);
+					border-bottom: 1px solid var(--text-color);
 					color: var(--text-color);
+					padding-bottom: 9px;
 				}
 			}
 		}

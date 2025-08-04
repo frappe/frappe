@@ -18,14 +18,12 @@ class NotificationSettings(Document):
 		from frappe.types import DF
 
 		enable_email_assignment: DF.Check
-		enable_email_energy_point: DF.Check
 		enable_email_event_reminders: DF.Check
 		enable_email_mention: DF.Check
 		enable_email_notifications: DF.Check
 		enable_email_share: DF.Check
 		enable_email_threads_on_assigned_document: DF.Check
 		enabled: DF.Check
-		energy_points_system_notifications: DF.Check
 		seen: DF.Check
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
 		user: DF.Link | None

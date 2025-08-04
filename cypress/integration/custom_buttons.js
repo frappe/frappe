@@ -41,6 +41,8 @@ describe(
 		before(() => {
 			cy.login();
 			cy.visit(`/app/note/new`);
+			// close the sidebar cause default is expanded
+			cy.get(".body-sidebar .collapse-sidebar-link").click();
 		});
 
 		test_button_names.forEach((button_name) => {

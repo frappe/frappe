@@ -60,9 +60,9 @@ jobs:
 
     services:
       mysql:
-        image: mariadb:11.3
+        image: mariadb:11.8
         env:
-          MARIADB_ROOT_PASSWORD: travis
+          MARIADB_ROOT_PASSWORD: db_root
         ports:
           - 3306:3306
         options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
@@ -74,12 +74,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           check-latest: true
 
       - name: Add to Hosts

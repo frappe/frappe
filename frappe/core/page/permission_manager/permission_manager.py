@@ -150,7 +150,7 @@ def remove(doctype, role, permlevel, if_owner=0):
 		"Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
 	)
 	for name in custom_docperms:
-		frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True)
+		frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True, force=True)
 
 	if not frappe.get_all("Custom DocPerm", {"parent": doctype}):
 		frappe.throw(_("There must be atleast one permission rule."), title=_("Cannot Remove"))

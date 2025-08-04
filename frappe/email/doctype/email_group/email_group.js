@@ -62,15 +62,6 @@ frappe.ui.form.on("Email Group", {
 				},
 				__("Action")
 			);
-
-			frm.add_custom_button(
-				__("New Newsletter"),
-				function () {
-					frappe.route_options = { email_group: frm.doc.name };
-					frappe.new_doc("Newsletter");
-				},
-				__("Action")
-			);
 		}
 
 		frm.trigger("preview_welcome_url");

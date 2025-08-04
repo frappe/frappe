@@ -12,24 +12,32 @@ import click
 import requests
 
 import frappe
-from frappe.tests.utils import make_test_records
+from frappe.tests.utils import make_test_records, toggle_test_mode
 
+from .testing.environment import _decorate_all_methods_and_functions_with_type_checker
 from .testing.result import TestResult
 
 click_ctx = click.get_current_context(True)
 if click_ctx:
 	click_ctx.color = True
 
+TEST_WEIGHT_OVERRIDES = {
+	# XXX: command tests are significantly overweight, need a better heuristic than test count
+	# Possible better solution: stats from previous test runs.
+	"test_commands.py": 10,
+}
+
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
+	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False):
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
+		self.lightmode = lightmode
 		self.test_file_list = []
-		self.total_tests = 0
+		self.total_test_weight = 0
 		self.test_result = None
 		self.setup_test_file_list()
 
@@ -46,10 +54,12 @@ class ParallelTestRunner:
 		if self.dry_run:
 			return
 
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
-		self.before_test_setup()
+		if not self.lightmode:
+			_decorate_all_methods_and_functions_with_type_checker()
+			self.before_test_setup()
 
 	def before_test_setup(self):
 		start_time = time.monotonic()
@@ -68,8 +78,7 @@ class ParallelTestRunner:
 
 	def setup_test_file_list(self):
 		self.test_file_list = self.get_test_file_list()
-		self.total_tests = sum(self.get_test_count(test) for test in self.test_file_list)
-		click.echo(f"Estimated total tests for build {self.build_number}: {self.total_tests}")
+		self.total_test_weight = sum(self.get_test_weight(test) for test in self.test_file_list)
 
 	def run_tests(self):
 		self.test_result = TestResult(stream=sys.stderr, descriptions=True, verbosity=2)
@@ -85,9 +94,23 @@ class ParallelTestRunner:
 			print("running tests from", "/".join(file_info))
 			return
 
-		frappe.set_user("Administrator")
+		if frappe.session.user != "Administrator":
+			from frappe.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning(
+				"2024-11-13",
+				"v17",
+				"Setting the test environment user to 'Administrator' by the test runner is deprecated. The UnitTestCase now ensures a consistent user environment on set up and tear down at the class level. ",
+			)
+			frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
+
+		if not self.lightmode:
+			from frappe.deprecation_dumpster import compat_preload_test_records_upfront
+
+			compat_preload_test_records_upfront([(module, path, filename)])
+
 		test_suite = unittest.TestSuite()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
@@ -123,18 +146,20 @@ class ParallelTestRunner:
 		# Load balance based on total # of tests ~ each runner should get roughly same # of tests.
 		test_list = get_all_tests(self.app)
 
-		test_counts = [self.get_test_count(test) for test in test_list]
+		test_counts = [self.get_test_weight(test) for test in test_list]
 		test_chunks = split_by_weight(test_list, test_counts, chunk_count=self.total_builds)
 
 		return test_chunks[self.build_number - 1]
 
 	@staticmethod
-	def get_test_count(test):
+	def get_test_weight(test):
 		"""Get approximate count of tests inside a file"""
 		file_name = "/".join(test)
 
+		test_weight = TEST_WEIGHT_OVERRIDES.get(test[-1]) or 1
+
 		with open(file_name) as f:
-			test_count = f.read().count("def test_")
+			test_count = f.read().count("def test_") * test_weight
 
 		return test_count
 

@@ -1,9 +1,11 @@
 <div class="hero-with-right-image">
 	<div class="hero-content">
 		<div>
+			{%- if title -%}
 			<h1 class="hero-title">
 				{{ _(title) }}
 			</h1>
+			{%- endif -%}
 			{%- if subtitle -%}
 			<p class="hero-subtitle">
 				{{ _(subtitle) }}

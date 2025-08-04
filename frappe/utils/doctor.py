@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from rq import Connection, Worker
+from rq import Worker
 
 import frappe.utils
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
@@ -8,8 +8,7 @@ from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 
 
 def get_workers():
-	with Connection(get_redis_conn()):
-		return Worker.all()
+	return Worker.all(connection=get_redis_conn())
 
 
 def purge_pending_jobs(event=None, site=None, queue=None):
@@ -81,7 +80,13 @@ def get_pending_jobs(site=None):
 def any_job_pending(site: str) -> bool:
 	for queue in get_queue_list():
 		q = get_queue(queue)
+		# pending jobs
 		for job_id in q.get_job_ids():
+			if job_id.startswith(site):
+				return True
+
+		# already running jobs
+		for job_id in q.started_job_registry.get_job_ids():
 			if job_id.startswith(site):
 				return True
 	return False

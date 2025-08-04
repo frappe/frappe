@@ -2,15 +2,14 @@
 	padding-left: 0;
 	padding-right: 0;
 	background-color: white;
-	@include get_textstyle("sm", "regular");
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
-	@include get_textstyle("sm", "regular");
 	a {
 		margin-right: 10px;
 		&:before {
-			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			// content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
+			content: "/";
 			display: inline-block;
 			margin-right: 10px;
 		}
@@ -23,8 +22,11 @@
 
 	li.disabled {
 		a {
-			color: var(--gray-600);
 			pointer-events: none;
 		}
+	}
+
+	li:last-child {
+		font-weight: var(--weight-semibold);
 	}
 }

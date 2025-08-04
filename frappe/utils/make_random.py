@@ -45,10 +45,12 @@ def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 		order by RAND() limit 1 offset 0""",
 			"postgres": f"""select name from `tab{doctype}` {condition}
 		order by RANDOM() limit 1 offset 0""",
+			"sqlite": f"""select name from `tab{doctype}` {condition}
+		order by RANDOM() limit 1 offset 0""",
 		}
 	)
 
-	out = out and out[0][0] or None
+	out = (out and out[0][0]) or None
 
 	if doc and out:
 		return frappe.get_doc(doctype, out)

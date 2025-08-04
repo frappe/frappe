@@ -1,0 +1,29 @@
+[
+	{
+		"is_default": 1,
+		"is_global": 1,
+		"doctype": "Email Account",
+		"domain":"example.com",
+		"email_account_name": "_Test Email Account 1",
+		"enable_outgoing": 1,
+		"smtp_server": "test.example.com",
+		"email_id": "test@example.com",
+		"password": "password",
+		"add_signature": 1,
+		"signature": "\nBest Wishes\nTest Signature",
+		"enable_auto_reply": 1,
+		"auto_reply_message": "",
+		"enable_incoming": 1,
+		"notify_if_unreplied": 1,
+		"unreplied_for_mins": 20,
+		"send_notification_to": "test_unreplied@example.com",
+		"pop3_server": "pop.test.example.com",
+		"append_to": "ToDo",
+		"imap_folder": [{"folder_name": "INBOX", "append_to": "ToDo"}, {"folder_name": "Test Folder", "append_to": "Communication"}],
+		"track_email_status": 1
+	},
+	{
+		"doctype": "ToDo",
+		"description":"test doctype"
+	}
+]
