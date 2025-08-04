@@ -188,6 +188,18 @@ function isObjectEmpty(obj: object | null | undefined) {
 	return Object.keys(obj).length === 0
 }
 
+function getValueFromObject(obj: object | null | undefined, key: string) {
+	if (isObjectEmpty(obj)) return undefined
+	const data = Object.assign({}, obj)
+	const value = key
+		.split(".")
+		.reduce(
+			(d: Record<string, any> | null, key) => (d && typeof d === "object" ? d[key] : null),
+			data as Record<string, any>,
+		)
+	return value
+}
+
 function isJSONString(str: string) {
 	try {
 		jsonToJs(str)
@@ -704,6 +716,7 @@ export {
 	copyObject,
 	areObjectsEqual,
 	isObjectEmpty,
+	getValueFromObject,
 	isJSONString,
 	jsToJson,
 	jsonToJs,

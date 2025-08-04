@@ -94,7 +94,13 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
+import {
+	getComponentRoot,
+	isDynamicValue,
+	getDynamicValue,
+	isHTML,
+	getValueFromObject,
+} from "@/utils/helpers"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
@@ -178,15 +184,7 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// handle nested object properties
-			const propertyPath = modelValue.name.split(".")
-			let value = store.variables
-			// return nested object property value
-			for (const key of propertyPath) {
-				if (value === undefined || value === null) return undefined
-				value = value[key]
-			}
-			return value
+			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
 			return getDynamicValue(modelValue, getEvaluationContext())
 		}

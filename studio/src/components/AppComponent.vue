@@ -33,7 +33,14 @@ import { computed, onMounted, ref, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
+import {
+	getComponentRoot,
+	isDynamicValue,
+	getDynamicValue,
+	isHTML,
+	executeUserScript,
+	getValueFromObject,
+} from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 
 import useAppStore from "@/stores/appStore"
@@ -104,15 +111,7 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// handle nested object properties
-			const propertyPath = modelValue.name.split(".")
-			let value = store.variables
-			// return nested object property value
-			for (const key of propertyPath) {
-				if (value === undefined || value === null) return undefined
-				value = value[key]
-			}
-			return value
+			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
 			return getDynamicValue(modelValue, getEvaluationContext())
 		}
@@ -185,7 +184,7 @@ const componentEvents = computed(() => {
 				return () => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
-						fields[field.field] = store.variables[field.value]
+						fields[field.field] = getValueFromObject(store.variables, field.value)
 					})
 					createResource({
 						url: "frappe.client.insert",
