@@ -40,6 +40,7 @@ import {
 	isHTML,
 	executeUserScript,
 	getValueFromObject,
+	setValueInObject,
 } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 
@@ -120,26 +121,7 @@ const boundValue = computed({
 	set(newValue) {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// update the variable in the store
-			const propertyPath = modelValue.name.split(".")
-			if (propertyPath.length === 1) {
-				// top level variable
-				store.variables[modelValue.name] = newValue
-			} else {
-				// nested object properties
-				const targetProperty = propertyPath.pop()!
-				let obj = store.variables
-
-				// navigate to the parent object
-				for (const key of propertyPath) {
-					if (!obj[key] || typeof obj[key] !== "object") {
-						obj[key] = {}
-					}
-					obj = obj[key]
-				}
-				// set the value on the parent object
-				obj[targetProperty] = newValue
-			}
+			setValueInObject(store.variables, modelValue.name, newValue)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)

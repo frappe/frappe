@@ -200,6 +200,27 @@ function getValueFromObject(obj: object | null | undefined, key: string) {
 	return value
 }
 
+function setValueInObject(obj: Record<string, any>, key: string, value: any) {
+	if (isObjectEmpty(obj)) return
+
+	const propertyPath = key.split(".")
+	if (propertyPath.length === 1) {
+		// top level key
+		obj[key] = value
+	} else {
+		const targetProperty = propertyPath.pop()!
+		// navigate to the parent object
+		for (const key of propertyPath) {
+			if (!obj[key] || typeof obj[key] !== "object") {
+				obj[key] = {}
+			}
+			obj = obj[key]
+		}
+		// set the value on the parent object
+		obj[targetProperty] = value
+	}
+}
+
 function isJSONString(str: string) {
 	try {
 		jsonToJs(str)
@@ -717,6 +738,7 @@ export {
 	areObjectsEqual,
 	isObjectEmpty,
 	getValueFromObject,
+	setValueInObject,
 	isJSONString,
 	jsToJson,
 	jsonToJs,
