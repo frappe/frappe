@@ -192,6 +192,23 @@ class Engine:
 		elif not _value and isinstance(_value, list | tuple):
 			_value = ("",)
 
+		if isinstance(_value, int | float) and isinstance(_field, Field):
+			try:
+				field_meta = frappe.get_meta(self.doctype).get_field(field)
+				if field_meta and field_meta.fieldtype in (
+					"Data",
+					"Text",
+					"Small Text",
+					"Text Editor",
+					"Code",
+					"Link",
+					"Dynamic Link",
+				):
+					_value = str(_value)
+			except Exception:
+				# this is safer than allowing implicit type conversion
+				_value = str(_value)
+
 		# Nested set
 		if _operator in OPERATOR_MAP["nested_set"]:
 			hierarchy = _operator
