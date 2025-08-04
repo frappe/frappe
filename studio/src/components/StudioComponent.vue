@@ -94,7 +94,14 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML } from "@/utils/helpers"
+import {
+	getComponentRoot,
+	isDynamicValue,
+	getDynamicValue,
+	isHTML,
+	getValueFromObject,
+	setValueInObject,
+} from "@/utils/helpers"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
@@ -178,15 +185,7 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// handle nested object properties
-			const propertyPath = modelValue.name.split(".")
-			let value = store.variables
-			// return nested object property value
-			for (const key of propertyPath) {
-				if (value === undefined || value === null) return undefined
-				value = value[key]
-			}
-			return value
+			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
 			return getDynamicValue(modelValue, getEvaluationContext())
 		}
@@ -196,25 +195,7 @@ const boundValue = computed({
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
 			// update the variable in the store
-			const propertyPath = modelValue.name.split(".")
-			if (propertyPath.length === 1) {
-				// top level variable
-				store.variables[modelValue.name] = newValue
-			} else {
-				// nested object properties
-				const targetProperty = propertyPath.pop()!
-				let obj = store.variables
-
-				// navigate to the parent object
-				for (const key of propertyPath) {
-					if (!obj[key] || typeof obj[key] !== "object") {
-						obj[key] = {}
-					}
-					obj = obj[key]
-				}
-				// set the value on the parent object
-				obj[targetProperty] = newValue
-			}
+			setValueInObject(store.variables, modelValue.name, newValue)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)

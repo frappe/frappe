@@ -33,7 +33,15 @@ import { computed, onMounted, ref, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isDynamicValue, getDynamicValue, isHTML, executeUserScript } from "@/utils/helpers"
+import {
+	getComponentRoot,
+	isDynamicValue,
+	getDynamicValue,
+	isHTML,
+	executeUserScript,
+	getValueFromObject,
+	setValueInObject,
+} from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 
 import useAppStore from "@/stores/appStore"
@@ -104,15 +112,7 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// handle nested object properties
-			const propertyPath = modelValue.name.split(".")
-			let value = store.variables
-			// return nested object property value
-			for (const key of propertyPath) {
-				if (value === undefined || value === null) return undefined
-				value = value[key]
-			}
-			return value
+			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
 			return getDynamicValue(modelValue, getEvaluationContext())
 		}
@@ -121,26 +121,7 @@ const boundValue = computed({
 	set(newValue) {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			// update the variable in the store
-			const propertyPath = modelValue.name.split(".")
-			if (propertyPath.length === 1) {
-				// top level variable
-				store.variables[modelValue.name] = newValue
-			} else {
-				// nested object properties
-				const targetProperty = propertyPath.pop()!
-				let obj = store.variables
-
-				// navigate to the parent object
-				for (const key of propertyPath) {
-					if (!obj[key] || typeof obj[key] !== "object") {
-						obj[key] = {}
-					}
-					obj = obj[key]
-				}
-				// set the value on the parent object
-				obj[targetProperty] = newValue
-			}
+			setValueInObject(store.variables, modelValue.name, newValue)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)
@@ -185,7 +166,7 @@ const componentEvents = computed(() => {
 				return () => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
-						fields[field.field] = store.variables[field.value]
+						fields[field.field] = getValueFromObject(store.variables, field.value)
 					})
 					createResource({
 						url: "frappe.client.insert",

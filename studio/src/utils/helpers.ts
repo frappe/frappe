@@ -188,6 +188,39 @@ function isObjectEmpty(obj: object | null | undefined) {
 	return Object.keys(obj).length === 0
 }
 
+function getValueFromObject(obj: object | null | undefined, key: string) {
+	if (isObjectEmpty(obj)) return undefined
+	const data = Object.assign({}, obj)
+	const value = key
+		.split(".")
+		.reduce(
+			(d: Record<string, any> | null, key) => (d && typeof d === "object" ? d[key] : null),
+			data as Record<string, any>,
+		)
+	return value
+}
+
+function setValueInObject(obj: Record<string, any>, key: string, value: any) {
+	if (isObjectEmpty(obj)) return
+
+	const propertyPath = key.split(".")
+	if (propertyPath.length === 1) {
+		// top level key
+		obj[key] = value
+	} else {
+		const targetProperty = propertyPath.pop()!
+		// navigate to the parent object
+		for (const key of propertyPath) {
+			if (!obj[key] || typeof obj[key] !== "object") {
+				obj[key] = {}
+			}
+			obj = obj[key]
+		}
+		// set the value on the parent object
+		obj[targetProperty] = value
+	}
+}
+
 function isJSONString(str: string) {
 	try {
 		jsonToJs(str)
@@ -704,6 +737,8 @@ export {
 	copyObject,
 	areObjectsEqual,
 	isObjectEmpty,
+	getValueFromObject,
+	setValueInObject,
 	isJSONString,
 	jsToJson,
 	jsonToJs,
