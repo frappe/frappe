@@ -17,7 +17,7 @@ import { Toaster } from "vue-sonner"
 </script>
 
 <style>
-[id^="headlessui-dialog"] {
+.dialog-overlay {
 	@apply z-50;
 }
 </style>

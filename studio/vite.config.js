@@ -16,7 +16,7 @@ export default defineConfig({
 		allowedHosts: true,
 		watch: {
 			// unplugin-vue-components generates this file which causes HMR while building other studio apps
-			ignored: ["**/components.d.ts"],
+			ignored: ["**/components.d.ts", "**/auto-imports.d.ts"],
 		},
 	},
 	plugins: [

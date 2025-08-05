@@ -20,7 +20,7 @@ const componentFolders: Record<string, string> = {
 
 function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
 	if (typeof component === "string") return {}
-	const props = component.props
+	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
 
 	if ("modelModifiers" in props) {
@@ -142,7 +142,7 @@ function getComponentDefinitions(componentName: string) {
 
 function getSinglePropType(propTypes: string | string[]) {
 	if (typeof propTypes === "string") return propTypes
-	const hasNonPrimitiveType = propTypes.find((type: string) => ["array", "object", "function"].includes(type.toLowerCase()))
+	const hasNonPrimitiveType = propTypes.find((type: string) => ["array", "object", "function"].includes(type?.toLowerCase()))
 	if (hasNonPrimitiveType) {
 		return "object"
 	}
