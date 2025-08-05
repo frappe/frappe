@@ -169,3 +169,11 @@ function setAppFields(e: Event) {
 	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
 }
 </script>
+
+<style>
+/* dropdown menu popover */
+div[data-reka-popper-content-wrapper] > div[role="menu"] {
+	margin-top: 15px !important;
+	z-index: 20 !important;
+}
+</style>
