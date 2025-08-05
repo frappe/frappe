@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="inline-block w-full transform overflow-hidden rounded-xl bg-surface-modal text-left align-middle shadow-xl transition-all"
+		class="dialog-content inline-block w-full transform overflow-hidden rounded-xl bg-surface-modal text-left align-middle shadow-xl"
 		:class="{
 			'max-w-7xl': options.size === '7xl',
 			'max-w-6xl': options.size === '6xl',
@@ -45,21 +45,7 @@
 									</div>
 									<Button variant="ghost" @click="close">
 										<template #icon>
-											<svg
-												width="16"
-												height="16"
-												viewBox="0 0 16 16"
-												fill="none"
-												xmlns="http://www.w3.org/2000/svg"
-												class="text-ink-gray-9"
-											>
-												<path
-													fill-rule="evenodd"
-													clip-rule="evenodd"
-													d="M12.8567 3.85355C13.052 3.65829 13.052 3.34171 12.8567 3.14645C12.6615 2.95118 12.3449 2.95118 12.1496 3.14645L8.00201 7.29405L3.85441 3.14645C3.65914 2.95118 3.34256 2.95118 3.1473 3.14645C2.95204 3.34171 2.95204 3.65829 3.1473 3.85355L7.29491 8.00116L3.14645 12.1496C2.95118 12.3449 2.95118 12.6615 3.14645 12.8567C3.34171 13.052 3.65829 13.052 3.85355 12.8567L8.00201 8.70827L12.1505 12.8567C12.3457 13.052 12.6623 13.052 12.8576 12.8567C13.0528 12.6615 13.0528 12.3449 12.8576 12.1496L8.70912 8.00116L12.8567 3.85355Z"
-													fill="currentColor"
-												/>
-											</svg>
+											<LucideX class="h-4 w-4 text-ink-gray-9" />
 										</template>
 									</Button>
 								</div>
@@ -90,7 +76,8 @@
 <script setup lang="ts">
 import { computed, reactive, type Component } from "vue"
 import { type RouteLocation } from "vue-router"
-import { Button } from "frappe-ui"
+import { Button, FeatherIcon } from "frappe-ui"
+import LucideX from "~icons/lucide/x"
 
 type Theme = "gray" | "blue" | "green" | "red"
 type Size = "sm" | "md" | "lg" | "xl" | "2xl"
@@ -140,6 +127,11 @@ interface DialogProps {
 	disableOutsideClickToClose?: boolean
 }
 
+// Type for dialog action with reactive loading state
+type ReactiveDialogAction = DialogAction & {
+	loading: boolean
+}
+
 const props = withDefaults(defineProps<DialogProps>(), {
 	options: () => ({}),
 	disableOutsideClickToClose: false,
@@ -151,7 +143,7 @@ const emit = defineEmits<{
 	(event: "after-leave"): void
 }>()
 
-const actions = computed(() => {
+const actions = computed((): ReactiveDialogAction[] => {
 	let actions = props.options.actions
 	if (!actions?.length) return []
 
@@ -167,12 +159,14 @@ const actions = computed(() => {
 							if (action.onClick) {
 								// deprecated: uncomment this when we remove the backwards compatibility
 								// let context: DialogActionContext = { close }
-								let backwardsCompatibleContext = function () {
+								type BackwardsCompatibleDialogActionContext = (() => void) & DialogActionContext
+
+								let backwardsCompatibleContext = (() => {
 									console.warn(
 										"Value passed to onClick is a context object. Please use context.close() instead of context() to close the dialog.",
 									)
 									close()
-								}
+								}) as BackwardsCompatibleDialogActionContext
 								backwardsCompatibleContext.close = close
 								await action.onClick(backwardsCompatibleContext)
 							}
@@ -189,13 +183,17 @@ const isOpen = computed({
 	get() {
 		return props.modelValue
 	},
-	set(val) {
+	set(val: boolean) {
 		emit("update:modelValue", val)
 		if (!val) {
 			emit("close")
 		}
 	},
 })
+
+function handleOpenChange(open: boolean) {
+	isOpen.value = open
+}
 
 function close() {
 	isOpen.value = false
@@ -213,31 +211,34 @@ const icon = computed(() => {
 
 const dialogPositionClasses = computed(() => {
 	const position = props.options?.position || "center"
-	return {
+	const classMap: Record<string, string> = {
 		center: "justify-center",
 		top: "pt-[20vh]",
-	}[position]
+	}
+	return classMap[position]
 })
 
 const dialogIconBgClasses = computed(() => {
 	const appearance = icon.value?.appearance
 	if (!appearance) return "bg-surface-gray-2"
-	return {
+	const classMap: Record<string, string> = {
 		warning: "bg-surface-amber-2",
 		info: "bg-surface-blue-2",
 		danger: "bg-surface-red-2",
 		success: "bg-surface-green-2",
-	}[appearance]
+	}
+	return classMap[appearance]
 })
 
 const dialogIconClasses = computed(() => {
 	const appearance = icon.value?.appearance
 	if (!appearance) return "text-ink-gray-5"
-	return {
+	const classMap: Record<string, string> = {
 		warning: "text-ink-amber-3",
 		info: "text-ink-blue-3",
 		danger: "text-ink-red-4",
 		success: "text-ink-green-3",
-	}[appearance]
+	}
+	return classMap[appearance]
 })
 </script>
