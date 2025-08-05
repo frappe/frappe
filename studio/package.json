@@ -26,7 +26,7 @@
 		"autoprefixer": "^10.4.2",
 		"codemirror": "^6.0.1",
 		"feather-icons": "^4.28.0",
-		"frappe-ui": "0.1.182",
+		"frappe-ui": "0.1.184",
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
 		"thememirror": "^2.0.1",
