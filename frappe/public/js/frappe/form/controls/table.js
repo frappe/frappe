@@ -15,7 +15,20 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 		if (this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
 		}
-
+		const me = this;
+		this.$wrapper.on("focusin", (e) => {
+			if (document.activeElement == me.grid.header_row.row_check.children()[0]) {
+				if (me.grid.grid_rows.length > 0) {
+					me.grid.grid_rows[0].toggle_editable_row();
+					if (
+						!(me.grid.grid_rows[0].row_check.children()[0] == document.activeElement)
+					) {
+						me.grid.grid_rows[0].row_check.children()[0].focus();
+					}
+				}
+			}
+			return true;
+		});
 		this.$wrapper.on("paste", ":text", (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;

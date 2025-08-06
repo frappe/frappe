@@ -12,6 +12,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		super();
 		this.display = false;
 		this.is_dialog = true;
+		if (frappe.get_route) {
+			if (frappe.get_route[0] == "Form") {
+				this.last_focus = document.activeElement;
+			}
+		}
 
 		$.extend(this, { animate: true, size: null, auto_make: true }, opts);
 		if (this.auto_make) {
@@ -106,6 +111,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				}
 				me.onhide && me.onhide();
 				me.on_hide && me.on_hide();
+				if (me.last_focus) me.last_focus.focus();
 			})
 			.on("shown.bs.modal", function () {
 				// focus on first input
@@ -272,6 +278,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
+		if (this.last_focus) this.last_focus.focus();
 	}
 
 	get_close_btn() {

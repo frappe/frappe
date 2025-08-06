@@ -331,6 +331,7 @@ frappe.ui.keyCode = {
 function handle_escape_key() {
 	close_grid_and_dialog();
 	document.activeElement?.blur();
+	$(document).trigger("escape");
 }
 
 function close_grid_and_dialog() {

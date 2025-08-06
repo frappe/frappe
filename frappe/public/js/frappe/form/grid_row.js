@@ -362,6 +362,17 @@ export default class GridRow {
 					this.open_form_button.css({ "margin-right": "-2px" });
 				}
 			}
+			// add events on open form button
+			this.open_form_button.on("keydown", (ev) => {
+				if (ev.key == "Enter") {
+					this.last_focus_on = document.activeElement;
+					this.open_form_button.click();
+					ev.stopImmediatePropagation();
+				} else if (ev.which == 9) {
+					this.grid.wrapper.find(".grid-add-row")[0].focus();
+					ev.preventDefault();
+				}
+			});
 		}
 	}
 
@@ -1190,8 +1201,13 @@ export default class GridRow {
 		column.field = field;
 		this.on_grid_fields_dict[df.fieldname] = field;
 		this.on_grid_fields.push(field);
+		$(document).on("escape", function () {
+			me.focus_on_edit_form();
+		});
 	}
-
+	focus_on_edit_form() {
+		if (this.last_focus_on) this.last_focus_on.focus();
+	}
 	set_arrow_keys(field) {
 		var me = this;
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
@@ -1243,18 +1259,17 @@ export default class GridRow {
 
 				// TAB
 				if (e.which === TAB && !e.shiftKey) {
-					var last_column = me.wrapper.find(":input:enabled:last").get(0);
+					var last_column = me.wrapper
+						.find(".data-row")
+						.find(":input:enabled:last")
+						.get(0);
 					var is_last_column = $(this).attr("data-last-input") || last_column === this;
 
 					if (is_last_column) {
 						// last row
 						if (me.doc.idx === values.length) {
 							setTimeout(function () {
-								me.grid.add_new_row(null, null, true);
-								me.grid.grid_rows[
-									me.grid.grid_rows.length - 1
-								].toggle_editable_row();
-								me.grid.set_focus_on_row();
+								$(me.open_form_button).attr("tabIndex", -1).focus();
 							}, 100);
 						} else {
 							// last column before last row
@@ -1360,7 +1375,7 @@ export default class GridRow {
 			this.hide_form();
 		}
 		callback && callback();
-
+		this.focus_on_edit_form();
 		return this;
 	}
 	show_form() {

@@ -869,7 +869,9 @@ export default class Grid {
 				this.df.on_add_row && this.df.on_add_row(row_idx);
 				this.refresh();
 			}
-
+			let new_row_index = this.get_data().length - 1;
+			this.grid_rows[new_row_index].toggle_editable_row();
+			this.grid_rows[new_row_index].row_check.children()[0].focus();
 			if (show) {
 				if (idx) {
 					// always open inserted rows

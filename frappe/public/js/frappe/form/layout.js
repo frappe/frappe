@@ -550,12 +550,18 @@ frappe.ui.form.Layout = class Layout {
 
 	setup_tab_events() {
 		this.wrapper.on("keydown", (ev) => {
+			console.log(ev.shiftKey);
 			if (ev.which == 9) {
 				let current = $(ev.target);
 				let doctype = current.attr("data-doctype");
 				let fieldname = current.attr("data-fieldname");
 				if (doctype) {
 					return this.handle_tab(doctype, fieldname, ev.shiftKey);
+				} else {
+					if (current[0].classList[3] == "grid-add-row" && ev.shiftKey) {
+						this.wrapper.find(".btn-open-row").last()[0].focus();
+						return false;
+					}
 				}
 			}
 		});
@@ -652,8 +658,9 @@ frappe.ui.form.Layout = class Layout {
 						// empty grid, add a new row
 						field.grid.add_new_row();
 					}
-					// show grid row (if exists)
-					field.grid.grid_rows[0].show_form();
+					// select the first checkbox in the row
+					field.grid.grid_rows[0].toggle_editable_row();
+					field.grid.grid_rows[0].row_check.children()[0].focus();
 					return true;
 				} else if (
 					field.df.fieldtype === "Table MultiSelect" ||

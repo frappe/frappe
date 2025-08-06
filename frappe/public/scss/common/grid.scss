@@ -827,3 +827,8 @@
 		padding-right: 0 !important;
 	}
 }
+
+.btn-open-row:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(124, 124, 124, 0.25);
+}

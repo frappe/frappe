@@ -117,19 +117,22 @@ context("Web Form", () => {
 
 		cy.get("@add-row").click();
 		cy.get('[data-fieldname="list_columns"] .grid-body .rows').as("grid-rows");
-		cy.get("@grid-rows").find('.grid-row:first [data-fieldname="fieldname"]').click();
+		cy.get("@grid-rows").find('.grid-row:first [data-fieldname="fieldname"]').first().click();
 		cy.get("@grid-rows")
 			.find('.grid-row:first select[data-fieldname="fieldname"]')
 			.select("Title");
 
 		cy.get("@add-row").click();
-		cy.get("@grid-rows").find('.grid-row[data-idx="2"] [data-fieldname="fieldname"]').click();
+		cy.get("@grid-rows")
+			.find('.grid-row[data-idx="2"] [data-fieldname="fieldname"]')
+			.first()
+			.click();
 		cy.get("@grid-rows")
 			.find('.grid-row[data-idx="2"] select[data-fieldname="fieldname"]')
 			.select("Public");
 
 		cy.get("@add-row").click();
-		cy.get("@grid-rows").find('.grid-row:last [data-fieldname="fieldname"]').click();
+		cy.get("@grid-rows").find('.grid-row:last [data-fieldname="fieldname"]').first().click();
 		cy.get("@grid-rows")
 			.find('.grid-row:last select[data-fieldname="fieldname"]')
 			.select("Content");
