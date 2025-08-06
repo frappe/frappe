@@ -198,11 +198,11 @@ const selectedBlocks = computed(() => {
 	)
 }) as Ref<Block[]>
 
-function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false) {
+function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, setBreakpoint = true) {
 	if (store.settingPage) return
 
 	selectBlockById(block.componentId, e, multiSelect)
-	if (e) {
+	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
 	}
