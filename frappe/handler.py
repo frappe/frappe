@@ -277,13 +277,8 @@ def download_file(file_url: str):
 	Endpoints : download_file, frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
-<<<<<<< HEAD
-	file: "File" = frappe.get_doc("File", {"file_url": file_url})
-	if not file.is_downloadable():
-=======
 	file = find_file_by_url(file_url)
 	if not file:
->>>>>>> fb783dda08 (fix: allow download via API, if at least one file copy is downloadable (#33560))
 		raise frappe.PermissionError
 
 	frappe.local.response.filename = os.path.basename(file_url)
