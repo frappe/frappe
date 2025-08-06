@@ -348,6 +348,7 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 			post_install(rebuild_website)
 
 	frappe.get_single("Installed Applications").update_versions()
+	frappe.db.commit()
 
 
 def remove_from_installed_apps(app_name):
