@@ -10,12 +10,8 @@ from werkzeug.wrappers import Response
 import frappe
 import frappe.sessions
 import frappe.utils
-<<<<<<< HEAD
 from frappe import _, is_whitelisted
-=======
-from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.file.utils import find_file_by_url
->>>>>>> fb783dda08 (fix: allow download via API, if at least one file copy is downloadable (#33560))
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
@@ -278,13 +274,8 @@ def download_file(file_url: str):
 	Endpoints : download_file, frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
-<<<<<<< HEAD
-	file: "File" = frappe.get_doc("File", {"file_url": file_url})
-	if not file.is_downloadable():
-=======
 	file = find_file_by_url(file_url)
 	if not file:
->>>>>>> fb783dda08 (fix: allow download via API, if at least one file copy is downloadable (#33560))
 		raise frappe.PermissionError
 
 	frappe.local.response.filename = os.path.basename(file_url)
