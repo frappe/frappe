@@ -22,6 +22,15 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 	}
 
 	input_events() {
+		// Allows only numbers and common formatting characters, to allow conventional format.
+		this.$input.on("input", () => {
+			const current_value = this.$input.val();
+			const formatted_value = current_value.replace(/[^0-9 ()+.-]/g, "");
+			if (current_value !== formatted_value) {
+				this.$input.val(formatted_value);
+			}
+		});
+
 		this.$input.keydown((e) => {
 			const key_code = e.keyCode;
 			if ([frappe.ui.keyCode.BACKSPACE].includes(key_code)) {
@@ -151,22 +160,36 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		if (!this.country_codes) {
 			await this.setup_country_codes();
 		}
-		if (value && value.includes("-") && value.split("-").length == 2) {
+		// spiliting if there are multiple hyphens
+		const parts = value ? value.split("-") : [];
+
+		// Get the full country code
+		const matched_country_data =
+			parts.length > 1 &&
+			Object.values(this.country_codes).find(
+				(c) => String(c.isd).replace("+", "") === String(parts[0]).replace("+", "")
+			);
+
+		// Assign the country code and flag icon in the country code field
+		if (matched_country_data) {
 			if (!this.selected_icon.find("svg").hasClass("hide")) {
 				this.selected_icon.find("svg").toggleClass("hide");
 			}
-			let isd = this.value.split("-")[0];
-			this.get_country_code_and_change_flag(isd);
-			this.country_code_picker.set_country(isd);
+
+			// We will use the official ISD we found
+			const canonical_isd = matched_country_data.isd;
+			parts.shift();
+
+			// We will use the canonical isd not numeric isd
+			this.get_country_code_and_change_flag(canonical_isd);
+			this.country_code_picker.set_country(canonical_isd);
 			this.country_code_picker.refresh();
-			if (
-				this.country_code_picker.country &&
-				this.country_code_picker.country !== this.$isd.text()
-			) {
-				this.$isd.length && this.$isd.text(isd);
-			}
+			this.$isd.length && this.$isd.text(canonical_isd);
 			this.update_padding();
-			this.$input.val(value.split("-").pop());
+			this.$input.val(parts.join("-"));
+
+			return;
+			// Return if we have a vaild number with country code
 		} else if (this.$isd.text().trim() && this.value) {
 			let code_number = this.$isd.text() + "-" + value;
 			this.set_value(code_number);
