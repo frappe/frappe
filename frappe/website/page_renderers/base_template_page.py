@@ -16,7 +16,7 @@ class BaseTemplatePage(BaseRenderer):
 		self.context.update(frappe.local.conf.get("website_context") or {})
 
 	def add_csrf_token(self, html):
-		if frappe.local.session:
+		if frappe.local.session and getattr(frappe.local.session, "data", None):
 			csrf_token = frappe.local.session.data.csrf_token
 			return html.replace(
 				"<!-- csrf_token -->", f'<script>frappe.csrf_token = "{csrf_token}";</script>'

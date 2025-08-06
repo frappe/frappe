@@ -78,6 +78,10 @@ def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 		"success_msg": success_msg,
 	}
 
+	send_sms_hook_methods = frappe.get_hooks("send_sms")
+	if send_sms_hook_methods:
+		return frappe.get_attr(send_sms_hook_methods[-1])(receiver_list, msg, sender_name, success_msg)
+
 	if frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
 		send_via_gateway(arg)
 	else:

@@ -25,6 +25,7 @@ from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
@@ -119,10 +120,6 @@ class TestUser(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("User", "xxxtest@example.com"), None)
 
-		frappe.db.set_single_value("Website Settings", "_test", "_test_val")
-		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
-		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
-
 	def test_high_permlevel_validations(self):
 		user = frappe.get_meta("User")
 		self.assertTrue("roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
@@ -212,13 +209,15 @@ class TestUser(IntegrationTestCase):
 
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")
-			frappe.flags.in_test = False
-			user.new_password = "password"
-			self.assertRaises(frappe.exceptions.ValidationError, user.save)
-			user.reload()
-			user.new_password = "Eastern_43A1W"
-			user.save()
-			frappe.flags.in_test = True
+			toggle_test_mode(False)
+			try:
+				user.new_password = "password"
+				self.assertRaises(frappe.exceptions.ValidationError, user.save)
+				user.reload()
+				user.new_password = "Eastern_43A1W"
+				user.save()
+			finally:
+				toggle_test_mode(True)
 
 	def test_comment_mentions(self):
 		comment = """

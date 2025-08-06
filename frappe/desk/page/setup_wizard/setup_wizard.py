@@ -187,9 +187,30 @@ def run_setup_success(args):  # nosemgrep
 
 def get_stages_hooks(args):  # nosemgrep
 	stages = []
-	for method in frappe.get_hooks("setup_wizard_stages"):
-		stages += frappe.get_attr(method)(args)
+
+	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
+	for app_name in installed_apps:
+		setup_wizard_stages = frappe.get_hooks(app_name=app_name).get("setup_wizard_stages")
+		if not setup_wizard_stages:
+			continue
+
+		for method in setup_wizard_stages:
+			_stages = frappe.get_attr(method)(args)
+			update_app_details_in_stages(_stages, app_name)
+			stages += _stages
+
 	return stages
+
+
+def update_app_details_in_stages(_stages, app_name):
+	for stage in _stages:
+		for key in stage:
+			if key != "tasks":
+				continue
+
+			for task in stage[key]:
+				if task.get("app_name") is None:
+					task["app_name"] = app_name
 
 
 def get_setup_complete_hooks(args):  # nosemgrep
@@ -244,7 +265,7 @@ def update_system_settings(args):  # nosemgrep
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
-			"enable_scheduler": 1 if not frappe.flags.in_test else 0,
+			"enable_scheduler": 1 if not frappe.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
 			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
@@ -348,7 +369,9 @@ def _get_default_roles() -> set[str]:
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	# Enable onboarding after install
+	frappe.clear_cache(doctype="System Settings")
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
+	frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
 
 
 @frappe.whitelist()

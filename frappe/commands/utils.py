@@ -77,7 +77,7 @@ def build(
 			skip_frappe = False
 
 		# don't minify in developer_mode for faster builds
-		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		development = frappe.local.conf.developer_mode or frappe._dev_server
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"

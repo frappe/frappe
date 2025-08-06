@@ -5,11 +5,11 @@ import pickle
 import re
 import threading
 import time
-import typing
 from collections import namedtuple
 from contextlib import suppress
 
 import redis
+import redis.exceptions
 from redis.commands.search import Search
 from redis.exceptions import ResponseError
 
@@ -603,10 +603,14 @@ class ClientCache:
 		This can include cached controller resolution, @site_cache and any other similar persistent
 		cache.
 		"""
-		self.redis.publish(
-			"clear_persistent_cache",
-			json.dumps({"doctype": doctype, "site": frappe.local.site}),
-		)
+		try:
+			self.redis.publish(
+				"clear_persistent_cache",
+				json.dumps({"doctype": doctype, "site": frappe.local.site}),
+			)
+		except redis.exceptions.ConnectionError:
+			# Assume bench isn't running
+			pass
 
 	def _handle_invalidation(self, message):
 		if message["data"] is None:

@@ -1,5 +1,7 @@
 <div class="section-with-image-grid">
-	<h2 class="section-title">{{ title }}</h2>
+	{%- if title -%}
+	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- endif -%}
 	<p class="section-description">{{ subtitle }}</p>
 
 	<div class="section-image-grid">

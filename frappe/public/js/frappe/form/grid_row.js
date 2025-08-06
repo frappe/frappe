@@ -1163,7 +1163,6 @@ export default class GridRow {
 			grid_row: this,
 			value: this.doc[df.fieldname],
 		});
-
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		// df.onchange is common for all rows in grid

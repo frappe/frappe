@@ -47,6 +47,7 @@ frappe.ui.form.on("File", {
 			$preview = $(`<div class="img_preview">
 				<img
 					class="img-responsive"
+					style="max-width: 500px";
 					src="${frappe.utils.escape_html(frm.doc.file_url)}"
 					onerror="${frm.toggle_display("preview", false)}"
 				/>

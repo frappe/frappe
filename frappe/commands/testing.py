@@ -183,6 +183,7 @@ def main(
 def run_tests_in_light_mode(test_params):
 	from frappe.testing.loader import FrappeTestLoader
 	from frappe.testing.result import FrappeTestResult
+	from frappe.tests.utils import toggle_test_mode
 
 	# init environment
 	frappe.init(test_params.site)
@@ -196,6 +197,7 @@ def run_tests_in_light_mode(test_params):
 		frappe.utils.scheduler.disable_scheduler()
 	frappe.clear_cache()
 
+	toggle_test_mode(True)
 	suite = FrappeTestLoader().discover_tests(test_params)
 	result = unittest.TextTestRunner(failfast=test_params.failfast, resultclass=FrappeTestResult).run(suite)
 	if not result.wasSuccessful():
@@ -370,6 +372,7 @@ def run_tests(
 )
 @click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
 @click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
+@click.option("--lightmode", is_flag=True, default=False, help="Skips all before test setup")
 @pass_context
 def run_parallel_tests(
 	context: CliCtxObj,
@@ -379,6 +382,7 @@ def run_parallel_tests(
 	with_coverage=False,
 	use_orchestrator=False,
 	dry_run=False,
+	lightmode=False,
 ):
 	from traceback_with_variables import activate_by_import
 
@@ -399,6 +403,7 @@ def run_parallel_tests(
 				build_number=build_number,
 				total_builds=total_builds,
 				dry_run=dry_run,
+				lightmode=lightmode,
 			)
 		mode = "Orchestrator" if use_orchestrator else "Parallel"
 		banner = f"""

@@ -14,8 +14,9 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, has_permission
+from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
+from frappe.utils.caching import request_cache
 
 
 def get_report_doc(report_name):
@@ -329,6 +330,7 @@ def export_query():
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx
+	include_hidden_columns = form_params.include_hidden_columns
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
@@ -346,11 +348,20 @@ def export_query():
 
 	format_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(
-		data, visible_idx, include_indentation, include_filters=include_filters
+		data,
+		visible_idx,
+		include_indentation,
+		include_filters=include_filters,
+		include_hidden_columns=include_hidden_columns,
 	)
 
 	if file_format_type == "CSV":
-		content = get_csv_bytes(xlsx_data, csv_params)
+		from frappe.utils.xlsxutils import handle_html
+
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
+			csv_params,
+		)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
@@ -392,7 +403,14 @@ def format_fields(data: frappe._dict) -> None:
 					row[index] = round(row[index], col.get("precision"))
 
 
-def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
+def build_xlsx_data(
+	data,
+	visible_idx,
+	include_indentation,
+	include_filters=False,
+	ignore_visible_idx=False,
+	include_hidden_columns=False,
+):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -432,7 +450,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 
 	column_data = []
 	for column in data.columns:
-		if column.get("hidden"):
+		if column.get("hidden") and not cint(include_hidden_columns):
 			continue
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -448,7 +466,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 			row_data = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):
-					if column.get("hidden"):
+					if column.get("hidden") and not cint(include_hidden_columns):
 						continue
 					label = column.get("label")
 					fieldname = column.get("fieldname")
@@ -706,6 +724,9 @@ def has_match(
 						match = False
 						break
 
+					if match:
+						match = has_unrestricted_read_access(doctype=ref_doctype, user=frappe.session.user)
+
 				# each doctype could have multiple conflicting user permission doctypes, hence using OR
 				# so that even if one of the sets allows a match, it is true
 				matched_for_doctype = matched_for_doctype or match
@@ -720,6 +741,32 @@ def has_match(
 			break
 
 	return resultant_match
+
+
+@request_cache
+def has_unrestricted_read_access(doctype, user):
+	roles = get_roles(user)
+
+	permission_filters = {
+		"parent": doctype,
+		"role": ["in", roles],
+		"permlevel": 0,
+		"read": 1,
+		"if_owner": 0,
+	}
+
+	standard_perm_exists = frappe.db.exists(
+		"DocPerm",
+		permission_filters,
+	)
+
+	custom_perm_exists = frappe.db.exists(
+		"Custom DocPerm",
+		permission_filters,
+	)
+
+	has_perm = bool(custom_perm_exists or standard_perm_exists)
+	return has_perm
 
 
 def get_linked_doctypes(columns, data):

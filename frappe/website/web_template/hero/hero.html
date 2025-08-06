@@ -1,6 +1,8 @@
 <div class="hero {{ 'align-center' if align == 'Center' else '' }}">
 	<div class="hero-content">
+		{%- if title -%}
 		<h1 class="hero-title">{{ _(title) }}</h1>
+		{%- endif -%}
 		{%- if subtitle -%}
 		<p class="hero-subtitle">
 			{{ _(subtitle) }}

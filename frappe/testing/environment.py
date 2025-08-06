@@ -29,7 +29,7 @@ import tomli
 
 import frappe
 import frappe.utils.scheduler
-from frappe.tests.utils import make_test_records
+from frappe.tests.utils import make_test_records, toggle_test_mode
 
 from .runner import TestRunnerError
 from .utils import debug_timer
@@ -53,7 +53,7 @@ def _initialize_test_environment(site, config):
 		raise TestRunnerError(f"Failed to connect to the database: {e}") from e
 
 	# Set various test-related flags
-	frappe.flags.in_test = True
+	toggle_test_mode(True)
 	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 

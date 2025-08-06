@@ -336,7 +336,7 @@ frappe.ui.form.on("User", {
 			},
 			callback: function (r) {
 				if (r.message) {
-					frappe.msgprint(__("Save API Secret: {0}", [r.message.api_secret]));
+					show_api_key_dialog(r.message.api_key, r.message.api_secret);
 					frm.reload_doc();
 				}
 			},
@@ -435,5 +435,54 @@ function get_roles_for_editing_user() {
 			.get_meta("User")
 			.permissions.filter((perm) => perm.permlevel >= 1 && perm.write)
 			.map((perm) => perm.role) || ["System Manager"]
+	);
+}
+
+function show_api_key_dialog(api_key, api_secret) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("API Keys"),
+		fields: [
+			{
+				label: __("API Key"),
+				fieldname: "api_key",
+				fieldtype: "Code",
+				read_only: 1,
+				default: api_key,
+			},
+			{
+				label: __("API Secret"),
+				fieldname: "api_secret",
+				fieldtype: "Code",
+				read_only: 1,
+				default: api_secret,
+			},
+		],
+		size: "small",
+		primary_action_label: __("Download"),
+		primary_action: () => {
+			frappe.tools.downloadify(
+				[
+					["api_key", "api_secret"],
+					[api_key, api_secret],
+				],
+				"System Manager",
+				"frappe_api_keys"
+			);
+
+			dialog.hide();
+		},
+		secondary_action_label: __("Copy token to clipboard"),
+		secondary_action: () => {
+			const token = `${api_key}:${api_secret}`;
+			frappe.utils.copy_to_clipboard(token);
+			dialog.hide();
+		},
+	});
+
+	dialog.show();
+	dialog.show_message(
+		__("Store the API secret securely. It won't be displayed again."),
+		"yellow",
+		1
 	);
 }

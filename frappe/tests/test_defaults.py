@@ -73,7 +73,7 @@ class TestDefaults(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_user_permission_defaults(self):
 		# Create user permission
-		create_user("user_default_test@example.com", "Blogger")
+		create_user("user_default_test@example.com", "Website Manager")
 		frappe.set_user("user_default_test@example.com")
 		set_global_default("Country", "")
 		clear_user_default("Country")

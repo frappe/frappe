@@ -224,7 +224,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					d.label = d.value;
 				}
 
-				let _label = me.get_translated(d.label);
+				// Sanitize label and description before using them to build HTML
+				let _label = frappe.utils.escape_html(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (
 					d.description &&
@@ -232,7 +233,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// because it will not visible otherwise
 					(me.is_title_link() || d.value !== d.description)
 				) {
-					html += '<br><span class="small">' + __(d.description) + "</span>";
+					html +=
+						'<br><span class="small">' +
+						__(frappe.utils.escape_html(d.description)) +
+						"</span>";
 				}
 				return $(`<div role="option">`)
 					.on("click", (event) => {

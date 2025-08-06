@@ -143,6 +143,16 @@ class TestDocument(IntegrationTestCase):
 		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
+		user = frappe.get_doc("User", "Administrator")
+		user.load_doc_before_save()
+		role1 = user.roles[0]
+		role2 = user.roles[1]
+
+		role1.role = "New Role"
+
+		self.assertTrue(role1.has_value_changed("role"))
+		self.assertFalse(role2.has_value_changed("role"))
+
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)

@@ -49,7 +49,7 @@ class SystemConsole(Document):
 		frappe.db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def execute_code(doc):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()

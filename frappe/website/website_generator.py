@@ -155,7 +155,7 @@ class WebsiteGenerator(Document):
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
-		if self.allow_website_search_indexing() or frappe.flags.in_test:
+		if self.allow_website_search_indexing() or frappe.in_test:
 			return
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
@@ -169,7 +169,7 @@ class WebsiteGenerator(Document):
 		- remove document from index if document is unpublished
 		- update index otherwise
 		"""
-		if not self.allow_website_search_indexing() or frappe.flags.in_test:
+		if not self.allow_website_search_indexing() or frappe.in_test:
 			return
 
 		if self.is_website_published():

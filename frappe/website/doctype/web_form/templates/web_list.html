@@ -24,7 +24,7 @@
 
 {% block script %}
 	<script>
-		frappe.boot = {{ boot | json }};
+		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }};
 		frappe._messages = {{ translated_messages }};
 		frappe.web_form_doc = {{ web_form_doc | json }};
 	</script>

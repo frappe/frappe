@@ -20,6 +20,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
+from frappe.sessions import clear_sessions
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -173,7 +174,7 @@ class User(Document):
 		self.__new_password = self.new_password
 		self.new_password = ""
 
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
@@ -269,7 +270,7 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		now = frappe.flags.in_test or frappe.flags.in_install
+		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
@@ -627,6 +628,9 @@ class User(Document):
 
 		# set email
 		frappe.db.set_value("User", new_name, "email", new_name)
+
+		clear_sessions(user=old_name, force=True)
+		clear_sessions(user=new_name, force=True)
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -1339,7 +1343,7 @@ def generate_keys(user: str):
 	user_details.api_secret = api_secret
 	user_details.save()
 
-	return {"api_secret": api_secret}
+	return {"api_key": user_details.api_key, "api_secret": api_secret}
 
 
 @frappe.whitelist()

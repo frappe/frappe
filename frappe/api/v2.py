@@ -15,7 +15,7 @@ from werkzeug.routing import Rule
 
 import frappe
 import frappe.client
-from frappe import _, get_newargs, is_whitelisted
+from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
@@ -65,17 +65,99 @@ def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
-	return doc
+	_doc = doc.as_dict()
+
+	for key in _doc:
+		df = doc.meta.get_field(key)
+		if df and df.fieldtype == "Link" and isinstance(_doc.get(key), int):
+			_doc[key] = cstr(_doc.get(key))
+
+	return _doc
 
 
-def document_list(doctype: str):
-	if frappe.form_dict.get("fields"):
-		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
+def document_list(doctype: str) -> list[dict[str, Any]]:
+	"""
+	GET /api/v2/document/<doctype>?fields=[...],filters={...},...
 
-	# set limit of records for frappe.get_list
-	frappe.form_dict.limit_page_length = frappe.form_dict.limit or 20
-	# evaluate frappe.get_list
-	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
+	REST API endpoint for fetching doctype records
+
+	Args:
+		doctype: DocType name
+
+	Query Parameters (accessible via frappe.form_dict):
+		fields: JSON string of field names to fetch
+		filters: JSON string of filters to apply
+		order_by: Order by field
+		start: Starting offset for pagination (default: 0)
+		limit: Maximum number of records to fetch (default: 20)
+		group_by: Group by field
+		as_dict: Return results as dictionary (default: True)
+
+	Response:
+		frappe.response["data"]: List of document records as dicts
+		frappe.response["has_next_page"]: Indicates if more pages are available
+
+	Controller Customization:
+		Doctype controllers can customize queries by implementing a static get_list(query) method
+		that receives a QueryBuilder object and returns a modified QueryBuilder.
+
+		Example:
+			class Project(Document):
+				@staticmethod
+				def get_list(query):
+					Project = frappe.qb.DocType("Project")
+					if user_has_role("Project Owner"):
+						query = query.where(Project.owner == frappe.session.user)
+					else:
+						query = query.where(Project.is_private == 0)
+					return query
+	"""
+	from frappe.model.base_document import get_controller
+
+	args = frappe.form_dict
+	fields: list | None = frappe.parse_json(args.get("fields", None))
+	filters: dict | None = frappe.parse_json(args.get("filters", None))
+	order_by: str | None = args.get("order_by", None)
+	start: int = cint(args.get("start", 0))
+	limit: int = cint(args.get("limit", 20))
+	group_by: str | None = args.get("group_by", None)
+	debug: bool = args.get("debug", False)
+	as_dict: bool = args.get("as_dict", True)
+
+	query = frappe.qb.get_query(
+		table=doctype,
+		fields=fields,
+		filters=filters,
+		order_by=order_by,
+		offset=start,
+		limit=limit + 1,  # Fetch one extra to check if there's a next page
+		group_by=group_by,
+		ignore_permissions=False,
+	)
+
+	# Check if the doctype controller has a static get_list method
+	controller = get_controller(doctype)
+	if hasattr(controller, "get_list"):
+		try:
+			return_value = controller.get_list(query)
+
+			if return_value is not None:
+				# Validate that the returned value has a run method (is a QueryBuilder-like object)
+				if not hasattr(return_value, "run"):
+					frappe.throw(
+						_(
+							"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}"
+						).format(doctype, type(return_value).__name__)
+					)
+
+				query = return_value
+
+		except Exception as e:
+			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
+
+	data = query.run(as_dict=as_dict, debug=debug)
+	frappe.response["has_next_page"] = len(data) > limit
+	return data[:limit]
 
 
 def count(doctype: str) -> int:
@@ -89,9 +171,13 @@ def count(doctype: str) -> int:
 def create_doc(doctype: str):
 	data = frappe.form_dict
 	data.pop("doctype", None)
-	if (name := data.get("name")) and isinstance(name, str):
-		frappe.flags.api_name_set = True
-	return frappe.new_doc(doctype, **data).insert()
+
+	doc = frappe.new_doc(doctype, **data)
+
+	if (name := data.get("name")) and isinstance(name, str | int):
+		doc.flags.name_set = True
+
+	return doc.insert().as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -118,7 +204,7 @@ def update_doc(doctype: str, name: str):
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
-	return doc
+	return doc.as_dict()
 
 
 def delete_doc(doctype: str, name: str):
@@ -144,7 +230,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	doc.is_whitelisted(method)
 
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
-	return doc.run_method(method, **frappe.form_dict)
+	result = doc.run_method(method, **frappe.form_dict)
+	frappe.response.docs.append(doc.as_dict())
+	return result
 
 
 def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):

@@ -59,7 +59,7 @@ def getdoc(doctype, name):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False, cached_timestamp=None):
+def getdoctype(doctype, with_parent=False):
 	"""load doctype"""
 
 	docs = []
@@ -74,9 +74,6 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 		docs = get_meta_bundle(doctype)
 
 	frappe.response["user_settings"] = get_user_settings(parent_dt or doctype)
-
-	if cached_timestamp and docs[0].modified == cached_timestamp:
-		return "use_cache"
 
 	frappe.response.docs.extend(docs)
 

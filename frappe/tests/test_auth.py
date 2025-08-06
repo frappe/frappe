@@ -241,7 +241,7 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertTrue(tracker.is_user_allowed())
 
 
-class TestSessionExpirty(FrappeAPITestCase):
+class TestSessionExpiry(FrappeAPITestCase):
 	def test_session_expires(self):
 		sid = self.sid  # triggers login for test case login
 		s: Session = frappe.local.session_obj

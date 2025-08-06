@@ -90,6 +90,7 @@ body {
 	height: 100vh;
 	z-index: 1030;
 	padding: 10px;
+	transition: width 0.2s ease-in-out;
 
 	.body-sidebar-top {
 		flex: 1 1;
@@ -288,6 +289,15 @@ body {
 
 .body-sidebar-container.expanded {
 	@include body-sidebar-expanded();
+}
+
+.body-sidebar-container.hover-expanded {
+	@include body-sidebar-expanded();
+
+	.body-sidebar {
+		// Ensure smooth transition for hover state
+		transition: width 0.2s ease-in-out;
+	}
 }
 
 @include media-breakpoint-down(sm) {

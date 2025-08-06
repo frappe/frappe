@@ -94,8 +94,8 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		"frappe.desk.doctype.notification_log.notification_log.make_notification_logs",
 		doc=doc,
 		users=users,
-		now=frappe.flags.in_test,
-		enqueue_after_commit=not frappe.flags.in_test,
+		now=frappe.in_test,
+		enqueue_after_commit=not frappe.in_test,
 	)
 
 
@@ -141,7 +141,7 @@ def send_notification_email(doc: NotificationLog):
 		template="new_notification",
 		args=args,
 		header=[header, "orange"],
-		now=frappe.flags.in_test,
+		now=frappe.in_test,
 	)
 
 
