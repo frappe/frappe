@@ -321,7 +321,7 @@ def save_report(name, doctype, report_settings):
 
 	if frappe.db.exists("Report", name):
 		report = frappe.get_doc("Report", name)
-		if report.is_standard == "Yes":
+		if report.is_standard == "Yes" and not frappe.local.dev_server:
 			frappe.throw(_("Standard Reports cannot be edited"))
 
 		if report.report_type != "Report Builder":

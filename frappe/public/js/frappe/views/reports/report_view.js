@@ -1715,9 +1715,24 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const can_edit_or_delete = (action) => {
 			const method = action == "delete" ? "can_delete" : "can_write";
+			const is_standard_report = this.report_doc && this.report_doc.is_standard === "Yes";
+			const is_developer_mode = frappe.boot.developer_mode;
+
+			// For standard reports, only allow save (not delete) in developer mode
+			if (is_standard_report) {
+				if (action === "delete") {
+					return false; // Never allow deleting standard reports
+				}
+				return (
+					is_developer_mode &&
+					(frappe.model[method]("Report") ||
+						this.report_doc.owner === frappe.session.user)
+				);
+			}
+
+			// For non-standard reports, use existing logic
 			return (
 				this.report_doc &&
-				this.report_doc.is_standard !== "Yes" &&
 				(frappe.model[method]("Report") || this.report_doc.owner === frappe.session.user)
 			);
 		};
