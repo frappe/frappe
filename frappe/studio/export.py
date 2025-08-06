@@ -43,3 +43,17 @@ def can_export(doc) -> bool:
 		and not frappe.flags.in_uninstall
 		and not frappe.flags.in_import
 	)
+
+
+def remove_null_fields(docdict):
+	"""remove null and empty fields"""
+	to_remove = []
+	for attr, value in docdict.items():
+		if isinstance(value, list):
+			for v in value:
+				remove_null_fields(v)
+		elif not value:
+			to_remove.append(attr)
+
+	for attr in to_remove:
+		del docdict[attr]
