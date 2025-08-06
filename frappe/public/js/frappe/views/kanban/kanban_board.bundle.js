@@ -834,8 +834,18 @@ const columnsByMechanic = {
 					// Validate transitions based on destination column
 					let validationPassed = true;
 					
+					// Mechanic validation - Check if user is a mechanic or junior mechanic
+					const isMechanic = await erpnext.utils.isMechanic();
+					const isJuniorMechanic = await erpnext.utils.isJuniorMechanic();
+					
+					if (isMechanic || isJuniorMechanic) {
+						frappe.db.set_value("Project", args.name, "status", args.from_colname);
+						showMessageNotAllowedUpdateStatus();
+						validationPassed = false;
+					}
+					
 					// Quality check approved validation
-					if (args.to_colname === "Quality check approved") {
+					if (validationPassed && args.to_colname === "Quality check approved") {
 						await validate_project_quotations_and_requirements(args)
 							.then(res => {
 								console.log(`Validation passed for moving to Quality check approved: ${args.name}`);
@@ -847,7 +857,7 @@ const columnsByMechanic = {
 					}
 					
 					// Completed validation
-					if (args.to_colname === "Completed") {
+					if (validationPassed && args.to_colname === "Completed") {
 						await validate_project_loan_car(args)
 							.then(res => {
 								console.log(`Validation passed for moving to Completed: ${args.name}`);
@@ -859,7 +869,7 @@ const columnsByMechanic = {
 					}
 					
 					// Remote diagnose to Completed special case
-					if (args.from_colname === "Remote diagnose" && args.to_colname === "Completed") {
+					if (validationPassed && args.from_colname === "Remote diagnose" && args.to_colname === "Completed") {
 						showSentMessageAfterRemoteDiagnoseDialog(args.name);
 					}
 					
@@ -1764,5 +1774,14 @@ const columnsByMechanic = {
 		dialog.$wrapper.modal({ backdrop: 'static', keyboard: false })
 
 		dialog.show();
+	}
+
+	function showMessageNotAllowedUpdateStatus() {
+		frappe.msgprint({
+			title: "Not Allowed",
+			message: "You are not allowed to update the status of this project.",
+			indicator: "red",
+			alert: true
+		});
 	}
 })();
