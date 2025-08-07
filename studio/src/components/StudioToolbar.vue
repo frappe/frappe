@@ -134,11 +134,3 @@ const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 </script>
-
-<style>
-/* dropdown menu popover */
-div[data-reka-popper-content-wrapper] > div[role="menu"] {
-	margin-top: 15px !important;
-	z-index: 20 !important;
-}
-</style>
