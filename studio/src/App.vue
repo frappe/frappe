@@ -15,9 +15,3 @@
 import { Dialogs } from "frappe-ui"
 import { Toaster } from "vue-sonner"
 </script>
-
-<style>
-.dialog-overlay {
-	@apply z-50;
-}
-</style>

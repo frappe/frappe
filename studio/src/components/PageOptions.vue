@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -69,7 +69,7 @@ const setPageRoute = () => {
 }
 
 const dynamicPadding = computed(() => {
-	const prefixWidth = props.app?.route?.length * 8 + 15 // Assuming 8px per character plus 4px for padding
+	const prefixWidth = props.app?.route?.length * 8 + 2 // Assuming 8px per character plus 2px for padding
 	return `${Math.round(prefixWidth)}px`
 })
 
@@ -85,10 +85,12 @@ const applyDynamicPadding = () => {
 watch(
 	() => props.isOpen,
 	() => {
-		// apply dynamic padding to input element when the popover is opened
-		// to avoid overlapping with the prefix content
-		applyDynamicPadding()
-		setPageRoute()
+		nextTick(() => {
+			// apply dynamic padding to input element when the popover is opened
+			// to avoid overlapping with the prefix content
+			applyDynamicPadding()
+			setPageRoute()
+		})
 	},
 	{ immediate: true },
 )

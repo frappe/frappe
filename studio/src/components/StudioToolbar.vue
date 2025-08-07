@@ -36,7 +36,7 @@
 		</div>
 
 		<div>
-			<Popover transition="default" placement="bottom" popoverClass="!absolute top-0 !mt-[20px]">
+			<Popover transition="default" placement="bottom" popoverClass="!mt-[20px]">
 				<template #target="{ togglePopover, isOpen }">
 					<div class="flex cursor-pointer items-center gap-2 p-2">
 						<div class="flex h-6 items-center text-base text-gray-800" v-if="!store.activePage">
@@ -134,11 +134,3 @@ const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 </script>
-
-<style>
-/* dropdown menu popover */
-div[data-reka-popper-content-wrapper] > div[role="menu"] {
-	margin-top: 15px !important;
-	z-index: 20 !important;
-}
-</style>

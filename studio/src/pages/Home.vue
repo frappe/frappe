@@ -1,5 +1,5 @@
 <template>
-	<div class="h-screen flex-col overflow-hidden bg-white">
+	<div class="isolate h-screen flex-col overflow-hidden bg-white">
 		<div
 			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white px-3 py-2 shadow-sm"
 		>
@@ -169,11 +169,3 @@ function setAppFields(e: Event) {
 	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
 }
 </script>
-
-<style>
-/* dropdown menu popover */
-div[data-reka-popper-content-wrapper] > div[role="menu"] {
-	margin-top: 15px !important;
-	z-index: 20 !important;
-}
-</style>

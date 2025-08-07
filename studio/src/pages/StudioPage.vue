@@ -1,5 +1,5 @@
 <template>
-	<div class="studio h-screen flex-col overflow-hidden bg-gray-100">
+	<div class="studio isolate h-screen flex-col overflow-hidden bg-gray-100">
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">

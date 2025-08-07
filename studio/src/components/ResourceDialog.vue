@@ -93,7 +93,7 @@
 				</template>
 
 				<!-- Transform Results for any Resource Type -->
-				<div class="flex flex-row gap-1.5">
+				<div class="flex flex-row items-center gap-1.5">
 					<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
 					<InputLabel>Transform Results</InputLabel>
 				</div>
