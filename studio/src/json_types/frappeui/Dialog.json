@@ -140,6 +140,9 @@
                       "string"
                     ]
                   },
+                  "tooltip": {
+                    "type": "string"
+                  },
                   "loading": {
                     "type": "boolean"
                   },

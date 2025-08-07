@@ -43,7 +43,10 @@
           "type": "string"
         },
         "iconRight": {
-           "type": "string"
+         "type": "string"
+        },
+        "tooltip": {
+          "type": "string"
         },
         "loading": {
           "type": "boolean"

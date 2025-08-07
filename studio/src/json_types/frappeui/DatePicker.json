@@ -6,10 +6,30 @@
       "type": "object",
       "properties": {
         "value": {
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "modelValue": {
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "placeholder": {
           "type": "string"
@@ -55,6 +75,9 @@
           ]
         },
         "placement": {
+          "type": "string"
+        },
+        "label": {
           "type": "string"
         }
       },

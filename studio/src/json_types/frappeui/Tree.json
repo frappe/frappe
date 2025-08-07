@@ -14,7 +14,7 @@
             "children": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+                "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-449"
               }
             }
           },
@@ -33,7 +33,7 @@
               {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+                  "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-449"
                 }
               }
             ]
@@ -53,6 +53,9 @@
             },
             "showIndentationGuides": {
               "type": "boolean"
+            },
+            "defaultCollapsed": {
+              "type": "boolean"
             }
           },
           "additionalProperties": false
@@ -64,7 +67,7 @@
       ],
       "additionalProperties": false
     },
-    "alias-1572818682-0-219-1572818682-0-420": {
+    "alias-1572818682-0-219-1572818682-0-449": {
       "type": "object",
       "properties": {
         "label": {
@@ -73,7 +76,7 @@
         "children": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+            "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-449"
           }
         }
       },
@@ -92,7 +95,7 @@
           {
             "type": "array",
             "items": {
-              "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-420"
+              "$ref": "#/definitions/alias-1572818682-0-219-1572818682-0-449"
             }
           }
         ]

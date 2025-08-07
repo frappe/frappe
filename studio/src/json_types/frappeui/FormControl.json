@@ -41,6 +41,13 @@
             "md"
           ]
         },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline"
+          ]
+        },
         "required": {
           "type": "boolean"
         }
