@@ -226,8 +226,9 @@
 	border-radius: var(--border-radius-sm);
 	background-color: var(--fg-color);
 	box-shadow: var(--shadow-md);
-	z-index: 9999;
-	position: absolute;
+	z-index: 999999;
+	position: fixed;
+	pointer-events: auto;
 }
 
 .ql-mention-list-item {

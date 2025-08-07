@@ -33,7 +33,7 @@ class Mention {
 
 		this.mentionContainer = document.createElement("div");
 		this.mentionContainer.className = "ql-mention-list-container";
-		this.mentionContainer.style.cssText = "display: none; position: absolute;";
+		this.mentionContainer.style.cssText = "display: none; position: fixed;";
 		this.mentionContainer.onmousemove = this.onContainerMouseMove.bind(this);
 
 		if (this.options.fixMentionsToQuill) {
@@ -44,7 +44,16 @@ class Mention {
 		this.mentionList.className = "ql-mention-list";
 		this.mentionContainer.appendChild(this.mentionList);
 
-		this.quill.container.appendChild(this.mentionContainer);
+		// Append to body to avoid clipping issues
+		document.body.appendChild(this.mentionContainer);
+
+		// Store reference to remove on cleanup
+		this.quill.mentionContainer = this.mentionContainer;
+
+		// Handle scroll events to reposition tooltip
+		this.onScroll = this.handleScroll.bind(this);
+		window.addEventListener("scroll", this.onScroll, true);
+		window.addEventListener("resize", this.onScroll);
 
 		quill.on("text-change", this.onTextChange.bind(this));
 		quill.on("selection-change", this.onSelectionChange.bind(this));
@@ -85,6 +94,20 @@ class Mention {
 			},
 			this.downHandler.bind(this)
 		);
+	}
+
+	handleScroll() {
+		if (this.isOpen) {
+			this.setMentionContainerPosition();
+		}
+	}
+
+	cleanup() {
+		if (this.mentionContainer && this.mentionContainer.parentNode) {
+			this.mentionContainer.parentNode.removeChild(this.mentionContainer);
+		}
+		window.removeEventListener("scroll", this.onScroll, true);
+		window.removeEventListener("resize", this.onScroll);
 	}
 
 	selectHandler() {
@@ -272,72 +295,69 @@ class Mention {
 		const containerHeight = this.mentionContainer.offsetHeight;
 		const containerWidth = this.mentionContainer.offsetWidth;
 
-		let topPos = this.options.offsetTop;
-		let leftPos = this.options.offsetLeft;
+		// Calculate absolute position in viewport
+		const mentionCharAbsolutePos = {
+			top: containerPos.top + mentionCharPos.top,
+			bottom: containerPos.top + mentionCharPos.bottom,
+			left: containerPos.left + mentionCharPos.left,
+			right: containerPos.left + mentionCharPos.right,
+		};
 
-		// handle horizontal positioning
+		let topPos = mentionCharAbsolutePos.bottom + this.options.offsetTop;
+		let leftPos = mentionCharAbsolutePos.left + this.options.offsetLeft;
+
+		// Handle horizontal positioning
 		if (this.options.fixMentionsToQuill) {
-			const rightPos = 0;
-			this.mentionContainer.style.right = `${rightPos}px`;
-		} else {
-			leftPos += mentionCharPos.left;
+			leftPos = containerPos.right - containerWidth;
 		}
 
-		// Check if container would overflow right edge
-		if (this.containerRightIsNotVisible(leftPos, containerPos)) {
-			const quillWidth = containerPos.width;
-			leftPos = quillWidth - containerWidth - this.options.offsetLeft;
+		// Check for right viewport overflow
+		if (leftPos + containerWidth > window.innerWidth - 10) {
+			leftPos = window.innerWidth - containerWidth - 10;
 		}
 
-		// handle vertical positioning
+		// Check for left viewport overflow
+		if (leftPos < 10) {
+			leftPos = 10;
+		}
+
+		// Handle vertical positioning
 		if (this.options.defaultMenuOrientation === "top") {
-			// Attempt to align the mention container with the top of the quill editor
-			if (this.options.fixMentionsToQuill) {
-				topPos = -1 * (containerHeight + this.options.offsetTop);
-			} else {
-				topPos = mentionCharPos.top - (containerHeight + this.options.offsetTop);
-			}
+			// Try to position above the mention character
+			topPos = mentionCharAbsolutePos.top - containerHeight - this.options.offsetTop;
 
-			// default to bottom if the top is not visible
-			if (topPos + containerPos.top <= 0) {
-				let overMentionCharPos = this.options.offsetTop;
-
-				if (this.options.fixMentionsToQuill) {
-					overMentionCharPos += containerPos.height;
-				} else {
-					overMentionCharPos += mentionCharPos.bottom;
-				}
-
-				topPos = overMentionCharPos;
+			// If it doesn't fit above, position below
+			if (topPos < 10) {
+				topPos = mentionCharAbsolutePos.bottom + this.options.offsetTop;
 			}
 		} else {
-			// Attempt to align the mention container with the bottom of the quill editor
-			if (this.options.fixMentionsToQuill) {
-				topPos += containerPos.height;
-			} else {
-				topPos += mentionCharPos.bottom;
-			}
+			// Default: position below the mention character
+			topPos = mentionCharAbsolutePos.bottom + this.options.offsetTop;
 
-			// default to the top if the bottom is not visible
-			if (this.containerBottomIsNotVisible(topPos, containerPos)) {
-				let overMentionCharPos = this.options.offsetTop * -1;
-
-				if (!this.options.fixMentionsToQuill) {
-					overMentionCharPos += mentionCharPos.top;
+			// If it doesn't fit below, position above
+			if (topPos + containerHeight > window.innerHeight - 10) {
+				const abovePos =
+					mentionCharAbsolutePos.top - containerHeight - this.options.offsetTop;
+				if (abovePos >= 10) {
+					topPos = abovePos;
+				} else {
+					// If it doesn't fit above either, position at bottom of viewport
+					topPos = window.innerHeight - containerHeight - 10;
 				}
-
-				topPos = overMentionCharPos - containerHeight;
 			}
 		}
 
-		// Ensure tooltip doesn't overflow the viewport
-		if (topPos + containerPos.top < 0) {
-			topPos = -containerPos.top + this.options.offsetTop;
+		// Final viewport boundary checks
+		if (topPos < 10) {
+			topPos = 10;
+		}
+		if (topPos + containerHeight > window.innerHeight - 10) {
+			topPos = window.innerHeight - containerHeight - 10;
 		}
 
-		if (topPos + containerPos.top + containerHeight > window.innerHeight) {
-			topPos = window.innerHeight - containerHeight - containerPos.top;
-		}
+		// Ensure minimum dimensions
+		if (topPos < 0) topPos = 5;
+		if (leftPos < 0) leftPos = 5;
 
 		this.mentionContainer.style.top = `${topPos}px`;
 		this.mentionContainer.style.left = `${leftPos}px`;
