@@ -42,6 +42,14 @@ frappe.ui.form.on("Event", {
 			__("Add Participants")
 		);
 
+		frm.add_custom_button(
+			__("Add Employee"),
+			function () {
+				new frappe.desk.eventParticipants(frm, "Employee");
+			},
+			__("Add Participants")
+		);
+
 		const [ends_on_date] = frm.doc.ends_on
 			? frm.doc.ends_on.split(" ")
 			: frm.doc.starts_on?.split(" ") || [];
@@ -105,13 +113,22 @@ frappe.desk.eventParticipants = class eventParticipants {
 		let me = this;
 
 		let table = me.frm.get_field("event_participants").grid;
-		new frappe.ui.form.LinkSelector({
+
+		let link_selector_options = {
 			doctype: me.doctype,
 			dynamic_link_field: "reference_doctype",
 			dynamic_link_reference: me.doctype,
 			fieldname: "reference_docname",
 			target: table,
 			txt: "",
-		});
+		};
+
+		// If Employee doctype, use custom query to handle permissions
+		if (me.doctype === "Employee") {
+			link_selector_options.query =
+				"frappe.desk.doctype.event.event.get_employees_for_event_participation";
+		}
+
+		new frappe.ui.form.LinkSelector(link_selector_options);
 	}
 };

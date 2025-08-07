@@ -6,6 +6,7 @@ import json
 from datetime import date, datetime
 
 import frappe
+import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
@@ -104,6 +105,32 @@ class Event(Document):
 
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
+
+		# Validate participant permissions
+		self.validate_participants_permissions()
+
+	def validate_participants_permissions(self):
+		"""Validate that current user can add the selected participants"""
+		if not self.event_participants:
+			return
+
+		for participant in self.event_participants:
+			if participant.reference_doctype == "Employee":
+				# Check if user has permission to access this employee
+				if not frappe.has_permission("Employee", "read", participant.reference_docname):
+					# Check user permissions
+					user_permissions = frappe.permissions.get_user_permissions(frappe.session.user)
+					employee_permissions = user_permissions.get("Employee", [])
+
+					allowed_employees = [p.get("doc") for p in employee_permissions if p.get("doc")]
+
+					if allowed_employees and participant.reference_docname not in allowed_employees:
+						frappe.throw(
+							_("You don't have permission to add Employee {0} as a participant").format(
+								participant.reference_docname
+							),
+							frappe.PermissionError
+						)
 
 	def before_save(self):
 		self.set_participants_email()
@@ -204,6 +231,43 @@ class Event(Document):
 			participant.email = (
 				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
 			)
+
+
+@frappe.whitelist()
+def get_employees_for_event_participation(txt="", searchfield="employee_name", start=0, page_len=20):
+	"""Get employees that current user can access for adding as event participants"""
+
+	# Check if user has permission to read Employee doctype
+	if not frappe.has_permission("Employee", "read"):
+		return []
+
+	filters = []
+
+	# Get user permissions for Employee
+	user_permissions = frappe.permissions.get_user_permissions(frappe.session.user)
+	employee_permissions = user_permissions.get("Employee", [])
+
+	if employee_permissions:
+		# User has specific employee permissions, filter accordingly
+		allowed_employees = [p.get("doc") for p in employee_permissions if p.get("doc")]
+		if allowed_employees:
+			filters.append(["Employee", "name", "in", allowed_employees])
+
+	# Add text search filter
+	if txt:
+		filters.append(["Employee", searchfield, "like", f"%{txt}%"])
+
+	# Get employees based on filters
+	employees = frappe.get_list(
+		"Employee",
+		fields=["name", "employee_name", "company"],
+		filters=filters,
+		limit_start=start,
+		limit_page_length=page_len,
+		order_by="employee_name"
+	)
+
+	return [[emp.name, emp.employee_name, emp.company] for emp in employees]
 
 
 @frappe.whitelist()
