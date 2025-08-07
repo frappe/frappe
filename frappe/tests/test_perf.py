@@ -34,7 +34,6 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import cint
-from frappe.utils.caching import redis_cache
 from frappe.website.path_resolver import PathResolver
 
 TEST_USER = "test@example.com"
@@ -204,25 +203,8 @@ class TestPerformance(IntegrationTestCase):
 
 	def test_get_doc_cache_calls(self):
 		frappe.get_doc("User", "Administrator")
-		with self.assertRedisCallCounts(0):
-			frappe.get_doc("User", "Administrator")
-
-	def test_local_caching(self):
-		frappe.get_cached_doc("User", "Administrator")
-		with self.assertRedisCallCounts(0):
-			frappe.get_cached_doc("User", "Administrator")
-
-	def test_redis_cache_calls(self):
-		redis_cached_func()  # warmup
-
-		# Repeat call should use locally cached value
-		with self.assertRedisCallCounts(0):
-			redis_cached_func()
-
-		frappe.local.cache.clear()
-		# Without local cache - only one call required
 		with self.assertRedisCallCounts(1):
-			redis_cached_func()
+			frappe.get_doc("User", "Administrator")
 
 	def test_idle_cpu_utilization_redis_pubsub(self):
 		pid = frappe.client_cache.invalidator_thread.native_id
@@ -310,8 +292,3 @@ class TestOverheadCalls(FrappeAPITestCase):
 		self.get(self.resource("User", "Administrator"), {"sid": sid})
 		with self.assertRedisCallCounts(3), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
 			self.get(self.resource("User", "Administrator"), {"sid": sid})
-
-
-@redis_cache
-def redis_cached_func():
-	return 42

@@ -187,16 +187,9 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
-			func_call_key = f"{func_key}::{hash(__generate_request_cache_key(args, kwargs))}"
-			cached_val = frappe.cache.get_value(func_call_key, user=user, shared=shared)
-			if cached_val is not None:
-				return cached_val
-
-			# Edge Case: None can mean two things: cache miss or the result itself is `None`
-			# RedisWrapper doesn't give us any way to handle this cleanly.
+			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache.exists(func_call_key, user=user, shared=shared):
-				return None
-
+				return frappe.cache.get_value(func_call_key, user=user, shared=shared)
 			val = func(*args, **kwargs)
 			ttl = getattr(func, "ttl", 3600)
 			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
