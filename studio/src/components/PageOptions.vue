@@ -33,6 +33,7 @@
 
 					<!-- App Route Prefix -->
 					<div
+						ref="prefixElement"
 						class="absolute bottom-[1px] left-[1px] flex items-center rounded-l-[0.4rem] bg-gray-100 text-gray-700"
 					>
 						<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">
@@ -68,8 +69,9 @@ const setPageRoute = () => {
 	pageRoute.value = props.page.route.replace(/^\//, "")
 }
 
+const prefixElement = ref<HTMLElement | null>(null)
 const dynamicPadding = computed(() => {
-	const prefixWidth = props.app?.route?.length * 8 + 2 // Assuming 8px per character plus 2px for padding
+	const prefixWidth = (prefixElement.value?.offsetWidth || 0) + 10 // adding 10px for extra space
 	return `${Math.round(prefixWidth)}px`
 })
 
