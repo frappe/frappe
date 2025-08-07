@@ -44,6 +44,7 @@
 							:options="store.variableOptions"
 							placeholder="Select variable"
 							@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
+							class="!w-auto"
 						>
 							<template #target="{ togglePopover }">
 								<IconButton
@@ -74,6 +75,7 @@
 				<Autocomplete
 					:options="componentSlots"
 					@update:modelValue="(slot: SelectOption) => block?.addSlot(slot.value)"
+					class="!w-auto"
 				>
 					<template #target="{ togglePopover }">
 						<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />

@@ -61,6 +61,7 @@
 						:options="fields"
 						@update:modelValue="(field: DocTypeField) => addFilter(field.value)"
 						placeholder="Filter by..."
+						class="!w-auto"
 					>
 						<template #target="{ togglePopover }">
 							<Button class="!text-gray-600" variant="ghost" @click="togglePopover()" label="Add filter">
