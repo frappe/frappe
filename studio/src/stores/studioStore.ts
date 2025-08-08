@@ -328,6 +328,9 @@ const useStudioStore = defineStore("store", () => {
 		}
 
 		traverse(variables.value)
+		if (options.length) {
+			options.unshift({ value: "", label: "" })
+		}
 		return options
 	})
 
