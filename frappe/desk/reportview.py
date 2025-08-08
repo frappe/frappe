@@ -892,165 +892,38 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
             args["page_length"] = page_length
 
     # Special handling for Project doctype
-    if args.get("doctype") == "Project" and args.get("fields"):
-        # Optimize field handling
-        fields = args["fields"]
-        
-        # Ensure we have all required fields for sorting
-        required_fields = {
-            "queue_position": "cast(NULLIF(queue_position, '') as decimal(10,2)) as queue_position",
-            "appointment_date": "appointment_date",
-            "status": "status"
-        }
-        
-        # Remove existing versions of required fields to avoid duplicates
-        fields = [f for f in fields if not any(rf in f.replace("`", "").lower() for rf in required_fields.keys())]
-        
-        # Add required fields for sorting
-        fields.extend(required_fields.values())
-        args["fields"] = fields
-        
-        # Remove order_by to allow custom sorting in Python
-        args.pop("order_by", None)
+    if args.get("doctype") == "Project" and args.get("fields"):   
+        # Eliminar cualquier campo con queue_position para evitar duplicados
+        args["fields"] = [
+            f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()
+        ]
+        args["fields"].append("cast(queue_position as decimal) as queue_position")
 
-    # Execute query
-    data = execute(**args)
+        # Forzar orden por queue_position si no viene explícito
+        if not args.get("order_by"):
+            args["order_by"] = "cast(queue_position as decimal)"
+        else:
+            args["order_by"] = re.sub(
+                r"`?tabProject`?\.`?queue_position`?",
+                "cast(queue_position as decimal)",
+                args["order_by"]
+            )
 
-    # Apply custom sorting for Project doctype
-    if args.get("doctype") == "Project" and data:
-        # Define statuses that need special ordering
-        special_order_statuses = ["In queue", "In parking"]
-        
-        # Separate projects by status
-        special_status_projects = []
-        other_projects = []
-        
-        for project in data:
-            if project.get('status') in special_order_statuses:
-                special_status_projects.append(project)
-            else:
-                other_projects.append(project)
-        
-        # Apply sorting if we have projects with special statuses
-        if special_status_projects:
-            frappe.logger().info(f"[REPORTVIEW SORT] Applying custom sorting for {len(special_status_projects)} projects with special status")
-            
-            # Log original project order
-            frappe.logger().info(f"[REPORTVIEW SORT] Original order of {len(special_status_projects)} projects:")
-            for i, p in enumerate(special_status_projects[:10]):  # Log first 10 projects to avoid excessive logging
-                frappe.logger().info(f"[REPORTVIEW SORT] Original #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
-            
-            # Define a sorting key function
-            def sort_key(project):
-                # Handle queue_position - convert to integer or use default high value
-                queue_pos = project.get('queue_position')
-                
-                # First determine if queue_position is valid
-                has_valid_queue_pos = False
-                queue_position_int = 999999  # Default high value for invalid/NULL
-                
-                if queue_pos not in (None, "", 0):
-                    try:
-                        # Convert to integer and validate
-                        queue_position_int = int(float(queue_pos))
-                        has_valid_queue_pos = True
-                    except (ValueError, TypeError):
-                        # Invalid format, keep default high value
-                        pass
-                
-                # Handle appointment_date - convert to datetime or use default future date
-                appt_date = project.get('appointment_date')
-                has_valid_date = False
-                default_date = datetime(9999, 12, 31)
-                date_obj = default_date
-                
-                if appt_date:
-                    try:
-                        # Convert string date to datetime if needed
-                        if isinstance(appt_date, str):
-                            date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
-                            has_valid_date = True
-                        else:
-                            # Handle date object by converting to datetime
-                            from datetime import date
-                            if isinstance(appt_date, date) and not isinstance(appt_date, datetime):
-                                date_obj = datetime.combine(appt_date, datetime.min.time())
-                                has_valid_date = True
-                            elif isinstance(appt_date, datetime):
-                                date_obj = appt_date
-                                has_valid_date = True
-                    except (ValueError, TypeError):
-                        # Invalid date format, keep default date
-                        pass
-                
-                # Log the values for debugging
-                frappe.logger().info(f"[REPORTVIEW DEBUG] Project {project.get('name')}, plate={project.get('plate')}, queue_pos={queue_pos}, valid_queue_pos={has_valid_queue_pos}, appt_date={appt_date}")
-                
-                # Simple sorting logic: always sort by queue_position first (if valid), then by appointment_date
-                # For queue_position, use the actual value if valid, or a very high number (999999) if not valid
-                # This ensures projects with valid queue_position always come first in ascending order
-                
-                # For projects without valid queue_position, they will all have the same high queue_position value (999999),
-                # so they will be sorted by appointment_date
-                
-                return (queue_position_int, date_obj)
-            
-            # Sort the special status projects and combine with other projects
-            sorted_special_projects = sorted(special_status_projects, key=sort_key)
-            data = sorted_special_projects + other_projects
-            
-            # Log sorted project order
-            frappe.logger().info(f"[REPORTVIEW SORT] Sorted order of {len(sorted_special_projects)} projects:")
-            for i, p in enumerate(sorted_special_projects[:10]):  # Log first 10 projects to avoid excessive logging
-                frappe.logger().info(f"[REPORTVIEW SORT] Sorted #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
-            
-            # Log sorting criteria for first few projects to understand the sorting logic
-            if sorted_special_projects:
-                frappe.logger().info("[REPORTVIEW SORT] Sorting criteria details:")
-                for i, p in enumerate(sorted_special_projects[:5]):
-                    queue_pos = p.get('queue_position')
-                    has_valid_queue_pos = False
-                    queue_position_int = 999999
-                    
-                    if queue_pos not in (None, "", 0):
-                        try:
-                            queue_position_int = int(float(queue_pos))
-                            has_valid_queue_pos = True
-                        except (ValueError, TypeError):
-                            pass
-                            
-                    appt_date = p.get('appointment_date')
-                    has_valid_date = False
-                    date_obj = None
-                    
-                    if appt_date:
-                        try:
-                            if isinstance(appt_date, str):
-                                date_obj = datetime.strptime(appt_date, "%Y-%m-%d")
-                                has_valid_date = True
-                            else:
-                                from datetime import date
-                                if isinstance(appt_date, date):
-                                    date_obj = appt_date
-                                    has_valid_date = True
-                        except (ValueError, TypeError):
-                            pass
-                    
-                    sort_tuple = (not has_valid_queue_pos, queue_position_int, not has_valid_date, date_obj)
-                    frappe.logger().info(f"[REPORTVIEW SORT] #{i+1} {p.get('name')} - Sort tuple: {sort_tuple}")
-            
-            # Log sample of sorted data for debugging
-            if data:
-                sample = data[0]
-                frappe.logger().info(f"[REPORTVIEW SORT] First sorted project: {sample.get('name')} - status: {sample.get('status')} - queue_pos: {sample.get('queue_position')} - date: {sample.get('appointment_date')}")
+    # Ejecutar la consulta
+    if is_virtual_doctype(args["doctype"]):
+        controller = get_controller(args["doctype"])
+        data = compress(controller.get_list(args))
+    else:
+        data = execute(**args)
 
-
-    # Debug logging (only log first 3 items to reduce log volume)
-    if args.get("doctype") == "Project" and data:
-        frappe.logger().info(f"[REPORTVIEW DEBUG] Fetched {len(data)} projects")
-        for i, row in enumerate(data[:3]):
-            frappe.logger().info(f"[REPORTVIEW DEBUG] Row {i+1}: name={row.get('name')}, status={row.get('status')}, queue_position={row.get('queue_position')}, appointment_date={row.get('appointment_date')}")
-
+    # 🔍 Mostrar name, queue_position y appointment_date (solo si es lista de dicts)
+    if isinstance(data, list):
+        frappe.logger().info("=== Proyectos obtenidos ===")
+        for row in data:
+            name = row.get("name")
+            queue_position = row.get("queue_position")
+            appointment_date = row.get("appointment_date")
+            frappe.logger().info(f"{name} | Queue: {queue_position} | Appointment: {appointment_date}")
     return data
 
 
