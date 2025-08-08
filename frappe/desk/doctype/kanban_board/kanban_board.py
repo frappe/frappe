@@ -136,71 +136,20 @@ def update_order(board_name, order):
 	fieldname = board.field_name
 	order_dict = json.loads(order)
 
-	# Special handling for Project doctype with In queue or In parking status
-	if doctype == "Project":
-		# Get the statuses that need special ordering
-		special_order_statuses = ["In queue", "In parking"]
-		
-		# Get all projects with proper sorting
-		projects_ordered = get_projects_ordered_by_queue_position_and_appointment_date()
-		
-		# Log the projects ordered for debugging
-		frappe.logger("debug").info(f"[KANBAN UPDATE] Projects ordered by queue_position and appointment_date:")
-		for i, p in enumerate(projects_ordered[:10]):
-			frappe.logger("debug").info(f"[KANBAN UPDATE] #{i+1}: name={p.get('name')}, plate={p.get('plate')}, queue_pos={p.get('queue_position')}, date={p.get('appointment_date')}, status={p.get('status')}")
-		
-		# Process each column
-		for col_name, cards in order_dict.items():
-			# Check if this column needs special ordering
-			if col_name in special_order_statuses:
-				# Get the sorted cards for this column
-				sorted_cards = [p['name'] for p in projects_ordered if p.get('status') == col_name]
-				
-				# Log the sorted cards for this column
-				frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted cards for column '{col_name}': {sorted_cards}")
-				
-				# Update the order_dict with the sorted cards
-				order_dict[col_name] = sorted_cards
-				
-				# Log the sorting
-				frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted column '{col_name}' with {len(sorted_cards)} projects")
-				
-				# Update each card's status if needed
-				for card in sorted_cards:
-					column = frappe.get_value(doctype, {"name": card}, fieldname)
-					if column != col_name:
-						frappe.set_value(doctype, card, fieldname, col_name)
-						updated_cards.append(dict(name=card, column=col_name))
-						
-				# Update the column order with the properly sorted cards
-				for column in board.columns:
-					if column.column_name == col_name:
-						# Make sure we're using the sorted order
-						column.order = frappe.as_json(sorted_cards)
-						frappe.logger("debug").info(f"[KANBAN UPDATE] Updated column order for '{col_name}': {column.order}")
-			else:
-				# Standard processing for other columns
-				for card in cards:
-					column = frappe.get_value(doctype, {"name": card}, fieldname)
-					if column != col_name:
-						frappe.set_value(doctype, card, fieldname, col_name)
-						updated_cards.append(dict(name=card, column=col_name))
-				
-				for column in board.columns:
-					if column.column_name == col_name:
-						column.order = json.dumps(cards)
-	else:
-		# Standard processing for non-Project doctypes
-		for col_name, cards in order_dict.items():
-			for card in cards:
-				column = frappe.get_value(doctype, {"name": card}, fieldname)
-				if column != col_name:
-					frappe.set_value(doctype, card, fieldname, col_name)
-					updated_cards.append(dict(name=card, column=col_name))
+	# Standard processing for all doctypes
+	for col_name, cards in order_dict.items():
+		for card in cards:
+			column = frappe.get_value(doctype, {"name": card}, fieldname)
+			if column != col_name:
+				frappe.set_value(doctype, card, fieldname, col_name)
+				updated_cards.append(dict(name=card, column=col_name))
 
-			for column in board.columns:
-				if column.column_name == col_name:
-					column.order = json.dumps(cards)
+		for column in board.columns:
+			if column.column_name == col_name:
+				column.order = json.dumps(cards)
+
+    # Example tp use logs in prod/staging env
+	# frappe.logger("debug").info(f"[KANBAN UPDATE] Sorted column '{col_name}' with {len(sorted_cards)} projects")
 
 	return board.save(ignore_permissions=True), updated_cards
 
