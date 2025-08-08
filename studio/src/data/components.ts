@@ -332,7 +332,10 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "John Doe",
 			autocomplete: "off",
 		},
-		additionalProps: { modelValue: { required: false } },
+		additionalProps: {
+			modelValue: { required: false },
+			placeholder: { required: false, type: String }
+		},
 	},
 	ListView: {
 		name: "ListView",
