@@ -160,7 +160,8 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		if (!this.country_codes) {
 			await this.setup_country_codes();
 		}
-		// spiliting if there are multiple hyphens
+
+		// splitting if there are multiple hyphens
 		const parts = value ? value.split("-") : [];
 
 		// Get the full country code
@@ -188,8 +189,8 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.update_padding();
 			this.$input.val(parts.join("-"));
 
+			// Return if we have a valid number with country code
 			return;
-			// Return if we have a vaild number with country code
 		} else if (this.$isd.text().trim() && this.value) {
 			let code_number = this.$isd.text() + "-" + value;
 			this.set_value(code_number);
