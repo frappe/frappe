@@ -206,6 +206,13 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
 	}
+
+	if (block.isContainer()) {
+		store.studioLayout.leftPanelActiveTab = "Layers"
+		store.studioLayout.rightPanelActiveTab = "Styles"
+	} else {
+		store.studioLayout.rightPanelActiveTab = "Properties"
+	}
 }
 
 function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = false) {
