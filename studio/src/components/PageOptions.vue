@@ -6,12 +6,8 @@
 				type="text"
 				variant="outline"
 				class="w-full"
-				v-model="pageTitle"
-				@change="
-					() => {
-						store.updateActivePage('page_title', pageTitle)
-					}
-				"
+				:modelValue="pageTitle"
+				@update:modelValue="(val: string) => store.updateActivePage('page_title', val)"
 			/>
 
 			<div class="flex w-full flex-col gap-1">
@@ -23,10 +19,10 @@
 						variant="outline"
 						class="w-full"
 						:hideClearButton="true"
-						v-model="pageRoute"
-						@change="
-							() => {
-								store.updateActivePage('route', pageRoute.startsWith('/') ? pageRoute : `/${pageRoute}`)
+						:modelValue="pageRoute"
+						@update:modelValue="
+							(val: string) => {
+								store.updateActivePage('route', val.startsWith('/') ? val : `/${val}`)
 							}
 						"
 					/>

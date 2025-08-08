@@ -7,6 +7,11 @@
 				variant="outline"
 				placeholder="Search properties"
 				v-model="store.stylePropertyFilter"
+				@input="
+					(value: string) => {
+						store.stylePropertyFilter = value
+					}
+				"
 			/>
 		</div>
 		<div class="flex flex-col gap-3">

@@ -2,7 +2,17 @@
 	<div class="flex flex-col gap-5">
 		<!-- Component Filter -->
 		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
-			<Input type="text" variant="outline" placeholder="Search component" v-model="componentFilter" />
+			<Input
+				type="text"
+				variant="outline"
+				placeholder="Search component"
+				v-model="componentFilter"
+				@input="
+					(value: string) => {
+						componentFilter = value
+					}
+				"
+			/>
 		</div>
 
 		<div class="grid grid-cols-3 items-center gap-x-2 gap-y-4">

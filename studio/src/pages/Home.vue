@@ -29,6 +29,11 @@
 						placeholder="Search"
 						v-model="searchFilter"
 						autofocus
+						@input="
+							(value: string) => {
+								searchFilter = value
+							}
+						"
 					>
 						<template #prefix>
 							<FeatherIcon name="search" class="h-4 w-4 text-gray-500" />
@@ -117,7 +122,6 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
-import EmptyState from "@/components/EmptyState.vue"
 
 const showDialog = ref(false)
 const emptyAppState = {
