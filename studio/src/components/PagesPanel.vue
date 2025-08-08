@@ -12,7 +12,7 @@
 						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
 					>
 						{{ page.page_title }} -
-						<span class="text-xs">{{ getPageRoute(page) }}</span>
+						<span class="text-xs">{{ page.route }}</span>
 					</div>
 					<Badge v-if="isAppHome(page)" variant="outline" size="sm" class="text-xs" theme="blue">
 						App Home
@@ -57,11 +57,6 @@ const router = useRouter()
 
 const isPageActive = (page: StudioPage) => store.activePage?.name === page.name
 const isAppHome = (page: StudioPage) => store.activeApp?.app_home === page.name
-
-const getPageRoute = (page: StudioPage) => {
-	if (!store.activeApp) return ""
-	return page.route.replace(store.activeApp.route, "")
-}
 
 const getPageMenu = (page: StudioPage) => {
 	if (isObjectEmpty(store.activeApp)) return []

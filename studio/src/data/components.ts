@@ -332,7 +332,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "John Doe",
 			autocomplete: "off",
 		},
-		additionalProps: { modelValue: { required: false } }
+		additionalProps: { modelValue: { required: false } },
 	},
 	ListView: {
 		name: "ListView",
@@ -709,7 +709,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			modelValue: "# This is a markdown editor",
 		},
-	}
+	},
 }
 
 const proxyComponentMap = new Map<string, any>()
