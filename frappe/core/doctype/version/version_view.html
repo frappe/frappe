@@ -4,6 +4,7 @@
 <p>{{ data.comment }}</p>
 {% endif %}
 
+{% const getEscapedValue = (v) => v === null ? "null" : frappe.utils.escape_html(v) %}
 {% if data.changed && data.changed.length %}
 <h4>{{ __("Values Changed") }}</h4>
 <table class="table table-bordered">
@@ -18,8 +19,8 @@
 		{% for item in data.changed %}
 		<tr>
 			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
-			<td class="diff-remove">{{ frappe.utils.escape_html(item[1]) }}</td>
-			<td class="diff-add">{{ frappe.utils.escape_html(item[2]) }}</td>
+			<td class="diff-remove">{{ getEscapedValue(item[1]) }}</td>
+			<td class="diff-add">{{ getEscapedValue(item[2]) }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
@@ -50,7 +51,7 @@
 							{% for row_key in item_keys %}
 							<tr>
 								<td class="small">{{ row_key }}</td>
-								<td class="small">{{ frappe.utils.escape_html(item[1][row_key]) }}</td>
+								<td class="small">{{ getEscapedValue(item[1][row_key]) }}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -85,8 +86,8 @@
 				<td>{{ frappe.meta.get_label(doc.ref_doctype, table_info[0]) }}</td>
 				<td>{{ table_info[1] }}</td>
 				<td>{{ item[0] }}</td>
-				<td class="diff-remove">{{ frappe.utils.escape_html(item[1]) }}</td>
-				<td class="diff-add">{{ frappe.utils.escape_html(item[2]) }}</td>
+				<td class="diff-remove">{{ getEscapedValue(item[1]) }}</td>
+				<td class="diff-add">{{ getEscapedValue(item[2]) }}</td>
 			</tr>
 			{% endfor %}
 		{% endfor %}
