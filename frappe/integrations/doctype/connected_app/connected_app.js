@@ -11,6 +11,7 @@ frappe.ui.form.on("Connected App", {
 				frm.set_value("introspection_uri", oidc.introspection_endpoint);
 				frm.set_value("revocation_uri", oidc.revocation_endpoint);
 
+				frm.fields_dict.authorization_uri.section.collapse(false); // Un-collapse
 				frappe.show_alert(__("OpenID Configuration fetched successfully!"));
 			});
 		});
