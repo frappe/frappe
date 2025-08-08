@@ -532,13 +532,6 @@ const sections = [
 	{
 		name: "Spacing",
 		properties: spacingSectionProperties,
-		collapsed: computed(
-			() =>
-				!blockController.getStyle("marginTop") &&
-				!blockController.getStyle("paddingTop") &&
-				!blockController.getStyle("marginBottom") &&
-				!blockController.getStyle("paddingBottom"),
-		),
 	},
 	{
 		name: "Style",
