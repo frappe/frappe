@@ -3,6 +3,7 @@
 
 window.disable_signup = {{ disable_signup and "true" or "false" }};
 window.show_footer_on_login = {{ show_footer_on_login and "true" or "false" }};
+window.allow_mobile_login_with_otp = {{ allow_mobile_login_with_otp and "true" or "false" }};
 
 window.login = {};
 
@@ -12,7 +13,7 @@ login.bind_events = function () {
 	$(window).on("hashchange", function () {
 		login.route();
 	});
-	
+
 
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
@@ -86,12 +87,12 @@ login.bind_events = function () {
 			login.set_status({{ _("Mobile number is required") | tojson }}, 'red');
 			return false;
 		}
-		
+
 		// Show loading state
 		login.set_status({{ _("Sending OTP...") | tojson }}, 'blue');
-		
+
 		login.call(args);
-	
+
 		return false;
 	});
 
@@ -142,11 +143,6 @@ login.reset_sections = function (hide) {
 		$(this).removeClass().addClass('indicator').addClass('blue')
 			.text($(this).attr('data-text'));
 	});
-	
-	// Reset mobile OTP state when switching sections
-	if (window.mobile_otp_tmp_id) {
-		window.mobile_otp_tmp_id = null;
-	}
 }
 
 login.login = function () {
@@ -189,6 +185,8 @@ login.login_with_mobile_otp_link = function () {
 	$(".for-login-with-mobile-otp-link").toggle(true);
 	$("#login_with_mobile_otp_link").focus();
 }
+
+
 
 login.signup = function () {
 	login.reset_sections();
@@ -307,12 +305,7 @@ login.login_handlers = (function () {
 			if (data.verification && data.message != 'Logged In') {
 				login.set_status({{ _("Success") | tojson }}, 'green');
 
-				// Store tmp_id for mobile OTP if present
-				if (data.tmp_id) {
-					window.mobile_otp_tmp_id = data.tmp_id;
-				} else {
 				document.cookie = "tmp_id=" + data.tmp_id;
-				}
 
 				if (data.verification.method == 'OTP App') {
 					continue_otp_app(data.verification.setup, data.verification.qrcode);
@@ -322,11 +315,8 @@ login.login_handlers = (function () {
 					continue_email(data.verification.setup, data.verification.prompt);
 				}
 			}
-			
-			// Clear mobile OTP tmp_id on successful login
-			if (data.message == 'Logged In' && window.mobile_otp_tmp_id) {
-				window.mobile_otp_tmp_id = null;
-			}
+
+
 		},
 		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
@@ -344,35 +334,23 @@ frappe.ready(function () {
 		$("body .web-footer").show();
 	}
 
-	$(".form-signup, .form-forgot, .form-login-with-email-link, .form-login-with-mobile-otp-link").removeClass("hide");
+	$(".form-signup, .form-forgot, .form-login-with-email-link, .form-login-with-mobile-otp-link, .form-login").removeClass("hide");
 	$(document).trigger('login_rendered');
-	
+
 });
 
 var verify_token = function (event) {
 	$(".form-verify").on("submit", function (eventx) {
 		eventx.preventDefault();
 		var args = {};
-		var otp = $("#login_token").val();
-		
-		if (!otp) {
+		args.cmd = "login";
+		args.otp = $("#login_token").val();
+		args.tmp_id = frappe.get_cookie('tmp_id');
+		if (!args.otp) {
 			{# striptags is used to remove newlines, e is used for escaping #}
 			frappe.msgprint("{{ _('Login token required') | striptags | e }}");
 			return false;
 		}
-		
-		// Check if this is mobile OTP verification
-		if (window.mobile_otp_tmp_id) {
-			args.cmd = "frappe.www.login.verify_mobile_otp";
-			args.otp = otp;
-			args.tmp_id = window.mobile_otp_tmp_id;
-		} else {
-			// Standard 2FA verification
-			args.cmd = "login";
-			args.otp = otp;
-			args.tmp_id = frappe.get_cookie('tmp_id');
-		}
-		
 		login.call(args);
 		return false;
 	});

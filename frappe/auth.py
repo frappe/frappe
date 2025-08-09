@@ -140,7 +140,9 @@ class LoginManager:
 	def login(self):
 		self.run_trigger("before_login")
 
-		if frappe.get_system_settings("disable_user_pass_login"):
+		if frappe.get_system_settings("disable_user_pass_login") and not frappe.get_system_settings(
+			"allow_mobile_login_with_otp"
+		):
 			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 
 		# clear cache
@@ -249,6 +251,13 @@ class LoginManager:
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
 
+		otp = frappe.form_dict.get("otp")
+		tmp_id = frappe.form_dict.get("tmp_id")
+
+		if otp and tmp_id and not frappe.form_dict.get("usr") and not frappe.form_dict.get("pwd"):
+			self._authenticate_mobile_otp(otp, tmp_id)
+			return
+
 		if not (user and pwd):
 			user, pwd = frappe.form_dict.get("usr"), frappe.form_dict.get("pwd")
 		if not (user and pwd):
@@ -283,6 +292,21 @@ class LoginManager:
 			user_tracker and user_tracker.add_success_attempt()
 			ip_tracker and ip_tracker.add_success_attempt()
 		self.user = user.name
+
+	def _authenticate_mobile_otp(self, otp: str, tmp_id: str):
+		from frappe.twofactor import confirm_otp_token
+
+		cached_user = frappe.cache.get(tmp_id + "_usr")
+		if not cached_user:
+			self.fail(_("Login session expired. Please try again."))
+
+		if isinstance(cached_user, bytes):
+			cached_user = cached_user.decode("utf-8")
+
+		self.user = cached_user
+		if not confirm_otp_token(self, otp=otp, tmp_id=tmp_id):
+			self.user = None
+			self.fail(_("Invalid OTP. Please try again."))
 
 	def force_user_to_reset_password(self):
 		if not self.user:
