@@ -21,6 +21,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import type { ContextMenuOption } from "@/types"
 import { getBlockCopy, getComponentBlock, isObjectEmpty } from "@/utils/helpers"
+import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import { toast } from "vue-sonner"
 
@@ -55,7 +56,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 			const parentBlock = block.value.getParentBlock()
 			if (!parentBlock) return
 
-			const newBlockObj = getComponentBlock("FitContainer")
+			const newBlockObj = getBlockTemplate("fit-container")
 			if (block.value.isSlotBlock()) {
 				newBlockObj.parentSlotName = block.value.parentSlotName
 				delete block.value.parentSlotName

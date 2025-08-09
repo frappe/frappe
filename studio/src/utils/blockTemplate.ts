@@ -4,6 +4,7 @@ function getBlockTemplate(
 	type:
 		| "body"
 		| "container"
+		| "fit-container"
 		| "fallback-component"
 ): BlockOptions {
 	switch (type) {
@@ -35,6 +36,20 @@ function getBlockTemplate(
 					flexDirection: "column",
 					flexShrink: 0,
 					overflow: "hidden",
+				} as BlockStyleMap,
+			};
+
+		case "fit-container":
+			return {
+				componentName: "container",
+				originalElement: "div",
+				blockName: "container",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					flexShrink: 0,
+					height: "fit-content",
+					width: "fit-content",
 				} as BlockStyleMap,
 			};
 

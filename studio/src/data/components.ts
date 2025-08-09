@@ -32,7 +32,6 @@ import LucideEdit from "~icons/lucide/edit"
 import LucideMessageSquare from "~icons/lucide/message-square"
 import LucideListTree from "~icons/lucide/list-tree"
 import LucideAppWindow from "~icons/lucide/app-window"
-import LucideMaximize from "~icons/lucide/maximize"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
 import LucideSidebar from "~icons/lucide/sidebar"
@@ -580,11 +579,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Container",
 		title: "Container",
 		icon: LucideAppWindow,
-	},
-	FitContainer: {
-		name: "FitContainer",
-		title: "Fit Container",
-		icon: LucideMaximize,
 	},
 	Repeater: {
 		name: "Repeater",
