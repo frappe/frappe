@@ -497,7 +497,7 @@
   },
   {
    "default": "0",
-   "description": "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>.",
+   "description": "For more information, <a class=\"text-muted\" href=\"https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document\">click here</a>.",
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "hide_days": 1,

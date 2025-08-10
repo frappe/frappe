@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-08-03 09:36+0000\n"
-"PO-Revision-Date: 2025-08-04 23:55\n"
+"PO-Revision-Date: 2025-08-07 00:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -2478,7 +2478,7 @@ msgstr "Архивиране колоне"
 
 #: frappe/core/doctype/user_invitation/user_invitation.js:18
 msgid "Are you sure you want to cancel the invitation?"
-msgstr ""
+msgstr "Да ли сте сигурни да желите да откажете позивницу?"
 
 #: frappe/public/js/frappe/list/list_view.js:1987
 msgid "Are you sure you want to clear the assignments?"
@@ -2650,7 +2650,7 @@ msgstr "Додељено кориснику / Власник"
 #. Label of the assignee (Table MultiSelect) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Assignee"
-msgstr ""
+msgstr "Додељени корисник"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:269
 msgid "Assigning..."
@@ -2725,7 +2725,7 @@ msgstr "Додељени задаци"
 #. Task'
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Asynchronous"
-msgstr ""
+msgstr "Асинхроно"
 
 #: frappe/public/js/frappe/form/grid_row.js:680
 msgid "At least one column is required to show in the grid."
@@ -3018,7 +3018,7 @@ msgstr "Распоред аутоматског понављања"
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat_user/auto_repeat_user.json
 msgid "Auto Repeat User"
-msgstr ""
+msgstr "Корисник са аутоматским понављањем"
 
 #: frappe/public/js/frappe/utils/common.js:434
 msgid "Auto Repeat created for this document"
@@ -4646,7 +4646,7 @@ msgstr "Кликните на прилагоди да додате свој пр
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
-msgstr ""
+msgstr "Кликните испод да бисте започели:"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:147
 msgid "Click here"
@@ -5253,7 +5253,7 @@ msgstr "Услов JSON"
 #. Label of the condition_type (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Condition Type"
-msgstr ""
+msgstr "Врста услова"
 
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -10295,7 +10295,7 @@ msgstr "Приказ филтера"
 #. Label of the filters_editor (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Filters Editor"
-msgstr ""
+msgstr "Уређивач филтера"
 
 #. Label of the filters_json (Code) field in DocType 'Dashboard Chart'
 #. Label of the filters_json (Code) field in DocType 'Number Card'
@@ -10846,11 +10846,11 @@ msgstr "Frappe"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Blog"
-msgstr ""
+msgstr "Frappe Blog"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Forum"
-msgstr ""
+msgstr "Frappe Forum"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "Frappe Framework"
@@ -11080,7 +11080,7 @@ msgstr "Генериши насумичну лозинку"
 #. DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Generate Separate Documents For Each Assignee"
-msgstr ""
+msgstr "Генериши одвојене документе за сваког додељеног корисника"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:178
 #: frappe/public/js/frappe/utils/utils.js:1790
@@ -12326,7 +12326,7 @@ msgstr "Уколико Вам ове инструкције нису биле о
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
-msgstr ""
+msgstr "Уколико је ово била грешка или Вам је поново неопходан приступ, обратите се свом тиму."
 
 #. Description of the 'Fetch on Save if Empty' (Check) field in DocType
 #. 'DocField'
@@ -12361,7 +12361,7 @@ msgstr "Уколико отпремате нове записе, оставит�
 
 #: frappe/templates/emails/user_invitation.html:19
 msgid "If you have any questions, reach out to your system administrator."
-msgstr ""
+msgstr "Уколико имате било каквих питања, обратите се свом систем администратору."
 
 #: frappe/utils/password.py:213
 msgid "If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
@@ -12976,7 +12976,7 @@ msgstr "Унеси стил"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Instagram"
-msgstr ""
+msgstr "Instagram"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:665
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:666
@@ -13177,7 +13177,7 @@ msgstr "Неважећи DocType: {0}"
 
 #: frappe/email/doctype/email_group/email_group.py:51
 msgid "Invalid Doctype"
-msgstr ""
+msgstr "Неважећи DocType"
 
 #: frappe/core/doctype/doctype/doctype.py:1273
 msgid "Invalid Fieldname"
@@ -13306,7 +13306,7 @@ msgstr "Неважећи формат псеудонима: {0}. Псеудон�
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:178
 msgid "Invalid app"
-msgstr ""
+msgstr "Неважећа апликација"
 
 #: frappe/database/query.py:1468
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
@@ -13398,7 +13398,7 @@ msgstr "Неважећи формат речника функције"
 
 #: frappe/core/api/user_invitation.py:17
 msgid "Invalid input"
-msgstr ""
+msgstr "Неважећи унос"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:67
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:424
@@ -13407,7 +13407,7 @@ msgstr "Неважећи JSON додат у прилагођене опције:
 
 #: frappe/core/api/user_invitation.py:102
 msgid "Invalid key"
-msgstr ""
+msgstr "Неважећи кључ"
 
 #: frappe/model/naming.py:490
 msgid "Invalid name type (integer) for varchar name column"
@@ -13431,7 +13431,7 @@ msgstr "Неважећи аргументи захтева"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:164
 msgid "Invalid role"
-msgstr ""
+msgstr "Неважећа улога"
 
 #: frappe/database/query.py:410
 msgid "Invalid simple filter format: {0}"
@@ -13482,27 +13482,27 @@ msgstr "Обрнуто"
 
 #: frappe/core/api/user_invitation.py:71
 msgid "Invitation cannot be cancelled"
-msgstr ""
+msgstr "Позивница се не може отказати"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:118
 msgid "Invitation is cancelled"
-msgstr ""
+msgstr "Позивница је отказана"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:116
 msgid "Invitation is expired"
-msgstr ""
+msgstr "Позивница је истекла"
 
 #: frappe/core/api/user_invitation.py:60 frappe/core/api/user_invitation.py:65
 msgid "Invitation not found"
-msgstr ""
+msgstr "Позивница није пронађена"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:59
 msgid "Invitation to join {0} cancelled"
-msgstr ""
+msgstr "Позивница за придруживање {0} је отказана"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:76
 msgid "Invitation to join {0} expired"
-msgstr ""
+msgstr "Позивница за придруживање {0} је истекла"
 
 #: frappe/contacts/doctype/contact/contact.js:30
 msgid "Invite as User"
@@ -16810,7 +16810,7 @@ msgstr "Ниједан имејл налог није додељен"
 
 #: frappe/email/doctype/email_group/email_group.py:50
 msgid "No Email field found in {0}"
-msgstr ""
+msgstr "Поље за имејл није пронађено у {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:183
 msgid "No Emails"
@@ -16985,7 +16985,7 @@ msgstr "Ниједан имејл налог није повезан са кор
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
-msgstr ""
+msgstr "Није пронађена имејл адреса за позивање"
 
 #: frappe/core/doctype/data_import/data_import.js:478
 msgid "No failed logs"
@@ -20611,7 +20611,7 @@ msgstr "Прималац"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Recipient Account Field"
-msgstr ""
+msgstr "Поље налога примаоца"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -20665,7 +20665,7 @@ msgstr "HTTP статус преусмеравања"
 #. Label of the redirect_to_path (Data) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Redirect To Path"
-msgstr ""
+msgstr "Преусмери на путању"
 
 #. Label of the redirect_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -23166,7 +23166,7 @@ msgstr "Пошаљи системско обавештење"
 #. Label of the send_to_all_assignees (Check) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Send To All Assignees"
-msgstr "Пошаљи свим задуженима"
+msgstr "Пошаљи свим додељеним корисницима"
 
 #. Label of the send_welcome_email (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -24502,7 +24502,7 @@ msgstr "Извор"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Source Code"
-msgstr ""
+msgstr "Изворни код"
 
 #. Label of the source_name (Data) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -24534,7 +24534,7 @@ msgstr "SparkPost"
 #. Transition Task'
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Spawns actions in a background job"
-msgstr ""
+msgstr "Покреће радње у позадинском задатку"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:83
 msgid "Special Characters are not allowed"
@@ -26144,7 +26144,7 @@ msgstr "Нема података за извоз"
 
 #: frappe/model/workflow.py:170
 msgid "There is no task called \"{}\""
-msgstr ""
+msgstr "Не постоји задатак под називом \"{}\""
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:492
 msgid "There is nothing new to show you right now."
@@ -27187,7 +27187,7 @@ msgstr "Правила транзиције"
 #. Label of the transition_tasks (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Transition Tasks"
-msgstr ""
+msgstr "Транзициони задатак"
 
 #. Label of the transitions (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -28195,7 +28195,7 @@ msgstr "Слика корисника"
 #. Name of a DocType
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "User Invitation"
-msgstr ""
+msgstr "Позивница кориснику"
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:115
 msgid "User Menu"
@@ -29403,7 +29403,7 @@ msgstr "Статус радног тока"
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Workflow Task"
-msgstr ""
+msgstr "Задатак радног тока"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -29413,12 +29413,12 @@ msgstr "Транзиција радног тока"
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Workflow Transition Task"
-msgstr ""
+msgstr "Транзициони задатак радног тока"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Workflow Transition Tasks"
-msgstr ""
+msgstr "Транзициони задаци радног тока"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -29763,7 +29763,7 @@ msgstr "Такође можете копирати и налепити овај 
 
 #: frappe/templates/emails/user_invitation_expired.html:8
 msgid "You can ask your team to resend the invitation if you'd still like to join."
-msgstr ""
+msgstr "Можете замолити свој тим да поново пошаљу позивницу уколико и даље желе да се придружите."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
@@ -30098,11 +30098,11 @@ msgstr "Прегледали сте ово"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:104
 msgid "You've been invited to join {0}"
-msgstr ""
+msgstr "Позвани сте да се придружите {0}"
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "You've been invited to join {0}."
-msgstr ""
+msgstr "Позвани сте да се придружите {0}."
 
 #: frappe/public/js/frappe/desk.js:547
 msgid "You've logged in as another user from another tab. Refresh this page to continue using system."
@@ -30171,11 +30171,11 @@ msgstr "Ваш образац је успешно ажуриран"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:5
 msgid "Your invitation to join {0} has been cancelled by the site administrator."
-msgstr ""
+msgstr "Вашу позивницу за придруживање {0} је отказао администратор сајта."
 
 #: frappe/templates/emails/user_invitation_expired.html:5
 msgid "Your invitation to join {0} has expired."
-msgstr ""
+msgstr "Ваша позивница за придруживање {0} је истекла."
 
 #: frappe/templates/emails/new_user.html:6
 msgid "Your login id is"
@@ -30264,7 +30264,7 @@ msgstr "и"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:178
 msgid "application is not installed"
-msgstr ""
+msgstr "апликација није инсталирана"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:48
@@ -30509,11 +30509,11 @@ msgstr "увоз"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:89
 msgid "invitation already accepted"
-msgstr ""
+msgstr "позивница је већ прихваћена"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:93
 msgid "invitation already exists"
-msgstr ""
+msgstr "позивница већ постоји"
 
 #: frappe/templates/signup.html:11 frappe/www/login.html:11
 msgid "jane@example.com"
@@ -30930,7 +30930,7 @@ msgstr "wkhtmltopdf 0.12.x (са исправљеним qt)."
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "workflow_transition"
-msgstr ""
+msgstr "workflow_transition"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31347,7 +31347,7 @@ msgstr "{0} није зип фајл"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:165
 msgid "{0} is not an allowed role for {1}"
-msgstr ""
+msgstr "{0} није дозвољена улога за {1}"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1444
 msgid "{0} is not equal to {1}"

@@ -39,7 +39,7 @@
    "fieldname": "total_fields",
    "fieldtype": "Select",
    "label": "Maximum Number of Fields",
-   "options": "\n4\n5\n6\n7\n8\n9\n10"
+   "options": "\n4\n5\n6\n7\n8\n9\n10\n15\n20\n25\n30"
   },
   {
    "fieldname": "fields_html",
@@ -75,7 +75,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-03-12 16:28:46.073808",
+ "modified": "2025-03-24 14:17:39.888956",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
