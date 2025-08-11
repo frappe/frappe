@@ -24,7 +24,12 @@ def invite_by_email(
 	)
 	accepted_invite_emails = frappe.db.get_all(
 		"User Invitation",
-		filters={"email": ["in", email_list], "status": "Accepted", "app_name": app_name, "user": ["is", "set"]},
+		filters={
+			"email": ["in", email_list],
+			"status": "Accepted",
+			"app_name": app_name,
+			"user": ["is", "set"],
+		},
 		pluck="email",
 	)
 	pending_invite_emails = frappe.db.get_all(
@@ -34,7 +39,9 @@ def invite_by_email(
 	)
 
 	# create invitation documents
-	to_invite = list(set(email_list) - set(disabled_user_emails) - set(accepted_invite_emails) - set(pending_invite_emails))
+	to_invite = list(
+		set(email_list) - set(disabled_user_emails) - set(accepted_invite_emails) - set(pending_invite_emails)
+	)
 	for email in to_invite:
 		frappe.get_doc(
 			doctype="User Invitation",
