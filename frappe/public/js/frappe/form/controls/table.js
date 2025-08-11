@@ -16,6 +16,11 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			this.frm.grids[this.frm.grids.length] = this;
 		}
 
+		this.$wrapper.on("keydown", (e) => {
+			if (e.which == 9) {
+				this.grid.grid_rows[this.grid.grid_rows.length - 1].toggle_editable_row(true);
+			}
+		});
 		this.$wrapper.on("paste", ":text", (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;

@@ -14,10 +14,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
+<<<<<<< HEAD
 				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
 					${frappe.utils.icon("close", "xs", "es-icon")}
 				</a>
 				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
+=======
+				<a class="btn-open" tabIndex='-1' style="display: inline-block;" title="${__("Open Link")}">
+>>>>>>> 226eef58c3 (fix: keyboard navigation via tab on forms)
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>

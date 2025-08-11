@@ -322,6 +322,7 @@ frappe.ui.keyCode = {
 function handle_escape_key() {
 	close_grid_and_dialog();
 	document.activeElement?.blur();
+	$(document).trigger("escape");
 }
 
 function close_grid_and_dialog() {
@@ -339,3 +340,34 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+<<<<<<< HEAD
+=======
+
+frappe.ui.keys.add_shortcut({
+	shortcut: "shift+t",
+	action: function (e) {
+		if (!frappe.model.can_write("System Console")) {
+			return;
+		}
+		if (cur_dialog?.is_minimized) {
+			cur_dialog.toggle_minimize();
+			cur_dialog.focus_on_first_input();
+		} else {
+			let dropdown_console = new DropdownConsole();
+			dropdown_console.show();
+		}
+	},
+	description: __("Open console"),
+});
+
+$.fn.enterKey = function (fnc) {
+	return this.each(function () {
+		$(this).keypress(function (ev) {
+			var keycode = ev.keyCode ? ev.keyCode : ev.which;
+			if (keycode == "13") {
+				fnc.call(this, ev);
+			}
+		});
+	});
+};
+>>>>>>> 226eef58c3 (fix: keyboard navigation via tab on forms)
