@@ -138,8 +138,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			redirect_to_path="/abc",
 			app_name="frappe",
 		).insert()
-		invitation.status = "Accepted"
-		invitation.save()
+		invitation.accept()
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		pending_invite_email = emails[2]
 		frappe.get_doc(
@@ -160,6 +159,9 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertSequenceEqual(res["pending_invite_emails"], [pending_invite_email])
 		self.assertSequenceEqual(res["invited_emails"], [email_to_invite])
 		self.assertEqual(len(self.get_email_names(False)), 3)
+		user = frappe.get_doc("User", invitation.email)
+		IntegrationTestUserInvitation.delete_invitation(invitation.name)
+		frappe.delete_doc("User", user.name)
 
 	def test_accept_invitation_api_pass_redirect(self):
 		invitation = frappe.get_doc(
