@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.model import no_value_fields, table_fields
+from frappe.model import datetime_fields, no_value_fields, table_fields
 from frappe.model.document import Document
 from frappe.utils import cstr
 
@@ -76,6 +76,7 @@ class Version(Document):
 
 
 def get_diff(old, new, for_child=False, compare_cancelled=False):
+	print(old.as_json(), new.as_json())
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
@@ -119,6 +120,10 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
 		if df.fieldtype in ("Link", "Dynamic Link"):
 			old_value, new_value = cstr(old_value), cstr(new_value)
+
+		if df.fieldtype in datetime_fields:
+			if old_value is None and new_value == "":
+				new_value = None
 
 		if not for_child and df.fieldtype in table_fields:
 			old_rows_by_name = {}
