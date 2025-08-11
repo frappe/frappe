@@ -112,24 +112,37 @@ def get_count() -> int:
 
 
 def execute(doctype, *args, **kwargs):
-	order_by = kwargs.get("order_by")
-	if doctype == "Project" and len(kwargs.get("fields")) > 0:
-		if "`tabProject`.`queue_position`" in kwargs.get("fields"):
-			kwargs["fields"].remove("`tabProject`.`queue_position`")
-			# Simply cast queue_position to decimal
-			kwargs["fields"].append("""
-				CASE
-					WHEN queue_position IS NULL OR queue_position = '' OR queue_position = 0 THEN 999999
-					ELSE CAST(queue_position AS DECIMAL)
-				END AS queue_position
-			""")
-		if kwargs.get("order_by") and "`tabProject`.`queue_position`" in kwargs.get("order_by"):
-			kwargs["order_by"] = kwargs["order_by"].replace(
-				"`tabProject`.`queue_position`", "queue_position"
-			)
-	kwargs["ignore_permissions"] = kwargs.get("ip", False) == "1"
-	kwargs.pop("ip", None)
-	return DatabaseQuery(doctype).execute(*args, **kwargs)
+    if doctype == "Project":
+        fields = kwargs.get("fields") or []
+
+        # Remplazar referencias directas al campo original, si vinieran
+        if "`tabProject`.`queue_position`" in fields:
+            fields.remove("`tabProject`.`queue_position`")
+
+        # Añadir el cast a DECIMAL con alias estable (si no está ya)
+        cast_expr = """
+            CASE
+                WHEN queue_position IS NULL OR queue_position = '' OR queue_position = 0 THEN 999999
+                ELSE CAST(queue_position AS DECIMAL(20,0))
+            END AS queue_position_num
+        """.strip()
+
+        # Evitar duplicados del alias
+        has_alias = any(" AS queue_position_num" in f or f.strip() == "queue_position_num" for f in fields)
+        if not has_alias:
+            fields.append(cast_expr)
+
+        kwargs["fields"] = fields
+
+        # Forzar el orden deseado SIEMPRE para Project
+        kwargs["order_by"] = "queue_position_num ASC, appointment_date ASC"
+
+    # Permisos
+    kwargs["ignore_permissions"] = kwargs.get("ip", False) == "1"
+    kwargs.pop("ip", None)
+
+    return DatabaseQuery(doctype).execute(*args, **kwargs)
+
 
 
 def get_form_params():
@@ -879,35 +892,49 @@ import re
 def fetch_data_with_filters(filters=[], args=None, page_length=0):
     """
     Fetches data with filters and other arguments for Project doctype.
-    Applies custom sorting for Project cards with "In queue" or "In parking" status
-    based on queue_position (ascending) and appointment_date (ascending).
+    Aplica orden fijo (para Project):
+      1) queue_position_num (queue_position casteado a DECIMAL) asc
+      2) appointment_date asc (NULLs al final)
     """
+    import re
     from datetime import datetime
-    
-    # Initialize args if not provided
+
+    # Inicializar args si no vienen
     if args is None:
         args = get_form_params()
         args["filters"] = filters
         if page_length:
             args["page_length"] = page_length
 
-    # Special handling for Project doctype
-    if args.get("doctype") == "Project" and args.get("fields"):   
-        # Eliminar cualquier campo con queue_position para evitar duplicados
-        args["fields"] = [
-            f for f in args["fields"] if "queue_position" not in f.replace("`", "").lower()
-        ]
-        args["fields"].append("cast(queue_position as decimal) as queue_position")
+    # Manejo especial para Project
+    if args.get("doctype") == "Project" and args.get("fields"):
+        fields = args["fields"][:]
 
-        # Forzar orden por queue_position si no viene explícito
-        if not args.get("order_by"):
-            args["order_by"] = "cast(queue_position as decimal)"
-        else:
-            args["order_by"] = re.sub(
-                r"`?tabProject`?\.`?queue_position`?",
-                "cast(queue_position as decimal)",
-                args["order_by"]
-            )
+        # 1) Remover cualquier campo que haga referencia a queue_position para evitar duplicados
+        def _normalize(s):
+            return (s or "").replace("`", "").lower()
+
+        fields = [f for f in fields if "queue_position" not in _normalize(f)]
+
+        # 2) Asegurar appointment_date en fields (lo usamos en ORDER BY)
+        if not any("appointment_date" in _normalize(f) for f in fields):
+            fields.append("appointment_date")
+
+        # 3) Agregar el cast a DECIMAL con alias estable
+        cast_expr = (
+            "CASE "
+            "WHEN queue_position IS NULL OR queue_position = '' OR queue_position = 0 THEN 999999 "
+            "ELSE CAST(queue_position AS DECIMAL(20,0)) "
+            "END AS queue_position_num"
+        )
+        # Evitar duplicar el alias si ya está
+        if not any("queue_position_num" in _normalize(f) for f in fields):
+            fields.append(cast_expr)
+
+        args["fields"] = fields
+
+        # 4) Forzar el orden deseado SIEMPRE para Project
+        args["order_by"] = "queue_position_num ASC, COALESCE(appointment_date, '9999-12-31') ASC"
 
     # Ejecutar la consulta
     if is_virtual_doctype(args["doctype"]):
@@ -916,14 +943,16 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
     else:
         data = execute(**args)
 
-    # 🔍 Mostrar name, queue_position y appointment_date (solo si es lista de dicts)
+    # Logging simple (si data es lista de dicts)
     if isinstance(data, list):
         frappe.logger().info("=== Proyectos obtenidos ===")
         for row in data:
             name = row.get("name")
-            queue_position = row.get("queue_position")
+            # Mostrar el alias calculado si existe, si no, el original:
+            queue_pos = row.get("queue_position_num", row.get("queue_position"))
             appointment_date = row.get("appointment_date")
-            frappe.logger().info(f"{name} | Queue: {queue_position} | Appointment: {appointment_date}")
+            frappe.logger().info(f"{name} | QueueNum: {queue_pos} | Appointment: {appointment_date}")
+
     return data
 
 
