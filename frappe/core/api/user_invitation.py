@@ -19,7 +19,7 @@ def invite_by_email(
 	# get relevant data from the database
 	accepted_invite_emails = frappe.db.get_all(
 		"User Invitation",
-		filters={"email": ["in", email_list], "status": "Accepted", "app_name": app_name},
+		filters={"email": ["in", email_list], "status": "Accepted", "app_name": app_name, "user": ["is", "set"]},
 		pluck="email",
 	)
 	pending_invite_emails = frappe.db.get_all(

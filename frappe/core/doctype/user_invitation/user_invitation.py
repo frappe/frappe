@@ -84,7 +84,7 @@ class UserInvitation(Document):
 		self._validate_roles()
 		self._validate_email()
 		if frappe.db.get_value(
-			"User Invitation", filters={"email": self.email, "status": "Accepted", "app_name": self.app_name}
+			"User Invitation", filters={"email": self.email, "status": "Accepted", "app_name": self.app_name, "user": ["is", "set"]}
 		):
 			frappe.throw(title=_("Error"), msg=_("invitation already accepted"))
 		if frappe.db.get_value(
