@@ -574,5 +574,5 @@ persistent_cache_keys = [
 
 
 # File handling hooks - Add S3 support
-write_file = "frappe.utils.s3_file_handler.write_file_to_s3"
-delete_file_data_content = "frappe.utils.s3_file_handler.delete_file_from_s3"
+# write_file = "frappe.utils.s3_file_handler.write_file_to_s3"
+# delete_file_data_content = "frappe.utils.s3_file_handler.delete_file_from_s3"
