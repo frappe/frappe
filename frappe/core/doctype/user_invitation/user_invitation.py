@@ -91,6 +91,9 @@ class UserInvitation(Document):
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
+		user_enabled = frappe.db.get_value("User", self.email, "enabled")
+		if user_enabled is not None and user_enabled == 0:
+			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
 	def _after_insert(self):
 		key = frappe.generate_hash()
