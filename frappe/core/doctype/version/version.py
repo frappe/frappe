@@ -76,7 +76,6 @@ class Version(Document):
 
 
 def get_diff(old, new, for_child=False, compare_cancelled=False):
-	print(old.as_json(), new.as_json())
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
