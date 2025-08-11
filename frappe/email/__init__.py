@@ -102,8 +102,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 
 	for dt in com_doctypes:
 		if dt in can_read:
-			translated = _(dt)
-			if txt_lower in dt.lower() or txt_lower in translated.lower():
+			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
 				results.append([dt])
 
 	return results
