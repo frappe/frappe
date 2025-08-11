@@ -170,14 +170,19 @@ def count(doctype: str) -> int:
 
 def create_doc(doctype: str):
 	data = frappe.form_dict
-	data.pop("doctype", None)
 
-	doc = frappe.new_doc(doctype, **data)
+	return _create_doc(doctype, data)
 
-	if (name := data.get("name")) and isinstance(name, str | int):
-		doc.flags.name_set = True
 
-	return doc.insert().as_dict()
+def bulk_insert():
+	docs = frappe.form_dict.get("docs", [])
+
+	inserted_docs = []
+	for _doc in docs:
+		doctype = _doc.get("doctype")
+		inserted_docs.append(_create_doc(doctype, _doc))
+
+	return inserted_docs
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -193,18 +198,18 @@ def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
 
 def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
+	return _update_doc(doctype, name, data)
 
-	doc = frappe.get_doc(doctype, name, for_update=True)
-	data.pop("flags", None)
-	doc.update(data)
-	doc.save()
-	doc.apply_fieldlevel_read_permissions()
 
-	# check for child table doctype
-	if doc.get("parenttype"):
-		frappe.get_doc(doc.parenttype, doc.parent).save()
+def bulk_update():
+	"""Bulk update multiple documents"""
+	docs = frappe.form_dict.get("docs", [])
 
-	return doc.as_dict()
+	result = []
+	for _doc in docs:
+		result.append(_update_doc(_doc.get("doctype"), _doc.get("name"), _doc))
+
+	return result
 
 
 def delete_doc(doctype: str, name: str):
@@ -268,6 +273,34 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
+def _create_doc(doctype: str, data: dict):
+	data.pop("doctype", None)
+
+	doc = frappe.new_doc(doctype, **data)
+
+	if (name := data.get("name")) and isinstance(name, str | int):
+		doc.flags.name_set = True
+
+	doc.insert()
+	doc.apply_fieldlevel_read_permissions()
+
+	return doc.as_dict()
+
+
+def _update_doc(doctype: str, name: str, data: dict):
+	doc = frappe.get_doc(doctype, name, for_update=True)
+	data.pop("flags", None)
+	doc.update(data)
+	doc.save()
+	doc.apply_fieldlevel_read_permissions()
+
+	# check for child table doctype
+	if doc.get("parenttype"):
+		frappe.get_doc(doc.parenttype, doc.parent).save()
+
+	return doc.as_dict()
+
+
 url_rules = [
 	# RPC calls
 	Rule("/method/login", endpoint=login),
@@ -280,6 +313,8 @@ url_rules = [
 		methods=["GET", "POST"],
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
+	Rule("/method/bulk_update", methods=["PATCH", "PUT", "POST"], endpoint=bulk_update),
+	Rule("/method/bulk_insert", methods=["POST"], endpoint=bulk_insert),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	# Document level APIs
 	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
