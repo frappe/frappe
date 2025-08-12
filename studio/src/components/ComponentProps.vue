@@ -1,6 +1,11 @@
 <template>
 	<div class="flex select-none flex-col pb-16">
-		<div v-if="props.block?.componentName && !props.block?.isRoot()" class="flex flex-col gap-3">
+		<EmptyState v-if="!block?.componentName || block?.isRoot()" message="Select a block to edit properties" />
+		<EmptyState
+			v-else-if="isObjectEmpty(componentProps)"
+			:message="`${block?.componentName} has no editable properties`"
+		/>
+		<div v-else class="flex flex-col gap-3">
 			<!-- props -->
 			<div class="flex items-center justify-between text-sm font-medium">
 				<h3 class="cursor-pointer text-base text-gray-900">Props</h3>
@@ -129,8 +134,6 @@
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>
 		</div>
-
-		<EmptyState v-else message="Select a block to edit properties" />
 	</div>
 </template>
 
