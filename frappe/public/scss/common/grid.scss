@@ -96,22 +96,9 @@
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
 	color: var(--text-muted);
-<<<<<<< HEAD
-=======
-	.row-check,
-	.row-index {
-		position: sticky;
-		left: 0;
-		background-color: var(--fg-color);
-		z-index: 1;
-	}
-	.row-index {
-		left: 31px;
-	}
 	button.col:focus {
 		outline: 1px solid #c9c9c9;
 	}
->>>>>>> 226eef58c3 (fix: keyboard navigation via tab on forms)
 }
 
 .grid-empty,
