@@ -160,4 +160,9 @@ const extensions = computed(() => {
 	baseExtensions.push(autocompletion(autocompletionOptions))
 	return baseExtensions
 })
+
+defineExpose({
+	errorMessage,
+	emitEditorValue,
+})
 </script>
