@@ -136,6 +136,9 @@
 	.row-index {
 		left: 31px;
 	}
+	button.col:focus {
+		outline: 1px solid #c9c9c9;
+	}
 }
 
 .grid-empty,

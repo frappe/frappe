@@ -50,6 +50,59 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 		this.apps_switcher = new frappe.ui.AppsSwitcher(this);
 		this.apps_switcher.create_app_data_map();
+
+		// Add hover functionality for auto-expand
+		this.setup_hover_expand();
+	}
+
+	setup_hover_expand() {
+		const sidebar = this.wrapper.find(".body-sidebar");
+		const placeholder = this.wrapper.find(".body-sidebar-placeholder");
+		let hoverTimeout;
+
+		sidebar.on("mouseenter", () => {
+			// Only expand on hover if sidebar is collapsed and not on mobile
+			if (!this.sidebar_expanded && !frappe.is_mobile()) {
+				clearTimeout(hoverTimeout);
+				hoverTimeout = setTimeout(() => {
+					this.wrapper.addClass("hover-expanded");
+				}, 200); // Small delay to prevent accidental expansion
+			}
+		});
+
+		sidebar.on("mouseleave", () => {
+			// Only collapse on hover if sidebar is collapsed and not on mobile
+			if (!this.sidebar_expanded && !frappe.is_mobile()) {
+				clearTimeout(hoverTimeout);
+				hoverTimeout = setTimeout(() => {
+					this.wrapper.removeClass("hover-expanded");
+				}, 300); // Slightly longer delay to prevent accidental collapse
+			}
+		});
+
+		// Also handle hover on the placeholder to prevent collapse when moving to main content
+		placeholder.on("mouseenter", () => {
+			if (!this.sidebar_expanded && !frappe.is_mobile()) {
+				clearTimeout(hoverTimeout);
+				this.wrapper.addClass("hover-expanded");
+			}
+		});
+
+		// Handle mouse leave on placeholder as well
+		placeholder.on("mouseleave", () => {
+			if (!this.sidebar_expanded && !frappe.is_mobile()) {
+				clearTimeout(hoverTimeout);
+				hoverTimeout = setTimeout(() => {
+					this.wrapper.removeClass("hover-expanded");
+				}, 300);
+			}
+		});
+
+		// Clear hover state when manually toggling sidebar
+		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+			clearTimeout(hoverTimeout);
+			this.wrapper.removeClass("hover-expanded");
+		});
 	}
 
 	set_hover() {
@@ -74,7 +127,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// sort apps based on # of workspaces
 		frappe.boot.app_data.sort((a, b) => (a.workspaces.length < b.workspaces.length ? 1 : -1));
 		frappe.current_app = frappe.boot.app_data[0].app_name;
-		frappe.frappe_toolbar.set_app_logo(frappe.boot.app_logo_url);
+		frappe.frappe_toolbar.set_app_logo(frappe.boot.app_data[0].app_logo_url);
 	}
 
 	set_active_workspace_item() {
@@ -269,10 +322,12 @@ frappe.ui.Sidebar = class Sidebar {
 		let direction;
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
+			this.wrapper.removeClass("hover-expanded"); // Remove hover state when manually expanded
 			// this.sidebar_expanded = false
 			direction = "left";
 		} else {
 			this.wrapper.removeClass("expanded");
+			this.wrapper.removeClass("hover-expanded"); // Remove hover state when manually collapsed
 			// this.sidebar_expanded = true
 			direction = "right";
 		}

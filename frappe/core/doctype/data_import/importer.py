@@ -1035,10 +1035,10 @@ class Column:
 
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
-			values = list({cstr(v).lower() for v in self.column_values if v})
+			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
+			values = list({transform(v) for v in self.column_values if v})
 			exists = [
-				cstr(d.name).lower()
-				for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
+				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
 			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:

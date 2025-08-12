@@ -77,6 +77,7 @@
   "email_append_to",
   "sender_field",
   "sender_name_field",
+  "recipient_account_field",
   "subject_field",
   "fields_tab",
   "fields_section",
@@ -707,6 +708,12 @@
    "fieldtype": "Int",
    "label": "Rows Threshold for Grid Search",
    "non_negative": 1
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "recipient_account_field",
+   "fieldtype": "Data",
+   "label": "Recipient Account Field"
   }
  ],
  "grid_page_length": 50,
@@ -785,7 +792,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2025-06-24 07:46:34.380662",
+ "modified": "2025-07-19 12:23:16.296416",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

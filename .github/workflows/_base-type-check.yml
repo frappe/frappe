@@ -63,7 +63,7 @@ jobs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       if: steps.check-changes.outputs.result == 'true'
     
     - name: Cache pip

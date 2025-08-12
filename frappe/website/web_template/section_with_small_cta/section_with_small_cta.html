@@ -1,7 +1,9 @@
 <div class="section-cta-container">
 	<div class="section-small-cta">
 		<div>
-			<h3 class="section-title">{{ title or '' }}</h3>
+			{%- if title -%}
+			<h2 class="section-title">{{ _(title) }}</h2>
+			{%- endif -%}
 			{%- if subtitle -%}
 			<p class="subtitle">{{ subtitle }}</p>
 			{%- endif -%}

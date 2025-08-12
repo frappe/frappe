@@ -74,15 +74,22 @@ export class DropdownConsole {
 	}
 
 	async load_contextual_boilerplate() {
+		let default_code;
 		if (cur_frm && !cur_frm.is_new()) {
-			let current_code = this.dialog.get_value("console");
-			if (!current_code) {
-				this.dialog
-					.get_field("console")
-					.editor?.insert(
-						`doc = frappe.get_doc("${cur_frm.doc.doctype}", "${cur_frm.doc.name}")\n`
-					);
-			}
+			default_code = `doc = frappe.get_doc("${cur_frm.doc.doctype}", "${cur_frm.doc.name}")\n`;
+		} else if (cur_list && frappe.get_route()[0] == "List") {
+			let args = cur_list.get_args();
+			default_code = `docs = frappe.get_all("${args.doctype}",
+				fields="*",
+				order_by="${args.order_by}",
+				limit=${args.page_length},
+				filters=${JSON.stringify(args.filters)},
+			)\n`;
+		}
+
+		let current_code = this.dialog.get_value("console");
+		if (!current_code && default_code) {
+			this.dialog.get_field("console").editor?.insert(default_code);
 		}
 	}
 

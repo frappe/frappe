@@ -382,6 +382,7 @@ export default class Grid {
 			frm: this.frm,
 			grid: this,
 			configure_columns: true,
+			header_row: true,
 		});
 
 		this.header_search = new GridRow({
@@ -939,7 +940,7 @@ export default class Grid {
 
 		setTimeout(() => {
 			this.grid_rows[idx].row
-				.find('input[type="Text"],textarea,select')
+				.find('input[type="checkbox"],input[type="Text"],textarea,select')
 				.filter(":visible:first")
 				.focus();
 		}, 100);

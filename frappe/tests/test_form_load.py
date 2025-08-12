@@ -5,9 +5,8 @@ from frappe.core.page.permission_manager.permission_manager import add, reset, u
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_helpers import setup_for_tests
 from frappe.utils.file_manager import save_file
-
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Blog Category", "Blogger"]
 
 
 class TestFormLoad(IntegrationTestCase):
@@ -23,10 +22,11 @@ class TestFormLoad(IntegrationTestCase):
 		self.assertTrue(meta.get("__calendar_js"))
 
 	def test_fieldlevel_permissions_in_load(self):
+		setup_for_tests()
 		blog = frappe.get_doc(
 			{
-				"doctype": "Blog Post",
-				"blog_category": "-test-blog-category-1",
+				"doctype": "Test Blog Post",
+				"blog_category": "_Test Blog Category 1",
 				"blog_intro": "Test Blog Intro",
 				"blogger": "_Test Blogger 1",
 				"content": "Test Blog Content",
@@ -43,8 +43,8 @@ class TestFormLoad(IntegrationTestCase):
 		user.remove_roles(*user_roles)
 		user.add_roles("Blogger")
 
-		blog_post_property_setter = make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
-		reset("Blog Post")
+		blog_post_property_setter = make_property_setter("Test Blog Post", "published", "permlevel", 1, "Int")
+		reset("Test Blog Post")
 
 		# test field level permission before role level permissions are defined
 		frappe.set_user(user.name)
@@ -63,8 +63,8 @@ class TestFormLoad(IntegrationTestCase):
 
 		# test field level permission after role level permissions are defined
 		frappe.set_user("Administrator")
-		add("Blog Post", "Website Manager", 1)
-		update("Blog Post", "Website Manager", 1, "write", 1)
+		add("Test Blog Post", "Website Manager", 1)
+		update("Test Blog Post", "Website Manager", 1, "write", 1)
 
 		frappe.set_user(user.name)
 		blog_doc = get_blog(blog.name)
@@ -86,7 +86,7 @@ class TestFormLoad(IntegrationTestCase):
 		user.add_roles("Website Manager")
 		frappe.set_user(user.name)
 
-		doc = frappe.get_doc("Blog Post", blog.name)
+		doc = frappe.get_doc("Test Blog Post", blog.name)
 		doc.published = 1
 		doc.save()
 
@@ -196,5 +196,5 @@ class TestFormLoad(IntegrationTestCase):
 
 def get_blog(blog_name):
 	frappe.response.docs = []
-	getdoc("Blog Post", blog_name)
+	getdoc("Test Blog Post", blog_name)
 	return frappe.response.docs[0]

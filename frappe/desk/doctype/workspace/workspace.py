@@ -302,6 +302,9 @@ def save_page(name, public, new_widgets, blocks):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
+	if not doc.type:
+		doc.type = "Workspace"
+
 	doc.content = blocks
 
 	save_new_widget(doc, name, blocks, new_widgets)

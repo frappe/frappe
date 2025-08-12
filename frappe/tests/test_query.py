@@ -13,10 +13,11 @@ from frappe.tests.test_db_query import (
 	setup_patched_blog_post,
 	setup_test_user,
 )
+from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Blog Post", "Blog Category", "Blogger"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 def create_tree_docs():
@@ -63,6 +64,9 @@ def create_tree_docs():
 
 
 class TestQuery(IntegrationTestCase):
+	def setUp(self):
+		setup_for_tests()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
 		self.assertEqual(
@@ -719,31 +723,30 @@ class TestQuery(IntegrationTestCase):
 	def test_build_match_conditions(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
-		clear_user_permissions_for_doctype("Blog Post", "test2@example.com")
+		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
 
 		test2user = frappe.get_doc("User", "test2@example.com")
 		test2user.add_roles("Blogger")
 		frappe.set_user("test2@example.com")
 
 		# Before any user permission is applied, there should be no conditions
-		query = frappe.qb.get_query("Blog Post", ignore_permissions=False)
+		query = frappe.qb.get_query("Test Blog Post", ignore_permissions=False)
 		self.assertNotIn("(`tabBlog Post`.`name` in (", str(query))
-
 		# Add user permissions
-		add_user_permission("Blog Post", "-test-blog-post", "test2@example.com", True)
-		add_user_permission("Blog Post", "-test-blog-post-1", "test2@example.com", True)
+		add_user_permission("Test Blog Post", "_Test Blog Post", "test2@example.com", True)
+		add_user_permission("Test Blog Post", "_Test Blog Post 1", "test2@example.com", True)
 
 		# After applying user permission, condition should be in query
-		query = str(frappe.qb.get_query("Blog Post", ignore_permissions=False))
+		query = str(frappe.qb.get_query("Test Blog Post", ignore_permissions=False))
 
 		# Check for user permission condition in the query string
 		if frappe.db.db_type == "mariadb":
-			self.assertIn("`name` IS NULL OR `name` IN ('-test-blog-post-1','-test-blog-post')", query)
+			self.assertIn("`name` IS NULL OR `name` IN ('_Test Blog Post 1','_Test Blog Post')", query)
 		elif frappe.db.db_type == "postgres":
-			self.assertIn("\"name\" IS NULL OR \"name\" IN ('-test-blog-post-1','-test-blog-post')", query)
+			self.assertIn("\"name\" IS NULL OR \"name\" IN ('_Test Blog Post 1','_Test Blog Post')", query)
 
 		frappe.set_user("Administrator")
-		clear_user_permissions_for_doctype("Blog Post", "test2@example.com")
+		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
 		test2user.remove_roles("Blogger")
 
 	def test_ignore_permissions_for_query(self):
@@ -763,17 +766,17 @@ class TestQuery(IntegrationTestCase):
 			# Create a test blog post
 			test_post = frappe.get_doc(
 				{
-					"doctype": "Blog Post",
+					"doctype": "Test Blog Post",
 					"title": "Test Permission Post",
 					"content": "Test Content",
-					"blog_category": "-test-blog-category",
+					"blog_category": "_Test Blog Category",
 					"published": 1,
 				}
 			).insert(ignore_permissions=True, ignore_mandatory=True)
 
 			# Without proper permission, published field should be filtered out
 			data = frappe.qb.get_query(
-				"Blog Post",
+				"Test Blog Post",
 				filters={"name": test_post.name},
 				fields=["name", "published", "title"],
 				ignore_permissions=False,
@@ -787,7 +790,7 @@ class TestQuery(IntegrationTestCase):
 			# With Administrator, all fields should be accessible
 			frappe.set_user("Administrator")
 			data = frappe.qb.get_query(
-				"Blog Post",
+				"Test Blog Post",
 				filters={"name": test_post.name},
 				fields=["name", "published", "title"],
 				ignore_permissions=False,
@@ -1055,10 +1058,10 @@ class TestQuery(IntegrationTestCase):
 			# Create a test blog post
 			test_post = frappe.get_doc(
 				{
-					"doctype": "Blog Post",
+					"doctype": "Test Blog Post",
 					"title": "Test Filter Permission Post",
 					"content": "Test Content",
-					"blog_category": "-test-blog-category",
+					"blog_category": "_Test Blog Category",
 					"published": 1,  # permlevel 1
 				}
 			).insert(ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True)
@@ -1067,7 +1070,7 @@ class TestQuery(IntegrationTestCase):
 			# Try filtering on permitted field (title - permlevel 0)
 			try:
 				frappe.qb.get_query(
-					"Blog Post",
+					"Test Blog Post",
 					filters={"title": test_post.title},
 					ignore_permissions=False,
 					user=user.name,
@@ -1078,7 +1081,7 @@ class TestQuery(IntegrationTestCase):
 			# Try filtering on non-permitted field (published - permlevel 1)
 			with self.assertRaises(frappe.PermissionError) as cm:
 				frappe.qb.get_query(
-					"Blog Post",
+					"Test Blog Post",
 					filters={"published": 1},
 					ignore_permissions=False,
 					user=user.name,

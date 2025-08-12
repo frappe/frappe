@@ -26,6 +26,7 @@ dependencies = [
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
+    "AccessControl~=7.2",
     "WeasyPrint==59.0",
     "pydyf==0.11.0",
     "Werkzeug==3.1.3",
