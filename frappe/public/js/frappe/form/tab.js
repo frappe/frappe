@@ -22,13 +22,8 @@ export default class Tab {
 					href="#${id}"
 					role="tab"
 					aria-controls="${id}">
-<<<<<<< HEAD
-						${__(this.label)}
-				</a>
-=======
-						${__(this.label, null, this.doctype)}
+					${__(this.label)}
 				</button>
->>>>>>> 226eef58c3 (fix: keyboard navigation via tab on forms)
 			</li>
 		`).appendTo(this.tab_link_container);
 
