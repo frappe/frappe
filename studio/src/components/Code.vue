@@ -70,15 +70,22 @@ const setEditorValue = () => {
 	code.value = value
 }
 
-const parseObjectString = (text: string) => {
+const isValidObjectString = (text: string) => {
 	const objString = text.trim()
 	if (
-		!(objString.startsWith("{") && objString.endsWith("}")) &&
-		!(objString.startsWith("[") && objString.endsWith("]"))
+		(objString.startsWith("{") && objString.endsWith("}")) ||
+		(objString.startsWith("[") && objString.endsWith("]"))
 	) {
+		return true
+	}
+	return false
+}
+
+const parseObjectString = (text: string) => {
+	if (!isValidObjectString(text)) {
 		throw new Error("Invalid object")
 	}
-	return new Function("return " + objString)()
+	return new Function("return " + text)()
 }
 
 const errorMessage = ref("")
@@ -89,7 +96,7 @@ const emitEditorValue = () => {
 		if (value && !value.startsWith("{{")) {
 			if (props.language === "json") {
 				value = jsonToJs(value)
-			} else if (props.language === "javascript" && typeof props.modelValue === "object") {
+			} else if (props.language === "javascript" && isValidObjectString(value)) {
 				value = parseObjectString(value)
 			}
 		}
