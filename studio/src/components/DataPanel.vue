@@ -114,6 +114,7 @@
 							/>
 							<Code
 								v-if="variableRef.variable_type === 'Object'"
+								ref="variableEditor"
 								label="Initial Value"
 								language="javascript"
 								height="250px"
@@ -141,6 +142,8 @@
 							:label="variableRef.name ? 'Update' : 'Add'"
 							@click="
 								() => {
+									const validated = validateVariable(variableRef)
+									if (!validated) return
 									if (variableRef.name) {
 										editVariable(variableRef)
 									} else {
@@ -285,6 +288,7 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 
 // variables
 const showVariableDialog = ref(false)
+const variableEditor = ref()
 const variableRef = ref<Variable>({
 	name: "",
 	variable_name: "",
@@ -412,5 +416,15 @@ const getVariableMenu = (variable_name: string, value: any) => {
 			},
 		},
 	]
+}
+
+const validateVariable = (variable: Variable) => {
+	if (variable.variable_type === "Object") {
+		variableEditor.value.emitEditorValue()
+		if (variableEditor.value?.errorMessage) {
+			return false
+		}
+	}
+	return true
 }
 </script>
