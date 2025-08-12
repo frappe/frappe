@@ -70,17 +70,28 @@ const setEditorValue = () => {
 	code.value = value
 }
 
+const parseObjectString = (text: string) => {
+	const objString = text.trim()
+	if (
+		!(objString.startsWith("{") && objString.endsWith("}")) &&
+		!(objString.startsWith("[") && objString.endsWith("]"))
+	) {
+		throw new Error("Invalid object")
+	}
+	return new Function("return " + objString)()
+}
+
 const errorMessage = ref("")
 const emitEditorValue = () => {
 	try {
 		errorMessage.value = ""
 		let value = code.value || ""
-		if (
-			value &&
-			!value.startsWith("{{") &&
-			(props.language === "json" || typeof props.modelValue === "object")
-		) {
-			value = jsonToJs(value)
+		if (value && !value.startsWith("{{")) {
+			if (props.language === "json") {
+				value = jsonToJs(value)
+			} else if (props.language === "javascript" && typeof props.modelValue === "object") {
+				value = parseObjectString(value)
+			}
 		}
 
 		if (!props.showSaveButton && !props.readonly) {
