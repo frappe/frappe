@@ -97,7 +97,13 @@ const emitEditorValue = () => {
 			if (props.language === "json") {
 				value = jsonToJs(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
-				value = parseObjectString(value)
+				try {
+					// forgiving single-quoted/unquoted keys; trailing commas
+					value = parseObjectString(value)
+				} catch (e) {
+					// fallback to JSON parsing
+					value = jsonToJs(value)
+				}
 			}
 		}
 
