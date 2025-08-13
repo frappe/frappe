@@ -590,6 +590,13 @@ class User(Document):
 					note.remove(row)
 			note.save(ignore_permissions=True)
 
+		# Unlink user from all of its invitation docs
+		invites = frappe.db.get_all("User Invitation", filters={"email": self.name}, pluck="name")
+		for invite in invites:
+			invite_doc = frappe.get_doc("User Invitation", invite)
+			invite_doc.user = None
+			invite_doc.save(ignore_permissions=True)
+
 	def before_rename(self, old_name, new_name, merge=False):
 		# if merging, delete the old user notification settings
 		if merge:
