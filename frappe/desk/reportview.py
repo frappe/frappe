@@ -943,11 +943,11 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
     else:
         data = execute(**args)
 
-    # Asegurar que queue_position existe con el mismo valor que queue_position_num
+    # Asegurar que queue_position existe con el mismo valor que queue_position_num pero sin decimales
     if isinstance(data, list):
         for row in data:
             if "queue_position_num" in row:
-                row["queue_position"] = str(row["queue_position_num"])
+                row["queue_position"] = str(int(row["queue_position_num"]))
     
     return data
 
