@@ -70,17 +70,41 @@ const setEditorValue = () => {
 	code.value = value
 }
 
+const isValidObjectString = (text: string) => {
+	const objString = text.trim()
+	if (
+		(objString.startsWith("{") && objString.endsWith("}")) ||
+		(objString.startsWith("[") && objString.endsWith("]"))
+	) {
+		return true
+	}
+	return false
+}
+
+const parseObjectString = (text: string) => {
+	if (!isValidObjectString(text)) {
+		throw new Error("Invalid object")
+	}
+	return new Function("return " + text)()
+}
+
 const errorMessage = ref("")
 const emitEditorValue = () => {
 	try {
 		errorMessage.value = ""
 		let value = code.value || ""
-		if (
-			value &&
-			!value.startsWith("{{") &&
-			(props.language === "json" || typeof props.modelValue === "object")
-		) {
-			value = jsonToJs(value)
+		if (value && !value.startsWith("{{")) {
+			if (props.language === "json") {
+				value = jsonToJs(value)
+			} else if (props.language === "javascript" && isValidObjectString(value)) {
+				try {
+					// forgiving single-quoted/unquoted keys; trailing commas
+					value = parseObjectString(value)
+				} catch (e) {
+					// fallback to JSON parsing
+					value = jsonToJs(value)
+				}
+			}
 		}
 
 		if (!props.showSaveButton && !props.readonly) {
