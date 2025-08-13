@@ -468,9 +468,6 @@ def force_refresh_kanban_order(board_name):
 # ==================== CUSTOM FUNCTIONS ====================
 def get_projects_ordered_by_queue_position_and_appointment_date():
     """Get projects ordered by queue_position (DECIMAL) and appointment_date (NULL al final)."""
-    frappe.logger("debug").info(
-        "[KANBAN SORT] Getting ordered projects by queue_position (DECIMAL) and appointment_date"
-    )
     try:
         queue_cast = (
             "CASE "
@@ -486,6 +483,7 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
                 "status",
                 "plate",
                 "appointment_date",
+                "queue_position",
                 queue_cast,
             ],
             filters={
@@ -494,14 +492,6 @@ def get_projects_ordered_by_queue_position_and_appointment_date():
             # Fechas nulas al final; luego fecha ascendente
             order_by="queue_position_num ASC, COALESCE(appointment_date, '9999-12-31') ASC",
         )
-
-        # (Opcional) Log rápido de los primeros para depurar
-        for i, p in enumerate(projects[:10]):
-            frappe.logger("debug").info(
-                f"[KANBAN SORT] #{i+1}: name={p.get('name')}, plate={p.get('plate')}, "
-                f"queue_pos_num={p.get('queue_position_num')}, date={p.get('appointment_date')}, "
-                f"status={p.get('status')}"
-            )
 
         return projects
 

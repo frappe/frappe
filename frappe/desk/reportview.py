@@ -943,16 +943,12 @@ def fetch_data_with_filters(filters=[], args=None, page_length=0):
     else:
         data = execute(**args)
 
-    # Logging simple (si data es lista de dicts)
+    # Asegurar que queue_position existe con el mismo valor que queue_position_num
     if isinstance(data, list):
-        frappe.logger().info("=== Proyectos obtenidos ===")
         for row in data:
-            name = row.get("name")
-            # Mostrar el alias calculado si existe, si no, el original:
-            queue_pos = row.get("queue_position_num", row.get("queue_position"))
-            appointment_date = row.get("appointment_date")
-            frappe.logger().info(f"{name} | QueueNum: {queue_pos} | Appointment: {appointment_date}")
-
+            if "queue_position_num" in row:
+                row["queue_position"] = str(row["queue_position_num"])
+    
     return data
 
 
