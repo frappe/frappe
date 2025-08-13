@@ -414,6 +414,7 @@ ignore_links_on_delete = [
 	"Route History",
 	"Access Log",
 	"Permission Log",
+	"User Invitation",
 ]
 
 # Request Hooks
