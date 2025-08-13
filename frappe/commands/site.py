@@ -161,8 +161,35 @@ def restore(
 			_backup.decryption_rollback()
 			sys.exit(1)
 
+<<<<<<< HEAD
 	except UnicodeDecodeError:
 		_backup.decryption_rollback()
+=======
+
+def _restore(
+	*,
+	site=None,
+	sql_file_path=None,
+	encryption_key=None,
+	db_root_username=None,
+	db_root_password=None,
+	verbose=None,
+	install_app=None,
+	admin_password=None,
+	force=None,
+	with_public_files=None,
+	with_private_files=None,
+):
+	from frappe.installer import extract_files
+	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
+
+	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
+
+	if "AES" in out.decode().split(":")[-1].strip():
+>>>>>>> c22ff226aa (fix(restore): check for `AES` instead of `cipher` to detect encrypted backup)
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			_backup.backup_decryption(encryption_key)
