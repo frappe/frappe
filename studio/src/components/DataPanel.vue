@@ -420,7 +420,7 @@ const getVariableMenu = (variable_name: string, value: any) => {
 
 const validateVariable = (variable: Variable) => {
 	if (variable.variable_type === "Object") {
-		variableEditor.value.emitEditorValue()
+		variableEditor.value?.emitEditorValue()
 		if (variableEditor.value?.errorMessage) {
 			return false
 		}
