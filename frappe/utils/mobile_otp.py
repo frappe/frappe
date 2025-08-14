@@ -6,8 +6,8 @@ import pyotp
 import frappe
 from frappe import _
 from frappe.auth import get_login_attempt_tracker
-from frappe.twofactor import get_otpsecret_for_, get_verification_method, send_token_via_sms
-from frappe.utils import cint, mask_mobile_number
+from frappe.twofactor import get_otpsecret_for_, send_token_via_sms
+from frappe.utils import cint, mask_string
 
 
 def is_mobile_otp_login_enabled() -> bool:
@@ -86,5 +86,5 @@ def send_mobile_login_otp(user: str, mobile_no: str) -> dict[str, str]:
 	return {
 		"message": _("OTP sent successfully"),
 		"tmp_id": tmp_id,
-		"mobile_no": mask_mobile_number(mobile_no),
+		"mobile_no": mask_string(mobile_no),
 	}

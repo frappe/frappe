@@ -392,7 +392,7 @@ var continue_otp_app = function (setup, qrcode) {
 
 var continue_sms = function (setup, prompt) {
 	request_otp();
-	var sms_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var sms_div = $('<div class="text-muted" style="padding: 15px 0 15px; line-height: 1.2; font-size: 15px;"></div>');
 
 	if (setup) {
 		sms_div.append(prompt)
