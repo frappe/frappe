@@ -165,7 +165,6 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	if not otp_secret:
 		raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
-	# Standard 2FA verification
 	tracker = get_login_attempt_tracker(login_manager.user)
 
 	hotp = pyotp.HOTP(otp_secret)

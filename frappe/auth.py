@@ -251,15 +251,15 @@ class LoginManager:
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
 
-		otp = frappe.form_dict.get("otp")
-		tmp_id = frappe.form_dict.get("tmp_id")
+		form_user, form_pwd = frappe.form_dict.get("usr"), frappe.form_dict.get("pwd")
+		otp, tmp_id = frappe.form_dict.get("otp"), frappe.form_dict.get("tmp_id")
 
-		if otp and tmp_id and not frappe.form_dict.get("usr") and not frappe.form_dict.get("pwd"):
+		if (otp and tmp_id) and not (form_user and form_pwd):
 			self._authenticate_mobile_otp(otp, tmp_id)
 			return
 
 		if not (user and pwd):
-			user, pwd = frappe.form_dict.get("usr"), frappe.form_dict.get("pwd")
+			user, pwd = form_user, form_pwd
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 

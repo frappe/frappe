@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.auth import get_login_attempt_tracker
 from frappe.twofactor import get_otpsecret_for_, get_verification_method, send_token_via_sms
-from frappe.utils import cint
+from frappe.utils import cint, mask_mobile_number
 
 
 def is_mobile_otp_login_enabled() -> bool:
@@ -18,7 +18,7 @@ def is_mobile_otp_login_enabled() -> bool:
 
 def validate_mobile_otp_prerequisites() -> None:
 	if not is_mobile_otp_login_enabled():
-		frappe.throw(_("Mobile OTP login is not enabled."), frappe.AuthenticationError)
+		frappe.throw(_("Phone OTP login is not enabled."), frappe.AuthenticationError)
 
 	sms_gateway_url = frappe.get_cached_value("SMS Settings", "SMS Settings", "sms_gateway_url")
 	if not sms_gateway_url:
@@ -29,7 +29,7 @@ def validate_mobile_otp_prerequisites() -> None:
 
 def find_user_by_mobile(mobile_no: str) -> dict[str, str]:
 	if not mobile_no:
-		frappe.throw(_("Mobile number is required."), frappe.ValidationError)
+		frappe.throw(_("Phone number is required."), frappe.ValidationError)
 
 	user = frappe.db.get_value(
 		"User", {"mobile_no": mobile_no, "enabled": 1}, ["name", "mobile_no"], as_dict=True
@@ -39,14 +39,13 @@ def find_user_by_mobile(mobile_no: str) -> dict[str, str]:
 		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip, raise_locked_exception=False)
 		if ip_tracker:
 			ip_tracker.add_failure_attempt()
-		frappe.throw(_("No user found with this mobile number."), frappe.AuthenticationError)
+		frappe.throw(_("No user found with this Phone number."), frappe.AuthenticationError)
 
 	return user
 
 
 def generate_mobile_otp(user: str) -> tuple[int, str]:
 	otp_secret = get_otpsecret_for_(user)
-
 	token = int(pyotp.TOTP(otp_secret).now())
 
 	return token, otp_secret
@@ -84,6 +83,8 @@ def send_mobile_login_otp(user: str, mobile_no: str) -> dict[str, str]:
 	if not status:
 		frappe.throw(_("Failed to send OTP. Please try again."), frappe.AuthenticationError)
 
-	masked_mobile = mobile_no[:4] + "******" + mobile_no[-3:] if len(mobile_no) > 7 else "******"
-
-	return {"message": _("OTP sent successfully"), "tmp_id": tmp_id, "mobile_no": masked_mobile}
+	return {
+		"message": _("OTP sent successfully"),
+		"tmp_id": tmp_id,
+		"mobile_no": mask_mobile_number(mobile_no),
+	}

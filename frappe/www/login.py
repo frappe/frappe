@@ -11,7 +11,7 @@ from frappe.apps import get_default_path
 from frappe.auth import LoginManager
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, get_url
+from frappe.utils import cint, get_url, validate_phone_number
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
@@ -232,14 +232,7 @@ def send_mobile_otp(mobile_no: str) -> None:
 	if not mobile_no:
 		frappe.throw(_("Mobile number is required"))
 
-	mobile_no = str(mobile_no).strip()
-
-	import re
-
-	mobile_no = re.sub(r"[^\d+]", "", mobile_no)
-
-	if not mobile_no:
-		frappe.throw(_("Please enter a valid mobile number"))
+	validate_phone_number(mobile_no, throw=True)
 
 	try:
 		user_data = find_user_by_mobile(mobile_no)
