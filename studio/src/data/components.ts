@@ -31,7 +31,6 @@ import LucideALargeSmall from "~icons/lucide/a-large-small"
 import LucideEdit from "~icons/lucide/edit"
 import LucideMessageSquare from "~icons/lucide/message-square"
 import LucideListTree from "~icons/lucide/list-tree"
-import LucideAppWindow from "~icons/lucide/app-window"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
 import LucideSidebar from "~icons/lucide/sidebar"
@@ -575,11 +574,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		},
 	},
 	// Studio Components
-	Container: {
-		name: "Container",
-		title: "Container",
-		icon: LucideAppWindow,
-	},
 	Repeater: {
 		name: "Repeater",
 		title: "Repeater",
