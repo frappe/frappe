@@ -3,6 +3,7 @@ import string
 import random
 import frappe
 import boto3
+import os
 from botocore.exceptions import ClientError
 from pathlib import Path
 
@@ -32,29 +33,28 @@ def get_s3_credentials():
         
         aws_access_key = common_config.get('aws_access_key_id')
         aws_secret_key = common_config.get('aws_secret_access_key')
-        aws_region = common_config.get('aws_region', 'ap-southeast-1')
+        aws_s3_endpoint_url = common_config.get('aws_s3_endpoint_url')
         
         if not aws_access_key or not aws_secret_key:
             # Nếu không có, lấy từ biến môi trường hệ thống
-            import os
             aws_access_key = os.getenv('AWS_ACCESS_KEY_ID')
             aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-            aws_region = os.getenv('AWS_DEFAULT_REGION', 'ap-southeast-1')
-        
+            aws_s3_endpoint_url = os.getenv('AWS_S3_ENDPOINT_URL')
+
         if not aws_access_key or not aws_secret_key:
             return None
             
         return {
             'aws_access_key_id': aws_access_key,
             'aws_secret_access_key': aws_secret_key,
-            'region': aws_region
+            'aws_s3_endpoint_url': aws_s3_endpoint_url
         }
     except Exception as e:
         frappe.log_error(f"Lỗi khi lấy thông tin S3: {str(e)}", "S3 Auto Setup")
         return None
 
 
-def create_s3_bucket(bucket_name, region='ap-southeast-1'):
+def create_s3_bucket(bucket_name):
     """Tạo một S3 bucket với tên chỉ định"""
     try:
         credentials = get_s3_credentials()
@@ -62,12 +62,16 @@ def create_s3_bucket(bucket_name, region='ap-southeast-1'):
             return False, "Không tìm thấy thông tin xác thực S3"
         
         # Tạo đối tượng S3 client
-        s3_client = boto3.client(
-            's3',
-            aws_access_key_id=credentials['aws_access_key_id'],
-            aws_secret_access_key=credentials['aws_secret_access_key'],
-            region_name=region
-        )
+        s3_client_kwargs = {
+            'aws_access_key_id': credentials['aws_access_key_id'],
+            'aws_secret_access_key': credentials['aws_secret_access_key'],
+        }
+        
+        # Thêm endpoint_url nếu có (cho Viettel Cloud hoặc S3-compatible services)
+        if credentials.get('aws_s3_endpoint_url'):
+            s3_client_kwargs['endpoint_url'] = credentials['aws_s3_endpoint_url']
+            
+        s3_client = boto3.client('s3', **s3_client_kwargs)
         
         # Kiểm tra xem bucket đã tồn tại chưa
         try:
@@ -81,14 +85,17 @@ def create_s3_bucket(bucket_name, region='ap-southeast-1'):
             else:
                 return False, f"Lỗi kiểm tra bucket: {str(e)}"
         
-        # Tạo bucket
-        if region == 'us-east-1':
+        # Tạo bucket - Viettel Cloud không cần CreateBucketConfiguration
+        try:
             s3_client.create_bucket(Bucket=bucket_name)
-        else:
-            s3_client.create_bucket(
-                Bucket=bucket_name,
-                CreateBucketConfiguration={'LocationConstraint': region}
-            )
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            if error_code == 'BucketAlreadyExists':
+                return True, f"Bucket {bucket_name} đã tồn tại"
+            elif error_code == 'BucketAlreadyOwnedByYou':
+                return True, f"Bucket {bucket_name} đã được bạn sở hữu"
+            else:
+                return False, f"Lỗi tạo bucket: {e.response['Error']['Message']}"
         
         return True, f"Đã tạo bucket {bucket_name} thành công"
         
@@ -109,7 +116,7 @@ def setup_s3_for_site(site_name):
         bucket_name = generate_bucket_name(site_name)
         
         # Tạo bucket
-        success, message = create_s3_bucket(bucket_name, credentials['region'])
+        success, message = create_s3_bucket(bucket_name)
         
         if success:
             # Trả về cấu hình S3 để thêm vào site_config.json
@@ -117,8 +124,7 @@ def setup_s3_for_site(site_name):
                 's3_bucket': bucket_name,
                 'aws_access_key_id': credentials['aws_access_key_id'],
                 'aws_secret_access_key': credentials['aws_secret_access_key'],
-                'aws_s3_endpoint_url': f"https://s3.{credentials['region']}.amazonaws.com",
-                'aws_default_region': credentials['region']
+                'aws_s3_endpoint_url': credentials['aws_s3_endpoint_url'],
             }
             
             return s3_config
@@ -154,3 +160,29 @@ def add_s3_to_site_config(site_name, s3_config):
     except Exception as e:
         frappe.log_error(f"Lỗi khi ghi site_config cho site {site_name}: {str(e)}", "S3 Auto Setup")
         return False
+
+
+def test_s3_connection():
+    """Test kết nối S3 với credentials hiện tại"""
+    try:
+        credentials = get_s3_credentials()
+        if not credentials:
+            return False, "Không tìm thấy thông tin xác thực S3"
+        
+        # Tạo S3 client để test
+        s3_client_kwargs = {
+            'aws_access_key_id': credentials['aws_access_key_id'],
+            'aws_secret_access_key': credentials['aws_secret_access_key'],
+        }
+        
+        if credentials.get('aws_s3_endpoint_url'):
+            s3_client_kwargs['endpoint_url'] = credentials['aws_s3_endpoint_url']
+            
+        s3_client = boto3.client('s3', **s3_client_kwargs)
+        
+        # Test bằng cách list buckets
+        s3_client.list_buckets()
+        return True, "Kết nối S3 thành công"
+        
+    except Exception as e:
+        return False, f"Lỗi kết nối S3: {str(e)}"
