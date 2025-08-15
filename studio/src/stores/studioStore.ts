@@ -149,6 +149,7 @@ const useStudioStore = defineStore("store", () => {
 		await setPageData(page)
 
 		const canvasStore = useCanvasStore()
+		canvasStore.editingMode = "page"
 		canvasStore.activeCanvas?.setRootBlock(pageBlocks.value[0])
 		canvasStore.activeCanvas?.clearSelection()
 
