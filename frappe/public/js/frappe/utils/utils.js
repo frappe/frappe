@@ -1816,7 +1816,7 @@ Object.assign(frappe.utils, {
 	 */
 	mask_passwords(obj) {
 		const KEYWORDS_TO_MASK = ["password", "passphrase"];
-		for (const key in obj) {
+		for (const key of Object.keys(obj)) {
 			if (KEYWORDS_TO_MASK.some((keyword) => key.indexOf(keyword) !== -1) && obj[key]) {
 				obj[key] = "*****";
 			}
