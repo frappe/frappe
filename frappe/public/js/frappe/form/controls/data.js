@@ -1,20 +1,58 @@
 frappe.provide("frappe.phone_call");
 
 frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInput {
-	static html_element = "input";
-	static input_type = "text";
-	static trigger_change_on_input_event = true;
+	   static html_element = "input";
+	   static input_type = "text";
+	   static input_mode = "none";
+	   static trigger_change_on_input_event = true;
 	make_input() {
 		if (this.$input) return;
 
-		let { html_element, input_type, input_mode } = this.constructor;
-
-		this.$input = $("<" + html_element + ">")
-			.attr("type", input_type)
-			.attr("inputmode", input_mode)
-			.attr("autocomplete", "off")
-			.addClass("input-with-feedback form-control")
-			.prependTo(this.input_area);
+		   let { html_element, input_type } = this.constructor;
+		   let inputmode = this.constructor.input_mode || "none";
+		   // Dynamic inputmode/type based on fieldtype/options
+		   if (this.df) {
+			   switch (this.df.fieldtype) {
+				   case "Int":
+					   inputmode = "numeric";
+					   input_type = "text";
+					   break;
+				   case "Float":
+				   case "Percent":
+					   inputmode = "decimal";
+					   input_type = "text";
+					   break;
+				   case "Email":
+					   inputmode = "email";
+					   input_type = "email";
+					   break;
+				   case "Phone":
+					   inputmode = "tel";
+					   input_type = "tel";
+					   break;
+				   case "Date":
+					   inputmode = "none";
+					   input_type = "date";
+					   break;
+				   case "Time":
+					   inputmode = "none";
+					   input_type = "time";
+					   break;
+				   case "URL":
+					   inputmode = "url";
+					   input_type = "url";
+					   break;
+				   default:
+					   inputmode = "none";
+					   input_type = "text";
+			   }
+		   }
+		   this.$input = $("<" + html_element + ">")
+			   .attr("type", input_type)
+			   .attr("inputmode", inputmode)
+			   .attr("autocomplete", "off")
+			   .addClass("input-with-feedback form-control")
+			   .prependTo(this.input_area);
 
 		this.$input.on("paste", (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
