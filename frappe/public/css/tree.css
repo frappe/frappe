@@ -93,3 +93,22 @@ ul.tree-children {
 .tree-link.active ~ .balance-area {
   color: #36414C !important;
 }
+
+/* Accessibility: Skip to Main Content link */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  z-index: 1000;
+  text-decoration: none;
+  transition: top 0.3s ease;
+  border-radius: 4px;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+

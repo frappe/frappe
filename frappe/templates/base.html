@@ -56,12 +56,14 @@
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
 	{%- block banner -%}
-		{% include "templates/includes/banner_extension.html" ignore missing %}
+	   <a href="#main-content" class="skip-to-content">Skip to Main Content</a>
 
-		{% if banner_html -%}
-		{{ banner_html or "" }}
-		{%- endif %}
-	{%- endblock -%}
+	   {% include "templates/includes/banner_extension.html" ignore missing %}
+
+	   {% if banner_html -%}
+		  {{ banner_html or "" }}
+	   {%- endif %}
+    {%- endblock -%}
 
 	{%- block navbar -%}
 		{{ web_block(
