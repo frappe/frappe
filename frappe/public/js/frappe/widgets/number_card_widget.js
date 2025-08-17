@@ -90,6 +90,11 @@ export default class NumberCardWidget extends Widget {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
 				});
 			}, {});
+		} else {
+			const filters = this.get_filters();
+			if (filters && Object.keys(filters).length) {
+				frappe.route_options = filters;
+			}
 		}
 
 		frappe.set_route(route);
