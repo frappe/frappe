@@ -141,7 +141,7 @@ class AutoRepeat(Document):
 		if self.end_date:
 			self.validate_from_to_dates("start_date", "end_date")
 		if self.end_date == today():
-			frappe.throw(_("End Date should not be the same as today date"))
+			frappe.throw(_("End Date cannot be today."))
 
 		if self.end_date == self.start_date:
 			frappe.throw(
