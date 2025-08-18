@@ -31,7 +31,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-16 23:58:07.752086",
+ "modified": "2025-08-18 15:29:54.886203",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
@@ -54,5 +54,6 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "component_name"
 }
