@@ -41,6 +41,8 @@ class InstalledApplications(Document):
 			setup_complete = app_wise_setup_details.get(app.get("app_name")) or 0
 			if app.get("app_name") == "india_compliance":
 				setup_complete = app_wise_setup_details.get("erpnext") or 0
+			if app.get("app_name") == "insights":
+				setup_complete = app_wise_setup_details.get("frappe") or 0
 
 			self.append(
 				"installed_applications",
