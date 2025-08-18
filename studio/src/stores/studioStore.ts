@@ -24,7 +24,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import type { LeftPanelOptions, RightPanelOptions, SelectOption, StudioMode } from "@/types"
+import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, SelectOption, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -38,6 +38,7 @@ const useStudioStore = defineStore("store", () => {
 		showLeftPanel: true,
 		showRightPanel: true,
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
+		leftPanelComponentTab: <leftPanelComponentTabOptions> "Standard",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
 	const mode = ref<StudioMode>("select")

@@ -109,6 +109,7 @@ export type Filter = {
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
 export type RightPanelOptions = "Properties" | "Events" | "Styles"
+export type leftPanelComponentTabOptions = "Standard" | "Custom"
 
 // right panel
 export type HashString = `#${string}`
