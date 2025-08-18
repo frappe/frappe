@@ -12,6 +12,10 @@ function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
 }
 
+function getBlockObjectCopy(block: BlockOptions | Block): BlockOptions {
+	return jsonToJs(getBlockString(block))
+}
+
 function getBlockInstance(options: BlockOptions | string, retainId = true): Block {
 	if (typeof options === "string") {
 		options = jsonToJs(options) as BlockOptions
@@ -724,6 +728,7 @@ function scrub(txt: string | null | undefined) {
 
 export {
 	getBlockString,
+	getBlockObjectCopy as getBlockObject,
 	getBlockInstance,
 	getComponentBlock,
 	getRootBlock,

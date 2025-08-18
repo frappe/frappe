@@ -52,6 +52,9 @@
 				</div>
 			</div>
 		</div>
+
+		<Button icon-left="plus" class="mt-3" @click="showNewComponentDialog = true">Create Component</Button>
+		<NewComponentDialog v-model:showDialog="showNewComponentDialog" @created="openComponentEditor" />
 	</div>
 </template>
 
@@ -60,16 +63,19 @@ import { computed, ref } from "vue"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
+import NewComponentDialog from "@/components/NewComponentDialog.vue"
 
 import components from "@/data/components"
 import { studioComponents } from "@/data/studioComponents"
 
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
+import { getComponentBlock, getBlockObject } from "@/utils/helpers"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 
 import LucideBox from "~icons/lucide/box"
+import { toast } from "vue-sonner"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
@@ -92,4 +98,34 @@ const componentList = computed(() => {
 })
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
+
+const showNewComponentDialog = ref(false)
+async function openComponentEditor(newComponent: StudioComponent) {
+	const newBlock = getComponentBlock("container")
+	canvasStore.editOnCanvas(
+		newBlock,
+		(editedBlock) => {
+			debugger
+			studioComponents.setValue.submit(
+				{
+					name: newComponent.component_id,
+					blocks: getBlockObject(editedBlock),
+				},
+				{
+					onSuccess() {
+						toast.success("Component created successfully")
+					},
+					onError(error: any) {
+						toast.error("Failed to create component", {
+							description: error.messages.join(", "),
+						})
+					},
+				},
+			)
+		},
+		"Save Component",
+		newComponent.component_name,
+		newComponent.component_id,
+	)
+}
 </script>

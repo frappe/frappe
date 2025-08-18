@@ -55,6 +55,7 @@ declare module 'vue' {
     LucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
+    NewComponentDialog: typeof import('./src/components/NewComponentDialog.vue')['default']
     ObjectBrowser: typeof import('./src/components/ObjectBrowser.vue')['default']
     ObjectEditor: typeof import('./src/components/ObjectEditor.vue')['default']
     OptionToggle: typeof import('./src/components/OptionToggle.vue')['default']
