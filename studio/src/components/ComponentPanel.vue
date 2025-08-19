@@ -91,14 +91,13 @@ import { studioComponents } from "@/data/studioComponents"
 
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
-import { getComponentBlock, getBlockObject, getBlockInstance, confirm } from "@/utils/helpers"
+import useComponentStore from "@/stores/componentStore"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 
-import { toast } from "vue-sonner"
-
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
+const componentStore = useComponentStore()
 
 const componentFilter = ref("")
 const componentList = computed(() => {
@@ -122,33 +121,7 @@ const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 const showNewComponentDialog = ref(false)
 
 function openComponentEditor(component: StudioComponent) {
-	const blocks = component.blocks?.length
-		? markRaw(getBlockInstance(component.blocks))
-		: getComponentBlock("container")
-	canvasStore.editOnCanvas(
-		blocks,
-		(editedBlock) => {
-			studioComponents.setValue.submit(
-				{
-					name: component.component_id,
-					blocks: getBlockObject(editedBlock),
-				},
-				{
-					onSuccess() {
-						toast.success("Component saved successfully")
-					},
-					onError(error: any) {
-						toast.error("Failed to save component", {
-							description: error.messages.join(", "),
-						})
-					},
-				},
-			)
-		},
-		"Save Component",
-		component.component_name,
-		component.component_id,
-	)
+	componentStore.editComponent(component)
 }
 
 function getComponentMenu(component: StudioComponent) {
@@ -156,30 +129,13 @@ function getComponentMenu(component: StudioComponent) {
 		{
 			label: "Edit",
 			icon: "edit",
-			onClick: () => openComponentEditor(component),
+			onClick: () => componentStore.editComponent(component),
 		},
 		{
 			label: "Delete",
 			icon: "trash",
-			onClick: () => deleteComponent(component),
+			onClick: () => componentStore.deleteComponent(component),
 		},
 	]
-}
-
-function deleteComponent(component: StudioComponent) {
-	confirm(`Are you sure you want to delete the component '${component.component_name}'?`).then(
-		(confirmed) => {
-			if (confirmed) {
-				studioComponents.delete
-					.submit(component.component_id)
-					.then(() => {
-						toast.success(`Component '${component.component_name}' deleted successfully`)
-					})
-					.catch(() => {
-						toast.error(`Failed to delete component '${component.component_name}'`)
-					})
-			}
-		},
-	)
 }
 </script>

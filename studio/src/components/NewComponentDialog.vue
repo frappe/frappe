@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
-import { studioComponents } from "@/data/studioComponents"
+import useComponentStore from "@/stores/componentStore"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["created"])
@@ -34,21 +34,13 @@ function createComponent() {
 		errorMessage.value = "Please enter a Component Name"
 		return
 	}
-
-	studioComponents.insert.submit(
-		{
-			component_name: componentName.value,
-		},
-		{
-			onSuccess(data) {
-				emit("created", data)
-				reset()
-				showDialog.value = false
-			},
-			onError(error: any) {
-				errorMessage.value = error.messages.join(", ")
-			},
-		},
-	)
+	const componentStore = useComponentStore()
+	componentStore.createComponent(componentName.value).then((data) => {
+		if (data) {
+			emit("created", data)
+			reset()
+			showDialog.value = false
+		}
+	})
 }
 </script>
