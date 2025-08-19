@@ -1199,7 +1199,9 @@ class BaseDocument:
 				continue
 
 			else:
-				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype == "Text Editor")
+				sanitized_value = sanitize_html(
+					value, linkify=df and df.fieldtype == "Text Editor", always_sanitize=True
+				)
 
 			self.set(fieldname, sanitized_value)
 
