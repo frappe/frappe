@@ -202,9 +202,6 @@ export default class GridRow {
 
 		if (this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
-			if (this.grid_form) {
-				this.grid_form.row.doc = this.doc;
-			}
 		}
 
 		if (this.grid.template && !this.grid.meta.editable_grid) {

@@ -124,9 +124,10 @@ export default class GridRowForm {
 		const field = this.fields_dict[fieldname];
 		if (!field) return;
 
-		field.docname = this.row.doc.name;
-		field.refresh();
-		this.layout && this.layout.refresh_dependency();
+		if (field.docname == this.row.doc.name) {
+			field.refresh();
+			this.layout && this.layout.refresh_dependency();
+		}
 	}
 	set_focus() {
 		// wait for animation and then focus on the first row
