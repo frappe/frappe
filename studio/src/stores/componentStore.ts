@@ -1,7 +1,8 @@
 import { defineStore } from "pinia"
 import { ref, markRaw } from "vue"
 import { studioComponents } from "@/data/studioComponents"
-import { getComponentBlock, getBlockObject, getBlockInstance, confirm } from "@/utils/helpers"
+import { getBlockObject, getBlockInstance, confirm } from "@/utils/helpers"
+import getBlockTemplate from "@/utils/blockTemplate"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "vue-sonner"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
@@ -31,7 +32,7 @@ const useComponentStore = defineStore("componentStore", () => {
 	function editComponent(component: StudioComponent) {
 		const blocks = component.blocks?.length
 			? markRaw(getBlockInstance(component.blocks))
-			: getComponentBlock("container")
+			: getBlockInstance(getBlockTemplate("empty-component"))
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			blocks,

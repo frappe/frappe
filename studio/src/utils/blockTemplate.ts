@@ -6,6 +6,7 @@ function getBlockTemplate(
 		| "container"
 		| "fit-container"
 		| "fallback-component"
+		| "empty-component"
 ): BlockOptions {
 	switch (type) {
 		case "body":
@@ -63,6 +64,16 @@ function getBlockTemplate(
 					width: "fit-content",
 				}
 			}
+
+		case "empty-component":
+			return {
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: {
+					height: "100px",
+					width: "100px",
+				} as BlockStyleMap,
+			};
 	}
 }
 
