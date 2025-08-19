@@ -22,7 +22,7 @@ export default class Column {
 		if (this.df.description) {
 			$(`
 				<p class="col-sm-12 form-column-description">
-					${__(this.df.description)}
+					${__(this.df.description, null, this.df.parent)}
 				</p>
 			`).prependTo(this.wrapper);
 		}
