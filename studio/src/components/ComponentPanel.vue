@@ -49,7 +49,11 @@
 				<div
 					v-for="component in componentList"
 					:key="component.component_id"
-					class="group/component flex items-center justify-between rounded px-2 py-1"
+					class="group/component flex select-none items-center justify-between rounded px-2 py-1"
+					:class="{
+						'border border-outline-gray-4': componentStore.selectedComponent === component.component_id,
+					}"
+					@click="componentStore.selectedComponent = component.component_id"
 					@dblclick="openComponentEditor(component)"
 				>
 					<div class="flex items-center gap-2 text-ink-gray-7">
@@ -79,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, markRaw } from "vue"
+import { computed, ref } from "vue"
 import { DropDown, FeatherIcon } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
@@ -119,7 +123,6 @@ const componentList = computed(() => {
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
 const showNewComponentDialog = ref(false)
-
 function openComponentEditor(component: StudioComponent) {
 	componentStore.editComponent(component)
 }
