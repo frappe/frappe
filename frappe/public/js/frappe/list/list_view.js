@@ -912,18 +912,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">
-					${_value}
-				</a>`;
+					data-filter="${fieldname},=,${value}">${_value}</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
-					${format()}
-				</a>`;
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">${format()}</a>`;
 			}
 
 			return `<span class="ellipsis"

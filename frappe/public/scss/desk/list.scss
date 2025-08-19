@@ -123,7 +123,7 @@
 		position: sticky;
 		right: 0;
 		background-color: var(--bg-color);
-		box-shadow: -5px 0px 5px rgb(255, 255, 255);
+		box-shadow: -5px 0px 5px var(--highlight-color);
 		padding: 6px 10px;
 	}
 
@@ -571,6 +571,11 @@ input.list-header-checkbox {
 						padding-left: 10px;
 						.list-row-col {
 							margin-right: 0px;
+							min-width: auto;
+						}
+						&:has(.filterable:empty) {
+							display: none;
+							padding-left: 37px;
 						}
 					}
 					.mobile-layout:not(.mobile-layout ~ .mobile-layout) {
@@ -590,6 +595,7 @@ input.list-header-checkbox {
 				.level-right {
 					flex: 0 0 auto;
 					width: auto;
+					box-shadow: none;
 					.level-item.visible-xs {
 						margin-top: 5px;
 					}

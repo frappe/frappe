@@ -65,7 +65,7 @@ export default class Grid {
 	make() {
 		let template = `
 			<div class="grid-field">
-				<label class="control-label">${__(this.df.label || "")}</label>
+				<label class="control-label">${__(this.df.label || "", null, this.df.parent)}</label>
 				<span class="help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
