@@ -71,8 +71,8 @@ function getBlockTemplate(
 				componentName: "container",
 				originalElement: "div",
 				baseStyles: {
-					height: "100px",
-					width: "100px",
+					height: "200px",
+					width: "100%",
 				} as BlockStyleMap,
 			};
 
