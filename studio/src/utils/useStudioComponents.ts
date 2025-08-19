@@ -53,8 +53,10 @@ export function useStudioComponents() {
 	}
 
 	function cacheComponent(componentDoc: StudioComponent) {
-		componentDocMap.set(componentDoc.component_id, componentDoc);
-		componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.blocks)));
+		componentDocMap.set(componentDoc.component_id, componentDoc)
+		if (componentDoc.blocks) {
+			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.blocks)))
+		}
 	}
 
 	function removeCachedComponent(componentName: string) {

@@ -26,7 +26,7 @@ const useComponentStore = defineStore("componentStore", () => {
 				},
 				onError(error: any) {
 					toast.error("Failed to create component", {
-						description: error.messages.join(", "),
+						description: error?.messages?.join(", "),
 					})
 				},
 			},
