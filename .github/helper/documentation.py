@@ -1,3 +1,5 @@
+# Helper script for validating documentation links in pull requests.
+# Contributed as a first open-source commit 
 import sys
 from urllib.parse import urlparse
 
@@ -14,6 +16,10 @@ DOCUMENTATION_DOMAINS = [
 	"docs.frappe.io",
 ]
 
+# ---------------------------
+# Helper functions
+# ---------------------------
+
 
 def is_valid_url(url: str) -> bool:
 	parts = urlparse(url)
@@ -21,6 +27,7 @@ def is_valid_url(url: str) -> bool:
 
 
 def is_documentation_link(word: str) -> bool:
+	"""Check if the given word is a valid documentation link."""
 	if not word.startswith("http") or not is_valid_url(word):
 		return False
 
