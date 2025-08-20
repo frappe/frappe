@@ -50,6 +50,12 @@
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
+			&:focus {
+				outline: 1px solid #c9c9c9;
+			}
+		}
+		&:focus {
+			outline: 1px solid #c9c9c9;
 		}
 	}
 
@@ -500,12 +506,17 @@
 				color: var(--text-muted);
 				padding: 10px 0;
 				margin: 0 var(--margin-md);
-
+				background-color: var(--card-bg);
+				border: 0;
 				&.active {
 					font-weight: 600;
 					border-bottom: 1px solid var(--text-color);
 					color: var(--text-color);
 					padding-bottom: 9px;
+				}
+				&:focus {
+					outline: none;
+					font-weight: 600;
 				}
 			}
 		}

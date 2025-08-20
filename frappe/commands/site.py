@@ -225,7 +225,7 @@ def _restore(
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
+	if "AES" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 

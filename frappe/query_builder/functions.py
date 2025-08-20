@@ -84,6 +84,11 @@ DateFormat = ImportMapper(
 )
 
 
+class YearWeek(Function):
+	def __init__(self, term):
+		super().__init__("YEARWEEK", term, 1)
+
+
 class _PostgresUnixTimestamp(Extract):
 	# Note: this is just a special case of "Extract" function with "epoch" hardcoded.
 	# Check super definition to see how it works.

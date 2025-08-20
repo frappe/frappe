@@ -79,6 +79,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()
 	can_read = user_perms.can_read
+	from frappe import _
 	from frappe.modules import load_doctype_module
 
 	com_doctypes = []
@@ -96,7 +97,15 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
-	return [[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read]
+	results = []
+	txt_lower = txt.lower().replace("%", "")
+
+	for dt in com_doctypes:
+		if dt in can_read:
+			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
+				results.append([dt])
+
+	return results
 
 
 def sendmail(

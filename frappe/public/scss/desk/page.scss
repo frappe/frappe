@@ -93,7 +93,8 @@
 }
 
 .layout-main-section-wrapper {
-	width: 100%;
+	flex: 1 0 80%;
+	width: 80%;
 }
 
 .layout-main-section.frappe-card {
@@ -179,12 +180,39 @@
 .layout-main-section {
 	scroll-margin-top: var(--navbar-height);
 
+	.frappe-list {
+		.result-container {
+			overflow-x: auto;
+			.result {
+				min-width: 100%;
+				width: auto;
+				.list-row-container {
+					width: fit-content;
+					min-width: 100%;
+				}
+				.list-row-container:first-child {
+					position: sticky;
+					top: 0;
+					z-index: 2;
+				}
+				.list-row-container {
+					.level-left {
+						.list-row-col {
+							min-width: 150px;
+							max-width: 400px;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	.frappe-list,
 	.report-wrapper {
 		.result,
 		.no-result,
 		.freeze {
-			min-height: "200px";
+			min-height: 200px;
 		}
 
 		.result {
@@ -220,4 +248,10 @@
 .page-only-label {
 	margin-top: var(--margin-xs);
 	text-align: center;
+}
+
+.frappe-control {
+	.form-control.fields_order {
+		padding-top: 1.5px;
+	}
 }

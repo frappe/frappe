@@ -261,6 +261,19 @@ class NestedSet(Document):
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
 
+	def after_insert(self):
+		if (
+			frappe.flags.in_import
+			or frappe.flags.in_patch
+			or frappe.flags.in_migrate
+			or frappe.flags.in_install
+		):
+			return
+
+		# Clear user permissions cache, otherwise user can't access the new document
+		if frappe.db.exists("User Permission", {"user": frappe.session.user, "allow": self.doctype}):
+			frappe.cache.hdel("user_permissions", frappe.session.user)
+
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()

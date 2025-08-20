@@ -20,7 +20,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.1",
-    "pypdf~=5.6.0",
+    "pypdf~=6.0.0",
     "PyPika @ git+https://github.com/frappe/pypika@093984977ce157d35e048c51d9ff55a1f0f44570",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -130,7 +130,7 @@ dev = [
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
-    "coverage~=6.5.0",
+    "coverage~=7.10.0",
     "Faker~=18.10.1",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
@@ -148,7 +148,7 @@ skip_namespaces = [
 ]
 
 [tool.bench.dev-dependencies]
-coverage = "~=6.5.0"
+coverage = "~=7.10.0"
 Faker = "~=18.10.1"
 pyngrok = "~=6.0.0"
 unittest-xml-reporting = "~=3.2.0"

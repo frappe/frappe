@@ -15,7 +15,7 @@ context("List View Settings", () => {
 		cy.clear_filters();
 		cy.wait(300);
 		cy.get(".list-count").should("contain", "20 of");
-		cy.get("[href='#es-line-chat-alt']").should("be.visible");
+		cy.get(".frappe-list svg.es-icon.es-line").should("be.visible");
 		cy.get(".menu-btn-group button").click();
 		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType Settings");

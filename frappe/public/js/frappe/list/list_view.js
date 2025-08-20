@@ -33,6 +33,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 		this.count_upper_bound = 1001;
 		this._element_factory = new ElementFactory(this.doctype);
+		this.column_max_widths = {};
 	}
 
 	has_permissions() {
@@ -633,13 +634,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.find(".list-row-container").remove();
 		this.render_header();
 
+		let has_assignto = false;
+
 		if (this.data.length > 0) {
 			// append rows
 			let idx = 0;
 			for (let doc of this.data) {
 				doc._idx = idx++;
 				this.$result.append(this.get_list_row_html(doc));
+				if (!has_assignto && doc._assign) {
+					has_assignto = true;
+				}
 			}
+		}
+		this.apply_column_widths();
+
+		// add class to result to indetify that it has assignto
+		if (has_assignto) {
+			this.$result.addClass("has-assign-to");
+		} else {
+			this.$result.addClass("no-assign-to");
 		}
 	}
 
@@ -652,7 +666,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let $count = this.get_count_element();
 		this.get_count_str().then((count) => {
 			$count.html(`<span>${count}</span>`);
-			if (this.count_upper_bound) {
+			if (
+				this.count_upper_bound &&
+				(this.total_count == this.count_upper_bound || this.total_count == null)
+			) {
 				$count.attr(
 					"title",
 					__(
@@ -700,6 +717,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
 					col.type == "Tag" ? "tag-col hide" : "",
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
+					col.df?.fieldname,
 				].join(" ");
 
 				let html = "";
@@ -764,7 +782,36 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_left_html(doc) {
-		let left_html = this.columns.map((col) => this.get_column_html(col, doc)).join("");
+		let left_html = "";
+		let has_value_in_second_column = true;
+		for (let i = 0; i < this.columns.length; i++) {
+			let col = this.columns[i];
+
+			if (i == 4 && !doc[col.df.fieldname]) {
+				has_value_in_second_column = false;
+			}
+
+			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
+				left_html += `<div class="mobile-layout">${this.get_column_html(
+					col,
+					doc,
+					true
+				)}</div>`;
+			} else {
+				left_html += this.get_column_html(col, doc, false);
+			}
+		}
+
+		if (!has_value_in_second_column) {
+			const container = document.createElement("div");
+			container.innerHTML = left_html;
+			const firstMobileLayout = container.querySelector(".mobile-layout");
+
+			if (firstMobileLayout) {
+				firstMobileLayout.classList.add("no-seperator");
+			}
+			left_html = container.innerHTML;
+		}
 
 		left_html += this.generate_button_html(doc);
 		left_html += this.generate_dropdown_html(doc);
@@ -795,7 +842,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`;
 	}
 
-	get_column_html(col, doc) {
+	get_column_html(col, doc, show_in_mobile) {
 		if (col.type === "Status" || col.df?.options == "Workflow State") {
 			let show_workflow_state = col.df?.options == "Workflow State";
 			return `
@@ -881,18 +928,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else if (df.fieldtype === "Link") {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">
-					${_value}
-				</a>`;
+					data-filter="${fieldname},=,${value}">${_value}</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
 				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
-					${format()}
-				</a>`;
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">${format()}</a>`;
 			}
 
 			return `<span class="ellipsis"
@@ -903,12 +946,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const class_map = {
 			Subject: "list-subject level",
-			Field: "hidden-xs",
+			Field: !show_in_mobile ? "hidden-xs" : "",
 		};
-		const css_class = [
+		let css_class = [
 			"list-row-col ellipsis",
 			class_map[col.type],
 			frappe.model.is_numeric_field(df) ? "text-right" : "",
+			fieldname,
 		].join(" ");
 
 		let column_html;
@@ -925,11 +969,48 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}[col.type];
 		}
 
+		if (frappe.is_mobile() && col.type == "Subject") {
+			css_class += " bold";
+		}
+
+		/**
+		 * Calculates the width of a text element based on its length.
+		 * If the length of the text is not available, it defaults to a length of 22.5.
+		 */
+		let textLength = $(column_html).text()?.trim()?.length || 22.5;
+		let calculatedWidth = (textLength * 10) / 1.3;
+
+		/**
+		 * Updates the `column_max_widths` object by setting the maximum width for a specific column (fieldname).
+		 * If no width is set for the column, or the newly calculated width exceeds the current width, the width is updated.
+		 */
+		if (
+			(!this.column_max_widths[fieldname] ||
+				calculatedWidth > this.column_max_widths[fieldname]) &&
+			!frappe.is_mobile()
+		) {
+			this.column_max_widths[fieldname] = calculatedWidth;
+		}
+
 		return `
 			<div class="${css_class}">
 				${column_html}
 			</div>
 		`;
+	}
+
+	/**
+	 * Applies dynamically calculated widths to elements based on their respective class names.
+	 * Iterates through `column_max_widths` and sets the `width` and `flex` styles for each column.
+	 * The width for each column is applied as both a fixed `width` and a flexible `flex` property.
+	 */
+	apply_column_widths() {
+		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
+			$(`.${fieldname}`).css({
+				width: width,
+				flex: `1 0 ${width}px`,
+			});
+		});
 	}
 
 	get_tags_html(user_tags, limit, colored = false) {

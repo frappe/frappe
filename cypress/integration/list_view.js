@@ -65,10 +65,9 @@ context("List View", () => {
 			cy.go_to_list("ToDo");
 
 			// Check if the 'Open' button is present in the ToDo list view
-			cy.get(".btn-default[data-name='" + todo_name + "']")
-				.should((el) => {
-					expect(el).to.exist;
-				})
+			cy.get(`.btn-default[data-name="${todo_name}"]`)
+				.scrollIntoView({ inline: "center", block: "nearest" })
+				.should("be.visible")
 				.click();
 
 			cy.window()

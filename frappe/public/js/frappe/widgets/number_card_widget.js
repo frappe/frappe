@@ -82,14 +82,17 @@ export default class NumberCardWidget extends Widget {
 			type: is_document_type ? "doctype" : "report",
 			is_query_report: !is_document_type,
 		});
-
+		const filters = this.get_filters();
 		if (is_document_type) {
-			const filters = JSON.parse(this.card_doc.filters_json);
 			frappe.route_options = filters.reduce((acc, filter) => {
 				return Object.assign(acc, {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
 				});
 			}, {});
+		} else {
+			if (filters && Object.keys(filters).length) {
+				frappe.route_options = filters;
+			}
 		}
 
 		frappe.set_route(route);
