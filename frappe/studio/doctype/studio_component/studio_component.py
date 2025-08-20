@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.model.naming import append_number_if_name_exists
 
 
 class StudioComponent(Document):
@@ -21,4 +22,4 @@ class StudioComponent(Document):
 
 	def before_insert(self):
 		if not self.component_id:
-			self.component_id = frappe.generate_hash(length=16)
+			self.component_id = append_number_if_name_exists("Studio Component", frappe.scrub(self.component_name))
