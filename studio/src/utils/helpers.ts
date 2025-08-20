@@ -49,8 +49,8 @@ function getBlockInstance(options: BlockOptions | string, retainId = true): Bloc
 	return reactive(new Block(options))
 }
 
-function getComponentBlock(componentName: string) {
-	return getBlockInstance({ componentName: componentName })
+function getComponentBlock(componentName: string, isStudioComponent: boolean = false) {
+	return getBlockInstance({ componentName: componentName, isStudioComponent: isStudioComponent })
 }
 
 function getRootBlock(): Block {

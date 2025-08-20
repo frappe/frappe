@@ -20,7 +20,7 @@ export function useStudioComponents() {
 		return componentDoc.doc as StudioComponent
 	}
 
-	async function getComponent(componentName: string) {
+	async function getComponent(componentName: string): Promise<Block | undefined> {
 		await loadComponent(componentName)
 		return componentMap.get(componentName)
 	}

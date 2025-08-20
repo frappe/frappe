@@ -57,8 +57,7 @@
 					<div
 						class="user-component flex items-center gap-2 text-ink-gray-7"
 						draggable="true"
-						:data-component-id="component.component_id"
-						:data-component-name="component.component_name"
+						:data-component-name="component.component_id"
 					>
 						<FeatherIcon name="box" class="h-4 w-4"></FeatherIcon>
 						<p class="text-base">
@@ -153,11 +152,11 @@ useEventListener(componentContainer, "click", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
 		const componentStore = useComponentStore()
-		const componentId = component.dataset.componentId as string
-		componentStore.selectedComponent = componentId
+		const componentName = component.dataset.componentName as string
+		componentStore.selectedComponent = componentName
 		// if in edit mode, open the component in editor
 		if (canvasStore.fragmentData.fragmentId) {
-			componentStore.editComponent(componentId)
+			componentStore.editComponent(componentName)
 		}
 	}
 })
@@ -165,8 +164,9 @@ useEventListener(componentContainer, "click", (e) => {
 useEventListener(componentContainer, "dragstart", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
-		setComponentData(e, component.dataset.componentName as string)
-		canvasStore.handleDragStart(e, component.dataset.componentId as string)
+		const componentName = component.dataset.componentName as string
+		setComponentData(e)
+		canvasStore.handleDragStart(e, componentName)
 	}
 })
 
@@ -178,11 +178,11 @@ useEventListener(componentContainer, "dblclick", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
 		const componentStore = useComponentStore()
-		componentStore.editComponent(component.dataset.componentId as string)
+		componentStore.editComponent(component.dataset.componentName as string)
 	}
 })
 
-const setComponentData = (ev: DragEvent, componentName: string) => {
-	ev?.dataTransfer?.setData("studioComponentName", componentName)
+const setComponentData = (ev: DragEvent) => {
+	ev?.dataTransfer?.setData("isStudioComponent", "true")
 }
 </script>

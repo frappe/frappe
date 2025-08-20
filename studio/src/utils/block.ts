@@ -29,6 +29,7 @@ class Block implements BlockOptions {
 	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
+	isStudioComponent?: boolean
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
 
@@ -51,6 +52,10 @@ class Block implements BlockOptions {
 			this.componentId = this.generateComponentId()
 		} else {
 			this.componentId = options.componentId
+		}
+
+		if (options.isStudioComponent) {
+			this.isStudioComponent = options.isStudioComponent
 		}
 
 		// get component props

@@ -13,29 +13,31 @@ export function useCanvasDropZone(
 	findBlock: (id: string) => Block | null,
 ) {
 	const { isOverDropZone } = useDropZone(canvasContainer, {
-		onDrop: (_files, ev) => {
-			const droppedComponentName = ev.dataTransfer?.getData("componentName")
+		onDrop: async (_files, ev) => {
 			const { parentComponent, index, slotName } = canvasStore.dropTarget
+			if (!parentComponent) return
+			const componentName = ev.dataTransfer?.getData("componentName")
+			const isStudioComponent = Boolean(ev.dataTransfer?.getData("isStudioComponent"))
 
-			if (droppedComponentName && parentComponent) {
-				function saveBlock(block: Block) {
-					if (slotName) {
-						parentComponent?.updateSlot(slotName, block)
-					} else {
-						parentComponent?.addChild(block, index)
-					}
-				}
+			if (!componentName) return
+			let newBlock = getComponentBlock(componentName, isStudioComponent)
 
-				let newBlock = getComponentBlock(droppedComponentName)
-				if (newBlock.editInFragmentMode()) {
-					canvasStore.editOnCanvas(
-						newBlock,
-						(editedBlock: Block) => saveBlock(editedBlock),
-						`Save ${droppedComponentName}`
-					)
+			function saveBlock(block: Block) {
+				if (slotName) {
+					parentComponent?.updateSlot(slotName, block)
 				} else {
-					saveBlock(newBlock)
+					parentComponent?.addChild(block, index)
 				}
+			}
+
+			if (newBlock.editInFragmentMode()) {
+				canvasStore.editOnCanvas(
+					newBlock,
+					(editedBlock: Block) => saveBlock(editedBlock),
+					`Save ${componentName}`
+				)
+			} else {
+				saveBlock(newBlock)
 			}
 		},
 		onOver: (_files, ev) => {

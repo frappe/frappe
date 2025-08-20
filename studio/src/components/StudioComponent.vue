@@ -1,6 +1,14 @@
 <template>
+	<!-- For components built & saved in Studio -->
+	<StudioComponentWrapper
+		v-if="block.isStudioComponent"
+		:studioComponentId="block.componentName"
+		:data-component-id="block.componentId"
+		:data-breakpoint="breakpoint"
+	/>
+
 	<component
-		v-if="block.canHaveChildren()"
+		v-else-if="block.canHaveChildren()"
 		:is="componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
@@ -89,6 +97,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, useAttrs, inject } from "vue"
 import type { ComponentPublicInstance } from "vue"
+import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
