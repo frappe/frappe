@@ -84,11 +84,20 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 	}
 
+	function getComponentName(componentId: string) {
+		const componentDoc = getComponentDoc(componentId)
+		if (!componentDoc) {
+			return componentId
+		}
+		return componentDoc.component_name
+	}
+
 	return {
 		selectedComponent,
 		createComponent,
 		editComponent,
 		deleteComponent,
+		getComponentName,
 	}
 })
 

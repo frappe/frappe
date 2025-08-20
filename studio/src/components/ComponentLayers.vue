@@ -32,9 +32,20 @@
 								class="h-3 w-3"
 								@click.stop="toggleExpanded(element)"
 							/>
-							<component :is="element.getIcon()" class="h-3 w-3" />
+							<component
+								:is="element.getIcon()"
+								class="h-3 w-3"
+								:class="{
+									'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+										element.isStudioComponent,
+								}"
+							/>
 							<span
 								class="min-h-[1em] min-w-[2em] truncate"
+								:class="{
+									'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+										element.isStudioComponent,
+								}"
 								:contenteditable="element.editable"
 								:title="element.blockId"
 								@dblclick="element.editable = true"

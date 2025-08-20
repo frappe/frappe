@@ -3,8 +3,10 @@ import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentStore from "@/stores/componentStore"
 import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
+import LucideBox from "~icons/lucide/box"
 
 import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
@@ -237,12 +239,23 @@ class Block implements BlockOptions {
 	}
 
 	getIcon() {
-		if (this.isRoot()) return LucideHash
-		if (this.componentName === "container") return LucideAppWindow
-		return Block.components?.[this.componentName]?.icon
+		switch(true) {
+			case this.isRoot():
+				return LucideHash
+			case this.componentName === "container":
+				return LucideAppWindow
+			case this.isStudioComponent:
+				return LucideBox
+			default:
+				return Block.components?.[this.componentName]?.icon || LucideHash
+		}
 	}
 
 	getBlockDescription() {
+		if (this.isStudioComponent) {
+			const componentStore = useComponentStore()
+			return componentStore.getComponentName(this.componentName)
+		}
 		return this.blockName || this.originalElement
 	}
 
