@@ -594,8 +594,23 @@ def add_preload_for_bundled_assets(response):
 		for svg in frappe.local.preload_assets["icons"]
 	)
 
+	SAFE_LIMIT = 3800
 	if links:
-		response.headers["Link"] = ",".join(links)
+		final_links = []
+		current_size = 0
+
+		for link in links:
+			link_size = len(link.encode("utf-8"))
+			needed_size = link_size + (1 if final_links else 0)
+
+			if current_size + needed_size > SAFE_LIMIT:
+				break
+
+			final_links.append(link)
+			current_size += needed_size
+
+		if final_links:
+			response.headers["Link"] = ",".join(final_links)
 
 
 @lru_cache
