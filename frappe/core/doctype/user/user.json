@@ -598,6 +598,7 @@
    "unique": 1
   },
   {
+   "description": "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n  Click here to learn about token-based authentication\n</a>",
    "fieldname": "generate_keys",
    "fieldtype": "Button",
    "label": "Generate Keys",
@@ -874,7 +875,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-03-17 11:29:39.254304",
+ "modified": "2025-05-21 14:57:24.333141",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

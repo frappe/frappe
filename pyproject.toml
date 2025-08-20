@@ -20,7 +20,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.1",
-    "pypdf~=3.17.0",
+    "pypdf~=6.0.0",
     "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.2",

@@ -82,6 +82,9 @@
 		background-color: var(--btn-default-hover-bg);
 		color: var(--text-color);
 	}
+	&:focus {
+		box-shadow: var(--focus-default) !important;
+	}
 }
 
 .btn.btn-default {

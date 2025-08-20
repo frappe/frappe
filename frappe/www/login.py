@@ -72,7 +72,9 @@ def get_context(context):
 	)
 
 	for provider in providers:
-		client_secret = get_decrypted_password("Social Login Key", provider.name, "client_secret")
+		client_secret = get_decrypted_password(
+			"Social Login Key", provider.name, "client_secret", raise_exception=False
+		)
 		if not client_secret:
 			continue
 

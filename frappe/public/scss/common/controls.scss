@@ -105,6 +105,10 @@ select.form-control {
 		width: 100%;
 	}
 
+	ul {
+		min-width: 300px;
+	}
+
 	li {
 		padding: var(--padding-sm);
 	}

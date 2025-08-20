@@ -87,8 +87,8 @@ class AutoRepeat(Document):
 
 	def before_insert(self):
 		if not frappe.flags.in_test:
-			start_date = getdate(self.start_date)
-			today_date = getdate(today())
+			start_date = self.start_date
+			today_date = today()
 			if start_date <= today_date:
 				self.start_date = today_date
 
@@ -135,6 +135,8 @@ class AutoRepeat(Document):
 
 		if self.end_date:
 			self.validate_from_to_dates("start_date", "end_date")
+		if self.end_date == today():
+			frappe.throw(_("End Date cannot be today."))
 
 		if self.end_date == self.start_date:
 			frappe.throw(
