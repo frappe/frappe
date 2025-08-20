@@ -78,6 +78,7 @@ const pasteObj = (e: ClipboardEvent) => {
 	const text = e.clipboardData?.getData("text/plain")
 	if (text) {
 		if (!text.includes(":")) return
+		e.preventDefault()
 		const map = new Map(Object.entries(props.obj))
 		try {
 			const objString = text.match(/{[^{}]+}/)?.[0]
