@@ -25,13 +25,14 @@
    "fieldname": "component_id",
    "fieldtype": "Data",
    "label": "Component ID",
+   "no_copy": 1,
    "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-18 15:29:54.886203",
+ "modified": "2025-08-20 11:23:33.608639",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
