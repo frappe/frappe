@@ -45,7 +45,7 @@
 
 		<template v-else>
 			<EmptyState v-if="!componentList?.length" message="No components found" />
-			<div v-else class="flex flex-col">
+			<div v-else class="flex flex-col" ref="componentContainer">
 				<div
 					v-for="component in componentList"
 					:key="component.component_id"
@@ -53,10 +53,13 @@
 					:class="{
 						'border border-outline-gray-4': componentStore.selectedComponent === component.component_id,
 					}"
-					@click="componentStore.selectedComponent = component.component_id"
-					@dblclick="openComponentEditor(component)"
 				>
-					<div class="flex items-center gap-2 text-ink-gray-7">
+					<div
+						class="user-component flex items-center gap-2 text-ink-gray-7"
+						draggable="true"
+						:data-component-id="component.component_id"
+						:data-component-name="component.component_name"
+					>
 						<FeatherIcon name="box" class="h-4 w-4"></FeatherIcon>
 						<p class="text-base">
 							{{ component.component_name }}
@@ -77,13 +80,17 @@
 				</div>
 			</div>
 			<Button icon-left="plus" class="mt-3" @click="showNewComponentDialog = true">Create Component</Button>
-			<NewComponentDialog v-model:showDialog="showNewComponentDialog" @created="openComponentEditor" />
+			<NewComponentDialog
+				v-model:showDialog="showNewComponentDialog"
+				@created="(component) => componentStore.editComponent(component.component_id)"
+			/>
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { useEventListener } from "@vueuse/core"
 import { DropDown, FeatherIcon } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
@@ -123,16 +130,13 @@ const componentList = computed(() => {
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
 const showNewComponentDialog = ref(false)
-function openComponentEditor(component: StudioComponent) {
-	componentStore.editComponent(component)
-}
 
 function getComponentMenu(component: StudioComponent) {
 	return [
 		{
 			label: "Edit",
 			icon: "edit",
-			onClick: () => componentStore.editComponent(component),
+			onClick: () => componentStore.editComponent(component.component_id),
 		},
 		{
 			label: "Delete",
@@ -140,5 +144,45 @@ function getComponentMenu(component: StudioComponent) {
 			onClick: () => componentStore.deleteComponent(component),
 		},
 	]
+}
+
+// Drag and drop handling for Studio Components
+const componentContainer = ref(null)
+
+useEventListener(componentContainer, "click", (e) => {
+	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
+	if (component) {
+		const componentStore = useComponentStore()
+		const componentId = component.dataset.componentId as string
+		componentStore.selectedComponent = componentId
+		// if in edit mode, open the component in editor
+		if (canvasStore.fragmentData.fragmentId) {
+			componentStore.editComponent(componentId)
+		}
+	}
+})
+
+useEventListener(componentContainer, "dragstart", (e) => {
+	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
+	if (component) {
+		setComponentData(e, component.dataset.componentName as string)
+		canvasStore.handleDragStart(e, component.dataset.componentId as string)
+	}
+})
+
+useEventListener(componentContainer, "dragend", () => {
+	canvasStore.handleDragEnd()
+})
+
+useEventListener(componentContainer, "dblclick", (e) => {
+	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
+	if (component) {
+		const componentStore = useComponentStore()
+		componentStore.editComponent(component.dataset.componentId as string)
+	}
+})
+
+const setComponentData = (ev: DragEvent, componentName: string) => {
+	ev?.dataTransfer?.setData("studioComponentName", componentName)
 }
 </script>

@@ -10,8 +10,8 @@ import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { useStudioComponents } from "@/utils/useStudioComponents"
 
 const useComponentStore = defineStore("componentStore", () => {
-	const selectedComponent = ref<StudioComponent | null>(null)
-	const { getComponent, cacheComponent, removeCachedComponent } = useStudioComponents()
+	const selectedComponent = ref<string | null>(null)
+	const { getComponent, getComponentDoc, cacheComponent, removeCachedComponent } = useStudioComponents()
 
 	async function createComponent(componentName: string) {
 		return studioComponents.insert.submit(
@@ -53,16 +53,17 @@ const useComponentStore = defineStore("componentStore", () => {
 		)
 	}
 
-	async function editComponent(component: StudioComponent) {
-		const componentBlocks = await getComponent(component.component_id)
+	async function editComponent(componentId: string) {
+		const componentBlocks = await getComponent(componentId)
+		const componentDoc = getComponentDoc(componentId)
 		const blocks = componentBlocks || getBlockInstance(getBlockTemplate("empty-component"))
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			blocks,
-			(editedBlock) => saveComponent(editedBlock, component.component_id),
+			(editedBlock) => saveComponent(editedBlock, componentDoc.component_id),
 			"Save Component",
-			component.component_name,
-			component.component_id,
+			componentDoc.component_name,
+			componentDoc.component_id,
 		)
 	}
 

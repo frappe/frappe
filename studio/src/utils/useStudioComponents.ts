@@ -67,6 +67,7 @@ export function useStudioComponents() {
 	return {
 		componentMap,
 		getComponent,
+		getComponentDoc,
 		cacheComponent,
 		removeCachedComponent,
 	}
