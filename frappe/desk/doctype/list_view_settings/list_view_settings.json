@@ -12,6 +12,7 @@
   "disable_auto_refresh",
   "allow_edit",
   "disable_automatic_recency_filters",
+  "disable_scrolling",
   "total_fields",
   "fields_html",
   "fields"
@@ -71,11 +72,17 @@
    "fieldname": "disable_automatic_recency_filters",
    "fieldtype": "Check",
    "label": "Disable Automatic Recency Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_scrolling",
+   "fieldtype": "Check",
+   "label": "Disable Scrolling"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-03-24 14:17:39.888956",
+ "modified": "2025-08-21 12:51:32.954333",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

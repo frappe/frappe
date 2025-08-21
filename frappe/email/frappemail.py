@@ -102,19 +102,21 @@ class FrappeMail:
 		data = {"from_": sender, "to": recipients, "is_newsletter": is_newsletter}
 		self.request("POST", endpoint=endpoint, data=data, files={"raw_message": message})
 
-	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, str | list[str]]:
-		"""Pulls emails for the email using the Frappe Mail API."""
+	def pull_raw(
+		self, mailbox: str = "inbox", limit: int = 50, last_received_at: str | None = None
+	) -> dict[str, str | list[str]]:
+		"""Pull emails for the account using the Frappe Mail API."""
 
 		endpoint = "/api/method/mail.api.inbound.pull_raw"
-		if last_synced_at:
-			last_synced_at = add_or_update_tzinfo(last_synced_at)
+		if last_received_at:
+			last_received_at = add_or_update_tzinfo(last_received_at)
 
-		data = {"email": self.email, "limit": limit, "last_synced_at": last_synced_at}
+		data = {"mailbox": mailbox, "limit": limit, "last_received_at": last_received_at}
 		headers = {"X-Site": frappe.utils.get_url()}
 		response = self.request("GET", endpoint=endpoint, data=data, headers=headers)
-		last_synced_at = convert_utc_to_system_timezone(get_datetime(response["last_synced_at"]))
+		last_received_at = convert_utc_to_system_timezone(get_datetime(response["last_received_at"]))
 
-		return {"latest_messages": response["mails"], "last_synced_at": last_synced_at}
+		return {"latest_messages": response["mails"], "last_received_at": last_received_at}
 
 
 def add_or_update_tzinfo(date_time: datetime | str, timezone: str | None = None) -> str:

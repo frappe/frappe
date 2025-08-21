@@ -180,43 +180,12 @@
 .layout-main-section {
 	scroll-margin-top: var(--navbar-height);
 
-	.frappe-list {
-		.result-container {
-			overflow-x: auto;
-			.result {
-				min-width: 100%;
-				width: auto;
-				.list-row-container {
-					width: fit-content;
-					min-width: 100%;
-				}
-				.list-row-container:first-child {
-					position: sticky;
-					top: 0;
-					z-index: 2;
-				}
-				.list-row-container {
-					.level-left {
-						.list-row-col {
-							min-width: 150px;
-							max-width: 400px;
-						}
-					}
-				}
-			}
-		}
-	}
-
 	.frappe-list,
 	.report-wrapper {
 		.result,
 		.no-result,
 		.freeze {
 			min-height: 200px;
-		}
-
-		.result {
-			overflow: auto;
 		}
 	}
 

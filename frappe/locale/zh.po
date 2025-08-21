@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-08-10 09:35+0000\n"
-"PO-Revision-Date: 2025-08-11 10:12\n"
+"POT-Creation-Date: 2025-08-17 09:34+0000\n"
+"PO-Revision-Date: 2025-08-19 12:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -122,7 +122,7 @@ msgstr "0 - 草稿; 1 - 已提交; 2 - 已取消"
 msgid "0 is highest"
 msgstr "0是最高的"
 
-#: frappe/public/js/frappe/form/grid_row.js:876
+#: frappe/public/js/frappe/form/grid_row.js:892
 msgid "1 = True & 0 = False"
 msgstr "1=真 & 0=假"
 
@@ -859,6 +859,10 @@ msgstr "API端点"
 msgid "API Endpoint Args"
 msgstr "API端点参数"
 
+#: frappe/integrations/doctype/social_login_key/social_login_key.py:102
+msgid "API Endpoint Args should be valid JSON"
+msgstr ""
+
 #. Label of the api_key (Data) field in DocType 'User'
 #. Label of the api_key (Data) field in DocType 'Email Account'
 #. Label of the api_key (Password) field in DocType 'Geolocation Settings'
@@ -1167,7 +1171,7 @@ msgstr "用户操作日志"
 
 #: frappe/core/page/permission_manager/permission_manager.js:482
 #: frappe/email/doctype/email_group/email_group.js:60
-#: frappe/public/js/frappe/form/grid_row.js:485
+#: frappe/public/js/frappe/form/grid_row.js:501
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:101
 #: frappe/public/js/frappe/form/templates/set_sharing.html:68
 #: frappe/public/js/frappe/list/bulk_operations.js:437
@@ -1178,7 +1182,7 @@ msgstr "用户操作日志"
 msgid "Add"
 msgstr "添加"
 
-#: frappe/public/js/frappe/form/grid_row.js:438
+#: frappe/public/js/frappe/form/grid_row.js:454
 msgid "Add / Remove Columns"
 msgstr "添加/移除列"
 
@@ -1285,7 +1289,7 @@ msgstr "添加参与者"
 msgid "Add Query Parameters"
 msgstr "添加查询参数"
 
-#: frappe/core/doctype/user/user.py:812
+#: frappe/core/doctype/user/user.py:819
 msgid "Add Roles"
 msgstr "添加角色"
 
@@ -1585,11 +1589,11 @@ msgstr "系统管理"
 msgid "Administrator"
 msgstr "管理员"
 
-#: frappe/core/doctype/user/user.py:1217
+#: frappe/core/doctype/user/user.py:1224
 msgid "Administrator Logged In"
 msgstr "管理员登录"
 
-#: frappe/core/doctype/user/user.py:1211
+#: frappe/core/doctype/user/user.py:1218
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "管理员访问{0}在{1}通过IP地址{2}。"
 
@@ -1766,7 +1770,7 @@ msgstr "所有连接到网站幻灯片的图片应该是公开的"
 msgid "All Records"
 msgstr "所有记录"
 
-#: frappe/public/js/frappe/form/form.js:2222
+#: frappe/public/js/frappe/form/form.js:2224
 msgid "All Submissions"
 msgstr "所有提交"
 
@@ -2128,7 +2132,7 @@ msgstr ""
 msgid "Allows skipping authorization if a user has active tokens."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1027
+#: frappe/core/doctype/user/user.py:1034
 msgid "Already Registered"
 msgstr "已注册"
 
@@ -2737,7 +2741,7 @@ msgstr "任务分派"
 msgid "Asynchronous"
 msgstr ""
 
-#: frappe/public/js/frappe/form/grid_row.js:680
+#: frappe/public/js/frappe/form/grid_row.js:696
 msgid "At least one column is required to show in the grid."
 msgstr "网格中需要至少显示一列。"
 
@@ -2881,6 +2885,10 @@ msgstr "审计轨迹"
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Auth URL Data"
 msgstr "身份验证URL数据"
+
+#: frappe/integrations/doctype/social_login_key/social_login_key.py:96
+msgid "Auth URL data should be valid JSON"
+msgstr ""
 
 #. Label of the backend_app_flow (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -3714,7 +3722,7 @@ msgstr "批量删除"
 msgid "Bulk Edit"
 msgstr "批量修改"
 
-#: frappe/public/js/frappe/form/grid.js:1188
+#: frappe/public/js/frappe/form/grid.js:1189
 msgid "Bulk Edit {0}"
 msgstr "批量编辑{0}"
 
@@ -4168,7 +4176,7 @@ msgstr "无法删除系统生成字段<strong>{0}</strong>。您可以隐藏它�
 msgid "Cannot delete {0}"
 msgstr "无法删除{0}"
 
-#: frappe/utils/nestedset.py:299
+#: frappe/utils/nestedset.py:312
 msgid "Cannot delete {0} as it has child nodes"
 msgstr "无法删除{0} ，因为它有子节点"
 
@@ -4221,7 +4229,7 @@ msgstr "无法获取文件夹内容"
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "不能将多个打印机映射到单个打印格式。"
 
-#: frappe/public/js/frappe/form/grid.js:1132
+#: frappe/public/js/frappe/form/grid.js:1133
 msgid "Cannot import table with more than 5000 rows."
 msgstr "无法导入超过5000行的表格。"
 
@@ -4999,11 +5007,11 @@ msgstr "列名"
 msgid "Column Name cannot be empty"
 msgstr "列名不能为空"
 
-#: frappe/public/js/frappe/form/grid_row.js:438
+#: frappe/public/js/frappe/form/grid_row.js:454
 msgid "Column Width"
 msgstr "列宽"
 
-#: frappe/public/js/frappe/form/grid_row.js:645
+#: frappe/public/js/frappe/form/grid_row.js:661
 msgid "Column width cannot be zero."
 msgstr "列宽不能为零。"
 
@@ -5294,7 +5302,7 @@ msgstr "配置"
 msgid "Configure Chart"
 msgstr "配置图表"
 
-#: frappe/public/js/frappe/form/grid_row.js:390
+#: frappe/public/js/frappe/form/grid_row.js:406
 msgid "Configure Columns"
 msgstr "列设置"
 
@@ -5367,7 +5375,7 @@ msgstr "确认"
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
 msgstr "恭喜您完成模块设置。如果您想了解更多信息，可以参考文档 <a target=\"_blank\" href=\"{0}\">这里</a>。"
 
-#: frappe/integrations/doctype/connected_app/connected_app.js:25
+#: frappe/integrations/doctype/connected_app/connected_app.js:20
 msgid "Connect to {}"
 msgstr "连接到{}"
 
@@ -7184,7 +7192,7 @@ msgstr "桌面图标已经存在"
 #: frappe/public/js/form_builder/components/Tabs.vue:92
 #: frappe/public/js/form_builder/store.js:259
 #: frappe/public/js/form_builder/utils.js:38
-#: frappe/public/js/frappe/form/layout.js:153
+#: frappe/public/js/frappe/form/layout.js:152
 #: frappe/public/js/frappe/views/treeview.js:292
 msgid "Details"
 msgstr "详细信息"
@@ -7426,7 +7434,7 @@ msgstr "不创建新用户"
 msgid "Do not create new user if user with email does not exist in the system"
 msgstr "如果系统中不存在该邮箱用户，则不创建新用户"
 
-#: frappe/public/js/frappe/form/grid.js:1193
+#: frappe/public/js/frappe/form/grid.js:1194
 msgid "Do not edit headers which are preset in the template"
 msgstr "不要编辑模板中预设的标题"
 
@@ -8297,7 +8305,7 @@ msgstr "退出"
 #: frappe/public/js/frappe/views/workspace/workspace.js:64
 #: frappe/public/js/frappe/widgets/base_widget.js:64
 #: frappe/public/js/frappe/widgets/chart_widget.js:299
-#: frappe/public/js/frappe/widgets/number_card_widget.js:347
+#: frappe/public/js/frappe/widgets/number_card_widget.js:350
 #: frappe/templates/discussions/reply_card.html:29
 #: frappe/templates/discussions/reply_section.html:29
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
@@ -8315,7 +8323,7 @@ msgctxt "Button in web form"
 msgid "Edit"
 msgstr "编辑"
 
-#: frappe/public/js/frappe/form/grid_row.js:345
+#: frappe/public/js/frappe/form/grid_row.js:349
 msgctxt "Edit grid row"
 msgid "Edit"
 msgstr "编辑"
@@ -8558,7 +8566,7 @@ msgstr "电子邮件账户已禁用"
 msgid "Email Account Name"
 msgstr "电子邮箱帐号名"
 
-#: frappe/core/doctype/user/user.py:742
+#: frappe/core/doctype/user/user.py:749
 msgid "Email Account added multiple times"
 msgstr "电子邮箱帐号已被多次添加"
 
@@ -9197,16 +9205,17 @@ msgstr "等于"
 #. Label of the error (Code) field in DocType 'Email Queue Recipient'
 #. Label of the error (Code) field in DocType 'Integration Request'
 #. Label of the error (Text) field in DocType 'Webhook Request Log'
-#: frappe/core/api/user_invitation.py:60 frappe/core/api/user_invitation.py:65
-#: frappe/core/api/user_invitation.py:71 frappe/core/api/user_invitation.py:102
+#: frappe/core/api/user_invitation.py:73 frappe/core/api/user_invitation.py:78
+#: frappe/core/api/user_invitation.py:84 frappe/core/api/user_invitation.py:115
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/data_import/data_import.json
 #: frappe/core/doctype/error_log/error_log.json
 #: frappe/core/doctype/prepared_report/prepared_report.json
-#: frappe/core/doctype/user_invitation/user_invitation.py:89
-#: frappe/core/doctype/user_invitation/user_invitation.py:93
-#: frappe/core/doctype/user_invitation/user_invitation.py:116
-#: frappe/core/doctype/user_invitation/user_invitation.py:118
+#: frappe/core/doctype/user_invitation/user_invitation.py:95
+#: frappe/core/doctype/user_invitation/user_invitation.py:99
+#: frappe/core/doctype/user_invitation/user_invitation.py:102
+#: frappe/core/doctype/user_invitation/user_invitation.py:125
+#: frappe/core/doctype/user_invitation/user_invitation.py:127
 #: frappe/desk/page/backups/backups.js:37
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json
@@ -9974,7 +9983,7 @@ msgstr "字段{0}在{1}中不存在"
 msgid "Field {0} is referring to non-existing doctype {1}."
 msgstr "字段{0}引用了不存在的文档类型{1}。"
 
-#: frappe/public/js/frappe/form/form.js:1754
+#: frappe/public/js/frappe/form/form.js:1756
 msgid "Field {0} not found."
 msgstr "找不到字段{0}。"
 
@@ -9996,7 +10005,7 @@ msgstr "文档{1}的字段{0}既不是手机号码字段，也不是客户或用
 #: frappe/custom/doctype/doctype_layout_field/doctype_layout_field.json
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 #: frappe/integrations/doctype/webhook_data/webhook_data.json
-#: frappe/public/js/frappe/form/grid_row.js:438
+#: frappe/public/js/frappe/form/grid_row.js:454
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Fieldname"
 msgstr "字段名"
@@ -10689,12 +10698,6 @@ msgstr "例如: {} Open"
 #: frappe/website/doctype/web_form/web_form.json
 msgid "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>"
 msgstr "如需帮助，请参阅 <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">客户端脚本 API 和示例</a>"
-
-#. Description of the 'Enable Automatic Linking in Documents' (Check) field in
-#. DocType 'Email Account'
-#: frappe/email/doctype/email_account/email_account.json
-msgid "For more information, <a class=\"text-muted\" href=\"https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document\">click here</a>."
-msgstr "有关更多信息， <a class=\"text-muted\" href=\"https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document\">请单击此处</a> 。"
 
 #: frappe/integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -11964,7 +11967,7 @@ msgstr "隐藏周末"
 msgid "Hide descendant records of <b>For Value</b>."
 msgstr "隐藏下层节点<b>值</b>"
 
-#: frappe/public/js/frappe/form/layout.js:286
+#: frappe/public/js/frappe/form/layout.js:285
 msgid "Hide details"
 msgstr "隐藏细节"
 
@@ -13142,8 +13145,8 @@ msgid "Invalid"
 msgstr "无效"
 
 #: frappe/public/js/form_builder/utils.js:221
-#: frappe/public/js/frappe/form/grid_row.js:833
-#: frappe/public/js/frappe/form/layout.js:811
+#: frappe/public/js/frappe/form/grid_row.js:849
+#: frappe/public/js/frappe/form/layout.js:810
 #: frappe/public/js/frappe/views/reports/report_view.js:721
 msgid "Invalid \"depends_on\" expression"
 msgstr "“depends_on”表达式无效"
@@ -13259,11 +13262,11 @@ msgstr "无效的输出格式"
 msgid "Invalid Override"
 msgstr "无效覆盖"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:195
+#: frappe/integrations/doctype/connected_app/connected_app.py:202
 msgid "Invalid Parameters."
 msgstr "参数无效"
 
-#: frappe/core/doctype/user/user.py:1232 frappe/www/update-password.html:148
+#: frappe/core/doctype/user/user.py:1239 frappe/www/update-password.html:148
 #: frappe/www/update-password.html:169 frappe/www/update-password.html:171
 #: frappe/www/update-password.html:272
 msgid "Invalid Password"
@@ -13317,7 +13320,7 @@ msgstr "无效聚合函数"
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr ""
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:178
+#: frappe/core/doctype/user_invitation/user_invitation.py:187
 msgid "Invalid app"
 msgstr ""
 
@@ -13418,7 +13421,7 @@ msgstr ""
 msgid "Invalid json added in the custom options: {0}"
 msgstr "自定义选项中包含无效JSON：{0}"
 
-#: frappe/core/api/user_invitation.py:102
+#: frappe/core/api/user_invitation.py:115
 msgid "Invalid key"
 msgstr ""
 
@@ -13442,7 +13445,7 @@ msgstr "第{}行重定向正则表达式无效：{}"
 msgid "Invalid request arguments"
 msgstr "请求参数无效"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:164
+#: frappe/core/doctype/user_invitation/user_invitation.py:173
 msgid "Invalid role"
 msgstr ""
 
@@ -13462,7 +13465,7 @@ msgstr ""
 msgid "Invalid template file for import"
 msgstr "导入模板文件无效"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:201
+#: frappe/integrations/doctype/connected_app/connected_app.py:208
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "令牌状态无效！请检查是否由OAuth用户创建"
 
@@ -13493,19 +13496,19 @@ msgstr "{0}条件无效"
 msgid "Inverse"
 msgstr "反转"
 
-#: frappe/core/api/user_invitation.py:71
+#: frappe/core/api/user_invitation.py:84
 msgid "Invitation cannot be cancelled"
 msgstr ""
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:118
+#: frappe/core/doctype/user_invitation/user_invitation.py:127
 msgid "Invitation is cancelled"
 msgstr ""
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:116
+#: frappe/core/doctype/user_invitation/user_invitation.py:125
 msgid "Invitation is expired"
 msgstr ""
 
-#: frappe/core/api/user_invitation.py:60 frappe/core/api/user_invitation.py:65
+#: frappe/core/api/user_invitation.py:73 frappe/core/api/user_invitation.py:78
 msgid "Invitation not found"
 msgstr ""
 
@@ -14947,7 +14950,7 @@ msgstr "正在加载版本..."
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:125
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:11
 #: frappe/public/js/frappe/widgets/chart_widget.js:50
-#: frappe/public/js/frappe/widgets/number_card_widget.js:176
+#: frappe/public/js/frappe/widgets/number_card_widget.js:179
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:129
 msgid "Loading..."
 msgstr "载入中..."
@@ -15603,7 +15606,7 @@ msgstr "菜单"
 msgid "Merge with existing"
 msgstr "与现有合并"
 
-#: frappe/utils/nestedset.py:307
+#: frappe/utils/nestedset.py:320
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr "只有组和组，叶节点和叶节点之间能合并"
 
@@ -16191,7 +16194,7 @@ msgstr "太太"
 msgid "Ms"
 msgstr "女士"
 
-#: frappe/utils/nestedset.py:331
+#: frappe/utils/nestedset.py:344
 msgid "Multiple root nodes not allowed."
 msgstr "不允许多个根节点。"
 
@@ -16270,7 +16273,7 @@ msgstr "注意：该功能即将停用，请使用新版设置重新配置LDAP"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.json
-#: frappe/public/js/frappe/form/layout.js:77
+#: frappe/public/js/frappe/form/layout.js:76
 #: frappe/public/js/frappe/form/multi_select_dialog.js:240
 #: frappe/public/js/frappe/form/save.js:107
 #: frappe/public/js/frappe/views/file/file_view.js:97
@@ -16641,7 +16644,7 @@ msgstr "新{0}：{1}"
 msgid "New {} releases for the following apps are available"
 msgstr "以下应用程序有新版本{}了"
 
-#: frappe/core/doctype/user/user.py:808
+#: frappe/core/doctype/user/user.py:815
 msgid "Newly created user {0} has no roles enabled."
 msgstr "新创建的用户 {0} 未启用任何角色"
 
@@ -16914,7 +16917,7 @@ msgstr "没有结果"
 msgid "No Results found"
 msgstr "无数据"
 
-#: frappe/core/doctype/user/user.py:809
+#: frappe/core/doctype/user/user.py:816
 msgid "No Roles Specified"
 msgstr "未分派角色"
 
@@ -17174,7 +17177,7 @@ msgstr "基础查询(剔除查询参数)次数"
 msgid "Normalized Query"
 msgstr "规范化查询"
 
-#: frappe/core/doctype/user/user.py:1022
+#: frappe/core/doctype/user/user.py:1029
 #: frappe/templates/includes/login/login.js:257 frappe/utils/oauth.py:269
 msgid "Not Allowed"
 msgstr "不允许"
@@ -18023,7 +18026,7 @@ msgstr "打开含必填字段的对话框快速创建记录。对话框中需至
 msgid "Open a module or tool"
 msgstr "打开一个模块或工具"
 
-#: frappe/public/js/frappe/ui/keyboard.js:366
+#: frappe/public/js/frappe/ui/keyboard.js:367
 msgid "Open console"
 msgstr ""
 
@@ -18060,6 +18063,10 @@ msgstr "打开{0}"
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "OpenID Configuration"
 msgstr "OpenID配置"
+
+#: frappe/integrations/doctype/connected_app/connected_app.js:15
+msgid "OpenID Configuration fetched successfully!"
+msgstr ""
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -18636,7 +18643,7 @@ msgstr "已创建"
 msgid "Password"
 msgstr "密码"
 
-#: frappe/core/doctype/user/user.py:1085
+#: frappe/core/doctype/user/user.py:1092
 msgid "Password Email Sent"
 msgstr "密码邮件已发送"
 
@@ -18649,7 +18656,7 @@ msgstr "密码重置"
 msgid "Password Reset Link Generation Limit"
 msgstr "密码重置链接生成限制"
 
-#: frappe/public/js/frappe/form/grid_row.js:880
+#: frappe/public/js/frappe/form/grid_row.js:896
 msgid "Password cannot be filtered"
 msgstr "密码不可被过滤"
 
@@ -18674,7 +18681,7 @@ msgstr "邮箱账户缺少密码"
 msgid "Password not found for {0} {1} {2}"
 msgstr "未找到{0} {1} {2}的密码"
 
-#: frappe/core/doctype/user/user.py:1084
+#: frappe/core/doctype/user/user.py:1091
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr "密码重置说明已发送至{}的邮箱"
 
@@ -18686,7 +18693,7 @@ msgstr "密码已设置"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "密码长度超过允许最大值"
 
-#: frappe/core/doctype/user/user.py:875
+#: frappe/core/doctype/user/user.py:882
 msgid "Password size exceeded the maximum allowed size."
 msgstr "密码长度超过允许最大值"
 
@@ -19075,7 +19082,7 @@ msgstr "请在您的电子邮件中添加主题"
 msgid "Please add a valid comment."
 msgstr "请添加有效评论"
 
-#: frappe/core/doctype/user/user.py:1067
+#: frappe/core/doctype/user/user.py:1074
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "请联络管理员确认您的注册"
 
@@ -19095,10 +19102,6 @@ msgstr "请附加图像文件以设置信头HTML"
 msgid "Please attach the package"
 msgstr "请附加安装包"
 
-#: frappe/integrations/doctype/connected_app/connected_app.js:19
-msgid "Please check OpenID Configuration URL"
-msgstr "请检查OpenID配置URL"
-
 #: frappe/utils/dashboard.py:58
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "请检查仪表板图表设置的过滤值：{}"
@@ -19107,7 +19110,7 @@ msgstr "请检查仪表板图表设置的过滤值：{}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "请检查为字段{0}设置的“提取自”的值"
 
-#: frappe/core/doctype/user/user.py:1065
+#: frappe/core/doctype/user/user.py:1072
 msgid "Please check your email for verification"
 msgstr "请在您的电子邮件中查看验证码"
 
@@ -19209,7 +19212,7 @@ msgstr "在启用社交登录之前，请输入客户端ID"
 msgid "Please enter Client Secret before social login is enabled"
 msgstr "在启用社交登录之前，请输入客户端密码"
 
-#: frappe/integrations/doctype/connected_app/connected_app.js:8
+#: frappe/integrations/doctype/connected_app/connected_app.py:54
 msgid "Please enter OpenID Configuration URL"
 msgstr "请输入OpenID配置URL"
 
@@ -19679,7 +19682,7 @@ msgstr "上一条"
 msgid "Previous Hash"
 msgstr "先前的哈希"
 
-#: frappe/public/js/frappe/form/form.js:2214
+#: frappe/public/js/frappe/form/form.js:2216
 msgid "Previous Submission"
 msgstr "前次提交"
 
@@ -19992,7 +19995,7 @@ msgstr "继续"
 msgid "Proceed Anyway"
 msgstr "仍然继续"
 
-#: frappe/public/js/frappe/form/controls/table.js:104
+#: frappe/public/js/frappe/form/controls/table.js:119
 msgid "Processing"
 msgstr "处理"
 
@@ -20948,7 +20951,7 @@ msgstr "来源页"
 #: frappe/public/js/frappe/views/reports/query_report.js:1771
 #: frappe/public/js/frappe/views/treeview.js:496
 #: frappe/public/js/frappe/widgets/chart_widget.js:291
-#: frappe/public/js/frappe/widgets/number_card_widget.js:340
+#: frappe/public/js/frappe/widgets/number_card_widget.js:343
 #: frappe/public/js/print_format_builder/Preview.vue:24
 msgid "Refresh"
 msgstr "刷新"
@@ -20984,7 +20987,7 @@ msgstr "正在刷新"
 msgid "Refreshing..."
 msgstr "正在刷新..."
 
-#: frappe/core/doctype/user/user.py:1029
+#: frappe/core/doctype/user/user.py:1036
 msgid "Registered but disabled"
 msgstr "已注册但被禁用"
 
@@ -21645,7 +21648,7 @@ msgstr "重置为默认"
 msgid "Reset sorting"
 msgstr "重置排序"
 
-#: frappe/public/js/frappe/form/grid_row.js:417
+#: frappe/public/js/frappe/form/grid_row.js:433
 msgid "Reset to default"
 msgstr "恢复默认设置"
 
@@ -22001,7 +22004,7 @@ msgstr "角色HTML"
 msgid "Roles can be set for users from their User page."
 msgstr "可以在用户主数据页面为用户分派角色。"
 
-#: frappe/utils/nestedset.py:280
+#: frappe/utils/nestedset.py:293
 msgid "Root {0} cannot be deleted"
 msgstr "根{0}无法删除"
 
@@ -22804,7 +22807,7 @@ msgstr "单选"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:149
 #: frappe/public/js/frappe/form/controls/multicheck.js:166
-#: frappe/public/js/frappe/form/grid_row.js:481
+#: frappe/public/js/frappe/form/grid_row.js:497
 msgid "Select All"
 msgstr "全选"
 
@@ -22884,7 +22887,7 @@ msgstr "选择字段"
 msgid "Select Field..."
 msgstr "选择字段"
 
-#: frappe/public/js/frappe/form/grid_row.js:473
+#: frappe/public/js/frappe/form/grid_row.js:489
 #: frappe/public/js/frappe/list/list_settings.js:236
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:181
 msgid "Select Fields"
@@ -23868,7 +23871,7 @@ msgstr "显示文档"
 msgid "Show Error"
 msgstr "显示错误"
 
-#: frappe/public/js/frappe/form/layout.js:579
+#: frappe/public/js/frappe/form/layout.js:578
 msgid "Show Fieldname (click to copy on clipboard)"
 msgstr "显示字段名（点击复制到剪贴板）"
 
@@ -24101,8 +24104,8 @@ msgstr "显示文档链接"
 msgid "Show list"
 msgstr "显示列表"
 
-#: frappe/public/js/frappe/form/layout.js:273
-#: frappe/public/js/frappe/form/layout.js:291
+#: frappe/public/js/frappe/form/layout.js:272
+#: frappe/public/js/frappe/form/layout.js:290
 msgid "Show more details"
 msgstr "显示更多详情"
 
@@ -24166,7 +24169,7 @@ msgstr "边栏和评论"
 msgid "Sign Up and Confirmation"
 msgstr "注册与确认"
 
-#: frappe/core/doctype/user/user.py:1022
+#: frappe/core/doctype/user/user.py:1029
 msgid "Sign Up is disabled"
 msgstr "禁止注册"
 
@@ -24869,7 +24872,7 @@ msgstr "验证您的登录的步骤"
 
 #. Label of the sticky (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
-#: frappe/public/js/frappe/form/grid_row.js:438
+#: frappe/public/js/frappe/form/grid_row.js:454
 msgid "Sticky"
 msgstr "置顶"
 
@@ -25130,7 +25133,7 @@ msgstr "子标题"
 #: frappe/core/doctype/data_import_log/data_import_log.json
 #: frappe/desk/doctype/bulk_update/bulk_update.js:31
 #: frappe/desk/doctype/desktop_icon/desktop_icon.py:446
-#: frappe/public/js/frappe/form/grid.js:1170
+#: frappe/public/js/frappe/form/grid.js:1171
 #: frappe/public/js/frappe/views/translation_manager.js:21
 #: frappe/templates/includes/login/login.js:230
 #: frappe/templates/includes/login/login.js:236
@@ -25227,7 +25230,7 @@ msgstr "建议优化"
 msgid "Suggested Indexes"
 msgstr "建议索引"
 
-#: frappe/core/doctype/user/user.py:726
+#: frappe/core/doctype/user/user.py:733
 msgid "Suggested Username: {0}"
 msgstr "建议用户名：{0}"
 
@@ -25660,7 +25663,7 @@ msgstr "表-多选"
 msgid "Table Trimmed"
 msgstr "表格已截断"
 
-#: frappe/public/js/frappe/form/grid.js:1169
+#: frappe/public/js/frappe/form/grid.js:1170
 msgid "Table updated"
 msgstr "表更新"
 
@@ -25779,7 +25782,7 @@ msgstr "模板警告"
 msgid "Templates"
 msgstr "模板"
 
-#: frappe/core/doctype/user/user.py:1033
+#: frappe/core/doctype/user/user.py:1040
 msgid "Temporarily Disabled"
 msgstr "暂时禁用"
 
@@ -25877,7 +25880,7 @@ msgstr "谢谢"
 msgid "The Auto Repeat for this document has been disabled."
 msgstr "此文档的自动重复功能已禁用。"
 
-#: frappe/public/js/frappe/form/grid.js:1192
+#: frappe/public/js/frappe/form/grid.js:1193
 msgid "The CSV format is case sensitive"
 msgstr "CSV格式区分大小写"
 
@@ -26051,11 +26054,11 @@ msgstr "从<a href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
 "\"IAM &amp; Admin\" &gt; \"Settings\"\n"
 "</a>下的 Google Cloud Console 获取的项目编号"
 
-#: frappe/core/doctype/user/user.py:993
+#: frappe/core/doctype/user/user.py:1000
 msgid "The reset password link has been expired"
 msgstr "重置密码链接已过期"
 
-#: frappe/core/doctype/user/user.py:995
+#: frappe/core/doctype/user/user.py:1002
 msgid "The reset password link has either been used before or is invalid"
 msgstr "重置密码链接已被使用或无效"
 
@@ -26347,7 +26350,7 @@ msgstr "此为公开文件，用户无需登录即可访问"
 msgid "This form has been modified after you have loaded it"
 msgstr "重新加载后表单就已被修改，"
 
-#: frappe/public/js/frappe/form/form.js:2257
+#: frappe/public/js/frappe/form/form.js:2259
 msgid "This form is not editable due to a Workflow."
 msgstr "此表单因工作流状态不能被编辑。"
 
@@ -26490,7 +26493,7 @@ msgstr "将重置此导览并向所有用户显示。是否继续？"
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "将立即终止任务，此操作可能危险，是否继续？"
 
-#: frappe/core/doctype/user/user.py:1246
+#: frappe/core/doctype/user/user.py:1253
 msgid "Throttled"
 msgstr "节流"
 
@@ -26975,7 +26978,7 @@ msgstr "单次操作中数据库变更过多"
 msgid "Too many queued background jobs ({0}). Please retry after some time."
 msgstr "后台作业队列过长({0})，请稍后重试"
 
-#: frappe/core/doctype/user/user.py:1034
+#: frappe/core/doctype/user/user.py:1041
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "最近有太多用户注册，导致注册功能被自动临时禁用了，请一个小时后重试。"
 
@@ -27746,7 +27749,7 @@ msgstr "今日活动"
 #: frappe/printing/page/print_format_builder/print_format_builder.js:507
 #: frappe/printing/page/print_format_builder/print_format_builder.js:678
 #: frappe/printing/page/print_format_builder/print_format_builder.js:765
-#: frappe/public/js/frappe/form/grid_row.js:411
+#: frappe/public/js/frappe/form/grid_row.js:427
 msgid "Update"
 msgstr "更新"
 
@@ -28310,6 +28313,10 @@ msgstr "用户不存在"
 msgid "User does not have permission to create the new {0}"
 msgstr "用户无权创建新{0}"
 
+#: frappe/core/doctype/user_invitation/user_invitation.py:102
+msgid "User is disabled"
+msgstr ""
+
 #: frappe/core/doctype/docshare/docshare.py:56
 msgid "User is mandatory for Share"
 msgstr "请选择要分享的用户"
@@ -28340,7 +28347,7 @@ msgstr "用户{0}不能被删除"
 msgid "User {0} cannot be disabled"
 msgstr "用户{0}不能被禁用"
 
-#: frappe/core/doctype/user/user.py:604
+#: frappe/core/doctype/user/user.py:611
 msgid "User {0} cannot be renamed"
 msgstr "不允许变更用户名{0}"
 
@@ -28361,7 +28368,7 @@ msgstr "用户{0}无权创建工作区"
 msgid "User {0} has requested for data deletion"
 msgstr "用户{0}已请求数据删除"
 
-#: frappe/core/doctype/user/user.py:1375
+#: frappe/core/doctype/user/user.py:1382
 msgid "User {0} impersonated as {1}"
 msgstr "用户 {0} 以 {1} 身份登录"
 
@@ -28390,7 +28397,7 @@ msgstr "用户信息URI"
 msgid "Username"
 msgstr "用户名"
 
-#: frappe/core/doctype/user/user.py:693
+#: frappe/core/doctype/user/user.py:700
 msgid "Username {0} already exists"
 msgstr "用户名{0}已存在"
 
@@ -30105,7 +30112,7 @@ msgstr "您取消了对该单据的关注"
 msgid "You viewed this"
 msgstr "您查看了此内容"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:104
+#: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
 msgstr ""
 
@@ -30271,7 +30278,7 @@ msgstr "修订"
 msgid "and"
 msgstr "和"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:178
+#: frappe/core/doctype/user_invitation/user_invitation.py:187
 msgid "application is not installed"
 msgstr ""
 
@@ -30516,11 +30523,11 @@ msgstr "图标"
 msgid "import"
 msgstr "导入"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:89
+#: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "invitation already accepted"
 msgstr ""
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:93
+#: frappe/core/doctype/user_invitation/user_invitation.py:99
 msgid "invitation already exists"
 msgstr ""
 
@@ -30793,19 +30800,19 @@ msgstr "分享"
 msgid "short"
 msgstr "短整型"
 
-#: frappe/public/js/frappe/widgets/number_card_widget.js:298
+#: frappe/public/js/frappe/widgets/number_card_widget.js:301
 msgid "since last month"
 msgstr "自上个月"
 
-#: frappe/public/js/frappe/widgets/number_card_widget.js:297
+#: frappe/public/js/frappe/widgets/number_card_widget.js:300
 msgid "since last week"
 msgstr "自上周"
 
-#: frappe/public/js/frappe/widgets/number_card_widget.js:299
+#: frappe/public/js/frappe/widgets/number_card_widget.js:302
 msgid "since last year"
 msgstr "自去年"
 
-#: frappe/public/js/frappe/widgets/number_card_widget.js:296
+#: frappe/public/js/frappe/widgets/number_card_widget.js:299
 msgid "since yesterday"
 msgstr "自昨天"
 
@@ -31009,7 +31016,7 @@ msgstr "{0}图表"
 msgid "{0} Dashboard"
 msgstr "{0}数据面板"
 
-#: frappe/public/js/frappe/form/grid_row.js:470
+#: frappe/public/js/frappe/form/grid_row.js:486
 #: frappe/public/js/frappe/list/list_settings.js:227
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
@@ -31085,7 +31092,7 @@ msgstr "{0}工作空间"
 msgid "{0} added"
 msgstr "{0} 成功添加"
 
-#: frappe/public/js/frappe/form/controls/data.js:204
+#: frappe/public/js/frappe/form/controls/data.js:206
 msgid "{0} already exists. Select another name"
 msgstr "{0}已存在。选择其他名称"
 
@@ -31354,7 +31361,7 @@ msgstr "{0}不是有效的报告格式。报告格式应为以下之一：{1}"
 msgid "{0} is not a zip file"
 msgstr "{0}不是zip文件"
 
-#: frappe/core/doctype/user_invitation/user_invitation.py:165
+#: frappe/core/doctype/user_invitation/user_invitation.py:174
 msgid "{0} is not an allowed role for {1}"
 msgstr ""
 
@@ -31402,7 +31409,7 @@ msgstr "{0}在{1}范围内"
 msgid "{0} items selected"
 msgstr "已选{0}条记录"
 
-#: frappe/core/doctype/user/user.py:1384
+#: frappe/core/doctype/user/user.py:1391
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} 因为 {1} 原因以你的帐号登录了系统"
 
@@ -31638,7 +31645,7 @@ msgstr "{0} {1}已经存在"
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1}不能为“{2}”。只能是“{3}”其中一个"
 
-#: frappe/utils/nestedset.py:340
+#: frappe/utils/nestedset.py:353
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "{0} {1}不能是一个叶节点，因为它有下级"
 
