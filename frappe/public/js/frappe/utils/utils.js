@@ -1807,4 +1807,19 @@ Object.assign(frappe.utils, {
 
 		return false;
 	},
+
+	/**
+	 * Masks passwords in an object by replacing the values of keys containing
+	 * "password" or "passphrase" with "*****".
+	 *
+	 * @param {Object} obj - The object to mask passwords in.
+	 */
+	mask_passwords(obj) {
+		const KEYWORDS_TO_MASK = ["password", "passphrase"];
+		for (const key of Object.keys(obj)) {
+			if (KEYWORDS_TO_MASK.some((keyword) => key.includes(keyword)) && obj[key]) {
+				obj[key] = "*****";
+			}
+		}
+	},
 });

@@ -182,7 +182,6 @@
 
 	.frappe-list {
 		.result-container {
-			overflow-x: auto;
 			.result {
 				min-width: 100%;
 				width: auto;
@@ -213,10 +212,6 @@
 		.no-result,
 		.freeze {
 			min-height: 200px;
-		}
-
-		.result {
-			overflow: auto;
 		}
 	}
 
