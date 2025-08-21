@@ -1,7 +1,30 @@
-// .layout-main-section {
-// 	overflow: hidden;
-
-// }
+.layout-main-section-wrapper:not(.disable-scrolling) {
+	.frappe-list {
+		.result-container {
+			.result {
+				min-width: 100%;
+				width: auto;
+				.list-row-container {
+					width: fit-content;
+					min-width: 100%;
+				}
+				.list-row-container:first-child {
+					position: sticky;
+					top: 0;
+					z-index: 2;
+				}
+				.list-row-container {
+					.level-left {
+						.list-row-col {
+							min-width: 150px;
+							max-width: 400px;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 .freeze-row {
 	.level-left,
@@ -538,6 +561,23 @@ input.list-header-checkbox {
 			overflow-x: auto;
 			.result {
 				overflow: auto;
+			}
+		}
+	}
+}
+
+.disable-scrolling {
+	.frappe-list {
+		.list-row-container {
+			width: auto;
+			.level-left {
+				flex: 0;
+				.list-row-col {
+					min-width: auto;
+				}
+			}
+			.level-right {
+				box-shadow: none;
 			}
 		}
 	}
