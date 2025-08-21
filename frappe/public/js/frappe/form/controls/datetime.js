@@ -90,6 +90,16 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	set_datepicker() {
 		super.set_datepicker();
+		// This event handler ensures that if a user manually types a value
+		// and clicks away, the change is saved to the datepicker's internal state.
+		this.$input.on("change", () => {
+			const value = this.$input.val();
+			if (this.datepicker && value) {
+				const new_date = frappe.datetime.str_to_obj(value);
+				this.datepicker.selectDate(new_date, true);
+			}
+		});
+
 		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
 			// No seconds in time format
 			const $tp = this.datepicker.timepicker;
