@@ -144,7 +144,7 @@ class AutoRepeat(Document):
 
 			if end_date == getdate():
 				frappe.throw(_("End Date cannot be today."))
-			elif end_date == getdate(self.start_date):
+			if end_date == getdate(self.start_date):
 				frappe.throw(
 					_("{0} should not be same as {1}").format(
 						frappe.bold(_("End Date")), frappe.bold(_("Start Date"))
