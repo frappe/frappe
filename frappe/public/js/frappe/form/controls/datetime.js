@@ -1,36 +1,29 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
-		this.datetime_format = "DD-MM-YYYY HH:mm:ss";
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
+			this.$input && this.$input.val("");
 			return;
 		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();
 		} else if (value.toLowerCase() === "now") {
 			value = frappe.datetime.now_datetime();
 		}
-		let should_refresh = this.last_value && this.last_value !== value;
-		value = this.format_for_input(value);
-		this.$input && this.$input.val(value);
-		if (!should_refresh) {
-			if (this.datepicker.selectedDates.length > 0) {
-				// if date is selected but different from value, refresh
-				const selected_date = moment(this.datepicker.selectedDates[0]).format(
-					this.datetime_format
-				);
-				should_refresh = selected_date !== value;
-			} else {
-				// if datepicker has no selected date, refresh
-				should_refresh = true;
-			}
-		}
-		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		const formatted_value = this.format_for_input(value);
+		this.$input && this.$input.val(formatted_value);
+		const date_object_from_input = frappe.datetime.user_to_obj(formatted_value);
+		if (
+			date_object_from_input &&
+			date_object_from_input instanceof Date &&
+			!isNaN(date_object_from_input)
+		) {
+			this.datepicker.selectDate(date_object_from_input);
+		} else {
+			this.datepicker.clear();
 		}
 	}
-
 	get_start_date() {
 		this.value = this.value == null || this.value == "" ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
@@ -53,12 +46,10 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	parse(value) {
 		if (value) {
-			value = this.eval_expression(value, "datetime");
-
+			value = frappe.datetime.user_to_str(value, false);
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
 			}
-
 			if (value == "Invalid date") {
 				value = "";
 			}
@@ -74,9 +65,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		const time_zone = this.get_user_time_zone();
 
 		if (!this.df.hide_timezone) {
-			// Always show the timezone when rendering the Datetime field since the datetime value will
-			// always be in system_time_zone rather then local time.
-
 			if (!description) {
 				this.df.description = time_zone;
 			} else if (!description.includes(time_zone)) {
@@ -98,7 +86,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			$tp.$secondsText.prev().css("display", "none");
 		}
 	}
-
 	get_model_value() {
 		let value = super.get_model_value();
 		if (!value && !this.doc) {
