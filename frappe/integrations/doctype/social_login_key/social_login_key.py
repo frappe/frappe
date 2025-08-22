@@ -89,6 +89,17 @@ class SocialLoginKey(Document):
 			frappe.throw(
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError
 			)
+		if self.auth_url_data:
+			try:
+				json.loads(self.auth_url_data)
+			except json.JSONDecodeError:
+				frappe.throw(_("Auth URL data should be valid JSON"))
+
+		if self.api_endpoint_args:
+			try:
+				json.loads(self.api_endpoint_args)
+			except json.JSONDecodeError:
+				frappe.throw(_("API Endpoint Args should be valid JSON"))
 
 	def set_icon(self):
 		icon_map = {

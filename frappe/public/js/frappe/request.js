@@ -640,17 +640,17 @@ frappe.request.report_error = function (xhr, request_opts) {
 };
 
 frappe.request.cleanup_request_opts = function (request_opts) {
-	var doc = (request_opts.args || {}).doc;
+	let doc = (request_opts.args || {}).doc;
 	if (doc) {
 		doc = JSON.parse(doc);
-		$.each(Object.keys(doc), function (i, key) {
-			if (key.indexOf("password") !== -1 && doc[key]) {
-				// mask the password
-				doc[key] = "*****";
-			}
-		});
+		frappe.utils.mask_passwords(doc);
 		request_opts.args.doc = JSON.stringify(doc);
 	}
+
+	if (request_opts.args) {
+		frappe.utils.mask_passwords(request_opts.args);
+	}
+
 	return request_opts;
 };
 

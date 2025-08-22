@@ -12,6 +12,7 @@
   "disable_auto_refresh",
   "allow_edit",
   "disable_automatic_recency_filters",
+  "disable_scrolling",
   "total_fields",
   "fields_html",
   "fields"
@@ -39,7 +40,7 @@
    "fieldname": "total_fields",
    "fieldtype": "Select",
    "label": "Maximum Number of Fields",
-   "options": "\n4\n5\n6\n7\n8\n9\n10"
+   "options": "\n4\n5\n6\n7\n8\n9\n10\n15\n20\n25\n30"
   },
   {
    "fieldname": "fields_html",
@@ -71,11 +72,17 @@
    "fieldname": "disable_automatic_recency_filters",
    "fieldtype": "Check",
    "label": "Disable Automatic Recency Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_scrolling",
+   "fieldtype": "Check",
+   "label": "Disable Scrolling"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-03-12 16:28:46.073808",
+ "modified": "2025-08-21 12:51:32.954333",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

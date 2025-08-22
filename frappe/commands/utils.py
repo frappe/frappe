@@ -914,7 +914,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	"output",
 	type=click.Choice(["plain", "table", "json", "legacy"]),
 	help="Output format",
-	default="legacy",
+	default="plain",
 )
 def get_version(output):
 	"""Show the versions of all the installed apps."""

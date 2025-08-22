@@ -17,9 +17,19 @@ def invite_by_email(
 		frappe.throw(title=_("Invalid input"), msg=_("No email addresses to invite"))
 
 	# get relevant data from the database
+	disabled_user_emails = frappe.db.get_all(
+		"User",
+		filters={"email": ["in", email_list], "enabled": 0},
+		pluck="email",
+	)
 	accepted_invite_emails = frappe.db.get_all(
 		"User Invitation",
-		filters={"email": ["in", email_list], "status": "Accepted", "app_name": app_name},
+		filters={
+			"email": ["in", email_list],
+			"status": "Accepted",
+			"app_name": app_name,
+			"user": ["is", "set"],
+		},
 		pluck="email",
 	)
 	pending_invite_emails = frappe.db.get_all(
@@ -29,7 +39,9 @@ def invite_by_email(
 	)
 
 	# create invitation documents
-	to_invite = list(set(email_list) - set(accepted_invite_emails) - set(pending_invite_emails))
+	to_invite = list(
+		set(email_list) - set(disabled_user_emails) - set(accepted_invite_emails) - set(pending_invite_emails)
+	)
 	for email in to_invite:
 		frappe.get_doc(
 			doctype="User Invitation",
@@ -40,6 +52,7 @@ def invite_by_email(
 		).insert(ignore_permissions=True)
 
 	return {
+		"disabled_user_emails": disabled_user_emails,
 		"accepted_invite_emails": accepted_invite_emails,
 		"pending_invite_emails": pending_invite_emails,
 		"invited_emails": to_invite,

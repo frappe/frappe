@@ -344,8 +344,11 @@ frappe.views.CommunicationComposer = class {
 			if (this.last_email.sender == this.sender) {
 				this.recipients = this.last_email.recipients;
 			}
-			this.cc = this.last_email.cc;
-			this.bcc = this.last_email.bcc;
+
+			if (this.reply_all) {
+				this.cc = this.last_email.cc;
+				this.bcc = this.last_email.bcc;
+			}
 		}
 
 		if (!this.forward && !this.recipients) {

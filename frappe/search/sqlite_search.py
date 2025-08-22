@@ -427,7 +427,22 @@ class SQLiteSearch(ABC):
 				if not values:  # Skip empty filters
 					continue
 
-				if isinstance(values, list):
+				# Check if this is a LIKE filter (list with 'LIKE' operator)
+				if isinstance(values, list) and len(values) == 2 and values[0] == "LIKE":
+					# Handle LIKE filters in format ['LIKE', tag_filters]
+					like_values = values[1]
+					if isinstance(like_values, list):
+						# Multiple LIKE conditions (OR them together)
+						like_conditions = []
+						for like_val in like_values:
+							like_conditions.append(f"{field} LIKE ?")
+							filter_params.append(f"%{like_val}%")
+						filter_conditions.append(f"({' OR '.join(like_conditions)})")
+					else:
+						# Single LIKE condition
+						filter_conditions.append(f"{field} LIKE ?")
+						filter_params.append(f"%{like_values}%")
+				elif isinstance(values, list):
 					if len(values) == 1:
 						filter_conditions.append(f"{field} = ?")
 						filter_params.append(values[0])
@@ -507,6 +522,7 @@ class SQLiteSearch(ABC):
                 ORDER BY bm25_score
                 LIMIT ?
             """
+			print(sql)
 			return self.sql(sql, params, read_only=True)
 
 	def _process_search_results(self, raw_results, query):
@@ -1407,8 +1423,13 @@ def update_doc_index(doc: Document, method=None):
 
 				any_field_changed = any(doc.has_value_changed(field) for field in fields)
 				if any_field_changed:
-					print(f"Enqueuing {search.__class__.__name__}.index_doc for {doc.doctype}:{doc.name}")
-					search.index_doc(doctype, doc.name)
+					try:
+						search.index_doc(doctype, doc.name)
+					except Exception:
+						frappe.log_error(
+							title="SQLite Search Index Update Error",
+							message=f"Failed to update index for {doctype}:{doc.name} in {search.__class__.__name__}",
+						)
 
 
 def delete_doc_index(doc: Document, method=None):
@@ -1426,8 +1447,14 @@ def delete_doc_index(doc: Document, method=None):
 				if not fields:
 					continue
 
-				print(f"Enqueuing {search.__class__.__name__}.remove_doc for {doc.doctype}:{doc.name}")
-				search.remove_doc(doctype, doc.name)
+				try:
+					# Remove the document from the index
+					search.remove_doc(doctype, doc.name)
+				except Exception:
+					frappe.log_error(
+						title="SQLite Search Index Delete Error",
+						message=f"Failed to remove index for {doctype}:{doc.name} in {search.__class__.__name__}",
+					)
 
 
 def get_search_classes() -> list[type[SQLiteSearch]]:

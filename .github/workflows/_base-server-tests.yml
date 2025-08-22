@@ -78,7 +78,7 @@ jobs:
           - 2525:25
           - 3000:80
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:

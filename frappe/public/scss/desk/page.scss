@@ -93,7 +93,8 @@
 }
 
 .layout-main-section-wrapper {
-	width: 100%;
+	flex: 1 0 80%;
+	width: 80%;
 }
 
 .layout-main-section.frappe-card {
@@ -184,11 +185,7 @@
 		.result,
 		.no-result,
 		.freeze {
-			min-height: "200px";
-		}
-
-		.result {
-			overflow: auto;
+			min-height: 200px;
 		}
 	}
 
@@ -220,4 +217,10 @@
 .page-only-label {
 	margin-top: var(--margin-xs);
 	text-align: center;
+}
+
+.frappe-control {
+	.form-control.fields_order {
+		padding-top: 1.5px;
+	}
 }

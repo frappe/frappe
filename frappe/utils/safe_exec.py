@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import orjson
 import RestrictedPython.Guards
+from AccessControl.ZopeGuards import protected_inplacevar
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
 
@@ -313,6 +314,7 @@ def get_safe_globals():
 	# allow iterators and list comprehension
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+	out._inplacevar_ = protected_inplacevar
 
 	# add common python builtins
 	out.update(get_python_builtins())
@@ -729,6 +731,7 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_getitem_": _getitem,
 	"_getiter_": iter,
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+	"_inplacevar_": protected_inplacevar,
 }
 
 SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)

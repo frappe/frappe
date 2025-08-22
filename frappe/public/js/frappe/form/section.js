@@ -78,8 +78,14 @@ export default class Section {
 			this.collapse_link = this.head.on("click", () => {
 				this.collapse();
 			});
+			const me = this;
+			this.collapse_link.enterKey(function () {
+				me.collapse();
+			});
 			this.set_icon();
 			this.indicator.show();
+			this.head.attr("tabindex", 0);
+			this.indicator.attr("tabindex", 0);
 		}
 	}
 

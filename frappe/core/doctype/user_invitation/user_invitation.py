@@ -84,13 +84,22 @@ class UserInvitation(Document):
 		self._validate_roles()
 		self._validate_email()
 		if frappe.db.get_value(
-			"User Invitation", filters={"email": self.email, "status": "Accepted", "app_name": self.app_name}
+			"User Invitation",
+			filters={
+				"email": self.email,
+				"status": "Accepted",
+				"app_name": self.app_name,
+				"user": ["is", "set"],
+			},
 		):
 			frappe.throw(title=_("Error"), msg=_("invitation already accepted"))
 		if frappe.db.get_value(
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
+		user_enabled = frappe.db.get_value("User", self.email, "enabled")
+		if user_enabled is not None and user_enabled == 0:
+			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
 	def _after_insert(self):
 		key = frappe.generate_hash()
