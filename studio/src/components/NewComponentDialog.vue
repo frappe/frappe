@@ -18,9 +18,12 @@
 import { ref } from "vue"
 import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
 import useComponentStore from "@/stores/componentStore"
+import Block from "@/utils/block"
 
+const props = defineProps<{ block: Block }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["created"])
+
 const componentName = ref("")
 const errorMessage = ref("")
 
@@ -35,7 +38,7 @@ function createComponent() {
 		return
 	}
 	const componentStore = useComponentStore()
-	componentStore.createComponent(componentName.value).then((data) => {
+	componentStore.createComponent(componentName.value, props.block).then((data) => {
 		if (data) {
 			emit("created", data)
 			reset()

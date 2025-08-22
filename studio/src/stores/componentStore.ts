@@ -13,11 +13,14 @@ const useComponentStore = defineStore("componentStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const { getComponent, getComponentDoc, cacheComponent, removeCachedComponent } = useStudioComponents()
 
-	async function createComponent(componentName: string) {
+	async function createComponent(componentName: string, blocks?: Block | null) {
+		const component: any = { component_name: componentName }
+		if (blocks) {
+			component.blocks = getBlockObject(blocks)
+		}
+
 		return studioComponents.insert.submit(
-			{
-				component_name: componentName,
-			},
+			component,
 			{
 				onSuccess(data: any) {
 					cacheComponent(data)

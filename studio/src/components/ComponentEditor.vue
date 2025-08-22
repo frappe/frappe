@@ -146,7 +146,13 @@ const isSlotSelected = (slotId: string) => {
 }
 
 const getStyleClasses = computed(() => {
-	const classes = ["ring-blue-400"]
+	const classes = []
+
+	if (props.block.isStudioComponent) {
+		classes.push("ring-purple-400")
+	} else {
+		classes.push("ring-blue-400")
+	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
 		// make editor interactive

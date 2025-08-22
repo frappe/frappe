@@ -8,7 +8,7 @@ import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
 import LucideBox from "~icons/lucide/box"
 
-import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, generateId, getBlockCopy, getComponentBlock, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
@@ -672,6 +672,14 @@ class Block implements BlockOptions {
 
 	removeEvent(eventName: string) {
 		delete this.componentEvents[eventName]
+	}
+
+	// studio components
+	extendFromComponent(componentName: string) {
+		let parentBlock = this.getParentBlock()
+		const newBlock = getComponentBlock(componentName, true)
+		parentBlock?.replaceChild(this, newBlock)
+
 	}
 }
 
