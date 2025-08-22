@@ -20,20 +20,32 @@ from frappe.utils.password import delete_all_passwords_for
 
 
 def delete_doc(
-	doctype=None,
-	name=None,
-	force=0,
-	ignore_doctypes=None,
-	for_reload=False,
-	ignore_permissions=False,
-	flags=None,
-	ignore_on_trash=False,
-	ignore_missing=True,
-	delete_permanently=False,
+	doctype: str | None = None,
+	name: str | dict | None = None,
+	force: bool = False,
+	ignore_doctypes: list[str] | None = None,
+	for_reload: bool = False,
+	ignore_permissions: bool = False,
+	flags: frappe._dict | None = None,
+	ignore_on_trash: bool = False,
+	ignore_missing: bool = True,
+	delete_permanently: bool = False,
 ):
 	"""
-	Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
+	Deletes a doc and validates if it is not submitted and not linked in a live record
+
+	:param doctype: DocType of document to be delete.
+	:param name: Name of document to be delete.
+	:param force: Allow even if document is linked. Warning: This may lead to data integrity errors.
+	:param ignore_doctypes: Ignore if child table is one of these.
+	:param for_reload: Call `before_reload` trigger before deleting.
+	:param ignore_permissions: Ignore user permissions.
+	:param flags: Flags to be set during deletion.
+	:param ignore_on_trash: Ignore if document is already trashed.
+	:param ignore_missing: Ignore if document is missing.
+	:param delete_permanently: Do not create a Deleted Document for the document.
 	"""
+
 	if not ignore_doctypes:
 		ignore_doctypes = []
 

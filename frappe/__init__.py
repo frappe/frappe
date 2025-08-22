@@ -706,49 +706,6 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 
-def get_meta_module(doctype):
-	import frappe.modules
-
-	return frappe.modules.load_doctype_module(doctype)
-
-
-def delete_doc(
-	doctype: str | None = None,
-	name: str | dict | None = None,
-	force: bool = False,
-	ignore_doctypes: list[str] | None = None,
-	for_reload: bool = False,
-	ignore_permissions: bool = False,
-	flags: _dict | None = None,
-	ignore_on_trash: bool = False,
-	ignore_missing: bool = True,
-	delete_permanently: bool = False,
-):
-	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
-
-	:param doctype: DocType of document to be delete.
-	:param name: Name of document to be delete.
-	:param force: Allow even if document is linked. Warning: This may lead to data integrity errors.
-	:param ignore_doctypes: Ignore if child table is one of these.
-	:param for_reload: Call `before_reload` trigger before deleting.
-	:param ignore_permissions: Ignore user permissions.
-	:param delete_permanently: Do not create a Deleted Document for the document."""
-	import frappe.model.delete_doc
-
-	return frappe.model.delete_doc.delete_doc(
-		doctype,
-		name,
-		force,
-		ignore_doctypes,
-		for_reload,
-		ignore_permissions,
-		flags,
-		ignore_on_trash,
-		ignore_missing,
-		delete_permanently,
-	)
-
-
 def reload_doctype(doctype, force=False, reset_permissions=False):
 	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
 	reload_doc(
@@ -1559,6 +1516,8 @@ import frappe._optimizations
 from frappe.cache_manager import clear_cache, reset_metadata_version
 from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
+from frappe.email import sendmail
+from frappe.model.delete_doc import delete_doc
 from frappe.model.document import (
 	get_doc,
 	get_lazy_doc,
@@ -1575,13 +1534,13 @@ from frappe.model.document import (
 	_set_document_in_cache,
 )
 from frappe.model.meta import get_meta
+from frappe.modules import load_doctype_module as get_meta_module
 from frappe.realtime import publish_progress, publish_realtime
 from frappe.utils import get_traceback, mock, parse_json, safe_eval, create_folder
 from frappe.utils.background_jobs import enqueue, enqueue_doc
 from frappe.utils.error import log_error
 from frappe.utils.formatters import format_value
 from frappe.utils.print_utils import get_print, attach_print
-from frappe.email import sendmail
 
 # for backwards compatibility
 format = format_value
