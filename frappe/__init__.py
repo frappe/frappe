@@ -1490,6 +1490,7 @@ def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=Fal
 
 	return html.format(
 		doctype=doctype,
+		name=name,
 		encoded_name=encoded_name,
 		doctype_local=_(doctype),
 		title_local=_(title),
