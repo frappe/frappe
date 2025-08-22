@@ -37,10 +37,10 @@ const shapeClasses = computed(() => {
 
 const sizeClasses = computed(() => {
 	return {
-		xs: "!h-32 !w-32",
-		sm: "!h-48 !w-48",
-		md: "!h-64 !w-64",
-		lg: "!h-96 !w-96",
+		xs: "h-32 w-32",
+		sm: "h-48 w-48",
+		md: "h-64 w-64",
+		lg: "h-96 w-96",
 	}[props.size]
 })
 
