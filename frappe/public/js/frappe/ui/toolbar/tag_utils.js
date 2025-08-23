@@ -13,22 +13,49 @@ frappe.tags.utils = {
 			return [];
 		}
 
+		// First check for exact matches or starts with matches
+		const exactMatches = [];
+		const startsWithMatches = [];
+		const otherMatches = [];
+
 		frappe.tags.tags.forEach((tag) => {
-			const search_result = frappe.search.utils.fuzzy_search(txt, tag, true);
-			if (search_result.score) {
-				out.push({
-					type: "Tag",
-					label: __("#{0}", [search_result.marked_string]),
-					value: __("#{0}", [__(tag)]),
-					index: 1 + search_result.score,
-					match: tag,
-					onclick() {
-						// Use Global Search Dialog for tag search too.
-						frappe.searchdialog.search.init_search("#".concat(tag), "tags");
-					},
-				});
+			const normalizedTag = tag.toLowerCase();
+			const normalizedSearch = txt.toLowerCase();
+			
+			if (normalizedTag === normalizedSearch) {
+				exactMatches.push(tag);
+			} else if (normalizedTag.startsWith(normalizedSearch)) {
+				startsWithMatches.push(tag);
+			} else if (normalizedTag.includes(normalizedSearch)) {
+				otherMatches.push(tag);
 			}
 		});
+
+		// Process matches in order of priority: exact > starts with > contains > fuzzy
+		const processTags = (tags, baseScore = 0) => {
+			tags.forEach((tag) => {
+				const search_result = frappe.search.utils.fuzzy_search(txt, tag, true);
+				if (search_result.score) {
+					out.push({
+						type: "Tag",
+						label: __("#{0}", [search_result.marked_string]),
+						value: __("#{0}", [__(tag)]),
+						index: baseScore + search_result.score,
+						match: tag,
+						onclick() {
+							// Use Global Search Dialog for tag search too.
+							frappe.searchdialog.search.init_search("#".concat(tag), "tags");
+						},
+					});
+				}
+			});
+		};
+
+		// Process in order of priority
+		processTags(exactMatches, 1000); // Highest priority for exact matches
+		processTags(startsWithMatches, 500);  // High priority for starts with matches
+		processTags(otherMatches, 0);         // Regular priority for other matches
+
 		return out;
 	},
 

@@ -185,6 +185,31 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
 
+			// Handle tag selection
+			var input_text = $input.val().trim();
+			if (input_text.startsWith('#')) {
+				// Find the best matching tag
+				const tag_text = input_text.slice(1);
+				const tags = frappe.tags.utils.get_tags('#' + tag_text);
+				
+				if (tags && tags.length > 0) {
+					// Sort tags by score (highest first)
+					tags.sort((a, b) => (b.index || 0) - (a.index || 0));
+					const best_match = tags[0];
+					
+					// If there's a good match, use it
+					if (best_match && best_match.index > 0) {
+						e.preventDefault();
+						if (best_match.onclick) {
+							best_match.onclick();
+						}
+						$input.val('');
+						$input.trigger('blur');
+						return;
+					}
+				}
+			}
+
 			// Handle consolidated DocType entries
 			if (item.consolidated && item.actions) {
 				// Find the default action
