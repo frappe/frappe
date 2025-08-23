@@ -183,51 +183,80 @@ frappe.search.utils = {
 		var out = [];
 
 		var score, marked_string, target;
-		var option = function (type, route, order) {
-			// check to skip extra list in the text
-			// eg. Price List List should be only Price List
-			let skip_list = type === "List" && target.endsWith("List");
-			if (skip_list) {
-				var label = marked_string || __(target);
-			} else {
-				label = __(`{0} ${skip_list ? "" : type}`, [marked_string || __(target)]);
-			}
-			return {
-				type: type,
-				label: label,
-				value: __(`{0} ${type}`, [target]),
-				index: score + order,
-				match: target,
-				route: route,
-			};
-		};
+		
+		// Check if user is searching for a specific action
+		var specific_action = null;
+		var search_keywords = keywords.toLowerCase();
+		if (search_keywords.includes(' list') || search_keywords.endsWith(' list')) {
+			specific_action = 'list';
+		} else if (search_keywords.includes(' report') || search_keywords.endsWith(' report')) {
+			specific_action = 'report';
+		} else if (search_keywords.includes('new ') || search_keywords.startsWith('new ')) {
+			specific_action = 'new';
+		}
+
 		frappe.boot.user.can_read.forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			({ score, marked_string } = search_result);
 			if (score) {
 				target = item;
 				if (frappe.boot.single_types.includes(item)) {
-					out.push(option("", ["Form", item, item], 0.05));
+					// Single DocTypes - keep existing behavior
+					out.push({
+						type: "",
+						label: marked_string || __(target),
+						value: __(target),
+						index: score + 0.05,
+						match: target,
+						route: ["Form", item, item],
+					});
 				} else if (frappe.boot.user.can_search.includes(item)) {
-					// include 'making new' option
+					// Create consolidated DocType entry with action buttons
+					var actions = [];
+					var default_action = 'list';
+					
+					// Determine available actions
 					if (frappe.boot.user.can_create.includes(item)) {
-						var match = item;
-						out.push({
-							type: "New",
-							label: __("New {0}", [search_result.marked_string || __(item)]),
-							value: __("New {0}", [__(item)]),
-							index: score + 0.015,
-							match: item,
-							onclick: function () {
-								frappe.new_doc(match, true);
-							},
+						actions.push({
+							type: 'new',
+							label: 'New',
+							route: null,
+							onclick: function() { frappe.new_doc(item, true); }
+						});
+					}
+					
+					actions.push({
+						type: 'list',
+						label: 'List',
+						route: ["List", item]
+					});
+					
+					if (frappe.model.can_get_report(item)) {
+						actions.push({
+							type: 'report',
+							label: 'Report',
+							route: ["List", item, "Report"]
 						});
 					}
 
-					out.push(option("List", ["List", item], 0.05));
-					if (frappe.model.can_get_report(item)) {
-						out.push(option("Report", ["List", item, "Report"], 0.04));
+					// Set default action based on search intent
+					if (specific_action === 'new' && frappe.boot.user.can_create.includes(item)) {
+						default_action = 'new';
+					} else if (specific_action === 'report' && frappe.model.can_get_report(item)) {
+						default_action = 'report';
 					}
+
+					out.push({
+						type: "DocType",
+						label: marked_string || __(target),
+						value: __(target),
+						index: score + 0.05,
+						match: target,
+						doctype: item,
+						actions: actions,
+						default_action: default_action,
+						consolidated: true
+					});
 				}
 			}
 		});

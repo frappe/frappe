@@ -71,5 +71,58 @@
 		a:hover {
 			text-decoration: none;
 		}
+
+		// Consolidated search item styles
+		.consolidated-item {
+			padding: 0 !important;
+			
+			.consolidated-search-item {
+				padding: var(--padding-sm);
+				
+				.doctype-name {
+					@include get_textstyle("sm", "medium");
+					margin-bottom: var(--margin-xs);
+					color: var(--text-color);
+				}
+				
+				.action-buttons {
+					display: flex;
+					gap: var(--margin-xs);
+					
+					.action-btn {
+						@include get_textstyle("xs", "regular");
+						padding: 4px 8px;
+						border: 1px solid var(--border-color);
+						background-color: var(--bg-light-gray);
+						color: var(--text-muted);
+						border-radius: var(--border-radius-sm);
+						transition: all 0.2s ease;
+						cursor: pointer;
+						
+						&:hover {
+							background-color: var(--primary-100);
+							border-color: var(--primary-300);
+							color: var(--primary-600);
+						}
+						
+						&.active {
+							background-color: var(--primary-500);
+							border-color: var(--primary-500);
+							color: white;
+							@include get_textstyle("xs", "medium");
+						}
+					}
+				}
+			}
+			
+			&:hover,
+			&[aria-selected="true"] {
+				background-color: var(--awesomplete-hover-bg);
+				
+				.consolidated-search-item .doctype-name {
+					color: var(--text-color);
+				}
+			}
+		}
 	}
 }

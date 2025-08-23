@@ -30,6 +30,80 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			},
 			item: function (item, term) {
 				const d = this.get_item(item.value);
+				
+				// Handle consolidated DocType entries with action buttons
+				if (d.consolidated && d.actions) {
+					let html = `<div class="consolidated-search-item">
+						<div class="doctype-name">${__(d.label || d.value)}</div>
+						<div class="action-buttons">`;
+					
+					d.actions.forEach((action, index) => {
+						const isDefault = action.type === d.default_action;
+						const activeClass = isDefault ? 'active' : '';
+						html += `<button class="btn btn-sm action-btn ${activeClass}" 
+							data-action="${action.type}" 
+							data-doctype="${d.doctype}"
+							data-index="${index}">
+							${action.label}
+						</button>`;
+					});
+					
+					html += `</div></div>`;
+					
+					const $li = $("<li></li>")
+						.addClass("consolidated-item")
+						.data("item.autocomplete", d)
+						.html(html);
+					
+					// Add click handlers for action buttons
+					$li.find('.action-btn').on('click', function(e) {
+						e.preventDefault();
+						e.stopPropagation();
+						
+						const actionType = $(this).data('action');
+						const doctype = $(this).data('doctype');
+						const actionIndex = $(this).data('index');
+						const action = d.actions[actionIndex];
+						
+						if (action.onclick) {
+							action.onclick();
+						} else if (action.route) {
+							frappe.set_route(action.route);
+						}
+						
+						// Close the search dropdown
+						$('.search-bar input').val('').trigger('blur');
+					});
+					
+					// Handle keyboard navigation
+					$li.on('keydown', function(e) {
+						const $activeBtn = $li.find('.action-btn.active');
+						let $nextBtn;
+						
+						if (e.key === 'ArrowRight') {
+							e.preventDefault();
+							$nextBtn = $activeBtn.next('.action-btn');
+							if (!$nextBtn.length) $nextBtn = $li.find('.action-btn').first();
+						} else if (e.key === 'ArrowLeft') {
+							e.preventDefault();
+							$nextBtn = $activeBtn.prev('.action-btn');
+							if (!$nextBtn.length) $nextBtn = $li.find('.action-btn').last();
+						} else if (e.key === 'Enter') {
+							e.preventDefault();
+							$activeBtn.click();
+							return;
+						}
+						
+						if ($nextBtn && $nextBtn.length) {
+							$li.find('.action-btn').removeClass('active');
+							$nextBtn.addClass('active');
+						}
+					});
+					
+					return $li.get(0);
+				}
+				
+				// Handle regular search items (existing behavior)
 				let target = "#";
 				if (d.route) {
 					target = frappe.router.make_url(
@@ -111,6 +185,23 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
 
+			// Handle consolidated DocType entries
+			if (item.consolidated && item.actions) {
+				// Find the default action
+				const defaultAction = item.actions.find(action => action.type === item.default_action);
+				if (defaultAction) {
+					if (defaultAction.onclick) {
+						defaultAction.onclick();
+					} else if (defaultAction.route) {
+						frappe.set_route(defaultAction.route);
+					}
+				}
+				$input.val("");
+				$input.trigger("blur");
+				return;
+			}
+
+			// Handle regular items (existing behavior)
 			if (item.route_options) {
 				frappe.route_options = item.route_options;
 			}
