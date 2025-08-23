@@ -15,6 +15,8 @@ class NotificationRecipient(Document):
 
 		bcc: DF.Code | None
 		cc: DF.Code | None
+		cc_receiver_by_role: DF.Link | None
+		check_user_permission: DF.Check
 		condition: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data

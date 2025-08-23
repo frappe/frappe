@@ -14,6 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
+from frappe.permissions import has_permission
 from frappe.utils import add_to_date, cast, now_datetime, nowdate, validate_email_address
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
@@ -572,20 +573,40 @@ def get_context(context):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
 
-			cc.extend(get_emails_from_template(recipient.cc, context))
+			# BCC
 			bcc.extend(get_emails_from_template(recipient.bcc, context))
+
+			# CC by role
+			if recipient.cc_receiver_by_role:
+				cc_emails = get_emails_from_template(recipient.cc, context) or []
+				role_emails = get_info_based_on_role(
+					recipient.cc_receiver_by_role, "email", ignore_permissions=True
+				)
+				emails = role_emails + cc_emails
+				if recipient.check_user_permission:
+					cc.extend(self.filter_by_permission(emails, doc))
+				else:
+					cc.extend(emails)
 
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
 				emails = get_info_based_on_role(recipient.receiver_by_role, "email", ignore_permissions=True)
-
-				for email in emails:
-					recipients = recipients + email.split("\n")
+				if recipient.check_user_permission:
+					recipients.extend(self.filter_by_permission(emails, doc))
+				else:
+					recipients.extend(emails)
 
 		if self.send_to_all_assignees:
 			recipients = recipients + get_assignees(doc)
 
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
+
+	def filter_by_permission(self, emails, doc):
+		allowed = []
+		for email in emails:
+			if has_permission(doc.doctype, ptype="read", doc=doc, user=email):
+				allowed.append(email)
+		return allowed
 
 	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
 		"""return receiver list based on the doc field and role specified"""
