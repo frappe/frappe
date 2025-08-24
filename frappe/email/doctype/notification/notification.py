@@ -577,16 +577,21 @@ def get_context(context):
 			bcc.extend(get_emails_from_template(recipient.bcc, context))
 
 			# CC by role
+			cc_emails = get_emails_from_template(recipient.cc, context) or []
+			role_emails = []
+
 			if recipient.cc_receiver_by_role:
-				cc_emails = get_emails_from_template(recipient.cc, context) or []
 				role_emails = get_info_based_on_role(
 					recipient.cc_receiver_by_role, "email", ignore_permissions=True
 				)
-				emails = role_emails + cc_emails
-				if recipient.check_user_permission:
-					cc.extend(self.filter_by_permission(emails, doc))
-				else:
-					cc.extend(emails)
+
+			if recipient.check_user_permission:
+				allowed_role_emails = self.filter_by_permission(role_emails, doc)
+			else:
+				allowed_role_emails = role_emails
+
+			emails = (allowed_role_emails or []) + cc_emails
+			cc.extend(emails)
 
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
