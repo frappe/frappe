@@ -268,6 +268,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	data_import.import_type = (
 		"Insert New Records" if import_type.lower() == "insert" else "Update Existing Records"
 	)
+	data_import.use_csv_sniffer = False  # Default to False for command line imports
 	data_import.set_payload_count()
 
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
