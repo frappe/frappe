@@ -29,67 +29,80 @@
 				>
 					<template #target>
 						<div
-							class="group flex flex-1 cursor-pointer items-center justify-between rounded-lg border border-transparent px-2 hover:border-gray-200 hover:bg-gray-50"
+							class="group flex flex-1 cursor-pointer justify-between rounded border border-gray-300 px-2 py-1 hover:bg-gray-50"
 							@click="editInput(input, index)"
 						>
 							<div class="flex items-center gap-2">
 								<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
-								<span class="text-sm font-medium text-gray-900">{{ input.name }}</span>
+								<span class="text-sm text-gray-800">{{ input.name }}</span>
 							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								icon="x"
-								class="opacity-0 transition-opacity group-hover:opacity-100"
+							<button
+								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
 								@click.stop="removeInput(index)"
-							/>
+							>
+								<FeatherIcon name="x" class="h-4 w-4" />
+							</button>
 						</div>
 					</template>
 					<template #body-main>
 						<div class="w-64 space-y-4 p-4" v-if="editingInput && editingIndex === index">
-							<div>
-								<label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-								<TextInput v-model="editingInput.name" placeholder="Enter input name" />
-							</div>
-							<div>
-								<label class="mb-1 block text-sm font-medium text-gray-700">Type</label>
-								<Autocomplete
-									:options="fieldTypeOptions"
-									:modelValue="
-										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
-									"
-									@update:modelValue="
-										(option: SelectOption) => editingInput && (editingInput.type = option.value)
-									"
-								>
-									<template #target="{ togglePopover }">
-										<div
-											@click="togglePopover"
-											class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 hover:bg-gray-50"
-										>
-											<FeatherIcon
-												:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
-												class="h-4 w-4 text-gray-500"
-											/>
-											<span class="text-sm">
-												{{
-													editingInput
-														? fieldTypeOptions.find((opt) => opt.value === editingInput!.type)?.label
-														: ""
-												}}
-											</span>
-										</div>
-									</template>
-								</Autocomplete>
-							</div>
-							<div>
-								<label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
-								<TextInput v-model="editingInput.description" placeholder="Enter description (optional)" />
-							</div>
-							<div>
-								<label class="mb-1 block text-sm font-medium text-gray-700">Default Value</label>
-								<TextInput v-model="editingInput.defaultValue" placeholder="Enter default value (optional)" />
-							</div>
+							<FormControl
+								type="text"
+								label="Name"
+								v-model="editingInput.name"
+								placeholder="e.g. user_name"
+								autocomplete="off"
+								:required="true"
+							/>
+							<FormControl
+								type="autocomplete"
+								label="Type"
+								:options="fieldTypeOptions"
+								:modelValue="
+									editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
+								"
+								@update:modelValue="
+									(option: SelectOption) => {
+										if (editingInput) {
+											editingInput.type = option.value
+											setInputControl()
+										}
+									}
+								"
+								:required="true"
+							>
+								<template #prefix>
+									<FeatherIcon
+										:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
+										class="mr-1 h-3 w-3 text-gray-500"
+									/>
+								</template>
+								<template #item-prefix="{ option }">
+									<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
+								</template>
+							</FormControl>
+							<FormControl
+								v-if="editingInput.type === 'select'"
+								type="textarea"
+								label="Options"
+								v-model="editingInput.options"
+								:required="true"
+								placeholder="Enter list of options, each on a new line"
+							/>
+
+							<!-- Default value -->
+							<component
+								:is="editingInput.inputControl"
+								:type="editingInput.inputType"
+								label="Default Value"
+								v-model="editingInput.defaultValue"
+							/>
+							<FormControl
+								type="textarea"
+								label="Description"
+								v-model="editingInput.description"
+								placeholder="Enter description (optional)"
+							/>
 							<div class="flex gap-2">
 								<Button variant="solid" @click="saveInput">Save</Button>
 								<Button variant="outline" @click="cancelEdit">Cancel</Button>
@@ -105,11 +118,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
-import { Autocomplete, TextInput, Popover } from "frappe-ui"
+import { defineAsyncComponent, ref, markRaw } from "vue"
+import { Autocomplete, Popover, FormControl } from "frappe-ui"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
+import Code from "@/components/Code.vue"
+import ColorPicker from "@/components/ColorPicker.vue"
 
 const props = defineProps<{
 	block?: Block
@@ -120,7 +135,10 @@ interface ComponentInput {
 	type: string
 	description?: string
 	defaultValue?: string
+	options?: string[] // For select type
 	showPopover?: boolean
+	inputControl?: any
+	inputType?: string
 }
 
 const componentInputs = ref<ComponentInput[]>([])
@@ -136,7 +154,6 @@ const fieldTypeOptions = [
 	{ label: "Select", value: "select" },
 	{ label: "Code", value: "code" },
 	{ label: "Color", value: "color" },
-	{ label: "URL", value: "url" },
 ]
 
 const getFieldTypeIcon = (type: string) => {
@@ -147,15 +164,15 @@ const getFieldTypeIcon = (type: string) => {
 		textarea: "align-left",
 		select: "list",
 		code: "code",
-		color: "palette",
-		url: "link",
+		color: "droplet",
 	}
-	return iconMap[type] || "help-circle"
+	return iconMap[type] || "type"
 }
 
 const editInput = (input: ComponentInput, index: number) => {
 	editingInput.value = { ...input }
 	editingIndex.value = index
+	setInputControl()
 	showEditPopover.value = true
 }
 
@@ -175,7 +192,6 @@ const cancelEdit = () => {
 }
 
 const showAddInputPopover = (fieldType: string) => {
-	// Create new input immediately with type as name
 	const fieldTypeLabel = fieldTypeOptions.find((opt) => opt.value === fieldType)?.label || fieldType
 	const newInputData: ComponentInput = {
 		name: fieldTypeLabel,
@@ -183,15 +199,23 @@ const showAddInputPopover = (fieldType: string) => {
 		description: "",
 		defaultValue: "",
 	}
-
-	// Add to componentInputs
 	componentInputs.value.push(newInputData)
-
-	// Set up for editing the newly added input
 	const newIndex = componentInputs.value.length - 1
 	setTimeout(() => {
 		editInput(newInputData, newIndex)
 	}, 10) // Small delay to ensure DOM is updated
+}
+
+const setInputControl = () => {
+	if (!editingInput.value) return
+	if (editingInput.value.type === "code") {
+		editingInput.value.inputControl = markRaw(Code)
+	} else if (editingInput.value.type === "color") {
+		editingInput.value.inputControl = markRaw(ColorPicker)
+	} else {
+		editingInput.value.inputControl = "FormControl"
+		editingInput.value.inputType = editingInput.value?.type === "textarea" ? "textarea" : "text"
+	}
 }
 
 const removeInput = (index: number) => {
