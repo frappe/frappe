@@ -582,6 +582,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 			frappe.after_ajax(function () {
 				me.trigger_link_fields();
+				// If this document was created via mapping, ensure child table field
+				// triggers run for fetched values so Client Scripts execute.
+				me.trigger_child_link_fields_after_mapping();
 			});
 
 			frappe.breadcrumbs.add(me.meta.module, me.doctype);
@@ -1188,6 +1191,43 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 
 			delete this.doc.__run_link_triggers;
+		}
+	}
+
+	// Trigger child table link field events for mapped/fetched rows
+	trigger_child_link_fields_after_mapping() {
+		try {
+			if (!this.is_new()) return;
+			if (!this.doc.__onload || !this.doc.__onload.load_after_mapping) return;
+
+			// Iterate all table fields in the parent doctype
+			const table_fields = frappe.get_children("DocType", this.doctype, "fields", {
+				fieldtype: ["in", frappe.model.table_fields],
+			});
+
+			// For each child row, trigger link field set_value to run fetches and client scripts
+			$.each(table_fields, (i, df) => {
+				const grid = this.fields_dict[df.fieldname]?.grid;
+				if (!grid) return;
+
+				const child_meta = frappe.get_meta(df.options);
+				const link_fields = (child_meta.fields || []).filter((f) => f.fieldtype === "Link");
+				if (!link_fields.length) return;
+
+				(this.doc[df.fieldname] || []).forEach((row) => {
+					link_fields.forEach((lf) => {
+						const control = grid.grid_rows_by_docname?.[row.name]?.get_field(lf.fieldname);
+						if (!control) return;
+						const current_val = row[lf.fieldname];
+						if (current_val) {
+							// set_value(value, is_from_mapping=true) to avoid redundant dirtying
+							control.set_value(current_val, true);
+						}
+					});
+				});
+			});
+		} catch (e) {
+			console.error("Error triggering child link fields after mapping", e);
 		}
 	}
 
