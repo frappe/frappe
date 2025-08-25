@@ -1,11 +1,9 @@
 <template>
 	<StudioComponentWrapper
 		v-if="block.isStudioComponent"
-		:studioComponentId="block.componentName"
-		:data-studio-component-id="block.componentName"
-		:data-component-id="block.componentId"
-		:data-breakpoint="breakpoint"
-		ref="componentRef"
+		:studioComponentName="block.componentName"
+		:studioComponentId="block.componentId"
+		:breakpoint="breakpoint"
 	/>
 
 	<component
