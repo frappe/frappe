@@ -19,12 +19,17 @@
 				<Popover
 					v-for="(input, index) in componentInputs"
 					:key="input.name"
-					v-model:show="input.showPopover"
+					:show="showEditPopover && editingIndex === index"
+					@update:show="
+						(show: boolean) => {
+							if (!show) cancelEdit()
+						}
+					"
 					placement="bottom-start"
 				>
 					<template #target>
 						<div
-							class="group flex cursor-pointer items-center justify-between rounded-lg border border-transparent px-3 py-2 hover:border-gray-200 hover:bg-gray-50"
+							class="group flex flex-1 cursor-pointer items-center justify-between rounded-lg border border-transparent px-2 hover:border-gray-200 hover:bg-gray-50"
 							@click="editInput(input, index)"
 						>
 							<div class="flex items-center gap-2">
@@ -40,27 +45,38 @@
 							/>
 						</div>
 					</template>
-					<template #body>
-						<div class="w-64 space-y-4 p-4">
+					<template #body-main>
+						<div class="w-64 space-y-4 p-4" v-if="editingInput && editingIndex === index">
 							<div>
 								<label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-								<TextInput v-model="input.name" placeholder="Enter input name" />
+								<TextInput v-model="editingInput.name" placeholder="Enter input name" />
 							</div>
 							<div>
 								<label class="mb-1 block text-sm font-medium text-gray-700">Type</label>
 								<Autocomplete
 									:options="fieldTypeOptions"
-									:modelValue="fieldTypeOptions.find((opt) => opt.value === input.type)"
-									@update:modelValue="(option: SelectOption) => (input.type = option.value)"
+									:modelValue="
+										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
+									"
+									@update:modelValue="
+										(option: SelectOption) => editingInput && (editingInput.type = option.value)
+									"
 								>
 									<template #target="{ togglePopover }">
 										<div
 											@click="togglePopover"
 											class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 hover:bg-gray-50"
 										>
-											<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
+											<FeatherIcon
+												:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
+												class="h-4 w-4 text-gray-500"
+											/>
 											<span class="text-sm">
-												{{ fieldTypeOptions.find((opt) => opt.value === input.type)?.label }}
+												{{
+													editingInput
+														? fieldTypeOptions.find((opt) => opt.value === editingInput!.type)?.label
+														: ""
+												}}
 											</span>
 										</div>
 									</template>
@@ -68,15 +84,15 @@
 							</div>
 							<div>
 								<label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
-								<TextInput v-model="input.description" placeholder="Enter description (optional)" />
+								<TextInput v-model="editingInput.description" placeholder="Enter description (optional)" />
 							</div>
 							<div>
 								<label class="mb-1 block text-sm font-medium text-gray-700">Default Value</label>
-								<TextInput v-model="input.defaultValue" placeholder="Enter default value (optional)" />
+								<TextInput v-model="editingInput.defaultValue" placeholder="Enter default value (optional)" />
 							</div>
 							<div class="flex gap-2">
-								<Button variant="solid" @click="saveInput(index)">Save</Button>
-								<Button variant="outline" @click="input.showPopover = false">Cancel</Button>
+								<Button variant="solid" @click="saveInput">Save</Button>
+								<Button variant="outline" @click="cancelEdit">Cancel</Button>
 							</div>
 						</div>
 					</template>
@@ -85,39 +101,12 @@
 
 			<EmptyState v-else message="No inputs added" />
 		</div>
-
-		<!-- Add Input Popover -->
-		<Popover v-model:show="showAddInput" placement="bottom-start">
-			<template #target>
-				<div ref="addInputTarget"></div>
-			</template>
-			<template #body>
-				<div class="space-y-4 p-4">
-					<div>
-						<label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
-						<TextInput v-model="newInput.name" placeholder="Enter input name" />
-					</div>
-					<div>
-						<label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
-						<TextInput v-model="newInput.description" placeholder="Enter description (optional)" />
-					</div>
-					<div>
-						<label class="mb-1 block text-sm font-medium text-gray-700">Default Value</label>
-						<TextInput v-model="newInput.defaultValue" placeholder="Enter default value (optional)" />
-					</div>
-					<div class="flex gap-2">
-						<Button variant="solid" @click="addInput" :disabled="!newInput.name">Add Input</Button>
-						<Button variant="outline" @click="cancelAddInput">Cancel</Button>
-					</div>
-				</div>
-			</template>
-		</Popover>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Autocomplete, TextInput, Popover, Badge } from "frappe-ui"
+import { Autocomplete, TextInput, Popover } from "frappe-ui"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
@@ -135,14 +124,9 @@ interface ComponentInput {
 }
 
 const componentInputs = ref<ComponentInput[]>([])
-const showAddInput = ref(false)
-const addInputTarget = ref<HTMLElement>()
-const newInput = ref<ComponentInput>({
-	name: "",
-	type: "",
-	description: "",
-	defaultValue: "",
-})
+const showEditPopover = ref(false)
+const editingInput = ref<ComponentInput | null>(null)
+const editingIndex = ref<number>(-1)
 
 const fieldTypeOptions = [
 	{ label: "Text", value: "text" },
@@ -159,58 +143,55 @@ const getFieldTypeIcon = (type: string) => {
 	const iconMap: Record<string, string> = {
 		text: "type",
 		number: "hash",
+		checkbox: "check-square",
 		textarea: "align-left",
-		checkbox: "toggle-left",
 		select: "list",
 		code: "code",
 		color: "palette",
-		email: "mail",
 		url: "link",
 	}
 	return iconMap[type] || "help-circle"
 }
 
 const editInput = (input: ComponentInput, index: number) => {
-	input.showPopover = true
+	editingInput.value = { ...input }
+	editingIndex.value = index
+	showEditPopover.value = true
 }
 
-const saveInput = (index: number) => {
-	componentInputs.value[index].showPopover = false
+const saveInput = () => {
+	if (editingInput.value && editingIndex.value >= 0) {
+		componentInputs.value[editingIndex.value] = { ...editingInput.value }
+	}
+	showEditPopover.value = false
+	editingInput.value = null
+	editingIndex.value = -1
+}
+
+const cancelEdit = () => {
+	showEditPopover.value = false
+	editingInput.value = null
+	editingIndex.value = -1
 }
 
 const showAddInputPopover = (fieldType: string) => {
-	newInput.value = {
-		name: "",
+	// Create new input immediately with type as name
+	const fieldTypeLabel = fieldTypeOptions.find((opt) => opt.value === fieldType)?.label || fieldType
+	const newInputData: ComponentInput = {
+		name: fieldTypeLabel,
 		type: fieldType,
 		description: "",
 		defaultValue: "",
 	}
-	showAddInput.value = true
-}
 
-const addInput = () => {
-	if (!newInput.value.name) return
+	// Add to componentInputs
+	componentInputs.value.push(newInputData)
 
-	componentInputs.value.push({ ...newInput.value })
-
-	// Reset form
-	newInput.value = {
-		name: "",
-		type: "",
-		description: "",
-		defaultValue: "",
-	}
-	showAddInput.value = false
-}
-
-const cancelAddInput = () => {
-	newInput.value = {
-		name: "",
-		type: "",
-		description: "",
-		defaultValue: "",
-	}
-	showAddInput.value = false
+	// Set up for editing the newly added input
+	const newIndex = componentInputs.value.length - 1
+	setTimeout(() => {
+		editInput(newInputData, newIndex)
+	}, 10) // Small delay to ensure DOM is updated
 }
 
 const removeInput = (index: number) => {
