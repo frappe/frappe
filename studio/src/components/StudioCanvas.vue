@@ -227,6 +227,12 @@ function clearSelection() {
 	selectedBlockIds.value = new Set()
 }
 
+const isRootSelected = computed(() => {
+	return (
+		selectedBlockIds.value.size === 1 && selectedBlockIds.value.has(rootComponent.value?.componentId || "")
+	)
+})
+
 // slots
 const selectedSlot = ref<Slot | null>()
 function selectSlot(slot: Slot) {
@@ -309,6 +315,7 @@ defineExpose({
 	selectBlock,
 	selectBlockById,
 	clearSelection,
+	isRootSelected,
 	// slots
 	selectedSlot,
 	selectSlot,

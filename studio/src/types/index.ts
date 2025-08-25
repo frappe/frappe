@@ -111,7 +111,7 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
-export type RightPanelOptions = "Properties" | "Events" | "Styles"
+export type RightPanelOptions = "Properties" | "Events" | "Styles" | "Interface"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 
 // right panel

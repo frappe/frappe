@@ -22,7 +22,7 @@
 					:class="{
 						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
 						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
-						'flex-1 px-2': canvasStore.editingMode !== 'component',
+						'flex-1 px-2': !showInterfaceTab,
 					}"
 				>
 					{{ tab }}
@@ -44,6 +44,11 @@
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
+			<ComponentInterface
+				v-if="activeTab === 'Interface'"
+				class="p-4"
+				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
+			/>
 		</div>
 	</div>
 </template>
@@ -53,6 +58,7 @@ import { computed } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
+import ComponentInterface from "@/components/ComponentInterface.vue"
 import ComponentProps from "@/components/ComponentProps.vue"
 import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
@@ -65,9 +71,15 @@ const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
 const tabs = computed(() => {
 	const _tabs = ["Properties", "Events", "Styles"]
-	if (canvasStore.editingMode === "component" && canvasStore.fragmentData.fragmentId) {
+	if (showInterfaceTab.value) {
 		_tabs.unshift("Interface")
 	}
 	return _tabs
+})
+
+const showInterfaceTab = computed(() => {
+	if (canvasStore.editingMode !== "component") return false
+	if (canvasStore.activeCanvas?.isRootSelected) return true
+	return false
 })
 </script>

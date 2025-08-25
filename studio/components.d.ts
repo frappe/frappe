@@ -28,6 +28,7 @@ declare module 'vue' {
     ComponentContextMenu: typeof import('./src/components/ComponentContextMenu.vue')['default']
     ComponentEditor: typeof import('./src/components/ComponentEditor.vue')['default']
     ComponentEvents: typeof import('./src/components/ComponentEvents.vue')['default']
+    ComponentInterface: typeof import('./src/components/ComponentInterface.vue')['default']
     ComponentLayers: typeof import('./src/components/ComponentLayers.vue')['default']
     ComponentPanel: typeof import('./src/components/ComponentPanel.vue')['default']
     ComponentProps: typeof import('./src/components/ComponentProps.vue')['default']
