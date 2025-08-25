@@ -16,16 +16,15 @@ const props = defineProps<{
 const block = ref<Block | undefined>()
 
 const { getComponent } = useStudioComponents()
-
 watch(
-	() => props.studioComponentName,
+	() => props.studioComponentId,
 	async () => {
 		block.value = await getComponent(props.studioComponentName)
 		if (!block.value) {
 			console.error(`Component with ID ${props.studioComponentName} not found`)
 			return
 		}
-		block.value.componentId = props.studioComponentId
+		block.value.initializeStudioComponent(props.studioComponentName, props.studioComponentId)
 	},
 	{ immediate: true },
 )

@@ -28,6 +28,8 @@ export interface BlockOptions {
 	parentSlotName?: string // for top-level blocks inside a slot
 	visibilityCondition?: string
 	isStudioComponent?: boolean
+	isChildOfComponent?: string
+	isExtendedFromComponent?: boolean
 	[key: string]: any
 }
 

@@ -11,7 +11,7 @@
 		<span
 			v-if="!props.block.isRoot()"
 			class="absolute -top-3 left-0 inline-block text-xs"
-			:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
+			:class="componentLabelClasses"
 		>
 			{{ block.componentName }}
 		</span>
@@ -148,7 +148,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = []
 
-	if (props.block.isStudioComponent) {
+	if (props.block.isExtendedFromComponent) {
 		classes.push("ring-purple-400")
 	} else {
 		classes.push("ring-blue-400")
@@ -161,6 +161,14 @@ const getStyleClasses = computed(() => {
 		classes.push("!z-[19]")
 	}
 	return classes
+})
+
+const componentLabelClasses = computed(() => {
+	if (isBlockSelected.value) {
+		return props.block.isExtendedFromComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
+	} else {
+		return props.block.isExtendedFromComponent ? "text-purple-500" : "text-blue-500"
+	}
 })
 
 const preventClick = ref(false)

@@ -31,7 +31,10 @@ class Block implements BlockOptions {
 	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
+	// studio component specific
 	isStudioComponent?: boolean
+	isChildOfComponent?: string
+	isExtendedFromComponent?: boolean // for the component root
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
 
@@ -679,7 +682,15 @@ class Block implements BlockOptions {
 		let parentBlock = this.getParentBlock()
 		const newBlock = getComponentBlock(componentName, true)
 		parentBlock?.replaceChild(this, newBlock)
+	}
 
+	initializeStudioComponent(studioComponentName: string, studioComponentId: string) {
+		this.componentId = studioComponentId
+		this.componentName = studioComponentName
+		this.isExtendedFromComponent = true
+		this.children?.forEach((child) => {
+			child.isChildOfComponent = studioComponentId
+		})
 	}
 }
 
