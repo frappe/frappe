@@ -69,7 +69,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.df.options == "URL") {
 			this.setup_url_field();
 		}
-
 		if (this.df.options == "Barcode") {
 			this.setup_barcode_field();
 		}
@@ -147,6 +146,9 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$scan_btn.toggle(true);
 
 		const me = this;
+		$(document).on("frappe.ui.Dialog:shown", function () {
+			me.$scan_btn.toggle(true);
+		});
 		this.$scan_btn.on("click", "a", () => {
 			new frappe.ui.Scanner({
 				dialog: true,

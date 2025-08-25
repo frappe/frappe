@@ -96,6 +96,9 @@
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
 	color: var(--text-muted);
+	button.col:focus {
+		outline: 1px solid #c9c9c9;
+	}
 }
 
 .grid-empty,

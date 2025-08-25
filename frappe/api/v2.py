@@ -88,9 +88,12 @@ def count(doctype: str) -> int:
 def create_doc(doctype: str):
 	data = frappe.form_dict
 	data.pop("doctype", None)
-	if (name := data.get("name")) and isinstance(name, str):
-		frappe.flags.api_name_set = True
-	return frappe.new_doc(doctype, **data).insert()
+	doc = frappe.new_doc(doctype, **data)
+
+	if (name := data.get("name")) and isinstance(name, str | int):
+		doc.flags.name_set = True
+
+	return doc.insert()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):

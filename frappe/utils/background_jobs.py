@@ -33,6 +33,7 @@ RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
 RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around
 RQ_RESULTS_TTL = 10 * 60
 
+MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue.
 
 _redis_queue_conn = None
 
@@ -127,6 +128,8 @@ def enqueue(
 			return frappe.call(method, **kwargs)
 
 		raise
+
+	_check_queue_size(q)
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
@@ -499,7 +502,7 @@ def get_redis_conn(username=None, password=None):
 			return RedisQueue.get_connection(**cred)
 	except redis.exceptions.AuthenticationError:
 		log(
-			f'Wrong credentials used for {cred.username or "default user"}. '
+			f"Wrong credentials used for {cred.username or 'default user'}. "
 			"You can reset credentials using `bench create-rq-users` CLI and restart the server",
 			colour="red",
 		)
@@ -613,6 +616,25 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 		for job_ids in create_batch(failed_jobs, 100):
 			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
+
+
+def _check_queue_size(q: Queue):
+	max_jobs = cint(frappe.conf.max_queued_jobs)
+	if not max_jobs:
+		return
+
+	if cint(q.count) >= max_jobs:
+		primary_action = {
+			"label": "Monitor System Health",
+			"client_action": "frappe.set_route",
+			"args": ["Form", "System Health Report"],
+		}
+		frappe.throw(
+			_("Too many queued background jobs ({0}). Please retry after some time.").format(max_jobs),
+			title=_("Queue Overloaded"),
+			exc=frappe.QueueOverloaded,
+			primary_action=primary_action if frappe.has_permission("System Health Report") else None,
+		)
 
 
 def _start_sentry():

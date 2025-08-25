@@ -70,6 +70,7 @@
   "email_append_to",
   "sender_field",
   "sender_name_field",
+  "recipient_account_field",
   "subject_field",
   "sb2",
   "permissions",
@@ -694,6 +695,20 @@
    "fieldname": "protect_attached_files",
    "fieldtype": "Check",
    "label": "Protect Attached Files"
+  },
+  {
+   "default": "0",
+   "depends_on": "istable",
+   "fieldname": "rows_threshold_for_grid_search",
+   "fieldtype": "Int",
+   "label": "Rows Threshold for Grid Search",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "recipient_account_field",
+   "fieldtype": "Data",
+   "label": "Recipient Account Field"
   }
  ],
  "icon": "fa fa-bolt",
@@ -776,7 +791,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2025-03-27 18:16:53.286909",
+ "modified": "2025-07-19 12:23:16.296416",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

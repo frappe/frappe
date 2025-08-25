@@ -250,9 +250,7 @@ class Recorder:
 		if self.config.profile or self.profiler:
 			self.profiler.disable()
 			profiler_output = io.StringIO()
-			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
-				"cumulative"
-			).print_stats()
+			pstats.Stats(self.profiler, stream=profiler_output).sort_stats("cumulative").print_stats()
 			profile = profiler_output.getvalue()
 			profiler_output.close()
 			return profile

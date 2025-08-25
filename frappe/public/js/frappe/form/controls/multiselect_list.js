@@ -16,7 +16,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					</div>
 					<li class="text-right">
 						<button class="btn btn-primary btn-xs clear-selections text-nowrap">
-							Clear All
+							${__("Clear All")}
     					</button>
 					</li>
 				</ul>

@@ -226,13 +226,13 @@ def get_safe_globals():
 			get_fullname=frappe.utils.get_fullname,
 			get_gravatar=frappe.utils.get_gravatar_url,
 			full_name=frappe.local.session.data.full_name
-			if getattr(frappe.local, "session", None)
+			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
 			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
-				if getattr(frappe.local, "session", None)
+				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 				else "",
 			),
 			make_get_request=frappe.integrations.utils.make_get_request,

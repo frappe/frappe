@@ -23,6 +23,7 @@ class NumberCard(Document):
 		from frappe.types import DF
 
 		aggregate_function_based_on: DF.Literal[None]
+		background_color: DF.Color | None
 		color: DF.Color | None
 		currency: DF.Link | None
 		document_type: DF.Link | None
