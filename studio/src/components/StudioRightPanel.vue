@@ -15,13 +15,14 @@
 
 			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base">
 				<button
-					v-for="tab of ['Properties', 'Events', 'Styles']"
+					v-for="tab of tabs"
 					:key="tab"
-					class="mx-2 flex-1 p-2 py-3"
+					class="mx-2 py-3"
 					@click="store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions"
 					:class="{
 						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
 						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
+						'flex-1 px-2': canvasStore.editingMode === 'page',
 					}"
 				>
 					{{ tab }}
@@ -62,4 +63,9 @@ import type { RightPanelOptions } from "@/types"
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
+const tabs = computed(() => {
+	const _tabs = ["Properties", "Events", "Styles"]
+	if (canvasStore.editingMode === "fragment") _tabs.push("Settings")
+	return _tabs
+})
 </script>
