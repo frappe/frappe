@@ -29,6 +29,7 @@ import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentStore from "@/stores/componentStore"
 import type { ContextMenuOption } from "@/types"
 import { getBlockCopy, getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
@@ -154,6 +155,14 @@ const contextMenuOptions: ContextMenuOption[] = [
 			showNewComponentDialog.value = true
 		},
 		condition: () => !block.value.isStudioComponent,
+	},
+	{
+		label: "Edit Component",
+		action: () => {
+			const componentStore = useComponentStore()
+			componentStore.editComponent(block.value.componentName as string)
+		},
+		condition: () => Boolean(block.value.isStudioComponent),
 	},
 	{
 		label: "Add Fields from DocType",
