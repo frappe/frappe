@@ -67,6 +67,7 @@ const useComponentStore = defineStore("componentStore", () => {
 			"Save Component",
 			componentDoc.component_name,
 			componentDoc.component_id,
+			"component",
 		)
 	}
 

@@ -82,12 +82,17 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentId: <string | null>null,
 	})
 
+	function showFragmentCanvas() {
+		return editingMode.value === "fragment" || editingMode.value === "component" && fragmentData.value?.block
+	}
+
 	async function editOnCanvas(
 		block: Block,
 		saveAction: (block: Block) => void,
 		saveActionLabel: string = "Save",
 		fragmentName?: string,
-		fragmentId?: string
+		fragmentId?: string,
+		mode: EditingMode = "fragment"
 	) {
 		const blockCopy = getBlockCopy(block, true)
 		fragmentData.value = {
@@ -97,7 +102,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 			fragmentName: fragmentName || block.componentName,
 			fragmentId: fragmentId || block.componentId
 		}
-		editingMode.value = "fragment"
+		editingMode.value = mode
 	}
 
 	async function exitFragmentMode(e?: Event) {
@@ -139,6 +144,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		handleDragEnd,
 		// fragment mode
 		editingMode,
+		showFragmentCanvas,
 		fragmentData,
 		editOnCanvas,
 		exitFragmentMode,

@@ -22,7 +22,7 @@
 					:class="{
 						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
 						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
-						'flex-1 px-2': canvasStore.editingMode === 'page',
+						'flex-1 px-2': canvasStore.editingMode !== 'component',
 					}"
 				>
 					{{ tab }}
@@ -65,7 +65,9 @@ const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
 const tabs = computed(() => {
 	const _tabs = ["Properties", "Events", "Styles"]
-	if (canvasStore.editingMode === "fragment") _tabs.push("Settings")
+	if (canvasStore.editingMode === "component" && canvasStore.fragmentData.fragmentId) {
+		_tabs.unshift("Interface")
+	}
 	return _tabs
 })
 </script>

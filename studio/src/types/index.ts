@@ -33,7 +33,7 @@ export interface BlockOptions {
 	[key: string]: any
 }
 
-export type EditingMode = "page" | "fragment"
+export type EditingMode = "page" | "fragment" | "component"
 export type StudioMode = "select" | "container"
 
 // slot
