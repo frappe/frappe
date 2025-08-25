@@ -29,6 +29,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
 		}
+		if (value && this.datepicker) {
+			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		}
 	}
 
 	get_start_date() {
@@ -96,6 +99,12 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			$tp.$seconds.parent().css("display", "none");
 			$tp.$secondsText.css("display", "none");
 			$tp.$secondsText.prev().css("display", "none");
+		}
+		if (this.get_input_value() && this.datepicker) {
+			const currentValue = this.get_input_value();
+			if (currentValue) {
+				this.datepicker.selectDate(frappe.datetime.user_to_obj(currentValue));
+			}
 		}
 	}
 
