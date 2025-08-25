@@ -34,7 +34,7 @@ class Block implements BlockOptions {
 	// studio component specific
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
-	isExtendedFromComponent?: boolean // for the component root
+	isExtendedFromComponent?: string // for the component root
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
 
@@ -686,11 +686,21 @@ class Block implements BlockOptions {
 
 	initializeStudioComponent(studioComponentName: string, studioComponentId: string) {
 		this.componentId = studioComponentId
-		this.componentName = studioComponentName
-		this.isExtendedFromComponent = true
-		this.children?.forEach((child) => {
-			child.isChildOfComponent = studioComponentId
-		})
+		this.isExtendedFromComponent = studioComponentName
+
+		function linkParentComponentId(block: Block, studioComponentId: string) {
+			block.children?.forEach((child) => {
+				child.isChildOfComponent = studioComponentId
+				if (child.children?.length) {
+					linkParentComponentId(child, studioComponentId)
+				}
+			})
+		}
+		linkParentComponentId(this, studioComponentId)
+	}
+
+	getComponentLabel() {
+		return this.isExtendedFromComponent ||this.componentName
 	}
 }
 

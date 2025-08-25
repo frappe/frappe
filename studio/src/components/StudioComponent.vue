@@ -1,10 +1,5 @@
 <template>
-	<StudioComponentWrapper
-		v-if="block.isStudioComponent"
-		:studioComponentName="block.componentName"
-		:studioComponentId="block.componentId"
-		:breakpoint="breakpoint"
-	/>
+	<StudioComponentWrapper v-if="block.isStudioComponent" :componentBlock="block" :breakpoint="breakpoint" />
 
 	<component
 		v-else-if="block.canHaveChildren()"
@@ -217,6 +212,7 @@ const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.ha
 
 const loadEditor = computed(() => {
 	return (
+		!props.block.isChildOfComponent &&
 		target.value &&
 		isComponentReady.value &&
 		props.block.getStyle("display") !== "none" &&

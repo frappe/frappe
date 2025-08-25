@@ -9,22 +9,22 @@ import Block from "@/utils/block"
 import { useStudioComponents } from "@/utils/useStudioComponents"
 
 const props = defineProps<{
-	studioComponentId: string
-	studioComponentName: string
+	componentBlock: Block
 	breakpoint?: string
 }>()
 const block = ref<Block | undefined>()
 
 const { getComponent } = useStudioComponents()
 watch(
-	() => props.studioComponentId,
+	() => props.componentBlock.componentId,
 	async () => {
-		block.value = await getComponent(props.studioComponentName)
+		const { componentId, componentName } = props.componentBlock
+		block.value = await getComponent(componentName)
 		if (!block.value) {
-			console.error(`Component with ID ${props.studioComponentName} not found`)
+			console.error(`Component with ID ${componentName} not found`)
 			return
 		}
-		block.value.initializeStudioComponent(props.studioComponentName, props.studioComponentId)
+		block.value.initializeStudioComponent(componentName, componentId)
 	},
 	{ immediate: true },
 )
