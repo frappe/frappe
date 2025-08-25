@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive } from "vue"
+import { ref, reactive, computed } from "vue"
 import type Block from "@/utils/block"
 import { getBlockCopy, getBlockInstance } from "@/utils/helpers"
 
@@ -82,9 +82,9 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentId: <string | null>null,
 	})
 
-	function showFragmentCanvas() {
+	const showFragmentCanvas = computed(() => {
 		return editingMode.value === "fragment" || editingMode.value === "component" && fragmentData.value?.block
-	}
+	})
 
 	async function editOnCanvas(
 		block: Block,

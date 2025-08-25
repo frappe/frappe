@@ -10,7 +10,7 @@
 			<StudioCanvas
 				ref="fragmentCanvas"
 				:key="canvasStore.fragmentData.block?.componentId"
-				v-if="canvasStore.showFragmentCanvas() && canvasStore.fragmentData.block"
+				v-if="canvasStore.showFragmentCanvas && canvasStore.fragmentData.block"
 				:componentTree="canvasStore.fragmentData.block"
 				:canvas-styles="{
 					width: (canvasStore.fragmentData.block.getStyle('width') + '').endsWith('px')
