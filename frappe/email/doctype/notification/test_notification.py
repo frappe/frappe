@@ -440,6 +440,79 @@ class TestNotification(IntegrationTestCase):
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
 
+	def test_cc_receiver_by_role_with_permission(self):
+		"""Test CC by role with permission check only includes users with read permission."""
+		notification = frappe.new_doc("Notification")
+		notification.name = "CC Role Permission Test"
+		notification.subject = "CC Role Permission Test"
+		notification.document_type = "ToDo"
+		notification.event = "Save"
+		notification.message = "Test message"
+		notification.channel = "Email"
+		notification.append(
+			"recipients", {"cc_receiver_by_role": "System Manager", "check_user_permission": 1}
+		)
+		notification.save()
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Test CC Role Permission"
+		todo.save()
+
+		recipients, cc, bcc = notification.get_list_of_recipients(todo, {})
+		for email in cc:
+			self.assertTrue(frappe.permissions.has_permission("ToDo", ptype="read", doc=todo, user=email))
+
+		notification.delete()
+
+	def test_receiver_by_role_with_permission(self):
+		"""Test receiver by role with permission check only includes users with read permission."""
+		notification = frappe.new_doc("Notification")
+		notification.name = "Receiver Role Permission Test"
+		notification.subject = "Receiver Role Permission Test"
+		notification.document_type = "ToDo"
+		notification.event = "Save"
+		notification.message = "Test message"
+		notification.channel = "Email"
+		notification.append("recipients", {"receiver_by_role": "System Manager", "check_user_permission": 1})
+		notification.save()
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Test Receiver Role Permission"
+		todo.save()
+
+		recipients, cc, bcc = notification.get_list_of_recipients(todo, {})
+		for email in recipients:
+			self.assertTrue(frappe.permissions.has_permission("ToDo", ptype="read", doc=todo, user=email))
+
+		notification.delete()
+
+	def test_cc_receiver_by_role_without_permission(self):
+		"""Test CC by role without permission check includes all role emails."""
+		notification = frappe.new_doc("Notification")
+		notification.name = "CC Role No Permission Test"
+		notification.subject = "CC Role No Permission Test"
+		notification.document_type = "ToDo"
+		notification.event = "Save"
+		notification.message = "Test message"
+		notification.channel = "Email"
+		notification.append(
+			"recipients", {"cc_receiver_by_role": "System Manager", "check_user_permission": 0}
+		)
+		notification.save()
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Test CC Role No Permission"
+		todo.save()
+
+		recipients, cc, bcc = notification.get_list_of_recipients(todo, {})
+		role_emails = frappe.core.doctype.role.role.get_info_based_on_role(
+			"System Manager", "email", ignore_permissions=True
+		)
+		for email in role_emails:
+			self.assertIn(email, cc)
+
+		notification.delete()
+
 	def test_notification_value_change_casted_types(self):
 		"""Make sure value change event dont fire because of incorrect type comparisons."""
 		frappe.set_user("Administrator")
