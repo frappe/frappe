@@ -71,6 +71,14 @@ class NamingSeries:
 				exc=InvalidNamingSeriesError,
 			)
 
+		if "#" in self.series and ".#" not in self.series:
+			frappe.throw(
+				_(
+					"Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
+				).format(frappe.bold(self.series)),
+				exc=InvalidNamingSeriesError,
+			)
+
 	def generate_next_name(self, doc: "Document", *, ignore_validate=False) -> str:
 		if not ignore_validate:
 			self.validate()

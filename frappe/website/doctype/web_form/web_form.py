@@ -464,7 +464,9 @@ def get_context(context):
 			if os.path.exists(js_path):
 				script = frappe.render_template(open(js_path).read(), context)
 
-				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
+				for path in get_code_files_via_hooks(
+					"webform_include_js", context.doc_type
+				) + get_code_files_via_hooks("webform_include_js", "*"):
 					custom_js = frappe.render_template(open(path).read(), context)
 					script = "\n\n".join([script, custom_js])
 

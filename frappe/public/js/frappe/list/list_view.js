@@ -34,6 +34,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.count_upper_bound = 1001;
 		this._element_factory = new ElementFactory(this.doctype);
 		this.column_max_widths = {};
+		this.max_number_of_avatars = 3;
+		this.max_number_of_fields = 50;
 	}
 
 	has_permissions() {
@@ -430,7 +432,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			total_fields = 10;
 		}
 
-		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
+		this.columns = this.columns.slice(0, this.max_number_of_fields);
 
 		// 2nd column: tag - normally hidden doesn't count towards total_fields
 		this.columns.splice(1, 0, {
@@ -640,14 +642,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let has_assignto = false;
 
+		let assign_to_length = 0;
 		if (this.data.length > 0) {
 			// append rows
 			let idx = 0;
 			for (let doc of this.data) {
 				doc._idx = idx++;
 				this.$result.append(this.get_list_row_html(doc));
-				if (!has_assignto && doc._assign) {
-					has_assignto = true;
+				if (doc._assign) {
+					assign_to_length = Math.max(
+						assign_to_length,
+						JSON.parse(doc._assign)?.length > this.max_number_of_avatars
+							? this.max_number_of_avatars
+							: JSON.parse(doc._assign)?.length
+					);
+
+					if (!has_assignto) {
+						has_assignto = true;
+					}
 				}
 			}
 		}
@@ -655,8 +667,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// add class to result to indetify that it has assignto
 		if (has_assignto) {
-			this.$result.addClass("has-assign-to");
+			this.$result.addClass(["has-assign-to", `assign-to-length-${assign_to_length}`]);
+			this.$result.removeClass("no-assign-to");
 		} else {
+			this.$result.removeClass("has-assign-to");
 			this.$result.addClass("no-assign-to");
 		}
 	}
@@ -791,7 +805,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		for (let i = 0; i < this.columns.length; i++) {
 			let col = this.columns[i];
 
-			if (i == 4 && !doc[col.df.fieldname]) {
+			if (i == 4 && !doc[col.df.fieldname] && doc[col.df.fieldname] != 0) {
 				has_value_in_second_column = false;
 			}
 
@@ -1011,7 +1025,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	apply_column_widths() {
 		if (this.list_view_settings?.disable_scrolling) return;
 		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
-			$(`.${fieldname}`).css({
+			$(`.list-view .frappe-list .result .level-left .list-row-col.${fieldname}`).css({
 				width: width,
 				flex: `1 0 ${width}px`,
 			});
@@ -1048,7 +1062,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
-					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
+					${
+						frappe.avatar_group(assigned_users, this.max_number_of_avatars - 1, {
+							filterable: true,
+						})[0].outerHTML
+					}
 				</div>`;
 		}
 

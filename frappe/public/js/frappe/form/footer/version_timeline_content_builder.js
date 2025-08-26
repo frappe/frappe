@@ -163,7 +163,7 @@ function get_version_timeline_content(version_doc, frm) {
 								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
-								row[1],
+								row[1] + 1,
 							])
 						);
 					}
