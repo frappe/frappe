@@ -6,7 +6,8 @@
 import { watch, ref } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
-import { useStudioComponents } from "@/utils/useStudioComponents"
+import useComponentStore from "@/stores/componentStore"
+import { getBlockCopy } from "@/utils/helpers"
 
 const props = defineProps<{
 	componentBlock: Block
@@ -14,16 +15,17 @@ const props = defineProps<{
 }>()
 const block = ref<Block | undefined>()
 
-const { getComponent } = useStudioComponents()
+const componentStore = useComponentStore()
 watch(
 	() => props.componentBlock.componentId,
 	async () => {
 		const { componentId, componentName } = props.componentBlock
-		block.value = await getComponent(componentName)
-		if (!block.value) {
+		const component = await componentStore.getComponent(componentName)
+		if (!component) {
 			console.error(`Component with ID ${componentName} not found`)
 			return
 		}
+		block.value = getBlockCopy(component)
 		block.value.initializeStudioComponent(componentName, componentId)
 	},
 	{ immediate: true },

@@ -29,7 +29,7 @@ import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption } from "@/types"
 import { getBlockCopy, getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
@@ -159,8 +159,8 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Edit Component",
 		action: () => {
-			const componentStore = useComponentStore()
-			componentStore.editComponent(block.value.componentName as string)
+			const componentEditorStore = useComponentEditorStore()
+			componentEditorStore.editComponent(block.value.componentName as string)
 		},
 		condition: () => Boolean(block.value.isStudioComponent),
 	},

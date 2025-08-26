@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
-import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 
 const props = defineProps<{ block?: Block }>()
@@ -37,13 +37,18 @@ function createComponent() {
 		errorMessage.value = "Please enter a Component Name"
 		return
 	}
-	const componentStore = useComponentStore()
-	componentStore.createComponent(componentName.value, props.block).then((data) => {
-		if (data) {
-			emit("created", data)
-			reset()
-			showDialog.value = false
-		}
-	})
+	const componentEditorStore = useComponentEditorStore()
+	componentEditorStore
+		.createComponent(componentName.value, props.block)
+		.then((data) => {
+			if (data) {
+				emit("created", data)
+				reset()
+				showDialog.value = false
+			}
+		})
+		.catch((error) => {
+			errorMessage.value = error.message || "Failed to create component"
+		})
 }
 </script>

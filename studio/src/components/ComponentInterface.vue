@@ -38,7 +38,7 @@
 							</div>
 							<button
 								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
-								@click.stop="componentStore.removeComponentInput(index)"
+								@click.stop="componentEditorStore.removeComponentInput(index)"
 							>
 								<FeatherIcon name="x" class="h-4 w-4" />
 							</button>
@@ -126,14 +126,14 @@ import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorPicker from "@/components/ColorPicker.vue"
-import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 
 const props = defineProps<{
 	block?: Block
 }>()
 
-const componentStore = useComponentStore()
-const componentInputs = computed(() => componentStore.componentInputs)
+const componentEditorStore = useComponentEditorStore()
+const componentInputs = computed(() => componentEditorStore.componentInputs)
 const showEditPopover = ref(false)
 const editingInput = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
@@ -170,7 +170,7 @@ const editInput = (input: ComponentInput, index: number) => {
 
 const saveInput = () => {
 	if (editingInput.value && editingIndex.value >= 0) {
-		componentStore.updateComponentInput(editingIndex.value, editingInput.value)
+		componentEditorStore.updateComponentInput(editingIndex.value, editingInput.value)
 	}
 	showEditPopover.value = false
 	editingInput.value = null
@@ -191,7 +191,7 @@ const showAddInputPopover = (fieldType: string) => {
 		description: "",
 		defaultValue: "",
 	}
-	componentStore.addComponentInput(newInputData)
+	componentEditorStore.addComponentInput(newInputData)
 	const newIndex = componentInputs.value.length - 1
 	setTimeout(() => {
 		editInput(newInputData, newIndex)

@@ -51,7 +51,7 @@
 					:key="component.component_id"
 					class="group/component flex select-none items-center justify-between rounded px-2 py-1"
 					:class="{
-						'border border-outline-gray-4': componentStore.selectedComponent === component.component_id,
+						'border border-outline-gray-4': componentEditorStore.selectedComponent === component.component_id,
 					}"
 				>
 					<div
@@ -81,7 +81,7 @@
 			<Button icon-left="plus" class="mt-3" @click="showNewComponentDialog = true">Create Component</Button>
 			<NewComponentDialog
 				v-model:showDialog="showNewComponentDialog"
-				@created="(component) => componentStore.editComponent(component.component_id)"
+				@created="(component) => componentEditorStore.editComponent(component.component_id)"
 			/>
 		</template>
 	</div>
@@ -101,13 +101,13 @@ import { studioComponents } from "@/data/studioComponents"
 
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
-import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
-const componentStore = useComponentStore()
+const componentEditorStore = useComponentEditorStore()
 
 const componentFilter = ref("")
 const componentList = computed(() => {
@@ -135,12 +135,12 @@ function getComponentMenu(component: StudioComponent) {
 		{
 			label: "Edit",
 			icon: "edit",
-			onClick: () => componentStore.editComponent(component.component_id),
+			onClick: () => componentEditorStore.editComponent(component.component_id),
 		},
 		{
 			label: "Delete",
 			icon: "trash",
-			onClick: () => componentStore.deleteComponent(component),
+			onClick: () => componentEditorStore.deleteComponent(component),
 		},
 	]
 }
@@ -151,12 +151,11 @@ const componentContainer = ref(null)
 useEventListener(componentContainer, "click", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
-		const componentStore = useComponentStore()
 		const componentName = component.dataset.componentName as string
-		componentStore.selectedComponent = componentName
+		componentEditorStore.selectedComponent = componentName
 		// if in edit mode, open the component in editor
 		if (canvasStore.fragmentData.fragmentId) {
-			componentStore.editComponent(componentName)
+			componentEditorStore.editComponent(componentName)
 		}
 	}
 })
@@ -177,8 +176,7 @@ useEventListener(componentContainer, "dragend", () => {
 useEventListener(componentContainer, "dblclick", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
-		const componentStore = useComponentStore()
-		componentStore.editComponent(component.dataset.componentName as string)
+		componentEditorStore.editComponent(component.dataset.componentName as string)
 	}
 })
 
