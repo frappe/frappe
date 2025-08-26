@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject } from "vue"
+import { computed, ref, watch, useAttrs, inject, ComputedRef } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
@@ -150,12 +150,17 @@ const componentName = computed(() => {
 })
 
 const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
+const componentContext = inject<ComputedRef>("componentContext")
 const getEvaluationContext = () => {
-	return {
+	const context: any = {
 		...store.variables,
 		...store.resources,
 		...repeaterContext,
 	}
+	if (componentContext?.value) {
+		context["inputs"] = componentContext.value
+	}
+	return context
 }
 
 const getComponentProps = () => {

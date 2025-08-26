@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from "vue"
+import { watch, ref, provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
@@ -14,6 +14,9 @@ const props = defineProps<{
 	breakpoint?: string
 }>()
 const block = ref<Block | undefined>()
+
+const componentContext = computed(() => props.componentBlock.componentProps)
+provide("componentContext", componentContext)
 
 const componentStore = useComponentStore()
 watch(
