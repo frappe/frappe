@@ -45,7 +45,7 @@
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentInterface
-				v-if="activeTab === 'Interface'"
+				v-if="activeTab === 'Interface' && showInterfaceTab"
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
