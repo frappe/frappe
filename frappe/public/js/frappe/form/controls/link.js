@@ -690,7 +690,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					fields: columns_to_fetch,
 				})
 				.then((response) => {
-					if (!this.docname || !columns_to_fetch.length) {
+					if (this.frm && !this.docname) {
+						return response.name;
+					}
+					if (!columns_to_fetch.length) {
 						return response.name;
 					}
 					update_dependant_fields(response);
