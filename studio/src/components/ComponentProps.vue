@@ -163,7 +163,7 @@ const store = useStudioStore()
 const getCompletions = useStudioCompletions()
 
 const componentInstance = computed(() => {
-	if (!props.block?.componentName) return {}
+	if (!props.block?.componentName || props.block.isStudioComponent) return {}
 	const component = resolveComponent(props.block?.componentName)
 	if (typeof component === "string" || !component) {
 		return {}
