@@ -192,7 +192,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			return;
 		}
 		if (this.df.description) {
+<<<<<<< HEAD
 			this.$wrapper.find(".help-box").html(__(this.df.description));
+=======
+			this.$wrapper.find(".help-box").html(__(this.df.description, null, this.df.parent));
+			this.toggle_description(true);
+>>>>>>> 4f7da990cc (feat: allow Context for translation in DocField.description in base input (#33715))
 		} else {
 			this.set_empty_description();
 		}
