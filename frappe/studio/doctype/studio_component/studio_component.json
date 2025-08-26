@@ -8,7 +8,9 @@
  "field_order": [
   "component_name",
   "blocks",
-  "component_id"
+  "component_id",
+  "interface_tab",
+  "inputs"
  ],
  "fields": [
   {
@@ -27,12 +29,23 @@
    "label": "Component ID",
    "no_copy": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "interface_tab",
+   "fieldtype": "Tab Break",
+   "label": "Interface"
+  },
+  {
+   "fieldname": "inputs",
+   "fieldtype": "Table",
+   "label": "Inputs",
+   "options": "Studio Component Input"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-20 11:23:33.608639",
+ "modified": "2025-08-26 09:48:54.529305",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
