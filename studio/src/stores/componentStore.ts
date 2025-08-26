@@ -6,11 +6,12 @@ import getBlockTemplate from "@/utils/blockTemplate"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "vue-sonner"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
 import { useStudioComponents } from "@/utils/useStudioComponents"
 
 const useComponentStore = defineStore("componentStore", () => {
 	const selectedComponent = ref<string | null>(null)
+	const componentInputs = ref<ComponentInput[]>([])
 	const { getComponent, getComponentDoc, cacheComponent, removeCachedComponent } = useStudioComponents()
 
 	async function createComponent(componentName: string, blocks?: Block | null) {
@@ -37,11 +38,21 @@ const useComponentStore = defineStore("componentStore", () => {
 	}
 
 	function saveComponent(blocks: Block, componentName: string) {
+		const payload: any = {
+			name: componentName,
+			blocks: getBlockObject(blocks),
+		}
+
+		payload.inputs = componentInputs.value.map(input => ({
+			input_name: input.name,
+			type: input.type,
+			description: input.description || "",
+			default_value: input.defaultValue || "",
+			required: 0
+		}))
+
 		studioComponents.setValue.submit(
-			{
-				name: componentName,
-				blocks: getBlockObject(blocks),
-			},
+			payload,
 			{
 				onSuccess(data: StudioComponent) {
 					cacheComponent(data)
@@ -60,6 +71,19 @@ const useComponentStore = defineStore("componentStore", () => {
 		const componentBlocks = await getComponent(componentId)
 		const componentDoc = getComponentDoc(componentId)
 		const blocks = componentBlocks || getBlockInstance(getBlockTemplate("empty-component"))
+
+		// Load existing inputs from the component doc
+		if (componentDoc && componentDoc.inputs) {
+			componentInputs.value = componentDoc.inputs.map((input: any) => ({
+				name: input.input_name,
+				type: input.type,
+				description: input.description,
+				defaultValue: input.default_value
+			}))
+		} else {
+			componentInputs.value = []
+		}
+
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			blocks,
@@ -96,12 +120,38 @@ const useComponentStore = defineStore("componentStore", () => {
 		return componentDoc.component_name
 	}
 
+	function addComponentInput(input: ComponentInput) {
+		componentInputs.value.push(input)
+	}
+
+	function updateComponentInput(index: number, input: ComponentInput) {
+		if (index >= 0 && index < componentInputs.value.length) {
+			componentInputs.value[index] = input
+		}
+	}
+
+	function removeComponentInput(index: number) {
+		if (index >= 0 && index < componentInputs.value.length) {
+			componentInputs.value.splice(index, 1)
+		}
+	}
+
+	function clearComponentInputs() {
+		componentInputs.value = []
+	}
+
 	return {
 		selectedComponent,
+		componentInputs,
 		createComponent,
 		editComponent,
 		deleteComponent,
 		getComponentName,
+		// inputs
+		addComponentInput,
+		updateComponentInput,
+		removeComponentInput,
+		clearComponentInputs,
 	}
 })
 

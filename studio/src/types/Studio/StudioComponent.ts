@@ -1,9 +1,30 @@
 export interface StudioComponent {
+	name: string
 	component_id: string
 	component_name: string
 	/**	Blocks : JSON	*/
 	blocks?: any
-	name?: string
+	inputs?: StudioComponentInput[]
 	creation?: string
 	modified?: string
+}
+
+export interface StudioComponentInput {
+	input_name: string
+	type: string
+	description?: string
+	default_value?: string
+	required?: number
+}
+
+// for UI
+export interface ComponentInput {
+	name: string
+	type: string
+	description?: string
+	defaultValue?: string
+	options?: string[] // For select type
+	showPopover?: boolean
+	inputControl?: any
+	inputType?: string
 }

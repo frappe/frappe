@@ -15,7 +15,7 @@
 				</Autocomplete>
 			</div>
 
-			<div class="mb-4 mt-3 flex flex-col gap-1" v-if="componentInputs.length > 0">
+			<div class="mb-4 flex flex-col gap-1" v-if="componentInputs.length > 0">
 				<Popover
 					v-for="(input, index) in componentInputs"
 					:key="input.name"
@@ -38,7 +38,7 @@
 							</div>
 							<button
 								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
-								@click.stop="removeInput(index)"
+								@click.stop="componentStore.removeComponentInput(index)"
 							>
 								<FeatherIcon name="x" class="h-4 w-4" />
 							</button>
@@ -118,30 +118,22 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, ref, markRaw } from "vue"
+import { ref, markRaw, computed } from "vue"
 import { Autocomplete, Popover, FormControl } from "frappe-ui"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
+import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorPicker from "@/components/ColorPicker.vue"
+import useComponentStore from "@/stores/componentStore"
 
 const props = defineProps<{
 	block?: Block
 }>()
 
-interface ComponentInput {
-	name: string
-	type: string
-	description?: string
-	defaultValue?: string
-	options?: string[] // For select type
-	showPopover?: boolean
-	inputControl?: any
-	inputType?: string
-}
-
-const componentInputs = ref<ComponentInput[]>([])
+const componentStore = useComponentStore()
+const componentInputs = computed(() => componentStore.componentInputs)
 const showEditPopover = ref(false)
 const editingInput = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
@@ -178,7 +170,7 @@ const editInput = (input: ComponentInput, index: number) => {
 
 const saveInput = () => {
 	if (editingInput.value && editingIndex.value >= 0) {
-		componentInputs.value[editingIndex.value] = { ...editingInput.value }
+		componentStore.updateComponentInput(editingIndex.value, editingInput.value)
 	}
 	showEditPopover.value = false
 	editingInput.value = null
@@ -199,7 +191,7 @@ const showAddInputPopover = (fieldType: string) => {
 		description: "",
 		defaultValue: "",
 	}
-	componentInputs.value.push(newInputData)
+	componentStore.addComponentInput(newInputData)
 	const newIndex = componentInputs.value.length - 1
 	setTimeout(() => {
 		editInput(newInputData, newIndex)
@@ -216,9 +208,5 @@ const setInputControl = () => {
 		editingInput.value.inputControl = "FormControl"
 		editingInput.value.inputType = editingInput.value?.type === "textarea" ? "textarea" : "text"
 	}
-}
-
-const removeInput = (index: number) => {
-	componentInputs.value.splice(index, 1)
 }
 </script>
