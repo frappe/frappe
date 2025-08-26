@@ -155,6 +155,7 @@ import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import { useComponentStore } from "@/stores/componentStore"
 
 const props = defineProps<{
 	block?: Block
@@ -174,7 +175,13 @@ const componentInstance = computed(() => {
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
-	const propConfig = getComponentProps(props.block.componentName, componentInstance.value)
+	let propConfig
+	if (props.block.isStudioComponent) {
+		const componentStore = useComponentStore()
+		propConfig = componentStore.getStudioComponentProps(props.block.componentName)
+	} else {
+		propConfig = getComponentProps(props.block.componentName, componentInstance.value)
+	}
 	if (!propConfig) return {}
 
 	Object.entries(propConfig).forEach(([propName, config]) => {
