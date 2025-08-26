@@ -92,11 +92,11 @@ class UserInvitation(Document):
 				"user": ["is", "set"],
 			},
 		):
-			frappe.throw(title=_("Error"), msg=_("invitation already accepted"))
+			frappe.throw(title=_("Error"), msg=_("Invitation already accepted"))
 		if frappe.db.get_value(
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
-			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
+			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
 		user_enabled = frappe.db.get_value("User", self.email, "enabled")
 		if user_enabled is not None and user_enabled == 0:
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
@@ -192,7 +192,7 @@ class UserInvitation(Document):
 	@staticmethod
 	def validate_app_name(app_name: str):
 		if app_name not in frappe.get_installed_apps():
-			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
+			frappe.throw(title=_("Invalid app"), msg=_("Application is not installed"))
 
 	@staticmethod
 	def validate_role(app_name: str) -> None:
