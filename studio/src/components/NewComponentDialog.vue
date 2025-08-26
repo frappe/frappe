@@ -20,7 +20,7 @@ import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
 import useComponentStore from "@/stores/componentStore"
 import Block from "@/utils/block"
 
-const props = defineProps<{ block: Block }>()
+const props = defineProps<{ block?: Block }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["created"])
 
