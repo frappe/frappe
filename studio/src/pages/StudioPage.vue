@@ -39,9 +39,18 @@
 								{{ canvasStore.fragmentData.fragmentName }}
 							</span>
 						</div>
-						<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
-							{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
-						</Button>
+
+						<div class="ml-auto flex items-center gap-2">
+							<Button
+								v-if="canvasStore.editingMode === 'component'"
+								variant="subtle"
+								icon="settings"
+								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
+							></Button>
+							<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
+							</Button>
+						</div>
 					</div>
 				</template>
 			</StudioCanvas>
