@@ -14,11 +14,22 @@ const props = defineProps<{
 	breakpoint?: string
 }>()
 const block = ref<Block | undefined>()
+const componentStore = useComponentStore()
 
-const componentContext = computed(() => props.componentBlock.componentProps)
+const componentContext = computed(() => {
+	const context = { ...props.componentBlock.componentProps }
+	const componentDoc = componentStore.getComponentDoc(props.componentBlock.componentName)
+	if (componentDoc?.inputs) {
+		componentDoc.inputs.forEach((input: any) => {
+			if (!(input.input_name in context) && input.default !== undefined) {
+				context[input.input_name] = input.default
+			}
+		})
+	}
+	return context
+})
 provide("componentContext", componentContext)
 
-const componentStore = useComponentStore()
 watch(
 	() => props.componentBlock.componentId,
 	async () => {
