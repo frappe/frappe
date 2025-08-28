@@ -58,7 +58,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			{
 				onSuccess(data: StudioComponent) {
 					componentStore.cacheComponent(data)
-					studioComponentBlock.value = null
+					resetStudioComponent()
 					toast.success("Component saved successfully")
 				},
 				onError(error: any) {
@@ -96,6 +96,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			componentDoc.component_name,
 			componentDoc.component_id,
 			"component",
+			() => resetStudioComponent(),
 		)
 	}
 
@@ -114,6 +115,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 					toast.error(`Failed to delete component '${component.component_name}'`)
 				})
 		}
+	}
+
+	function resetStudioComponent() {
+		studioComponentBlock.value = null
 	}
 
 	// component inputs
