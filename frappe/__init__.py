@@ -1473,18 +1473,28 @@ def logger(
 
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
+	from urllib.parse import quote
+
 	meta = get_meta(doctype)
 	title = get_value(doctype, name, meta.get_title_field())
 
 	target_attr = ' target="_blank"' if open_in_new_tab else ""
 
+	# encode for href
+	encoded_name = quote(name)
+
 	if show_title_with_name and name != title:
-		html = '<a href="/app/Form/{doctype}/{name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
+		html = '<a href="/app/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
 	else:
-		html = '<a href="/app/Form/{doctype}/{name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
+		html = '<a href="/app/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
 
 	return html.format(
-		doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title), target=target_attr
+		doctype=doctype,
+		name=name,
+		encoded_name=encoded_name,
+		doctype_local=_(doctype),
+		title_local=_(title),
+		target=target_attr,
 	)
 
 
@@ -1511,7 +1521,13 @@ def is_setup_complete():
 	if not frappe.db.table_exists("Installed Application"):
 		return setup_complete
 
-	if all(frappe.get_all("Installed Application", {"has_setup_wizard": 1}, pluck="is_setup_complete")):
+	if all(
+		frappe.get_all(
+			"Installed Application",
+			{"app_name": ("in", ["frappe", "erpnext"])},
+			pluck="is_setup_complete",
+		)
+	):
 		setup_complete = True
 
 	return setup_complete

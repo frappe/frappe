@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout Actions
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "frappe/backport"
           path: ./actions

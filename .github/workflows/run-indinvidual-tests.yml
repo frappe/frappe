@@ -14,7 +14,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - name: Clone
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - id: set-matrix
       run: |
         # Use grep and find to get the list of test files
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v5

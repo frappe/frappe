@@ -11,7 +11,6 @@ import frappe.defaults
 import frappe.desk.desk_page
 from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
-	get_setup_wizard_not_required_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
@@ -121,32 +120,7 @@ def get_bootinfo():
 		bootinfo.sentry_dsn = sentry_dsn
 
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
-	bootinfo.setup_wizard_not_required_apps = get_setup_wizard_not_required_apps() or []
-	remove_apps_with_incomplete_dependencies(bootinfo)
-
 	return bootinfo
-
-
-def remove_apps_with_incomplete_dependencies(bootinfo):
-	remove_apps = set()
-
-	for app in bootinfo.setup_wizard_not_required_apps:
-		if app in bootinfo.setup_wizard_completed_apps:
-			continue
-
-		for required_apps in frappe.get_hooks("required_apps"):
-			required_apps = required_apps.split("/")
-
-			for required_app in required_apps:
-				if app not in bootinfo.setup_wizard_not_required_apps:
-					continue
-
-				if required_app not in bootinfo.setup_wizard_completed_apps:
-					remove_apps.add(app)
-
-	for app in remove_apps:
-		if app in bootinfo.setup_wizard_not_required_apps:
-			bootinfo.setup_wizard_not_required_apps.remove(app)
 
 
 def get_letter_heads():

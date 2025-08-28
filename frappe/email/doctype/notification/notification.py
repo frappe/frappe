@@ -15,6 +15,7 @@ from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import add_to_date, cast, now_datetime, nowdate, validate_email_address
+from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -36,6 +37,7 @@ class Notification(Document):
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
+		condition_type: DF.Literal["Python", "Filters"]
 		date_changed: DF.Literal[None]
 		datetime_changed: DF.Literal[None]
 		datetime_last_run: DF.Datetime | None
@@ -56,6 +58,7 @@ class Notification(Document):
 			"Method",
 			"Custom",
 		]
+		filters: DF.Code | None
 		is_standard: DF.Check
 		message: DF.Code | None
 		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
@@ -88,12 +91,15 @@ class Notification(Document):
 
 	@frappe.whitelist()
 	def preview_meets_condition(self, preview_document):
-		if not self.condition:
+		if not self.condition and not self.filters:
 			return _("Yes")
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-			context = get_context(doc)
-			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
+			if self.condition_type == "Python":
+				context = get_context(doc)
+				return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
+			elif self.condition_type == "Filters":
+				return _("Yes") if evaluate_filters(doc, json.loads(self.filters)) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
 			return _("Failed to evaluate conditions: {}").format(e)
@@ -135,6 +141,9 @@ class Notification(Document):
 
 	# END: PreviewRenderer API
 
+	def before_save(self):
+		self.remove_invalid_condition()
+
 	def validate(self):
 		if self.channel in ("Email", "Slack", "System Notification"):
 			validate_template(self.subject)
@@ -159,6 +168,7 @@ class Notification(Document):
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
+		self.validate_filters()
 		self.validate_standard()
 		clear_notification_cache()
 
@@ -192,13 +202,29 @@ def get_context(context):
 				_("Cannot edit Standard Notification. To edit, please disable this and duplicate it")
 			)
 
+	def remove_invalid_condition(self):
+		if self.condition_type == "Filters":
+			self.condition = None
+		elif self.condition_type == "Python":
+			self.filters = None
+
 	def validate_condition(self):
+		if not self.condition:
+			return
+
 		temp_doc = frappe.new_doc(self.document_type)
-		if self.condition:
-			try:
-				frappe.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
-			except Exception:
-				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
+		try:
+			frappe.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
+		except Exception:
+			frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
+
+	def validate_filters(self):
+		if not self.filters:
+			return
+
+		filters = json.loads(self.filters)
+		dummy_doc = frappe.new_doc(self.document_type)
+		evaluate_filters(dummy_doc, filters)
 
 	def validate_forbidden_document_types(self):
 		if self.document_type in FORBIDDEN_DOCUMENT_TYPES or (
@@ -232,10 +258,18 @@ def get_context(context):
 			],
 		)
 
+		filters = json.loads(self.filters) if self.condition_type == "Filters" and self.filters else None
+
 		for d in doc_list:
 			doc = frappe.get_lazy_doc(self.document_type, d.name)
 
-			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
+			if (
+				self.condition_type == "Python"
+				and self.condition
+				and not frappe.safe_eval(self.condition, None, get_context(doc))
+			):
+				continue
+			elif filters and not evaluate_filters(doc, filters):
 				continue
 
 			docs.append(doc)
@@ -281,10 +315,18 @@ def get_context(context):
 
 		self.db_set("datetime_last_run", now)  # set reference now for next run
 
+		filters = json.loads(self.filters) if self.condition_type == "Filters" and self.filters else None
+
 		for d in doc_list:
 			doc = frappe.get_lazy_doc(self.document_type, d.name)
 
-			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
+			if (
+				self.condition_type == "Python"
+				and self.condition
+				and not frappe.safe_eval(self.condition, None, get_context(doc))
+			):
+				continue
+			elif filters and not evaluate_filters(doc, filters):
 				continue
 
 			docs.append(doc)
@@ -705,8 +747,11 @@ def evaluate_alert(doc: Document, alert, event=None):
 
 		context = get_context(doc)
 
-		if alert.condition:
+		if alert.condition_type == "Python" and alert.condition:
 			if not frappe.safe_eval(alert.condition, None, context):
+				return
+		elif alert.condition_type == "Filters" and alert.filters:
+			if not evaluate_filters(doc, json.loads(alert.filters)):
 				return
 
 		if event == "Value Change" and not doc.is_new():

@@ -302,6 +302,11 @@ def get_link_for_qrcode(user, totp_uri):
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	"""Send token as sms to user."""
+
+	send_token_hook_methods = frappe.get_hooks("send_token_via_sms")
+	if send_token_hook_methods:
+		return frappe.get_attr(send_token_hook_methods[-1])(otpsecret, token, phone_no)
+
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_request
 	except Exception:
