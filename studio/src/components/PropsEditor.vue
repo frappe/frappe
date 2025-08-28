@@ -86,9 +86,13 @@ import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import { useComponentStore } from "@/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
+import useComponentEditorStore from "@/stores/componentEditorStore"
+import type { ComponentProps } from "@/types"
+import { ComponentInput } from "@/types/Studio/StudioComponent"
 
 const props = defineProps<{
 	block?: Block
+	isEditingComponent?: boolean
 }>()
 
 const store = useStudioStore()
@@ -107,9 +111,15 @@ const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
 	let propConfig
-	if (props.block.isStudioComponent) {
+	if (props.isEditingComponent) {
+		const componentEditorStore = useComponentEditorStore()
+		propConfig = getStudioComponentProps(componentEditorStore.componentInputs)
+	} else if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
-		propConfig = componentStore.getStudioComponentProps(props.block.componentName)
+		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
+		if (componentDoc?.inputs) {
+			propConfig = getStudioComponentProps(componentDoc?.inputs)
+		}
 	} else {
 		propConfig = getComponentProps(props.block.componentName, componentInstance.value)
 	}
@@ -130,6 +140,25 @@ const componentProps = computed(() => {
 
 	return propConfig
 })
+
+function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
+	if (isObjectEmpty(componentInputs)) return {}
+
+	const _props: ComponentProps = {}
+	componentInputs.forEach((input) => {
+		_props[input.input_name] = {
+			type: input.type,
+			default: input.default || undefined,
+			inputType: input.type,
+			required: !!input.required,
+			options:
+				input.type === "Select" && Array.isArray(input.default)
+					? input.default.map((opt: string) => ({ value: opt, label: opt }))
+					: undefined,
+		}
+	})
+	return _props
+}
 
 // variable binding
 const boundValue = computed({

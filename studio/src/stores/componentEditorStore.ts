@@ -45,7 +45,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		}
 
 		payload.inputs = componentInputs.value.map(input => ({
-			input_name: input.name,
+			input_name: input.input_name,
 			type: input.type,
 			description: input.description || "",
 			default: input.default || "",
@@ -78,7 +78,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		// Load existing inputs from the component doc
 		if (componentDoc && componentDoc.inputs) {
 			componentInputs.value = componentDoc.inputs.map((input: any) => ({
-				name: input.input_name,
+				input_name: input.input_name,
 				type: input.type,
 				description: input.description,
 				default: input.default
@@ -115,6 +115,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		}
 	}
 
+	// component inputs
 	function addComponentInput(input: ComponentInput) {
 		componentInputs.value.push(input)
 	}

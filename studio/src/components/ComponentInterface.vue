@@ -18,7 +18,7 @@
 			<div class="mb-4 flex flex-col gap-1" v-if="componentInputs.length > 0">
 				<Popover
 					v-for="(input, index) in componentInputs"
-					:key="input.name"
+					:key="input.input_name"
 					:show="showEditPopover && editingIndex === index"
 					@update:show="
 						(show: boolean) => {
@@ -34,7 +34,7 @@
 						>
 							<div class="flex items-center gap-2">
 								<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
-								<span class="text-sm text-gray-800">{{ input.name }}</span>
+								<span class="text-sm text-gray-800">{{ input.input_name }}</span>
 							</div>
 							<button
 								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
@@ -49,7 +49,7 @@
 							<FormControl
 								type="text"
 								label="Name"
-								v-model="editingInput.name"
+								v-model="editingInput.input_name"
 								placeholder="e.g. user_name"
 								autocomplete="off"
 								:required="true"
@@ -97,6 +97,7 @@
 								label="Default Value"
 								v-model="editingInput.default"
 							/>
+							<FormControl type="checkbox" label="Is Required" size="sm" v-model="editingInput.required" />
 							<FormControl
 								type="textarea"
 								label="Description"
@@ -121,6 +122,7 @@
 			<PropsEditor
 				v-if="componentEditorStore.studioComponentBlock"
 				:block="componentEditorStore.studioComponentBlock"
+				:isEditingComponent="true"
 			/>
 		</div>
 	</div>
@@ -129,7 +131,6 @@
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
 import { Autocomplete, Popover, FormControl } from "frappe-ui"
-import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
@@ -192,7 +193,7 @@ const cancelEdit = () => {
 const showAddInputPopover = (fieldType: string) => {
 	const fieldTypeLabel = fieldTypeOptions.find((opt) => opt.value === fieldType)?.label || fieldType
 	const newInputData: ComponentInput = {
-		name: fieldTypeLabel,
+		input_name: fieldTypeLabel,
 		type: fieldType,
 		description: "",
 		default: "",

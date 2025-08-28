@@ -120,10 +120,6 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		}
 	}
 
-	function isEditingComponent(componentId?: string) {
-		return editingMode.value === "component" && fragmentData.value?.fragmentId === componentId
-	}
-
 	function pushBlocks(blocks: BlockOptions[]) {
 		let parent = activeCanvas.value?.getRootBlock()
 		let firstBlock = getBlockInstance(blocks[0])
@@ -152,7 +148,6 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		fragmentData,
 		editOnCanvas,
 		exitFragmentMode,
-		isEditingComponent,
 		// blocks
 		pushBlocks,
 	}

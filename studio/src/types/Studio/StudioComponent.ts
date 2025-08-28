@@ -15,15 +15,17 @@ export interface StudioComponentInput {
 	description?: string
 	default?: string
 	required?: number
+	options?: string[] // For select type
 }
 
 // for UI
 export interface ComponentInput {
-	name: string
+	input_name: string
 	type: string
 	description?: string
 	default?: string
 	options?: string[] // For select type
+	required?: number
 	showPopover?: boolean
 	inputControl?: any
 	inputType?: string

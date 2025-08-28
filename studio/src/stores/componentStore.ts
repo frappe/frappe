@@ -5,7 +5,6 @@ import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockInstance } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
-import type { ComponentProps } from "@/types"
 
 export const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
@@ -74,23 +73,6 @@ export const useComponentStore = defineStore("componentStore", () => {
 		componentDocMap.delete(componentName)
 	}
 
-	function getStudioComponentProps(componentName: string): ComponentProps {
-		const componentDoc = componentDocMap.get(componentName)
-		if (!componentDoc || !componentDoc.inputs) return {}
-
-		const props: ComponentProps = {}
-		componentDoc.inputs.forEach(input => {
-			props[input.input_name] = {
-				type: input.type,
-				default: input.default || undefined,
-				inputType: input.type,
-				required: !!input.required,
-				options: input.type === "Select" && Array.isArray(input.default) ? input.default.map((opt: string) => ({ value: opt, label: opt })) : undefined
-			}
-		})
-		return props
-	}
-
 	return {
 		componentMap,
 		componentDocMap,
@@ -100,7 +82,6 @@ export const useComponentStore = defineStore("componentStore", () => {
 		getComponentName,
 		cacheComponent,
 		removeCachedComponent,
-		getStudioComponentProps,
 	}
 })
 
