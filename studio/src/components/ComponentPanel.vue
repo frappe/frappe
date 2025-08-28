@@ -55,7 +55,7 @@
 					}"
 				>
 					<div
-						class="user-component flex items-center gap-2 text-ink-gray-7"
+						class="user-component flex cursor-grab items-center gap-2 text-ink-gray-7"
 						draggable="true"
 						:data-component-name="component.component_id"
 					>
