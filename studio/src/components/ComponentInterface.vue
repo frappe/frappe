@@ -97,12 +97,18 @@
 								label="Default Value"
 								v-model="editingInput.default"
 							/>
-							<FormControl type="checkbox" label="Is Required" size="sm" v-model="editingInput.required" />
 							<FormControl
 								type="textarea"
 								label="Description"
 								v-model="editingInput.description"
 								placeholder="Enter description (optional)"
+							/>
+							<FormControl
+								type="checkbox"
+								label="Is Required"
+								size="sm"
+								v-model="editingInput.required"
+								class="[&>label]:text-sm [&>label]:text-ink-gray-5"
 							/>
 							<div class="flex gap-2">
 								<Button variant="solid" @click="saveInput">Save</Button>
