@@ -111,19 +111,26 @@ const componentEditorStore = useComponentEditorStore()
 
 const componentFilter = ref("")
 const componentList = computed(() => {
-	if (componentFilter.value) {
-		if (activeTab.value === "Standard") {
-			return components.list.filter((component) =>
-				component.name?.toLowerCase().includes(componentFilter.value.toLowerCase()),
+	const isStandard = activeTab.value === "Standard"
+	const allComponents = isStandard ? components.list : studioComponents.data
+
+	// Apply search filter
+	const filtered = componentFilter.value
+		? allComponents?.filter((component: any) =>
+				(isStandard ? component.name : component.component_name)
+					?.toLowerCase()
+					.includes(componentFilter.value.toLowerCase()),
 			)
-		} else {
-			return studioComponents.data?.filter((component: StudioComponent) =>
-				component.component_name?.toLowerCase().includes(componentFilter.value.toLowerCase()),
-			)
-		}
-	} else {
-		return activeTab.value === "Standard" ? components.list : studioComponents.data
+		: allComponents
+
+	// Filter out currently editing component to prevent recursion
+	if (!isStandard && componentEditorStore.studioComponentBlock) {
+		return filtered?.filter(
+			(component: StudioComponent) =>
+				component.component_id !== componentEditorStore.studioComponentBlock?.componentName,
+		)
 	}
+	return filtered
 })
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
