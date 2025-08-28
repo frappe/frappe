@@ -14,7 +14,7 @@ class StudioComponentInput(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		default_value: DF.Code | None
+		default: DF.Code | None
 		description: DF.SmallText | None
 		input_name: DF.Data
 		options: DF.SmallText | None

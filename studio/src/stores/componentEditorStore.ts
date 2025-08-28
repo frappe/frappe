@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import { studioComponents } from "@/data/studioComponents"
-import { getBlockObject, getBlockInstance, confirm } from "@/utils/helpers"
+import { getBlockObject, getBlockInstance, confirm, getComponentBlock } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
@@ -11,6 +11,7 @@ import { useComponentStore } from "@/stores/componentStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
+	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
 	const componentStore = useComponentStore()
 
@@ -47,8 +48,9 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			input_name: input.name,
 			type: input.type,
 			description: input.description || "",
-			default_value: input.defaultValue || "",
-			required: 0
+			default: input.default || "",
+			required: 0,
+			options: input.options,
 		}))
 
 		studioComponents.setValue.submit(
@@ -71,7 +73,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const componentDoc = componentStore.getComponentDoc(componentId)
 		const componentBlock = await componentStore.getComponent(componentId)
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
-		block.studioComponentId = componentId
+		studioComponentBlock.value = getComponentBlock(componentId, true)
 
 		// Load existing inputs from the component doc
 		if (componentDoc && componentDoc.inputs) {
@@ -79,7 +81,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				name: input.input_name,
 				type: input.type,
 				description: input.description,
-				defaultValue: input.default_value
+				default: input.default
 			}))
 		} else {
 			componentInputs.value = []
@@ -135,6 +137,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 
 	return {
 		selectedComponent,
+		studioComponentBlock,
 		componentInputs,
 		createComponent,
 		editComponent,

@@ -13,7 +13,7 @@ export interface StudioComponentInput {
 	input_name: string
 	type: string
 	description?: string
-	default_value?: string
+	default?: string
 	required?: number
 }
 
@@ -22,7 +22,7 @@ export interface ComponentInput {
 	name: string
 	type: string
 	description?: string
-	defaultValue?: string
+	default?: string
 	options?: string[] // For select type
 	showPopover?: boolean
 	inputControl?: any

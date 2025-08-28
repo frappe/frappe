@@ -95,7 +95,7 @@
 								:is="editingInput.inputControl"
 								:type="editingInput.inputType"
 								label="Default Value"
-								v-model="editingInput.defaultValue"
+								v-model="editingInput.default"
 							/>
 							<FormControl
 								type="textarea"
@@ -189,7 +189,7 @@ const showAddInputPopover = (fieldType: string) => {
 		name: fieldTypeLabel,
 		type: fieldType,
 		description: "",
-		defaultValue: "",
+		default: "",
 	}
 	componentEditorStore.addComponentInput(newInputData)
 	const newIndex = componentInputs.value.length - 1

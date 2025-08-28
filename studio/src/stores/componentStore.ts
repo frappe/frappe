@@ -5,7 +5,7 @@ import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockInstance } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { ComponentProps } from "@/types"
+import type { ComponentProps } from "@/types"
 
 export const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
@@ -82,10 +82,10 @@ export const useComponentStore = defineStore("componentStore", () => {
 		componentDoc.inputs.forEach(input => {
 			props[input.input_name] = {
 				type: input.type,
-				default: input.default_value || undefined,
+				default: input.default || undefined,
 				inputType: input.type,
 				required: !!input.required,
-				options: input.type === "Select" && Array.isArray(input.default_value) ? input.default_value.map((opt: string) => ({ value: opt, label: opt })) : undefined
+				options: input.type === "Select" && Array.isArray(input.default) ? input.default.map((opt: string) => ({ value: opt, label: opt })) : undefined
 			}
 		})
 		return props

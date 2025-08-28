@@ -8,7 +8,7 @@
   "input_name",
   "type",
   "required",
-  "default_value",
+  "default",
   "column_break_lmzs",
   "description",
   "options"
@@ -29,13 +29,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "default_value",
-   "fieldtype": "Code",
-   "in_list_view": 1,
-   "label": "Default Value",
-   "max_height": "100px"
-  },
-  {
    "fieldname": "column_break_lmzs",
    "fieldtype": "Column Break"
   },
@@ -54,13 +47,20 @@
    "fieldname": "required",
    "fieldtype": "Check",
    "label": "Required"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Default Value",
+   "max_height": "100px"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-26 09:53:40.246771",
+ "modified": "2025-08-28 14:35:13.249113",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component Input",
