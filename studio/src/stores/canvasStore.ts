@@ -80,6 +80,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		saveActionLabel: <string | null>null,
 		fragmentName: <string | null>null,
 		fragmentId: <string | null>null,
+		cancelAction: <Function | null>null,
 	})
 
 	const showFragmentCanvas = computed(() => {
@@ -92,7 +93,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		saveActionLabel: string = "Save",
 		fragmentName?: string,
 		fragmentId?: string,
-		mode: EditingMode = "fragment"
+		mode: EditingMode = "fragment",
+		cancelAction?: Function,
 	) {
 		const blockCopy = getBlockCopy(block, true)
 		fragmentData.value = {
@@ -100,7 +102,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 			saveAction,
 			saveActionLabel,
 			fragmentName: fragmentName || block.componentName,
-			fragmentId: fragmentId || block.componentId
+			fragmentId: fragmentId || block.componentId,
+			cancelAction: cancelAction || null,
 		}
 		editingMode.value = mode
 	}
@@ -109,6 +112,9 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
 
+		if (fragmentData.value?.cancelAction) {
+			fragmentData.value.cancelAction()
+		}
 		activeCanvas.value?.clearSelection()
 		editingMode.value = "page"
 		fragmentData.value = {
@@ -117,6 +123,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 			saveActionLabel: null,
 			fragmentName: null,
 			fragmentId: null,
+			cancelAction: null,
 		}
 	}
 
