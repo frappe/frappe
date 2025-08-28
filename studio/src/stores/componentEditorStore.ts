@@ -68,9 +68,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	}
 
 	async function editComponent(componentId: string) {
-		const componentBlocks = await componentStore.getComponent(componentId)
 		const componentDoc = componentStore.getComponentDoc(componentId)
-		const blocks = componentBlocks || getBlockInstance(getBlockTemplate("empty-component"))
+		const componentBlock = await componentStore.getComponent(componentId)
+		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
+		block.studioComponentId = componentId
 
 		// Load existing inputs from the component doc
 		if (componentDoc && componentDoc.inputs) {
@@ -86,7 +87,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
-			blocks,
+			block,
 			(editedBlock) => saveComponent(editedBlock, componentDoc.component_id),
 			"Save Component",
 			componentDoc.component_name,

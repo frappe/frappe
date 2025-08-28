@@ -37,6 +37,7 @@ class Block implements BlockOptions {
 	extendedFromComponent?: string // for the component root
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
+	studioComponentId?: string
 
 	// @editor-only
 	private static components: FrappeUIComponents | null = null
