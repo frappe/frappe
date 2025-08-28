@@ -29,7 +29,7 @@
 				</button>
 			</div>
 
-			<ComponentProps
+			<ComponentProperties
 				v-show="activeTab === 'Properties'"
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
@@ -44,11 +44,7 @@
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
-			<ComponentInterface
-				v-if="activeTab === 'Interface' && showInterfaceTab"
-				class="p-4"
-				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
-			/>
+			<ComponentInterface v-if="activeTab === 'Interface' && showInterfaceTab" class="p-4" />
 		</div>
 	</div>
 </template>
@@ -59,7 +55,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 import ComponentInterface from "@/components/ComponentInterface.vue"
-import ComponentProps from "@/components/ComponentProps.vue"
+import ComponentProperties from "@/components/ComponentProperties.vue"
 import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
 import PanelResizer from "@/components/PanelResizer.vue"

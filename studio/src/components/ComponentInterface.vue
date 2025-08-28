@@ -113,6 +113,15 @@
 			</div>
 
 			<EmptyState v-else message="No inputs added" />
+
+			<!-- Test Inputs -->
+			<div class="flex items-center justify-between text-sm font-medium">
+				<h3 class="cursor-pointer text-base text-gray-900">Test Inputs</h3>
+			</div>
+			<PropsEditor
+				v-if="componentEditorStore.studioComponentBlock"
+				:block="componentEditorStore.studioComponentBlock"
+			/>
 		</div>
 	</div>
 </template>
@@ -126,11 +135,8 @@ import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorPicker from "@/components/ColorPicker.vue"
+import PropsEditor from "@/components/PropsEditor.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
-
-const props = defineProps<{
-	block?: Block
-}>()
 
 const componentEditorStore = useComponentEditorStore()
 const componentInputs = computed(() => componentEditorStore.componentInputs)

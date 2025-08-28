@@ -70,6 +70,7 @@
 					:block="rootComponent"
 					:key="rootComponent.componentId"
 					:breakpoint="breakpoint.device"
+					:isEditingComponent="canvasStore.editingMode === 'component'"
 				/>
 			</div>
 		</div>

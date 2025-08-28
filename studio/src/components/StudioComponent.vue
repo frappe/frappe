@@ -1,10 +1,6 @@
 <template>
 	<StudioComponentWrapper v-if="block.isStudioComponent" :componentBlock="block" :breakpoint="breakpoint" />
-	<StudioComponentEditorWrapper
-		v-else-if="canvasStore.isEditingComponent(block.studioComponentId)"
-		:rootBlock="block"
-		:breakpoint="breakpoint"
-	/>
+	<StudioComponentEditorWrapper v-else-if="isEditingComponent" :rootBlock="block" :breakpoint="breakpoint" />
 
 	<component
 		v-else-if="block.canHaveChildren()"
@@ -118,6 +114,7 @@ const props = withDefaults(
 	defineProps<{
 		block: Block
 		breakpoint?: string
+		isEditingComponent?: boolean
 	}>(),
 	{
 		breakpoint: "desktop",

@@ -6,14 +6,15 @@
 import { provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
-import { getComponentBlock } from "@/utils/helpers"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 
 const props = defineProps<{
 	rootBlock: Block
 	breakpoint?: string
 }>()
 
-const componentBlock = computed(() => getComponentBlock(props.rootBlock.studioComponentId!, true))
+const componentEditorStore = useComponentEditorStore()
+const componentBlock = computed(() => componentEditorStore.studioComponentBlock!)
 const componentContext = computed(() => componentBlock.value.componentProps)
 provide("componentContext", componentContext)
 </script>
