@@ -58,6 +58,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			{
 				onSuccess(data: StudioComponent) {
 					componentStore.cacheComponent(data)
+					studioComponentBlock.value = null
 					toast.success("Component saved successfully")
 				},
 				onError(error: any) {
