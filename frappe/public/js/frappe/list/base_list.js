@@ -443,14 +443,18 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_result_height() {
+		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
-		this.$result.css({
-			height:
-				window.innerHeight -
-				this.$result.get(0).offsetTop -
-				this.$paging_area.get(0).offsetHeight +
-				"px",
+		const resultContainerHeight =
+			window.innerHeight -
+			this.$result.get(0).offsetTop -
+			this.$paging_area.get(0).offsetHeight;
+		this.$result.parent(".result-container").css({
+			height: resultContainerHeight + "px",
 		});
+
+		this.$result[0].style.height =
+			Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
 		this.$no_result.css({
 			height: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
 		});
@@ -599,6 +603,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	toggle_result_area() {
+		this.$result.parent(".result-container").toggle(this.data.length > 0);
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
 		this.$no_result.toggle(this.data.length == 0);

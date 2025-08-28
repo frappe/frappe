@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-08-17 09:34+0000\n"
-"PO-Revision-Date: 2025-08-19 12:03\n"
+"POT-Creation-Date: 2025-08-24 09:34+0000\n"
+"PO-Revision-Date: 2025-08-24 13:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -86,7 +86,7 @@ msgstr "در نمای فهرست برای فیلد {0} از نوع {1} مجاز 
 msgid "'In List View' not allowed for type {0} in row {1}"
 msgstr "در نمای فهرست برای نوع {0} در ردیف {1} مجاز نیست"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:164
 msgid "'Recipients' not specified"
 msgstr "دریافت کنندگان مشخص نشده است"
 
@@ -576,7 +576,7 @@ msgstr "فهرستی از منابعی که پس از اجازه کاربر، ب
 msgid "A new account has been created for you at {0}"
 msgstr "یک حساب کاربری جدید برای شما در {0} ایجاد شده است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:428
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
 msgstr "یک {0} {1} تکرارشونده از طریق تکرار خودکار {2} برای شما ایجاد شده است."
 
@@ -685,7 +685,7 @@ msgstr ""
 #. Label of the api_key (Data) field in DocType 'Google Settings'
 #. Label of the sb_01 (Section Break) field in DocType 'Google Settings'
 #. Label of the api_key (Data) field in DocType 'Push Notification Settings'
-#: frappe/core/doctype/user/user.js:446 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:452 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 #: frappe/integrations/doctype/google_settings/google_settings.json
@@ -704,7 +704,7 @@ msgstr ""
 msgid "API Key cannot be regenerated"
 msgstr "کلید API قابل بازسازی نیست"
 
-#: frappe/core/doctype/user/user.js:443
+#: frappe/core/doctype/user/user.js:449
 msgid "API Keys"
 msgstr "کلیدهای API"
 
@@ -728,7 +728,7 @@ msgstr ""
 #. Label of the api_secret (Password) field in DocType 'Email Account'
 #. Label of the api_secret (Password) field in DocType 'Push Notification
 #. Settings'
-#: frappe/core/doctype/user/user.js:453 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:459 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
@@ -1138,7 +1138,7 @@ msgstr "افزودن مشترکین"
 msgid "Add Tags"
 msgstr "افزودن تگ"
 
-#: frappe/public/js/frappe/list/list_view.js:2092
+#: frappe/public/js/frappe/list/list_view.js:2109
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr "افزودن تگ"
@@ -1715,7 +1715,7 @@ msgid "Allow Print for Cancelled"
 msgstr "چاپ برای لغو مجاز است"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:435
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Draft"
 msgstr "اجازه چاپ برای پیش‌نویس"
@@ -2225,7 +2225,7 @@ msgstr "اعمال شد"
 msgid "Apply"
 msgstr "درخواست دادن"
 
-#: frappe/public/js/frappe/list/list_view.js:2077
+#: frappe/public/js/frappe/list/list_view.js:2094
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr "اعمال قانون تخصیص"
@@ -2310,7 +2310,7 @@ msgstr "ستون های بایگانی شده"
 msgid "Are you sure you want to cancel the invitation?"
 msgstr "آیا مطمئن هستید که می‌خواهید دعوت را لغو کنید؟"
 
-#: frappe/public/js/frappe/list/list_view.js:2056
+#: frappe/public/js/frappe/list/list_view.js:2073
 msgid "Are you sure you want to clear the assignments?"
 msgstr "آیا مطمئن هستید که می‌خواهید واگذاری ها را پاک کنید؟"
 
@@ -2414,7 +2414,7 @@ msgstr "تعیین شرط"
 msgid "Assign To"
 msgstr "اختصاص دادن به"
 
-#: frappe/public/js/frappe/list/list_view.js:2038
+#: frappe/public/js/frappe/list/list_view.js:2055
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr "اختصاص دادن به"
@@ -2837,11 +2837,11 @@ msgstr "تکرار خودکار"
 msgid "Auto Repeat Day"
 msgstr "روز تکرار خودکار"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:170
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
 msgid "Auto Repeat Day{0} {1} has been repeated."
 msgstr "روز تکرار خودکار{0} {1} تکرار شده است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:476
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
 msgid "Auto Repeat Document Creation Failed"
 msgstr "تکرار خودکار ایجاد سند انجام نشد"
 
@@ -2858,7 +2858,7 @@ msgstr ""
 msgid "Auto Repeat created for this document"
 msgstr "تکرار خودکار برای این سند ایجاد شده است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
 msgid "Auto Repeat failed for {0}"
 msgstr "تکرار خودکار برای {0} ناموفق بود"
 
@@ -2902,7 +2902,7 @@ msgstr "دنبال کردن خودکار اسنادی که در مورد آنه�
 msgid "Auto follow documents that you create"
 msgstr "دنبال خودکار اسنادی که ایجاد می‌کنید"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:239
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
 msgstr "تکرار خودکار ناموفق بود. لطفاً پس از رفع مشکلات، تکرار خودکار را فعال کنید."
 
@@ -3838,7 +3838,7 @@ msgstr "نمی‌توان نام {0} را به {1} تغییر داد زیرا {0
 msgid "Cancel"
 msgstr "لغو"
 
-#: frappe/public/js/frappe/list/list_view.js:2147
+#: frappe/public/js/frappe/list/list_view.js:2164
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr "لغو"
@@ -3856,7 +3856,7 @@ msgstr "لغو همه"
 msgid "Cancel All Documents"
 msgstr "لغو تمام اسناد"
 
-#: frappe/public/js/frappe/list/list_view.js:2152
+#: frappe/public/js/frappe/list/list_view.js:2169
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "{0} سند لغو شود؟"
@@ -4029,7 +4029,7 @@ msgstr ""
 msgid "Cannot edit standard fields"
 msgstr "نمی‌توان فیلدهای استاندارد را ویرایش کرد"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:131
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "نمی‌توان {0} را برای یک نوع سند غیر قابل ارسال فعال کرد"
 
@@ -4320,7 +4320,7 @@ msgstr "URL درخواست را بررسی کنید"
 msgid "Check columns to select, drag to set order."
 msgstr "برای انتخاب، ستون‌ها را علامت بزنید، برای تنظیم ترتیب آن را بکشید."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:485
 msgid "Check the Error Log for more information: {0}"
 msgstr "برای اطلاعات بیشتر، لاگ خطا را بررسی کنید: {0}"
 
@@ -4440,7 +4440,7 @@ msgstr "پاک کردن و افزودن الگو"
 msgid "Clear All"
 msgstr "همه را پاک کن"
 
-#: frappe/public/js/frappe/list/list_view.js:2053
+#: frappe/public/js/frappe/list/list_view.js:2070
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr "پاک کردن واگذاری"
@@ -4534,7 +4534,7 @@ msgstr "برای تنظیم فیلترهای پویا کلیک کنید"
 msgid "Click to Set Filters"
 msgstr "برای تنظیم فیلترها کلیک کنید"
 
-#: frappe/public/js/frappe/list/list_view.js:729
+#: frappe/public/js/frappe/list/list_view.js:733
 msgid "Click to sort by {0}"
 msgstr "برای مرتب سازی بر اساس {0} کلیک کنید"
 
@@ -5145,7 +5145,7 @@ msgstr "نحوه نامگذاری اسناد اصلاح‌شده را پیکرب
 msgid "Configure various aspects of how document naming works like naming series, current counter."
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:406 frappe/public/js/frappe/dom.js:345
+#: frappe/core/doctype/user/user.js:412 frappe/public/js/frappe/dom.js:345
 #: frappe/www/update-password.html:66
 msgid "Confirm"
 msgstr "تایید"
@@ -5164,7 +5164,7 @@ msgstr "تأیید دسترسی"
 msgid "Confirm Deletion of Account"
 msgstr "حذف اکانت را تایید کنید"
 
-#: frappe/core/doctype/user/user.js:191
+#: frappe/core/doctype/user/user.js:196
 msgid "Confirm New Password"
 msgstr "گذرواژه جدید را تأیید کنید"
 
@@ -5413,7 +5413,7 @@ msgstr "کپی خطا در کلیپ بورد"
 msgid "Copy to Clipboard"
 msgstr "کپی به کلیپ بورد"
 
-#: frappe/core/doctype/user/user.js:474
+#: frappe/core/doctype/user/user.js:480
 msgid "Copy token to clipboard"
 msgstr "کپی کردن توکن در کلیپ بورد"
 
@@ -5604,7 +5604,7 @@ msgstr "DocType جدید ایجاد کنید"
 msgid "Create New Kanban Board"
 msgstr "صفحه کانبان جدید ایجاد کنید"
 
-#: frappe/core/doctype/user/user.js:270
+#: frappe/core/doctype/user/user.js:276
 msgid "Create User Email"
 msgstr "ایجاد ایمیل کاربر"
 
@@ -6026,7 +6026,7 @@ msgstr "سفارشی سازی برای <b>{0}</b> صادر شده به:<br>{1}"
 msgid "Customize"
 msgstr "شخصی سازی"
 
-#: frappe/public/js/frappe/list/list_view.js:1890
+#: frappe/public/js/frappe/list/list_view.js:1907
 msgctxt "Button in list view menu"
 msgid "Customize"
 msgstr "شخصی سازی"
@@ -6679,7 +6679,7 @@ msgstr "با تاخیر"
 msgid "Delete"
 msgstr "حذف"
 
-#: frappe/public/js/frappe/list/list_view.js:2115
+#: frappe/public/js/frappe/list/list_view.js:2132
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "حذف"
@@ -6757,12 +6757,12 @@ msgstr "حذف تب"
 msgid "Delete this record to allow sending to this email address"
 msgstr "این سابقه را حذف کنید تا امکان ارسال به این آدرس ایمیل فراهم شود"
 
-#: frappe/public/js/frappe/list/list_view.js:2120
+#: frappe/public/js/frappe/list/list_view.js:2137
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr "{0} مورد برای همیشه حذف شود؟"
 
-#: frappe/public/js/frappe/list/list_view.js:2126
+#: frappe/public/js/frappe/list/list_view.js:2143
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "{0} مورد برای همیشه حذف شود؟"
@@ -7094,6 +7094,11 @@ msgstr "غیرفعال کردن گزارش"
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Disable SMTP server authentication"
 msgstr "غیرفعال کردن احراز هویت سرور SMTP"
+
+#. Label of the disable_scrolling (Check) field in DocType 'List View Settings'
+#: frappe/desk/doctype/list_view_settings/list_view_settings.json
+msgid "Disable Scrolling"
+msgstr ""
 
 #. Label of the disable_sidebar_stats (Check) field in DocType 'List View
 #. Settings'
@@ -7730,15 +7735,15 @@ msgstr "قفل سند باز شد"
 msgid "Document follow is not enabled for this user."
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:1247
+#: frappe/public/js/frappe/list/list_view.js:1264
 msgid "Document has been cancelled"
 msgstr "سند لغو شده است"
 
-#: frappe/public/js/frappe/list/list_view.js:1246
+#: frappe/public/js/frappe/list/list_view.js:1263
 msgid "Document has been submitted"
 msgstr "سند ارسال شده است"
 
-#: frappe/public/js/frappe/list/list_view.js:1245
+#: frappe/public/js/frappe/list/list_view.js:1262
 msgid "Document is in draft state"
 msgstr "سند در حالت پیش‌نویس است"
 
@@ -7880,7 +7885,7 @@ msgstr "دونات"
 msgid "Double click to edit label"
 msgstr ""
 
-#: frappe/core/doctype/file/file.js:15 frappe/core/doctype/user/user.js:461
+#: frappe/core/doctype/file/file.js:15 frappe/core/doctype/user/user.js:467
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:8
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Download"
@@ -8126,7 +8131,7 @@ msgstr "خروج"
 msgid "Edit"
 msgstr "ویرایش"
 
-#: frappe/public/js/frappe/list/list_view.js:2201
+#: frappe/public/js/frappe/list/list_view.js:2218
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "ویرایش"
@@ -8165,7 +8170,7 @@ msgstr "ویرایش HTML سفارشی"
 msgid "Edit DocType"
 msgstr "ویرایش DocType"
 
-#: frappe/public/js/frappe/list/list_view.js:1917
+#: frappe/public/js/frappe/list/list_view.js:1934
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
 msgstr "ویرایش DocType"
@@ -8578,7 +8583,7 @@ msgstr "ایمیل به عنوان هرزنامه علامت گذاری شده �
 msgid "Email has been moved to trash"
 msgstr "ایمیل به سطل زباله منتقل شد"
 
-#: frappe/core/doctype/user/user.js:272
+#: frappe/core/doctype/user/user.js:278
 msgid "Email is mandatory to create User Email"
 msgstr "ایمیل برای ایجاد ایمیل کاربر الزامی است"
 
@@ -8648,7 +8653,7 @@ msgstr "فعال کردن"
 msgid "Enable Address Autocompletion"
 msgstr "فعال کردن تکمیل خودکار آدرس"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:124
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:123
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
 msgstr "Allow Auto Repeat را برای doctype {0} در سفارشی‌سازی فرم فعال کنید"
 
@@ -8887,7 +8892,7 @@ msgstr "پایان"
 #. Label of the end_date (Date) field in DocType 'Audit Trail'
 #. Label of the end_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:147
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:416
 #: frappe/website/doctype/web_page/web_page.json
@@ -8902,6 +8907,10 @@ msgstr "فیلد تاریخ پایان"
 #: frappe/website/doctype/web_page/web_page.py:208
 msgid "End Date cannot be before Start Date!"
 msgstr "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد!"
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:146
+msgid "End Date cannot be today."
+msgstr ""
 
 #. Label of the ended_at (Datetime) field in DocType 'RQ Job'
 #. Label of the ended_at (Datetime) field in DocType 'Submission Queue'
@@ -9363,7 +9372,7 @@ msgstr "زمان انقضای صفحه تصویر کد QR"
 msgid "Export"
 msgstr "برون‌بُرد"
 
-#: frappe/public/js/frappe/list/list_view.js:2223
+#: frappe/public/js/frappe/list/list_view.js:2240
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "برون‌بُرد"
@@ -11765,7 +11774,7 @@ msgstr "نوار کناری، منو و دیدگاه‌ها را پنهان کن
 msgid "Hide Standard Menu"
 msgstr "مخفی کردن منوی استاندارد"
 
-#: frappe/public/js/frappe/list/list_view.js:1792
+#: frappe/public/js/frappe/list/list_view.js:1809
 msgid "Hide Tags"
 msgstr "پنهان کردن تگ‌ها"
 
@@ -12340,11 +12349,11 @@ msgstr "تصاویر"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
-#: frappe/core/doctype/user/user.js:378
+#: frappe/core/doctype/user/user.js:384
 msgid "Impersonate"
 msgstr "جعل هویت"
 
-#: frappe/core/doctype/user/user.js:405
+#: frappe/core/doctype/user/user.js:411
 msgid "Impersonate as {0}"
 msgstr "جعل هویت به عنوان {0}"
 
@@ -12374,7 +12383,7 @@ msgstr "ضمنی"
 msgid "Import"
 msgstr "درون‌بُرد"
 
-#: frappe/public/js/frappe/list/list_view.js:1854
+#: frappe/public/js/frappe/list/list_view.js:1871
 msgctxt "Button in list view menu"
 msgid "Import"
 msgstr "درون‌بُرد"
@@ -14152,6 +14161,11 @@ msgstr "آخرین تاریخ بازنشانی گذرواژه"
 msgid "Last Quarter"
 msgstr "سه ماهه گذشته"
 
+#. Label of the last_received_at (Datetime) field in DocType 'Email Account'
+#: frappe/email/doctype/email_account/email_account.json
+msgid "Last Received At"
+msgstr ""
+
 #. Label of the last_reset_password_key_generated_on (Datetime) field in
 #. DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14166,11 +14180,6 @@ msgstr "آخرین اجرا"
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Last Sync On"
-msgstr "آخرین همگام سازی در"
-
-#. Label of the last_synced_at (Datetime) field in DocType 'Email Account'
-#: frappe/email/doctype/email_account/email_account.json
-msgid "Last Synced At"
 msgstr "آخرین همگام سازی در"
 
 #. Label of the last_synced_on (Datetime) field in DocType 'Dashboard Chart'
@@ -14669,7 +14678,7 @@ msgstr "فیلتر لیست"
 msgid "List Settings"
 msgstr "تنظیمات لیست"
 
-#: frappe/public/js/frappe/list/list_view.js:1934
+#: frappe/public/js/frappe/list/list_view.js:1951
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "تنظیمات لیست"
@@ -14963,7 +14972,7 @@ msgstr ""
 msgid "Logout"
 msgstr "خروج"
 
-#: frappe/core/doctype/user/user.js:197
+#: frappe/core/doctype/user/user.js:202
 msgid "Logout All Sessions"
 msgstr "خروج از تمام نشست‌ها"
 
@@ -15143,7 +15152,7 @@ msgstr "اجباری بستگی دارد"
 msgid "Mandatory Depends On (JS)"
 msgstr "اجباری بستگی دارد به (JS)"
 
-#: frappe/website/doctype/web_form/web_form.py:498
+#: frappe/website/doctype/web_form/web_form.py:500
 msgid "Mandatory Information missing:"
 msgstr "اطلاعات اجباری از دست رفته:"
 
@@ -16047,7 +16056,7 @@ msgid "Mx"
 msgstr ""
 
 #: frappe/templates/includes/web_sidebar.html:41
-#: frappe/website/doctype/web_form/web_form.py:487
+#: frappe/website/doctype/web_form/web_form.py:489
 #: frappe/website/doctype/website_settings/website_settings.py:181
 #: frappe/www/list.py:21 frappe/www/me.html:8 frappe/www/update_password.py:10
 msgid "My Account"
@@ -16189,12 +16198,12 @@ msgstr "الگوی نوار ناوبری"
 msgid "Navbar Template Values"
 msgstr "مقادیر الگوی نوار ناوبری"
 
-#: frappe/public/js/frappe/list/list_view.js:1325
+#: frappe/public/js/frappe/list/list_view.js:1342
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
 msgstr "پیمایش لیست به پایین"
 
-#: frappe/public/js/frappe/list/list_view.js:1332
+#: frappe/public/js/frappe/list/list_view.js:1349
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list up"
 msgstr "پیمایش لیست به بالا"
@@ -16334,7 +16343,7 @@ msgstr "کارت شماره جدید"
 msgid "New Onboarding"
 msgstr "آشناسازی جدید"
 
-#: frappe/core/doctype/user/user.js:185 frappe/www/update-password.html:43
+#: frappe/core/doctype/user/user.js:190 frappe/www/update-password.html:43
 msgid "New Password"
 msgstr "گذرواژه جدید"
 
@@ -16446,7 +16455,7 @@ msgstr "{0} {1} جدید به داشبورد {2} اضافه شد"
 msgid "New {0} {1} created"
 msgstr "{0} {1} جدید ایجاد شد"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:413
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
 msgid "New {0}: {1}"
 msgstr "{0} جدید: {1}"
 
@@ -16787,7 +16796,7 @@ msgstr "هنوز نظری وجود ندارد. "
 msgid "No contacts added yet."
 msgstr "هنوز مخاطبی اضافه نشده است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:466
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:469
 msgid "No contacts linked to document"
 msgstr "هیچ مخاطبی به سند پیوند داده نشده است"
 
@@ -17036,7 +17045,7 @@ msgstr "غیرقابل تهی"
 
 #: frappe/__init__.py:550 frappe/app.py:380 frappe/desk/calendar.py:26
 #: frappe/public/js/frappe/web_form/webform_script.js:15
-#: frappe/website/doctype/web_form/web_form.py:736
+#: frappe/website/doctype/web_form/web_form.py:738
 #: frappe/website/page_renderers/not_permitted_page.py:22
 #: frappe/www/login.py:193 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
@@ -17143,7 +17152,7 @@ msgstr "در حالت توسعه دهنده نیست! در site_config.json تن
 #: frappe/public/js/frappe/request.js:170
 #: frappe/public/js/frappe/request.js:175
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:67
-#: frappe/utils/messages.py:158 frappe/website/doctype/web_form/web_form.py:749
+#: frappe/utils/messages.py:158 frappe/website/doctype/web_form/web_form.py:751
 #: frappe/website/js/website.js:97
 msgid "Not permitted"
 msgstr "غیر مجاز"
@@ -17154,7 +17163,7 @@ msgstr "مشاهده {0} مجاز نیست"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:435
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/note/note.json
 msgid "Note"
@@ -17189,7 +17198,7 @@ msgstr "توجه: برای بهترین نتیجه، تصاویر باید از 
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "توجه: نشست‌های متعدد در مورد دستگاه تلفن همراه مجاز خواهد بود"
 
-#: frappe/core/doctype/user/user.js:393
+#: frappe/core/doctype/user/user.js:399
 msgid "Note: This will be shared with user."
 msgstr "توجه: این با کاربر به اشتراک گذاشته خواهد شد."
 
@@ -17844,7 +17853,7 @@ msgstr ""
 msgid "Open in a new tab"
 msgstr "باز کردن در یک تب جدید"
 
-#: frappe/public/js/frappe/list/list_view.js:1378
+#: frappe/public/js/frappe/list/list_view.js:1395
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
 msgstr "مورد فهرست را باز کنید"
@@ -18442,8 +18451,8 @@ msgstr "منفعل"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:172 frappe/core/doctype/user/user.js:219
-#: frappe/core/doctype/user/user.js:239
+#: frappe/core/doctype/user/user.js:177 frappe/core/doctype/user/user.js:224
+#: frappe/core/doctype/user/user.js:244
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/page/setup_wizard/setup_wizard.js:493
@@ -18483,6 +18492,10 @@ msgstr "گذرواژه Base DN"
 msgid "Password is required or select Awaiting Password"
 msgstr "گذرواژه لازم است یا در انتظار گذرواژه را انتخاب کنید"
 
+#: frappe/www/update-password.html:94
+msgid "Password is valid. 👍"
+msgstr ""
+
 #: frappe/public/js/frappe/desk.js:212
 msgid "Password missing in Email Account"
 msgstr "گذرواژه در حساب ایمیل جا افتاده است"
@@ -18511,7 +18524,7 @@ msgstr "اندازه گذرواژه از حداکثر اندازه مجاز بی
 msgid "Passwords do not match"
 msgstr "گذرواژه‌ها مطابقت ندارند"
 
-#: frappe/core/doctype/user/user.js:205
+#: frappe/core/doctype/user/user.js:210
 msgid "Passwords do not match!"
 msgstr "گذرواژه‌ها مطابقت ندارند!"
 
@@ -18722,8 +18735,8 @@ msgstr "نوع مجوز"
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:138 frappe/core/doctype/user/user.js:147
-#: frappe/core/doctype/user/user.js:156
+#: frappe/core/doctype/user/user.js:143 frappe/core/doctype/user/user.js:152
+#: frappe/core/doctype/user/user.js:161
 #: frappe/core/page/permission_manager/permission_manager.js:221
 #: frappe/core/workspace/users/users.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -18884,7 +18897,7 @@ msgstr "لطفا نمودار را تنظیم کنید"
 msgid "Please Update SMS Settings"
 msgstr "لطفا تنظیمات پیامک را به روز کنید"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:610
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:613
 msgid "Please add a subject to your email"
 msgstr "لطفا یک موضوع به ایمیل خود اضافه کنید"
 
@@ -19059,7 +19072,7 @@ msgstr "لطفا گذرواژه جدید خود را وارد کنید."
 msgid "Please enter your old password."
 msgstr "لطفا گذرواژه قدیمی خود را وارد کنید."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:441
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:444
 msgid "Please find attached {0}: {1}"
 msgstr "لطفاً پیوست شده را پیدا کنید {0}: {1}"
 
@@ -19550,7 +19563,7 @@ msgstr ""
 msgid "Print"
 msgstr "چاپ"
 
-#: frappe/public/js/frappe/list/list_view.js:2107
+#: frappe/public/js/frappe/list/list_view.js:2124
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "چاپ"
@@ -20792,7 +20805,7 @@ msgid "Refreshing"
 msgstr "تازه کردن"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
-#: frappe/core/doctype/user/user.js:368
+#: frappe/core/doctype/user/user.js:374
 #: frappe/desk/page/setup_wizard/setup_wizard.js:211
 msgid "Refreshing..."
 msgstr "تازه کردن..."
@@ -21411,7 +21424,7 @@ msgstr "بازنشانی سفارشی سازی داشبورد"
 msgid "Reset Fields"
 msgstr "بازنشانی فیلدها"
 
-#: frappe/core/doctype/user/user.js:179 frappe/core/doctype/user/user.js:182
+#: frappe/core/doctype/user/user.js:184 frappe/core/doctype/user/user.js:187
 msgid "Reset LDAP Password"
 msgstr "بازنشانی گذرواژه LDAP"
 
@@ -21419,11 +21432,11 @@ msgstr "بازنشانی گذرواژه LDAP"
 msgid "Reset Layout"
 msgstr "بازنشانی چیدمان"
 
-#: frappe/core/doctype/user/user.js:230
+#: frappe/core/doctype/user/user.js:235
 msgid "Reset OTP Secret"
 msgstr "بازنشانی OTP Secret"
 
-#: frappe/core/doctype/user/user.js:163 frappe/www/login.html:199
+#: frappe/core/doctype/user/user.js:168 frappe/www/login.html:199
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:32
 msgid "Reset Password"
@@ -21724,7 +21737,7 @@ msgstr "مجوزهای نقش"
 msgid "Role Permissions Manager"
 msgstr "مدیر مجوزهای نقش"
 
-#: frappe/public/js/frappe/list/list_view.js:1876
+#: frappe/public/js/frappe/list/list_view.js:1893
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
 msgstr "مدیر مجوزهای نقش"
@@ -22851,13 +22864,13 @@ msgstr "حداقل 1 رکورد برای چاپ انتخاب کنید"
 msgid "Select atleast 2 actions"
 msgstr "حداقل 2 عمل را انتخاب کنید"
 
-#: frappe/public/js/frappe/list/list_view.js:1392
+#: frappe/public/js/frappe/list/list_view.js:1409
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
 msgstr "مورد فهرست را انتخاب کنید"
 
-#: frappe/public/js/frappe/list/list_view.js:1344
-#: frappe/public/js/frappe/list/list_view.js:1360
+#: frappe/public/js/frappe/list/list_view.js:1361
+#: frappe/public/js/frappe/list/list_view.js:1377
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
 msgstr "چندین مورد از فهرست را انتخاب کنید"
@@ -23357,7 +23370,7 @@ msgstr "تنظیم مقدار"
 msgid "Set Role For"
 msgstr "تنظیم نقش برای"
 
-#: frappe/core/doctype/user/user.js:131
+#: frappe/core/doctype/user/user.js:136
 #: frappe/core/page/permission_manager/permission_manager.js:72
 msgid "Set User Permissions"
 msgstr "تنظیم مجوزهای کاربر"
@@ -23785,7 +23798,7 @@ msgid "Show Social Login Key as Authorization Server"
 msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.html:77
-#: frappe/public/js/frappe/list/list_view.js:1792
+#: frappe/public/js/frappe/list/list_view.js:1809
 msgid "Show Tags"
 msgstr "نمایش برچسب ها"
 
@@ -24458,7 +24471,7 @@ msgstr "شروع"
 #. Label of the start_date (Date) field in DocType 'Audit Trail'
 #. Label of the start_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:147
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:409
 #: frappe/website/doctype/web_page/web_page.json
@@ -24688,7 +24701,7 @@ msgstr ""
 msgid "Store Attached PDF Document"
 msgstr "سند PDF پیوست شده را ذخیره کنید"
 
-#: frappe/core/doctype/user/user.js:484
+#: frappe/core/doctype/user/user.js:490
 msgid "Store the API secret securely. It won't be displayed again."
 msgstr ""
 
@@ -24811,7 +24824,7 @@ msgstr "صف ارسال"
 msgid "Submit"
 msgstr "ارسال"
 
-#: frappe/public/js/frappe/list/list_view.js:2174
+#: frappe/public/js/frappe/list/list_view.js:2191
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "ارسال"
@@ -24821,7 +24834,7 @@ msgctxt "Button in web form"
 msgid "Submit"
 msgstr "ارسال"
 
-#: frappe/public/js/frappe/ui/dialog.js:62
+#: frappe/public/js/frappe/ui/dialog.js:63
 msgctxt "Primary action in dialog"
 msgid "Submit"
 msgstr "ارسال"
@@ -24857,7 +24870,7 @@ msgstr ""
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:133
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
 msgid "Submit on Creation"
 msgstr "ارسال در Creation"
 
@@ -24869,7 +24882,7 @@ msgstr "برای تکمیل این مرحله این سند را ارسال کن
 msgid "Submit this document to confirm"
 msgstr "برای تایید این سند را ارسال کنید"
 
-#: frappe/public/js/frappe/list/list_view.js:2179
+#: frappe/public/js/frappe/list/list_view.js:2196
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "{0} سند ارسال شود؟"
@@ -24960,10 +24973,6 @@ msgstr ""
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Success title"
 msgstr ""
-
-#: frappe/www/update-password.html:94
-msgid "Success! You are good to go 👍"
-msgstr "موفقیت! شما خوب هستید که بروید 👍"
 
 #. Label of the successful_job_count (Int) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -25683,7 +25692,7 @@ msgstr "شرط \"{0}\" نامعتبر است"
 msgid "The File URL you've entered is incorrect"
 msgstr "URL فایلی که وارد کرده اید نادرست است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:113
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:112
 msgid "The Next Scheduled Date cannot be later than the End Date."
 msgstr "تاریخ زمان‌بندی شده بعدی نمی‌تواند دیرتر از تاریخ پایان باشد."
 
@@ -25732,7 +25741,7 @@ msgstr "نظر نمی‌تواند خالی باشد"
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:675
+#: frappe/public/js/frappe/list/list_view.js:679
 msgid "The count shown is an estimated count. Click here to see the accurate count."
 msgstr "تعداد نشان داده شده یک تعداد تخمینی است. برای مشاهده شمارش دقیق اینجا کلیک کنید."
 
@@ -25873,7 +25882,7 @@ msgstr "مقداری که چسبانده اید {0} نویسه بود. حداک�
 msgid "The webhook will be triggered if this expression is true"
 msgstr "اگر این عبارت درست باشد، وب هوک فعال می‌شود"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:180
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:183
 msgid "The {0} is already on auto repeat {1}"
 msgstr "{0} قبلاً روی تکرار خودکار است {1}"
 
@@ -26684,7 +26693,7 @@ msgstr "تغییر نمای شبکه‌ای"
 msgid "Toggle Sidebar"
 msgstr "تغییر وضعیت نوار کناری"
 
-#: frappe/public/js/frappe/list/list_view.js:1907
+#: frappe/public/js/frappe/list/list_view.js:1924
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
 msgstr "تغییر وضعیت نوار کناری"
@@ -27999,7 +28008,7 @@ msgstr "مجوز کاربر"
 msgid "User Permissions"
 msgstr "مجوزهای کاربر"
 
-#: frappe/public/js/frappe/list/list_view.js:1865
+#: frappe/public/js/frappe/list/list_view.js:1882
 msgctxt "Button in list view menu"
 msgid "User Permissions"
 msgstr "مجوزهای کاربر"
@@ -28441,7 +28450,7 @@ msgstr "مشاهده همه"
 msgid "View Audit Trail"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:151
+#: frappe/core/doctype/user/user.js:156
 msgid "View Doctype Permissions"
 msgstr "مشاهده مجوزهای Doctype"
 
@@ -28463,7 +28472,7 @@ msgstr "مشاهده لیست"
 msgid "View Log"
 msgstr "مشاهده لاگ"
 
-#: frappe/core/doctype/user/user.js:142
+#: frappe/core/doctype/user/user.js:147
 #: frappe/core/doctype/user_permission/user_permission.js:24
 msgid "View Permitted Documents"
 msgstr "مشاهده اسناد مجاز"
@@ -29487,7 +29496,7 @@ msgstr "شما مجاز به چاپ این گزارش نیستید"
 msgid "You are not allowed to send emails related to this document"
 msgstr "شما مجاز به ارسال ایمیل های مرتبط با این سند نیستید"
 
-#: frappe/website/doctype/web_form/web_form.py:594
+#: frappe/website/doctype/web_form/web_form.py:596
 msgid "You are not allowed to update this Web Form Document"
 msgstr "شما مجاز به به‌روزرسانی این سند فرم وب نیستید"
 
@@ -29511,7 +29520,7 @@ msgstr ""
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
 msgstr "شما اکنون این سند را دنبال می‌کنید. به‌روزرسانی های روزانه را از طریق ایمیل دریافت خواهید کرد. می‌توانید این مورد را در تنظیمات کاربر تغییر دهید."
 
-#: frappe/core/doctype/installed_applications/installed_applications.py:98
+#: frappe/core/doctype/installed_applications/installed_applications.py:94
 msgid "You are only allowed to update order, do not remove or add apps."
 msgstr "شما فقط مجاز به به‌روزرسانی سفارش هستید، برنامه‌ها را حذف یا اضافه نکنید."
 
@@ -29699,7 +29708,7 @@ msgstr "شما مجوز لغو همه اسناد مرتبط را ندارید."
 msgid "You don't have access to Report: {0}"
 msgstr "شما به گزارش دسترسی ندارید: {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:797
+#: frappe/website/doctype/web_form/web_form.py:799
 msgid "You don't have permission to access the {0} DocType."
 msgstr "شما اجازه دسترسی به {0} DocType را ندارید."
 
@@ -29768,11 +29777,11 @@ msgstr "شما آخرین بار این را ویرایش کردید"
 msgid "You must add atleast one link."
 msgstr "شما باید حداقل یک لینک اضافه کنید."
 
-#: frappe/website/doctype/web_form/web_form.py:793
+#: frappe/website/doctype/web_form/web_form.py:795
 msgid "You must be logged in to use this form."
 msgstr "برای استفاده از این فرم باید وارد سیستم شوید."
 
-#: frappe/website/doctype/web_form/web_form.py:634
+#: frappe/website/doctype/web_form/web_form.py:636
 msgid "You must login to submit this form"
 msgstr "برای ارسال این فرم باید وارد شوید"
 
@@ -30659,7 +30668,7 @@ msgstr "version_table"
 msgid "via Assignment Rule"
 msgstr "از طریق قانون واگذاری"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:261
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:264
 msgid "via Auto Repeat"
 msgstr "از طریق تکرار خودکار"
 
@@ -31026,7 +31035,7 @@ msgstr "{0} یک فایل فشرده معتبر نیست"
 msgid "{0} is an invalid Data field."
 msgstr "{0} یک فیلد داده نامعتبر است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:159
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:162
 msgid "{0} is an invalid email address in 'Recipients'"
 msgstr "{0} یک آدرس ایمیل نامعتبر در \"گیرندگان\" است"
 
@@ -31172,7 +31181,7 @@ msgstr "{0} تنظیم شده است"
 msgid "{0} is within {1}"
 msgstr "{0} در محدوده {1} است"
 
-#: frappe/public/js/frappe/list/list_view.js:1782
+#: frappe/public/js/frappe/list/list_view.js:1799
 msgid "{0} items selected"
 msgstr "{0} مورد انتخاب شد"
 
@@ -31258,11 +31267,11 @@ msgid "{0} not found"
 msgstr "{0} یافت نشد"
 
 #: frappe/core/doctype/report/report.py:427
-#: frappe/public/js/frappe/list/list_view.js:1158
+#: frappe/public/js/frappe/list/list_view.js:1175
 msgid "{0} of {1}"
 msgstr "{0} از {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1160
+#: frappe/public/js/frappe/list/list_view.js:1177
 msgid "{0} of {1} ({2} rows with children)"
 msgstr "{0} از {1} ({2} ردیف با فرزندان)"
 
@@ -31336,7 +31345,7 @@ msgstr "{0} این سند را با {1} به اشتراک گذاشت"
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "{0} باید ایندکس شود زیرا در اتصالات داشبورد ذکر شده است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:146
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:149
 msgid "{0} should not be same as {1}"
 msgstr "{0} نباید مانند {1} باشد"
 
@@ -31472,7 +31481,7 @@ msgstr "{0}: ارسال، لغو، اصلاح بدون نوشتن امکان‌�
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: نمی‌توان درون‌بُرد را به عنوان {1} تنظیم کرد، قابل درون‌بُرد نیست"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:433
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:436
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: سند تکراری جدید پیوست نشد. برای فعال کردن پیوست کردن سند در ایمیل اعلان تکرار خودکار، {1} را در تنظیمات چاپ فعال کنید"
 
