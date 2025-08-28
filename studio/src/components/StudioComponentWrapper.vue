@@ -10,15 +10,15 @@ import useComponentStore from "@/stores/componentStore"
 import { getBlockCopy } from "@/utils/helpers"
 
 const props = defineProps<{
-	componentBlock: Block
+	studioComponent: Block
 	breakpoint?: string
 }>()
 const block = ref<Block | undefined>()
 const componentStore = useComponentStore()
 
 const componentContext = computed(() => {
-	const context = { ...props.componentBlock.componentProps }
-	const componentDoc = componentStore.getComponentDoc(props.componentBlock.componentName)
+	const context = { ...props.studioComponent.componentProps }
+	const componentDoc = componentStore.getComponentDoc(props.studioComponent.componentName)
 	if (componentDoc?.inputs) {
 		componentDoc.inputs.forEach((input: any) => {
 			if (!(input.input_name in context) && input.default !== undefined) {
@@ -30,18 +30,24 @@ const componentContext = computed(() => {
 })
 provide("componentContext", componentContext)
 
+const component = computed(() => componentStore.componentMap.get(props.studioComponent.componentName))
+const loadComponentBlock = () => {
+	const { componentId, componentName } = props.studioComponent
+	if (!component.value) {
+		console.error(`Component with ID ${componentName} not found`)
+		return
+	}
+	block.value = getBlockCopy(component.value)
+	block.value.initializeStudioComponent(componentName, componentId)
+}
+
+watch(() => props.studioComponent.componentId, loadComponentBlock, { immediate: true })
+
 watch(
-	() => props.componentBlock.componentId,
-	async () => {
-		const { componentId, componentName } = props.componentBlock
-		const component = await componentStore.getComponent(componentName)
-		if (!component) {
-			console.error(`Component with ID ${componentName} not found`)
-			return
-		}
-		block.value = getBlockCopy(component)
-		block.value.initializeStudioComponent(componentName, componentId)
+	() => component.value,
+	() => {
+		loadComponentBlock()
 	},
-	{ immediate: true },
+	{ deep: true },
 )
 </script>

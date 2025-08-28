@@ -1,5 +1,5 @@
 <template>
-	<StudioComponent v-if="rootBlock" :block="rootBlock" :breakpoint="props.breakpoint" />
+	<StudioComponent v-if="studioComponent" :block="studioComponent" :breakpoint="props.breakpoint" />
 </template>
 
 <script setup lang="ts">
@@ -9,7 +9,7 @@ import Block from "@/utils/block"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 
 const props = defineProps<{
-	rootBlock: Block
+	studioComponent: Block
 	breakpoint?: string
 }>()
 

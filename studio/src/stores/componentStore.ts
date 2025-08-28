@@ -39,7 +39,7 @@ export const useComponentStore = defineStore("componentStore", () => {
 	}
 
 	async function loadComponent(componentName: string) {
-		if (!componentMap.has(componentName)) {
+		if (!componentMap.has(componentName) && !fetchingComponent.has(componentName)) {
 			fetchingComponent.add(componentName);
 
 			try {

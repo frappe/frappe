@@ -1,6 +1,10 @@
 <template>
-	<StudioComponentWrapper v-if="block.isStudioComponent" :componentBlock="block" :breakpoint="breakpoint" />
-	<StudioComponentEditorWrapper v-else-if="isEditingComponent" :rootBlock="block" :breakpoint="breakpoint" />
+	<StudioComponentWrapper v-if="block.isStudioComponent" :studioComponent="block" :breakpoint="breakpoint" />
+	<StudioComponentEditorWrapper
+		v-else-if="isEditingComponent"
+		:studioComponent="block"
+		:breakpoint="breakpoint"
+	/>
 
 	<component
 		v-else-if="block.canHaveChildren()"
