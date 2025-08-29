@@ -157,7 +157,7 @@
    "label": "Filters"
   },
   {
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "depends_on": "eval:![\"Custom Report\", \"Report Builder\"].includes(doc.report_type)",
    "fieldname": "filters",
    "fieldtype": "Table",
    "label": "Filters",
@@ -172,7 +172,7 @@
    "label": "Columns"
   },
   {
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "depends_on": "eval:![\"Custom Report\", \"Report Builder\"].includes(doc.report_type)",
    "fieldname": "columns",
    "fieldtype": "Table",
    "label": "Columns",
@@ -202,7 +202,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-12 17:08:09.629411",
+ "modified": "2025-08-28 18:28:32.510719",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
