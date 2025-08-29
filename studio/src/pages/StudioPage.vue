@@ -113,6 +113,9 @@ watchEffect(() => {
 			const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
 			if (fragmentRootBlock) {
 				canvasStore.activeCanvas?.selectBlock(fragmentRootBlock, null)
+				if (canvasStore.editingMode === "component") {
+					store.studioLayout.rightPanelActiveTab = "Interface"
+				}
 			}
 		})
 	} else {
