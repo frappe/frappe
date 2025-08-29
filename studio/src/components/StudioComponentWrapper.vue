@@ -7,10 +7,11 @@ import { watch, ref, provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { getBlockCopy } from "@/utils/helpers"
+import { getBlockCopy, getDynamicValue, isDynamicValue } from "@/utils/helpers"
 
 const props = defineProps<{
 	studioComponent: Block
+	evaluationContext: Object
 	breakpoint?: string
 }>()
 const block = ref<Block | undefined>()
@@ -24,6 +25,12 @@ const componentContext = computed(() => {
 			if (!(input.input_name in context) && input.default !== undefined) {
 				context[input.input_name] = input.default
 			}
+
+			Object.entries(context).forEach(([inputName, value]) => {
+				if (isDynamicValue(value)) {
+					context[inputName] = getDynamicValue(value, props.evaluationContext)
+				}
+			})
 		})
 	}
 	return context

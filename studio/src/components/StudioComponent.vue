@@ -1,5 +1,10 @@
 <template>
-	<StudioComponentWrapper v-if="block.isStudioComponent" :studioComponent="block" :breakpoint="breakpoint" />
+	<StudioComponentWrapper
+		v-if="block.isStudioComponent"
+		:studioComponent="block"
+		:evaluationContext="evaluationContext"
+		:breakpoint="breakpoint"
+	/>
 	<StudioComponentEditorWrapper
 		v-else-if="isEditingComponent"
 		:studioComponent="block"
@@ -157,7 +162,7 @@ const componentName = computed(() => {
 
 const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
 const componentContext = inject<ComputedRef>("componentContext")
-const getEvaluationContext = () => {
+const evaluationContext = computed(() => {
 	const context: any = {
 		...store.variables,
 		...store.resources,
@@ -167,7 +172,7 @@ const getEvaluationContext = () => {
 		context["inputs"] = componentContext.value
 	}
 	return context
-}
+})
 
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
@@ -177,7 +182,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, getEvaluationContext())
+			propValues[propName] = getDynamicValue(config, evaluationContext.value)
 		}
 	})
 	return propValues
@@ -201,7 +206,7 @@ const boundValue = computed({
 		if (modelValue?.$type === "variable") {
 			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, getEvaluationContext())
+			return getDynamicValue(modelValue, evaluationContext.value)
 		}
 		return modelValue
 	},
