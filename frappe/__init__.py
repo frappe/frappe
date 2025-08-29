@@ -181,6 +181,16 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.task_id = None
 
 	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=bool(frappe.request))
+	# for editable mode check
+	try:
+		from frappe.utils.bench_helper import check_non_editable_apps
+
+		if getattr(conf, "developer_mode", False):
+			check_non_editable_apps()
+
+	except Exception:
+		pass
+
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None

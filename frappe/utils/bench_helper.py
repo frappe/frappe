@@ -170,6 +170,32 @@ def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path=".")
 
 
+def check_non_editable_apps():
+	"""
+	Checks installed apps are editable or not
+	"""
+	if not frappe.conf.get("developer_mode"):
+		return
+
+	installed_apps = frappe.get_all_apps()
+	for app in installed_apps:
+		try:
+			spec = importlib.util.find_spec(app)
+			if spec and spec.origin:
+				if "site-packages" in spec.origin or ".egg" in spec.origin:
+					click.secho(
+						f"⚠️ Warning: App '{app}' is installed in non-editable mode (found in .egg)",
+						fg="yellow",
+						color=True,
+					)
+					click.secho(
+						f"Development should use: pip install -e ./apps/{app}", fg="yellow", color=True
+					)
+
+		except Exception:
+			continue
+
+
 if __name__ == "__main__":
 	if not frappe._dev_server:
 		warnings.simplefilter("ignore")
