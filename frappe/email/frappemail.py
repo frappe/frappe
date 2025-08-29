@@ -83,6 +83,7 @@ class FrappeMail:
 			headers=headers,
 			timeout=timeout,
 		)
+		response.raise_for_status()
 
 		return self.client.post_process(response)
 
