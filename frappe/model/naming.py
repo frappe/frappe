@@ -587,15 +587,26 @@ def _format_autoname(autoname: str, doc):
 
 	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
 	"""
-
 	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1 :]
 
-	def get_param_value_for_match(match):
-		param = match.group()
-		return parse_naming_series([param[1:-1]], doc=doc)
+	parts = []
+	position_after_last_match = 0
 
-	# Replace braced params with their parsed value
-	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
+	# Iterate over each "part" of the name
+	for match in BRACED_PARAMS_PATTERN.finditer(autoname_value):
+		# Check for the static part, for example "LOG-"
+		if match.start() > position_after_last_match:
+			parts.append(autoname_value[position_after_last_match : match.start()])
 
-	return name
+		# Add the parameter (without the { })
+		parts.append(match.group()[1:-1])
+
+		# Update last match positio
+		position_after_last_match = match.end()
+
+	# Add any remaining static parts
+	if position_after_last_match < len(autoname_value):
+		parts.append(autoname_value[position_after_last_match:])
+
+	return parse_naming_series(parts, doc=doc)
