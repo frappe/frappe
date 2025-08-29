@@ -77,9 +77,5 @@ const tabs = computed(() => {
 	return _tabs
 })
 
-const showInterfaceTab = computed(() => {
-	if (canvasStore.editingMode !== "component") return false
-	if (canvasStore.activeCanvas?.isRootSelected) return true
-	return false
-})
+const showInterfaceTab = computed(() => canvasStore.editingMode === "component")
 </script>
