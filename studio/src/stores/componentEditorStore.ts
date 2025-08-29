@@ -82,7 +82,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				input_name: input.input_name,
 				type: input.type,
 				description: input.description,
-				default: input.default
+				default: input.default,
+				options: input.options,
 			}))
 		} else {
 			componentInputs.value = []

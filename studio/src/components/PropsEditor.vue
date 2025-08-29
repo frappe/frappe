@@ -152,8 +152,8 @@ function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentPr
 			inputType: input.type,
 			required: !!input.required,
 			options:
-				input.type === "Select" && Array.isArray(input.default)
-					? input.default.map((opt: string) => ({ value: opt, label: opt }))
+				input.type === "select"
+					? input.options?.split("\n").map((opt: string) => ({ value: opt, label: opt }))
 					: undefined,
 		}
 	})
