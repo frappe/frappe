@@ -45,7 +45,11 @@
 						</div>
 					</template>
 					<template #body-main>
-						<div class="w-64 space-y-4 p-4" v-if="editingInput && editingIndex === index">
+						<div
+							class="w-64 space-y-4 p-4"
+							v-if="editingInput && editingIndex === index"
+							@keydown.enter="saveInput"
+						>
 							<FormControl
 								type="text"
 								label="Name"
