@@ -2,8 +2,8 @@ export interface StudioComponent {
 	name: string
 	component_id: string
 	component_name: string
-	/**	Blocks : JSON	*/
-	blocks?: any
+	/**	Block : JSON	*/
+	block?: any
 	inputs?: StudioComponentInput[]
 	creation?: string
 	modified?: string

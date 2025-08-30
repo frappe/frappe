@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "component_name",
-  "blocks",
+  "block",
   "component_id",
   "interface_tab",
   "inputs"
@@ -17,11 +17,6 @@
    "fieldname": "component_name",
    "fieldtype": "Data",
    "label": "Component Name"
-  },
-  {
-   "fieldname": "blocks",
-   "fieldtype": "JSON",
-   "label": "Blocks"
   },
   {
    "fieldname": "component_id",
@@ -40,12 +35,17 @@
    "fieldtype": "Table",
    "label": "Inputs",
    "options": "Studio Component Input"
+  },
+  {
+   "fieldname": "block",
+   "fieldtype": "JSON",
+   "label": "Block"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 09:48:54.529305",
+ "modified": "2025-08-31 02:19:41.622132",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",

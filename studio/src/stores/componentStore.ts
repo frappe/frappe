@@ -50,7 +50,7 @@ export const useComponentStore = defineStore("componentStore", () => {
 					name: componentName,
 					component_id: componentName,
 					component_name: componentName,
-					blocks: JSON.stringify(getBlockTemplate("missing-component")),
+					block: JSON.stringify(getBlockTemplate("missing-component")),
 					creation: "",
 					modified: "",
 				};
@@ -63,8 +63,8 @@ export const useComponentStore = defineStore("componentStore", () => {
 
 	function cacheComponent(componentDoc: StudioComponent) {
 		componentDocMap.set(componentDoc.component_id, componentDoc)
-		if (componentDoc.blocks) {
-			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.blocks)))
+		if (componentDoc.block) {
+			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.block)))
 		}
 	}
 

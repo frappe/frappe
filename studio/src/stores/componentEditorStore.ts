@@ -15,10 +15,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentInputs = ref<ComponentInput[]>([])
 	const componentStore = useComponentStore()
 
-	async function createComponent(componentName: string, blocks?: Block | null) {
+	async function createComponent(componentName: string, block?: Block | null) {
 		const component: any = { component_name: componentName }
-		if (blocks) {
-			component.blocks = getBlockObject(blocks)
+		if (block) {
+			component.block = getBlockObject(block)
 		}
 
 		return studioComponents.insert.submit(
@@ -38,10 +38,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		)
 	}
 
-	function saveComponent(blocks: Block, componentName: string) {
+	function saveComponent(block: Block, componentName: string) {
 		const payload: any = {
 			name: componentName,
-			blocks: getBlockObject(blocks),
+			block: getBlockObject(block),
 		}
 
 		payload.inputs = componentInputs.value.map(input => ({
