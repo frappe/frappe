@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide, computed, watch, ref } from "vue"
+import { provide, computed } from "vue"
 import AppComponent from "@/components/AppComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
@@ -35,25 +35,11 @@ const componentContext = computed(() => {
 })
 provide("componentContext", componentContext)
 
-const block = ref<Block | undefined>()
-const component = computed(() => componentStore.componentMap.get(props.studioComponent.componentName))
-const loadComponentBlock = () => {
-	const { componentId, componentName } = props.studioComponent
-	if (!component.value) {
-		console.error(`Component with ID ${componentName} not found`)
+const block = computed(() => {
+	const component = componentStore.componentMap.get(props.studioComponent.componentName)
+	if (!component) {
 		return
 	}
-	block.value = getBlockCopy(component.value)
-	block.value.initializeStudioComponent(componentName, componentId)
-}
-
-watch(() => props.studioComponent.componentId, loadComponentBlock, { immediate: true })
-
-watch(
-	() => component.value,
-	() => {
-		loadComponentBlock()
-	},
-	{ deep: true },
-)
+	return getBlockCopy(component)
+})
 </script>
