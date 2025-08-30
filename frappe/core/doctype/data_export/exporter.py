@@ -211,12 +211,12 @@ class DataExporter:
 		tablecolumns = []
 		table_name = "tab" + dt
 
-		standard_fields_to_allow = ["owner","creation","modified","modified_by","idx"]
+		standard_fields_to_allow = ["owner", "creation", "modified", "modified_by", "idx"]
 
 		for f in frappe.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
 
-            #Include standard fields explicitly
+			# Include standard fields explicitly
 			if not field and f.name in standard_fields_to_allow:
 				std_field = next((x for x in frappe.model.std_fields if x["fieldname"] == f.name), None)
 				if std_field:
@@ -231,9 +231,9 @@ class DataExporter:
 						}
 					)
 
-			#Add to tablecolumns if it's selected or if exporting all
+			# Add to tablecolumns if it's selected or if exporting all
 			if field and (
-				(self.select_columns and f.name in self.select_columns.get(dt,[])) or not self.select_columns
+				(self.select_columns and f.name in self.select_columns.get(dt, [])) or not self.select_columns
 			):
 				tablecolumns.append(field)
 
