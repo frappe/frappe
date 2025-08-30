@@ -79,6 +79,7 @@ declare module 'vue' {
     StudioCanvas: typeof import('./src/components/StudioCanvas.vue')['default']
     StudioComponent: typeof import('./src/components/StudioComponent.vue')['default']
     StudioComponentEditorWrapper: typeof import('./src/components/StudioComponentEditorWrapper.vue')['default']
+    StudioComponentRenderer: typeof import('./src/components/StudioComponentRenderer.vue')['default']
     StudioComponentWrapper: typeof import('./src/components/StudioComponentWrapper.vue')['default']
     StudioLeftPanel: typeof import('./src/components/StudioLeftPanel.vue')['default']
     StudioLogo: typeof import('./src/components/Icons/StudioLogo.vue')['default']

@@ -702,7 +702,7 @@ class Block implements BlockOptions {
 	}
 
 	getComponentLabel() {
-		return this.extendedFromComponent ||this.componentName
+		return this.extendedFromComponent || this.componentName
 	}
 }
 
