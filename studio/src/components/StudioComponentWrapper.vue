@@ -3,18 +3,17 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref, provide, computed } from "vue"
+import { provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { getBlockCopy, getDynamicValue, isDynamicValue } from "@/utils/helpers"
+import { getBlockObject, getDynamicValue, isDynamicValue, isObjectEmpty } from "@/utils/helpers"
 
 const props = defineProps<{
 	studioComponent: Block
 	evaluationContext: Object
 	breakpoint?: string
 }>()
-const block = ref<Block | undefined>()
 const componentStore = useComponentStore()
 
 const componentContext = computed(() => {
@@ -37,24 +36,33 @@ const componentContext = computed(() => {
 })
 provide("componentContext", componentContext)
 
-const component = computed(() => componentStore.componentMap.get(props.studioComponent.componentName))
-const loadComponentBlock = () => {
+const block = computed(() => {
 	const { componentId, componentName } = props.studioComponent
-	if (!component.value) {
+	const component = componentStore.componentMap.get(props.studioComponent.componentName)
+	if (!component) {
 		console.error(`Component with ID ${componentName} not found`)
 		return
 	}
-	block.value = getBlockCopy(component.value)
-	block.value.initializeStudioComponent(componentName, componentId)
+	const blockOptions = getBlockObject(component)
+	blockOptions.extendedFromComponent = componentName
+	applyStudioComponentStyles(blockOptions)
+
+	const newBlock = new Block(blockOptions)
+	newBlock.initializeStudioComponent(componentName, componentId)
+	return newBlock
+})
+
+const applyStudioComponentStyles = (blockOptions: any) => {
+	const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes } =
+		props.studioComponent
+
+	if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
+	if (!isObjectEmpty(mobileStyles))
+		blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
+	if (!isObjectEmpty(tabletStyles))
+		blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
+	if (!isObjectEmpty(rawStyles)) blockOptions.rawStyles = { ...blockOptions.rawStyles, ...rawStyles }
+	if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
+	if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
 }
-
-watch(() => props.studioComponent.componentId, loadComponentBlock, { immediate: true })
-
-watch(
-	() => component.value,
-	() => {
-		loadComponentBlock()
-	},
-	{ deep: true },
-)
 </script>
