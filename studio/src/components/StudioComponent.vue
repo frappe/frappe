@@ -161,7 +161,7 @@ const componentName = computed(() => {
 })
 
 const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
-const componentContext = inject<ComputedRef>("componentContext")
+const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
 	const context: any = {
 		...store.variables,

@@ -75,7 +75,7 @@ const classes = computed(() => {
 
 const store = useAppStore()
 const repeaterContext = inject("repeaterContext", {})
-const componentContext = inject<ComputedRef>("componentContext")
+const componentContext = inject<ComputedRef | null>("componentContext", null)
 
 const evaluationContext = computed(() => {
 	const context: any = {
