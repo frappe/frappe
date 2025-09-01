@@ -89,12 +89,45 @@ class StudioPage(Document):
 		if can_export(self):
 			write_document_file(self, folder=self.get_folder_path())
 			self.delete_old_page_file()
+			self.export_components()
 
 	def delete_old_page_file(self):
 		if self.has_value_changed("page_title"):
 			doc_before_save = self.get_doc_before_save()
 			if doc_before_save:
 				delete_file(self.get_folder_path(), f"{frappe.scrub(doc_before_save.page_title)}.json")
+
+	def export_components(self):
+		if components := self.get_studio_components():
+			folder = self.get_component_folder_path()
+			frappe.create_folder(folder, with_init=True)
+			for component in components:
+				doc = frappe.get_doc("Studio Component", component)
+				write_document_file(doc, folder=folder)
+
+	def get_studio_components(self):
+		components = set()
+
+		def add_component(block):
+			if block.get("isStudioComponent"):
+				components.add(block.get("componentName"))
+
+			for child in block.get("children", []):
+				add_component(child)
+
+			if slots := block.get("componentSlots"):
+				for slot in slots.values():
+					if isinstance(slot.get("slotContent"), str):
+						continue
+					for slot_child in slot.get("slotContent"):
+						add_component(slot_child)
+
+		blocks = self.blocks
+		if isinstance(self.blocks, str):
+			blocks = frappe.parse_json(self.blocks)
+		root_block = blocks[0]
+		add_component(root_block)
+		return components
 
 	def on_trash(self):
 		if can_export(self):
@@ -191,6 +224,10 @@ class StudioPage(Document):
 		path = ["studio", self.studio_app, "studio_page"]
 		if with_filename:
 			path.append(self.get_file_name())
+		return frappe.get_app_source_path(self.frappe_app, *path)
+
+	def get_component_folder_path(self) -> str:
+		path = ["studio", self.studio_app, "studio_components"]
 		return frappe.get_app_source_path(self.frappe_app, *path)
 
 	def get_file_name(self):
