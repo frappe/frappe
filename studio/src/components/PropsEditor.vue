@@ -1,7 +1,7 @@
 <template>
 	<EmptyState
 		v-if="isObjectEmpty(componentProps)"
-		:message="`${block?.componentName} has no editable properties`"
+		:message="`${block?.getBlockDescription()} has no editable properties`"
 	/>
 	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName">
