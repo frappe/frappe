@@ -693,6 +693,7 @@ class Block implements BlockOptions {
 		function linkParentComponentId(block: Block, studioComponentId: string) {
 			block.children?.forEach((child) => {
 				child.isChildOfComponent = studioComponentId
+				child.classes?.push("__studio_component_child__")
 				if (child.children?.length) {
 					linkParentComponentId(child, studioComponentId)
 				}

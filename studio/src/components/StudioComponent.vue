@@ -254,7 +254,9 @@ const handleMouseLeave = (e: MouseEvent) => {
 
 const getClickedComponent = (e: MouseEvent) => {
 	const targetElement = e.target as HTMLElement
-	const componentId = targetElement.closest("[data-component-id]")?.getAttribute("data-component-id")
+	const componentId = targetElement
+		.closest("[data-component-id]:not(.__studio_component_child__)")
+		?.getAttribute("data-component-id")
 	if (componentId) {
 		return canvasStore.activeCanvas?.findBlock(componentId)
 	}
