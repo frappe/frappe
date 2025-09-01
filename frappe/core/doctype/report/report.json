@@ -18,7 +18,6 @@
   "disabled",
   "prepared_report",
   "add_translate_data",
-  "export_via_email",
   "timeout",
   "filters_section",
   "filters",
@@ -203,19 +202,12 @@
    "fieldname": "add_translate_data",
    "fieldtype": "Check",
    "label": "Add Translate Data"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.prepared_report && doc.report_type !==\"Custom Report\"",
-   "fieldname": "export_via_email",
-   "fieldtype": "Check",
-   "label": "Export Via Email"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-30 16:59:08.686868",
+ "modified": "2025-09-01 15:56:12.001095",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

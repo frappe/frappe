@@ -1690,11 +1690,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								delete args.start;
 								delete args.page_length;
 							}
-
-							if (
-								this.report_doc.prepared_report &&
-								this.report_doc.export_via_email
-							) {
+							args.export_in_background = data.export_in_background;
+							if (data.export_in_background) {
 								frappe.call({
 									method: args.cmd,
 									args,

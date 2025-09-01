@@ -33,7 +33,6 @@ class Report(Document):
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
 		disabled: DF.Check
-		export_via_email: DF.Check
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None

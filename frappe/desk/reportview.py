@@ -377,10 +377,9 @@ def export_query():
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	csv_params = pop_csv_params(form_params)
-	report_name = form_params.get("title")
-	report_doc = frappe.get_cached_doc("Report", report_name)
+	export_in_background = int(form_params.pop("export_in_background", 0))
 
-	if report_doc.prepared_report and report_doc.export_via_email:
+	if export_in_background:
 		user = frappe.session.user
 		user_email = frappe.db.get_value("User", user, "email")
 		frappe.enqueue(

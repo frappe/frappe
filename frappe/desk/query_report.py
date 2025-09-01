@@ -325,9 +325,8 @@ def export_query():
 		raise_exception=True,
 	)
 
-	report_doc = frappe.get_cached_doc("Report", report_name)
-
-	if report_doc.prepared_report and report_doc.export_via_email:
+	export_in_background = int(form_params.export_in_background)
+	if export_in_background:
 		user = frappe.session.user
 		user_email = frappe.db.get_value("User", user, "email")
 		frappe.enqueue(
