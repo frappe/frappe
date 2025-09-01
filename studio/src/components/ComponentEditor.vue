@@ -13,7 +13,7 @@
 			class="absolute -top-3 left-0 inline-block text-xs"
 			:class="componentLabelClasses"
 		>
-			{{ block.getComponentLabel() }}
+			{{ block.componentName }}
 		</span>
 
 		<PaddingHandler
@@ -148,7 +148,7 @@ const isSlotSelected = (slotId: string) => {
 const getStyleClasses = computed(() => {
 	const classes = []
 
-	if (props.block.extendedFromComponent) {
+	if (props.block.isStudioComponent) {
 		classes.push("ring-purple-400")
 	} else {
 		classes.push("ring-blue-400")
@@ -165,9 +165,9 @@ const getStyleClasses = computed(() => {
 
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
-		return props.block.extendedFromComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
+		return props.block.isStudioComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
 	} else {
-		return props.block.extendedFromComponent ? "text-purple-500" : "text-blue-500"
+		return props.block.isStudioComponent ? "text-purple-500" : "text-blue-500"
 	}
 })
 

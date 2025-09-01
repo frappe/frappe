@@ -90,7 +90,7 @@
 		<ComponentEditor
 			v-if="loadEditor"
 			ref="editor"
-			:block="block"
+			:block="block.extendedFromComponent || block"
 			:breakpoint="breakpoint"
 			:isSelected="isSelected"
 			:target="(target as HTMLElement)"

@@ -37,18 +37,17 @@ const componentContext = computed(() => {
 provide("componentContext", componentContext)
 
 const block = computed(() => {
-	const { componentId, componentName } = props.studioComponent
+	const { componentName } = props.studioComponent
 	const component = componentStore.componentMap.get(props.studioComponent.componentName)
 	if (!component) {
 		console.error(`Component with ID ${componentName} not found`)
 		return
 	}
 	const blockOptions = getBlockObject(component)
-	blockOptions.extendedFromComponent = componentName
 	applyStudioComponentStyles(blockOptions)
 
 	const newBlock = new Block(blockOptions)
-	newBlock.initializeStudioComponent(componentName, componentId)
+	newBlock.initializeStudioComponent(props.studioComponent)
 	return newBlock
 })
 

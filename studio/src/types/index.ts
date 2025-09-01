@@ -29,7 +29,7 @@ export interface BlockOptions {
 	visibilityCondition?: string
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
-	extendedFromComponent?: string
+	extendedFromComponent?: Block
 	[key: string]: any
 }
 
