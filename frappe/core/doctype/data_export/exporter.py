@@ -232,21 +232,9 @@ class DataExporter:
 			):
 				tablecolumns.append(field)
 
-		# Ensure 'owner' and 'creation' fields are always available for export
-		for std_field_name in ["owner", "creation"]:
-			if not any(f.get("fieldname") == std_field_name for f in tablecolumns):
-				std_field = next((x for x in frappe.model.std_fields if x["fieldname"] == std_field_name), None)
-				if std_field:
-					tablecolumns.append(frappe._dict(
-						{
-							"fieldname": std_field.get("fieldname"),
-							"label": std_field.get("label"),
-							"fieldtype": std_field.get("fieldtype"),
-							"options": std_field.get("options"),
-							"idx": 0,
-							"parent": dt,
-						}
-					))
+		# NOTE: 'owner' and 'creation' are mapped above when iterating columns so they behave like
+		# standard selectable fields. We no longer force-add them; they will only be exported
+		# if the user leaves select_columns empty (export all) or explicitly selects them.
 		tablecolumns.sort(key=lambda a: int(a.idx))
 
 		_column_start_end = frappe._dict(start=0)

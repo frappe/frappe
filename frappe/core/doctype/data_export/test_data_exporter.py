@@ -3,6 +3,7 @@
 import frappe
 from frappe.core.doctype.data_export.exporter import DataExporter
 from frappe.tests import IntegrationTestCase
+import json
 
 
 class TestDataExporter(IntegrationTestCase):
@@ -111,3 +112,31 @@ class TestDataExporter(IntegrationTestCase):
 
 	def tearDown(self):
 		pass
+
+	def test_owner_creation_not_exported_when_not_selected(self):
+		"""If select_columns omits owner/creation they should not appear in CSV output."""
+		select_cols = {self.doctype_name: ["title", "number"]}
+		exp = DataExporter(
+			doctype=self.doctype_name,
+			file_type="CSV",
+			select_columns=json.dumps(select_cols),
+			with_data=1,
+		)
+		exp.build_response()
+		csv_data = frappe.response["result"]
+		self.assertNotIn("owner", csv_data.lower())
+		self.assertNotIn("creation", csv_data.lower())
+
+	def test_owner_creation_exported_when_selected(self):
+		"""If select_columns includes owner/creation they should appear in CSV output."""
+		select_cols = {self.doctype_name: ["title", "number", "owner", "creation"]}
+		exp = DataExporter(
+			doctype=self.doctype_name,
+			file_type="CSV",
+			select_columns=json.dumps(select_cols),
+			with_data=1,
+		)
+		exp.build_response()
+		csv_data = frappe.response["result"].lower()
+		self.assertIn("owner", csv_data)
+		self.assertIn("creation", csv_data)
