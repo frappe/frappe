@@ -3,7 +3,7 @@ import { markRaw, reactive } from "vue"
 import { createDocumentResource } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import { getBlockInstance } from "@/utils/helpers"
+import { getBlockInstance, getBlockObject, isObjectEmpty } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 export const useComponentStore = defineStore("componentStore", () => {
@@ -73,6 +73,31 @@ export const useComponentStore = defineStore("componentStore", () => {
 		componentDocMap.delete(componentName)
 	}
 
+	function getNewStudioComponentInstance(studioComponent: Block) {
+		const component = componentMap.get(studioComponent.componentName)
+		if (!component) {
+			return
+		}
+		const blockOptions = getBlockObject(component)
+		const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes, componentEvents } =
+			studioComponent
+
+		if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
+		if (!isObjectEmpty(mobileStyles))
+			blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
+		if (!isObjectEmpty(tabletStyles))
+			blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
+		if (!isObjectEmpty(rawStyles)) blockOptions.rawStyles = { ...blockOptions.rawStyles, ...rawStyles }
+		if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
+		if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
+
+		if (!isObjectEmpty(componentEvents)) {
+			blockOptions.componentEvents = {...(blockOptions.componentEvents || []), ...componentEvents}
+		}
+
+		return new Block(blockOptions)
+	}
+
 	return {
 		componentMap,
 		componentDocMap,
@@ -82,6 +107,7 @@ export const useComponentStore = defineStore("componentStore", () => {
 		getComponentName,
 		cacheComponent,
 		removeCachedComponent,
+		getNewStudioComponentInstance,
 	}
 })
 

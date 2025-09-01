@@ -7,7 +7,7 @@ import { provide, computed } from "vue"
 import AppComponent from "@/components/AppComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { getBlockObject, isObjectEmpty, getDynamicValue, isDynamicValue } from "@/utils/helpers"
+import { getDynamicValue, isDynamicValue } from "@/utils/helpers"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -35,27 +35,5 @@ const componentContext = computed(() => {
 })
 provide("componentContext", componentContext)
 
-const block = computed(() => {
-	const component = componentStore.componentMap.get(props.studioComponent.componentName)
-	if (!component) {
-		return
-	}
-	const blockOptions = getBlockObject(component)
-	applyStudioComponentStyles(blockOptions)
-	return new Block(blockOptions)
-})
-
-const applyStudioComponentStyles = (blockOptions: any) => {
-	const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes } =
-		props.studioComponent
-
-	if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
-	if (!isObjectEmpty(mobileStyles))
-		blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
-	if (!isObjectEmpty(tabletStyles))
-		blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
-	if (!isObjectEmpty(rawStyles)) blockOptions.rawStyles = { ...blockOptions.rawStyles, ...rawStyles }
-	if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
-	if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
-}
+const block = computed(() => componentStore.getNewStudioComponentInstance(props.studioComponent))
 </script>
