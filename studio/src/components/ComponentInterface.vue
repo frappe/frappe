@@ -25,7 +25,7 @@
 							if (!show) cancelEdit()
 						}
 					"
-					placement="bottom-start"
+					placement="bottom-center"
 				>
 					<template #target>
 						<div
@@ -48,7 +48,7 @@
 						<div
 							class="w-64 space-y-4 p-4"
 							v-if="editingInput && editingIndex === index"
-							@keydown.enter="saveInput"
+							@keydown="handleInputKeydown"
 						>
 							<FormControl
 								type="text"
@@ -118,6 +118,13 @@
 								<Button variant="solid" @click="saveInput">Save</Button>
 								<Button variant="outline" @click="cancelEdit">Cancel</Button>
 							</div>
+							<div class="text-xs text-gray-500">
+								Press
+								<kbd class="rounded bg-gray-100 px-1 py-0.5">⌘</kbd>
+								+
+								<kbd class="rounded bg-gray-100 px-1 py-0.5">S</kbd>
+								to save
+							</div>
 						</div>
 					</template>
 				</Popover>
@@ -148,6 +155,7 @@ import Code from "@/components/Code.vue"
 import ColorPicker from "@/components/ColorPicker.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
+import { isCtrlOrCmd } from "@/utils/helpers"
 
 const componentEditorStore = useComponentEditorStore()
 const componentInputs = computed(() => componentEditorStore.componentInputs)
@@ -224,6 +232,13 @@ const setInputControl = () => {
 	} else {
 		editingInput.value.inputControl = "FormControl"
 		editingInput.value.inputType = editingInput.value?.type === "textarea" ? "textarea" : "text"
+	}
+}
+
+const handleInputKeydown = (e: KeyboardEvent) => {
+	if (isCtrlOrCmd(e) && e.key === "s") {
+		e.preventDefault()
+		saveInput()
 	}
 }
 </script>
