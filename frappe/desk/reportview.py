@@ -371,11 +371,70 @@ def delete_report(name):
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
-	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+	from frappe.desk.utils import pop_csv_params
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
+	csv_params = pop_csv_params(form_params)
+	report_name = form_params.get("title")
+	report_doc = frappe.get_cached_doc("Report", report_name)
+
+	if report_doc.prepared_report and report_doc.export_via_email:
+		user = frappe.session.user
+		user_email = frappe.db.get_value("User", user, "email")
+		frappe.enqueue(
+			"frappe.desk.reportview.run_report_view_export_job",
+			user_email=user_email,
+			form_params=form_params,
+			csv_params=csv_params,
+		)
+
+		frappe.msgprint(
+			_(
+				"Your report is being generated in the background. "
+				f"You will receive an email on {user_email} once it is ready."
+			)
+		)
+		return
+
+	return _export_query(form_params, csv_params)
+
+
+def run_report_view_export_job(user_email, form_params, csv_params):
+	"""Background job for Report View export"""
+	title, file_extension, content = _export_query(form_params, csv_params, return_file=True)
+
+	_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"{title}.{file_extension}",
+			"attached_to_doctype": "Report",
+			"attached_to_name": f"{title}",
+			"content": content,
+			"is_private": 1,
+		}
+	)
+	_file.save(ignore_permissions=True)
+
+	file_url = _file.get_url()
+	signed_url = frappe.utils.get_url(file_url)
+
+	frappe.sendmail(
+		recipients=[user_email],
+		subject=_("Your exported report: {0}").format(title),
+		message=_(
+			"The report you requested has been generated.<br><br>"
+			"Click here to download:<br>"
+			f"<a href='{signed_url}'>{signed_url}</a><br><br>"
+		),
+	)
+
+
+def _export_query(form_params, csv_params, return_file=False):
+	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
+
 	doctype = form_params.pop("doctype")
 	if isinstance(form_params["fields"], list):
 		form_params["fields"].append("owner")
@@ -383,7 +442,6 @@ def export_query():
 		form_params["fields"] = form_params["fields"] + ("owner",)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
-	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
 
@@ -434,18 +492,17 @@ def export_query():
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-		from frappe.utils.xlsxutils import handle_html
-
 		file_extension = "csv"
 		content = get_csv_bytes(
 			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
 			csv_params,
 		)
 	elif file_format_type == "Excel":
-		from frappe.utils.xlsxutils import make_xlsx
-
 		file_extension = "xlsx"
 		content = make_xlsx(data, doctype).getvalue()
+
+	if return_file:
+		return title, file_extension, content
 
 	provide_binary_file(title, file_extension, content)
 

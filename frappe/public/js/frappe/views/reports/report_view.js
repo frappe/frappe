@@ -1691,7 +1691,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								delete args.page_length;
 							}
 
-							open_url_post(frappe.request.url, args);
+							if (
+								this.report_doc.prepared_report &&
+								this.report_doc.export_via_email
+							) {
+								frappe.call({
+									method: args.cmd,
+									args,
+								});
+							} else {
+								open_url_post(frappe.request.url, args);
+							}
 
 							d.hide();
 						}

@@ -1679,7 +1679,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (visible_idx.length + 1 === this.data?.length) {
 					visible_idx.push(visible_idx.length);
 				}
-
 				const args = {
 					cmd: "frappe.desk.query_report.export_query",
 					report_name: this.report_name,
@@ -1696,8 +1695,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					include_hidden_columns,
 				};
 
-				open_url_post(frappe.request.url, args);
-
+				if (this.report_doc.prepared_report && this.report_doc.export_via_email) {
+					frappe.call({
+						method: args.cmd,
+						args,
+					});
+				} else {
+					open_url_post(frappe.request.url, args);
+				}
 				this.export_dialog.hide();
 			}
 		);
