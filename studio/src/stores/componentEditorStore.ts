@@ -22,21 +22,18 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			component.block = getBlockObject(block)
 		}
 
-		return studioComponents.insert.submit(
-			component,
-			{
-				onSuccess(data: any) {
-					componentStore.cacheComponent(data)
-					toast.success("Component created successfully")
-					return data
-				},
-				onError(error: any) {
-					toast.error("Failed to create component", {
-						description: error?.messages?.join(", "),
-					})
-				},
+		return studioComponents.insert.submit(component, {
+			onSuccess(data: any) {
+				componentStore.cacheComponent(data)
+				toast.success("Component created successfully")
+				return data
 			},
-		)
+			onError(error: any) {
+				toast.error("Failed to create component", {
+					description: error?.messages?.join(", "),
+				})
+			},
+		})
 	}
 
 	function saveComponent(block: Block, componentName: string) {
@@ -45,7 +42,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			block: getBlockObject(block),
 		}
 
-		payload.inputs = componentInputs.value.map(input => ({
+		payload.inputs = componentInputs.value.map((input) => ({
 			input_name: input.input_name,
 			type: input.type,
 			description: input.description || "",
@@ -54,21 +51,18 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			options: input.options,
 		}))
 
-		studioComponents.setValue.submit(
-			payload,
-			{
-				onSuccess(data: StudioComponent) {
-					componentStore.cacheComponent(data)
-					resetStudioComponent()
-					toast.success("Component saved successfully")
-				},
-				onError(error: any) {
-					toast.error("Failed to save component", {
-						description: error.messages.join(", "),
-					})
-				},
+		studioComponents.setValue.submit(payload, {
+			onSuccess(data: StudioComponent) {
+				componentStore.cacheComponent(data)
+				resetStudioComponent()
+				toast.success("Component saved successfully")
 			},
-		)
+			onError(error: any) {
+				toast.error("Failed to save component", {
+					description: error.messages.join(", "),
+				})
+			},
+		})
 	}
 
 	async function editComponent(componentId: string) {
@@ -103,26 +97,53 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	}
 
 	async function deleteComponent(component: StudioComponent) {
-		const confirmed = await confirm(
-			`Are you sure you want to delete the component '${component.component_name}'?`,
-		)
-		if (confirmed) {
-			const store = useStudioStore()
-			studioComponents.runDocMethod
-				.submit({
-					method: "delete_component",
-					name: component.component_id,
-					studio_app: store.activeApp?.name,
-				})
-				.then(() => {
-					toast.success(`Component '${component.component_name}' deleted successfully`)
-					studioComponents.reload()
-					componentStore.removeCachedComponent(component.component_id)
-				})
-				.catch(() => {
-					toast.error(`Failed to delete component '${component.component_name}'`)
-				})
+		if (isComponentUsed(component.component_id)) {
+			toast.error("Component is used in this page. You cannot delete it.")
+		} else {
+			const confirmed = await confirm(
+				`Are you sure you want to delete the component '${component.component_name}'?`,
+			)
+			if (confirmed) {
+				const store = useStudioStore()
+				studioComponents.runDocMethod
+					.submit({
+						method: "delete_component",
+						name: component.component_id,
+						studio_app: store.activeApp?.name,
+					})
+					.then(() => {
+						toast.success(`Component '${component.component_name}' deleted successfully`)
+						studioComponents.reload()
+						componentStore.removeCachedComponent(component.component_id)
+					})
+					.catch(() => {
+						toast.error(`Failed to delete component '${component.component_name}'`)
+					})
+			}
 		}
+	}
+
+	function isComponentUsed(componentId: string): Boolean {
+		const checkComponent = (block: Block) => {
+			if (block.isStudioComponent && block.componentName === componentId) {
+				return true
+			}
+			if (block.children) {
+				for (const child of block.children) {
+					if (checkComponent(child)) {
+						return true
+					}
+				}
+			}
+			return false
+		}
+		const canvasStore = useCanvasStore()
+		for (const block of canvasStore.activeCanvas?.getRootBlock()?.children || []) {
+			if (checkComponent(block)) {
+				return true
+			}
+		}
+		return false
 	}
 
 	function resetStudioComponent() {
