@@ -1,12 +1,14 @@
 import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
-import { reactive, CSSProperties, nextTick } from 'vue'
+import { reactive, CSSProperties, nextTick, computed } from 'vue'
 
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentStore from "@/stores/componentStore"
 import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
+import LucideBox from "~icons/lucide/box"
 
-import { copyObject, generateId, getBlockCopy, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { copyObject, generateId, getBlockCopy, getComponentBlock, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
@@ -29,6 +31,10 @@ class Block implements BlockOptions {
 	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
+	// studio component specific
+	isStudioComponent?: boolean
+	isChildOfComponent?: string
+	extendedFromComponent?: Block // for the component root
 	// temporary property
 	repeaterDataItem?: Record<string, any> | null
 
@@ -51,6 +57,12 @@ class Block implements BlockOptions {
 			this.componentId = this.generateComponentId()
 		} else {
 			this.componentId = options.componentId
+		}
+
+		if (options.isStudioComponent) {
+			this.isStudioComponent = options.isStudioComponent
+			const componentStore = useComponentStore()
+			componentStore.loadComponent(this.componentName)
 		}
 
 		// get component props
@@ -232,12 +244,23 @@ class Block implements BlockOptions {
 	}
 
 	getIcon() {
-		if (this.isRoot()) return LucideHash
-		if (this.componentName === "container") return LucideAppWindow
-		return Block.components?.[this.componentName]?.icon
+		switch(true) {
+			case this.isRoot():
+				return LucideHash
+			case this.componentName === "container":
+				return LucideAppWindow
+			case this.isStudioComponent:
+				return LucideBox
+			default:
+				return Block.components?.[this.componentName]?.icon || LucideHash
+		}
 	}
 
 	getBlockDescription() {
+		if (this.isStudioComponent) {
+			const componentStore = useComponentStore()
+			return componentStore.getComponentName(this.componentName)
+		}
 		return this.blockName || this.originalElement
 	}
 
@@ -654,6 +677,29 @@ class Block implements BlockOptions {
 
 	removeEvent(eventName: string) {
 		delete this.componentEvents[eventName]
+	}
+
+	// studio components
+	extendFromComponent(componentName: string) {
+		let parentBlock = this.getParentBlock()
+		const newBlock = getComponentBlock(componentName, true)
+		parentBlock?.replaceChild(this, newBlock)
+	}
+
+	initializeStudioComponent(studioComponent: Block) {
+		this.componentId = studioComponent.componentId
+		this.extendedFromComponent = studioComponent
+
+		function linkParentComponentId(block: Block, studioComponentId: string) {
+			block.children?.forEach((child) => {
+				child.isChildOfComponent = studioComponentId
+				child.classes?.push("__studio_component_child__")
+				if (child.children?.length) {
+					linkParentComponentId(child, studioComponentId)
+				}
+			})
+		}
+		linkParentComponentId(this, studioComponent.componentId)
 	}
 }
 

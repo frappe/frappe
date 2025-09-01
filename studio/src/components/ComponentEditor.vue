@@ -11,9 +11,9 @@
 		<span
 			v-if="!props.block.isRoot()"
 			class="absolute -top-3 left-0 inline-block text-xs"
-			:class="isBlockSelected ? 'bg-blue-500 text-white' : 'text-blue-500'"
+			:class="componentLabelClasses"
 		>
-			{{ block.componentName }}
+			{{ block.getBlockDescription() }}
 		</span>
 
 		<PaddingHandler
@@ -146,7 +146,13 @@ const isSlotSelected = (slotId: string) => {
 }
 
 const getStyleClasses = computed(() => {
-	const classes = ["ring-blue-400"]
+	const classes = []
+
+	if (props.block.isStudioComponent) {
+		classes.push("ring-purple-400")
+	} else {
+		classes.push("ring-blue-400")
+	}
 
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
 		// make editor interactive
@@ -155,6 +161,14 @@ const getStyleClasses = computed(() => {
 		classes.push("!z-[19]")
 	}
 	return classes
+})
+
+const componentLabelClasses = computed(() => {
+	if (isBlockSelected.value) {
+		return props.block.isStudioComponent ? "bg-purple-500 text-white" : "bg-blue-500 text-white"
+	} else {
+		return props.block.isStudioComponent ? "text-purple-500" : "text-blue-500"
+	}
 })
 
 const preventClick = ref(false)

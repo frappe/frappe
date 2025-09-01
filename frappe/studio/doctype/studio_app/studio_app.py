@@ -238,7 +238,7 @@ class StudioApp(WebsiteGenerator):
 			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
 		):
 			page_doc = frappe.get_doc("Studio Page", page)
-			write_document_file(page_doc, folder=page_folder_path)
+			page_doc.export_page()
 
 	def add_to_studio_apps_txt(self):
 		if self.frappe_app != "studio":

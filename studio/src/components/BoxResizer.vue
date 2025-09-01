@@ -26,6 +26,9 @@
 	/>
 	<div
 		class="pointer-events-auto absolute bottom-[-5px] right-[-5px] h-[12px] w-[12px] cursor-nwse-resize rounded-full border-[2.5px] border-blue-400 bg-white"
+		:class="{
+			'border-purple-400': targetBlock.isStudioComponent,
+		}"
 		v-show="!resizing"
 		@mousedown.stop="handleBottomCornerResize"
 	/>

@@ -27,10 +27,13 @@ export interface BlockOptions {
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot
 	visibilityCondition?: string
+	isStudioComponent?: boolean
+	isChildOfComponent?: string
+	extendedFromComponent?: Block
 	[key: string]: any
 }
 
-export type EditingMode = "page" | "fragment"
+export type EditingMode = "page" | "fragment" | "component"
 export type StudioMode = "select" | "container"
 
 // slot
@@ -108,7 +111,8 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
-export type RightPanelOptions = "Properties" | "Events" | "Styles"
+export type RightPanelOptions = "Properties" | "Events" | "Styles" | "Interface"
+export type leftPanelComponentTabOptions = "Standard" | "Custom"
 
 // right panel
 export type HashString = `#${string}`

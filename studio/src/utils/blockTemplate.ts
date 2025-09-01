@@ -6,6 +6,8 @@ function getBlockTemplate(
 		| "container"
 		| "fit-container"
 		| "fallback-component"
+		| "empty-component"
+		| "missing-component"
 ): BlockOptions {
 	switch (type) {
 		case "body":
@@ -63,6 +65,27 @@ function getBlockTemplate(
 					width: "fit-content",
 				}
 			}
+
+		case "empty-component":
+			return {
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: {
+					height: "200px",
+					width: "100%",
+				} as BlockStyleMap,
+			};
+
+		case "missing-component":
+			return {
+				componentName: "HTML",
+				originalElement: "__raw_html__",
+				innerHTML: `<div style="color:#E86C13;background:#F8F8F8;display:flex;width:300px;height:150px;align-items:center;font-size:16px;justify-content:center"><p>Component Missing</p></div>`,
+				baseStyles: {
+					height: "fit-content",
+					width: "fit-content",
+				} as BlockStyleMap,
+			};
 	}
 }
 

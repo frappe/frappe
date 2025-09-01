@@ -10,7 +10,7 @@
 			<StudioCanvas
 				ref="fragmentCanvas"
 				:key="canvasStore.fragmentData.block?.componentId"
-				v-if="canvasStore.editingMode === 'fragment' && canvasStore.fragmentData.block"
+				v-if="canvasStore.showFragmentCanvas && canvasStore.fragmentData.block"
 				:componentTree="canvasStore.fragmentData.block"
 				:canvas-styles="{
 					width: (canvasStore.fragmentData.block.getStyle('width') + '').endsWith('px')
@@ -39,9 +39,18 @@
 								{{ canvasStore.fragmentData.fragmentName }}
 							</span>
 						</div>
-						<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
-							{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
-						</Button>
+
+						<div class="ml-auto flex items-center gap-2">
+							<Button
+								v-if="canvasStore.editingMode === 'component'"
+								variant="subtle"
+								icon="settings"
+								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
+							></Button>
+							<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
+							</Button>
+						</div>
 					</div>
 				</template>
 			</StudioCanvas>
@@ -104,6 +113,9 @@ watchEffect(() => {
 			const fragmentRootBlock = fragmentCanvas.value?.getRootBlock()
 			if (fragmentRootBlock) {
 				canvasStore.activeCanvas?.selectBlock(fragmentRootBlock, null)
+				if (canvasStore.editingMode === "component") {
+					store.studioLayout.rightPanelActiveTab = "Interface"
+				}
 			}
 		})
 	} else {
@@ -114,7 +126,6 @@ watchEffect(() => {
 async function saveAndExitFragmentMode(e: Event) {
 	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 	canvasStore.exitFragmentMode(e)
-	store.savePage()
 }
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)

@@ -45,6 +45,7 @@ def sync_studio_apps(app_name: str | None = None):
 				import_file_by_path(app_path)
 
 				sync_pages(app_folder)
+				sync_components(app_folder)
 
 
 def sync_pages(app_folder):
@@ -53,3 +54,14 @@ def sync_pages(app_folder):
 		if page.endswith(".json"):
 			page_path = os.path.join(studio_page_folder, page)
 			import_file_by_path(page_path)
+
+
+def sync_components(app_folder):
+	studio_component_folder = os.path.join(app_folder, "studio_components")
+	if not os.path.exists(studio_component_folder):
+		return
+
+	for component in os.listdir(studio_component_folder):
+		if component.endswith(".json"):
+			component_path = os.path.join(studio_component_folder, component)
+			import_file_by_path(component_path)

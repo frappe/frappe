@@ -9,7 +9,7 @@
 		/>
 		<div
 			v-else
-			class="flex h-full w-full select-none items-center justify-center bg-surface-gray-2 uppercase text-ink-gray-5"
+			class="border-ink-gray-3 flex h-full w-full select-none items-center justify-center border-2 border-dashed bg-surface-gray-1 uppercase text-ink-gray-5"
 		/>
 	</div>
 </template>

@@ -84,6 +84,8 @@ def get_app_components(app_name: str, field: Literal["blocks", "draft_blocks"] =
 			components.add(match)
 
 	def add_block_components(block: dict):
+		if block.get("isStudioComponent"):
+			add_studio_components(block)
 		if block.get("componentName") not in NON_VUE_COMPONENTS:
 			components.add(block.get("componentName"))
 		for child in block.get("children", []):
@@ -95,6 +97,12 @@ def get_app_components(app_name: str, field: Literal["blocks", "draft_blocks"] =
 					continue
 				for slot_child in slot.get("slotContent"):
 					add_block_components(slot_child)
+
+	def add_studio_components(block: dict):
+		component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
+		if isinstance(component_block, str):
+			component_block = frappe.parse_json(component_block)
+		add_block_components(component_block)
 
 	for blocks in pages:
 		if not blocks:

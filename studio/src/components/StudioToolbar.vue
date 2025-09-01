@@ -88,7 +88,7 @@
 			<Button
 				size="sm"
 				variant="subtle"
-				:disabled="canvasStore.editingMode === 'fragment'"
+				:disabled="canvasStore.showFragmentCanvas"
 				@click="() => store.openPageInBrowser(store.activeApp!, store.activePage!, true)"
 			>
 				Preview
@@ -96,7 +96,7 @@
 			<Button
 				size="sm"
 				variant="solid"
-				:disabled="canvasStore.editingMode === 'fragment'"
+				:disabled="canvasStore.showFragmentCanvas"
 				:loading="publishing"
 				@click="
 					() => {

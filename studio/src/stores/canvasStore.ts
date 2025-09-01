@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive } from "vue"
+import { ref, reactive, computed } from "vue"
 import type Block from "@/utils/block"
 import { getBlockCopy, getBlockInstance } from "@/utils/helpers"
 
@@ -80,6 +80,11 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		saveActionLabel: <string | null>null,
 		fragmentName: <string | null>null,
 		fragmentId: <string | null>null,
+		cancelAction: <Function | null>null,
+	})
+
+	const showFragmentCanvas = computed(() => {
+		return editingMode.value === "fragment" || editingMode.value === "component" && fragmentData.value?.block
 	})
 
 	async function editOnCanvas(
@@ -87,7 +92,9 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		saveAction: (block: Block) => void,
 		saveActionLabel: string = "Save",
 		fragmentName?: string,
-		fragmentId?: string
+		fragmentId?: string,
+		mode: EditingMode = "fragment",
+		cancelAction?: Function,
 	) {
 		const blockCopy = getBlockCopy(block, true)
 		fragmentData.value = {
@@ -95,15 +102,19 @@ const useCanvasStore = defineStore("canvasStore", () => {
 			saveAction,
 			saveActionLabel,
 			fragmentName: fragmentName || block.componentName,
-			fragmentId: fragmentId || block.componentId
+			fragmentId: fragmentId || block.componentId,
+			cancelAction: cancelAction || null,
 		}
-		editingMode.value = "fragment"
+		editingMode.value = mode
 	}
 
 	async function exitFragmentMode(e?: Event) {
 		if (editingMode.value === "page") return
 		e?.preventDefault()
 
+		if (fragmentData.value?.cancelAction) {
+			fragmentData.value.cancelAction()
+		}
 		activeCanvas.value?.clearSelection()
 		editingMode.value = "page"
 		fragmentData.value = {
@@ -112,6 +123,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 			saveActionLabel: null,
 			fragmentName: null,
 			fragmentId: null,
+			cancelAction: null,
 		}
 	}
 
@@ -139,6 +151,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		handleDragEnd,
 		// fragment mode
 		editingMode,
+		showFragmentCanvas,
 		fragmentData,
 		editOnCanvas,
 		exitFragmentMode,

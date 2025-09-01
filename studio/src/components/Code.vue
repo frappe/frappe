@@ -33,7 +33,7 @@ import InputLabel from "@/components/InputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{
-		language: "json" | "javascript" | "html" | "css" | "python"
+		language?: "json" | "javascript" | "html" | "css" | "python"
 		modelValue: string | object | Array<string | object> | null
 		height?: string
 		maxHeight?: string

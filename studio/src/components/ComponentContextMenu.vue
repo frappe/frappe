@@ -8,7 +8,17 @@
 			:options="contextMenuOptions"
 			@select="handleContextMenuSelect"
 		/>
-		<FormDialog v-model:showDialog="showFormDialog" :block="block" />
+		<FormDialog v-if="block" v-model:showDialog="showFormDialog" :block="block" />
+		<NewComponentDialog
+			v-if="block"
+			:block="block"
+			v-model:showDialog="showNewComponentDialog"
+			@created="
+				(component: StudioComponent) => {
+					block.extendFromComponent(component.component_id)
+				}
+			"
+		/>
 	</div>
 </template>
 
@@ -19,11 +29,14 @@ import ContextMenu from "@/components/ContextMenu.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption } from "@/types"
 import { getBlockCopy, getComponentBlock, isObjectEmpty } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
+import NewComponentDialog from "@/components/NewComponentDialog.vue"
 import { toast } from "vue-sonner"
+import type { StudioComponent } from "@/types/Studio/StudioComponent"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -34,6 +47,7 @@ const posY = ref(0)
 
 const block = ref(null) as unknown as Ref<Block>
 const showFormDialog = ref(false)
+const showNewComponentDialog = ref(false)
 const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	block.value = refBlock
 	if (block.value.isRoot()) return
@@ -134,6 +148,21 @@ const contextMenuOptions: ContextMenuOption[] = [
 		condition: () =>
 			!isObjectEmpty(block.value.componentSlots) &&
 			block.value.isSlotEditable(canvasStore.activeCanvas?.selectedSlot),
+	},
+	{
+		label: "Save as Component",
+		action: () => {
+			showNewComponentDialog.value = true
+		},
+		condition: () => !block.value.isStudioComponent,
+	},
+	{
+		label: "Edit Component",
+		action: () => {
+			const componentEditorStore = useComponentEditorStore()
+			componentEditorStore.editComponent(block.value.componentName as string)
+		},
+		condition: () => Boolean(block.value.isStudioComponent),
 	},
 	{
 		label: "Add Fields from DocType",

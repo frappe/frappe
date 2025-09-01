@@ -11,7 +11,7 @@
 					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
 				</div>
 				<div
-					class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+					class="invisible -mt-1 self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
 				>
 					<Dropdown :options="getWatcherMenu(watcher)" trigger="click">
 						<template v-slot="{ open }">

@@ -36,6 +36,12 @@
 			class="w-full"
 			:disabled="disabled"
 		/>
+		<ColorInput
+			v-else-if="type === 'color'"
+			:modelValue="modelValue"
+			@update:modelValue="handleChange"
+			:disabled="disabled"
+		/>
 		<Input
 			v-else
 			:type="type"
@@ -54,6 +60,7 @@ import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
+import ColorInput from "@/components/ColorInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
 const props = defineProps({

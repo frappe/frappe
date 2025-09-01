@@ -1,5 +1,11 @@
 <template>
+	<StudioComponentRenderer
+		v-if="block.isStudioComponent"
+		:studioComponent="block"
+		:evaluationContext="evaluationContext"
+	/>
 	<component
+		v-else
 		ref="componentRef"
 		v-show="showComponent"
 		:is="componentName"
@@ -29,7 +35,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs, inject } from "vue"
+import { computed, onMounted, ref, useAttrs, inject, type ComputedRef } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
@@ -48,6 +54,8 @@ import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
 import type { Field } from "@/types/ComponentEvent"
 
+import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
+
 const props = defineProps<{
 	block: Block
 }>()
@@ -65,16 +73,21 @@ const classes = computed(() => {
 	return [attrs.class, ...props.block.getClasses()]
 })
 
-const repeaterContext = inject("repeaterContext", {})
 const store = useAppStore()
+const repeaterContext = inject("repeaterContext", {})
+const componentContext = inject<ComputedRef>("componentContext")
 
-const getEvaluationContext = () => {
-	return {
+const evaluationContext = computed(() => {
+	const context: any = {
 		...store.variables,
 		...store.resources,
 		...repeaterContext,
 	}
-}
+	if (componentContext?.value) {
+		context["inputs"] = componentContext.value
+	}
+	return context
+})
 
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
@@ -84,7 +97,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, getEvaluationContext())
+			propValues[propName] = getDynamicValue(config, evaluationContext.value)
 		}
 	})
 	return propValues
@@ -101,7 +114,7 @@ const componentProps = computed(() => {
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = getDynamicValue(props.block.visibilityCondition, getEvaluationContext())
+		const value = getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 		return typeof value === "string" ? value === "true" : value
 	}
 	return true
@@ -114,7 +127,7 @@ const boundValue = computed({
 		if (modelValue?.$type === "variable") {
 			return getValueFromObject(store.variables, modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, getEvaluationContext())
+			return getDynamicValue(modelValue, evaluationContext.value)
 		}
 		return modelValue
 	},

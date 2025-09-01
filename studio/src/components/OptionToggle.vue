@@ -20,7 +20,7 @@ defineProps({
 		type: [String, Number, Boolean],
 	},
 	options: {
-		type: Array as PropType<{ label: string; value: string | number; icon?: string; hideLabel?: boolean }[]>,
+		type: Array as PropType<{ label: string; value?: string | number; icon?: string; hideLabel?: boolean }[]>,
 		default: () => [],
 	},
 	label: {

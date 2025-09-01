@@ -15,20 +15,21 @@
 
 			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base">
 				<button
-					v-for="tab of ['Properties', 'Events', 'Styles']"
+					v-for="tab of tabs"
 					:key="tab"
-					class="mx-2 flex-1 p-2 py-3"
+					class="mx-2 py-3"
 					@click="store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions"
 					:class="{
 						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-gray-900': activeTab === tab,
 						'dark:text-zinc-500 text-gray-700': activeTab !== tab,
+						'flex-1 px-2': !showInterfaceTab,
 					}"
 				>
 					{{ tab }}
 				</button>
 			</div>
 
-			<ComponentProps
+			<ComponentProperties
 				v-show="activeTab === 'Properties'"
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
@@ -43,6 +44,11 @@
 				class="p-4"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
+			<ComponentInterface
+				v-if="activeTab === 'Interface' && showInterfaceTab"
+				class="p-4"
+				@vue:unmounted="store.studioLayout.rightPanelActiveTab = 'Properties'"
+			/>
 		</div>
 	</div>
 </template>
@@ -52,7 +58,8 @@ import { computed } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
-import ComponentProps from "@/components/ComponentProps.vue"
+import ComponentInterface from "@/components/ComponentInterface.vue"
+import ComponentProperties from "@/components/ComponentProperties.vue"
 import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
@@ -62,4 +69,13 @@ import type { RightPanelOptions } from "@/types"
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
+const tabs = computed(() => {
+	const _tabs = ["Properties", "Events", "Styles"]
+	if (showInterfaceTab.value) {
+		_tabs.unshift("Interface")
+	}
+	return _tabs
+})
+
+const showInterfaceTab = computed(() => canvasStore.editingMode === "component")
 </script>
