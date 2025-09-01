@@ -122,11 +122,18 @@ class StudioPage(Document):
 					for slot_child in slot.get("slotContent"):
 						add_component(slot_child)
 
-		blocks = self.blocks
-		if isinstance(self.blocks, str):
-			blocks = frappe.parse_json(self.blocks)
-		root_block = blocks[0]
-		add_component(root_block)
+		def get_root_block(blocks):
+			if isinstance(blocks, str):
+				blocks = frappe.parse_json(blocks)
+			return blocks[0]
+
+		if self.blocks:
+			root_block = get_root_block(self.blocks)
+			add_component(root_block)
+		if self.draft_blocks:
+			root_block = get_root_block(self.draft_blocks)
+			add_component(root_block)
+
 		return components
 
 	def on_trash(self):
