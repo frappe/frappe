@@ -257,7 +257,7 @@
   {
    "default": "250",
    "depends_on": "use_imap",
-   "description": "Total number of emails to sync in initial sync process ",
+   "description": "Total number of emails to sync in initial sync process",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
    "hide_days": 1,

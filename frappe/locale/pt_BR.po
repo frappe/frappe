@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-08-24 09:34+0000\n"
-"PO-Revision-Date: 2025-08-24 13:41\n"
+"PO-Revision-Date: 2025-08-27 14:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -11139,7 +11139,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:252
 msgid "Google Calendar - Could not find Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google Agenda - Não foi possível encontrar o Agenda para {0}, código de erro {1}."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:232
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
@@ -25075,7 +25075,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:319
 msgid "Switch to Frappe CRM for smarter sales"
-msgstr ""
+msgstr "Mude para o Frappe CRM para vendas mais inteligentes"
 
 #: frappe/public/js/frappe/ui/capture.js:281
 msgid "Switching Camera"
@@ -27652,7 +27652,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:331
 msgid "Upgrade your support experience with Frappe Helpdesk"
-msgstr ""
+msgstr "Atualize sua experiência de suporte com o Frappe Helpdesk"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:131
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:132
@@ -29426,7 +29426,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:727
 msgid "Yesterday"
-msgstr ""
+msgstr "Ontem"
 
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
