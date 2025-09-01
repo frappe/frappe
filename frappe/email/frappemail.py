@@ -1,3 +1,5 @@
+import math
+import uuid
 from datetime import datetime
 from typing import Any
 from urllib.parse import urljoin
@@ -7,6 +9,8 @@ import frappe
 from frappe import _
 from frappe.frappeclient import FrappeClient, FrappeOAuth2Client
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_system_timezone
+
+CHUNK_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 class FrappeMail:
@@ -99,9 +103,31 @@ class FrappeMail:
 	) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
+		session_id = str(uuid.uuid4())
 		endpoint = "/api/method/mail.api.outbound.send_raw"
-		data = {"from_": sender, "to": recipients, "is_newsletter": is_newsletter}
-		self.request("POST", endpoint=endpoint, data=data, files={"raw_message": message})
+
+		if isinstance(message, str):
+			message = message.encode("utf-8")
+
+		total_size = len(message)
+		total_chunks = math.ceil(total_size / CHUNK_SIZE)
+
+		for i in range(total_chunks):
+			start = i * CHUNK_SIZE
+			end = start + CHUNK_SIZE
+			chunk = message[start:end]
+
+			files = {"raw_message": ("raw_message.eml", chunk)}
+			data = {
+				"from_": sender,
+				"to": recipients,
+				"is_newsletter": is_newsletter,
+				"uuid": session_id,
+				"chunk_index": i,
+				"total_chunk_count": total_chunks,
+				"chunk_byte_offset": start,
+			}
+			self.request("POST", endpoint=endpoint, data=data, files=files)
 
 	def pull_raw(
 		self, mailbox: str = "inbox", limit: int = 50, last_received_at: str | None = None
