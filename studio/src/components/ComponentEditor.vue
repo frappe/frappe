@@ -13,7 +13,7 @@
 			class="absolute -top-3 left-0 inline-block text-xs"
 			:class="componentLabelClasses"
 		>
-			{{ block.componentName }}
+			{{ block.getBlockDescription() }}
 		</span>
 
 		<PaddingHandler

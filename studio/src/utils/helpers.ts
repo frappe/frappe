@@ -50,7 +50,7 @@ function getBlockInstance(options: BlockOptions | string, retainId = true): Bloc
 }
 
 function getComponentBlock(componentName: string, isStudioComponent: boolean = false) {
-	return getBlockInstance({ componentName: componentName, isStudioComponent: isStudioComponent })
+	return getBlockInstance({ componentName: componentName, isStudioComponent: isStudioComponent, blockName: componentName })
 }
 
 function getRootBlock(): Block {
