@@ -5,11 +5,7 @@ frappe.ui.form.on("Client Script", {
 	setup(frm) {
 		const sample_field = frm.get_field("sample");
 		sample_field.html(SAMPLE_HTML);
-		frappe.require("syntax_highlighting.bundle.js").then(() => {
-			sample_field.$wrapper.find("pre").each(function () {
-				hljs.highlightElement(this);
-			});
-		});
+		frappe.utils.highlight_pre(sample_field.$wrapper);
 	},
 	refresh(frm) {
 		if (frm.doc.dt && frm.doc.script) {

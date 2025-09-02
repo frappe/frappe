@@ -145,10 +145,6 @@ customer.customer_name = doc.first_name + " " + doc.last_name # we get this doc 
 customer.customer_type = "Company"
 customer.save()
 </code></pre>`);
-		frappe.require("syntax_highlighting.bundle.js").then(() => {
-			help_field.$wrapper.find("pre").each(function () {
-				hljs.highlightElement(this);
-			});
-		});
+		frappe.utils.highlight_pre(help_field.$wrapper);
 	},
 });

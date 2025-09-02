@@ -151,11 +151,7 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 			const message_examples_field = frm.get_field("message_examples");
 			message_examples_field.html(template);
 			if (frm.doc.channel === "Email") {
-				frappe.require("syntax_highlighting.bundle.js").then(() => {
-					message_examples_field.$wrapper.find("pre").each(function () {
-						hljs.highlightElement(this);
-					});
-				});
+				frappe.utils.highlight_pre(message_examples_field.$wrapper);
 			}
 		}
 	},
