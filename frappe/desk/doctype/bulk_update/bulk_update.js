@@ -12,6 +12,10 @@ frappe.ui.form.on("Bulk Update", {
 			};
 		});
 
+		if (frm.doc.document_type) {
+			frm.trigger("document_type");
+		}
+
 		frm.page.set_primary_action(__("Update"), function () {
 			if (!frm.doc.update_value) {
 				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
