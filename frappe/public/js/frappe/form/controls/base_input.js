@@ -206,7 +206,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			return;
 		}
 		if (this.df.description) {
-			const description = __(this.df.description);
+			const description = __(this.df.description, null, this.df.parent);
 			const help_box = this.$wrapper.find(".help-box");
 			help_box.html(description);
 			if (description.includes("<code")) {

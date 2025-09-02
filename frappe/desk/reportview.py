@@ -67,8 +67,9 @@ def get_count() -> int | None:
 
 	# args.limit is specified to avoid getting accurate count.
 	if not args.limit:
-		args.fields = [f"count({fieldname}) as total_count"]
-		return execute(**args)[0].get("total_count")
+		args.fields = [fieldname]
+		partial_query = execute(**args, run=0)
+		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
 
 	args.fields = [fieldname]
 	partial_query = execute(**args, run=0)

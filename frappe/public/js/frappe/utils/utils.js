@@ -1134,6 +1134,14 @@ Object.assign(frappe.utils, {
 		return duration;
 	},
 
+	get_formatted_iban(value) {
+		if (!value || ["BI", "SV", "EG", "LY"].some((country) => value.startsWith(country))) {
+			return value;
+		}
+
+		return value.replaceAll(" ", "").replace(/(.{4})(?=.)/g, "$1 ");
+	},
+
 	seconds_to_duration(seconds, duration_options) {
 		const round = seconds > 0 ? Math.floor : Math.ceil;
 		const total_duration = {
