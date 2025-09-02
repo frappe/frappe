@@ -325,15 +325,16 @@ def export_query():
 		raise_exception=True,
 	)
 
-	export_in_background = int(form_params.export_in_background)
+	export_in_background = int(form_params.export_in_background or 0)
 	if export_in_background:
 		user = frappe.session.user
-		user_email = frappe.db.get_value("User", user, "email")
+		user_email = frappe.get_cached_value("User", user, "email")
 		frappe.enqueue(
 			"frappe.desk.query_report.run_export_query_job",
 			user_email=user_email,
 			form_params=form_params,
 			csv_params=csv_params,
+			queue="long",
 		)
 		frappe.msgprint(
 			_(
@@ -347,32 +348,11 @@ def export_query():
 
 
 def run_export_query_job(user_email, form_params, csv_params):
-	"""Run export in background and email user a download link"""
+	from frappe.desk.utils import send_report_email
 
 	file_name, file_extension, content = _export_query(form_params, csv_params, return_file=True)
-
-	_file = frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": f"{file_name}.{file_extension}",
-			"attached_to_doctype": "Report",
-			"attached_to_name": form_params.report_name,
-			"content": content,
-			"is_private": 1,
-		}
-	)
-	_file.save(ignore_permissions=True)
-	file_url = _file.get_url()
-	signed_url = frappe.utils.get_url(file_url)
-
-	frappe.sendmail(
-		recipients=[user_email],
-		subject=_("Your exported report: {0}").format(form_params.report_name),
-		message=_(
-			"The report you requested has been generated.<br><br>"
-			"Click the link below to download your file:<br>"
-			f"<a href='{signed_url}'>{signed_url}</a><br><br>"
-		),
+	send_report_email(
+		user_email, file_name, file_extension, content, attached_to_name=form_params.report_name
 	)
 
 

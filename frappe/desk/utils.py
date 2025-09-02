@@ -76,3 +76,30 @@ def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 	frappe.response["type"] = "binary"
 	frappe.response["filecontent"] = content
 	frappe.response["filename"] = f"{_(filename)}.{extension}"
+
+
+def send_report_email(user_email, file_name, file_extension, content, attached_to_name):
+	_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": f"{file_name}.{file_extension}",
+			"attached_to_doctype": "Report",
+			"attached_to_name": attached_to_name,
+			"content": content,
+			"is_private": 1,
+		}
+	)
+	_file.save(ignore_permissions=True)
+
+	file_url = _file.get_url()
+	file_url = frappe.utils.get_url(file_url)
+
+	frappe.sendmail(
+		recipients=[user_email],
+		subject=frappe._("Your exported report: {0}").format(file_name),
+		message=frappe._(
+			"The report you requested has been generated.<br><br>"
+			"Click here to download:<br>"
+			f"<a href='{file_url}'>{file_url}</a><br><br>"
+		),
+	)
