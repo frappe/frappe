@@ -65,42 +65,9 @@ def get_count() -> int:
 		fieldname = f"{distinct}`tab{args.doctype}`.name"
 		args.order_by = None
 
-<<<<<<< HEAD
-		if args.limit:
-			args.fields = [fieldname]
-			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
-=======
-	args.distinct = sbool(args.distinct)
-	distinct = "distinct " if args.distinct else ""
-	args.limit = cint(args.limit)
-	fieldname = f"{distinct}`tab{args.doctype}`.name"
-	args.order_by = None
-
-	# args.limit is specified to avoid getting accurate count.
-	if not args.limit:
 		args.fields = [fieldname]
 		partial_query = execute(**args, run=0)
-		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
-
-	args.fields = [fieldname]
-	partial_query = execute(**args, run=0)
-
-	# Count queries are notoriously unpredictable based on the type of filters used.
-	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
-	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
-	# Users can request accurate count by dropping limit from arguments.
-	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
-
-	try:
-		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
-	except Exception as e:
-		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
-			count = None
->>>>>>> 2fbd280e88 (fix: handle get_count for doctypes with reserved keywords in name)
-		else:
-			args.fields = [f"count({fieldname}) as total_count"]
-			count = execute(**args)[0].get("total_count")
+		count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
 
 	return count
 
