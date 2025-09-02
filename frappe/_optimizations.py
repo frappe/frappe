@@ -50,7 +50,10 @@ def optimize_gc_parameters():
 def optimize_regex_cache():
 	# Remove references to pattern that are pre-compiled and loaded to global scopes.
 	# Leave that cache for dynamically generated regex.
-	os.register_at_fork(before=re.purge)
+	if hasattr(os, "register_at_fork"):
+		os.register_at_fork(before=re.purge)
+	else:
+		re.purge()  # Just purge once on Windows
 
 
 def register_fault_handler():

@@ -403,8 +403,9 @@ class FrappeWorkerNoFork(FrappeWorker):
 		else:
 			return int(job.timeout or DEFAULT_WORKER_TTL) + 60
 
-	def kill_horse(self, sig=signal.SIGKILL):
+	def kill_horse(self, sig=None):
 		# Horse = self when we are not forking
+		sig = sig or signal.SIGTERM  # Use SIGTERM instead of SIGKILL for Windows compatibility
 		os.kill(os.getpid(), sig)
 
 
