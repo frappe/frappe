@@ -314,6 +314,7 @@ export default class BulkOperations {
 			);
 		});
 		const status_regex = /status/i;
+		const numeric_fieldtypes = ["Int", "Float", "Currency", "Percent"];
 
 		const default_field = field_options.find((value) => status_regex.test(value));
 
@@ -398,6 +399,10 @@ export default class BulkOperations {
 			new_df.label = __("Value");
 			new_df.onchange = show_help_text;
 
+			if (numeric_fieldtypes.includes(new_df.fieldtype)) {
+				new_df.fieldtype = "Data";
+			}
+
 			delete new_df.depends_on;
 			dialogObj.replace_field("value", new_df);
 			show_help_text();
@@ -405,12 +410,24 @@ export default class BulkOperations {
 
 		function show_help_text() {
 			let value = dialog.get_value("value");
+			let fieldname = dialog.get_value("field");
+			let fieldtype = field_mappings[fieldname]?.fieldtype;
+
 			if (value == null || value === "") {
-				dialog.set_df_property(
-					"value",
-					"description",
-					__("You have not entered a value. The field will be set to empty.")
-				);
+				if (numeric_fieldtypes.includes(fieldtype)) {
+					dialog.set_df_property(
+						"value",
+						"description",
+						__("Enter a number or formula (e.g. =*2, +10, /3)")
+					);
+				}
+				else{
+					dialog.set_df_property(
+						"value",
+						"description",
+						__("You have not entered a value. The field will be set to empty.")
+					);
+				}
 			} else {
 				dialog.set_df_property("value", "description", "");
 			}

@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import cint,flt
 from frappe.utils.scheduler import is_scheduler_inactive
 
 
@@ -90,7 +90,9 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)
 			elif action == "update" and not doc.docstatus.is_cancelled():
-				doc.update(data)
+				for field, val in data.items():
+					val = apply_formula(doc, field, val)
+					doc.set(field, val)
 				doc.save()
 				message = _("Updating {0}").format(doctype)
 			else:
@@ -111,3 +113,34 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 
 
 from frappe.deprecation_dumpster import show_progress
+
+
+def apply_formula(doc, field, update_value):
+    if (
+        not update_value
+        or not isinstance(update_value, str)
+        or not update_value.startswith("=")
+    ):
+        return update_value
+
+    formula = update_value[1:]  # remove '='
+    current_val = flt(doc.get(field) or 0)
+
+    try:
+        if formula.startswith("+"):
+            return current_val + flt(formula[1:])
+        elif formula.startswith("-"):
+            return current_val - flt(formula[1:])
+        elif formula.startswith("*"):
+            return current_val * flt(formula[1:])
+        elif formula.startswith("/"):
+            operand = flt(formula[1:])
+            return current_val / operand if operand != 0 else current_val
+        elif formula.startswith("%"):
+            operand = flt(formula[1:])
+            return current_val % operand if operand != 0 else current_val
+
+        context = {"current": current_val}
+        return frappe.safe_eval(formula, context)
+    except Exception:
+        return update_value
