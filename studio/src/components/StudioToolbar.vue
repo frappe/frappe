@@ -76,7 +76,11 @@
 		</div>
 
 		<div class="absolute right-3 flex items-center gap-2">
-			<Tooltip text="App Export Settings" :hoverDelay="0.6" v-if="canExportApp">
+			<Tooltip
+				:text="store.activeApp?.is_standard ? 'App Export is enabled' : 'App Export Settings'"
+				:hoverDelay="0.6"
+				v-if="canExportApp"
+			>
 				<Button
 					size="sm"
 					variant="subtle"
