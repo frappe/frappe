@@ -19,10 +19,3 @@ class OAuthProviderSettings(Document):
 	# end: auto-generated types
 
 	pass
-
-
-def get_oauth_settings():
-	"""Return OAuth settings."""
-	return frappe._dict(
-		{"skip_authorization": frappe.db.get_single_value("OAuth Provider Settings", "skip_authorization")}
-	)

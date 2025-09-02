@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.permissions import AUTOMATIC_ROLES
+from frappe.tests.test_helpers import create_test_blog_category
 from frappe.utils import add_to_date, now
 
 UI_TEST_USER = "frappe@example.com"
@@ -47,7 +48,7 @@ def create_if_not_exists(doc):
 def create_todo_records():
 	frappe.db.truncate("ToDo")
 
-	frappe.get_doc(
+	todo_1 = frappe.get_doc(
 		{
 			"doctype": "ToDo",
 			"date": add_to_date(now(), days=7),
@@ -73,6 +74,8 @@ def create_todo_records():
 			"doctype": "ToDo",
 			"date": add_to_date(now(), months=-2),
 			"description": "this is fourth todo",
+			"reference_type": "ToDo",
+			"reference_name": todo_1.name,
 		}
 	).insert()
 
@@ -83,6 +86,13 @@ def prepare_webform_test():
 		frappe.delete_doc("Note", note, force=True)
 
 	frappe.delete_doc_if_exists("Web Form", "note")
+
+
+@whitelist_for_tests
+def create_doctype_for_attachment():
+	create_test_blog_category()
+	doc = frappe.get_doc("Test Blog Category", "_Test Blog Category 2")
+	return doc
 
 
 @whitelist_for_tests
@@ -394,35 +404,7 @@ def insert_translations():
 	]
 
 	for doc in translation:
-		if not frappe.db.exists("doc"):
-			frappe.get_doc(doc).insert()
-
-
-@whitelist_for_tests
-def create_blog_post():
-	blog_category = frappe.get_doc(
-		{"name": "general", "doctype": "Blog Category", "title": "general"}
-	).insert(ignore_if_duplicate=True)
-
-	blogger = frappe.get_doc(
-		{
-			"name": "attachment blogger",
-			"doctype": "Blogger",
-			"full_name": "attachment blogger",
-			"short_name": "attachment blogger",
-		}
-	).insert(ignore_if_duplicate=True)
-
-	return frappe.get_doc(
-		{
-			"name": "test-blog-attachment-post",
-			"doctype": "Blog Post",
-			"title": "test-blog-attachment-post",
-			"blog_category": blog_category.name,
-			"blogger": blogger.name,
-			"content_type": "Rich Text",
-		},
-	).insert(ignore_if_duplicate=True)
+		frappe.get_doc(doc).insert(ignore_if_duplicate=True)
 
 
 @whitelist_for_tests

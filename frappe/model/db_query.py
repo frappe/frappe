@@ -613,7 +613,6 @@ from {tables}
 		if self.flags.ignore_permissions:
 			return
 
-		asterisk_fields = []
 		permitted_fields = set(
 			get_permitted_fields(
 				doctype=self.doctype,
@@ -624,7 +623,10 @@ from {tables}
 		)
 		permitted_child_table_fields = {}
 
-		for i, field in enumerate(self.fields):
+		# Create a copy of the fields list and reverse it to avoid index issues when removing fields
+		fields_to_check = list(enumerate(self.fields))[::-1]
+
+		for i, field in fields_to_check:
 			# field: 'count(distinct `tabPhoto`.name) as total_count'
 			# column: 'tabPhoto.name'
 			# field: 'count(`tabPhoto`.name) as total_count'
@@ -634,9 +636,10 @@ from {tables}
 				continue
 
 			column = columns[0]
+			# handle * fields
 			if column == "*" and "*" in field:
 				if not in_function("*", field):
-					asterisk_fields.append(i)
+					self.fields[i : i + 1] = permitted_fields
 				continue
 
 			# handle pseudo columns
@@ -690,12 +693,6 @@ from {tables}
 			# remove if access not allowed
 			else:
 				self.remove_field(i)
-
-		# handle * fields
-		j = 0
-		for i in asterisk_fields:
-			self.fields[i + j : i + j + 1] = permitted_fields
-			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, ft: FilterTuple) -> str:
 		"""Return a filter condition in the format:
@@ -1117,20 +1114,38 @@ from {tables}
 		if not parameters:
 			return
 
-		blacklisted_sql_functions = {
-			"sleep",
-		}
 		_lower = parameters.lower()
-
-		if "select" in _lower and "from" in _lower:
-			frappe.throw(_("Cannot use sub-query in order by"))
 
 		if ORDER_GROUP_PATTERN.match(_lower):
 			frappe.throw(_("Illegal SQL Query"))
 
+		subquery_indicators = {
+			r"union",
+			r"intersect",
+			r"select\b.*\bfrom",
+		}
+
+		if any(re.search("\b" + pattern + "\b", _lower) for pattern in subquery_indicators):
+			frappe.throw(_("Cannot use sub-query here."))
+
+		blacklisted_sql_functions = {
+			"sleep",
+			"benchmark",
+			"extractvalue",
+			"database",
+			"user",
+			"current_user",
+			"version",
+			"substr",
+			"substring",
+			"updatexml",
+			"load_file",
+			"session_user",
+			"system_user",
+		}
+
 		for field in parameters.split(","):
 			field = field.strip()
-			function = field.split("(", 1)[0].rstrip().lower()
 			full_field_name = "." in field and field.startswith("`tab")
 
 			if full_field_name:
@@ -1140,9 +1155,10 @@ from {tables}
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
-			# Check if the function is used anywhere in the field
-			if any(func in function for func in blacklisted_sql_functions):
-				frappe.throw(_("Cannot use {0} in order/group by").format(function))
+			# Check for SQL function using regex with word boundaries and optional whitespace before parenthesis
+			for func in blacklisted_sql_functions:
+				if re.search(r"\b" + re.escape(func) + r"\W*\(", field.lower()):
+					frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
 		if self.limit_page_length:

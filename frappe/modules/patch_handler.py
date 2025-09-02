@@ -176,7 +176,7 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	)
 
 	start_time = time.monotonic()
-	frappe.db.begin()
+	frappe.db.commit()
 	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:

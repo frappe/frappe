@@ -156,9 +156,8 @@ class SystemSettings(Document):
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
-		login_with_email_link_enabled = frappe.db.get_single_value("System Settings", "login_with_email_link")
 
-		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
+		if not (social_login_enabled or ldap_enabled or self.login_with_email_link):
 			frappe.throw(
 				_(
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
@@ -224,9 +223,6 @@ def load():
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 
 
-cache_key = frappe.get_document_cache_key("System Settings", "System Settings")
-
-
 def get_system_settings(key: str):
 	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not (system_settings := getattr(frappe.local, "system_settings", None)):
@@ -241,7 +237,7 @@ def get_system_settings(key: str):
 
 
 def clear_system_settings_cache():
-	frappe.client_cache.delete_value(cache_key)
+	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
 

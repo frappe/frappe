@@ -12,6 +12,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		super();
 		this.display = false;
 		this.is_dialog = true;
+		this.last_focus = null;
 
 		$.extend(this, { animate: true, size: null, auto_make: true }, opts);
 		if (this.auto_make) {
@@ -247,6 +248,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	show() {
 		// show it
+		this.handle_focus();
 		if (this.animate) {
 			this.$wrapper.addClass("fade");
 		} else {
@@ -272,6 +274,21 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
+	}
+
+	handle_focus() {
+		const me = this;
+		if (frappe.get_route) {
+			if (frappe.get_route()[0] == "Form") {
+				if (!me.last_focus) me.last_focus = document.activeElement;
+			}
+			$(document).on("escape", function () {
+				if (me.last_focus) {
+					me.last_focus.focus();
+					me.last_focus = null;
+				}
+			});
+		}
 	}
 
 	get_close_btn() {

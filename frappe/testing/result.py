@@ -187,7 +187,6 @@ class FrappeTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		self.tb_locals = True
 		self._started_at = time.monotonic()
-		super().startTest(test)
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
 		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:

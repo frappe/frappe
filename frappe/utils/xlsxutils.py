@@ -1,11 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import re
 from io import BytesIO
 
 import openpyxl
 import xlrd
 from openpyxl import load_workbook
+from openpyxl.cell import WriteOnlyCell
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
@@ -16,6 +18,16 @@ from frappe.utils.html_utils import unescape_html
 ILLEGAL_CHARACTERS_RE = re.compile(
 	r"[\000-\010]|[\013-\014]|[\016-\037]|\uFEFF|\uFFFE|\uFFFF|[\uD800-\uDFFF]"
 )
+
+
+def get_excel_date_format():
+	date_format = frappe.get_system_settings("date_format")
+	time_format = frappe.get_system_settings("time_format")
+
+	# Excel-compatible format
+	date_format = date_format.replace("mm", "MM")
+
+	return date_format, time_format
 
 
 # return xlsx file object
@@ -34,6 +46,8 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	row1 = ws.row_dimensions[1]
 	row1.font = Font(name="Calibri", bold=True)
 
+	date_format, time_format = get_excel_date_format()
+
 	for row in data:
 		clean_row = []
 		for item in row:
@@ -46,7 +60,16 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
-			clean_row.append(value)
+			if isinstance(value, datetime.date | datetime.datetime):
+				number_format = date_format
+				if isinstance(value, datetime.datetime):
+					number_format = f"{date_format} {time_format}"
+
+				cell = WriteOnlyCell(ws, value=value)
+				cell.number_format = number_format
+				clean_row.append(cell)
+			else:
+				clean_row.append(value)
 
 		ws.append(clean_row)
 

@@ -188,7 +188,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 
 	def test_shorthand_controller_methods(self):
 		shorthand_response = self.get(self.method("User", "get_all_roles"), {"sid": self.sid})
-		self.assertIn("Blogger", shorthand_response.json["data"])
+		self.assertIn("Website Manager", shorthand_response.json["data"])
 
 		expanded_response = self.get(
 			self.method("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}

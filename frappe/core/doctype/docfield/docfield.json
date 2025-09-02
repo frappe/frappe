@@ -499,7 +499,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
@@ -609,17 +609,19 @@
    "label": "Sticky"
   }
  ],
+ "grid_page_length": 50,
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-30 14:58:19.746600",
+ "modified": "2025-08-26 22:08:20.940308",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "ASC",
  "states": []

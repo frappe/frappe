@@ -205,9 +205,12 @@ frappe.ui.form.on("Notification", {
 				return dialog;
 			});
 		}
+
+		frm.trigger("set_up_filters_editor");
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frm.trigger("set_up_filters_editor");
 	},
 	view_properties: function (frm) {
 		frappe.route_options = { doc_type: frm.doc.document_type };
@@ -245,5 +248,42 @@ frappe.ui.form.on("Notification", {
 		} else {
 			frm.set_df_property("channel", "description", ` `);
 		}
+	},
+	condition_type: function (frm) {
+		if (frm.doc.condition_type === "Filters") {
+			frm.set_value("condition", "");
+		} else {
+			frm.set_value("filters", "");
+		}
+
+		frm.trigger("set_up_filters_editor");
+	},
+	set_up_filters_editor(frm) {
+		const parent = frm.get_field("filters_editor").$wrapper;
+		parent.empty();
+
+		if (!frm.doc.document_type || frm.doc.condition_type !== "Filters") {
+			return;
+		}
+
+		const filters =
+			frm.doc.filters && frm.doc.filters !== "[]" ? JSON.parse(frm.doc.filters) : [];
+
+		frappe.model.with_doctype(frm.doc.document_type, () => {
+			const filter_group = new frappe.ui.FilterGroup({
+				parent: parent,
+				doctype: frm.doc.document_type,
+				on_change: () => {
+					frappe.model.set_value(
+						frm.doc.doctype,
+						frm.doc.name,
+						"filters",
+						JSON.stringify(filter_group.get_filters())
+					);
+				},
+			});
+
+			filter_group.add_filters_to_filter_group(filters);
+		});
 	},
 });

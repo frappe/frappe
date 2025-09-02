@@ -1,6 +1,7 @@
 from typing import Literal
 
 import frappe
+from frappe.utils.data import cint, cstr
 
 
 def get_print(
@@ -86,4 +87,60 @@ def get_print(
 			if pdf:
 				return pdf
 
+	for hook in frappe.get_hooks("on_print_pdf"):
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
 	return get_pdf(html, options=pdf_options, output=output)
+
+
+def attach_print(
+	doctype,
+	name,
+	file_name=None,
+	print_format=None,
+	style=None,
+	html=None,
+	doc=None,
+	lang=None,
+	print_letterhead=True,
+	password=None,
+	letterhead=None,
+):
+	from frappe.translate import print_language
+	from frappe.utils import scrub_urls
+	from frappe.utils.pdf import get_pdf
+
+	print_settings = frappe.db.get_singles_dict("Print Settings")
+
+	kwargs = dict(
+		print_format=print_format,
+		style=style,
+		doc=doc,
+		no_letterhead=not print_letterhead,
+		letterhead=letterhead,
+		password=password,
+	)
+
+	frappe.local.flags.ignore_print_permissions = True
+
+	with print_language(lang or frappe.local.lang):
+		content = ""
+		if cint(print_settings.send_print_as_pdf):
+			ext = ".pdf"
+			kwargs["as_pdf"] = True
+			content = (
+				get_pdf(html, options={"password": password} if password else None)
+				if html
+				else get_print(doctype, name, **kwargs)
+			)
+		else:
+			ext = ".html"
+			content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+
+	frappe.local.flags.ignore_print_permissions = False
+
+	if not file_name:
+		file_name = name
+	file_name = cstr(file_name).replace(" ", "").replace("/", "-") + ext
+
+	return {"fname": file_name, "fcontent": content}

@@ -21,6 +21,7 @@ from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from typing import Any, Generic, TypeAlias, TypedDict
 
+import orjson
 from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
@@ -141,6 +142,9 @@ def validate_phone_number(phone_number, throw=False):
 	if not phone_number:
 		return False
 
+	if not isinstance(phone_number, str):
+		phone_number = str(phone_number)
+
 	phone_number = phone_number.strip()
 	match = PHONE_NUMBER_PATTERN.match(phone_number)
 
@@ -255,6 +259,44 @@ def validate_url(
 		frappe.throw(frappe._("'{0}' is not a valid URL").format(frappe.bold(txt)))
 
 	return is_valid
+
+
+def validate_iban(iban: str, throw: bool = False) -> bool:
+	from frappe import _
+
+	valid = is_valid_iban(iban)
+	if not valid and throw:
+		frappe.throw(frappe._("'{0}' is not a valid IBAN").format(frappe.bold(iban)))
+
+	return valid
+
+
+def is_valid_iban(iban: str) -> bool:
+	"""
+	Algorithm: https://en.wikipedia.org/wiki/International_Bank_Account_Number#Validating_the_IBAN
+	"""
+	if not iban:
+		return False
+
+	def encode_char(c):
+		# Position in the alphabet (A=1, B=2, ...) plus nine
+		return str(9 + ord(c) - 64)
+
+	# remove whitespaces, upper case to get the right number from ord()
+	iban = iban.replace(" ", "").upper()
+
+	# Move country code and checksum from the start to the end
+	flipped = iban[4:] + iban[:4]
+
+	# Encode characters as numbers
+	encoded = [encode_char(c) if ord(c) >= 65 and ord(c) <= 90 else c for c in flipped]
+
+	try:
+		to_check = int("".join(encoded))
+	except ValueError:
+		return False
+
+	return to_check % 97 == 1
 
 
 def random_string(length: int) -> str:
@@ -830,18 +872,7 @@ def get_site_info():
 		site_info.update(frappe.get_attr(method_name)(site_info) or {})
 
 	# dumps -> loads to prevent datatype conflicts
-	return json.loads(frappe.as_json(site_info))
-
-
-def parse_json(val: str):
-	"""
-	Parses json if string else return
-	"""
-	if isinstance(val, str):
-		val = json.loads(val)
-	if isinstance(val, dict):
-		val = frappe._dict(val)
-	return val
+	return orjson.loads(frappe.as_json(site_info))
 
 
 def get_db_count(*args):
@@ -862,7 +893,7 @@ def get_db_count(*args):
 	for doctype in args:
 		db_count[doctype] = frappe.db.count(doctype)
 
-	return json.loads(frappe.as_json(db_count))
+	return orjson.loads(frappe.as_json(db_count))
 
 
 def call(fn, *args, **kwargs):
@@ -878,12 +909,12 @@ def call(fn, *args, **kwargs):
 	        via terminal:
 	                bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
-	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+	return orjson.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
 
 
 def get_safe_filters(filters):
 	try:
-		filters = json.loads(filters)
+		filters = orjson.loads(filters)
 
 		if isinstance(filters, int | float):
 			filters = frappe.as_unicode(filters)
@@ -1043,7 +1074,7 @@ def safe_json_loads(*args):
 
 	for arg in args:
 		try:
-			arg = json.loads(arg)
+			arg = orjson.loads(arg)
 		except Exception:
 			pass
 
@@ -1151,6 +1182,20 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	from frappe.utils.safe_exec import safe_eval
 
 	return safe_eval(code, eval_globals, eval_locals)
+
+
+def create_folder(path, with_init=False):
+	"""Create a folder in the given path and add an `__init__.py` file (optional).
+
+	:param path: Folder path.
+	:param with_init: Create `__init__.py` in the new folder."""
+	from frappe.utils import touch_file
+
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+		if with_init:
+			touch_file(os.path.join(path, "__init__.py"))
 
 
 cached_property = functools.cached_property

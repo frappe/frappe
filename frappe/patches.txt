@@ -1,5 +1,5 @@
 [pre_model_sync]
-frappe.patches.v16_0.enable_setup_complete
+frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -195,7 +195,6 @@ frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
-frappe.patches.v15_0.migrate_to_utm
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 
 [post_model_sync]
@@ -246,4 +245,5 @@ frappe.patches.v16_0.move_role_desk_settings_to_user
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
+frappe.patches.v15_0.migrate_to_utm
 frappe.patches.v16_0.add_module_deprecation_warning

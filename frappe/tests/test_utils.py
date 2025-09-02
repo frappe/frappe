@@ -22,7 +22,6 @@ from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
-	add_trackers_to_url,
 	ceil,
 	dict_to_str,
 	execute_in_shell,
@@ -35,7 +34,7 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
-	map_trackers,
+	is_valid_iban,
 	money_in_words,
 	parse_and_map_trackers_from_url,
 	parse_timedelta,
@@ -54,6 +53,7 @@ from frappe.utils.change_log import (
 )
 from frappe.utils.data import (
 	add_to_date,
+	add_trackers_to_url,
 	add_years,
 	cast,
 	cint,
@@ -70,6 +70,7 @@ from frappe.utils.data import (
 	get_year_ending,
 	getdate,
 	is_invalid_date_string,
+	map_trackers,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -269,6 +270,11 @@ class TestMoney(IntegrationTestCase):
 					expected_words,
 					f"{words} is not the same as {expected_words}",
 				)
+
+	def test_money_in_words_without_fraction(self):
+		# VND doesn't have fractions
+		words = money_in_words("42.01", "VND")
+		self.assertEqual(words, "VND Forty Two only.")
 
 
 class TestDataManipulation(IntegrationTestCase):
@@ -473,6 +479,26 @@ class TestValidationUtils(IntegrationTestCase):
 		invalid_names = ["asd$wat", "asasd/ads"]
 		for name in invalid_names:
 			self.assertRaises(frappe.InvalidNameError, validate_name, name, True)
+
+	def test_validate_iban(self):
+		valid_ibans = [
+			"GB82 WEST 1234 5698 7654 32",
+			"DE91 1000 0000 0123 4567 89",
+			"FR76 3000 6000 0112 3456 7890 189",
+		]
+
+		invalid_ibans = [
+			# wrong checksum (3rd place)
+			"GB72 WEST 1234 5698 7654 32",
+			"DE81 1000 0000 0123 4567 89",
+			"FR66 3000 6000 0112 3456 7890 189",
+		]
+
+		for iban in valid_ibans:
+			self.assertTrue(is_valid_iban(iban))
+
+		for not_iban in invalid_ibans:
+			self.assertFalse(is_valid_iban(not_iban))
 
 
 class TestImage(IntegrationTestCase):

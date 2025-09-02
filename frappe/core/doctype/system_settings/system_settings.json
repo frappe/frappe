@@ -304,7 +304,7 @@
    "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
-   "label": "Allow Consecutive Login Attempts "
+   "label": "Allow Consecutive Login Attempts"
   },
   {
    "fieldname": "column_break_34",
@@ -706,7 +706,7 @@
   },
   {
    "default": "100000",
-   "description": "This value specifies the max number of rows that can be rendered in report view. ",
+   "description": "This value specifies the max number of rows that can be rendered in report view.",
    "fieldname": "max_report_rows",
    "fieldtype": "Int",
    "label": "Max Report Rows"

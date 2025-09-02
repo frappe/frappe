@@ -136,6 +136,9 @@
 	.row-index {
 		left: 31px;
 	}
+	button.col:focus-visible {
+		outline: 1px solid #c9c9c9;
+	}
 }
 
 .grid-empty,
@@ -165,7 +168,7 @@
 		padding: 7px !important;
 
 		input {
-			height: -webkit-fill-available;
+			height: 100%;
 			padding: 3px 7px;
 		}
 	}
@@ -340,8 +343,8 @@
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
-		margin-top: 1rem;
-		margin-left: 1rem;
+		margin-top: 0.6rem;
+		margin-left: 0.5rem;
 	}
 
 	.grid-static-col[data-fieldtype="Code"],
@@ -574,11 +577,16 @@
 
 .grid-pagination {
 	padding: 0;
+	display: flex;
+	.last-page {
+		margin-left: 5px;
+	}
 }
 
 .page-text {
 	display: inline-block;
 	cursor: default;
+	margin-right: 6px;
 }
 
 .current-page-number {

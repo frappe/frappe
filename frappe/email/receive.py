@@ -162,10 +162,14 @@ class EmailServer:
 		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
-		if cint(self.settings.use_imap):
-			self.imap.logout()
-		else:
-			self.pop.quit()
+		try:
+			if cint(self.settings.use_imap):
+				self.imap.logout()
+			else:
+				self.pop.quit()
+		except imaplib.IMAP4.abort:
+			self.connect()
+			self.logout()
 		return
 
 	def get_messages(self, folder="INBOX"):
@@ -846,6 +850,9 @@ class InboundMail(Email):
 		if email_fields.sender_name_field:
 			parent.set(email_fields.sender_name_field, frappe.as_unicode(self.from_real_name))
 
+		if email_fields.recipient_account_field:
+			parent.set(email_fields.recipient_account_field, self.email_account.name)
+
 		parent.flags.ignore_mandatory = True
 
 		try:
@@ -887,7 +894,7 @@ class InboundMail(Email):
 		"""Return Email related fields of a doctype."""
 		fields = frappe._dict()
 
-		email_fields = ["subject_field", "sender_field", "sender_name_field"]
+		email_fields = ["subject_field", "sender_field", "sender_name_field", "recipient_account_field"]
 		meta = frappe.get_meta(doctype)
 
 		for field in email_fields:

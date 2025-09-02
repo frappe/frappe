@@ -1,5 +1,7 @@
 <div class="section-with-embed">
+	{%- if title -%}
 	<h2 class="section-title">{{ _(title) }}</h2>
+	{%- endif -%}
 	{%- if subtitle -%}
 	<p class="section-description">{{ _(subtitle) }}</p>
 	{%- endif -%}

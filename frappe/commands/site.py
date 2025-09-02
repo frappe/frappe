@@ -225,7 +225,7 @@ def _restore(
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
+	if "AES" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 
@@ -691,8 +691,9 @@ def disable_user(context: CliCtxObj, email):
 @click.command("migrate")
 @click.option("--skip-failing", is_flag=True, help="Skip patches that fail to run")
 @click.option("--skip-search-index", is_flag=True, help="Skip search indexing for web documents")
+@click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
-def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
+def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
 
 	from frappe.migrate import SiteMigration
@@ -701,8 +702,7 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
 		click.secho(f"Migrating {site}", fg="green")
 		try:
 			SiteMigration(
-				skip_failing=skip_failing,
-				skip_search_index=skip_search_index,
+				skip_failing=skip_failing, skip_search_index=skip_search_index, skip_fixtures=skip_fixtures
 			).run(site=site)
 		finally:
 			print()

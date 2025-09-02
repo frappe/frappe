@@ -14,7 +14,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-open" style="display: inline-block;" title="${__("Open Link")}">
+				<a class="btn-open" tabIndex='-1' style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>
@@ -224,7 +224,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					d.label = d.value;
 				}
 
-				let _label = me.get_translated(d.label);
+				// Sanitize label and description before using them to build HTML
+				let _label = frappe.utils.escape_html(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (
 					d.description &&
@@ -232,7 +233,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// because it will not visible otherwise
 					(me.is_title_link() || d.value !== d.description)
 				) {
-					html += '<br><span class="small">' + __(d.description) + "</span>";
+					html +=
+						'<br><span class="small">' +
+						__(frappe.utils.escape_html(d.description)) +
+						"</span>";
 				}
 				return $(`<div role="option">`)
 					.on("click", (event) => {
@@ -686,7 +690,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					{ cache: !columns_to_fetch.length }
 				)
 				.then((response) => {
-					if (!this.docname || !columns_to_fetch.length) {
+					if (this.frm && !this.docname) {
+						return response.name;
+					}
+					if (!columns_to_fetch.length) {
 						return response.name;
 					}
 					update_dependant_fields(response);

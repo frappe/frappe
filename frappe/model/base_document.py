@@ -873,7 +873,7 @@ class BaseDocument:
 				assert df.fieldtype == "Dynamic Link"
 				doctype = self.get(df.options)
 				if not doctype:
-					frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
+					frappe.throw(_("{0} must be set first").format(_(self.meta.get_label(df.options))))
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
 			meta = frappe.get_meta(doctype)
@@ -993,6 +993,7 @@ class BaseDocument:
 		from frappe.utils import (
 			split_emails,
 			validate_email_address,
+			validate_iban,
 			validate_name,
 			validate_phone_number,
 			validate_phone_number_with_country_code,
@@ -1031,6 +1032,9 @@ class BaseDocument:
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
 
+			if data_field_options == "IBAN":
+				validate_iban(data, throw=True)
+
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
@@ -1051,7 +1055,7 @@ class BaseDocument:
 
 			if self.get(fieldname) != value:
 				frappe.throw(
-					_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
+					_("Value cannot be changed for {0}").format(_(self.meta.get_label(fieldname))),
 					frappe.CannotChangeConstantError,
 				)
 
@@ -1260,7 +1264,7 @@ class BaseDocument:
 			doctype = self.meta.get_field(parentfield).options if parentfield else self.doctype
 			df = frappe.get_meta(doctype).get_field(fieldname)
 
-			if df.fieldtype in ("Currency", "Float", "Percent"):
+			if df and df.fieldtype in ("Currency", "Float", "Percent"):
 				self._precision[cache_key][fieldname] = get_field_precision(df, self)
 
 		return self._precision[cache_key][fieldname]

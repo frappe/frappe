@@ -816,6 +816,9 @@ Object.assign(frappe.utils, {
 
 			var audio = $("#sound-" + name)[0];
 			audio.volume = audio.getAttribute("volume");
+			if (!audio.paused) {
+				audio.currentTime = 0;
+			}
 			audio.play();
 		} catch (e) {
 			console.log("Cannot play sound", name, e);
@@ -1129,6 +1132,14 @@ Object.assign(frappe.utils, {
 			}
 		}
 		return duration;
+	},
+
+	get_formatted_iban(value) {
+		if (!value || ["BI", "SV", "EG", "LY"].some((country) => value.startsWith(country))) {
+			return value;
+		}
+
+		return value.replaceAll(" ", "").replace(/(.{4})(?=.)/g, "$1 ");
 	},
 
 	seconds_to_duration(seconds, duration_options) {
@@ -1794,7 +1805,6 @@ Object.assign(frappe.utils, {
 			__("Generate Tracking URL")
 		);
 	},
-
 	/**
 	 * Checks if a value is empty.
 	 *
@@ -1811,5 +1821,20 @@ Object.assign(frappe.utils, {
 			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
 
 		return false;
+	},
+
+	/**
+	 * Masks passwords in an object by replacing the values of keys containing
+	 * "password" or "passphrase" with "*****".
+	 *
+	 * @param {Object} obj - The object to mask passwords in.
+	 */
+	mask_passwords(obj) {
+		const KEYWORDS_TO_MASK = ["password", "passphrase"];
+		for (const key of Object.keys(obj)) {
+			if (KEYWORDS_TO_MASK.some((keyword) => key.includes(keyword)) && obj[key]) {
+				obj[key] = "*****";
+			}
+		}
 	},
 });

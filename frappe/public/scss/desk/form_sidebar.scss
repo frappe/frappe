@@ -120,6 +120,10 @@
 	min-width: var(--sidebar-width);
 	border-left: 1px solid var(--border-color);
 
+	@media (max-width: map-get($grid-breakpoints, "xl")) {
+		min-width: calc(38vw - var(--sidebar-width));
+	}
+
 	.sidebar-section {
 		padding: var(--padding-sm) var(--padding-md);
 	}

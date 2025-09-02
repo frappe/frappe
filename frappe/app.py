@@ -5,6 +5,7 @@ import functools
 import logging
 import os
 
+import orjson
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -21,6 +22,7 @@ import frappe.recorder
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
+from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
 from frappe.utils import CallbackManager, cint, get_site_name
@@ -64,6 +66,11 @@ import frappe.website.router  # Website router
 import frappe.website.website_generator  # web page doctypes
 
 # end: module pre-loading
+
+# better werkzeug default
+# this is necessary because frappe desk sends most requests as form data
+# and some of them can exceed werkzeug's default limit of 500kb
+Request.max_form_memory_size = None
 
 
 def after_response_wrapper(app):
@@ -118,6 +125,9 @@ def application(request: Request):
 
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
+
+		elif request.path.startswith("/.well-known/") and request.method == "GET":
+			response = handle_wellknown(request.path)
 
 		elif request.method in ("GET", "HEAD", "POST"):
 			response = get_response()
@@ -249,6 +259,9 @@ def process_response(response: Response):
 	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)
 
+	if response.status_code in (401, 403) and is_oauth_metadata_enabled("resource"):
+		set_authenticate_headers(response)
+
 	# Update custom headers added during request processing
 	response.headers.update(frappe.local.response_headers)
 
@@ -262,10 +275,12 @@ def process_response(response: Response):
 
 
 def set_cors_headers(response):
+	allowed_origins = frappe.conf.allow_cors
+	if hasattr(frappe.local, "allow_cors"):
+		allowed_origins = frappe.local.allow_cors
+
 	if not (
-		(allowed_origins := frappe.conf.allow_cors)
-		and (request := frappe.local.request)
-		and (origin := request.headers.get("Origin"))
+		allowed_origins and (request := frappe.local.request) and (origin := request.headers.get("Origin"))
 	):
 		return
 
@@ -296,12 +311,17 @@ def set_cors_headers(response):
 	response.headers.update(cors_headers)
 
 
-def make_form_dict(request: Request):
-	import json
+def set_authenticate_headers(response: Response):
+	headers = {
+		"WWW-Authenticate": f'Bearer resource_metadata="{get_resource_url()}/.well-known/oauth-protected-resource"'
+	}
+	response.headers.update(headers)
 
+
+def make_form_dict(request: Request):
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
-		args = json.loads(request_data)
+		args = orjson.loads(request_data)
 	else:
 		args = {}
 		args.update(request.args or {})
@@ -404,7 +424,7 @@ def sync_database():
 
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
-		session.update()
+		frappe.request.after_response.add(session.update)
 
 
 # Always initialize sentry SDK if the DSN is sent
