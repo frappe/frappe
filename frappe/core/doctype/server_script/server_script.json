@@ -151,11 +151,7 @@
    "link_fieldname": "server_script"
   }
  ],
-<<<<<<< HEAD
- "modified": "2024-04-08 16:18:52.901097",
-=======
  "modified": "2025-09-02 11:11:07.528661",
->>>>>>> 629211f059 (fix(server_script): check for type being scheduler AND frequency being cron to show cron field (#33872))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
