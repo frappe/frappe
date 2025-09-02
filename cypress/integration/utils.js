@@ -89,7 +89,7 @@ context("Utils", () => {
 			hide_seconds: 1,
 		}).then((duration) => {
 			expect(duration).to.deep.equal({
-				days: -0,
+				days: 0,
 				hours: -25,
 				minutes: -1,
 				seconds: 0,
