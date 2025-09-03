@@ -305,7 +305,7 @@
    "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
-   "label": "Allow Consecutive Login Attempts "
+   "label": "Allow Consecutive Login Attempts"
   },
   {
    "fieldname": "column_break_34",
@@ -707,7 +707,7 @@
   },
   {
    "default": "100000",
-   "description": "This value specifies the max number of rows that can be rendered in report view. ",
+   "description": "This value specifies the max number of rows that can be rendered in report view.",
    "fieldname": "max_report_rows",
    "fieldtype": "Int",
    "label": "Max Report Rows"
@@ -734,7 +734,13 @@
    "description": "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted.",
    "fieldname": "delete_background_exported_reports_after",
    "fieldtype": "Int",
-   "label": "Delete Background Exported Reports After (Hours)",
+   "label": "Delete Background Exported Reports After (Hours)"
+  },
+  {
+   "default": "300",
+   "fieldname": "max_signups_allowed_per_hour",
+   "fieldtype": "Int",
+   "label": "Max signups allowed per hour",
    "non_negative": 1
   }
  ],

@@ -388,6 +388,7 @@ def export_query():
 			form_params=form_params,
 			csv_params=csv_params,
 			queue="long",
+			now=frappe.flags.in_test,
 		)
 
 		frappe.msgprint(
