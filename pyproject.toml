@@ -27,7 +27,7 @@ dependencies = [
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
     "AccessControl~=7.2",
-    "WeasyPrint==59.0",
+    "WeasyPrint==66.0",
     "pydyf==0.11.0",
     "Werkzeug==3.1.3",
     "Whoosh~=2.7.4",

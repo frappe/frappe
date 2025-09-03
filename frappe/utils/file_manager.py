@@ -417,7 +417,7 @@ def add_attachments(doctype, name, attachments):
 
 
 def is_safe_path(path: str) -> bool:
-	if path.startswith(("http://", "https://")):
+	if path.startswith(("http://", "https://", "/api/method/")):
 		return True
 
 	basedir = frappe.get_site_path()
