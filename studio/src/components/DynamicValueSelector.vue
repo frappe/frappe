@@ -7,7 +7,8 @@
 		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value)"
 	>
 		<template #target="{ togglePopover }">
-			<Tooltip text="Click to set dynamic value" placement="bottom">
+			<slot name="target" v-if="$slots.target" v-bind="{ togglePopover }"></slot>
+			<Tooltip v-else text="Click to set dynamic value" placement="bottom">
 				<FeatherIcon
 					ref="dropdownTrigger"
 					name="plus-circle"
@@ -31,12 +32,21 @@ import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 
-const props = defineProps<{ block?: Block }>()
+const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
+	formatValuesAsTemplate: true,
+})
 const emit = defineEmits<{
 	(event: "update:modelValue", value: string): void
 }>()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+
+const formatValue = (value: string) => {
+	if (props.formatValuesAsTemplate) {
+		return `{{ ${value} }}`
+	}
+	return value
+}
 
 const dynamicValueOptions = computed(() => {
 	const groups = []
@@ -46,7 +56,7 @@ const dynamicValueOptions = computed(() => {
 		const componentContext = props.block?.componentContext
 		if (componentContext && Object.keys(componentContext).length > 0) {
 			const inputOptions = Object.keys(componentContext).map((inputName) => ({
-				value: `{{ inputs.${inputName} }}`,
+				value: formatValue(`inputs.${inputName}`),
 				label: `inputs.${inputName}`,
 				type: typeof componentContext[inputName],
 			}))
@@ -62,13 +72,13 @@ const dynamicValueOptions = computed(() => {
 				group: "Variables",
 				items: store.variableOptions.map((option) => ({
 					...option,
-					value: `{{ ${option.value} }}`,
+					value: formatValue(option.value),
 				})),
 			})
 		}
 		// Data Sources group
 		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => ({
-			value: `{{ ${resourceName}.data }}`,
+			value: formatValue(`${resourceName}.data`),
 			label: resourceName,
 			type: "array",
 		}))
@@ -84,7 +94,7 @@ const dynamicValueOptions = computed(() => {
 	const repeaterContext = props.block?.repeaterDataItem
 	if (repeaterContext && Object.keys(repeaterContext).length > 0) {
 		const repeaterOptions = Object.keys(repeaterContext).map((key) => ({
-			value: `{{ dataItem.${key} }}`,
+			value: formatValue(`dataItem.${key}`),
 			label: `dataItem.${key}`,
 			type: typeof repeaterContext[key],
 		}))

@@ -6,10 +6,36 @@
 	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
 			<DynamicValueSelector
-				v-if="!isTestingComponent"
+				v-if="propName === 'modelValue'"
+				:block="block"
+				@update:modelValue="(value) => bindVariable(propName, value)"
+				:formatValuesAsTemplate="false"
+			>
+				<template #target="{ togglePopover }">
+					<IconButton
+						:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
+						:label="isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'"
+						placement="bottom"
+						class="mr-1"
+						@click="
+							() => {
+								if (isVariableBound(config.modelValue)) {
+									unbindVariable(propName)
+								} else {
+									togglePopover()
+								}
+							}
+						"
+					/>
+				</template>
+			</DynamicValueSelector>
+
+			<DynamicValueSelector
+				v-else-if="!isTestingComponent"
 				:block="block"
 				@update:modelValue="(value) => props.block?.setProp(propName, value)"
 			/>
+
 			<Code
 				v-if="config.inputType === 'code'"
 				:label="propName"
@@ -41,30 +67,6 @@
 				v-model="boundValue"
 				class="flex-1"
 			/>
-			<Autocomplete
-				v-if="propName === 'modelValue'"
-				:options="store.variableOptions"
-				placeholder="Select variable"
-				@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
-				class="!w-auto"
-			>
-				<template #target="{ togglePopover }">
-					<IconButton
-						:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
-						:label="isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'"
-						placement="bottom"
-						@click="
-							() => {
-								if (isVariableBound(config.modelValue)) {
-									unbindVariable(propName)
-								} else {
-									togglePopover()
-								}
-							}
-						"
-					/>
-				</template>
-			</Autocomplete>
 		</div>
 	</div>
 </template>
@@ -72,13 +74,10 @@
 <script setup lang="ts">
 import { computed, resolveComponent } from "vue"
 import EmptyState from "@/components/EmptyState.vue"
-import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
-import type { SelectOption } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
-import useStudioStore from "@/stores/studioStore"
 import IconButton from "@/components/IconButton.vue"
 import Link2 from "~icons/lucide/link-2"
 import Link2Off from "~icons/lucide/link-2-off"
@@ -97,7 +96,6 @@ const props = defineProps<{
 	isTestingComponent?: boolean
 }>()
 
-const store = useStudioStore()
 const getCompletions = useStudioCompletions()
 
 const componentInstance = computed(() => {
