@@ -35,8 +35,9 @@ class Block implements BlockOptions {
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
 	extendedFromComponent?: Block // for the component root
-	// temporary property
+	// temporary properties
 	repeaterDataItem?: Record<string, any> | null
+	componentContext?: Record<string, any> | null
 
 	// @editor-only
 	private static components: FrappeUIComponents | null = null
@@ -86,6 +87,12 @@ class Block implements BlockOptions {
 		// Define as non-reactive property
 		Object.defineProperty(this, "repeaterDataItem", {
 			value: options.repeaterDataItem || null,
+			writable: true,
+			enumerable: false,
+			configurable: true
+		})
+		Object.defineProperty(this, "componentContext", {
+			value: options.componentContext || null,
 			writable: true,
 			enumerable: false,
 			configurable: true
@@ -700,6 +707,11 @@ class Block implements BlockOptions {
 			})
 		}
 		linkParentComponentId(this, studioComponent.componentId)
+	}
+
+	setComponentContext(componentContext: Record<string, any>) {
+		// temporarily set componentContext on selected block for autocompletions
+		this.componentContext = componentContext
 	}
 }
 

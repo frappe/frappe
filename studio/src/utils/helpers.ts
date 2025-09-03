@@ -88,6 +88,7 @@ function getBlockCopyWithoutParent(block: BlockOptions | Block) {
 	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
 	delete blockCopy.parentBlock
 	delete blockCopy.repeaterDataItem
+	delete blockCopy.componentContext
 
 	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
 

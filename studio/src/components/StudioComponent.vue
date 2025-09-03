@@ -269,6 +269,10 @@ const handleClick = (e: MouseEvent) => {
 		block.setRepeaterDataItem((repeaterContext as RepeaterContext).dataItem)
 	}
 
+	if (componentContext?.value) {
+		block.setComponentContext(componentContext.value)
+	}
+
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
 		const slot = block.getSlot(slotName)
