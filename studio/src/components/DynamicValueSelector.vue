@@ -7,10 +7,10 @@
 		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value)"
 	>
 		<template #target="{ togglePopover }">
-			<Tooltip text="Set dynamic value" :placement="'bottom'">
+			<Tooltip text="Click to set dynamic value" placement="bottom">
 				<FeatherIcon
 					ref="dropdownTrigger"
-					name="zap"
+					name="plus-circle"
 					class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
 					@click="togglePopover"
 				/>

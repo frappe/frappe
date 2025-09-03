@@ -4,71 +4,67 @@
 		:message="`${block?.getBlockDescription()} has no editable properties`"
 	/>
 	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
-		<div v-for="(config, propName) in componentProps" :key="propName">
-			<div class="flex w-full items-center">
-				<DynamicValueSelector
-					v-if="!isTestingComponent"
-					:block="block"
-					@update:modelValue="(value) => props.block?.setProp(propName, value)"
-				/>
-				<Code
-					v-if="config.inputType === 'code'"
-					:label="propName"
-					language="javascript"
-					:modelValue="config.modelValue"
-					@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
-					:required="config.required"
-					:completions="
-						(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
-					"
-					:showLineNumbers="false"
-				/>
-				<InlineInput
-					v-else-if="propName !== 'modelValue'"
-					:label="propName"
-					:type="config.inputType"
-					:options="config.options"
-					:required="config.required"
-					:modelValue="config.modelValue"
-					@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
-					class="flex-1"
-				/>
-				<InlineInput
-					v-else-if="propName === 'modelValue'"
-					:label="propName"
-					:type="config.inputType"
-					:options="config.options"
-					:required="config.required"
-					v-model="boundValue"
-					class="flex-1"
-				/>
-				<Autocomplete
-					v-if="propName === 'modelValue'"
-					:options="store.variableOptions"
-					placeholder="Select variable"
-					@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
-					class="!w-auto"
-				>
-					<template #target="{ togglePopover }">
-						<IconButton
-							:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
-							:label="
-								isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'
-							"
-							placement="bottom"
-							@click="
-								() => {
-									if (isVariableBound(config.modelValue)) {
-										unbindVariable(propName)
-									} else {
-										togglePopover()
-									}
+		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
+			<DynamicValueSelector
+				v-if="!isTestingComponent"
+				:block="block"
+				@update:modelValue="(value) => props.block?.setProp(propName, value)"
+			/>
+			<Code
+				v-if="config.inputType === 'code'"
+				:label="propName"
+				language="javascript"
+				:modelValue="config.modelValue"
+				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:required="config.required"
+				:completions="
+					(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
+				"
+				:showLineNumbers="false"
+			/>
+			<InlineInput
+				v-else-if="propName !== 'modelValue'"
+				:label="propName"
+				:type="config.inputType"
+				:options="config.options"
+				:required="config.required"
+				:modelValue="config.modelValue"
+				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				class="flex-1"
+			/>
+			<InlineInput
+				v-else-if="propName === 'modelValue'"
+				:label="propName"
+				:type="config.inputType"
+				:options="config.options"
+				:required="config.required"
+				v-model="boundValue"
+				class="flex-1"
+			/>
+			<Autocomplete
+				v-if="propName === 'modelValue'"
+				:options="store.variableOptions"
+				placeholder="Select variable"
+				@update:modelValue="(variable: SelectOption) => bindVariable(propName, variable.value)"
+				class="!w-auto"
+			>
+				<template #target="{ togglePopover }">
+					<IconButton
+						:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
+						:label="isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'"
+						placement="bottom"
+						@click="
+							() => {
+								if (isVariableBound(config.modelValue)) {
+									unbindVariable(propName)
+								} else {
+									togglePopover()
 								}
-							"
-						/>
-					</template>
-				</Autocomplete>
-			</div>
+							}
+						"
+					/>
+				</template>
+			</Autocomplete>
 		</div>
 	</div>
 </template>
