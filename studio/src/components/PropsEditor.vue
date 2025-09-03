@@ -5,7 +5,23 @@
 	/>
 	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName">
-			<div class="flex w-full items-center gap-2">
+			<div class="flex w-full items-center">
+				<Autocomplete size="sm" :options="store.variableOptions" class="!w-auto">
+					<template #target="{ open }">
+						<Tooltip text="Set dynamic value" :placement="'bottom'">
+							<FeatherIcon
+								ref="dropdownTrigger"
+								name="zap"
+								class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
+								@click="open"
+							/>
+						</Tooltip>
+					</template>
+
+					<template #item-suffix="{ active, selected, option }">
+						<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
+					</template>
+				</Autocomplete>
 				<Code
 					v-if="config.inputType === 'code'"
 					:label="propName"
@@ -71,7 +87,7 @@
 <script setup lang="ts">
 import { computed, resolveComponent } from "vue"
 import EmptyState from "@/components/EmptyState.vue"
-import { Autocomplete } from "frappe-ui"
+import { Autocomplete, FeatherIcon, Tooltip } from "frappe-ui"
 import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"

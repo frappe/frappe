@@ -27,7 +27,7 @@ import type { Resource } from "@/types/Studio/StudioResource"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, SelectOption, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
+import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
 
@@ -315,12 +315,17 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const variableOptions = computed(() => {
-		const options: SelectOption[] = []
+		const options: VariableOption[] = []
 
 		function traverse(obj: any, path = "") {
 			for (const key in obj) {
 				const currentPath = path ? `${path}.${key}` : key
-				options.push({ value: currentPath, label: currentPath })
+				const variableType = path === "" ? variableConfigs.value[key]?.variable_type : typeof obj[key]
+				options.push({
+					value: currentPath,
+					label: currentPath,
+					type: variableType
+				})
 
 				if (typeof obj[key] === "object" && obj[key] !== null) {
 					// add nested properties
@@ -330,9 +335,6 @@ const useStudioStore = defineStore("store", () => {
 		}
 
 		traverse(variables.value)
-		if (options.length) {
-			options.unshift({ value: "", label: "" })
-		}
 		return options
 	})
 
