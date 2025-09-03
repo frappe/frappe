@@ -185,6 +185,8 @@ class TestNotification(IntegrationTestCase):
 	def test_minutes_positive_offset(self):
 		from frappe.utils import add_to_date, now_datetime
 
+		frappe.db.delete("Notification Log", {"subject": "Test Minutes Positive Offset"})
+
 		event = frappe.new_doc("Event")
 		event.subject = "Test Minutes Positive Offset Event"
 		event.event_type = "Private"
@@ -214,6 +216,9 @@ class TestNotification(IntegrationTestCase):
 
 	def test_minutes_negative_offset(self):
 		from frappe.utils import add_to_date, now_datetime
+
+		# Clean up any existing notification logs for this test
+		frappe.db.delete("Notification Log", {"subject": "Test Minutes Negative Offset"})
 
 		event = frappe.new_doc("Event")
 		event.subject = "Test Minutes Negative Offset Event"
@@ -530,7 +535,7 @@ class TestNotification(IntegrationTestCase):
 			frappe.db.delete("Notification Log", {"subject": n.subject})
 
 			user = frappe.get_doc("User", "test@example.com")
-			user.birth_date = frappe.utils.add_days(user.birth_date, 1).date()
+			user.birth_date = frappe.utils.add_days(user.birth_date, 1)
 			user.save()
 
 			user.reload()

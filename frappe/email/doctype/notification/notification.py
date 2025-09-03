@@ -577,7 +577,7 @@ def get_context(context):
 			bcc.extend(get_emails_from_template(recipient.bcc, context))
 
 			# CC by role
-			cc_emails = get_emails_from_template(recipient.cc, context) or []
+			cc_emails = list(get_emails_from_template(recipient.cc, context) or [])
 			role_emails = []
 
 			if recipient.cc_receiver_by_role:
