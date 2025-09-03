@@ -139,7 +139,7 @@
 			<PropsEditor
 				v-if="componentEditorStore.studioComponentBlock"
 				:block="componentEditorStore.studioComponentBlock"
-				:isEditingComponent="true"
+				:isTestingComponent="true"
 			/>
 		</div>
 	</div>

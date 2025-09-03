@@ -154,6 +154,8 @@ watch(
 	{ immediate: true },
 )
 
+watch(() => props.modelValue, setEditorValue)
+
 const extensions = computed(() => {
 	const baseExtensions = [
 		closeBrackets(),
