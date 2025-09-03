@@ -342,36 +342,59 @@ export default class BulkOperations {
 				},
 			],
 			primary_action: ({ value }) => {
-				const fieldname = field_mappings[dialog.get_value("field")].fieldname;
-				dialog.disable_primary_action();
-				frappe
-					.call({
-						method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
-						args: {
-							doctype: this.doctype,
-							freeze: true,
-							docnames: docnames,
-							action: "update",
-							data: {
-								[fieldname]: value || null,
-							},
-						},
-					})
-					.then((r) => {
-						let failed = r.message || [];
+				const field_label = dialog.get_value("field");
+				const fieldname = field_mappings[field_label].fieldname;
 
-						if (failed.length && !r._server_messages) {
-							dialog.enable_primary_action();
-							frappe.throw(
-								__("Cannot update {0}", [
-									failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
-								])
-							);
+				dialog.hide();
+				frappe.call({
+					method: "frappe.desk.doctype.bulk_update.bulk_update.validate_formula",
+					args: {
+						doctype: this.doctype,
+						field: fieldname,
+						value: value,
+					},
+				}).then(() => {
+					let confirmation_message = __(
+						"Are you sure you want to update <b>{0}</b> to <b>{1}</b> for <b>{2}</b> record(s). Do you want to continue?",
+						[field_label, value, docnames.length]
+					);
+					frappe.confirm(
+						confirmation_message,
+						() => {
+							dialog.disable_primary_action();
+							frappe
+								.call({
+									method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
+									args: {
+										doctype: this.doctype,
+										freeze: true,
+										docnames: docnames,
+										action: "update",
+										data: {
+											[fieldname]: value,
+										},
+									},
+								})
+								.then((r) => {
+									let failed = r.message || [];
+									if (failed.length && !r._server_messages) {
+										dialog.enable_primary_action();
+										frappe.throw(
+											__("Cannot update {0}", [
+												failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
+											])
+										);
+									}
+									done();
+									dialog.hide();
+									frappe.show_alert(__("Updated successfully"));
+								});
+						},
+						() => {
+							dialog.show();
 						}
-						done();
-						dialog.hide();
-						frappe.show_alert(__("Updated successfully"));
-					});
+					);
+				});
 			},
 			primary_action_label: __("Update {0} records", [docnames.length]),
 		});

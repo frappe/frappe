@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+import re
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
 from frappe.utils import cint,flt
@@ -116,31 +117,77 @@ from frappe.deprecation_dumpster import show_progress
 
 
 def apply_formula(doc, field, update_value):
-    if (
-        not update_value
-        or not isinstance(update_value, str)
-        or not update_value.startswith("=")
-    ):
+    """Apply numeric or formula-based updates to a field value.
+
+    Supports:
+    - Plain numbers (e.g. 123, 45.6)
+    - Short formulas (e.g. =+10, =*2, =/3)
+    - Expressions with 'current' (e.g. =(current+20))
+    """
+
+    if not update_value:
         return update_value
 
-    formula = update_value[1:]  # remove '='
+    if not isinstance(update_value, str):
+        return update_value  # ignore non-string inputs
+
+    update_value = update_value.strip()
     current_val = flt(doc.get(field) or 0)
 
-    try:
-        if formula.startswith("+"):
-            return current_val + flt(formula[1:])
-        elif formula.startswith("-"):
-            return current_val - flt(formula[1:])
-        elif formula.startswith("*"):
-            return current_val * flt(formula[1:])
-        elif formula.startswith("/"):
-            operand = flt(formula[1:])
-            return current_val / operand if operand != 0 else current_val
-        elif formula.startswith("%"):
-            operand = flt(formula[1:])
-            return current_val % operand if operand != 0 else current_val
+    # Allow plain numbers
+    if re.fullmatch(r"-?\d+(\.\d+)?", update_value):
+        return flt(update_value)
 
-        context = {"current": current_val}
-        return frappe.safe_eval(formula, context)
+    # Formulas must start with '='
+    if not update_value.startswith("="):
+        frappe.throw(
+            _(
+                "Invalid input. Please enter a number or a formula (e.g. 123, =+10, =*2, =(current+20))"
+            )
+        )
+
+    formula = update_value[1:].strip()
+    if not formula:
+        frappe.throw(_("Formula cannot be empty. Example: =+10, =*2, =(current+20)"))
+
+    if formula[0] in ["+", "-", "*", "/", "%"]:
+        operand_str = formula[1:].strip()
+        if not re.fullmatch(r"-?\d+(\.\d+)?", operand_str):
+            frappe.throw(_("Invalid formula. Example: =+10, =*2, =(current+20)"))
+
+        operand = flt(operand_str)
+
+        if formula[0] == "+":
+            return current_val + operand
+        if formula[0] == "-":
+            return current_val - operand
+        if formula[0] == "*":
+            return current_val * operand
+        if formula[0] == "/":
+            if operand == 0:
+                frappe.throw(_("Division by zero is not allowed"))
+            return current_val / operand
+        if formula[0] == "%":
+            if operand == 0:
+                frappe.throw(_("Modulo by zero is not allowed"))
+            return current_val % operand
+
+    try:
+        return frappe.safe_eval(formula, {"current": current_val})
     except Exception:
-        return update_value
+        frappe.throw(_("Invalid formula. Example: =+10, =*2, =(current+20)"))
+
+
+@frappe.whitelist()
+def validate_formula(doctype, field, value):
+    """Validate a formula"""
+    if not value or not isinstance(value, str):
+        return True
+
+    if value.strip() == "=":
+        frappe.throw(_("Formula cannot be empty. Example: =+10, =*2, =(current+20)"))
+
+    doc = frappe.new_doc(doctype)
+    apply_formula(doc, field, value)
+
+    return True
