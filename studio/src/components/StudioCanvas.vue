@@ -292,7 +292,7 @@ onMounted(() => {
 		getRootBlock,
 		findBlock,
 	)
-	setPanAndZoom(canvasProps, canvasEl, canvasContainerEl)
+	setPanAndZoom(canvasEl, canvasContainerEl, canvasProps)
 })
 
 defineExpose({
