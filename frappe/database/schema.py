@@ -442,6 +442,8 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 				# NOTE: this will only be applicable for mariadb as frappe implements int
 				# in postgres as bigint (as seen in type_map)
 				size = length
+			elif coltype == "decimal":
+				size = f"{length},9"
 
 	if size is not None:
 		coltype = f"{coltype}({size})"

@@ -143,7 +143,7 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int'], doc.fieldtype)",
+   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -614,7 +614,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-26 22:08:20.940308",
+ "modified": "2025-09-03 14:40:20.813091",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
