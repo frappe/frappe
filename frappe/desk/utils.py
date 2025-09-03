@@ -78,7 +78,11 @@ def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 	frappe.response["filename"] = f"{_(filename)}.{extension}"
 
 
-def send_report_email(user_email, file_name, file_extension, content, attached_to_name):
+def send_report_email(
+	user_email: str, file_name: str, file_extension: str, content: bytes, attached_to_name: str
+):
+	exported_report_folder_path = get_or_create_exported_report_folder()
+
 	_file = frappe.get_doc(
 		{
 			"doctype": "File",
@@ -87,13 +91,14 @@ def send_report_email(user_email, file_name, file_extension, content, attached_t
 			"attached_to_name": attached_to_name,
 			"content": content,
 			"is_private": 1,
+			"folder": exported_report_folder_path,
 		}
 	)
 	_file.save(ignore_permissions=True)
 
-	file_url = _file.get_url()
-	file_url = frappe.utils.get_url(file_url)
+	file_url = frappe.utils.get_url(_file.get_url())
 	file_retention_hours = frappe.get_system_settings("delete_background_exported_reports_after") or 48
+
 	frappe.sendmail(
 		recipients=[user_email],
 		subject=frappe._("Your exported report: {0}").format(file_name),
@@ -106,15 +111,17 @@ def send_report_email(user_email, file_name, file_extension, content, attached_t
 	)
 
 
-def delete_old_exported_files():
+def delete_old_exported_report_files():
 	file_retention_hours = frappe.get_system_settings("delete_background_exported_reports_after") or 48
 
 	cutoff = frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-file_retention_hours)
+	exported_report_folder_path = get_or_create_exported_report_folder()
 	old_files = frappe.get_all(
 		"File",
 		filters={
 			"attached_to_doctype": "Report",
 			"creation": ("<", cutoff),
+			"folder": exported_report_folder_path,
 		},
 		pluck="name",
 	)
@@ -124,3 +131,15 @@ def delete_old_exported_files():
 			frappe.delete_doc("File", file_name)
 		except Exception:
 			frappe.log_error(f"Failed to delete old report file {file_name}")
+
+
+def get_or_create_exported_report_folder(folder_name="Exported Reports", parent="Home"):
+	folder_path = f"{parent}/{folder_name}"
+
+	if not frappe.db.exists("File", {"file_name": "Exported Reports", "folder": "Home", "is_folder": 1}):
+		folder = frappe.get_doc(
+			{"doctype": "File", "file_name": folder_name, "is_folder": 1, "folder": parent, "is_private": 1}
+		)
+		folder.insert(ignore_permissions=True)
+
+	return folder_path
