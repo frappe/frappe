@@ -36,7 +36,7 @@ import { computed, useAttrs } from "vue"
 
 const props = withDefaults(
 	defineProps<{
-		modelValue?: string | number | boolean | null
+		modelValue?: string | number | boolean | object | null
 		type?: string
 		hideClearButton?: boolean
 		autofocus?: boolean

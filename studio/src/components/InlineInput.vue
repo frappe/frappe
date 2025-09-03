@@ -29,7 +29,7 @@
 		<Autocomplete
 			v-if="type === 'autocomplete'"
 			placeholder="unset"
-			:modelValue="modelValue"
+			:modelValue="modelValue || ''"
 			:options="inputOptions"
 			@update:modelValue="handleChange"
 			:showInputAsOption="showInputAsOption"

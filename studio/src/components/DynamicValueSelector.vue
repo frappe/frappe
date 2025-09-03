@@ -3,6 +3,7 @@
 		size="sm"
 		:options="dynamicValueOptions"
 		class="!w-auto"
+		modelValue=""
 		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value)"
 	>
 		<template #target="{ togglePopover }">
@@ -47,7 +48,7 @@ const dynamicValueOptions = computed(() => {
 			const inputOptions = Object.keys(componentContext).map((inputName) => ({
 				value: `{{ inputs.${inputName} }}`,
 				label: `inputs.${inputName}`,
-				type: "component input",
+				type: typeof componentContext[inputName],
 			}))
 			groups.push({
 				group: "Component Inputs",
@@ -69,7 +70,7 @@ const dynamicValueOptions = computed(() => {
 		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => ({
 			value: `{{ ${resourceName}.data }}`,
 			label: resourceName,
-			type: "data source",
+			type: "array",
 		}))
 		if (dataSourceOptions.length > 0) {
 			groups.push({
@@ -85,7 +86,7 @@ const dynamicValueOptions = computed(() => {
 		const repeaterOptions = Object.keys(repeaterContext).map((key) => ({
 			value: `{{ dataItem.${key} }}`,
 			label: `dataItem.${key}`,
-			type: "repeater item",
+			type: typeof repeaterContext[key],
 		}))
 		groups.push({
 			group: "Repeater",
