@@ -79,7 +79,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
-import { isObjectEmpty } from "@/utils/helpers"
+import { isDynamicValue, isObjectEmpty } from "@/utils/helpers"
 import IconButton from "@/components/IconButton.vue"
 import Link2 from "~icons/lucide/link-2"
 import Link2Off from "~icons/lucide/link-2-off"
@@ -135,7 +135,7 @@ const componentProps = computed(() => {
 			config.modelValue = props.block.componentProps[propName]
 		}
 
-		if (isVariableBound(config.modelValue)) {
+		if (isDynamicValue(config.modelValue) && ["select", "checkbox"].includes(config.inputType)) {
 			config.inputType = "text"
 		}
 	})
