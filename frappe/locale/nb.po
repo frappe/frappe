@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-08-31 09:33+0000\n"
-"PO-Revision-Date: 2025-09-02 16:45\n"
+"PO-Revision-Date: 2025-09-03 16:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -305,7 +305,7 @@ msgstr "<div class=\"well\">\n"
 "        <li>Tillatte spesialtegn er \"/\" og \"-\"</li>\n"
 "        <li>\n"
 "            Du kan eventuelt angi antall sifre i serien ved å bruke punktum (.)\n"
-"            etterfulgt av nummertegn (#). For eksempel betyr \".####\" at serien\n"
+"            etterfulgt av nummertegn (#). For eksempel betyr \".####\"  at serien\n"
 "            vil ha fire sifre. Standard er fem sifre.\n"
 "        </li>\n"
 "        <li>\n"
@@ -10575,7 +10575,7 @@ msgstr "Bunnfelt"
 #. Label of the footer_powered (Small Text) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer \"Powered By\""
-msgstr ""
+msgstr "Bunntekst «Drevet av»"
 
 #. Label of the footer_source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10585,13 +10585,13 @@ msgstr "Bunnfelt basert på"
 #. Label of the footer (Text Editor) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Footer Content"
-msgstr ""
+msgstr "Innhold i bunntekst"
 
 #. Label of the footer_details_section (Section Break) field in DocType
 #. 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Details"
-msgstr ""
+msgstr "Detaljer i bunntekst"
 
 #. Label of the footer (HTML Editor) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10612,12 +10612,12 @@ msgstr "Bilde i bunntekst"
 #. Label of the footer_items (Table) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Items"
-msgstr ""
+msgstr "Elementer i bunnteksten"
 
 #. Label of the footer_logo (Attach Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Logo"
-msgstr ""
+msgstr "Bunntekstlogo"
 
 #. Label of the footer_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10627,13 +10627,13 @@ msgstr "Bunntekstskript"
 #. Label of the footer_template (Link) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Template"
-msgstr ""
+msgstr "Mal for bunntekst"
 
 #. Label of the footer_template_values (Code) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Template Values"
-msgstr ""
+msgstr "Verdier for bunntekstmal"
 
 #: frappe/printing/page/print/print.js:129
 msgid "Footer might not be visible as {0} option is disabled</div>"
@@ -10648,21 +10648,21 @@ msgstr "Bunnteksten vises riktig kun i PDF"
 #. Label of the for_doctype (Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "For DocType"
-msgstr ""
+msgstr "For DocType"
 
 #. Description of the 'Row Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "For DocType Link / DocType Action"
-msgstr ""
+msgstr "For DocType-lenke / DocType-handling"
 
 #. Label of the for_document (Dynamic Link) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "For Document"
-msgstr ""
+msgstr "For dokument"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:155
 msgid "For Document Type"
-msgstr ""
+msgstr "For dokumenttype"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:566
 msgid "For Example: {} Open"
@@ -10692,12 +10692,12 @@ msgstr "For bruker"
 #. Label of the for_value (Dynamic Link) field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "For Value"
-msgstr ""
+msgstr "For verdi"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2120
 #: frappe/public/js/frappe/views/reports/report_view.js:108
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
-msgstr ""
+msgstr "Til sammenligning, bruk >5, <10 eller =324. For områder, bruk 5:10 (for verdier mellom 5 og 10)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment."
@@ -10729,7 +10729,7 @@ msgstr "For mer informasjon, {0}."
 #. Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "For multiple addresses, enter the address on different line. e.g. test@test.com ⏎ test1@test.com"
-msgstr ""
+msgstr "For flere adresser, skriv inn adressen på forskjellige linjer. f.eks. test@test.com ⏎ test1@test.com"
 
 #: frappe/core/doctype/data_export/exporter.py:197
 msgid "For updating, you can update only selective columns."
@@ -10737,7 +10737,7 @@ msgstr "Ved oppdatering kan du bare oppdatere enkelte kolonner."
 
 #: frappe/core/doctype/doctype/doctype.py:1752
 msgid "For {0} at level {1} in {2} in row {3}"
-msgstr ""
+msgstr "For {0} på nivå {1} i {2} på rad {3}"
 
 #. Label of the force (Check) field in DocType 'Package Import'
 #. Option for the 'Skip Authorization' (Select) field in DocType 'OAuth
@@ -10754,22 +10754,22 @@ msgstr "Tving"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Force Re-route to Default View"
-msgstr ""
+msgstr "Tving omdirigering til standardvisning"
 
 #. Label of the force_show (Check) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Force Show"
-msgstr ""
+msgstr "Force Show"
 
 #: frappe/core/doctype/rq_job/rq_job.js:13
 msgid "Force Stop job"
-msgstr ""
+msgstr "Tving avslutning av jobb"
 
 #. Label of the force_user_to_reset_password (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Force User to Reset Password"
-msgstr ""
+msgstr "Tving brukeren til å tilbakestille passord"
 
 #. Label of the force_web_capture_mode_for_uploads (Check) field in DocType
 #. 'System Settings'
@@ -10779,7 +10779,7 @@ msgstr "Tving nettopptaksmodus for opplastinger"
 
 #: frappe/www/login.html:37
 msgid "Forgot Password?"
-msgstr ""
+msgstr "Glemt passord?"
 
 #. Label of the form_builder_tab (Tab Break) field in DocType 'DocType'
 #. Option for the 'Apply To' (Select) field in DocType 'Client Script'
@@ -10800,12 +10800,12 @@ msgstr "Skjema"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Form Builder"
-msgstr ""
+msgstr "Skjemabygger"
 
 #. Label of the form_dict (Code) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Form Dict"
-msgstr ""
+msgstr "Skjemaordbok"
 
 #. Label of the form_settings_section (Section Break) field in DocType
 #. 'DocType'
@@ -10818,7 +10818,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Form Settings"
-msgstr ""
+msgstr "Skjemainnstillinger"
 
 #. Name of a DocType
 #. Label of the form_tour (Link) field in DocType 'Onboarding Step'
@@ -10830,7 +10830,7 @@ msgstr "Skjemaguide"
 #. Name of a DocType
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Form Tour Step"
-msgstr ""
+msgstr "Trinn i skjemaguide"
 
 #. Option for the 'Request Structure' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -10857,22 +10857,22 @@ msgstr "Annenhver uke"
 
 #: frappe/core/doctype/communication/communication.js:70
 msgid "Forward"
-msgstr ""
+msgstr "Videresend"
 
 #. Label of the forward_to_email (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Forward To Email Address"
-msgstr ""
+msgstr "Videresend til e-postadresse"
 
 #. Label of the fraction (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Fraction"
-msgstr ""
+msgstr "Brøk"
 
 #. Label of the fraction_units (Int) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Fraction Units"
-msgstr ""
+msgstr "Brøkenheter"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -10884,19 +10884,19 @@ msgstr "Frappe"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Blog"
-msgstr ""
+msgstr "Frappe Blog"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Forum"
-msgstr ""
+msgstr "Frappe Forum"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "Frappe Framework"
-msgstr ""
+msgstr "Frappe Framework"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr ""
+msgstr "Frappe Light"
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -10910,7 +10910,7 @@ msgstr "OAuth feil for Frappe Mail"
 #. Label of the frappe_mail_site (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Frappe Mail Site"
-msgstr ""
+msgstr "Frappe-site for e-post"
 
 #. Label of a standard help item
 #. Type: Route
@@ -10920,7 +10920,7 @@ msgstr "Frappe-støtte"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
-msgstr ""
+msgstr "Frappe-sidebygger med bruk av komponenter"
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:112
 msgctxt "Image Cropper"
@@ -10961,12 +10961,12 @@ msgstr "Fredag"
 #: frappe/core/doctype/permission_log/permission_log.js:12
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:70
 msgid "From"
-msgstr ""
+msgstr "Fra"
 
 #: frappe/public/js/frappe/views/communication.js:197
 msgctxt "Email Sender"
 msgid "From"
-msgstr ""
+msgstr "Fra"
 
 #. Label of the from_date (Date) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -10981,21 +10981,21 @@ msgstr "Felt for fradato"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1831
 msgid "From Document Type"
-msgstr ""
+msgstr "Fra dokument type"
 
 #. Label of the sender_full_name (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "From Full Name"
-msgstr ""
+msgstr "Fra fullt navn"
 
 #. Label of the from_user (Link) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "From User"
-msgstr ""
+msgstr "Fra bruker"
 
 #: frappe/public/js/frappe/utils/diffview.js:31
 msgid "From version"
-msgstr ""
+msgstr "Fra versjon"
 
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
@@ -11013,7 +11013,7 @@ msgstr "Full"
 #: frappe/templates/signup.html:4
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
 msgid "Full Name"
-msgstr ""
+msgstr "Fullt navn"
 
 #: frappe/printing/page/print/print.js:80
 #: frappe/public/js/frappe/form/templates/print_layout.html:42
@@ -11023,7 +11023,7 @@ msgstr "Hel side"
 #. Label of the full_width (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Full Width"
-msgstr ""
+msgstr "Full bredde"
 
 #. Label of the function (Select) field in DocType 'Number Card'
 #. Label of the report_function (Select) field in DocType 'Number Card'
@@ -11035,23 +11035,23 @@ msgstr "Funksjon"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:706
 msgid "Function Based On"
-msgstr ""
+msgstr "Funksjon basert på"
 
 #: frappe/__init__.py:466
 msgid "Function {0} is not whitelisted."
-msgstr ""
+msgstr "Funksjon {0} er ikke hvitelistet."
 
 #: frappe/database/query.py:1417
 msgid "Function {0} requires arguments but none were provided"
-msgstr ""
+msgstr "Funksjon {0} krever argumenter, men ingen ble oppgitt"
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further nodes can be only created under 'Group' type nodes"
-msgstr ""
+msgstr "Ytterligere noder kan bare opprettes under noder av typen \"Gruppe\""
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
-msgstr ""
+msgstr "Fw: {0}"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -11081,7 +11081,7 @@ msgstr "Gantt"
 
 #: frappe/public/js/frappe/list/base_list.js:205
 msgid "Gantt View"
-msgstr ""
+msgstr "Gantt-visning"
 
 #. Label of the gender (Link) field in DocType 'Contact'
 #. Name of a DocType
@@ -11091,20 +11091,20 @@ msgstr ""
 #: frappe/contacts/doctype/gender/gender.json
 #: frappe/core/doctype/user/user.json
 msgid "Gender"
-msgstr ""
+msgstr "Kjønn"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:32
 msgid "Genderqueer"
-msgstr ""
+msgstr "Genderqueer"
 
 #: frappe/www/contact.html:29
 msgid "General"
-msgstr ""
+msgstr "Generell"
 
 #. Label of the generate_keys (Button) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Generate Keys"
-msgstr ""
+msgstr "Generer nøkler"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:873
 msgid "Generate New Report"
@@ -11112,18 +11112,18 @@ msgstr "Generer ny rapport"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:394
 msgid "Generate Random Password"
-msgstr ""
+msgstr "Generer tilfeldig passord"
 
 #. Label of the generate_separate_documents_for_each_assignee (Check) field in
 #. DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Generate Separate Documents For Each Assignee"
-msgstr ""
+msgstr "Lag separate dokumenter for hver tilordnet person"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:178
 #: frappe/public/js/frappe/utils/utils.js:1790
 msgid "Generate Tracking URL"
-msgstr ""
+msgstr "Generer sporings-URL"
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -11142,11 +11142,11 @@ msgstr "Geolokalisering"
 #. Name of a DocType
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Geolocation Settings"
-msgstr ""
+msgstr "Innstillinger for geolokalisering"
 
 #: frappe/email/doctype/notification/notification.js:222
 msgid "Get Alerts for Today"
-msgstr ""
+msgstr "Få varsler for i dag"
 
 #: frappe/desk/page/backups/backups.js:21
 msgid "Get Backup Encryption Key"
@@ -11155,11 +11155,11 @@ msgstr "Få krypteringsnøkkel for sikkerhetskopiering"
 #. Label of the get_contacts (Button) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Get Contacts"
-msgstr ""
+msgstr "Legg til kontakter"
 
 #: frappe/website/doctype/web_form/web_form.js:93
 msgid "Get Fields"
-msgstr ""
+msgstr "Hent felt"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "Get Header and Footer wkhtmltopdf variables"
@@ -11181,27 +11181,27 @@ msgstr "Hent PDF"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Get a preview of generated names with a series."
-msgstr ""
+msgstr "Få en forhåndsvisning av genererte navn med en serie."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:305
 msgid "Get more insights with"
-msgstr ""
+msgstr "Få mer innsikt med"
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Get notified when an email is received on any of the documents assigned to you."
-msgstr ""
+msgstr "Få varsel når vi mottar en e-post om et av dokumentene som er tilordnet deg."
 
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Get your globally recognized avatar from Gravatar.com"
-msgstr ""
+msgstr "Få din globalt anerkjente avatar fra Gravatar.com"
 
 #. Label of the git_branch (Data) field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Git Branch"
-msgstr ""
+msgstr "Git-gren"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -11211,7 +11211,7 @@ msgstr "GitHub"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
-msgstr ""
+msgstr "Github-tilpasset markdown-syntaks"
 
 #. Name of a DocType
 #: frappe/desk/doctype/global_search_doctype/global_search_doctype.json
@@ -11229,16 +11229,16 @@ msgstr "Globale søkeinnstillinger"
 
 #: frappe/public/js/frappe/ui/keyboard.js:122
 msgid "Global Shortcuts"
-msgstr ""
+msgstr "Globale hurtigtaster"
 
 #. Label of the global_unsubscribe (Check) field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 msgid "Global Unsubscribe"
-msgstr ""
+msgstr "Global avmelding"
 
 #: frappe/public/js/frappe/form/toolbar.js:843
 msgid "Go"
-msgstr ""
+msgstr "Gå"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:241
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:321
@@ -11247,7 +11247,7 @@ msgstr "Gå tilbake"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
-msgstr ""
+msgstr "Gå til listen over varslingsinnstillinger"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -11260,7 +11260,7 @@ msgstr "Gå til Arbeidsflyt"
 
 #: frappe/desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
-msgstr ""
+msgstr "Gå til arbeidsområde"
 
 #: frappe/public/js/frappe/form/form.js:144
 msgid "Go to next record"
@@ -11277,12 +11277,12 @@ msgstr "Gå til dokumentet"
 #. Description of the 'Success URL' (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Go to this URL after completing the form"
-msgstr ""
+msgstr "Gå til denne URL-en etter at du har fullført skjemaet"
 
 #: frappe/core/doctype/doctype/doctype.js:54
 #: frappe/custom/doctype/client_script/client_script.js:10
 msgid "Go to {0}"
-msgstr ""
+msgstr "Gå til {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:92
 #: frappe/core/doctype/doctype/doctype.js:55
@@ -11290,15 +11290,15 @@ msgstr ""
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:42
 #: frappe/workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
-msgstr ""
+msgstr "Gå til {0} liste"
 
 #: frappe/core/doctype/page/page.js:11
 msgid "Go to {0} Page"
-msgstr ""
+msgstr "Gå til {0} side"
 
 #: frappe/utils/goal.py:115 frappe/utils/goal.py:122
 msgid "Goal"
-msgstr ""
+msgstr "Mål"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -11309,13 +11309,13 @@ msgstr "Google"
 #. Label of the google_analytics_id (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "Google Analytics ID"
 
 #. Label of the google_analytics_anonymize_ip (Check) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics anonymise IP"
-msgstr ""
+msgstr "Google Analytics anonymiserer IP"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Event'
 #. Label of the google_calendar (Link) field in DocType 'Event'
@@ -11326,11 +11326,11 @@ msgstr ""
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Google Calendar"
-msgstr ""
+msgstr "Google Kalender"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:810
 msgid "Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}"
-msgstr ""
+msgstr "Google Kalender – Kontakt/e-post ikke funnet. Deltaker ble ikke lagt til for –<br>{0}"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:266
 msgid "Google Calendar - Could not create Calendar for {0}, error code {1}."
@@ -11363,18 +11363,18 @@ msgstr "Google Kalender - Kunne ikke oppdatere hendelsen {0} i Google Kalender, 
 #. Label of the google_calendar_event_id (Data) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Google Calendar Event ID"
-msgstr ""
+msgstr "Event-ID for Google Kalender"
 
 #. Label of the google_calendar_id (Data) field in DocType 'Event'
 #. Label of the google_calendar_id (Data) field in DocType 'Google Calendar'
 #: frappe/desk/doctype/event/event.json
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Google Calendar ID"
-msgstr ""
+msgstr "Google Kalender-ID"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:181
 msgid "Google Calendar has been configured."
-msgstr ""
+msgstr "Google Kalender er konfigurert."
 
 #. Label of the sb_00 (Section Break) field in DocType 'Contact'
 #. Label of the google_contacts (Link) field in DocType 'Contact'
@@ -11385,36 +11385,36 @@ msgstr ""
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Google Contacts"
-msgstr ""
+msgstr "Google Kontakter "
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:137
 msgid "Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
-msgstr "Google Contacts – Kunne ikke synkronisere kontakter fra Google Contacts {0}, feilkode {1}."
+msgstr "Google Kontakter – Kunne ikke synkronisere kontakter fra Google Kontakter {0}, feilkode {1}."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:294
 msgid "Google Contacts - Could not update contact in Google Contacts {0}, error code {1}."
-msgstr "Google Contacts - Kunne ikke oppdatere kontakten i Google Contacts {0}, feilkode {1}."
+msgstr "Google Kontakter - Kunne ikke oppdatere kontakten i Google Kontakter {0}, feilkode {1}."
 
 #. Label of the google_contacts_id (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Google Contacts Id"
-msgstr ""
+msgstr "Google Kontakter-ID"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:164
 msgid "Google Drive"
-msgstr "Google Drive"
+msgstr "Google Disk"
 
 #. Label of the section_break_7 (Section Break) field in DocType 'Google
 #. Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker"
-msgstr ""
+msgstr "Google Disk -velger"
 
 #. Label of the google_drive_picker_enabled (Check) field in DocType 'Google
 #. Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker Enabled"
-msgstr ""
+msgstr "Google Disk -velger aktivert"
 
 #. Label of the font (Data) field in DocType 'Print Format'
 #. Label of the google_font (Data) field in DocType 'Website Theme'
@@ -11427,12 +11427,12 @@ msgstr "Google Font"
 #. Label of the google_meet_link (Small Text) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Google Meet Link"
-msgstr ""
+msgstr "Google Meet Link"
 
 #. Label of a Card Break in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Google Services"
-msgstr ""
+msgstr "Google-tjenester"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -11440,15 +11440,15 @@ msgstr ""
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "Google Settings"
-msgstr ""
+msgstr "Google-innstillinger"
 
 #: frappe/utils/csvutils.py:226
 msgid "Google Sheets URL is invalid or not publicly accessible."
-msgstr ""
+msgstr "Google Sheets URL er ugyldig eller ikke offentlig tilgjengelig."
 
 #: frappe/utils/csvutils.py:231
 msgid "Google Sheets URL must end with \"gid={number}\". Copy and paste the URL from the browser address bar and try again."
-msgstr ""
+msgstr "Google Sheets URL må ende med \"gid={number}\". Kopier og lim inn URL'en fra nettleserens adresselinje og prøv igjen."
 
 #. Label of the grant_type (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -11484,18 +11484,18 @@ msgstr "Grønn"
 
 #: frappe/public/js/form_builder/components/controls/TableControl.vue:53
 msgid "Grid Empty State"
-msgstr ""
+msgstr "Tom tabell"
 
 #. Label of the grid_page_length (Int) field in DocType 'DocType'
 #. Label of the grid_page_length (Int) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Grid Page Length"
-msgstr ""
+msgstr "Antall rader per side"
 
 #: frappe/public/js/frappe/ui/keyboard.js:127
 msgid "Grid Shortcuts"
-msgstr ""
+msgstr "Tabell-snarveier"
 
 #. Label of the group (Data) field in DocType 'DocType Action'
 #. Label of the group (Data) field in DocType 'DocType Link'
@@ -11504,7 +11504,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_link/doctype_link.json
 #: frappe/website/doctype/website_sidebar_item/website_sidebar_item.json
 msgid "Group"
-msgstr ""
+msgstr "Gruppe"
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -11528,25 +11528,25 @@ msgstr "Feltet Grupper etter er påkrevd for å opprette et oversiktspanel-diagr
 
 #: frappe/database/query.py:750
 msgid "Group By must be a string"
-msgstr ""
+msgstr "\"Grupper etter\" må være en streng"
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Group Node"
-msgstr ""
+msgstr "Gruppenode"
 
 #. Label of the ldap_group_objectclass (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Group Object Class"
-msgstr ""
+msgstr "Objektklasse for gruppe"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Group your custom doctypes under modules"
-msgstr ""
+msgstr "Grupper dine egendefinerte dokumenttyper under moduler"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:428
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
-msgstr ""
+msgstr "Gruppert etter <span style='font-weight:600;'>{0}</b>"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -11613,7 +11613,7 @@ msgstr "HTML redigerer"
 #. Label of the page (HTML Editor) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "HTML Page"
-msgstr ""
+msgstr "HTML side"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -11622,7 +11622,7 @@ msgstr "HTML for overskriftsdelen. Valgfritt"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "HTML with jinja support"
-msgstr ""
+msgstr "HTML med jinja-støtte"
 
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
@@ -11645,17 +11645,17 @@ msgstr "Halvårlig"
 #. Label of the handled_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Handled Emails"
-msgstr ""
+msgstr "Håndterte e-poster"
 
 #. Label of the has_attachment (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Has  Attachment"
-msgstr ""
+msgstr "Har vedlegg"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_domain/has_domain.json
 msgid "Has Domain"
-msgstr ""
+msgstr "Har domene"
 
 #. Label of the has_next_condition (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -11665,22 +11665,22 @@ msgstr "Har neste betingelse"
 #. Name of a DocType
 #: frappe/core/doctype/has_role/has_role.json
 msgid "Has Role"
-msgstr ""
+msgstr "Har rolle"
 
 #. Label of the has_setup_wizard (Check) field in DocType 'Installed
 #. Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Has Setup Wizard"
-msgstr ""
+msgstr "Har oppsettveiviser"
 
 #. Label of the has_web_view (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Has Web View"
-msgstr ""
+msgstr "Har nettvisning"
 
 #: frappe/templates/signup.html:19
 msgid "Have an account? Login"
-msgstr ""
+msgstr "Har du en konto? Logg inn"
 
 #. Label of the header (Check) field in DocType 'SMS Parameter'
 #. Label of the header_section (Section Break) field in DocType 'Letter Head'
@@ -11710,13 +11710,13 @@ msgstr "Skript topptekst"
 #. Label of the sb2 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Header and Breadcrumbs"
-msgstr ""
+msgstr "Topptekst og brødsmuler"
 
 #. Label of the section_break_38 (Tab Break) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Header, Robots"
-msgstr ""
+msgstr "Topptekst, Roboter"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
@@ -11727,11 +11727,11 @@ msgstr "Skript for topp- / bunntekst kan brukes til å legge til dynamisk atferd
 #: frappe/integrations/doctype/webhook/webhook.json
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json
 msgid "Headers"
-msgstr "Overskrifter"
+msgstr "Meldingshoder"
 
 #: frappe/email/email_body.py:322
 msgid "Headers must be a dictionary"
-msgstr ""
+msgstr "Meldingshoder må være en ordbok (dict)"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11771,37 +11771,37 @@ msgstr "Hei,"
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:87
 #: frappe/public/js/frappe/utils/help.js:27
 msgid "Help"
-msgstr ""
+msgstr "Hjelp"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
 #: frappe/website/doctype/help_article/help_article.json
 #: frappe/website/workspace/website/website.json
 msgid "Help Article"
-msgstr ""
+msgstr "Hjelpeartikkel"
 
 #. Label of the help_articles (Int) field in DocType 'Help Category'
 #: frappe/website/doctype/help_category/help_category.json
 msgid "Help Articles"
-msgstr ""
+msgstr "Hjelpeartikler"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
 #: frappe/website/doctype/help_category/help_category.json
 #: frappe/website/workspace/website/website.json
 msgid "Help Category"
-msgstr ""
+msgstr "Hjelpekategori"
 
 #. Label of the help_dropdown (Table) field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:84
 msgid "Help Dropdown"
-msgstr ""
+msgstr "Hjelp Dropdown"
 
 #. Label of the help_html (HTML) field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Help HTML"
-msgstr ""
+msgstr "Hjelp HTML"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:149
 msgid "Help on Search"
@@ -11810,12 +11810,12 @@ msgstr "Hjelp med søk"
 #. Description of the 'Content' (Text Editor) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")"
-msgstr ""
+msgstr "Hjelp: For å lenke til en annen oppføring i systemet, bruk «/app/note/[Notenavn]» som lenke-URL. (ikke bruk «http://»)"
 
 #. Label of the helpful (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Helpful"
-msgstr ""
+msgstr "Nyttig"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -11829,11 +11829,11 @@ msgstr "Helvetica Neue"
 
 #: frappe/public/js/frappe/utils/utils.js:1787
 msgid "Here's your tracking URL"
-msgstr ""
+msgstr "Her er sporings-URL-en din"
 
 #: frappe/www/qrcode.html:9
 msgid "Hi {0}"
-msgstr ""
+msgstr "Hei {0}"
 
 #. Label of the hidden (Check) field in DocType 'DocField'
 #. Label of the hidden (Check) field in DocType 'DocType Action'
@@ -11861,11 +11861,11 @@ msgstr "Skjult"
 #. Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hidden Fields"
-msgstr ""
+msgstr "Skjulte felt"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1641
 msgid "Hidden columns include: {0}"
-msgstr ""
+msgstr "Skjulte kolonner inkluderer: {0}"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -11880,7 +11880,7 @@ msgstr "Skjul"
 #. Label of the hide_block (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Hide Block"
-msgstr ""
+msgstr "Skjul blokk"
 
 #. Label of the hide_border (Check) field in DocType 'DocField'
 #. Label of the hide_border (Check) field in DocType 'Custom Field'
@@ -11889,24 +11889,24 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Border"
-msgstr ""
+msgstr "Skjul kantlinje"
 
 #. Label of the hide_buttons (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hide Buttons"
-msgstr ""
+msgstr "Skjul knapper"
 
 #. Label of the allow_copy (Check) field in DocType 'DocType'
 #. Label of the allow_copy (Check) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Hide Copy"
-msgstr ""
+msgstr "Skjul kopiering"
 
 #. Label of the hide_custom (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Hide Custom DocTypes and Reports"
-msgstr ""
+msgstr "Skjul tilpassede dokumenttyper og rapporter"
 
 #. Label of the hide_days (Check) field in DocType 'DocField'
 #. Label of the hide_days (Check) field in DocType 'Custom Field'
@@ -11915,19 +11915,19 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Days"
-msgstr ""
+msgstr "Skjul dager"
 
 #. Label of the hide_descendants (Check) field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 #: frappe/core/doctype/user_permission/user_permission_list.js:96
 msgid "Hide Descendants"
-msgstr ""
+msgstr "Skjul etterkommere"
 
 #. Label of the hide_empty_read_only_fields (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide Empty Read-Only Fields"
-msgstr ""
+msgstr "Skjul tomme skrivebeskyttede felt"
 
 #: frappe/www/error.html:62
 msgid "Hide Error"
@@ -11940,7 +11940,7 @@ msgstr "Skjul Etikett"
 #. Label of the hide_login (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Hide Login"
-msgstr ""
+msgstr "Skjul pålogging"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:43
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
@@ -11963,56 +11963,56 @@ msgstr "Skjul lagret"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Seconds"
-msgstr ""
+msgstr "Skjul sekunder"
 
 #. Label of the hide_toolbar (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Hide Sidebar, Menu, and Comments"
-msgstr ""
+msgstr "Skjul sidefelt, meny og kommentarer"
 
 #. Label of the hide_standard_menu (Check) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Hide Standard Menu"
-msgstr ""
+msgstr "Skjul standardmeny"
 
 #: frappe/public/js/frappe/list/list_view.js:1845
 msgid "Hide Tags"
-msgstr ""
+msgstr "Skjul tagger"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:179
 msgid "Hide Weekends"
-msgstr ""
+msgstr "Skjul helger"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Hide descendant records of <b>For Value</b>."
-msgstr ""
+msgstr "Skjul underordnede poster for <b>For-verdi</b>."
 
 #: frappe/public/js/frappe/form/layout.js:285
 msgid "Hide details"
-msgstr ""
+msgstr "Skjul detaljer"
 
 #. Label of the hide_footer (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Hide footer"
-msgstr ""
+msgstr "Skjul bunntekst"
 
 #. Label of the hide_footer_in_auto_email_reports (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide footer in auto email reports"
-msgstr ""
+msgstr "Skjul bunntekst i automatiske e-postrapporter"
 
 #. Label of the hide_footer_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Hide footer signup"
-msgstr ""
+msgstr "Skjul registrering i bunntekst"
 
 #. Label of the hide_navbar (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Hide navbar"
-msgstr ""
+msgstr "Skjul navigasjonsfelt"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -12023,12 +12023,12 @@ msgstr "Høy"
 #. Description of the 'Priority' (Int) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Higher priority rule will be applied first"
-msgstr ""
+msgstr "Regelen med høyest prioritet vil bli brukt først"
 
 #. Label of the highlight (Text) field in DocType 'Company History'
 #: frappe/website/doctype/company_history/company_history.json
 msgid "Highlight"
-msgstr ""
+msgstr "Uthevet"
 
 #: frappe/www/update-password.html:301
 msgid "Hint: Include symbols, numbers and capital letters in the password"
@@ -12052,26 +12052,26 @@ msgstr "Hjem"
 #: frappe/core/doctype/role/role.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Home Page"
-msgstr ""
+msgstr "Hjemmeside"
 
 #. Label of the home_settings (Code) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Home Settings"
-msgstr ""
+msgstr "Innstillinger for startside"
 
 #: frappe/core/doctype/file/test_file.py:321
 #: frappe/core/doctype/file/test_file.py:323
 #: frappe/core/doctype/file/test_file.py:387
 msgid "Home/Test Folder 1"
-msgstr ""
+msgstr "Home/Test Folder 1"
 
 #: frappe/core/doctype/file/test_file.py:376
 msgid "Home/Test Folder 1/Test Folder 3"
-msgstr ""
+msgstr "Home/Test Folder 1/Test Folder 3"
 
 #: frappe/core/doctype/file/test_file.py:332
 msgid "Home/Test Folder 2"
-msgstr ""
+msgstr "Home/Test Folder 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
