@@ -6,22 +6,11 @@
 	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName">
 			<div class="flex w-full items-center">
-				<Autocomplete size="sm" :options="store.variableOptions" class="!w-auto">
-					<template #target="{ open }">
-						<Tooltip text="Set dynamic value" :placement="'bottom'">
-							<FeatherIcon
-								ref="dropdownTrigger"
-								name="zap"
-								class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
-								@click="open"
-							/>
-						</Tooltip>
-					</template>
-
-					<template #item-suffix="{ active, selected, option }">
-						<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
-					</template>
-				</Autocomplete>
+				<DynamicValueSelector
+					:block="block"
+					:isEditingComponent="isEditingComponent"
+					@update:modelValue="(value) => props.block?.setProp(propName, value)"
+				/>
 				<Code
 					v-if="config.inputType === 'code'"
 					:label="propName"
@@ -87,7 +76,7 @@
 <script setup lang="ts">
 import { computed, resolveComponent } from "vue"
 import EmptyState from "@/components/EmptyState.vue"
-import { Autocomplete, FeatherIcon, Tooltip } from "frappe-ui"
+import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
@@ -105,6 +94,7 @@ import { getComponentProps } from "@/utils/components"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
+import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 
 const props = defineProps<{
 	block?: Block
