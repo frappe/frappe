@@ -9,6 +9,7 @@
 				v-if="propName === 'modelValue'"
 				:block="block"
 				@update:modelValue="(value) => bindVariable(propName, value)"
+				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
 				:formatValuesAsTemplate="false"
 			>
 				<template #target="{ togglePopover }">
@@ -33,6 +34,7 @@
 			<DynamicValueSelector
 				v-else-if="!isTestingComponent"
 				:block="block"
+				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
 				@update:modelValue="(value) => props.block?.setProp(propName, value)"
 			/>
 
