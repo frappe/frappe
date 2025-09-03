@@ -7,8 +7,8 @@
 		<div v-for="(config, propName) in componentProps" :key="propName">
 			<div class="flex w-full items-center">
 				<DynamicValueSelector
+					v-if="!isTestingComponent"
 					:block="block"
-					:isEditingComponent="isEditingComponent"
 					@update:modelValue="(value) => props.block?.setProp(propName, value)"
 				/>
 				<Code
@@ -98,7 +98,7 @@ import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 
 const props = defineProps<{
 	block?: Block
-	isEditingComponent?: boolean
+	isTestingComponent?: boolean
 }>()
 
 const store = useStudioStore()
@@ -117,7 +117,7 @@ const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
 	let propConfig
-	if (props.isEditingComponent) {
+	if (props.isTestingComponent) {
 		const componentEditorStore = useComponentEditorStore()
 		propConfig = getStudioComponentProps(componentEditorStore.componentInputs)
 	} else if (props.block.isStudioComponent) {
