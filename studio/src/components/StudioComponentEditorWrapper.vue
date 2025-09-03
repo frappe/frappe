@@ -23,7 +23,7 @@ const componentContext = computed(() => {
 			context[input.input_name] = input.default
 		}
 	})
-	return context
+	return { inputs: context }
 })
 
 provide("componentContext", componentContext)

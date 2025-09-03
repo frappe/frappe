@@ -31,7 +31,7 @@ const componentContext = computed(() => {
 			})
 		})
 	}
-	return context
+	return { inputs: context }
 })
 provide("componentContext", componentContext)
 

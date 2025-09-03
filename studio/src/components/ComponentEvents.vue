@@ -332,8 +332,7 @@ const actions: ActionConfigurations = {
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "250px",
-					completions: (context: CompletionContext) =>
-						getCompletions(context, props.block?.getRepeaterDataCompletions()),
+					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
 				}
 			},
 			events: {

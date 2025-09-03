@@ -645,9 +645,10 @@ class Block implements BlockOptions {
 		this.repeaterDataItem = repeaterDataItem
 	}
 
-	getRepeaterDataCompletions(): CompletionSource[] {
+	getCompletions(): CompletionSource[] {
+		const completions = []
 		if (this.repeaterDataItem) {
-			return [
+			completions.push(
 				{
 					item: this.repeaterDataItem,
 					completion: {
@@ -655,7 +656,9 @@ class Block implements BlockOptions {
 						type: "data",
 						detail: "Repeater Data Item",
 					}
-				},
+				}
+			)
+			completions.push(
 				{
 					item: "dataIndex",
 					completion: {
@@ -664,9 +667,22 @@ class Block implements BlockOptions {
 						detail: "Repeater Data Index",
 					}
 				}
-			]
+			)
 		}
-		return []
+		if (this.componentContext) {
+			completions.push(
+				{
+					item: this.componentContext.inputs || {},
+					completion: {
+						label: "inputs",
+						type: "data",
+						detail: "Component Context",
+					}
+				},
+			)
+		}
+
+		return completions
 	}
 
 	// events

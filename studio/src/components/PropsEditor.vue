@@ -45,9 +45,7 @@
 				:modelValue="config.modelValue"
 				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
 				:required="config.required"
-				:completions="
-					(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
-				"
+				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
 			/>
 			<InlineInput

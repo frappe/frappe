@@ -78,15 +78,12 @@ const repeaterContext = inject("repeaterContext", {})
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 
 const evaluationContext = computed(() => {
-	const context: any = {
+	return {
 		...store.variables,
 		...store.resources,
 		...repeaterContext,
+		...componentContext?.value,
 	}
-	if (componentContext?.value) {
-		context["inputs"] = componentContext.value
-	}
-	return context
 })
 
 const getComponentProps = () => {
@@ -208,7 +205,13 @@ const componentEvents = computed(() => {
 				}
 			} else if (event.action === "Run Script") {
 				return () => {
-					executeUserScript(event.script, store.variables, store.resources, repeaterContext)
+					executeUserScript(
+						event.script,
+						store.variables,
+						store.resources,
+						repeaterContext,
+						componentContext?.value,
+					)
 				}
 			}
 		}

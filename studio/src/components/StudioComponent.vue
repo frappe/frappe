@@ -163,15 +163,12 @@ const componentName = computed(() => {
 const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
-	const context: any = {
+	return {
 		...store.variables,
 		...store.resources,
 		...repeaterContext,
+		...componentContext?.value,
 	}
-	if (componentContext?.value) {
-		context["inputs"] = componentContext.value
-	}
-	return context
 })
 
 const getComponentProps = () => {

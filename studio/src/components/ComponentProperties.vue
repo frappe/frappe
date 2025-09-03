@@ -61,9 +61,7 @@
 				language="javascript"
 				height="60px"
 				:showLineNumbers="false"
-				:completions="
-					(context: CompletionContext) => getCompletions(context, block?.getRepeaterDataCompletions())
-				"
+				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:modelValue="block?.visibilityCondition"
 				@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 			/>

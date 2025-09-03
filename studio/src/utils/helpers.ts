@@ -425,12 +425,18 @@ function evaluateExpression(expression: string, context: ExpressionEvaluationCon
 	}
 }
 
-function executeUserScript(script: string, variables: Record<string, any>, resources: Record<string, any>, repeaterContext?: Record<string, any>) {
+function executeUserScript(
+	script: string,
+	variables: Record<string, any>,
+	resources: Record<string, any>,
+	repeaterContext?: Record<string, any>,
+	componentContext?: Record<string, any>,
+) {
 	try {
 		// Pass variable refs as context so that users can access variables without 'variable.' prefix
 		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
 		const variablesRefs = toRefs(variables)
-		const context = { ...variablesRefs, ...resources, ...repeaterContext }
+		const context = { ...variablesRefs, ...resources, ...repeaterContext, ...componentContext }
 
 		const scriptToExecute = `
 			with (context) {
