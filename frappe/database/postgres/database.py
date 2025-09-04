@@ -1,4 +1,5 @@
 import re
+import warnings
 
 import psycopg2
 import psycopg2.extensions
@@ -23,7 +24,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import TRANSACTION_DISABLED_MSG, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
@@ -507,6 +508,24 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self.begin()
 
 		self.after_commit.run()
+
+	def rollback(self, *, save_point=None, chain=False):
+		"""Rollback current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"ROLLBACK TO SAVEPOINT {save_point}")
+		elif not getattr(self, "_disable_transaction_control", False):
+			self.before_commit.reset()
+			self.after_commit.reset()
+			self.before_rollback.run()
+
+			self.sql("ROLLBACK")
+			self.begin()
+
+			self.after_rollback.run()
+		else:
+			import warnings
+
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
 
 def modify_query(query):
