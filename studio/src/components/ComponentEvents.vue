@@ -221,42 +221,21 @@ const successFailureFields = [
 ]
 
 const actions: ActionConfigurations = {
-	"Switch App Page": [
+	"Run Script": [
 		{
-			component: FormControl,
+			component: Code,
 			getProps: () => {
 				return {
-					type: "autocomplete",
-					options: Object.values(store.appPages || [])?.map((page) => {
-						return {
-							value: page.name,
-							label: page.page_title,
-						}
-					}),
-					label: "Page",
-					modelValue: newEvent.value.page,
+					label: "Script",
+					language: "javascript",
+					modelValue: newEvent.value.script,
+					height: "250px",
+					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
 				}
 			},
 			events: {
-				"update:modelValue": (val: SelectOption) => {
-					newEvent.value.page = val.value
-				},
-			},
-		},
-	],
-	"Open Webpage": [
-		{
-			component: FormControl,
-			getProps: () => {
-				return {
-					type: "input",
-					label: "URL",
-					modelValue: newEvent.value.url,
-				}
-			},
-			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.url = val
+				"update:modelValue": (val: any) => {
+					newEvent.value.script = val
 				},
 			},
 		},
@@ -323,21 +302,42 @@ const actions: ActionConfigurations = {
 		},
 		...successFailureFields,
 	],
-	"Run Script": [
+	"Switch App Page": [
 		{
-			component: Code,
+			component: FormControl,
 			getProps: () => {
 				return {
-					label: "Script",
-					language: "javascript",
-					modelValue: newEvent.value.script,
-					height: "250px",
-					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
+					type: "autocomplete",
+					options: Object.values(store.appPages || [])?.map((page) => {
+						return {
+							value: page.name,
+							label: page.page_title,
+						}
+					}),
+					label: "Page",
+					modelValue: newEvent.value.page,
 				}
 			},
 			events: {
-				"update:modelValue": (val: any) => {
-					newEvent.value.script = val
+				"update:modelValue": (val: SelectOption) => {
+					newEvent.value.page = val.value
+				},
+			},
+		},
+	],
+	"Open Webpage": [
+		{
+			component: FormControl,
+			getProps: () => {
+				return {
+					type: "input",
+					label: "URL",
+					modelValue: newEvent.value.url,
+				}
+			},
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.url = val
 				},
 			},
 		},

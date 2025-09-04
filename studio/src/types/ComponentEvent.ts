@@ -1,4 +1,4 @@
-import type { DefineComponent } from "vue"
+import type { Component } from "vue"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
@@ -32,7 +32,7 @@ export type ComponentEvent = {
 }
 
 export type ActionConfiguration = {
-	component: DefineComponent
+	component: Component
 	getProps: () => object
 	events: Record<string, (event: any) => void>
 	class?: string | string[]
