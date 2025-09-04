@@ -491,6 +491,23 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		count = self.sql("select reltuples from pg_class where relname = %s", table)
 		return cint(count[0][0]) if count else 0
 
+	def commit(self, *, chain=False):
+		"""Commit current transaction. Only use COMMIT for PostgreSQL."""
+		if getattr(self, "_disable_transaction_control", False):
+			import warnings
+
+			warnings.warn(message="Transaction control is disabled.", stacklevel=2)
+			return
+
+		self.before_rollback.reset()
+		self.after_rollback.reset()
+		self.before_commit.run()
+
+		self.sql("COMMIT")
+		self.begin()
+
+		self.after_commit.run()
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
