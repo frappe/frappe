@@ -6,7 +6,7 @@
 		>
 			{{ emptyStateMessage || "No data" }}
 		</div>
-		<template v-else v-for="(dataItem, dataIndex) in data" :key="dataItem[dataKey]">
+		<template v-else v-for="(dataItem, dataIndex) in data" :key="dataItem?.[dataKey]">
 			<RepeaterContextProvider :dataItem="dataItem" :dataIndex="dataIndex" :dataKey="dataKey">
 				<slot v-bind="{ dataItem, dataKey, dataIndex }"></slot>
 			</RepeaterContextProvider>
