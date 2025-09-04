@@ -266,10 +266,6 @@ const handleClick = (e: MouseEvent) => {
 		block.setRepeaterDataItem((repeaterContext as RepeaterContext).dataItem)
 	}
 
-	if (componentContext?.value) {
-		block.setComponentContext(componentContext.value)
-	}
-
 	const slotName = (e.target as HTMLElement).dataset.slotName
 	if (slotName) {
 		const slot = block.getSlot(slotName)
@@ -306,5 +302,15 @@ watch(
 		isComponentReady.value = true
 	},
 	{ immediate: true },
+)
+
+watch(
+	() => componentContext?.value,
+	(newContext) => {
+		if (canvasStore.editingMode === "component" && newContext) {
+			props.block.setComponentContext(newContext)
+		}
+	},
+	{ deep: true, immediate: true },
 )
 </script>
