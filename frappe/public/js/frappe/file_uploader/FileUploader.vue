@@ -163,6 +163,23 @@
 						</svg>
 						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
+					<template v-for="option in additional_upload_handlers">
+						<button class="btn btn-file-upload" @click="option.wrappedAction">
+							<svg
+								v-if="typeof option.icon === 'string'"
+								v-html="option.icon"
+								width="30"
+								height="30"
+							/>
+							<component
+								v-else-if="option.icon"
+								:is="option.icon"
+								width="30"
+								height="30"
+							/>
+							<div class="mt-1">{{ option.label }}</div>
+						</button>
+					</template>
 				</div>
 				<div class="mt-3 text-center" v-if="upload_notes">
 					{{ upload_notes }}
@@ -290,6 +307,9 @@ const props = defineProps({
 	},
 	allow_google_drive: {
 		default: true,
+	},
+	additional_upload_handlers: {
+		default: [],
 	},
 });
 
@@ -645,7 +665,9 @@ function upload_file(file, i) {
 		if (file.file_url) {
 			form_data.append("file_url", file.file_url);
 		}
-
+		if (file.file_size) {
+			form_data.append("file_size", file.file_size);
+		}
 		if (file.file_name) {
 			form_data.append("file_name", file.file_name);
 		}
@@ -762,6 +784,7 @@ watch(
 defineExpose({
 	files,
 	add_files,
+	upload_file,
 	upload_files,
 	toggle_all_private,
 	wrapper_ready,

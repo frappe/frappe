@@ -38,6 +38,10 @@ frappe.form.formatters = {
 			if (!value) return;
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
+		if (df && df.options == "IBAN") {
+			if (!value) return;
+			return frappe.utils.get_formatted_iban(value);
+		}
 		value = value == null ? "" : value;
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);

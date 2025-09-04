@@ -2338,7 +2338,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 
 			let value_array;
-			if ($.isArray(value) && value[0].startsWith("[") && value[0].endsWith("]")) {
+			if (
+				Array.isArray(value) &&
+				!Array.isArray(value[0]) &&
+				value[0].startsWith("[") &&
+				value[0].endsWith("]")
+			) {
 				value_array = [];
 				for (var i = 0; i < value.length; i++) {
 					value_array.push(JSON.parse(value[i]));
@@ -2365,13 +2370,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (doctype) {
 				if (value_array) {
 					for (var j = 0; j < value_array.length; j++) {
-						if ($.isArray(value_array[j])) {
+						if (Array.isArray(value_array[j])) {
 							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
 						} else {
 							filters.push([doctype, field, "=", value_array[j]]);
 						}
 					}
-				} else if ($.isArray(value)) {
+				} else if (Array.isArray(value) && Array.isArray(value[0])) {
+					value.forEach((val) => {
+						filters.push([doctype, field, val[0], val[1]]);
+					});
+				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);

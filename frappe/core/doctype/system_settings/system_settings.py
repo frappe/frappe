@@ -73,6 +73,7 @@ class SystemSettings(Document):
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
+		max_signups_allowed_per_hour: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
@@ -156,9 +157,8 @@ class SystemSettings(Document):
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
-		login_with_email_link_enabled = frappe.db.get_single_value("System Settings", "login_with_email_link")
 
-		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
+		if not (social_login_enabled or ldap_enabled or self.login_with_email_link):
 			frappe.throw(
 				_(
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."

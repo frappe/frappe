@@ -85,9 +85,18 @@ export default class NumberCardWidget extends Widget {
 		const filters = this.get_filters();
 		if (is_document_type) {
 			frappe.route_options = filters.reduce((acc, filter) => {
-				return Object.assign(acc, {
-					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
-				});
+				const field = filter[1];
+				const value = [filter[2], filter[3]];
+
+				// if we have multiple filters for the same field,
+				// we convert it into an array
+				if (acc[field]) {
+					acc[field].push(value);
+				} else {
+					acc[field] = [value];
+				}
+
+				return acc;
 			}, {});
 		} else {
 			if (filters && Object.keys(filters).length) {
