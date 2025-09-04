@@ -29,8 +29,11 @@ import { computed } from "vue"
 import { Autocomplete, Tooltip } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
+import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import { isObjectEmpty } from "@/utils/helpers"
 
 const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
 	formatValuesAsTemplate: true,
@@ -53,16 +56,19 @@ const dynamicValueOptions = computed(() => {
 
 	if (canvasStore.editingMode === "component") {
 		// Component context
-		const componentContext = props.block?.componentContext
-		if (componentContext && Object.keys(componentContext).length > 0) {
-			const inputOptions = Object.keys(componentContext).map((inputName) => ({
-				value: formatValue(`inputs.${inputName}`),
-				label: `inputs.${inputName}`,
-				type: typeof componentContext[inputName],
-			}))
+		const componentInputs = useComponentEditorStore().componentInputs
+		if (!isObjectEmpty(componentInputs)) {
+			const componentContext: VariableOption[] = []
+			componentInputs.map?.((input: ComponentInput) => {
+				componentContext.push({
+					value: formatValue(`inputs.${input.input_name}`),
+					label: `inputs.${input.input_name}`,
+					type: input.type,
+				})
+			})
 			groups.push({
 				group: "Component Inputs",
-				items: inputOptions,
+				items: componentContext,
 			})
 		}
 	} else {
@@ -92,11 +98,11 @@ const dynamicValueOptions = computed(() => {
 
 	// Repeater Data Item group
 	const repeaterContext = props.block?.repeaterDataItem
-	if (repeaterContext && Object.keys(repeaterContext).length > 0) {
-		const repeaterOptions = Object.keys(repeaterContext).map((key) => ({
+	if (!isObjectEmpty(repeaterContext)) {
+		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
 			value: formatValue(`dataItem.${key}`),
 			label: `dataItem.${key}`,
-			type: typeof repeaterContext[key],
+			type: typeof repeaterContext![key],
 		}))
 		groups.push({
 			group: "Repeater",
