@@ -23,7 +23,9 @@ export type ComponentEvent = {
 	doctype?: string
 	fields?: Array<Field>
 	success_message?: string | null
+	on_success?: string | null
 	error_message?: string | null
+	on_error?: string | null
 	/** action = 'Run Script' */
 	script?: string
 	// for editing

@@ -122,7 +122,9 @@ const emptyEvent: ComponentEvent = {
 	doctype: "",
 	fields: [],
 	success_message: "",
+	on_success: "",
 	error_message: "",
+	on_error: "",
 	// run script
 	script: "",
 }
@@ -203,6 +205,21 @@ const successFailureFields = [
 		},
 	},
 	{
+		component: Code,
+		getProps: () => {
+			return {
+				label: "On Success",
+				modelValue: newEvent.value.on_success?.toString(),
+				completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.on_success = val
+			},
+		},
+	},
+	{
 		component: FormControl,
 		getProps: () => {
 			return {
@@ -215,6 +232,21 @@ const successFailureFields = [
 		events: {
 			"update:modelValue": (val: string) => {
 				newEvent.value.error_message = val
+			},
+		},
+	},
+	{
+		component: Code,
+		getProps: () => {
+			return {
+				label: "On Error",
+				modelValue: newEvent.value.on_error?.toString(),
+				completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				newEvent.value.on_error = val
 			},
 		},
 	},
@@ -347,6 +379,26 @@ const actions: ActionConfigurations = {
 const actionControls = computed(() => {
 	return actions[newEvent.value.action] || []
 })
+
+function getFnBoilerplate(event: "success" | "error") {
+	if (event === "success") {
+		return "function onSuccess(data) { \n\t \n}"
+	} else {
+		return "function onError(error) { \n\t \n}"
+	}
+}
+
+watch(
+	() => ["Insert a Document", "Call API"].includes(newEvent.value.action),
+	() => {
+		if (!newEvent.value.on_success) {
+			newEvent.value.on_success = getFnBoilerplate("success")
+		}
+		if (!newEvent.value.on_error) {
+			newEvent.value.on_error = getFnBoilerplate("error")
+		}
+	},
+)
 
 // Event Menu
 const deleteEvent = async (event: ComponentEvent) => {

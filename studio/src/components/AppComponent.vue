@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs, inject, type ComputedRef } from "vue"
+import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, toRefs } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
@@ -53,6 +53,7 @@ import { useScreenSize } from "@/utils/useScreenSize"
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
 import type { Field } from "@/types/ComponentEvent"
+import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
 
@@ -187,18 +188,58 @@ const componentEvents = computed(() => {
 								...fields,
 							},
 						},
-						onSuccess() {
+						onSuccess(data: DataResult) {
 							if (event.success_message) {
 								toast.success(event.success_message)
 							} else {
 								toast.success(`${event.doctype} saved successfully`)
 							}
+
+							if (event.on_success) {
+								const variablesRefs = toRefs(store.variables)
+								const context = {
+									...variablesRefs,
+									...store.resources,
+									...repeaterContext,
+									...componentContext?.value,
+									data,
+								}
+								const successFn = new Function(
+									"ctx",
+									`with(ctx) {
+										${event.on_success}
+										return onSuccess(data);
+									}`,
+								)
+
+								return successFn(context)
+							}
 						},
-						onError() {
+						onError(error: any) {
 							if (event.error_message) {
 								toast.error(event.error_message)
 							} else {
 								toast.error(`Error saving ${event.doctype}`)
+							}
+
+							if (event.on_error) {
+								const variablesRefs = toRefs(store.variables)
+								const context = {
+									...variablesRefs,
+									...store.resources,
+									...repeaterContext,
+									...componentContext?.value,
+									error,
+								}
+								const successFn = new Function(
+									"ctx",
+									`with(ctx) {
+										${event.on_error}
+										return onError(error);
+									}`,
+								)
+
+								return successFn(context)
 							}
 						},
 					}).submit()
