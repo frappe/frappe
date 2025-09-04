@@ -7,6 +7,7 @@ import app_router from "@/router/app_router"
 import AppRenderer from "./AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
+import "./utils/appUtils"
 
 // For rendering apps built by studio
 const app = createApp(AppRenderer)

@@ -62,6 +62,26 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			}
 		})
 
+		if (window.studio?.utils) {
+			Object.entries(window.studio.utils).forEach(([funcName, func]) => {
+				sources.push({
+					item: func,
+					completion: {
+						label: funcName,
+						type: "function",
+						detail: "Utility Function",
+						apply(view, completion, from, to) {
+							let insertText = `studio.utils.${completion.label}()`
+							view.dispatch({
+								changes: { from, to, insert: insertText },
+								selection: { anchor: from + insertText.length - 1 } // Place cursor inside the parentheses
+							})
+						}
+					}
+				})
+			})
+		}
+
 		return sources
 	})
 
