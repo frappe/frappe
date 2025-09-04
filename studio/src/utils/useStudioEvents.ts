@@ -71,7 +71,7 @@ export function useStudioEvents() {
 	useEventListener(document, "contextmenu", async (e) => {
 		const target =
 			<HTMLElement | null>(e.target as HTMLElement)?.closest("[data-component-layer-id]") ||
-			(e.target as HTMLElement)?.closest("[data-component-id]")
+			(e.target as HTMLElement)?.closest("[data-component-id]:not(.__studio_component_child__)")
 		if (target) {
 			const blockId = target.dataset.componentLayerId || target.dataset.componentId
 			const block = canvasStore.activeCanvas?.findBlock(blockId as string)
