@@ -113,8 +113,8 @@ const getCompletions = useStudioCompletions(true)
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
-	event: "",
-	action: "Call API",
+	event: "click",
+	action: "Run Script",
 	page: "",
 	url: "",
 	api_endpoint: "",
