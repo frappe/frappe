@@ -586,9 +586,13 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
-		const item = __(_item);
+		let item = __(_item);
 
-		const [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		let [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		if (score == 0 && frappe.boot.lang !== "en" && item != _item) {
+			item = _item || "";
+			[, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		}
 
 		if (!return_marked_string) {
 			return score;
