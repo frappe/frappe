@@ -99,20 +99,18 @@ def send_report_email(
 
 	file_url = frappe.utils.get_url(_file.get_url())
 	file_retention_hours = frappe.get_system_settings("delete_background_exported_reports_after") or 48
-	try:
-		frappe.sendmail(
-			recipients=[user_email],
-			subject=frappe._("Your exported report: {0}").format(file_name),
-			message=frappe._(
-				"The report you requested has been generated.<br><br>"
-				"Click here to download:<br>"
-				f"<a href='{file_url}'>{file_url}</a><br><br>"
-				f"This link will expire in {file_retention_hours} hours."
-			),
-			now=True,
-		)
-	except Exception as e:
-		frappe.log_error(title=frappe._("Failed to send report email"), message=f"{e}")
+
+	frappe.sendmail(
+		recipients=[user_email],
+		subject=frappe._("Your exported report: {0}").format(file_name),
+		message=frappe._(
+			"The report you requested has been generated.<br><br>"
+			"Click here to download:<br>"
+			f"<a href='{file_url}'>{file_url}</a><br><br>"
+			f"This link will expire in {file_retention_hours} hours."
+		),
+		now=True,
+	)
 
 
 def delete_old_exported_report_files():
