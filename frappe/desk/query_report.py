@@ -348,7 +348,7 @@ def export_query():
 	return _export_query(form_params, csv_params)
 
 
-def run_export_query_job(user_email, form_params, csv_params):
+def run_export_query_job(user_email: str, form_params, csv_params):
 	from frappe.desk.utils import send_report_email
 
 	file_name, file_extension, content = _export_query(form_params, csv_params, return_file=True)
