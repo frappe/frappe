@@ -81,13 +81,13 @@ def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 
 
 def send_report_email(
-	user_email: str, file_name: str, file_extension: str, content: bytes, attached_to_name: str
+	user_email: str, report_name: str, file_extension: str, content: bytes, attached_to_name: str
 ):
 	create_exported_report_folder_if_not_exists()
 	_file = frappe.get_doc(
 		{
 			"doctype": "File",
-			"file_name": f"{file_name}.{file_extension}",
+			"file_name": f"{report_name}.{file_extension}",
 			"attached_to_doctype": "Report",
 			"attached_to_name": attached_to_name,
 			"content": content,
@@ -102,7 +102,7 @@ def send_report_email(
 
 	frappe.sendmail(
 		recipients=[user_email],
-		subject=frappe._("Your exported report: {0}").format(file_name),
+		subject=frappe._("Your exported report: {0}").format(report_name),
 		message=frappe._(
 			"The report you requested has been generated.<br><br>"
 			"Click here to download:<br>"
