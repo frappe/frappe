@@ -2,9 +2,7 @@ import app_router from "@/router/app_router"
 
 declare global {
 	interface Window {
-		studio: {
-			utils?: object
-		}
+		studio: Record<string, any>
 	}
 }
 
@@ -15,7 +13,7 @@ if (typeof window.studio === 'undefined') {
 const utils = {
 	navigateToPage: (pageName: string) => {
 		app_router.push({ name: pageName })
-	}
+	},
 }
 
-window.studio.utils = utils
+Object.assign(window.studio, utils)
