@@ -27,6 +27,9 @@ class BulkUpdate(Document):
 		update_value: DF.SmallText
 	# end: auto-generated types
 
+	def validate(self):
+		validate_formula(self.doctype, self.field, self.update_value)
+
 	@frappe.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")

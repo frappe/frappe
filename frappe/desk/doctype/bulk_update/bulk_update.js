@@ -20,47 +20,34 @@ frappe.ui.form.on("Bulk Update", {
 			if (!frm.doc.update_value) {
 				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
 			} else {
-				frappe
-					.call({
-						method: "frappe.desk.doctype.bulk_update.bulk_update.validate_formula",
-						args: {
-							doctype: frm.doc.document_type,
-							field: frm.doc.field,
-							value: frm.doc.update_value,
-						},
-					})
-					.then(() => {
-						let confirmation_message = __(
-							"Are you sure you want to update <b>{0}</b> to <b>{1}</b> for all records. <br><br> Do you want to continue?",
-							[frm.doc.field, frm.doc.update_value]
-						);
-						frappe.confirm(
-							confirmation_message,
-							() => {
-								frm.call("bulk_update").then((r) => {
-									let failed = r.message || [];
+				let confirmation_message = __(
+					"Are you sure you want to update <b>{0}</b> to <b>{1}</b> for all records. <br><br> Do you want to continue?",
+					[frm.doc.field, frm.doc.update_value]
+				);
+				frappe.confirm(
+					confirmation_message,
+					() => {
+						frm.call("bulk_update").then((r) => {
+							let failed = r.message || [];
 
-									if (failed.length) {
-										frappe.throw(
-											__("Cannot update {0}", [
-												failed
-													.map((f) => (f.bold ? f.bold() : f))
-													.join(", "),
-											])
-										);
-									}
-									frappe.msgprint({
-										title: __("Success"),
-										message: __("Updated Successfully"),
-										indicator: "green",
-									});
-									frappe.hide_progress();
-									frm.save();
-								});
-							},
-							() => {}
-						);
-					});
+							if (failed.length) {
+								frappe.throw(
+									__("Cannot update {0}", [
+										failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
+									])
+								);
+							}
+							frappe.msgprint({
+								title: __("Success"),
+								message: __("Updated Successfully"),
+								indicator: "green",
+							});
+							frappe.hide_progress();
+							frm.save();
+						});
+					},
+					() => {}
+				);
 			}
 		});
 	},
