@@ -87,3 +87,24 @@ class TestReportview(FrappeTestCase):
 		self.assertEqual(extract_fieldnames("`tabChild DocType`.`fiedname`")[0], "tabChild DocType.fiedname")
 
 		self.assertEqual(extract_fieldnames("sum(1)"), [])
+
+	def test_export_report_via_email(self):
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module", "issingle"),
+			filters={"issingle": 1, "module": "Core"},
+			export_in_background=1,
+		)
+
+		frappe.db.delete("Email Queue")
+		export_query()
+		jobs = frappe.get_all(
+			"RQ Job",
+			filters={"job_name": "frappe.desk.query_report.run_report_view_export_job"},
+			fields=["name", "status"],
+		)
+		email_queue = frappe.get_all("Email Queue")
+
+		self.assertTrue(jobs, "Background job was not enqueued")
+		self.assertTrue(email_queue, "Email was not enqueued")

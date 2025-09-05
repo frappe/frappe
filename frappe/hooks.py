@@ -234,6 +234,7 @@ scheduler_events = {
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		"frappe.desk.utils.delete_old_exported_report_files",
 	],
 	"daily": [
 		"frappe.desk.doctype.event.event.send_event_digest",
