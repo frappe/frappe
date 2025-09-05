@@ -351,13 +351,13 @@ def export_query():
 def run_export_query_job(user_email: str, form_params, csv_params):
 	from frappe.desk.utils import send_report_email
 
-	report_name, file_extension, content = _export_query(form_params, csv_params, return_file=True)
+	report_name, file_extension, content = _export_query(form_params, csv_params, populate_response=False)
 	send_report_email(
 		user_email, report_name, file_extension, content, attached_to_name=form_params.report_name
 	)
 
 
-def _export_query(form_params, csv_params, return_file=False):
+def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
 	from frappe.utils.xlsxutils import handle_html, make_xlsx
 
@@ -413,7 +413,7 @@ def _export_query(form_params, csv_params, return_file=False):
 			if valid_report_name(report_name, suffix):
 				report_name += suffix
 
-	if return_file:
+	if not populate_response:
 		return report_name, file_extension, content
 
 	provide_binary_file(report_name, file_extension, content)
