@@ -14,7 +14,7 @@ sitemap = 1
 def get_context(context):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 	if doc.is_disabled:
-		frappe.local.flags.redirect_location = "/"
+		frappe.local.flags.redirect_location = "/404"
 		raise frappe.Redirect
 
 	if doc.query_options:
