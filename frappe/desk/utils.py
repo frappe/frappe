@@ -83,7 +83,7 @@ def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 def send_report_email(
 	user_email: str, file_name: str, file_extension: str, content: bytes, attached_to_name: str
 ):
-	create_exported_report_folder()
+	create_exported_report_folder_if_not_exists()
 	_file = frappe.get_doc(
 		{
 			"doctype": "File",
@@ -136,15 +136,15 @@ def delete_old_exported_report_files():
 			frappe.log_error(f"Failed to delete old report file {file_name}")
 
 
-def create_exported_report_folder():
-	if not frappe.db.exists("File", {"file_name": "Exported Reports", "folder": "Home", "is_folder": 1}):
-		folder = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": EXPORTED_REPORT_FOLDER_PATH.split("/")[-1],
-				"is_folder": 1,
-				"folder": EXPORTED_REPORT_FOLDER_PATH.split("/")[0],
-				"is_private": 1,
-			}
-		)
-		folder.insert(ignore_permissions=True)
+def create_exported_report_folder_if_not_exists():
+	parent_folder, folder_name = EXPORTED_REPORT_FOLDER_PATH.split("/")
+	folder = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": folder_name,
+			"is_folder": 1,
+			"folder": parent_folder,
+			"is_private": 1,
+		}
+	)
+	folder.insert(ignore_permissions=True, ignore_if_duplicate=True)
