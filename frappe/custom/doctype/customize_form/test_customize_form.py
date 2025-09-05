@@ -55,7 +55,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
-		self.assertEqual(len(d.get("fields")), 38)
+		self.assertEqual(len(d.get("fields")), 44)
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")

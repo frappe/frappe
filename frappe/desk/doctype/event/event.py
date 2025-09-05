@@ -52,6 +52,7 @@ class Event(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
 		from frappe.desk.doctype.event_participants.event_participants import EventParticipants
 		from frappe.types import DF
 
@@ -68,8 +69,11 @@ class Event(Document):
 		google_calendar_event_id: DF.Data | None
 		google_calendar_id: DF.Data | None
 		google_meet_link: DF.Data | None
+		links: DF.Table[DynamicLink]
 		monday: DF.Check
 		pulled_from_google_calendar: DF.Check
+		reference_docname: DF.DynamicLink | None
+		reference_doctype: DF.Link | None
 		repeat_on: DF.Literal["", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"]
 		repeat_this_event: DF.Check
 		repeat_till: DF.Date | None

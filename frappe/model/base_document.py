@@ -993,6 +993,7 @@ class BaseDocument:
 		from frappe.utils import (
 			split_emails,
 			validate_email_address,
+			validate_iban,
 			validate_name,
 			validate_phone_number,
 			validate_phone_number_with_country_code,
@@ -1030,6 +1031,9 @@ class BaseDocument:
 
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
+
+			if data_field_options == "IBAN":
+				validate_iban(data, throw=True)
 
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:

@@ -104,6 +104,18 @@
 			flex: 0 0 180px;
 			width: 180px;
 		}
+		&.assign-to-length-1 {
+			.list-row .level-right {
+				flex: 0 0 165px;
+				width: 165px;
+			}
+		}
+		&.assign-to-length-3 {
+			.list-row .level-right {
+				flex: 0 0 200px;
+				width: 200px;
+			}
+		}
 	}
 
 	.result.no-assign-to {
@@ -579,6 +591,14 @@ input.list-header-checkbox {
 			.level-right {
 				border-left: none;
 			}
+		}
+	}
+}
+
+.avatar-group {
+	&:hover.overlap {
+		.avatar:not(:first-child) {
+			margin-left: calc(-1 * var(--margin-sm));
 		}
 	}
 }

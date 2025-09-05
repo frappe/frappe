@@ -610,20 +610,20 @@ frappe.request.report_error = function (xhr, request_opts) {
 			frappe.error_dialog = new frappe.ui.Dialog({
 				title: __("Server Error"),
 			});
-
-			if (error_report_email) {
-				frappe.error_dialog.set_primary_action(__("Report"), () => {
-					show_communication();
-					frappe.error_dialog.hide();
-				});
-			} else {
-				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
-					copy_markdown_to_clipboard();
-					frappe.error_dialog.hide();
-				});
-			}
-			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
+
+		if (error_report_email) {
+			frappe.error_dialog.set_primary_action(__("Report"), () => {
+				show_communication();
+				frappe.error_dialog.hide();
+			});
+		} else {
+			frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
+				copy_markdown_to_clipboard();
+				frappe.error_dialog.hide();
+			});
+		}
+		frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 
 		let parts = strip(exc).split("\n");
 

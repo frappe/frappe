@@ -206,7 +206,17 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			return;
 		}
 		if (this.df.description) {
-			this.$wrapper.find(".help-box").html(__(this.df.description));
+			const description = __(this.df.description, null, this.df.parent);
+			const help_box = this.$wrapper.find(".help-box");
+			help_box.html(description);
+			if (description.includes("<code")) {
+				frappe.require("syntax_highlighting.bundle.js").then(() => {
+					help_box.find("code").each(function () {
+						hljs.highlightElement(this);
+						this.style.display = "inline"; // override hljs's "block" display
+					});
+				});
+			}
 			this.toggle_description(true);
 		} else {
 			this.set_empty_description();

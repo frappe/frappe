@@ -351,12 +351,18 @@ frappe.views.BaseList = class BaseList {
 	 * to the `frappe_list` container. This container is used to create a scrollable area for the result content.
 	 */
 	setup_result_container_area() {
-		this.$frappe_list.append($(`<div class="result-container">`));
+		if (this.view == "List") {
+			this.$frappe_list.append($(`<div class="result-container">`));
+		}
 	}
 
 	setup_result_area() {
 		this.$result = $(`<div class="result">`);
-		this.$frappe_list.find(".result-container").append(this.$result);
+		let frappe_list = this.$frappe_list;
+		if (this.view == "List") {
+			frappe_list = this.$frappe_list.find(".result-container");
+		}
+		frappe_list.append(this.$result);
 	}
 
 	setup_no_result_area() {
@@ -443,14 +449,18 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_result_height() {
+		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
-		this.$result.css({
-			height:
-				window.innerHeight -
-				this.$result.get(0).offsetTop -
-				this.$paging_area.get(0).offsetHeight +
-				"px",
+		const resultContainerHeight =
+			window.innerHeight -
+			this.$result.get(0).offsetTop -
+			this.$paging_area.get(0).offsetHeight;
+		this.$result.parent(".result-container").css({
+			height: resultContainerHeight + "px",
 		});
+
+		this.$result[0].style.height =
+			Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
 		this.$no_result.css({
 			height: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
 		});
@@ -599,6 +609,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	toggle_result_area() {
+		this.$result.parent(".result-container").toggle(this.data.length > 0);
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
 		this.$no_result.toggle(this.data.length == 0);

@@ -136,7 +136,7 @@
 	.row-index {
 		left: 31px;
 	}
-	button.col:focus {
+	button.col:focus-visible {
 		outline: 1px solid #c9c9c9;
 	}
 }
@@ -168,7 +168,7 @@
 		padding: 7px !important;
 
 		input {
-			height: -webkit-fill-available;
+			height: 100%;
 			padding: 3px 7px;
 		}
 	}
@@ -577,11 +577,16 @@
 
 .grid-pagination {
 	padding: 0;
+	display: flex;
+	.last-page {
+		margin-left: 5px;
+	}
 }
 
 .page-text {
 	display: inline-block;
 	cursor: default;
+	margin-right: 6px;
 }
 
 .current-page-number {
