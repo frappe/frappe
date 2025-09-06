@@ -1561,11 +1561,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				file_format,
 				include_indentation,
 				include_filters,
-<<<<<<< HEAD
-=======
 				export_in_background,
 				include_hidden_columns,
->>>>>>> c52e5157b4 (feat: allow users to export report in background (#33861))
 				csv_delimiter,
 				csv_quoting,
 			}) => {
@@ -1603,11 +1600,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					csv_quoting,
 					include_indentation,
 					include_filters,
-<<<<<<< HEAD
-=======
 					export_in_background,
 					include_hidden_columns,
->>>>>>> c52e5157b4 (feat: allow users to export report in background (#33861))
 				};
 				if (export_in_background) {
 					frappe.call({
