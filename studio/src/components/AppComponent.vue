@@ -189,57 +189,53 @@ const componentEvents = computed(() => {
 							},
 						},
 						onSuccess(data: DataResult) {
-							if (event.success_message) {
-								toast.success(event.success_message)
-							} else {
-								toast.success(`${event.doctype} saved successfully`)
-							}
+							if (event.on_success === "script") {
+								if (event.on_success_script) {
+									const variablesRefs = toRefs(store.variables)
+									const context = {
+										...variablesRefs,
+										...store.resources,
+										...repeaterContext,
+										...componentContext?.value,
+										data,
+									}
+									const successFn = new Function(
+										"ctx",
+										`with(ctx) {
+											${event.on_success_script}
+											return onSuccess(data);
+										}`,
+									)
 
-							if (event.on_success) {
-								const variablesRefs = toRefs(store.variables)
-								const context = {
-									...variablesRefs,
-									...store.resources,
-									...repeaterContext,
-									...componentContext?.value,
-									data,
+									return successFn(context)
 								}
-								const successFn = new Function(
-									"ctx",
-									`with(ctx) {
-										${event.on_success}
-										return onSuccess(data);
-									}`,
-								)
-
-								return successFn(context)
+							} else {
+								toast.success(event.success_message || `${event.doctype} created successfully`)
 							}
 						},
 						onError(error: any) {
-							if (event.error_message) {
-								toast.error(event.error_message)
-							} else {
-								toast.error(`Error saving ${event.doctype}`)
-							}
+							if (event.on_error === "script") {
+								if (event.on_error_script) {
+									const variablesRefs = toRefs(store.variables)
+									const context = {
+										...variablesRefs,
+										...store.resources,
+										...repeaterContext,
+										...componentContext?.value,
+										error,
+									}
+									const errorFn = new Function(
+										"ctx",
+										`with(ctx) {
+											${event.on_error_script}
+											return onError(error);
+										}`,
+									)
 
-							if (event.on_error) {
-								const variablesRefs = toRefs(store.variables)
-								const context = {
-									...variablesRefs,
-									...store.resources,
-									...repeaterContext,
-									...componentContext?.value,
-									error,
+									return errorFn(context)
 								}
-								const successFn = new Function(
-									"ctx",
-									`with(ctx) {
-										${event.on_error}
-										return onError(error);
-									}`,
-								)
-
-								return successFn(context)
+							} else {
+								toast.error(event.error_message || `Error creating ${event.doctype}`)
 							}
 						},
 					}).submit()

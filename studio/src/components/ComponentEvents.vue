@@ -77,6 +77,74 @@
 							v-on="control.events || {}"
 							:class="control.class || ''"
 						/>
+
+						<template v-if="['Insert a Document', 'Call API'].includes(newEvent.action)">
+							<!-- Success Section -->
+							<div class="border-t border-gray-200 pt-4">
+								<div class="mb-3">
+									<h3 class="mb-2 text-sm font-medium text-gray-900">On Success</h3>
+									<TabButtons
+										:buttons="[
+											{ label: 'Message', value: 'message' },
+											{ label: 'Script', value: 'script' },
+										]"
+										v-model="newEvent.on_success"
+										class="!w-fit"
+									/>
+								</div>
+								<FormControl
+									v-if="newEvent.on_success === 'message'"
+									type="textarea"
+									label="Success Message"
+									v-model="newEvent.success_message"
+									autocomplete="off"
+									:description="`Default: ${newEvent.doctype} created successfully`"
+								/>
+								<Code
+									v-else
+									label="Script"
+									:completions="
+										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
+									"
+									:modelValue="newEvent.on_success_script?.toString()"
+									@update:modelValue="(val: string) => (newEvent.on_success_script = val)"
+									height="80px"
+								/>
+							</div>
+
+							<!-- Failure Section -->
+							<div class="border-t border-gray-200 pt-4">
+								<div class="mb-3">
+									<h3 class="mb-2 text-sm font-medium text-gray-900">On Failure</h3>
+									<TabButtons
+										:buttons="[
+											{ label: 'Message', value: 'message' },
+											{ label: 'Script', value: 'script' },
+										]"
+										v-model="newEvent.on_error"
+										class="!w-fit"
+									/>
+								</div>
+								<FormControl
+									v-if="newEvent.on_error === 'message'"
+									type="textarea"
+									label="Error Message"
+									v-model="newEvent.error_message"
+									autocomplete="off"
+									:description="`Default: Error creating ${newEvent.doctype}`"
+								/>
+								<Code
+									v-else
+									label="Script"
+									:completions="
+										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
+									"
+									:modelValue="newEvent.on_error_script?.toString()"
+									@update:modelValue="(val: string) => (newEvent.on_error_script = val)"
+									height="80px"
+								/>
+							</div>
+						</template>
 					</div>
 				</template>
 			</Dialog>
@@ -88,7 +156,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, resolveComponent } from "vue"
-import { FormControl, createResource, Dialog } from "frappe-ui"
+import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
@@ -121,10 +189,12 @@ const emptyEvent: ComponentEvent = {
 	// insert document
 	doctype: "",
 	fields: [],
+	on_success: "message",
 	success_message: "",
-	on_success: "",
+	on_success_script: "",
+	on_error: "message",
 	error_message: "",
-	on_error: "",
+	on_error_script: "",
 	// run script
 	script: "",
 }
@@ -187,71 +257,6 @@ watch(
 	},
 )
 
-const successFailureFields = [
-	{
-		component: FormControl,
-		getProps: () => {
-			return {
-				type: "textarea",
-				label: "Success Message",
-				modelValue: newEvent.value.success_message,
-				autocomplete: "off",
-			}
-		},
-		events: {
-			"update:modelValue": (val: string) => {
-				newEvent.value.success_message = val
-			},
-		},
-	},
-	{
-		component: Code,
-		getProps: () => {
-			return {
-				label: "On Success",
-				modelValue: newEvent.value.on_success?.toString(),
-				completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
-			}
-		},
-		events: {
-			"update:modelValue": (val: string) => {
-				newEvent.value.on_success = val
-			},
-		},
-	},
-	{
-		component: FormControl,
-		getProps: () => {
-			return {
-				type: "textarea",
-				label: "Error Message",
-				modelValue: newEvent.value.error_message,
-				autocomplete: "off",
-			}
-		},
-		events: {
-			"update:modelValue": (val: string) => {
-				newEvent.value.error_message = val
-			},
-		},
-	},
-	{
-		component: Code,
-		getProps: () => {
-			return {
-				label: "On Error",
-				modelValue: newEvent.value.on_error?.toString(),
-				completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
-			}
-		},
-		events: {
-			"update:modelValue": (val: string) => {
-				newEvent.value.on_error = val
-			},
-		},
-	},
-]
-
 const actions: ActionConfigurations = {
 	"Run Script": [
 		{
@@ -289,7 +294,6 @@ const actions: ActionConfigurations = {
 				},
 			},
 		},
-		...successFailureFields,
 	],
 	"Insert a Document": [
 		{
@@ -332,7 +336,6 @@ const actions: ActionConfigurations = {
 				},
 			},
 		},
-		...successFailureFields,
 	],
 	"Switch App Page": [
 		{
@@ -389,13 +392,13 @@ function getFnBoilerplate(event: "success" | "error") {
 }
 
 watch(
-	() => ["Insert a Document", "Call API"].includes(newEvent.value.action),
+	() => [newEvent.value.on_success, newEvent.value.on_error],
 	() => {
-		if (!newEvent.value.on_success) {
-			newEvent.value.on_success = getFnBoilerplate("success")
+		if (newEvent.value.on_success === "script" && !newEvent.value.on_success_script) {
+			newEvent.value.on_success_script = getFnBoilerplate("success")
 		}
-		if (!newEvent.value.on_error) {
-			newEvent.value.on_error = getFnBoilerplate("error")
+		if (newEvent.value.on_error === "script" && !newEvent.value.on_error_script) {
+			newEvent.value.on_error_script = getFnBoilerplate("error")
 		}
 	},
 )
