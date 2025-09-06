@@ -1744,12 +1744,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// in the listview according to filters applied
 				// let's remove it manually
 				this.data = this.data.filter((d) => !names.includes(d.name));
-				for (let name of names) {
-					this.$result
-						.find(`.list-row-checkbox[data-name='${name.replace(/'/g, "\\'")}']`)
-						.closest(".list-row-container")
-						.remove();
-				}
+				this.remove_list_items(names);
 				return;
 			}
 
@@ -1802,6 +1797,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return true;
 		}
 		return false;
+	}
+
+	remove_list_items(names) {
+		for (let name of names) {
+			this.$result
+				.find(`.list-row-checkbox[data-name='${name.replace(/'/g, "\\'")}']`)
+				.closest(".list-row-container")
+				.remove();
+		}
 	}
 
 	set_rows_as_checked() {
