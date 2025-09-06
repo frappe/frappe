@@ -23,10 +23,10 @@ export type ComponentEvent = {
 	doctype?: string
 	fields?: Array<Field>
 	// on success for 'Call API' and 'Insert a Document'
-	on_success: "message" | "script",
+	on_success?: "message" | "script",
 	success_message?: string
 	on_success_script?: string,
-	on_error: "message" | "script",
+	on_error?: "message" | "script",
 	// on error for 'Call API' and 'Insert a Document'
 	error_message?: string,
 	on_error_script?: string,

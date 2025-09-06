@@ -38,13 +38,14 @@
 							label: newEvent.isEditing ? 'Update' : 'Add',
 							variant: 'solid',
 							onClick: () => {
+								const event = getEvent(newEvent)
 								if (newEvent.isEditing) {
-									block?.updateEvent(newEvent)
+									block?.updateEvent(event)
 								} else {
 									if (newEvent.page) {
 										newEvent.page = store.getAppPageRoute(newEvent.page)
 									}
-									block?.addEvent(newEvent)
+									block?.addEvent(event)
 								}
 								showAddEventDialog = false
 							},
@@ -98,7 +99,11 @@
 									label="Success Message"
 									v-model="newEvent.success_message"
 									autocomplete="off"
-									:description="`Default: ${newEvent.doctype} created successfully`"
+									:description="
+										newEvent.action === 'Insert a Document'
+											? `Default: ${newEvent.doctype} created successfully`
+											: ''
+									"
 								/>
 								<Code
 									v-else
@@ -131,7 +136,11 @@
 									label="Error Message"
 									v-model="newEvent.error_message"
 									autocomplete="off"
-									:description="`Default: Error creating ${newEvent.doctype}`"
+									:description="
+										newEvent.action === 'Insert a Document'
+											? `Default: Failed to create ${newEvent.doctype}`
+											: ''
+									"
 								/>
 								<Code
 									v-else
@@ -227,7 +236,7 @@ const doctypeFields = ref<{ label: string; value: string }[]>([])
 watch(
 	() => newEvent.value.doctype,
 	async (value, oldValue) => {
-		if (value === oldValue) return
+		if (value === oldValue || !value) return
 
 		const fields = createResource({
 			url: "studio.api.get_doctype_fields",
@@ -402,6 +411,52 @@ watch(
 		}
 	},
 )
+
+function getEvent(event: ComponentEvent): ComponentEvent {
+	let _event: ComponentEvent = {
+		event: event.event,
+		action: event.action,
+	}
+	if (event.action === "Run Script") {
+		_event.script = event.script || ""
+	} else if (event.action === "Call API") {
+		_event.api_endpoint = event.api_endpoint
+		setEventCallbackFields(_event, event)
+	} else if (event.action === "Insert a Document") {
+		_event.doctype = event.doctype
+		_event.fields = event.fields
+		setEventCallbackFields(_event, event)
+	} else if (event.action === "Switch App Page") {
+		if (event.page) {
+			_event.page = store.getAppPageRoute(event.page)
+		}
+	} else if (event.action === "Open Webpage") {
+		_event.url = event.url
+	}
+
+	return _event
+}
+
+function setEventCallbackFields(targetEvent: ComponentEvent, sourceEvent: ComponentEvent) {
+	targetEvent.on_success = sourceEvent.on_success
+	targetEvent.on_error = sourceEvent.on_error
+
+	if (sourceEvent.on_success === "message") {
+		if (sourceEvent.success_message) {
+			targetEvent.success_message = sourceEvent.success_message
+		}
+	} else if (sourceEvent.on_success === "script") {
+		targetEvent.on_success_script = sourceEvent.on_success_script
+	}
+
+	if (sourceEvent.on_error === "message") {
+		if (sourceEvent.error_message) {
+			targetEvent.error_message = sourceEvent.error_message
+		}
+	} else if (sourceEvent.on_error === "script") {
+		targetEvent.on_error_script = sourceEvent.on_error_script
+	}
+}
 
 // Event Menu
 const deleteEvent = async (event: ComponentEvent) => {
