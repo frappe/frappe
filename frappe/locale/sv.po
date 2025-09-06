@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-08-31 09:33+0000\n"
-"PO-Revision-Date: 2025-09-05 16:58\n"
+"PO-Revision-Date: 2025-09-06 16:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -17731,7 +17731,7 @@ msgstr "Förekommanden"
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Off"
-msgstr "Av"
+msgstr "Inaktiv"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -17751,12 +17751,12 @@ msgstr "Officiell Dokumentation"
 #. Label of the offset_x (Int) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset X"
-msgstr "Offset X"
+msgstr "Förskjutning X"
 
 #. Label of the offset_y (Int) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset Y"
-msgstr "Offset Y"
+msgstr "Förskjutning Y"
 
 #: frappe/database/query.py:121
 msgid "Offset must be a non-negative integer"
