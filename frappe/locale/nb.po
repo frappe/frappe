@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-08-31 09:33+0000\n"
-"PO-Revision-Date: 2025-09-05 16:58\n"
+"PO-Revision-Date: 2025-09-06 16:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -13981,12 +13981,12 @@ msgstr "Visning av Kanban-tavle"
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
-msgstr ""
+msgstr "Hold oversikt over alle oppdateringsstrømmer"
 
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr ""
+msgstr "Holder oversikt over all kommunikasjon"
 
 #. Label of the defkey (Data) field in DocType 'DefaultValue'
 #. Label of the key (Data) field in DocType 'Document Share Key'
@@ -14020,7 +14020,7 @@ msgstr "Keycloak"
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
 msgid "Kh"
-msgstr ""
+msgstr "Kh"
 
 #. Label of a Card Break in the Website Workspace
 #: frappe/website/doctype/help_article/help_article.py:80
@@ -14028,97 +14028,97 @@ msgstr ""
 #: frappe/website/doctype/help_article/templates/help_article_list.html:11
 #: frappe/website/workspace/website/website.json
 msgid "Knowledge Base"
-msgstr ""
+msgstr "Kunnskapsbase"
 
 #. Name of a role
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Knowledge Base Contributor"
-msgstr ""
+msgstr "Bidragsyter til kunnskapsbasen"
 
 #. Name of a role
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Knowledge Base Editor"
-msgstr ""
+msgstr "Redigerer av kunnskapsbasen"
 
 #: frappe/public/js/frappe/utils/number_systems.js:27
 #: frappe/public/js/frappe/utils/number_systems.js:49
 msgctxt "Number system"
 msgid "L"
-msgstr ""
+msgstr "L"
 
 #. Label of the ldap_auth_section (Section Break) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Auth"
-msgstr ""
+msgstr "LDAP-autentisering"
 
 #. Label of the ldap_custom_settings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Custom Settings"
-msgstr ""
+msgstr "LDAP egendefinerte innstillinger"
 
 #. Label of the ldap_email_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Email Field"
-msgstr ""
+msgstr "LDAP-e-postfelt"
 
 #. Label of the ldap_first_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP First Name Field"
-msgstr ""
+msgstr "LDAP-fornavnfelt"
 
 #. Label of the ldap_group (Data) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "LDAP Group"
-msgstr ""
+msgstr "LDAP-gruppe"
 
 #. Label of the ldap_group_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Field"
-msgstr ""
+msgstr "LDAP-gruppefelt"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "LDAP Group Mapping"
-msgstr ""
+msgstr "Tilordning av LDAP-grupper"
 
 #. Label of the ldap_group_mappings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #. Label of the ldap_groups (Table) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Mappings"
-msgstr ""
+msgstr "Tilordning av LDAP-grupper"
 
 #. Label of the ldap_group_member_attribute (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Member attribute"
-msgstr ""
+msgstr "Attributt for medlemmer av LDAP-gruppe"
 
 #. Label of the ldap_last_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Last Name Field"
-msgstr ""
+msgstr "LDAP-etternavnfelt"
 
 #. Label of the ldap_middle_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Middle Name Field"
-msgstr ""
+msgstr "LDAP-mellomnavnfelt"
 
 #. Label of the ldap_mobile_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Mobile Field"
-msgstr ""
+msgstr "LDAP-mobilfelt"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:163
 msgid "LDAP Not Installed"
-msgstr ""
+msgstr "LDAP ikke installert"
 
 #. Label of the ldap_phone_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Phone Field"
-msgstr ""
+msgstr "LDAP-telefonfelt"
 
 #. Label of the ldap_search_string (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -14138,31 +14138,31 @@ msgstr "LDAP-søk og stier"
 #. Label of the ldap_security (Section Break) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Security"
-msgstr ""
+msgstr "LDAP-sikkerhet"
 
 #. Label of the ldap_server_settings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Server Settings"
-msgstr ""
+msgstr "LDAP-serverinnstillinger"
 
 #. Label of the ldap_server_url (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Server Url"
-msgstr ""
+msgstr "LDAP-server-URL"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "LDAP Settings"
-msgstr ""
+msgstr "LDAP-innstillinger"
 
 #. Label of the ldap_user_creation_and_mapping_section (Section Break) field in
 #. DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP User Creation and Mapping"
-msgstr ""
+msgstr "Oppretting og tilordning av LDAP-bruker"
 
 #. Label of the ldap_username_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -14485,7 +14485,7 @@ msgstr "Venstre senter"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
-msgstr ""
+msgstr "Forlot denne samtalen"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -14499,19 +14499,19 @@ msgstr "Juridisk"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Length"
-msgstr ""
+msgstr "Lengde"
 
 #: frappe/public/js/frappe/ui/chart.js:11
 msgid "Length of passed data array is greater than value of maximum allowed label points!"
-msgstr ""
+msgstr "Lengden på den overførte datamatrisen er større enn verdien av maksimalt tillatte etikettpunkter!"
 
 #: frappe/database/schema.py:134
 msgid "Length of {0} should be between 1 and 1000"
-msgstr ""
+msgstr "Lengden på {0} bør være mellom 1 og 1000"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:729
 msgid "Less"
-msgstr ""
+msgstr "Færre"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:24
 msgid "Less Than"
@@ -14532,11 +14532,11 @@ msgstr "La oss komme i gang"
 
 #: frappe/utils/password_strength.py:111
 msgid "Let's avoid repeated words and characters"
-msgstr ""
+msgstr "La oss unngå gjentatte ord og tegn"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:474
 msgid "Let's set up your account"
-msgstr ""
+msgstr "La oss sette opp kontoen din"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:263
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:304
@@ -14607,7 +14607,7 @@ msgstr "Nivå"
 
 #: frappe/core/page/permission_manager/permission_manager.js:467
 msgid "Level 0 is for document level permissions, higher levels for field level permissions."
-msgstr ""
+msgstr "Nivå 0 er for tillatelser på dokumentnivå, høyere nivåer for tillatelser på feltnivå."
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:94
 msgid "Library"
@@ -14616,7 +14616,7 @@ msgstr "Bibliotek"
 #. Label of the license (Markdown Editor) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json frappe/www/attribution.html:36
 msgid "License"
-msgstr ""
+msgstr "Lisens"
 
 #. Label of the license_type (Select) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
@@ -14638,11 +14638,11 @@ msgstr "Lyseblå"
 #. Label of the light_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Light Color"
-msgstr ""
+msgstr "Lys farge"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
-msgstr ""
+msgstr "Lyst tema"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -14652,26 +14652,26 @@ msgstr "Liker"
 
 #: frappe/desk/like.py:92
 msgid "Liked"
-msgstr ""
+msgstr "Likte"
 
 #: frappe/model/meta.py:60 frappe/public/js/frappe/model/meta.js:208
 #: frappe/public/js/frappe/model/model.js:134
 msgid "Liked By"
-msgstr ""
+msgstr "Likt av"
 
 #. Label of the likes (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Likes"
-msgstr ""
+msgstr "Likerklikk"
 
 #. Label of the limit (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Limit"
-msgstr ""
+msgstr "Grense"
 
 #: frappe/database/query.py:116
 msgid "Limit must be a non-negative integer"
-msgstr ""
+msgstr "Grensen må være et ikke-negativt heltall"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -14711,18 +14711,18 @@ msgstr "Lenke"
 #. Label of the tab_break_18 (Tab Break) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Link Cards"
-msgstr ""
+msgstr "Lenkekort"
 
 #. Label of the link_count (Int) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Link Count"
-msgstr ""
+msgstr "Antall lenker"
 
 #. Label of the link_details_section (Section Break) field in DocType
 #. 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Link Details"
-msgstr ""
+msgstr "Lenkedetaljer"
 
 #. Label of the link_doctype (Link) field in DocType 'Activity Log'
 #. Label of the link_doctype (Link) field in DocType 'Communication Link'
@@ -14731,28 +14731,28 @@ msgstr ""
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Link DocType"
-msgstr ""
+msgstr "Lenket DocType"
 
 #. Label of the link_doctype (Link) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Document Type"
-msgstr ""
+msgstr "Lenket dokumenttype"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:406
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:202
 msgid "Link Expired"
-msgstr ""
+msgstr "Lenken er utløpt"
 
 #. Label of the link_field_results_limit (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Link Field Results Limit"
-msgstr ""
+msgstr "Resultatgrense for lenkefelt "
 
 #. Label of the link_fieldname (Data) field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Link Fieldname"
-msgstr ""
+msgstr "Feltnavn for lenke"
 
 #. Label of the link_filters (JSON) field in DocType 'DocField'
 #. Label of the link_filters (JSON) field in DocType 'Custom Field'
@@ -14772,14 +14772,14 @@ msgstr "Lenkefiltre"
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Name"
-msgstr ""
+msgstr "Lenkenavn"
 
 #. Label of the link_title (Read Only) field in DocType 'Communication Link'
 #. Label of the link_title (Read Only) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Title"
-msgstr ""
+msgstr "Lenketittel"
 
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace'
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace Link'
@@ -14791,11 +14791,11 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:281
 #: frappe/public/js/frappe/widgets/widget_dialog.js:427
 msgid "Link To"
-msgstr ""
+msgstr "Lenke til"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:363
 msgid "Link To in Row"
-msgstr ""
+msgstr "«Lenke til» i rad"
 
 #. Label of the link_type (Select) field in DocType 'Workspace'
 #. Label of the link_type (Select) field in DocType 'Workspace Link'
@@ -14808,16 +14808,16 @@ msgstr "Lenketype"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:359
 msgid "Link Type in Row"
-msgstr ""
+msgstr "Lenketype i rad"
 
 #: frappe/website/doctype/about_us_settings/about_us_settings.js:6
 msgid "Link for About Us Page is \"/about\"."
-msgstr ""
+msgstr "Lenken til \"Om oss\"-siden er \"/om\"."
 
 #. Description of the 'Home Page' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)"
-msgstr ""
+msgstr "Lenke som er nettsidens hjemmeside. Standardlenker (hjem, innlogging, produkter, blogg, om, kontakt)"
 
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -14833,11 +14833,11 @@ msgstr "Lenket"
 
 #: frappe/public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
-msgstr ""
+msgstr "Lenket til"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "LinkedIn"
-msgstr ""
+msgstr "LinkedIn"
 
 #. Label of the links (Table) field in DocType 'Address'
 #. Label of the links (Table) field in DocType 'Contact'
@@ -14852,7 +14852,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Links"
-msgstr ""
+msgstr "Lenker"
 
 #. Option for the 'Apply To' (Select) field in DocType 'Client Script'
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
@@ -14874,7 +14874,7 @@ msgstr "Innstillinger for liste / søk"
 #. Label of the list_columns (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Columns"
-msgstr ""
+msgstr "Listekolonner"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_filter/list_filter.json
@@ -14889,32 +14889,32 @@ msgstr "Listefilter"
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Settings"
-msgstr ""
+msgstr "Innstillinger for lister"
 
 #: frappe/public/js/frappe/list/list_view.js:1987
 msgctxt "Button in list view menu"
 msgid "List Settings"
-msgstr ""
+msgstr "Innstillinger for lister"
 
 #: frappe/public/js/frappe/list/base_list.js:202
 msgid "List View"
-msgstr ""
+msgstr "Listevisning"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "List View Settings"
-msgstr ""
+msgstr "Innstillinger for listevisning"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:161
 msgid "List a document type"
-msgstr ""
+msgstr "List opp en dokumenttype"
 
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Form'
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr ""
+msgstr "List som [{\"label\": _(\"Jobber\"), \"route\":\"jobber\"}]"
 
 #. Description of the 'Send Notification to' (Small Text) field in DocType
 #. 'Email Account'
@@ -14925,12 +14925,12 @@ msgstr "Liste over e-postadresser, atskilt med komma eller ny linje."
 #. Description of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "List of patches executed"
-msgstr ""
+msgstr "Liste over utførte oppdateringer"
 
 #. Label of the list_setting_message (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List setting message"
-msgstr ""
+msgstr "Melding om listeinnstillinger"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:551
 msgid "Lists"
@@ -14945,12 +14945,12 @@ msgstr "Belastningsfordeling"
 #: frappe/public/js/frappe/web_form/web_form_list.js:305
 #: frappe/website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
-msgstr ""
+msgstr "Last inn flere"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:215
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr ""
+msgstr "Last inn flere meldinger"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -14992,12 +14992,12 @@ msgstr "Laster inn..."
 #. Label of the location (Data) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Location"
-msgstr ""
+msgstr "Sted"
 
 #. Label of the log (Code) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
 msgid "Log"
-msgstr ""
+msgstr "Logg"
 
 #. Label of the log_api_requests (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -15007,7 +15007,7 @@ msgstr "Logg API-forespørsler"
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Log Data"
-msgstr ""
+msgstr "Logg-data"
 
 #. Label of the ref_doctype (Link) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -15016,27 +15016,27 @@ msgstr "Logg DocType"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr ""
+msgstr "Logg inn på {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
 msgid "Log Index"
-msgstr ""
+msgstr "Loggindeks"
 
 #. Name of a DocType
 #: frappe/core/doctype/log_setting_user/log_setting_user.json
 msgid "Log Setting User"
-msgstr ""
+msgstr "Bruker for logginnstillinger"
 
 #. Name of a DocType
 #: frappe/core/doctype/log_settings/log_settings.json
 #: frappe/public/js/frappe/logtypes.js:20
 msgid "Log Settings"
-msgstr ""
+msgstr "Logginnstillinger"
 
 #: frappe/www/app.py:23
 msgid "Log in to access this page."
-msgstr ""
+msgstr "Logg inn for å få tilgang til denne siden."
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -15047,7 +15047,7 @@ msgstr "Logg ut"
 
 #: frappe/handler.py:119
 msgid "Logged Out"
-msgstr ""
+msgstr "Logget ut"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #. Label of the security_tab (Tab Break) field in DocType 'System Settings'
@@ -15066,16 +15066,16 @@ msgstr "Logg inn"
 #. Label of the login_after (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login After"
-msgstr ""
+msgstr "Logg inn etter"
 
 #. Label of the login_before (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login Before"
-msgstr ""
+msgstr "Logg inn før"
 
 #: frappe/public/js/frappe/desk.js:256
 msgid "Login Failed please try again"
-msgstr ""
+msgstr "Innlogging mislyktes, vennligst prøv igjen"
 
 #: frappe/email/doctype/email_account/email_account.py:144
 msgid "Login Id is required"
@@ -15085,21 +15085,21 @@ msgstr "Innloggings-ID er påkrevd"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login Methods"
-msgstr ""
+msgstr "Innloggingsmetoder"
 
 #. Label of the misc_section (Section Break) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Login Page"
-msgstr ""
+msgstr "Innloggingsside"
 
 #: frappe/www/login.py:156
 msgid "Login To {0}"
-msgstr ""
+msgstr "Logg inn på {0}"
 
 #: frappe/twofactor.py:260
 msgid "Login Verification Code from {}"
-msgstr ""
+msgstr "Verifiseringskode for innlogging fra {}"
 
 #: frappe/templates/emails/new_message.html:4
 msgid "Login and view in Browser"
@@ -15111,11 +15111,11 @@ msgstr "Innlogging er påkrevd for å se webskjemaets listevisning. Aktiver {0} 
 
 #: frappe/templates/includes/login/login.js:69
 msgid "Login link sent to your email"
-msgstr ""
+msgstr "Innloggingslenke er sendt til e-postkontoen din"
 
 #: frappe/auth.py:339 frappe/auth.py:342
 msgid "Login not allowed at this time"
-msgstr ""
+msgstr "Innlogging er ikke tillatt for øyeblikket"
 
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -15128,7 +15128,7 @@ msgstr "Innloggingsøkten er utløpt. Oppdater siden for å prøve på nytt."
 
 #: frappe/templates/includes/comments/comments.html:110
 msgid "Login to comment"
-msgstr ""
+msgstr "Logg inn for å kommentere"
 
 #: frappe/templates/includes/comments/comments.html:6
 msgid "Login to start a new discussion"
@@ -15136,7 +15136,7 @@ msgstr "Logg inn for å starte en ny diskusjon"
 
 #: frappe/www/login.html:64
 msgid "Login to {0}"
-msgstr ""
+msgstr "Logg inn på {0}"
 
 #: frappe/templates/includes/login/login.js:319
 msgid "Login token required"
@@ -15144,40 +15144,40 @@ msgstr "Påloggingstoken kreves"
 
 #: frappe/www/login.html:126 frappe/www/login.html:210
 msgid "Login with Email Link"
-msgstr ""
+msgstr "Logg inn med e-postlenke"
 
 #: frappe/www/login.html:116
 msgid "Login with Frappe Cloud"
-msgstr ""
+msgstr "Logg inn med Frappe Cloud"
 
 #: frappe/www/login.html:49
 msgid "Login with LDAP"
-msgstr ""
+msgstr "Logg inn med LDAP"
 
 #. Label of the login_with_email_link (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link"
-msgstr ""
+msgstr "Logg inn med e-postlenke"
 
 #. Label of the login_with_email_link_expiry (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link expiry (in minutes)"
-msgstr ""
+msgstr "Utløpstid for «Logg inn med e-postlenke» (i minutter)"
 
 #: frappe/auth.py:144
 msgid "Login with username and password is not allowed."
-msgstr ""
+msgstr "«Logg inn med brukernavn og passord» er ikke tillatt."
 
 #: frappe/www/login.html:100
 msgid "Login with {0}"
-msgstr ""
+msgstr "Logg inn med {0}"
 
 #. Label of the logo_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Logo URI"
-msgstr ""
+msgstr "Logo URI"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/apps.html:59
@@ -15187,24 +15187,24 @@ msgstr "Logg ut"
 
 #: frappe/core/doctype/user/user.js:202
 msgid "Logout All Sessions"
-msgstr ""
+msgstr "Logg ut av alle økter"
 
 #. Label of the logout_on_password_reset (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr ""
+msgstr "Logg ut av alle økter ved tilbakestilling av passord"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Logout From All Devices After Changing Password"
-msgstr ""
+msgstr "Logg ut fra alle enheter etter å ha endret passord"
 
 #. Group in User's connections
 #. Label of a Card Break in the Users Workspace
 #: frappe/core/doctype/user/user.json frappe/core/workspace/users/users.json
 msgid "Logs"
-msgstr ""
+msgstr "Logger"
 
 #. Name of a DocType
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -15246,7 +15246,7 @@ msgstr "Lav"
 #: frappe/public/js/frappe/utils/number_systems.js:13
 msgctxt "Number system"
 msgid "M"
-msgstr ""
+msgstr "M"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
@@ -15255,38 +15255,38 @@ msgstr "MIT-lisens"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:48
 msgid "Madam"
-msgstr ""
+msgstr "Fru"
 
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Hovedseksjon"
 
 #. Label of the main_section_html (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Hovedseksjon (HTML)"
 
 #. Label of the main_section_md (Markdown Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Hoveddelen (Markdown)"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Maintenance Manager"
-msgstr ""
+msgstr "Vedlikeholdsleder"
 
 #. Name of a role
 #: frappe/contacts/doctype/address/address.json
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Maintenance User"
-msgstr ""
+msgstr "Vedlikeholdsbruker"
 
 #. Label of the major (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Major"
-msgstr ""
+msgstr "Hovedversjon"
 
 #. Label of the show_name_in_global_search (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -15296,7 +15296,7 @@ msgstr "Gjør «navn» søkbart i globalt søk"
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Make Attachment Public (by default)"
-msgstr ""
+msgstr "Gjør vedlegget offentlig (som standard)"
 
 #. Label of the make_attachments_public (Check) field in DocType 'DocType'
 #. Label of the make_attachments_public (Check) field in DocType 'Customize
@@ -15304,17 +15304,17 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make Attachments Public by Default"
-msgstr ""
+msgstr "Gjør vedlegg offentlige som standard"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
-msgstr ""
+msgstr "Sørg for å konfigurere en sosial påloggingsnøkkel før du deaktiverer for å forhindre sperring"
 
 #: frappe/utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
-msgstr ""
+msgstr "Bruk lengre tastaturmønstre"
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:87
 msgid "Make {0}"
