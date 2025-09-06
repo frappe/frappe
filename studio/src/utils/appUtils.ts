@@ -1,4 +1,5 @@
 import app_router from "@/router/app_router"
+import type { RouteLocationRaw } from "vue-router"
 
 declare global {
 	interface Window {
@@ -11,8 +12,8 @@ if (typeof window.studio === 'undefined') {
 }
 
 const utils = {
-	navigateToPage: (pageName: string) => {
-		app_router.push({ name: pageName })
+	navigate: (to: RouteLocationRaw) => {
+		return app_router.push(to)
 	},
 }
 
