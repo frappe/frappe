@@ -113,7 +113,6 @@
 									"
 									:modelValue="newEvent.on_success_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_success_script = val)"
-									height="80px"
 								/>
 							</div>
 
@@ -150,7 +149,6 @@
 									"
 									:modelValue="newEvent.on_error_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_error_script = val)"
-									height="80px"
 								/>
 							</div>
 						</template>
