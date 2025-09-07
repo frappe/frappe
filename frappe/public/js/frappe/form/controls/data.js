@@ -267,7 +267,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	}
 	format_for_input(val) {
 		if (this.df.options == "IBAN" && val) {
-			return val.replaceAll(" ", "").replace(/(.{4})(?=.)/g, "$1 ");
+			return frappe.utils.get_formatted_iban(val);
 		}
 		return val == null ? "" : val;
 	}
