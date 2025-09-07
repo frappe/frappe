@@ -14,7 +14,8 @@ app_home = "/app/build"
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
-after_install = "frappe.utils.install.after_install"
+after_install = "frappe.rc_bootstrap.after_install_and_bootstrap"
+after_migrate = "frappe.rc_bootstrap.run"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
