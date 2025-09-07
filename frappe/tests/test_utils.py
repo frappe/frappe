@@ -19,7 +19,7 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
-from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
 	ceil,
@@ -34,6 +34,7 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
+	is_valid_iban,
 	money_in_words,
 	parse_and_map_trackers_from_url,
 	parse_timedelta,
@@ -56,6 +57,8 @@ from frappe.utils.data import (
 	add_years,
 	cast,
 	cint,
+	comma_and,
+	comma_or,
 	cstr,
 	duration_to_seconds,
 	evaluate_filters,
@@ -478,6 +481,26 @@ class TestValidationUtils(IntegrationTestCase):
 		invalid_names = ["asd$wat", "asasd/ads"]
 		for name in invalid_names:
 			self.assertRaises(frappe.InvalidNameError, validate_name, name, True)
+
+	def test_validate_iban(self):
+		valid_ibans = [
+			"GB82 WEST 1234 5698 7654 32",
+			"DE91 1000 0000 0123 4567 89",
+			"FR76 3000 6000 0112 3456 7890 189",
+		]
+
+		invalid_ibans = [
+			# wrong checksum (3rd place)
+			"GB72 WEST 1234 5698 7654 32",
+			"DE81 1000 0000 0123 4567 89",
+			"FR66 3000 6000 0112 3456 7890 189",
+		]
+
+		for iban in valid_ibans:
+			self.assertTrue(is_valid_iban(iban))
+
+		for not_iban in invalid_ibans:
+			self.assertFalse(is_valid_iban(not_iban))
 
 
 class TestImage(IntegrationTestCase):
@@ -1443,3 +1466,29 @@ class TestURLTrackers(IntegrationTestCase):
 		self.assertDocumentEqual(result["utm_medium"], expected["utm_medium"])
 		self.assertDocumentEqual(result["utm_campaign"], expected["utm_campaign"])
 		self.assertEqual(result["utm_content"], expected["utm_content"])
+
+
+class TestDataUtils(UnitTestCase):
+	def setUp(self):
+		frappe.local.lang = "en"
+
+	def tearDown(self):
+		frappe.local.lang = "en"
+
+	def test_comma_and(self):
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b, and c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b' e 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b e c")
+
+	def test_comma_or(self):
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b', or 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b, or c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")

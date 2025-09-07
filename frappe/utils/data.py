@@ -1738,7 +1738,15 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
 	e.g. ['a', 'b', 'c'] -> "'a', 'b' or 'c'"
 	"""
-	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
+	from babel import Locale
+
+	try:
+		locale = Locale.parse(frappe.local.lang, sep="-")
+		pattern = locale.list_patterns["or"]["end"]
+	except Exception:
+		pattern = frappe._("{0} or {1}")
+
+	return comma_sep(some_list, pattern, add_quotes)
 
 
 def comma_and(some_list: list | tuple, add_quotes=True) -> str:
@@ -1748,7 +1756,15 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
 	e.g. ['a', 'b', 'c'] -> "'a', 'b' and 'c'"
 	"""
-	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
+	from babel import Locale
+
+	try:
+		locale = Locale.parse(frappe.local.lang, sep="-")
+		pattern = locale.list_patterns["standard"]["end"]
+	except Exception:
+		pattern = frappe._("{0} and {1}")
+
+	return comma_sep(some_list, pattern, add_quotes)
 
 
 def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:

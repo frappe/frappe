@@ -50,11 +50,11 @@
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
-			&:focus {
+			&:focus-visible {
 				outline: 1px solid #c9c9c9;
 			}
 		}
-		&:focus {
+		&:focus-visible {
 			outline: 1px solid #c9c9c9;
 		}
 	}
@@ -514,7 +514,7 @@
 					color: var(--text-color);
 					padding-bottom: 9px;
 				}
-				&:focus {
+				&:focus-visible {
 					outline: none;
 					font-weight: 600;
 				}

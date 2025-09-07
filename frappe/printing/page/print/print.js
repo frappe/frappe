@@ -362,6 +362,14 @@ frappe.ui.form.PrintView = class {
 		this.wrapper.find(".print-toolbar a.btn-default").each((i, el) => {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
 		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "shift+r",
+			action: (e) => {
+				this.refresh_print_format();
+			},
+			description: __("Refresh Print Preview"),
+		});
 	}
 
 	set_default_letterhead() {
@@ -480,6 +488,25 @@ frappe.ui.form.PrintView = class {
 
 		setTimeout(() => {
 			$print_format.height(this.$print_format_body.find(".print-format").outerHeight());
+
+			// Add keyboard shortcut to refresh the print preview inside the iframe,
+			// since Frappe's default shortcuts don't work within iframes.
+
+			const iframe = this.print_wrapper.find("iframe.print-format-container")[0];
+			const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+			// Add a flag on the iframe document to avoid duplicate listeners
+			if (!iframeDoc._refreshShortcutAttached) {
+				iframeDoc.addEventListener("keydown", (e) => {
+					if (e.shiftKey && e.key.toLowerCase() === "r") {
+						e.preventDefault();
+						this.refresh_print_format();
+					}
+				});
+
+				// Set the flag so this block won't run again
+				iframeDoc._refreshShortcutAttached = true;
+			}
 		}, 500);
 	}
 

@@ -37,6 +37,7 @@
   "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
+  "max_signups_allowed_per_hour",
   "login_methods_section",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
@@ -81,6 +82,7 @@
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
+  "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
   "app_tab",
@@ -304,7 +306,7 @@
    "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
-   "label": "Allow Consecutive Login Attempts "
+   "label": "Allow Consecutive Login Attempts"
   },
   {
    "fieldname": "column_break_34",
@@ -706,7 +708,7 @@
   },
   {
    "default": "100000",
-   "description": "This value specifies the max number of rows that can be rendered in report view. ",
+   "description": "This value specifies the max number of rows that can be rendered in report view.",
    "fieldname": "max_report_rows",
    "fieldtype": "Int",
    "label": "Max Report Rows"
@@ -727,12 +729,27 @@
    "fieldname": "log_api_requests",
    "fieldtype": "Check",
    "label": "Log API Requests"
+  },
+  {
+   "default": "48",
+   "description": "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted.",
+   "fieldname": "delete_background_exported_reports_after",
+   "fieldtype": "Int",
+   "label": "Delete Background Exported Reports After (Hours)",
+   "non_negative": 1
+  },
+  {
+   "default": "300",
+   "fieldname": "max_signups_allowed_per_hour",
+   "fieldtype": "Int",
+   "label": "Max signups allowed per hour",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-06-05 20:54:53.538436",
+ "modified": "2025-09-03 10:52:38.096662",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

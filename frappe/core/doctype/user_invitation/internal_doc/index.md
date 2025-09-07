@@ -24,13 +24,9 @@ Define user invitation hooks in your app's `hooks.py` file. An example is shown 
 
 ![user invitation hooks example](./user_invitation_hooks_example.png)
 
-- `only_for`
-
-  Roles that are allowed to invite users to your app.
-
 - `allowed_roles`
 
-  Roles that are allowed to be invited to your app.
+  A map of `only_for` roles to a list of roles that are allowed to be invited to your app.
 
 - `after_accept`
 

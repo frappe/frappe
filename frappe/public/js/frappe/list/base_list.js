@@ -351,12 +351,18 @@ frappe.views.BaseList = class BaseList {
 	 * to the `frappe_list` container. This container is used to create a scrollable area for the result content.
 	 */
 	setup_result_container_area() {
-		this.$frappe_list.append($(`<div class="result-container">`));
+		if (this.view == "List") {
+			this.$frappe_list.append($(`<div class="result-container">`));
+		}
 	}
 
 	setup_result_area() {
 		this.$result = $(`<div class="result">`);
-		this.$frappe_list.find(".result-container").append(this.$result);
+		let frappe_list = this.$frappe_list;
+		if (this.view == "List") {
+			frappe_list = this.$frappe_list.find(".result-container");
+		}
+		frappe_list.append(this.$result);
 	}
 
 	setup_no_result_area() {
