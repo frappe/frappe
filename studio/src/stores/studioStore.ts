@@ -13,6 +13,7 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
+	copyObject,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -244,6 +245,20 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	const routeObject = computed(() => {
+		if (!activePage.value) return ""
+
+		const newRoute = copyObject(router.currentRoute.value)
+		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
+		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
+		newRoute.params = paramNames.reduce((params, name) => {
+			params[name] = ""
+			return params
+		}, {} as Record<string, string>)
+
+		return newRoute
+	})
+
 	// build
 	function generateAppBuild() {
 		if (!activeApp.value) return
@@ -365,6 +380,7 @@ const useStudioStore = defineStore("store", () => {
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
+		routeObject,
 		// app build
 		generateAppBuild,
 		// styles

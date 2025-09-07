@@ -168,6 +168,7 @@ const evaluationContext = computed(() => {
 		...store.resources,
 		...repeaterContext,
 		...componentContext?.value,
+		route: store.routeObject,
 	}
 })
 
