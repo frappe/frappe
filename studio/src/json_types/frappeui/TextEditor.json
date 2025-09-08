@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TextEditorProps",
+  "definitions": {
+    "TextEditorProps": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "placeholder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$comment": "() => string"
+            }
+          ]
+        },
+        "editorClass": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "bubbleMenu": {
+    		"type": "boolean"
+        },
+        "bubbleMenuOptions": {
+          "type": "object"
+        },
+        "fixedMenu": {
+			"type": "boolean"
+        },
+        "floatingMenu": {
+			"type": "boolean"
+        },
+        "extensions": {
+          "type": "array",
+          "items": {}
+        },
+        "starterkitOptions": {
+			"type": "object"
+		},
+        "mentions": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mentions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "full_name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label"
+                    ]
+                  }
+                },
+                "component": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "mentions"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "full_name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "label"
+                ]
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {}
+        },
+        "uploadFunction": {
+          "$comment": "(file: File) => Promise<UploadedFile>",
+          "type": "object",
+          "properties": {
+            "namedArgs": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "object",
+                  "properties": {
+                    "size": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "lastModified": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "webkitRelativePath": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "lastModified",
+                    "name",
+                    "size",
+                    "type",
+                    "webkitRelativePath"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "file"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

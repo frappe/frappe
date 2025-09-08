@@ -516,6 +516,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			fixedMenu: true,
 			bubbleMenu: true,
 		},
+		useOverridenPropTypes: true,
 	},
 	Tooltip: {
 		name: "Tooltip",
