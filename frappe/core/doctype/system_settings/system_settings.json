@@ -704,8 +704,6 @@
    "label": "Max Report Rows"
   },
   {
-<<<<<<< HEAD
-=======
    "default": "0",
    "fieldname": "show_absolute_datetime_in_timeline",
    "fieldtype": "Check",
@@ -731,7 +729,6 @@
    "non_negative": 1
   },
   {
->>>>>>> c52e5157b4 (feat: allow users to export report in background (#33861))
    "default": "300",
    "fieldname": "max_signups_allowed_per_hour",
    "fieldtype": "Int",
