@@ -47,6 +47,7 @@
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
+				class="overflow-hidden"
 			/>
 			<InlineInput
 				v-else-if="propName !== 'modelValue'"
