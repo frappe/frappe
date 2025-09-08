@@ -56,6 +56,16 @@
 									class="text-sm text-gray-800"
 									@update:modelValue="(e) => column.onChange && column.onChange(e, index)"
 								/>
+								<Code
+									v-else-if="column.fieldtype === 'Code'"
+									language="javascript"
+									v-model="row[column.fieldname]"
+									:showLineNumbers="false"
+									@change="
+										(e: Event) =>
+											column.onChange && column.onChange((e.target as HTMLInputElement).value, index)
+									"
+								/>
 								<FormControl
 									v-else
 									:type="column.fieldtype.toLowerCase()"

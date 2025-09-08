@@ -406,8 +406,6 @@ function getAPIParams(params: string | null = null, context: ExpressionEvaluatio
 		params = JSON.parse(params)
 	}
 
-	console.log("API params before evaluation:", params, context)
-
 	if (params && Array.isArray(params)) {
 		const evaluatedParams: Record<string, any> = {}
 		params.forEach((param) => {
