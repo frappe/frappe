@@ -291,8 +291,8 @@ const useStudioStore = defineStore("store", () => {
 	const variables = ref<Record<string, any>>({})
 
 	async function setPageData(page: StudioPage) {
-		await setPageResources(page)
 		await setPageVariables(page)
+		await setPageResources(page)
 	}
 
 	async function setPageResources(page: StudioPage) {
@@ -301,7 +301,10 @@ const useStudioStore = defineStore("store", () => {
 		resources.value = {}
 
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
-			const newResource = await getNewResource(resource)
+			const newResource = await getNewResource(resource, {
+				...variables.value,
+				route: routeObject.value,
+			})
 			return {
 				resource_name: resource.resource_name,
 				value: newResource,
