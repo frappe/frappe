@@ -1,9 +1,10 @@
 import { defineStore } from "pinia"
-import { ref, watch, type WatchStopHandle } from "vue"
+import { ref, watch, computed, type WatchStopHandle } from "vue"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
-import { getInitialVariableValue, getNewResource, executeUserScript } from "@/utils/helpers"
+import { getInitialVariableValue, getNewResource, executeUserScript, copyObject } from "@/utils/helpers"
+import app_router from "@/router/app_router"
 
 import type { Resource } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -15,8 +16,12 @@ const useAppStore = defineStore("appStore", () => {
 	const variables = ref<Record<string, any>>({})
 	const localState = ref({})
 	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
+	const activePage = ref<StudioPage | null>(null)
+
+	const routeObject = computed(() => app_router.currentRoute.value)
 
 	async function setPageData(page: StudioPage) {
+		activePage.value = page
 		await setPageResources(page)
 		await setPageVariables(page)
 	}
@@ -87,6 +92,8 @@ const useAppStore = defineStore("appStore", () => {
 		setPageResources,
 		variables,
 		setPageVariables,
+		activePage,
+		routeObject,
 		localState,
 		setLocalState,
 		setPageWatchers,

@@ -1,4 +1,4 @@
-import type { DefineComponent } from "vue"
+import type { Component } from "vue"
 
 export type Events = 'click' | 'change' | 'focus' | 'blur' | 'submit' | 'keydown' | 'keyup' | 'keypress'
 
@@ -22,8 +22,14 @@ export type ComponentEvent = {
 	/** action = 'Insert a Document' */
 	doctype?: string
 	fields?: Array<Field>
-	success_message?: string | null
-	error_message?: string | null
+	// on success for 'Call API' and 'Insert a Document'
+	on_success?: "message" | "script",
+	success_message?: string
+	on_success_script?: string,
+	on_error?: "message" | "script",
+	// on error for 'Call API' and 'Insert a Document'
+	error_message?: string,
+	on_error_script?: string,
 	/** action = 'Run Script' */
 	script?: string
 	// for editing
@@ -32,7 +38,7 @@ export type ComponentEvent = {
 }
 
 export type ActionConfiguration = {
-	component: DefineComponent
+	component: Component
 	getProps: () => object
 	events: Record<string, (event: any) => void>
 	class?: string | string[]

@@ -13,6 +13,7 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
+	copyObject,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -24,7 +25,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Resource } from "@/types/Studio/StudioResource"
-import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, SelectOption, StudioMode } from "@/types"
+import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
@@ -248,6 +249,20 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	const routeObject = computed(() => {
+		if (!activePage.value) return ""
+
+		const newRoute = copyObject(router.currentRoute.value)
+		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
+		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
+		newRoute.params = paramNames.reduce((params, name) => {
+			params[name] = ""
+			return params
+		}, {} as Record<string, string>)
+
+		return newRoute
+	})
+
 	// build
 	function generateAppBuild() {
 		if (!activeApp.value) return
@@ -369,6 +384,7 @@ const useStudioStore = defineStore("store", () => {
 		updateActivePage,
 		publishPage,
 		openPageInBrowser,
+		routeObject,
 		// app build
 		generateAppBuild,
 		// styles

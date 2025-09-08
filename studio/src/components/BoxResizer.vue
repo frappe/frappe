@@ -168,8 +168,8 @@ const handleBottomResize = (ev: MouseEvent) => {
 const handleBottomCornerResize = (ev: MouseEvent) => {
 	const startX = ev.clientX
 	const startY = ev.clientY
-	const startHeight = (props.target as HTMLElement).offsetHeight
-	const startWidth = (props.target as HTMLElement).offsetWidth
+	const startHeight = (props.target as HTMLElement).offsetHeight || 0
+	const startWidth = (props.target as HTMLElement).offsetWidth || 0
 	const blockStartWidth = props.targetBlock.getStyle("width") as string
 	const blockStartHeight = props.targetBlock.getStyle("height") as string
 	const startFontSize = fontSize.value || 0

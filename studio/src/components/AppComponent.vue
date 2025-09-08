@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs, inject, type ComputedRef } from "vue"
+import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, toRefs } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
@@ -53,6 +53,7 @@ import { useScreenSize } from "@/utils/useScreenSize"
 import useAppStore from "@/stores/appStore"
 import { toast } from "vue-sonner"
 import type { Field } from "@/types/ComponentEvent"
+import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
 
@@ -83,6 +84,7 @@ const evaluationContext = computed(() => {
 		...store.resources,
 		...repeaterContext,
 		...componentContext?.value,
+		route: store.routeObject,
 	}
 })
 
@@ -187,18 +189,54 @@ const componentEvents = computed(() => {
 								...fields,
 							},
 						},
-						onSuccess() {
-							if (event.success_message) {
-								toast.success(event.success_message)
+						onSuccess(data: DataResult) {
+							if (event.on_success === "script") {
+								if (event.on_success_script) {
+									const variablesRefs = toRefs(store.variables)
+									const context = {
+										...variablesRefs,
+										...store.resources,
+										...repeaterContext,
+										...componentContext?.value,
+										data,
+									}
+									const successFn = new Function(
+										"ctx",
+										`with(ctx) {
+											${event.on_success_script}
+											return onSuccess(data);
+										}`,
+									)
+
+									return successFn(context)
+								}
 							} else {
-								toast.success(`${event.doctype} saved successfully`)
+								toast.success(event.success_message || `${event.doctype} created successfully`)
 							}
 						},
-						onError() {
-							if (event.error_message) {
-								toast.error(event.error_message)
+						onError(error: any) {
+							if (event.on_error === "script") {
+								if (event.on_error_script) {
+									const variablesRefs = toRefs(store.variables)
+									const context = {
+										...variablesRefs,
+										...store.resources,
+										...repeaterContext,
+										...componentContext?.value,
+										error,
+									}
+									const errorFn = new Function(
+										"ctx",
+										`with(ctx) {
+											${event.on_error_script}
+											return onError(error);
+										}`,
+									)
+
+									return errorFn(context)
+								}
 							} else {
-								toast.error(`Error saving ${event.doctype}`)
+								toast.error(event.error_message || `Error creating ${event.doctype}`)
 							}
 						},
 					}).submit()

@@ -1,27 +1,11 @@
 import { computed } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import type { CompletionSource } from "@/types"
-import { copyObject } from "@/utils/helpers"
-import router from "@/router/studio_router"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const store = useStudioStore()
-
-	const routeObject = computed(() => {
-		if (!store.activePage) return ""
-
-		const newRoute = copyObject(router.currentRoute.value)
-		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
-		const paramNames = (store.activePage.route.match(/:\w+/g) || []).map(param => param.slice(1))
-		newRoute.params = paramNames.reduce((params, name) => {
-			params[name] = ""
-			return params
-		}, {} as Record<string, string>)
-
-		return newRoute
-	})
 
 	const completionSources = computed(() => {
 		const sources: CompletionSource[] = []
@@ -54,13 +38,33 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 		})
 
 		sources.push({
-			item: routeObject.value,
+			item: store.routeObject,
 			completion: {
 				label: "route",
 				type: "variable",
 				detail: "Vue Router Route",
 			}
 		})
+
+		if (window.studio) {
+			Object.entries(window.studio).forEach(([funcName, func]) => {
+				sources.push({
+					item: func,
+					completion: {
+						label: funcName,
+						type: "function",
+						detail: "Utility Function",
+						apply(view, completion, from, to) {
+							let insertText = `studio.${completion.label}()`
+							view.dispatch({
+								changes: { from, to, insert: insertText },
+								selection: { anchor: from + insertText.length - 1 } // Place cursor inside the parentheses
+							})
+						}
+					}
+				})
+			})
+		}
 
 		return sources
 	})

@@ -22,6 +22,7 @@ import LucideCircleX from "~icons/lucide/circle-x"
 import LucideFeather from "~icons/lucide/feather"
 import LucideFileUp from "~icons/lucide/file-up"
 import LucideBookType from "~icons/lucide/book-type"
+import LucideTag from "~icons/lucide/tag"
 import LucideListCheck from "~icons/lucide/list-check"
 import LucideEllipsis from "~icons/lucide/ellipsis"
 import LucideMousePointer2 from "~icons/lucide/mouse-pointer-2"
@@ -353,6 +354,14 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: { required: false, type: String },
 		},
 	},
+	FormLabel: {
+		name: "FormLabel",
+		title: "Form Label",
+		icon: LucideTag,
+		initialState: {
+			label: "Form Label"
+		}
+	},
 	ListView: {
 		name: "ListView",
 		title: "List View",
@@ -529,7 +538,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideEdit,
 		initialState: {
 			content: "Type something...",
+			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-lg border-t-0 p-2",
+			editable: true,
+			fixedMenu: true,
+			bubbleMenu: true,
 		},
+		useOverridenPropTypes: true,
 	},
 	Tooltip: {
 		name: "Tooltip",

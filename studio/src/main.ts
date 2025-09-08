@@ -11,6 +11,8 @@ import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
+import "@/utils/appUtils"
+
 Block.setComponents(COMPONENTS)
 
 const studio = createApp(App)

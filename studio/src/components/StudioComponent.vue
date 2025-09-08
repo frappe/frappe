@@ -13,6 +13,7 @@
 
 	<component
 		v-else-if="block.canHaveChildren()"
+		v-show="showComponent"
 		:is="componentName"
 		v-bind="componentProps"
 		v-model="boundValue"
@@ -73,6 +74,7 @@
 	<component
 		v-else
 		:is="block.componentName"
+		v-show="showComponent"
 		v-bind="componentProps"
 		v-model="boundValue"
 		:data-component-id="block.componentId"
@@ -168,6 +170,7 @@ const evaluationContext = computed(() => {
 		...store.resources,
 		...repeaterContext,
 		...componentContext?.value,
+		route: store.routeObject,
 	}
 })
 
@@ -195,6 +198,15 @@ const componentProps = computed(() => {
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
 const target = ref<HTMLElement | null>(null)
+
+// visibility
+const showComponent = computed(() => {
+	if (props.block.visibilityCondition) {
+		const value = getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
+		return typeof value === "string" ? value === "true" : value
+	}
+	return true
+})
 
 // modelValue binding
 const boundValue = computed({

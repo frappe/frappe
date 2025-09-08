@@ -86,6 +86,7 @@ export interface FrappeUIComponent {
 	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component
 	proxyComponent?: any, // pseudo-component to be used in edit mode
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
+	useOverridenPropTypes?: boolean // whether to use the prop types defined in json_types
 }
 
 export interface FrappeUIComponents {

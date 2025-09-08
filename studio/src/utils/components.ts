@@ -19,7 +19,9 @@ const componentFolders: Record<string, string> = {
 }
 
 function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
+	// TODO: make this less convoluted
 	if (typeof component === "string") return {}
+	const useOverridenPropTypes = components.get(componentName)?.useOverridenPropTypes
 	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
 
@@ -29,7 +31,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 
 	const propsConfig: ComponentProps = {}
 
-	if (Array.isArray(props)) {
+	if (Array.isArray(props) && !useOverridenPropTypes) {
 		props.forEach((prop) => {
 			propsConfig[prop] = {
 				type: "string",
@@ -49,7 +51,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			let isRequired = prop.required
 			const propertySchema = properties?.[propName]
 
-			if (!propType && !isObjectEmpty(propertySchema)) {
+			if ((!propType || useOverridenPropTypes) && !isObjectEmpty(propertySchema)) {
 				isRequired = required?.includes(propName)
 
 				if ("anyOf" in propertySchema) {
