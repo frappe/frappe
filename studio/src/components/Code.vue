@@ -44,6 +44,7 @@ const props = withDefaults(
 		label?: string
 		required?: boolean
 		readonly?: boolean
+		borderless?: boolean
 	}>(),
 	{
 		language: "javascript",
@@ -52,6 +53,7 @@ const props = withDefaults(
 		maxHeight: "250px",
 		showLineNumbers: true,
 		completions: null,
+		borderless: false,
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
@@ -168,6 +170,12 @@ const extensions = computed(() => {
 			".cm-gutters": {
 				display: props.showLineNumbers ? "flex" : "none",
 			},
+			...(props.borderless && {
+				"&.cm-editor": {
+					border: "none !important",
+					borderRadius: "0 !important",
+				},
+			}),
 		}),
 	]
 	if (languageExtension.value) {

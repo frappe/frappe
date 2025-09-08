@@ -61,6 +61,7 @@
 									language="javascript"
 									v-model="row[column.fieldname]"
 									:showLineNumbers="false"
+									:borderless="true"
 									@change="
 										(e: Event) =>
 											column.onChange && column.onChange((e.target as HTMLInputElement).value, index)
