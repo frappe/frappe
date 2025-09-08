@@ -1,7 +1,9 @@
+import json
+import os
 import re
 
 import frappe
-from frappe import _
+from frappe import _, scrub
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -9,6 +11,72 @@ from frappe.utils.defaults import get_not_null_defaults
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
+
+
+def is_autoincrement_doctype(doctype: str) -> bool:
+	"""Return True if the given DocType's autoname is 'autoincrement'.
+	Works even during installs/migrations when the DocType may not be in DB yet.
+	"""
+	if not doctype:
+		return False
+
+	installing = bool(
+		getattr(frappe.flags, "in_install", False)
+		or getattr(frappe.flags, "in_migrate", False)
+		or getattr(frappe.flags, "in_test", False)
+	)
+
+	# 1) Try live metadata (fast path)
+	if not installing:
+		try:
+			meta = frappe.get_meta(doctype, cached=False)  # don't rely on cache in migrations
+			val = (meta.autoname or "").strip().lower()
+			return val == "autoincrement"
+		except frappe.DoesNotExistError:
+			pass  # fall back to file scan
+		except Exception:
+			# Be defensive: if meta load hiccups, fall back to file scan
+			pass
+
+	# 2) Fall back: scan DocType JSONs in installed apps (pruned)
+	target_base = f"{scrub(doctype)}.json"
+
+	# Build a clean list of apps to scan
+	apps = list(frappe.get_installed_apps() or [])
+	inst_app = getattr(frappe.flags, "in_install", None)
+	if isinstance(inst_app, str) and inst_app not in apps:
+		apps.append(inst_app)
+
+	for app in apps:
+		try:
+			root = frappe.get_app_path(app)
+		except Exception:
+			continue
+
+		# Walk only paths that could contain doctypes
+		for dirpath, _dirnames, filenames in os.walk(root):
+			# quick prune: only dive into folders that mention "doctype"
+			if "doctype" not in dirpath:
+				continue
+
+			if target_base not in filenames:
+				continue  # nothing matching this doctype name in this folder
+
+			json_path = os.path.join(dirpath, target_base)
+			try:
+				with open(json_path) as f:
+					doc = json.load(f)
+			except OSError:
+				continue
+			except json.JSONDecodeError:
+				continue
+
+			# Validate it's a DocType definition for this exact doctype
+			if isinstance(doc, dict) and doc.get("doctype") == "DocType" and doc.get("name") == doctype:
+				val = (doc.get("autoname") or "").strip().lower()
+				return val == "autoincrement"
+
+	return False
 
 
 class InvalidColumnName(frappe.ValidationError):
@@ -204,12 +272,13 @@ class DbColumn:
 		self.precision = precision
 		self.not_nullable = not_nullable
 
+		if fieldtype == "Link" and options != "[Select]":
+			if is_autoincrement_doctype(options):
+				self.fieldtype = "Long Int"
+
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(
-			self.fieldtype,
-			precision=self.precision,
-			length=self.length,
-			options=self.options,
+			self.fieldtype, precision=self.precision, length=self.length, options=self.options
 		)
 
 		if not column_def:

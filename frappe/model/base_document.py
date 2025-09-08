@@ -1153,6 +1153,9 @@ class BaseDocument:
 						seconds=db_value.second,
 						microseconds=db_value.microsecond,
 					)
+				# Type cast to str as default value is string for link, but for auto increment it will be int hence type cast to string
+				if df.fieldtype == "Link":
+					db_value = cstr(db_value)
 				if self_value != db_value:
 					frappe.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
