@@ -65,13 +65,9 @@ def get_count() -> int:
 		fieldname = f"{distinct}`tab{args.doctype}`.name"
 		args.order_by = None
 
-		if args.limit:
-			args.fields = [fieldname]
-			partial_query = execute(**args, run=0)
-			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
-		else:
-			args.fields = [f"count({fieldname}) as total_count"]
-			count = execute(**args)[0].get("total_count")
+		args.fields = [fieldname]
+		partial_query = execute(**args, run=0)
+		count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
 
 	return count
 

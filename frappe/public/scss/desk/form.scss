@@ -54,11 +54,11 @@
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
-			&:focus {
+			&:focus-visible {
 				outline: 1px solid #c9c9c9;
 			}
 		}
-		&:focus {
+		&:focus-visible {
 			outline: 1px solid #c9c9c9;
 		}
 	}
@@ -443,7 +443,7 @@
 					border-bottom: 1px solid var(--primary);
 					color: var(--text-color);
 				}
-				&:focus {
+				&:focus-visible {
 					outline: none;
 					font-weight: 600;
 				}

@@ -20,6 +20,7 @@ from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
+from frappe.utils.pdf import pdf_contains_js
 
 from .exceptions import (
 	AttachmentLimitReached,
@@ -129,8 +130,8 @@ class File(Document):
 		self.validate_file_path()
 		self.validate_file_url()
 		self.validate_file_on_disk()
-
 		self.file_size = frappe.form_dict.file_size or self.file_size
+		self.check_content()
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
@@ -371,6 +372,10 @@ class File(Document):
 
 		if self.file_type not in allowed_extensions.splitlines():
 			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
+
+	def check_content(self):
+		if self.file_type == "PDF" and not pdf_contains_js(self._content):
+			frappe.throw(_("PDF cannot be uploaded, It contains unsafe content"))
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
@@ -626,7 +631,7 @@ class File(Document):
 
 		if isinstance(self._content, str):
 			self._content = self._content.encode()
-
+		self.check_content()
 		with open(file_path, "wb+") as f:
 			f.write(self._content)
 			os.fsync(f.fileno())

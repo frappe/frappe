@@ -43,6 +43,13 @@
 			<!-- submit button -->
 			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
 		{% endif %}
+		{% if has_delete_permission %}
+			<!-- delete button -->
+			<button type="button" class="delete-btn btn btn-default btn-sm">
+				{{ _("Delete", context="Button in web form") }}
+			</button>
+		{% endif %}
+
 	</div>
 	{% endblock %}
 {% endmacro %}

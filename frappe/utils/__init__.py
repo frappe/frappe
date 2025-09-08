@@ -247,6 +247,44 @@ def validate_url(
 	return is_valid
 
 
+def validate_iban(iban: str, throw: bool = False) -> bool:
+	from frappe import _
+
+	valid = is_valid_iban(iban)
+	if not valid and throw:
+		frappe.throw(frappe._("'{0}' is not a valid IBAN").format(frappe.bold(iban)))
+
+	return valid
+
+
+def is_valid_iban(iban: str) -> bool:
+	"""
+	Algorithm: https://en.wikipedia.org/wiki/International_Bank_Account_Number#Validating_the_IBAN
+	"""
+	if not iban:
+		return False
+
+	def encode_char(c):
+		# Position in the alphabet (A=1, B=2, ...) plus nine
+		return str(9 + ord(c) - 64)
+
+	# remove whitespaces, upper case to get the right number from ord()
+	iban = iban.replace(" ", "").upper()
+
+	# Move country code and checksum from the start to the end
+	flipped = iban[4:] + iban[:4]
+
+	# Encode characters as numbers
+	encoded = [encode_char(c) if ord(c) >= 65 and ord(c) <= 90 else c for c in flipped]
+
+	try:
+		to_check = int("".join(encoded))
+	except ValueError:
+		return False
+
+	return to_check % 97 == 1
+
+
 def random_string(length: int) -> str:
 	"""generate a random string"""
 	import string
