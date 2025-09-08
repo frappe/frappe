@@ -1,4 +1,5 @@
 import app_router from "@/router/app_router"
+import { toast } from "vue-sonner"
 import type { RouteLocationRaw } from "vue-router"
 
 declare global {
@@ -14,6 +15,27 @@ if (typeof window.studio === 'undefined') {
 const utils = {
 	navigate: (to: RouteLocationRaw) => {
 		return app_router.push(to)
+	},
+	showToast: ({ title, message, type }: {
+		title?: string
+		message: string
+		type?: 'info' | 'success' | 'warning' | 'error'
+	}) => {
+		const toastMessage = title || message
+		const description = title ? message : undefined
+
+		switch (type?.toLowerCase()) {
+			case 'success':
+				return toast.success(toastMessage, { description })
+			case 'error':
+				return toast.error(toastMessage, { description })
+			case 'warning':
+				return toast.warning(toastMessage, { description })
+			case 'info':
+				return toast.info(toastMessage, { description })
+			default:
+				return toast(toastMessage, { description })
+		}
 	},
 }
 
