@@ -36,7 +36,7 @@
 						label="Parameters"
 						:columns="[
 							{ label: 'Key', fieldname: 'key', fieldtype: 'Data' },
-							{ label: 'Value', fieldname: 'value', fieldtype: 'Code' },
+							{ label: 'Value', fieldname: 'value', fieldtype: 'Code', completions: getCompletions },
 						]"
 						:rows="newResource.params || []"
 						:showDeleteBtn="true"

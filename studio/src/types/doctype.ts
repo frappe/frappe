@@ -41,6 +41,8 @@ export interface GridColumn {
 	options?: string | string[]
 	width?: number
 	onChange?: (value: string, index: number) => void
+	// for code field
+	completions?: Function | null
 }
 
 export interface GridRow {
