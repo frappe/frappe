@@ -196,7 +196,11 @@ const useStudioStore = defineStore("store", () => {
 	async function publishPage() {
 		if (!selectedPage.value) return
 
-		await generateAppBuild()
+		try {
+			await generateAppBuild()
+		} catch (error) {
+			// continue to publish page even if app build generation fails
+		}
 		return studioPages.runDocMethod
 			.submit(
 				{
@@ -270,7 +274,7 @@ const useStudioStore = defineStore("store", () => {
 				toast.success("App build generated")
 			},
 			onError(error: any) {
-				toast.error("Failed to generate app build", {
+				toast.warning("Skipped app build due to errors", {
 					description: error?.messages?.join(", "),
 					duration: Infinity,
 				})

@@ -6,6 +6,7 @@ import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 import LucideCircleAlert from "~icons/lucide/circle-alert"
 import LucideTextSearch from "~icons/lucide/text-search"
 import LucideUser from "~icons/lucide/user"
+import LucideChevronsRight from "~icons/lucide/chevrons-right"
 import LucideBadgeCheck from "~icons/lucide/badge-check"
 import LucideRectangleHorizontal from "~icons/lucide/rectangle-horizontal"
 import LucideIdCard from "~icons/lucide/id-card"
@@ -111,6 +112,23 @@ export const COMPONENTS: FrappeUIComponents = {
 			theme: "green",
 			size: "sm",
 			label: "Active",
+		},
+	},
+	Breadcrumbs: {
+		name: "Breadcrumbs",
+		title: "Breadcrumbs",
+		icon: LucideChevronsRight,
+		initialState: {
+			items: [
+				{
+					label: "Home",
+					route: { name: "Home"},
+				},
+				{
+					label: "List",
+					route: "/components/breadcrumbs",
+				},
+			],
 		},
 	},
 	Button: {
@@ -332,7 +350,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		},
 		additionalProps: {
 			modelValue: { required: false },
-			placeholder: { required: false, type: String }
+			placeholder: { required: false, type: String },
 		},
 	},
 	ListView: {

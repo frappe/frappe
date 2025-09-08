@@ -4,6 +4,7 @@ import json
 import os
 
 import frappe
+from frappe.commands import popen
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -144,7 +145,7 @@ class StudioApp(WebsiteGenerator):
 		try:
 			command = f"yarn build-studio-app {self.name} --components {','.join(list(components))}"
 			studio_app_path = frappe.get_app_source_path("studio")
-			frappe.commands.popen(command, cwd=studio_app_path, raise_err=True)
+			popen(command, cwd=studio_app_path, raise_err=True)
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
 
