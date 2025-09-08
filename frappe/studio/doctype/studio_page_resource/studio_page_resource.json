@@ -20,8 +20,9 @@
   "whitelisted_methods",
   "api_resource_section",
   "url",
-  "column_break_cvbv",
   "method",
+  "column_break_cvbv",
+  "params",
   "transform_section",
   "transform_results",
   "transform"
@@ -79,6 +80,12 @@
    "fieldtype": "Select",
    "label": "API Method",
    "options": "GET\nPOST\nPUT\nDELETE"
+  },
+  {
+   "fieldname": "params",
+   "fieldtype": "JSON",
+   "label": "API Parameters",
+   "max_height": "100px"
   },
   {
    "fieldname": "transform_section",
@@ -143,7 +150,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-27 12:04:03.047249",
+ "modified": "2025-09-08 23:48:04.431164",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Resource",

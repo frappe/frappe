@@ -32,6 +32,16 @@
 						:options="['GET', 'POST', 'PUT', 'DELETE']"
 						v-model="newResource.method"
 					/>
+					<Grid
+						label="Parameters"
+						:columns="[
+							{ label: 'Key', fieldname: 'key', fieldtype: 'Data' },
+							{ label: 'Value', fieldname: 'value', fieldtype: 'Data' },
+						]"
+						:rows="newResource.params || []"
+						:showDeleteBtn="true"
+						@update:rows="(val) => (newResource.params = val)"
+					/>
 				</template>
 
 				<Link
@@ -139,6 +149,7 @@ import Link from "@/components/Link.vue"
 import Code from "@/components/Code.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
+import Grid from "@/components/Grid.vue"
 
 import type { DocTypeField } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
@@ -158,6 +169,7 @@ const emptyResource: Resource = {
 	resource_type: "Document List",
 	url: "",
 	method: "GET",
+	params: [],
 	document_type: "",
 	document_name: "",
 	fetch_document_using_filters: false,
@@ -196,6 +208,7 @@ async function getResourceToEdit() {
 		resource_name: props.resource?.resource_name,
 		filters: filters,
 		fields: JSON.parse(props.resource?.fields || "[]"),
+		params: JSON.parse(props.resource?.params || "[]"),
 		limit: props.resource?.limit || null,
 		whitelisted_methods: JSON.parse(props.resource?.whitelisted_methods || "[]"),
 	} as Resource
@@ -272,7 +285,9 @@ watch(
 	() => [newResource.value?.resource_type, newResource.value?.transform_results],
 	([resource_type, transform_results]) => {
 		if (!resource_type || !transform_results || newResource.value.transform) return
-		newResource.value.transform = getTransformFnBoilerplate(resource_type)
+		if (typeof resource_type === "string") {
+			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
+		}
 	},
 )
 

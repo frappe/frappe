@@ -400,6 +400,29 @@ function getEvaluatedFilters(filters: Filters | null = null, context: Expression
 	return evaluatedFilters
 }
 
+function getAPIParams(params: string | null = null, context: ExpressionEvaluationContext) {
+	if (!params) return null
+	if (typeof params === "string") {
+		params = JSON.parse(params)
+	}
+
+	console.log("API params before evaluation:", params, context)
+
+	if (params && Array.isArray(params)) {
+		const evaluatedParams: Record<string, any> = {}
+		params.forEach((param) => {
+			let value = param.value
+			if (isDynamicValue(value)) {
+				evaluatedParams[param.key] = getDynamicValue(value, context)
+			} else {
+				evaluatedParams[param.key] = value
+			}
+		})
+		return evaluatedParams
+	}
+	return params
+}
+
 function evaluateExpression(expression: string, context: ExpressionEvaluationContext) {
 	try {
 		// Replace dot notation with optional chaining
@@ -533,6 +556,7 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 			return createResource({
 				url: resource.url,
 				method: resource.method,
+				params: getAPIParams(resource.params, context),
 				auto: true,
 				...getTransforms(resource),
 			})
