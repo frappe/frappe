@@ -511,6 +511,10 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideEdit,
 		initialState: {
 			content: "Type something...",
+			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-lg border-t-0 p-2",
+			editable: true,
+			fixedMenu: true,
+			bubbleMenu: true,
 		},
 	},
 	Tooltip: {
