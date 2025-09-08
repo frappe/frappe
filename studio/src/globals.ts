@@ -18,6 +18,7 @@ import {
 	FeatherIcon,
 	FileUploader,
 	FormControl,
+	FormLabel,
 	GreenCheckIcon,
 	Input,
 	Link,
@@ -77,6 +78,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("FeatherIcon", FeatherIcon)
 	app.component("FileUploader", FileUploader)
 	app.component("FormControl", FormControl)
+	app.component("FormLabel", FormLabel)
 	app.component("GreenCheckIcon", GreenCheckIcon)
 	app.component("Input", Input)
 	app.component("Link", Link)
