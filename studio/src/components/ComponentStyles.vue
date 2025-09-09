@@ -25,12 +25,25 @@
 						<DynamicStyleSelector
 							:block="block"
 							@update:modelValue="
-								typeof property.events?.['update:modelValue'] === 'function'
-									? property.events['update:modelValue']($event)
-									: undefined
+								(event) => {
+									if (typeof property.events?.['update:modelValue'] === 'function') {
+										property.events['update:modelValue'](event)
+									} else if (typeof property.events?.['change'] === 'function') {
+										property.events['change'](event)
+									} else {
+										// for DimensionInput
+										const _property = property.getProps().property as keyof CSSProperties
+										blockController.setStyle(_property, event)
+									}
+								}
 							"
 						/>
-						<component :is="property.component" v-bind="property.getProps()" v-on="property.events || {}">
+						<component
+							class="flex-1"
+							:is="property.component"
+							v-bind="property.getProps()"
+							v-on="property.events || {}"
+						>
 							{{ property.innerText || "" }}
 						</component>
 					</div>
@@ -57,7 +70,7 @@ import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
-import { Ref, computed, ref } from "vue"
+import { CSSProperties, Ref, computed, ref } from "vue"
 
 import Input from "@/components/Input.vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
