@@ -82,7 +82,7 @@
 						v-model="newResource.document_name"
 					/>
 
-					<div class="flex w-full flex-row gap-1.5">
+					<div class="flex w-full flex-row items-center gap-1.5">
 						<FormControl size="sm" type="checkbox" v-model="newResource.fetch_document_using_filters" />
 						<InputLabel class="max-w-full">Dynamically fetch document using filters</InputLabel>
 					</div>
