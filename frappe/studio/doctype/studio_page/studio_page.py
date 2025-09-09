@@ -190,6 +190,9 @@ class StudioPage(Document):
 		if isinstance(resource.whitelisted_methods, list):
 			resource.whitelisted_methods = frappe.as_json(resource.whitelisted_methods, indent=None)
 
+		if isinstance(resource.params, list):
+			resource.params = frappe.as_json(resource.params, indent=None)
+
 	def before_export(self, doc):
 		doc.name = self.get_export_docname()
 		remove_null_fields(doc)

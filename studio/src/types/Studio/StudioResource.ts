@@ -34,6 +34,7 @@ export interface APIResource extends BaseResource {
 	url: string
 	method: "GET" | "POST" | "PUT" | "DELETE"
 	filters?: Filters
+	params?: string
 }
 
 export type Resource = DocumentResource | DocumentListResource | APIResource

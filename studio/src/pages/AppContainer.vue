@@ -37,7 +37,6 @@ watch(
 		if (currentPath) {
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
-			await store.setLocalState({ route: route })
 			await store.setPageData(page.value)
 			await store.setPageWatchers(page.value)
 

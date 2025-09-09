@@ -1,8 +1,3 @@
-.cm-editor {
-	user-select: text;
-	padding: 0px !important;
-	position: relative !important;
-}
 .cm-gutters {
 	@apply !border-0 !bg-transparent !px-1.5 !text-xs !leading-6 !text-gray-500;
 }
@@ -21,6 +16,8 @@
 .cm-editor {
 	width: 100%;
 	user-select: text;
+	padding: 0px !important;
+	position: relative !important;
 	@apply rounded border border-outline-gray-2;
 }
 .cm-placeholder {

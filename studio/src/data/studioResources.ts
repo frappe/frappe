@@ -14,6 +14,7 @@ export const studioPageResources = createListResource({
 		"fetch_document_using_filters",
 		"url",
 		"method",
+		"params",
 		"whitelisted_methods",
 		"transform_results",
 		"transform",
