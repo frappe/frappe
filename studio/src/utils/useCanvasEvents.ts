@@ -8,6 +8,7 @@ import {
 import { clamp, useEventListener } from "@vueuse/core";
 import { Ref } from "vue";
 import type { CanvasProps, CanvasHistory } from "@/types/StudioCanvas"
+import type { Slot } from "@/types";
 
 const store = useStudioStore();
 
@@ -17,6 +18,7 @@ export function useCanvasEvents(
 	canvasHistory: CanvasHistory,
 	getRootBlock: () => Block,
 	findBlock: (componentId: string) => Block | null,
+	selectedSlot: Ref<Slot | null>,
 ) {
 	useEventListener(container, "mousedown", (ev: MouseEvent) => {
 		const initialX = ev.clientX;
@@ -54,7 +56,14 @@ export function useCanvasEvents(
 			const parentWidth = pxToNumber(getComputedStyle(parentElement).width);
 			const parentHeight = pxToNumber(getComputedStyle(parentElement).height);
 
-			const childBlock = parentBlock.addChild(child);
+			let childBlock
+			// if a slot is selected and the slot belongs to the parent block, add the new block to the slot
+			if (selectedSlot.value && selectedSlot.value?.parentBlockId === parentBlock.componentId) {
+				childBlock = parentBlock.updateSlot(selectedSlot.value.slotName, child)
+			} else {
+				childBlock = parentBlock.addChild(child);
+			}
+
 			if (!childBlock) return
 
 			childBlock.setBaseStyle("position", "absolute");

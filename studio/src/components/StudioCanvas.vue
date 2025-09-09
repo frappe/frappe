@@ -291,6 +291,7 @@ onMounted(() => {
 		history as CanvasHistory,
 		getRootBlock,
 		findBlock,
+		selectedSlot,
 	)
 	setPanAndZoom(canvasEl, canvasContainerEl, canvasProps)
 })
