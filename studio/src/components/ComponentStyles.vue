@@ -21,7 +21,26 @@
 				:sectionCollapsed="section.collapsed"
 			>
 				<template v-for="property in getFilteredProperties(section)">
-					<component :is="property.component" v-bind="property.getProps()" v-on="property.events || {}">
+					<div v-if="property.allowDynamicValue" class="flex items-center">
+						<DynamicStyleSelector
+							:block="block"
+							@update:modelValue="
+								typeof property.events?.['update:modelValue'] === 'function'
+									? property.events['update:modelValue']($event)
+									: undefined
+							"
+						/>
+						<component :is="property.component" v-bind="property.getProps()" v-on="property.events || {}">
+							{{ property.innerText || "" }}
+						</component>
+					</div>
+
+					<component
+						v-else
+						:is="property.component"
+						v-bind="property.getProps()"
+						v-on="property.events || {}"
+					>
 						{{ property.innerText || "" }}
 					</component>
 				</template>
@@ -52,6 +71,7 @@ import ColorInput from "@/components/ColorInput.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 
 import type { StyleValue } from "@/types"
+import DynamicStyleSelector from "@/components/DynamicStyleSelector.vue"
 
 const props = defineProps({
 	block: {
@@ -75,6 +95,7 @@ type BlockProperty = {
 	getProps: () => Record<string, unknown>
 	events?: Record<string, unknown>
 	searchKeyWords: string
+	allowDynamicValue?: boolean
 	condition?: () => boolean
 	innerText?: string
 }
@@ -211,6 +232,7 @@ const dimensionSectionProperties = [
 				property: "width",
 			}
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: DimensionInput,
@@ -221,6 +243,7 @@ const dimensionSectionProperties = [
 				property: "minWidth",
 			}
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: DimensionInput,
@@ -231,6 +254,7 @@ const dimensionSectionProperties = [
 				property: "maxWidth",
 			}
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: "hr",
@@ -250,6 +274,7 @@ const dimensionSectionProperties = [
 				property: "height",
 			}
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: DimensionInput,
@@ -260,6 +285,7 @@ const dimensionSectionProperties = [
 				property: "minHeight",
 			}
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: DimensionInput,
@@ -270,6 +296,7 @@ const dimensionSectionProperties = [
 				property: "maxHeight",
 			}
 		},
+		allowDynamicValue: true,
 	},
 ]
 
@@ -296,6 +323,7 @@ const spacingSectionProperties = [
 			"update:modelValue": (val: string) => blockController.setMargin(val),
 		},
 		condition: () => !blockController.isRoot(),
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -309,6 +337,7 @@ const spacingSectionProperties = [
 		events: {
 			"update:modelValue": (val: string) => blockController.setPadding(val),
 		},
+		allowDynamicValue: true,
 	},
 ]
 
@@ -325,6 +354,7 @@ const styleSectionProperties = [
 		events: {
 			change: (val: StyleValue) => blockController.setStyle("background", val),
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: ColorInput,
@@ -349,6 +379,7 @@ const styleSectionProperties = [
 				}
 			},
 		},
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -366,6 +397,7 @@ const styleSectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderWidth", val),
 		},
 		condition: () => blockController.getStyle("borderColor") || blockController.getStyle("borderWidth"),
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -395,6 +427,24 @@ const styleSectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderStyle", val),
 		},
 		condition: () => blockController.getStyle("borderColor"),
+		allowDynamicValue: true,
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Radius",
+				modelValue: blockController.getStyle("borderRadius"),
+				enableSlider: true,
+				unitOptions: ["px", "%"],
+				minValue: 0,
+			}
+		},
+		searchKeyWords: "Border, Radius, BorderRadius, Border Radius",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderRadius", val),
+		},
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -435,22 +485,6 @@ const styleSectionProperties = [
 		component: InlineInput,
 		getProps: () => {
 			return {
-				label: "Radius",
-				modelValue: blockController.getStyle("borderRadius"),
-				enableSlider: true,
-				unitOptions: ["px", "%"],
-				minValue: 0,
-			}
-		},
-		searchKeyWords: "Border, Radius, BorderRadius, Border Radius",
-		events: {
-			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderRadius", val),
-		},
-	},
-	{
-		component: InlineInput,
-		getProps: () => {
-			return {
 				label: "Z-Index",
 				modelValue: blockController.getStyle("zIndex"),
 			}
@@ -463,6 +497,7 @@ const styleSectionProperties = [
 			!blockController.multipleBlocksSelected() &&
 			!blockController.isRoot() &&
 			blockController.getStyle("position") !== "static",
+		allowDynamicValue: true,
 	},
 ]
 

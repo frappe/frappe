@@ -38,6 +38,7 @@ declare module 'vue' {
     Cross: typeof import('./src/components/Icons/Cross.vue')['default']
     DataPanel: typeof import('./src/components/DataPanel.vue')['default']
     DimensionInput: typeof import('./src/components/DimensionInput.vue')['default']
+    DynamicStyleSelector: typeof import('./src/components/DynamicStyleSelector.vue')['default']
     DynamicValueSelector: typeof import('./src/components/DynamicValueSelector.vue')['default']
     EmptyState: typeof import('./src/components/EmptyState.vue')['default']
     ExportAppDialog: typeof import('./src/components/ExportAppDialog.vue')['default']
