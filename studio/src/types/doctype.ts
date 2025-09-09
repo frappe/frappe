@@ -32,6 +32,7 @@ export type FieldTypes =
 	| "Percent"
 	| "Rating"
 	| "Icon"
+	| "Autocomplete"
 
 // Grid
 export interface GridColumn {

@@ -32,7 +32,7 @@
 						{
 							label: 'Fieldtype',
 							fieldname: 'fieldtype',
-							fieldtype: 'Select',
+							fieldtype: 'Autocomplete',
 							options: fieldTypes,
 							onChange: (_value: string, index: number) => {
 								const { componentName, componentType } = getComponentFromFieldType(_value)
@@ -43,7 +43,7 @@
 						{
 							label: 'Component Name',
 							fieldname: 'componentName',
-							fieldtype: 'Select',
+							fieldtype: 'Autocomplete',
 							options: components.names,
 							width: 3,
 						},
@@ -110,12 +110,26 @@ watch(
 	},
 )
 
-const fieldTypes = ["Data", "Link", "Select", "Check", "Date", "Datetime", "Markdown Editor", "Small Text"]
+const fieldTypes = [
+	"Data",
+	"Int",
+	"Float",
+	"Link",
+	"Select",
+	"Check",
+	"Date",
+	"Datetime",
+	"Markdown Editor",
+	"Small Text",
+]
 
 const getComponentFromFieldType = (fieldType: string) => {
 	switch (fieldType) {
 		case "Data":
 			return { componentName: "FormControl", componentType: "text" }
+		case "Int":
+		case "Float":
+			return { componentName: "FormControl", componentType: "number" }
 		case "Small Text":
 			return { componentName: "FormControl", componentType: "textarea" }
 		case "Link":
