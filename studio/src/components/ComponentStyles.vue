@@ -109,9 +109,10 @@ export type BlockProperty = {
 	getProps: () => Record<string, unknown>
 	events?: Record<string, unknown>
 	searchKeyWords: string
-	allowDynamicValue?: boolean
 	condition?: () => boolean
 	innerText?: string
+	allowDynamicValue?: boolean
+	getValue?: () => string | null
 }
 
 type PropertySection = {
@@ -247,6 +248,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("width")
+		},
 	},
 	{
 		component: DimensionInput,
@@ -258,6 +262,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("minWidth")
+		},
 	},
 	{
 		component: DimensionInput,
@@ -269,6 +276,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("maxWidth")
+		},
 	},
 	{
 		component: "hr",
@@ -289,6 +299,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("height")
+		},
 	},
 	{
 		component: DimensionInput,
@@ -300,6 +313,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("minHeight")
+		},
 	},
 	{
 		component: DimensionInput,
@@ -311,6 +327,9 @@ const dimensionSectionProperties = [
 			}
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("maxHeight")
+		},
 	},
 ]
 
@@ -338,6 +357,9 @@ const spacingSectionProperties = [
 		},
 		condition: () => !blockController.isRoot(),
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getMargin()
+		},
 	},
 	{
 		component: InlineInput,
@@ -352,6 +374,9 @@ const spacingSectionProperties = [
 			"update:modelValue": (val: string) => blockController.setPadding(val),
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getPadding()
+		},
 	},
 ]
 
@@ -369,6 +394,9 @@ const styleSectionProperties = [
 			change: (val: StyleValue) => blockController.setStyle("background", val),
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("background")
+		},
 	},
 	{
 		component: ColorInput,
@@ -394,6 +422,9 @@ const styleSectionProperties = [
 			},
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("borderColor")
+		},
 	},
 	{
 		component: InlineInput,
@@ -412,6 +443,9 @@ const styleSectionProperties = [
 		},
 		condition: () => blockController.getStyle("borderColor") || blockController.getStyle("borderWidth"),
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("borderWidth")
+		},
 	},
 	{
 		component: InlineInput,
@@ -442,6 +476,9 @@ const styleSectionProperties = [
 		},
 		condition: () => blockController.getStyle("borderColor"),
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("borderStyle")
+		},
 	},
 	{
 		component: InlineInput,
@@ -459,6 +496,9 @@ const styleSectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("borderRadius", val),
 		},
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("borderRadius")
+		},
 	},
 	{
 		component: InlineInput,
@@ -512,6 +552,9 @@ const styleSectionProperties = [
 			!blockController.isRoot() &&
 			blockController.getStyle("position") !== "static",
 		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("zIndex")
+		},
 	},
 ]
 

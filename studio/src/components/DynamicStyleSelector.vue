@@ -65,6 +65,6 @@ const emit = defineEmits<{
 
 const dropdownTrigger = ref<typeof FeatherIcon | null>(null)
 const showDynamicValueModal = ref(false)
-const dynamicValue = ref("")
+const dynamicValue = ref((props.property?.getValue?.() as string) || "{{  }}")
 const getCompletions = useStudioCompletions()
 </script>
