@@ -564,6 +564,14 @@ app_license = "{app_license}"
 
 # before_tests = "{app_name}.install.before_tests"
 
+# Extend DocType Class
+# ------------------------------
+#
+# Specify custom mixins to extend the standard doctype controller.
+# extend_doctype_class = {{
+# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
+# }}
+
 # Overriding Methods
 # ------------------------------
 #
@@ -576,18 +584,6 @@ app_license = "{app_license}"
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {{
 # 	"Task": "{app_name}.task.get_dashboard_data"
-# }}
-
-# Specify custom mixins to extend the standard doctype controller.
-# This can cause issues when multiple apps override the same method or attribute.
-# extend_doctype_class = {{
-# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
-# }}
-
-# Specify custom classes to replace the standard doctype controller.
-# This can cause issues when multiple apps override the same doctype.
-# override_doctype_class = {{
-# 	"Task": "{app_name}.custom.task.CustomTaskController"
 # }}
 
 # exempt linked doctypes from being automatically cancelled
