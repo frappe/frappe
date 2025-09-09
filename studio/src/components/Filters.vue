@@ -31,7 +31,7 @@
 								placeholder="Operator"
 							/>
 						</div>
-						<div id="value" class="!min-w-[140px] flex-1">
+						<div id="value" class="flex-1">
 							<Link
 								v-if="typeLink.includes(filter.field.fieldtype) && ['=', '!='].includes(filter.operator)"
 								:doctype="filter.field.options as string"
