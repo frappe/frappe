@@ -374,7 +374,7 @@ class File(Document):
 			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
 
 	def check_content(self):
-		if self.file_type == "PDF" and not pdf_contains_js(self._content):
+		if self.file_type == "PDF" and self._content and not pdf_contains_js(self._content):
 			frappe.throw(_("PDF cannot be uploaded, It contains unsafe content"))
 
 	def validate_duplicate_entry(self):
