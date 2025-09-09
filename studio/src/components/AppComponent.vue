@@ -69,7 +69,18 @@ const componentName = computed(() => {
 const componentRef = ref<ComponentPublicInstance | null>(null)
 
 const { currentBreakpoint } = useScreenSize()
-const styles = computed(() => props.block.getStyles(currentBreakpoint.value))
+const styles = computed(() => {
+	const _styles = props.block.getStyles(currentBreakpoint.value)
+	Object.entries(_styles).forEach(([key, value]) => {
+		if (value) {
+			if (isDynamicValue(value.toString())) {
+				_styles[key] = getDynamicValue(value.toString(), evaluationContext.value)
+				console.log({ key, value: _styles[key] })
+			}
+		}
+	})
+	return _styles
+})
 const classes = computed(() => {
 	return [attrs.class, ...props.block.getClasses()]
 })

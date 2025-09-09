@@ -150,9 +150,16 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const styles = computed(() => {
-	return {
-		...props.block.getStyles(props.breakpoint),
-	}
+	const _styles = { ...props.block.getStyles(props.breakpoint) }
+	Object.entries(_styles).forEach(([key, value]) => {
+		if (value) {
+			if (isDynamicValue(value.toString())) {
+				_styles[key] = getDynamicValue(value.toString(), evaluationContext.value)
+				console.log({ key, value: _styles[key] })
+			}
+		}
+	})
+	return _styles
 })
 
 const componentName = computed(() => {
