@@ -39,7 +39,7 @@ declare module 'vue' {
     DataPanel: typeof import('./src/components/DataPanel.vue')['default']
     DimensionInput: typeof import('./src/components/DimensionInput.vue')['default']
     DraggablePopup: typeof import('./src/components/DraggablePopup.vue')['default']
-    DynamicStyleSelector: typeof import('./src/components/DynamicStyleSelector.vue')['default']
+    DynamicStyleSetter: typeof import('./src/components/DynamicStyleSetter.vue')['default']
     DynamicValueSelector: typeof import('./src/components/DynamicValueSelector.vue')['default']
     EmptyState: typeof import('./src/components/EmptyState.vue')['default']
     ExportAppDialog: typeof import('./src/components/ExportAppDialog.vue')['default']

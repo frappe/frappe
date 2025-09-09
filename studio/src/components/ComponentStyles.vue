@@ -85,7 +85,7 @@ import ColorInput from "@/components/ColorInput.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 
 import type { StyleValue } from "@/types"
-import DynamicStyleSelector from "@/components/DynamicStyleSelector.vue"
+import DynamicStyleSelector from "@/components/DynamicStyleSetter.vue"
 
 const props = defineProps({
 	block: {
