@@ -83,11 +83,17 @@ const dynamicValueOptions = computed(() => {
 			})
 		}
 		// Data Sources group
-		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => ({
-			value: formatValue(`${resourceName}.data`),
-			label: resourceName,
-			type: "array",
-		}))
+		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => {
+			const completion =
+				store.resources[resourceName]?.resource_type === "Document"
+					? `${resourceName}.doc`
+					: `${resourceName}.data`
+			return {
+				value: formatValue(completion),
+				label: resourceName,
+				type: "array",
+			}
+		})
 		if (dataSourceOptions.length > 0) {
 			groups.push({
 				group: "Data Sources",
