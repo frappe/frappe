@@ -26,7 +26,6 @@
 				>
 					{{ column.label }}
 				</div>
-				<div class="p-1 text-center text-base text-gray-900"></div>
 			</div>
 
 			<!-- Rows -->
@@ -82,9 +81,6 @@
 									"
 								/>
 							</div>
-							<button @click="" class="flex items-center justify-center">
-								<FeatherIcon name="edit-2" class="h-3 w-3 text-gray-800" />
-							</button>
 						</div>
 					</template>
 				</Draggable>
@@ -123,9 +119,6 @@ const gridTemplateColumns = computed(() => {
 	// for the checkbox & sr no. columns
 	let columns = "0.75fr 0.75fr"
 	columns += " " + props.columns.map((col) => `minmax(0, ${col.width || 2}fr)`).join(" ")
-	// for the edit button column
-	columns += " 0.75fr"
-
 	return columns
 })
 
