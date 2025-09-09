@@ -73,7 +73,6 @@ const contextMenuOptions: ContextMenuOption[] = [
 			const newBlockObj = getBlockTemplate("fit-container")
 			if (block.value.isSlotBlock()) {
 				newBlockObj.parentSlotName = block.value.parentSlotName
-				delete block.value.parentSlotName
 			}
 
 			const selectedBlocks = canvasStore.activeCanvas?.selectedBlocks || []
@@ -85,7 +84,9 @@ const contextMenuOptions: ContextMenuOption[] = [
 			selectedBlocks
 				.sort((a, b) => parentBlock.getChildIndex(a) - parentBlock.getChildIndex(b))
 				.forEach((block) => {
+					// Remove from parent first
 					parentBlock?.removeChild(block)
+					// Clear slot reference before adding to container
 					if (block.parentSlotName) {
 						delete block.parentSlotName
 					}
