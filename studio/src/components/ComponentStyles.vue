@@ -24,6 +24,7 @@
 					<div v-if="property.allowDynamicValue" class="flex items-center">
 						<DynamicStyleSelector
 							:block="block"
+							:property="property"
 							@update:modelValue="
 								(event) => {
 									if (typeof property.events?.['update:modelValue'] === 'function') {
@@ -103,7 +104,7 @@ window.addEventListener("keydown", (e) => {
 	}
 })
 
-type BlockProperty = {
+export type BlockProperty = {
 	component: any
 	getProps: () => Record<string, unknown>
 	events?: Record<string, unknown>

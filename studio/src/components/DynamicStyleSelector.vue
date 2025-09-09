@@ -1,114 +1,70 @@
 <template>
-	<Dropdown :options="dropdownOptions">
+	<Dropdown
+		:options="[
+			{
+				label: 'Set Dynamic Value',
+				onClick: () => {
+					showDynamicValueModal = !showDynamicValueModal
+				},
+			},
+		]"
+	>
 		<FeatherIcon
 			ref="dropdownTrigger"
 			name="plus-circle"
 			class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
 		/>
 	</Dropdown>
+	<DraggablePopup
+		v-model="showDynamicValueModal"
+		:container="dropdownTrigger?.$el"
+		placement="middle-right"
+		:clickOutsideToClose="false"
+		:placementOffset="20"
+		:height="100"
+		:width="600"
+		v-if="showDynamicValueModal"
+	>
+		<template #header><div class="text-base font-semibold text-gray-800">Set Dynamic Value</div></template>
+		<template #content>
+			<Code
+				language="javascript"
+				v-model="dynamicValue"
+				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+			/>
+			<div class="mt-2 flex items-center justify-end gap-2">
+				<Button
+					variant="solid"
+					@click="
+						() => {
+							emit('update:modelValue', dynamicValue)
+							showDynamicValueModal = false
+						}
+					"
+				>
+					Set
+				</Button>
+			</div>
+		</template>
+	</DraggablePopup>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { Dropdown } from "frappe-ui"
-import useStudioStore from "@/stores/studioStore"
-import useCanvasStore from "@/stores/canvasStore"
-import useComponentEditorStore from "@/stores/componentEditorStore"
+import { ref } from "vue"
+import { Dropdown, FeatherIcon } from "frappe-ui"
+import Code from "@/components/Code.vue"
 import Block from "@/utils/block"
-import type { ComponentInput } from "@/types/Studio/StudioComponent"
-import { isObjectEmpty } from "@/utils/helpers"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import type { CompletionContext } from "@codemirror/autocomplete"
+import type { BlockProperty } from "@/components/ComponentStyles.vue"
 
-const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
-	formatValuesAsTemplate: true,
-})
+const props = defineProps<{ block?: Block; property: BlockProperty }>()
 const emit = defineEmits<{
 	(event: "update:modelValue", value: string): void
 }>()
-const store = useStudioStore()
-const canvasStore = useCanvasStore()
 
-const isDynamicValueEnabled = ref(false)
-const formatValue = (value: string) => {
-	if (props.formatValuesAsTemplate) {
-		return `{{ ${value} }}`
-	}
-	return value
-}
-
-const dropdownOptions = computed(() => {
-	const options = []
-
-	// Toggle switch for "Set Dynamic Value"
-	options.push({
-		label: "Set Dynamic Value",
-		switch: true,
-		switchValue: isDynamicValueEnabled.value,
-		onClick: () => {
-			console.log("Toggling dynamic value")
-			isDynamicValueEnabled.value = !isDynamicValueEnabled.value
-			emit("update:modelValue", isDynamicValueEnabled.value ? "{{ }}" : "")
-		},
-	})
-
-	// Dynamic value options
-	if (canvasStore.editingMode === "component") {
-		// Component context
-		const componentInputs = useComponentEditorStore().componentInputs
-		if (!isObjectEmpty(componentInputs)) {
-			const componentItems = componentInputs.map?.((input: ComponentInput) => ({
-				label: `inputs.${input.input_name}`,
-				onClick: () => emit("update:modelValue", formatValue(`inputs.${input.input_name}`)),
-			}))
-			options.push({
-				group: "Component Inputs",
-				items: componentItems,
-			})
-		}
-	} else {
-		// Variables group
-		if (store.variableOptions.length > 0) {
-			const variableItems = store.variableOptions.map((option) => ({
-				label: option.label,
-				onClick: () => emit("update:modelValue", formatValue(option.value)),
-			}))
-			options.push({
-				group: "Variables",
-				items: variableItems,
-			})
-		}
-
-		// Data Sources group
-		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => {
-			const completion =
-				store.resources[resourceName]?.resource_type === "Document"
-					? `${resourceName}.doc`
-					: `${resourceName}.data`
-			return {
-				label: resourceName,
-				onClick: () => emit("update:modelValue", formatValue(completion)),
-			}
-		})
-		if (dataSourceOptions.length > 0) {
-			options.push({
-				group: "Data Sources",
-				items: dataSourceOptions,
-			})
-		}
-	}
-
-	// Repeater Data Item group
-	const repeaterContext = props.block?.repeaterDataItem
-	if (!isObjectEmpty(repeaterContext)) {
-		const repeaterItems = Object.keys(repeaterContext!).map((key) => ({
-			label: `dataItem.${key}`,
-			onClick: () => emit("update:modelValue", formatValue(`dataItem.${key}`)),
-		}))
-		options.push({
-			group: "Repeater",
-			items: repeaterItems,
-		})
-	}
-
-	return options
-})
+const dropdownTrigger = ref<typeof FeatherIcon | null>(null)
+const showDynamicValueModal = ref(false)
+const dynamicValue = ref("")
+const getCompletions = useStudioCompletions()
 </script>
