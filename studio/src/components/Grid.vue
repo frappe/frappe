@@ -178,6 +178,7 @@ const deleteRows = () => {
 .grid-row input:focus,
 .grid-row input:hover {
 	box-shadow: none;
+	outline: none;
 }
 
 .grid-row input:focus-within {
