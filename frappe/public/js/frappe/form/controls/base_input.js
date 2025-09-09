@@ -209,7 +209,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			const description = __(this.df.description, null, this.df.parent);
 			const help_box = this.$wrapper.find(".help-box");
 			help_box.html(description);
-			if (description.includes("<code")) {
+			if (typeof description === "string" && description.includes("<code")) {
 				frappe.require("syntax_highlighting.bundle.js").then(() => {
 					help_box.find("code").each(function () {
 						hljs.highlightElement(this);
