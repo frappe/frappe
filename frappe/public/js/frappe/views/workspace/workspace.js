@@ -242,12 +242,13 @@ frappe.views.Workspace = class Workspace {
 				.find(".workspace-icon")
 				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
 
-				//HIGHLISHTING THE ACTIVE SPACEBAR 
-                 setTimeout(() => {
-	             this.sidebar.$sidebar.find(".sidebar-item").removeClass("active");
-	             this.sidebar.$sidebar.find(`[data-name="${current_page.name}"]`).addClass("active");
-                    }, 0);
-
+			// Highlighting the active sidebar
+			setTimeout(() => {
+				this.sidebar.$sidebar.find(".sidebar-item").removeClass("active");
+				this.sidebar.$sidebar
+					.find(`[data-name="${current_page.name}"]`)
+					.addClass("active");
+			}, 0);
 
 			localStorage.current_page = current_page.name;
 			localStorage.is_current_page_public = current_page.public ? "true" : "false";
