@@ -578,6 +578,18 @@ app_license = "{app_license}"
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
 
+# # Specify custom mixins to extend the standard doctype controller.
+# # This can cause issues when multiple apps override the same method or attribute.
+# extend_doctype_class = {
+# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
+# }
+
+# # Specify custom classes to replace the standard doctype controller.
+# # This can cause issues when multiple apps override the same doctype.
+# override_doctype_class = {
+# 	"Task": "{app_name}.custom.task.CustomTaskController"
+# }
+
 # exempt linked doctypes from being automatically cancelled
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
