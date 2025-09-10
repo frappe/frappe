@@ -113,6 +113,7 @@
 					v-model="newResource.transform"
 					language="javascript"
 					height="150px"
+					:emitOnChange="true"
 					:completions="getCompletions"
 				/>
 			</div>

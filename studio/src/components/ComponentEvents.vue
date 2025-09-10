@@ -111,6 +111,7 @@
 									:completions="
 										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
 									"
+									:emitOnChange="true"
 									:modelValue="newEvent.on_success_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_success_script = val)"
 								/>
@@ -147,6 +148,7 @@
 									:completions="
 										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
 									"
+									:emitOnChange="true"
 									:modelValue="newEvent.on_error_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_error_script = val)"
 								/>
@@ -274,6 +276,7 @@ const actions: ActionConfigurations = {
 					language: "javascript",
 					modelValue: newEvent.value.script,
 					height: "250px",
+					emitOnChange: true,
 					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
 				}
 			},

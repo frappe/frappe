@@ -68,6 +68,7 @@
 							language="javascript"
 							height="250px"
 							v-model="pageWatcher.script"
+							:emitOnChange="true"
 							:completions="getCompletions"
 						/>
 						<FormControl

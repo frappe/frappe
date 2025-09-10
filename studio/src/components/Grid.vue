@@ -62,6 +62,7 @@
 									:showLineNumbers="false"
 									:borderless="true"
 									:completions="column.completions || null"
+									:emitOnChange="true"
 									@change="
 										(e: Event) =>
 											column.onChange && column.onChange((e.target as HTMLInputElement).value, index)

@@ -45,6 +45,7 @@ const props = withDefaults(
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
+		emitOnChange?: boolean
 	}>(),
 	{
 		language: "javascript",
@@ -54,6 +55,7 @@ const props = withDefaults(
 		showLineNumbers: true,
 		completions: null,
 		borderless: false,
+		emitOnChange: false,
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
@@ -157,6 +159,13 @@ watch(
 )
 
 watch(() => props.modelValue, setEditorValue)
+
+// Emit on change if emitOnChange prop is true
+watch(code, () => {
+	if (props.emitOnChange && !props.readonly) {
+		emitEditorValue()
+	}
+})
 
 const extensions = computed(() => {
 	const baseExtensions = [
