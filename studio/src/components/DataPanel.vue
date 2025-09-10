@@ -120,7 +120,6 @@
 								height="250px"
 								:showLineNumbers="true"
 								v-model="variableRef.initial_value"
-								:emitOnChange="true"
 							/>
 							<FormControl
 								v-else-if="variableRef.variable_type === 'Number'"
@@ -421,6 +420,7 @@ const getVariableMenu = (variable_name: string, value: any) => {
 
 const validateVariable = (variable: Variable) => {
 	if (variable.variable_type === "Object") {
+		variableEditor.value?.emitEditorValue()
 		if (variableEditor.value?.errorMessage) {
 			return false
 		}

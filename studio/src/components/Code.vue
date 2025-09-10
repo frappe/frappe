@@ -206,5 +206,6 @@ const extensions = computed(() => {
 
 defineExpose({
 	errorMessage,
+	emitEditorValue,
 })
 </script>
