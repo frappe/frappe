@@ -1,7 +1,25 @@
 from typing import Literal
 
 import frappe
+from frappe.client import get_value
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
+
+
+@frappe.whitelist()
+def get_document(doctype: str, filters: dict | str) -> dict:
+	if isinstance(filters, str):
+		filters = frappe.parse_json(filters)
+
+	document = get_value(doctype, filters, "name")
+	if document:
+		return document
+
+	if "name" in filters:
+		del filters["name"]
+		document = frappe.get_list(doctype, filters=filters, pluck="name", limit=1)
+		return document[0] if document else None
+
+	return None
 
 
 @frappe.whitelist()

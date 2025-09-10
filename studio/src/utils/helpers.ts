@@ -7,6 +7,7 @@ import { toast } from "vue-sonner"
 import type { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationContext, SelectOption, HashString, RGBString } from "@/types"
 import type { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
+import { call } from "frappe-ui"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
@@ -513,14 +514,10 @@ async function getDocumentResource(resource: DocumentResource, context: Expressi
 	let docname = resource.document_name
 	if (resource.fetch_document_using_filters && resource.filters) {
 		// fetch the docname based on filters
-		const docList = createListResource({
-			doctype: resource.document_type,
-			fields: ["name"],
-			filters: getEvaluatedFilters(resource.filters, context),
-			auto: true
-		})
-		await docList.list?.promise
-		docname = docList.data?.[0]?.name
+		docname = await call(
+			"studio.api.get_document",
+			{doctype: resource.document_type, filters: getEvaluatedFilters(resource.filters, context) }
+		)
 	}
 
 	return createDocumentResource({
