@@ -32,7 +32,7 @@
 				v-model="showAddEventDialog"
 				:options="{
 					title: newEvent.isEditing ? 'Edit Event' : 'Add Event',
-					size: '2xl',
+					size: '3xl',
 					actions: [
 						{
 							label: newEvent.isEditing ? 'Update' : 'Add',
@@ -275,7 +275,8 @@ const actions: ActionConfigurations = {
 					label: "Script",
 					language: "javascript",
 					modelValue: newEvent.value.script,
-					height: "250px",
+					height: "400px",
+					maxHeight: "400px",
 					emitOnChange: true,
 					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
 				}
