@@ -20,6 +20,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const component: any = { component_name: componentName }
 		if (block) {
 			component.block = getBlockObject(block)
+			if (component.block?.parentSlotName) {
+				// remove parentSlotName from the top-level block of the component
+				delete component.block.parentSlotName
+			}
 		}
 
 		return studioComponents.insert.submit(component, {

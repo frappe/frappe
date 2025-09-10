@@ -706,6 +706,12 @@ class Block implements BlockOptions {
 	extendFromComponent(componentName: string) {
 		let parentBlock = this.getParentBlock()
 		const newBlock = getComponentBlock(componentName, true)
+
+		// If this is a slot block, preserve the slot information
+		if (this.isSlotBlock()) {
+			newBlock.parentSlotName = this.parentSlotName
+		}
+
 		parentBlock?.replaceChild(this, newBlock)
 	}
 
