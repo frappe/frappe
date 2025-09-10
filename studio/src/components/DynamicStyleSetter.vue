@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import { Dropdown, FeatherIcon } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import Block from "@/utils/block"
@@ -65,6 +65,15 @@ const emit = defineEmits<{
 
 const dropdownTrigger = ref<typeof FeatherIcon | null>(null)
 const showDynamicValueModal = ref(false)
-const dynamicValue = ref((props.property?.getValue?.() as string) || "{{  }}")
 const getCompletions = useStudioCompletions()
+
+const dynamicValue = ref("")
+watch(
+	() => [props.property, props.property?.getValue?.()],
+	() => {
+		const value = props.property?.getValue?.() as string
+		dynamicValue.value = value || "{{  }}"
+	},
+	{ immediate: true, deep: true },
+)
 </script>
