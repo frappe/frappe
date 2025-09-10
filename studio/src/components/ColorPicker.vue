@@ -1,6 +1,6 @@
 <!-- Extracted from Builder -->
 <template>
-	<Popover transition="default" placement="left" class="!block w-full" popoverClass="!min-w-fit !mr-[30px]">
+	<Popover transition="default" placement="left" class="!block w-full" popoverClass="!w-fit">
 		<template #target="{ togglePopover, isOpen }">
 			<slot
 				name="target"

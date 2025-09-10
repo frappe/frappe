@@ -41,7 +41,7 @@
 			/>
 			<ComponentStyles
 				v-show="activeTab === 'Styles'"
-				class="p-4"
+				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentInterface
