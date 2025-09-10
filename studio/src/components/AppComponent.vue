@@ -75,7 +75,6 @@ const styles = computed(() => {
 		if (value) {
 			if (isDynamicValue(value.toString())) {
 				_styles[key] = getDynamicValue(value.toString(), evaluationContext.value)
-				console.log({ key, value: _styles[key] })
 			}
 		}
 	})
