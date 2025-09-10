@@ -31,19 +31,10 @@
 				language="javascript"
 				v-model="dynamicValue"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+				ref="styleEditor"
 			/>
 			<div class="mt-2 flex items-center justify-end gap-2">
-				<Button
-					variant="solid"
-					@click="
-						() => {
-							emit('update:modelValue', dynamicValue)
-							showDynamicValueModal = false
-						}
-					"
-				>
-					Set
-				</Button>
+				<Button variant="solid" @click="setStyle">Set</Button>
 			</div>
 		</template>
 	</DraggablePopup>
@@ -76,4 +67,11 @@ watch(
 	},
 	{ immediate: true, deep: true },
 )
+
+const styleEditor = ref()
+const setStyle = () => {
+	styleEditor.value?.emitEditorValue()
+	emit("update:modelValue", dynamicValue.value)
+	showDynamicValueModal.value = false
+}
 </script>

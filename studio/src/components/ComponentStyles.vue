@@ -591,7 +591,7 @@ const classesSectionProperties = [
 		getProps: () => {
 			return {
 				type: "textarea",
-				label: "Classes",
+				label: "Tailwind Classes",
 				modelValue: blockController.getClasses().join(", "),
 			}
 		},
@@ -642,7 +642,7 @@ const sections = [
 		}),
 	},
 	{
-		name: "Tailwind Classes",
+		name: "Classes",
 		properties: classesSectionProperties,
 		collapsed: computed(() => {
 			return blockController.getClasses().length === 0
