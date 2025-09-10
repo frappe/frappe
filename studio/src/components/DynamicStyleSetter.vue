@@ -63,7 +63,15 @@ watch(
 	() => [props.property, props.property?.getValue?.()],
 	() => {
 		const value = props.property?.getValue?.() as string
-		dynamicValue.value = value || "{{  }}"
+		if (value) {
+			if (!value.startsWith("{{")) {
+				dynamicValue.value = `{{ '${value}' }}`
+			} else {
+				dynamicValue.value = value
+			}
+		} else {
+			dynamicValue.value = "{{  }}"
+		}
 	},
 	{ immediate: true, deep: true },
 )
