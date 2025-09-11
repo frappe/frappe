@@ -124,7 +124,17 @@ const componentProps = computed(() => {
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
 		const value = getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
-		return typeof value === "string" ? value === "true" : value
+		// Handle different return types:
+		// - Boolean: return as-is
+		// - String "true"/"false": convert to boolean
+		// - Other values: check truthiness
+		if (typeof value === "boolean") {
+			return value
+		} else if (typeof value === "string" && (value === "true" || value === "false")) {
+			return value === "true"
+		} else {
+			return value
+		}
 	}
 	return true
 })
