@@ -44,6 +44,15 @@ import LucideType from "~icons/lucide/type"
 import LucideFilePenLine from "~icons/lucide/file-pen-line"
 
 export const COMPONENTS: FrappeUIComponents = {
+	TextBlock: {
+		name: "TextBlock",
+		title: "Text Block",
+		icon: LucideType,
+		initialState: {
+			fontSize: "text-sm",
+			fontWeight: "font-normal",
+		},
+	},
 	Alert: {
 		name: "Alert",
 		title: "Alert",
@@ -687,15 +696,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			image: "https://blocks.astratic.com/img/general-img-square.png",
 			size: "xs",
-		},
-	},
-	TextBlock: {
-		name: "TextBlock",
-		title: "Text Block",
-		icon: LucideType,
-		initialState: {
-			fontSize: "text-md",
-			fontWeight: "font-normal",
 		},
 	},
 	AppHeader: {
