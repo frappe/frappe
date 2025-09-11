@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DonutChartProps",
+  "definitions": {
+    "DonutChartProps": {
+      "type": "object",
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

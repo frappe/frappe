@@ -11,7 +11,7 @@ import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
-import "@/utils/appUtils"
+import "@/utils/appUtilsRenderer"
 
 Block.setComponents(COMPONENTS)
 

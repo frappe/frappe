@@ -42,6 +42,9 @@ import {
 	CommandPalette,
 	CommandPaletteItem,
 	Calendar,
+	NumberChart,
+	AxisChart,
+	DonutChart,
 } from "frappe-ui"
 
 import Container from "@/components/AppLayout/Container.vue"
@@ -102,6 +105,9 @@ export function registerGlobalComponents(app: App) {
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
+	app.component("NumberChart", NumberChart)
+	app.component("AxisChart", AxisChart)
+	app.component("DonutChart", DonutChart)
 
 	// studio components
 	app.component("Container", Container)
