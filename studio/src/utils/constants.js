@@ -4,6 +4,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"Avatar",
 	"Badge",
 	"Button",
+	"Breadcrumbs",
 	"Card",
 	"Checkbox",
 	"Calendar",
@@ -16,6 +17,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"ErrorMessage",
 	"FeatherIcon",
 	"FileUploader",
+	"FormLabel",
 	"FormControl",
 	"ListView",
 	"Progress",
@@ -28,6 +30,9 @@ export const FRAPPE_UI_COMPONENTS = [
 	"TextEditor",
 	"Tooltip",
 	"Tree",
+	"AxisChart",
+	"NumberChart",
+	"DonutChart",
 ]
 export const STUDIO_COMPONENTS = [
 	"Container",

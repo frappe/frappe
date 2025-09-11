@@ -75,6 +75,7 @@ import "@/setupFrappeUIResource"
 import app_router from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
+import "@/utils/appUtils"
 
 ${frappeUIImports}
 ${studioImports}
