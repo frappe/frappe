@@ -26,6 +26,9 @@ export { default as Textarea } from "./frappeui/Textarea.json"
 export { default as Toast } from "./frappeui/Toast.json"
 export { default as Tooltip } from "./frappeui/Tooltip.json"
 export { default as Tree } from "./frappeui/Tree.json"
+export { default as NumberChart } from "./frappeui/NumberChart.json"
+export { default as AxisChart } from "./frappeui/AxisChart.json"
+export { default as DonutChart } from "./frappeui/DonutChart.json"
 // end of frappeui components
 
 // studio components
