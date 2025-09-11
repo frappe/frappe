@@ -42,6 +42,9 @@ import LucideList from "~icons/lucide/list"
 import LucideMusic from "~icons/lucide/music"
 import LucideType from "~icons/lucide/type"
 import LucideFilePenLine from "~icons/lucide/file-pen-line"
+import LucideDollarSign from "~icons/lucide/dollar-sign"
+import LucideChartLine from "~icons/lucide/chart-line"
+import LucideChartPie from "~icons/lucide/chart-pie"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -132,7 +135,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			items: [
 				{
 					label: "Home",
-					route: { name: "Home"},
+					route: { name: "Home" },
 				},
 				{
 					label: "List",
@@ -368,8 +371,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Form Label",
 		icon: LucideTag,
 		initialState: {
-			label: "Form Label"
-		}
+			label: "Form Label",
+		},
 	},
 	ListView: {
 		name: "ListView",
@@ -731,6 +734,140 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideFilePenLine,
 		initialState: {
 			modelValue: "# This is a markdown editor",
+		},
+	},
+	NumberChart: {
+		name: "NumberChart",
+		title: "Number Chart",
+		icon: LucideDollarSign,
+		initialState: {
+			config: {
+				title: "Total Sales",
+				value: 123456,
+				prefix: "$",
+				delta: 10,
+				deltaSuffix: "% MoM",
+				negativeIsBetter: false,
+			},
+		},
+	},
+	AxisChart: {
+		name: "AxisChart",
+		title: "Axis Chart",
+		icon: LucideChartLine,
+		initialState: {
+			config: {
+				data: [
+					{
+						month: "2021-01-01",
+						sales: 200,
+					},
+					{
+						month: "2021-02-01",
+						sales: 300,
+					},
+					{
+						month: "2021-03-01",
+						sales: 250,
+					},
+					{
+						month: "2021-04-01",
+						sales: 350,
+					},
+					{
+						month: "2021-05-01",
+						sales: 400,
+					},
+					{
+						month: "2021-06-01",
+						sales: 300,
+					},
+				],
+				title: "Monthly Sales",
+				subtitle: "Sales data for first half of the year",
+				xAxis: {
+					key: "month",
+					type: "time",
+					title: "Month",
+					timeGrain: "month",
+				},
+				yAxis: {
+					title: "Amount ($)",
+					echartOptions: {
+						min: 0,
+						max: 800,
+					},
+				},
+				series: [
+					{
+						name: "sales",
+						type: "bar",
+					},
+				],
+			},
+		},
+	},
+	DonutChart: {
+		name: "DonutChart",
+		title: "Donut Chart",
+		icon: LucideChartPie,
+		initialState: {
+			config: {
+				data: [
+					{
+						product: "Apple Watch",
+						sales: 400,
+					},
+					{
+						product: "Services",
+						sales: 400,
+					},
+					{
+						product: "iMac",
+						sales: 350,
+					},
+					{
+						product: "Accessories",
+						sales: 350,
+					},
+					{
+						product: "iPad",
+						sales: 300,
+					},
+					{
+						product: "AirPods",
+						sales: 300,
+					},
+					{
+						product: "Apple TV",
+						sales: 300,
+					},
+					{
+						product: "Others",
+						sales: 300,
+					},
+					{
+						product: "Macbook",
+						sales: 250,
+					},
+					{
+						product: "Beats",
+						sales: 250,
+					},
+					{
+						product: "iPhone",
+						sales: 200,
+					},
+					{
+						product: "HomePod",
+						sales: 200,
+					},
+				],
+				title: "Product Sales Distribution",
+				subtitle: "Sales distribution across products",
+				categoryColumn: "product",
+				valueColumn: "sales",
+			},
 		},
 	},
 }
