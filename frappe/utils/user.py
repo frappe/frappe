@@ -419,7 +419,7 @@ def get_users() -> list[dict]:
 	]
 
 
-def get_users_with_role(role: str) -> list[str]:
+def get_users_with_role(role: str, is_pluck=1) -> list[str]:
 	User = DocType("User")
 	HasRole = DocType("Has Role")
 
@@ -430,9 +430,9 @@ def get_users_with_role(role: str) -> list[str]:
 			(HasRole.role == role)
 			& (User.name != "Administrator")
 			& (User.enabled == 1)
-			& (HasRole.parent == User.name)
+			& (HasRole.parent == User.name, User.full_name)
 		)
 		.select(User.name)
 		.distinct()
-		.run(pluck=True)
+		.run(pluck=bool(int(is_pluck)))
 	)

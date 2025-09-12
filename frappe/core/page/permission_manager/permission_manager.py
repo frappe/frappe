@@ -166,9 +166,9 @@ def reset(doctype):
 
 
 @frappe.whitelist()
-def get_users_with_role(role):
+def get_users_with_role(role, is_pluck=1):
 	frappe.only_for("System Manager")
-	return _get_user_with_role(role)
+	return _get_user_with_role(role, is_pluck)
 
 
 @frappe.whitelist()

@@ -339,10 +339,11 @@ frappe.PermissionEngine = class PermissionEngine {
 					method: "get_users_with_role",
 					args: {
 						role: role,
+						is_pluck: 0
 					},
 					callback: function (r) {
 						r.message = $.map(r.message, function (p) {
-							return $.format('<a href="/app/user/{0}">{1}</a>', [p, p]);
+							return $.format('<a href="/app/user/{0}">{1}</a> ({2})', [p[0], p[0], p[1]]);
 						});
 						frappe.msgprint(
 							__("Users with role {0}:", [__(role)]) +
