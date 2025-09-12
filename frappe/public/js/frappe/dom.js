@@ -27,10 +27,7 @@ frappe.dom = {
 	},
 	eval: function (txt) {
 		if (!txt) return;
-		var el = document.createElement("script");
-		el.appendChild(document.createTextNode(txt));
-		// execute the script globally
-		document.getElementsByTagName("head")[0].appendChild(el);
+		new Function(txt)();
 	},
 
 	remove_script_and_style: function (txt) {

@@ -61,7 +61,7 @@ frappe.ui.form.on("Auto Email Report", {
 					report_name: frm.doc.report,
 				},
 				callback: function (r) {
-					frappe.dom.eval(r.message.script || "");
+					frappe.dom.eval(r.message.script);
 					frm.script_setup_for = frm.doc.report;
 					frm.trigger("show_filters");
 				},
