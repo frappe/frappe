@@ -188,16 +188,6 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	# for editable mode check
-	try:
-		from frappe.utils.bench_helper import check_non_editable_apps
-
-		if frappe.conf.get("developer_mode"):
-			check_non_editable_apps()
-
-	except Exception:
-		pass
-
 	if request.path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
