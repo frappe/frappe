@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-07 09:32+0000\n"
-"PO-Revision-Date: 2025-09-10 17:44\n"
+"PO-Revision-Date: 2025-09-13 18:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -5331,7 +5331,7 @@ msgstr "Konfigurer hvordan endrede dokumenter skal navngis.<br>\n\n"
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Configure various aspects of how document naming works like naming series, current counter."
-msgstr ""
+msgstr "Konfigurer ulike aspekter av hvordan dokumentnavngivning fungerer, for eksempel navngivning av serier, gjeldende teller."
 
 #: frappe/core/doctype/user/user.js:412 frappe/public/js/frappe/dom.js:345
 #: frappe/www/update-password.html:66
@@ -5608,7 +5608,7 @@ msgstr "Kopier token til utklippstavle"
 #. Label of the copyright (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Copyright"
-msgstr ""
+msgstr "Opphavsrett"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:123
 msgid "Core DocTypes cannot be customized."
@@ -5965,7 +5965,7 @@ msgstr ""
 #. Label of the current_value (Int) field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Current Value"
-msgstr ""
+msgstr "Nåværende verdi"
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "Current status"
@@ -6161,7 +6161,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Custom Sidebar Menu"
-msgstr ""
+msgstr "Egendefinert sidepanelmeny"
 
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -6841,7 +6841,7 @@ msgstr "Definerer handlinger på tilstander og neste trinn og tillatte roller."
 #. field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted."
-msgstr ""
+msgstr "Angir hvor lenge eksporterte rapporter som sendes via e-post, skal oppbevares i systemet. Eldre filer slettes automatisk."
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -6893,7 +6893,7 @@ msgstr "Slett alt"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Delete Background Exported Reports After (Hours)"
-msgstr ""
+msgstr "Slett bakgrunnseksporterte rapporter etter (timer)"
 
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
@@ -9845,7 +9845,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:24
 msgid "Failed to update global settings"
-msgstr ""
+msgstr "Feil ved oppdatering av globale innstillinger"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:74
 msgid "Failed while calling API {0}"
@@ -9870,7 +9870,7 @@ msgstr ""
 #. Label of the favicon (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "FavIcon"
-msgstr ""
+msgstr "FavIcon"
 
 #. Label of the fax (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -13458,11 +13458,11 @@ msgstr ""
 
 #: frappe/model/naming.py:62
 msgid "Invalid naming series {}: dot (.) missing"
-msgstr ""
+msgstr "Ugyldig navneserie {}: punktum (.) mangler"
 
 #: frappe/model/naming.py:76
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr ""
+msgstr "Ugyldig navngivningsserie {}: punktum (.) mangler før de numeriske plassholderne. Vennligst bruk et format som <b>ABCD.#####.</b>"
 
 #: frappe/core/doctype/data_import/importer.py:453
 msgid "Invalid or corrupted content for import"
@@ -13470,7 +13470,7 @@ msgstr ""
 
 #: frappe/website/doctype/website_settings/website_settings.py:139
 msgid "Invalid redirect regex in row #{}: {}"
-msgstr ""
+msgstr "Ugyldig omadresseringsregeks i rad #{}: {}"
 
 #: frappe/app.py:337
 msgid "Invalid request arguments"
@@ -13503,7 +13503,7 @@ msgstr "Ugyldig tokenstatus! Sjekk om tokenet er opprettet av OAuth-brukeren."
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:165
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:336
 msgid "Invalid username or password"
-msgstr ""
+msgstr "Ugyldig brukernavn eller passord"
 
 #: frappe/model/naming.py:176
 msgid "Invalid value specified for UUID: {}"
@@ -14172,12 +14172,12 @@ msgstr "Oppretting og tilordning av LDAP-bruker"
 #. Label of the ldap_username_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Username Field"
-msgstr ""
+msgstr "LDAP-brukernavn-feltet"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:309
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:426
 msgid "LDAP is not enabled."
-msgstr ""
+msgstr "LDAP er ikke aktivert."
 
 #. Label of the ldap_search_path_group (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -14191,7 +14191,7 @@ msgstr "LDAP-søkesti for brukere"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:102
 msgid "LDAP settings incorrect. validation response was: {0}"
-msgstr ""
+msgstr "LDAP-innstillinger feil. Valideringsrespons var: {0}"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Label of the label (Data) field in DocType 'DocField'
@@ -14262,7 +14262,7 @@ msgstr ""
 #. Label of the sb0 (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Landing Page"
-msgstr ""
+msgstr "Landingsside"
 
 #: frappe/public/js/frappe/form/print_utils.js:17
 msgid "Landscape"
@@ -15559,7 +15559,7 @@ msgstr "Maks automatisk e-postrapport per bruker"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max signups allowed per hour"
-msgstr ""
+msgstr "Maks antall påmeldinger tillatt per time"
 
 #: frappe/core/doctype/doctype/doctype.py:1343
 msgid "Max width for type Currency is 100px in row {0}"
@@ -15636,7 +15636,7 @@ msgstr "Omtale"
 #. Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Mentions"
-msgstr ""
+msgstr "Omtaler"
 
 #: frappe/public/js/frappe/ui/page.html:41
 #: frappe/public/js/frappe/ui/page.js:162
@@ -15703,7 +15703,7 @@ msgstr ""
 #. Label of the message_parameter (Data) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Message Parameter"
-msgstr ""
+msgstr "Meldingsparameter"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
@@ -15788,7 +15788,7 @@ msgstr ""
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Metadata"
-msgstr ""
+msgstr "Metadata"
 
 #. Label of the method (Data) field in DocType 'Access Log'
 #. Label of the method (Data) field in DocType 'API Request Log'
@@ -21046,13 +21046,13 @@ msgstr "Avvist"
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:30
 msgid "Relay Server URL missing"
-msgstr ""
+msgstr "Mangler URL til reléserver"
 
 #. Label of the section_break_qgjr (Section Break) field in DocType 'Push
 #. Notification Settings'
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Relay Settings"
-msgstr ""
+msgstr "Reléinnstillinger"
 
 #. Group in Package's connections
 #: frappe/core/doctype/package/package.json
@@ -23389,20 +23389,20 @@ msgstr "Sekvens-ID"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Series List for this Transaction"
-msgstr "Liste med nummerserier for denne transaksjonen"
+msgstr "Liste med løpenummerserier for denne transaksjonen"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:115
 msgid "Series Updated for {}"
-msgstr "Nummerserien for {} er oppdatert"
+msgstr "Løpenummerserien for {} er oppdatert"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:223
 msgid "Series counter for {} updated to {} successfully"
-msgstr "Nummerserietelleren for {} er oppdatert til {}"
+msgstr "Telleren for løpenummerserier for {} er oppdatert til {}"
 
 #: frappe/core/doctype/doctype/doctype.py:1110
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
-msgstr "Nummerserien {0} er allerede brukt i {1}"
+msgstr "Løpenummerserien {0} er allerede brukt i {1}"
 
 #. Option for the 'Action Type' (Select) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
@@ -23477,16 +23477,16 @@ msgstr "Standardinnstillinger for økt er lagret"
 
 #: frappe/app.py:373
 msgid "Session Expired"
-msgstr ""
+msgstr "Økten er utløpt på grunn av inaktivitet"
 
 #. Label of the session_expiry (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Session Expiry (idle timeout)"
-msgstr ""
+msgstr "Utløpstid for økter (ved inaktivitet)"
 
 #: frappe/core/doctype/system_settings/system_settings.py:122
 msgid "Session Expiry must be in format {0}"
-msgstr ""
+msgstr "Utløpstid for økter må være på format {0}"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:400
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:487
@@ -23505,11 +23505,11 @@ msgstr "Angi"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Set Banner from Image"
-msgstr ""
+msgstr "Sett banner fra bilde"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:200
 msgid "Set Chart"
-msgstr ""
+msgstr "Sett diagram"
 
 #. Description of the 'Chart Options' (Code) field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json
@@ -23535,17 +23535,17 @@ msgstr "Angi filtre for {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2110
 msgid "Set Level"
-msgstr ""
+msgstr "Angi nivå"
 
 #: frappe/core/doctype/user_type/user_type.py:92
 msgid "Set Limit"
-msgstr ""
+msgstr "Angi begrensning"
 
 #. Description of the 'Setup Series for transactions' (Section Break) field in
 #. DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Set Naming Series options on your transactions."
-msgstr ""
+msgstr "Angi alternativer for navneserier på transaksjoner"
 
 #. Label of the new_password (Password) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -23558,11 +23558,11 @@ msgstr "Angi antall sikkerhetskopier"
 
 #: frappe/www/update-password.html:32
 msgid "Set Password"
-msgstr ""
+msgstr "Angi passord"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:112
 msgid "Set Permissions"
-msgstr ""
+msgstr "Angi rettigheter"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
@@ -23595,7 +23595,7 @@ msgstr "Legg til brukerrettigheter"
 #. Label of the value (Small Text) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Set Value"
-msgstr ""
+msgstr "Ny verdi"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:94
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:146
@@ -23612,7 +23612,7 @@ msgstr "Angi som standard"
 
 #: frappe/website/doctype/website_theme/website_theme.js:33
 msgid "Set as Default Theme"
-msgstr ""
+msgstr "Angi som standardtema"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -23640,12 +23640,12 @@ msgstr "Angi ikke-standard presisjon for et flyt- eller valutafelt"
 #. Label of the set_only_once (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Set only once"
-msgstr ""
+msgstr "Angi bare en gang"
 
 #. Description of the 'Max attachment size' (Int) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Set size in MB"
-msgstr ""
+msgstr "Angi størrelse i MB"
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -23697,11 +23697,18 @@ msgid "Set the path to a whitelisted function that will return the data for the 
 "\t\"route_options\": {\"from_date\": \"2023-05-23\"},\n"
 "\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n"
 "}</code></pre>"
-msgstr ""
+msgstr "Angi banen til en hvitlistet funksjon som returnerer dataene for tallkortet i formatet:\n\n"
+"<pre class=\"small text-muted\"><code>\n"
+"{\n"
+"\t\"verdi\": verdi,\n"
+"\t\"felttype\": \"Valuta\",\n"
+"\t\"rutealternativer\": {\"fra_dato\": \"2023-05-23\"},\n"
+"\t\"rute\": [\"spørringsrapport\", \"Tillatte dokumenter for bruker\"]\n"
+"}</code></pre>"
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
-msgstr ""
+msgstr "Setter denne adressemalen som standard, da det ikke finnes noen annen standard"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:86
 msgid "Setting up Global Search documents."
@@ -23709,7 +23716,7 @@ msgstr "Sette opp globale søkedokumenter."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:285
 msgid "Setting up your system"
-msgstr ""
+msgstr "Sette opp systemet ditt"
 
 #. Label of the settings_tab (Tab Break) field in DocType 'DocType'
 #. Label of the settings_tab (Tab Break) field in DocType 'User'
@@ -23733,17 +23740,17 @@ msgstr "Innstillinger"
 #. Label of the settings_dropdown (Table) field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Settings Dropdown"
-msgstr ""
+msgstr "Innstillingsmeny"
 
 #. Description of a DocType
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Settings for Contact Us Page"
-msgstr ""
+msgstr "Innstillinger for \"Kontakt oss\"-siden"
 
 #. Description of a DocType
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Settings for the About Us Page"
-msgstr ""
+msgstr "Innstillinger for \"Om oss\"-siden"
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -23766,23 +23773,23 @@ msgstr "Oppsett > Brukertillatelser"
 #: frappe/public/js/frappe/views/reports/query_report.js:1823
 #: frappe/public/js/frappe/views/reports/report_view.js:1713
 msgid "Setup Auto Email"
-msgstr ""
+msgstr "Konfigurer automatisk e-post"
 
 #. Label of the setup_complete (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/page/setup_wizard/setup_wizard.js:211
 msgid "Setup Complete"
-msgstr ""
+msgstr "Oppsettet er fullført"
 
 #. Label of the setup_series (Section Break) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Setup Series for transactions"
-msgstr ""
+msgstr "Opprett løpenummerserie for transaksjoner"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:236
 msgid "Setup failed"
-msgstr ""
+msgstr "Oppsettet mislyktes"
 
 #. Label of the share (Check) field in DocType 'Custom DocPerm'
 #. Label of the share (Check) field in DocType 'DocPerm'
@@ -23859,7 +23866,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 msgid "Show Absolute Datetime in Timeline"
-msgstr ""
+msgstr "Vis absolutt datoperiode i tidslinjen"
 
 #. Label of the absolute_value (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -23874,7 +23881,7 @@ msgstr ""
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Auth Server Metadata"
-msgstr ""
+msgstr "Vis metadata for autentiseringsserver"
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -23943,13 +23950,13 @@ msgstr ""
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:30
 msgid "Show Labels"
-msgstr ""
+msgstr "Vis etiketter"
 
 #. Label of the show_language_picker (Check) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show Language Picker"
-msgstr ""
+msgstr "Vis språkvelger"
 
 #. Label of the line_breaks (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -23997,7 +24004,7 @@ msgstr ""
 #. 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Protected Resource Metadata"
-msgstr ""
+msgstr "Vis metadata for beskyttede ressurser"
 
 #: frappe/core/doctype/error_log/error_log.js:9
 msgid "Show Related Errors"
@@ -24029,7 +24036,7 @@ msgstr ""
 #. DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Social Login Key as Authorization Server"
-msgstr ""
+msgstr "Vis sosial påloggingsnøkkel som autorisasjonsserver"
 
 #: frappe/public/js/frappe/list/list_sidebar.html:77
 #: frappe/public/js/frappe/list/list_view.js:1845
@@ -24079,7 +24086,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show account deletion link in My Account page"
-msgstr ""
+msgstr "Vis lenke for sletting av konto på siden Min konto"
 
 #: frappe/core/doctype/version/version.js:6
 msgid "Show all Versions"
@@ -24103,7 +24110,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show footer on login"
-msgstr ""
+msgstr "Vis bunntekst ved pålogging"
 
 #. Description of the 'Show Full Form?' (Check) field in DocType 'Onboarding
 #. Step'
@@ -24161,7 +24168,7 @@ msgstr ""
 #. Description of the 'Title Prefix' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show title in browser window as \"Prefix - title\""
-msgstr ""
+msgstr "Vis tittel i nettleservinduet som \"Prefiks - tittel\""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:148
 msgid "Show {0} List"
@@ -24189,7 +24196,7 @@ msgstr ""
 #. Label of the section_break_4 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Sidebar Settings"
-msgstr ""
+msgstr "Innstillinger for sidefelt"
 
 #. Label of the section_break_17 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -24332,7 +24339,7 @@ msgstr ""
 #. Label of the skype (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Skype"
-msgstr ""
+msgstr "Skype"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -24585,7 +24592,7 @@ msgstr ""
 
 #: frappe/model/naming.py:68
 msgid "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
-msgstr ""
+msgstr "Spesialtegn unntatt '-', '#', '.', '/', '{{' and '}}' er ikke tillatt i navneserier {0}"
 
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -27313,7 +27320,7 @@ msgstr "Prøv igjen"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Try a Naming Series"
-msgstr ""
+msgstr "Prøv en navneserie"
 
 #: frappe/printing/page/print/print.js:202
 #: frappe/printing/page/print/print.js:208
@@ -27792,13 +27799,13 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Counter"
-msgstr ""
+msgstr "Oppdater løpeummerteller"
 
 #. Label of the update_series_start (Button) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Number"
-msgstr ""
+msgstr "Oppdater løpenummer"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -27869,7 +27876,7 @@ msgstr ""
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr ""
+msgstr "Oppdaterer alternativer for navneserier"
 
 #: frappe/public/js/frappe/form/toolbar.js:136
 msgid "Updating related fields..."
