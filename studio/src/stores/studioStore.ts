@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick, computed } from "vue"
+import { ref, reactive, nextTick, computed, toRaw } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -13,7 +13,6 @@ import {
 	getNewResource,
 	confirm,
 	getInitialVariableValue,
-	copyObject,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
@@ -252,7 +251,7 @@ const useStudioStore = defineStore("store", () => {
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		const newRoute = copyObject(router.currentRoute.value)
+		const newRoute = toRaw(router.currentRoute.value)
 		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
 		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
 		newRoute.params = paramNames.reduce((params, name) => {
