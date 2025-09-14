@@ -34,7 +34,7 @@
 				v-model="showWatcherDialog"
 				:options="{
 					title: pageWatcher.name ? 'Edit Watcher' : 'Add Watcher',
-					size: '2xl',
+					size: '3xl',
 				}"
 				@after-leave="
 					() => {
@@ -66,7 +66,8 @@
 						<Code
 							label="Script"
 							language="javascript"
-							height="250px"
+							height="400px"
+							maxHeight="400px"
 							v-model="pageWatcher.script"
 							:emitOnChange="true"
 							:completions="getCompletions"
