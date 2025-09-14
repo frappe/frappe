@@ -36,7 +36,7 @@
 							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
 							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
-							<div class="border-r text-center">
+							<div class="flex h-full items-center justify-center border-r">
 								<Checkbox
 									size="sm"
 									class="cursor-pointer duration-300"
