@@ -412,36 +412,36 @@ def get_events(
 				target_date = add_days(target_date, 1)  # Increment by 1 to capture multiple days in the week
 
 		elif e.repeat_on == "Monthly":
-			first_occurence_in_range = e.starts_on.date()
-			jump_ahead = month_diff(start, first_occurence_in_range) - 1
-			target_date = add_months(first_occurence_in_range, jump_ahead)
+			first_occurrence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurrence_in_range) - 1
+			target_date = add_months(first_occurrence_in_range, jump_ahead)
 
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
 				target_date = add_months(target_date, 1)
 
 		elif e.repeat_on == "Quarterly":
-			first_occurence_in_range = e.starts_on.date()
-			jump_ahead = month_diff(start, first_occurence_in_range) // 3
-			target_date = add_months(first_occurence_in_range, 3 * jump_ahead)
+			first_occurrence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurrence_in_range) // 3
+			target_date = add_months(first_occurrence_in_range, 3 * jump_ahead)
 
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
 				target_date = add_months(target_date, 3)
 
 		elif e.repeat_on == "Yearly":
-			first_occurence_in_range = e.starts_on.date()
-			jump_ahead = month_diff(start, first_occurence_in_range) // 12
-			target_date = add_years(first_occurence_in_range, jump_ahead)
+			first_occurrence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurrence_in_range) // 12
+			target_date = add_years(first_occurrence_in_range, jump_ahead)
 
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
 				target_date = add_years(target_date, 1)
 
 		elif e.repeat_on == "Half Yearly":
-			first_occurence_in_range = e.starts_on.date()
-			jump_ahead = month_diff(start, first_occurence_in_range) // 6
-			target_date = add_months(first_occurence_in_range, 6 * jump_ahead)
+			first_occurrence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurrence_in_range) // 6
+			target_date = add_months(first_occurrence_in_range, 6 * jump_ahead)
 
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)

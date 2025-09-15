@@ -59,11 +59,11 @@ class TestTwoFactor(IntegrationTestCase):
 
 	def test_two_factor_is_enabled(self):
 		"""
-		1. Should return true, if enabled and not bypass_2fa_for_retricted_ip_users
+		1. Should return true, if enabled and not bypass_2fa_for_restricted_ip_users
 		2. Should return false, if not enabled
-		3. Should return true, if enabled and not bypass_2fa_for_retricted_ip_users and ip in restrict_ip
-		4. Should return true, if enabled and bypass_2fa_for_retricted_ip_users and not restrict_ip
-		5. Should return false, if enabled and bypass_2fa_for_retricted_ip_users and ip in restrict_ip
+		3. Should return true, if enabled and not bypass_2fa_for_restricted_ip_users and ip in restrict_ip
+		4. Should return true, if enabled and bypass_2fa_for_restricted_ip_users and not restrict_ip
+		5. Should return false, if enabled and bypass_2fa_for_restricted_ip_users and ip in restrict_ip
 		"""
 
 		# Scenario 1
@@ -211,7 +211,7 @@ def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 	"""Enable Two factor in system settings."""
 	system_settings = frappe.get_doc("System Settings")
 	system_settings.enable_two_factor_auth = 1
-	system_settings.bypass_2fa_for_retricted_ip_users = cint(bypass_two_factor_auth)
+	system_settings.bypass_2fa_for_restricted_ip_users = cint(bypass_two_factor_auth)
 	system_settings.bypass_restrict_ip_check_if_2fa_enabled = cint(bypass_restrict_ip_check)
 	system_settings.two_factor_method = "OTP App"
 	system_settings.flags.ignore_mandatory = True

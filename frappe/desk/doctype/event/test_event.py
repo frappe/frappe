@@ -137,12 +137,12 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-		unapplicable_dates = [
+		inapplicable_dates = [
 			(date(2014, 1, 20), date(2014, 1, 20)),
 			(date(2015, 1, 20), date(2015, 1, 20)),
 		]
 
-		for start_date, end_date in unapplicable_dates:
+		for start_date, end_date in inapplicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
 			with self.subTest(start_date=start_date, end_date=end_date):
 				self.assertFalse(
@@ -193,7 +193,7 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-	def test_quaterly_repeat(self):
+	def test_quarterly_repeat(self):
 		ev = frappe.get_doc(
 			{
 				"doctype": "Event",
@@ -209,7 +209,7 @@ class TestEvent(IntegrationTestCase):
 		def test_record_matched(e):
 			return e.name == ev.name
 
-		# Test Quaterly months
+		# Test Quarterly months
 		applicable_dates = [
 			(date(2023, 2, 17), date(2023, 2, 17)),
 			(date(2023, 5, 17), date(2023, 5, 17)),
@@ -225,7 +225,7 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-		unapplicable_dates = [
+		inapplicable_dates = [
 			# Test before event start date and after event end date
 			(date(2022, 11, 17), date(2022, 11, 17)),
 			(date(2024, 2, 17), date(2024, 2, 17)),
@@ -234,7 +234,7 @@ class TestEvent(IntegrationTestCase):
 			(date(2023, 3, 17), date(2023, 3, 17)),
 		]
 
-		for start_date, end_date in unapplicable_dates:
+		for start_date, end_date in inapplicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
 			with self.subTest(start_date=start_date, end_date=end_date):
 				self.assertFalse(
@@ -271,7 +271,7 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-		unapplicable_dates = [
+		inapplicable_dates = [
 			# Test before event start date and after event end date
 			(date(2022, 8, 17), date(2022, 8, 17)),
 			(date(2024, 2, 17), date(2024, 2, 17)),
@@ -280,7 +280,7 @@ class TestEvent(IntegrationTestCase):
 			(date(2023, 5, 17), date(2023, 5, 17)),
 		]
 
-		for start_date, end_date in unapplicable_dates:
+		for start_date, end_date in inapplicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
 			with self.subTest(start_date=start_date, end_date=end_date):
 				self.assertFalse(
@@ -315,15 +315,15 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-		unapplicable_dates = [
+		inapplicable_dates = [
 			(
 				date(2024, 2, 17),
 				date(2024, 2, 17),
-			),  # this is unapplicable since repeat_till is 2024-02-17 00:00:00
+			),  # this is inapplicable since repeat_till is 2024-02-17 00:00:00
 			(date(2022, 8, 17), date(2022, 8, 17)),
 			(date(2024, 2, 18), date(2024, 2, 18)),
 		]
-		for start_date, end_date in unapplicable_dates:
+		for start_date, end_date in inapplicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
 			with self.subTest(start_date=start_date, end_date=end_date):
 				self.assertFalse(
@@ -364,7 +364,7 @@ class TestEvent(IntegrationTestCase):
 					f"Event not found between {start_date} and {end_date}",
 				)
 
-		unapplicable_dates = [
+		inapplicable_dates = [
 			# Test before event start date and after event end date
 			(date(2022, 8, 17), date(2022, 8, 17)),
 			(date(2024, 2, 18), date(2024, 2, 18)),
@@ -372,13 +372,13 @@ class TestEvent(IntegrationTestCase):
 			(date(2023, 5, 17), date(2023, 5, 17)),
 			(date(2023, 5, 18), date(2023, 5, 18)),
 		]
-		for start_date, end_date in unapplicable_dates:
+		for start_date, end_date in inapplicable_dates:
 			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
 			with self.subTest(start_date=start_date, end_date=end_date):
 				self.assertFalse(
 					find(event_list, test_record_matched), f"Event found between {start_date} and {end_date}"
 				)
 
-		# Test occurences of events in a timespan
+		# Test occurrences of events in a timespan
 		event_list = get_events(date(2025, 4, 29), date(2025, 5, 2), "Administrator", for_reminder=True)
 		self.assertEqual(len(event_list), 3)

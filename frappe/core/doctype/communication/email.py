@@ -59,7 +59,7 @@ def make(
 	:param content: Communication body.
 	:param subject: Communication subject.
 	:param sent_or_received: Sent or Received (default **Sent**).
-	:param sender: Communcation sender (default current user).
+	:param sender: Communication sender (default current user).
 	:param recipients: Communication recipients as list.
 	:param communication_medium: Medium of communication (default **Email**).
 	:param send_email: Send via email (default **False**).

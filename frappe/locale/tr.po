@@ -3832,7 +3832,7 @@ msgstr "Script ile"
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
 msgstr "İki Faktörlü Kimlik Doğrulama Etkinse Kısıtlı IP Adresi Kontrolünü Atla"
 
-#. Label of the bypass_2fa_for_retricted_ip_users (Check) field in DocType
+#. Label of the bypass_2fa_for_restricted_ip_users (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"

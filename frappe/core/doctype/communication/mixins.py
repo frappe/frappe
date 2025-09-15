@@ -38,10 +38,10 @@ class CommunicationEmailMixin:
 		email_map = {parse_addr(email)[1]: email for email in self.get_all_email_addresses()}
 		return email_map.get(email, email)
 
-	def mail_recipients(self, is_inbound_mail_communcation=False):
+	def mail_recipients(self, is_inbound_mail_communication=False):
 		"""Build to(recipient) list to send an email."""
 		# Incase of inbound mail, recipients already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
+		if is_inbound_mail_communication:
 			return []
 
 		if hasattr(self, "_final_recipients"):
@@ -51,12 +51,12 @@ class CommunicationEmailMixin:
 		self._final_recipients = list(filter(lambda id: id != "Administrator", to))
 		return self._final_recipients
 
-	def get_mail_recipients_with_displayname(self, is_inbound_mail_communcation=False):
+	def get_mail_recipients_with_displayname(self, is_inbound_mail_communication=False):
 		"""Build to(recipient) list to send an email including displayname in email."""
-		to_list = self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
+		to_list = self.mail_recipients(is_inbound_mail_communication=is_inbound_mail_communication)
 		return [self.get_email_with_displayname(email) for email in to_list]
 
-	def mail_cc(self, is_inbound_mail_communcation=False, include_sender=False):
+	def mail_cc(self, is_inbound_mail_communication=False, include_sender=False):
 		"""Build cc list to send an email.
 
 		* if email copy is requested by sender, then add sender to CC.
@@ -76,7 +76,7 @@ class CommunicationEmailMixin:
 				sender = frappe.db.get_value("User", frappe.session.user, "email")
 			cc.append(sender)
 
-		if is_inbound_mail_communcation:
+		if is_inbound_mail_communication:
 			# inform parent document owner incase communication is created through inbound mail
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
@@ -88,23 +88,23 @@ class CommunicationEmailMixin:
 					assignees.remove(assignee)
 			cc.update(assignees)
 
-		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
-		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
+		cc = set(cc) - set(self.filter_thread_notification_disabled_users(cc))
+		cc = cc - set(self.mail_recipients(is_inbound_mail_communication=is_inbound_mail_communication))
 
 		# # Incase of inbound mail, to and cc already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
+		if is_inbound_mail_communication:
 			cc = cc - set(self.cc_list() + self.to_list())
 
 		self._final_cc = [m for m in cc if m and m not in frappe.STANDARD_USERS]
 		return self._final_cc
 
-	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender=False):
+	def get_mail_cc_with_displayname(self, is_inbound_mail_communication=False, include_sender=False):
 		cc_list = self.mail_cc(
-			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
+			is_inbound_mail_communication=is_inbound_mail_communication, include_sender=include_sender
 		)
 		return [self.get_email_with_displayname(email) for email in cc_list if email]
 
-	def mail_bcc(self, is_inbound_mail_communcation=False):
+	def mail_bcc(self, is_inbound_mail_communication=False):
 		"""
 		* Thread_notify check
 		* Email unsubscribe list
@@ -114,20 +114,20 @@ class CommunicationEmailMixin:
 			return self._final_bcc
 
 		bcc = set(self.bcc_list())
-		if is_inbound_mail_communcation:
+		if is_inbound_mail_communication:
 			bcc = bcc - {self.sender_mailid}
-		bcc = bcc - set(self.filter_thread_notification_disbled_users(bcc))
-		bcc = bcc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
+		bcc = bcc - set(self.filter_thread_notification_disabled_users(bcc))
+		bcc = bcc - set(self.mail_recipients(is_inbound_mail_communication=is_inbound_mail_communication))
 
 		# Incase of inbound mail, to and cc & bcc already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
+		if is_inbound_mail_communication:
 			bcc = bcc - set(self.bcc_list() + self.to_list())
 
 		self._final_bcc = [m for m in bcc if m not in frappe.STANDARD_USERS]
 		return self._final_bcc
 
-	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation=False):
-		bcc_list = self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
+	def get_mail_bcc_with_displayname(self, is_inbound_mail_communication=False):
+		bcc_list = self.mail_bcc(is_inbound_mail_communication=is_inbound_mail_communication)
 		return [self.get_email_with_displayname(email) for email in bcc_list if email]
 
 	def mail_sender(self):
@@ -207,15 +207,15 @@ class CommunicationEmailMixin:
 			return _("Leave this conversation")
 		return ""
 
-	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> list:
+	def exclude_emails_list(self, is_inbound_mail_communication=False, include_sender=False) -> list:
 		"""List of mail id's excluded while sending mail."""
 		all_ids = self.get_all_email_addresses(exclude_displayname=True)
 
 		final_ids = (
-			self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
-			+ self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
+			self.mail_recipients(is_inbound_mail_communication=is_inbound_mail_communication)
+			+ self.mail_bcc(is_inbound_mail_communication=is_inbound_mail_communication)
 			+ self.mail_cc(
-				is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
+				is_inbound_mail_communication=is_inbound_mail_communication, include_sender=include_sender
 			)
 		)
 
@@ -235,7 +235,7 @@ class CommunicationEmailMixin:
 			return []
 
 	@staticmethod
-	def filter_thread_notification_disbled_users(emails):
+	def filter_thread_notification_disabled_users(emails):
 		"""Filter users based on notifications for email threads setting is disabled."""
 		if not emails:
 			return []
@@ -256,7 +256,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
-		is_inbound_mail_communcation=None,
+		is_inbound_mail_communication=None,
 		print_language=None,
 	) -> dict:
 		outgoing_email_account = self.get_outgoing_email_account()
@@ -264,12 +264,12 @@ class CommunicationEmailMixin:
 			return {}
 
 		recipients = self.get_mail_recipients_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation
+			is_inbound_mail_communication=is_inbound_mail_communication
 		)
 		cc = self.get_mail_cc_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=send_me_a_copy
+			is_inbound_mail_communication=is_inbound_mail_communication, include_sender=send_me_a_copy
 		)
-		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
+		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communication=is_inbound_mail_communication)
 
 		if not (recipients or cc):
 			return {}
@@ -315,7 +315,7 @@ class CommunicationEmailMixin:
 		print_format=None,
 		send_me_a_copy=None,
 		print_letterhead=None,
-		is_inbound_mail_communcation=None,
+		is_inbound_mail_communication=None,
 		print_language=None,
 		now=False,
 	):
@@ -324,7 +324,7 @@ class CommunicationEmailMixin:
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
-			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			is_inbound_mail_communication=is_inbound_mail_communication,
 			print_language=print_language,
 		):
 			frappe.sendmail(now=now, **input_dict)

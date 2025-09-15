@@ -184,8 +184,8 @@ class TypeExporter:
 			if not doctype:
 				return
 
-			import_statment, cls_name = self._get_doctype_imports(doctype)
-			self.imports.add(import_statment)
+			import_statement, cls_name = self._get_doctype_imports(doctype)
+			self.imports.add(import_statement)
 			return f"[{cls_name}]"
 
 		elif field.fieldtype == "Select":

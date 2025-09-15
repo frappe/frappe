@@ -316,7 +316,7 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 
-			# reset failed attempts count - do it after succesful connection
+			# reset failed attempts count - do it after successful connection
 			self.set_failed_attempts_count(0)
 		except (error_proto, imaplib.IMAP4.error) as e:
 			message = cstr(e).lower().replace(" ", "")
@@ -600,7 +600,7 @@ class EmailAccount(Document):
 					if self.enable_auto_reply:
 						self.send_auto_reply(communication, mail)
 
-					communication.send_email(is_inbound_mail_communcation=True)
+					communication.send_email(is_inbound_mail_communication=True)
 			except SentEmailInInboxError:
 				frappe.db.rollback()
 			except Exception:
@@ -621,7 +621,7 @@ class EmailAccount(Document):
 			raise Exception(frappe.as_json(exceptions))
 
 	def get_inbound_mails(self) -> list[InboundMail]:
-		"""retrive and return inbound mails."""
+		"""retrieve and return inbound mails."""
 		mails = []
 
 		def process_mail(messages, append_to=None):
@@ -983,7 +983,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 	for user in user_names:
 		user_name = user.get("name")
 
-		# check if inbox is alreay configured
+		# check if inbox is already configured
 		user_inbox = (
 			frappe.db.get_value(
 				"User Email",

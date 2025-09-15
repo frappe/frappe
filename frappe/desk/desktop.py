@@ -460,11 +460,11 @@ def get_workspace_sidebar_items():
 
 	# get additional settings from Work Settings
 	try:
-		workspace_visibilty = loads(
+		workspace_visibility = loads(
 			frappe.db.get_single_value("Workspace Settings", "workspace_visibility_json") or "{}"
 		)
 	except JSONDecodeError:
-		workspace_visibilty = {}
+		workspace_visibility = {}
 
 	# Filter Page based on Permission
 	for page in all_pages:
@@ -477,8 +477,8 @@ def get_workspace_sidebar_items():
 					private_pages.append(page)
 				page["label"] = _(page.get("name"))
 
-			if page["name"] in workspace_visibilty:
-				page["visibility"] = workspace_visibilty[page["name"]]
+			if page["name"] in workspace_visibility:
+				page["visibility"] = workspace_visibility[page["name"]]
 
 			if not page["app"] and page["module"]:
 				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(

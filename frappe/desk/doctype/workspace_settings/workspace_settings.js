@@ -6,7 +6,7 @@ frappe.ui.form.on("Workspace Settings", {
 		frm.hide_full_form_button = true;
 		frm.docfields = [];
 		frm.workspace_map = {};
-		let workspace_visibilty = JSON.parse(frm.doc.workspace_visibility_json || "{}");
+		let workspace_visibility = JSON.parse(frm.doc.workspace_visibility_json || "{}");
 
 		// build fields from workspaces
 		let cnt = 0,
@@ -22,7 +22,7 @@ frappe.ui.form.on("Workspace Settings", {
 						page.title
 					),
 					label: page.title + (page.parent_page ? ` (${page.parent_page})` : ""),
-					initial_value: workspace_visibilty[page.name] !== 0, // not set is also visible
+					initial_value: workspace_visibility[page.name] !== 0, // not set is also visible
 				});
 			}
 		}

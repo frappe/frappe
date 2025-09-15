@@ -51,7 +51,7 @@
   "allow_login_after_fail",
   "two_factor_authentication",
   "enable_two_factor_auth",
-  "bypass_2fa_for_retricted_ip_users",
+  "bypass_2fa_for_restricted_ip_users",
   "bypass_restrict_ip_check_if_2fa_enabled",
   "two_factor_method",
   "lifespan_qrcode_image",
@@ -334,7 +334,7 @@
    "default": "0",
    "depends_on": "enable_two_factor_auth",
    "description": "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth",
-   "fieldname": "bypass_2fa_for_retricted_ip_users",
+   "fieldname": "bypass_2fa_for_restricted_ip_users",
    "fieldtype": "Check",
    "label": "Bypass Two Factor Auth for users who login from restricted IP Address"
   },

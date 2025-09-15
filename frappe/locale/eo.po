@@ -3647,7 +3647,7 @@ msgstr "crwdns128542:0crwdne128542:0"
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
 msgstr "crwdns128544:0crwdne128544:0"
 
-#. Label of the bypass_2fa_for_retricted_ip_users (Check) field in DocType
+#. Label of the bypass_2fa_for_restricted_ip_users (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"

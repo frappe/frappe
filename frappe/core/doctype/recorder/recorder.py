@@ -54,15 +54,15 @@ class Recorder(Document):
 	def get_list(filters=None, start=0, page_length=20, order_by="duration desc"):
 		requests = Recorder.get_filtered_requests(filters)[start : start + page_length]
 
-		if order_by_statment := order_by:
-			order_by_statment = order_by_statment.split(",")[0]
-			if "." in order_by_statment:
-				order_by_statment = order_by_statment.split(".")[1]
+		if order_by_statement := order_by:
+			order_by_statement = order_by_statement.split(",")[0]
+			if "." in order_by_statement:
+				order_by_statement = order_by_statement.split(".")[1]
 
-			if " " in order_by_statment:
-				sort_key, sort_order = order_by_statment.split(" ", 1)
+			if " " in order_by_statement:
+				sort_key, sort_order = order_by_statement.split(" ", 1)
 			else:
-				sort_key = order_by_statment
+				sort_key = order_by_statement
 				sort_order = "desc"
 
 			sort_key = sort_key.replace("`", "")
@@ -199,7 +199,7 @@ def _optimize_query(query):
 		stats = _fetch_table_stats(doctype, columns=[])
 		if not stats:
 			return
-		db_table = DBTable.from_frappe_ouput(stats)
+		db_table = DBTable.from_frappe_output(stats)
 		optimizer.update_table_data(db_table)
 
 	potential_indexes = optimizer.potential_indexes()
@@ -212,7 +212,7 @@ def _optimize_query(query):
 		stats = _fetch_table_stats(doctype, columns=tablewise_columns[table])
 		if not stats:
 			return
-		db_table = DBTable.from_frappe_ouput(stats)
+		db_table = DBTable.from_frappe_output(stats)
 		optimizer.update_table_data(db_table)
 
 	return optimizer.suggest_index()

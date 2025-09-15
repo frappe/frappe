@@ -115,31 +115,31 @@ class PostgresTable(DBTable):
 
 			query.append(f"ALTER COLUMN `{col.fieldname}` SET DEFAULT {col_default}")
 
-		create_contraint_query = ""
+		create_constraint_query = ""
 		for col in self.add_index:
 			# if index key not exists
-			create_contraint_query += (
+			create_constraint_query += (
 				f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 			)
 
 		for col in self.add_unique:
 			# if index key not exists
-			create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
+			create_constraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
 				index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
 			)
 
-		drop_contraint_query = ""
+		drop_constraint_query = ""
 		for col in self.drop_index:
 			# primary key
 			if col.fieldname != "name":
 				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "{col.fieldname}" ;'
+				drop_constraint_query += f'DROP INDEX IF EXISTS "{col.fieldname}" ;'
 
 		for col in self.drop_unique:
 			# primary key
 			if col.fieldname != "name":
 				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+				drop_constraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
@@ -168,12 +168,12 @@ class PostgresTable(DBTable):
 			if change_nullability:
 				# nosemgrep
 				frappe.db.sql(f"ALTER TABLE `{self.table_name}` {','.join(change_nullability)}")
-			if create_contraint_query:
+			if create_constraint_query:
 				# nosemgrep
-				frappe.db.sql(create_contraint_query)
-			if drop_contraint_query:
+				frappe.db.sql(create_constraint_query)
+			if drop_constraint_query:
 				# nosemgrep
-				frappe.db.sql(drop_contraint_query)
+				frappe.db.sql(drop_constraint_query)
 		except Exception as e:
 			# sanitize
 			if frappe.db.is_duplicate_fieldname(e):

@@ -30,7 +30,7 @@ class SystemSettings(Document):
 		apply_strict_user_permissions: DF.Check
 		attach_view_link: DF.Check
 		backup_limit: DF.Int
-		bypass_2fa_for_retricted_ip_users: DF.Check
+		bypass_2fa_for_restricted_ip_users: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		country: DF.Link | None
 		currency: DF.Link | None
@@ -129,7 +129,7 @@ class SystemSettings(Document):
 					)
 			toggle_two_factor_auth(True, roles=["All"])
 		else:
-			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_2fa_for_restricted_ip_users = 0
 			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False

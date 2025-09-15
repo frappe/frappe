@@ -29,7 +29,7 @@ class DBColumn:
 	data_type: str
 
 	@classmethod
-	def from_frappe_ouput(cls, data) -> "DBColumn":
+	def from_frappe_output(cls, data) -> "DBColumn":
 		"Parse DBColumn from output of describe-database-table command in Frappe"
 		return cls(
 			name=data["column"],
@@ -58,7 +58,7 @@ class DBIndex:
 		return f"DBIndex(`{self.table}`.`{self.column}`)"
 
 	@classmethod
-	def from_frappe_ouput(cls, data, table) -> "DBIndex":
+	def from_frappe_output(cls, data, table) -> "DBIndex":
 		"Parse DBIndex from output of describe-database-table command in Frappe"
 		return cls(
 			name=data["name"],
@@ -84,7 +84,7 @@ class ColumnStat:
 			self.histogram = []
 
 	@classmethod
-	def from_frappe_ouput(cls, data) -> "ColumnStat":
+	def from_frappe_output(cls, data) -> "ColumnStat":
 		return cls(
 			column_name=data["column_name"],
 			avg_frequency=data["avg_frequency"],
@@ -117,14 +117,14 @@ class DBTable:
 					col.cardinality = self.total_rows / column_stat.avg_frequency
 
 	@classmethod
-	def from_frappe_ouput(cls, data) -> "DBTable":
+	def from_frappe_output(cls, data) -> "DBTable":
 		"Parse DBTable from output of describe-database-table command in Frappe"
 		table_name = data["table_name"]
 		return cls(
 			name=table_name,
 			total_rows=data["total_rows"],
-			schema=[DBColumn.from_frappe_ouput(c) for c in data["schema"]],
-			indexes=[DBIndex.from_frappe_ouput(i, table_name) for i in data["indexes"]],
+			schema=[DBColumn.from_frappe_output(c) for c in data["schema"]],
+			indexes=[DBIndex.from_frappe_output(i, table_name) for i in data["indexes"]],
 		)
 
 	def has_column(self, column: str) -> bool:
@@ -210,7 +210,7 @@ class DBOptimizer:
 
 		possible_indexes = []
 
-		# Where claus columns using these operators benefit from index
+		# Where clause columns using these operators benefit from index
 		#  1. = (equality)
 		#  2. >, <, >=, <=
 		#  3. LIKE 'xyz%' (Prefix search)
@@ -242,7 +242,7 @@ class DBOptimizer:
 	def suggest_index(self) -> DBIndex | None:
 		"""Suggest best possible column to index given query and table stats."""
 		if missing_tables := (set(self.tables_examined()) - set(self.tables.keys())):
-			frappe.throw("DBTable infomation missing for: " + ", ".join(missing_tables))
+			frappe.throw("DBTable information missing for: " + ", ".join(missing_tables))
 
 		potential_indexes = self.potential_indexes()
 

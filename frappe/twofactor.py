@@ -45,7 +45,7 @@ def two_factor_is_enabled(user=None):
 	"""Return True if 2FA is enabled."""
 	enabled = cint(frappe.get_system_settings("enable_two_factor_auth"))
 	if enabled:
-		bypass_two_factor_auth = cint(frappe.get_system_settings("bypass_2fa_for_retricted_ip_users"))
+		bypass_two_factor_auth = cint(frappe.get_system_settings("bypass_2fa_for_restricted_ip_users"))
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
 			restrict_ip_list = (
