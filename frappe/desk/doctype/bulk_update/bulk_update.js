@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Bulk Update", {
+	onload: function (frm) {
+		frm.trigger("set_field_options");
+	},
 	refresh: function (frm) {
 		frm.set_query("document_type", function () {
 			return {
@@ -42,6 +45,9 @@ frappe.ui.form.on("Bulk Update", {
 	},
 
 	document_type: function (frm) {
+		frm.trigger("set_field_options");
+	},
+	set_field_options(frm) {
 		// set field options
 		if (!frm.doc.document_type) return;
 
