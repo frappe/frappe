@@ -170,7 +170,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	prepare_data(data) {
 		super.prepare_data(data);
+		this.prepare_file_data();
+	}
 
+	prepare_file_data() {
 		this.data = this.data.map((d) => this.prepare_datum(d));
 
 		// Bring folders to the top
@@ -244,6 +247,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	render() {
 		this.$result.empty().removeClass("file-grid-view");
 		if (frappe.views.FileView.grid_view) {
+			this.prepare_file_data();
 			this.render_grid_view();
 		} else {
 			super.render();
@@ -256,9 +260,22 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	render_list() {
 		if (frappe.views.FileView.grid_view) {
+			this.prepare_file_data();
 			this.render_grid_view();
 		} else {
 			super.render_list();
+		}
+	}
+
+	remove_list_items(names) {
+		if (frappe.views.FileView.grid_view) {
+			for (let name of names) {
+				this.$result
+					.find(`.file-wrapper[data-name='${name.replace(/'/g, "\\'")}']`)
+					.remove();
+			}
+		} else {
+			super.remove_list_items(names);
 		}
 	}
 
