@@ -414,11 +414,13 @@ def get_context(context):
 		try:
 			if self.channel == "Email":
 				self.send_an_email(doc, context)
+				if self.send_system_notification:
+					self.create_system_notification(doc, context)
 			elif self.channel == "Slack":
 				self.send_a_slack_msg(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
-			elif self.channel == "System Notification" or self.send_system_notification:
+			elif self.channel == "System Notification":
 				self.create_system_notification(doc, context)
 		except Exception:
 			self.log_error("Failed to send Notification")
@@ -585,7 +587,7 @@ def get_context(context):
 					recipient.cc_receiver_by_role, "email", ignore_permissions=True
 				)
 
-			if recipient.check_user_permission:
+			if recipient.check_user_permission and role_emails:
 				allowed_role_emails = self.filter_by_permission(role_emails, doc)
 			else:
 				allowed_role_emails = role_emails
@@ -596,7 +598,7 @@ def get_context(context):
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
 				emails = get_info_based_on_role(recipient.receiver_by_role, "email", ignore_permissions=True)
-				if recipient.check_user_permission:
+				if recipient.check_user_permission and emails:
 					recipients.extend(self.filter_by_permission(emails, doc))
 				else:
 					recipients.extend(emails)
@@ -607,11 +609,8 @@ def get_context(context):
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def filter_by_permission(self, emails, doc):
-		allowed = []
-		for email in emails:
-			if has_permission(doc.doctype, ptype="read", doc=doc, user=email):
-				allowed.append(email)
-		return allowed
+		"""filter emails by user permissions on the document"""
+		return [email for email in emails if has_permission(doc.doctype, ptype="read", doc=doc, user=email)]
 
 	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
 		"""return receiver list based on the doc field and role specified"""
