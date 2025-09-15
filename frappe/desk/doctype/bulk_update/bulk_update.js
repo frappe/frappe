@@ -2,9 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Bulk Update", {
-	onload: function (frm) {
-		frm.trigger("set_field_options");
-	},
 	refresh: function (frm) {
 		frm.set_query("document_type", function () {
 			return {
@@ -14,7 +11,7 @@ frappe.ui.form.on("Bulk Update", {
 				],
 			};
 		});
-
+		frm.trigger("set_field_options");
 		frm.page.set_primary_action(__("Update"), function () {
 			if (!frm.doc.update_value) {
 				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
