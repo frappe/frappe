@@ -499,8 +499,10 @@ class BaseDocument:
 
 				fieldtype = df.fieldtype
 				if isinstance(value, list) and fieldtype not in table_fields:
-					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
-
+					if not (frappe.db.db_type == "postgres" and fieldtype in ("JSON",)):
+						frappe.throw(
+							_("Value for {0} cannot be a list").format(_(df.label, context=df.parent))
+						)
 				if fieldtype == "Check":
 					value = 1 if cint(value) else 0
 
