@@ -19,7 +19,7 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
-from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
 	ceil,
@@ -57,6 +57,8 @@ from frappe.utils.data import (
 	add_years,
 	cast,
 	cint,
+	comma_and,
+	comma_or,
 	cstr,
 	duration_to_seconds,
 	evaluate_filters,
@@ -1464,3 +1466,29 @@ class TestURLTrackers(IntegrationTestCase):
 		self.assertDocumentEqual(result["utm_medium"], expected["utm_medium"])
 		self.assertDocumentEqual(result["utm_campaign"], expected["utm_campaign"])
 		self.assertEqual(result["utm_content"], expected["utm_content"])
+
+
+class TestDataUtils(UnitTestCase):
+	def setUp(self):
+		frappe.local.lang = "en"
+
+	def tearDown(self):
+		frappe.local.lang = "en"
+
+	def test_comma_and(self):
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b, and c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b' e 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b e c")
+
+	def test_comma_or(self):
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b', or 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b, or c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")

@@ -105,8 +105,10 @@ def get_formatted_email(user, mail=None):
 		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 
-def extract_email_id(email):
+def extract_email_id(email: str) -> str:
 	"""fetch only the email part of the Email Address"""
+	if not email:
+		return ""
 	return cstr(parse_addr(email)[1])
 
 

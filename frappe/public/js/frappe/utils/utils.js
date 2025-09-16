@@ -1115,7 +1115,7 @@ Object.assign(frappe.utils, {
 		if (value) {
 			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
 
-			if (total_duration.days) {
+			if (total_duration.days && duration_options.hide_days !== 1) {
 				duration += total_duration.days + __("d", null, "Days (Field: Duration)");
 			}
 			if (total_duration.hours) {
@@ -1126,7 +1126,7 @@ Object.assign(frappe.utils, {
 				duration += duration.length ? " " : "";
 				duration += total_duration.minutes + __("m", null, "Minutes (Field: Duration)");
 			}
-			if (total_duration.seconds) {
+			if (total_duration.seconds && duration_options.hide_seconds !== 1) {
 				duration += duration.length ? " " : "";
 				duration += total_duration.seconds + __("s", null, "Seconds (Field: Duration)");
 			}
@@ -1143,17 +1143,24 @@ Object.assign(frappe.utils, {
 	},
 
 	seconds_to_duration(seconds, duration_options) {
-		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const floor = seconds > 0 ? Math.floor : Math.ceil;
+		const round_base_60 = (seconds) => floor(seconds / 60 + (seconds > 0 ? 0.5 : -0.5));
+
 		const total_duration = {
-			days: round(seconds / 86400), // 60 * 60 * 24
-			hours: round((seconds % 86400) / 3600),
-			minutes: round((seconds % 3600) / 60),
-			seconds: round(seconds % 60),
+			days: floor(seconds / 86400), // 60 * 60 * 24
+			hours: floor((seconds % 86400) / 3600),
+			minutes: floor((seconds % 3600) / 60),
+			seconds: floor(seconds % 60),
 		};
 
 		if (duration_options && duration_options.hide_days) {
-			total_duration.hours = round(seconds / 3600);
+			total_duration.hours = floor(seconds / 3600);
 			total_duration.days = 0;
+		}
+
+		if (duration_options && duration_options.hide_seconds) {
+			total_duration.minutes += round_base_60(total_duration.seconds);
+			total_duration.seconds = 0;
 		}
 
 		return total_duration;
@@ -1196,10 +1203,34 @@ Object.assign(frappe.utils, {
 	map_defaults: {
 		center: [19.08, 72.8961],
 		zoom: 13,
-		tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-		options: {
-			attribution:
-				'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+		tiles: {
+			default_tile: {
+				url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+				options: {
+					attribution:
+						'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+				},
+			},
+			satellite_tile: {
+				url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+				options: {
+					attribution: "© Esri © OpenStreetMap Contributors",
+				},
+			},
+			labels_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_toner_labels/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
+			terrain_lines_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_terrain_lines/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
@@ -1829,5 +1860,30 @@ Object.assign(frappe.utils, {
 				obj[key] = "*****";
 			}
 		}
+	},
+
+	/**
+	 * Adds syntax highlighting to all <pre> tags in the given jQuery wrapper.
+	 * Example wrapper:
+	 *
+	 * ```html
+	 * <pre><code class="language-python">
+	 * def add(a, b):
+	 *     return a + b
+	 *
+	 * print(add(1, 2))
+	 *
+	 * # Output: 3
+	 * </code></pre>
+	 * ```
+	 *
+	 * @param {jQuery} $wrapper - The jQuery wrapper to add syntax highlighting to.
+	 */
+	highlight_pre($wrapper) {
+		frappe.require("syntax_highlighting.bundle.js").then(() => {
+			$wrapper.find("pre").each(function () {
+				hljs.highlightElement(this);
+			});
+		});
 	},
 });

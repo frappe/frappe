@@ -70,6 +70,24 @@ UNPICKLABLE_KEYS = (
 )
 
 
+def _reduce_extended_instance(doc):
+	"""Make extended class instances pickle-able.
+
+	When unpickling, this will use get_controller() to recreate the extended class.
+	Respects the __getstate__ method for proper state handling.
+	"""
+	return (_reconstruct_extended_instance, (doc.doctype,), doc.__getstate__())
+
+
+def _reconstruct_extended_instance(doctype):
+	"""
+	Helper function to reconstruct an extended class instance during unpickling.
+	"""
+	# Get the current extended class (uses caching from get_controller)
+	extended_class = get_controller(doctype)
+	return extended_class.__new__(extended_class)
+
+
 def get_controller(doctype):
 	"""Return the locally cached **class** object of the given DocType.
 
@@ -127,7 +145,46 @@ def import_controller(doctype):
 	if not issubclass(class_, BaseDocument):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
-	return class_
+	return _get_extended_class(class_, doctype)
+
+
+def _get_extended_class(base_class, doctype):
+	"""Create an extended class by mixing extension classes with the base class.
+
+	Args:
+		base_class: The base document class
+		doctype: The doctype name
+
+	Returns:
+		Extended class that combines all extension classes with the base class
+	"""
+
+	extensions = frappe.get_hooks("extend_doctype_class", {}).get(doctype)
+	if not extensions:
+		return base_class
+
+	# Get extension classes in reverse order using frappe.get_attr
+	extension_classes = []
+	for extension_path in reversed(extensions):
+		try:
+			extension_class = frappe.get_attr(extension_path)
+		except Exception as e:
+			raise ImportError(
+				"Error retrieving extension class from path:\n{0}".format(extension_path)
+			) from e
+
+		extension_classes.append(extension_class)
+
+	# Create the extended class by combining extension classes with base class
+	# Extension classes come first in MRO, then base class
+	return type(
+		f"Extended{base_class.__name__}",
+		(*extension_classes, base_class),
+		{
+			"__reduce__": _reduce_extended_instance,
+			"__module__": base_class.__module__,
+		},
+	)
 
 
 RESERVED_KEYWORDS = frozenset(
