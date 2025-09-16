@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/0890fc80-ac2a-48c3-ac94-d2a9387e09cc" height="80" alt="Frappe Studio Logo">
+<img src="./frontend/public/studio-svg.svg" height="80" alt="Frappe Studio Logo">
 
 <h1>Frappe Studio</h1>
 
