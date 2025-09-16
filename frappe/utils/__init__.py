@@ -83,7 +83,7 @@ def get_formatted_email(user, mail=None):
 
 def extract_email_id(email: str) -> str:
 	"""fetch only the email part of the Email Address"""
-	if not email_id:
+	if not email:
 		return ""
 	email_id = parse_addr(email)[1]
 	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
