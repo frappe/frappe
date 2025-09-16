@@ -124,8 +124,8 @@ const gridTemplateColumns = computed(() => {
 })
 
 const allRowsSelected = computed(() => {
-	if (!rows.length) return false
-	return rows.length === selectedRows.size
+	if (rows.value.length === 0 || selectedRows.size === 0) return false
+	return rows.value.length === selectedRows.size
 })
 
 const showDeleteBtn = computed(() => selectedRows.size > 0)
