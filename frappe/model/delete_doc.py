@@ -3,6 +3,7 @@
 
 import os
 import shutil
+from typing import Any
 
 import frappe
 import frappe.defaults
@@ -20,17 +21,17 @@ from frappe.utils.password import delete_all_passwords_for
 
 
 def delete_doc(
-	doctype=None,
-	name=None,
-	force=0,
-	ignore_doctypes=None,
-	for_reload=False,
-	ignore_permissions=False,
-	flags=None,
-	ignore_on_trash=False,
-	ignore_missing=True,
-	delete_permanently=False,
-):
+	doctype: str | None = None,
+	name: str | int | list[str | int] | None = None,
+	force: int | bool = 0,
+	ignore_doctypes: list[str] | None = None,
+	for_reload: bool = False,
+	ignore_permissions: bool = False,
+	flags: dict[str, Any] | None = None,
+	ignore_on_trash: bool = False,
+	ignore_missing: bool = True,
+	delete_permanently: bool = False,
+) -> bool | None:
 	"""
 	Deletes a document and validates if it is not submitted and not linked in a live record.
 
