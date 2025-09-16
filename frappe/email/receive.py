@@ -446,6 +446,15 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
+		if not _from_email:
+			# happens in some cases when email server is misconfigured
+			# should not fail the entire syncing process
+			frappe.log_error(
+				f"Email missing `From` header. UID: {getattr(self, 'uid', 'unknown')}", str(self.mail)
+			)
+			self.from_email = None
+			return
+
 		if _reply_to and not frappe.db.get_value(
 			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
 		):
@@ -453,9 +462,7 @@ class Email:
 		else:
 			self.from_email = extract_email_id(_from_email)
 
-		if self.from_email:
-			self.from_email = self.from_email.lower()
-
+		self.from_email = self.from_email.lower()
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
 	@staticmethod
