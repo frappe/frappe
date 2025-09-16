@@ -427,9 +427,6 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-<<<<<<< HEAD
-		if _reply_to and not frappe.db.get_value("Email Account", {"email_id": _reply_to}, "email_id"):
-=======
 		if not _from_email:
 			# happens in some cases when email server is misconfigured
 			# should not fail the entire syncing process
@@ -442,7 +439,6 @@ class Email:
 		if _reply_to and not frappe.db.get_value(
 			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
 		):
->>>>>>> 6644159440 (fix: gracefully handle missing `from` header in email (#33996))
 			self.from_email = extract_email_id(_reply_to)
 		else:
 			self.from_email = extract_email_id(_from_email)
