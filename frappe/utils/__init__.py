@@ -81,12 +81,18 @@ def get_formatted_email(user, mail=None):
 		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 
-def extract_email_id(email):
+def extract_email_id(email: str) -> str:
 	"""fetch only the email part of the Email Address"""
+<<<<<<< HEAD
 	email_id = parse_addr(email)[1]
 	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
+=======
+	if not email:
+		return ""
+	return cstr(parse_addr(email)[1])
+>>>>>>> 6644159440 (fix: gracefully handle missing `from` header in email (#33996))
 
 
 def validate_phone_number_with_country_code(phone_number, fieldname):
