@@ -187,7 +187,8 @@ const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
-const getCompletions = useStudioCompletions(true)
+const getEditorCompletions = useStudioCompletions(true)
+const getCompletions = useStudioCompletions()
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
@@ -281,7 +282,8 @@ const actions: ActionConfigurations = {
 					height: "400px",
 					maxHeight: "400px",
 					emitOnChange: true,
-					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
+					completions: (context: CompletionContext) =>
+						getEditorCompletions(context, props.block?.getCompletions()),
 				}
 			},
 			events: {

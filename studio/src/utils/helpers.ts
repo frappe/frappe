@@ -423,23 +423,17 @@ function getEvaluatedFilters(filters: Filters | null = null, context: Expression
 	return evaluatedFilters
 }
 
-function getAPIParams(params: string | null = null, context: ExpressionEvaluationContext) {
+function getAPIParams(params: Record<string, any> | string | null = null, context: ExpressionEvaluationContext) {
 	if (!params) return null
 	if (typeof params === "string") {
 		params = JSON.parse(params)
 	}
-
-	if (params && Array.isArray(params)) {
-		const evaluatedParams: Record<string, any> = {}
-		params.forEach((param) => {
-			let value = param.value
+	if (params && typeof params === "object") {
+		Object.entries(params).forEach(([key, value]) => {
 			if (isDynamicValue(value)) {
-				evaluatedParams[param.key] = getDynamicValue(value, context)
-			} else {
-				evaluatedParams[param.key] = value
+				params[key] = getDynamicValue(value, context)
 			}
 		})
-		return evaluatedParams
 	}
 	return params
 }
@@ -810,6 +804,7 @@ export {
 	getAutocompleteValues,
 	getParamsObj,
 	getParamsArray,
+	getAPIParams,
 	isDynamicValue,
 	getDynamicValue,
 	evaluateExpression,
