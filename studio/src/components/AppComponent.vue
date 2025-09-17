@@ -165,6 +165,7 @@ const boundValue = computed({
 // events
 const router = useRouter()
 const route = useRoute()
+
 const componentEvents = computed(() => {
 	const events: Record<string, Function | undefined> = {}
 	Object.entries(props.block.componentEvents).forEach(([eventName, event]) => {
@@ -193,6 +194,8 @@ const componentEvents = computed(() => {
 							url: event.api_endpoint,
 							auto: true,
 							params: getAPIParams(event.params, evaluationContext.value),
+							onSuccess: handleSuccess(event),
+							onError: handleError(event),
 						})
 					}
 				}
@@ -211,56 +214,8 @@ const componentEvents = computed(() => {
 								...fields,
 							},
 						},
-						onSuccess(data: DataResult) {
-							if (event.on_success === "script") {
-								if (event.on_success_script) {
-									const variablesRefs = toRefs(store.variables)
-									const context = {
-										...variablesRefs,
-										...store.resources,
-										...repeaterContext,
-										...componentContext?.value,
-										data,
-									}
-									const successFn = new Function(
-										"ctx",
-										`with(ctx) {
-											${event.on_success_script}
-											return onSuccess(data);
-										}`,
-									)
-
-									return successFn(context)
-								}
-							} else {
-								toast.success(event.success_message || `${event.doctype} created successfully`)
-							}
-						},
-						onError(error: any) {
-							if (event.on_error === "script") {
-								if (event.on_error_script) {
-									const variablesRefs = toRefs(store.variables)
-									const context = {
-										...variablesRefs,
-										...store.resources,
-										...repeaterContext,
-										...componentContext?.value,
-										error,
-									}
-									const errorFn = new Function(
-										"ctx",
-										`with(ctx) {
-											${event.on_error_script}
-											return onError(error);
-										}`,
-									)
-
-									return errorFn(context)
-								}
-							} else {
-								toast.error(event.error_message || `Error creating ${event.doctype}`)
-							}
-						},
+						onSuccess: handleSuccess(event),
+						onError: handleError(event),
 					}).submit()
 				}
 			} else if (event.action === "Run Script") {
@@ -280,6 +235,57 @@ const componentEvents = computed(() => {
 
 	return events
 })
+
+// Helper functions for handling success and error responses
+const handleSuccess = (event: any) => (data: DataResult) => {
+	if (event.on_success === "script") {
+		if (event.on_success_script) {
+			const variablesRefs = toRefs(store.variables)
+			const context = {
+				...variablesRefs,
+				...store.resources,
+				...repeaterContext,
+				...componentContext?.value,
+				data,
+			}
+			const successFn = new Function(
+				"ctx",
+				`with(ctx) {
+					${event.on_success_script}
+					return onSuccess(data);
+				}`,
+			)
+			return successFn(context)
+		}
+	} else {
+		toast.success(event.success_message || `${event.doctype} created successfully`)
+	}
+}
+
+const handleError = (event: any) => (error: any) => {
+	if (event.on_error === "script") {
+		if (event.on_error_script) {
+			const variablesRefs = toRefs(store.variables)
+			const context = {
+				...variablesRefs,
+				...store.resources,
+				...repeaterContext,
+				...componentContext?.value,
+				error,
+			}
+			const errorFn = new Function(
+				"ctx",
+				`with(ctx) {
+					${event.on_error_script}
+					return onError(error);
+				}`,
+			)
+			return errorFn(context)
+		}
+	} else {
+		toast.error(event.error_message || `Error creating ${event.doctype}`)
+	}
+}
 
 function getPageRoute(appRoute: string, page: string) {
 	// extract page route from full page route
