@@ -48,5 +48,5 @@ export interface GridColumn {
 
 export interface GridRow {
 	name: string
-	[fieldname: string]: string | number | boolean
+	[fieldname: string]: string | number | boolean | unknown
 }

@@ -170,7 +170,7 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 
-import { isObjectEmpty, confirm } from "@/utils/helpers"
+import { isObjectEmpty, confirm, getParamsArray } from "@/utils/helpers"
 
 import type { SelectOption } from "@/types"
 import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
@@ -181,12 +181,14 @@ import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "vue-sonner"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import { getParamsObj } from "@/utils/helpers"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
-const getCompletions = useStudioCompletions(true)
+const getEditorCompletions = useStudioCompletions(true)
+const getCompletions = useStudioCompletions()
 
 const showAddEventDialog = ref(false)
 const emptyEvent: ComponentEvent = {
@@ -194,7 +196,9 @@ const emptyEvent: ComponentEvent = {
 	action: "Run Script",
 	page: "",
 	url: "",
+	// call api
 	api_endpoint: "",
+	params: [],
 	// insert document
 	doctype: "",
 	fields: [],
@@ -278,7 +282,8 @@ const actions: ActionConfigurations = {
 					height: "400px",
 					maxHeight: "400px",
 					emitOnChange: true,
-					completions: (context: CompletionContext) => getCompletions(context, props.block?.getCompletions()),
+					completions: (context: CompletionContext) =>
+						getEditorCompletions(context, props.block?.getCompletions()),
 				}
 			},
 			events: {
@@ -302,6 +307,30 @@ const actions: ActionConfigurations = {
 			events: {
 				"update:modelValue": (val: string) => {
 					newEvent.value.api_endpoint = val
+				},
+			},
+		},
+		{
+			component: Grid,
+			getProps: () => {
+				return {
+					label: "Parameters",
+					columns: [
+						{ label: "Key", fieldname: "key", fieldtype: "Data" },
+						{
+							label: "Value",
+							fieldname: "value",
+							fieldtype: "Code",
+							completions: getCompletions,
+						},
+					],
+					rows: newEvent.value.params || [],
+					showDeleteBtn: true,
+				}
+			},
+			events: {
+				"update:rows": (val: any) => {
+					newEvent.value.params = val
 				},
 			},
 		},
@@ -424,6 +453,9 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 	} else if (event.action === "Call API") {
 		_event.api_endpoint = event.api_endpoint
 		setEventCallbackFields(_event, event)
+		if (Array.isArray(event.params)) {
+			_event.params = getParamsObj(event.params)
+		}
 	} else if (event.action === "Insert a Document") {
 		_event.doctype = event.doctype
 		_event.fields = event.fields
@@ -481,7 +513,12 @@ const getEventMenu = (event: ComponentEvent) => {
 			label: "Edit",
 			icon: "edit",
 			onClick: async () => {
-				newEvent.value = { ...event, isEditing: true, oldEvent: event.event }
+				newEvent.value = {
+					...event,
+					isEditing: true,
+					oldEvent: event.event,
+					params: getParamsArray(event.params),
+				}
 				showAddEventDialog.value = true
 			},
 		},

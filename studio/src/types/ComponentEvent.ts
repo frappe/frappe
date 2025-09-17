@@ -15,6 +15,7 @@ export type ComponentEvent = {
 	action: Actions
 	/** action = 'Call API */
 	api_endpoint?: string
+	params?: Record<string, any>
 	/** action = 'Switch App Page */
 	page?: string
 	/** action = 'Open Webpage' */

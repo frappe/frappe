@@ -1,5 +1,6 @@
+import type { Operators } from "@/types"
 export type ResourceType = "API Resource" | "Document List" | "Document"
-export type Filters = Record<string, string | string[]>
+export type Filters = Record<string, [Operators, any]>
 
 interface BaseResource {
 	/**	Child Table record name = Resource ID */
@@ -34,7 +35,7 @@ export interface APIResource extends BaseResource {
 	url: string
 	method: "GET" | "POST" | "PUT" | "DELETE"
 	filters?: Filters
-	params?: string
+	params?: Record<string, any>
 }
 
 export type Resource = DocumentResource | DocumentListResource | APIResource

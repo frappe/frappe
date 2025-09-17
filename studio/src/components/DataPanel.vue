@@ -170,7 +170,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import Code from "@/components/Code.vue"
 
-import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
+import { isObjectEmpty, getAutocompleteValues, getParamsObj, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -252,6 +252,7 @@ const getResourceValues = (resource: Resource) => {
 		name: resource.resource_id,
 		fields: getAutocompleteValues(resource.fields),
 		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
+		params: getParamsObj(resource.params),
 	}
 }
 

@@ -91,6 +91,7 @@ import Link from "@/components/Link.vue"
 
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
+import type { Filters } from "@/types/Studio/StudioResource"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
@@ -102,8 +103,8 @@ const emits = defineEmits(["update:modelValue"])
 
 const props = withDefaults(
 	defineProps<{
-		label: string
-		modelValue: Record<string, any>
+		label?: string
+		modelValue?: Filters
 		docfields: DocTypeField[]
 	}>(),
 	{
@@ -147,7 +148,7 @@ watch(
 	{ deep: true },
 )
 
-function makeFiltersList(filtersDict: Record<string, [Operators, any]>) {
+function makeFiltersList(filtersDict: Filters) {
 	if (!fields.value.length || isObjectEmpty(filtersDict)) return []
 
 	return Object.entries(filtersDict).map(([fieldname, [operator, value]]) => {

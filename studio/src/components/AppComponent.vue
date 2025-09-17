@@ -47,6 +47,7 @@ import {
 	executeUserScript,
 	getValueFromObject,
 	setValueInObject,
+	getAPIParams,
 } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 
@@ -191,6 +192,7 @@ const componentEvents = computed(() => {
 						createResource({
 							url: event.api_endpoint,
 							auto: true,
+							params: getAPIParams(event.params, evaluationContext.value),
 						})
 					}
 				}

@@ -339,6 +339,28 @@ function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
+function getParamsObj(params: { key: string; value: string }[]) {
+	const paramsObj: { [key: string]: string } = {}
+	params.forEach((param) => {
+		if (param.key) {
+			paramsObj[param.key] = param.value
+		}
+	})
+	return paramsObj
+}
+
+function getParamsArray(params: string | { [key: string]: string }) {
+	if (!params) return []
+	if (typeof params == "string") {
+		params = JSON.parse(params || "{}")
+	}
+	const paramsArray: { key: string; value: string; name: string }[] = []
+	Object.entries(params).forEach(([key, value]) => {
+		paramsArray.push({ key, value, name: key })
+	})
+	return paramsArray
+}
+
 const isDynamicValue = (value: string) => {
 	// Check if the prop value is a string and contains a dynamic expression
 	if (typeof value !== "string") return false
@@ -401,23 +423,17 @@ function getEvaluatedFilters(filters: Filters | null = null, context: Expression
 	return evaluatedFilters
 }
 
-function getAPIParams(params: string | null = null, context: ExpressionEvaluationContext) {
+function getAPIParams(params: Record<string, any> | string | null = null, context: ExpressionEvaluationContext) {
 	if (!params) return null
 	if (typeof params === "string") {
 		params = JSON.parse(params)
 	}
-
-	if (params && Array.isArray(params)) {
-		const evaluatedParams: Record<string, any> = {}
-		params.forEach((param) => {
-			let value = param.value
+	if (params && typeof params === "object") {
+		Object.entries(params).forEach(([key, value]) => {
 			if (isDynamicValue(value)) {
-				evaluatedParams[param.key] = getDynamicValue(value, context)
-			} else {
-				evaluatedParams[param.key] = value
+				params[key] = getDynamicValue(value, context)
 			}
 		})
-		return evaluatedParams
 	}
 	return params
 }
@@ -786,6 +802,9 @@ export {
 	findPageWithRoute,
 	// data
 	getAutocompleteValues,
+	getParamsObj,
+	getParamsArray,
+	getAPIParams,
 	isDynamicValue,
 	getDynamicValue,
 	evaluateExpression,
