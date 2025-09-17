@@ -106,7 +106,7 @@ def get_permission_query_conditions(user=None):
 def has_permission(doc, ptype, user):
 	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
 	if frappe.session.user == "Administrator":
-		return
+		return True
 
 	if "System Manager" in frappe.get_roles():
 		return True
