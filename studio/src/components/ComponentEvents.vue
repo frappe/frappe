@@ -170,7 +170,7 @@ import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
 
-import { isObjectEmpty, confirm, getParamsArray } from "@/utils/helpers"
+import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
 
 import type { SelectOption } from "@/types"
 import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
@@ -181,7 +181,6 @@ import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "vue-sonner"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { getParamsObj } from "@/utils/helpers"
 
 const props = defineProps<{
 	block?: Block

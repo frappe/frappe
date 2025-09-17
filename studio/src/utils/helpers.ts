@@ -349,13 +349,13 @@ function getParamsObj(params: { key: string; value: string }[]) {
 	return paramsObj
 }
 
-function getParamsArray(params: string | { [key: string]: string }) {
+function getParamsArray(params?: string | { [key: string]: string }) {
 	if (!params) return []
 	if (typeof params == "string") {
 		params = JSON.parse(params || "{}")
 	}
 	const paramsArray: { key: string; value: string; name: string }[] = []
-	Object.entries(params).forEach(([key, value]) => {
+	Object.entries(params!).forEach(([key, value]) => {
 		paramsArray.push({ key, value, name: key })
 	})
 	return paramsArray
