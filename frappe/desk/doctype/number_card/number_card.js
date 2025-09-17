@@ -202,7 +202,9 @@ frappe.ui.form.on("Number Card", {
 		let is_dynamic_filter = (f) => ["Date", "DateRange"].includes(f.fieldtype) && f.default;
 
 		let wrapper = $(frm.get_field("filters_json").wrapper).empty();
-		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		let table = $(`<table class="table table-bordered" style="cursor:${
+			frm.has_perm("write") ? "pointer" : "default"
+		}; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 20%">${__("Filter")}</th>
@@ -212,7 +214,10 @@ frappe.ui.form.on("Number Card", {
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
-		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+
+		if (frm.has_perm("write")) {
+			$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+		}
 
 		let filters = JSON.parse(frm.doc.filters_json || "[]");
 		let filters_set = false;
@@ -273,6 +278,10 @@ frappe.ui.form.on("Number Card", {
 		}
 
 		table.on("click", () => {
+			if (!frm.has_perm("write")) {
+				return;
+			}
+
 			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 				frappe.throw(__("Cannot edit filters for standard number cards"));
 			}
@@ -332,8 +341,9 @@ frappe.ui.form.on("Number Card", {
 
 		let wrapper = $(frm.get_field("dynamic_filters_json").wrapper).empty();
 
-		frm.dynamic_filter_table =
-			$(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
+			frm.has_perm("write") ? "pointer" : "default"
+		}; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 20%">${__("Filter")}</th>
@@ -360,6 +370,10 @@ frappe.ui.form.on("Number Card", {
 		);
 
 		frm.dynamic_filter_table.on("click", () => {
+			if (!frm.has_perm("write")) {
+				return;
+			}
+
 			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 				frappe.throw(__("Cannot edit filters for standard number cards"));
 			}
