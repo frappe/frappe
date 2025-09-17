@@ -350,9 +350,8 @@ def export_query():
 		)
 		frappe.msgprint(
 			_(
-				"Your report is being generated in the background. "
-				"You will receive an email on {0} with a download link once it is ready.".format(user_email)
-			)
+				"Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
+			).format(user_email)
 		)
 		return
 
