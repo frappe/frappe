@@ -119,14 +119,25 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 
 from frappe.deprecation_dumpster import show_progress
 
+NUMERIC_PATTERN = re.compile(r"^-?\d+(\.\d+)?$")
 
-def apply_formula(doc, field, update_value):
-	"""Apply numeric or formula-based updates to a field value.
+
+def apply_formula(doc: Document | dict, field: str, update_value: str | int | float | None) -> float:
+	"""
+	Apply numeric or formula-based updates to a field value.
 
 	Supports:
-	- Plain numbers (e.g. 123, 45.6)
-	- Short formulas (e.g. =+10, =*2, =/3)
-	- Expressions with 'current' (e.g. =(current+20))
+	- Plain numbers: 123, 45.6
+	- Short formulas: =+10, =*2, =/3
+	- Expressions with 'current': =(current+20)
+
+	Args:
+		doc (Union[Document, dict]): Frappe document or dict containing the field.
+		field (str): Field name to update.
+		update_value (Union[str, int, float, None]): Number or formula as string.
+
+	Returns:
+		float: Updated value after applying the formula.
 	"""
 
 	if not update_value:
@@ -139,7 +150,7 @@ def apply_formula(doc, field, update_value):
 	current_val = flt(doc.get(field) or 0)
 
 	# Allow plain numbers
-	if re.fullmatch(r"-?\d+(\.\d+)?", update_value):
+	if NUMERIC_PATTERN.fullmatch(update_value):
 		return flt(update_value)
 
 	# Formulas must start with '='
@@ -154,7 +165,7 @@ def apply_formula(doc, field, update_value):
 
 	if formula[0] in ["+", "-", "*", "/", "%"]:
 		operand_str = formula[1:].strip()
-		if not re.fullmatch(r"-?\d+(\.\d+)?", operand_str):
+		if not NUMERIC_PATTERN.fullmatch(operand_str):
 			frappe.throw(_("Invalid formula. Example: =+10, =*2, =(current+20)"))
 
 		operand = flt(operand_str)
