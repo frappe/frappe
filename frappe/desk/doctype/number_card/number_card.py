@@ -7,9 +7,10 @@ from frappe.boot import get_allowed_report_names
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
+from frappe.permissions import get_doctypes_with_read
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint, flt
+from frappe.utils import flt
 from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
@@ -78,55 +79,46 @@ class NumberCard(Document):
 
 
 def get_permission_query_conditions(user=None):
-	if not user:
-		user = frappe.session.user
-
-	if user == "Administrator":
+	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
+	if frappe.session.user == "Administrator":
 		return
 
-	roles = frappe.get_roles(user)
-	if "System Manager" in roles:
+	if "System Manager" in frappe.get_roles():
 		return None
 
-	doctype_condition = False
-	module_condition = False
+	allowed_reports = get_allowed_report_names()
+	allowed_doctypes = get_doctypes_with_read()
+	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
 
-	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_modules = [
-		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
-	]
-
-	if allowed_doctypes:
-		doctype_condition = """(`tabNumber Card`.`document_type` in ({allowed_doctypes})
-			OR (`tabNumber Card`.`type` = 'Custom' AND (`tabNumber Card`.`document_type` IS NULL OR `tabNumber Card`.`document_type` = '')))""".format(
-			allowed_doctypes=",".join(allowed_doctypes)
+	nc = frappe.qb.DocType("Number Card")
+	conditions = (
+		((nc.type == "Report") & nc.report_name.isin(allowed_reports))
+		| (
+			(nc.type == "Custom")
+			& (nc.document_type.isnull() | (nc.document_type == "") | nc.document_type.isin(allowed_doctypes))
 		)
-	if allowed_modules:
-		module_condition = """`tabNumber Card`.`module` in ({allowed_modules})
-			or `tabNumber Card`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
+		| ((nc.type == "Document Type") & nc.document_type.isin(allowed_doctypes))
+	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | nc.module == "")
 
-	return f"""
-		{doctype_condition}
-		and
-		{module_condition}
-	"""
+	return conditions.get_sql(quote_char="`")
 
 
 def has_permission(doc, ptype, user):
-	roles = frappe.get_roles(user)
-	if "System Manager" in roles:
+	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
+	if frappe.session.user == "Administrator":
+		return
+
+	if "System Manager" in frappe.get_roles():
 		return True
 
-	if doc.type == "Report":
-		if doc.report_name in get_allowed_report_names():
-			return True
-	elif doc.type == "Custom" and not doc.document_type:
-		# Allow Custom cards without document_type (doctype filtering doesn't apply)
+	if doc.type == "Report" and doc.report_name in get_allowed_report_names():
 		return True
-	else:
-		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-		if doc.document_type in allowed_doctypes:
-			return True
+
+	if doc.type == "Custom" and (not doc.document_type or doc.document_type in get_doctypes_with_read()):
+		return True
+
+	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read():
+		return True
 
 	return False
 
