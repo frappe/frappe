@@ -432,7 +432,7 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 		# This check needs to exist for backward compatibility.
 		# Till V13, default size used for float, currency and percent are (18, 6).
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
-			size = "21,9"
+			size = f"21,{cint(precision)}"
 
 		if length:
 			if coltype == "varchar":
@@ -443,7 +443,9 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 				# in postgres as bigint (as seen in type_map)
 				size = length
 			elif coltype == "decimal":
-				size = f"{length},9"
+				max_possible_precision = min(9, length)
+				precision = max_possible_precision if precision in (None, "") else cint(precision)
+				size = f"{length},{precision}"
 
 	if size is not None:
 		coltype = f"{coltype}({size})"
