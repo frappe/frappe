@@ -633,9 +633,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			filters.prepared_report_name = this.prepared_report_name;
 		}
 
-		// console.log(this.filters);
-		// console.log(frappe.query_reports[this.report_name].filters);
-
 		return new Promise((resolve) => {
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
