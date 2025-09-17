@@ -26,6 +26,7 @@ frappe.ui.form.on("Number Card", {
 			frm.trigger("render_filters_table");
 		}
 		frm.trigger("set_parent_document_type");
+		frm.trigger("set_document_type_description");
 
 		if (!frm.is_new()) {
 			frm.trigger("create_add_to_dashboard_button");
@@ -67,6 +68,8 @@ frappe.ui.form.on("Number Card", {
 	},
 
 	type: function (frm) {
+		frm.trigger("set_document_type_description");
+
 		if (frm.doc.type == "Report") {
 			frm.set_query("report_name", () => {
 				return {
@@ -466,6 +469,22 @@ frappe.ui.form.on("Number Card", {
 			if (parents.length === 1) {
 				frm.set_value("parent_document_type", parents[0]);
 			}
+		}
+	},
+
+	set_document_type_description: function (frm) {
+		if (frm.doc.type == "Custom") {
+			frm.set_df_property(
+				"document_type",
+				"description",
+				__(
+					"This card is visible only to Administrator and System Managers by default. Set a DocType to share with users who have read access.",
+					null,
+					"Number Card"
+				)
+			);
+		} else {
+			frm.set_df_property("document_type", "description", "");
 		}
 	},
 });
