@@ -154,7 +154,7 @@ import Grid from "@/components/Grid.vue"
 
 import type { DocTypeField } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
-import { isObjectEmpty } from "@/utils/helpers"
+import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const props = defineProps<{
@@ -209,19 +209,10 @@ async function getResourceToEdit() {
 		resource_name: props.resource?.resource_name,
 		filters: filters,
 		fields: JSON.parse(props.resource?.fields || "[]"),
-		params: getParams(props.resource?.params),
+		params: getParamsArray(props.resource?.params),
 		limit: props.resource?.limit || null,
 		whitelisted_methods: JSON.parse(props.resource?.whitelisted_methods || "[]"),
 	} as Resource
-}
-
-function getParams(params: string) {
-	params = JSON.parse(params || "{}")
-	const paramsArray: { key: string; value: string; name: string }[] = []
-	Object.entries(params).forEach(([key, value]) => {
-		paramsArray.push({ key, value, name: key })
-	})
-	return paramsArray
 }
 
 function getParsedFilters(filters: string | object | undefined) {

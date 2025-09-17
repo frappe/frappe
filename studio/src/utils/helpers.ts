@@ -339,6 +339,28 @@ function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
+function getParamsObj(params: { key: string; value: string }[]) {
+	const paramsObj: { [key: string]: string } = {}
+	params.forEach((param) => {
+		if (param.key) {
+			paramsObj[param.key] = param.value
+		}
+	})
+	return paramsObj
+}
+
+function getParamsArray(params: string | { [key: string]: string }) {
+	if (!params) return []
+	if (typeof params == "string") {
+		params = JSON.parse(params || "{}")
+	}
+	const paramsArray: { key: string; value: string; name: string }[] = []
+	Object.entries(params).forEach(([key, value]) => {
+		paramsArray.push({ key, value, name: key })
+	})
+	return paramsArray
+}
+
 const isDynamicValue = (value: string) => {
 	// Check if the prop value is a string and contains a dynamic expression
 	if (typeof value !== "string") return false
@@ -786,6 +808,8 @@ export {
 	findPageWithRoute,
 	// data
 	getAutocompleteValues,
+	getParamsObj,
+	getParamsArray,
 	isDynamicValue,
 	getDynamicValue,
 	evaluateExpression,

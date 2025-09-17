@@ -170,7 +170,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import Code from "@/components/Code.vue"
 
-import { isObjectEmpty, getAutocompleteValues, confirm, copyToClipboard } from "@/utils/helpers"
+import { isObjectEmpty, getAutocompleteValues, getParamsObj, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -252,7 +252,7 @@ const getResourceValues = (resource: Resource) => {
 		name: resource.resource_id,
 		fields: getAutocompleteValues(resource.fields),
 		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
-		params: getResourceParams(resource.params),
+		params: getParamsObj(resource.params),
 	}
 }
 
@@ -285,16 +285,6 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			},
 		},
 	]
-}
-
-const getResourceParams = (params: { key: string; value: string }[]) => {
-	const paramsObj: { [key: string]: string } = {}
-	params.forEach((param) => {
-		if (param.key) {
-			paramsObj[param.key] = param.value
-		}
-	})
-	return paramsObj
 }
 
 // variables

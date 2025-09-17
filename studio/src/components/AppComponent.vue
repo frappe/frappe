@@ -191,6 +191,7 @@ const componentEvents = computed(() => {
 						createResource({
 							url: event.api_endpoint,
 							auto: true,
+							params: event.params,
 						})
 					}
 				}
