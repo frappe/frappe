@@ -830,6 +830,9 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 	if not filters:
 		return
 
+	if js_filters is None:
+		js_filters = []
+
 	if isinstance(js_filters, str):
 		js_filters = json.loads(js_filters)
 
