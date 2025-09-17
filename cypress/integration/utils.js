@@ -49,6 +49,24 @@ context("Utils", () => {
 				seconds: 0,
 			});
 		});
+
+		run_util("seconds_to_duration", 60 * 60, { hide_seconds: 1 }).then((duration) => {
+			expect(duration).to.deep.equal({
+				days: 0,
+				hours: 1,
+				minutes: 0,
+				seconds: 0,
+			});
+		});
+
+		run_util("seconds_to_duration", 15 * 60, { hide_seconds: 1 }).then((duration) => {
+			expect(duration).to.deep.equal({
+				days: 0,
+				hours: 0,
+				minutes: 15,
+				seconds: 0,
+			});
+		});
 	});
 
 	it("should parse days, hours, minutes and seconds", () => {
