@@ -128,8 +128,8 @@ const fields = computed(() => {
 		.map((field) => {
 			return {
 				value: field.fieldname,
-				description: field.fieldtype,
 				...field,
+				description: field.fieldtype,
 			}
 		})
 })
