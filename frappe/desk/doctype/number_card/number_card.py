@@ -97,7 +97,8 @@ def get_permission_query_conditions(user=None):
 	]
 
 	if allowed_doctypes:
-		doctype_condition = "`tabNumber Card`.`document_type` in ({allowed_doctypes})".format(
+		doctype_condition = """(`tabNumber Card`.`document_type` in ({allowed_doctypes})
+			OR (`tabNumber Card`.`type` = 'Custom' AND (`tabNumber Card`.`document_type` IS NULL OR `tabNumber Card`.`document_type` = '')))""".format(
 			allowed_doctypes=",".join(allowed_doctypes)
 		)
 	if allowed_modules:
@@ -119,6 +120,9 @@ def has_permission(doc, ptype, user):
 	if doc.type == "Report":
 		if doc.report_name in get_allowed_report_names():
 			return True
+	elif doc.type == "Custom" and not doc.document_type:
+		# Allow Custom cards without document_type (doctype filtering doesn't apply)
+		return True
 	else:
 		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
 		if doc.document_type in allowed_doctypes:
