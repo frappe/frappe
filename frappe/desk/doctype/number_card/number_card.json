@@ -39,7 +39,7 @@
  "fields": [
   {
    "depends_on": "eval: ['Document Type', 'Custom'].includes(doc.type)",
-   "description": "Restrict visibility to users with read access to this doctype.",
+   "description": "This card is visible only to Administrator and System Managers by default. Set a DocType to share with users who have read access.",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -230,7 +230,7 @@
   }
  ],
  "links": [],
- "modified": "2025-09-17 18:21:52.136320",
+ "modified": "2025-09-17 20:03:07.331957",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
