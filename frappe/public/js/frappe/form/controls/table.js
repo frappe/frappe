@@ -128,7 +128,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 							);
 						}
 					}
-				}, 0);
+				}, i * 50);
 			});
 			return false; // Prevent the default handler from running.
 		});
