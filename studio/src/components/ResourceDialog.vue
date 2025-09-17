@@ -38,7 +38,7 @@
 							{ label: 'Key', fieldname: 'key', fieldtype: 'Data' },
 							{ label: 'Value', fieldname: 'value', fieldtype: 'Code', completions: getCompletions },
 						]"
-						:rows="newResource.params || []"
+						:rows="Array.isArray(newResource.params) ? newResource.params : []"
 						:showDeleteBtn="true"
 						@update:rows="(val) => (newResource.params = val)"
 					/>
@@ -209,10 +209,19 @@ async function getResourceToEdit() {
 		resource_name: props.resource?.resource_name,
 		filters: filters,
 		fields: JSON.parse(props.resource?.fields || "[]"),
-		params: JSON.parse(props.resource?.params || "[]"),
+		params: getParams(props.resource?.params),
 		limit: props.resource?.limit || null,
 		whitelisted_methods: JSON.parse(props.resource?.whitelisted_methods || "[]"),
 	} as Resource
+}
+
+function getParams(params: string) {
+	params = JSON.parse(params || "{}")
+	const paramsArray: { key: string; value: string; name: string }[] = []
+	Object.entries(params).forEach(([key, value]) => {
+		paramsArray.push({ key, value, name: key })
+	})
+	return paramsArray
 }
 
 function getParsedFilters(filters: string | object | undefined) {

@@ -252,6 +252,7 @@ const getResourceValues = (resource: Resource) => {
 		name: resource.resource_id,
 		fields: getAutocompleteValues(resource.fields),
 		whitelisted_methods: getAutocompleteValues(resource.whitelisted_methods),
+		params: getResourceParams(resource.params),
 	}
 }
 
@@ -284,6 +285,16 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			},
 		},
 	]
+}
+
+const getResourceParams = (params: { key: string; value: string }[]) => {
+	const paramsObj: { [key: string]: string } = {}
+	params.forEach((param) => {
+		if (param.key) {
+			paramsObj[param.key] = param.value
+		}
+	})
+	return paramsObj
 }
 
 // variables
