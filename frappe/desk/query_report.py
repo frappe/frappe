@@ -885,11 +885,6 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 	if not filters:
 		return
 
-	# print(filters, "filters \n\n\n")
-	# print(js_filters, "js_filters \n\n\n")
-
-	# print(frappe.query_reports["Trial Balance"], " query report \n\n\n")
-
 	if isinstance(js_filters, str):
 		js_filters = json.loads(js_filters)
 
