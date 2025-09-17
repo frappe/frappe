@@ -84,7 +84,7 @@ def get_permission_query_conditions(user=None):
 		return
 
 	if "System Manager" in frappe.get_roles():
-		return None
+		return
 
 	allowed_reports = get_allowed_report_names()
 	allowed_doctypes = get_doctypes_with_read()
@@ -93,10 +93,7 @@ def get_permission_query_conditions(user=None):
 	nc = frappe.qb.DocType("Number Card")
 	conditions = (
 		((nc.type == "Report") & nc.report_name.isin(allowed_reports))
-		| (
-			(nc.type == "Custom")
-			& (nc.document_type.isnull() | (nc.document_type == "") | nc.document_type.isin(allowed_doctypes))
-		)
+		| ((nc.type == "Custom") & nc.document_type.isin(allowed_doctypes))
 		| ((nc.type == "Document Type") & nc.document_type.isin(allowed_doctypes))
 	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | nc.module == "")
 
@@ -114,7 +111,7 @@ def has_permission(doc, ptype, user):
 	if doc.type == "Report" and doc.report_name in get_allowed_report_names():
 		return True
 
-	if doc.type == "Custom" and (not doc.document_type or doc.document_type in get_doctypes_with_read()):
+	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read():
 		return True
 
 	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read():
