@@ -402,7 +402,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if not populate_response:
 		return report_name, file_extension, content
 
-	provide_binary_file(report_name, file_extension, content)
+	provide_binary_file(_(report_name), file_extension, content)
 
 
 def format_duration_fields(data: frappe._dict) -> None:
