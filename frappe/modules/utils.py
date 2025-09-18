@@ -1,8 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	Utilities for using modules
+Utilities for using modules
 """
+
 import json
 import os
 from textwrap import dedent, indent
@@ -246,7 +247,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	module = module or get_doctype_module(doctype)
 	app = get_module_app(module)
 	key = (app, doctype, prefix, suffix)
-	module_name = get_module_name(doctype, module, prefix, suffix)
+	module_name = get_module_name(doctype, module, prefix, suffix, app)
 
 	if key not in doctype_python_modules:
 		try:

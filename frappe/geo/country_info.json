@@ -2599,6 +2599,8 @@
   "currency_name": "Swedish Krona",
   "currency_symbol": "kr",
   "number_format": "#.###,##",
+  "date_format": "yyyy-mm-dd",
+  "time_format": "HH:mm",
   "timezones": [
    "Europe/Stockholm"
   ],

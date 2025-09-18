@@ -1,0 +1,173 @@
+name: UI Base
+on:
+  workflow_call:
+    inputs:
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.13'
+      node-version:
+        required: false
+        type: number
+        default: 22
+      parallel-runs:
+        required: false
+        type: number
+        default: 2
+      enable-coverage:
+        required: false
+        type: boolean
+        default: false
+
+
+jobs:
+  gen-idx-integration:
+    name: Gen Integration Test Matrix
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    outputs:
+      indices: ${{ steps.set-indices.outputs.indices }}
+    steps:
+      - id: set-indices
+        run: |
+          indices=$(seq -s ',' 1 ${{ inputs.parallel-runs }}); echo "indices=[${indices}]" >> $GITHUB_OUTPUT
+
+  ui-test:
+    needs: gen-idx-integration
+    name: Integration
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      # noisy 3rd party library warnings
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+
+    strategy:
+      fail-fast: false
+      matrix:
+        db: ["mariadb"]
+        index: ${{ fromJson(needs.gen-idx-integration.outputs.indices) }}
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: ${{ inputs.python-version }}
+          node-version: ${{ inputs.node-version }}
+          build-assets: true
+          enable-coverage: ${{ inputs.enable-coverage }}
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: ${{ matrix.db }}
+
+      - name: Verify yarn.lock
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
+          git diff --exit-code yarn.lock
+
+      - name: Cache cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress
+
+      - name: Instrument Source Code
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
+          npx nyc instrument \
+            -x '${{ github.event.repository.name }}/public/dist/**' \
+            -x '${{ github.event.repository.name }}/public/js/lib/**' \
+            -x '**/*.bundle.js' --compact=false --in-place ${{ github.event.repository.name }}
+
+      - name: Site Setup
+        run: |
+          source ${GITHUB_WORKSPACE}/env/bin/activate
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+
+      - uses: browser-actions/setup-chrome@latest
+      - run: |
+          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+
+      - name: Run Tests
+        run: |
+          source ${GITHUB_WORKSPACE}/env/bin/activate
+          bench --site test_site \
+            run-ui-tests ${{ github.event.repository.name }} \
+              --with-coverage \
+              --headless \
+              --parallel \
+              --browser ${{ env.BROWSER_PATH }} \
+              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+        env:
+          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+
+      - name: Stop server and wait for coverage file
+        if: inputs.enable-coverage
+        run: |
+          ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
+          sleep 5
+          ( tail -f ${GITHUB_WORKSPACE}/sites/*-coverage*.xml & ) | grep -q "\/coverage"
+
+      - name: Upload JS coverage data
+        uses: actions/upload-artifact@v4
+        if: inputs.enable-coverage
+        with:
+          name: coverage-js-${{ matrix.index }}
+          path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        if: inputs.enable-coverage
+        with:
+          name: coverage-py-${{ matrix.index }}
+          path: ./sites/*-coverage*.xml
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
+
+  # TIP: Use these for checks, e.g. UI / Tests (Cypress) / Success
+  success:
+    name: Success
+    needs: [ui-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: UI Test '${{ needs.ui-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.ui-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)

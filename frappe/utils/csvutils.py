@@ -38,7 +38,7 @@ def read_csv_content_from_attached_file(doc):
 		)
 
 
-def read_csv_content(fcontent):
+def read_csv_content(fcontent, use_sniffer: bool = False):
 	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in FILE_ENCODING_OPTIONS:
@@ -57,25 +57,28 @@ def read_csv_content(fcontent):
 
 	fcontent = fcontent.encode("utf-8")
 	content = [frappe.safe_decode(line) for line in fcontent.splitlines(True)]
-
-	sniffer = Sniffer()
-	# Don't need to use whole csv, if more than 20 rows, use just first 20
-	sample_content = content[:20] if len(content) > 20 else content
-	# only testing for most common delimiter types, this later can be extended
-	# init default dialect, to avoid lint errors
 	dialect = csv.get_dialect("excel")
-	try:
-		# csv by default uses excel dialect, which is not always correct
-		dialect = sniffer.sniff(sample="\n".join(sample_content), delimiters=frappe.flags.delimiter_options)
-	except csv.Error:
-		# if sniff fails, show alert on user interface. Fall back to use default dialect (excel)
-		frappe.msgprint(
-			_(
-				"Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
-			),
-			indicator="orange",
-			alert=True,
-		)
+
+	if use_sniffer:
+		sniffer = Sniffer()
+		# Don't need to use whole csv, if more than 20 rows, use just first 20
+		sample_content = content[:20] if len(content) > 20 else content
+		# only testing for most common delimiter types, this later can be extended
+		# init default dialect, to avoid lint errors
+		try:
+			# csv by default uses excel dialect, which is not always correct
+			dialect = sniffer.sniff(
+				sample="\n".join(sample_content), delimiters=frappe.flags.delimiter_options
+			)
+		except csv.Error:
+			# if sniff fails, show alert on user interface. Fall back to use default dialect (excel)
+			frappe.msgprint(
+				_(
+					"Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
+				),
+				indicator="orange",
+				alert=True,
+			)
 
 	try:
 		rows = []

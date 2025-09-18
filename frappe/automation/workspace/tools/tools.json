@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"EgtURZsoiF\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"id\":\"O7jrc2YQTN\",\"type\":\"card\",\"data\":{\"card_name\":\"Newsletter\",\"col\":4}}]",
+ "content": "[{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"EgtURZsoiF\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"wE9n7TIrAc\",\"type\":\"card\",\"data\":{\"card_name\":\"Alerts and Notifications\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"3imoh2oqsJ\",\"type\":\"card\",\"data\":{\"card_name\":\"Printing\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}}]",
  "creation": "2020-03-02 14:53:24.980279",
  "custom_blocks": [],
  "docstatus": 0,
@@ -101,74 +101,6 @@
    "label": "Files",
    "link_count": 0,
    "link_to": "File",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Account",
-   "link_count": 0,
-   "link_to": "Email Account",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Domain",
-   "link_count": 0,
-   "link_to": "Email Domain",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Template",
-   "link_count": 0,
-   "link_to": "Email Template",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Newsletter",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Newsletter",
-   "link_count": 0,
-   "link_to": "Newsletter",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Group",
-   "link_count": 0,
-   "link_to": "Email Group",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -320,9 +252,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Account",
+   "link_count": 0,
+   "link_to": "Email Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Domain",
+   "link_count": 0,
+   "link_to": "Email Domain",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Template",
+   "link_count": 0,
+   "link_to": "Email Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Group",
+   "link_count": 0,
+   "link_to": "Email Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2024-09-03 21:54:05.403066",
+ "modified": "2025-06-27 11:39:44.392114",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",

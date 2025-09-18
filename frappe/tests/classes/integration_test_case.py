@@ -4,6 +4,7 @@ from contextlib import AbstractContextManager, contextmanager
 from types import MappingProxyType
 
 import frappe
+from frappe.database.utils import get_query_type
 from frappe.utils import cint
 
 from ..utils.generators import get_missing_records_module_overrides, make_test_records
@@ -63,7 +64,7 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.db.before_commit.add(_commit_watcher)
 
 		# enqueue teardown actions (executed in LIFO order)
-		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
+		cls.addClassCleanup(_restore_ctx_locals, copy.deepcopy(frappe.local.flags))
 		cls.addClassCleanup(_rollback_db)
 		cls._integration_test_case_class_setup_done = True
 
@@ -112,7 +113,7 @@ class IntegrationTestCase(UnitTestCase):
 		self._secondary_connection.rollback()
 
 	@contextmanager
-	def assertQueryCount(self, count: int) -> AbstractContextManager[None]:
+	def assertQueryCount(self, count: int, query_type: tuple[str] | None = None):
 		queries = []
 
 		def _sql_with_count(*args, **kwargs):
@@ -124,31 +125,37 @@ class IntegrationTestCase(UnitTestCase):
 			orig_sql = frappe.db.__class__.sql
 			frappe.db.__class__.sql = _sql_with_count
 			yield
+			if query_type:
+				queries = [q for q in queries if get_query_type(q) in query_type]
 			self.assertLessEqual(len(queries), count, msg="Queries executed: \n" + "\n\n".join(queries))
 		finally:
 			frappe.db.__class__.sql = orig_sql
 
 	@contextmanager
-	def assertRedisCallCounts(self, count: int) -> AbstractContextManager[None]:
+	def assertRedisCallCounts(self, count: int, *, exact=False) -> AbstractContextManager[None]:
+		from frappe.utils.redis_wrapper import RedisWrapper
+
 		commands = []
 
 		def execute_command_and_count(*args, **kwargs):
 			ret = orig_execute(*args, **kwargs)
 			key_len = 2
-			if "H" in args[0]:
+			if "H" in args[1]:
 				key_len = 3
-			commands.append((args)[:key_len])
+			commands.append((args)[1 : key_len + 1])
 			return ret
 
 		try:
-			orig_execute = frappe.cache.execute_command
-			frappe.cache.execute_command = execute_command_and_count
+			orig_execute = RedisWrapper.execute_command
+			RedisWrapper.execute_command = execute_command_and_count
 			yield
-			self.assertLessEqual(
-				len(commands), count, msg="commands executed: \n" + "\n".join(str(c) for c in commands)
-			)
+			msg = "commands executed: \n" + "\n".join(str(c) for c in commands)
+			if exact:
+				self.assertEqual(len(commands), count, msg=msg)
+			else:
+				self.assertLessEqual(len(commands), count, msg=msg)
 		finally:
-			frappe.cache.execute_command = orig_execute
+			RedisWrapper.execute_command = orig_execute
 
 	@contextmanager
 	def assertRowsRead(self, count: int) -> AbstractContextManager[None]:
@@ -179,16 +186,17 @@ def _commit_watcher():
 
 
 def _rollback_db():
-	frappe.db.value_cache = {}
+	frappe.db.value_cache.clear()
 	frappe.db.rollback()
 
 
-def _restore_thread_locals(flags):
+def _restore_ctx_locals(flags):
 	frappe.local.flags = flags
 	frappe.local.error_log = []
 	frappe.local.message_log = []
 	frappe.local.debug_log = []
 	frappe.local.conf = frappe._dict(frappe.get_site_config())
+	frappe.local.response = frappe._dict({"docs": []})
 	frappe.local.cache = {}
 	frappe.local.lang = "en"
 	frappe.local.preload_assets = {"style": [], "script": [], "icons": []}

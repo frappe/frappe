@@ -61,6 +61,7 @@
   "form_sidebar",
   "timeline",
   "dashboard",
+  "show_absolute_datetime_in_timeline",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -558,7 +559,8 @@
    "fieldtype": "Datetime",
    "label": "Last Active",
    "no_copy": 1,
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.",
@@ -593,11 +595,13 @@
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
+   "no_copy": 1,
    "permlevel": 1,
    "read_only": 1,
    "unique": 1
   },
   {
+   "description": "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n  Click here to learn about token-based authentication\n</a>",
    "fieldname": "generate_keys",
    "fieldtype": "Button",
    "label": "Generate Keys",
@@ -825,6 +829,12 @@
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_absolute_datetime_in_timeline",
+   "fieldtype": "Check",
+   "label": "Show Absolute Datetime in Timeline"
   }
  ],
  "icon": "fa fa-user",
@@ -837,11 +847,6 @@
    "link_fieldname": "user"
   },
   {
-   "group": "Profile",
-   "link_doctype": "Blogger",
-   "link_fieldname": "user"
-  },
-  {
    "group": "Logs",
    "link_doctype": "Access Log",
    "link_fieldname": "user"
@@ -849,11 +854,6 @@
   {
    "group": "Logs",
    "link_doctype": "Activity Log",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Logs",
-   "link_doctype": "Energy Point Log",
    "link_fieldname": "user"
   },
   {
@@ -887,7 +887,8 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-09-27 11:41:13.336662",
+ "make_attachments_public": 1,
+ "modified": "2025-06-05 23:55:27.884061",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -919,6 +920,7 @@
  ],
  "quick_entry": 1,
  "route": "user",
+ "row_format": "Dynamic",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
  "sort_field": "creation",

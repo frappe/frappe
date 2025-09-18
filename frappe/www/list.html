@@ -22,6 +22,8 @@
 {% endif %}
 {% endblock %}
 
+{% block footer %}{% endblock %} {# no footer #}
+
 {% block page_content %}
 	{% if introduction %}<p>{{ introduction }}</p>{% endif %}
 	{% include list_template or "templates/includes/list/list.html" %}

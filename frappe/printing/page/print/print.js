@@ -50,6 +50,19 @@ frappe.ui.form.PrintView = class {
 		`
 		);
 
+		const htmlSkeleton = `
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<meta charset="UTF-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			</head>
+			<body>
+			</body>
+		</html>
+		`;
+		document.querySelector("iframe.print-format-container").srcdoc = htmlSkeleton;
+
 		this.print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
 		this.setup_menu();
 		this.setup_toolbar();
@@ -58,7 +71,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_title() {
-		this.page.set_title(this.frm.docname);
+		this.page.set_title(__(this.frm.docname));
 	}
 
 	setup_toolbar() {
@@ -349,6 +362,14 @@ frappe.ui.form.PrintView = class {
 		this.wrapper.find(".print-toolbar a.btn-default").each((i, el) => {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
 		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "shift+r",
+			action: (e) => {
+				this.refresh_print_format();
+			},
+			description: __("Refresh Print Preview"),
+		});
 	}
 
 	set_default_letterhead() {
@@ -467,6 +488,25 @@ frappe.ui.form.PrintView = class {
 
 		setTimeout(() => {
 			$print_format.height(this.$print_format_body.find(".print-format").outerHeight());
+
+			// Add keyboard shortcut to refresh the print preview inside the iframe,
+			// since Frappe's default shortcuts don't work within iframes.
+
+			const iframe = this.print_wrapper.find("iframe.print-format-container")[0];
+			const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+			// Add a flag on the iframe document to avoid duplicate listeners
+			if (!iframeDoc._refreshShortcutAttached) {
+				iframeDoc.addEventListener("keydown", (e) => {
+					if (e.shiftKey && e.key.toLowerCase() === "r") {
+						e.preventDefault();
+						this.refresh_print_format();
+					}
+				});
+
+				// Set the flag so this block won't run again
+				iframeDoc._refreshShortcutAttached = true;
+			}
 		}, 500);
 	}
 
@@ -751,13 +791,12 @@ frappe.ui.form.PrintView = class {
 		if (
 			frappe.meta
 				.get_print_formats(this.frm.doctype)
-				.includes(this.print_format_selector.val()) ||
-			!this.frm.meta.default_print_format
+				.includes(this.print_format_selector.val())
 		)
 			return;
 
 		this.print_format_selector.empty();
-		this.print_format_selector.val(this.frm.meta.default_print_format);
+		this.print_format_selector.val(this.frm.meta.default_print_format || "");
 	}
 
 	selected_format() {

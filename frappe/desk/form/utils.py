@@ -27,7 +27,7 @@ def add_comment(
 	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
-	reference_doc = frappe.get_doc(reference_doctype, reference_name)
+	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name)
 	reference_doc.check_permission()
 
 	comment = frappe.new_doc("Comment")
@@ -58,13 +58,23 @@ def update_comment(name, content):
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
 
 	if doc.reference_doctype and doc.reference_name:
-		reference_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
+		reference_doc = frappe.get_lazy_doc(doc.reference_doctype, doc.reference_name)
 		reference_doc.check_permission()
 
 		doc.content = extract_images_from_html(reference_doc, content, is_private=True)
 	else:
 		doc.content = content
 
+	doc.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def update_comment_publicity(name: str, publish: bool):
+	doc = frappe.get_doc("Comment", name)
+	if frappe.session.user != doc.owner and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Comment publicity can only be updated by the original author or a System Manager."))
+
+	doc.published = int(publish)
 	doc.save(ignore_permissions=True)
 
 

@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
+from frappe.utils.caching import http_cache
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
 	get_keys_for_autocomplete,
@@ -79,7 +80,9 @@ class ServerScript(Document):
 		rate_limit_seconds: DF.Int
 		reference_doctype: DF.Link | None
 		script: DF.Code
-		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
+		script_type: DF.Literal[
+			"DocType Event", "Scheduler Event", "Permission Query", "API", "Workflow Task"
+		]
 	# end: auto-generated types
 
 	def validate(self):
@@ -90,14 +93,14 @@ class ServerScript(Document):
 		self.sync_scheduled_job_type()
 
 	def clear_cache(self):
-		frappe.cache.delete_value("server_script_map")
+		frappe.client_cache.delete_value("server_script_map")
 		return super().clear_cache()
 
 	def on_trash(self):
-		frappe.cache.delete_value("server_script_map")
+		frappe.client_cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
-				scheduled_job_type: "ScheduledJobType" = frappe.get_doc("Scheduled Job Type", job.name)
+				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
 				scheduled_job_type.stopped = True
 				scheduled_job_type.server_script = None
 				scheduled_job_type.save()
@@ -139,7 +142,7 @@ class ServerScript(Document):
 			{
 				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
 				"frequency": self.event_frequency,
-				"cron_format": self.cron_format,
+				"cron_format": self.cron_format if self.event_frequency == "Cron" else "",
 				"stopped": self.disabled,
 			}
 		).save()
@@ -215,8 +218,22 @@ class ServerScript(Document):
 		if locals["conditions"]:
 			return locals["conditions"]
 
+	def execute_workflow_task(self, doc: Document):
+		"""
+		Specific to Workflow Tasks via Workflow Action Master
+		"""
+		if self.script_type != "Workflow Task":
+			raise frappe.DoesNotExistError
+
+		safe_exec(
+			self.script,
+			_locals={"doc": doc},
+			script_filename=self.name,
+		)
+
 
 @frappe.whitelist()
+@http_cache(max_age=10 * 60, stale_while_revalidate=6 * 60 * 60)
 def get_autocompletion_items():
 	"""Generate a list of autocompletion strings from the context dict
 	that is used while executing a Server Script.

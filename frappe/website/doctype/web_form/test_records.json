@@ -1,0 +1,52 @@
+[{
+ "allow_comments": 0,
+ "allow_edit": 1,
+ "allow_multiple": 1,
+ "show_list": 1,
+ "doc_type": "Event",
+ "docstatus": 0,
+ "doctype": "Web Form",
+ "introduction_text": "Add events",
+ "login_required": 1,
+ "name": "manage-events",
+ "owner": "Administrator",
+ "page_name": "manage-events",
+ "published": 1,
+ "success_url": "/manage-events",
+ "title": "Manage Events",
+ "meta_title": "Test Meta Form Title",
+ "meta_description": "Test Meta Form Description",
+ "meta_image": "https://frappe.io/files/frappe.png",
+ "web_form_fields": [
+  {
+   "doctype": "Web Form Field",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "hidden": 0,
+   "idx": 1,
+   "label": "Title",
+   "read_only": 0,
+   "reqd": 1
+  },
+  {
+   "doctype": "Web Form Field",
+   "fieldname": "starts_on",
+   "fieldtype": "Date",
+   "hidden": 0,
+   "idx": 2,
+   "label": "Event Date",
+   "read_only": 0,
+   "reqd": 1
+  },
+  {
+   "doctype": "Web Form Field",
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "hidden": 0,
+   "idx": 3,
+   "label": "Description",
+   "read_only": 0,
+   "reqd": 0
+  }
+ ]
+}]

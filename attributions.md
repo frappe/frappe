@@ -23,10 +23,6 @@ The following 3rd-party software packages may be used by or distributed with <ht
   - Code License: MIT (<http://choosealicense.com/licenses/mit/>)
 - Inter - SIL Open Font License, 1.1 (c) 2020 Rasmus Andersson (<https://github.com/rsms/inter>)
 
-### IP Address Database
-
-- GeoIP: (c) 2014 MaxMind, <http://dev.maxmind.com/geoip/geoip2/downloadable/>
-
 ---
 
 Last updated: 4th July 2022

@@ -58,11 +58,15 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 		(contact_name, ref_doctype, ref_name),
 	)
 
-	return number and (number[0][0] or number[0][1]) or ""
+	return (number and (number[0][0] or number[0][1])) or ""
 
 
 @frappe.whitelist()
 def send_sms(receiver_list, msg, sender_name="", success_msg=True):
+	send_sms_hook_methods = frappe.get_hooks("send_sms")
+	if send_sms_hook_methods:
+		return frappe.get_attr(send_sms_hook_methods[-1])(receiver_list, msg, sender_name, success_msg)
+
 	import json
 
 	if isinstance(receiver_list, str):

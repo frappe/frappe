@@ -47,6 +47,6 @@ def get_locale_value(key: str, language: str | None = None) -> str | None:
 	"""
 	lang = language or frappe.local.lang
 	if lang:
-		value = frappe.db.get_value("Language", lang, key)
+		value = frappe.client_cache.get_doc("Language", lang).get(key)
 
 	return value or frappe.db.get_default(key)

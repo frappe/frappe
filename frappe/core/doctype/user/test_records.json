@@ -1,0 +1,95 @@
+[
+ {
+  "doctype": "User",
+  "email": "test@example.com",
+  "enabled": 1,
+  "first_name": "_Test",
+  "new_password": "Eastern_43A1W",
+  "roles": [
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "_Test Role"
+   },
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "System Manager"
+   }
+  ]
+ },
+ {
+  "doctype": "User",
+  "email": "test1@example.com",
+  "first_name": "_Test1",
+  "new_password": "Eastern_43A1W"
+ },
+ {
+  "doctype": "User",
+  "email": "test2@example.com",
+  "first_name": "_Test2",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
+  "email": "test3@example.com",
+  "first_name": "_Test3",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
+  "email": "test4@example.com",
+  "first_name": "_Test4",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
+  "email": "test'5@example.com",
+  "first_name": "_Test'5",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
+  "email": "testperm@example.com",
+  "first_name": "_Test Perm",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
+  "email": "testdelete@example.com",
+  "enabled": 1,
+  "first_name": "_Test",
+  "new_password": "Eastern_43A1W",
+  "roles": [
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "_Test Role 2"
+   },
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "System Manager"
+   }
+  ]
+ },
+ {
+    "doctype": "User",
+    "email": "testpassword@example.com",
+    "enabled": 1,
+    "first_name": "_Test",
+    "new_password": "Eastern_43A1W",
+    "roles": [
+     {
+      "doctype": "Has Role",
+      "parentfield": "roles",
+      "role": "System Manager"
+     }
+    ]
+   }
+]

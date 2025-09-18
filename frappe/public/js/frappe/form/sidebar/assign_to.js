@@ -40,6 +40,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 		avatar_group.click(() => {
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
+				assignment_details: assignments,
 				frm: this.frm,
 			});
 		});
@@ -177,13 +178,6 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				onchange: () => me.assign_to_me(),
 			},
 			{
-				label: __("Assign To User Group"),
-				fieldtype: "Link",
-				fieldname: "assign_to_user_group",
-				options: "User Group",
-				onchange: () => me.user_group_list(),
-			},
-			{
 				fieldtype: "MultiSelectPills",
 				fieldname: "assign_to",
 				label: __("Assign To"),
@@ -194,6 +188,13 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 						enabled: 1,
 					});
 				},
+			},
+			{
+				label: __("Assign To User Group"),
+				fieldtype: "Link",
+				fieldname: "assign_to_user_group",
+				options: "User Group",
+				onchange: () => me.user_group_list(),
 			},
 			{
 				fieldtype: "Section Break",
@@ -234,7 +235,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 			},
 			{
 				label: __("Comment"),
-				fieldtype: "Small Text",
+				fieldtype: "Text Editor",
 				fieldname: "description",
 			},
 		];
@@ -245,6 +246,7 @@ frappe.ui.form.AssignmentDialog = class {
 	constructor(opts) {
 		this.frm = opts.frm;
 		this.assignments = opts.assignments;
+		this.assignment_details = opts.assignment_details;
 		this.make();
 	}
 
@@ -353,6 +355,18 @@ frappe.ui.form.AssignmentDialog = class {
 					this.render(assignments);
 				});
 			});
+
+			const html = this.assignment_details
+				.filter((x) => x.owner === assignment && strip_html(x.description))
+				.map((x) => x.description)
+				.join("<hr>");
+			if (html) {
+				$(
+					"<div class='small overflow-auto m-1 p-1 flex-grow-1' style='max-height: 100px;'>"
+				)
+					.html(html)
+					.appendTo(row);
+			}
 		}
 
 		if (assignment === frappe.session.user || this.frm.perm[0].write) {

@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """
-	Sync's doctype and docfields from txt files to database
-	perms will get synced only if none exist
+Sync's doctype and docfields from txt files to database
+perms will get synced only if none exist
 """
+
 import os
 
 import frappe
@@ -108,11 +109,12 @@ def sync_for(app_name, force=0, reset_permissions=False):
 
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(
+			imported = import_file_by_path(
 				doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions
 			)
 
-			frappe.db.commit()
+			if imported:
+				frappe.db.commit(chain=True)
 
 			# show progress bar
 			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
@@ -126,7 +128,9 @@ def get_doc_files(files, start_path):
 
 	files = files or []
 
-	for _module, doctype in IMPORTABLE_DOCTYPES:
+	for _module, doctype in IMPORTABLE_DOCTYPES + [
+		(None, frappe.scrub(dt)) for dt in frappe.get_hooks("importable_doctypes")
+	]:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
 			for docname in os.listdir(doctype_path):
@@ -160,7 +164,7 @@ def remove_orphan_doctypes():
 			continue
 		try:
 			get_controller(doctype=doctype)
-		except ImportError:
+		except (ImportError, frappe.DoesNotExistError):
 			orphan_doctypes.append(doctype)
 		except Exception:
 			continue

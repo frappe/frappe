@@ -8,5 +8,4 @@ Desk
 Integrations
 Printing
 Contacts
-Social
 Automation

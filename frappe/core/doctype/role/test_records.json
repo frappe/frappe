@@ -1,0 +1,22 @@
+[
+ {
+  "doctype": "Role",
+  "role_name": "_Test Role",
+  "desk_access": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "_Test Role 2",
+  "desk_access": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "_Test Role 3",
+  "desk_access": 1
+ },
+ {
+  "doctype": "Role",
+  "role_name": "_Test Role 4",
+  "desk_access": 0
+ }
+]

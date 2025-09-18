@@ -4,7 +4,6 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	static horizontal = false;
 	make_input() {
 		super.make_input();
-
 		this.$input_area.addClass("form-control table-multiselect");
 		this.$input.removeClass("form-control");
 
@@ -29,9 +28,33 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			this.rows = this.rows.filter((row) => row[link_field.fieldname] !== value);
+			this.rows = this.rows.filter((row) => {
+				if (row[link_field.fieldname] !== value) {
+					return row;
+				} else {
+					frappe.run_serially([
+						() => {
+							return this.frm.script_manager.trigger(
+								`before_${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+						() => {
+							frappe.model.clear_doc(this.df.options, row.name);
 
-			this.parse_validate_and_set_in_model("");
+							this.frm.dirty();
+							this.refresh();
+
+							return this.frm.script_manager.trigger(
+								`${this.df.fieldname}_remove`,
+								this.df.options,
+								row.name
+							);
+						},
+					]);
+				}
+			});
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
@@ -60,20 +83,33 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		const link_field = this.get_link_field();
 
 		if (value) {
-			if (this.frm) {
-				const new_row = frappe.model.add_child(
-					this.frm.doc,
-					this.df.options,
-					this.df.fieldname
-				);
-				new_row[link_field.fieldname] = value;
-				this.rows = this.frm.doc[this.df.fieldname];
-			} else {
-				this.rows.push({
-					[link_field.fieldname]: value,
-				});
+			// Trim the value to remove spaces or only if space is only input
+			value = value.trim();
+
+			// Only create a pill if the value is a real item from the autocomplete list.
+			// This prevents creating a pill from raw text when the user clicks away.
+			if (this.awesomplete.get_item(value)) {
+				if (this.frm) {
+					const new_row = frappe.model.add_child(
+						this.frm.doc,
+						this.df.options,
+						this.df.fieldname
+					);
+					new_row[link_field.fieldname] = value;
+					this.rows = this.frm.doc[this.df.fieldname];
+
+					this.frm.script_manager.trigger(
+						`${this.df.fieldname}_add`,
+						this.df.options,
+						new_row.name
+					);
+				} else {
+					this.rows.push({
+						[link_field.fieldname]: value,
+					});
+				}
+				frappe.utils.add_link_title(link_field.options, value, label);
 			}
-			frappe.utils.add_link_title(link_field.options, value, label);
 		}
 		this._rows_list = this.rows.map((row) => row[link_field.fieldname]);
 		return this.rows;
@@ -136,9 +172,10 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		const link_field = this.get_link_field();
 		const encoded_value = encodeURIComponent(value);
 		const pill_name = frappe.utils.get_link_title(link_field.options, value) || value;
+
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
-				<span class="btn-link-to-form">${__(pill_name)}</span>
+				<span class="btn-link-to-form">${__(frappe.utils.escape_html(pill_name))}</span>
 				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;

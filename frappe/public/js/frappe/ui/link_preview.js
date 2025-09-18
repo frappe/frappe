@@ -131,10 +131,15 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_preview_data() {
-		return frappe.xcall("frappe.desk.link_preview.get_preview_data", {
-			doctype: this.doctype,
-			docname: this.name,
-		});
+		return frappe.xcall(
+			"frappe.desk.link_preview.get_preview_data",
+			{
+				doctype: this.doctype,
+				docname: this.name,
+			},
+			"GET",
+			{ cache: true }
+		);
 	}
 
 	init_preview_popover(preview_data) {

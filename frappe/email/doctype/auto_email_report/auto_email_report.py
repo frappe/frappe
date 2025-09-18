@@ -9,6 +9,7 @@ from email.utils import formataddr
 import frappe
 from frappe import _
 from frappe.desk.query_report import build_xlsx_data
+from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import (
@@ -29,6 +30,7 @@ from frappe.utils import (
 	validate_email_address,
 )
 from frappe.utils.csvutils import to_csv
+from frappe.utils.pdf import get_pdf
 from frappe.utils.xlsxutils import make_xlsx
 
 
@@ -51,7 +53,7 @@ class AutoEmailReport(Document):
 		enabled: DF.Check
 		filter_meta: DF.Text | None
 		filters: DF.Text | None
-		format: DF.Literal["HTML", "XLSX", "CSV"]
+		format: DF.Literal["HTML", "XLSX", "CSV", "PDF"]
 		frequency: DF.Literal["Daily", "Weekdays", "Weekly", "Monthly"]
 		from_date_field: DF.Literal[None]
 		no_of_rows: DF.Int
@@ -109,7 +111,7 @@ class AutoEmailReport(Document):
 
 	def validate_report_format(self):
 		"""check if user has select correct report format"""
-		valid_report_formats = ["HTML", "XLSX", "CSV"]
+		valid_report_formats = ["HTML", "XLSX", "CSV", "PDF"]
 		if self.format not in valid_report_formats:
 			frappe.throw(
 				_("{0} is not a valid report format. Report format should one of the following {1}").format(
@@ -184,6 +186,16 @@ class AutoEmailReport(Document):
 			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
 			return to_csv(xlsx_data)
 
+		elif self.format == "PDF":
+			columns, data = make_links(columns, data)
+			columns = update_field_types(columns)
+			options = {}
+
+			if len(columns) > 8:
+				options["orientation"] = "landscape"
+			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
+			return get_pdf(html, options)
+
 		else:
 			frappe.throw(_("Invalid Output Format"))
 
@@ -218,15 +230,15 @@ class AutoEmailReport(Document):
 			if self.dynamic_date_period == "Daily":
 				from_date = add_to_date(to_date, days=-1)
 			elif self.dynamic_date_period == "Weekly":
-				from_date = get_first_day_of_week(from_date)
+				from_date = get_first_day_of_week(from_date, as_str=True)
 			elif self.dynamic_date_period == "Monthly":
-				from_date = get_first_day(from_date)
+				from_date = get_first_day(from_date, as_str=True)
 			elif self.dynamic_date_period == "Quarterly":
-				from_date = get_quarter_start(from_date)
+				from_date = get_quarter_start(from_date, as_str=True)
 			elif self.dynamic_date_period == "Half Yearly":
-				from_date = get_half_year_start(from_date)
+				from_date = get_half_year_start(as_str=True)
 			elif self.dynamic_date_period == "Yearly":
-				from_date = get_year_start(from_date)
+				from_date = get_year_start(from_date, as_str=True)
 
 			self.set_date_filters(from_date, to_date)
 		else:
@@ -271,6 +283,7 @@ class AutoEmailReport(Document):
 			attachments=attachments,
 			reference_doctype=self.doctype,
 			reference_name=self.name,
+			queue_separately=True,
 		)
 
 	def dynamic_date_filters_set(self):
@@ -304,25 +317,36 @@ def send_now(name):
 def send_daily():
 	"""Check reports to be sent daily"""
 
-	current_day = calendar.day_name[now_datetime().weekday()]
 	enabled_reports = frappe.get_all(
 		"Auto Email Report", filters={"enabled": 1, "frequency": ("in", ("Daily", "Weekdays", "Weekly"))}
 	)
 
 	for report in enabled_reports:
-		auto_email_report = frappe.get_doc("Auto Email Report", report.name)
+		frappe.enqueue(
+			"frappe.email.doctype.auto_email_report.auto_email_report.process_auto_email_report",
+			report=report,
+			queue="long",
+		)
 
-		# if not correct weekday, skip
-		if auto_email_report.frequency == "Weekdays":
-			if current_day in ("Saturday", "Sunday"):
-				continue
-		elif auto_email_report.frequency == "Weekly":
-			if auto_email_report.day_of_week != current_day:
-				continue
-		try:
-			auto_email_report.send()
-		except Exception:
-			auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
+
+def process_auto_email_report(report):
+	"""Process and send the Auto Email Report based on frequency"""
+
+	current_day = calendar.day_name[now_datetime().weekday()]
+
+	auto_email_report = frappe.get_doc("Auto Email Report", report.name)
+
+	# if not correct weekday, skip
+	if auto_email_report.frequency == "Weekdays":
+		if current_day in ("Saturday", "Sunday"):
+			return
+	elif auto_email_report.frequency == "Weekly":
+		if auto_email_report.day_of_week != current_day:
+			return
+	try:
+		auto_email_report.send()
+	except Exception:
+		auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
 
 
 def send_monthly():

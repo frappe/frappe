@@ -11,6 +11,8 @@ import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar.html";
 import "./frappe/ui/sidebar.js";
+import "./frappe/ui/apps_switcher.js";
+import "./frappe/ui/apps_switcher.html";
 import "./frappe/ui/link_preview.js";
 
 import "./frappe/request.js";
@@ -99,7 +101,6 @@ import "./frappe/ui/workspace_sidebar_loading_skeleton.html";
 import "./frappe/desk.js";
 import "./frappe/query_string.js";
 
-import "./frappe/utils/energy_point_utils.js";
 import "./frappe/utils/dashboard_utils.js";
 import "./frappe/ui/chart.js";
 import "./frappe/ui/datatable.js";

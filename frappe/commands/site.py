@@ -22,8 +22,8 @@ from frappe.utils.bench_helper import CliCtxObj
 @click.option(
 	"--db-type",
 	default="mariadb",
-	type=click.Choice(["mariadb", "postgres"]),
-	help='Optional "postgres" or "mariadb". Default is "mariadb"',
+	type=click.Choice(["mariadb", "postgres", "sqlite"]),
+	help='Optional "sqlite", "postgres" or "mariadb". Default is "mariadb"',
 )
 @click.option("--db-host", help="Database Host")
 @click.option("--db-port", type=int, help="Database Port")
@@ -91,7 +91,11 @@ def new_site(
 
 	frappe.init(site, new_site=True)
 
-	mariadb_user_host_login_scope = None
+	if site in frappe.get_all_apps():
+		click.secho(
+			f"Your bench has an app called {site}, please choose another name for the site.", fg="red"
+		)
+		sys.exit(1)
 
 	if no_mariadb_socket:
 		click.secho(
@@ -101,8 +105,6 @@ def new_site(
 			fg="yellow",
 		)
 		mariadb_user_host_login_scope = "%"
-	if mariadb_user_host_login_scope:
-		mariadb_user_host_login_scope = mariadb_user_host_login_scope
 
 	rollback_callback = CallbackManager()
 
@@ -223,7 +225,7 @@ def _restore(
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
+	if "AES" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 
@@ -377,6 +379,11 @@ def partial_restore(context: CliCtxObj, sql_file_path, verbose, encryption_key=N
 	verbose = context.verbose or verbose
 	frappe.init(site)
 	frappe.connect()
+
+	if frappe.conf.db_type == "sqlite":
+		click.secho("Partial restore is not supported for SQLite databases", fg="red")
+		sys.exit(1)
+
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
@@ -565,23 +572,12 @@ def list_apps(context: CliCtxObj, format):
 @pass_context
 def add_db_index(context: CliCtxObj, doctype, column):
 	"Adds a new DB index and creates a property setter to persist it."
-	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 	columns = column  # correct naming
 	for site in context.sites:
 		frappe.init(site)
 		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
-			if len(columns) == 1:
-				make_property_setter(
-					doctype,
-					columns[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -695,8 +691,9 @@ def disable_user(context: CliCtxObj, email):
 @click.command("migrate")
 @click.option("--skip-failing", is_flag=True, help="Skip patches that fail to run")
 @click.option("--skip-search-index", is_flag=True, help="Skip search indexing for web documents")
+@click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
-def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
+def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
 
 	from frappe.migrate import SiteMigration
@@ -705,8 +702,7 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False):
 		click.secho(f"Migrating {site}", fg="green")
 		try:
 			SiteMigration(
-				skip_failing=skip_failing,
-				skip_search_index=skip_search_index,
+				skip_failing=skip_failing, skip_search_index=skip_search_index, skip_fixtures=skip_fixtures
 			).run(site=site)
 		finally:
 			print()
@@ -782,7 +778,7 @@ def reload_doctype(context: CliCtxObj, doctype):
 def add_to_hosts(context: CliCtxObj):
 	"Add site to hosts"
 	for site in context.sites:
-		frappe.commands.popen(f"echo 127.0.0.1\t{site} | sudo tee -a /etc/hosts")
+		frappe.commands.popen(f"echo '127.0.0.1\t{site}\n::1\t{site}' | sudo tee -a /etc/hosts")
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -1173,8 +1169,20 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 @click.command("browse")
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
+@click.option(
+	"--session-end",
+	required=False,
+	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
+)
+@click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
 @pass_context
-def browse(context: CliCtxObj, site, user=None):
+def browse(
+	context: CliCtxObj,
+	site,
+	user: str | None = None,
+	session_end: str | None = None,
+	user_for_audit: str | None = None,
+):
 	"""Opens the site on web browser"""
 	from frappe.auth import CookieManager, LoginManager
 
@@ -1200,7 +1208,7 @@ def browse(context: CliCtxObj, site, user=None):
 			frappe.utils.set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
+			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = f"/app?sid={frappe.session.sid}"
 		else:
 			click.echo("Please enable developer mode to login as a user")

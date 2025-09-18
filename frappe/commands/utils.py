@@ -77,7 +77,7 @@ def build(
 			skip_frappe = False
 
 		# don't minify in developer_mode for faster builds
-		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		development = frappe.local.conf.developer_mode or frappe._dev_server
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -175,7 +175,7 @@ def destroy_all_sessions(context: CliCtxObj, reason=None):
 @click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
 def show_config(context: CliCtxObj, format):
-	"Print configuration file to STDOUT in speified format"
+	"Print configuration file to STDOUT in specified format"
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -524,12 +524,27 @@ def postgres(context: CliCtxObj, extra_args):
 	_enter_console(extra_args=extra_args)
 
 
+@click.command("sqlite", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
+@pass_context
+def sqlite(context: CliCtxObj, extra_args):
+	"""
+	Enter into sqlite console for a given site.
+	"""
+	site = get_site(context)
+	frappe.init(site)
+	frappe.conf.db_type = "sqlite"
+	_enter_console(extra_args=extra_args)
+
+
 def _enter_console(extra_args=None):
 	from frappe.database import get_command
 	from frappe.utils import get_site_path
 
 	if frappe.conf.db_type == "mariadb":
 		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+	elif frappe.conf.db_type == "sqlite":
+		os.environ["SQLITE_HISTORY"] = os.path.abspath(get_site_path("logs", "sqlite_console.log"))
 	else:
 		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 
@@ -582,7 +597,7 @@ Run the following in your first cell to connect notebook to frappe
 import frappe
 frappe.init('{site}', sites_path='{sites_path}')
 frappe.connect()
-frappe.local.lang = frappe.db.get_default('lang')
+frappe.local.lang = frappe.get_system_settings('language')
 frappe.db.connect()
 ```
 	"""
@@ -599,7 +614,8 @@ frappe.db.connect()
 
 def _console_cleanup():
 	# Execute after_rollback on console close
-	frappe.db.rollback()
+	if frappe.db:
+		frappe.db.rollback()
 	frappe.destroy()
 
 
@@ -623,7 +639,7 @@ def console(context: CliCtxObj, autoreload=False):
 	site = get_site(context)
 	frappe.init(site)
 	frappe.connect()
-	frappe.local.lang = frappe.db.get_default("lang")
+	frappe.local.lang = frappe.get_system_settings("language")
 
 	from atexit import register
 
@@ -840,6 +856,14 @@ def request(context: CliCtxObj, args=None, path=None):
 @click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
 def make_app(destination, app_name, no_git=False):
 	"Creates a boilerplate app"
+	from frappe.utils import get_sites
+
+	if app_name in get_sites():
+		click.secho(
+			f"Your bench has a site called {app_name}, please choose another name for the app.", fg="red"
+		)
+		sys.exit(1)
+
 	from frappe.utils.boilerplate import make_boilerplate
 
 	make_boilerplate(destination, app_name, no_git=no_git)
@@ -890,7 +914,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	"output",
 	type=click.Choice(["plain", "table", "json", "legacy"]),
 	help="Output format",
-	default="legacy",
+	default="plain",
 )
 def get_version(output):
 	"""Show the versions of all the installed apps."""
@@ -1024,6 +1048,7 @@ commands = [
 	make_app,
 	create_patch,
 	mariadb,
+	sqlite,
 	postgres,
 	request,
 	reset_perms,

@@ -34,27 +34,38 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 	).run()
 
 	if result and result[0][0]:
-		return decrypt(result[0][0], key=f"{doctype}.{name}.{fieldname}")
+		try:
+			return decrypt(result[0][0], key=f"{doctype}.{name}.{fieldname}")
+		except frappe.ValidationError as e:
+			if raise_exception:
+				raise e
 
-	elif raise_exception:
+			return None
+
+	if raise_exception:
 		frappe.throw(
 			_("Password not found for {0} {1} {2}").format(doctype, name, fieldname),
-			frappe.AuthenticationError,
 		)
 
 
 def set_encrypted_password(doctype, name, pwd, fieldname="password"):
-	query = (
-		frappe.qb.into(Auth)
-		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
-		.insert(doctype, name, fieldname, encrypt(pwd), 1)
+	query = frappe.qb.into(Auth).columns(
+		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
 	)
 
 	# TODO: Simplify this via aliasing methods in `frappe.qb`
 	if frappe.db.db_type == "mariadb":
-		query = query.on_duplicate_key_update(Auth.password, Values(Auth.password))
+		query = query.insert(doctype, name, fieldname, encrypt(pwd), 1).on_duplicate_key_update(
+			Auth.password, Values(Auth.password)
+		)
+	elif frappe.db.db_type == "sqlite":
+		query = query.insert_or_replace(doctype, name, fieldname, encrypt(pwd), 1)
 	elif frappe.db.db_type == "postgres":
-		query = query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname).do_update(Auth.password)
+		query = (
+			query.insert(doctype, name, fieldname, encrypt(pwd), 1)
+			.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
+			.do_update(Auth.password)
+		)
 
 	try:
 		query.run()
@@ -118,20 +129,24 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	"""
 	hashPwd = passlibctx.hash(pwd)
 
-	query = (
-		frappe.qb.into(Auth)
-		.columns(Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted)
-		.insert(doctype, user, fieldname, hashPwd, 0)
+	query = frappe.qb.into(Auth).columns(
+		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
 	)
 
 	# TODO: Simplify this via aliasing methods in `frappe.qb`
 	if frappe.db.db_type == "mariadb":
-		query = query.on_duplicate_key_update(Auth.password, hashPwd).on_duplicate_key_update(
-			Auth.encrypted, 0
+		query = (
+			query.insert(doctype, user, fieldname, hashPwd, 0)
+			.on_duplicate_key_update(Auth.password, hashPwd)
+			.on_duplicate_key_update(Auth.encrypted, 0)
 		)
+	elif frappe.db.db_type == "sqlite":
+		query = query.insert_or_replace(doctype, user, fieldname, hashPwd, 0)
+
 	elif frappe.db.db_type == "postgres":
 		query = (
-			query.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
+			query.insert(doctype, user, fieldname, hashPwd, 0)
+			.on_conflict(Auth.doctype, Auth.name, Auth.fieldname)
 			.do_update(Auth.password, hashPwd)
 			.do_update(Auth.encrypted, 0)
 		)
@@ -196,7 +211,7 @@ def decrypt(txt, encryption_key=None, key: str | None = None):
 			+ _("Encryption key is invalid! Please check site_config.json")
 			+ "<br><br>"
 			+ _(
-				"If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
+				"If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
 			)
 			+ "<br><br>"
 			+ _(

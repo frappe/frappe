@@ -95,8 +95,11 @@ class TestRunner(unittest.TextTestRunner):
 		return next(self._iterate_suite(suite), None) is not None
 
 	def _prepare_category(self, category, suite, app):
+		from frappe.deprecation_dumpster import get_compat_frappe_test_case_preparation
+
 		dispatcher = {
 			"integration": self.integration_preparation,
+			"old-frappe-test-class-category": get_compat_frappe_test_case_preparation(self.cfg),
 			# Add other categories here as needed
 		}
 		prepare_method = dispatcher.get(category.lower())

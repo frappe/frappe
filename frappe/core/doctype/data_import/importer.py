@@ -26,9 +26,12 @@ DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s
 
 
 class Importer:
-	def __init__(self, doctype, data_import=None, file_path=None, import_type=None, console=False):
+	def __init__(
+		self, doctype, data_import=None, file_path=None, import_type=None, console=False, use_sniffer=False
+	):
 		self.doctype = doctype
 		self.console = console
+		self.use_sniffer = use_sniffer
 
 		self.data_import = data_import
 		if not self.data_import:
@@ -45,6 +48,7 @@ class Importer:
 			self.template_options,
 			self.import_type,
 			console=self.console,
+			use_sniffer=self.use_sniffer,
 		)
 
 	def get_data_for_import_preview(self):
@@ -402,13 +406,16 @@ class Importer:
 
 
 class ImportFile:
-	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False):
+	def __init__(
+		self, doctype, file, template_options=None, import_type=None, *, console=False, use_sniffer=False
+	):
 		self.doctype = doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
 		self.warnings = []
 		self.console = console
+		self.use_sniffer = use_sniffer
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):
@@ -605,7 +612,7 @@ class ImportFile:
 			frappe.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
 
 		if extension == "csv":
-			data = read_csv_content(content)
+			data = read_csv_content(content, use_sniffer=self.use_sniffer)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
@@ -726,8 +733,23 @@ class Row:
 					}
 				)
 				return
-		elif df.fieldtype in ["Date", "Datetime"]:
+		elif df.fieldtype == "Date":
 			value = self.get_date(value, col)
+			if isinstance(value, str):
+				# value was not parsed as datetime object
+				self.warnings.append(
+					{
+						"row": self.row_number,
+						"col": col.column_number,
+						"field": df_as_json(df),
+						"message": _("Value {0} must in {1} format").format(
+							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
+						),
+					}
+				)
+				return
+		elif df.fieldtype == "Datetime":
+			value = self.get_datetime(value, col)
 			if isinstance(value, str):
 				# value was not parsed as datetime object
 				self.warnings.append(
@@ -776,15 +798,31 @@ class Row:
 			value = cint(value)
 		elif df.fieldtype in ["Float", "Percent", "Currency"]:
 			value = flt(value)
-		elif df.fieldtype in ["Date", "Datetime"]:
+		elif df.fieldtype == "Date":
 			value = self.get_date(value, col)
+		elif df.fieldtype == "Datetime":
+			value = self.get_datetime(value, col)
 		elif df.fieldtype == "Duration":
 			value = duration_to_seconds(value)
 
 		return value
 
-	def get_date(self, value, column):
-		if isinstance(value, datetime | date):
+	def get_date(self, value, column) -> date:
+		if isinstance(value, date):
+			return value
+
+		date_format = column.date_format
+		if date_format:
+			try:
+				return datetime.strptime(value, date_format).date()
+			except ValueError:
+				# ignore date values that dont match the format
+				# import will break for these values later
+				pass
+		return value
+
+	def get_datetime(self, value, column) -> datetime:
+		if isinstance(value, datetime):
 			return value
 
 		date_format = column.date_format
@@ -997,8 +1035,11 @@ class Column:
 
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
-			values = list({cstr(v) for v in self.column_values if v})
-			exists = [cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})]
+			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
+			values = list({transform(v) for v in self.column_values if v})
+			exists = [
+				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)

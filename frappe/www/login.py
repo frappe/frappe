@@ -23,6 +23,9 @@ no_cache = True
 
 
 def get_context(context):
+	from frappe.integrations.frappe_providers.frappecloud_billing import get_site_login_url
+	from frappe.utils.frappecloud import on_frappecloud
+
 	redirect_to = frappe.local.request.args.get("redirect-to")
 	redirect_to = sanitize_redirect(redirect_to)
 
@@ -69,7 +72,9 @@ def get_context(context):
 	)
 
 	for provider in providers:
-		client_secret = get_decrypted_password("Social Login Key", provider.name, "client_secret")
+		client_secret = get_decrypted_password(
+			"Social Login Key", provider.name, "client_secret", raise_exception=False
+		)
 		if not client_secret:
 			continue
 
@@ -107,6 +112,11 @@ def get_context(context):
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
+	context["login_with_frappe_cloud_url"] = (
+		f"{get_site_login_url()}?site={frappe.local.site}"
+		if on_frappecloud() and frappe.conf.get("fc_communication_secret")
+		else None
+	)
 
 	return context
 
@@ -126,8 +136,12 @@ def login_via_token(login_token: str):
 	)
 
 
+def get_login_with_email_link_ratelimit() -> int:
+	return frappe.get_system_settings("rate_limit_email_link_login") or 5
+
+
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=5, seconds=60 * 60)
+@rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def send_login_link(email: str):
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
@@ -159,10 +173,6 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
-
-
-def get_login_with_email_link_ratelimit() -> int:
-	return frappe.get_system_settings("rate_limit_email_link_login") or 5
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])

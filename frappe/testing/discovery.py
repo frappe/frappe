@@ -134,14 +134,16 @@ def _add_module_tests(runner, app: str, module: str):
 			case UnitTestCase():
 				category = "unit"
 			case _:
-				from frappe.deprecation_dumpster import deprecation_warning
+				category = "unspecified-category"
+				if any(b.__name__ == "FrappeTestCase" for b in test.__class__.__bases__):
+					from frappe.deprecation_dumpster import deprecation_warning
 
-				deprecation_warning(
-					"2024-20-08",
-					"v17",
-					"discovery and categorization of FrappeTestCase will be removed from this runner",
-				)
-				category = "deprecated-old-style-unspecified"
+					deprecation_warning(
+						"2024-20-08",
+						"v17",
+						"accurate categorization of FrappeTestCase will be removed from this runner",
+					)
+					category = "old-frappe-test-class-category"
 		if runner.cfg.selected_categories and category not in runner.cfg.selected_categories:
 			continue
 		runner.per_app_categories[app][category].addTest(test)

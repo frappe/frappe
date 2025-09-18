@@ -36,7 +36,6 @@ frappe.ui.form.on("DocType", {
 			if (doc.custom && frappe.session.user != "Administrator") {
 				return {
 					query: "frappe.core.doctype.role.role.role_query",
-					filters: [["Role", "name", "!=", "All"]],
 				};
 			}
 		});

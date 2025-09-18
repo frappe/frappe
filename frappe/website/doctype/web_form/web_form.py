@@ -10,6 +10,7 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
+from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
 from frappe.utils import dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
@@ -69,7 +70,6 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
-
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -79,10 +79,7 @@ class WebForm(WebsiteGenerator):
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
 		in_user_env = not (
-			frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.flags.in_test
-			or frappe.flags.in_fixtures
+			frappe.flags.in_install or frappe.flags.in_patch or frappe.in_test or frappe.flags.in_fixtures
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms
@@ -155,8 +152,13 @@ def get_context(context):
 		else:
 			context.template = "website/doctype/web_form/templates/web_form.html"
 
+		# By default, assume no delete permissions
+		context.has_delete_permission = False
+
 		# check permissions
 		if frappe.form_dict.name:
+			assert isinstance(frappe.form_dict.name, str | int)
+
 			if frappe.session.user == "Guest":
 				frappe.throw(
 					_("You need to be logged in to access this {0}.").format(self.doc_type),
@@ -164,12 +166,18 @@ def get_context(context):
 				)
 
 			if not frappe.db.exists(self.doc_type, frappe.form_dict.name):
+				check_doctype_permission(self.doc_type)
 				raise frappe.PageDoesNotExistError()
 
 			if not self.has_web_form_permission(self.doc_type, frappe.form_dict.name):
+				check_doctype_permission(self.doc_type)
 				frappe.throw(
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
+
+			context.has_delete_permission = frappe.has_permission(
+				self.doc_type, "delete", frappe.form_dict.name
+			)
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
@@ -268,6 +276,51 @@ def get_context(context):
 		messages = [
 			"Sr",
 			"Attach",
+			"Next",
+			"Previous",
+			"Discard?",
+			"Cancel",
+			"Discard:Button in web form",
+			"Edit:Button in web form",
+			"See previous responses::Button in web form",
+			"Edit your response::Button in web form",
+			"Are you sure you want to discard the changes?",
+			"Mandatory fields required::Error message in web form",
+			"Invalid values for fields::Error message in web form",
+			"Error:Title of error message in web form",
+			"Page {0} of {1}",
+			"Couldn't save, please check the data you have entered",
+			"Validation Error",
+			"No {0} found",
+			"Create a new {0}",
+			"Camera",
+			"Delete",
+			"Drag and drop files here or upload from",
+			"Following fields have missing values::Error message in web form",
+			"Link",
+			"Load More",
+			"Message",
+			"Missing Values Required:Error message in web form",
+			"My Device",
+			"No comments yet.",
+			"No more items to display",
+			"Set all private",
+			"Set all public",
+			"Start a new discussion",
+			"Upload",
+			"Link",
+			"Public",
+			"Private",
+			"Optimize",
+			"Drop files here",
+			"Take Photo",
+			"No Images",
+			"Total Images",
+			"Preview",
+			"Submit",
+			"Capture",
+			"Attach a web link",
+			"← Back to upload files",
 			self.title,
 			self.introduction_text,
 			self.success_title,
@@ -282,6 +335,52 @@ def get_context(context):
 			messages.extend([field.label, field.description])
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
+
+		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
+		if any(field.fieldtype == "Table" for field in self.web_form_fields):
+			messages.append("Move")
+			messages.append("Insert Above")
+			messages.append("Insert Below")
+			messages.append("Duplicate")
+			messages.append("Shortcuts")
+			messages.append("Ctrl + Up")
+			messages.append("Ctrl + Down")
+			messages.append("ESC")
+			messages.append("Editing Row")
+			messages.append("Add / Remove Columns")
+			messages.append("Fieldname")
+			messages.append("Column Width")
+			messages.append("Configure Columns")
+			messages.append("Select Fields")
+			messages.append("Select All")
+			messages.append("Update")
+			messages.append("Reset to default")
+			messages.append("No Data")
+			messages.append("Delete")
+			messages.append("Delete All")
+			messages.append("Add Row")
+			messages.append("Add Multiple")
+			messages.append("Download")
+			messages.append("of")
+			messages.append("Upload")
+			messages.append("Last")
+			messages.append("First")
+			messages.append("No.")
+
+		# Phone Picker
+		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
+			messages.append("Search for countries...")
+
+		# Dates
+		if any(field.fieldtype == "Date" for field in self.web_form_fields):
+			messages.append("Now")
+			messages.append("Today")
+			messages.append("Date {0} must be in format: {1}")
+			messages.append("{0} to {1}")
+
+		# Time
+		if any(field.fieldtype == "Time" for field in self.web_form_fields):
+			messages.append("Now")
 
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
@@ -309,7 +408,7 @@ def get_context(context):
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
 		if self.show_list and frappe.form_dict.is_new:
-			context.title = _("New {0}").format(context.title)
+			context.title = _("New {0}").format(_(context.title))
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
 			frappe.session.user != "Guest" or not self.login_required
@@ -342,7 +441,9 @@ def get_context(context):
 			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
 			context.web_form_title = context.title
 			context.title = (
-				strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				strip_html(
+					frappe.cstr(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				)
 				or context.doc_name
 			)
 			context.reference_doc.add_seen()
@@ -350,15 +451,7 @@ def get_context(context):
 			context.reference_name = context.reference_doc.name
 
 			if self.show_attachments:
-				context.attachments = frappe.get_all(
-					"File",
-					filters={
-						"attached_to_name": context.reference_name,
-						"attached_to_doctype": context.reference_doctype,
-						"is_private": 0,
-					},
-					fields=["file_name", "file_url", "file_size"],
-				)
+				context.attachments = self.get_webform_attachments(context)
 
 			if self.allow_comments:
 				context.comment_list = get_comment_list(
@@ -380,7 +473,9 @@ def get_context(context):
 			if os.path.exists(js_path):
 				script = frappe.render_template(open(js_path).read(), context)
 
-				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
+				for path in get_code_files_via_hooks(
+					"webform_include_js", context.doc_type
+				) + get_code_files_via_hooks("webform_include_js", "*"):
 					custom_js = frappe.render_template(open(path).read(), context)
 					script = "\n\n".join([script, custom_js])
 
@@ -424,7 +519,7 @@ def get_context(context):
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
+			return frappe.get_lazy_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
 		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
@@ -438,6 +533,51 @@ def get_context(context):
 
 		else:
 			return False
+
+	def get_webform_attachments(self, context):
+		"""
+		Returns permitted attachments for the webform.
+		NOTE: At this point, `self.login_required` is True.
+		"""
+		from frappe.core.doctype.file.file import has_permission as has_file_permission
+
+		def _add_attachment(attachment):
+			"""Add attachment to the list."""
+			return {
+				"file_name": attachment.file_name,
+				"file_url": attachment.file_url,
+				"file_size": attachment.file_size,
+			}
+
+		attachments = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_name": context.reference_name,
+				"attached_to_doctype": context.reference_doctype,
+			},
+			fields=[
+				"is_private",
+				"file_name",
+				"file_url",
+				"file_size",
+				"owner",
+				"attached_to_doctype",
+				"attached_to_name",
+			],
+		)
+
+		permitted_attachments = []
+		for attachment in attachments:
+			if not attachment.is_private:
+				# Public attachments are always permitted
+				permitted_attachments.append(_add_attachment(attachment))
+				continue
+
+			# Attachment is private. Check for file permission
+			if has_file_permission(attachment, "read"):
+				permitted_attachments.append(_add_attachment(attachment))
+
+		return permitted_attachments
 
 
 def get_web_form_module(doc):
@@ -454,7 +594,7 @@ def accept(web_form, data):
 	files = []
 	files_to_delete = []
 
-	web_form = frappe.get_doc("Web Form", web_form)
+	web_form = frappe.get_lazy_doc("Web Form", web_form)
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -549,8 +689,8 @@ def accept(web_form, data):
 
 
 @frappe.whitelist()
-def delete(web_form_name, docname):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+def delete(web_form_name: str, docname: str | int):
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -560,8 +700,8 @@ def delete(web_form_name, docname):
 
 
 @frappe.whitelist()
-def delete_multiple(web_form_name, docnames):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+def delete_multiple(web_form_name: str, docnames):
+	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
 
@@ -569,6 +709,8 @@ def delete_multiple(web_form_name, docnames):
 	restricted_docnames = []
 
 	for docname in docnames:
+		assert isinstance(docname, str | int)
+
 		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 		if frappe.session.user == owner and web_form.allow_delete:
 			allowed_docnames.append(docname)
@@ -585,20 +727,20 @@ def delete_multiple(web_form_name, docnames):
 
 
 def check_webform_perm(doctype, name):
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	if hasattr(doc, "has_webform_permission"):
 		if doc.has_webform_permission():
 			return True
 
 
 @frappe.whitelist(allow_guest=True)
-def get_web_form_filters(web_form_name):
+def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
 @frappe.whitelist(allow_guest=True)
-def get_form_data(doctype, docname=None, web_form_name=None):
+def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
@@ -656,7 +798,7 @@ def get_in_list_view_fields(doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
+	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
@@ -673,14 +815,25 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	fields = ["name as value"]
 
 	meta = frappe.get_meta(doctype)
-	if meta.title_field and meta.show_title_field_in_link:
+	show_title_field = meta.title_field and meta.show_title_field_in_link
+
+	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
 	link_options = frappe.get_all(doctype, filters, fields)
 
-	if meta.title_field and meta.show_title_field_in_link:
+	if show_title_field:
+		if meta.translated_doctype:
+			# Translate the labels if "Translate Link Fields" is enabled
+			link_options = [{"value": row.value, "label": _(row.label)} for row in link_options]
+
 		return json.dumps(link_options, default=str)
 	else:
+		if meta.translated_doctype:
+			# Add `label` as the translated name if "Translate Link Fields" is enabled
+			return [{"value": row.value, "label": _(row.value)} for row in link_options]
+
+		# Use the actual names as options without labels
 		return "\n".join([str(doc.value) for doc in link_options])
 
 

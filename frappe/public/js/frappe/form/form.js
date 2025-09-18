@@ -428,7 +428,6 @@ frappe.ui.form.Form = class FrappeForm {
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
 				this.set_read_only();
-				frappe.show_alert(__("This form is not editable due to a Workflow."));
 			}
 
 			// check if doctype is already open
@@ -447,11 +446,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 			// load the record for the first time, if not loaded (call 'onload')
 			this.trigger_onload(switched);
-
-			// if print format is shown, refresh the format
-			// if(this.print_preview.wrapper.is(":visible")) {
-			// 	this.print_preview.preview();
-			// }
 
 			if (switched) {
 				if (this.show_print_first && this.doc.docstatus === 1) {
@@ -749,6 +743,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.show_submit_message();
 		this.clear_custom_buttons();
 		this.show_web_link();
+		this.show_workflow_read_only_banner();
 	}
 
 	// SAVE
@@ -913,18 +908,15 @@ frappe.ui.form.Form = class FrappeForm {
 				args: {
 					doctype: me.doc.doctype,
 					name: me.doc.name,
+					ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all,
 				},
 				freeze: true,
 			})
 			.then((r) => {
 				if (!r.exc) {
-					let doctypes_to_cancel = (r.message.docs || [])
-						.map((value) => {
-							return value.doctype;
-						})
-						.filter((value) => {
-							return !me.ignore_doctypes_on_cancel_all.includes(value);
-						});
+					let doctypes_to_cancel = (r.message.docs || []).map((value) => {
+						return value.doctype;
+					});
 
 					if (doctypes_to_cancel.length) {
 						return me._cancel_all(r, btn, callback, on_error);
@@ -1265,8 +1257,6 @@ frappe.ui.form.Form = class FrappeForm {
 		} else if (this.doctype == "DocType") {
 			if (frappe.views.formview[docname] || frappe.pages["List/" + docname]) {
 				window.location.reload();
-				//	frappe.msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
-				// throw 'doctype open conflict'
 			}
 		} else {
 			if (
@@ -1274,8 +1264,6 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.views.formview.DocType.frm.opendocs[this.doctype]
 			) {
 				window.location.reload();
-				//	frappe.msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
-				// throw 'doctype open conflict'
 			}
 		}
 	}
@@ -1352,12 +1340,14 @@ frappe.ui.form.Form = class FrappeForm {
 			prev,
 		};
 
-		frappe.call("frappe.desk.form.utils.get_next", args).then((r) => {
-			if (r.message) {
-				frappe.set_route("Form", this.doctype, r.message);
-				this.focus_on_first_input();
-			}
-		});
+		frappe
+			.call({ method: "frappe.desk.form.utils.get_next", args, freeze: true })
+			.then((r) => {
+				if (r.message) {
+					frappe.set_route("Form", this.doctype, r.message);
+					this.focus_on_first_input();
+				}
+			});
 	}
 
 	rename_doc() {
@@ -1479,14 +1469,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let btn = this.page.add_inner_button(label, fn, group);
 
-		if (btn) {
-			// Add actions as menu item in Mobile View
-			let menu_item_label = group ? `${group} > ${label}` : label;
-			let menu_item = this.page.add_menu_item(menu_item_label, fn, false);
-			menu_item.parent().addClass("hidden-xl");
-
-			this.custom_buttons[label] = btn;
-		}
 		return btn;
 	}
 
@@ -1772,7 +1754,7 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 			} else {
 				frappe.msgprint(__("Field {0} not found.", [f]));
-				throw "frm.set_value";
+				throw `frm.set_value: '${f}' does not exist in the form`;
 			}
 		};
 
@@ -1877,11 +1859,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	get_title() {
-		if (this.meta.title_field) {
-			return this.doc[this.meta.title_field];
-		} else {
-			return String(this.doc.name);
-		}
+		return frappe.model.get_doc_title(this.doc);
 	}
 
 	get_selected() {
@@ -1969,7 +1947,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.can_make_methods && this.can_make_methods[doctype]) {
 			return this.can_make_methods[doctype](this);
 		} else {
-			if (this.meta.is_submittable && !this.doc.docstatus == 1) {
+			if (this.meta.is_submittable && this.doc.docstatus !== 1) {
 				return false;
 			} else {
 				return true;
@@ -2103,16 +2081,11 @@ frappe.ui.form.Form = class FrappeForm {
 					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1);
 				}
 			}
-			// no need to update timeline of owner of comment
-			// gets handled via comment submit code
-			if (
-				!(
-					["add", "update"].includes(action) &&
-					doc.doctype === "Comment" &&
-					doc.owner === frappe.session.user
-				)
-			) {
-				this.timeline && this.timeline.refresh();
+
+			this.timeline && this.timeline.refresh();
+
+			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
+				this.footer.refresh_comments_count();
 			}
 		});
 	}
@@ -2274,6 +2247,26 @@ frappe.ui.form.Form = class FrappeForm {
 					wrapper.remove();
 				}
 			});
+	}
+
+	show_workflow_read_only_banner() {
+		if (!this.read_only) {
+			return;
+		}
+
+		const _show_read_only_banner = () => {
+			this.dashboard.set_headline(
+				__("This form is not editable due to a Workflow."),
+				"blue",
+				true
+			);
+		};
+
+		if (this.dashboard) {
+			_show_read_only_banner();
+		} else {
+			frappe.after_ajax(_show_read_only_banner);
+		}
 	}
 };
 

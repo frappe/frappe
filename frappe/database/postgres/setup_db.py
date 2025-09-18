@@ -39,7 +39,7 @@ def bootstrap_database(verbose, source_sql=None):
 		secho(
 			"Table 'tabDefaultValue' missing in the restored site. "
 			"This happens when the backup fails to restore. Please check that the file is valid\n"
-			"Do go through the above output to check the exact error message from MariaDB",
+			"Do go through the above output to check the exact error message from Postgres",
 			fg="red",
 		)
 		sys.exit(1)
@@ -55,21 +55,27 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		verbose, db_name, source_sql, frappe.conf.db_user, frappe.conf.db_password
 	)
 	if verbose:
-		print("Imported from database %s" % source_sql)
+		print("Imported from database {}".format(source_sql))
 
 
 def get_root_connection():
 	if not frappe.local.flags.root_connection:
+		import sys
 		from getpass import getpass
 
 		if not frappe.flags.root_login:
 			frappe.flags.root_login = (
-				frappe.conf.get("root_login") or input("Enter postgres super user [postgres]: ") or "postgres"
+				frappe.conf.get("postgres_root_login")
+				or frappe.conf.get("root_login")
+				or (sys.__stdin__.isatty() and input("Enter postgres super user [postgres]: "))
+				or "postgres"
 			)
 
 		if not frappe.flags.root_password:
-			frappe.flags.root_password = frappe.conf.get("root_password") or getpass(
-				"Postgres super user password: "
+			frappe.flags.root_password = (
+				frappe.conf.get("postgres_root_password")
+				or frappe.conf.get("root_password")
+				or getpass("Postgres super user password: ")
 			)
 
 		frappe.local.flags.root_connection = frappe.database.get_db(

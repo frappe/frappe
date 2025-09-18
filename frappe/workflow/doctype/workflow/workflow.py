@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS
 from frappe.utils import cint
 
 
@@ -33,12 +34,11 @@ class Workflow(Document):
 
 	def validate(self):
 		self.set_active()
-		self.create_custom_field_for_workflow_state()
-		self.update_default_workflow_status()
 		self.validate_docstatus()
 
 	def on_update(self):
-		frappe.clear_cache(doctype=self.document_type)
+		self.create_custom_field_for_workflow_state()
+		self.update_default_workflow_status()
 
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
@@ -132,3 +132,8 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 			group_by=workflow_state_field,
 		)
 		return [r for r in result if r[workflow_state_field]]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_workflow_methods():
+	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS

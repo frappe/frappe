@@ -38,6 +38,9 @@ body {
 	.col, *[class^="col-"] {
 		max-width: none !important;
 	}
+	.label {
+		border: none;
+	}
 }
 
 @media screen {

@@ -79,7 +79,7 @@ context("Control Link", () => {
 	it("should unset invalid value", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
+		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input")
 			.type("invalid value", { delay: 100 })
@@ -92,7 +92,7 @@ context("Control Link", () => {
 	it("should be possible set empty value explicitly", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
+		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input").type("  ", { delay: 100 }).blur();
 		cy.wait("@validate_link");
@@ -105,10 +105,10 @@ context("Control Link", () => {
 			});
 	});
 
-	it("should route to form on arrow click", () => {
+	it("should show open link button", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
+		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get("@todos").then((todos) => {
@@ -117,10 +117,10 @@ context("Control Link", () => {
 			cy.wait("@search_link");
 			cy.get("@input").type(todos[0]).blur();
 			cy.wait("@validate_link");
-			cy.get("@input").focus();
-			cy.wait(500); // wait for arrow to show
-			cy.get(".frappe-control[data-fieldname=link] .btn-open").should("be.visible").click();
-			cy.location("pathname").should("eq", `/app/todo/${todos[0]}`);
+			cy.get("@input").trigger("mouseover");
+			cy.get(".frappe-control[data-fieldname=link] .btn-open")
+				.should("be.visible")
+				.should("have.attr", "href", `/app/todo/${todos[0]}`);
 		});
 	});
 
@@ -178,7 +178,7 @@ context("Control Link", () => {
 		cy.get("@todos").then((todos) => {
 			cy.visit(`/app/todo/${todos[0]}`);
 			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-			cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
+			cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 
 			cy.get(".frappe-control[data-fieldname=assigned_by] input").focus().as("input");
 			cy.get("@input").clear().type(cy.config("testUser"), { delay: 300 }).blur();

@@ -6,20 +6,11 @@ import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
 	from frappe.email.doctype.email_account.email_account import EmailAccount
-
-
-class UnitTestCommunication(UnitTestCase):
-	"""
-	Unit tests for Communication.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestCommunication(IntegrationTestCase):
@@ -143,7 +134,7 @@ class TestCommunication(IntegrationTestCase):
 		self.assertNotEqual(2, len(comm.timeline_links))
 
 	def test_contacts_attached(self):
-		contact_sender: "Contact" = frappe.get_doc(
+		contact_sender: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_sender",
@@ -152,7 +143,7 @@ class TestCommunication(IntegrationTestCase):
 		contact_sender.add_email("comm_sender@example.com")
 		contact_sender.insert(ignore_permissions=True)
 
-		contact_recipient: "Contact" = frappe.get_doc(
+		contact_recipient: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_recipient",
@@ -161,7 +152,7 @@ class TestCommunication(IntegrationTestCase):
 		contact_recipient.add_email("comm_recipient@example.com")
 		contact_recipient.insert(ignore_permissions=True)
 
-		contact_cc: "Contact" = frappe.get_doc(
+		contact_cc: Contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
 				"first_name": "contact_cc",

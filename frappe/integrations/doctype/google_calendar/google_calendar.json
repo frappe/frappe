@@ -13,6 +13,7 @@
   "authorize_google_calendar_access",
   "sb_01",
   "pull_from_google_calendar",
+  "sync_as_public",
   "cb_01",
   "push_to_google_calendar",
   "section_break_3",
@@ -99,6 +100,12 @@
    "label": "Pull from Google Calendar"
   },
   {
+    "default": "0",
+    "fieldname": "sync_as_public",
+    "fieldtype": "Check",
+    "label": "Sync events from Google as public"
+  },
+  {
    "fieldname": "cb_01",
    "fieldtype": "Column Break"
   },
@@ -110,7 +117,7 @@
   }
  ],
  "links": [],
- "modified": "2024-03-23 16:03:26.682486",
+ "modified": "2025-01-27 13:06:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",

@@ -37,7 +37,7 @@ if (props.df.fieldtype === "Icon") {
 			class="form-control"
 			type="text"
 			:style="{ height: df.fieldtype == 'Table MultiSelect' ? '42px' : '' }"
-			:placeholder="placeholder"
+			:placeholder="__(placeholder)"
 			readonly
 		/>
 		<input
@@ -57,7 +57,7 @@ if (props.df.fieldtype === "Icon") {
 		/>
 
 		<!-- description -->
-		<div v-if="df.description" class="mt-2 description" v-html="df.description" />
+		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)" />
 
 		<!-- timezone for datetime field -->
 		<div

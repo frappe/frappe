@@ -12,6 +12,7 @@
   "properties",
   "label",
   "search_fields",
+  "grid_page_length",
   "link_filters",
   "column_break_5",
   "istable",
@@ -33,6 +34,7 @@
   "column_break_21",
   "allow_copy",
   "make_attachments_public",
+  "protect_attached_files",
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
@@ -48,6 +50,7 @@
   "email_append_to",
   "sender_field",
   "sender_name_field",
+  "recipient_account_field",
   "subject_field",
   "section_break_8",
   "sort_field",
@@ -402,6 +405,26 @@
    "label": "Sender Name Field"
   },
   {
+   "depends_on": "istable",
+   "fieldname": "grid_page_length",
+   "fieldtype": "Int",
+   "label": "Grid Page Length",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Users are only able to delete attached files if the document is either in draft or if the document is canceled and they are also able to delete the document.",
+   "fieldname": "protect_attached_files",
+   "fieldtype": "Check",
+   "label": "Protect Attached Files"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "recipient_account_field",
+   "fieldtype": "Data",
+   "label": "Recipient Account Field"
+  },
+  {
    "default": "0",
    "description": "If enabled, Snapshot will be stored on every save, applicable only for draft mode.",
    "fieldname": "enable_snapshots",
@@ -415,7 +438,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:02:15.670853",
+ "modified": "2025-07-19 12:23:41.564203",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -433,6 +456,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "doc_type",
  "sort_field": "creation",
  "sort_order": "DESC",

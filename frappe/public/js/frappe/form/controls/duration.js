@@ -20,19 +20,29 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 			</div>`
 		);
 		this.$wrapper.append(this.$picker);
-		this.build_numeric_input("days", this.duration_options.hide_days);
-		this.build_numeric_input("hours", false);
-		this.build_numeric_input("minutes", false);
-		this.build_numeric_input("seconds", this.duration_options.hide_seconds);
+		this.build_numeric_input(
+			"days",
+			this.duration_options.hide_days,
+			0,
+			__("Days", null, "Duration")
+		);
+		this.build_numeric_input("hours", false, 0, __("Hours", null, "Duration"));
+		this.build_numeric_input("minutes", false, 0, __("Minutes", null, "Duration"));
+		this.build_numeric_input(
+			"seconds",
+			this.duration_options.hide_seconds,
+			0,
+			__("Seconds", null, "Duration")
+		);
 		this.set_duration_picker_value(this.value);
 		this.$picker.hide();
 		this.bind_events();
 		this.refresh();
 	}
 
-	build_numeric_input(label, hidden, max) {
+	build_numeric_input(name, hidden, max, label) {
 		let $duration_input = $(`
-			<input class="input-sm duration-input" data-duration="${label}" type="number" min="0" value="0">
+			<input class="input-sm duration-input" data-duration="${name}" type="number" min="0" value="0">
 		`);
 
 		let $input = $(`<div class="row duration-row"></div>`).prepend($duration_input);
@@ -41,11 +51,11 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 			$duration_input.attr("max", max);
 		}
 
-		this.inputs[label] = $duration_input;
+		this.inputs[name] = $duration_input;
 
 		let $control = $(`
 			<div class="col duration-col">
-				<div class="row duration-row duration-label">${__(label)}</div>
+				<div class="row duration-row duration-label">${label}</div>
 			</div>`);
 
 		if (hidden) {

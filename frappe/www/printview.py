@@ -60,7 +60,7 @@ def get_context(context) -> PrintContext:
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
-		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
 	set_link_titles(doc)
 
@@ -72,24 +72,38 @@ def get_context(context) -> PrintContext:
 
 	print_format = get_print_format_doc(None, meta=meta)
 
-	make_access_log(
-		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
-	)
+	if print_format and print_format.get("print_format_builder_beta"):
+		from frappe.utils.weasyprint import get_html
 
-	body = get_rendered_template(
-		doc,
-		print_format=print_format,
-		meta=meta,
-		trigger_print=frappe.form_dict.trigger_print,
-		no_letterhead=frappe.form_dict.no_letterhead,
-		letterhead=letterhead,
-		settings=settings,
+		body = get_html(
+			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
+		)
+		body += trigger_print_script
+	else:
+		body = get_rendered_template(
+			doc,
+			print_format=print_format,
+			meta=meta,
+			trigger_print=frappe.form_dict.trigger_print,
+			no_letterhead=frappe.form_dict.no_letterhead,
+			letterhead=letterhead,
+			settings=settings,
+		)
+
+	# Include selected print format name in access log
+	print_format_name = getattr(print_format, "name", "Standard")
+
+	make_access_log(
+		doctype=frappe.form_dict.doctype,
+		document=frappe.form_dict.name,
+		file_type="PDF",
+		method="Print",
+		page=f"Print Format: {print_format_name}",
 	)
-	print_style = get_print_style(frappe.form_dict.style, print_format)
 
 	return {
 		"body": body,
-		"print_style": print_style,
+		"print_style": get_print_style(frappe.form_dict.style, print_format),
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
 		"lang": frappe.local.lang,
@@ -97,6 +111,10 @@ def get_context(context) -> PrintContext:
 		"doctype": frappe.form_dict.doctype,
 		"name": frappe.form_dict.name,
 		"key": frappe.form_dict.get("key"),
+		"print_format": print_format_name,
+		"letterhead": letterhead,
+		"no_letterhead": frappe.form_dict.no_letterhead,
+		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
 	}
 
 
@@ -124,6 +142,9 @@ def get_rendered_template(
 	trigger_print: bool = False,
 	settings: dict | None = None,
 ) -> str:
+	if not frappe.flags.ignore_print_permissions:
+		validate_print_permission(doc)
+
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
@@ -135,9 +156,6 @@ def get_rendered_template(
 
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
-
-	if not frappe.flags.ignore_print_permissions:
-		validate_print_permission(doc)
 
 	if doc.meta.is_submittable:
 		if doc.docstatus.is_draft() and not cint(print_settings.allow_print_for_draft):
@@ -171,7 +189,7 @@ def get_rendered_template(
 
 		template = None
 		if hook_func := frappe.get_hooks("get_print_format_template"):
-			template = frappe.get_attr(hook_func[-1])(jenv=jenv, print_format=print_format)
+			template = frappe.call(hook_func[-1], jenv=jenv, print_format=print_format)
 
 		if template:
 			pass
@@ -322,7 +340,7 @@ def get_html_and_style(
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name)
 	else:
 		document = frappe.get_doc(json.loads(doc))
 
@@ -353,7 +371,7 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
 	if isinstance(name, str):
-		document = frappe.get_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name)
 	else:
 		document = frappe.get_doc(json.loads(doc))
 
@@ -373,14 +391,16 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 
 def validate_print_permission(doc: "Document") -> None:
 	for ptype in ("read", "print"):
-		if frappe.has_permission(doc.doctype, ptype, doc) or frappe.has_website_permission(doc):
+		if frappe.has_permission(doc.doctype, ptype, doc):
 			return
 
-	key = frappe.form_dict.key
-	if key and isinstance(key, str):
-		validate_key(key, doc)
-	else:
-		raise frappe.PermissionError(_("You do not have permission to view this document"))
+	if frappe.has_website_permission(doc):
+		return
+
+	if (key := frappe.form_dict.key) and isinstance(key, str) and validate_key(key, doc) is not False:
+		return
+
+	doc._handle_permission_failure("print")
 
 
 def validate_key(key: str, doc: "Document") -> None:
@@ -399,7 +419,7 @@ def validate_key(key: str, doc: "Document") -> None:
 	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
 		return
 
-	raise frappe.exceptions.InvalidKeyError
+	return False
 
 
 def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None = None) -> dict:
@@ -432,21 +452,24 @@ def get_print_format(doctype: str, print_format: "PrintFormat") -> str:
 
 	# server, find template
 	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
-	path = os.path.join(
-		get_module_path(module, "Print Format", print_format.name),
-		frappe.scrub(print_format.name) + ".html",
-	)
 
-	if os.path.exists(path):
-		with open(path) as pffile:
-			return pffile.read()
-	else:
-		if print_format.raw_printing:
-			return print_format.raw_commands
-		if print_format.html:
-			return print_format.html
+	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
 
-		frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
+	if not is_custom_module:
+		path = os.path.join(
+			get_module_path(module, "Print Format", print_format.name),
+			frappe.scrub(print_format.name) + ".html",
+		)
+		if os.path.exists(path):
+			with open(path) as pffile:
+				return pffile.read()
+
+	if print_format.raw_printing:
+		return print_format.raw_commands
+	if print_format.html:
+		return print_format.html
+
+	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
 
 
 def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
@@ -605,7 +628,11 @@ def get_print_style(
 def get_font(
 	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
 ) -> str:
-	default = "var(--font-stack)"
+	default = """
+	"InterVariable", "Inter", -apple-system", "BlinkMacSystemFont",
+		"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+		"Helvetica Neue", sans-serif;
+	"""
 	if for_legacy:
 		return default
 

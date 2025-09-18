@@ -53,7 +53,7 @@ class Language(Document):
 
 	def on_update(self):
 		frappe.cache.delete_value("languages_with_name")
-		frappe.cache.delete_value("languages")
+		frappe.client_cache.delete_value("languages")
 		self.update_user_defaults()
 
 	def update_user_defaults(self):

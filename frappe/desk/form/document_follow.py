@@ -12,7 +12,7 @@ from frappe.utils import get_url_to_form
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
 	if following:
-		return follow_document(doctype, doc_name, frappe.session.user) and True or False
+		return (follow_document(doctype, doc_name, frappe.session.user) and True) or False
 	else:
 		return unfollow_document(doctype, doc_name, frappe.session.user)
 
@@ -75,7 +75,7 @@ def unfollow_document(doctype, doc_name, user):
 		limit=1,
 	)
 	if doc:
-		frappe.delete_doc("Document Follow", doc[0].name)
+		frappe.delete_doc("Document Follow", doc[0].name, force=True)
 		frappe.toast(_("Un-following document {0}").format(doc_name))
 		return False
 	return False
@@ -235,7 +235,7 @@ def get_comments(doctype, doc_name, frequency, user):
 
 def is_document_followed(doctype, doc_name, user):
 	return frappe.db.exists(
-		"Document Follow", {"ref_doctype": doctype, "ref_docname": doc_name, "user": user}
+		"Document Follow", {"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user}
 	)
 
 

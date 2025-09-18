@@ -31,6 +31,15 @@ frappe.ui.form.on("System Console", {
 			window.localStorage.removeItem("system_console_code");
 			window.localStorage.removeItem("system_console_type");
 		}
+
+		if (!frm.doc.type) {
+			frm.set_value("type", "Python"); // defaults don't work on singles on old sites.
+		}
+		frm.trigger("load_completions");
+
+		frm.page.add_inner_message(
+			`${__("Tip: Try the new dropdown console using")} <kbd>⇧+T</kbd>`
+		);
 	},
 
 	type: function (frm) {
@@ -40,6 +49,7 @@ frappe.ui.form.on("System Console", {
 				frm.sql_output.destroy();
 				frm.get_field("sql_output").html("");
 			}
+			frm.trigger("load_completions");
 		}
 
 		const field = frm.get_field("console");
@@ -115,5 +125,23 @@ frappe.ui.form.on("System Console", {
 				</tr></thead>
 				<tbody>${rows}</thead>`);
 			});
+	},
+
+	load_completions(frm) {
+		if (frm.doc.type != "Python") {
+			frm.set_df_property("console", "autocompletions", []);
+		}
+		setTimeout(() => {
+			frappe
+				.call({
+					method: "frappe.core.doctype.server_script.server_script.get_autocompletion_items",
+					type: "GET",
+					cache: true,
+				})
+				.then((r) => r.message)
+				.then((items) => {
+					frm.set_df_property("console", "autocompletions", items);
+				});
+		}, 100); // ace is just like this, can't do anything :shrug:
 	},
 });

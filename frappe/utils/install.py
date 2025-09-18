@@ -45,12 +45,11 @@ def after_install():
 		# only set home_page if the value doesn't exist in the db
 		if not frappe.db.get_default("desktop:home_page"):
 			frappe.db.set_default("desktop:home_page", "setup-wizard")
-			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
-	from frappe.tests.utils.generators import _after_install_clear_test_log
+	from frappe.tests.utils.generators import _clear_test_log
 
-	_after_install_clear_test_log()
+	_clear_test_log()
 
 	add_standard_navbar_items()
 
@@ -90,7 +89,6 @@ def install_basic_docs():
 			"thread_notify": 0,
 			"send_me_a_copy": 0,
 		},
-		{"doctype": "Role", "role_name": "Report Manager"},
 		{"doctype": "Role", "role_name": "Translator"},
 		{
 			"doctype": "Workflow State",
@@ -113,27 +111,6 @@ def install_basic_docs():
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Review"},
-		{
-			"doctype": "Email Domain",
-			"domain_name": "example.com",
-			"email_id": "account@example.com",
-			"password": "pass",
-			"email_server": "imap.example.com",
-			"use_imap": 1,
-			"smtp_server": "smtp.example.com",
-		},
-		{
-			"doctype": "Email Account",
-			"domain": "example.com",
-			"email_id": "notifications@example.com",
-			"default_outgoing": 1,
-		},
-		{
-			"doctype": "Email Account",
-			"domain": "example.com",
-			"email_id": "replies@example.com",
-			"default_incoming": 1,
-		},
 	]
 
 	for d in install_docs:
@@ -158,7 +135,7 @@ def before_tests():
 	frappe.clear_cache()
 
 	# complete setup if missing
-	if not cint(frappe.db.get_single_value("System Settings", "setup_complete")):
+	if not frappe.is_setup_complete():
 		complete_setup_wizard()
 
 	frappe.db.set_single_value("Website Settings", "disable_signup", 0)

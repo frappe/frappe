@@ -16,14 +16,14 @@ export default class Tab {
 		const id = `${frappe.scrub(this.doctype, "-")}-${this.df.fieldname}`;
 		this.tab_link = $(`
 			<li class="nav-item">
-				<a class="nav-link ${this.df.active ? "active" : ""}" id="${id}-tab"
+				<button class="nav-link ${this.df.active ? "active" : ""}" id="${id}-tab"
 					data-toggle="tab"
 					data-fieldname="${this.df.fieldname}"
 					href="#${id}"
 					role="tab"
 					aria-controls="${id}">
 						${__(this.label, null, this.doctype)}
-				</a>
+				</button>
 			</li>
 		`).appendTo(this.tab_link_container);
 

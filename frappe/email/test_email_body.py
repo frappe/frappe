@@ -6,6 +6,7 @@ import os
 
 import frappe
 from frappe import safe_decode
+from frappe.core.doctype.communication.communication import Communication
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
 	get_email,
@@ -13,7 +14,7 @@ from frappe.email.email_body import (
 	inline_style_in_html,
 	replace_filename_with_cid,
 )
-from frappe.email.receive import Email
+from frappe.email.receive import Email, InboundMail
 from frappe.tests import IntegrationTestCase
 
 
@@ -204,6 +205,52 @@ Reply-To: test2_@erpnext.com
 	def test_poorly_encoded_messages2(self):
 		mail = Email.decode_email(" =?UTF-8?B?X\xe0\xe0Y?=  <xy@example.com>")
 		self.assertIn("xy@example.com", mail)
+
+	def test_quotes_in_email_sender(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+To: "\"fail@example.com\" via ABC"  <success@example.com>
+From: "\"fail@example.com\" via DEF"  <success@example.com>
+Reply-To: "\"fail@example.com\" via GHI"  <success@example.com>
+CC: "\"fail@example.com\" via JKL"  <success@example.com>
+"""
+
+		mail = Email(content_bytes)
+		self.assertEqual(mail.from_email, "success@example.com")
+
+		self.assertEqual(mail.from_real_name, "failexamplecom via DEF")
+		# https://github.com/frappe/frappe/pull/3371
+		# self.assertEqual(mail.from_real_name, '"fail@example.com" via DEF')
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+		self.assertEqual(communication.sender_full_name, "failexamplecom via DEF")
+
+	def test_quotes_in_email_recipients(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+From: "=?utf-8?Q?=F0=9F=98=83?="
+	=?utf-8?Q?=3Ctest=40ex?= =?utf-8?Q?ample=2Eco?= =?utf-8?Q?m=3E?=
+To: =?iso-8859-1?Q?X=E9Y=40example=2Ecom?= <xy@example.com>, "fail@example.com" <success@example.com>
+"""
+
+		# https://ldu2.github.io/rfc2047/
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+		self.assertEqual(communication.sender_mailid, "test@example.com")
+		# self.assertEqual(communication.sender_full_name, "😃")
+		# # TODO: Fix get_name_from_email_string to accept non-ASCII chars
+		self.assertEqual(
+			communication.recipients,
+			'XéY@example.com <xy@example.com>, "fail@example.com" <success@example.com>',
+		)
+		frappe.db.rollback()
 
 
 def fixed_column_width(string, chunk_size):

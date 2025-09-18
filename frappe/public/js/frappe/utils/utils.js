@@ -157,16 +157,12 @@ Object.assign(frappe.utils, {
 	is_html: function (txt) {
 		if (!txt) return false;
 
-		if (
-			txt.indexOf("<br>") == -1 &&
-			txt.indexOf("<p") == -1 &&
-			txt.indexOf("<img") == -1 &&
-			txt.indexOf("<div") == -1 &&
-			!txt.includes("<span")
-		) {
-			return false;
-		}
-		return true;
+		const doc = new DOMParser().parseFromString(txt, "text/html");
+		const nodes = doc.body.childNodes || [];
+
+		// check if any of the nodes are element nodes
+		// Ref: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+		return [...nodes].some((node) => node.nodeType === 1);
 	},
 	is_mac: function () {
 		return window.navigator.platform === "MacIntel";
@@ -820,6 +816,9 @@ Object.assign(frappe.utils, {
 
 			var audio = $("#sound-" + name)[0];
 			audio.volume = audio.getAttribute("volume");
+			if (!audio.paused) {
+				audio.currentTime = 0;
+			}
 			audio.play();
 		} catch (e) {
 			console.log("Cannot play sound", name, e);
@@ -1116,7 +1115,7 @@ Object.assign(frappe.utils, {
 		if (value) {
 			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
 
-			if (total_duration.days) {
+			if (total_duration.days && duration_options.hide_days !== 1) {
 				duration += total_duration.days + __("d", null, "Days (Field: Duration)");
 			}
 			if (total_duration.hours) {
@@ -1127,7 +1126,7 @@ Object.assign(frappe.utils, {
 				duration += duration.length ? " " : "";
 				duration += total_duration.minutes + __("m", null, "Minutes (Field: Duration)");
 			}
-			if (total_duration.seconds) {
+			if (total_duration.seconds && duration_options.hide_seconds !== 1) {
 				duration += duration.length ? " " : "";
 				duration += total_duration.seconds + __("s", null, "Seconds (Field: Duration)");
 			}
@@ -1135,18 +1134,31 @@ Object.assign(frappe.utils, {
 		return duration;
 	},
 
+	get_formatted_iban(value) {
+		if (!value || ["BI", "SV", "EG", "LY"].some((country) => value.startsWith(country))) {
+			return value;
+		}
+
+		return value.replaceAll(" ", "").replace(/(.{4})(?=.)/g, "$1 ");
+	},
+
 	seconds_to_duration(seconds, duration_options) {
-		const round = seconds > 0 ? Math.floor : Math.ceil;
+		const floor = seconds > 0 ? Math.floor : Math.ceil;
 		const total_duration = {
-			days: round(seconds / 86400), // 60 * 60 * 24
-			hours: round((seconds % 86400) / 3600),
-			minutes: round((seconds % 3600) / 60),
-			seconds: round(seconds % 60),
+			days: floor(seconds / 86400), // 60 * 60 * 24
+			hours: floor((seconds % 86400) / 3600),
+			minutes: floor((seconds % 3600) / 60),
+			seconds: floor(seconds % 60),
 		};
 
 		if (duration_options && duration_options.hide_days) {
-			total_duration.hours = round(seconds / 3600);
+			total_duration.hours = floor(seconds / 3600);
 			total_duration.days = 0;
+		}
+
+		if (duration_options && duration_options.hide_seconds) {
+			total_duration.minutes += Math.round(total_duration.seconds / 60);
+			total_duration.seconds = 0;
 		}
 
 		return total_duration;
@@ -1189,10 +1201,34 @@ Object.assign(frappe.utils, {
 	map_defaults: {
 		center: [19.08, 72.8961],
 		zoom: 13,
-		tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-		options: {
-			attribution:
-				'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+		tiles: {
+			default_tile: {
+				url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+				options: {
+					attribution:
+						'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+				},
+			},
+			satellite_tile: {
+				url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+				options: {
+					attribution: "© Esri © OpenStreetMap Contributors",
+				},
+			},
+			labels_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_toner_labels/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
+			terrain_lines_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_terrain_lines/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
@@ -1241,7 +1277,7 @@ Object.assign(frappe.utils, {
 				chart_args[key] = custom_options[key];
 			}
 		}
-
+		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
 	},
 
@@ -1249,7 +1285,11 @@ Object.assign(frappe.utils, {
 		const default_country = frappe.sys_defaults.country;
 		return frappe.utils.shorten_number(label, country || default_country, 3);
 	},
-
+	set_space_label_ratio(chart_args) {
+		if (chart_args.data.labels.length > 10) {
+			chart_args["axisOptions"]["seriesLabelSpaceRatio"] = 0.9;
+		}
+	},
 	generate_route(item) {
 		const type = item.type.toLowerCase();
 		if (type === "doctype") {
@@ -1682,9 +1722,6 @@ Object.assign(frappe.utils, {
 
 	debug: {
 		watch_property(obj, prop, callback = console.trace) {
-			if (!frappe.boot.developer_mode) {
-				return;
-			}
 			console.warn("Adding property watcher, make sure to remove it after debugging.");
 
 			// Adapted from https://stackoverflow.com/a/11658693
@@ -1790,7 +1827,6 @@ Object.assign(frappe.utils, {
 			__("Generate Tracking URL")
 		);
 	},
-
 	/**
 	 * Checks if a value is empty.
 	 *
@@ -1807,5 +1843,45 @@ Object.assign(frappe.utils, {
 			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
 
 		return false;
+	},
+
+	/**
+	 * Masks passwords in an object by replacing the values of keys containing
+	 * "password" or "passphrase" with "*****".
+	 *
+	 * @param {Object} obj - The object to mask passwords in.
+	 */
+	mask_passwords(obj) {
+		const KEYWORDS_TO_MASK = ["password", "passphrase"];
+		for (const key of Object.keys(obj)) {
+			if (KEYWORDS_TO_MASK.some((keyword) => key.includes(keyword)) && obj[key]) {
+				obj[key] = "*****";
+			}
+		}
+	},
+
+	/**
+	 * Adds syntax highlighting to all <pre> tags in the given jQuery wrapper.
+	 * Example wrapper:
+	 *
+	 * ```html
+	 * <pre><code class="language-python">
+	 * def add(a, b):
+	 *     return a + b
+	 *
+	 * print(add(1, 2))
+	 *
+	 * # Output: 3
+	 * </code></pre>
+	 * ```
+	 *
+	 * @param {jQuery} $wrapper - The jQuery wrapper to add syntax highlighting to.
+	 */
+	highlight_pre($wrapper) {
+		frappe.require("syntax_highlighting.bundle.js").then(() => {
+			$wrapper.find("pre").each(function () {
+				hljs.highlightElement(this);
+			});
+		});
 	},
 });

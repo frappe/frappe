@@ -75,6 +75,7 @@ def _new_site(
 	except Exception:
 		enable_scheduler = False
 
+	clear_site_locks()
 	make_site_dirs()
 	if rollback_callback:
 		rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
@@ -142,11 +143,6 @@ def install_db(
 	if not db_type:
 		db_type = frappe.conf.db_type
 
-	if not root_login and db_type == "mariadb":
-		root_login = "root"
-	elif not root_login and db_type == "postgres":
-		root_login = "postgres"
-
 	make_conf(
 		db_name,
 		site_config=site_config,
@@ -159,8 +155,11 @@ def install_db(
 	)
 	frappe.flags.in_install_db = True
 
-	frappe.flags.root_login = root_login
-	frappe.flags.root_password = root_password
+	if root_login:
+		frappe.flags.root_login = root_login
+
+	if root_password:
+		frappe.flags.root_password = root_password
 
 	if setup:
 		setup_database(force, verbose, mariadb_user_host_login_scope)
@@ -334,6 +333,8 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
 
+	frappe.clear_cache()
+	frappe.client_cache.erase_persistent_caches()
 	frappe.flags.in_install = False
 
 
@@ -346,6 +347,9 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		if frappe.flags.in_install:
 			post_install(rebuild_website)
 
+	frappe.get_single("Installed Applications").update_versions()
+	frappe.db.commit()
+
 
 def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
@@ -355,6 +359,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -413,6 +418,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 		remove_from_installed_apps(app_name)
 		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
+		frappe.clear_cache()
 
 	for after_uninstall in app_hooks.after_uninstall or []:
 		frappe.get_attr(after_uninstall)()
@@ -420,8 +426,13 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for fn in frappe.get_hooks("after_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
 
+	frappe.client_cache.erase_persistent_caches()
+
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
+
+	if not dry_run:
+		frappe.clear_cache()
 
 
 def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
@@ -443,6 +454,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 			if not dry_run:
 				if doctype.issingle:
+					frappe.delete_doc(doctype.name, doctype.name, ignore_on_trash=True, force=True)
 					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True, force=True)
 				else:
 					drop_doctypes.append(doctype.name)
@@ -585,16 +597,20 @@ def make_site_config(
 			if db_type:
 				site_config["db_type"] = db_type
 
-			if db_socket:
-				site_config["db_socket"] = db_socket
+			if db_type == "sqlite":
+				site_config["db_name"] = db_name
 
-			if db_host:
-				site_config["db_host"] = db_host
+			else:
+				if db_socket:
+					site_config["db_socket"] = db_socket
 
-			if db_port:
-				site_config["db_port"] = db_port
+				if db_host:
+					site_config["db_host"] = db_host
 
-			site_config["db_user"] = db_user or db_name
+				if db_port:
+					site_config["db_port"] = db_port
+
+				site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -602,6 +618,7 @@ def make_site_config(
 
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
+	from frappe.config import clear_site_config_cache
 	from frappe.utils.synchronization import filelock
 
 	if not site_config_path:
@@ -612,6 +629,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 	with filelock("site_config", is_global=_is_global_conf):
 		_update_config_file(key=key, value=value, config_file=site_config_path)
+		clear_site_config_cache()
 
 
 def _update_config_file(key: str, value, config_file: str):
@@ -659,6 +677,14 @@ def get_conf_params(db_name=None, db_password=None):
 		db_password = random_string(16)
 
 	return {"db_name": db_name, "db_password": db_password}
+
+
+def clear_site_locks():
+	import shutil
+	from pathlib import Path
+
+	path = Path(frappe.get_site_path("locks"))
+	shutil.rmtree(path, ignore_errors=True)
 
 
 def make_site_dirs():
@@ -834,6 +860,9 @@ def is_partial(sql_file_path: str) -> bool:
 	:param sql_file_path: path to the database dump file
 	:return: True if the database dump is a partial backup, False otherwise
 	"""
+	if frappe.conf.db_type == "sqlite":
+		return False
+
 	header = get_db_dump_header(sql_file_path)
 	return "Partial Backup" in header
 
