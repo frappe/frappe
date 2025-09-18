@@ -66,6 +66,7 @@ class User(Document):
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
 		from frappe.types import DF
 
+		allow_impersonate: DF.Check
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
@@ -1370,28 +1371,47 @@ def get_enabled_users():
 
 
 @frappe.whitelist(methods=["POST"])
-def impersonate(user: str, reason: str):
+def impersonate(user: str, reason: str, allow_impersonate = "0"):
 	# Note: For now we only allow admins, we MIGHT allow system manager in future.
 	# All the impersonation code doesn't assume anything about user.
-	frappe.only_for("Administrator")
+	if(frappe.session.user == 'Administrator' or allow_impersonate == "1"):
+		impersonator = frappe.session.user
+		frappe.cache().set_value(f"impersonate:{user}", frappe.session.user)
 
-	impersonator = frappe.session.user
-	frappe.get_doc(
-		{
-			"doctype": "Activity Log",
-			"user": user,
-			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, user),
-			"operation": "Impersonate",
-		}
-	).insert(ignore_permissions=True, ignore_links=True)
+		frappe.get_doc(
+			{
+				"doctype": "Activity Log",
+				"user": user,
+				"status": "Success",
+				"subject": _("User {0} impersonated as {1}").format(impersonator, user),
+				"operation": "Impersonate",
+			}
+		).insert(ignore_permissions=True, ignore_links=True)
 
-	notification = frappe.new_doc(
-		"Notification Log",
-		for_user=user,
-		from_user=frappe.session.user,
-		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
-	)
-	notification.set("type", "Alert")
-	notification.insert(ignore_permissions=True)
-	frappe.local.login_manager.impersonate(user)
+		notification = frappe.new_doc(
+			"Notification Log",
+			for_user=user,
+			from_user=frappe.session.user,
+			subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
+		)
+		notification.set("type", "Alert")
+		notification.insert(ignore_permissions=True)
+		frappe.local.login_manager.impersonate(user)
+
+@frappe.whitelist()
+def is_impersonating():
+	# Return the Impersonator From the Cache
+    impersonator = frappe.cache().get_value(f"impersonate:{frappe.session.user}")
+    return {"is_impersonating": bool(impersonator), "impersonator": impersonator}
+
+@frappe.whitelist(methods=["POST"])
+def undo_impersonate():
+    original_user = frappe.cache().get_value(f"impersonate:{frappe.session.user}")
+
+    frappe.local.login_manager.login_as(original_user)
+
+    frappe.session.data.pop("impersonator", None)
+    frappe.cache().delete_value(f"impersonate:{frappe.session.user}")
+    frappe.db.commit()
+
+    return {"status": "success", "original_user": original_user}

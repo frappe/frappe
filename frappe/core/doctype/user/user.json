@@ -9,6 +9,7 @@
  "field_order": [
   "user_details_tab",
   "enabled",
+  "allow_impersonate",
   "section_break_3",
   "email",
   "first_name",
@@ -835,6 +836,15 @@
    "fieldname": "show_absolute_datetime_in_timeline",
    "fieldtype": "Check",
    "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.email != \"admin@example.com\"",
+   "fieldname": "allow_impersonate",
+   "fieldtype": "Check",
+   "label": "Allow Impersonate",
+   "read_only": 1,
+   "read_only_depends_on": "eval:frappe.session.user != \"Administrator\""
   }
  ],
  "icon": "fa fa-user",
@@ -888,7 +898,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-06-05 23:55:27.884061",
+ "modified": "2025-09-16 15:37:16.407795",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
