@@ -130,6 +130,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		// pass
 	}
 
+	set_result_height() {
+		// pass
+	}
+
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
 	}
