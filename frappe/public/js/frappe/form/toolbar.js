@@ -360,7 +360,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 						target: this.frm,
 						setters: {},
 						date_field: "creation",
-						columns: ["name", "creation","owner"],
+						columns: ["name", "creation", "owner"],
 						get_query() {
 							return {
 								filters: {
@@ -391,12 +391,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 									]);
 									for (let [field, value] of Object.entries(snapshot)) {
 										if (field !== "modified" && fields.has(field)) {
-											frappe.model.set_value(
-												doctype,
-												name,
-												field,
-												value
-											);
+											frappe.model.set_value(doctype, name, field, value);
 										}
 									}
 									cur_dialog.hide();
