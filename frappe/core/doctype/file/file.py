@@ -37,7 +37,10 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
+
+# nosemgrep
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
