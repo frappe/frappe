@@ -15,7 +15,6 @@ import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
 from werkzeug.wrappers import Response
-from werkzeug.wsgi import wrap_file
 
 import frappe
 import frappe.model.document
@@ -289,26 +288,24 @@ def send_private_file(path: str) -> Response:
 		response = Response()
 		response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
 		response.headers["Cache-Control"] = "private,max-age=3600,stale-while-revalidate=86400"
+		response.headers["Accept-Ranges"] = "bytes"
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
-		try:
-			f = open(filepath, "rb")
-		except OSError:
+		if not os.path.exists(filepath):
 			raise NotFound
 
-		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
+		extension = os.path.splitext(path)[1]
+		blacklist = [".svg", ".html", ".htm", ".xml"]
+		as_attachment = extension.lower() in blacklist
 
-	# no need for content disposition and force download. let browser handle its opening.
-	# Except for those that can be injected with scripts.
-
-	extension = os.path.splitext(path)[1]
-	blacklist = [".svg", ".html", ".htm", ".xml"]
-
-	if extension.lower() in blacklist:
-		response.headers.add("Content-Disposition", "attachment", filename=filename)
-
-	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+		response = werkzeug.utils.send_file(
+			filepath,
+			environ=frappe.local.request.environ,
+			conditional=True,
+			as_attachment=as_attachment,
+			download_name=filename if as_attachment else None,
+		)
 
 	return response
 

@@ -1152,8 +1152,6 @@ Object.assign(frappe.utils, {
 
 	seconds_to_duration(seconds, duration_options) {
 		const floor = seconds > 0 ? Math.floor : Math.ceil;
-		const round_base_60 = (seconds) => floor(seconds / 60 + (seconds > 0 ? 0.5 : -0.5));
-
 		const total_duration = {
 			days: floor(seconds / 86400), // 60 * 60 * 24
 			hours: floor((seconds % 86400) / 3600),
@@ -1167,7 +1165,7 @@ Object.assign(frappe.utils, {
 		}
 
 		if (duration_options && duration_options.hide_seconds) {
-			total_duration.minutes += round_base_60(total_duration.seconds);
+			total_duration.minutes += Math.round(total_duration.seconds / 60);
 			total_duration.seconds = 0;
 		}
 
