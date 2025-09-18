@@ -308,6 +308,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	make_menu_items() {
 		// Print
 		this.add_discard();
+		this.add_restore();
 		this.add_print();
 		this.add_email();
 		this.add_rename();
@@ -343,30 +344,28 @@ frappe.ui.form.Toolbar = class Toolbar {
 			);
 		}
 	}
-
-	add_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
+	add_restore() {
 		frappe.db
-			.get_value("DocType", me.frm.doc.doctype, "enable_snapshots")
+			.get_value("DocType", this.frm.doc.doctype, "enable_snapshots")
 			.then(({ message: { enable_snapshots } }) => {
-				if (!enable_snapshots || docstatus != 0) {
+				if (!enable_snapshots || this.frm.doc.docstatus != 0) {
 					return;
 				}
 				this.page.add_menu_item(__("Restore"), () => {
+					const doctype = this.frm.doc.doctype;
+					const name = this.frm.doc.name;
+					const doc = this.frm.doc;
 					new frappe.ui.form.MultiSelectDialog({
 						doctype: "Document Snapshot",
 						target: this.frm,
 						setters: {},
 						date_field: "creation",
-						columns: ["name", "creation"],
+						columns: ["name", "creation","owner"],
 						get_query() {
 							return {
 								filters: {
-									ref_doctype: me.frm.doc.doctype,
-									document_name: me.frm.doc.name,
+									ref_doctype: doctype,
+									document_name: name,
 								},
 							};
 						},
@@ -387,15 +386,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 								.then((res) => {
 									let snapshot = JSON.parse(res.message.data);
 									const fields = new Set([
-										...Object.keys(me.frm.doc),
+										...Object.keys(doc),
 										...Object.keys(snapshot),
 									]);
-
 									for (let [field, value] of Object.entries(snapshot)) {
 										if (field !== "modified" && fields.has(field)) {
 											frappe.model.set_value(
-												me.frm.doc.doctype,
-												me.frm.doc.name,
+												doctype,
+												name,
 												field,
 												value
 											);
@@ -407,6 +405,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					});
 				});
 			});
+	}
+	add_print() {
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
+		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
+		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+
 		if (
 			!frappe.model.is_submittable(this.frm.doc.doctype) ||
 			this.frm.doc.docstatus == 1 ||
