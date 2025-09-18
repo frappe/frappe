@@ -3,9 +3,9 @@
 <h2>{{ __(title) }}</h2>
 <hr>
 {% endif %}
-{% if subtitle %}
-{{ subtitle }}
-<hr>
+{% if subtitle && print_settings.include_filters %}
+	{{ subtitle }}
+	<hr>
 {% endif %}
 <table class="table table-bordered">
 	<!-- heading -->

@@ -1,4 +1,10 @@
-frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_columns) {
+frappe.ui.get_print_settings = function (
+	pdf,
+	callback,
+	letter_head,
+	pick_columns,
+	has_filters = false
+) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
 	var company = frappe.defaults.get_default("company");
@@ -47,6 +53,14 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			default: letter_head || default_letter_head,
 		},
 	];
+
+	if (has_filters) {
+		columns.push({
+			label: __("Include filters"),
+			fieldtype: "Check",
+			fieldname: "include_filters",
+		});
+	}
 
 	if (pick_columns) {
 		columns.push(
