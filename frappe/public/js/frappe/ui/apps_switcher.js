@@ -11,7 +11,7 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 	make() {
 		this.wrapper = $(
 			frappe.render_template("apps_switcher", {
-				app_logo_url: frappe.boot.app_data[0].app_logo_url,
+				app_logo_url: frappe.boot.navbar_settings?.app_logo || frappe.boot.app_data[0].app_logo_url,
 				app_title: __(frappe.boot.app_data[0].app_title),
 			})
 		).prependTo(this.sidebar_wrapper);
@@ -33,6 +33,9 @@ frappe.ui.AppsSwitcher = class AppsSwitcher {
 		frappe.boot.app_data_map = {};
 		for (var app of frappe.boot.app_data) {
 			frappe.boot.app_data_map[app.app_name] = app;
+			if (app.app_name === "erpnext" && frappe.boot.navbar_settings?.app_logo) {
+				app.app_logo_url = frappe.boot.navbar_settings?.app_logo;
+			}
 			if (app.workspaces?.length) {
 				this.add_app_item(app);
 			}
