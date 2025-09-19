@@ -3749,7 +3749,7 @@ msgstr ""
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
 msgstr "Contournement de l&#39;adresse IP restreinte Vérifiez si l&#39;authentification à deux facteurs est activée"
 
-#. Label of the bypass_2fa_for_restricted_ip_users (Check) field in DocType
+#. Label of the bypass_2fa_for_retricted_ip_users (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
