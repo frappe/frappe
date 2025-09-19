@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import os
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import frappe
@@ -37,6 +38,7 @@ def get_list(
 	debug: bool = False,
 	as_dict: bool = True,
 	or_filters=None,
+	expand=None,
 ):
 	"""Returns a list of records by filters, fields, ordering and limit
 
@@ -64,7 +66,60 @@ def get_list(
 	)
 
 	validate_args(args)
-	return frappe.get_list(**args)
+	_list = frappe.get_list(**args)
+
+	if not expand:
+		return _list
+
+	if fields and not fields[0] == "*":
+		expand = [f for f in expand if f in fields]
+
+	meta = frappe.get_meta(doctype)
+
+	link_fields = {f.fieldname: f for f in meta.get_link_fields() + meta.get_dynamic_link_fields()}
+
+	doctype_values = defaultdict(set)
+	field_to_doctype = {}
+
+	for fieldname in expand:
+		if fieldname not in link_fields:
+			continue
+		e = link_fields[fieldname]
+		link_doctype = e.options
+		field_to_doctype[fieldname] = link_doctype
+
+		for li in _list:
+			val = li.get(fieldname)
+			if val:
+				doctype_values[link_doctype].add(val)
+
+		doctype_title_maps = {}
+
+	for link_doctype, values in doctype_values.items():
+		link_meta = frappe.get_meta(link_doctype)
+		if not link_meta.title_field or not link_meta.show_title_field_in_link:
+			continue
+
+		title_field = link_meta.title_field
+
+		records = frappe.get_all(
+			link_doctype,
+			filters={"name": ["in", list(values)]},
+			fields=["name", title_field],
+		)
+		doctype_title_maps[link_doctype] = {r["name"]: r[title_field] for r in records}
+
+	for li in _list:
+		for fieldname in expand:
+			if fieldname not in field_to_doctype:
+				continue
+			link_doctype = field_to_doctype[fieldname]
+			val = li.get(fieldname)
+			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
+			if val and val_title:
+				li["_" + fieldname + "_title"] = val_title
+
+	return _list
 
 
 @frappe.whitelist()

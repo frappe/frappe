@@ -4,12 +4,19 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
+from frappe.desk.form.load import (
+	get_title_values_for_link_and_dynamic_link_fields,
+	get_title_values_for_table_and_multiselect_fields,
+)
 from frappe.utils.data import sbool
 
 
 def document_list(doctype: str):
 	if frappe.form_dict.get("fields"):
 		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
+
+	if frappe.form_dict.get("expand"):
+		frappe.form_dict["expand"] = json.loads(frappe.form_dict["expand"])
 
 	# set limit of records for frappe.get_list
 	frappe.form_dict.setdefault(
@@ -75,7 +82,21 @@ def read_doc(doctype: str, name: str):
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 	doc.apply_fieldlevel_read_permissions()
-	return doc
+	if frappe.form_dict.get("expand_links") and json.loads(frappe.form_dict["expand_links"]):
+		meta = frappe.get_meta(doctype)
+		link_titles = {}
+		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+
+		if link_fields:
+			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(doc, link_fields))
+
+		table_fields = meta.get_table_fields()
+		if table_fields:
+			link_titles.update(get_title_values_for_table_and_multiselect_fields(doc, table_fields))
+
+		return doc.as_dict().update({"_link_titles": link_titles})
+	else:
+		return doc.as_dict()
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
