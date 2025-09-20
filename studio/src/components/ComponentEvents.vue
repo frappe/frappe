@@ -109,7 +109,8 @@
 									v-else
 									label="Script"
 									:completions="
-										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
+										(context: CompletionContext) =>
+											getEditorCompletions(context, props.block?.getCompletions())
 									"
 									:emitOnChange="true"
 									:modelValue="newEvent.on_success_script?.toString()"
@@ -146,7 +147,8 @@
 									v-else
 									label="Script"
 									:completions="
-										(context: CompletionContext) => getCompletions(context, props.block?.getCompletions())
+										(context: CompletionContext) =>
+											getEditorCompletions(context, props.block?.getCompletions())
 									"
 									:emitOnChange="true"
 									:modelValue="newEvent.on_error_script?.toString()"
@@ -424,9 +426,9 @@ const actionControls = computed(() => {
 
 function getFnBoilerplate(event: "success" | "error") {
 	if (event === "success") {
-		return "function onSuccess(data) { \n\t \n}"
+		return "function onSuccess(data) {}"
 	} else {
-		return "function onError(error) { \n\t \n}"
+		return "function onError(error) {}"
 	}
 }
 
