@@ -37,6 +37,10 @@ def get_apps():
 				has_permission_path = app_detail.get("has_permission")
 				if has_permission_path and not frappe.get_attr(has_permission_path)():
 					continue
+
+				if app == "erpnext" and frappe.db.get_single_value("Navbar Settings", "app_logo"):
+					app_detail["logo"] = frappe.db.get_single_value("Navbar Settings", "app_logo")
+
 				app_list.append(
 					{
 						"name": app,
