@@ -129,7 +129,6 @@ frappe.ui.form.on("User", {
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
 		frm.trigger("setup_impersonation");
-		frm.trigger("undo_impersonate");
 
 		if (!frm.is_new()) {
 			if (has_access_to_edit_user()) {
@@ -423,30 +422,6 @@ frappe.ui.form.on("User", {
 			}
 		});
 	},
-	undo_impersonate: function(frm){
-		frappe.call({
-            method: "frappe.core.doctype.user.user.is_impersonating",
-            callback: function(r) {
-                if (r.message && r.message.is_impersonating) {
-                    frm.add_custom_button(__('Undo Impersonate'), () => {
-                        frappe.call({
-                            method: "frappe.core.doctype.user.user.undo_impersonate",
-                            freeze: true,
-                            callback: function (res) {
-                                if (!res.exc) {
-                                    frappe.show_alert({
-                                        message: __("Switched back to original user"),
-                                        indicator: "green"
-                                    });
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    });
-                }
-            }
-        });
-	}
 });
 
 frappe.ui.form.on("User Email", {

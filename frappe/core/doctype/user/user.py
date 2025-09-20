@@ -1376,7 +1376,6 @@ def impersonate(user: str, reason: str, allow_impersonate = "0"):
 	# All the impersonation code doesn't assume anything about user.
 	if(frappe.session.user == 'Administrator' or allow_impersonate == "1"):
 		impersonator = frappe.session.user
-		frappe.cache().set_value(f"impersonate:{user}", frappe.session.user)
 
 		frappe.get_doc(
 			{
@@ -1397,21 +1396,3 @@ def impersonate(user: str, reason: str, allow_impersonate = "0"):
 		notification.set("type", "Alert")
 		notification.insert(ignore_permissions=True)
 		frappe.local.login_manager.impersonate(user)
-
-@frappe.whitelist()
-def is_impersonating():
-	# Return the Impersonator From the Cache
-    impersonator = frappe.cache().get_value(f"impersonate:{frappe.session.user}")
-    return {"is_impersonating": bool(impersonator), "impersonator": impersonator}
-
-@frappe.whitelist(methods=["POST"])
-def undo_impersonate():
-    original_user = frappe.cache().get_value(f"impersonate:{frappe.session.user}")
-
-    frappe.local.login_manager.login_as(original_user)
-
-    frappe.session.data.pop("impersonator", None)
-    frappe.cache().delete_value(f"impersonate:{frappe.session.user}")
-    frappe.db.commit()
-
-    return {"status": "success", "original_user": original_user}
