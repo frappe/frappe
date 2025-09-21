@@ -35,6 +35,9 @@ class StudioAppRenderer(DocumentPage):
 			self.context.is_preview = True
 			self.context.app_route = f"dev/{self.context.app_route}"
 			self.context.template = "templates/generators/studio_renderer.html"
+			self.context.app_pages = frappe.get_all(
+				"Studio Page", dict(studio_app=self.context.app_name), ["name", "page_title", "route"]
+			)
 		else:
 			self.context.template = "templates/generators/app_renderer.html"
 			manifest = self.context.doc.get_assets_from_manifest()
