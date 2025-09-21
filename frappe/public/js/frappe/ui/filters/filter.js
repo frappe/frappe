@@ -161,10 +161,6 @@ frappe.ui.Filter = class {
 		} else {
 			promise = this.update_filter_tag();
 		}
-
-		if (this.hidden) {
-			promise.then(() => this.$filter_tag.hide());
-		}
 	}
 
 	freeze() {
@@ -333,7 +329,6 @@ frappe.ui.Filter = class {
 			this.field.df.fieldname,
 			this.get_condition(),
 			this.get_selected_value(),
-			this.hidden,
 		];
 	}
 

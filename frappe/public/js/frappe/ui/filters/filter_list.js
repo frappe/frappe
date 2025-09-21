@@ -172,7 +172,7 @@ frappe.ui.FilterGroup = class {
 		return frappe.run_serially(promises).then(() => this.update_filters());
 	}
 
-	add_filter(doctype, fieldname, condition, value, hidden) {
+	add_filter(doctype, fieldname, condition, value) {
 		if (!fieldname) return Promise.resolve();
 		// adds a new filter, returns true if filter has been added
 
@@ -184,7 +184,7 @@ frappe.ui.FilterGroup = class {
 			// only allow 1 new filter at a time!
 			return Promise.resolve();
 		} else {
-			let args = [doctype, fieldname, condition, value, hidden];
+			let args = [doctype, fieldname, condition, value];
 			const promise = this.push_new_filter(args, is_new_filter);
 			return promise && promise.then ? promise : Promise.resolve();
 		}
@@ -221,7 +221,7 @@ frappe.ui.FilterGroup = class {
 		}
 	}
 
-	_push_new_filter(doctype, fieldname, condition, value, hidden = false) {
+	_push_new_filter(doctype, fieldname, condition, value) {
 		let args = {
 			parent: this.wrapper,
 			parent_doctype: this.doctype,
@@ -230,7 +230,6 @@ frappe.ui.FilterGroup = class {
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
-			hidden: hidden,
 			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
