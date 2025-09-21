@@ -37,18 +37,6 @@ frappe.ui.form.on("User", {
 		}
 	},
 
-	role_profiles: function (frm) {
-		if (frm.doc.role_profiles && frm.doc.role_profiles.length) {
-			frm.roles_editor.disable = 1;
-			frm.call("populate_role_profile_roles").then(() => {
-				frm.roles_editor.show();
-			});
-		} else {
-			frm.roles_editor.disable = 0;
-			frm.roles_editor.show();
-		}
-	},
-
 	module_profile: function (frm) {
 		if (frm.doc.module_profile) {
 			frappe.call({
@@ -428,6 +416,26 @@ frappe.ui.form.on("User Email", {
 				frm.refresh_field("user_emails", cdn, "used_oauth");
 			}
 		);
+	},
+});
+
+frappe.ui.form.on("User Role Profile", {
+	role_profiles_add: function (frm) {
+		if (frm.doc.role_profiles.length > 0) {
+			frm.roles_editor.disable = 1;
+			frm.call("populate_role_profile_roles").then(() => {
+				frm.roles_editor.show();
+			});
+			$(".deselect-all, .select-all").prop("disabled", true);
+		}
+	},
+	role_profiles_remove: function (frm) {
+		if (frm.doc.role_profiles.length == 0) {
+			console.log(frm.doc.role_profiles.length == 0);
+			frm.roles_editor.disable = 0;
+			frm.roles_editor.show();
+			$(".deselect-all, .select-all").prop("disabled", false);
+		}
 	},
 });
 
