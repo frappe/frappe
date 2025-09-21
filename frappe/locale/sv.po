@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-14 09:32+0000\n"
-"PO-Revision-Date: 2025-09-18 19:07\n"
+"PO-Revision-Date: 2025-09-20 19:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2563,7 +2563,7 @@ msgstr "Är du säker på att du vill återaktivera schemaläggare?"
 
 #: frappe/core/doctype/communication/communication.js:163
 msgid "Are you sure you want to relink this communication to {0}?"
-msgstr "Är du säker att du vill länka om konversation till {0}?"
+msgstr "Är du säker att du vill länka om kommunikation till {0}?"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
@@ -14000,7 +14000,7 @@ msgstr "Håll koll på alla uppdatering flöde"
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr "Håller koll på all kommunikation"
+msgstr "Kommunikation Övervakning"
 
 #. Label of the defkey (Data) field in DocType 'DefaultValue'
 #. Label of the key (Data) field in DocType 'Document Share Key'
@@ -14466,7 +14466,7 @@ msgstr "Lämna tom för ingen slut datum"
 #: frappe/core/doctype/communication/mixins.py:207
 #: frappe/email/doctype/email_account/email_account.py:720
 msgid "Leave this conversation"
-msgstr "Lämna denna konversation"
+msgstr "Lämna denna kommunikation"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -14500,7 +14500,7 @@ msgstr "Vänster Center"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
-msgstr "Lämnade denna konversation"
+msgstr "Lämnade denna kommunikation"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -14967,7 +14967,7 @@ msgstr "Ladda Mer"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:215
 msgctxt "Form timeline"
 msgid "Load More Communications"
-msgstr "Ladda mer Konversation"
+msgstr "Ladda Mer Kommunikation"
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
@@ -16086,7 +16086,7 @@ msgstr "Måndag"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Monitor logs for errors, background jobs, communications, and user activity"
-msgstr "Övervaka loggar för fel, bakgrundsjobb, konversation och användaraktivitet"
+msgstr "Övervaka loggar för fel, bakgrundsjobb, kommunikation och användaraktivitet"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -19311,7 +19311,7 @@ msgstr "Logga in för att lämna kommentar."
 
 #: frappe/core/doctype/communication/communication.py:186
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
-msgstr "Kontrollera att Referens Dokument för Konversation inte är cirkulärt länkade."
+msgstr "Kontrollera att Kommunikation Referens Dokument inte är cirkulärt länkade."
 
 #: frappe/model/document.py:992
 msgid "Please refresh to get the latest document."
@@ -21080,7 +21080,7 @@ msgstr "Länka om"
 
 #: frappe/core/doctype/communication/communication.js:138
 msgid "Relink Communication"
-msgstr "Länka om Konversation"
+msgstr "Länka om Kommunikation"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -29784,7 +29784,7 @@ msgstr "Du får bara uppdatera ordning, inte ta bort eller lägga till appar."
 
 #: frappe/email/doctype/email_account/email_account.js:284
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
-msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av konversation (e-post)."
+msgstr "Du väljer Synkronisering Alternativ som ALLA. Det kommer att synkronisera alla lästa såväl som olästa meddelanden från server. Detta kan också orsaka kopior av kommunikation (e-post)."
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:414
 msgctxt "Form timeline"
