@@ -561,6 +561,7 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 				filters: getEvaluatedFilters(resource.filters, context),
 				pageLength: resource.limit,
 				auto: true,
+				orderBy: "creation desc",
 				...getTransforms(resource),
 			})
 		case "API Resource":

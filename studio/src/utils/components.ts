@@ -205,8 +205,8 @@ function getComponentTemplate(componentName: string): string {
 	return template
 }
 
-async function getComponentSlots(componentName: string) {
-	const template = await getComponentTemplate(componentName)
+function getComponentSlots(componentName: string) {
+	const template = getComponentTemplate(componentName)
 	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
 	const slots = []
 	let match

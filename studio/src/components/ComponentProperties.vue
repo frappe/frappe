@@ -100,17 +100,17 @@ watch(
 
 watch(
 	() => props.block?.componentSlots,
-	async () => {
+	() => {
 		if (props.block?.isContainer()) return
-		await updateAvailableSlots()
+		updateAvailableSlots()
 	},
 	{ deep: true },
 )
 
-const updateAvailableSlots = async () => {
+const updateAvailableSlots = () => {
 	if (!props.block || props.block.isRoot() || props.block.isContainer()) return
 
-	const slots = await getComponentSlots(props.block.componentName)
+	const slots = getComponentSlots(props.block.componentName)
 	// filter out already added slots
 	componentSlots.value = slots
 		.filter((slot) => !(slot.name in (props.block?.componentSlots || [])))
