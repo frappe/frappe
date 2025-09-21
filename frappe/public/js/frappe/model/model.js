@@ -359,7 +359,7 @@ $.extend(frappe.model, {
 	},
 
 	user_permission_not_exists: function (doctype) {
-		const user_permission = frappe.boot.user.user_permission || {};
+		const user_permission = frappe.boot.user.user_permissions || {};
 		return !user_permission.hasOwnProperty(doctype);
 	},
 
