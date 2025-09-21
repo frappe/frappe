@@ -358,6 +358,11 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_cancel.indexOf(doctype) !== -1;
 	},
 
+	user_permission_not_exists: function (doctype) {
+		const user_permission = frappe.boot.user.user_permission || {};
+		return !user_permission.hasOwnProperty(doctype);
+	},
+
 	has_workflow: function (doctype) {
 		return frappe.get_list("Workflow", { document_type: doctype, is_active: 1 }).length;
 	},

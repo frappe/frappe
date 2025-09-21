@@ -51,6 +51,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
+		this.user_permission_not_exists = frappe.model.user_permission_not_exists(this.doctype);
 
 		this.fields = [];
 		this.filters = [];
