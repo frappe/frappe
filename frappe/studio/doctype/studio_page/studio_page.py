@@ -250,7 +250,7 @@ def find_page_with_route(app_name: str, page_route: str) -> str | None:
 		page_route = f"/{page_route}"
 	try:
 		return frappe.db.get_value(
-			"Studio Page", dict(studio_app=app_name, route=page_route, published=1), "name", cache=True
+			"Studio Page", dict(studio_app=app_name, route=page_route), "name", cache=True
 		)
 	except frappe.DoesNotExistError:
 		pass
