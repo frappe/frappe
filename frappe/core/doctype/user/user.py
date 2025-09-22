@@ -976,7 +976,7 @@ def verify_reset_password_key(key):
 	if result.message:
 		frappe.local.response.http_status_code = 410
 		frappe.throw(result.message)
-	return result
+	return {"status": "ok"}
 
 
 @frappe.whitelist(allow_guest=True)
