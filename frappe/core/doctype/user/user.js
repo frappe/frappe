@@ -431,7 +431,6 @@ frappe.ui.form.on("User Role Profile", {
 	},
 	role_profiles_remove: function (frm) {
 		if (frm.doc.role_profiles.length == 0) {
-			console.log(frm.doc.role_profiles.length == 0);
 			frm.roles_editor.disable = 0;
 			frm.roles_editor.show();
 			$(".deselect-all, .select-all").prop("disabled", false);
