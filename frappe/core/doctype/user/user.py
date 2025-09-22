@@ -970,6 +970,16 @@ def verify_password(password):
 
 
 @frappe.whitelist(allow_guest=True)
+def verify_reset_password_key(key):
+	"""Verify if the reset password key is valid and not expired."""
+	result = _get_user_for_update_password(key, None)
+	if result.message:
+		frappe.local.response.http_status_code = 410
+		frappe.throw(result.message)
+	return result
+
+
+@frappe.whitelist(allow_guest=True)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
 		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
