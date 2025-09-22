@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-21 19:58\n"
+"PO-Revision-Date: 2025-09-22 20:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4211,7 +4211,7 @@ msgstr "تغییر گذرواژه"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr "تغییر فرمت چاپ"
+msgstr "تغییر قالب چاپ"
 
 #. Description of the 'Update Series Counter' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -5648,7 +5648,7 @@ msgstr "یک حساب {0} ایجاد کنید"
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr "ایجاد یا ویرایش فرمت چاپ"
+msgstr "ایجاد یا ویرایش قالب چاپ"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -6543,7 +6543,7 @@ msgstr "صفحه اصلی پورتال پیش‌فرض"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Default Print Format"
-msgstr "فرمت چاپ پیش‌فرض"
+msgstr "قالب چاپ پیش‌فرض"
 
 #. Label of the default_print_language (Link) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -8259,7 +8259,7 @@ msgstr "ویرایش آشناسازی"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Edit Print Format"
-msgstr "ویرایش فرمت چاپ"
+msgstr "ویرایش قالب چاپ"
 
 #: frappe/www/me.html:38
 msgid "Edit Profile"
@@ -8585,7 +8585,7 @@ msgstr "گزینه همگام سازی ایمیل"
 #: frappe/email/doctype/email_template/email_template.json
 #: frappe/public/js/frappe/views/communication.js:107
 msgid "Email Template"
-msgstr "قالب ایمیل"
+msgstr "الگوی ایمیل"
 
 #. Label of the enable_email_threads_on_assigned_document (Check) field in
 #. DocType 'Notification Settings'
@@ -16318,7 +16318,7 @@ msgstr "بلوک سفارشی جدید"
 #: frappe/printing/page/print/print.js:308
 #: frappe/printing/page/print/print.js:355
 msgid "New Custom Print Format"
-msgstr "فرمت چاپ سفارشی جدید"
+msgstr "قالب چاپ سفارشی جدید"
 
 #. Label of the new_document_form (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -19622,7 +19622,7 @@ msgstr "چاپ اسناد"
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Print Format"
-msgstr "فرمت چاپ"
+msgstr "قالب چاپ"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the print_format_builder (Check) field in DocType 'Print Format'
@@ -19647,7 +19647,7 @@ msgstr "فرمت ساز چاپ بتا"
 
 #: frappe/utils/pdf.py:63
 msgid "Print Format Error"
-msgstr "خطای فرمت چاپ"
+msgstr "خطای قالب چاپ"
 
 #. Name of a DocType
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
@@ -19667,7 +19667,7 @@ msgstr "راهنما قالب چاپ"
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Type"
-msgstr "نوع فرمت چاپ"
+msgstr "نوع قالب چاپ"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1578
 msgid "Print Format not found"
@@ -25591,7 +25591,7 @@ msgstr "تله متری"
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Template"
-msgstr "قالب"
+msgstr "الگو"
 
 #: frappe/core/doctype/data_import/importer.py:483
 #: frappe/core/doctype/data_import/importer.py:610
