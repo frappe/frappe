@@ -208,7 +208,7 @@ frappe.ui.Filter = class {
 
 		if (Array.isArray(value)) {
 			this._filter_value_set = this.field.set_value(value);
-		} else if (value !== undefined || value !== null) {
+		} else if (value !== undefined && value !== null) {
 			this._filter_value_set = this.field.set_value((value + "").trim());
 		}
 		return this._filter_value_set;
@@ -447,6 +447,55 @@ frappe.ui.Filter = class {
 };
 
 frappe.ui.filter_utils = {
+	// Parse localized number strings like "100,00" or "1.000,50" into a JS number
+	parseLocalizedNumber(input) {
+		if (input === null || input === undefined) return NaN;
+		let s = String(input).trim();
+		if (!s) return NaN;
+		// Keep digits, comma, dot, and minus
+		s = s.replace(/[^0-9,\.\-]/g, "");
+		const lastComma = s.lastIndexOf(",");
+		const lastDot = s.lastIndexOf(".");
+		let decSep = null;
+		if (lastComma !== -1 && lastDot !== -1) {
+			decSep = lastComma > lastDot ? "," : ".";
+		} else if (lastComma !== -1) {
+			decSep = ",";
+		} else if (lastDot !== -1) {
+			decSep = ".";
+		}
+		if (decSep) {
+			const thouSep = decSep === "," ? "." : ",";
+			// remove thousands separators
+			s = s.replace(new RegExp("\\" + thouSep, "g"), "");
+			// convert decimal sep to dot
+			if (decSep === ",") s = s.replace(/,/g, ".");
+		} else {
+			// no clear decimal sep: drop any stray separators
+			s = s.replace(/[,.]/g, "");
+		}
+		const n = parseFloat(s);
+		return isNaN(n) ? NaN : n;
+	},
+
+	
+
+	// Normalize numeric according to field semantics (percent, int, rating)
+	normalizeNumeric(field, n) {
+		if (isNaN(n)) return n;
+		let out = n;
+		if (field?.df?.fieldtype === "Percent") {
+			// Convert 0..1 to 0..100, clamp and round
+			if (out > 0 && out < 1) out = out * 100;
+			out = Math.round(out);
+			if (out < 0) out = 0;
+			if (out > 100) out = 100;
+		} else if (field?.df?.fieldtype === "Int" || field?.df?.fieldtype === "Rating") {
+			out = Math.round(out);
+		}
+		return out;
+	},
+
 	get_formatted_value(field, value) {
 		if (field.df.fieldname === "docstatus") {
 			value = { 0: "Draft", 1: "Submitted", 2: "Cancelled" }[value] || value;
@@ -471,6 +520,18 @@ frappe.ui.filter_utils = {
 			val = strip(val);
 		}
 
+		const isNumericFieldEarly =
+			["Int", "Float", "Currency", "Rating", "Percent"].includes(field.df.fieldtype);
+
+		// For numeric fields with non list conditions, normalize from raw input
+		if (isNumericFieldEarly && !["in", "not in"].includes(condition)) {
+			const raw = field.$input && typeof field.$input.val === "function" ? field.$input.val() : null;
+			const numFromRaw = this.parseLocalizedNumber(raw ?? val);
+			if (!isNaN(numFromRaw)) {
+				val = this.normalizeNumeric(field, numFromRaw);
+			}
+		}
+
 		if (condition == "is" && !val) {
 			val = field.df.options[0].value;
 		}
@@ -486,9 +547,20 @@ frappe.ui.filter_utils = {
 			}
 		} else if (["in", "not in"].includes(condition)) {
 			if (val) {
-				val = val.split(",").map((v) => strip(v));
+				let parts = val.split(",").map((v) => strip(v));
+				const isNumericField = ["Int", "Float", "Currency", "Rating", "Percent"].includes(field.df.fieldtype);
+				if (isNumericField) {
+					parts = parts.map((p) => {
+						const num = this.parseLocalizedNumber(p);
+						return isNaN(num) ? p : this.normalizeNumeric(field, num);
+					});
+				}
+				val = parts;
 			}
-		} else if (frappe.boot.additional_filters_config[condition]) {
+		} else if (
+			frappe.boot.additional_filters_config &&
+			frappe.boot.additional_filters_config[condition]
+		) {
 			val = field.value || val;
 		}
 		if (val === "%") {
