@@ -13,6 +13,7 @@ export default class GridRow {
 			read_only: [],
 		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
+		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
 	}
 	make() {
@@ -871,7 +872,7 @@ export default class GridRow {
 		let show_length =
 			this.grid?.meta?.rows_threshold_for_grid_search > 0
 				? this.grid.meta.rows_threshold_for_grid_search
-				: 20;
+				: this.default_rows_threshold_for_grid_search;
 		this.show_search =
 			this.show_search &&
 			(this.grid?.data?.length >= show_length || this.grid.filter_applied);
