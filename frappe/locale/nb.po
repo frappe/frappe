@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-22 20:25\n"
+"PO-Revision-Date: 2025-09-23 20:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -4608,7 +4608,7 @@ msgstr "Velg autentiseringsmetode som skal brukes av alle brukere"
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:39
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "City"
-msgstr "By"
+msgstr "Poststed"
 
 #. Label of the city (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -8838,7 +8838,7 @@ msgstr "Utsending av e-post er slått av."
 #. Description of the 'Send Email Alert' (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Emails will be sent with next possible workflow actions"
-msgstr "E-postmeldinger vil bli sendt med neste mulige handlinger i arbeidsflyten"
+msgstr "Det vil bli sendt e-post med informasjon om neste mulige arbeidsflythandlinger"
 
 #: frappe/website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
@@ -24814,7 +24814,7 @@ msgstr "Egenskaper for tilstand"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "State/Province"
-msgstr "Stat/provins"
+msgstr "Delstat/provins"
 
 #. Label of the document_states_section (Tab Break) field in DocType 'DocType'
 #. Label of the states (Table) field in DocType 'Customize Form'
@@ -29094,12 +29094,12 @@ msgstr "Meta-tagg for nettstedet"
 #: frappe/website/doctype/website_route_meta/website_route_meta.json
 #: frappe/website/workspace/website/website.json
 msgid "Website Route Meta"
-msgstr ""
+msgstr "Sti-metadata for nettsted"
 
 #. Name of a DocType
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Website Route Redirect"
-msgstr ""
+msgstr "Sti-viderekobling for nettsted"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -29133,24 +29133,24 @@ msgstr "Innstillinger for nettsted"
 #: frappe/website/doctype/website_sidebar/website_sidebar.json
 #: frappe/website/workspace/website/website.json
 msgid "Website Sidebar"
-msgstr ""
+msgstr "Nettstedets sidefelt"
 
 #. Name of a DocType
 #: frappe/website/doctype/website_sidebar_item/website_sidebar_item.json
 msgid "Website Sidebar Item"
-msgstr ""
+msgstr "Element i nettstedets sidefelt"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 #: frappe/website/workspace/website/website.json
 msgid "Website Slideshow"
-msgstr ""
+msgstr "Lysbildefremvisning på nettstedet"
 
 #. Name of a DocType
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Website Slideshow Item"
-msgstr ""
+msgstr "Element i lysbildefremvisning på nettstedet"
 
 #. Label of the website_theme (Link) field in DocType 'Website Settings'
 #. Name of a DocType
@@ -29164,18 +29164,18 @@ msgstr "Nettstedstema"
 #. Name of a DocType
 #: frappe/website/doctype/website_theme_ignore_app/website_theme_ignore_app.json
 msgid "Website Theme Ignore App"
-msgstr ""
+msgstr "Ignorer app for nettstedstema"
 
 #. Label of the website_theme_image (Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Website Theme Image"
-msgstr ""
+msgstr "Bilde­ for nettstedstema"
 
 #. Label of the website_theme_image_link (Code) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Website Theme image link"
-msgstr ""
+msgstr "Bilde­lenke for nettstedstema"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -29201,7 +29201,7 @@ msgstr "Onsdag"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:276
 msgid "Week"
-msgstr ""
+msgstr "Uke"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -29239,7 +29239,7 @@ msgstr "Ukeslang"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:384
 msgid "Welcome"
-msgstr ""
+msgstr "Velkommen"
 
 #. Label of the welcome_email_template (Link) field in DocType 'System
 #. Settings'
@@ -29247,12 +29247,12 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome Email Template"
-msgstr ""
+msgstr "Mal for velkomst-e-post"
 
 #. Label of the welcome_url (Data) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome URL"
-msgstr ""
+msgstr "Velkomst-URL"
 
 #. Name of a Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
@@ -29261,11 +29261,11 @@ msgstr "Velkomst og introduksjon"
 
 #: frappe/core/doctype/user/user.py:416
 msgid "Welcome email sent"
-msgstr ""
+msgstr "Velkomst-e-post sendt"
 
 #: frappe/core/doctype/user/user.py:477
 msgid "Welcome to {0}"
-msgstr ""
+msgstr "Velkommen til {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
@@ -29332,7 +29332,7 @@ msgstr "Vil legge til «%» før og etter spørringen"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:485
 msgid "Will be your login ID"
-msgstr ""
+msgstr "Vil være din innloggings-ID"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:424
 msgid "Will only be shown if section headings are enabled"
@@ -29342,7 +29342,7 @@ msgstr "Vil bare vises hvis seksjonsoverskrifter er aktivert"
 #. in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler."
-msgstr ""
+msgstr "Kjører planlagte jobber bare én gang om dagen for inaktive nettsteder. Sett den til 0 for å unngå automatisk deaktivering av planleggeren."
 
 #: frappe/public/js/frappe/form/print_utils.js:45
 msgid "With Letter head"
@@ -29357,7 +29357,7 @@ msgstr "Info om bakgrunnsprosesser"
 #. Label of the worker_name (Data) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Worker Name"
-msgstr ""
+msgstr "Prosessnavn"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Group in DocType's connections
@@ -29373,30 +29373,30 @@ msgstr "Arbeidsflyt"
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:444
 msgid "Workflow Action"
-msgstr ""
+msgstr "Arbeidsflythandling"
 
 #. Name of a DocType
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Master"
-msgstr ""
+msgstr "Mal for arbeidsflythandling"
 
 #. Label of the workflow_action_name (Data) field in DocType 'Workflow Action
 #. Master'
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Name"
-msgstr ""
+msgstr "Navn på arbeidsflythandling"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
 msgid "Workflow Action Permitted Role"
-msgstr ""
+msgstr "Tillatt rolle for arbeidsflythandling"
 
 #. Description of the 'Is Optional State' (Check) field in DocType 'Workflow
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Action is not created for optional states"
-msgstr "Arbeidsflythandlingen er ikke opprettet for valgfrie tilstander"
+msgstr "Det opprettes ikke arbeidsflythandling for valgfrie tilstander"
 
 #: frappe/public/js/workflow_builder/store.js:129
 #: frappe/workflow/doctype/workflow/workflow.js:25
@@ -29420,7 +29420,7 @@ msgstr "Med Arbeidsflytbygger kan du lage arbeidsflyter visuelt. Du kan dra og s
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Data"
-msgstr ""
+msgstr "Arbeidsflytdata"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:44
 msgid "Workflow Details"
@@ -29429,40 +29429,40 @@ msgstr "Arbeidsflytdetaljer"
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Document State"
-msgstr ""
+msgstr "Tilstand for arbeidsflytdokument"
 
 #. Label of the workflow_name (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Name"
-msgstr ""
+msgstr "Navn på arbeidsflyt"
 
 #. Label of the workflow_state (Data) field in DocType 'Workflow Action'
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow State"
-msgstr ""
+msgstr "Arbeidsflyttilstand"
 
 #. Label of the workflow_state_field (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow State Field"
-msgstr ""
+msgstr "Felt for arbeidsflyttilstand"
 
 #: frappe/model/workflow.py:64
 msgid "Workflow State not set"
-msgstr ""
+msgstr "Arbeidsflyttilstand ikke angitt"
 
 #: frappe/model/workflow.py:260 frappe/model/workflow.py:268
 msgid "Workflow State transition not allowed from {0} to {1}"
-msgstr ""
+msgstr "Overgang mellom arbeidsflyttilstander er ikke tillatt fra {0} til {1}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:140
 msgid "Workflow States Don't Exist"
-msgstr ""
+msgstr "Arbeidsflyttilstander finnes ikke"
 
 #: frappe/model/workflow.py:384
 msgid "Workflow Status"
-msgstr ""
+msgstr "Arbeidsflyttilstand"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -29472,26 +29472,26 @@ msgstr "Oppgaver i arbeidsflyt"
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Workflow Transition"
-msgstr ""
+msgstr "Arbeidsflytovergang"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Workflow Transition Task"
-msgstr ""
+msgstr "Oppgave ved arbeidsflytovergang"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Workflow Transition Tasks"
-msgstr ""
+msgstr "Oppgaver ved arbeidsflytovergang"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow state represents the current state of a document."
-msgstr ""
+msgstr "Arbeidsflyttilstand representerer den nåværende tilstanden til et dokument."
 
 #: frappe/public/js/workflow_builder/store.js:83
 msgid "Workflow updated successfully"
-msgstr "Arbeidsflyten ble vellykket oppdatert"
+msgstr "Arbeidsflyten ble oppdatert"
 
 #. Label of the workspace_section (Section Break) field in DocType 'User'
 #. Label of a Link in the Build Workspace
@@ -29711,27 +29711,27 @@ msgstr "I går"
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
 msgid "You"
-msgstr ""
+msgstr "Du"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:463
 msgid "You Liked"
-msgstr ""
+msgstr "Du likte"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:266
 msgid "You added 1 row to {0}"
-msgstr ""
+msgstr "Du la til 1 rad til {0}"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:244
 msgid "You added {0} rows to {1}"
-msgstr ""
+msgstr "Du la til {0} rader til {1}"
 
 #: frappe/public/js/frappe/dom.js:438
 msgid "You are connected to internet."
-msgstr ""
+msgstr "Du er koblet til Internett."
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:20
 msgid "You are impersonating as another user."
-msgstr ""
+msgstr "Du utgir deg for å være en annen bruker."
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:28
 msgid "You are not allowed to access this resource"
@@ -29739,27 +29739,27 @@ msgstr "Du har ikke tilgang til denne ressursen"
 
 #: frappe/permissions.py:431
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
-msgstr ""
+msgstr "Du har ikke tilgang til denne {0} oppføringen fordi den er lenket til {1} '{2}' i felt {3}"
 
 #: frappe/permissions.py:420
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
-msgstr ""
+msgstr "Du har ikke tilgang til denne {0} -posten fordi den er knyttet til {1} '{2}' i rad {3}, felt {4}"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:68
 msgid "You are not allowed to create columns"
-msgstr ""
+msgstr "Du har ikke rettigheter til å opprette kolonner"
 
 #: frappe/core/doctype/report/report.py:97
 msgid "You are not allowed to delete Standard Report"
-msgstr ""
+msgstr "Du har ikke rettigheter til å slette standardrapporten"
 
 #: frappe/website/doctype/website_theme/website_theme.py:73
 msgid "You are not allowed to delete a standard Website Theme"
-msgstr ""
+msgstr "Du har ikke rettigheter til å slette et standard nettstedstema"
 
 #: frappe/core/doctype/report/report.py:391
 msgid "You are not allowed to edit the report."
-msgstr ""
+msgstr "Du har ikke rettigheter til å redigere rapporten."
 
 #: frappe/core/doctype/data_import/exporter.py:121
 #: frappe/core/doctype/data_import/exporter.py:125
@@ -29770,39 +29770,39 @@ msgstr "Du har ikke rettigheter til å eksportere {} dokumenttype (DocType)"
 
 #: frappe/public/js/frappe/views/treeview.js:448
 msgid "You are not allowed to print this report"
-msgstr "Du har ikke tillatelse til å skrive ut denne rapporten"
+msgstr "Du har ikke rettigheter til å skrive ut denne rapporten"
 
 #: frappe/public/js/frappe/views/communication.js:787
 msgid "You are not allowed to send emails related to this document"
-msgstr ""
+msgstr "Du har ikke rettigheter til å sende e-poster om dette dokumentet"
 
 #: frappe/website/doctype/web_form/web_form.py:605
 msgid "You are not allowed to update this Web Form Document"
-msgstr ""
+msgstr "Du har ikke rettigheter til å oppdatere dette nettskjemadokumentet"
 
 #: frappe/public/js/frappe/request.js:37
 msgid "You are not connected to Internet. Retry after sometime."
-msgstr ""
+msgstr "Du er ikke koblet til Internett. Prøv på nytt etter en stund."
 
 #: frappe/public/js/frappe/web_form/webform_script.js:22
 msgid "You are not permitted to access this page without login."
-msgstr ""
+msgstr "Du har ikke tilgang til denne siden uten å være logget inn."
 
 #: frappe/www/app.py:27
 msgid "You are not permitted to access this page."
-msgstr ""
+msgstr "Ditt rettighetsnivå hindrer visning av denne siden."
 
 #: frappe/__init__.py:465
 msgid "You are not permitted to access this resource. Login to access"
-msgstr ""
+msgstr "Du må være innlogget for å få tilgang til denne ressursen."
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
-msgstr ""
+msgstr "Du følger nå dette dokumentet. Du vil motta daglige oppdateringer via e-post. Du kan endre dette i brukerinnstillingene."
 
 #: frappe/core/doctype/installed_applications/installed_applications.py:117
 msgid "You are only allowed to update order, do not remove or add apps."
-msgstr ""
+msgstr "Du kan bare endre rekkefølgen på appene, ikke legge til eller fjerne dem."
 
 #: frappe/email/doctype/email_account/email_account.js:284
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
@@ -29811,7 +29811,7 @@ msgstr "Du velger Synkroniseringsalternativet ALLE. Dette vil synkronisere alle 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:414
 msgctxt "Form timeline"
 msgid "You attached {0}"
-msgstr ""
+msgstr "Du la ved {0}"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:749
 msgid "You can add dynamic properties from the document by using Jinja templating."
@@ -29831,11 +29831,11 @@ msgstr "Du kan også kopiere og lime inn dette"
 
 #: frappe/templates/emails/delete_data_confirmation.html:11
 msgid "You can also copy-paste this {0} to your browser"
-msgstr ""
+msgstr "Du kan også kopiere og lime inn denne {0} i nettleseren din"
 
 #: frappe/templates/emails/user_invitation_expired.html:8
 msgid "You can ask your team to resend the invitation if you'd still like to join."
-msgstr ""
+msgstr "Du kan be teamet ditt om å sende invitasjonen på nytt hvis du fortsatt ønsker å bli med."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
@@ -29851,19 +29851,19 @@ msgstr "Du kan fortsette med onboarding-prosessen etter å ha utforsket denne si
 
 #: frappe/model/delete_doc.py:137
 msgid "You can disable this {0} instead of deleting it."
-msgstr ""
+msgstr "Du kan deaktivere denne {0} i stedet for å slette den."
 
 #: frappe/core/doctype/file/file.py:758
 msgid "You can increase the limit from System Settings."
-msgstr ""
+msgstr "Du kan øke grensen fra systeminnstillingene."
 
 #: frappe/utils/synchronization.py:48
 msgid "You can manually remove the lock if you think it's safe: {}"
-msgstr ""
+msgstr "Du kan manuelt fjerne låsen hvis du tror det er trygt: {}"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:75
 msgid "You can only insert images in Markdown fields"
-msgstr ""
+msgstr "Du kan bare sette inn bilder i felter som støtter Markdown"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:42
 msgid "You can only print upto {0} documents at a time"
@@ -29889,7 +29889,7 @@ msgstr "Du kan velge ett av følgende,"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "You can set a high value here if multiple users will be logging in from the same network."
-msgstr ""
+msgstr "Du kan angi en høy verdi her hvis flere brukere skal logge seg på fra samme nettverk."
 
 #: frappe/desk/query_report.py:382
 msgid "You can try changing the filters of your report."
@@ -30858,7 +30858,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/widgets/number_card_widget.js:309
 msgid "since last week"
-msgstr ""
+msgstr "siden forrige uke"
 
 #: frappe/public/js/frappe/widgets/number_card_widget.js:311
 msgid "since last year"
@@ -31410,7 +31410,7 @@ msgstr ""
 
 #: frappe/model/workflow.py:245
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
-msgstr ""
+msgstr "{0} er ikke en gyldig arbeidsflyttilstand. Oppdater arbeidsflyten din og prøv på nytt."
 
 #: frappe/permissions.py:809
 msgid "{0} is not a valid parent DocType for {1}"
@@ -31704,7 +31704,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
 msgid "{0} weeks ago"
-msgstr ""
+msgstr "{0} uker siden"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
