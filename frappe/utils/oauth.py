@@ -161,7 +161,7 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 
 	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
-	
+
 	info["email"] = info.get("email", "").lower()
 	info["upn"] = info.get("upn", "").lower()
 
