@@ -64,17 +64,26 @@ frappe.RoleEditor = class {
 					</div>`);
 				} else {
 					$body.append(`
-						<table class="user-perm">
-							<thead>
-								<tr>
-									<th> ${__("Document Type")} </th>
-									<th> ${__("Level")} </th>
-									<th> ${__("If Owner")} </th>
-									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
-								</tr>
-							</thead>
-							<tbody></tbody>
-						</table>
+						<div style="max-height:600px; overflow-y:auto;">
+							<table class="user-perm">
+								<thead>
+									<tr>
+										<th class="sticky-top bg-light"> ${__("Document Type")} </th>
+										<th class="sticky-top bg-light"> ${__("Level")} </th>
+										<th class="sticky-top bg-light"> ${__("If Owner")} </th>
+										${frappe.perm.rights
+											.map(
+												(p) =>
+													`<th class="sticky-top bg-light">${__(
+														frappe.unscrub(p)
+													)}</th>`
+											)
+											.join("")}
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
 					`);
 					permissions.forEach((perm) => {
 						$body.find("tbody").append(`
