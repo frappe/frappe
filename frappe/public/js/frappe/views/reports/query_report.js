@@ -726,7 +726,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
-				type: "GET",
+				type: "POST",
 				args: {
 					report_name: this.report_name,
 					filters: filters,
