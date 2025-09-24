@@ -6,3 +6,4 @@ This page shows a simple method to export `User` records via the REST API and sa
 - Calls `/api/resource/User` with selected fields.
 - Supports API token auth or Basic Auth.
 - Writes a CSV with columns: `name, email, first_name, last_name, enabled`.
+  
