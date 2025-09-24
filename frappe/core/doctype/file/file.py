@@ -141,7 +141,6 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
-		self.check_content()
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
