@@ -258,7 +258,11 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 			return successFn(context)
 		}
 	} else {
-		toast.success(event.success_message || `${event.doctype} created successfully`)
+		if (event.action === "Insert a Document") {
+			toast.success(event.success_message || `${event.doctype} created successfully`)
+		} else if (event.action === "Call API" && event.success_message) {
+			toast.success(event.success_message)
+		}
 	}
 }
 
@@ -283,7 +287,11 @@ const handleError = (event: any) => (error: any) => {
 			return errorFn(context)
 		}
 	} else {
-		toast.error(event.error_message || `Error creating ${event.doctype}`)
+		if (event.action === "Insert a Document") {
+			toast.error(event.error_message || `Error creating ${event.doctype}`)
+		} else if (event.action === "Call API" && event.error_message) {
+			toast.error(event.error_message)
+		}
 	}
 }
 
