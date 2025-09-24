@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-21 19:58\n"
+"PO-Revision-Date: 2025-09-24 20:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -19603,7 +19603,7 @@ msgstr "Preciznost"
 
 #: frappe/core/doctype/doctype/doctype.py:1670
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
-msgstr ""
+msgstr "Preciznost ({0}) za {1} ne može biti veća od njegove dužine ({2})."
 
 #: frappe/core/doctype/doctype/doctype.py:1401
 msgid "Precision should be between 1 and 6"
@@ -23653,7 +23653,7 @@ msgstr "Postavite nestandardnu preciznost za polje sa decimalnim brojem ili valu
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Set non-standard precision for a Float, Currency or Percent field"
-msgstr ""
+msgstr "Podesite nestandardnu preciznost za polja vrste decimalni broj, valuta ili procenat"
 
 #. Label of the set_only_once (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -26111,7 +26111,7 @@ msgstr "Broj projekta dobijen putem Google Cloud konzole, u odeljku <a href=\"ht
 
 #: frappe/desk/utils.py:106
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
-msgstr ""
+msgstr "Izveštaj koji ste zatražili je generisan.<br><br>Kliknite ovde za preuzimanje:<br><a href='{0}'>{0}</a><br><br>Ovaj link ističe za {1} sata."
 
 #: frappe/core/doctype/user/user.py:1000
 msgid "The reset password link has been expired"
@@ -26336,7 +26336,7 @@ msgstr "Ovo se ne može opozvati"
 #: frappe/desk/doctype/number_card/number_card.js:480
 msgctxt "Number Card"
 msgid "This card is visible only to Administrator and System Managers by default. Set a DocType to share with users who have read access."
-msgstr ""
+msgstr "Ova kartica je podrazumevano vidljiva samo administratoru i sistem menadžerima. Podesite DocType da je delite sa korisnicima koji imaju pravo čitanja."
 
 #. Description of the 'Is Public' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -30284,7 +30284,7 @@ msgstr "Vaš upit je primljen. Odgovorićemo Vam uskoro, ukoliko imate dodatne i
 
 #: frappe/desk/query_report.py:342 frappe/desk/reportview.py:396
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
-msgstr ""
+msgstr "Vaš izveštaj se generiše u pozadini. Dobićete imejl na {0} sa linkom za preuzimanje kada bude spreman."
 
 #: frappe/app.py:374
 msgid "Your session has expired, please login again to continue."
