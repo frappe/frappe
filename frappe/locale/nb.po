@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-23 20:33\n"
+"PO-Revision-Date: 2025-09-24 20:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -16392,7 +16392,7 @@ msgstr "Navneregel"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr "Navneserie"
+msgstr "Nummerserie"
 
 #: frappe/model/naming.py:268
 msgid "Naming Series mandatory"
@@ -29577,15 +29577,15 @@ msgstr "Arbeidsområder"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:757
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
-msgstr ""
+msgstr "Ønsker du å publisere denne kommentaren? Dette betyr at den blir synlig for brukere av nettstedet/portalen."
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:761
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
-msgstr ""
+msgstr "Ønsker du å avpublisere denne kommentaren? Dette betyr at den ikke lenger vil være synlig for brukere av nettstedet/portalen."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:41
 msgid "Wrapping up"
-msgstr ""
+msgstr "Oppsummerer"
 
 #. Label of the write (Check) field in DocType 'Custom DocPerm'
 #. Label of the write (Check) field in DocType 'DocPerm'
@@ -29604,7 +29604,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:495
 msgid "X Axis Field"
-msgstr ""
+msgstr "Felt i X-akse"
 
 #. Label of the x_field (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -29623,7 +29623,7 @@ msgstr "Y-akse"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:502
 msgid "Y Axis Fields"
-msgstr ""
+msgstr "Felt for Y-akse"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
