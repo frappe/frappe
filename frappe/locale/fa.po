@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-22 20:24\n"
+"PO-Revision-Date: 2025-09-24 20:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3533,7 +3533,7 @@ msgstr "ساخت"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation"
-msgstr ""
+msgstr "گزارش‌ها، قالب‌های چاپ و داشبوردهای خودتان را بسازید. برای پیمایش آسان‌تر، فضاهای کاری شخصی‌سازی‌شده ایجاد کنید"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -4061,7 +4061,7 @@ msgstr "محتویات فایل یک پوشه را نمی‌توان دریاف�
 
 #: frappe/printing/page/print/print.js:884
 msgid "Cannot have multiple printers mapped to a single print format."
-msgstr "نمی‌توان چندین چاپگر را به یک قالب چاپی نگاشت کرد."
+msgstr "نمی‌توان چندین چاپگر را به یک قالب چاپ واحد نگاشت کرد."
 
 #: frappe/public/js/frappe/form/grid.js:1133
 msgid "Cannot import table with more than 5000 rows."
