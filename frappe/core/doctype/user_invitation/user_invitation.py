@@ -54,10 +54,11 @@ class UserInvitation(Document):
 		self.status = "Cancelled"
 		self.save()
 		email_title = self._get_email_title()
+		template = self._get_email_template("cancelled")
 		frappe.sendmail(
 			recipients=self.email,
 			subject=_("Invitation to join {0} cancelled").format(email_title),
-			template="user_invitation_cancelled",
+			template=template,
 			args={"title": email_title},
 			now=True,
 		)
@@ -71,10 +72,11 @@ class UserInvitation(Document):
 		self.save()
 		email_title = self._get_email_title()
 		invited_by_user = frappe.get_doc("User", self.invited_by)
+		template = self._get_email_template("expired")
 		frappe.sendmail(
 			recipients=invited_by_user.email,
 			subject=_("Invitation to join {0} expired").format(email_title),
-			template="user_invitation_expired",
+			template=template,
 			args={"title": email_title},
 			now=False,
 		)
@@ -108,15 +110,30 @@ class UserInvitation(Document):
 			f"/api/method/frappe.core.api.user_invitation.accept_invitation?key={key}"
 		)
 		email_title = self._get_email_title()
+		template = self._get_email_template("invited")
 		frappe.sendmail(
 			recipients=self.email,
 			subject=_("You've been invited to join {0}").format(email_title),
-			template="user_invitation",
+			template=template,
 			args={"title": email_title, "invite_link": invite_link},
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())
 		return key
+
+	def _get_email_template(self, template_type: str) -> str:
+		default_template = {
+			"invited": "user_invitation",
+			"cancelled": "user_invitation_cancelled",
+			"expired": "user_invitation_expired",
+		}
+		template = default_template[template_type]
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+		if isinstance(user_invitation_hook, dict) and isinstance(user_invitation_hook.get("email_templates"), dict):
+			email_templates = user_invitation_hook.get("email_templates") or dict()
+			if email_templates.get(template_type):
+				template = email_templates.get(template_type)[0]
+		return template
 
 	def _accept(self):
 		if self.status == "Accepted":
