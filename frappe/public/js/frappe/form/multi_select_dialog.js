@@ -3,6 +3,17 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		/* Options: doctype, target, setters, get_query, action, add_filters_group, data_fields, primary_action_label, columns */
 		Object.assign(this, opts);
 		this.for_select = this.doctype == "[Select]";
+
+		// Ensure get_query exists -> safe default
+		if (!this.get_query || typeof this.get_query !== "function") {
+			this.get_query = function () {
+				return { filters: {} };
+			};
+		}
+
+		// Bind handler for primary filter changes
+		this.on_primary_filter_change = this.on_primary_filter_change.bind(this);
+
 		if (!this.for_select) {
 			frappe.model.with_doctype(this.doctype, () => this.init());
 		} else {
@@ -87,7 +98,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			secondary_action_label: __("Make {0}", [__(this.doctype)]),
 			primary_action: () => {
 				let filters_data = this.get_custom_filters();
-				const data_values = cur_dialog.get_values(); // to pass values of data fields
+				const data_values = this.dialog.get_values(); // to pass values of data fields
 				const filtered_children = this.get_selected_child_names();
 				const selected_documents = [
 					...this.get_checked_values(),
@@ -141,8 +152,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	setup_results() {
 		this.$parent = $(this.dialog.body);
-		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper
-			.append(`<div class="results my-3"
+		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results my-3"
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 
 		this.$results = this.$wrapper.find(".results");
@@ -227,6 +237,19 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.$child_wrapper.find(".dt-scrollable").css("height", "300px");
 	}
 
+	// central handler invoked when any primary filter changes
+	on_primary_filter_change() {
+		frappe.flags.auto_scroll = false;
+		if (this.is_child_selection_enabled()) {
+			this.show_child_results();
+		} else {
+			// Reset page length when filters change for fresh results
+			this.page_length = 20;
+			this.empty_list();
+			this.get_results();
+		}
+	}
+
 	get_primary_filters() {
 		let fields = [];
 
@@ -239,6 +262,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				fieldtype: "Data",
 				label: __("Name"),
 				fieldname: "search_term",
+				// ensure search input triggers the central handler
+				onchange: this.on_primary_filter_change,
+				// also capture typing debounce using input handler (existing approach)
 			},
 		];
 		columns[1] = [];
@@ -246,7 +272,15 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		if ($.isArray(this.setters)) {
 			this.setters.forEach((setter, index) => {
-				columns[(index + 1) % 3].push(setter);
+				// If setter is an object (df), attach onchange
+				let setterDf =
+					typeof setter === "object" && setter.fieldname ? setter : setter;
+
+				// Add onchange to trigger search when user changes the primary filter
+				let setterField = Object.assign({}, setterDf, {
+					onchange: this.on_primary_filter_change,
+				});
+				columns[(index + 1) % 3].push(setterField);
 			});
 		} else {
 			Object.keys(this.setters).forEach((setter, index) => {
@@ -262,6 +296,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 					read_only:
 						(this?.read_only_setters && this.read_only_setters.includes(setter)) || 0,
 					default: this.setters[setter],
+					// attach onchange to trigger search/filtering
+					onchange: this.on_primary_filter_change,
 				});
 			});
 		}
@@ -273,10 +309,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		}
 
 		if (this.allow_child_item_selection) {
-			this.child_doctype = frappe.meta.get_docfield(
-				this.doctype,
-				this.child_fieldname
-			).options;
+			this.child_doctype = frappe.meta.get_docfield(this.doctype, this.child_fieldname).options;
 			columns[0].push({
 				fieldtype: "Check",
 				label: __("Select {0}", [__(this.child_doctype)]),
@@ -309,11 +342,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			parent: this.dialog.get_field("filter_area").$wrapper,
 			doctype: this.doctype,
 			on_change: () => {
-				if (this.is_child_selection_enabled()) {
-					this.show_child_results();
-				} else {
-					this.get_results();
-				}
+				// When filter group changes, call the same central handler
+				this.on_primary_filter_change();
 			},
 		});
 		// 'Apply Filter' breaks since the filers are not in a popover
@@ -361,6 +391,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			});
 		});
 
+		// existing handler for inputs with feedback (selects, etc.)
 		this.$parent.find(".input-with-feedback").on("change", () => {
 			frappe.flags.auto_scroll = false;
 			if (this.is_child_selection_enabled()) {
@@ -370,6 +401,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			}
 		});
 
+		// debounce input event for Data fields (search term)
 		this.$parent.find('[data-fieldtype="Data"]').on("input", () => {
 			var $this = $(this);
 			clearTimeout($this.data("timeout"));
@@ -386,6 +418,36 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				}, 300)
 			);
 		});
+
+		// Additional safeguard: attach onchange to any primary setter fields after dialog is rendered
+		// Some setter fields might not have been rendered when fields were defined; ensure handlers exist now
+		try {
+			// For array-form setters
+			if ($.isArray(this.setters)) {
+				this.setters.forEach((setter) => {
+					const fieldname = setter.fieldname || setter;
+					if (this.dialog.fields_dict[fieldname]) {
+						this.dialog.fields_dict[fieldname].refresh && this.dialog.fields_dict[fieldname].refresh();
+						this.dialog.fields_dict[fieldname].df.onchange = this.on_primary_filter_change;
+						this.dialog.fields_dict[fieldname].$input &&
+							this.dialog.fields_dict[fieldname].$input.on &&
+							this.dialog.fields_dict[fieldname].$input.on("change", this.on_primary_filter_change);
+					}
+				});
+			} else {
+				Object.keys(this.setters || {}).forEach((setter) => {
+					if (this.dialog.fields_dict[setter]) {
+						this.dialog.fields_dict[setter].df.onchange = this.on_primary_filter_change;
+						this.dialog.fields_dict[setter].$input &&
+							this.dialog.fields_dict[setter].$input.on &&
+							this.dialog.fields_dict[setter].$input.on("change", this.on_primary_filter_change);
+					}
+				});
+			}
+		} catch (e) {
+			// silent catch - best-effort binding, doesn't break flow
+			console.warn("Failed to attach extra onchange handlers for setters", e);
+		}
 	}
 
 	get_parent_name_of_selected_children() {
@@ -445,8 +507,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	get_datatable_columns() {
 		if (this.get_query && this.get_query().query && this.columns) return this.columns;
 
-		if (Array.isArray(this.setters))
-			return ["name", ...this.setters.map((df) => df.fieldname)];
+		if (Array.isArray(this.setters)) return ["name", ...this.setters.map((df) => df.fieldname)];
 
 		return ["name", ...Object.keys(this.setters)];
 	}
@@ -461,36 +522,22 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			contents += `<div class="list-item__content ellipsis">
 				${
 					head
-						? `<span class="ellipsis text-muted" title="${__(
-								frappe.model.unscrub(column)
-						  )}">${__(frappe.model.unscrub(column))}</span>`
+						? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
 						: column !== "name"
-						? `<span class="ellipsis result-row" title="${__(
-								result[column] || ""
-						  )}">${__(result[column] || "")}</span>`
-						: `<a href="${
-								"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
-								""
-						  }" class="list-id ellipsis" title="${__(result[column] || "")}">
-							${__(result[column] || "")}</a>`
+						? `<span class="ellipsis result-row" title="${__(result[column] || "")}">${__(result[column] || "")}</span>`
+						: `<a href="${"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] || ""}" class="list-id ellipsis" title="${__(result[column] || "")}">${__(result[column] || "")}</a>`
 				}
 			</div>`;
 		});
 
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" data-item-name="${result.name}" ${
-			result.checked ? "checked" : ""
-		}>
+				<input type="checkbox" class="list-row-check" data-item-name="${result.name}" ${result.checked ? "checked" : ""}>
 			</div>
 			${contents}
 		</div>`);
 
-		head
-			? $row.addClass("list-item--head")
-			: ($row = $(
-					`<div class="list-item-container" data-item-name="${result.name}"></div>`
-			  ).append($row));
+		head ? $row.addClass("list-item--head") : ($row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row));
 
 		return $row;
 	}
@@ -547,8 +594,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
-				filters[df.fieldname] =
-					me.dialog.fields_dict[df.fieldname].get_value() || undefined;
+				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
 				me.args[df.fieldname] = filters[df.fieldname];
 				filter_fields.push(df.fieldname);
 			}
@@ -663,3 +709,4 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 };
+
