@@ -79,7 +79,7 @@
 							:class="control.class || ''"
 						/>
 
-						<template v-if="['Insert a Document', 'Call API'].includes(newEvent.action)">
+						<template v-if="showSuccessFailureOptions">
 							<!-- Success Section -->
 							<div class="border-t border-gray-200 pt-4">
 								<div class="mb-3">
@@ -422,6 +422,13 @@ const actions: ActionConfigurations = {
 
 const actionControls = computed(() => {
 	return actions[newEvent.value.action] || []
+})
+
+const showSuccessFailureOptions = computed(() => {
+	return (
+		(newEvent.value.action === "Insert a Document" && newEvent.value.doctype) ||
+		newEvent.value.action === "Call API"
+	)
 })
 
 function getFnBoilerplate(event: "success" | "error") {
