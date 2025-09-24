@@ -129,7 +129,9 @@ class UserInvitation(Document):
 		}
 		template = default_template[template_type]
 		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
-		if isinstance(user_invitation_hook, dict) and isinstance(user_invitation_hook.get("email_templates"), dict):
+		if isinstance(user_invitation_hook, dict) and isinstance(
+			user_invitation_hook.get("email_templates"), dict
+		):
 			email_templates = user_invitation_hook.get("email_templates") or dict()
 			if email_templates.get(template_type):
 				template = email_templates.get(template_type)[0]
