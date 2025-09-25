@@ -103,6 +103,7 @@ export default class WebFormList {
 					label: df.label,
 					fieldname: df.fieldname,
 					fieldtype: df.fieldtype,
+					options: df.options,
 				};
 			});
 		}
