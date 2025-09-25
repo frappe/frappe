@@ -3,6 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
+import re
 
 import frappe
 import frappe.defaults
@@ -39,6 +40,9 @@ from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
+
+RESET_PASSWORD_KEY_MAX_LENGTH = 128
+RESET_PASSWORD_KEY_PATTERN = re.compile(r"^[A-Za-z0-9]+$")
 
 desk_properties = (
 	"search_bar",
@@ -925,32 +929,112 @@ def ask_pass_update():
 	set_default("email_user_password", ",".join(password_list))
 
 
+def _sanitize_reset_key(raw_key):
+	"""Return a normalized reset key string or None when the key is invalid."""
+	if raw_key is None:
+		return None
+
+	if isinstance(raw_key, bytes):
+		# Keys may arrive as bytes from web frameworks; decode them safely
+		try:
+			raw_key = raw_key.decode()
+		except UnicodeDecodeError:
+			# Reject undecodable byte strings to avoid mismatched hashes
+			return None
+	elif not isinstance(raw_key, str):
+		# Anything other than text is discarded before further processing
+		return None
+
+	key = raw_key.strip()
+	if not key or len(key) > RESET_PASSWORD_KEY_MAX_LENGTH:
+		# Empty keys and overly long inputs are treated as invalid noise
+		return None
+
+	if not RESET_PASSWORD_KEY_PATTERN.match(key):
+		# Only allow URL-safe alphanumeric tokens to pass through to hashing
+		return None
+
+	return key
+
+
 def _get_user_for_update_password(key, old_password):
-	# verify old password
-	result = frappe._dict()
+	"""Resolve a user for password update via reset key or legacy password check.
+
+	Validates and normalizes incoming reset keys before verifying expiry and user state.
+	Returns a frappe._dict with `user` and optional `message` describing failures.
+	"""
+	result = frappe._dict(user=None, message=None)
+	invalid_link_message = _("The reset password link has either been used before or is invalid")
+
 	if key:
-		hashed_key = sha256_hash(key)
-		user = frappe.db.get_value(
-			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
-		)
-		result.user, last_reset_password_key_generated_on = user or (None, None)
-		if result.user:
-			reset_password_link_expiry = cint(
-				frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
+		normalized_key = _sanitize_reset_key(key)
+		if not normalized_key:
+			# Surface a consistent error when the key cannot be sanitized
+			result.message = invalid_link_message
+			return result
+
+		hashed_key = sha256_hash(normalized_key)
+
+		try:
+			user_row = frappe.db.get_value(
+				"User",
+				{"reset_password_key": hashed_key, "enabled": 1},
+				["name", "last_reset_password_key_generated_on"],
+				as_dict=True,
 			)
-			if (
-				reset_password_link_expiry
-				and now_datetime()
-				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
-			):
-				result.message = _("The reset password link has been expired")
-		else:
-			result.message = _("The reset password link has either been used before or is invalid")
-	elif old_password:
-		# verify old password
+		except Exception:
+			# Capture database errors so administrators can investigate abuse or outages
+			frappe.log_error(frappe.get_traceback(), _("Failed to validate reset password key"))
+			result.message = invalid_link_message
+			return result
+
+		if not user_row:
+			# Missing rows mean the key is invalid, reused, or linked to a disabled account
+			result.message = invalid_link_message
+			return result
+
+		last_generated = user_row.get("last_reset_password_key_generated_on")
+		if not last_generated:
+			# Lack of metadata hints at tampering, so fail closed
+			result.message = invalid_link_message
+			return result
+
+		now = now_datetime()
+		# Guard against tampered future timestamps that could bypass expiry checks
+		if last_generated > now + timedelta(minutes=1):
+			# Future-dated rows indicate manipulation; invalidate immediately
+			result.message = invalid_link_message
+			return result
+
+		expiry_seconds = cint(
+			frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
+		)
+		if expiry_seconds and now > last_generated + timedelta(seconds=expiry_seconds):
+			# Honours administrator-defined expiry durations for reset links
+			result.message = _("The reset password link has been expired")
+			return result
+
+		result.user = user_row.get("name")
+		# A valid key yields the associated user without exposing sensitive metadata
+		return result
+
+	if old_password:
+		if frappe.session.user in (None, "Guest"):
+			# Anonymous sessions should never attempt legacy password changes
+			result.message = _("You need to be logged in to update your password.")
+			return result
+		if not isinstance(old_password, str):
+			# Enforce consistent type expectations to avoid surprising truthiness
+			result.message = _("Old password must be provided as text.")
+			return result
+
 		frappe.local.login_manager.check_password(frappe.session.user, old_password)
-		user = frappe.session.user
-		result.user = user
+		result.user = frappe.session.user
+		# Successful verification lets callers proceed with password updates
+		return result
+
+	result.message = invalid_link_message
+	# Fall back to a generic error when neither path yields a user
 	return result
 
 
@@ -970,8 +1054,14 @@ def verify_password(password):
 
 
 @frappe.whitelist(allow_guest=True)
+# Rate limit slows down brute-force attempts on reset key verification
+@rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def verify_reset_password_key(key):
-	"""Verify if the reset password key is valid and not expired."""
+	"""Verify that the reset password key is valid, active, and not expired.
+
+	Incoming requests are rate limited to the configured password reset threshold to
+	mitigate brute-force attempts against the key verification endpoint.
+	"""
 	result = _get_user_for_update_password(key, None)
 	if result.message:
 		frappe.local.response.http_status_code = 410
