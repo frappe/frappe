@@ -2101,14 +2101,17 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) 
 	- For other operators: Both val1 and val2 are cast to the specified fieldtype
 	"""
 	if fieldtype:
-		if condition not in {"Timespan", "is", "in", "not in"}:
+		if condition in {"is", "Timespan"}:
+			# No casting to preserve original values
+			pass
+		elif condition in {"in", "not in"}:
+			# Cast only val1 (if not None), preserve val2 container
+			if val1 is not None:
+				val1 = cast(fieldtype, val1)
+		else:
 			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
 			val1 = cast(fieldtype, val1)
 			val2 = cast(fieldtype, val2)
-		elif condition in {"in", "not in"} and val1 is not None:
-			# Cast only the search value, not the container, and preserve None values
-			val1 = cast(fieldtype, val1)
-		# For "is" and "Timespan" operators: no casting to preserve original values
 
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
