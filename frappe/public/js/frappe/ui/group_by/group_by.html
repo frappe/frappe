@@ -1,12 +1,33 @@
 <div class="group-by-box">
-	<div class="visible-xs flex justify-flex-end">
-		<span class="remove-group-by">
-			{{ __("Remove") }}
-		</span>
+	<div class="group-by-aggregate-container">
+		<div class="row">
+			<div class="col-sm-6 form-group">
+				<select class="aggregate-function form-control input-xs small">
+					{% for condition in aggregate_function_conditions %}
+					<option value="{{condition.name}}">{{ __(condition.label) }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="col-sm-6 form-group">
+				<select class="aggregate-on form-control input-xs small" style="display: none;">
+					<option value="" disabled selected>{{ __("Select Field...") }}</option>
+				</select>
+			</div>
+		</div>
 	</div>
-	<div class="list_groupby row">
-		<div class="col-sm-8 form-group">
-			<select class="group-by form-control input-xs">
+	<hr>
+	<div class="group-by-fields-container">
+	</div>
+	<div class="add-group-by-button-container" style="margin-top: 10px;">
+		<button class="text-muted add-group-by-field btn btn-xs">{{ __("+ Add Group By Fields") }}</button>
+		<button class="btn btn-primary btn-xs clear-all-groups pull-right">{{ __("Clear All Groups") }}</button>
+	</div>
+</div>
+
+<div class="group-by-field-template-container" style="display: none;">
+	<div class="list_groupby row" style="margin-bottom: 10px;">
+		<div class="col-sm-11 form-group">
+			<select class="group-by form-control input-xs small">
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
 					{% for (var val of group_by_conditions[parent_doctype]) { %}
@@ -23,19 +44,7 @@
 				{% } %}
 			</select>
 		</div>
-		<div class="col-sm-3 form-group">
-			<select class="aggregate-function form-control input-xs">
-				{% for condition in aggregate_function_conditions %}
-				<option value="{{condition.name}}">{{ __(condition.label) }}</option>
-				{% endfor %}
-			</select>
-		</div>
-		<div class="col-sm-4 col-xs-12" style="display: none">
-			<select class="aggregate-on form-control input-xs">
-				<option value="" disabled selected>{{ __("Select Field...") }}</option>
-			</select>
-		</div>
-		<div class="groupby-actions pull-left col-sm-1 hidden-xs">
+		<div class="groupby-actions pull-left col-sm-1">
 			<span class="remove-group-by">
 				<svg class="icon icon-sm">
 					<use href="#icon-close"></use>
