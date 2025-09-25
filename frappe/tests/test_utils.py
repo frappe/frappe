@@ -55,12 +55,7 @@ from frappe.utils.data import (
 	add_years,
 	cast,
 	cint,
-<<<<<<< HEAD
-=======
-	comma_and,
-	comma_or,
 	compare,
->>>>>>> 878c089679 (fix: special operators in compare util (#34145))
 	cstr,
 	duration_to_seconds,
 	evaluate_filters,
