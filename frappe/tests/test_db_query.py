@@ -1076,8 +1076,7 @@ class TestDBQuery(FrappeTestCase):
 
 		class VirtualDocType:
 			@staticmethod
-			def get_list(args):
-				...
+			def get_list(args): ...
 
 		with patch(
 			"frappe.controllers",

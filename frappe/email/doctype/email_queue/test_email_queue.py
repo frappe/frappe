@@ -54,7 +54,7 @@ class TestEmailQueue(FrappeTestCase):
 		Subject: {subject}
 		From: Test <test@example.com>
 		To: <!--recipient-->
-		Date: {frappe.utils.now_datetime().strftime('%a, %d %b %Y %H:%M:%S %z')}
+		Date: {frappe.utils.now_datetime().strftime("%a, %d %b %Y %H:%M:%S %z")}
 		Reply-To: test@example.com
 		X-Frappe-Site: {frappe.local.site}
 		"""

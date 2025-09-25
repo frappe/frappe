@@ -1,10 +1,10 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 """
-	frappe.coverage
-	~~~~~~~~~~~~~~~~
+frappe.coverage
+~~~~~~~~~~~~~~~~
 
-	Coverage settings for frappe
+Coverage settings for frappe
 """
 
 STANDARD_INCLUSIONS = ["*.py"]
