@@ -6,10 +6,14 @@ import io
 import mimetypes
 import os
 import subprocess
+import time
 from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+
+from frappe.utils.pdf_generator.browser import Browser
+from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
@@ -129,6 +133,33 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	filedata = get_file_data_from_writer(writer)
 
 	return filedata
+
+
+def measure_time(func):
+	def wrapper(*args, **kwargs):
+		start_time = time.time()
+		result = func(*args, **kwargs)
+		end_time = time.time()
+		print(f"Function {func.__name__} took {end_time - start_time:.4f} seconds")
+		return result
+
+	return wrapper
+
+
+@measure_time
+def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
+	from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
+
+	if pdf_generator != "chrome":
+		# Use the default pdf generator
+		return
+	# scrubbing url to expand url is not required as we have set url.
+	# also, planning to remove network requests anyway 🤞
+	generator = ChromePDFGenerator()
+	browser = Browser(generator, print_format, html, options)
+	transformer = PDFTransformer(browser)
+	# transforms and merges header, footer into body pdf and returns merged pdf
+	return transformer.transform_pdf(output=output)
 
 
 def get_file_data_from_writer(writer_obj):

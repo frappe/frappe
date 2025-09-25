@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang={{ lang }} dir={{ layout_direction }}>
+	<head>
+		<meta charset="utf-8">
+		{% for tag in head -%}
+			{{ tag | string }}
+		{%- endfor %}
+
+		<style>
+			body {
+				margin: 0 !important;
+				border: 0 !important;
+				/* padding-top: 1mm !important; */
+			}
+			.letter-head,
+			.letter-head-footer {
+				margin-top: -12mm !important;
+			}
+			/* Dont show explicit links for <a> tags */
+			@media print {
+				/* padding is added to simulate old wkhtmltopdf format prints */
+				.wrapper {
+					box-sizing: border-box;
+					padding: 17mm 0 1mm !important;
+					page-break-after: always !important;
+				}
+				[document-status] {
+					margin-bottom: 0 !important;
+				}
+				a[href]:after {
+					content: none;
+				}
+			}
+		</style>
+
+		{% for tag in styles -%}
+			{{ tag | string }}
+		{%- endfor %}
+	</head>
+	<body>
+		<div class="print-format">
+			<div class="wrapper">
+				{% for tag in content -%}
+					{{ tag | string }}
+				{%- endfor %}
+			</div>
+		</div>
+	</body>
+</html>

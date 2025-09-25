@@ -91,6 +91,8 @@ dependencies = [
     "posthog~=5.0.0",
     "vobject~=0.9.9",
     "pycountry~=24.6.1",
+
+    "websockets"
 ]
 
 [project.urls]

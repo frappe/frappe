@@ -680,11 +680,15 @@ frappe.ui.form.PrintView = class {
 			}
 		} else {
 			this.is_wkhtmltopdf_valid();
-			this.render_page("/api/method/frappe.utils.print_format.download_pdf?");
+			this.render_page(
+				"/api/method/frappe.utils.print_format.download_pdf?",
+				false,
+				print_format?.pdf_generator
+			);
 		}
 	}
 
-	render_page(method, printit = false) {
+	render_page(method, printit = false, pdf_generator = "wkhtmltopdf") {
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +
@@ -701,7 +705,9 @@ frappe.ui.form.PrintView = class {
 					encodeURIComponent(this.get_letterhead()) +
 					"&settings=" +
 					encodeURIComponent(JSON.stringify(this.additional_settings)) +
-					(this.lang_code ? "&_lang=" + this.lang_code : "")
+					(this.lang_code ? "&_lang=" + this.lang_code : "") +
+					"&pdf_generator=" +
+					encodeURIComponent(pdf_generator)
 			)
 		);
 		if (!w) {
