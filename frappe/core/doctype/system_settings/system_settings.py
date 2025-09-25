@@ -106,7 +106,7 @@ class SystemSettings(Document):
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
-		enable_password_policy = cint(self.enable_password_policy) and True or False
+		enable_password_policy = (cint(self.enable_password_policy) and True) or False
 		minimum_password_score = cint(getattr(self, "minimum_password_score", 0)) or 0
 		if enable_password_policy and minimum_password_score <= 0:
 			frappe.throw(_("Please select Minimum Password Score"))

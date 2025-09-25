@@ -377,7 +377,7 @@ class Session:
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = frappe._dict(frappe.safe_eval((record and record[0][1]) or "{}"))
 			data.user = record[0][0]
 		else:
 			self._delete_session()

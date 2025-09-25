@@ -111,7 +111,7 @@ class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
-		_file: "File" = frappe.get_doc(
+		_file: File = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "test_base64.txt",
