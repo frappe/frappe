@@ -409,23 +409,11 @@ def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False)
 
 
 @typing.overload
-<<<<<<< HEAD
-def get_quarter_start(dt, as_str: Literal[False] = False) -> datetime.date:
-	...
+def get_quarter_start(dt, as_str: Literal[False] = False) -> datetime.date: ...
 
 
 @typing.overload
-def get_quarter_start(dt, as_str: Literal[True] = False) -> str:
-	...
-=======
-def get_quarter_start(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date: ...
-
-
-@typing.overload
-def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
+def get_quarter_start(dt, as_str: Literal[True] = False) -> str: ...
 
 
 def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
@@ -435,23 +423,7 @@ def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
-<<<<<<< HEAD
 def get_first_day_of_week(dt, as_str=False):
-=======
-@typing.overload
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
-
-
-@typing.overload
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
-
-
-def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
-	"""Return the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
-
-	If `as_str` is True, the first day of the week is returned as a string in `yyyy-mm-dd` format.
-	"""
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 	dt = getdate(dt)
 	date = dt - datetime.timedelta(days=get_week_start_offset_days(dt))
 	return date.strftime(DATE_FORMAT) if as_str else date
@@ -472,42 +444,13 @@ def get_normalized_weekday_index(dt):
 	return (dt.weekday() + 1) % 7
 
 
-<<<<<<< HEAD
 def get_year_start(dt, as_str=False):
-=======
-@typing.overload
-def get_year_start(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
-
-
-@typing.overload
-def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
-
-
-def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
-	"""Return the start date of the year for the given date (`dt`)."""
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-<<<<<<< HEAD
 def get_last_day_of_week(dt):
-=======
-@typing.overload
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date: ...
-
-
-@typing.overload
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str: ...
-
-
-def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
-	"""Return the last day of the week (first day is taken from System Settings or Sunday by default) for the given datetime like object (`dt`).
-
-	If `as_str` is True, the last day of the week is returned as a string in `yyyy-mm-dd` format.
-	"""
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 	dt = get_first_day_of_week(dt)
 	return dt + datetime.timedelta(days=6)
 
@@ -526,26 +469,7 @@ def is_last_day_of_the_month(dt):
 	return getdate(dt) == getdate(last_day_of_the_month)
 
 
-<<<<<<< HEAD
 def get_quarter_ending(date):
-=======
-@typing.overload
-def get_quarter_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date: ...
-
-
-@typing.overload
-def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
-
-
-def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
-	"""Return the end date of the quarter for the given datetime like object (`date`).
-
-	If `date` is None, the current quarter end date is returned.
-	If `as_str` is True, the end date of the quarter is returned as a string in `yyyy-mm-dd` format.
-	"""
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 	date = getdate(date)
 
 	# find the earliest quarter ending date that is after
@@ -560,27 +484,8 @@ def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> 
 	return date
 
 
-<<<<<<< HEAD
 def get_year_ending(date) -> datetime.date:
 	"""returns year ending of the given date"""
-=======
-@typing.overload
-def get_year_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date: ...
-
-
-@typing.overload
-def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str: ...
-
-
-def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
-	"""Return the end date of the year for the given datetime like object (`date`).
-
-	If `date` is None, the current year end date is returned.
-	If `as_str` is True, the end date of the year is returned as a string in `yyyy-mm-dd` format.
-	"""
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 	date = getdate(date)
 	next_year_start = datetime.date(date.year + 1, 1, 1)
 	return add_to_date(next_year_start, days=-1)
@@ -1376,7 +1281,7 @@ def fmt_money(
 		parts.append(amount[-3:])
 		amount = amount[:-3]
 
-		val = number_format == "#,##,###.##" and 2 or 3
+		val = (number_format == "#,##,###.##" and 2) or 3
 
 		while len(amount) > val:
 			parts.append(amount[-val:])
@@ -1386,14 +1291,7 @@ def fmt_money(
 
 	parts.reverse()
 
-<<<<<<< HEAD
-	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
-=======
-	amount = number_format.thousands_separator.join(parts) + (
-		((precision and number_format.decimal_separator) and (number_format.decimal_separator + decimals))
-		or ""
-	)
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
+	amount = comma_str.join(parts) + (((precision and decimal_str) and (decimal_str + decimals)) or "")
 	if amount != "0":
 		amount = minus + amount
 

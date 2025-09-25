@@ -10,7 +10,6 @@ from frappe.modules.export_file import export_to_files
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def get_config(name):
 	doc = frappe.get_doc("Dashboard Chart Source", name)
 	with open(
@@ -19,11 +18,6 @@ def get_config(name):
 		),
 	) as f:
 		return f.read()
-=======
-def get_config(name: str) -> str:
-	doc: DashboardChartSource = frappe.get_doc("Dashboard Chart Source", name)
-	return doc.read_config()
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 
 
 class DashboardChartSource(Document):

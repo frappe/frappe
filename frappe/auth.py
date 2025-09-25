@@ -99,11 +99,7 @@ class HTTPRequest:
 
 
 class LoginManager:
-<<<<<<< HEAD
-	__slots__ = ("user", "info", "full_name", "user_type", "resume")
-=======
-	__slots__ = ("full_name", "info", "resume", "user", "user_lang", "user_type")
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
+	__slots__ = ("full_name", "info", "resume", "user", "user_type")
 
 	def __init__(self):
 		self.user = None

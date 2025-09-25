@@ -39,11 +39,7 @@ class TestPrintFormat(FrappeTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_export_doc(self):
-<<<<<<< HEAD
-		doc: "PrintFormat" = frappe.get_doc("Print Format", test_records[0]["name"])
-=======
-		doc: PrintFormat = frappe.get_doc("Print Format", self.globalTestRecords["Print Format"][0]["name"])
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
+		doc: PrintFormat = frappe.get_doc("Print Format", test_records[0]["name"])
 
 		# this is only to make export_doc happy
 		doc.standard = "Yes"

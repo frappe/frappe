@@ -14,6 +14,7 @@ Example:
 
 
 """
+
 import json
 import os
 from datetime import datetime
@@ -553,16 +554,9 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
-<<<<<<< HEAD
 		def is_value_field(df):
 			return (df.fieldtype not in NO_VALUE_FIELDS) and (
 				with_virtual_fields or not getattr(df, "is_virtual", False)
-=======
-		def is_value_field(docfield):
-			return not (
-				(not with_virtual_fields and docfield.get("is_virtual"))
-				or docfield.fieldtype in no_value_fields
->>>>>>> 84ef6ec677 (refactor: fixup with ruff 0.8.1)
 			)
 
 		if with_field_meta:
