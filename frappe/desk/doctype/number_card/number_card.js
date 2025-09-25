@@ -26,6 +26,7 @@ frappe.ui.form.on("Number Card", {
 			frm.trigger("render_filters_table");
 		}
 		frm.trigger("set_parent_document_type");
+		frm.trigger("set_document_type_description");
 
 		if (!frm.is_new()) {
 			frm.trigger("create_add_to_dashboard_button");
@@ -67,6 +68,8 @@ frappe.ui.form.on("Number Card", {
 	},
 
 	type: function (frm) {
+		frm.trigger("set_document_type_description");
+
 		if (frm.doc.type == "Report") {
 			frm.set_query("report_name", () => {
 				return {
@@ -202,7 +205,9 @@ frappe.ui.form.on("Number Card", {
 		let is_dynamic_filter = (f) => ["Date", "DateRange"].includes(f.fieldtype) && f.default;
 
 		let wrapper = $(frm.get_field("filters_json").wrapper).empty();
-		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		let table = $(`<table class="table table-bordered" style="cursor:${
+			frm.has_perm("write") ? "pointer" : "default"
+		}; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 20%">${__("Filter")}</th>
@@ -212,7 +217,10 @@ frappe.ui.form.on("Number Card", {
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
-		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+
+		if (frm.has_perm("write")) {
+			$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+		}
 
 		let filters = JSON.parse(frm.doc.filters_json || "[]");
 		let filters_set = false;
@@ -273,6 +281,10 @@ frappe.ui.form.on("Number Card", {
 		}
 
 		table.on("click", () => {
+			if (!frm.has_perm("write")) {
+				return;
+			}
+
 			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 				frappe.throw(__("Cannot edit filters for standard number cards"));
 			}
@@ -332,8 +344,9 @@ frappe.ui.form.on("Number Card", {
 
 		let wrapper = $(frm.get_field("dynamic_filters_json").wrapper).empty();
 
-		frm.dynamic_filter_table =
-			$(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
+			frm.has_perm("write") ? "pointer" : "default"
+		}; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 20%">${__("Filter")}</th>
@@ -360,6 +373,10 @@ frappe.ui.form.on("Number Card", {
 		);
 
 		frm.dynamic_filter_table.on("click", () => {
+			if (!frm.has_perm("write")) {
+				return;
+			}
+
 			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 				frappe.throw(__("Cannot edit filters for standard number cards"));
 			}
@@ -431,7 +448,11 @@ frappe.ui.form.on("Number Card", {
 		let document_type = frm.doc.document_type;
 		let doc_is_table =
 			document_type &&
-			(await frappe.db.get_value("DocType", document_type, "istable")).message.istable;
+			(await new Promise((resolve) => {
+				frappe.model.with_doctype(document_type, () => {
+					resolve(frappe.get_meta(document_type).istable);
+				});
+			}));
 
 		frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
 
@@ -452,6 +473,22 @@ frappe.ui.form.on("Number Card", {
 			if (parents.length === 1) {
 				frm.set_value("parent_document_type", parents[0]);
 			}
+		}
+	},
+
+	set_document_type_description: function (frm) {
+		if (frm.doc.type == "Custom") {
+			frm.set_df_property(
+				"document_type",
+				"description",
+				__(
+					"This card is visible only to Administrator and System Managers by default. Set a DocType to share with users who have read access.",
+					null,
+					"Number Card"
+				)
+			);
+		} else {
+			frm.set_df_property("document_type", "description", "");
 		}
 	},
 });

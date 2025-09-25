@@ -152,6 +152,9 @@ def get_context(context):
 		else:
 			context.template = "website/doctype/web_form/templates/web_form.html"
 
+		# By default, assume no delete permissions
+		context.has_delete_permission = False
+
 		# check permissions
 		if frappe.form_dict.name:
 			assert isinstance(frappe.form_dict.name, str | int)
@@ -171,6 +174,10 @@ def get_context(context):
 				frappe.throw(
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
+
+			context.has_delete_permission = frappe.has_permission(
+				self.doc_type, "delete", frappe.form_dict.name
+			)
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
@@ -275,8 +282,8 @@ def get_context(context):
 			"Cancel",
 			"Discard:Button in web form",
 			"Edit:Button in web form",
-			"See previous responses:Button in web form",
-			"Edit your response:Button in web form",
+			"See previous responses::Button in web form",
+			"Edit your response::Button in web form",
 			"Are you sure you want to discard the changes?",
 			"Mandatory fields required::Error message in web form",
 			"Invalid values for fields::Error message in web form",
@@ -434,7 +441,9 @@ def get_context(context):
 			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
 			context.web_form_title = context.title
 			context.title = (
-				strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				strip_html(
+					frappe.cstr(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				)
 				or context.doc_name
 			)
 			context.reference_doc.add_seen()
@@ -464,7 +473,9 @@ def get_context(context):
 			if os.path.exists(js_path):
 				script = frappe.render_template(open(js_path).read(), context)
 
-				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
+				for path in get_code_files_via_hooks(
+					"webform_include_js", context.doc_type
+				) + get_code_files_via_hooks("webform_include_js", "*"):
 					custom_js = frappe.render_template(open(path).read(), context)
 					script = "\n\n".join([script, custom_js])
 

@@ -1,7 +1,30 @@
-// .layout-main-section {
-// 	overflow: hidden;
-
-// }
+.layout-main-section-wrapper:not(.disable-scrolling) {
+	.frappe-list {
+		.result-container {
+			.result {
+				min-width: 100%;
+				width: auto;
+				.list-row-container {
+					width: fit-content;
+					min-width: 100%;
+				}
+				.list-row-container:first-child {
+					position: sticky;
+					top: 0;
+					z-index: 2;
+				}
+				.list-row-container {
+					.level-left {
+						.list-row-col {
+							min-width: 150px;
+							max-width: 400px;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 .freeze-row {
 	.level-left,
@@ -81,6 +104,18 @@
 			flex: 0 0 180px;
 			width: 180px;
 		}
+		&.assign-to-length-1 {
+			.list-row .level-right {
+				flex: 0 0 165px;
+				width: 165px;
+			}
+		}
+		&.assign-to-length-3 {
+			.list-row .level-right {
+				flex: 0 0 200px;
+				width: 200px;
+			}
+		}
 	}
 
 	.result.no-assign-to {
@@ -123,8 +158,8 @@
 		position: sticky;
 		right: 0;
 		background-color: var(--bg-color);
-		box-shadow: -5px 0px 5px rgb(255, 255, 255);
-		padding: 6px 10px;
+		border-left: 2px solid var(--highlight-color);
+		padding: 9px 10px;
 	}
 
 	.tag-col {
@@ -205,7 +240,7 @@
 		background-color: var(--subtle-fg);
 		border-radius: var(--border-radius);
 		height: var(--list-row-height);
-		box-shadow: none;
+		border-left: none;
 		&:hover {
 			background-color: var(--subtle-fg);
 		}
@@ -532,6 +567,42 @@ input.list-header-checkbox {
 	z-index: 0;
 }
 
+.list-view {
+	.frappe-list {
+		.result-container {
+			overflow-x: auto;
+			.result {
+				overflow-y: auto;
+			}
+		}
+	}
+}
+
+.disable-scrolling {
+	.frappe-list {
+		.list-row-container {
+			width: auto;
+			.level-left {
+				flex: 0;
+				.list-row-col {
+					min-width: auto;
+				}
+			}
+			.level-right {
+				border-left: none;
+			}
+		}
+	}
+}
+
+.avatar-group {
+	&:hover.overlap {
+		.avatar:not(:first-child) {
+			margin-left: calc(-1 * var(--margin-sm));
+		}
+	}
+}
+
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.layout-main-section-wrapper {
 		width: 100%;
@@ -571,13 +642,18 @@ input.list-header-checkbox {
 						padding-left: 10px;
 						.list-row-col {
 							margin-right: 0px;
+							min-width: auto;
+						}
+						&:has(.filterable:empty) {
+							display: none;
+							padding-left: 37px;
 						}
 					}
 					.mobile-layout:not(.mobile-layout ~ .mobile-layout) {
 						padding-left: 27px;
 						margin-right: 6px;
 
-						&::after {
+						&:not(.no-seperator)::after {
 							content: "\2022";
 							position: absolute;
 							right: 0;
@@ -590,6 +666,7 @@ input.list-header-checkbox {
 				.level-right {
 					flex: 0 0 auto;
 					width: auto;
+					border-left: none;
 					.level-item.visible-xs {
 						margin-top: 5px;
 					}

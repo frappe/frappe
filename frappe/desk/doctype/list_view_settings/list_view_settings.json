@@ -7,12 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "disable_count",
-  "disable_comment_count",
-  "disable_sidebar_stats",
   "disable_auto_refresh",
-  "allow_edit",
+  "disable_sidebar_stats",
   "disable_automatic_recency_filters",
-  "total_fields",
+  "column_break_oany",
+  "disable_comment_count",
+  "disable_scrolling",
+  "allow_edit",
+  "section_break_evqq",
   "fields_html",
   "fields"
  ],
@@ -34,12 +36,6 @@
    "fieldname": "disable_auto_refresh",
    "fieldtype": "Check",
    "label": "Disable Auto Refresh"
-  },
-  {
-   "fieldname": "total_fields",
-   "fieldtype": "Select",
-   "label": "Maximum Number of Fields",
-   "options": "\n4\n5\n6\n7\n8\n9\n10\n15\n20\n25\n30"
   },
   {
    "fieldname": "fields_html",
@@ -71,11 +67,25 @@
    "fieldname": "disable_automatic_recency_filters",
    "fieldtype": "Check",
    "label": "Disable Automatic Recency Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_scrolling",
+   "fieldtype": "Check",
+   "label": "Disable Scrolling"
+  },
+  {
+   "fieldname": "column_break_oany",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_evqq",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-03-24 14:17:39.888956",
+ "modified": "2025-08-25 15:54:18.886680",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

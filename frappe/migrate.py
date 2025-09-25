@@ -71,9 +71,12 @@ class SiteMigration:
 	- run after migrate hooks
 	"""
 
-	def __init__(self, skip_failing: bool = False, skip_search_index: bool = False) -> None:
+	def __init__(
+		self, skip_failing: bool = False, skip_search_index: bool = False, skip_fixtures: bool = False
+	) -> None:
 		self.skip_failing = skip_failing
 		self.skip_search_index = skip_search_index
+		self.skip_fixtures = skip_fixtures
 
 	def setUp(self):
 		"""Complete setup required for site migration"""
@@ -143,9 +146,11 @@ class SiteMigration:
 		"""
 		print("Syncing jobs...")
 		sync_jobs()
-
-		print("Syncing fixtures...")
-		sync_fixtures()
+		if not self.skip_fixtures:
+			print("Syncing fixtures...")
+			sync_fixtures()
+		else:
+			print("Skipping fixtures...")
 		sync_standard_items()
 
 		print("Syncing dashboards...")

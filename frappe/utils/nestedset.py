@@ -7,7 +7,7 @@
 # use the following pattern
 # 1. name your parent field as "parent_item_group" if not have a property nsm_parent_field as your field name in the document class
 # 2. have a field called "old_parent" in your fields list - this identifies whether the parent has been changed
-# 3. call update_nsm(doc_obj) in the on_upate method
+# 3. call update_nsm(doc_obj) in the on_update method
 
 # ------------------------------------------
 from collections.abc import Iterator

@@ -48,6 +48,13 @@ if typing.TYPE_CHECKING:
 	envvar="USING_CACHED",
 	help="Skips build and uses cached build artifacts (cache is set by Bench). Ignored if developer_mode enabled.",
 )
+@click.option(
+	"--esbuild-21",
+	is_flag=True,
+	default=False,
+	envvar="ESBUILD_21",
+	help="Run esbuild with target es2021",
+)
 def build(
 	app=None,
 	apps=None,
@@ -57,6 +64,7 @@ def build(
 	force=False,
 	save_metafiles=False,
 	using_cached=False,
+	esbuild_21=False,
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
@@ -84,6 +92,8 @@ def build(
 
 		if development:
 			using_cached = False
+		if esbuild_21:
+			esbuild_21 = True
 
 		bundle(
 			mode,
@@ -93,6 +103,7 @@ def build(
 			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
 			using_cached=using_cached,
+			esbuild_21=esbuild_21,
 		)
 
 		if apps and isinstance(apps, str):

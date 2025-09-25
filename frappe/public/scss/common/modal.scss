@@ -334,3 +334,14 @@ body.modal-open[style^="padding-right"] {
 		overflow: hidden;
 	}
 }
+
+// mobile
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	.modal {
+		.modal-dialog {
+			.form-section .form-column:last-child {
+				padding-left: 0;
+			}
+		}
+	}
+}

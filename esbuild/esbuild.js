@@ -28,7 +28,7 @@ const {
 } = require("./utils");
 
 const argv = yargs
-	.usage("Usage: node esbuild [options]")
+.usage("Usage: node esbuild [options]")
 	.option("apps", {
 		type: "string",
 		description: "Run build for specific apps",
@@ -63,6 +63,10 @@ const argv = yargs
 		description:
 			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 	})
+	.option("esbuild-21", {
+		type: "boolean",
+		description: "Run esbuild with target es2021",
+	})
 	.option("using-cached", {
 		type: "boolean",
 		description:
@@ -74,14 +78,15 @@ const argv = yargs
 		"Run build only for specified bundles"
 	)
 	.version(false).argv;
-
-const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
-	(app) => !(argv.skip_frappe && app == "frappe")
-);
-const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
-const WATCH_MODE = Boolean(argv.watch);
-const PRODUCTION = Boolean(argv.production);
+	
+	const APPS = (!argv.apps ? app_list : argv.apps.split(",")).filter(
+		(app) => !(argv.skip_frappe && app == "frappe")
+	);
+	const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
+	const WATCH_MODE = Boolean(argv.watch);
+	const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
+const RUN_ESBUILD_21 = Boolean(argv["esbuild-21"])
 
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
@@ -310,24 +315,24 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 }
 
 function get_build_options(files, outdir, plugins) {
-	return {
-		entryPoints: files,
-		entryNames: "[dir]/[name].[hash]",
-		target: ["es2017"],
-		outdir,
-		sourcemap: true,
-		bundle: true,
-		metafile: true,
-		minify: PRODUCTION,
-		nodePaths: NODE_PATHS,
-		define: {
-			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
-			__VUE_OPTIONS_API__: JSON.stringify(true),
-			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
-		},
-		plugins: plugins,
-		watch: get_watch_config(),
-	};
+		return {
+			entryPoints: files,
+			entryNames: "[dir]/[name].[hash]",
+			target: RUN_ESBUILD_21 ? ["es2021"] : ["es2017"],
+			outdir,
+			sourcemap: true,
+			bundle: true,
+			metafile: true,
+			minify: PRODUCTION,
+			nodePaths: NODE_PATHS,
+			define: {
+				"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
+				__VUE_OPTIONS_API__: JSON.stringify(true),
+				__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+			},
+			plugins: plugins,
+			watch: get_watch_config(),
+		};
 }
 
 function get_watch_config() {
