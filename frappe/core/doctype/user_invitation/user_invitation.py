@@ -92,11 +92,11 @@ class UserInvitation(Document):
 				"user": ["is", "set"],
 			},
 		):
-			frappe.throw(title=_("Error"), msg=_("invitation already accepted"))
+			frappe.throw(title=_("Error"), msg=_("Invitation already accepted"))
 		if frappe.db.get_value(
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
-			frappe.throw(title=_("Error"), msg=_("invitation already exists"))
+			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
 		user_enabled = frappe.db.get_value("User", self.email, "enabled")
 		if user_enabled is not None and user_enabled == 0:
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
@@ -159,13 +159,21 @@ class UserInvitation(Document):
 	def _validate_app_name(self):
 		UserInvitation.validate_app_name(self.app_name)
 
+	def _get_allowed_roles(self):
+		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
+		if not isinstance(user_invitation_hook, dict):
+			return []
+		res = set[str]()
+		allowed_roles_mp = user_invitation_hook.get("allowed_roles") or dict()
+		only_for = set(allowed_roles_mp.keys())
+		for role in only_for & set(frappe.get_roles()):
+			res.update(allowed_roles_mp[role])
+		return list(res)
+
 	def _validate_roles(self):
 		if self.app_name == "frappe":
 			return
-		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=self.app_name)
-		allowed_roles: list[str] = []
-		if isinstance(user_invitation_hook, dict):
-			allowed_roles = user_invitation_hook.get("allowed_roles") or []
+		allowed_roles = self._get_allowed_roles()
 		for r in self.roles:
 			if r.role in allowed_roles:
 				continue
@@ -184,7 +192,7 @@ class UserInvitation(Document):
 	@staticmethod
 	def validate_app_name(app_name: str):
 		if app_name not in frappe.get_installed_apps():
-			frappe.throw(title=_("Invalid app"), msg=_("application is not installed"))
+			frappe.throw(title=_("Invalid app"), msg=_("Application is not installed"))
 
 	@staticmethod
 	def validate_role(app_name: str) -> None:
@@ -192,9 +200,7 @@ class UserInvitation(Document):
 		user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
 		only_for: list[str] = []
 		if isinstance(user_invitation_hook, dict):
-			only_for = user_invitation_hook.get("only_for") or []
-		if "System Manager" not in only_for:
-			only_for.append("System Manager")
+			only_for = list((user_invitation_hook.get("allowed_roles") or dict()).keys())
 		frappe.only_for(only_for)
 
 
@@ -218,7 +224,7 @@ def get_allowed_apps(user: Document | None) -> list[str]:
 		user_invitation_hooks = frappe.get_hooks("user_invitation", app_name=app)
 		if not isinstance(user_invitation_hooks, dict):
 			continue
-		only_for = user_invitation_hooks.get("only_for") or []
+		only_for = list((user_invitation_hooks.get("allowed_roles") or dict()).keys())
 		if set(only_for) & user_roles:
 			allowed_apps.append(app)
 	return allowed_apps

@@ -798,16 +798,18 @@ def get_conference_data(doc):
 def get_attendees(doc):
 	"""Return a list of dicts with attendee emails, if available in event_participants table."""
 	attendees, email_not_found = [], []
+	owner = frappe.db.get_value("Google Calendar", doc.google_calendar, "user")
 
 	for participant in doc.event_participants:
-		if participant.get("email"):
-			attendees.append({"email": participant.email})
+		p_email = participant.get("email")
+		if p_email and p_email != owner:
+			attendees.append({"email": p_email})
 		else:
 			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
 
 	if email_not_found:
 		frappe.msgprint(
-			_("Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}").format(
+			_("Contact / email not found. Did not add attendee for -<br>{0}").format(
 				"<br>".join(f"{d.get('dt')} {d.get('dn')}" for d in email_not_found)
 			),
 			alert=True,

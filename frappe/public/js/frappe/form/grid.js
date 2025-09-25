@@ -70,7 +70,7 @@ export default class Grid {
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
 				<div class="form-grid-container">
-					<div class="form-grid">
+					<div class="form-grid" tabIndex="0">
 						<div class="grid-heading-row"></div>
 						<div class="grid-body">
 							<div class="rows"></div>
@@ -940,7 +940,7 @@ export default class Grid {
 
 		setTimeout(() => {
 			this.grid_rows[idx].row
-				.find('input[type="checkbox"],input[type="Text"],textarea,select')
+				.find('input[type="Text"],textarea,select')
 				.filter(":visible:first")
 				.focus();
 		}, 100);

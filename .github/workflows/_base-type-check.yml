@@ -14,7 +14,7 @@ jobs:
     steps:
     - run: npm install toml
     - name: Get pyproject.toml
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       id: get-pyproject
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
@@ -33,7 +33,7 @@ jobs:
           return { mypyFiles, content };
 
     - name: Check for changes in mypy files
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       id: check-changes
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
@@ -59,7 +59,7 @@ jobs:
 
     - name: Set up Python
       if: steps.check-changes.outputs.result == 'true'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
 

@@ -8,11 +8,12 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.depandant_fields = {
+		this.dependent_fields = {
 			mandatory: [],
 			read_only: [],
 		};
-		this.row_check_html = '<input type="checkbox" class="grid-row-check">';
+		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
+		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
 	}
 	make() {
@@ -160,7 +161,7 @@ export default class GridRow {
 		this.grid.add_new_row(idx, null, show, copy_doc);
 	}
 	move() {
-		// promopt the user where they want to move this row
+		// prompt the user where they want to move this row
 		var me = this;
 		frappe.prompt(
 			{
@@ -343,7 +344,7 @@ export default class GridRow {
 		if (this.doc && !this.grid.df.in_place_edit) {
 			// remove row
 			if (!this.open_form_button) {
-				this.open_form_button = $('<button class="col"></button>').appendTo(this.row);
+				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
 
 				if (!this.configure_columns) {
 					const edit_msg = __("Edit", "", "Edit grid row");
@@ -802,7 +803,7 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.mandatory_depends_on)
 		) {
 			df.reqd = 1;
-			this.depandant_fields["mandatory"].push(df);
+			this.dependent_fields["mandatory"].push(df);
 		}
 
 		if (
@@ -811,16 +812,16 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.read_only_depends_on)
 		) {
 			df.read_only = 1;
-			this.depandant_fields["read_only"].push(df);
+			this.dependent_fields["read_only"].push(df);
 		}
 	}
 
-	refresh_depedency() {
-		this.depandant_fields["read_only"].forEach((df) => {
+	refresh_dependency() {
+		this.dependent_fields["read_only"].forEach((df) => {
 			df.read_only = 0;
 			this.set_dependant_property(df);
 		});
-		this.depandant_fields["mandatory"].forEach((df) => {
+		this.dependent_fields["mandatory"].forEach((df) => {
 			df.reqd = 0;
 			this.set_dependant_property(df);
 		});
@@ -871,7 +872,7 @@ export default class GridRow {
 		let show_length =
 			this.grid?.meta?.rows_threshold_for_grid_search > 0
 				? this.grid.meta.rows_threshold_for_grid_search
-				: 20;
+				: this.default_rows_threshold_for_grid_search;
 		this.show_search =
 			this.show_search &&
 			(this.grid?.data?.length >= show_length || this.grid.filter_applied);
@@ -1016,7 +1017,7 @@ export default class GridRow {
 			}
 		}
 
-		// Delay date_picker widget to prevent temparary layout shift (UX).
+		// Delay date_picker widget to prevent temporary layout shift (UX).
 		function handle_date_picker() {
 			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
 
@@ -1184,7 +1185,7 @@ export default class GridRow {
 		// df.onchange is common for all rows in grid
 		let field_on_change_function = df.onchange;
 		field.df.change = (e) => {
-			this.refresh_depedency();
+			this.refresh_dependency();
 			// trigger onchange with current grid row field as "this"
 			field_on_change_function && field_on_change_function.apply(field, [e]);
 			me.refresh_field(field.df.fieldname);
@@ -1257,7 +1258,24 @@ export default class GridRow {
 				}
 
 				// TAB
-				if (e.which === UP_ARROW) {
+				if (e.which === TAB && !e.shiftKey) {
+					var last_column = me.wrapper.find("input:enabled:last").get(0);
+					var is_last_column = $(this).attr("data-last-input") || last_column === this;
+
+					if (is_last_column) {
+						// last row
+						if (me.doc.idx === values.length) {
+							me.grid.add_new_row(null, null, true);
+							me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
+							me.grid.set_focus_on_row();
+						} else {
+							// last column before last row
+							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
+							me.grid.set_focus_on_row(me.doc.idx);
+							return false;
+						}
+					}
+				} else if (e.which === UP_ARROW) {
 					if (me.doc.idx > 1) {
 						var prev = me.grid.grid_rows[me.doc.idx - 2];
 						if (move_up_down(prev)) {

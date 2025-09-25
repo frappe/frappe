@@ -787,7 +787,7 @@ class Document(BaseDocument):
 				)
 
 		for df in self.meta.get(
-			"fields", {"non_negative": ("=", 1), "fieldtype": ("in", ["Int", "Float", "Currency"])}
+			"fields", {"non_negative": ("=", 1), "fieldtype": ("in", ["Int", "Float", "Currency", "Percent"])}
 		):
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
@@ -842,9 +842,13 @@ class Document(BaseDocument):
 
 	def is_child_table_same(self, fieldname):
 		"""Validate child table is same as original table before saving"""
+
+		if self.is_new():
+			return False
+
+		same = True
 		value = self.get(fieldname)
 		original_value = self._doc_before_save.get(fieldname)
-		same = True
 
 		if len(original_value) != len(value):
 			same = False
@@ -1791,9 +1795,12 @@ class Document(BaseDocument):
 		if date_diff(to_date, from_date) < 0:
 			table_row = ""
 			if self.meta.istable:
-				table_row = _("{0} row #{1}: ").format(
-					_(frappe.unscrub(self.parentfield)),
-					self.idx,
+				table_row = (
+					_("{0} row #{1}:").format(
+						_(frappe.unscrub(self.parentfield)),
+						self.idx,
+					)
+					+ " "
 				)
 
 			frappe.throw(

@@ -75,6 +75,7 @@ class CustomizeForm(Document):
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		recipient_account_field: DF.Data | None
+		rows_threshold_for_grid_search: DF.Int
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
@@ -748,6 +749,7 @@ doctype_properties = {
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
 	"grid_page_length": "Int",
+	"rows_threshold_for_grid_search": "Int",
 }
 
 docfield_properties = {

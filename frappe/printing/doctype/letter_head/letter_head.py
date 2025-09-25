@@ -37,7 +37,8 @@ class LetterHead(Document):
 
 	def before_insert(self):
 		# for better UX, let user set from attachment
-		self.source = "Image"
+		if not frappe.flags.in_migrate and not frappe.flags.in_install:
+			self.source = "Image"
 
 	def validate(self):
 		self.set_image()
@@ -47,7 +48,12 @@ class LetterHead(Document):
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
-		if not self.is_default and not self.disabled:
+		if (
+			not self.is_default
+			and not self.disabled
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_install
+		):
 			if not frappe.db.exists("Letter Head", dict(is_default=1)):
 				self.is_default = 1
 
