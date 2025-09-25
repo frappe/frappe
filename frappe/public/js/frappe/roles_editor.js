@@ -66,7 +66,7 @@ frappe.RoleEditor = class {
 					</div>`);
 				} else {
 					$body.append(`
-						<div style="max-height:600px; overflow-y:auto;">
+						<div style="max-height:calc(100vh - 200px); overflow-y:auto;">
 							<table class="user-perm">
 								<thead>
 									<tr>
