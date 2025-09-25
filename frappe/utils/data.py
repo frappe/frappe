@@ -2084,9 +2084,15 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
-		val1 = cast(fieldtype, val1)
-		if condition != "Timespan":
+		if condition not in {"Timespan", "is", "in", "not in"}:
+			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
+			val1 = cast(fieldtype, val1)
 			val2 = cast(fieldtype, val2)
+		elif condition in {"in", "not in"} and val1 is not None:
+			# Cast only the search value, not the container, and preserve None values
+			val1 = cast(fieldtype, val1)
+		# For "is" and "Timespan" operators: no casting to preserve original values
+
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 
