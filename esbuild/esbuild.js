@@ -315,11 +315,10 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 }
 
 function get_build_options(files, outdir, plugins) {
-	if (RUN_ESBUILD_21){
 		return {
 			entryPoints: files,
 			entryNames: "[dir]/[name].[hash]",
-			target: ["es2021"],
+			target: RUN_ESBUILD_21 ? ["es2021"] : ["es2017"],
 			outdir,
 			sourcemap: true,
 			bundle: true,
@@ -334,26 +333,6 @@ function get_build_options(files, outdir, plugins) {
 			plugins: plugins,
 			watch: get_watch_config(),
 		};
-	}else{
-		return {
-			entryPoints: files,
-			entryNames: "[dir]/[name].[hash]",
-			target: ["es2017"],
-			outdir,
-			sourcemap: true,
-			bundle: true,
-			metafile: true,
-			minify: PRODUCTION,
-			nodePaths: NODE_PATHS,
-			define: {
-				"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
-				__VUE_OPTIONS_API__: JSON.stringify(true),
-				__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
-			},
-			plugins: plugins,
-			watch: get_watch_config(),
-		};
-	}
 }
 
 function get_watch_config() {
