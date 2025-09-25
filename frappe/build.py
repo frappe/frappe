@@ -228,7 +228,7 @@ def bundle(
 	files=None,
 	save_metafiles=False,
 	using_cached=False,
-	esbuild_21=False,
+	esbuild_version='es2017',
 ):
 	"""concat / minify js files"""
 	setup()
@@ -254,8 +254,8 @@ def bundle(
 	if save_metafiles:
 		command += " --save-metafiles"
 	
-	if esbuild_21:
-		command += " --esbuild-21"
+	if esbuild_version:
+		command += " --esbuild-version {esbuild_version}".format(esbuild_version=esbuild_version)
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")

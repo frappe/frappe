@@ -63,9 +63,10 @@ const argv = yargs
 		description:
 			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 	})
-	.option("esbuild-21", {
-		type: "boolean",
-		description: "Run esbuild with target es2021",
+	.option("esbuild-version", {
+		type: "string",
+		description: "Run esbuild with target version. Default: es2017",
+		default: "es2017",
 	})
 	.option("using-cached", {
 		type: "boolean",
@@ -85,8 +86,8 @@ const argv = yargs
 	const FILES_TO_BUILD = argv.files ? argv.files.split(",") : [];
 	const WATCH_MODE = Boolean(argv.watch);
 	const PRODUCTION = Boolean(argv.production);
-const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
-const RUN_ESBUILD_21 = Boolean(argv["esbuild-21"])
+	const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
+	const ESBUILD_VERSION = argv?.["esbuild-version"] || "es2017";
 
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
@@ -318,7 +319,7 @@ function get_build_options(files, outdir, plugins) {
 		return {
 			entryPoints: files,
 			entryNames: "[dir]/[name].[hash]",
-			target: RUN_ESBUILD_21 ? ["es2021"] : ["es2017"],
+			target: [ESBUILD_VERSION],
 			outdir,
 			sourcemap: true,
 			bundle: true,
