@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-24 20:35\n"
+"PO-Revision-Date: 2025-09-25 20:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -3811,7 +3811,7 @@ msgstr "Skygger for knapp"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "By \"Naming Series\" field"
-msgstr "Via feltet \"Navngiving av serier\""
+msgstr "Via feltet \"Nummerserie\""
 
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
@@ -5335,7 +5335,7 @@ msgstr "Konfigurer hvordan endrede dokumenter skal navngis.<br>\n\n"
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Configure various aspects of how document naming works like naming series, current counter."
-msgstr "Konfigurer ulike aspekter av hvordan dokumentnavngivning fungerer, for eksempel navngivning av serier, gjeldende teller."
+msgstr "Konfigurer ulike aspekter av hvordan dokumentnavngivning fungerer, for eksempel nummerserie, gjeldende teller."
 
 #: frappe/core/doctype/user/user.js:412 frappe/public/js/frappe/dom.js:345
 #: frappe/www/update-password.html:66
@@ -12403,7 +12403,7 @@ msgstr "Hvis du oppdaterer, velg «Overskriv», ellers slettes ikke eksisterende
 
 #: frappe/core/doctype/data_export/exporter.py:188
 msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
-msgstr "Hvis du laster opp nye poster, blir «Navneserie» obligatorisk, hvis den finnes."
+msgstr "Hvis du laster opp nye poster, blir «Nummerserie» påkrevet, hvis den finnes."
 
 #: frappe/core/doctype/data_export/exporter.py:186
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
@@ -13273,7 +13273,7 @@ msgstr "Ugyldig e-postserver. Vennligst rett opp og prøv igjen."
 
 #: frappe/model/naming.py:109
 msgid "Invalid Naming Series: {}"
-msgstr "Ugyldig navngivningsserie: {}"
+msgstr "Ugyldig nummerserie: {}"
 
 #: frappe/core/doctype/rq_job/rq_job.py:113
 #: frappe/core/doctype/rq_job/rq_job.py:122
@@ -13466,11 +13466,11 @@ msgstr ""
 
 #: frappe/model/naming.py:62
 msgid "Invalid naming series {}: dot (.) missing"
-msgstr "Ugyldig navneserie {}: punktum (.) mangler"
+msgstr "Ugyldig nummerserie {}: punktum (.) mangler"
 
 #: frappe/model/naming.py:76
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr "Ugyldig navngivningsserie {}: punktum (.) mangler før de numeriske plassholderne. Vennligst bruk et format som <b>ABCD.#####.</b>"
+msgstr "Ugyldig nummerserie {}: punktum (.) mangler før de numeriske plassholderne. Vennligst bruk et format som <b>ABCD.#####.</b>."
 
 #: frappe/core/doctype/data_import/importer.py:453
 msgid "Invalid or corrupted content for import"
@@ -16377,9 +16377,9 @@ msgstr "Navngivning"
 msgid "Naming Options:\n"
 "<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
-msgstr "Alternativer for navngivning:\n"
-"<ol><li><b>field:[fieldname]</b> - Etter felt</li><li><b>naming_series:</b> - Etter navngivningsserie (feltet kalt naming_series må være til stede)</li><li><b>Spørsmål</b> - Spør brukeren om et navn</li><li><b>[serie]</b> - Serie etter prefiks (atskilt med punktum); for eksempel PRE.#####</li>\n"
-"<li><b>format: EKSEMPEL-{MM}flere ord{fieldname1}-{fieldname2}-{#####}</b> - Erstatt alle ord med parenteser (feltnavn, datoord (DD, MM, ÅÅ), serier) med verdien deres. Utenfor parenteser kan alle tegn brukes.</li></ol>"
+msgstr "Alternativer for nummerserie:\n"
+"<ol><li><b>field:[fieldname]</b> - Etter felt</li><li><b>naming_series:</b> - Etter nummerserie (feltet kalt naming_series må være til stede)</li><li><b>Spørsmål</b> - Spør brukeren om et navn</li><li><b>[serie]</b> - Serie etter prefiks (atskilt med punktum); for eksempel PRE.#####</li>\n"
+"<li><b>format: EKSEMPEL-{MM}flere ord{fieldname1}-{fieldname2}-{#####}</b> - Erstatt alle ord med parenteser (feltnavn, datoord (DD, MM, YY), serier) med verdien deres. Utenfor parenteser kan alle tegn brukes.</li></ol>"
 
 #. Label of the naming_rule (Select) field in DocType 'DocType'
 #. Label of the naming_rule (Select) field in DocType 'Customize Form'
@@ -16396,7 +16396,7 @@ msgstr "Nummerserie"
 
 #: frappe/model/naming.py:268
 msgid "Naming Series mandatory"
-msgstr "Navneserie påkrevet"
+msgstr "Nummerserie påkrevet"
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #. Label of the top_bar (Section Break) field in DocType 'Website Settings'
@@ -23561,7 +23561,7 @@ msgstr "Angi begrensning"
 #. DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Set Naming Series options on your transactions."
-msgstr "Angi alternativer for navneserier på transaksjoner"
+msgstr "Angi alternativer for nummerserier på transaksjoner."
 
 #. Label of the new_password (Password) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -24611,7 +24611,7 @@ msgstr "Spesialtegn er ikke tillatt"
 
 #: frappe/model/naming.py:68
 msgid "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
-msgstr "Spesialtegn unntatt '-', '#', '.', '/', '{{' and '}}' er ikke tillatt i navneserier {0}"
+msgstr "Spesialtegn unntatt '-', '#', '.', '/', '{{' and '}}' er ikke tillatt i nummerserier {0}"
 
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -27359,7 +27359,7 @@ msgstr "Prøv igjen"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Try a Naming Series"
-msgstr "Prøv en navneserie"
+msgstr "Prøv en nummerserie"
 
 #: frappe/printing/page/print/print.js:202
 #: frappe/printing/page/print/print.js:208
@@ -27915,7 +27915,7 @@ msgstr "Oppdaterer globale innstillinger"
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr "Oppdaterer alternativer for navneserier"
+msgstr "Oppdaterer alternativer for nummerserier"
 
 #: frappe/public/js/frappe/form/toolbar.js:136
 msgid "Updating related fields..."
