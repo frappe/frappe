@@ -44,6 +44,7 @@
   "force_re_route_to_default_view",
   "column_break_29",
   "show_preview_popup",
+  "show_name_in_global_search",
   "email_settings_section",
   "default_email_template",
   "column_break_26",
@@ -430,6 +431,12 @@
    "fieldtype": "Int",
    "label": "Rows Threshold for Grid Search",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "show_name_in_global_search",
+   "fieldtype": "Check",
+   "label": "Make \"name\" searchable in Global Search"
   }
  ],
  "hide_toolbar": 1,
