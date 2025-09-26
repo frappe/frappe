@@ -1127,15 +1127,17 @@ from {tables}
 		if ORDER_GROUP_PATTERN.match(_lower):
 			frappe.throw(_("Illegal SQL Query"))
 
+		sanitized = re.sub(r"`[^`]*`", "", _lower)
+
 		subquery_indicators = {
 			r"union",
 			r"intersect",
 			r"select\b.*\bfrom",
 		}
 
-		if any(re.search(r"\b" + pattern + r"\b", _lower) for pattern in subquery_indicators):
-			frappe.throw(_("Cannot use sub-query here."))
-
+		if any(re.search(r"\b" + pattern + r"\b", sanitized) for pattern in subquery_indicators):
+		    frappe.throw(_("Cannot use sub-query here."))
+		
 		blacklisted_sql_functions = {
 			"sleep",
 			"benchmark",
