@@ -471,7 +471,7 @@ class TestResponse(FrappeAPITestCase):
 		}
 
 		for redirect, expected_redirect in expected_redirects.items():
-			response = self.get(f"/login?{urlencode({'redirect-to':redirect})}", {"sid": self.sid})
+			response = self.get(f"/login?{urlencode({'redirect-to': redirect})}", {"sid": self.sid})
 			self.assertEqual(response.location, expected_redirect)
 
 
