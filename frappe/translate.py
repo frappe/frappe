@@ -697,7 +697,7 @@ def write_csv_file(path, app_messages, lang_dict):
 			if len(app_message) == 2:
 				path, message = app_message
 			elif len(app_message) == 3:
-				path, message, lineno = app_message
+				path, message, _lineno = app_message
 			elif len(app_message) == 4:
 				path, message, context, _lineno = app_message
 			else:
