@@ -186,8 +186,13 @@ def _make_logs_v1():
 	if frappe.local.message_log:
 		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
+<<<<<<< HEAD
 	if frappe.debug_log:
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
+=======
+	if frappe.debug_log and is_traceback_allowed():
+		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
+>>>>>>> 1ae276d441 (fix: do not show debug message when traceback is disallowed)
 
 	if frappe.flags.error_message:
 		response["_error_message"] = frappe.flags.error_message
