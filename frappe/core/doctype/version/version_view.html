@@ -94,3 +94,56 @@
 	</tbody>
 {% endif %}
 </div>
+
+{% if data.inserted && data.inserted.length %}
+<h4>{{ __("Values Inserted") }}</h4>
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<td style="width: 33%">{{ __("Property") }}</td>
+			<td style="width: 33%">{{ __("Original Value") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% for item in data.inserted %}
+		<tr>
+			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+			<td class="diff-add">{{ getEscapedValue(item[1]) }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+
+{% if data.row_added && data.row_added.length %}
+<h3>{{ __("Rows Added") }}</h3>
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<td style="width: 33%">{{ __("Property") }}</td>
+			<td style="width: 67%">{{ __("Rows Added") }}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{% for item in data.row_added %}
+		<tr>
+			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
+			<td class="diff-add">
+				{% var item_keys = Object.keys(item[1]).sort(); %}
+				<table class="table table-bordered">
+					<tbody>
+						{% for row_key in item_keys %}
+						<tr>
+							<td class="small">{{ row_key }}</td>
+							<td class="small">{{ getEscapedValue(item[1][row_key]) }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+{% endif %}

@@ -57,13 +57,19 @@ class Version(Document):
 
 	def for_insert(self, doc: Document) -> bool:
 		updater_reference = doc.flags.updater_reference
-		if not updater_reference:
-			return False
 
 		data = {
 			"creation": doc.creation,
 			"updater_reference": updater_reference,
 			"created_by": doc.owner,
+			"inserted": [
+				[fieldname, value]
+				for fieldname, value in doc.get_valid_dict(convert_dates_to_str=True).items()
+			],
+			"row_added": [
+				[child.parentfield, child.get_valid_dict(convert_dates_to_str=True)]
+				for child in doc.get_all_children()
+			],
 		}
 		self.set_impersonator(data)
 		self.ref_doctype = doc.doctype

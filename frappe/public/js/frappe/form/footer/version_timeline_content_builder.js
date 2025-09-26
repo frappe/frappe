@@ -253,6 +253,16 @@ function get_version_timeline_content(version_doc, frm) {
 		);
 		out.push(get_version_comment(version_doc, message));
 	}
+
+	if (data.created_by && data.inserted) {
+		let message = get_user_message(
+			version_doc.owner,
+			__("You created this document", null, "Form timeline"),
+			__("{0} created this document", [get_user_link(version_doc.owner)], "Form timeline")
+		);
+		out.push(get_version_comment(version_doc, message));
+	}
+
 	const impersonated_by = data.impersonated_by;
 
 	if (impersonated_by) {
