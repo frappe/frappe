@@ -80,7 +80,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 				break
 
 		if owner_idx:
-			data = [data.pop(owner_idx)] + data[0:49]
+			data = [data.pop(owner_idx), *data[0:49]]
 		else:
 			data = data[0:50]
 	else:

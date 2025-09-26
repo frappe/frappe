@@ -53,7 +53,7 @@ class TestQueryReport(FrappeTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(
+		xlsx_data, _column_widths = build_xlsx_data(
 			data, visible_idx, include_indentation=False, include_filters=True
 		)
 

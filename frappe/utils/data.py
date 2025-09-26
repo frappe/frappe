@@ -1453,7 +1453,7 @@ def get_thumbnail_base64_for_image(src):
 			return
 
 		try:
-			image, unused_filename, extn = get_local_image(src)
+			image, _unused_filename, extn = get_local_image(src)
 		except OSError:
 			return
 

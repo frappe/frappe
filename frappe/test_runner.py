@@ -357,7 +357,7 @@ def get_modules(doctype):
 
 
 def get_dependencies(doctype):
-	module, test_module = get_modules(doctype)
+	_module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 
@@ -385,7 +385,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 	if not force and doctype in get_test_record_log():
 		return
 
-	module, test_module = get_modules(doctype)
+	_module, test_module = get_modules(doctype)
 
 	if verbose:
 		print("Making for " + doctype)

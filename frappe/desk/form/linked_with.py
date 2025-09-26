@@ -622,8 +622,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		"DocField", fields=["parent", "options"], filters=child_filters, as_list=1
 	):
 		ret[parent] = {"child_doctype": options, "fieldname": links_dict[options]}
-		if options in ret:
-			del ret[options]
+		ret.pop(options, None)
 
 	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
 	for dt in virtual_doctypes:

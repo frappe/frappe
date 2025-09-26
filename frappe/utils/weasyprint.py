@@ -105,7 +105,7 @@ class PrintFormatGenerator:
 		pdf: a bytes sequence
 		        The rendered PDF.
 		"""
-		HTML, CSS = import_weasyprint()
+		HTML, _CSS = import_weasyprint()
 
 		self._make_header_footer()
 
