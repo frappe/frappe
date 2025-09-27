@@ -122,19 +122,8 @@ class Browser:
 	def prepare_header_footer(self):
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
-		options = self.options
 		# open header and footer pages
 		self._open_header_footer_pages()
-		# load update_page_no.js in the html
-		# script_path = frappe.get_app_path(
-		# 	"print_designer", "print_designer", "page", "print_designer", "update_page_no.js"
-		# )
-		# Create script tag
-		# script_tag = soup.new_tag("script")
-		# script_html = frappe.read_file(script_path)
-		# script_tag.append(soup.new_string(script_html))
-		# # Append script to <head>
-		# soup.head.append(script_tag)
 
 		# get tags to pass to header template.
 		head = soup.find("head").contents
@@ -157,20 +146,12 @@ class Browser:
 			self.header_height = self.header_page.get_element_height()
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
-		else:
-			# bad implicit setting of margin #backwards-compatibility
-			if not self.is_print_designer:
-				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
 			self.footer_height = self.footer_page.get_element_height()
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
-		else:
-			# bad implicit setting of margin #backwards-compatibility
-			if not self.is_print_designer:
-				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:

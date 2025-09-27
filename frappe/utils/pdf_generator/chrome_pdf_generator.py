@@ -8,6 +8,7 @@ from typing import ClassVar
 import requests
 
 import frappe
+from frappe import _
 
 # TODO: close browser when worker is killed.
 
@@ -90,7 +91,7 @@ class ChromePDFGenerator:
 		chromium_dir = os.path.join(bench_path, "chromium")
 
 		if not os.path.exists(chromium_dir):
-			frappe.throw("Chromium is not downloaded. Please run the setup first.")
+			frappe.throw(_("Chromium is not downloaded. Please run the setup first."))
 
 		platform_name = platform.system().lower()
 
@@ -195,7 +196,7 @@ class ChromePDFGenerator:
 
 		except Exception as e:
 			frappe.log_error(f"Error starting Chromium: {e}")
-			frappe.throw("Could not start Chromium. Check logs for details.")
+			frappe.throw(_("Could not start Chromium. Check logs for details."))
 
 	# Apply the decorator to monitor Chromium subprocess usage for development / debugging purposes.
 	# it will print and write usage data to a file ( defaults to chrome_process_usage.json).
