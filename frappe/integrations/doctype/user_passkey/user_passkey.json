@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:PK-{YYYY}-{#####}",
+ "creation": "2025-09-06 22:00:06.929935",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "user",
+  "sign_count",
+  "column_break_yptd",
+  "status",
+  "credential_id",
+  "public_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sign_count",
+   "fieldtype": "Int",
+   "label": "Sign Count",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_yptd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nActive\nRevoked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "credential_id",
+   "fieldtype": "Data",
+   "label": "Credential ID",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "public_key",
+   "fieldtype": "Small Text",
+   "label": "Public Key",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-27 17:15:24.564679",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "User Passkey",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

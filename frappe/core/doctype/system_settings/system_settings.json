@@ -43,6 +43,7 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "column_break_uhqk",
+  "login_with_passkey",
   "login_with_email_link",
   "login_with_email_link_expiry",
   "rate_limit_email_link_login",
@@ -752,6 +753,12 @@
    "fieldtype": "Select",
    "label": "Show External Link Warning",
    "options": "Never\nAsk\nAlways"
+  },
+  {
+   "default": "0",
+   "fieldname": "login_with_passkey",
+   "fieldtype": "Check",
+   "label": "Login with Passkey"
   }
  ],
  "icon": "fa fa-cog",

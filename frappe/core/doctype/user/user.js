@@ -120,6 +120,9 @@ frappe.ui.form.on("User", {
 
 		if (!frm.is_new()) {
 			if (has_access_to_edit_user()) {
+				// Add passkey management buttons if enabled and user can manage own passkeys
+				frm.trigger("setup_passkey_buttons");
+
 				frm.add_custom_button(
 					__("Set User Permissions"),
 					function () {
@@ -363,6 +366,37 @@ frappe.ui.form.on("User", {
 			window.location.reload();
 		}
 	},
+	setup_passkey_buttons: function (frm) {
+		// Only show passkey buttons for current user (not Guest/Administrator)
+		if (
+			frappe.session.user !== frm.doc.name ||
+			["Guest", "Administrator"].includes(frm.doc.name)
+		) {
+			return;
+		}
+
+		frappe.db
+			.get_single_value("System Settings", "login_with_passkey")
+			.then((isEnabled) => {
+				if (!isEnabled) return;
+
+				frm.add_custom_button(
+					__("Register New"),
+					() => start_passkey_registration(frm),
+					__("Passkeys")
+				);
+
+				frm.add_custom_button(
+					__("Manage / Revoke"),
+					() => show_active_passkeys(frm),
+					__("Passkeys")
+				);
+			})
+			.catch((error) => {
+				console.warn("Failed to check passkey settings:", error);
+			});
+	},
+
 	setup_impersonation: function (frm) {
 		if (
 			frappe.session.user === "Administrator" &&
@@ -498,4 +532,258 @@ function show_api_key_dialog(api_key, api_secret) {
 		"yellow",
 		1
 	);
+}
+
+async function start_passkey_registration(frm) {
+	if (!navigator.credentials) {
+		frappe.msgprint("Passkeys are not supported in this browser.");
+		return;
+	}
+
+	try {
+		const challengeResponse = await frappe.call({
+			method: "frappe.integrations.passkey.register_challenge",
+			args: { email: frm.doc.email, user_display_name: frm.doc.full_name },
+		});
+
+		const credential = await create_new_passkey(challengeResponse.message);
+
+		const credentialResponse = {
+			id: credential.id,
+			rawId: frappe.utils.buffer_to_base64url(credential.rawId),
+			response: {
+				attestationObject: frappe.utils.buffer_to_base64url(
+					credential.response.attestationObject
+				),
+				clientDataJSON: frappe.utils.buffer_to_base64url(
+					credential.response.clientDataJSON
+				),
+			},
+			type: credential.type,
+			title: detect_device_label(),
+		};
+
+		await verify_passkey_with_server(frm, credentialResponse);
+	} catch (error) {
+		show_error_message(error);
+	}
+}
+
+async function create_new_passkey(publicKeyOptions) {
+	const credential = await navigator.credentials.create({
+		publicKey: prepare_publickey_options(publicKeyOptions),
+	});
+
+	if (!credential) {
+		throw new Error("User cancelled passkey creation");
+	}
+
+	return credential;
+}
+
+function prepare_publickey_options(options) {
+	const prepared = { ...options };
+	prepared.challenge = frappe.utils.base64url_to_uint8array(options.challenge);
+	prepared.user.id = frappe.utils.base64url_to_uint8array(options.user.id);
+
+	if (prepared.excludeCredentials) {
+		prepared.excludeCredentials = prepared.excludeCredentials.map((credential) => ({
+			...credential,
+			id: frappe.utils.base64url_to_uint8array(credential.id),
+		}));
+	}
+	return prepared;
+}
+
+function detect_device_label() {
+	const userAgent = navigator.userAgent;
+	const browserMatch = userAgent.match(/(opera|chrome|safari|firefox|msie|edg)\/?\s*([\d\.]+)/i);
+	const browser = browserMatch?.[1] || "Unknown Browser";
+	const platform = navigator.userAgentData?.platform || navigator.platform || "Unknown Device";
+	return `${browser} - ${platform}`;
+}
+
+async function verify_passkey_with_server(frm, credentialResponse) {
+	try {
+		const response = await frappe.call({
+			method: "frappe.integrations.passkey.register_verify",
+			args: { email: frm.doc.email, credential: credentialResponse },
+		});
+
+		if (response.message.success) {
+			return await prompt_passkey_label(frm, response.message.credential_id);
+		}
+
+		const errorMessage = response.message.error || "Passkey registration failed.";
+		frappe.msgprint(errorMessage);
+	} catch (error) {
+		show_error_message(error);
+	}
+}
+
+function prompt_passkey_label(frm, credentialId) {
+	return new Promise((resolve, reject) => {
+		frappe.prompt(
+			[{ fieldname: "label", label: "Passkey Label", fieldtype: "Data" }],
+			async (values) => {
+				try {
+					await frappe.call({
+						method: "frappe.integrations.passkey.update_passkey_label",
+						args: { credential_id: credentialId, label: values.label },
+					});
+
+					frappe.msgprint("Passkey registered successfully!");
+					frm.reload_doc();
+					resolve();
+				} catch (error) {
+					show_error_message(error);
+					reject(error);
+				}
+			},
+			__("Passkey registered. Add Label for Passkey"),
+			__("Save")
+		);
+	});
+}
+
+function show_active_passkeys(frm) {
+	frappe
+		.call({
+			method: "frappe.integrations.passkey.get_active_passkeys",
+			args: { user: frm.doc.name },
+		})
+		.then((response) => {
+			const passkeys = response.message || [];
+
+			if (!passkeys.length) {
+				frappe.msgprint("No active passkeys found.");
+				return;
+			}
+
+			const dialog = new frappe.ui.Dialog({
+				title: `Active Passkeys for ${frm.doc.full_name}`,
+				fields: [
+					{
+						fieldname: "passkey_list",
+						fieldtype: "HTML",
+						options: generate_passkey_list_html(passkeys),
+					},
+				],
+				primary_action_label: "Close",
+				primary_action() {
+					dialog.hide();
+				},
+			});
+
+			dialog.show();
+
+			dialog.$wrapper.on("click", ".btn-revoke-passkey", function () {
+				const passkeyName = $(this).data("name");
+				const passkeyTitle = $(this).data("title");
+
+				dialog.hide();
+
+				frappe.confirm(
+					`Are you sure you want to revoke passkey: ${frappe.utils.escape_html(
+						passkeyTitle
+					)}?`,
+					() => {
+						frappe
+							.call({
+								method: "frappe.integrations.passkey.revoke_passkey",
+								args: { name: passkeyName },
+							})
+							.then((revokeResponse) => {
+								if (revokeResponse.message?.success) {
+									frappe.msgprint(
+										`Passkey "${frappe.utils.escape_html(
+											passkeyTitle
+										)}" revoked successfully.`
+									);
+									frm.reload_doc();
+								} else {
+									show_error_message({
+										name: "Revoke Failed",
+										message: revokeResponse.message?.error || "Unknown error",
+									});
+									dialog.show();
+								}
+							})
+							.catch((error) => {
+								show_error_message(error);
+								dialog.show();
+							});
+					},
+					() => {
+						dialog.show();
+					}
+				);
+			});
+		})
+		.catch((error) => {
+			show_error_message(error);
+		});
+}
+
+function generate_passkey_list_html(passkeys) {
+	return passkeys
+		.map((passkey) => {
+			const title = frappe.utils.escape_html(passkey.title || "Untitled");
+			const addedDate = passkey.creation
+				? frappe.datetime.str_to_user(passkey.creation)
+				: "N/A";
+			const lastUsed =
+				passkey.sign_count > 0 && passkey.last_used
+					? frappe.datetime.comment_when(passkey.last_used)
+					: "Never";
+
+			return `
+				<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+					<div>
+						<strong>${title}</strong><br>
+						<small>Added on ${addedDate} | Last used ${lastUsed}</small>
+					</div>
+					<button class="btn btn-xs btn-danger btn-revoke-passkey"
+						data-name="${frappe.utils.escape_html(passkey.name)}"
+						data-title="${title}">
+						Revoke
+					</button>
+				</div>`;
+		})
+		.join("");
+}
+
+function show_error_message(error) {
+	if (!error) {
+		frappe.msgprint("An unknown error occurred.");
+		return;
+	}
+
+	let title = "Error";
+	let message = "An error occurred";
+
+	// Handle WebAuthn specific errors
+	if (error.name === "NotAllowedError") {
+		title = "Passkey Error";
+		message = "User cancelled or passkey operation not allowed.";
+	} else if (error.name === "InvalidStateError") {
+		title = "Passkey Error";
+		message = "Passkey already registered for this device.";
+	} else if (error.name === "NotSupportedError") {
+		title = "Passkey Error";
+		message = "Passkeys are not supported on this device.";
+	} else if (error.name === "SecurityError") {
+		title = "Passkey Error";
+		message = "Security error occurred during passkey operation.";
+	} else {
+		// Handle generic errors
+		title = error.name || "Error";
+		message = error.message || "An error occurred";
+	}
+
+	frappe.msgprint({
+		title: title,
+		message: message,
+		indicator: "red",
+	});
 }

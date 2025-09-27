@@ -83,6 +83,7 @@ dependencies = [
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.1.0",
+    "webauthn~=2.7.0",
 
     # integration dependencies
     "google-api-python-client~=2.172.0",

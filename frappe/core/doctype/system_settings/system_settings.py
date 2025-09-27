@@ -70,6 +70,7 @@ class SystemSettings(Document):
 		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
+		login_with_passkey: DF.Check
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int

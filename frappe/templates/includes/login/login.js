@@ -75,6 +75,109 @@ login.bind_events = function () {
 		return false;
 	});
 
+	$(".btn-login-with-passkey").on("click", async function (event) {
+		const button = $(this);
+		const originalText = button.text();
+
+		event.preventDefault();
+
+		// Check browser support
+		if (!navigator.credentials || !window.PublicKeyCredential) {
+			frappe.msgprint("Passkeys are not supported in this browser.");
+			return;
+		}
+
+		// Prevent double-click
+		if (button.prop("disabled")) {
+			return;
+		}
+
+		button.prop("disabled", true).text("Authenticating...");
+
+		try {
+			// Get challenge from server
+			const challengeResponse = await frappe.call({
+				args: { cmd: "frappe.integrations.passkey.login_challenge" },
+				freeze: true
+			});
+
+			if (!challengeResponse.message) {
+				throw new Error("Invalid challenge response from server");
+			}
+
+			const loginOptions = { ...challengeResponse.message };
+
+			// Convert base64url strings to Uint8Array
+			loginOptions.challenge = frappe.utils.base64url_to_uint8array(loginOptions.challenge);
+			if (loginOptions.allowCredentials?.length) {
+				loginOptions.allowCredentials = loginOptions.allowCredentials.map(credential => ({
+					...credential,
+					id: frappe.utils.base64url_to_uint8array(credential.id)
+				}));
+			}
+
+			button.text("Touch your authenticator...");
+
+			// Get credential from authenticator
+			const credential = await navigator.credentials.get({
+				publicKey: loginOptions,
+				signal: AbortSignal.timeout(60000) // 60 second timeout
+			});
+
+			if (!credential) {
+				throw new Error("User cancelled passkey authentication");
+			}
+
+			button.text("Verifying...");
+
+			// Prepare credential response for server
+			const credentialResponse = {
+				id: credential.id,
+				rawId: frappe.utils.buffer_to_base64url(credential.rawId),
+				response: {
+					authenticatorData: frappe.utils.buffer_to_base64url(credential.response.authenticatorData),
+					clientDataJSON: frappe.utils.buffer_to_base64url(credential.response.clientDataJSON),
+					signature: frappe.utils.buffer_to_base64url(credential.response.signature),
+					userHandle: credential.response.userHandle
+						? frappe.utils.buffer_to_base64url(credential.response.userHandle)
+						: null
+				},
+				type: credential.type,
+				cache_id: loginOptions.cache_id
+			};
+
+			// Verify with server
+			const verifyResponse = await frappe.call({
+				args: {
+					cmd: "frappe.integrations.passkey.login_verify",
+					credential_response: credentialResponse
+				},
+				freeze: true
+			});
+
+			if (!verifyResponse.message?.success) {
+				const errorMessage = verifyResponse.message?.error || "Login verification failed";
+				frappe.msgprint(errorMessage);
+				return;
+			}
+
+			// Success - redirect
+			button.text("Success!");
+			const redirectUrl = frappe.utils.sanitise_redirect(
+				frappe.utils.get_url_arg("redirect-to")
+			) || verifyResponse.message.home_page || "/app";
+
+			window.location.href = redirectUrl;
+
+		} catch (error) {
+			console.error("Passkey login error:", error);
+			show_passkey_login_error(error);
+		} finally {
+			// Always re-enable button
+			button.prop("disabled", false).text(originalText);
+		}
+	});
+
 	$(".toggle-password").click(function () {
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
@@ -387,3 +490,21 @@ var continue_email = function (setup, prompt) {
 }
 
 login.route();
+
+function show_passkey_login_error(error) {
+	let message = "An error occurred during passkey login.";
+
+	if (error.name === "NotAllowedError") {
+		message = "User cancelled or passkey login not allowed.";
+	} else if (error.name === "InvalidStateError") {
+		message = "Invalid passkey state.";
+	} else if (error.name === "NotSupportedError") {
+		message = "Passkeys are not supported on this device.";
+	} else if (error.name === "SecurityError") {
+		message = "Security error occurred during passkey login.";
+	} else if (error.message) {
+		message = error.message;
+	}
+
+	frappe.msgprint(message);
+}

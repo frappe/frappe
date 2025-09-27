@@ -1884,4 +1884,44 @@ Object.assign(frappe.utils, {
 			});
 		});
 	},
+	/**
+	 * Converts a base64url string to Uint8Array for WebAuthn operations.
+	 * @param {string} base64url_string - The base64url encoded string
+	 * @returns {Uint8Array} - The decoded byte array
+	 * @throws {Error} - If the input string is invalid
+	 */
+	base64url_to_uint8array(base64url_string) {
+		if (!base64url_string || typeof base64url_string !== "string") {
+			throw new Error("Invalid input: expected non-empty string");
+		}
+		try {
+			const base64 = base64url_string.replace(/-/g, "+").replace(/_/g, "/");
+			const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+			const raw = window.atob(padded);
+			return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+		} catch (e) {
+			throw new Error(`Invalid base64url string: ${e.message}`);
+		}
+	},
+
+	/**
+	 * Converts an ArrayBuffer to base64url string for WebAuthn operations.
+	 * @param {ArrayBuffer|Uint8Array} buffer - The buffer to encode
+	 * @returns {string} - The base64url encoded string
+	 * @throws {Error} - If the buffer is invalid or encoding fails
+	 */
+	buffer_to_base64url(buffer) {
+		if (!buffer) {
+			throw new Error("Invalid input: buffer is required");
+		}
+		try {
+			const uint8Array = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+			return btoa(String.fromCharCode(...uint8Array))
+				.replace(/\+/g, "-")
+				.replace(/\//g, "_")
+				.replace(/=+$/, "");
+		} catch (e) {
+			throw new Error(`Failed to encode buffer to base64url: ${e.message}`);
+		}
+	},
 });

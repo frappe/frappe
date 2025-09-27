@@ -127,6 +127,18 @@
 							</div>
 						</div>
 						{% endif %}
+
+						{% if login_with_passkey %}
+						<div class="login-with-passkey social-login-buttons">
+							<div class="login-button-wrapper">
+								<button
+									class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-passkey"
+									type="button">
+									{{ _("Login with a passkey") }}
+								</button>
+							</div>
+						</div>
+						{% endif %}
 					</div>
 				</div>
 				{% else %}

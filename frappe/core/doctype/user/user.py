@@ -117,6 +117,7 @@ class User(Document):
 		new_password: DF.Password | None
 		notifications: DF.Check
 		onboarding_status: DF.SmallText | None
+		passkey_user_id: DF.Data | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None
@@ -824,6 +825,14 @@ class User(Document):
 
 	def validate_ip_addr(self):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
+
+	def get_passkey_user_id(self):
+		if not self.passkey_user_id:
+			from webauthn.helpers import bytes_to_base64url, generate_user_handle
+
+			self.passkey_user_id = bytes_to_base64url(generate_user_handle())
+			self.save(ignore_permissions=True)
+		return self.passkey_user_id
 
 
 @frappe.whitelist()

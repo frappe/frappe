@@ -66,6 +66,7 @@
   "new_password",
   "logout_all_sessions",
   "reset_password_key",
+  "passkey_user_id",
   "last_reset_password_key_generated_on",
   "last_password_reset_date",
   "redirect_url",
@@ -835,6 +836,15 @@
    "fieldname": "show_absolute_datetime_in_timeline",
    "fieldtype": "Check",
    "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "fieldname": "passkey_user_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Passkey User ID",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
@@ -888,7 +898,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-06-05 23:55:27.884061",
+ "modified": "2025-09-27 16:50:19.275654",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
