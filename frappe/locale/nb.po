@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-26 21:30\n"
+"PO-Revision-Date: 2025-09-27 21:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -1810,7 +1810,7 @@ msgstr "Bare store bokstaver er nesten like enkle å gjette som bare små boksta
 #. Label of the allocated_to (Link) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Allocated To"
-msgstr "Allokalisert til"
+msgstr "Fordelt til"
 
 #. Label of the allow (Link) field in DocType 'User Permission'
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
@@ -2430,7 +2430,7 @@ msgstr "Bruk"
 #: frappe/public/js/frappe/list/list_view.js:2134
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
-msgstr "Bruk tilordningsregel"
+msgstr "Bruk tildelingsregel"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:318
 msgid "Apply Filters"
@@ -2514,7 +2514,7 @@ msgstr "Er du sikker på at du vil avbryte invitasjonen?"
 
 #: frappe/public/js/frappe/list/list_view.js:2113
 msgid "Are you sure you want to clear the assignments?"
-msgstr "Er du sikker på at du vil slette oppgavene?"
+msgstr "Er du sikker på at du vil slette de tildelte oppgavene?"
 
 #: frappe/public/js/frappe/form/grid.js:294
 msgid "Are you sure you want to delete all rows?"
@@ -2649,7 +2649,7 @@ msgstr "Tilordne til meg"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.js:53
 msgid "Assign to the one who has the least assignments"
-msgstr "Tilordne til den som har færrest oppdrag"
+msgstr "Tildel til den som har færrest oppgaver"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.js:54
 msgid "Assign to the user set in this field"
@@ -2695,18 +2695,18 @@ msgstr "Tilordner..."
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Assignment"
-msgstr "Oppdrag"
+msgstr "Oppgave"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Assignment Completed"
-msgstr "Oppdrag fullført"
+msgstr "Oppgave fullført"
 
 #. Label of the sb (Section Break) field in DocType 'Assignment Rule'
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Days"
-msgstr "Antall tilordnede dager"
+msgstr "Antall tildelingsdager"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -2716,31 +2716,31 @@ msgstr "Antall tilordnede dager"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/todo/todo.json
 msgid "Assignment Rule"
-msgstr "Tilordningsregel"
+msgstr "Tildelingsregel"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json
 msgid "Assignment Rule Day"
-msgstr "Dag for tilordningsregel"
+msgstr "Dag for tildelingsregel"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_user/assignment_rule_user.json
 msgid "Assignment Rule User"
-msgstr "Bruker for tilordningsregel"
+msgstr "Bruker av tildelingsregel"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:55
 msgid "Assignment Rule is not allowed on document type {0}"
-msgstr "Tildelingsregelen er ikke tillatt på dokumenttypen (DocType) {0}"
+msgstr "Tildelingsregel er ikke tillatt på dokumenttypen (DocType) {0}"
 
 #. Label of the assignment_rules_section (Section Break) field in DocType
 #. 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Rules"
-msgstr "Regler for tilordning"
+msgstr "Regler for tildeling"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:153
 msgid "Assignment Update on {0}"
-msgstr "Oppdatering av tilordnet oppgave på {0}"
+msgstr "Oppdatering av tildelt oppgave på {0}"
 
 #: frappe/desk/form/assign_to.py:78
 msgid "Assignment for {0} {1}"
@@ -2748,14 +2748,14 @@ msgstr "Oppgave for {0} {1}"
 
 #: frappe/desk/doctype/todo/todo.py:62
 msgid "Assignment of {0} removed by {1}"
-msgstr "Tilordning av {0} fjernet av {1}"
+msgstr "Tildeling av {0} fjernet av {1}"
 
 #. Label of the enable_email_assignment (Check) field in DocType 'Notification
 #. Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:255
 msgid "Assignments"
-msgstr "Tilordninger"
+msgstr "Tildelinger"
 
 #. Label of the asynchronous (Check) field in DocType 'Workflow Transition
 #. Task'
@@ -3081,7 +3081,7 @@ msgstr "Melding for automatisk svar"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:177
 msgid "Auto assignment failed: {0}"
-msgstr "Automatisk tilordning mislyktes: {0}"
+msgstr "Automatisk tildeling mislyktes: {0}"
 
 #. Label of the follow_assigned_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -19331,11 +19331,11 @@ msgstr "Lagre før vedlegging."
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:52
 msgid "Please save the document before assignment"
-msgstr "Lagre dokumentet før tildelingen"
+msgstr "Lagre dokumentet før tildeling"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:72
 msgid "Please save the document before removing assignment"
-msgstr "Lagre dokumentet før du fjerner tildelingen"
+msgstr "Lagre dokumentet før du fjerner tildeling"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1718
 msgid "Please save the report first"
@@ -26044,7 +26044,7 @@ msgstr "Feltnavnet du har angitt i \"Vedlagt til\"-feltet er ugyldig"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:62
 msgid "The following Assignment Days have been repeated: {0}"
-msgstr "Følgende oppdragsdager er gjentatt: {0}"
+msgstr "Følgende oppgavedager er gjentatt: {0}"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "The following Header Script will add the current date to an element in 'Header HTML' with class 'header-content'"
@@ -31606,7 +31606,7 @@ msgstr "{0} fjernet vedlegg {1}"
 
 #: frappe/desk/doctype/todo/todo.py:58
 msgid "{0} removed their assignment."
-msgstr "{0} fjernet sin tildeling"
+msgstr "{0} fjernet sin tildeling."
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:291
 msgid "{0} removed {1} rows from {2}"
