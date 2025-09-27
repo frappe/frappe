@@ -87,7 +87,7 @@ frappe.ui.Scanner = class Scanner {
 			},
 			minimizable: this.options.minimizable,
 			primary_action_label: this.options.primary_action_label,
-			primary_action: this.options.primary_action
+			primary_action: this.options.primary_action,
 		});
 		return dialog;
 	}
