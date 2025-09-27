@@ -339,7 +339,7 @@ class Page:
 			if chunk_result.get("eof", False):
 				break
 
-		result, error = self.send("IO.close", {"handle": stream_id})
+		_result, error = self.send("IO.close", {"handle": stream_id})
 		if error:
 			raise RuntimeError(f"Error closing PDF stream: {error}")
 
@@ -350,6 +350,6 @@ class Page:
 
 	def close(self):
 		self.session.send("Fetch.disable")
-		result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
+		_result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
 		if error:
 			raise RuntimeError(f"Error closing target: {error}")

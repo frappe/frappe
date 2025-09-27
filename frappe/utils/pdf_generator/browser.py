@@ -349,14 +349,14 @@ class Browser:
 		if self.header_page:
 			if self.is_header_dynamic:
 				self.header_page.evaluate(
-					f"clone_and_update('{ '#header-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Header', 1);",
+					f"clone_and_update('{'#header-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Header', 1);",
 					await_promise=True,
 				)
 
 		if self.footer_page:
 			if self.is_footer_dynamic:
 				self.footer_page.evaluate(
-					f"clone_and_update('{ '#footer-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Footer', 1);",
+					f"clone_and_update('{'#footer-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Footer', 1);",
 					await_promise=True,
 				)
 
