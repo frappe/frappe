@@ -79,6 +79,7 @@ class CustomizeForm(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
 		sort_field: DF.Literal[None]
@@ -307,6 +308,8 @@ class CustomizeForm(Document):
 		)
 
 	def set_property_setters_for_doctype(self, meta):
+		if self.get("show_name_in_global_search") != meta.get("show_name_in_global_search"):
+			self.flags.rebuild_doctype_for_global_search = True
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
@@ -736,6 +739,7 @@ doctype_properties = {
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
 	"allow_import": "Check",
+	"show_name_in_global_search": "Check",
 	"show_preview_popup": "Check",
 	"default_email_template": "Data",
 	"email_append_to": "Check",
