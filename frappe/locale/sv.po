@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-21 19:57\n"
+"PO-Revision-Date: 2025-09-27 21:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1520,7 +1520,7 @@ msgstr "Adress"
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:37
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr "Adress Linje 1"
+msgstr "Adressrad 1"
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
@@ -1528,7 +1528,7 @@ msgstr "Adress Linje 1"
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:38
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr "Adress Linje 2"
+msgstr "Adressrad 2"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -3792,17 +3792,17 @@ msgstr "Knapp"
 #. Label of the button_gradients (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Gradients"
-msgstr "Gradient Knapp"
+msgstr "Knapp Gradienter"
 
 #. Label of the button_rounded_corners (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Rounded Corners"
-msgstr "Rundade Hörn Knapp"
+msgstr "Knapp Rundade Hörn"
 
 #. Label of the button_shadows (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Shadows"
-msgstr "Skugg Knapp"
+msgstr "Knapp Skuggor"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -7328,7 +7328,7 @@ msgstr "Inaktivera Registrering för Webbplats"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr "Inaktivera Standard Bolag E-post Sidfot"
+msgstr "Inaktivera Standard Bolag E-post Signatur"
 
 #. Label of the disable_system_update_notification (Check) field in DocType
 #. 'System Settings'
@@ -8650,7 +8650,7 @@ msgstr "E-post Flagg Kö"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Email Footer Address"
-msgstr "Bolag E-post Sidfot"
+msgstr "Standard Bolag E-post Signatur"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -12011,7 +12011,7 @@ msgstr "Dölj sidfot"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide footer in auto email reports"
-msgstr "Inaktivera Sidfot i Automatiska E-post Rapporter"
+msgstr "Inaktivera Signatur i Automatiska E-post Rapporter"
 
 #. Label of the hide_footer_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -13106,13 +13106,13 @@ msgstr "Integration Begäran"
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Integrations"
-msgstr "System Integrationer"
+msgstr "Integrationer"
 
 #. Description of the 'Delivery Status' (Select) field in DocType
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Integrations can use this field to set email delivery status"
-msgstr "Integrationer kan använda detta fält för att ange E-post leverans status"
+msgstr "System Integrationer kan använda detta fält för att ange E-post leverans status"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -30268,7 +30268,7 @@ msgstr "Ditt gamla lösenord är felaktig."
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Your organization name and address for the email footer."
-msgstr "Bolag Namn och Adress för E-post Sidfot."
+msgstr "Bolag Namn och Adress för E-post Signatur."
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
