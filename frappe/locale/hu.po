@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-21 09:33+0000\n"
-"PO-Revision-Date: 2025-09-21 19:57\n"
+"PO-Revision-Date: 2025-09-27 21:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -2123,7 +2123,7 @@ msgstr ""
 #. Label of the login_id (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Alternative Email ID"
-msgstr ""
+msgstr "Alternatív Email Azonosító"
 
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2145,7 +2145,7 @@ msgstr "Mindig ezt az e-mail címet használja feladó címként"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Always use this name as sender name"
-msgstr ""
+msgstr "Mindig ezt az nevet használja feladó neveként"
 
 #. Label of the amend (Check) field in DocType 'Custom DocPerm'
 #. Label of the amend (Check) field in DocType 'DocPerm'
@@ -2154,7 +2154,7 @@ msgstr ""
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Amend"
-msgstr ""
+msgstr "Módosítás"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -2163,7 +2163,7 @@ msgstr ""
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amend Counter"
-msgstr ""
+msgstr "Módosítás Számláló"
 
 #. Name of a DocType
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
@@ -2174,7 +2174,7 @@ msgstr ""
 #. 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amended Documents"
-msgstr ""
+msgstr "Módosított Dokumentumok"
 
 #. Label of the amended_from (Link) field in DocType 'Personal Data Download
 #. Request'
@@ -2191,7 +2191,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amendment Naming Override"
-msgstr ""
+msgstr "Módosítás Elnevezés Felülírása"
 
 #: frappe/model/document.py:551
 msgid "Amendment Not Allowed"
@@ -2208,7 +2208,7 @@ msgstr ""
 #. Description of the 'FavIcon' (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]"
-msgstr ""
+msgstr "Egy ikon fájlt .ico kiterjesztéssel. Legyen 16 x 16 px. favicon generátor felhasználásával előállított. [favicon-generator.org]"
 
 #: frappe/templates/includes/oauth_confirmation.html:38
 msgid "An unexpected error occurred while authorizing {}."
@@ -2218,7 +2218,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Analytics"
-msgstr ""
+msgstr "Analitika"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
@@ -2228,13 +2228,13 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcement Widget"
-msgstr ""
+msgstr "Közlemény Widget"
 
 #. Label of the announcements_section (Section Break) field in DocType 'Navbar
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcements"
-msgstr ""
+msgstr "Közlemények"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -2245,12 +2245,12 @@ msgstr ""
 #. Deletion Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Anonymization Matrix"
-msgstr ""
+msgstr "Anonimizálási Mátrix"
 
 #. Label of the anonymous (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Anonymous responses"
-msgstr ""
+msgstr "Névtelen válaszok"
 
 #: frappe/public/js/frappe/request.js:189
 msgid "Another transaction is blocking this one. Please try again in a few seconds."
@@ -2263,7 +2263,7 @@ msgstr ""
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr ""
+msgstr "Bármely karakterlánc-alapú nyomtatónyelv használható. A nyers parancsok írásához a nyomtató anyanyelvének ismerete szükséges, amelyet a nyomtató gyártója biztosít. A natív parancsok írásáról lásd a nyomtató gyártója által kiadott fejlesztői útmutatót. Ezeket a parancsokat a szerver oldalon a Jinja sablon nyelv használatával jelenítik meg."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:36
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -2792,12 +2792,12 @@ msgstr "DocType-hoz Csatolás"
 #. Label of the attached_to_field (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Field"
-msgstr ""
+msgstr "Mezőhöz Csatolt"
 
 #. Label of the attached_to_name (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Name"
-msgstr ""
+msgstr "Névhez Csatolt"
 
 #: frappe/core/doctype/file/file.py:152
 msgid "Attached To Name must be a string or an integer"
@@ -2806,14 +2806,14 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Attachment"
-msgstr ""
+msgstr "Csatolmány"
 
 #. Label of the attachment_limit (Int) field in DocType 'Email Account'
 #. Label of the attachment_limit (Int) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Attachment Limit (MB)"
-msgstr ""
+msgstr "Csatolmány Korlát (MB)"
 
 #: frappe/core/doctype/file/file.py:338
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
@@ -2828,7 +2828,7 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Attachment Removed"
-msgstr ""
+msgstr "Csatolmány Eltávolítva"
 
 #. Label of the attachments (Code) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -15334,7 +15334,7 @@ msgstr ""
 #. Label of the mandatory_depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Mandatory Depends On (JS)"
-msgstr ""
+msgstr "Kötelezően függ (JS)"
 
 #: frappe/website/doctype/web_form/web_form.py:509
 msgid "Mandatory Information missing:"
@@ -29832,7 +29832,7 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "You can set a high value here if multiple users will be logging in from the same network."
-msgstr ""
+msgstr "Itt magas értéket állíthat be, ha több felhasználó fog bejelentkezni ugyanarról a hálózatról."
 
 #: frappe/desk/query_report.py:382
 msgid "You can try changing the filters of your report."
@@ -31458,15 +31458,15 @@ msgstr ""
 
 #: frappe/model/document.py:1564
 msgid "{0} must be beginning with '{1}'"
-msgstr ""
+msgstr "{0} a '{1}' kezdetűnek kell lennie."
 
 #: frappe/model/document.py:1566
 msgid "{0} must be equal to '{1}'"
-msgstr ""
+msgstr "{0} egyenlőnek kell lennie '{1}'"
 
 #: frappe/model/document.py:1562
 msgid "{0} must be none of {1}"
-msgstr ""
+msgstr "{0} nem lehet a(z) {1} egyike sem"
 
 #: frappe/model/document.py:1560 frappe/utils/csvutils.py:161
 msgid "{0} must be one of {1}"
@@ -31482,7 +31482,7 @@ msgstr ""
 
 #: frappe/model/document.py:1568
 msgid "{0} must be {1} {2}"
-msgstr ""
+msgstr "{0} kell lennie {1} {2}"
 
 #: frappe/core/doctype/language/language.py:79
 msgid "{0} must begin and end with a letter and can only contain letters, hyphen or underscore."
