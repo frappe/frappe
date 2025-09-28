@@ -720,13 +720,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		return new Promise((resolve) => {
-			const js_filters = (frappe.query_reports[this.report_name]?.filters || []).filter(
-				(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
-			);
+			const js_filters = (frappe.query_reports[this.report_name]?.filters || [])
+				.filter(
+					(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
+				)
+				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
+
+			console.log(js_filters, "js_filters");
 
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
-				type: "POST",
+				type: "GET",
 				args: {
 					report_name: this.report_name,
 					filters: filters,
