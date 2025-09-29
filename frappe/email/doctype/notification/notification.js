@@ -112,7 +112,6 @@ frappe.notification = {
 				return get_select_options(d);
 			});
 
-			// Set the options for your attach_field select field
 			frm.set_df_property("attach_field", "options", [""].concat(attach_options));
 		});
 	},
