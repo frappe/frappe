@@ -16,8 +16,12 @@ function authenticate_with_frappe(socket, next) {
 		return;
 	}
 
-	if (!socket.request.headers.cookie) {
-		next(new Error("No cookie transmitted."));
+	if (!socket.request.headers.cookie && !socket.request.headers.authorization) {
+		next(
+			new Error(
+				"Missing cookie and authorization header. Either one needed for authentication."
+			)
+		);
 		return;
 	}
 
