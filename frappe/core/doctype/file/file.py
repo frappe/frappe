@@ -19,6 +19,7 @@ from frappe.model.document import Document
 from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
+from frappe.utils.html_utils import escape_html
 from frappe.utils.image import optimize_image, strip_exif_data
 
 from .exceptions import AttachmentLimitReached, FolderNotEmpty, MaxFileSizeReachedError
@@ -350,6 +351,9 @@ class File(Document):
 			self.file_name = self.file_url.split("/")[-1]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
+
+		# Escape HTML characters in file name
+		self.file_name = escape_html(self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
