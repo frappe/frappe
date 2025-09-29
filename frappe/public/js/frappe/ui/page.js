@@ -323,7 +323,14 @@ frappe.ui.Page = class Page {
 		frappe.ui.keys.get_shortcut_group(this).add(btn, text_span.length ? text_span : btn);
 	}
 
-	set_primary_action(label, click, icon, working_label, is_dropdown = false, dropdown_items = []) {
+	set_primary_action(
+		label,
+		click,
+		icon,
+		working_label,
+		is_dropdown = false,
+		dropdown_items = []
+	) {
 		if (is_dropdown) {
 			return this._create_dropdown_primary_action(label, icon, dropdown_items);
 		} else {
@@ -344,9 +351,9 @@ frappe.ui.Page = class Page {
 		// Create dropdown structure
 		const dropdownHTML = `
 		<div class="dropdown primary-action-dropdown">
-			<button class="btn btn-primary dropdown-toggle" type="button" 
+			<button class="btn btn-primary dropdown-toggle" type="button"
 					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				${icon ? frappe.utils.icon(icon) : ''}
+				${icon ? frappe.utils.icon(icon) : ""}
 				<span class="hidden-xs">${label}</span>
 			</button>
 			<ul class="dropdown-menu" role="menu"></ul>
@@ -356,10 +363,12 @@ frappe.ui.Page = class Page {
 		// Add dropdown to primary action area
 		this.btn_primary.replaceWith(dropdownHTML);
 		this.btn_primary = this.page_actions.find(".primary-action-dropdown > button");
-		this.primary_dropdown_menu = this.page_actions.find(".primary-action-dropdown .dropdown-menu");
+		this.primary_dropdown_menu = this.page_actions.find(
+			".primary-action-dropdown .dropdown-menu"
+		);
 
 		// Add dropdown items
-		dropdown_items.forEach(item => {
+		dropdown_items.forEach((item) => {
 			this.add_primary_dropdown_item(item.label, item.click, item.icon);
 		});
 
@@ -367,7 +376,7 @@ frappe.ui.Page = class Page {
 	}
 
 	add_primary_dropdown_item(label, click, icon = null) {
-		const iconHTML = icon ? `${frappe.utils.icon(icon)} ` : '';
+		const iconHTML = icon ? `${frappe.utils.icon(icon)} ` : "";
 		const $item = $(`
         <a class="dropdown-item" href="#" onclick="return false;">
             ${iconHTML}${label}
