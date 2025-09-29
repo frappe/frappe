@@ -19,6 +19,7 @@ from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
+from frappe.utils.html_utils import escape_html
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.pdf import pdf_contains_js
 
@@ -763,7 +764,7 @@ class File(Document):
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
-		file_name = self.file_name or self.file_url
+		file_name = escape_html(self.file_name or self.file_url)
 
 		self.add_comment_in_reference_doc(
 			"Attachment",
