@@ -38,7 +38,7 @@ class TestVersion(FrappeTestCase):
 		t = frappe.get_doc(doctype="ToDo", description="something")
 		t.save(ignore_version=False)
 
-		self.assertFalse(get_versions(t))
+		self.assertTrue(get_versions(t))
 
 		t = frappe.get_doc(t.doctype, t.name)
 		t.description = "changed"
