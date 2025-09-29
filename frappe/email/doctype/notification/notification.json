@@ -48,7 +48,10 @@
   "view_properties",
   "column_break_25",
   "attach_print",
-  "print_format"
+  "print_format",
+  "column_break_llcs",
+  "attach",
+  "attach_field"
  ],
  "fields": [
   {
@@ -260,7 +263,7 @@
    "collapsible_depends_on": "attach_print",
    "fieldname": "column_break_25",
    "fieldtype": "Section Break",
-   "label": "Print Settings"
+   "label": "Attachment Settings"
   },
   {
    "default": "0",
@@ -337,13 +340,30 @@
    "fieldname": "filters_section",
    "fieldtype": "Section Break",
    "label": "Filters"
+  },
+  {
+   "fieldname": "column_break_llcs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.attach == \"From Field\"",
+   "fieldname": "attach_field",
+   "fieldtype": "Select",
+   "label": "Attach Field",
+   "mandatory_depends_on": "eval:doc.attach == \"From Field\""
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Select",
+   "label": "Attach",
+   "options": "\nFrom Field\nAll"
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-10 21:03:15.561558",
+ "modified": "2025-09-29 13:17:37.123847",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

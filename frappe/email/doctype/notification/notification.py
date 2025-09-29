@@ -34,6 +34,8 @@ class Notification(Document):
 		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
 		from frappe.types import DF
 
+		attach: DF.Literal["", "From Field", "All"]
+		attach_field: DF.Literal[None]
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
@@ -429,7 +431,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachment(doc)
+		attachments = self.get_attachments(doc)
 
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 
@@ -445,7 +447,7 @@ def get_context(context):
 			"subject": subject,
 			"from_user": doc.modified_by or doc.owner,
 			"email_content": frappe.render_template(self.message, context),
-			"attached_file": attachments and json.dumps(attachments[0]),
+			"attached_file": attachments and json.dumps(attachments),
 		}
 		enqueue_create_notification(users, notification_doc)
 
@@ -458,7 +460,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachment(doc)
+		attachments = self.get_attachments(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
@@ -624,10 +626,25 @@ def get_context(context):
 
 		return list(set(receiver_list))
 
-	def get_attachment(self, doc):
-		"""check print settings are attach the pdf"""
-		if not self.attach_print:
-			return None
+	def get_attachments(self, doc) -> list[dict]:
+		"""Check Attachment Settings and return attachments accordingly"""
+		attachments = []
+		if self.attach_print and (print_info := self.get_print(doc)):
+			attachments.append(print_info)
+		if self.attach == "From Field" and self.attach_field:
+			attachments.append({"file_url": doc.get(self.attach_field)})
+		if self.attach == "All":
+			attachments.extend(
+				frappe.get_all(
+					"File",
+					fields=["file_url"],
+					filters={"attached_to_doctype": self.document_type, "attached_to_name": doc.name},
+				)
+			)
+		return attachments
+
+	def get_print(self, doc):
+		"""check print settings and return dict with print info"""
 
 		print_settings = frappe.get_doc("Print Settings", "Print Settings")
 		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
@@ -642,18 +659,16 @@ def get_context(context):
 				title=_("Error in Notification"),
 			)
 		else:
-			return [
-				{
-					"print_format_attachment": 1,
-					"doctype": doc.doctype,
-					"name": doc.name,
-					"print_format": self.print_format,
-					"print_letterhead": print_settings.with_letterhead,
-					"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
-					if self.print_format
-					else "en",
-				}
-			]
+			return {
+				"print_format_attachment": 1,
+				"doctype": doc.doctype,
+				"name": doc.name,
+				"print_format": self.print_format,
+				"print_letterhead": print_settings.with_letterhead,
+				"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+				if self.print_format
+				else "en",
+			}
 
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
