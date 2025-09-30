@@ -351,6 +351,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					const checked_items = this.get_checked_items();
 					this.toggle_actions_menu_button(checked_items.length > 0);
 				},
+				onSortColumn: (colIndex, sortOrder) => {
+					this.on_datatable_sort_change(colIndex, sortOrder);
+				},
 			},
 			hooks: {
 				columnTotal: frappe.utils.report_column_total,
@@ -428,6 +431,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			],
 		});
+		
+		// Setup alternative sort handlers to capture column header clicks
+		this.setup_datatable_sort_handlers();
 	}
 
 	toggle_charts() {
@@ -1806,5 +1812,94 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		return super.parse_filters_from_route_options();
+	}
+
+	/**
+	 * Handle DataTable column sorting events to sync with SortSelector
+	 * This ensures that when users click column headers to sort in DataTable,
+	 * the sorting state is captured when saving reports.
+	 *
+	 * @param {number} colIndex - The index of the column being sorted
+	 * @param {string} sortOrder - The sort order ("asc" or "desc")
+	 */
+	on_datatable_sort_change(colIndex, sortOrder) {
+		if (!this.datatable || !this.columns || colIndex >= this.columns.length) {
+			return;
+		}
+
+		const column = this.columns[colIndex];
+		if (!column || !column.docfield) {
+			return;
+		}
+
+		// Get the field name for the sorted column
+		const fieldname = column.field;
+		const sort_order = sortOrder === "asc" ? "asc" : "desc";
+
+		// Update the SortSelector to match the DataTable sorting
+		if (this.sort_selector && fieldname) {
+			this.sort_selector.set_value(fieldname, sort_order);
+		}
+
+		// Mark report as dirty if this is a custom report
+		if (this.report_doc && !$.isEmptyObject(this.report_doc.json)) {
+			this.set_dirty_state_for_custom_report();
+		}
+	}
+
+	/**
+	 * Setup click handlers for DataTable column headers to capture sorting
+	 * This is an alternative approach in case the onSortColumn event is not available
+	 */
+	setup_datatable_sort_handlers() {
+		if (!this.datatable || !this.$datatable_wrapper) {
+			return;
+		}
+
+		// Wait for DataTable to render, then attach click handlers
+		setTimeout(() => {
+			const $headers = this.$datatable_wrapper.find('.dt-header .dt-cell');
+			$headers.on('click', (e) => {
+				const $header = $(e.currentTarget);
+				const colIndex = $header.index();
+				
+				// Get the current sort state from the DataTable
+				setTimeout(() => {
+					this.sync_sort_with_datatable();
+				}, 100); // Small delay to let DataTable update its sort state
+			});
+		}, 500);
+	}
+
+	/**
+	 * Sync the SortSelector with the current DataTable sort state
+	 * This checks the DataTable's internal sort state and updates the SortSelector accordingly
+	 */
+	sync_sort_with_datatable() {
+		if (!this.datatable || !this.datatable.datamanager) {
+			return;
+		}
+
+		try {
+			// Check if DataTable has sorting information
+			const sortState = this.datatable.datamanager.currentSort;
+			if (sortState && sortState.colIndex !== undefined) {
+				const column = this.columns[sortState.colIndex];
+				if (column && column.field) {
+					const sortOrder = sortState.sortOrder === 1 ? 'asc' : 'desc';
+					if (this.sort_selector) {
+						this.sort_selector.set_value(column.field, sortOrder);
+					}
+
+					// Mark report as dirty if this is a custom report
+					if (this.report_doc && !$.isEmptyObject(this.report_doc.json)) {
+						this.set_dirty_state_for_custom_report();
+					}
+				}
+			}
+		} catch (e) {
+			// Silently ignore errors in case the DataTable API changes
+			console.debug('Could not sync DataTable sort state:', e);
+		}
 	}
 };
