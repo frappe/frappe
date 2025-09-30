@@ -6,7 +6,6 @@ from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
 from frappe.utils import cint
-from frappe.utils.deprecations import deprecated
 from frappe.utils.scheduler import is_scheduler_inactive
 
 
@@ -111,7 +110,4 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 	return failed
 
 
-@deprecated
-def show_progress(docnames, message, i, description):
-	n = len(docnames)
-	frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
+from frappe.deprecation_dumpster import show_progress

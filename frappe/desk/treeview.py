@@ -9,8 +9,7 @@ from frappe import _
 def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	"""Recursively gets all data from tree nodes"""
 
-	if "cmd" in filters:
-		del filters["cmd"]
+	filters.pop("cmd", None)
 	filters.pop("data", None)
 
 	tree_method = frappe.get_attr(tree_method)
@@ -20,8 +19,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	data = tree_method(doctype, parent, **filters)
 	out = [dict(parent=label, data=data)]
 
-	if "is_root" in filters:
-		del filters["is_root"]
+	filters.pop("is_root", None)
 	to_check = [d.get("value") for d in data if d.get("expandable")]
 
 	while to_check:

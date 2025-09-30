@@ -311,6 +311,7 @@ acceptable_elements = [
 	"strike",
 	"strong",
 	"sub",
+	"summary",
 	"sup",
 	"table",
 	"tbody",

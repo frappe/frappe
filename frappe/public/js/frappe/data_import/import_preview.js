@@ -120,6 +120,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				if (cell == null) {
 					return "";
 				}
+
+				if (typeof cell === "string") {
+					cell = frappe.utils.xss_sanitise(cell);
+				}
 				return cell;
 			});
 		});

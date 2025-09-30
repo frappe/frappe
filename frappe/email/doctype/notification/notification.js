@@ -95,7 +95,7 @@ frappe.notification = {
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
 				receiver_fields = get_receiver_fields(fields, function (df) {
-					df.options == "Phone" || df.options == "Mobile";
+					return df.options == "Phone" || df.options == "Mobile";
 				});
 			}
 
@@ -112,7 +112,7 @@ frappe.notification = {
 		if (frm.doc.channel === "Email") {
 			template = `<h5>Message Example</h5>
 
-<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;
+<pre><code class="language-xml">&lt;h3&gt;Order Overdue&lt;/h3&gt;
 
 &lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;
 
@@ -127,7 +127,7 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;li&gt;Customer: {{ doc.customer }}&lt;/li&gt;
 &lt;li&gt;Amount: {{ doc.grand_total }}&lt;/li&gt;
 &lt;/ul&gt;
-</pre>
+</code></pre>
 			`;
 		} else if (["Slack", "System Notification", "SMS"].includes(frm.doc.channel)) {
 			template = `<h5>Message Example</h5>
@@ -148,7 +148,11 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 </pre>`;
 		}
 		if (template) {
-			frm.set_df_property("message_examples", "options", template);
+			const message_examples_field = frm.get_field("message_examples");
+			message_examples_field.html(template);
+			if (frm.doc.channel === "Email") {
+				frappe.utils.highlight_pre(message_examples_field.$wrapper);
+			}
 		}
 	},
 };
@@ -205,9 +209,12 @@ frappe.ui.form.on("Notification", {
 				return dialog;
 			});
 		}
+
+		frm.trigger("set_up_filters_editor");
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frm.trigger("set_up_filters_editor");
 	},
 	view_properties: function (frm) {
 		frappe.route_options = { doc_type: frm.doc.document_type };
@@ -245,5 +252,42 @@ frappe.ui.form.on("Notification", {
 		} else {
 			frm.set_df_property("channel", "description", ` `);
 		}
+	},
+	condition_type: function (frm) {
+		if (frm.doc.condition_type === "Filters") {
+			frm.set_value("condition", "");
+		} else {
+			frm.set_value("filters", "");
+		}
+
+		frm.trigger("set_up_filters_editor");
+	},
+	set_up_filters_editor(frm) {
+		const parent = frm.get_field("filters_editor").$wrapper;
+		parent.empty();
+
+		if (!frm.doc.document_type || frm.doc.condition_type !== "Filters") {
+			return;
+		}
+
+		const filters =
+			frm.doc.filters && frm.doc.filters !== "[]" ? JSON.parse(frm.doc.filters) : [];
+
+		frappe.model.with_doctype(frm.doc.document_type, () => {
+			const filter_group = new frappe.ui.FilterGroup({
+				parent: parent,
+				doctype: frm.doc.document_type,
+				on_change: () => {
+					frappe.model.set_value(
+						frm.doc.doctype,
+						frm.doc.name,
+						"filters",
+						JSON.stringify(filter_group.get_filters())
+					);
+				},
+			});
+
+			filter_group.add_filters_to_filter_group(filters);
+		});
 	},
 });

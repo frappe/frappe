@@ -1,12 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from __future__ import annotations
+
 import json
 import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, safe_encode, task
@@ -32,8 +35,10 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
-from frappe.utils.deprecations import deprecated
 from frappe.utils.verified_command import get_signed_params
+
+if TYPE_CHECKING:
+	from typing import Literal
 
 
 class EmailQueue(Document):
@@ -64,7 +69,7 @@ class EmailQueue(Document):
 		show_as_cc: DF.SmallText | None
 		status: DF.Literal["Not Sent", "Sending", "Sent", "Partially Sent", "Error"]
 		unsubscribe_method: DF.Data | None
-		unsubscribe_param: DF.Data | None
+		unsubscribe_params: DF.Code | None
 	# end: auto-generated types
 
 	DOCTYPE = "Email Queue"
@@ -89,10 +94,13 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
+	def new(cls, doc_data, ignore_permissions=False) -> EmailQueue:
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
+
+		if isinstance(data["unsubscribe_params"], dict):
+			data["unsubscribe_params"] = json.dumps(data["unsubscribe_params"])
 
 		recipients = data.pop("recipients")
 		doc = frappe.new_doc(cls.DOCTYPE)
@@ -102,7 +110,7 @@ class EmailQueue(Document):
 		return doc
 
 	@classmethod
-	def find(cls, name) -> "EmailQueue":
+	def find(cls, name) -> EmailQueue:
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
@@ -154,9 +162,14 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, smtp_server_instance: SMTPServer = None, frappe_mail_client: FrappeMail = None):
+	def send(
+		self,
+		smtp_server_instance: SMTPServer = None,
+		frappe_mail_client: FrappeMail = None,
+		force_send: bool = False,
+	):
 		"""Send emails to recipients."""
-		if not self.can_send_now():
+		if not self.can_send_now() and not force_send:
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
@@ -169,20 +182,15 @@ class EmailQueue(Document):
 				message = ctx.build_message(recipient.recipient)
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
-				elif not frappe.flags.in_test or frappe.flags.testing_email:
+				elif not frappe.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						if self.reference_doctype == "Newsletter":
-							ctx.frappe_mail_client.send_newsletter(
-								sender=self.sender,
-								recipients=recipient.recipient,
-								message=message.decode("utf-8"),
-							)
-						else:
-							ctx.frappe_mail_client.send_raw(
-								sender=self.sender,
-								recipients=recipient.recipient,
-								message=message.decode("utf-8"),
-							)
+						is_newsletter = self.reference_doctype == "Newsletter"
+						ctx.frappe_mail_client.send_raw(
+							sender=self.sender,
+							recipients=recipient.recipient,
+							message=message,
+							is_newsletter=is_newsletter,
+						)
 					else:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
@@ -192,7 +200,7 @@ class EmailQueue(Document):
 
 				ctx.update_recipient_status_to_sent(recipient)
 
-			if frappe.flags.in_test and not frappe.flags.testing_email:
+			if frappe.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = message
 				return
 
@@ -223,15 +231,9 @@ class EmailQueue(Document):
 		).run()
 
 
-@task(queue="short")
-@deprecated
-def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
-	"""This is equivalent to EmailQueue.send.
+from frappe.deprecation_dumpster import send_mail as _send_mail
 
-	This provides a way to make sending mail as a background job.
-	"""
-	record = EmailQueue.find(email_queue_name)
-	record.send(smtp_server_instance=smtp_server_instance)
+send_mail = task(queue="short")(_send_mail)
 
 
 class SendMailContext:
@@ -363,7 +365,7 @@ class SendMailContext:
 				reference_name=self.queue_doc.reference_name,
 				email=recipient_email,
 				unsubscribe_method=self.queue_doc.unsubscribe_method,
-				unsubscribe_params=self.queue_doc.unsubscribe_param,
+				unsubscribe_params=self.queue_doc.unsubscribe_params,
 			)
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
@@ -453,11 +455,11 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
-		record.send()
+		record.send(force_send=force_send)
 
 
 @frappe.whitelist()
@@ -511,6 +513,8 @@ class QueueBuilder:
 		print_letterhead=False,
 		with_container=False,
 		email_read_tracker_url=None,
+		x_priority: Literal[1, 3, 5] = 3,
+		email_headers=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -536,6 +540,8 @@ class QueueBuilder:
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
+		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -546,6 +552,7 @@ class QueueBuilder:
 		self._sender = sender
 		self._text_content = text_content
 		self._message = message
+		self._x_priority: Literal[1, 3, 5] = x_priority
 		self._add_unsubscribe_link = add_unsubscribe_link
 		self._unsubscribe_message = unsubscribe_message
 		self._attachments = attachments
@@ -571,6 +578,7 @@ class QueueBuilder:
 		self.inline_images = inline_images
 		self.print_letterhead = print_letterhead
 		self.email_read_tracker_url = email_read_tracker_url
+		self.email_headers = email_headers
 
 	@property
 	def unsubscribe_method(self):
@@ -702,6 +710,9 @@ class QueueBuilder:
 		return attachments
 
 	def prepare_email_content(self):
+		email_account = self.get_outgoing_email_account()
+		if email_account.always_bcc:
+			self._bcc = [*self.bcc, email_account.always_bcc]
 		mail = get_email(
 			recipients=self.final_recipients(),
 			sender=self.sender,
@@ -712,17 +723,23 @@ class QueueBuilder:
 			reply_to=self.reply_to,
 			cc=self.final_cc(),
 			bcc=self.bcc,
-			email_account=self.get_outgoing_email_account(),
+			email_account=email_account,
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
 			header=self.header,
+			x_priority=self._x_priority,
 		)
 
 		mail.set_message_id(self.message_id, self.is_notification)
+
+		if self.email_headers:
+			mail.add_headers(self.email_headers)
+
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
-			mail.set_in_reply_to(self.in_reply_to)
+			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
+				mail.set_in_reply_to(get_string_between("<", message_id, ">"))
 		return mail
 
 	def process(self, send_now=False) -> EmailQueue | None:
@@ -756,7 +773,7 @@ class QueueBuilder:
 					job_name=frappe.utils.get_job_name(
 						"send_bulk_emails_for", self.reference_doctype, self.reference_name
 					),
-					now=frappe.flags.in_test or send_now,
+					now=frappe.in_test or send_now,
 					queue="long",
 				)
 

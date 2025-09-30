@@ -1,24 +1,28 @@
 from collections.abc import Callable
 from functools import lru_cache, wraps
-from inspect import _empty, isclass, signature
+from inspect import _empty, isclass
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
 from unittest import mock
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, PydanticUserError
+from pydantic import TypeAdapter as PydanticTypeAdapter
+from pydantic import ValidationError as PydanticValidationError
 
+import frappe
 from frappe.exceptions import FrappeTypeError
 
 SLACK_DICT = {
 	bool: (int, bool, float),
 }
 T = TypeVar("T")
+ForwardRefOrStr = ForwardRef | str
 
 
 FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
 
 
-def validate_argument_types(func: Callable, apply_condition: Callable = lambda: True):
+def validate_argument_types(func: Callable, apply_condition: Callable | None = None):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		"""Validate argument types of whitelisted functions.
@@ -26,7 +30,7 @@ def validate_argument_types(func: Callable, apply_condition: Callable = lambda: 
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
 
-		if apply_condition():
+		if apply_condition is None or apply_condition():
 			args, kwargs = transform_parameter_types(func, args, kwargs)
 
 		return func(*args, **kwargs)
@@ -54,24 +58,34 @@ def qualified_name(obj) -> str:
 
 
 def raise_type_error(
-	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception | None = None
+	func: callable,
+	arg_name: str,
+	arg_type: type,
+	arg_value: object,
+	current_exception: Exception | None = None,
 ):
 	"""
 	Raise a TypeError with a message that includes the name of the argument, the expected type
 	and the actual type of the value passed.
 
 	"""
+	module, qualname = func.__module__, func.__qualname__
 	raise FrappeTypeError(
-		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
+		f"Argument '{arg_name}' in '{module}.{qualname}' should be of type '{qualified_name(arg_type)}' but got "
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
 
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
-	from pydantic import TypeAdapter as PyTypeAdapter
+	try:
+		return PydanticTypeAdapter(type_, config=FrappePydanticConfig)
+	except PydanticUserError as e:
+		# Cannot set config for types BaseModel, TypedDict and dataclass
+		if e.code == "type-adapter-config-unused":
+			return PydanticTypeAdapter(type_)
 
-	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+		raise e
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
@@ -80,31 +94,32 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	defined on the function.
 	"""
 
-	if not (args or kwargs) or not func.__annotations__:
+	annotations = func.__annotations__
+
+	if (
+		not (args or kwargs)
+		or not annotations
+		# No input validations to perform
+		or (len(annotations) == 1 and "return" in annotations)
+	):
 		return args, kwargs
 
-	from pydantic import ValidationError as PyValidationError
-
-	annotations = func.__annotations__
 	new_args, new_kwargs = list(args), kwargs
 
-	# generate kwargs dict from args
-	arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
-
-	if not args:
-		prepared_args = kwargs
-
-	elif kwargs:
-		arg_values = args or func.__defaults__ or []
-		prepared_args = dict(zip(arg_names, arg_values, strict=False))
-		prepared_args.update(kwargs)
-
-	else:
+	if args:
+		# generate kwargs dict from args
+		arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
 		prepared_args = dict(zip(arg_names, args, strict=False))
 
+		if kwargs:
+			# update prepared_args with kwargs
+			prepared_args.update(kwargs)
+
+	else:
+		prepared_args = kwargs
+
 	# check if type hints dont match the default values
-	func_signature = signature(func)
-	func_params = dict(func_signature.parameters)
+	func_params = frappe._get_cached_signature_params(func)[0]
 
 	# check if the argument types are correct
 	for current_arg, current_arg_type in annotations.items():
@@ -114,9 +129,9 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		current_arg_value = prepared_args[current_arg]
 
 		# if the type is a ForwardRef or str, ignore it
-		if isinstance(current_arg_type, ForwardRef | str):
+		if isinstance(current_arg_type, ForwardRefOrStr):
 			continue
-		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
+		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
 			continue
 		# ignore unittest.mock objects
 		elif isinstance(current_arg_value, mock.Mock):
@@ -143,11 +158,11 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:
 			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
-		except (TypeError, PyValidationError) as e:
-			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
+		except (TypeError, PydanticValidationError) as e:
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
 
 		if isinstance(current_arg_value_after, EllipsisType):
-			raise_type_error(current_arg, current_arg_type, current_arg_value)
+			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
 
 		# update the args and kwargs with possibly casted value
 		if current_arg in kwargs:

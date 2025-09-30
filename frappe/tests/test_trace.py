@@ -3,7 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.model.document import Document
-from frappe.model.trace import TracedDocument, trace_fields, traced_field, traced_field_context
+from frappe.model.trace import TracedDocument, traced_field
+from frappe.tests import UnitTestCase
+from frappe.tests.utils import toggle_test_mode
 
 
 def create_mock_meta(doctype):
@@ -65,7 +67,7 @@ class TestTrace(unittest.TestCase):
 		self.assertEqual(valid_dict["positive_field"], 15)
 
 
-class TestTracedFieldContext(unittest.TestCase):
+class TestTracedFieldContext(UnitTestCase):
 	def test_traced_field_context(self):
 		doc = TestDocument()
 
@@ -73,7 +75,7 @@ class TestTracedFieldContext(unittest.TestCase):
 		doc.test_field = "forbidden"
 		self.assertEqual(doc.test_field, "forbidden")
 
-		with traced_field_context(TestDocument, "test_field", forbidden_values=["forbidden"]):
+		with self.trace_fields(TestDocument, "test_field", forbidden_values=["forbidden"]):
 			# Inside context
 			with self.assertRaises(AssertionError):
 				doc.test_field = "forbidden"
@@ -92,7 +94,7 @@ class TestTracedFieldContext(unittest.TestCase):
 			if value % 2 != 0:
 				raise ValueError("Value must be even")
 
-		with traced_field_context(TestDocument, "number_field", custom_validation=validate_even):
+		with self.trace_fields(TestDocument, "number_field", custom_validation=validate_even):
 			doc.number_field = 2
 			self.assertEqual(doc.number_field, 2)
 
@@ -106,12 +108,12 @@ class TestTracedFieldContext(unittest.TestCase):
 	def test_traced_field_context_not_in_test_mode(self):
 		doc = TestDocument()
 
-		# Temporarily set frappe.flags.in_test to False
-		original_in_test = frappe.flags.in_test
-		frappe.flags.in_test = False
+		# Temporarily set frappe.in_test to False
+		original_in_test = frappe.in_test
+		toggle_test_mode(False)
 
 		try:
-			with traced_field_context(TestDocument, "test_field", forbidden_values=["forbidden"]):
+			with self.trace_fields(TestDocument, test_field={"forbidden_values": ["forbidden"]}):
 				with self.assertRaises(frappe.exceptions.ValidationError):
 					doc.test_field = "forbidden"
 
@@ -119,44 +121,11 @@ class TestTracedFieldContext(unittest.TestCase):
 				self.assertEqual(doc.test_field, "allowed")
 		finally:
 			# Restore the original in_test flag
-			frappe.flags.in_test = original_in_test
+			toggle_test_mode(original_in_test)
 
 		# After context
 		doc.test_field = "forbidden"
 		self.assertEqual(doc.test_field, "forbidden")
-
-
-def validate_positive(obj, value):
-	if value <= 0:
-		raise ValueError("Value must be positive")
-
-
-class TestTraceFieldDecorator(unittest.TestCase):
-	@trace_fields(decorated_field={"forbidden_values": ["bad"]})
-	class DecoratedTestDocument(TestDocument):
-		pass
-
-	def test_trace_field_decorator(self):
-		doc = self.DecoratedTestDocument()
-
-		with self.assertRaises(AssertionError):
-			doc.decorated_field = "bad"
-
-		doc.decorated_field = "good"
-		self.assertEqual(doc.decorated_field, "good")
-
-	@trace_fields(positive_field={"custom_validation": validate_positive})
-	class PositiveFieldDocument(TestDocument):
-		pass
-
-	def test_trace_field_decorator_custom_validation(self):
-		doc = self.PositiveFieldDocument()
-
-		with self.assertRaises(AssertionError):
-			doc.positive_field = -1
-
-		doc.positive_field = 1
-		self.assertEqual(doc.positive_field, 1)
 
 
 if __name__ == "__main__":

@@ -105,6 +105,10 @@ select.form-control {
 		width: 100%;
 	}
 
+	ul {
+		min-width: 300px;
+	}
+
 	li {
 		padding: var(--padding-sm);
 	}
@@ -145,6 +149,7 @@ select.form-control {
 	.control-label.reqd:after {
 		content: " *";
 		color: var(--red-400);
+		white-space: nowrap;
 	}
 	.help:empty {
 		display: none;
@@ -158,7 +163,6 @@ select.form-control {
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
-		@include get_textstyle("sm", "regular");
 		word-wrap: break-word;
 		position: relative;
 		p:last-child {
@@ -189,7 +193,7 @@ select.form-control {
 
 	.link-btn {
 		@extend .action-btn;
-		background-color: none;
+		background-color: var(--control-bg);
 		display: none;
 	}
 }
@@ -370,7 +374,7 @@ textarea.form-control {
 
 .phone-btn {
 	position: absolute;
-	top: 4px;
+	top: -1px;
 	right: 8px;
 	padding: 3px;
 }

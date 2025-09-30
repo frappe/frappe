@@ -240,7 +240,7 @@ class LDAP_TestCase:
 					function_return = self.test_class.connect_to_ldap(
 						base_dn=self.base_dn, password=self.base_password
 					)
-					args, kwargs = ldap3_connection_method.call_args
+					_args, kwargs = ldap3_connection_method.call_args
 
 					for connection_arg in kwargs:
 						if (
@@ -305,7 +305,7 @@ class LDAP_TestCase:
 						base_dn=self.base_dn, password=self.base_password, read_only=False
 					)
 
-					args, kwargs = ldap3_connection_method.call_args
+					_args, kwargs = ldap3_connection_method.call_args
 
 					self.assertFalse(
 						kwargs["read_only"],
@@ -613,7 +613,7 @@ class Test_OpenLDAP(LDAP_TestCase, TestCase):
 			"ldap_group": "Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Website Manager"},
 		{"doctype": "LDAP Group Mapping", "ldap_group": "Group3", "erpnext_role": "Accounts User"},
 	]
 	LDAP_USERNAME_FIELD = "uid"
@@ -637,7 +637,7 @@ class Test_ActiveDirectory(LDAP_TestCase, TestCase):
 			"ldap_group": "Domain Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Website Manager"},
 		{
 			"doctype": "LDAP Group Mapping",
 			"ldap_group": "Enterprise Administrators",

@@ -1,14 +1,18 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
+import string
 from functools import cached_property, wraps
 
 import frappe
-from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
+from frappe.utils import CallbackManager
 
-Query = str | MariaDB | Postgres
+Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
+FilterValue = str | int | bool
 
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
@@ -20,10 +24,22 @@ NestedSetHierarchy = (
 	"not descendants of",
 	"descendants of (inclusive)",
 )
+# split when non-alphabetical character is found
+QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
+
+
+def convert_to_value(o: FilterValue):
+	if isinstance(o, bool):
+		return int(o)
+	return o
+
+
+def get_query_type(query: str) -> str:
+	return QUERY_TYPE_PATTERN.match(query)[1].lower()
 
 
 def is_query_type(query: str, query_type: str | tuple[str, ...]) -> bool:
-	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
+	return get_query_type(query).startswith(query_type)
 
 
 def is_pypika_function_object(field: str) -> bool:
@@ -38,7 +54,7 @@ def get_doctype_name(table_name: str) -> str:
 
 
 class LazyString:
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		raise NotImplementedError
 
 	@cached_property
@@ -58,7 +74,7 @@ class LazyDecode(LazyString):
 	def __init__(self, value: str) -> None:
 		self._value = value
 
-	def _setup(self) -> None:
+	def _setup(self) -> str:
 		return self._value.decode()
 
 
@@ -88,9 +104,55 @@ def dangerously_reconnect_on_connection_abort(func):
 		try:
 			return func(*args, **kwargs)
 		except Exception as e:
-			if frappe.db.is_interface_error(e):
+			if frappe.db.is_interface_error(e) or isinstance(e, frappe.db.OperationalError):
 				frappe.db.connect()
 				return func(*args, **kwargs)
 			raise
 
 	return wrapper
+
+
+class CommitAfterResponseManager(CallbackManager):
+	__slots__ = ()
+
+	def run(self):
+		db = getattr(frappe.local, "db", None)
+		if not db:
+			# try reconnecting to the database
+			frappe.connect(set_admin_as_user=False)
+			db = frappe.local.db
+
+		savepoint_name = "commit_after_response"
+
+		while self._functions:
+			_func = self._functions.popleft()
+			try:
+				db.savepoint(savepoint_name)
+				_func()
+			except Exception:
+				db.rollback(save_point=savepoint_name)
+				frappe.log_error(title="Error executing commit_after_response callback")
+
+		db.commit()  # nosemgrep
+
+
+def commit_after_response(func):
+	"""
+	Runs and commits some queries after response is sent.
+	Works only if in a request context and not in tests.
+	Calls function immediately otherwise.
+	"""
+
+	request = getattr(frappe.local, "request", False)
+	if not request or frappe.in_test:
+		func()
+		return
+
+	callback_manager = getattr(request, "commit_after_response", None)
+	if callback_manager is None:
+		# if no callback manager, create one
+		callback_manager = CommitAfterResponseManager()
+		request.commit_after_response = callback_manager
+		request.after_response.add(callback_manager.run)
+
+	callback_manager.add(func)

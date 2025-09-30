@@ -13,7 +13,9 @@
 </style>
 <div class='error-page'>
 	<div>
-		<h4 class='page-card-head'>{{ title or _("Message") }}</h4>
+		{% if title %}
+		<h4 class='page-card-head'>{{ title }}</h4>
+		{% endif %}
 		<div class="details">
 		{% block message_body %}
 			{% if message %}

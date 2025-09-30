@@ -1,6 +1,6 @@
 import frappe
 
-FRAPPE_CLOUD_DOMAINS = ("frappe.cloud", "erpnext.com", "frappehr.com")
+FRAPPE_CLOUD_DOMAINS = ("frappe.cloud", "erpnext.com", "frappehr.com", "frappe.dev")
 
 
 def on_frappecloud() -> bool:

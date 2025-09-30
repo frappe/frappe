@@ -8,8 +8,7 @@ import sqlparse
 import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
-from frappe.tests import IntegrationTestCase
-from frappe.tests.utils import timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import set_request
 from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content

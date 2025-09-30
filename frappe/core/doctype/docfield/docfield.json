@@ -11,8 +11,8 @@
   "label",
   "fieldtype",
   "fieldname",
-  "precision",
   "length",
+  "precision",
   "non_negative",
   "hide_days",
   "hide_seconds",
@@ -48,6 +48,7 @@
   "in_list_view",
   "in_standard_filter",
   "in_preview",
+  "sticky",
   "column_break_35",
   "in_filter",
   "in_global_search",
@@ -56,6 +57,7 @@
   "allow_on_submit",
   "ignore_user_permissions",
   "allow_bulk_edit",
+  "make_attachment_public",
   "column_break_13",
   "permlevel",
   "ignore_xss_filter",
@@ -107,8 +109,7 @@
    "oldfieldtype": "Select",
    "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
-   "search_index": 1,
-   "sort_options": 1
+   "search_index": 1
   },
   {
    "bold": 1,
@@ -134,7 +135,7 @@
   },
   {
    "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
-   "description": "Set non-standard precision for a Float or Currency field",
+   "description": "Set non-standard precision for a Float, Currency or Percent field",
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
@@ -142,7 +143,7 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int'], doc.fieldtype)",
+   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -498,7 +499,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
+   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
@@ -592,19 +593,35 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:['Attach', 'Attach Image'].includes(doc.fieldtype)",
+   "fieldname": "make_attachment_public",
+   "fieldtype": "Check",
+   "label": "Make Attachment Public (by default)"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
+   "fieldname": "sticky",
+   "fieldtype": "Check",
+   "label": "Sticky"
   }
  ],
+ "grid_page_length": 50,
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-28 20:17:43.400728",
+ "modified": "2025-09-17 13:20:57.852396",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "ASC",
  "states": []

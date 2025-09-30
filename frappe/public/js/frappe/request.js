@@ -10,7 +10,7 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
-frappe.xcall = function (method, params, type) {
+frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			method: method,
@@ -22,6 +22,7 @@ frappe.xcall = function (method, params, type) {
 			error: (r) => {
 				reject(r?.message);
 			},
+			...opts,
 		});
 	});
 };
@@ -118,11 +119,11 @@ frappe.call = function (opts) {
 		freeze_message: opts.freeze_message,
 		headers: opts.headers || {},
 		error_handlers: opts.error_handlers || {},
-		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		silent: opts.silent,
 		api_version: opts.api_version,
 		url,
+		cache: opts.cache,
 	});
 };
 
@@ -158,6 +159,7 @@ frappe.request.call = function (opts) {
 					title: __("Not permitted"),
 					indicator: "red",
 					message: xhr.responseJSON._error_message,
+					re_route: true,
 				});
 
 				xhr.responseJSON._server_messages = null;
@@ -249,7 +251,9 @@ frappe.request.call = function (opts) {
 			frappe.msgprint({
 				title: __("Deadlock Occurred"),
 				indicator: "red",
-				message: __("Server was too busy to process this request. Please try again."),
+				message: __(
+					"Server failed to process this request because of a concurrent conflicting request. Please try again."
+				),
 			});
 		},
 	};
@@ -268,7 +272,7 @@ frappe.request.call = function (opts) {
 			},
 			opts.headers
 		),
-		cache: window.dev_server ? false : true,
+		cache: window.dev_server ? false : opts.cache || false,
 	};
 
 	if (opts.args && opts.args.doctype) {
@@ -606,20 +610,20 @@ frappe.request.report_error = function (xhr, request_opts) {
 			frappe.error_dialog = new frappe.ui.Dialog({
 				title: __("Server Error"),
 			});
-
-			if (error_report_email) {
-				frappe.error_dialog.set_primary_action(__("Report"), () => {
-					show_communication();
-					frappe.error_dialog.hide();
-				});
-			} else {
-				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
-					copy_markdown_to_clipboard();
-					frappe.error_dialog.hide();
-				});
-			}
-			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
+
+		if (error_report_email) {
+			frappe.error_dialog.set_primary_action(__("Report"), () => {
+				show_communication();
+				frappe.error_dialog.hide();
+			});
+		} else {
+			frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
+				copy_markdown_to_clipboard();
+				frappe.error_dialog.hide();
+			});
+		}
+		frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 
 		let parts = strip(exc).split("\n");
 
@@ -636,17 +640,17 @@ frappe.request.report_error = function (xhr, request_opts) {
 };
 
 frappe.request.cleanup_request_opts = function (request_opts) {
-	var doc = (request_opts.args || {}).doc;
+	let doc = (request_opts.args || {}).doc;
 	if (doc) {
 		doc = JSON.parse(doc);
-		$.each(Object.keys(doc), function (i, key) {
-			if (key.indexOf("password") !== -1 && doc[key]) {
-				// mask the password
-				doc[key] = "*****";
-			}
-		});
+		frappe.utils.mask_passwords(doc);
 		request_opts.args.doc = JSON.stringify(doc);
 	}
+
+	if (request_opts.args) {
+		frappe.utils.mask_passwords(request_opts.args);
+	}
+
 	return request_opts;
 };
 

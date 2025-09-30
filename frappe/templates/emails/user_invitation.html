@@ -1,0 +1,20 @@
+<span style = "display: block; margin-bottom: 1.5rem;">
+  {{ _("Hello,") }}
+</span>
+<span style = "display: block; margin-bottom: 1rem;">
+  {{ _("You've been invited to join {0}.").format(title) }}
+</span>
+<span style = "display: block; margin-bottom: 0.5rem;">
+  {{ _("Click below to get started:") }}
+</span>
+<a
+  href = "{{ invite_link }}"
+  target = "_blank"
+  class = "btn btn-primary"
+  style = "display: block; margin-bottom: 1rem; width: fit-content"
+>
+  {{ _("Accept Invitation") }}
+</a>
+<span>
+  {{ _("If you have any questions, reach out to your system administrator.") }}
+</span>

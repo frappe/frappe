@@ -3,18 +3,9 @@
 import frappe
 from frappe.contacts.doctype.contact.contact import get_full_name
 from frappe.email import get_contact_list
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
-test_dependencies = ["Contact", "Salutation"]
-
-
-class UnitTestContact(UnitTestCase):
-	"""
-	Unit tests for Contact.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
 
 
 class TestContact(IntegrationTestCase):

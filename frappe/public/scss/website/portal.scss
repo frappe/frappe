@@ -56,6 +56,12 @@
 		font-weight: var(--weight-semibold);
 		font-size: var(--text-lg);
 		color: var(--text-color);
+
+		p {
+			font-weight: normal;
+			font-size: var(--text-base);
+			color: var(--text-light);
+		}
 	}
 }
 

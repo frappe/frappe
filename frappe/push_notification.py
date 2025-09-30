@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import sbool
+from frappe.utils.data import cstr
 from frappe.utils.response import Response
 
 from .frappeclient import FrappeClient
@@ -117,6 +118,7 @@ class PushNotification:
 			data["click_action"] = link
 		if icon:
 			data["notification_icon"] = icon
+		body = cstr(body)
 		if len(body) > 1000:
 			if truncate_body:
 				body = body[:1000]
@@ -161,6 +163,7 @@ class PushNotification:
 			data["click_action"] = link
 		if icon:
 			data["notification_icon"] = icon
+		body = cstr(body)
 		if len(body) > 1000:
 			if truncate_body:
 				body = body[:1000]

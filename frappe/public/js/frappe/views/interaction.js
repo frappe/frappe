@@ -261,7 +261,8 @@ frappe.views.InteractionComposer = class InteractionComposer {
 						message: __("{0} created successfully", [form_values.interaction_type]),
 						indicator: "green",
 					});
-					if ("assigned_to" in form_values) {
+
+					if (form_values.interaction_type === "Event" && "assigned_to" in form_values) {
 						me.assign_document(r.message, form_values["assigned_to"]);
 					}
 

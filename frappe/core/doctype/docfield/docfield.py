@@ -88,6 +88,7 @@ class DocField(Document):
 		label: DF.Data | None
 		length: DF.Int
 		link_filters: DF.JSON | None
+		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
 		max_height: DF.Data | None
 		no_copy: DF.Check
@@ -115,6 +116,7 @@ class DocField(Document):
 		show_dashboard: DF.Check
 		show_on_timeline: DF.Check
 		sort_options: DF.Check
+		sticky: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
 		width: DF.Data | None

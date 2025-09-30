@@ -172,7 +172,6 @@ frappe.views.BaseList = class BaseList {
 		this.page.main.addClass("layout-main-list");
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.hide_page_form && this.page.page_form.hide();
-		this.hide_sidebar && this.$page.addClass("no-list-sidebar");
 		this.setup_page_head();
 	}
 
@@ -277,7 +276,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_side_bar() {
-		if (this.hide_sidebar || !frappe.boot.desk_settings.list_sidebar) return;
+		if (this.page.disable_sidebar_toggle) {
+			return;
+		}
+
 		this.list_sidebar = new frappe.views.ListSidebar({
 			doctype: this.doctype,
 			stats: this.stats,
@@ -288,11 +290,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	toggle_side_bar(show) {
-		let show_sidebar = show || JSON.parse(localStorage.show_sidebar || "true");
-		show_sidebar = !show_sidebar;
-		localStorage.show_sidebar = show_sidebar;
-		this.show_or_hide_sidebar();
-		$(document.body).trigger("toggleListSidebar");
+		frappe.app.sidebar.toggle_sidebar();
 	}
 
 	show_or_hide_sidebar() {
@@ -307,6 +305,7 @@ frappe.views.BaseList = class BaseList {
 				this.show_or_hide_sidebar,
 				this.setup_filter_area,
 				this.setup_sort_selector,
+				this.setup_result_container_area,
 				this.setup_result_area,
 				this.setup_no_result_area,
 				this.setup_freeze_area,
@@ -347,9 +346,23 @@ frappe.views.BaseList = class BaseList {
 		this.refresh();
 	}
 
+	/**
+	 * Sets up a result container area by appending a new `<div>` element with the class `result-container`
+	 * to the `frappe_list` container. This container is used to create a scrollable area for the result content.
+	 */
+	setup_result_container_area() {
+		if (this.view == "List") {
+			this.$frappe_list.append($(`<div class="result-container">`));
+		}
+	}
+
 	setup_result_area() {
 		this.$result = $(`<div class="result">`);
-		this.$frappe_list.append(this.$result);
+		let frappe_list = this.$frappe_list;
+		if (this.view == "List") {
+			frappe_list = this.$frappe_list.find(".result-container");
+		}
+		frappe_list.append(this.$result);
 	}
 
 	setup_no_result_area() {
@@ -436,14 +449,18 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_result_height() {
+		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
-		this.$result.css({
-			height:
-				window.innerHeight -
-				this.$result.get(0).offsetTop -
-				this.$paging_area.get(0).offsetHeight +
-				"px",
+		const resultContainerHeight =
+			window.innerHeight -
+			this.$result.get(0).offsetTop -
+			this.$paging_area.get(0).offsetHeight;
+		this.$result.parent(".result-container").css({
+			height: resultContainerHeight + "px",
 		});
+
+		this.$result[0].style.height =
+			Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
 		this.$no_result.css({
 			height: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
 		});
@@ -592,6 +609,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	toggle_result_area() {
+		this.$result.parent(".result-container").toggle(this.data.length > 0);
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
 		this.$no_result.toggle(this.data.length == 0);
@@ -639,6 +657,40 @@ class FilterArea {
 			300
 		);
 		this.setup();
+		if (frappe.is_mobile()) this.setup_mobile(list_view);
+	}
+	setup_mobile(list_view) {
+		const me = this;
+		this.standard_filters_visible = false;
+		this.standard_filters_wrapper.hide();
+		this.list_view.page.page_form.css("justify-content", "flex-end");
+		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
+					<span class="filter-icon button-icon">
+						${frappe.utils.icon("funnel-plus")}
+					</span>
+				</button>
+			</div>`)
+			.prependTo(this.$filter_list_wrapper.find(".filter-selector"))
+			.on("click", function () {
+				me.toggle_standard_filter();
+			});
+		let children = list_view.page.page_form.children();
+		list_view.page.page_form.append(children.get().reverse());
+	}
+
+	toggle_standard_filter() {
+		if (this.standard_filters_visible) {
+			this.standard_filters_visible = false;
+			this.standard_filters_wrapper.hide();
+		} else {
+			this.standard_filters_visible = true;
+			this.standard_filters_wrapper.show();
+		}
+		let icon_name = !this.standard_filters_visible ? "funnel-plus" : "funnel-x";
+		this.$filter_list_wrapper
+			.find(".filter-toggle")
+			.find("use")
+			.attr("href", `#icon-${icon_name}`);
 	}
 
 	setup() {
@@ -791,7 +843,7 @@ class FilterArea {
 		});
 	}
 
-	make_standard_filters() {
+	async make_standard_filters() {
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
@@ -807,12 +859,24 @@ class FilterArea {
 			});
 		}
 
-		if (this.list_view.custom_filter_configs) {
-			this.list_view.custom_filter_configs.forEach((config) => {
-				config.onchange = () => this.debounced_refresh_list_view();
-			});
+		if (
+			this.list_view.custom_filter_configs ||
+			this.list_view.settings.custom_filter_configs
+		) {
+			const custom_filter_configs =
+				this.list_view.custom_filter_configs ||
+				this.list_view.settings.custom_filter_configs;
+			await Promise.resolve(
+				typeof custom_filter_configs === "function"
+					? custom_filter_configs()
+					: custom_filter_configs
+			).then((configs) => {
+				configs.forEach((config) => {
+					config.onchange = () => this.debounced_refresh_list_view();
+				});
 
-			fields = fields.concat(this.list_view.custom_filter_configs);
+				fields = fields.concat(configs);
+			});
 		}
 
 		const doctype_fields = this.list_view.meta.fields;
@@ -822,8 +886,9 @@ class FilterArea {
 			doctype_fields
 				.filter(
 					(df) =>
-						df.fieldname === title_field ||
-						(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))
+						(df.fieldname === title_field ||
+							(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))) &&
+						frappe.perm.has_perm(this.list_view.doctype, df.permlevel)
 				)
 				.map((df) => {
 					let options = df.options;
@@ -904,7 +969,7 @@ class FilterArea {
 		$(`<div class="filter-selector">
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
-					<span class="filter-icon">
+					<span class="filter-icon button-icon">
 						${frappe.utils.icon("es-line-filter")}
 					</span>
 					<span class="button-label hidden-xs">
@@ -912,7 +977,7 @@ class FilterArea {
 					<span>
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-					<span class="filter-icon">
+					<span class="filter-icon button-icon">
 						${frappe.utils.icon("es-small-close")}
 					</span>
 				</button>

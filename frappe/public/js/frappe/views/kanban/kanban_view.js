@@ -4,6 +4,7 @@ frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	static full_page = true;
+	static no_sidebar = true;
 
 	static load_last_view() {
 		const route = frappe.get_route();
@@ -30,7 +31,17 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (!kanbans.length) {
 				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 			} else if (kanbans.length && frappe.get_route().length !== 4) {
-				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+				// Try to use the last board the user used, else default to the first available board
+				const last_board = frappe.get_user_settings(this.doctype)["Kanban"]
+					?.last_kanban_board;
+				if (last_board && kanbans.includes(last_board)) {
+					frappe.set_route("List", this.doctype, "Kanban", last_board);
+					return;
+				} else {
+					const first_board = kanbans[0];
+					frappe.set_route("List", this.doctype, "Kanban", first_board.name);
+					return;
+				}
 			} else {
 				this.kanbans = kanbans;
 
@@ -119,6 +130,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		// pass
 	}
 
+	set_result_height() {
+		// pass
+	}
+
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
 	}
@@ -133,14 +148,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_page() {
-		this.hide_sidebar = true;
 		this.hide_page_form = true;
 		this.hide_card_layout = true;
 		this.hide_sort_selector = true;
 		super.setup_page();
-
-		this.page.disable_sidebar_toggle = true;
-		this.page.setup_sidebar_toggle();
 	}
 
 	setup_view() {
@@ -215,6 +226,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				user_settings: this.view_user_settings,
 			});
 		} else if (board_name === this.kanban.board_name) {
+			this.$result.empty();
 			this.kanban.update(this.data);
 		}
 	}

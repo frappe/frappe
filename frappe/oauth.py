@@ -6,7 +6,6 @@ from http import cookies
 from urllib.parse import unquote, urljoin, urlparse
 
 import jwt
-import pytz
 from oauthlib.openid import RequestValidator
 
 import frappe
@@ -162,7 +161,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			if code_challenge and not request.code_verifier:
 				if frappe.db.exists("OAuth Authorization Code", code):
-					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True)
+					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
 					frappe.db.commit()
 				return False
 

@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
+from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
@@ -55,8 +56,10 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
-		with freeze_local() as locals, frappe.init_site(locals.site), patch(
-			"frappe.get_hooks", patch_job_hooks
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch("frappe.get_hooks", patch_job_hooks),
 		):
 			frappe.connect()
 			self.assertIsNone(_test_JOB_HOOK.get("before_job"))
@@ -91,7 +94,7 @@ def after_job(*args, **kwargs):
 @contextmanager
 def freeze_local():
 	locals = frappe.local
-	frappe.local = frappe.Local()
+	frappe.local = Local()
 	yield locals
 	frappe.local = locals
 

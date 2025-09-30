@@ -101,6 +101,7 @@ def search_widget(
 				filters,
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
+				ignore_user_permissions=ignore_user_permissions,
 			)
 		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError):
 			if frappe.local.conf.developer_mode:
@@ -115,6 +116,12 @@ def search_widget(
 				return []
 
 	meta = frappe.get_meta(doctype)
+
+	include_disabled = False
+	if filters and "include_disabled" in filters:
+		if filters["include_disabled"] == 1:
+			include_disabled = True
+		filters.pop("include_disabled")
 
 	if isinstance(filters, dict):
 		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
@@ -146,10 +153,11 @@ def search_widget(
 			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
 				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
-	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
-		filters.append([doctype, "enabled", "=", 1])
-	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
-		filters.append([doctype, "disabled", "!=", 1])
+	if not include_disabled:
+		if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+			filters.append([doctype, "enabled", "=", 1])
+		if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+			filters.append([doctype, "disabled", "!=", 1])
 
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")

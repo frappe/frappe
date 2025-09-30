@@ -17,7 +17,7 @@ login.bind_events = function () {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "login";
-		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
+		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
 			{# striptags is used to remove newlines, e is used for escaping #}

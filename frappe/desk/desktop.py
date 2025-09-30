@@ -9,8 +9,8 @@ import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import (
-	build_domain_restriced_doctype_cache,
-	build_domain_restriced_page_cache,
+	build_domain_restricted_doctype_cache,
+	build_domain_restricted_page_cache,
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
@@ -61,10 +61,10 @@ class Workspace:
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = (
-			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
+			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
 		)
 		self.restricted_pages = (
-			frappe.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+			frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
 		)
 
 	def is_permitted(self):
@@ -86,7 +86,7 @@ class Workspace:
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
-		if value:
+		if value is not None:
 			return value
 
 		value = fallback_fn()
@@ -139,7 +139,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return name in self.can_read or [] and name in self.restricted_doctypes or []
+			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
@@ -565,13 +565,15 @@ def get_custom_report_list(module):
 			else 0,
 			"label": _(r.name),
 			"link_to": r.name,
+			"report_ref_doctype": r.ref_doctype,
 		}
 		for r in reports
 	]
 
 
 def save_new_widget(doc, page, blocks, new_widgets):
-	if loads(new_widgets):
+	widgets = _dict()
+	if new_widgets:
 		widgets = _dict(loads(new_widgets))
 
 		if widgets.chart:

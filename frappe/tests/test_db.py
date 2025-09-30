@@ -14,9 +14,8 @@ from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
 from frappe.utils.testutils import clear_custom_fields
@@ -72,11 +71,11 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "Adn"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 		self.assertEqual(
-			frappe.db.get_value("User", {}, ["Max(name)"], order_by=None),
+			frappe.db.get_value("User", {}, [{"MAX": "name"}], order_by=None),
 			frappe.db.sql("SELECT Max(name) FROM tabUser")[0][0],
 		)
 		self.assertEqual(
-			frappe.db.get_value("User", {}, "Min(name)", order_by=None),
+			frappe.db.get_value("User", {}, [{"MIN": "name"}], order_by=None),
 			frappe.db.sql("SELECT Min(name) FROM tabUser")[0][0],
 		)
 		self.assertIn(
@@ -180,6 +179,40 @@ class TestDB(IntegrationTestCase):
 		)
 		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
 		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
+
+	def test_casted_get_value_singles(self):
+		telemetry = frappe.db.get_value("System Settings", None, "enable_telemetry")
+		self.assertEqual(type(telemetry), int)
+		telemetry = frappe.db.get_value("System Settings", "System Settings", "enable_telemetry")
+		self.assertEqual(type(telemetry), int)
+
+		# Edge case in calling get_value
+		dt_name = frappe.db.get_value("DocType", "DocType", "name")
+		self.assertEqual(dt_name, "DocType")
+
+		timestamp = frappe.db.get_value("System Settings", None, "modified")
+		self.assertEqual(type(timestamp), datetime.datetime)
+
+	def test_singles_get_values_variant(self):
+		[[lang, date_format]] = frappe.db.get_values("System Settings", fieldname=["language", "date_format"])
+		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
+		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
+
+	def test_get_value_casts_singles(self):
+		doc = frappe.get_doc("System Settings")
+		results = frappe.db.get_value("System Settings", None, ["language", "date_format"], as_dict=True)
+		self.assertEqual(doc.language, results.language)
+		self.assertEqual(doc.date_format, results.date_format)
+
+		# Multiple fields as ordered result
+		doc = frappe.get_doc("System Settings")
+		[lang, date_format] = frappe.db.get_value("System Settings", None, ["language", "date_format"])
+		self.assertEqual(doc.language, lang)
+		self.assertEqual(doc.date_format, date_format)
+
+		# single field as dict
+		results = frappe.db.get_value("System Settings", None, "enable_telemetry", as_dict=True)
+		self.assertEqual(results, {"enable_telemetry": doc.enable_telemetry})
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
@@ -506,6 +539,9 @@ class TestDB(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_estimated_count(self):
+		self.assertGreater(frappe.db.estimate_count("DocField"), 100)
+
 	def test_datetime_serialization(self):
 		dt = now_datetime()
 		dt = dt.replace(microsecond=0)
@@ -545,6 +581,60 @@ class TestDB(IntegrationTestCase):
 			)
 
 		frappe.db.delete("ToDo", {"description": test_body})
+
+	def test_bulk_update(self):
+		test_body = f"test_bulk_update - {random_string(10)}"
+
+		frappe.db.bulk_insert(
+			"ToDo",
+			["name", "description"],
+			[[f"ToDo Test Bulk Update {i}", test_body] for i in range(20)],
+			ignore_duplicates=True,
+		)
+
+		record_names = frappe.get_all("ToDo", filters={"description": test_body}, pluck="name")
+
+		new_descriptions = {name: f"{test_body} - updated - {random_string(10)}" for name in record_names}
+
+		# update with same fields to update
+		frappe.db.bulk_update(
+			"ToDo", {name: {"description": new_descriptions[name]} for name in record_names}
+		)
+
+		# check if all records were updated
+		updated_records = dict(
+			frappe.get_all(
+				"ToDo", filters={"name": ("in", record_names)}, fields=["name", "description"], as_list=True
+			)
+		)
+		self.assertDictEqual(new_descriptions, updated_records)
+
+		# update with different fields to update
+		updates = {
+			record_names[0]: {"priority": "High", "status": "Closed"},
+			record_names[1]: {"status": "Closed"},
+		}
+		frappe.db.bulk_update("ToDo", updates)
+
+		priority, status = frappe.db.get_value("ToDo", record_names[0], ["priority", "status"])
+
+		self.assertEqual(priority, "High")
+		self.assertEqual(status, "Closed")
+
+		# further updates with different fields to update
+		updates = {record_names[0]: {"status": "Open"}, record_names[1]: {"priority": "Low"}}
+		frappe.db.bulk_update("ToDo", updates)
+
+		priority, status = frappe.db.get_value("ToDo", record_names[0], ["priority", "status"])
+		self.assertEqual(priority, "High")  # should stay the same
+		self.assertEqual(status, "Open")
+
+		priority, status = frappe.db.get_value("ToDo", record_names[1], ["priority", "status"])
+		self.assertEqual(priority, "Low")
+		self.assertEqual(status, "Closed")  # should stay the same
+
+		# cleanup
+		frappe.db.delete("ToDo", {"name": ("in", record_names)})
 
 	def test_count(self):
 		frappe.db.delete("Note")
@@ -961,10 +1051,12 @@ class TestDDLCommandsPost(IntegrationTestCase):
 	def test_is(self):
 		user = frappe.qb.DocType("User")
 		self.assertIn(
-			"is not null", frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower()
+			'coalesce("name",',
+			frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower(),
 		)
 		self.assertIn(
-			"is null", frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower()
+			'coalesce("name",',
+			frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower(),
 		)
 
 
@@ -1191,14 +1283,15 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		self.assertEqual(columns, ["col_a", "col_b"])
 
 		frappe.conf["db_schema"] = "alt_schema"
-		frappe.cache.delete_key("table_columns")  # remove table columns cache for next try from alt_schema
+		# remove table columns cache for next try from alt_schema
+		frappe.client_cache.delete_keys("table_columns::*")
 
 		# should have received the columns of the table from alt_schema
 		columns = frappe.db.get_table_columns(self.test_table_name)
 		self.assertEqual(columns, ["col_c", "col_d"])
 
 		del frappe.conf["db_schema"]
-		frappe.cache.delete_key("table_columns")
+		frappe.client_cache.delete_keys("table_columns::*")
 
 	def test_describe(self) -> None:
 		self.assertSequenceEqual([("col_a",), ("col_b",)], frappe.db.describe(self.test_table_name))
@@ -1214,7 +1307,7 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		frappe.db.add_index("User", ("col_c",))
 
 		del frappe.conf["db_schema"]
-		frappe.cache.delete_key("table_columns")
+		frappe.client_cache.delete_keys("table_columns::*")
 
 		# the index creation in the default schema should fail
 		with self.assertSqlException():
@@ -1318,20 +1411,16 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search(r"(host name|server on) [\"']iqx.local[\"']", str(cm.exception)))
 
 		# with wrong user name
 		with set_env_variable("FRAPPE_DB_USER", "uname"):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search(r"user [\"']uname[\"']", str(cm.exception)))
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
@@ -1350,10 +1439,8 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
-			with self.assertRaises(Exception) as cm:
+			with self.assertRaises(frappe.db.OperationalError) as cm:
 				frappe.db.connect()
-
-			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
 
 		# now with configured settings without any influences from env
 		# finally connect should work without any error (when no wrong credentials are given via ENV)

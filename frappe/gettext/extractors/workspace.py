@@ -21,10 +21,12 @@ def extract(fileobj, *args, **kwargs):
 	yield from (
 		(None, "_", chart.get("label"), [f"Label of a chart in the {workspace_name} Workspace"])
 		for chart in data.get("charts", [])
+		if chart.get("label")
 	)
 	yield from (
 		(None, "_", number_card.get("label"), [f"Label of a number card in the {workspace_name} Workspace"])
 		for number_card in data.get("number_cards", [])
+		if number_card.get("label")
 	)
 	yield from (
 		(
@@ -34,6 +36,7 @@ def extract(fileobj, *args, **kwargs):
 			[f"Label of a {link.get('type')} in the {workspace_name} Workspace"],
 		)
 		for link in data.get("links", [])
+		if link.get("label")
 	)
 	yield from (
 		(
@@ -43,6 +46,7 @@ def extract(fileobj, *args, **kwargs):
 			[f"Description of a {link.get('type')} in the {workspace_name} Workspace"],
 		)
 		for link in data.get("links", [])
+		if link.get("description")
 	)
 	yield from (
 		(
@@ -52,6 +56,7 @@ def extract(fileobj, *args, **kwargs):
 			[f"Label of a shortcut in the {workspace_name} Workspace"],
 		)
 		for shortcut in data.get("shortcuts", [])
+		if shortcut.get("label")
 	)
 	yield from (
 		(
@@ -61,15 +66,27 @@ def extract(fileobj, *args, **kwargs):
 			[f"Count format of shortcut in the {workspace_name} Workspace"],
 		)
 		for shortcut in data.get("shortcuts", [])
+		if shortcut.get("format")
+	)
+	yield from (
+		(
+			None,
+			"_",
+			quick_list.get("label"),
+			[f"Label of a quick_list in the {workspace_name} Workspace"],
+		)
+		for quick_list in data.get("quick_lists", [])
+		if quick_list.get("label")
 	)
 
 	content = json.loads(data.get("content", "[]"))
 	for item in content:
 		item_type = item.get("type")
 		if item_type in ("header", "paragraph"):
-			yield (
-				None,
-				"_",
-				item.get("data", {}).get("text"),
-				[f"{item_type.title()} text in the {workspace_name} Workspace"],
-			)
+			if text := item.get("data", {}).get("text"):
+				yield (
+					None,
+					"_",
+					text,
+					[f"{item_type.title()} text in the {workspace_name} Workspace"],
+				)

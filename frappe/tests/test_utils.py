@@ -5,14 +5,13 @@ import io
 import json
 import os
 import sys
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
 from unittest.mock import patch
 
-import pytz
 from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
@@ -20,12 +19,11 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
-from frappe.tests import IntegrationTestCase, MockedRequestTestCase
+from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
+from frappe.tests.utils import toggle_test_mode
 from frappe.utils import (
-	add_trackers_to_url,
 	ceil,
 	dict_to_str,
-	evaluate_filters,
 	execute_in_shell,
 	floor,
 	flt,
@@ -36,7 +34,7 @@ from frappe.utils import (
 	get_site_info,
 	get_sites,
 	get_url,
-	map_trackers,
+	is_valid_iban,
 	money_in_words,
 	parse_and_map_trackers_from_url,
 	parse_timedelta,
@@ -55,11 +53,16 @@ from frappe.utils.change_log import (
 )
 from frappe.utils.data import (
 	add_to_date,
+	add_trackers_to_url,
 	add_years,
 	cast,
 	cint,
+	comma_and,
+	comma_or,
+	compare,
 	cstr,
 	duration_to_seconds,
+	evaluate_filters,
 	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
@@ -69,6 +72,8 @@ from frappe.utils.data import (
 	get_url_to_form,
 	get_year_ending,
 	getdate,
+	is_invalid_date_string,
+	map_trackers,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -218,6 +223,125 @@ class TestFilters(IntegrationTestCase):
 		for filter, expected_result in test_cases:
 			self.assertEqual(evaluate_filters(doc, filter), expected_result, msg=f"{filter}")
 
+	def test_timespan(self):
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": getdate(),
+		}
+		self.assertTrue(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "last year")]))
+
+		doc = {
+			"doctype": "User",
+			"last_password_reset_date": None,
+		}
+		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
+
+	def test_is_operator(self):
+		"""Test 'is' operator for checking if values are set or not set."""
+		# Test "is set" with different fieldtypes and values
+		self.assertTrue(compare("1", "is", "set", "Int"))
+		self.assertTrue(compare(1, "is", "set", "Int"))
+		self.assertTrue(compare(0, "is", "set", "Int"))  # 0 is considered "set"
+		self.assertTrue(compare("hello", "is", "set", "Data"))
+		self.assertTrue(compare(0.0, "is", "set", "Float"))
+
+		# Test "is set" with unset values - None should always be "not set" regardless of fieldtype
+		self.assertFalse(compare(None, "is", "set", "Int"))
+		self.assertFalse(compare(None, "is", "set", "Float"))
+		self.assertFalse(compare(None, "is", "set", "Check"))
+		self.assertFalse(compare(None, "is", "set", "Data"))
+		self.assertFalse(compare("", "is", "set"))
+		self.assertFalse(compare("", "is", "set", "Data"))
+		self.assertFalse(compare(None, "is", "set"))
+
+		# Test "is not set" with set values
+		self.assertFalse(compare("1", "is", "not set", "Int"))
+		self.assertFalse(compare(1, "is", "not set", "Int"))
+		self.assertFalse(compare(0, "is", "not set", "Int"))
+		self.assertFalse(compare("hello", "is", "not set", "Data"))
+		self.assertFalse(compare(0.0, "is", "not set", "Float"))
+
+		# Test "is not set" with unset values - None should always be "not set" regardless of fieldtype
+		self.assertTrue(compare(None, "is", "not set", "Int"))
+		self.assertTrue(compare(None, "is", "not set", "Float"))
+		self.assertTrue(compare(None, "is", "not set", "Check"))
+		self.assertTrue(compare(None, "is", "not set", "Data"))
+		self.assertTrue(compare("", "is", "not set"))
+		self.assertTrue(compare("", "is", "not set", "Data"))
+		self.assertTrue(compare(None, "is", "not set"))
+
+	def test_in_operators(self):
+		"""Test 'in' and 'not in' operators with and without fieldtype casting."""
+		test_list = ["a", "b", "c"]
+
+		# Test "in" operator without fieldtype
+		self.assertTrue(compare("a", "in", test_list))
+		self.assertFalse(compare("", "in", test_list))
+		self.assertFalse(compare("d", "in", test_list))
+		self.assertFalse(compare(None, "in", test_list))
+
+		# Test "not in" operator without fieldtype
+		self.assertFalse(compare("a", "not in", test_list))
+		self.assertTrue(compare("", "not in", test_list))
+		self.assertTrue(compare("d", "not in", test_list))
+		self.assertTrue(compare(None, "not in", test_list))
+
+		# Test "in" operator with fieldtype casting - only first value should be cast
+		string_list = ["1", "2", "3"]
+		self.assertTrue(compare(1, "in", string_list, "Data"))
+		self.assertTrue(compare("2", "in", string_list, "Data"))
+		self.assertFalse(compare(4, "in", string_list, "Data"))
+
+		# Test type mismatch: Int fieldtype with string list (val2 is NOT cast)
+		mixed_list = ["1", "2", "3"]
+		self.assertFalse(compare("1", "in", mixed_list, "Int"))
+		self.assertFalse(compare(1, "in", mixed_list, "Int"))
+
+		# Test with matching types: Int fieldtype with int list
+		int_list = [1, 2, 3]
+		self.assertTrue(compare("1", "in", int_list, "Int"))
+		self.assertTrue(compare(2, "in", int_list, "Int"))
+		self.assertFalse(compare("4", "in", int_list, "Int"))
+
+		# Test "not in" operator with fieldtype casting
+		self.assertFalse(compare(1, "not in", string_list, "Data"))
+		self.assertFalse(compare("2", "not in", string_list, "Data"))
+		self.assertTrue(compare(4, "not in", string_list, "Data"))
+
+		# Test "not in" with type mismatch
+		self.assertTrue(compare("1", "not in", mixed_list, "Int"))
+		self.assertFalse(compare("1", "not in", int_list, "Int"))
+
+		# Test with Float fieldtype
+		float_list = [1.5, 2.5, 3.5]
+		self.assertTrue(compare("1.5", "in", float_list, "Float"))
+		self.assertFalse(compare("4.5", "in", float_list, "Float"))
+
+		# Test None with "in"/"not in" operators - None should not be cast
+		self.assertFalse(compare(None, "in", [""], "Data"))
+		self.assertFalse(compare(None, "in", [0], "Int"))
+		self.assertFalse(compare(None, "in", [0.0], "Float"))
+		self.assertFalse(compare(None, "in", ["", "test"], "Data"))
+		self.assertTrue(compare(None, "in", [None, "test"], "Data"))
+
+		# Test "not in" with None
+		self.assertTrue(compare(None, "not in", [""], "Data"))
+		self.assertTrue(compare(None, "not in", [0], "Int"))
+		self.assertTrue(compare(None, "not in", [0.0], "Float"))
+		self.assertTrue(compare(None, "not in", ["", "test"], "Data"))
+		self.assertFalse(compare(None, "not in", [None, "test"], "Data"))
+
+	def test_is_operator_case_insensitive(self):
+		"""Test that 'is' operator patterns are case insensitive."""
+		self.assertTrue(compare("value", "is", "SET"))
+		self.assertTrue(compare("value", "is", "Set"))
+		self.assertTrue(compare("value", "is", "set"))
+
+		self.assertTrue(compare(None, "is", "NOT SET"))
+		self.assertTrue(compare(None, "is", "Not Set"))
+		self.assertTrue(compare(None, "is", "not set"))
+
 
 class TestMoney(IntegrationTestCase):
 	def test_money_in_words(self):
@@ -254,6 +378,11 @@ class TestMoney(IntegrationTestCase):
 					expected_words,
 					f"{words} is not the same as {expected_words}",
 				)
+
+	def test_money_in_words_without_fraction(self):
+		# VND doesn't have fractions
+		words = money_in_words("42.01", "VND")
+		self.assertEqual(words, "VND Forty Two only.")
 
 
 class TestDataManipulation(IntegrationTestCase):
@@ -339,7 +468,7 @@ class TestMathUtils(IntegrationTestCase):
 		self.assertEqual(floor(22.7330), 22)
 		self.assertEqual(floor("24.7"), 24)
 		self.assertEqual(floor("26.7"), 26)
-		self.assertEqual(floor(Decimal(29.45)), 29)
+		self.assertEqual(floor(Decimal("29.45")), 29)
 
 	def test_ceil(self):
 		from decimal import Decimal
@@ -349,7 +478,7 @@ class TestMathUtils(IntegrationTestCase):
 		self.assertEqual(ceil(22.7330), 23)
 		self.assertEqual(ceil("24.7"), 25)
 		self.assertEqual(ceil("26.7"), 27)
-		self.assertEqual(ceil(Decimal(29.45)), 30)
+		self.assertEqual(ceil(Decimal("29.45")), 30)
 
 
 class TestHTMLUtils(IntegrationTestCase):
@@ -458,6 +587,26 @@ class TestValidationUtils(IntegrationTestCase):
 		invalid_names = ["asd$wat", "asasd/ads"]
 		for name in invalid_names:
 			self.assertRaises(frappe.InvalidNameError, validate_name, name, True)
+
+	def test_validate_iban(self):
+		valid_ibans = [
+			"GB82 WEST 1234 5698 7654 32",
+			"DE91 1000 0000 0123 4567 89",
+			"FR76 3000 6000 0112 3456 7890 189",
+		]
+
+		invalid_ibans = [
+			# wrong checksum (3rd place)
+			"GB72 WEST 1234 5698 7654 32",
+			"DE81 1000 0000 0123 4567 89",
+			"FR66 3000 6000 0112 3456 7890 189",
+		]
+
+		for iban in valid_ibans:
+			self.assertTrue(is_valid_iban(iban))
+
+		for not_iban in invalid_ibans:
+			self.assertFalse(is_valid_iban(not_iban))
 
 
 class TestImage(IntegrationTestCase):
@@ -668,10 +817,23 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertEqual(get_year_ending(date(2021, 1, 1)), date(2021, 12, 31))
 		self.assertEqual(get_year_ending(date(2021, 1, 31)), date(2021, 12, 31))
 
+	@given(st.datetimes())
+	def test_get_datetime(self, original):
+		if is_invalid_date_string(str(original)):
+			return
+		parsed = get_datetime(str(original))
+		self.assertEqual(parsed, original)
+
+	@given(st.datetimes(timezones=st.timezones()))
+	def test_get_datetime_tz_aware(self, original):
+		if is_invalid_date_string(str(original)):
+			return
+		parsed = get_datetime(str(original))
+		self.assertEqual(parsed, original)
+
 	def test_pretty_date(self):
 		from frappe import _
 
-		# differnt cases
 		now = get_datetime()
 
 		test_cases = {
@@ -692,6 +854,8 @@ class TestDateUtils(IntegrationTestCase):
 
 		for dt, exp_message in test_cases.items():
 			self.assertEqual(pretty_date(dt), exp_message)
+
+		self.assertEqual(pretty_date(add_to_date(now, days=-5), mini=True), "5d")
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")
@@ -736,13 +900,13 @@ class TestResponse(IntegrationTestCase):
 					minute=23,
 					second=23,
 					microsecond=23,
-					tzinfo=pytz.utc,
+					tzinfo=timezone.utc,
 				),
-				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
+				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=timezone.utc),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
 			"float": [
-				Decimal(29.21),
+				Decimal("29.21"),
 			],
 			"doc": [
 				frappe.get_doc("System Settings"),
@@ -959,9 +1123,9 @@ class TestLazyLoader(IntegrationTestCase):
 class TestIdenticon(IntegrationTestCase):
 	def test_get_gravatar(self):
 		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
+		toggle_test_mode(False)
 		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
+		toggle_test_mode(True)
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("http"))
 
@@ -1013,7 +1177,7 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertIsInstance(get_file_timestamp(__file__), str)
 
 	def test_execute_in_shell(self):
-		err, out = execute_in_shell("ls")
+		_err, out = execute_in_shell("ls")
 		self.assertIn("apps", cstr(out))
 
 	def test_get_all_sites(self):
@@ -1408,3 +1572,29 @@ class TestURLTrackers(IntegrationTestCase):
 		self.assertDocumentEqual(result["utm_medium"], expected["utm_medium"])
 		self.assertDocumentEqual(result["utm_campaign"], expected["utm_campaign"])
 		self.assertEqual(result["utm_content"], expected["utm_content"])
+
+
+class TestDataUtils(UnitTestCase):
+	def setUp(self):
+		frappe.local.lang = "en"
+
+	def tearDown(self):
+		frappe.local.lang = "en"
+
+	def test_comma_and(self):
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b, and c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b' e 'c'")
+		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b e c")
+
+	def test_comma_or(self):
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b', or 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b, or c")
+
+		frappe.local.lang = "pt-BR"
+
+		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
+		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")

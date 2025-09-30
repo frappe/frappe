@@ -19,12 +19,12 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 200
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22
           check-latest: true
 
       - name: Check commit titles
@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: 'Setup Environment'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
-      - uses: actions/checkout@v4
+          python-version: '3.13'
+      - uses: actions/checkout@v5
 
       - name: Validate Docs
         env:
@@ -57,10 +57,10 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.13'
           cache: pip
 
       - name: Download Semgrep rules
@@ -76,11 +76,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -95,4 +95,17 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on .
+          pip-audit --desc on --ignore-vuln PYSEC-2023-312 .
+
+  precommit:
+    name: 'Pre-Commit'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: pre-commit/action@v3.0.1

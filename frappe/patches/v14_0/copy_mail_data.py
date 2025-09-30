@@ -9,7 +9,7 @@ def execute():
 
 		imap_list = [folder.folder_name for folder in doc.imap_folder]
 		# and append the old data to the child table
-		if doc.uidvalidity or doc.uidnext and "INBOX" not in imap_list:
+		if doc.uidvalidity or (doc.uidnext and "INBOX" not in imap_list):
 			doc.append(
 				"imap_folder",
 				{

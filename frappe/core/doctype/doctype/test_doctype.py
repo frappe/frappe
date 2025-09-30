@@ -4,6 +4,7 @@ import os
 import random
 import string
 import unittest
+from unittest.case import skipIf
 from unittest.mock import patch
 
 import frappe
@@ -24,16 +25,8 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestDoctype(UnitTestCase):
-	"""
-	Unit tests for Doctype.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
+from frappe.utils import get_table_name
 
 
 class TestDocType(IntegrationTestCase):
@@ -55,6 +48,10 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_making_sequence_on_change(self):
 		frappe.delete_doc_if_exists("DocType", self._testMethodName)
 		dt = new_doctype(self._testMethodName).insert(ignore_permissions=True)
@@ -795,6 +792,69 @@ class TestDocType(IntegrationTestCase):
 			],
 		)
 		self.assertRaises(frappe.ValidationError, recursive_dt.insert)
+
+	def test_meta_serialization(self):
+		doctype = new_doctype(
+			fields=[{"fieldname": "some_fieldname", "fieldtype": "Data", "set_only_once": 1}],
+			is_submittable=1,
+		).insert()
+		doc = frappe.new_doc(doctype.name, some_fieldname="something").insert()
+		doc.save()
+		doc.submit()
+		frappe.get_meta(doctype.name).as_dict()
+
+	def test_row_compression(self):
+		if frappe.db.db_type != "mariadb":
+			return
+
+		compressed_dt = new_doctype(row_format="Compressed").insert().name
+		dynamic_dt = new_doctype().insert().name
+
+		information_schema = frappe.qb.Schema("information_schema")
+
+		def get_format(dt):
+			return (
+				frappe.qb.from_(information_schema.tables)
+				.select("row_format")
+				.where(
+					(information_schema.tables.table_schema == frappe.conf.db_name)
+					& (information_schema.tables.table_name == get_table_name(dt))
+				)
+				.run()[0][0]
+				.upper()
+			)
+
+		self.assertEqual(get_format(compressed_dt), "COMPRESSED")
+		self.assertEqual(get_format(dynamic_dt), "DYNAMIC")
+
+	def test_decimal_field_configuration(self):
+		doctype = new_doctype(
+			"Test Decimal Config",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 30,
+					"precision": 3,
+				}
+			],
+		).insert(ignore_if_duplicate=True)
+		decimal_field_type = frappe.db.get_column_type(doctype.name, "decimal_field")
+		self.assertIn("(30,3)", decimal_field_type.lower())
+
+	def test_decimal_field_precision_exceeds_length(self):
+		doctype = new_doctype(
+			"Test Decimal Config 2",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 10,
+					"precision": 11,
+				}
+			],
+		)
+		self.assertRaises(frappe.ValidationError, doctype.insert)
 
 
 def new_doctype(

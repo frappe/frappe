@@ -94,9 +94,25 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_translation_with_context(self):
+		t1 = frappe.new_doc("Translation")
+		t1.language = "fr"
+		t1.source_text = "Change"
+		t1.translated_text = "Changement"
+		t1.save()
+
+		t2 = frappe.new_doc("Translation")
+		t2.language = "fr"
+		t2.source_text = "Change"
+		t2.translated_text = "la monnaie"
+		t2.context = "Coins"
+		t2.save()
+
 		frappe.local.lang = "fr"
 		self.assertEqual(_("Change"), "Changement")
 		self.assertEqual(_("Change", context="Coins"), "la monnaie")
+
+		t1.delete()
+		t2.delete()
 
 	def test_lazy_translations(self):
 		frappe.local.lang = "de"

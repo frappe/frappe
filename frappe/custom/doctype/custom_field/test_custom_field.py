@@ -7,18 +7,7 @@ from frappe.custom.doctype.custom_field.custom_field import (
 	create_custom_fields,
 	rename_fieldname,
 )
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-test_records = frappe.get_test_records("Custom Field")
-
-
-class UnitTestCustomField(UnitTestCase):
-	"""
-	Unit tests for CustomField.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestCustomField(IntegrationTestCase):

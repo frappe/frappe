@@ -3,6 +3,7 @@ import json
 import os
 import uuid
 from io import BytesIO
+from typing import Literal
 
 from pypdf import PdfWriter
 
@@ -10,7 +11,6 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.translate import print_language
-from frappe.utils.deprecations import deprecated
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -64,6 +64,7 @@ def download_multi_pdf_async(
 		letterhead=letterhead,
 		options=options,
 		queue="long" if doc_count > 20 else "short",
+		at_front_when_starved=True,
 	)
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
@@ -144,8 +145,8 @@ def _download_multi_pdf(
 				frappe.publish_progress(
 					percent=(idx + 1) / total_docs * 100,
 					title=_("PDF Generation in Progress"),
-					description=_(
-						f"{idx + 1}/{total_docs} complete | Please leave this tab open until completion."
+					description=_("{0}/{1} complete | Please leave this tab open until completion.").format(
+						idx + 1, total_docs
 					),
 					task_id=task_id,
 				)
@@ -189,8 +190,8 @@ def _download_multi_pdf(
 						percent=count / total_docs * 100,
 						title=_("PDF Generation in Progress"),
 						description=_(
-							f"{count}/{total_docs} complete | Please leave this tab open until completion."
-						),
+							"{0}/{1} complete | Please leave this tab open until completion."
+						).format(count, total_docs),
 						task_id=task_id,
 					)
 		if task_id is None:
@@ -214,21 +215,33 @@ def _download_multi_pdf(
 			frappe.local.response.type = "pdf"
 
 
-@deprecated
-def read_multi_pdf(output: PdfWriter) -> bytes:
-	with BytesIO() as merged_pdf:
-		output.write(merged_pdf)
-		return merged_pdf.getvalue()
+from frappe.deprecation_dumpster import read_multi_pdf
 
 
 @frappe.whitelist(allow_guest=True)
-def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None):
+def download_pdf(
+	doctype: str,
+	name: str,
+	format=None,
+	doc=None,
+	no_letterhead=0,
+	language=None,
+	letterhead=None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
 	with print_language(language):
 		pdf_file = frappe.get_print(
-			doctype, name, format, doc=doc, as_pdf=True, letterhead=letterhead, no_letterhead=no_letterhead
+			doctype,
+			name,
+			format,
+			doc=doc,
+			as_pdf=True,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			pdf_generator=pdf_generator,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))

@@ -157,37 +157,7 @@ let margins = computed(() => {
 	];
 });
 let fields = computed(() => {
-	let fields = meta.value.fields
-		.filter((df) => {
-			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
-				return false;
-			}
-			if (search_text.value) {
-				if (df.fieldname.includes(search_text.value)) {
-					return true;
-				}
-				if (df.label && df.label.includes(search_text.value)) {
-					return true;
-				}
-				return false;
-			} else {
-				return true;
-			}
-		})
-		.map((df) => {
-			let out = {
-				label: df.label,
-				fieldname: df.fieldname,
-				fieldtype: df.fieldtype,
-				options: df.options,
-			};
-			if (df.fieldtype == "Table") {
-				out.table_columns = get_table_columns(df);
-			}
-			return out;
-		});
-
-	return [
+	let fields = [
 		{
 			label: __("Custom HTML"),
 			fieldname: "custom_html",
@@ -213,8 +183,38 @@ let fields = computed(() => {
 			custom: 1,
 		},
 		...print_templates.value,
-		...fields,
-	];
+		...meta.value.fields,
+	]
+		.filter((df) => {
+			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
+				return false;
+			}
+			if (search_text.value) {
+				if (df.fieldname.toLowerCase().includes(search_text.value.toLowerCase())) {
+					return true;
+				}
+				if (df.label && df.label.toLowerCase().includes(search_text.value.toLowerCase())) {
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		})
+		.map((df) => {
+			let out = {
+				label: df.label,
+				fieldname: df.fieldname,
+				fieldtype: df.fieldtype,
+				options: df.options,
+			};
+			if (df.fieldtype == "Table") {
+				out.table_columns = get_table_columns(df);
+			}
+			return out;
+		});
+
+	return fields;
 });
 let print_templates = computed(() => {
 	let templates = print_format.value.__onload.print_templates || {};

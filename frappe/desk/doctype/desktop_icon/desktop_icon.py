@@ -132,7 +132,7 @@ def get_desktop_icons(user=None):
 
 				user_icons.append(standard_icon)
 
-		user_blocked_modules = frappe.get_doc("User", user).get_blocked_modules()
+		user_blocked_modules = frappe.get_lazy_doc("User", user).get_blocked_modules()
 		for icon in user_icons:
 			if icon.module_name in user_blocked_modules:
 				icon.hidden = 1
@@ -258,7 +258,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	an icon for the doctype"""
 
 	# clear all custom only if setup is not complete
-	if not frappe.defaults.get_defaults().get("setup_complete", 0):
+	if not frappe.is_setup_complete():
 		frappe.db.delete("Desktop Icon", {"standard": 0})
 
 	# set standard as blocked and hidden if setting first active domain

@@ -1,6 +1,7 @@
 {
+ "app": "frappe",
  "charts": [],
- "content": "[{\"id\":\"NPK_AfSLQ2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"lDOo58F7ZI\",\"type\":\"card\",\"data\":{\"card_name\":\"Backup\",\"col\":4}},{\"id\":\"ij1pcK8jst\",\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"id\":\"aTlMujEHpN\",\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"id\":\"gY5NXKtXss\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"n_CI3GGqW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Push Notifications\",\"col\":4}}]",
+ "content": "[{\"id\":\"3iua9gS06d\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Google Settings\",\"col\":3}},{\"id\":\"G4mkFTN5SN\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Webhook\",\"col\":3}},{\"id\":\"fPZBlLf1Ux\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ij1pcK8jst\",\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"id\":\"aTlMujEHpN\",\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"id\":\"gY5NXKtXss\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"n_CI3GGqW-\",\"type\":\"card\",\"data\":{\"card_name\":\"Push Notifications\",\"col\":4}}]",
  "creation": "2020-03-02 15:16:18.714190",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,47 +13,6 @@
  "is_hidden": 0,
  "label": "Integrations",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Backup",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dropbox Settings",
-   "link_count": 0,
-   "link_to": "Dropbox Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "S3 Backup Settings",
-   "link_count": 0,
-   "link_to": "S3 Backup Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Drive",
-   "link_count": 0,
-   "link_to": "Google Drive",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -90,17 +50,6 @@
    "label": "Google Calendar",
    "link_count": 0,
    "link_to": "Google Calendar",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Google Drive",
-   "link_count": 0,
-   "link_to": "Google Drive",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -218,7 +167,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-02-28 10:47:38.188832",
+ "modified": "2025-07-14 10:35:20.131242",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
@@ -230,6 +179,23 @@
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 20.0,
- "shortcuts": [],
- "title": "Integrations"
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Google Settings",
+   "link_to": "Google Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Webhook",
+   "link_to": "Webhook",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Integrations",
+ "type": "Workspace"
 }

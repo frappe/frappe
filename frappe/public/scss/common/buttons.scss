@@ -82,6 +82,9 @@
 		background-color: var(--btn-default-hover-bg);
 		color: var(--text-color);
 	}
+	&:focus-visible {
+		box-shadow: var(--focus-default) !important;
+	}
 }
 
 .btn.btn-default {
@@ -91,6 +94,7 @@
 	&:active {
 		background: var(--btn-default-hover-bg);
 		color: var(--text-color);
+		z-index: unset;
 	}
 }
 

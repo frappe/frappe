@@ -21,7 +21,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				`<div class="frappe-control">
 				<div class="form-group">
 					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;"></label>
+						<label class="control-label" style="padding-right: 5px;"></label>
 						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
@@ -39,7 +39,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	toggle_label(show) {
-		this.$wrapper.find(".control-label").toggleClass("hide", !show);
+		this.$wrapper.find(".control-label").parent().toggleClass("hide", !show);
 	}
 	toggle_description(show) {
 		this.$wrapper.find(".help-box").toggleClass("hide", !show);
@@ -189,7 +189,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
-		$(`<a href="${this.df.documentation_url}" target="_blank" title="${__("Documentation")}">
+		$(`<a
+			href="${frappe.utils.escape_html(this.df.documentation_url)}"
+			target="_blank"
+			title="${frappe.utils.escape_html(__("Documentation"))}"
+		>
 			${frappe.utils.icon("help", "sm")}
 		</a>`).appendTo($help);
 	}
@@ -202,7 +206,17 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			return;
 		}
 		if (this.df.description) {
-			this.$wrapper.find(".help-box").html(__(this.df.description));
+			const description = __(this.df.description, null, this.df.parent);
+			const help_box = this.$wrapper.find(".help-box");
+			help_box.html(description);
+			if (description.includes("<code")) {
+				frappe.require("syntax_highlighting.bundle.js").then(() => {
+					help_box.find("code").each(function () {
+						hljs.highlightElement(this);
+						this.style.display = "inline"; // override hljs's "block" display
+					});
+				});
+			}
 			this.toggle_description(true);
 		} else {
 			this.set_empty_description();

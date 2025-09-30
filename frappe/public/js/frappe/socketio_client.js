@@ -65,6 +65,10 @@ class RealTimeClient {
 			return;
 		}
 
+		this.socket.on("connect_error", function (err) {
+			console.error("Error connecting to socket.io:", err.message);
+		});
+
 		this.socket.on("msgprint", function (message) {
 			frappe.msgprint(message);
 		});

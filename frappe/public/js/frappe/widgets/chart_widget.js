@@ -155,7 +155,7 @@ export default class ChartWidget extends Widget {
 					},
 				},
 				{
-					label: this.chart_settings.timespan || this.chart_doc.timespan,
+					label: __(this.chart_settings.timespan) || __(this.chart_doc.timespan),
 					options: [
 						"Select Date Range",
 						"Last Year",
@@ -309,6 +309,46 @@ export default class ChartWidget extends Widget {
 					this.reset_chart();
 					delete this.dashboard_chart;
 					this.make_chart();
+				},
+			},
+			{
+				label: __("Export"),
+				action: "action-export",
+				handler: () => {
+					const data = [[this.chart_doc.chart_name]];
+					data.push([]);
+					data.push([]);
+
+					const datasets = this.data?.datasets || [];
+					const labels = (this.data?.labels || []).map((label) => label || "None");
+					if (datasets.length > 1) {
+						const csv_labels = [];
+						const csv_values = [];
+						labels.forEach((label, idx) => {
+							datasets.forEach((element) => {
+								csv_labels.push(`${element.name} (${label})`);
+								const values = element.values || [];
+								if (idx < values.length) {
+									csv_values.push(values[idx]);
+								} else {
+									csv_values.push("");
+								}
+							});
+						});
+						data.push(["", ...csv_labels]);
+						data.push(["", ...csv_values]);
+					} else if (datasets.length === 1) {
+						datasets.forEach((element) => {
+							const values = element.values || [];
+							if (values.length > 0) {
+								data.push(["", ...labels]);
+								data.push(["", ...values]);
+							}
+						});
+					} else {
+						data.push(["", ...labels]);
+					}
+					frappe.tools.downloadify(data, null, this.chart_doc.chart_name);
 				},
 			},
 		];
@@ -605,14 +645,20 @@ export default class ChartWidget extends Widget {
 			options = chart_options.options;
 		}
 
-		chart_args.tooltipOptions = {
-			formatTooltipY: (value) =>
-				frappe.format(
-					value,
-					{ fieldtype, options },
-					{ always_show_decimals: true, inline: true }
-				),
-		};
+		if (this.chart_doc.currency) {
+			chart_args.tooltipOptions = {
+				formatTooltipY: (value) => format_currency(value, this.chart_doc.currency),
+			};
+		} else {
+			chart_args.tooltipOptions = {
+				formatTooltipY: (value) =>
+					frappe.format(
+						value,
+						{ fieldtype, options },
+						{ always_show_decimals: true, inline: true }
+					),
+			};
+		}
 
 		if (this.chart_doc.type == "Heatmap") {
 			const heatmap_year = parseInt(
@@ -623,7 +669,7 @@ export default class ChartWidget extends Widget {
 			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
 			chart_args.data.end = new Date(`${heatmap_year + 1}-01-01`);
 		}
-
+		if (this.chart_doc.show_values_over_chart) chart_args.valuesOverPoints = true;
 		let set_options = (options) => {
 			let custom_options = JSON.parse(options);
 			for (let key in custom_options) {

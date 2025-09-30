@@ -11,6 +11,7 @@
   "language",
   "column_break_3",
   "time_zone",
+  "currency",
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
@@ -18,15 +19,18 @@
   "date_format",
   "time_format",
   "number_format",
+  "use_number_format_from_currency",
   "first_day_of_the_week",
   "column_break_7",
   "float_precision",
   "currency_precision",
   "rounding_method",
+  "show_absolute_datetime_in_timeline",
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
   "allow_older_web_view_links",
+  "show_external_link_warning",
   "security_tab",
   "security",
   "session_expiry",
@@ -34,6 +38,7 @@
   "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
+  "max_signups_allowed_per_hour",
   "login_methods_section",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
@@ -78,6 +83,7 @@
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
+  "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
   "app_tab",
@@ -86,6 +92,7 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "hide_empty_read_only_fields",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -93,6 +100,7 @@
   "advanced_tab",
   "prepared_report_section",
   "max_auto_email_report_per_user",
+  "max_report_rows",
   "background_workers",
   "enable_scheduler",
   "dormant_days",
@@ -100,7 +108,9 @@
   "allow_error_traceback",
   "enable_telemetry",
   "search_section",
-  "link_field_results_limit"
+  "link_field_results_limit",
+  "api_logging_section",
+  "log_api_requests"
  ],
  "fields": [
   {
@@ -275,7 +285,7 @@
   },
   {
    "default": "1",
-   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",
+   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong.",
    "fieldname": "enable_password_policy",
    "fieldtype": "Check",
    "label": "Enable Password Policy"
@@ -286,7 +296,7 @@
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
-   "options": "2\n3\n4"
+   "options": "1\n2\n3\n4"
   },
   {
    "fieldname": "brute_force_security",
@@ -297,7 +307,7 @@
    "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
-   "label": "Allow Consecutive Login Attempts "
+   "label": "Allow Consecutive Login Attempts"
   },
   {
    "fieldname": "column_break_34",
@@ -399,7 +409,7 @@
   },
   {
    "default": "4",
-   "description": "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.",
+   "description": "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler.",
    "fieldname": "dormant_days",
    "fieldtype": "Int",
    "label": "Run Jobs only Daily if Inactive For (Days)"
@@ -677,12 +687,77 @@
    "fieldname": "rate_limit_email_link_login",
    "fieldtype": "Int",
    "label": "Rate limit for email link login"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_number_format_from_currency",
+   "fieldtype": "Check",
+   "label": "Use Number Format from Currency"
+  },
+  {
+   "description": "Default display currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "1",
+   "fieldname": "hide_empty_read_only_fields",
+   "fieldtype": "Check",
+   "label": "Hide Empty Read-Only Fields"
+  },
+  {
+   "default": "100000",
+   "description": "This value specifies the max number of rows that can be rendered in report view.",
+   "fieldname": "max_report_rows",
+   "fieldtype": "Int",
+   "label": "Max Report Rows"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_absolute_datetime_in_timeline",
+   "fieldtype": "Check",
+   "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "fieldname": "api_logging_section",
+   "fieldtype": "Section Break",
+   "label": "API Logging"
+  },
+  {
+   "default": "0",
+   "fieldname": "log_api_requests",
+   "fieldtype": "Check",
+   "label": "Log API Requests"
+  },
+  {
+   "default": "48",
+   "description": "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted.",
+   "fieldname": "delete_background_exported_reports_after",
+   "fieldtype": "Int",
+   "label": "Delete Background Exported Reports After (Hours)",
+   "non_negative": 1
+  },
+  {
+   "default": "300",
+   "fieldname": "max_signups_allowed_per_hour",
+   "fieldtype": "Int",
+   "label": "Max signups allowed per hour",
+   "non_negative": 1
+  },
+  {
+   "default": "Never",
+   "fieldname": "show_external_link_warning",
+   "fieldtype": "Select",
+   "label": "Show External Link Warning",
+   "options": "Never\nAsk\nAlways"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-08-20 13:50:49.711427",
+ "modified": "2025-09-24 16:04:02.016562",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -697,6 +772,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

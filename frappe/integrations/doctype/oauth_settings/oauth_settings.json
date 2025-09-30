@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-03 12:04:14.759362",
+ "description": "A Frappe Framework instance can function as an OAuth Client, Resource, or Authorization server. This DocType contains settings related to all three.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "authorization_tab",
+  "authorization_server_section",
+  "show_auth_server_metadata",
+  "skip_authorization",
+  "column_break_ogmd",
+  "enable_dynamic_client_registration",
+  "allowed_public_client_origins",
+  "resource_tab",
+  "config_section",
+  "show_protected_resource_metadata",
+  "column_break_wlfj",
+  "show_social_login_key_as_authorization_server",
+  "resource_server_section",
+  "resource_name",
+  "resource_policy_uri",
+  "column_break_zyte",
+  "resource_documentation",
+  "resource_tos_uri",
+  "scopes_supported"
+ ],
+ "fields": [
+  {
+   "description": "These fields are used to provide resource server metadata to clients querying the \"well known protected resource\" end point.",
+   "fieldname": "resource_server_section",
+   "fieldtype": "Section Break",
+   "label": "Metadata"
+  },
+  {
+   "default": "Frappe Framework Application",
+   "description": "Human-readable name intended for display to the end user.",
+   "fieldname": "resource_name",
+   "fieldtype": "Data",
+   "label": "Resource Name"
+  },
+  {
+   "fieldname": "column_break_zyte",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "https://docs.frappe.io/framework",
+   "description": "URL of a human-readable page with info that developers might need.",
+   "fieldname": "resource_documentation",
+   "fieldtype": "Data",
+   "label": "Resource Documentation"
+  },
+  {
+   "description": "URL of human-readable page with info on requirements about how the client can use the data.",
+   "fieldname": "resource_policy_uri",
+   "fieldtype": "Data",
+   "label": "Resource Policy URI"
+  },
+  {
+   "description": "URL of human-readable page with info about the protected resource's terms of service.",
+   "fieldname": "resource_tos_uri",
+   "fieldtype": "Data",
+   "label": "Resource TOS URI"
+  },
+  {
+   "fieldname": "authorization_server_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "1",
+   "description": "Allows clients to fetch metadata from the <code>/.well-known/oauth-authorization-server</code> endpoint. Reference: <a href=\"https://datatracker.ietf.org/doc/html/rfc8414\">RFC8414</a>",
+   "fieldname": "show_auth_server_metadata",
+   "fieldtype": "Check",
+   "label": "Show Auth Server Metadata"
+  },
+  {
+   "default": "1",
+   "description": "Allows clients to fetch metadata from the <code>/.well-known/oauth-protected-resource</code> endpoint. Reference: <a href=\"https://datatracker.ietf.org/doc/html/rfc9728#name-protected-resource-metadata\">RFC9728</a>",
+   "fieldname": "show_protected_resource_metadata",
+   "fieldtype": "Check",
+   "label": "Show Protected Resource Metadata"
+  },
+  {
+   "description": "New line separated list of scope values.",
+   "fieldname": "scopes_supported",
+   "fieldtype": "Small Text",
+   "label": "Scopes Supported"
+  },
+  {
+   "default": "1",
+   "description": "Allows clients to register themselves without manual intervention. Registration creates a <b>OAuth Client</b> entry. Reference: <a href=\"https://datatracker.ietf.org/doc/html/rfc7591\">RFC7591</a>",
+   "fieldname": "enable_dynamic_client_registration",
+   "fieldtype": "Check",
+   "label": "Enable Dynamic Client Registration"
+  },
+  {
+   "default": "0",
+   "description": "Allows skipping authorization if a user has active tokens.",
+   "fieldname": "skip_authorization",
+   "fieldtype": "Check",
+   "label": "Skip Authorization"
+  },
+  {
+   "default": "0",
+   "description": "Allows enabled Social Login Key Base URL to be shown as authorization server.",
+   "fieldname": "show_social_login_key_as_authorization_server",
+   "fieldtype": "Check",
+   "label": "Show Social Login Key as Authorization Server"
+  },
+  {
+   "fieldname": "column_break_ogmd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "authorization_tab",
+   "fieldtype": "Tab Break",
+   "label": "Authorization"
+  },
+  {
+   "fieldname": "resource_tab",
+   "fieldtype": "Tab Break",
+   "label": "Resource"
+  },
+  {
+   "fieldname": "config_section",
+   "fieldtype": "Section Break",
+   "label": "Config"
+  },
+  {
+   "fieldname": "column_break_wlfj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "New line separated list of allowed public client URLs (eg <code>https://frappe.io</code>), or <code>*</code> to accept all.\n<br>\nPublic clients are restricted by default.",
+   "fieldname": "allowed_public_client_origins",
+   "fieldtype": "Small Text",
+   "label": "Allowed Public Client Origins"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-07-04 15:01:45.453238",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "OAuth Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -59,7 +59,7 @@ class UserPermissions:
 
 			return user
 
-		if not frappe.flags.in_install_db and not frappe.flags.in_test:
+		if not frappe.flags.in_install_db and not frappe.in_test:
 			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
 			if user_doc:
 				self.doc = frappe.get_doc(user_doc)
@@ -190,8 +190,6 @@ class UserPermissions:
 				filters={"property": "allow_import", "value": "1"},
 			)
 
-		frappe.cache.hset("can_import", frappe.session.user, self.can_import)
-
 	def get_defaults(self):
 		import frappe.defaults
 
@@ -224,6 +222,7 @@ class UserPermissions:
 				"language",
 				"last_name",
 				"mute_sounds",
+				"show_absolute_datetime_in_timeline",
 				"send_me_a_copy",
 				"user_type",
 				"onboarding_status",
@@ -287,8 +286,8 @@ def get_user_fullname(user: str) -> str:
 
 
 def get_fullname_and_avatar(user: str) -> _dict:
-	first_name, last_name, avatar, name = frappe.db.get_value(
-		"User", user, ["first_name", "last_name", "user_image", "name"], order_by=None
+	first_name, last_name, avatar, name = frappe.get_cached_value(
+		"User", user, ["first_name", "last_name", "user_image", "name"]
 	)
 	return _dict(
 		{
@@ -387,7 +386,7 @@ def get_enabled_system_users() -> list[dict]:
 
 
 def is_website_user(username: str | None = None) -> str | None:
-	return frappe.db.get_value("User", username or frappe.session.user, "user_type") == "Website User"
+	return frappe.get_cached_value("User", username or frappe.session.user, "user_type") == "Website User"
 
 
 def is_system_user(username: str | None = None) -> str | None:

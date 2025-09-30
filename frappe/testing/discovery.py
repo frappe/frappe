@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe.tests.utils import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from .utils import debug_timer
 
@@ -74,6 +74,7 @@ def discover_doctype_tests(doctypes: list[str], runner, app: str, force: bool = 
 	"""Discover tests for the specified doctype(s)"""
 	if isinstance(doctypes, str):
 		doctypes = [doctypes]
+	_app = app
 	for doctype in doctypes:
 		try:
 			module = frappe.db.get_value("DocType", doctype, "module")
@@ -82,13 +83,15 @@ def discover_doctype_tests(doctypes: list[str], runner, app: str, force: bool = 
 
 			# Check if the DocType belongs to the specified app
 			doctype_app = frappe.db.get_value("Module Def", module, "app_name")
-			if app and doctype_app != app:
-				raise TestRunnerError(f"DocType {doctype} does not belong to app {app}")
-			elif not app:
-				app = doctype_app
+			if app is None:
+				_app = doctype_app
+			elif doctype_app != app:
+				raise TestRunnerError(
+					f"Mismatch between specified app '{app}' and doctype app '{doctype_app}'"
+				)
 			test_module = frappe.modules.utils.get_module_name(doctype, module, "test_")
 			force and frappe.db.delete(doctype)
-			_add_module_tests(runner, app, test_module)
+			_add_module_tests(runner, _app, test_module)
 		except Exception as e:
 			logger.error(f"Error discovering tests for {doctype}: {e!s}")
 			raise TestRunnerError(f"Failed to discover tests for {doctype}: {e!s}") from e
@@ -100,9 +103,15 @@ def discover_module_tests(modules: list[str], runner, app: str) -> "TestRunner":
 	"""Discover tests for the specified test module"""
 	if isinstance(modules, str):
 		modules = [modules]
+	_app = app
 	try:
 		for module in modules:
-			_add_module_tests(runner, app, module)
+			module_app = module.split(".")[0]
+			if app is None:
+				_app = module_app
+			elif app != module_app:
+				raise TestRunnerError(f"Mismatch between specified app '{app}' and module app '{module_app}'")
+			_add_module_tests(runner, _app, module)
 	except Exception as e:
 		logger.error(f"Error discovering tests for {module}: {e!s}")
 		raise TestRunnerError(f"Failed to discover tests for {module}: {e!s}") from e
@@ -119,7 +128,22 @@ def _add_module_tests(runner, app: str, module: str):
 	for test in runner._iterate_suite(test_suite):
 		if runner.cfg.tests and test._testMethodName not in runner.cfg.tests:
 			continue
-		category = "integration" if isinstance(test, IntegrationTestCase) else "unit"
+		match test:
+			case IntegrationTestCase():
+				category = "integration"
+			case UnitTestCase():
+				category = "unit"
+			case _:
+				category = "unspecified-category"
+				if any(b.__name__ == "FrappeTestCase" for b in test.__class__.__bases__):
+					from frappe.deprecation_dumpster import deprecation_warning
+
+					deprecation_warning(
+						"2024-20-08",
+						"v17",
+						"accurate categorization of FrappeTestCase will be removed from this runner",
+					)
+					category = "old-frappe-test-class-category"
 		if runner.cfg.selected_categories and category not in runner.cfg.selected_categories:
 			continue
 		runner.per_app_categories[app][category].addTest(test)
@@ -127,5 +151,3 @@ def _add_module_tests(runner, app: str, module: str):
 
 class TestRunnerError(Exception):
 	"""Custom exception for test runner errors"""
-
-	pass

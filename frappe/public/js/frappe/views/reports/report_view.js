@@ -20,6 +20,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.page_title = __("Report:") + " " + this.page_title;
 		this.view = "Report";
 
+		this.link_title_doctype_fields = [];
+
 		const route = frappe.get_route();
 		if (route.length === 4) {
 			this.report_name = route[3];
@@ -30,7 +32,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.report_doc = doc;
 				this.report_doc.json = JSON.parse(this.report_doc.json);
 
-				this.filters = this.report_doc.json.filters;
+				this.filters = [
+					...(Array.isArray(this.report_doc.json.filters)
+						? this.report_doc.json.filters
+						: []),
+					...this.parse_filters_from_route_options(),
+				];
+
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
@@ -53,11 +61,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_events() {
+		const me = this;
 		if (this.list_view_settings?.disable_auto_refresh) {
 			return;
 		}
 		frappe.realtime.doctype_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => this.on_update(data));
+		this.page.actions_btn_group.on("show.bs.dropdown", () => {
+			me.toggle_workflow_actions();
+		});
 	}
 
 	setup_page() {
@@ -96,9 +108,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const message = __(
 			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 		);
-		this.$paging_area
-			.find(".level-left")
-			.after(`<span class="comparison-message text-extra-muted">${message}</span>`);
+		this.$paging_area.before(
+			`<span class="comparison-message text-extra-muted">${message}</span>`
+		);
 	}
 
 	setup_sort_selector() {
@@ -144,6 +156,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (!this.group_by) {
 			this.init_chart();
 		}
+
+		this.set_link_title_field_value();
+	}
+
+	set_link_title_field_value() {
+		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
+			let link_title = await this.get_link_title_field_value(
+				this.link_title_doctype_fields[key],
+				key
+			);
+
+			if (link_title !== undefined) {
+				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+					el.innerHTML = link_title;
+				});
+			}
+		});
+	}
+
+	async get_link_title_field_value(doctype, value) {
+		return (
+			frappe.utils.get_link_title(doctype, value) ||
+			(await frappe.utils.fetch_link_title(doctype, value))
+		);
 	}
 
 	set_dirty_state_for_custom_report() {
@@ -671,6 +707,36 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return control;
 	}
 
+	evaluate_read_only_depends_on(expression, data) {
+		let out = null;
+		if (typeof expression === "boolean") {
+			out = expression;
+		} else if (expression.substr(0, 5) == "eval:") {
+			try {
+				out = frappe.utils.eval(expression.substr(5), { doc: data });
+				if (parent && parent.istable && expression.includes("is_submittable")) {
+					out = true;
+				}
+			} catch (e) {
+				frappe.throw(__('Invalid "depends_on" expression'));
+			}
+		} else if (expression.substr(0, 3) == "fn:" && this.frm) {
+			out = this.frm.script_manager.trigger(
+				expression.substr(3),
+				this.doctype,
+				this.docname
+			);
+		} else {
+			var value = data[expression];
+			if ($.isArray(value)) {
+				out = !!value.length;
+			} else {
+				out = !!value;
+			}
+		}
+		return out;
+	}
+
 	is_editable(df, data) {
 		if (
 			df &&
@@ -684,8 +750,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			!df.hidden &&
 			// not a standard field i.e., owner, modified_by, etc.
 			frappe.model.is_non_std_field(df.fieldname)
-		)
-			return true;
+		) {
+			// don't check read_only_depends_on if there's child table fields
+			return (
+				this.meta.fields.some((df) => df.fieldtype === "Table") ||
+				(df.read_only_depends_on &&
+					!this.evaluate_read_only_depends_on(df.read_only_depends_on, data))
+			);
+		}
 		return false;
 	}
 
@@ -1131,6 +1203,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				if (Array.isArray(row)) {
 					doc = row.reduce((acc, curr) => {
 						if (!curr.column.docfield) return acc;
+
+						if (
+							curr.column.docfield.fieldtype == "Link" &&
+							frappe.boot.link_title_doctypes.includes(curr.column.docfield.options)
+						) {
+							this.link_title_doctype_fields[curr.content] =
+								curr.column.docfield.options;
+						}
 						acc[curr.column.docfield.fieldname] = curr.content;
 						return acc;
 					}, {});
@@ -1190,7 +1270,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				// child table field
 				const cdt_field = (f) => `${col.docfield.parent}:${f}`;
 				const name = d[cdt_field("name")];
-
 				return {
 					name: name,
 					doctype: col.docfield.parent,
@@ -1611,8 +1690,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								delete args.start;
 								delete args.page_length;
 							}
-
-							open_url_post(frappe.request.url, args);
+							args.export_in_background = data.export_in_background;
+							if (data.export_in_background) {
+								frappe.call({
+									method: args.cmd,
+									args,
+								});
+							} else {
+								open_url_post(frappe.request.url, args);
+							}
 
 							d.hide();
 						}

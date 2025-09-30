@@ -32,7 +32,7 @@ def extract(fileobj, *args, **kwargs):
 		standard_help_items = module.standard_help_items
 		for help_item in standard_help_items:
 			if label := help_item.get("item_label"):
-				item_type = nav_item.get("item_type")
+				item_type = help_item.get("item_type")
 				yield (
 					None,
 					"_",

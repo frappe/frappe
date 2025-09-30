@@ -1,9 +1,9 @@
 {%- if title -%}
-<h2 class="section-title">{{ title }}</h2>
+<h2 class="section-title">{{ _(title) }}</h2>
 {%- endif -%}
 
 {%- if subtitle -%}
-<p class="section-description">{{ subtitle }}</p>
+<p class="section-description">{{ _(subtitle) }}</p>
 {%- endif -%}
 
 <div class="mt-12">
@@ -33,7 +33,7 @@
 			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}" data-toggle="tab"
 				href="#{{ tab.panelid }}"
 				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
-				{{ tab.title }}
+				{{ _(tab.title) }}
 			</a>
 		</li>
 		{%- endfor -%}

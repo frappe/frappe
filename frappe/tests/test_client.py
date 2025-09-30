@@ -74,19 +74,16 @@ class TestClient(IntegrationTestCase):
 	def test_run_doc_method(self):
 		from frappe.handler import execute_cmd
 
-		if not frappe.db.exists("Report", "Test Run Doc Method"):
-			report = frappe.get_doc(
-				{
-					"doctype": "Report",
-					"ref_doctype": "User",
-					"report_name": "Test Run Doc Method",
-					"report_type": "Query Report",
-					"is_standard": "No",
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
-		else:
-			report = frappe.get_doc("Report", "Test Run Doc Method")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": frappe.generate_hash(),
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
 
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -157,6 +154,25 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(get("System Settings", "", "").doctype, "System Settings")
 		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
+
+	def test_client_validatate_link(self):
+		from frappe.client import validate_link
+
+		# Basic test
+		self.assertTrue(validate_link("User", "Guest"))
+
+		# fixes capitalization
+		if frappe.db.db_type == "mariadb":
+			self.assertEqual(validate_link("User", "GueSt"), {"name": "Guest"})
+
+		# Fetch
+		self.assertEqual(validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1})
+
+		# Permissions
+		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			self.assertEqual(
+				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
+			)
 
 	def test_client_insert(self):
 		from frappe.client import insert

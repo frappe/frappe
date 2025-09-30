@@ -16,7 +16,7 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
 
-test_dependencies = ["Email Account"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
 
 class TestEmail(IntegrationTestCase):

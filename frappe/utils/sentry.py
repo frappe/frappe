@@ -112,6 +112,7 @@ def capture_exception(message: str | None = None) -> None:
 			if (
 				os.getenv("ENABLE_SENTRY_DB_MONITORING") is None
 				or os.getenv("SENTRY_TRACING_SAMPLE_RATE") is None
+				or os.getenv("SENTRY_PROFILING_SAMPLE_RATE") is None
 			):
 				set_scope(scope)
 			if frappe.request:

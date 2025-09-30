@@ -66,7 +66,7 @@ def _get_user_inputs(app_name):
 		input_type = config.get("type", str)
 
 		while value is None:
-			if input_type == bool:
+			if input_type is bool:
 				value = click.confirm(config["prompt"], default=config.get("default"))
 			else:
 				value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
@@ -166,8 +166,14 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(frappe.as_unicode(hooks.app_title))
+	with open(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title), ".frappe"), "w"
+	) as f:
+		f.write("")
+
+	from frappe.deprecation_dumpster import boilerplate_modules_txt
+
+	boilerplate_modules_txt(dest, hooks.app_name, hooks.app_title)
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
@@ -362,6 +368,7 @@ select = [
     "I",
     "UP",
     "B",
+    "RUF",
 ]
 ignore = [
     "B017", # assertRaises(Exception) - should be more specific
@@ -377,6 +384,9 @@ ignore = [
     "F405", # can't detect undefined names from * import
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
+    "UP030", # Use implicit references for positional format fields (translations)
+    "UP031", # Use format specifiers instead of percent format
+    "UP032", # Use f-string instead of `format` call (translations)
 ]
 typing-modules = ["frappe.types.DF"]
 
@@ -458,6 +468,9 @@ app_license = "{app_license}"
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# automatically load and sync documents of this doctype from downstream apps
+# importable_doctypes = [doctype_1]
+
 # Jinja
 # ----------
 
@@ -513,14 +526,6 @@ app_license = "{app_license}"
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }}
 
-# DocType Class
-# ---------------
-# Override standard doctype classes
-
-# override_doctype_class = {{
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }}
-
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -558,6 +563,14 @@ app_license = "{app_license}"
 # -------
 
 # before_tests = "{app_name}.install.before_tests"
+
+# Extend DocType Class
+# ------------------------------
+#
+# Specify custom mixins to extend the standard doctype controller.
+# extend_doctype_class = {{
+# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
+# }}
 
 # Overriding Methods
 # ------------------------------
@@ -632,16 +645,64 @@ app_license = "{app_license}"
 
 """
 
-gitignore_template = """.DS_Store
+gitignore_template = """# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyc
-*.egg-info
-*.swp
-tags
-node_modules
-__pycache__"""
+*.py~
 
-github_workflow_template = """
-name: CI
+# Distribution / packaging
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+tags
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# IDEs and editors
+.vscode/
+.vs/
+.idea/
+.kdev4/
+*.kdev4
+*.DS_Store
+*.swp
+*.comp.js
+.wnf-lang-status
+*debug.log
+
+# Helix Editor
+.helix/
+
+# Aider AI Chat
+.aider*
+"""
+
+github_workflow_template = """name: CI
 
 on:
   push:
@@ -698,7 +759,7 @@ jobs:
           check-latest: true
 
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
@@ -710,7 +771,7 @@ jobs:
         id: yarn-cache-dir-path
         run: 'echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
@@ -721,7 +782,7 @@ jobs:
       - name: Install MariaDB Client
         run: |
           sudo apt update
-          sudo apt-get install mariadb-client-10.6
+          sudo apt-get install mariadb-client
 
       - name: Setup
         run: |
@@ -759,18 +820,17 @@ patches_template = """[pre_model_sync]
 
 
 precommit_template = """exclude: 'node_modules|.git'
-default_stages: [commit]
+default_stages: [pre-commit]
 fail_fast: false
 
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         files: "{app_name}.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
-      - id: check-yaml
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
@@ -779,14 +839,17 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.8.1
     hooks:
       - id: ruff
-        name: "Run ruff linter and apply fixes"
-        args: ["--fix"]
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
 
       - id: ruff-format
-        name: "Format Python code"
+        name: "Run ruff formatter"
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1
@@ -827,8 +890,7 @@ ci:
     submodules: false
 """
 
-linter_workflow_template = """
-name: Linters
+linter_workflow_template = """name: Linters
 
 on:
   pull_request:
@@ -875,7 +937,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -925,8 +987,7 @@ Pre-commit is configured to use the following tools for checking and formatting 
 {app_license}
 """
 
-readme_ci_section = """
-### CI
+readme_ci_section = """### CI
 
 This app can use GitHub Actions for CI. The following workflows are configured:
 

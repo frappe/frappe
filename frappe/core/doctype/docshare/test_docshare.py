@@ -4,18 +4,9 @@
 import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
-test_dependencies = ["User"]
-
-
-class UnitTestDocshare(UnitTestCase):
-	"""
-	Unit tests for Docshare.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class TestDocShare(IntegrationTestCase):
