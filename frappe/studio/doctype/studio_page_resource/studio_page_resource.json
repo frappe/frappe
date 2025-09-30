@@ -156,14 +156,14 @@
    "fieldname": "sort_order",
    "fieldtype": "Select",
    "label": "Sort Order",
-   "options": "asc\ndesc"
+   "options": "ASC\nDESC"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-30 13:23:16.487697",
+ "modified": "2025-09-30 14:53:26.327481",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Resource",

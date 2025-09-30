@@ -28,7 +28,7 @@ class StudioPageResource(Document):
 		resource_name: DF.Data
 		resource_type: DF.Literal["Document List", "Document", "API Resource"]
 		sort_field: DF.Data | None
-		sort_order: DF.Literal["asc", "desc"]
+		sort_order: DF.Literal["ASC", "DESC"]
 		transform: DF.Code | None
 		transform_results: DF.Check
 		url: DF.Data | None

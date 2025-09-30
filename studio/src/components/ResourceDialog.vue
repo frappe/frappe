@@ -84,7 +84,7 @@
 							type="select"
 							placeholder="Select sort order"
 							v-model="newResource.sort_order"
-							:options="['asc', 'desc']"
+							:options="['ASC', 'DESC']"
 							class="w-full"
 						/>
 					</div>
