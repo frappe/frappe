@@ -355,7 +355,7 @@ frappe.views.TreeView = class TreeView {
 		var node = me.tree.get_selected_node();
 
 		if (!(node && node.expandable)) {
-			frappe.msgprint(__("Select a group folder first."));
+			frappe.msgprint(__("Select a group {0} first.", [__(me.doctype)]));
 			return;
 		}
 
@@ -415,9 +415,9 @@ frappe.views.TreeView = class TreeView {
 			{
 				fieldtype: "Check",
 				fieldname: "is_group",
-				label: __("Group Folder"),
+				label: __("Is Group"),
 				description: __(
-					"Further sub-groups can only be created under folders marked as 'Group'"
+					"Further sub-groups can only be created under records marked as 'Group'"
 				),
 			},
 		];
