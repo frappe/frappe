@@ -478,8 +478,6 @@ frappe.ui.filter_utils = {
 		return isNaN(n) ? NaN : n;
 	},
 
-	
-
 	// Normalize numeric according to field semantics (percent, int, rating)
 	normalizeNumeric(field, n) {
 		if (isNaN(n)) return n;
@@ -520,12 +518,14 @@ frappe.ui.filter_utils = {
 			val = strip(val);
 		}
 
-		const isNumericFieldEarly =
-			["Int", "Float", "Currency", "Rating", "Percent"].includes(field.df.fieldtype);
+		const isNumericFieldEarly = ["Int", "Float", "Currency", "Rating", "Percent"].includes(
+			field.df.fieldtype
+		);
 
 		// For numeric fields with non list conditions, normalize from raw input
 		if (isNumericFieldEarly && !["in", "not in"].includes(condition)) {
-			const raw = field.$input && typeof field.$input.val === "function" ? field.$input.val() : null;
+			const raw =
+				field.$input && typeof field.$input.val === "function" ? field.$input.val() : null;
 			const numFromRaw = this.parseLocalizedNumber(raw ?? val);
 			if (!isNaN(numFromRaw)) {
 				val = this.normalizeNumeric(field, numFromRaw);
@@ -548,7 +548,9 @@ frappe.ui.filter_utils = {
 		} else if (["in", "not in"].includes(condition)) {
 			if (val) {
 				let parts = val.split(",").map((v) => strip(v));
-				const isNumericField = ["Int", "Float", "Currency", "Rating", "Percent"].includes(field.df.fieldtype);
+				const isNumericField = ["Int", "Float", "Currency", "Rating", "Percent"].includes(
+					field.df.fieldtype
+				);
 				if (isNumericField) {
 					parts = parts.map((p) => {
 						const num = this.parseLocalizedNumber(p);
