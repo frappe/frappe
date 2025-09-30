@@ -234,7 +234,7 @@ class DatabaseQuery:
 
 		if self.distinct:
 			if not args.fields.startswith("distinct"):
-				#Avoiding distinct twice in query
+				# Avoiding distinct twice in query
 				args.fields = "distinct " + args.fields
 			args.order_by = ""  # TODO: recheck for alternative
 
