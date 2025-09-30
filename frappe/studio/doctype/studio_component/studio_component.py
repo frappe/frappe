@@ -25,6 +25,7 @@ class StudioComponent(Document):
 		component_id: DF.Data | None
 		component_name: DF.Data | None
 		inputs: DF.Table[StudioComponentInput]
+		is_disabled: DF.Check
 	# end: auto-generated types
 
 	def before_insert(self):

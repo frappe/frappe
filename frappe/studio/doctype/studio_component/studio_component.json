@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "component_name",
+  "is_disabled",
   "block",
   "component_id",
   "interface_tab",
@@ -40,12 +41,18 @@
    "fieldname": "block",
    "fieldtype": "JSON",
    "label": "Block"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Is Disabled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-31 02:19:41.622132",
+ "modified": "2025-09-12 02:24:49.245875",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
