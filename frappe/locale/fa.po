@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-09-30 21:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1985,7 +1985,7 @@ msgstr "شناسه ایمیل جایگزین"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Always"
-msgstr ""
+msgstr "همیشه"
 
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2433,7 +2433,7 @@ msgstr "طبق درخواست شما، حساب و داده های شما در {
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Ask"
-msgstr ""
+msgstr "بپرس"
 
 #. Label of the assign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -5123,7 +5123,7 @@ msgstr "شرایط"
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Config"
-msgstr ""
+msgstr "پیکربندی"
 
 #. Label of the configuration_section (Section Break) field in DocType 'Social
 #. Login Key'
@@ -7302,7 +7302,7 @@ msgstr "سرصفحه هایی را که در قالب از پیش تنظیم ش�
 
 #: frappe/public/js/frappe/router.js:624
 msgid "Do not warn me again about {0}"
-msgstr ""
+msgstr "دوباره در مورد {0} به من هشدار نده"
 
 #: frappe/core/doctype/system_settings/system_settings.js:71
 msgid "Do you still want to proceed?"
@@ -8437,7 +8437,7 @@ msgstr "حساب ایمیل تنظیم نشده است. لطفاً یک حساب
 
 #: frappe/email/doctype/email_account/email_account.py:576
 msgid "Email Account {0} Disabled"
-msgstr ""
+msgstr "حساب ایمیل {0} غیرفعال شد"
 
 #. Label of the email_id (Data) field in DocType 'Address'
 #. Label of the email_id (Data) field in DocType 'Contact'
@@ -9311,7 +9311,7 @@ msgstr "اجرای اسکریپت کنسول"
 
 #: frappe/public/js/frappe/ui/dropdown_console.js:132
 msgid "Executing Code"
-msgstr ""
+msgstr "در حال اجرای کد"
 
 #: frappe/desk/doctype/system_console/system_console.js:18
 msgid "Executing..."
@@ -16278,7 +16278,7 @@ msgstr "تنظیمات ناوبری"
 
 #: frappe/public/js/frappe/list/list_view.js:485
 msgid "Need Help?"
-msgstr ""
+msgstr "به کمک نیاز دارید؟"
 
 #: frappe/desk/doctype/workspace/workspace.py:322
 msgid "Need Workspace Manager role to edit private workspace of other users"
@@ -16305,7 +16305,7 @@ msgstr "تنظیمات چاپگر شبکه"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Never"
-msgstr ""
+msgstr "هرگز"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
@@ -23746,7 +23746,7 @@ msgstr "نمایش خطا"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show External Link Warning"
-msgstr ""
+msgstr "نمایش هشدار لینک خارجی"
 
 #: frappe/public/js/frappe/form/layout.js:578
 msgid "Show Fieldname (click to copy on clipboard)"
@@ -24087,19 +24087,19 @@ msgstr "ثبت نام برای این وب سایت غیرفعال شده است
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == \"Invalid\"</code>"
-msgstr ""
+msgstr "عبارت ساده پایتون، مثال: <code class=\"language-python\">status == \"Invalid\"</code>"
 
 #. Description of the 'Assign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>"
-msgstr ""
+msgstr "عبارت ساده پایتون، مثال: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>"
 
 #. Description of the 'Unassign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>"
-msgstr ""
+msgstr "عبارت ساده پایتون، مثال: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>"
 
 #. Label of the simultaneous_sessions (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -27069,7 +27069,7 @@ msgstr "قابل ترجمه"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2248
 msgid "Translate Data"
-msgstr ""
+msgstr "ترجمه داده‌ها"
 
 #. Label of the translated_doctype (Check) field in DocType 'DocType'
 #. Label of the translated_doctype (Check) field in DocType 'Customize Form'
@@ -27729,7 +27729,7 @@ msgstr "در حال به‌روزرسانی {0} از {1}، {2}"
 
 #: frappe/public/js/billing.bundle.js:131
 msgid "Upgrade plan"
-msgstr ""
+msgstr "طرح ارتقا"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:331
 msgid "Upgrade your support experience with Frappe Helpdesk"
@@ -29522,7 +29522,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/router.js:642
 msgid "You are about to open an external link. To confirm, click the link again."
-msgstr ""
+msgstr "شما در حال باز کردن یک لینک خارجی هستید. برای تأیید، دوباره روی لینک کلیک کنید."
 
 #: frappe/public/js/frappe/dom.js:438
 msgid "You are connected to internet."
@@ -29593,7 +29593,7 @@ msgstr "شما اجازه دسترسی به این صفحه را ندارید."
 
 #: frappe/__init__.py:465
 msgid "You are not permitted to access this resource. Login to access"
-msgstr ""
+msgstr "شما اجازه دسترسی به این منبع را ندارید. برای دسترسی وارد شوید"
 
 #: frappe/public/js/frappe/form/sidebar/document_follow.js:131
 msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
@@ -29977,7 +29977,7 @@ msgstr "شما این را مشاهده کردید"
 
 #: frappe/public/js/frappe/router.js:653
 msgid "You will be redirected to:"
-msgstr ""
+msgstr "شما هدایت خواهید شد به:"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
