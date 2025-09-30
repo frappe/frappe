@@ -21,7 +21,7 @@
 					type="autocomplete"
 					:placeholder="`Select fields from ${formMeta.doctype}`"
 					v-model="formMeta.fields"
-					:options="doctypeFields"
+					:options="doctypeFields.data"
 					:multiple="true"
 				/>
 				<Grid
@@ -82,31 +82,29 @@ const formMeta = ref({
 	fields: [],
 })
 
-const doctypeFields = ref([])
-async function setDoctypeFields(doctype: string) {
-	const fields = createResource({
-		url: "studio.api.get_doctype_fields",
-		params: { doctype: doctype },
-		transform: (data: DocTypeField[]) => {
-			return data.map((field) => {
-				const { componentName, componentType } = getComponentFromFieldType(field.fieldtype)
-				return {
-					...field,
-					componentName: componentName,
-					componentType: componentType,
-				}
-			})
-		},
-	})
-	await fields.reload()
-	doctypeFields.value = fields.data
-}
+const doctypeFields = createResource({
+	url: "studio.api.get_doctype_fields",
+	makeParams() {
+		return { doctype: formMeta.value.doctype }
+	},
+	transform: (data: DocTypeField[]) => {
+		return data.map((field) => {
+			const { componentName, componentType } = getComponentFromFieldType(field.fieldtype)
+			return {
+				...field,
+				value: field.fieldname,
+				componentName: componentName,
+				componentType: componentType,
+			}
+		})
+	},
+})
 
 watch(
 	() => formMeta.value?.doctype,
 	(doctype) => {
 		if (!doctype) return
-		setDoctypeFields(doctype)
+		doctypeFields.fetch()
 	},
 )
 
