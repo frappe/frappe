@@ -720,6 +720,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		return new Promise((resolve) => {
+			const js_filters = (frappe.query_reports[this.report_name]?.filters || [])
+				.filter(
+					(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
+				)
+				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
+
+			console.log(js_filters, "js_filters");
+
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
 				type: "GET",
@@ -730,7 +738,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
 					are_default_filters: are_default_filters,
-					js_filters: frappe.query_reports[this.report_name]?.filters,
+					js_filters: js_filters,
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),

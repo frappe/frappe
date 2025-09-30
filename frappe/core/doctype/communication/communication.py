@@ -565,11 +565,11 @@ def parse_email(email_strings):
 
 		for email in email_string.split(","):
 			local_part = email.split("@", 1)[0].strip('"')
-			user, detail = None, None
+			_user, detail = None, None
 			if "+" in local_part:
-				user, detail = local_part.split("+", 1)
+				_user, detail = local_part.split("+", 1)
 			elif "--" in local_part:
-				detail, user = local_part.rsplit("--", 1)
+				detail, _user = local_part.rsplit("--", 1)
 
 			if not detail:
 				continue

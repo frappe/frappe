@@ -547,7 +547,7 @@ def get_field_info(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({ _(parenttype) })"
+				label += f" ({_(parenttype)})"
 
 		field_info.append(
 			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}

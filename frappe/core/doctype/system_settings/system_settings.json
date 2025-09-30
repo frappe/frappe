@@ -30,6 +30,7 @@
   "apply_strict_user_permissions",
   "column_break_21",
   "allow_older_web_view_links",
+  "show_external_link_warning",
   "security_tab",
   "security",
   "session_expiry",
@@ -744,12 +745,19 @@
    "fieldtype": "Int",
    "label": "Max signups allowed per hour",
    "non_negative": 1
+  },
+  {
+   "default": "Never",
+   "fieldname": "show_external_link_warning",
+   "fieldtype": "Select",
+   "label": "Show External Link Warning",
+   "options": "Never\nAsk\nAlways"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-09-03 10:52:38.096662",
+ "modified": "2025-09-24 16:04:02.016562",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

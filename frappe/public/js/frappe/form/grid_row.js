@@ -8,11 +8,12 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.depandant_fields = {
+		this.dependent_fields = {
 			mandatory: [],
 			read_only: [],
 		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
+		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
 	}
 	make() {
@@ -160,7 +161,7 @@ export default class GridRow {
 		this.grid.add_new_row(idx, null, show, copy_doc);
 	}
 	move() {
-		// promopt the user where they want to move this row
+		// prompt the user where they want to move this row
 		var me = this;
 		frappe.prompt(
 			{
@@ -802,7 +803,7 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.mandatory_depends_on)
 		) {
 			df.reqd = 1;
-			this.depandant_fields["mandatory"].push(df);
+			this.dependent_fields["mandatory"].push(df);
 		}
 
 		if (
@@ -811,16 +812,16 @@ export default class GridRow {
 			this.evaluate_depends_on_value(df.read_only_depends_on)
 		) {
 			df.read_only = 1;
-			this.depandant_fields["read_only"].push(df);
+			this.dependent_fields["read_only"].push(df);
 		}
 	}
 
-	refresh_depedency() {
-		this.depandant_fields["read_only"].forEach((df) => {
+	refresh_dependency() {
+		this.dependent_fields["read_only"].forEach((df) => {
 			df.read_only = 0;
 			this.set_dependant_property(df);
 		});
-		this.depandant_fields["mandatory"].forEach((df) => {
+		this.dependent_fields["mandatory"].forEach((df) => {
 			df.reqd = 0;
 			this.set_dependant_property(df);
 		});
@@ -871,7 +872,7 @@ export default class GridRow {
 		let show_length =
 			this.grid?.meta?.rows_threshold_for_grid_search > 0
 				? this.grid.meta.rows_threshold_for_grid_search
-				: 20;
+				: this.default_rows_threshold_for_grid_search;
 		this.show_search =
 			this.show_search &&
 			(this.grid?.data?.length >= show_length || this.grid.filter_applied);
@@ -1016,7 +1017,7 @@ export default class GridRow {
 			}
 		}
 
-		// Delay date_picker widget to prevent temparary layout shift (UX).
+		// Delay date_picker widget to prevent temporary layout shift (UX).
 		function handle_date_picker() {
 			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
 
@@ -1184,7 +1185,7 @@ export default class GridRow {
 		// df.onchange is common for all rows in grid
 		let field_on_change_function = df.onchange;
 		field.df.change = (e) => {
-			this.refresh_depedency();
+			this.refresh_dependency();
 			// trigger onchange with current grid row field as "this"
 			field_on_change_function && field_on_change_function.apply(field, [e]);
 			me.refresh_field(field.df.fieldname);

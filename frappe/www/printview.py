@@ -229,7 +229,7 @@ def get_rendered_template(
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
-					{ letter_head.header_script }
+					{letter_head.header_script}
 				</script>
 			"""
 
@@ -238,7 +238,7 @@ def get_rendered_template(
 		if letter_head.footer_script:
 			letter_head.footer += f"""
 				<script>
-					{ letter_head.footer_script }
+					{letter_head.footer_script}
 				</script>
 			"""
 

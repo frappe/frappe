@@ -336,7 +336,7 @@ def restore_backup(
 	# Check if the backup is of an older version of frappe and the user hasn't specified force
 	if is_downgrade(sql_file_path, verbose=True) and not force:
 		warn_message = (
-			"This is not recommended and may lead to unexpected behaviour. " "Do you want to continue anyway?"
+			"This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
 

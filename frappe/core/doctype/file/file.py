@@ -25,6 +25,7 @@ from frappe.utils import (
 	get_url,
 )
 from frappe.utils.file_manager import is_safe_path
+from frappe.utils.html_utils import escape_html
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.pdf import pdf_contains_js
 
@@ -141,7 +142,6 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
-		self.check_content()
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
@@ -435,6 +435,9 @@ class File(Document):
 			self.file_name = self.file_url.split("/")[-1]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
+
+		# Escape HTML characters in file name
+		self.file_name = escape_html(self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
@@ -785,7 +788,7 @@ class File(Document):
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
-		file_name = self.file_name or self.file_url
+		file_name = escape_html(self.file_name or self.file_url)
 
 		self.add_comment_in_reference_doc(
 			"Attachment",

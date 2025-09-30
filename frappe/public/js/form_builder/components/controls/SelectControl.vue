@@ -67,8 +67,18 @@ let select_control = computed(() => {
 });
 
 let content = computed({
-	get: () => props.modelValue,
+	get: () => props.modelValue ?? props.df.default,
 	set: (value) => emit("update:modelValue", value),
+});
+
+// Get the display label for the current selected value
+let display_value = computed(() => {
+	const current_value = content.value;
+	if (!current_value) return "";
+
+	const options = get_options();
+	const selected_option = options?.find((opt) => opt.value === current_value);
+	return selected_option ? selected_option.label : current_value;
 });
 
 onMounted(() => {
@@ -101,7 +111,7 @@ watch(
 
 		<!-- select input -->
 		<div class="select-input">
-			<input class="form-control" readonly />
+			<input class="form-control" readonly :value="display_value" />
 			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
 		</div>
 

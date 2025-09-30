@@ -199,7 +199,7 @@ def _make_logs_v1():
 			[orjson.dumps(d).decode() for d in frappe.local.message_log]
 		).decode()
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
 
 	if frappe.flags.error_message:
@@ -212,7 +212,7 @@ def _make_logs_v2():
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 

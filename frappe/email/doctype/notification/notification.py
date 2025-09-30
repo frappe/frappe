@@ -352,7 +352,9 @@ def get_context(context):
 		              To queue a notification from a server script:
 
 		              ```python
-		              notification = frappe.get_doc("Notification", "My Notification", ignore_permissions=True)
+		              notification = frappe.get_doc(
+		                  "Notification", "My Notification", ignore_permissions=True
+		              )
 		              notification.queue_send(customer)
 		              ```
 
