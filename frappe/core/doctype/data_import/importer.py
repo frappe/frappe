@@ -272,6 +272,9 @@ class Importer:
 		}
 
 		new_doc.insert()
+
+		self.validate_and_upload_files(doc, new_doc.name, new_doc)
+
 		if meta.is_submittable and self.data_import.submit_after_import:
 			new_doc.submit()
 		return new_doc
@@ -282,8 +285,9 @@ class Importer:
 
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 
-		updated_doc.update(doc)
+		self.validate_and_upload_files(doc, doc.get(id_field.fieldname), doc=None)
 
+		updated_doc.update(doc)
 		if get_diff(existing_doc, updated_doc):
 			# update doc if there are changes
 			updated_doc.flags.updater_reference = {
@@ -296,6 +300,25 @@ class Importer:
 		else:
 			# throw if no changes
 			frappe.throw(_("No changes to update"))
+
+	def validate_and_upload_files(self, data, fieldname, doc=None):
+		"""
+		Checks if the provided file have attach fields, if yes then upload and update the file url on the doctype
+		"""
+		attach_fields, is_public = get_attach_fields(self.doctype)
+		if matching_fields := set(data.keys()) & set(attach_fields):
+			for fld in matching_fields:
+				if not data.get(fld):
+					continue
+
+				if os.path.exists(data.get(fld)):
+					file_url = read_and_upload_file(data, self.doctype, fieldname, fld, is_public)
+					if not doc:
+						data[fld] = file_url
+					else:
+						doc.db_set(fld, file_url)
+				else:
+					frappe.throw(_("File {} does not exists in the local file system!").format(data.get(fld)))
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -1320,3 +1343,43 @@ def create_import_log(data_import, log_index, log_details):
 			"exception": log_details.get("exception"),
 		}
 	).db_insert()
+
+
+def get_attach_fields(doctype):
+	std_field = frappe.db.get_all(
+		"DocField",
+		{"parent": doctype, "fieldtype": ["IN", ["Attach", "Attach Image", "Image"]]},
+		pluck="fieldname",
+	)
+	custom_fields = frappe.db.get_all(
+		"Custom Field",
+		{"dt": doctype, "fieldtype": ["IN", ["Attach", "Attach Image", "Image"]]},
+		pluck="fieldname",
+	)
+	is_public = frappe.db.get_value("DocType", doctype, "make_attachments_public")
+	return std_field + custom_fields, is_public
+
+
+def read_and_upload_file(doc, doctype, docname, field, is_public=0):
+	"""Read and upload then update the file path in the doc"""
+
+	from frappe.utils.file_manager import get_file_name
+
+	file_name = os.path.basename(doc.get(field))
+	with open(doc.get(field), mode="rb") as file:
+		content = file.read()
+
+	file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"attached_to_field": field,
+			"folder": "Home",
+			"file_name": get_file_name(file_name, frappe.generate_hash(length=8)),
+			"is_private": 0 if is_public else 1,
+			"content": content,
+		}
+	)
+	file.save(ignore_permissions=True)
+	return file.file_url
