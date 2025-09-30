@@ -60,7 +60,7 @@
 						type="autocomplete"
 						:placeholder="`Select fields from ${newResource.document_type}`"
 						v-model="newResource.fields"
-						:options="doctypeFields"
+						:options="doctypeFields.data"
 						:multiple="true"
 					/>
 					<FormControl
@@ -76,7 +76,7 @@
 							placeholder="Select sort field"
 							:modelValue="newResource.sort_field"
 							@update:modelValue="(val: SelectOption) => (newResource.sort_field = val.value)"
-							:options="sortOptions.data || []"
+							:options="sortFields.data"
 							class="w-full"
 						/>
 						<FormControl
@@ -116,7 +116,7 @@
 						label="Whitelisted Methods"
 						type="autocomplete"
 						v-model="newResource.whitelisted_methods"
-						:options="whitelistedMethods"
+						:options="whitelistedMethods.data"
 						:multiple="true"
 					/>
 				</template>
@@ -219,8 +219,9 @@ watch(
 async function getResourceToEdit() {
 	const filters = getParsedFilters(props.resource?.filters)
 	if (props.resource?.document_type) {
-		await setDoctypeFields(props.resource.document_type)
-		await setWhitelistedMethods(props.resource.document_type)
+		await doctypeFields.fetch()
+		await whitelistedMethods.fetch()
+		await sortFields.fetch()
 	}
 
 	return {
@@ -246,54 +247,46 @@ function getParsedFilters(filters: string | object | undefined) {
 	return filters
 }
 
-const doctypeFields = ref([])
 const filterFields = ref<DocTypeField[]>([])
 
-async function setDoctypeFields(doctype: string) {
-	const fields = createResource({
-		url: "studio.api.get_doctype_fields",
-		params: { doctype: doctype },
-		transform: (data: DocTypeField[]) => {
-			filterFields.value = data
-			return data.map((field) => {
-				return {
-					label: field.fieldname,
-					value: field.fieldname,
-				}
-			})
-		},
-	})
-	await fields.reload()
-	doctypeFields.value = fields.data
-}
-
-const whitelistedMethods = ref([])
-async function setWhitelistedMethods(doctype: string) {
-	const methods = createResource({
-		url: "studio.api.get_whitelisted_methods",
-		params: { doctype: doctype },
-		transform: (data: string[]) => {
-			return data.map((method) => {
-				return {
-					label: method,
-					value: method,
-				}
-			})
-		},
-	})
-	await methods.reload()
-	whitelistedMethods.value = methods.data
-}
-
-const sortOptions = createResource({
-	url: "studio.api.get_sort_fields",
-	cache: ["sortOptions", newResource.value.document_type],
-	makeParams() {
-		return {
-			doctype: newResource.value.document_type,
-		}
+const doctypeFields = createResource({
+	url: "studio.api.get_doctype_fields",
+	makeParams,
+	transform: (data: DocTypeField[]) => {
+		filterFields.value = data
+		return data.map((field) => {
+			return {
+				label: field.fieldname,
+				value: field.fieldname,
+			}
+		})
 	},
 })
+
+const whitelistedMethods = createResource({
+	url: "studio.api.get_whitelisted_methods",
+	makeParams,
+	transform: (data: string[]) => {
+		return data.map((method) => {
+			return {
+				label: method,
+				value: method,
+			}
+		})
+	},
+})
+
+const sortFields = createResource({
+	url: "studio.api.get_sort_fields",
+	cache: ["sortFields", newResource.value.document_type],
+	makeParams,
+})
+
+function makeParams() {
+	return {
+		doctype: props.resource?.document_type || newResource.value.document_type,
+	}
+}
 
 function getTransformFnBoilerplate(resource_type: ResourceType) {
 	if (resource_type == "Document") {
@@ -307,9 +300,9 @@ watch(
 	() => newResource.value?.document_type,
 	(doctype) => {
 		if (!doctype) return
-		setDoctypeFields(doctype)
-		setWhitelistedMethods(doctype)
-		sortOptions.reload()
+		doctypeFields.fetch()
+		whitelistedMethods.fetch()
+		sortFields.fetch()
 	},
 )
 
