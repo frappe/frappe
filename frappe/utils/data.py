@@ -1633,7 +1633,7 @@ def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
 			return
 
 		try:
-			image, unused_filename, extn = get_local_image(src)
+			image, _unused_filename, extn = get_local_image(src)
 		except OSError:
 			return
 
@@ -1738,7 +1738,15 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
 	e.g. ['a', 'b', 'c'] -> "'a', 'b' or 'c'"
 	"""
-	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
+	from babel import Locale
+
+	try:
+		locale = Locale.parse(frappe.local.lang, sep="-")
+		pattern = locale.list_patterns["or"]["end"]
+	except Exception:
+		pattern = frappe._("{0} or {1}")
+
+	return comma_sep(some_list, pattern, add_quotes)
 
 
 def comma_and(some_list: list | tuple, add_quotes=True) -> str:
@@ -1748,7 +1756,15 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
 	e.g. ['a', 'b', 'c'] -> "'a', 'b' and 'c'"
 	"""
-	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
+	from babel import Locale
+
+	try:
+		locale = Locale.parse(frappe.local.lang, sep="-")
+		pattern = locale.list_patterns["standard"]["end"]
+	except Exception:
+		pattern = frappe._("{0} and {1}")
+
+	return comma_sep(some_list, pattern, add_quotes)
 
 
 def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
@@ -1992,7 +2008,7 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 
 
 def sql_like(value: str, pattern: str) -> bool:
-	if not isinstance(pattern, str) and isinstance(value, str):
+	if not (isinstance(pattern, str) and isinstance(value, str)):
 		return False
 	if pattern.startswith("%") and pattern.endswith("%"):
 		return pattern.strip("%") in value
@@ -2005,7 +2021,7 @@ def sql_like(value: str, pattern: str) -> bool:
 		return pattern in value
 
 
-def filter_operator_is(value: str, pattern: str) -> bool:
+def filter_operator_is(value: str | None, pattern: str) -> bool:
 	"""Operator `is` can have two values: 'set' or 'not set'."""
 	pattern = pattern.lower()
 
@@ -2066,11 +2082,37 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	return True
 
 
-def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
+def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) -> bool:
+	"""Compare two values using the specified operator with optional fieldtype casting.
+
+	Args:
+		val1: The left operand value to compare
+		condition: The comparison operator (e.g., "=", ">", "is", "in", "like")
+		val2: The right operand value to compare against
+		fieldtype: Optional fieldtype for casting val1 (and val2 for most operators)
+
+	Returns:
+		bool: True if the comparison evaluates to True, False otherwise
+
+	Note:
+	- For "is" operator: No casting is performed to preserve None values
+	- For "in"/"not in" operators: Only val1 is cast (if not None), val2 remains unchanged
+	- For "Timespan" operator: No casting is performed
+	- For other operators: Both val1 and val2 are cast to the specified fieldtype
+	"""
 	if fieldtype:
-		val1 = cast(fieldtype, val1)
-		if condition != "Timespan":
+		if condition in {"is", "Timespan"}:
+			# No casting to preserve original values
+			pass
+		elif condition in {"in", "not in"}:
+			# Cast only val1 (if not None), preserve val2 container
+			if val1 is not None:
+				val1 = cast(fieldtype, val1)
+		else:
+			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
+			val1 = cast(fieldtype, val1)
 			val2 = cast(fieldtype, val2)
+
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 

@@ -1,9 +1,16 @@
+@mixin grid-focus() {
+	outline: none;
+	border: 1px solid var(--gray-400) !important;
+}
 .form-grid {
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
 	min-height: 150px;
 	background-color: var(--subtle-accent);
+	&:focus-visible {
+		@include grid-focus();
+	}
 }
 
 .form-grid.error {
@@ -136,7 +143,7 @@
 	.row-index {
 		left: 31px;
 	}
-	button.col:focus {
+	button.col:focus-visible {
 		outline: 1px solid #c9c9c9;
 	}
 }
@@ -168,7 +175,7 @@
 		padding: 7px !important;
 
 		input {
-			height: -webkit-fill-available;
+			height: 100%;
 			padding: 3px 7px;
 		}
 	}
@@ -577,11 +584,16 @@
 
 .grid-pagination {
 	padding: 0;
+	display: flex;
+	.last-page {
+		margin-left: 5px;
+	}
 }
 
 .page-text {
 	display: inline-block;
 	cursor: default;
+	margin-right: 6px;
 }
 
 .current-page-number {
@@ -682,6 +694,9 @@
 		display: grid;
 		grid-auto-rows: min-content;
 		border: unset;
+		&:focus-visible {
+			@include grid-focus();
+		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
 			width: 60px;

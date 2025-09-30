@@ -209,6 +209,7 @@ scheduler_events = {
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
 			"frappe.search.sqlite_search.build_index_if_not_exists",
+			"frappe.pulse.client.send_queued_events",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -238,6 +239,7 @@ scheduler_events = {
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		"frappe.desk.utils.delete_old_exported_report_files",
 	],
 	"daily": [
 		"frappe.desk.doctype.event.event.send_event_digest",
@@ -575,5 +577,7 @@ persistent_cache_keys = [
 ]
 
 user_invitation = {
-	"only_for": ["System Manager"],
+	"allowed_roles": {
+		"System Manager": [],
+	},
 }

@@ -36,7 +36,7 @@
   "default_incoming",
   "column_break_uynb",
   "attachment_limit",
-  "last_synced_at",
+  "last_received_at",
   "mailbox_settings",
   "use_imap",
   "use_ssl",
@@ -257,7 +257,7 @@
   {
    "default": "250",
    "depends_on": "use_imap",
-   "description": "Total number of emails to sync in initial sync process ",
+   "description": "Total number of emails to sync in initial sync process",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -662,12 +662,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.service == \"Frappe Mail\"",
-   "fieldname": "last_synced_at",
-   "fieldtype": "Datetime",
-   "label": "Last Synced At"
-  },
-  {
    "depends_on": "eval: (doc.service == \"Frappe Mail\" && doc.auth_method != \"Basic\" && !doc.__islocal && !doc.__unsaved)",
    "fieldname": "validate_frappe_mail_settings",
    "fieldtype": "Button",
@@ -707,13 +701,19 @@
    "fieldtype": "Data",
    "label": "Always BCC Address",
    "options": "Email"
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "last_received_at",
+   "fieldtype": "Datetime",
+   "label": "Last Received At"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-08-12 14:21:32.125212",
+ "modified": "2025-08-20 11:35:14.540578",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

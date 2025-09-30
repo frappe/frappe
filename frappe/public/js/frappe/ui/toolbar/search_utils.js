@@ -5,7 +5,7 @@ frappe.search.utils = {
 	setup_recent: function () {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
-
+	results_to_hide: [],
 	get_recent_pages: function (keywords) {
 		if (keywords === null) keywords = "";
 		var me = this,
@@ -105,10 +105,19 @@ frappe.search.utils = {
 			out.index = 80;
 			return out;
 		});
-
+		this.hide_results(options);
 		return options;
 	},
-
+	hide_results(options) {
+		if (this.results_to_hide.length == 0) return;
+		this.results_to_hide.forEach((v, i) => {
+			options.forEach((o, j) => {
+				if (o.value == v) {
+					options.splice(j, 1);
+				}
+			});
+		});
+	},
 	get_frequent_links() {
 		let options = [];
 		frappe.boot.frequently_visited_links.forEach((link) => {
@@ -577,9 +586,13 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
-		const item = __(_item);
+		let item = __(_item);
 
-		const [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		let [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		if (score == 0 && frappe.boot.lang !== "en" && item != _item) {
+			item = _item || "";
+			[, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		}
 
 		if (!return_marked_string) {
 			return score;

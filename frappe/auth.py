@@ -66,6 +66,9 @@ class HTTPRequest:
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
 
+		elif frappe.request and getattr(frappe.request, "remote_addr", None):
+			frappe.local.request_ip = frappe.request.remote_addr
+
 		else:
 			frappe.local.request_ip = "127.0.0.1"
 
@@ -666,7 +669,7 @@ def validate_oauth(authorization_header):
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(
 			get_url_delimiter()
 		)
-		valid, oauthlib_request = get_oauth_server().verify_request(
+		valid, _oauthlib_request = get_oauth_server().verify_request(
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:

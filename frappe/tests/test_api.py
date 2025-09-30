@@ -461,15 +461,17 @@ class TestResponse(FrappeAPITestCase):
 
 	def test_login_redirects(self):
 		expected_redirects = {
-			"/app/user": "/app/user",
-			"/app/user?enabled=1": "/app/user?enabled=1",
-			"http://example.com": "/app",  # No external redirect
-			"https://google.com": "/app",
-			"http://localhost:8000": "/app",
+			"/app/user": "http://localhost/app/user",
+			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
+			"http://example.com": "http://localhost/app",  # No external redirect
+			"https://google.com": "http://localhost/app",
+			"http://localhost:8000": "http://localhost/app",
 			"http://localhost/app": "http://localhost/app",
+			"////example.com": "http://localhost//example.com",  # malicious redirect attempt
 		}
+
 		for redirect, expected_redirect in expected_redirects.items():
-			response = self.get(f"/login?{urlencode({'redirect-to':redirect})}", {"sid": self.sid})
+			response = self.get(f"/login?{urlencode({'redirect-to': redirect})}", {"sid": self.sid})
 			self.assertEqual(response.location, expected_redirect)
 
 

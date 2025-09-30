@@ -24,10 +24,14 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 						this.grid.grid_rows[row_idx - 1].toggle_editable_row(true);
 					}
 				} else {
-					if (this.grid.grid_rows.length > 0)
+					if (this.grid.grid_rows.length > 0) {
 						this.grid.grid_rows[this.grid.grid_rows.length - 1].toggle_editable_row(
 							true
 						);
+					} else {
+						this.grid.add_new_row(null, null, true, null, true);
+						this.grid.grid_rows[0].toggle_editable_row(true);
+					}
 				}
 			}
 		});

@@ -97,7 +97,7 @@ def safe_exec(
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
 		docs_cta = _("Read the documentation to know more")
-		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script' target='_blank' rel='noopener noreferrer'>{docs_cta}</a>"
 		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals

@@ -14,7 +14,7 @@ import pdfkit
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
-from pypdf import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter, errors
 
 import frappe
 from frappe import _
@@ -384,3 +384,44 @@ def get_wkhtmltopdf_version():
 			pass
 
 	return wkhtmltopdf_version or "0"
+
+
+def pdf_contains_js(file_content: bytes):
+	"""
+	Check if a PDF file contains JavaScript.
+
+	Args:
+		file_content (bytes): The content of the PDF file.
+
+	Returns:
+		bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
+	"""
+	from io import BytesIO
+
+	reader = PdfReader(BytesIO(file_content))
+
+	def has_javascript(obj):
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				if key in ("/JS", "/JavaScript"):
+					return True
+				if has_javascript(value):
+					return True
+		elif isinstance(obj, list):
+			for item in obj:
+				if has_javascript(item):
+					return True
+		return False
+
+	root = reader.trailer.get("/Root", {})
+	if has_javascript(root):
+		return True
+
+	try:
+		for page in reader.pages:
+			if has_javascript(page):
+				return True
+	except errors.FileNotDecryptedError:
+		pass
+
+	return False

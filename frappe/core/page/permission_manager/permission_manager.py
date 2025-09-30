@@ -22,7 +22,7 @@ from frappe.permissions import (
 )
 from frappe.utils.user import get_users_with_role as _get_user_with_role
 
-not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def", "Transaction Log"]
+not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def"]
 
 
 @frappe.whitelist()

@@ -170,7 +170,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	prepare_data(data) {
 		super.prepare_data(data);
+		this.prepare_file_data();
+	}
 
+	prepare_file_data() {
 		this.data = this.data.map((d) => this.prepare_datum(d));
 
 		// Bring folders to the top
@@ -244,6 +247,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	render() {
 		this.$result.empty().removeClass("file-grid-view");
 		if (frappe.views.FileView.grid_view) {
+			this.prepare_file_data();
 			this.render_grid_view();
 		} else {
 			super.render();
@@ -256,32 +260,61 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	render_list() {
 		if (frappe.views.FileView.grid_view) {
+			this.prepare_file_data();
 			this.render_grid_view();
 		} else {
 			super.render_list();
 		}
 	}
 
+	remove_list_items(names) {
+		if (frappe.views.FileView.grid_view) {
+			for (let name of names) {
+				this.$result
+					.find(`.file-wrapper[data-name='${name.replace(/'/g, "\\'")}']`)
+					.remove();
+			}
+		} else {
+			super.remove_list_items(names);
+		}
+	}
+
 	render_grid_view() {
+		const base_url = frappe.urllib.get_base_url();
 		let html = this.data
 			.map((d) => {
 				const icon_class = d.icon_class + "-large";
+				const align_file_body_class =
+					d._type == "image" ? "align-flex-start" : "align-center";
+				const file_url = frappe.utils.escape_html(d.file_url);
+				const absolute_file_url = base_url + file_url;
 				let file_body_html =
 					d._type == "image"
-						? `<div class="file-image"><img src="${d.file_url}" alt="${d.file_name}"></div>`
+						? `<div class="file-image"><img class="w-100" src="${file_url}" alt="${d.file_name}"></div>`
 						: frappe.utils.icon(icon_class, {
 								width: "40px",
 								height: "45px",
 						  });
 				const name = escape(d.name);
+				const copy_url_btn = `
+					<div class="copy-file-url hidden-xs" title="${__(
+						"Copy File URL"
+					)}" data-file-url="${absolute_file_url}">
+						<svg class="es-icon es-line icon-sm" aria-hidden="true">
+							<use class="" href="#es-line-copy-light"></use>
+						</svg>
+					</div>
+					`;
 				const draggable = d.type == "Folder" ? false : true;
+
 				return `
 				<a href="${this.get_route_url(d)}"
 					draggable="${draggable}" class="file-wrapper ellipsis" data-name="${name}">
-					<div class="file-header">
+					<div class="file-header level w-100">
 						<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${name}">
+						${!d.is_folder ? copy_url_btn : ""}
 					</div>
-					<div class="file-body">
+					<div class="file-body ${align_file_body_class}">
 						${file_body_html}
 					</div>
 					<div class="file-footer">
@@ -411,6 +444,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	setup_events() {
 		super.setup_events();
 		this.setup_drag_events();
+		this.setup_copy_event();
 	}
 
 	setup_drag_events() {
@@ -459,6 +493,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					frappe.show_alert(`File ${file_name} moved to ${folder_name}`);
 				}
 			}
+		});
+	}
+
+	setup_copy_event() {
+		this.$result.on("click", ".copy-file-url", (e) => {
+			frappe.utils.copy_to_clipboard(e.currentTarget.getAttribute("data-file-url"));
+			e.preventDefault();
+			e.stopPropagation();
 		});
 	}
 

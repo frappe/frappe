@@ -610,20 +610,20 @@ frappe.request.report_error = function (xhr, request_opts) {
 			frappe.error_dialog = new frappe.ui.Dialog({
 				title: __("Server Error"),
 			});
-
-			if (error_report_email) {
-				frappe.error_dialog.set_primary_action(__("Report"), () => {
-					show_communication();
-					frappe.error_dialog.hide();
-				});
-			} else {
-				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
-					copy_markdown_to_clipboard();
-					frappe.error_dialog.hide();
-				});
-			}
-			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
+
+		if (error_report_email) {
+			frappe.error_dialog.set_primary_action(__("Report"), () => {
+				show_communication();
+				frappe.error_dialog.hide();
+			});
+		} else {
+			frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
+				copy_markdown_to_clipboard();
+				frappe.error_dialog.hide();
+			});
+		}
+		frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 
 		let parts = strip(exc).split("\n");
 
@@ -640,17 +640,17 @@ frappe.request.report_error = function (xhr, request_opts) {
 };
 
 frappe.request.cleanup_request_opts = function (request_opts) {
-	var doc = (request_opts.args || {}).doc;
+	let doc = (request_opts.args || {}).doc;
 	if (doc) {
 		doc = JSON.parse(doc);
-		$.each(Object.keys(doc), function (i, key) {
-			if (key.indexOf("password") !== -1 && doc[key]) {
-				// mask the password
-				doc[key] = "*****";
-			}
-		});
+		frappe.utils.mask_passwords(doc);
 		request_opts.args.doc = JSON.stringify(doc);
 	}
+
+	if (request_opts.args) {
+		frappe.utils.mask_passwords(request_opts.args);
+	}
+
 	return request_opts;
 };
 

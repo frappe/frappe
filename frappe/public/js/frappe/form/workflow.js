@@ -98,6 +98,7 @@ frappe.ui.form.States = class FormStates {
 
 		frappe.workflow.get_transitions(this.frm.doc).then((transitions) => {
 			this.frm.page.clear_actions_menu();
+			const frm = this.frm;
 			transitions.forEach((d) => {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
@@ -105,6 +106,7 @@ frappe.ui.form.States = class FormStates {
 						// set the workflow_action for use in form scripts
 						frappe.dom.freeze();
 						me.frm.selected_workflow_action = d.action;
+						if (!frappe.ui.form.check_mandatory(frm)) return frappe.dom.unfreeze();
 						me.frm.script_manager.trigger("before_workflow_action").then(() => {
 							frappe
 								.xcall("frappe.model.workflow.apply_workflow", {

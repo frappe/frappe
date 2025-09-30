@@ -336,7 +336,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		) {
 			this.page.add_menu_item(
 				__("Discard"),
-				function () {
+				() => {
 					this.frm._discard();
 				},
 				true
