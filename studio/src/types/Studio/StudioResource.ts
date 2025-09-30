@@ -29,7 +29,7 @@ export interface DocumentListResource extends BaseResource {
 	filters?: Filters
 	limit?: number | null
 	sort_field?: string
-	sort_order?: "ASC" | "DESC"
+	sort_order?: "" | "ASC" | "DESC"
 }
 
 export interface APIResource extends BaseResource {

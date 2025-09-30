@@ -70,7 +70,15 @@
 							type="autocomplete"
 							placeholder="Select sort field"
 							:modelValue="newResource.sort_field"
-							@update:modelValue="(val: SelectOption) => (newResource.sort_field = val.value)"
+							@update:modelValue="
+								(val: SelectOption | string) => {
+									if (typeof val === 'object') {
+										newResource.sort_field = val?.value
+									} else {
+										newResource.sort_field = val || ''
+									}
+								}
+							"
 							:options="sortFields.data"
 							class="w-full"
 						/>
@@ -79,7 +87,7 @@
 							type="select"
 							placeholder="Select sort order"
 							v-model="newResource.sort_order"
-							:options="['ASC', 'DESC']"
+							:options="['', 'ASC', 'DESC']"
 							class="w-full"
 						/>
 					</div>
@@ -196,8 +204,8 @@ const emptyResource: Resource = {
 	fields: [],
 	filters: {},
 	limit: null,
-	sort_field: undefined,
-	sort_order: undefined,
+	sort_field: "",
+	sort_order: "",
 	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",
