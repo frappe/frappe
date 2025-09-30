@@ -9,6 +9,8 @@ export const studioPageResources = createListResource({
 		"fields",
 		"filters",
 		"limit",
+		"sort_field",
+		"sort_order",
 		"document_type",
 		"document_name",
 		"fetch_document_using_filters",

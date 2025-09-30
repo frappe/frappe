@@ -1,6 +1,7 @@
 from typing import Literal
 
 import frappe
+from frappe import _
 from frappe.client import get_value
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
@@ -62,6 +63,36 @@ def get_whitelisted_methods(doctype: str) -> list[str]:
 				continue
 
 	return whitelisted_methods
+
+
+@frappe.whitelist()
+def get_sort_fields(doctype: str):
+	fields = frappe.get_meta(doctype).fields
+	fields = [field for field in fields if field.fieldtype not in no_value_fields]
+	fields = [
+		{
+			"label": _(field.label),
+			"value": field.fieldname,
+			"fieldname": field.fieldname,
+		}
+		for field in fields
+		if field.label and field.fieldname
+	]
+
+	standard_fields = [
+		{"label": "Name", "fieldname": "name"},
+		{"label": "Created On", "fieldname": "creation"},
+		{"label": "Last Modified", "fieldname": "modified"},
+		{"label": "Modified By", "fieldname": "modified_by"},
+		{"label": "Owner", "fieldname": "owner"},
+	]
+
+	for field in standard_fields:
+		field["label"] = _(field["label"])
+		field["value"] = field["fieldname"]
+		fields.append(field)
+
+	return fields
 
 
 @frappe.whitelist()

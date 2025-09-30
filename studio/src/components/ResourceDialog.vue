@@ -69,6 +69,25 @@
 						placeholder="Number of records to fetch (default: 20)"
 						v-model="newResource.limit"
 					/>
+					<div class="flex w-full flex-row gap-2">
+						<FormControl
+							label="Sort Field"
+							type="autocomplete"
+							placeholder="Select sort field"
+							:modelValue="newResource.sort_field"
+							@update:modelValue="(val: SelectOption) => (newResource.sort_field = val.value)"
+							:options="sortOptions.data || []"
+							class="w-full"
+						/>
+						<FormControl
+							label="Sort Order"
+							type="select"
+							placeholder="Select sort order"
+							v-model="newResource.sort_order"
+							:options="['asc', 'desc']"
+							class="w-full"
+						/>
+					</div>
 					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 				</template>
 
@@ -145,14 +164,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog } from "frappe-ui"
+import { createResource, Dialog, FormControl } from "frappe-ui"
 import Link from "@/components/Link.vue"
 import Code from "@/components/Code.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 import Grid from "@/components/Grid.vue"
 
-import type { DocTypeField } from "@/types"
+import type { DocTypeField, SelectOption } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
@@ -177,6 +196,8 @@ const emptyResource: Resource = {
 	fields: [],
 	filters: {},
 	limit: null,
+	sort_field: "creation",
+	sort_order: "desc",
 	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",
@@ -247,7 +268,6 @@ async function setDoctypeFields(doctype: string) {
 }
 
 const whitelistedMethods = ref([])
-
 async function setWhitelistedMethods(doctype: string) {
 	const methods = createResource({
 		url: "studio.api.get_whitelisted_methods",
@@ -265,6 +285,16 @@ async function setWhitelistedMethods(doctype: string) {
 	whitelistedMethods.value = methods.data
 }
 
+const sortOptions = createResource({
+	url: "studio.api.get_sort_fields",
+	cache: ["sortOptions", newResource.value.document_type],
+	makeParams() {
+		return {
+			doctype: newResource.value.document_type,
+		}
+	},
+})
+
 function getTransformFnBoilerplate(resource_type: ResourceType) {
 	if (resource_type == "Document") {
 		return "function transform(doc) { \n\treturn doc; \n}"
@@ -279,6 +309,7 @@ watch(
 		if (!doctype) return
 		setDoctypeFields(doctype)
 		setWhitelistedMethods(doctype)
+		sortOptions.reload()
 	},
 )
 
