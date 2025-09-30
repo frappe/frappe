@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-09-30 21:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,7 @@ msgstr ""
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -169,7 +169,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "1 z 2"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -767,7 +767,7 @@ msgstr ""
 #. Type: Action
 #: frappe/hooks.py
 msgid "About"
-msgstr ""
+msgstr "O programie"
 
 #: frappe/www/about.html:11 frappe/www/about.html:18
 msgid "About Us"
@@ -4474,7 +4474,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:287
 msgid "Clear Cache and Reload"
-msgstr ""
+msgstr "Wyczyść pamięć podręczną i przeładuj"
 
 #: frappe/core/doctype/error_log/error_log_list.js:12
 msgid "Clear Error Logs"
@@ -10627,7 +10627,7 @@ msgstr ""
 
 #: frappe/www/login.html:37
 msgid "Forgot Password?"
-msgstr ""
+msgstr "Zapomniałeś hasła?"
 
 #. Label of the form_builder_tab (Tab Break) field in DocType 'DocType'
 #. Option for the 'Apply To' (Select) field in DocType 'Client Script'
@@ -10764,7 +10764,7 @@ msgstr ""
 #. Type: Route
 #: frappe/hooks.py
 msgid "Frappe Support"
-msgstr ""
+msgstr "Wsparcie od Frappe"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "Frappe page builder using components"
@@ -11077,7 +11077,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:122
 msgid "Global Shortcuts"
-msgstr ""
+msgstr "Skróty globalne"
 
 #. Label of the global_unsubscribe (Check) field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
@@ -13859,7 +13859,7 @@ msgstr "Klucz"
 #. Type: Action
 #: frappe/hooks.py frappe/public/js/frappe/ui/keyboard.js:130
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "Skróty klawiszowe"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -14989,7 +14989,7 @@ msgstr ""
 
 #: frappe/www/login.html:64
 msgid "Login to {0}"
-msgstr ""
+msgstr "Logowanie do {0}"
 
 #: frappe/templates/includes/login/login.js:319
 msgid "Login token required"
@@ -14997,7 +14997,7 @@ msgstr ""
 
 #: frappe/www/login.html:126 frappe/www/login.html:210
 msgid "Login with Email Link"
-msgstr ""
+msgstr "Logowanie przez link"
 
 #: frappe/www/login.html:116
 msgid "Login with Frappe Cloud"
@@ -17891,7 +17891,7 @@ msgstr "Otwórz dokumenty"
 
 #: frappe/public/js/frappe/ui/keyboard.js:243
 msgid "Open Help"
-msgstr ""
+msgstr "Otwórz Pomoc"
 
 #. Label of the open_reference_document (Button) field in DocType 'Notification
 #. Log'
@@ -19509,7 +19509,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:139
 msgid "Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
-msgstr ""
+msgstr "Naciśnij klawisz Alt, aby uruchomić dodatkowe skróty w menu i pasku bocznym"
 
 #: frappe/public/js/frappe/list/list_filter.js:141
 msgid "Press Enter to save"
@@ -23789,7 +23789,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:234
 msgid "Show Keyboard Shortcuts"
-msgstr ""
+msgstr "Pokaż skróty klawiszowe"
 
 #. Label of the show_labels (Check) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json
@@ -25257,7 +25257,7 @@ msgstr ""
 #. Type: Route
 #: frappe/hooks.py
 msgid "System Health"
-msgstr ""
+msgstr "Stan systemu"
 
 #. Name of a DocType
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -28492,7 +28492,7 @@ msgstr ""
 
 #: frappe/templates/includes/login/login.js:171
 msgid "Verifying..."
-msgstr ""
+msgstr "Weryfikowanie..."
 
 #. Name of a DocType
 #: frappe/core/doctype/version/version.json
