@@ -80,7 +80,6 @@ def get_sort_fields(doctype: str):
 	]
 
 	standard_fields = [
-		{"label": "Name", "fieldname": "name"},
 		{"label": "Created On", "fieldname": "creation"},
 		{"label": "Last Modified", "fieldname": "modified"},
 		{"label": "Modified By", "fieldname": "modified_by"},
