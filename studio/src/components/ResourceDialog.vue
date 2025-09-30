@@ -63,12 +63,7 @@
 						:options="doctypeFields.data"
 						:multiple="true"
 					/>
-					<FormControl
-						label="Limit"
-						type="number"
-						placeholder="Number of records to fetch (default: 20)"
-						v-model="newResource.limit"
-					/>
+					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					<div class="flex w-full flex-row gap-2">
 						<FormControl
 							label="Sort Field"
@@ -88,7 +83,12 @@
 							class="w-full"
 						/>
 					</div>
-					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
+					<FormControl
+						label="Limit"
+						type="number"
+						placeholder="Number of records to fetch (default: 20)"
+						v-model="newResource.limit"
+					/>
 				</template>
 
 				<!-- Document -->
@@ -196,8 +196,8 @@ const emptyResource: Resource = {
 	fields: [],
 	filters: {},
 	limit: null,
-	sort_field: "creation",
-	sort_order: "desc",
+	sort_field: undefined,
+	sort_order: undefined,
 	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",

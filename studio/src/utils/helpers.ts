@@ -407,7 +407,7 @@ function getEvaluatedFilters(filters: Filters | null = null, context: Expression
 		filters = JSON.parse(filters)
 	}
 
-	if (!filters) return null
+	if (!filters) return
 	const evaluatedFilters: Filters = {}
 
 	for (const key in filters) {
@@ -555,15 +555,18 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 		case "Document":
 			return getDocumentResource(resource, context)
 		case "Document List":
-			return createListResource({
+			const params: any = {
 				doctype: resource.document_type,
 				fields: fields.length ? fields : "*",
 				filters: getEvaluatedFilters(resource.filters, context),
 				pageLength: resource.limit,
 				auto: true,
-				orderBy: `${resource.sort_field || "creation"} ${resource.sort_order || "desc"}`,
 				...getTransforms(resource),
-			})
+			}
+			if (resource.sort_field) {
+				params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
+			}
+			return createListResource(params)
 		case "API Resource":
 			return createResource({
 				url: resource.url,
