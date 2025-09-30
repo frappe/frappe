@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-09-30 21:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -6732,7 +6732,7 @@ msgstr ""
 #. Description of the 'Currency' (Link) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Default display currency"
-msgstr ""
+msgstr "Devise d'affichage par défaut"
 
 #: frappe/core/doctype/doctype/doctype.py:1377
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -11283,7 +11283,7 @@ msgstr "Google Agenda - Impossible d&#39;extraire l&#39;événement de Google Ag
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:252
 msgid "Google Calendar - Could not find Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google Agenda - Impossible de trouver l'agenda de {0}, code d'erreur {1}."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:232
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
@@ -25261,7 +25261,7 @@ msgstr "Passer Au Bureau"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:319
 msgid "Switch to Frappe CRM for smarter sales"
-msgstr ""
+msgstr "Passez à Frappe CRM pour des ventes plus intelligentes"
 
 #: frappe/public/js/frappe/ui/capture.js:281
 msgid "Switching Camera"
@@ -27834,7 +27834,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:331
 msgid "Upgrade your support experience with Frappe Helpdesk"
-msgstr ""
+msgstr "Améliorez votre expérience d'assistance avec Frappe Helpdesk"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:143
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:144
