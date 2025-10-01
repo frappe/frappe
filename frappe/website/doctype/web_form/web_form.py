@@ -306,46 +306,45 @@ def get_context(context):
 
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
-			messages.append("Move")
-			messages.append("Insert Above")
-			messages.append("Insert Below")
-			messages.append("Duplicate")
-			messages.append("Shortcuts")
-			messages.append("Ctrl + Up")
-			messages.append("Ctrl + Down")
-			messages.append("ESC")
-			messages.append("Editing Row")
-			messages.append("Add / Remove Columns")
-			messages.append("Fieldname")
-			messages.append("Column Width")
-			messages.append("Configure Columns")
-			messages.append("Select Fields")
-			messages.append("Select All")
-			messages.append("Update")
-			messages.append("Reset to default")
-			messages.append("No Data")
-			messages.append("Delete")
-			messages.append("Delete All")
-			messages.append("Add Row")
-			messages.append("Add Multiple")
-			messages.append("Download")
-			messages.append("of")
-			messages.append("Upload")
-			messages.append("Last")
-			messages.append("First")
-			messages.append("No.")
-
+			messages.extend(
+				(
+					"Move",
+					"Insert Above",
+					"Insert Below",
+					"Duplicate",
+					"Shortcuts",
+					"Ctrl + Up",
+					"Ctrl + Down",
+					"ESC",
+					"Editing Row",
+					"Add / Remove Columns",
+					"Fieldname",
+					"Column Width",
+					"Configure Columns",
+					"Select Fields",
+					"Select All",
+					"Update",
+					"Reset to default",
+					"No Data",
+					"Delete",
+					"Delete All",
+					"Add Row",
+					"Add Multiple",
+					"Download",
+					"of",
+					"Upload",
+					"Last",
+					"First",
+					"No.",
+				)
+			)
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
 			messages.append("Search for countries...")
 
 		# Dates
 		if any(field.fieldtype == "Date" for field in self.web_form_fields):
-			messages.append("Now")
-			messages.append("Today")
-			messages.append("Date {0} must be in format: {1}")
-			messages.append("{0} to {1}")
-
+			messages.extend(("Now", "Today", "Date {0} must be in format: {1}", "{0} to {1}"))
 		# Time
 		if any(field.fieldtype == "Time" for field in self.web_form_fields):
 			messages.append("Now")
