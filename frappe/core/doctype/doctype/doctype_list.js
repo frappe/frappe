@@ -11,6 +11,11 @@ frappe.listview_settings["DocType"] = {
 				fieldname: "name",
 				fieldtype: "Data",
 				reqd: 1,
+<<<<<<< HEAD
+=======
+				default: doctype_name,
+				length: 61,
+>>>>>>> 5252d5ad47 (fix(doctype): restrict length to 61 characters (#34225))
 			},
 			{ fieldtype: "Column Break" },
 			{
