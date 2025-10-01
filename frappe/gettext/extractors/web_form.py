@@ -52,10 +52,13 @@ def extract(fileobj, *args, **kwargs):
 
 		# Extract options for Select fields
 		if field.get("fieldtype") == "Select" and (options := field.get("options")):
-			# Options can be either a newline-separated string or a reference to another DocType
-			# Only extract if it's a string with newlines (indicating static options)
-			if isinstance(options, str) and "\n" in options:
-				for option in options.split("\n"):
+			skip_options = (
+				web_form_name == "edit-profile" and field.get("fieldname") == "time_zone"
+			)  # Dumb workaround for avoiding a flood of strings from this field
+			if isinstance(options, str) and not skip_options:
+				# Handle both single values and newline-separated values
+				option_list = options.split("\n") if "\n" in options else [options]
+				for option in option_list:
 					if option.strip():
 						yield (
 							None,
