@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-30 21:59\n"
+"PO-Revision-Date: 2025-10-01 22:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -13505,7 +13505,7 @@ msgstr "اصلی است"
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:43
 msgid "Is Primary Address"
-msgstr ""
+msgstr "آدرس اصلی است"
 
 #. Label of the is_primary_contact (Check) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
