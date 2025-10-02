@@ -227,6 +227,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				// Sanitize label and description before using them to build HTML
 				let _label = frappe.utils.escape_html(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
+
+				// Trim stray commas/whitespace from description
+				if (d.description && typeof d.description === 'string') {
+				  d.description = d.description.replace(/^[,\s]+|[,\s]+$/g, '');
+				}
+
 				if (
 					d.description &&
 					// for title links, we want to inlude the value in the description

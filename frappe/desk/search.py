@@ -255,9 +255,12 @@ def get_std_fields_list(meta, key):
 
 def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResults]:
 	def to_string(parts):
-		return ", ".join(
-			unique(_(cstr(part)) if meta.translated_doctype else cstr(part) for part in parts if part)
-		)
+		# Filter out empty parts before joining to prevent stray commas
+		filtered_parts = [
+			_(cstr(part)) if meta.translated_doctype else cstr(part)
+			for part in parts if part and cstr(part).strip()
+		]
+		return ", ".join(unique(filtered_parts))
 
 	results = []
 	meta = frappe.get_meta(doctype)

@@ -180,6 +180,53 @@ class TestSearch(IntegrationTestCase):
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
 
+	def test_strip_empty_parts(self):
+		from frappe.desk.search import build_for_autosuggest
+		# Test with a mock meta object
+		class MockMeta:
+			translated_doctype = False
+		import frappe.desk.search as search_module
+		orig_meta = getattr(search_module, 'meta', None)
+		search_module.meta = MockMeta()
+		try:
+			test_data = [
+				("DocName1", "Title1", "", None, "ValidValue"),
+				("DocName2", "", "ValidDesc", ""),
+				("DocName3", "Title3", "   ", "ValidValue2"),
+			]
+			results = build_for_autosuggest(test_data, "TestDocType")
+			self.assertEqual(results[0]['description'], "Title1, ValidValue")
+			self.assertEqual(results[1]['description'], "ValidDesc")
+			self.assertEqual(results[2]['description'], "Title3, ValidValue2")
+			for r in results:
+				desc = r['description']
+				self.assertFalse(desc.startswith(','))
+				self.assertFalse(desc.endswith(','))
+				self.assertNotIn(',,', desc)
+		finally:
+			if orig_meta:
+				search_module.meta = orig_meta
+			else:
+				delattr(search_module, 'meta')
+
+	def test_strip_commas_frontend_like(self):
+		from frappe.desk.search import build_for_autosuggest
+		# Test with a mock meta object
+		class MockMeta:
+			translated_doctype = False
+		import frappe.desk.search as search_module
+		orig_meta = getattr(search_module, 'meta', None)
+		search_module.meta = MockMeta()
+		try:
+			test_data = [("Bank Account", " , , Bank Account , ")]
+			results = build_for_autosuggest(test_data, "TestDocType")
+			self.assertEqual(results[0]['description'], "Bank Account")
+		finally:
+			if orig_meta:
+				search_module.meta = orig_meta
+			else:
+				delattr(search_module, 'meta')
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
