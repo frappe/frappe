@@ -6,8 +6,12 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	min-height: 150px;
+	min-height: 60px;
 	background-color: var(--subtle-accent);
+	
+	&:has(.grid-body .rows:not(:empty)) {
+		min-height: auto;
+	}
 }
 
 .form-grid.error {
