@@ -82,21 +82,38 @@ def read_doc(doctype: str, name: str):
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 	doc.apply_fieldlevel_read_permissions()
+	doc_dict = doc.as_dict()
 	if frappe.form_dict.get("expand_links") and json.loads(frappe.form_dict["expand_links"]):
-		meta = frappe.get_meta(doctype)
-		link_titles = {}
-		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+		get_values_for_link_and_dynamic_link_fields(doc_dict)
+		get_values_for_table_and_multiselect_fields(doc_dict)
 
-		if link_fields:
-			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(doc, link_fields))
+	return doc_dict
 
-		table_fields = meta.get_table_fields()
-		if table_fields:
-			link_titles.update(get_title_values_for_table_and_multiselect_fields(doc, table_fields))
 
-		return doc.as_dict().update({"_link_titles": link_titles})
-	else:
-		return doc.as_dict()
+def get_values_for_link_and_dynamic_link_fields(doc_dict):
+	meta = frappe.get_meta(doc_dict.doctype)
+	link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+
+	for field in link_fields:
+		if not (doc_fieldvalue := getattr(doc_dict, field.fieldname, None)):
+			continue
+
+		doctype = field.options if field.fieldtype == "Link" else doc_dict.get(field.options)
+
+		link_doc = frappe.get_doc(doctype, doc_fieldvalue)
+		doc_dict.update({"_expanded_" + field.fieldname: link_doc})
+
+
+def get_values_for_table_and_multiselect_fields(doc_dict):
+	meta = frappe.get_meta(doc_dict.doctype)
+	table_fields = meta.get_table_fields()
+
+	for field in table_fields:
+		if not doc_dict.get(field.fieldname):
+			continue
+
+		for value in doc_dict.get(field.fieldname):
+			value.update(get_values_for_link_and_dynamic_link_fields(value))
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):

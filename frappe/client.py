@@ -96,18 +96,12 @@ def get_list(
 		doctype_title_maps = {}
 
 	for link_doctype, values in doctype_values.items():
-		link_meta = frappe.get_meta(link_doctype)
-		if not link_meta.title_field or not link_meta.show_title_field_in_link:
-			continue
-
-		title_field = link_meta.title_field
-
 		records = frappe.get_all(
 			link_doctype,
 			filters={"name": ["in", list(values)]},
-			fields=["name", title_field],
+			fields=["*"],
 		)
-		doctype_title_maps[link_doctype] = {r["name"]: r[title_field] for r in records}
+		doctype_title_maps[link_doctype] = {r["name"]: r for r in records}
 
 	for li in _list:
 		for fieldname in expand:
@@ -117,7 +111,7 @@ def get_list(
 			val = li.get(fieldname)
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
-				li["_" + fieldname + "_title"] = val_title
+				li["_expanded_" + fieldname] = val_title
 
 	return _list
 
