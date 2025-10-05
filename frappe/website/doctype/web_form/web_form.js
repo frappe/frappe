@@ -132,11 +132,32 @@ frappe.ui.form.on("Web Form", {
 	set_fields(frm) {
 		let doc = frm.doc;
 
-		let update_options = (options) => {
-			[frm.fields_dict.web_form_fields.grid, frm.fields_dict.list_columns.grid].forEach(
-				(obj) => {
-					obj.update_docfield_property("fieldname", "options", options);
-				}
+		let as_select_option = (df) => ({
+			label: df.label,
+			value: df.fieldname,
+		});
+		let update_options = (fields) => {
+			frm.fields_dict.web_form_fields.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				fields.map(as_select_option)
+			);
+			frm.fields_dict.list_columns.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				fields
+					.filter(
+						(df) =>
+							![
+								"Table",
+								"Table MultiSelect",
+								"Page Break",
+								"Section Break",
+								"Column Break",
+								"Tab Break",
+							].includes(df.fieldtype) && df.is_virtual !== 1
+					)
+					.map(as_select_option)
 			);
 		};
 
@@ -146,14 +167,10 @@ frappe.ui.form.on("Web Form", {
 			return;
 		}
 
-		update_options([`Fetching fields from ${doc.doc_type}...`]);
+		update_options([{ label: `Fetching fields from ${doc.doc_type}...`, fieldname: "" }]);
 
 		get_fields_for_doctype(doc.doc_type).then((fields) => {
-			let as_select_option = (df) => ({
-				label: df.label,
-				value: df.fieldname,
-			});
-			update_options(fields.map(as_select_option));
+			update_options(fields);
 
 			let currency_fields = fields
 				.filter((df) => ["Currency", "Float"].includes(df.fieldtype))
