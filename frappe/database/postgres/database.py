@@ -155,6 +155,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			"Read Only": ("varchar", self.VARCHAR_LEN),
 			"Attach": ("text", ""),
 			"Attach Image": ("text", ""),
+			"EmbedPdf": ("text", ""),
 			"Signature": ("text", ""),
 			"Color": ("varchar", self.VARCHAR_LEN),
 			"Barcode": ("text", ""),

@@ -19,6 +19,7 @@ $.extend(frappe.model, {
 		"Datetime",
 		"Duration",
 		"Dynamic Link",
+		"EmbedPdf",
 		"Float",
 		"Geolocation",
 		"Heading",

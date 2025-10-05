@@ -1,4 +1,5 @@
 import AttachControl from "./components/controls/AttachControl.vue";
+import EmbedPdfControl from "./components/controls/EmbedPdfControl.vue";
 import ButtonControl from "./components/controls/ButtonControl.vue";
 import CheckControl from "./components/controls/CheckControl.vue";
 import CodeControl from "./components/controls/CodeControl.vue";
@@ -29,6 +30,7 @@ export function registerGlobalComponents(app) {
 		.component("DatetimeControl", DataControl)
 		.component("DurationControl", DataControl)
 		.component("DynamicLinkControl", DataControl)
+		.component("EmbedPdfControl", EmbedPdfControl)
 		.component("FloatControl", DataControl)
 		.component("GeolocationControl", GeolocationControl)
 		.component("HeadingControl", ButtonControl)

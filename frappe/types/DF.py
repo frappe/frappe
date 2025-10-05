@@ -9,6 +9,7 @@ Text = str
 Autocomplete = Data
 Attach = Data
 AttachImage = Data
+EmbedPdf = Data
 Barcode = Data
 Check = bool | int
 Code = Text
