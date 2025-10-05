@@ -1,0 +1,202 @@
+/* EmbedPdf Field Styling - Responsive Design */
+
+.embed-pdf-container {
+    width: 100%;
+    margin-top: 15px;
+    background: #ffffff;
+    border: 1px solid #e3e6f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.embed-pdf-container:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border-color: #d1d9ff;
+}
+
+.embed-pdf-container .pdf-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+    border-bottom: 1px solid #f1f3f4;
+    border-radius: 8px !important;
+
+}
+
+.embed-pdf-container .pdf-preview-header h6 {
+    margin: 0;
+    color: #495057;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.embed-pdf-container .pdf-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.embed-pdf-container .pdf-controls .btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+    border: 1px solid #e3e6f0;
+    background: #f8f9fc;
+    color: #5a6c7d;
+    transition: all 0.2s ease;
+}
+
+.embed-pdf-container .pdf-controls .btn:hover {
+    background: #e8f0fe;
+    border-color: #d1d9ff;
+    color: #1a73e8;
+    transform: translateY(-1px);
+}
+
+/* Responsive PDF viewer wrapper */
+.embed-pdf-container .pdf-viewer-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.embed-pdf-container .pdf-viewer {
+    width: 100%;
+    display: block;
+    border: none;
+    background: #ffffff;
+    transition: height 0.3s ease;
+}
+
+/* Loading and error states */
+.embed-pdf-container .pdf-loading,
+.embed-pdf-container .pdf-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    padding: 20px;
+    text-align: center;
+}
+
+.embed-pdf-container .pdf-loading {
+    color: #6c757d;
+}
+
+.embed-pdf-container .pdf-error {
+    color: #dc3545;
+}
+
+/* Responsive behavior for different screen sizes */
+@media (max-width: 768px) {
+    .embed-pdf-container .pdf-preview-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .embed-pdf-container .pdf-controls {
+        justify-content: center;
+    }
+}
+
+/* Column-specific responsive adjustments */
+.form-column.col-sm-6 .embed-pdf-container .pdf-viewer {
+    min-height: 300px;
+}
+
+.form-column:not(.col-sm-6) .embed-pdf-container .pdf-viewer {
+    min-height: 400px;
+}
+
+.embed-pdf-container .pdf-viewer {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: none;
+    margin: 0;
+}
+
+.embed-pdf-container .pdf-loading {
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+}
+
+.embed-pdf-container .pdf-loading i {
+    font-size: 28px;
+    margin-bottom: 12px;
+    color: #4285f4;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.embed-pdf-container .pdf-loading i {
+    font-size: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .embed-pdf-container .pdf-preview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .embed-pdf-container .pdf-viewer {
+        height: 300px !important;
+    }
+}
+
+/* Error fallback styling */
+.embed-pdf-container .pdf-fallback {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    color: #856404;
+}
+
+.embed-pdf-container .pdf-fallback .fa {
+    font-size: 24px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Integration with Frappe form styles */
+.frappe-control[data-fieldtype="EmbedPdf"] .control-input-wrapper {
+    min-height: auto;
+}
+
+.frappe-control[data-fieldtype="EmbedPdf"] .attached-file {
+    background: #f8f9fa;
+    border: 1px solid #e3e6f0;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.frappe-control[data-fieldtype="EmbedPdf"] .attached-file-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.frappe-control[data-fieldtype="EmbedPdf"] .attached-file-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
