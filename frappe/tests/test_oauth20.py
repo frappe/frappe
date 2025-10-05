@@ -12,6 +12,7 @@ from frappe.integrations.oauth2 import encode_params
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
+from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
 	from frappe.integrations.doctype.social_login_key.social_login_key import SocialLoginKey
@@ -359,6 +360,28 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(payload["email"], "test@example.com")
 
 		self.assertTrue(payload.get("nonce") == nonce)
+
+	def test_build_oauth_url(self):
+		self.assertEqual(build_oauth_url("https://example.com", "/endpoint"), "https://example.com/endpoint")
+
+		self.assertEqual(build_oauth_url("https://example.com"), "https://example.com")
+
+		self.assertEqual(build_oauth_url("https://example.com", None), "https://example.com")
+
+		self.assertEqual(
+			build_oauth_url("https://example.com", "//endpoint.com/test"),
+			"https://example.com//endpoint.com/test",
+		)
+
+		self.assertEqual(
+			build_oauth_url("https://example.com", "http://endpoint.com/test"), "http://endpoint.com/test"
+		)
+
+		self.assertEqual(
+			build_oauth_url("https://example.com", "https://endpoint.com"), "https://endpoint.com"
+		)
+
+		self.assertEqual(build_oauth_url("https://example.com", ""), "https://example.com")
 
 	def decode_id_token(self, id_token):
 		import jwt
