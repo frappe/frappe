@@ -34,51 +34,7 @@ class CustomField(Document):
 		fetch_from: DF.SmallText | None
 		fetch_if_empty: DF.Check
 		fieldname: DF.Data | None
-		fieldtype: DF.Literal[
-			"Autocomplete",
-			"Attach",
-			"Attach Image",
-			"Barcode",
-			"Button",
-			"Check",
-			"Code",
-			"Color",
-			"Column Break",
-			"Currency",
-			"Data",
-			"Date",
-			"Datetime",
-			"Duration",
-			"Dynamic Link",
-			"Float",
-			"Fold",
-			"Geolocation",
-			"Heading",
-			"HTML",
-			"HTML Editor",
-			"Icon",
-			"Image",
-			"Int",
-			"JSON",
-			"Link",
-			"Long Text",
-			"Markdown Editor",
-			"Password",
-			"Percent",
-			"Phone",
-			"Read Only",
-			"Rating",
-			"Section Break",
-			"Select",
-			"Signature",
-			"Small Text",
-			"Tab Break",
-			"Table",
-			"Table MultiSelect",
-			"Text",
-			"Text Editor",
-			"Time",
-		]
+		fieldtype: DF.Literal["Autocomplete", "Attach", "Attach Image", "Barcode", "Button", "Check", "Code", "Color", "Column Break", "Currency", "Data", "Date", "Datetime", "Duration", "Dynamic Link", "EmbedPdf", "Float", "Fold", "Geolocation", "Heading", "HTML", "HTML Editor", "Icon", "Image", "Int", "JSON", "Link", "Long Text", "Markdown Editor", "Password", "Percent", "Phone", "Read Only", "Rating", "Section Break", "Select", "Signature", "Small Text", "Tab Break", "Table", "Table MultiSelect", "Text", "Text Editor", "Time"]
 		hidden: DF.Check
 		hide_border: DF.Check
 		hide_days: DF.Check
@@ -116,7 +72,6 @@ class CustomField(Document):
 		translatable: DF.Check
 		unique: DF.Check
 		width: DF.Data | None
-
 	# end: auto-generated types
 	def autoname(self):
 		self.set_fieldname()

@@ -405,6 +405,7 @@ frappe.form.formatters = {
 	},
 	Attach: format_attachment_url,
 	AttachImage: format_attachment_url,
+	EmbedPdf: format_attachment_url,
 };
 
 function format_attachment_url(url) {
