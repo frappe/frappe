@@ -8,9 +8,6 @@
 	color: var(--text-color);
 	min-height: 150px;
 	background-color: var(--subtle-accent);
-	&:focus-visible {
-		@include grid-focus();
-	}
 }
 
 .form-grid.error {
@@ -165,7 +162,9 @@
 	display: flex;
 	vertical-align: middle;
 }
-
+.grid-static-col:focus-visible {
+	@include grid-focus();
+}
 .grid-static-col,
 .row-index {
 	// height: 38px;

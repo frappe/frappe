@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-10-01 22:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -2171,7 +2171,7 @@ msgstr "Alternativni imejl ID"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Always"
-msgstr ""
+msgstr "Uvek"
 
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2619,7 +2619,7 @@ msgstr "Prema Vašem zahtevu, Vaš nalog i podaci na {0} povezani sa imejl adres
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Ask"
-msgstr ""
+msgstr "Pitaj"
 
 #. Label of the assign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -7488,7 +7488,7 @@ msgstr "Nemoj uređivati zaglavlja koja su unapred postavljena u šablonu"
 
 #: frappe/public/js/frappe/router.js:624
 msgid "Do not warn me again about {0}"
-msgstr ""
+msgstr "Ne upozoravaj me više na {0}"
 
 #: frappe/core/doctype/system_settings/system_settings.js:71
 msgid "Do you still want to proceed?"
@@ -16471,7 +16471,7 @@ msgstr "Podešavanje navigacije"
 
 #: frappe/public/js/frappe/list/list_view.js:485
 msgid "Need Help?"
-msgstr ""
+msgstr "Treba Vam pomoć?"
 
 #: frappe/desk/doctype/workspace/workspace.py:322
 msgid "Need Workspace Manager role to edit private workspace of other users"
@@ -16498,7 +16498,7 @@ msgstr "Podešavanje mrežnog štampača"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Never"
-msgstr ""
+msgstr "Nikada"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
@@ -23965,7 +23965,7 @@ msgstr "Prikaži grešku"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show External Link Warning"
-msgstr ""
+msgstr "Prikaži upozorenje za eksterne linkove"
 
 #: frappe/public/js/frappe/form/layout.js:578
 msgid "Show Fieldname (click to copy on clipboard)"
@@ -24306,19 +24306,19 @@ msgstr "Registracija je onemogućena za ovaj veb-sajt."
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == \"Invalid\"</code>"
-msgstr ""
+msgstr "Jednostavni python izraz, primer: <code class=\"language-python\">status == \"Invalid\"</code>"
 
 #. Description of the 'Assign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>"
-msgstr ""
+msgstr "Jednostavni python izraz, primer: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>"
 
 #. Description of the 'Unassign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>"
-msgstr ""
+msgstr "Jednostavni python izraz, primer: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>"
 
 #. Label of the simultaneous_sessions (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29761,7 +29761,7 @@ msgstr "Dodali ste {0} redova u {1}"
 
 #: frappe/public/js/frappe/router.js:642
 msgid "You are about to open an external link. To confirm, click the link again."
-msgstr ""
+msgstr "Pokušavate da otvorite eksterni link. Da potvrdite, kliknite ponovo na link."
 
 #: frappe/public/js/frappe/dom.js:438
 msgid "You are connected to internet."
@@ -30216,7 +30216,7 @@ msgstr "Pregledali ste ovo"
 
 #: frappe/public/js/frappe/router.js:653
 msgid "You will be redirected to:"
-msgstr ""
+msgstr "Bićete preusmereni na:"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"

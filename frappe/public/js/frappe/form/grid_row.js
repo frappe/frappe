@@ -1102,7 +1102,17 @@ export default class GridRow {
 
 		this.columns[df.fieldname] = $col;
 		this.columns_list.push($col);
-
+		if (ci == 0 && !this.header_row) {
+			$col.attr("tabIndex", 0);
+			$col.on("focus", function () {
+				if (me.grid.grid_rows.length == 0) {
+					me.grid.add_new_row();
+				}
+				me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row(true);
+				me.grid.set_focus_on_row();
+				$col.attr("tabIndex", "");
+			});
+		}
 		return $col;
 	}
 
@@ -1200,6 +1210,8 @@ export default class GridRow {
 			// flag list input
 			if (this.columns_list && this.columns_list.slice(-1)[0] === column) {
 				field.$input.attr("data-last-input", 1);
+			} else if (this.columns_list && this.columns_list.slice(0)[0] === column) {
+				field.$input.attr("data-first-input", 1);
 			}
 		}
 
@@ -1288,6 +1300,18 @@ export default class GridRow {
 						if (move_up_down(next)) {
 							return false;
 						}
+					}
+				} else if (e.which === TAB && e.shiftKey) {
+					var first_column = me.wrapper
+						.find("input:enabled:not([type='checkbox'])")
+						.first()
+						.get(0);
+					var is_first_column =
+						$(this).attr("data-first-input") || first_column === this;
+					if (is_first_column) {
+						let ri = me.grid.get_current_row(e.target);
+						if (ri == 0) return;
+						me.grid.grid_rows[ri - 1].toggle_editable_row(true);
 					}
 				}
 			});

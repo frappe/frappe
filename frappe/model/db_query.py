@@ -1127,7 +1127,12 @@ from {tables}
 			r"select\b.*\bfrom",
 		}
 
-		if any(re.search(r"\b" + pattern + r"\b", _lower) for pattern in subquery_indicators):
+		# Replace doctype names with a hardcoded string "doc"
+		# This is to avoid false positives based on doctype name
+		sanitized = re.sub(r"`tab[^`]*`", " doc ", _lower)
+
+		# Run the subquery checks against the sanitized string
+		if any(re.search(r"\b" + pattern + r"\b", sanitized) for pattern in subquery_indicators):
 			frappe.throw(_("Cannot use sub-query here."))
 
 		blacklisted_sql_functions = {

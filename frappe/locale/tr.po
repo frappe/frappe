@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-09-30 21:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -15177,7 +15177,7 @@ msgstr "E-posta ile Giriş"
 
 #: frappe/www/login.html:116
 msgid "Login with Frappe Cloud"
-msgstr ""
+msgstr "Frappe Cloud ile Giriş Yap"
 
 #: frappe/www/login.html:49
 msgid "Login with LDAP"
@@ -15650,7 +15650,7 @@ msgstr "Bellek Kullanımı"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:63
 msgid "Memory Usage in MB"
-msgstr ""
+msgstr "Bellek Kullanımı (MB)"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json

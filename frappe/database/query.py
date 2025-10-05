@@ -288,6 +288,8 @@ class Engine:
 		doctype: str | None = None,
 	) -> "Criterion | None":
 		"""Builds a pypika Criterion object for a simple filter condition."""
+		import operator as builtin_operator
+
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 		_value = convert_to_value(value)
 		_operator = operator
@@ -323,7 +325,7 @@ class Engine:
 
 		operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
-			return _field.isnull()
+			return _field.isnotnull() if operator_fn == builtin_operator.ne else _field.isnull()
 		else:
 			return operator_fn(_field, _value)
 

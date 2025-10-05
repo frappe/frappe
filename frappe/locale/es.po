@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-09-28 09:33+0000\n"
-"PO-Revision-Date: 2025-09-28 21:55\n"
+"PO-Revision-Date: 2025-09-30 21:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -15133,7 +15133,7 @@ msgstr "Iniciar sesión con enlace de correo"
 
 #: frappe/www/login.html:116
 msgid "Login with Frappe Cloud"
-msgstr ""
+msgstr "Iniciar sesión con Frappe Cloud"
 
 #: frappe/www/login.html:49
 msgid "Login with LDAP"
@@ -15606,7 +15606,7 @@ msgstr "Uso de Memoria"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:63
 msgid "Memory Usage in MB"
-msgstr ""
+msgstr "Uso de memoria en MB"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -18796,7 +18796,7 @@ msgstr "Recuento de datos"
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Peak Memory Usage"
-msgstr ""
+msgstr "Pico de uso de memoria"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
