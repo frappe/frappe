@@ -167,7 +167,9 @@ frappe.ui.form.on("Web Form", {
 			return;
 		}
 
-		update_options([{ label: `Fetching fields from ${doc.doc_type}...`, fieldname: "" }]);
+		update_options([
+			{ label: __("Fetching fields from {0}...", [doc.doc_type]), fieldname: "" },
+		]);
 
 		get_fields_for_doctype(doc.doc_type).then((fields) => {
 			update_options(fields);
@@ -178,7 +180,7 @@ frappe.ui.form.on("Web Form", {
 			if (!currency_fields.length) {
 				currency_fields = [
 					{
-						label: `No currency fields in ${doc.doc_type}`,
+						label: __("No currency fields in {0}", [doc.doc_type]),
 						value: "",
 						disabled: true,
 					},
