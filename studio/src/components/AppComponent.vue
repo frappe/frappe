@@ -172,13 +172,7 @@ const componentEvents = computed(() => {
 		const getEventFn = () => {
 			if (event.action === "Switch App Page") {
 				return () => {
-					router.push({
-						name: "AppContainer",
-						params: {
-							appRoute: route.params.appRoute,
-							pageRoute: getPageRoute(route.params.appRoute as string, event.page),
-						},
-					})
+					router.push(event.page)
 				}
 			} else if (event.action === "Call API") {
 				return () => {
@@ -293,11 +287,6 @@ const handleError = (event: any) => (error: any) => {
 			toast.error(event.error_message)
 		}
 	}
-}
-
-function getPageRoute(appRoute: string, page: string) {
-	// extract page route from full page route
-	return page.replace(`studio-app/${appRoute}/`, "")
 }
 
 onMounted(() => {
