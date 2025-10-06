@@ -55,6 +55,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			"input",
 			frappe.utils.debounce(function (e) {
 				var value = e.target.value;
+				value = frappe.utils.xss_sanitise(value);
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
