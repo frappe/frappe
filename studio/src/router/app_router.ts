@@ -29,6 +29,7 @@ let router = createRouter({
 })
 
 const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
+	router.removeRoute("AppContainer")
 	pages.forEach((page) => {
 		router.addRoute({
 			path: page.route,
