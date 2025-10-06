@@ -256,10 +256,15 @@ def get_std_fields_list(meta, key):
 def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResults]:
 	def to_string(parts):
 		# Filter out empty parts before joining to prevent stray commas
-		filtered_parts = [
-			_(cstr(part)) if meta.translated_doctype else cstr(part)
-			for part in parts if part and cstr(part).strip()
-		]
+		filtered_parts = []
+		for part in parts:
+			if not part:
+				continue
+			# Split by comma and filter out empty parts
+			for subpart in cstr(part).split(','):
+				stripped_subpart = subpart.strip()
+				if stripped_subpart:
+					filtered_parts.append(_(stripped_subpart) if meta.translated_doctype else stripped_subpart)
 		return ", ".join(unique(filtered_parts))
 
 	results = []

@@ -187,6 +187,7 @@ class TestSearch(IntegrationTestCase):
 		
 		class MockMeta:
 			translated_doctype = False
+			show_title_field_in_link = False
 
 		def mock_get_meta(doctype):
 			if doctype == "TestDocType":
@@ -221,6 +222,7 @@ class TestSearch(IntegrationTestCase):
 		
 		class MockMeta:
 			translated_doctype = False
+			show_title_field_in_link = False
 
 		def mock_get_meta(doctype):
 			if doctype == "TestDocType":

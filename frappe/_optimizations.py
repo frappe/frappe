@@ -50,14 +50,16 @@ def optimize_gc_parameters():
 def optimize_regex_cache():
 	# Remove references to pattern that are pre-compiled and loaded to global scopes.
 	# Leave that cache for dynamically generated regex.
-	os.register_at_fork(before=re.purge)
+	if hasattr(os, 'register_at_fork'):
+		os.register_at_fork(before=re.purge)
 
 
 def register_fault_handler():
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.__stderr__, io.TextIOWrapper):
 		faulthandler.enable()
-		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
+		if hasattr(faulthandler, 'register'):
+			faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
 
 def optimize_gc_for_copy_on_write():
@@ -66,7 +68,8 @@ def optimize_gc_for_copy_on_write():
 	if not bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True))):
 		return
 
-	os.register_at_fork(before=freeze_gc)
+	if hasattr(os, 'register_at_fork'):
+		os.register_at_fork(before=freeze_gc)
 
 
 _gc_frozen = False
@@ -111,7 +114,8 @@ def optimize_for_gil_contention():
 
 	# Populate the cache to avoid recomputing this in future.
 	_ = parse_thread_siblings()
-	os.register_at_fork(after_in_parent=increment_worker_count, after_in_child=pin_web_worker_to_one_core)
+	if hasattr(os, 'register_at_fork'):
+		os.register_at_fork(after_in_parent=increment_worker_count, after_in_child=pin_web_worker_to_one_core)
 
 
 def increment_worker_count():
