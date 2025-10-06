@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
 import AppContainer from "@/pages/AppContainer.vue"
+import { toast } from "vue-sonner"
 
 const routes = [
 	{
@@ -29,6 +30,7 @@ let router = createRouter({
 })
 
 const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
+	router.removeRoute("AppContainer")
 	pages.forEach((page) => {
 		router.addRoute({
 			path: page.route,
@@ -54,6 +56,12 @@ router.beforeEach((to, _, next) => {
 			console.error("Error adding dynamic routes:", error)
 			return next()
 		}
+	}
+	if (!to.matched.length) {
+		toast.error(`Failed to navigate to ${to.fullPath}`, {
+			description: "Page does not exist or is not published"
+		})
+		return false
 	}
 	next()
 })

@@ -149,20 +149,20 @@ watch(
 async function setPage() {
 	if (route.params.pageID === store.selectedPage) return
 
+	const appID = route.params.appID as string
 	if (route.params.pageID === "new") {
 		await studioPages.insert
 			.submit({
 				draft_blocks: [getRootBlock()],
-				studio_app: route.params.appID as string,
+				studio_app: appID,
 			})
 			.then(async (data: StudioPage) => {
-				const appID = route.params.appID as string
 				router.push({ name: "StudioPage", params: { appID: appID, pageID: data.name }, force: true })
 				store.setApp(appID)
 				await store.setPage(data.name)
 			})
 	} else {
-		store.setApp(route.params.appID as string)
+		store.setApp(appID)
 		await store.setPage(route.params.pageID as string)
 	}
 }
