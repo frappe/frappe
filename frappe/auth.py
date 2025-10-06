@@ -83,6 +83,7 @@ class HTTPRequest:
 			not frappe.request
 			or frappe.request.method not in UNSAFE_HTTP_METHODS
 			or frappe.conf.ignore_csrf
+			or frappe.local.ignore_csrf
 			or not frappe.session
 			or not (saved_token := frappe.session.data.csrf_token)
 			or (
