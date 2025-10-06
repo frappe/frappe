@@ -431,7 +431,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			],
 		});
-		
+
 		// Setup alternative sort handlers to capture column header clicks
 		this.setup_datatable_sort_handlers();
 	}
@@ -1858,11 +1858,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		// Wait for DataTable to render, then attach click handlers
 		setTimeout(() => {
-			const $headers = this.$datatable_wrapper.find('.dt-header .dt-cell');
-			$headers.on('click', (e) => {
+			const $headers = this.$datatable_wrapper.find(".dt-header .dt-cell");
+			$headers.on("click", (e) => {
 				const $header = $(e.currentTarget);
 				const colIndex = $header.index();
-				
+
 				// Get the current sort state from the DataTable
 				setTimeout(() => {
 					this.sync_sort_with_datatable();
@@ -1886,7 +1886,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			if (sortState && sortState.colIndex !== undefined) {
 				const column = this.columns[sortState.colIndex];
 				if (column && column.field) {
-					const sortOrder = sortState.sortOrder === 1 ? 'asc' : 'desc';
+					const sortOrder = sortState.sortOrder === 1 ? "asc" : "desc";
 					if (this.sort_selector) {
 						this.sort_selector.set_value(column.field, sortOrder);
 					}
@@ -1899,7 +1899,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 		} catch (e) {
 			// Silently ignore errors in case the DataTable API changes
-			console.debug('Could not sync DataTable sort state:', e);
+			console.debug("Could not sync DataTable sort state:", e);
 		}
 	}
 };
