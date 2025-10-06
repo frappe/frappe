@@ -164,7 +164,6 @@ const boundValue = computed({
 
 // events
 const router = useRouter()
-const route = useRoute()
 
 const componentEvents = computed(() => {
 	const events: Record<string, Function | undefined> = {}
