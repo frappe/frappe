@@ -115,11 +115,21 @@ def resolve_redirect(path, query_string=None):
 	                ]
 	"""
 
+	def raise_redirect(redirect_location, status_code=301, forward_query_params=False):
+		if forward_query_params and query_string:
+			separator = "&" if "?" in redirect_location else "?"
+			redirect_location += separator + frappe.safe_decode(query_string)
+		frappe.flags.redirect_location = redirect_location
+		raise frappe.Redirect(status_code)
+
 	redirect_to = frappe.cache.hget("website_redirects", path or "/")
 	if redirect_to:
 		if isinstance(redirect_to, dict):
-			frappe.flags.redirect_location = redirect_to["path"]
-			raise frappe.Redirect(redirect_to["status_code"])
+			raise_redirect(
+				redirect_to["path"],
+				redirect_to.get("status_code", 301),
+				redirect_to.get("forward_query_parameters", False),
+			)
 		frappe.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 
@@ -153,16 +163,19 @@ def resolve_redirect(path, query_string=None):
 
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
-			if rule.get("forward_query_parameters") and query_string:
-				separator = "&" if "?" in redirect_to else "?"
-				redirect_to += separator + frappe.safe_decode(query_string)
-
-			frappe.flags.redirect_location = redirect_to
 			status_code = rule.get("redirect_http_status") or 301
+
 			frappe.cache.hset(
-				"website_redirects", path_to_match or "/", {"path": redirect_to, "status_code": status_code}
+				"website_redirects",
+				path_to_match or "/",
+				{
+					"path": redirect_to,
+					"status_code": status_code,
+					"forward_query_parameters": rule.get("forward_query_parameters"),
+				},
 			)
-			raise frappe.Redirect(status_code)
+
+			raise_redirect(redirect_to, status_code, rule.get("forward_query_parameters"))
 
 	frappe.cache.hset("website_redirects", path_to_match or "/", False)
 
