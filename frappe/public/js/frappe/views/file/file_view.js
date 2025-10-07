@@ -202,7 +202,17 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			type = "file";
 		}
 
+<<<<<<< HEAD
 		let title = d.file_name || d.file_url;
+=======
+		if (type === "folder") {
+			title = this.get_folder_title(d.file_name);
+		} else {
+			title = d.file_name || d.file_url;
+		}
+
+		title = frappe.utils.escape_html(title);
+>>>>>>> 3dfa9f35dc (fix: escape HTML in filename before display (#34289))
 		title = title.slice(0, 60);
 		d._title = title;
 		d.icon_class = icon_class;
