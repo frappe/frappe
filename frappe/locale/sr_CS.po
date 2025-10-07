@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-05 09:33+0000\n"
-"PO-Revision-Date: 2025-10-06 22:59\n"
+"PO-Revision-Date: 2025-10-07 23:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -271,12 +271,12 @@ msgstr "<div class=\"alert\"> Molimo Vas da ne ažurirate jer to može poremetit
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Zatražite fajl koji sadrži Vaše lične podatke sačuvane u našem sistemu. Fajl će biti u JSON formatu i biće Vam poslat putem imejla. Ukoliko želite da se Vaši lični podaci izbrišu iz našeg sistema, molimo Vas da <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\"> podnesete zahtev za brisanje podataka</a>.</p></div>"
 
 #. Introduction text of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Send a request to delete your account and personally identifiable information (PII) that is stored on our system. You will receive an email to verify your request. Once the request is verified we will take care of deleting your PII. If you just want to check what PII we have stored, you can <a href=\"/request-data\" rel=\"noopener noreferrer\">request your data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Pošaljite zahtev za brisanje Vašeg naloga i ličnih podataka koji su sačuvani u našem sistemu. Dobićete imejl za potvrdu Vašeg zahteva. Nakon potvrde svi Vaši lični podaci biće obrisani. Ukoliko samo želite da proverite koje lične podatke imamo sačuvane, možete <a href=\"/request-data\" rel=\"noopener noreferrer\"> zatražiti svoje podatke</a>.</p></div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -766,7 +766,7 @@ msgstr "Jedna instanca Frappe Framework može funkcionisati i kao OAuth klijent,
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "A download link with your data will be sent to the email address associated with your account."
-msgstr ""
+msgstr "Link za preuzimanje Vaših podataka biće poslat na imejl adresu povezanu sa Vašim nalogom."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:175
 msgid "A field with the name {0} already exists in {1}"
@@ -2267,7 +2267,7 @@ msgstr "Pravila imenovanja izmena ažurirana."
 #. Success message of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "An email to verify your request has been sent to your email address. Please verify your request to complete the process."
-msgstr ""
+msgstr "Imejl za potvrdu Vašeg zahteva je poslat na Vašu imejl adresu. Molimo Vas da potvrdite zahtev kako biste završili proces."
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:354
 msgid "An error occurred while setting Session Defaults"
@@ -11105,7 +11105,7 @@ msgstr "Funkcija {0} zahteva argumente, ali ni jedan nije naveden"
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further sub-groups can only be created under records marked as 'Group'"
-msgstr ""
+msgstr "Dalje podgrupe mogu se kreirati samo unutar zapisa označenih kao 'Grupa'"
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
@@ -13524,7 +13524,7 @@ msgstr "Nevažeći argumenti zahteva"
 
 #: frappe/app.py:327
 msgid "Invalid request body"
-msgstr ""
+msgstr "Nevažeće telo zahteva"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:181
 msgid "Invalid role"
@@ -15901,7 +15901,7 @@ msgstr "Srednje ime"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "Srednje ime (opciono)"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -20151,7 +20151,7 @@ msgstr "Profil"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Profile Picture"
-msgstr ""
+msgstr "Profilna slika"
 
 #. Success message of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -21705,7 +21705,7 @@ msgstr "URL zahteva"
 #. Title of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Request for Account Deletion"
-msgstr ""
+msgstr "Zahtev za brisanje naloga"
 
 #. Label of the requested_numbers (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -23163,7 +23163,7 @@ msgstr "Izaberite polje da biste uredili njegova svojstva."
 
 #: frappe/public/js/frappe/views/treeview.js:358
 msgid "Select a group {0} first."
-msgstr ""
+msgstr "Najpre izaberite grupu {0}."
 
 #: frappe/core/doctype/doctype/doctype.py:1956
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -27949,7 +27949,7 @@ msgstr "Ažuriraj lozinku"
 #. Title of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Update Profile"
-msgstr ""
+msgstr "Ažuriraj profil"
 
 #. Label of the update_series (Section Break) field in DocType 'Document Naming
 #. Settings'
