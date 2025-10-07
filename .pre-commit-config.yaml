@@ -12,7 +12,7 @@ repos:
         files: "frappe.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: no-commit-to-branch
-        args: ['--branch', 'main', '--branch', 'master']
+        args: ['--branch', 'develop']
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
