@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-05 09:33+0000\n"
-"PO-Revision-Date: 2025-10-06 22:59\n"
+"PO-Revision-Date: 2025-10-07 23:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1619,7 +1619,7 @@ msgstr "همه موارد ارسالی"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:452
 msgid "All customizations will be removed. Please confirm."
-msgstr "تمام سفارشی سازی ها حذف خواهند شد. لطفا تایید کنید."
+msgstr "تمام سفارشی سازی ها حذف خواهند شد. لطفا تأیید کنید."
 
 #: frappe/templates/includes/comments/comments.html:158
 msgid "All fields are necessary to submit the comment."
@@ -1771,7 +1771,7 @@ msgstr "اجازه نقش ها"
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allow Self Approval"
-msgstr "اجازه تایید خود"
+msgstr "اجازه تأیید خود"
 
 #. Label of the enable_telemetry (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1782,7 +1782,7 @@ msgstr "اجازه ارسال داده‌های استفاده برای بهبو
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allow approval for creator of the document"
-msgstr "اجازه تایید برای ایجاد کننده سند"
+msgstr "اجازه تأیید برای ایجاد کننده سند"
 
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2319,7 +2319,7 @@ msgstr "درخواست: {0}"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:115
 msgid "Approval Required"
-msgstr "تایید لازم است"
+msgstr "تأیید لازم است"
 
 #. Label of a standard navbar item
 #. Type: Route
@@ -4533,7 +4533,7 @@ msgstr "برای ورود به {0} روی دکمه کلیک کنید"
 
 #: frappe/templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
-msgstr "برای تایید درخواست روی لینک زیر کلیک کنید"
+msgstr "برای تأیید درخواست روی لینک زیر کلیک کنید"
 
 #: frappe/templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
@@ -4545,7 +4545,7 @@ msgstr "برای دانلود اطلاعات خود روی لینک زیر کل�
 
 #: frappe/templates/emails/delete_data_confirmation.html:4
 msgid "Click on the link below to verify your request"
-msgstr "برای تایید درخواست خود روی لینک زیر کلیک کنید"
+msgstr "برای تأیید درخواست خود روی لینک زیر کلیک کنید"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:118
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:41
@@ -5185,12 +5185,12 @@ msgstr ""
 #: frappe/core/doctype/user/user.js:400 frappe/public/js/frappe/dom.js:345
 #: frappe/www/update-password.html:66
 msgid "Confirm"
-msgstr "تایید"
+msgstr "تأیید"
 
 #: frappe/public/js/frappe/ui/messages.js:31
 msgctxt "Title of confirmation dialog"
 msgid "Confirm"
-msgstr "تایید"
+msgstr "تأیید"
 
 #: frappe/integrations/oauth2.py:138
 msgid "Confirm Access"
@@ -5199,7 +5199,7 @@ msgstr "تأیید دسترسی"
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:93
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:101
 msgid "Confirm Deletion of Account"
-msgstr "حذف اکانت را تایید کنید"
+msgstr "حذف اکانت را تأیید کنید"
 
 #: frappe/core/doctype/user/user.js:184
 msgid "Confirm New Password"
@@ -5207,22 +5207,22 @@ msgstr "گذرواژه جدید را تأیید کنید"
 
 #: frappe/www/update-password.html:55
 msgid "Confirm Password"
-msgstr "گذرواژه را تایید کنید"
+msgstr "گذرواژه را تأیید کنید"
 
 #: frappe/templates/emails/data_deletion_approval.html:6
 #: frappe/templates/emails/delete_data_confirmation.html:7
 msgid "Confirm Request"
-msgstr "درخواست را تایید کنید"
+msgstr "درخواست را تأیید کنید"
 
 #. Label of the confirmation_email_template (Link) field in DocType 'Email
 #. Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Confirmation Email Template"
-msgstr "الگوی ایمیل تایید"
+msgstr "الگوی ایمیل تأیید"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:397
 msgid "Confirmed"
-msgstr "تایید شده"
+msgstr "تأیید شده"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:525
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
@@ -18723,7 +18723,7 @@ msgstr "انتظار"
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Approval"
-msgstr "در انتظار تایید"
+msgstr "در انتظار تأیید"
 
 #. Label of the pending_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -18740,7 +18740,7 @@ msgstr ""
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr "در انتظار تایید"
+msgstr "در انتظار تأیید"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -19053,7 +19053,7 @@ msgstr "لطفاً مقدار تنظیم شده \"Fetch From\" را برای ف�
 
 #: frappe/core/doctype/user/user.py:1074
 msgid "Please check your email for verification"
-msgstr "لطفا ایمیل خود را برای تایید بررسی کنید"
+msgstr "لطفا ایمیل خود را برای تأیید بررسی کنید"
 
 #: frappe/email/smtp.py:134
 msgid "Please check your email login credentials."
@@ -20665,7 +20665,7 @@ msgstr ""
 #. Description of the 'Welcome URL' (Data) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Redirect to this URL after successful confirmation."
-msgstr "پس از تایید موفقیت آمیز به این URL تغییر مسیر دهید."
+msgstr "پس از تأیید موفقیت آمیز به این URL تغییر مسیر دهید."
 
 #. Label of the redirects_tab (Tab Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -23046,7 +23046,7 @@ msgstr "انتخاب {0}"
 
 #: frappe/model/workflow.py:120
 msgid "Self approval is not allowed"
-msgstr "تایید خود مجاز نیست"
+msgstr "تأیید خود مجاز نیست"
 
 #: frappe/www/contact.html:41
 msgid "Send"
@@ -24115,7 +24115,7 @@ msgstr "نوار کناری و دیدگاه‌ها"
 #. DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Sign Up and Confirmation"
-msgstr "ثبت نام و تایید"
+msgstr "ثبت نام و تأیید"
 
 #: frappe/core/doctype/user/user.py:1029
 msgid "Sign Up is disabled"
@@ -24817,7 +24817,7 @@ msgstr "مراحل"
 
 #: frappe/www/qrcode.html:11
 msgid "Steps to verify your login"
-msgstr "مراحل تایید ورود شما"
+msgstr "مراحل تأیید ورود شما"
 
 #. Label of the sticky (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -25032,7 +25032,7 @@ msgstr "برای تکمیل این مرحله این سند را ارسال کن
 
 #: frappe/public/js/frappe/form/form.js:1221
 msgid "Submit this document to confirm"
-msgstr "برای تایید این سند را ارسال کنید"
+msgstr "برای تأیید این سند را ارسال کنید"
 
 #: frappe/public/js/frappe/list/list_view.js:2238
 msgctxt "Title of confirmation dialog"
@@ -26381,7 +26381,7 @@ msgstr "این گزارش در {0} ایجاد شد."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:122
 msgid "This request has not yet been approved by the user."
-msgstr "این درخواست هنوز توسط کاربر تایید نشده است."
+msgstr "این درخواست هنوز توسط کاربر تأیید نشده است."
 
 #: frappe/templates/includes/navbar/navbar_items.html:95
 msgid "This site is in read only mode, full functionality will be restored soon."
@@ -28401,7 +28401,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Validate SSL Certificate"
-msgstr "تایید گواهی SSL"
+msgstr "تأیید گواهی SSL"
 
 #: frappe/public/js/frappe/web_form/web_form.js:384
 msgid "Validation Error"
@@ -28548,12 +28548,12 @@ msgstr "ایمیل کد تأیید ارسال نشد. لطفا با مدیر ت�
 
 #: frappe/twofactor.py:248
 msgid "Verification code has been sent to your registered email address."
-msgstr "کد تایید به آدرس ایمیل ثبت شده شما ارسال شده است."
+msgstr "کد تأیید به آدرس ایمیل ثبت شده شما ارسال شده است."
 
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "Verified"
-msgstr "تایید شده است"
+msgstr "تأیید شده است"
 
 #: frappe/public/js/frappe/ui/messages.js:359
 #: frappe/templates/includes/login/login.js:337
