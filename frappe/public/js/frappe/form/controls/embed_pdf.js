@@ -34,46 +34,67 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		frappe.utils.bind_actions_with_object(this.$value, this);
 		this.toggle_reload_button();
 		
-		// Create responsive PDF preview container
-		this.$pdf_preview = $(`
-			<div class="embed-pdf-container" style="display: none; margin-top: 10px; width: 100%;">
-				<div class="pdf-preview-header" style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px !important;">
-					<h6 style="margin: 0; color: #495057;">${__("PDF Preview")}</h6>
-					<div class="pdf-controls">
-						<button type="button" class="btn btn-xs btn-default" data-action="toggle_preview">
-							${__("Show Preview")}
-						</button>
-						<button type="button" class="btn btn-xs btn-default" data-action="fullscreen_pdf" style="margin-left: 5px;">
-							${__("Fullscreen")}
-						</button>
-					</div>
-				</div>
-				<div class="pdf-viewer-wrapper" style="width: 100%; position: relative; border: 1px solid #dee2e6;">
-					<iframe class="pdf-viewer" style="width: 100%; height: 400px; border: none; display: block;"></iframe>
-					<div class="pdf-loading text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
-						<i class="fa fa-spinner fa-spin"></i> ${__("Loading PDF...")}
-					</div>
-					<div class="pdf-error text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; color: #dc3545;">
-						<i class="fa fa-exclamation-triangle"></i> ${__("Unable to load PDF preview")}
-					</div>
-				</div>
-			</div>
-		`).insertAfter(this.$value);
+		this.is_in_grid_context = this.in_grid();
 
-		// Bind actions for PDF preview
-		try {
-			frappe.utils.bind_actions_with_object(this.$pdf_preview, this);
-		} catch (error) {
-			console.error("Failed to bind actions for PDF preview:", error);
+		if (!this.is_in_grid_context) {
+			// Create responsive PDF preview container for standard forms
+			this.$pdf_preview = $(`
+				<div class="embed-pdf-container" style="display: none; margin-top: 10px; width: 100%;">
+					<div class="pdf-preview-header" style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px !important;">
+						<h6 style="margin: 0; color: #495057;">${__("PDF Preview")}</h6>
+						<div class="pdf-controls">
+							<button type="button" class="btn btn-xs btn-default" data-action="toggle_preview">
+								${__("Show Preview")}
+							</button>
+							<button type="button" class="btn btn-xs btn-default" data-action="fullscreen_pdf" style="margin-left: 5px;">
+								${__("Fullscreen")}
+							</button>
+						</div>
+					</div>
+					<div class="pdf-viewer-wrapper" style="width: 100%; position: relative; border: 1px solid #dee2e6;">
+						<iframe class="pdf-viewer" style="width: 100%; height: 400px; border: none; display: block;"></iframe>
+						<div class="pdf-loading text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+							<i class="fa fa-spinner fa-spin"></i> ${__("Loading PDF...")}
+						</div>
+						<div class="pdf-error text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; color: #dc3545;">
+							<i class="fa fa-exclamation-triangle"></i> ${__("Unable to load PDF preview")}
+						</div>
+					</div>
+				</div>
+			`).insertAfter(this.$value);
+
+			// Bind actions for PDF preview
+			try {
+				frappe.utils.bind_actions_with_object(this.$pdf_preview, this);
+			} catch (error) {
+				console.error("Failed to bind actions for PDF preview:", error);
+			}
+
+			// Setup responsive behavior
+			this.setup_resize_handler();
+		} else {
+			// For child table/grid contexts, keep inline layout compact and use dialog preview
+			this.$pdf_preview = null;
+			const $btn_container = this.$value.find("div:last");
+			this.$grid_preview_btn = $(`
+				<a class="btn btn-xs btn-default embed-pdf-grid-preview" data-action="grid_preview">
+					${__("Preview")}
+				</a>
+			`);
+			if ($btn_container.length) {
+				this.$grid_preview_btn.prependTo($btn_container);
+			} else {
+				this.$grid_preview_btn.appendTo(this.$value);
+			}
+			this.$grid_preview_btn.toggle(false);
 		}
-		
-		// Setup responsive behavior
-		this.setup_resize_handler();
-		
+
 		// Initialize EmbedPDF library loading
 		this.embedpdf_loaded = false;
-		this.preview_visible = true;
+		this.preview_visible = !this.is_in_grid_context;
 		this.user_toggled_preview = false; // Track if user manually toggled preview
+		this.current_pdf_url = null;
+		this.grid_preview_dialog = null;
 	}
 
 	set_upload_options() {
@@ -84,12 +105,23 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 	set_input(value, dataurl) {
 		super.set_input(value, dataurl);
-		
+
+		if (this.is_in_grid_context) {
+			if (value && this.is_pdf_file(value)) {
+				this.current_pdf_url = value;
+				this.$grid_preview_btn && this.$grid_preview_btn.toggle(true);
+			} else {
+				this.current_pdf_url = null;
+				this.$grid_preview_btn && this.$grid_preview_btn.toggle(false);
+			}
+			return;
+		}
+
 		// Show/hide PDF preview based on value
 		if (value && this.is_pdf_file(value)) {
 			this.show_pdf_preview(value);
 		} else {
-			this.$pdf_preview.hide();
+			this.$pdf_preview && this.$pdf_preview.hide();
 			// Reset toggle state when no PDF is present
 			this.user_toggled_preview = false;
 			this.preview_visible = true;
@@ -121,8 +153,14 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 	}
 
 	show_pdf_preview(file_url) {
+		if (this.is_in_grid_context) {
+			this.current_pdf_url = file_url;
+			this.$grid_preview_btn && this.$grid_preview_btn.toggle(true);
+			return;
+		}
+
 		// Display the PDF preview container
-		this.$pdf_preview.show();
+		this.$pdf_preview && this.$pdf_preview.show();
 		
 		const $viewer_wrapper = this.$pdf_preview.find('.pdf-viewer-wrapper');
 		const $toggle_btn = this.$pdf_preview.find('[data-action="toggle_preview"]');
@@ -161,6 +199,9 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 	}
 
 	adjust_pdf_size() {
+		if (!this.$pdf_preview || this.is_in_grid_context) {
+			return;
+		}
 		// Calculate responsive height based on container width and actual column layout
 		const $container = this.$pdf_preview;
 		if (!$container.is(':visible')) return;
@@ -223,18 +264,29 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 	}
 
 	load_native_pdf_viewer(file_url, $viewer) {
+		if (!this.$pdf_preview) {
+			return;
+		}
 		try {
 			const $loading = this.$pdf_preview.find('.pdf-loading');
 			const $error = this.$pdf_preview.find('.pdf-error');
 			
 			$loading.show();
 			$error.hide();
+			const hide_loading = () => {
+				if ($loading.is(':visible')) {
+					$loading.fadeOut(150, () => $loading.hide());
+				}
+			};
+			const loading_fallback = setTimeout(hide_loading, 1500);
 			
 			// Show PDF directly in the iframe
-			$viewer.attr('src', file_url).on('load', function() {
-				$loading.hide();
+			const preview_url = this.get_pdf_preview_url(file_url, this.get_pdf_viewer_options());
+			$viewer.attr('src', preview_url).on('load', () => {
+				clearTimeout(loading_fallback);
+				hide_loading();
 				$error.hide();
-			}).on('error', function() {
+			}).on('error', () => {
 				$loading.hide();
 				$error.show();
 				// Fallback message
@@ -259,6 +311,9 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 	}
 
 	async load_embedpdf_service(file_url, $viewer) {
+		if (!this.$pdf_preview) {
+			return;
+		}
 		// Try EmbedPDF.com service (original implementation)
 		const loaded = await this.load_embedpdf_library();
 		
@@ -318,6 +373,11 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 	// Action handlers for buttons
 	toggle_preview() {
+		if (this.is_in_grid_context) {
+			this.grid_preview();
+			return;
+		}
+
 		const $viewer_wrapper = this.$pdf_preview.find('.pdf-viewer-wrapper');
 		const $toggle_btn = this.$pdf_preview.find('[data-action="toggle_preview"]');
 		
@@ -339,16 +399,115 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		}
 	}
 	
+	grid_preview() {
+		const pdf_url = this.current_pdf_url || this.get_value();
+		if (!pdf_url) {
+			frappe.msgprint({
+				message: __("Upload a PDF before previewing."),
+				indicator: "orange",
+			});
+			return;
+		}
+
+		if (!this.grid_preview_dialog) {
+			this.grid_preview_dialog = new frappe.ui.Dialog({
+				title: this.df.label || __("PDF Preview"),
+				size: "extra-large",
+				primary_action_label: __("Close"),
+				primary_action: () => this.grid_preview_dialog.hide(),
+			});
+			this.grid_preview_dialog.$wrapper.addClass("embed-pdf-dialog");
+			this.grid_preview_dialog.$body.addClass("embed-pdf-dialog-body");
+		}
+
+		const $body = this.grid_preview_dialog.$body;
+		$body.empty();
+
+		const $wrapper = $(`
+			<div class="embed-pdf-dialog-wrapper">
+				<div class="embed-pdf-dialog-loading">
+					<i class="fa fa-spinner fa-spin"></i>
+					<span>${__("Loading PDF...")}</span>
+				</div>
+				<iframe class="embed-pdf-dialog-frame" frameborder="0" allowfullscreen></iframe>
+			</div>
+		`);
+
+		$body.append($wrapper);
+
+		const $iframe = $wrapper.find("iframe");
+		const $loading = $wrapper.find(".embed-pdf-dialog-loading");
+		const hide_loading = () => {
+			if ($loading.length) {
+				$loading.fadeOut(150, () => $loading.remove());
+			}
+		};
+		const loading_fallback = setTimeout(hide_loading, 1500);
+
+		$iframe
+			.on("load", () => {
+				clearTimeout(loading_fallback);
+				hide_loading();
+			})
+			.on("error", () => {
+				clearTimeout(loading_fallback);
+				$loading.html(`
+					<i class="fa fa-exclamation-triangle text-danger"></i>
+					<span>${__("Unable to load PDF preview.")}</span>
+				`);
+			});
+
+		$iframe.attr("src", this.get_pdf_preview_url(pdf_url, this.get_pdf_viewer_options({ inGrid: true })));
+		this.grid_preview_dialog.show();
+	}
+
 	fullscreen_pdf() {
 		const pdf_url = this.get_value();
 		if (pdf_url) {
 			// Open PDF in new tab for fullscreen viewing
-			window.open(pdf_url, '_blank');
+			const options = this.is_in_grid_context ? this.get_pdf_viewer_options({ inGrid: true }) : this.get_pdf_viewer_options();
+			window.open(this.get_pdf_preview_url(pdf_url, options), '_blank');
 		}
+	}
+
+	get_pdf_viewer_options({ inGrid = false } = {}) {
+		return {
+			toolbar: '1',
+			navpanes: '0',
+			scrollbar: '1',
+			view: 'FitH',
+			zoom: inGrid ? (this.df.grid_preview_zoom || 'page-width') : 'page-width',
+		};
+	}
+
+	get_pdf_preview_url(url, options = {}) {
+		if (!url) {
+			return url;
+		}
+
+		const [base] = url.split('#');
+		const params = {
+			toolbar: '1',
+			navpanes: '0',
+			scrollbar: '1',
+			view: 'FitH',
+			zoom: 'page-width',
+			...options,
+		};
+
+		const hash_fragment = Object.entries(params)
+			.filter(([, value]) => value !== undefined && value !== null && value !== '')
+			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+			.join('&');
+
+		return `${base}#${hash_fragment}`;
 	}
 	
 	// Handle window resize and layout changes for responsive behavior
 	setup_resize_handler() {
+		if (this.is_in_grid_context) {
+			return;
+		}
 		// Window resize handler
 		$(window).on('resize.embedpdf-' + this.df.fieldname, () => {
 			if (this.preview_visible && this.$pdf_preview.is(':visible')) {
@@ -383,7 +542,9 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 	
 	destroy() {
 		// Clean up resize handler
-		$(window).off('resize.embedpdf-' + this.df.fieldname);
+		if (!this.is_in_grid_context) {
+			$(window).off('resize.embedpdf-' + this.df.fieldname);
+		}
 		
 		// Clean up resize timeout
 		if (this.resize_timeout) {
@@ -399,6 +560,16 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		// Clean up PDF viewer if exists
 		if (this.pdf_viewer && this.pdf_viewer.destroy) {
 			this.pdf_viewer.destroy();
+		}
+
+		if (this.grid_preview_dialog) {
+			this.grid_preview_dialog.hide();
+			this.grid_preview_dialog.$wrapper && this.grid_preview_dialog.$wrapper.remove();
+			this.grid_preview_dialog = null;
+		}
+
+		if (this.$grid_preview_btn) {
+			this.$grid_preview_btn.off();
 		}
 		
 		super.destroy && super.destroy();
