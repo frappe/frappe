@@ -117,7 +117,7 @@
         gap: 10px;
         text-align: center;
     }
-    
+
     .embed-pdf-container .pdf-controls {
         justify-content: center;
     }
@@ -174,7 +174,7 @@
         align-items: flex-start;
         gap: 10px;
     }
-    
+
     .embed-pdf-container .pdf-viewer {
         height: 300px !important;
     }

@@ -33,7 +33,7 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 		frappe.utils.bind_actions_with_object(this.$value, this);
 		this.toggle_reload_button();
-		
+
 		this.is_in_grid_context = this.in_grid();
 
 		if (!this.is_in_grid_context) {
@@ -130,8 +130,8 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 	is_pdf_file(filename) {
 		if (!filename) return false;
-		const ext = filename.toLowerCase().split('.').pop();
-		return ext === 'pdf' || filename.toLowerCase().includes('.pdf');
+		const ext = filename.toLowerCase().split(".").pop();
+		return ext === "pdf" || filename.toLowerCase().includes(".pdf");
 	}
 
 	async load_embedpdf_library() {
@@ -141,12 +141,12 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 		try {
 			// Dynamically import EmbedPDF from a local copy for security
-			const EmbedPDF = await import('/assets/frappe/js/embedpdf.js');
+			const EmbedPDF = await import("/assets/frappe/js/embedpdf.js");
 			window.EmbedPDF = EmbedPDF.default || EmbedPDF;
 			this.embedpdf_loaded = true;
 			return true;
 		} catch (error) {
-			console.error('Failed to load EmbedPDF library:', error);
+			console.error("Failed to load EmbedPDF library:", error);
 			this.show_fallback_message();
 			return false;
 		}
@@ -161,10 +161,10 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 
 		// Display the PDF preview container
 		this.$pdf_preview && this.$pdf_preview.show();
-		
-		const $viewer_wrapper = this.$pdf_preview.find('.pdf-viewer-wrapper');
+
+		const $viewer_wrapper = this.$pdf_preview.find(".pdf-viewer-wrapper");
 		const $toggle_btn = this.$pdf_preview.find('[data-action="toggle_preview"]');
-		
+
 		// If user hasn't manually toggled, show preview by default
 		// If user has toggled, maintain their last preference
 		if (!this.user_toggled_preview) {
@@ -181,18 +181,18 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 				$toggle_btn.text(__("Show Preview"));
 			}
 		}
-		
-		console.log('EmbedPDF: Showing PDF preview for:', file_url);
-		
+
+		console.log("EmbedPDF: Showing PDF preview for:", file_url);
+
 		// Load PDF viewer only if preview is visible
 		if (this.preview_visible) {
 			// Force resize adjustment after container is visible
 			setTimeout(() => {
 				this.adjust_pdf_size();
 			}, 100);
-			
-			const $viewer = this.$pdf_preview.find('.pdf-viewer');
-			
+
+			const $viewer = this.$pdf_preview.find(".pdf-viewer");
+
 			// Use native PDF viewer directly (more reliable)
 			this.load_native_pdf_viewer(file_url, $viewer);
 		}
@@ -204,62 +204,64 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		}
 		// Calculate responsive height based on container width and actual column layout
 		const $container = this.$pdf_preview;
-		if (!$container.is(':visible')) return;
-		
+		if (!$container.is(":visible")) return;
+
 		const container_width = $container.width();
 		const parent_width = $container.parent().width();
 		const window_width = $(window).width();
-		
+
 		let optimal_height;
-		let layout_type = 'full';
-		
+		let layout_type = "full";
+
 		// Simple and reliable layout detection
 		// Check if this field is in a narrow column (less than 60% of parent width)
 		const width_ratio = container_width / parent_width;
-		
+
 		// Check for actual column break indicators
-		const $field_wrapper = $container.closest('.frappe-control');
-		const $section_body = $container.closest('.section-body');
-		
+		const $field_wrapper = $container.closest(".frappe-control");
+		const $section_body = $container.closest(".section-body");
+
 		if ($field_wrapper.length && $section_body.length) {
 			const section_width = $section_body.width();
 			const field_width = $field_wrapper.width();
-			
+
 			// If field takes less than 70% of section width, it's likely in a column
 			if (field_width < section_width * 0.7) {
-				layout_type = 'half';
+				layout_type = "half";
 			}
 		}
-		
+
 		// Fallback: check container width relative to viewport
-		if (layout_type === 'full' && container_width < window_width * 0.6) {
-			layout_type = 'half';
+		if (layout_type === "full" && container_width < window_width * 0.6) {
+			layout_type = "half";
 		}
-		
+
 		// Calculate height based on layout
-		if (layout_type === 'half') {
+		if (layout_type === "half") {
 			// Compact for columns
 			optimal_height = Math.max(280, Math.min(container_width * 0.75, 400));
 		} else {
 			// Full width - more spacious
 			optimal_height = Math.max(400, Math.min(container_width * 0.6, 600));
 		}
-		
+
 		// Mobile responsiveness
 		if (window_width < 768) {
 			optimal_height = Math.min(optimal_height, 350);
 		}
-		
+
 		// Apply the height
-		const $viewer = this.$pdf_preview.find('.pdf-viewer');
-		$viewer.css('height', optimal_height + 'px');
-		
+		const $viewer = this.$pdf_preview.find(".pdf-viewer");
+		$viewer.css("height", optimal_height + "px");
+
 		// Ensure container uses full width
-		$container.css('width', '100%');
-		
+		$container.css("width", "100%");
+
 		// Debug info
-		console.log(`EmbedPDF: ${layout_type} layout, Container: ${container_width}px, Height: ${optimal_height}px`);
-		
+		console.log(
+			`EmbedPDF: ${layout_type} layout, Container: ${container_width}px, Height: ${optimal_height}px`
+		);
+
 		return optimal_height;
 	}
 
@@ -268,29 +270,32 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			return;
 		}
 		try {
-			const $loading = this.$pdf_preview.find('.pdf-loading');
-			const $error = this.$pdf_preview.find('.pdf-error');
-			
+			const $loading = this.$pdf_preview.find(".pdf-loading");
+			const $error = this.$pdf_preview.find(".pdf-error");
+
 			$loading.show();
 			$error.hide();
 			const hide_loading = () => {
-				if ($loading.is(':visible')) {
+				if ($loading.is(":visible")) {
 					$loading.fadeOut(150, () => $loading.hide());
 				}
 			};
 			const loading_fallback = setTimeout(hide_loading, 1500);
-			
+
 			// Show PDF directly in the iframe
 			const preview_url = this.get_pdf_preview_url(file_url, this.get_pdf_viewer_options());
-			$viewer.attr('src', preview_url).on('load', () => {
-				clearTimeout(loading_fallback);
-				hide_loading();
-				$error.hide();
-			}).on('error', () => {
-				$loading.hide();
-				$error.show();
-				// Fallback message
-				$viewer.attr('src', '').html(`
+			$viewer
+				.attr("src", preview_url)
+				.on("load", () => {
+					clearTimeout(loading_fallback);
+					hide_loading();
+					$error.hide();
+				})
+				.on("error", () => {
+					$loading.hide();
+					$error.show();
+					// Fallback message
+					$viewer.attr("src", "").html(`
 					<div class="text-center" style="padding: 40px;">
 						<i class="fa fa-file-pdf-o fa-3x text-muted" style="margin-bottom: 15px;"></i>
 						<p class="text-muted">${__("PDF Preview")}</p>
@@ -299,12 +304,11 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 						</a>
 					</div>
 				`);
-			});
-			
+				});
 		} catch (error) {
-			console.error('Failed to load PDF preview:', error);
-			const $loading = this.$pdf_preview.find('.pdf-loading');
-			const $error = this.$pdf_preview.find('.pdf-error');
+			console.error("Failed to load PDF preview:", error);
+			const $loading = this.$pdf_preview.find(".pdf-loading");
+			const $error = this.$pdf_preview.find(".pdf-error");
 			$loading.hide();
 			$error.show();
 		}
@@ -316,7 +320,7 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		}
 		// Try EmbedPDF.com service (original implementation)
 		const loaded = await this.load_embedpdf_library();
-		
+
 		if (!loaded) {
 			// Fall back to native viewer
 			this.load_native_pdf_viewer(file_url, $viewer);
@@ -327,31 +331,30 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			// Create unique ID for this viewer
 			const viewer_id = `pdf-viewer-${frappe.utils.get_random(8)}`;
 			$viewer.html(`<div id="${viewer_id}" style="height: 100%; width: 100%;"></div>`);
-			
+
 			// Initialize EmbedPDF viewer
 			const viewer = window.EmbedPDF.init({
-				type: 'container',
+				type: "container",
 				target: document.getElementById(viewer_id),
 				src: file_url,
 				settings: {
 					toolbar: true,
 					navigation: true,
 					zoom: true,
-					search: true
-				}
+					search: true,
+				},
 			});
 
 			// Store viewer reference for cleanup
 			this.pdf_viewer = viewer;
-			
 		} catch (error) {
-			console.error('Failed to initialize PDF viewer:', error);
+			console.error("Failed to initialize PDF viewer:", error);
 			this.show_fallback_message();
 		}
 	}
 
 	show_fallback_message() {
-		const $viewer = this.$pdf_preview.find('.pdf-viewer');
+		const $viewer = this.$pdf_preview.find(".pdf-viewer");
 		$viewer.html(`
 			<div class="text-center" style="padding: 50px;">
 				<p class="text-muted">${__("PDF preview is not available.")}</p>
@@ -366,7 +369,7 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			frappe.msgprint(__("Please upload only PDF files."));
 			return;
 		}
-		
+
 		// Call parent method
 		super.on_upload_complete(attachment);
 	}
@@ -378,13 +381,13 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			return;
 		}
 
-		const $viewer_wrapper = this.$pdf_preview.find('.pdf-viewer-wrapper');
+		const $viewer_wrapper = this.$pdf_preview.find(".pdf-viewer-wrapper");
 		const $toggle_btn = this.$pdf_preview.find('[data-action="toggle_preview"]');
-		
+
 		// Mark that user has manually toggled preview
 		this.user_toggled_preview = true;
-		
-		if ($viewer_wrapper.is(':visible')) {
+
+		if ($viewer_wrapper.is(":visible")) {
 			$viewer_wrapper.hide();
 			this.preview_visible = false;
 			$toggle_btn.text(__("Show Preview"));
@@ -398,7 +401,7 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			}, 50);
 		}
 	}
-	
+
 	grid_preview() {
 		const pdf_url = this.current_pdf_url || this.get_value();
 		if (!pdf_url) {
@@ -457,7 +460,10 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 				`);
 			});
 
-		$iframe.attr("src", this.get_pdf_preview_url(pdf_url, this.get_pdf_viewer_options({ inGrid: true })));
+		$iframe.attr(
+			"src",
+			this.get_pdf_preview_url(pdf_url, this.get_pdf_viewer_options({ inGrid: true }))
+		);
 		this.grid_preview_dialog.show();
 	}
 
@@ -465,18 +471,20 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		const pdf_url = this.get_value();
 		if (pdf_url) {
 			// Open PDF in new tab for fullscreen viewing
-			const options = this.is_in_grid_context ? this.get_pdf_viewer_options({ inGrid: true }) : this.get_pdf_viewer_options();
-			window.open(this.get_pdf_preview_url(pdf_url, options), '_blank');
+			const options = this.is_in_grid_context
+				? this.get_pdf_viewer_options({ inGrid: true })
+				: this.get_pdf_viewer_options();
+			window.open(this.get_pdf_preview_url(pdf_url, options), "_blank");
 		}
 	}
 
 	get_pdf_viewer_options({ inGrid = false } = {}) {
 		return {
-			toolbar: '1',
-			navpanes: '0',
-			scrollbar: '1',
-			view: 'FitH',
-			zoom: inGrid ? (this.df.grid_preview_zoom || 'page-width') : 'page-width',
+			toolbar: "1",
+			navpanes: "0",
+			scrollbar: "1",
+			view: "FitH",
+			zoom: inGrid ? this.df.grid_preview_zoom || "page-width" : "page-width",
 		};
 	}
 
@@ -485,32 +493,32 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 			return url;
 		}
 
-		const [base] = url.split('#');
+		const [base] = url.split("#");
 		const params = {
-			toolbar: '1',
-			navpanes: '0',
-			scrollbar: '1',
-			view: 'FitH',
-			zoom: 'page-width',
+			toolbar: "1",
+			navpanes: "0",
+			scrollbar: "1",
+			view: "FitH",
+			zoom: "page-width",
 			...options,
 		};
 
 		const hash_fragment = Object.entries(params)
-			.filter(([, value]) => value !== undefined && value !== null && value !== '')
+			.filter(([, value]) => value !== undefined && value !== null && value !== "")
 			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-			.join('&');
+			.join("&");
 
 		return `${base}#${hash_fragment}`;
 	}
-	
+
 	// Handle window resize and layout changes for responsive behavior
 	setup_resize_handler() {
 		if (this.is_in_grid_context) {
 			return;
 		}
 		// Window resize handler
-		$(window).on('resize.embedpdf-' + this.df.fieldname, () => {
-			if (this.preview_visible && this.$pdf_preview.is(':visible')) {
+		$(window).on("resize.embedpdf-" + this.df.fieldname, () => {
+			if (this.preview_visible && this.$pdf_preview.is(":visible")) {
 				// Debounce resize events
 				clearTimeout(this.resize_timeout);
 				this.resize_timeout = setTimeout(() => {
@@ -518,45 +526,47 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 				}, 150);
 			}
 		});
-		
+
 		// Form layout change observer (for dynamic layout changes)
 		if (window.ResizeObserver) {
-			const $form_container = this.$pdf_preview.closest('.form-layout, .form-body, .section-body');
+			const $form_container = this.$pdf_preview.closest(
+				".form-layout, .form-body, .section-body"
+			);
 			if ($form_container.length) {
 				this.resize_observer = new ResizeObserver((entries) => {
-					if (this.preview_visible && this.$pdf_preview.is(':visible')) {
+					if (this.preview_visible && this.$pdf_preview.is(":visible")) {
 						this.adjust_pdf_size();
 					}
 				});
 				this.resize_observer.observe($form_container[0]);
 			}
 		}
-		
+
 		// Initial adjustment after a short delay to ensure DOM is settled
 		setTimeout(() => {
-			if (this.preview_visible && this.$pdf_preview.is(':visible')) {
+			if (this.preview_visible && this.$pdf_preview.is(":visible")) {
 				this.adjust_pdf_size();
 			}
 		}, 100);
 	}
-	
+
 	destroy() {
 		// Clean up resize handler
 		if (!this.is_in_grid_context) {
-			$(window).off('resize.embedpdf-' + this.df.fieldname);
+			$(window).off("resize.embedpdf-" + this.df.fieldname);
 		}
-		
+
 		// Clean up resize timeout
 		if (this.resize_timeout) {
 			clearTimeout(this.resize_timeout);
 		}
-		
+
 		// Clean up resize observer
 		if (this.resize_observer) {
 			this.resize_observer.disconnect();
 			this.resize_observer = null;
 		}
-		
+
 		// Clean up PDF viewer if exists
 		if (this.pdf_viewer && this.pdf_viewer.destroy) {
 			this.pdf_viewer.destroy();
@@ -571,7 +581,7 @@ frappe.ui.form.ControlEmbedPdf = class ControlEmbedPdf extends frappe.ui.form.Co
 		if (this.$grid_preview_btn) {
 			this.$grid_preview_btn.off();
 		}
-		
+
 		super.destroy && super.destroy();
 	}
 };
