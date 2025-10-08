@@ -143,6 +143,10 @@ def delete_doc(
 				except (OSError, KeyError):
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
+			try:
+				frappe.clear_cache(doctype=name)
+			except frappe.DoesNotExistError:
+				pass
 
 		else:
 			# Lock the doc without waiting
