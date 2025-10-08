@@ -629,8 +629,8 @@ def get_context(context):
 	def get_attachment(self, doc) -> list[dict]:
 		"""Check Attachment Settings and return attachments accordingly"""
 		attachments = []
-		if self.attach_print and (print_info := self.get_print(doc)):
-			attachments.append(print_info)
+		if self.attach_print:
+			attachments.append(self.get_print(doc))
 		if self.attach == "From Field" and self.attach_field:
 			attachments.append({"file_url": doc.get(self.attach_field)})
 		if self.attach == "All":
