@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-05 09:33+0000\n"
-"PO-Revision-Date: 2025-10-07 23:26\n"
+"PO-Revision-Date: 2025-10-08 23:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -582,7 +582,7 @@ msgstr ""
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "A download link with your data will be sent to the email address associated with your account."
-msgstr ""
+msgstr "یک لینک دانلود حاوی اطلاعات شما به آدرس ایمیل مرتبط با حساب کاربری‌تان ارسال خواهد شد."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:175
 msgid "A field with the name {0} already exists in {1}"
@@ -2081,7 +2081,7 @@ msgstr "قوانین نام‌گذاری اصلاحیه به روز شد."
 #. Success message of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "An email to verify your request has been sent to your email address. Please verify your request to complete the process."
-msgstr ""
+msgstr "ایمیلی برای تأیید درخواست شما به آدرس ایمیل شما ارسال شده است. لطفاً برای تکمیل فرآیند، درخواست خود را تأیید کنید."
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:354
 msgid "An error occurred while setting Session Defaults"
@@ -10914,7 +10914,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further sub-groups can only be created under records marked as 'Group'"
-msgstr ""
+msgstr "زیرگروه‌های بیشتر فقط می‌توانند تحت رکوردهایی که با عنوان «گروه» مشخص شده‌اند، ایجاد شوند"
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
@@ -13333,7 +13333,7 @@ msgstr "آرگومان های درخواست نامعتبر"
 
 #: frappe/app.py:327
 msgid "Invalid request body"
-msgstr ""
+msgstr "Invalid request body"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:181
 msgid "Invalid role"
@@ -15710,7 +15710,7 @@ msgstr "نام میانی"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "نام میانی (اختیاری)"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -19956,12 +19956,12 @@ msgstr "نمایه"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Profile Picture"
-msgstr ""
+msgstr "تصویر نمایه"
 
 #. Success message of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Profile updated successfully."
-msgstr ""
+msgstr "نمایه با موفقیت به‌روزرسانی شد."
 
 #: frappe/public/js/frappe/socketio_client.js:82
 msgid "Progress"
@@ -21510,7 +21510,7 @@ msgstr "درخواست URL"
 #. Title of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Request for Account Deletion"
-msgstr ""
+msgstr "درخواست حذف حساب کاربری"
 
 #. Label of the requested_numbers (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -22968,7 +22968,7 @@ msgstr "یک فیلد را برای ویرایش ویژگی‌های آن انت
 
 #: frappe/public/js/frappe/views/treeview.js:358
 msgid "Select a group {0} first."
-msgstr ""
+msgstr "ابتدا یک گروه {0} انتخاب کنید."
 
 #: frappe/core/doctype/doctype/doctype.py:1956
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -27710,7 +27710,7 @@ msgstr "به‌روزرسانی گذرواژه"
 #. Title of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Update Profile"
-msgstr ""
+msgstr "به‌روزرسانی نمایه"
 
 #. Label of the update_series (Section Break) field in DocType 'Document Naming
 #. Settings'
