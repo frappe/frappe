@@ -431,7 +431,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachments(doc)
+		attachments = self.get_attachment(doc)
 
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 
@@ -460,7 +460,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachments(doc)
+		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
@@ -626,7 +626,7 @@ def get_context(context):
 
 		return list(set(receiver_list))
 
-	def get_attachments(self, doc) -> list[dict]:
+	def get_attachment(self, doc) -> list[dict]:
 		"""Check Attachment Settings and return attachments accordingly"""
 		attachments = []
 		if self.attach_print and (print_info := self.get_print(doc)):
