@@ -665,7 +665,8 @@ def get_context(context):
 				"name": doc.name,
 				"print_format": self.print_format,
 				"print_letterhead": print_settings.with_letterhead,
-				"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+				"lang": doc.get("language")
+				or frappe.db.get_value("Print Format", self.print_format, "default_print_language")
 				if self.print_format
 				else "en",
 			}
