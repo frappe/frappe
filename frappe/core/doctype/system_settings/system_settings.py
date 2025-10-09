@@ -25,16 +25,19 @@ class SystemSettings(Document):
 				if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
 					frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
 
-		if self.enable_two_factor_auth:
-			if self.two_factor_method == "SMS":
-				if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
-					frappe.throw(
-						_("Please setup SMS before setting it as an authentication method, via SMS Settings")
-					)
-			toggle_two_factor_auth(True, roles=["All"])
-		else:
-			self.bypass_2fa_for_retricted_ip_users = 0
-			self.bypass_restrict_ip_check_if_2fa_enabled = 0
+		if self.has_value_changed("enable_two_factor_auth"):
+			if self.enable_two_factor_auth:
+				if self.two_factor_method == "SMS":
+					if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
+						frappe.throw(
+							_(
+								"Please setup SMS before setting it as an authentication method, via SMS Settings"
+							)
+						)
+				toggle_two_factor_auth(True, roles=["All"])
+			else:
+				self.bypass_2fa_for_retricted_ip_users = 0
+				self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
