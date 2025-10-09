@@ -61,10 +61,6 @@ def get_oauth2_providers() -> dict[str, dict]:
 			access_token_url = build_oauth_url(provider.base_url, provider.access_token_url)
 			api_endpoint_url = build_oauth_url(provider.base_url, provider.api_endpoint)
 
-		# Keycloak needs this, the base URL also has a route, that urljoin() ignores
-		if provider.name == "keycloak":
-			api_endpoint_url = build_oauth_url(provider.base_url, provider.api_endpoint)
-
 		out[provider.name] = {
 			"flow_params": {
 				"name": provider.name,
