@@ -78,6 +78,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 				default: prop.default,
 				inputType: getPropInputType(propType),
 				required: isRequired,
+				condition: prop.condition,
 			}
 
 			if (propType === "string") {

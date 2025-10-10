@@ -126,7 +126,13 @@ const componentProps = computed(() => {
 	}
 	if (!propConfig) return {}
 
+	const currentProps = props.block?.componentProps
+	const filteredProps: typeof propConfig = {}
+
 	Object.entries(propConfig).forEach(([propName, config]) => {
+		const isVisible = config.condition ? config.condition(currentProps) : true
+		if (!isVisible) return
+
 		if (props.block?.componentProps[propName] === undefined) {
 			const defaultValue = typeof config.default === "function" ? config.default() : config.default
 			config.modelValue = defaultValue
@@ -137,9 +143,10 @@ const componentProps = computed(() => {
 		if (isDynamicValue(config.modelValue) && ["select", "checkbox"].includes(config.inputType)) {
 			config.inputType = "text"
 		}
+		filteredProps[propName] = config
 	})
 
-	return propConfig
+	return filteredProps
 })
 
 function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
