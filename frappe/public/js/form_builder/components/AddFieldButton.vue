@@ -64,6 +64,9 @@ const fields = computed(() => {
 			if (in_list(frappe.model.layout_fields, df)) {
 				return false;
 			}
+			if (store.doc.istable && in_list(frappe.model.table_fields, df)) {
+				return false;
+			}
 			return true;
 		})
 		.map((df) => {
