@@ -28,6 +28,11 @@ $("body").on("click", "a", function (e) {
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
 
+	if (frappe.router.show_external_link_warning_if_needed(target_element)) {
+		e.preventDefault();
+		return; // warning shown
+	}
+
 	if (target_element.getAttribute("target") === "_blank") {
 		return;
 	}
@@ -569,6 +574,105 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
+	},
+
+	show_external_link_warning_if_needed(/** @type {HTMLAnchorElement} */ aElement) {
+		try {
+			if (!aElement?.href) {
+				return false; // not a true link
+			}
+
+			// Get the external link handling type
+			/** @type {'Always' | 'Ask' | 'Never' | null} */
+			const showWarningWhen = frappe.boot.show_external_link_warning || "Never";
+			if (showWarningWhen == "Never") {
+				return false; // the feature is disabled
+			}
+
+			// Check that the origin is external (does not prevent self-clickjacking on GET endpoints)
+			const url = new URL(aElement.href);
+			const hostname = url.hostname;
+			if (hostname === window.location.hostname) {
+				return false; // self-linking is allowed
+			}
+
+			// Check if the origin was ignored by the user
+			const localStorageKey = `skip-external-link-warning:${hostname}`;
+			if (showWarningWhen == "Ask" && localStorage.getItem(localStorageKey)) {
+				return false; // user chose to skip warning forever
+			}
+
+			// Check if the link if inside the confirmation popup
+			const incominSkipToken = aElement.getAttribute("data-skip-link-warning");
+			if (incominSkipToken && sessionStorage.getItem(incominSkipToken) == "1") {
+				return false; // anchor is the confirmation itself
+			}
+
+			// Finally, show the warning
+			const dialog = new frappe.ui.Dialog({
+				title: __("Warning"),
+				primary_action: null,
+				fields: [
+					{
+						fieldname: "warning_html",
+						fieldtype: "HTML",
+					},
+					{
+						fieldname: "confirm_checkbox",
+						fieldtype: "Check",
+						label: __("Do not warn me again about {0}", [
+							frappe.utils.escape_html(hostname).bold(),
+						]),
+						default: 0,
+						hidden: showWarningWhen == "Always",
+						change() {
+							if (dialog.get_value("confirm_checkbox")) {
+								localStorage.setItem(localStorageKey, "1");
+							} else {
+								localStorage.removeItem(localStorageKey);
+							}
+						},
+					},
+				],
+			});
+
+			const warningElement = dialog.fields_dict.warning_html.$wrapper.get(0);
+
+			const introElement = document.createElement("p");
+			introElement.textContent = __(
+				"You are about to open an external link. To confirm, click the link again."
+			);
+			warningElement.appendChild(introElement);
+
+			const boxElement = document.createElement("div");
+			boxElement.classList.add("border", "rounded-lg", "p-3", "mt-6", "mb-6", "text-center");
+			warningElement.appendChild(boxElement);
+
+			const hintElement = document.createElement("p");
+			hintElement.classList.add("text-sm", "mb-1");
+			hintElement.textContent = __("You will be redirected to:");
+			boxElement.appendChild(hintElement);
+
+			const confirmElement = document.createElement("a");
+			confirmElement.classList.add("text-sm", "font-mono");
+			confirmElement.style.wordBreak = "break-all";
+			confirmElement.textContent = aElement.href;
+			confirmElement.href = aElement.href;
+			confirmElement.target = aElement.target;
+			confirmElement.addEventListener("click", () => dialog.hide(), { capture: true });
+
+			// Add a token to skip the warning when clicking inside the confirmation dialog
+			const skipToken = frappe.utils.get_random(16);
+			confirmElement.setAttribute("data-skip-link-warning", skipToken);
+			sessionStorage.setItem(skipToken, "1");
+			boxElement.appendChild(confirmElement);
+
+			dialog.show();
+			return true; // prevent default handling
+		} catch (e) {
+			console.error(e);
+		}
+		return false;
 	},
 };
 

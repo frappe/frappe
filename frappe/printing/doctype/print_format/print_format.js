@@ -3,6 +3,7 @@
 
 frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
+	frm.add_fetch("report", "module", "module");
 });
 
 frappe.ui.form.on("Print Format", {
@@ -73,7 +74,8 @@ frappe.ui.form.on("Print Format", {
 	},
 	print_format_for: function (frm) {
 		if (frm.doc.print_format_for === "Report") {
-			frm.set_value("print_format_type", "JS");
+			frm.set_value("standard", "No");
+			frm.set_value("custom_format", 1);
 		}
 	},
 	hide_absolute_value_field: function (frm) {

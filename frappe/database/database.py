@@ -1192,6 +1192,7 @@ class Database:
 			self.sql("commit")
 			self.begin()
 
+		self.value_cache.clear()
 		self.after_commit.run()
 
 	def rollback(self, *, save_point=None, chain=False):
@@ -1206,10 +1207,12 @@ class Database:
 
 			if chain:
 				self.sql("rollback and chain")
+				self.value_cache.clear()
 			else:
 				self.sql("rollback")
 				self.begin()
 
+			self.value_cache.clear()
 			self.after_rollback.run()
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)

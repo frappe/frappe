@@ -503,10 +503,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				filter[3].push("...");
 			}
 
-			let value =
-				filter[3] == null || filter[3] === "" ? __("empty") : String(__(filter[3]));
+			let value;
+			if (filter[3] && Array.isArray(filter[3])) {
+				value = filter[3].map((v) => String(__(v)).bold()).join(", ");
+			} else if (filter[3] == null || filter[3] === "") {
+				value = __("empty").bold();
+			} else {
+				value = String(__(filter[3])).bold();
+			}
 
-			return [__(label).bold(), __(filter[2]), value.bold()].join(" ");
+			return [__(label).bold(), __(filter[2]), value].join(" ");
 		}
 
 		let filter_string = filter_array.map(get_filter_description).join(", ");

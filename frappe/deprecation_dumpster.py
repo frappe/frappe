@@ -899,7 +899,7 @@ def tests_utils_get_dependencies(doctype):
 	import frappe
 	from frappe.tests.utils.generators import get_modules
 
-	module, test_module = get_modules(doctype)
+	_module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 

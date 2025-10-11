@@ -564,6 +564,14 @@ app_license = "{app_license}"
 
 # before_tests = "{app_name}.install.before_tests"
 
+# Extend DocType Class
+# ------------------------------
+#
+# Specify custom mixins to extend the standard doctype controller.
+# extend_doctype_class = {{
+# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
+# }}
+
 # Overriding Methods
 # ------------------------------
 #

@@ -90,6 +90,7 @@ class DocField(Document):
 		link_filters: DF.JSON | None
 		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
 		max_height: DF.Data | None
 		no_copy: DF.Check
 		non_negative: DF.Check

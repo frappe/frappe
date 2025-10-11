@@ -125,7 +125,7 @@ class SQLiteTable(DBTable):
 		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
 			self.table_name, "modified", unique=False
 		):
-			index_queries.append(f"CREATE INDEX `modified` ON `{self.table_name}` (`modified`)")
+			index_queries.append(f"CREATE INDEX IF NOT EXISTS `modified` ON `{self.table_name}` (`modified`)")
 
 		for query in index_queries:
 			frappe.db.sql_ddl(query)

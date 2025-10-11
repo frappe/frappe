@@ -268,7 +268,19 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+		if not is_doctype:
+			self.mask_fields()
+
 		return self
+
+	def mask_fields(self):
+		from frappe.model.db_query import mask_field_value
+
+		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
+
+		for field in mask_fields:
+			val = self.get(field.fieldname)
+			self.set(field.fieldname, mask_field_value(field, val))
 
 	def load_children_from_db(self):
 		is_doctype = self.doctype == "DocType"
@@ -909,8 +921,10 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access()
 		high_permlevel_fields = self.meta.get_high_permlevel_fields()
 
-		if high_permlevel_fields:
-			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
+		mask_fields = self.meta.get_masked_fields()
+
+		if high_permlevel_fields or mask_fields:
+			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields, mask_fields)
 
 		# If new record then don't reset the values for child table
 		if self.is_new():

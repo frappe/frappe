@@ -70,6 +70,24 @@ UNPICKLABLE_KEYS = (
 )
 
 
+def _reduce_extended_instance(doc):
+	"""Make extended class instances pickle-able.
+
+	When unpickling, this will use get_controller() to recreate the extended class.
+	Respects the __getstate__ method for proper state handling.
+	"""
+	return (_reconstruct_extended_instance, (doc.doctype,), doc.__getstate__())
+
+
+def _reconstruct_extended_instance(doctype):
+	"""
+	Helper function to reconstruct an extended class instance during unpickling.
+	"""
+	# Get the current extended class (uses caching from get_controller)
+	extended_class = get_controller(doctype)
+	return extended_class.__new__(extended_class)
+
+
 def get_controller(doctype):
 	"""Return the locally cached **class** object of the given DocType.
 
@@ -127,7 +145,46 @@ def import_controller(doctype):
 	if not issubclass(class_, BaseDocument):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
-	return class_
+	return _get_extended_class(class_, doctype)
+
+
+def _get_extended_class(base_class, doctype):
+	"""Create an extended class by mixing extension classes with the base class.
+
+	Args:
+		base_class: The base document class
+		doctype: The doctype name
+
+	Returns:
+		Extended class that combines all extension classes with the base class
+	"""
+
+	extensions = frappe.get_hooks("extend_doctype_class", {}).get(doctype)
+	if not extensions:
+		return base_class
+
+	# Get extension classes in reverse order using frappe.get_attr
+	extension_classes = []
+	for extension_path in reversed(extensions):
+		try:
+			extension_class = frappe.get_attr(extension_path)
+		except Exception as e:
+			raise ImportError(
+				"Error retrieving extension class from path:\n{0}".format(extension_path)
+			) from e
+
+		extension_classes.append(extension_class)
+
+	# Create the extended class by combining extension classes with base class
+	# Extension classes come first in MRO, then base class
+	return type(
+		f"Extended{base_class.__name__}",
+		(*extension_classes, base_class),
+		{
+			"__reduce__": _reduce_extended_instance,
+			"__module__": base_class.__module__,
+		},
+	)
 
 
 RESERVED_KEYWORDS = frozenset(
@@ -1342,7 +1399,7 @@ class BaseDocument:
 		else:
 			return True
 
-	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields):
+	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		to_reset = [
 			df
@@ -1354,22 +1411,38 @@ class BaseDocument:
 			)
 		]
 
-		if to_reset:
-			if self.is_new():
-				# if new, set default value
-				ref_doc = frappe.new_doc(self.doctype)
-			else:
-				# get values from old doc
-				if self.parent_doc:
-					parent_doc = self.parent_doc.get_latest()
-					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
-					if not child_docs:
-						return
-					ref_doc = child_docs[0]
-				else:
-					ref_doc = self.get_latest()
+		if not mask_fields:
+			mask_fields = []
 
-			for df in to_reset:
+		to_reset = to_reset + mask_fields
+
+		if not to_reset:
+			return
+
+		if self.is_new():
+			# if new, set default value
+			ref_doc = frappe.new_doc(self.doctype)
+		else:
+			# get values from old doc
+			if self.parent_doc:
+				parent_doc = self.parent_doc.get_latest()
+				child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
+				if not child_docs:
+					return
+				ref_doc = child_docs[0]
+			else:
+				ref_doc = self.get_latest()
+
+		masked_fieldnames = [df.fieldname for df in to_reset if df.get("mask_readonly")]
+		ref_values = {}
+		if not self.is_new() and masked_fieldnames:
+			ref_values = frappe.db.get_value(self.doctype, self.name, masked_fieldnames, as_dict=True) or {}
+
+		for df in to_reset:
+			if df.get("mask_readonly") and not self.is_new():
+				if df.fieldname in ref_values:
+					self.set(df.fieldname, ref_values[df.fieldname])
+			else:
 				self.set(df.fieldname, ref_doc.get(df.fieldname))
 
 	def get_value(self, fieldname):

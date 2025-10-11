@@ -54,6 +54,8 @@ frappe.RoleEditor = class {
 			this.make_perm_dialog();
 		}
 		$(this.perm_dialog.body).empty();
+		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
+		let header_bg_color = is_dark ? "bg-dark text-white" : "bg-light";
 		return frappe
 			.xcall("frappe.core.doctype.user.user.get_perm_info", { role })
 			.then((permissions) => {
@@ -64,17 +66,26 @@ frappe.RoleEditor = class {
 					</div>`);
 				} else {
 					$body.append(`
-						<table class="user-perm">
-							<thead>
-								<tr>
-									<th> ${__("Document Type")} </th>
-									<th> ${__("Level")} </th>
-									<th> ${__("If Owner")} </th>
-									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
-								</tr>
-							</thead>
-							<tbody></tbody>
-						</table>
+						<div style="max-height:calc(100vh - 200px); overflow-y:auto;">
+							<table class="user-perm">
+								<thead>
+									<tr>
+										<th class="sticky-top ${header_bg_color}"> ${__("Document Type")} </th>
+										<th class="sticky-top ${header_bg_color}"> ${__("Level")} </th>
+										<th class="sticky-top ${header_bg_color}"> ${__("If Owner")} </th>
+										${frappe.perm.rights
+											.map(
+												(p) =>
+													`<th class="sticky-top ${header_bg_color}">${__(
+														frappe.unscrub(p)
+													)}</th>`
+											)
+											.join("")}
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
 					`);
 					permissions.forEach((perm) => {
 						$body.find("tbody").append(`

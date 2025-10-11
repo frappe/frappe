@@ -62,7 +62,8 @@ class PrintFormat(Document):
 
 	def before_save(self):
 		if self.print_format_for == "Report":
-			self.print_format_type = "JS"
+			self.custom_format = 1
+			self.standard = "No"
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -86,7 +87,9 @@ class PrintFormat(Document):
 		self.extract_images()
 
 		if not self.module:
-			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
+			doc_type = "DocType" if self.print_format_for == "DocType" else "Report"
+			document_name = self.doc_type if self.print_format_for == "DocType" else self.report
+			self.module = frappe.db.get_value(doc_type, document_name, "module")
 
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)

@@ -376,6 +376,7 @@ def export_query():
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
+
 	form_params["as_list"] = True
 	csv_params = pop_csv_params(form_params)
 	export_in_background = int(form_params.pop("export_in_background", 0))
@@ -394,9 +395,8 @@ def export_query():
 
 		frappe.msgprint(
 			_(
-				"Your report is being generated in the background. "
-				f"You will receive an email on {user_email} with a download link once it is ready."
-			)
+				"Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
+			).format(user_email)
 		)
 		return
 
@@ -483,7 +483,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if not populate_response:
 		return title, file_extension, content
 
-	provide_binary_file(title, file_extension, content)
+	provide_binary_file(_(title), file_extension, content)
 
 
 def append_totals_row(data):
@@ -548,7 +548,7 @@ def get_field_info(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({ _(parenttype) })"
+				label += f" ({_(parenttype)})"
 
 		field_info.append(
 			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
