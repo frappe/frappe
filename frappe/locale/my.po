@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-05 09:33+0000\n"
-"PO-Revision-Date: 2025-10-07 23:26\n"
+"PO-Revision-Date: 2025-10-11 00:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -4807,7 +4807,7 @@ msgstr ""
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Color"
-msgstr ""
+msgstr "အရောင်"
 
 #. Label of the column (Data) field in DocType 'Recorder Suggested Index'
 #: frappe/core/doctype/recorder_suggested_index/recorder_suggested_index.json
@@ -6428,7 +6428,7 @@ msgstr ""
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json
 #: frappe/public/js/frappe/views/calendar/calendar.js:277
 msgid "Day"
-msgstr ""
+msgstr "နေ့"
 
 #. Label of the day_of_week (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -7850,7 +7850,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:17
 msgid "Documents"
-msgstr ""
+msgstr "စာရွက်စာတမ်းများ"
 
 #: frappe/core/doctype/deleted_document/deleted_document_list.js:25
 msgid "Documents restored successfully"
