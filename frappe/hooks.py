@@ -545,7 +545,6 @@ user_invitation = {
 	},
 }
 
-
 add_to_apps_screen = [
 	{
 		"name": app_name,
@@ -554,3 +553,5 @@ add_to_apps_screen = [
 		"route": app_home,
 	}
 ]
+
+link_formatters = {}
