@@ -15,7 +15,12 @@ from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
-from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
+from frappe.utils.oauth import (
+	get_oauth2_authorize_url,
+	get_oauth_keys,
+	redirect_post_login,
+	strip_port_from_url,
+)
 from frappe.utils.password import get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -209,9 +214,15 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 
 	parsed_redirect = urlparse(redirect)
 
+	# Use configured host_name if available (for tunnels/proxies), otherwise use request URL
+	# Strip port from the URL for OAuth redirect compatibility
+	site_url = get_url()
+	site_url_no_port = strip_port_from_url(site_url)
+	parsed_site = urlparse(site_url_no_port)
+
 	parsed_request_host = urlparse(frappe.local.request.url)
 	output_parsed_url = parsed_redirect._replace(
-		netloc=parsed_request_host.netloc, scheme=parsed_request_host.scheme
+		netloc=parsed_site.netloc, scheme=parsed_site.scheme
 	)
 	if parsed_redirect.netloc:
 		if parsed_request_host.netloc != parsed_redirect.netloc:

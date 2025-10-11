@@ -5,7 +5,7 @@ import base64
 import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import frappe
 import frappe.utils
@@ -18,6 +18,55 @@ if TYPE_CHECKING:
 
 
 class SignupDisabledError(frappe.PermissionError): ...
+
+
+def strip_port_from_url(url: str) -> str:
+	"""
+	Strip port number from URL for OAuth compliance.
+
+	Google OAuth 2.0 and other OAuth providers don't accept redirect URIs with
+	non-standard port numbers. This function safely removes the port while
+	preserving all other URL components.
+
+	Args:
+		url: The URL to process (e.g., "https://example.com:8000/path?query=1#section")
+
+	Returns:
+		URL without port (e.g., "https://example.com/path?query=1#section")
+
+	Handles edge cases:
+		- IPv6 addresses with brackets: https://[::1]:8000 -> https://[::1]
+		- Standard ports (80, 443): Already handled by urlparse
+		- Empty/malformed URLs: Returns original URL
+		- Preserves: scheme, path, query, fragment
+	"""
+	if not url:
+		return url
+
+	try:
+		parsed = urlparse(url)
+
+		# If hostname is None, URL is malformed - return original
+		if not parsed.hostname:
+			return url
+
+		# Handle IPv6 addresses - preserve brackets
+		if ":" in parsed.hostname and not parsed.hostname.startswith("["):
+			# IPv6 without brackets in hostname (urlparse strips them)
+			hostname = f"[{parsed.hostname}]"
+		else:
+			hostname = parsed.hostname
+
+		# Reconstruct URL without port
+		# urlunparse expects: (scheme, netloc, path, params, query, fragment)
+		netloc = hostname
+		result = urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+
+		return result
+
+	except Exception:
+		# If anything fails, return original URL to maintain backward compatibility
+		return url
 
 
 def build_oauth_url(base_url: str, url: str | None = None) -> str:
@@ -95,8 +144,13 @@ def get_oauth_keys(provider: str) -> dict[str, str]:
 def get_oauth2_authorize_url(provider: str, redirect_to: str) -> str:
 	flow = get_oauth2_flow(provider)
 
+	# Strip port from site URL to match redirect_uri format
+	# This ensures post-login redirects work correctly with tunnels/proxies
+	site_url = frappe.utils.get_url()
+	site_url_no_port = strip_port_from_url(site_url)
+
 	state = {
-		"site": frappe.utils.get_url(),
+		"site": site_url_no_port,
 		"token": frappe.generate_hash(),
 		"redirect_to": redirect_to,
 	}
@@ -141,7 +195,9 @@ def get_redirect_uri(provider: str) -> str:
 	redirect_uri = oauth2_providers[provider]["redirect_uri"]
 
 	# this uses the site's url + the relative redirect uri
-	return frappe.utils.get_url(redirect_uri)
+	# OAuth providers (Google, GitHub, etc.) require redirect URIs without port numbers
+	site_url = frappe.utils.get_url(redirect_uri)
+	return strip_port_from_url(site_url)
 
 
 def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | None = None):
@@ -346,5 +402,8 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 	if not redirect_to:
 		desk_uri = "/app/workspace" if provider == "facebook" else get_default_path()
 		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
+
+		# Strip port from redirect URL for OAuth compatibility with tunnels/proxies
+		redirect_to = strip_port_from_url(redirect_to)
 
 	frappe.local.response["location"] = redirect_to
