@@ -50,6 +50,7 @@
    "label": "Update Field"
   },
   {
+   "description": "Static value (e.g., \"Approved\") or dynamic expression (e.g., frappe.session.user, frappe.utils.now(), doc.fieldname)",
    "fieldname": "update_value",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -118,7 +119,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-01 23:35:56.203734",
+ "modified": "2025-10-12 18:34:59.760219",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Document State",

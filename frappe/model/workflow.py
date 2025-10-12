@@ -98,6 +98,15 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 		return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 
 
+def evaluate_workflow_value(value, doc):
+	if not value:
+		return None
+	try:
+		return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
+	except Exception:
+		return value
+
+
 @frappe.whitelist()
 def apply_workflow(doc, action):
 	"""Allow workflow action on the current doc"""
@@ -127,7 +136,8 @@ def apply_workflow(doc, action):
 
 	# update any additional field
 	if next_state.update_field:
-		doc.set(next_state.update_field, next_state.update_value)
+		update_value = evaluate_workflow_value(next_state.update_value, doc)
+		doc.set(next_state.update_field, update_value)
 
 	if transition.transition_tasks:
 		workflow_transitions = frappe.db.get_all(
