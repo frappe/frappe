@@ -53,6 +53,40 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(new_user.social_logins[0].userid)
 		self.assertEqual(new_user.social_logins[0].provider, "frappe")
 
+	def test_password_reset_link_expiry(self):
+		"""Test that password reset links expire after the configured duration"""
+		from frappe.core.doctype.user.user import _get_user_for_update_password
+		from frappe.utils import now_datetime
+		from datetime import timedelta
+		
+		# Create a test user
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Test User").insert()
+		
+		# Set a short expiry duration for testing (1 minute)
+		frappe.db.set_single_value("System Settings", "reset_password_link_expiry_duration", "1m")
+		
+		# Generate a reset password key
+		key = user.reset_password()
+		parsed_key = parse_qs(urlparse(key).query)["key"][0]
+		
+		# Test that the key works immediately
+		result = _get_user_for_update_password(parsed_key, None)
+		self.assertEqual(result.user, user.name)
+		self.assertIsNone(result.message)
+		
+		# Mock the current time to be 2 minutes later
+		with patch('frappe.utils.now_datetime') as mock_now:
+			mock_now.return_value = now_datetime() + timedelta(minutes=2)
+			
+			# Test that the key is now expired
+			result = _get_user_for_update_password(parsed_key, None)
+			self.assertIsNone(result.user)
+			self.assertEqual(result.message, "The reset password link has been expired")
+		
+		# Clean up
+		user.delete()
+
 		# role with desk access
 		new_user.add_roles("_Test Role 2")
 		new_user.save()

@@ -989,15 +989,16 @@ def _get_user_for_update_password(key, old_password):
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
-			reset_password_link_expiry = cint(
-				frappe.get_system_settings("reset_password_link_expiry_duration")
-			)
-			if (
-				reset_password_link_expiry
-				and now_datetime()
-				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
-			):
-				result.message = _("The reset password link has been expired")
+			reset_password_link_expiry_duration = frappe.get_system_settings("reset_password_link_expiry_duration")
+			if reset_password_link_expiry_duration:
+				from frappe.utils.data import duration_to_seconds
+				reset_password_link_expiry = duration_to_seconds(reset_password_link_expiry_duration)
+				if (
+					reset_password_link_expiry
+					and now_datetime()
+					> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
+				):
+					result.message = _("The reset password link has been expired")
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
