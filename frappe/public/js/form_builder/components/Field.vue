@@ -85,14 +85,10 @@ function make_dialog(frm) {
 			},
 		],
 		primary_action: () => {
-			let fieldname = props.field.df.fieldname;
-			let field_option = props.field.df.options;
 			let filters = frm.filter_group.get_filters().map((filter) => {
 				// last element is a boolean which hides the filter hence not required to store in meta
 				filter.pop();
 
-				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = field_option;
 				return filter;
 			});
 
@@ -285,6 +281,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 	&.hovered,
 	&.selected {
 		border-color: var(--border-primary);
+
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}
@@ -303,10 +300,12 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		.field-label {
 			display: flex;
 			align-items: center;
+
 			.reqd-asterisk {
 				margin-left: 3px;
 				color: var(--red-400);
 			}
+
 			.help-icon {
 				margin-left: 3px;
 				color: var(--text-muted);
@@ -329,8 +328,10 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		}
 	}
 }
+
 .btn-filter-applied {
 	background-color: var(--gray-300) !important;
+
 	&:hover {
 		background-color: var(--gray-400) !important;
 	}
