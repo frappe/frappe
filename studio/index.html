@@ -15,7 +15,7 @@
 		<script>
 			window.csrf_token = '{{ csrf_token }}';
 			window.site_url = '{{ site_url }}';
-			window.is_developer_mode = '{{ is_developer_mode }}';
+			window.is_developer_mode = {{ is_developer_mode }};
 		</script>
 		<script type="module" src="/src/main.ts"></script>
 	</body>
