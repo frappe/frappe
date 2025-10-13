@@ -1181,23 +1181,15 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self.value_cache.clear()
 		else:
 			self.before_commit.reset()
 			self.after_commit.reset()
 
 			self.before_rollback.run()
 
-<<<<<<< HEAD
 			self.sql("rollback")
 			self.begin()
-=======
-			if chain:
-				self.sql("rollback and chain")
-				self.value_cache.clear()
-			else:
-				self.sql("rollback")
-				self.begin()
->>>>>>> 598ba6d63d (fix: Clear DB value cache after commit/rollback (#34335))
 
 			self.value_cache.clear()
 			self.after_rollback.run()
