@@ -808,6 +808,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					"Select",
 					"Duration",
 					"Time",
+					"Percent",
+					"Phone",
+					"Barcode",
+					"Autocomplete",
+					"Icon",
+					"Color",
+					"Rating",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;
