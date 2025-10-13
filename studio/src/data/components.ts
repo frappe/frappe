@@ -364,6 +364,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		additionalProps: {
 			modelValue: { required: false },
 			placeholder: { required: false, type: String },
+			options: {
+				required: false,
+				type: Array,
+				default: () => ["John Doe", "Jane Doe"],
+				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete"
+			}
 		},
 	},
 	FormLabel: {

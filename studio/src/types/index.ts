@@ -65,6 +65,7 @@ export type ComponentProp = {
 	modelValue?: any
 	required?: boolean
 	options?: Array<SelectOption> | Array<string>
+	condition?: (state: object | null | undefined) => boolean
 }
 
 export type ComponentProps = Record<string, ComponentProp>
