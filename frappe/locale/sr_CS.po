@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-05 09:33+0000\n"
-"PO-Revision-Date: 2025-10-07 23:26\n"
+"PO-Revision-Date: 2025-10-13 01:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -26794,7 +26794,7 @@ msgstr "Isteklo"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
-msgstr "Večna noć"
+msgstr "Timeless Night"
 
 #. Label of the timeline (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
