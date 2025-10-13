@@ -1199,6 +1199,7 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self.value_cache.clear()
 		elif not self._disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
