@@ -337,11 +337,8 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
-<<<<<<< HEAD
-=======
 		frappe.local.doc_events_hooks = None
 		frappe.get_single("Installed Applications").update_versions()
->>>>>>> 395af8aa04 (fix: clear doc_events_hooks cache during uninstallation of app (#34321))
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
