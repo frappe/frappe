@@ -1560,8 +1560,13 @@ def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 
 
 def get_doc_hooks():
+<<<<<<< HEAD
 	"""Returns hooked methods for given doc. It will expand the dict tuple if required."""
 	if not hasattr(local, "doc_events_hooks"):
+=======
+	"""Return hooked methods for given doc. Expand the dict tuple if required."""
+	if not getattr(local, "doc_events_hooks", None):
+>>>>>>> 395af8aa04 (fix: clear doc_events_hooks cache during uninstallation of app (#34321))
 		hooks = get_hooks("doc_events", {})
 		out = {}
 		for key, value in hooks.items():
