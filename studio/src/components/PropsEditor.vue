@@ -130,12 +130,18 @@ const componentProps = computed(() => {
 	const filteredProps: typeof propConfig = {}
 
 	Object.entries(propConfig).forEach(([propName, config]) => {
-		const isVisible = config.condition ? config.condition(currentProps) : true
-		if (!isVisible) return
+		const showProp = config.condition ? config.condition(currentProps) : true
+		if (!showProp) {
+			props.block?.removeProp(propName)
+			return
+		}
 
 		if (props.block?.componentProps[propName] === undefined) {
 			const defaultValue = typeof config.default === "function" ? config.default() : config.default
 			config.modelValue = defaultValue
+			if (defaultValue !== undefined) {
+				props.block?.setProp(propName, defaultValue)
+			}
 		} else {
 			config.modelValue = props.block.componentProps[propName]
 		}

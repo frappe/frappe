@@ -367,7 +367,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			options: {
 				required: false,
 				type: Array,
-				default: ["John Doe", "Jane Doe"],
+				default: () => ["John Doe", "Jane Doe"],
 				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete"
 			}
 		},

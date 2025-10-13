@@ -551,6 +551,10 @@ class Block implements BlockOptions {
 		this.componentProps[propName] = value
 	}
 
+	removeProp(propName: string) {
+		delete this.componentProps[propName]
+	}
+
 	// component slots
 	initializeSlots() {
 		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
