@@ -18,6 +18,7 @@
 			window.app_route = "{{ app_route }}";
 			window.app_title = "{{ app_title }}";
 			window.app_pages = {{ app_pages|tojson }};
+			window.is_developer_mode = {{ is_developer_mode }};
 		</script>
 		{% if is_developer_mode %}
 			<!-- workaround for HMR in renderer during development -->
