@@ -417,57 +417,93 @@ def is_document_amended(doctype, docname):
 
 @frappe.whitelist()
 def validate_link(doctype: str, docname: str, fields=None):
-	if not isinstance(doctype, str):
-		frappe.throw(_("DocType must be a string"))
+	try:
+		if not isinstance(doctype, str):
+			frappe.throw(_("DocType must be a string"))
 
-	if not isinstance(docname, str):
-		frappe.throw(_("Document Name must be a string"))
+		if not isinstance(docname, str):
+			frappe.throw(_("Document Name must be a string"))
 
-	if doctype != "DocType":
-		parent_doctype = None
-		if frappe.get_meta(doctype).istable:  # needed for links to child rows
-			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
-		if not (
-			frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
-			or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
-		):
-			frappe.throw(
-				_("You do not have Read or Select Permissions for {}").format(frappe.bold(doctype)),
-				frappe.PermissionError,
+		if doctype != "DocType":
+			parent_doctype = None
+			if frappe.get_meta(doctype).istable:  # needed for links to child rows
+				parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
+			if not (
+				frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
+				or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
+			):
+				frappe.throw(
+					_("You do not have Read or Select Permissions for {}").format(frappe.bold(doctype)),
+					frappe.PermissionError,
+				)
+
+		values = frappe._dict()
+
+		if is_virtual_doctype(doctype):
+			try:
+				frappe.get_doc(doctype, docname)
+				values.name = docname
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				frappe.msgprint(
+					_("Document {0} {1} does not exist").format(frappe.bold(doctype), frappe.bold(docname)),
+				)
+			return values
+
+		values.name = frappe.db.get_value(doctype, docname, cache=True)
+
+		# filters from Link field definition (get_query filters)
+		filters = frappe.local.form_dict.get("filters")
+
+		filters = json.loads(filters) if filters else {}
+		if filters and isinstance(filters, dict):
+			
+			description = frappe.local.form_dict.get("description")
+			desc = description.split("Filters applied for")[1]
+
+			row = frappe.db.get_value(
+				doctype, docname, list(filters.keys()), as_dict=True
 			)
+			if not row:
+				frappe.throw(_("Invalid {0}: {1}").format(_(doctype), docname))
+			for key, expected in filters.items():
+				if isinstance(expected, (list, tuple)):
+					if row.get(key) not in expected:
+						frappe.throw(
+							_(
+								"Value '<b>{0}</b>' is does not match filters. {1}"
+							).format(docname, desc),
+							title=_("Invalid Link Value"),
+						)
+						return {"error": True }
+				elif row.get(key) != expected:
+					frappe.throw(
+						_(
+							"Value '<b>{0}</b>' is does not match filters. {1}"
+						).format(docname, _(doctype), desc),
+						title=_("Invalid Link Value"),
+					)
+					return {"error": True}
 
-	values = frappe._dict()
+		fields = frappe.parse_json(fields)
+		if not values.name or not fields:
+			return values
 
-	if is_virtual_doctype(doctype):
 		try:
-			frappe.get_doc(doctype, docname)
-			values.name = docname
-		except frappe.DoesNotExistError:
+			values.update(get_value(doctype, fields, docname))
+		except frappe.PermissionError:
 			frappe.clear_last_message()
 			frappe.msgprint(
-				_("Document {0} {1} does not exist").format(frappe.bold(doctype), frappe.bold(docname)),
+				_("You need {0} permission to fetch values from {1} {2}").format(
+					frappe.bold(_("Read")), frappe.bold(doctype), frappe.bold(docname)
+				),
+				title=_("Cannot Fetch Values"),
+				indicator="orange",
 			)
+
 		return values
-
-	values.name = frappe.db.get_value(doctype, docname, cache=True)
-
-	fields = frappe.parse_json(fields)
-	if not values.name or not fields:
-		return values
-
-	try:
-		values.update(get_value(doctype, fields, docname))
-	except frappe.PermissionError:
-		frappe.clear_last_message()
-		frappe.msgprint(
-			_("You need {0} permission to fetch values from {1} {2}").format(
-				frappe.bold(_("Read")), frappe.bold(doctype), frappe.bold(docname)
-			),
-			title=_("Cannot Fetch Values"),
-			indicator="orange",
-		)
-
-	return values
+	except Exception as e:
+		frappe.log_error("Error: While Validating Link filters", f"doctype: {doctype}\ndocname: {docname}\nfields: {fields}\nError: {e}")
 
 
 def insert_doc(doc) -> "Document":

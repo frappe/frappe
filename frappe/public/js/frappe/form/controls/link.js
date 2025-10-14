@@ -688,8 +688,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					doctype: options,
 					docname: value,
 					fields: columns_to_fetch,
+					filters: (typeof this.get_query === "function" && this.get_query()?.filters) || {},
+					description: this.get_filter_description((typeof this.get_query === "function" && this.get_query()?.filters) || {})
 				})
 				.then((response) => {
+					if (!response){
+						return ""
+					}
 					if (!this.docname || !columns_to_fetch.length) {
 						return response.name;
 					}
