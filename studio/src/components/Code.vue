@@ -26,7 +26,6 @@ import { Codemirror } from "vue-codemirror"
 import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
 import { LanguageSupport } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
-import { indentWithTab } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import { jsToJson, jsonToJs } from "@/utils/helpers"
@@ -171,7 +170,6 @@ watch(code, () => {
 
 const extensions = computed(() => {
 	const baseExtensions = [
-		keymap.of([indentWithTab]),
 		closeBrackets(),
 		indentationMarkers(),
 		props.showLineNumbers ? EditorView.lineWrapping : [],
@@ -191,6 +189,25 @@ const extensions = computed(() => {
 				},
 			}),
 		}),
+		keymap.of([
+			{
+				key: "Tab",
+				run: (view) => {
+					const tabs = "	"
+					view.dispatch({
+						changes: {
+							from: view.state.selection.main.from,
+							to: view.state.selection.main.to,
+							insert: tabs,
+						},
+						selection: {
+							anchor: view.state.selection.main.from + tabs.length,
+						},
+					})
+					return true
+				},
+			},
+		]),
 	]
 	if (languageExtension.value) {
 		baseExtensions.push(languageExtension.value)
