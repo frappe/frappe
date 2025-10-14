@@ -1,4 +1,5 @@
 {
+ "app": "frappe",
  "charts": [],
  "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"FVMFcgsiyK\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
@@ -222,9 +223,49 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Source",
+   "link_count": 0,
+   "link_to": "UTM Source",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Campaign",
+   "link_count": 0,
+   "link_to": "UTM Campaign",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UTM Medium",
+   "link_count": 0,
+   "link_to": "UTM Medium",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Website Analytics",
+   "link_count": 0,
+   "link_to": "Website Analytics",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2024-09-03 19:31:55.698913",
+ "modified": "2025-10-13 16:52:55.108827",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -251,5 +292,6 @@
    "type": "DocType"
   }
  ],
- "title": "Website"
+ "title": "Website",
+ "type": "Workspace"
 }
