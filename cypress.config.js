@@ -3,8 +3,8 @@ const fs = require("fs");
 
 module.exports = defineConfig({
 	projectId: "92odwv",
-	adminPassword: "123",
-	testUser: "Administrator",
+	adminPassword: "admin",
+	testUser: "frappe@example.com",
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
 	video: true,

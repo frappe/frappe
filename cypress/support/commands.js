@@ -42,8 +42,8 @@ Cypress.Commands.add("login", (email, password) => {
 				url: "/api/method/login",
 				method: "POST",
 				body: {
-					usr: "Administrator",
-					pwd: "123",
+					usr: email,
+					pwd: password,
 				},
 			});
 		})
