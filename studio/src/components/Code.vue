@@ -23,12 +23,17 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
 import { Codemirror } from "vue-codemirror"
-import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
+import {
+	autocompletion,
+	closeBrackets,
+	type CompletionContext,
+	type Completion,
+} from "@codemirror/autocomplete"
 import { LanguageSupport } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
-import { indentWithTab } from "@codemirror/commands"
+import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
-import { jsToJson, jsonToJs } from "@/utils/helpers"
+import { jsToJson, jsonToJs, isPrivateKey } from "@/utils/helpers"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -123,6 +128,7 @@ const emitEditorValue = () => {
 
 const languageExtension = ref<LanguageSupport>()
 const autocompleteExtension = ref()
+const customCompletionsExtension = ref()
 
 async function setLanguageExtension() {
 	const importMap = {
@@ -138,11 +144,25 @@ async function setLanguageExtension() {
 
 	const module = await languageImport()
 	languageExtension.value = (module as any)[props.language]()
+	const languageData = (module as any)[`${props.language}Language`]
 
 	if (props.completions) {
-		const languageData = (module as any)[`${props.language}Language`]
 		autocompleteExtension.value = languageData.data.of({
 			autocomplete: props.completions,
+		})
+	}
+
+	if (props.language === "javascript") {
+		const { scopeCompletionSource } = module as any
+		const windowCompletionSource = scopeCompletionSource(window)
+		customCompletionsExtension.value = languageData.data.of({
+			autocomplete: (context: CompletionContext) => {
+				const result = windowCompletionSource(context)
+				if (result && result.options) {
+					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+				}
+				return result
+			},
 		})
 	}
 }
@@ -170,8 +190,9 @@ watch(code, () => {
 
 const extensions = computed(() => {
 	const baseExtensions = [
-		keymap.of([indentWithTab]),
 		closeBrackets(),
+		indentationMarkers(),
+		props.showLineNumbers ? EditorView.lineWrapping : [],
 		tomorrow,
 		EditorView.theme({
 			"&": {
@@ -193,12 +214,34 @@ const extensions = computed(() => {
 				event.stopPropagation()
 			},
 		}),
+		keymap.of([
+			{
+				key: "Tab",
+				run: (view) => {
+					const tabs = "	"
+					view.dispatch({
+						changes: {
+							from: view.state.selection.main.from,
+							to: view.state.selection.main.to,
+							insert: tabs,
+						},
+						selection: {
+							anchor: view.state.selection.main.from + tabs.length,
+						},
+					})
+					return true
+				},
+			},
+		]),
 	]
 	if (languageExtension.value) {
 		baseExtensions.push(languageExtension.value)
 	}
 	if (autocompleteExtension.value) {
 		baseExtensions.push(autocompleteExtension.value)
+	}
+	if (customCompletionsExtension.value) {
+		baseExtensions.push(customCompletionsExtension.value)
 	}
 	const autocompletionOptions = {
 		activateOnTyping: true,
