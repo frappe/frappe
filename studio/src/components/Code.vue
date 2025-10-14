@@ -172,6 +172,7 @@ const extensions = computed(() => {
 	const baseExtensions = [
 		keymap.of([indentWithTab]),
 		closeBrackets(),
+		props.showLineNumbers ? EditorView.lineWrapping : [],
 		tomorrow,
 		EditorView.theme({
 			"&": {
