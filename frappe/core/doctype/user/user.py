@@ -989,9 +989,12 @@ def _get_user_for_update_password(key, old_password):
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
-			reset_password_link_expiry_duration = frappe.get_system_settings("reset_password_link_expiry_duration")
+			reset_password_link_expiry_duration = frappe.get_system_settings(
+				"reset_password_link_expiry_duration"
+			)
 			if reset_password_link_expiry_duration:
 				from frappe.utils.data import duration_to_seconds
+
 				reset_password_link_expiry = duration_to_seconds(reset_password_link_expiry_duration)
 				if (
 					reset_password_link_expiry
