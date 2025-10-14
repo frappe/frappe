@@ -123,6 +123,7 @@ const emitEditorValue = () => {
 
 const languageExtension = ref<LanguageSupport>()
 const autocompleteExtension = ref()
+const customCompletionsExtension = ref()
 
 async function setLanguageExtension() {
 	const importMap = {
@@ -138,11 +139,18 @@ async function setLanguageExtension() {
 
 	const module = await languageImport()
 	languageExtension.value = (module as any)[props.language]()
+	const languageData = (module as any)[`${props.language}Language`]
 
 	if (props.completions) {
-		const languageData = (module as any)[`${props.language}Language`]
 		autocompleteExtension.value = languageData.data.of({
 			autocomplete: props.completions,
+		})
+	}
+
+	if (props.language === "javascript") {
+		const { scopeCompletionSource } = module as any
+		customCompletionsExtension.value = languageData.data.of({
+			autocomplete: scopeCompletionSource(window),
 		})
 	}
 }
@@ -214,6 +222,9 @@ const extensions = computed(() => {
 	}
 	if (autocompleteExtension.value) {
 		baseExtensions.push(autocompleteExtension.value)
+	}
+	if (customCompletionsExtension.value) {
+		baseExtensions.push(customCompletionsExtension.value)
 	}
 	const autocompletionOptions = {
 		activateOnTyping: true,
