@@ -27,6 +27,7 @@ import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
 import { LanguageSupport } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentWithTab } from "@codemirror/commands"
+import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import { jsToJson, jsonToJs } from "@/utils/helpers"
 
@@ -172,6 +173,7 @@ const extensions = computed(() => {
 	const baseExtensions = [
 		keymap.of([indentWithTab]),
 		closeBrackets(),
+		indentationMarkers(),
 		props.showLineNumbers ? EditorView.lineWrapping : [],
 		tomorrow,
 		EditorView.theme({
