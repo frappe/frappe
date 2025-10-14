@@ -227,6 +227,10 @@ function setValueInObject(obj: Record<string, any>, key: string, value: any) {
 	}
 }
 
+function isPrivateKey(key: string) {
+	return key.startsWith("_") || key.startsWith("__")
+}
+
 function isJSONString(str: string) {
 	try {
 		jsonToJs(str)
@@ -790,6 +794,7 @@ export {
 	isObjectEmpty,
 	getValueFromObject,
 	setValueInObject,
+	isPrivateKey,
 	isJSONString,
 	jsToJson,
 	jsonToJs,

@@ -1,6 +1,7 @@
 import { computed } from "vue"
 import useStudioStore from "@/stores/studioStore"
 import type { CompletionSource } from "@/types"
+import { isPrivateKey } from "@/utils/helpers"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
@@ -48,6 +49,10 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 
 		if (window.studio) {
 			Object.entries(window.studio).forEach(([funcName, func]) => {
+				if (isPrivateKey(funcName)) {
+					return
+				}
+
 				sources.push({
 					item: func,
 					completion: {

@@ -23,12 +23,17 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
 import { Codemirror } from "vue-codemirror"
-import { autocompletion, closeBrackets } from "@codemirror/autocomplete"
+import {
+	autocompletion,
+	closeBrackets,
+	type CompletionContext,
+	type Completion,
+} from "@codemirror/autocomplete"
 import { LanguageSupport } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
-import { jsToJson, jsonToJs } from "@/utils/helpers"
+import { jsToJson, jsonToJs, isPrivateKey } from "@/utils/helpers"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -149,8 +154,15 @@ async function setLanguageExtension() {
 
 	if (props.language === "javascript") {
 		const { scopeCompletionSource } = module as any
+		const windowCompletionSource = scopeCompletionSource(window)
 		customCompletionsExtension.value = languageData.data.of({
-			autocomplete: scopeCompletionSource(window),
+			autocomplete: (context: CompletionContext) => {
+				const result = windowCompletionSource(context)
+				if (result && result.options) {
+					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+				}
+				return result
+			},
 		})
 	}
 }
@@ -197,7 +209,7 @@ const extensions = computed(() => {
 				},
 			}),
 		}),
-    EditorView.domEventHandlers({
+		EditorView.domEventHandlers({
 			cut: (event, _view) => {
 				event.stopPropagation()
 			},
