@@ -924,6 +924,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				_value = _value * out_of_ratings;
 			}
 
+			let masked_fields = frappe.get_meta(this.doctype).masked_fields || [];
+			let is_masked = masked_fields.includes(df.fieldname);
+
+			let filterable = is_masked ? "no-underline" : " filterable";
+
 			if (df.fieldtype === "Image") {
 				html = df.options
 					? `<img src="${doc[df.options]}"
@@ -932,22 +937,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="${filterable} indicator-pill ${frappe.utils.guess_colour(
 					_value
 				)} ellipsis"
 					data-filter="${fieldname},=,${value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
 			} else if (df.fieldtype === "Link") {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">${_value}</a>`;
+				html = `<a class="${filterable} ellipsis "
+					data-filter="${fieldname},=,${value}">
+					${_value}
+				</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">${format()}</a>`;
+				html = `<a class="${filterable} ellipsis"
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
+					${format()}
+				</a>`;
 			}
 
 			return `<span class="ellipsis"

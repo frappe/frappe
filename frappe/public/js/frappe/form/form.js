@@ -67,6 +67,7 @@ frappe.ui.form.Form = class FrappeForm {
 			Cancel: "cancel",
 			Amend: "amend",
 			Delete: "delete",
+			Mask: "mask",
 		};
 	}
 
@@ -463,6 +464,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 			this.show_conflict_message();
 			this.show_submission_queue_banner();
+
+			this.mark_mask_fields_readonly();
 
 			if (frappe.boot.read_only) {
 				this.disable_form();
@@ -1170,6 +1173,15 @@ frappe.ui.form.Form = class FrappeForm {
 		this.disable_save();
 	}
 
+	mark_mask_fields_readonly() {
+		const masked_fields = this.meta.masked_fields || [];
+
+		masked_fields.forEach((fieldname) => {
+			this.set_df_property(fieldname, "read_only", 1);
+			this.set_df_property(fieldname, "fieldtype", "Data");
+		});
+	}
+
 	handle_save_fail(btn, on_error) {
 		$(btn).prop("disabled", false);
 		if (on_error) {
@@ -1836,6 +1848,7 @@ frappe.ui.form.Form = class FrappeForm {
 				share: p.share,
 				print: p.print,
 				email: p.email,
+				mask: p.mask,
 			};
 		});
 		this.refresh_fields();

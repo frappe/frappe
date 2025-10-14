@@ -1399,7 +1399,7 @@ class BaseDocument:
 		else:
 			return True
 
-	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields):
+	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields, mask_fields=None):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
 		to_reset = [
 			df
@@ -1411,22 +1411,38 @@ class BaseDocument:
 			)
 		]
 
-		if to_reset:
-			if self.is_new():
-				# if new, set default value
-				ref_doc = frappe.new_doc(self.doctype)
-			else:
-				# get values from old doc
-				if self.parent_doc:
-					parent_doc = self.parent_doc.get_latest()
-					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
-					if not child_docs:
-						return
-					ref_doc = child_docs[0]
-				else:
-					ref_doc = self.get_latest()
+		if not mask_fields:
+			mask_fields = []
 
-			for df in to_reset:
+		to_reset = to_reset + mask_fields
+
+		if not to_reset:
+			return
+
+		if self.is_new():
+			# if new, set default value
+			ref_doc = frappe.new_doc(self.doctype)
+		else:
+			# get values from old doc
+			if self.parent_doc:
+				parent_doc = self.parent_doc.get_latest()
+				child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
+				if not child_docs:
+					return
+				ref_doc = child_docs[0]
+			else:
+				ref_doc = self.get_latest()
+
+		masked_fieldnames = [df.fieldname for df in to_reset if df.get("mask_readonly")]
+		ref_values = {}
+		if not self.is_new() and masked_fieldnames:
+			ref_values = frappe.db.get_value(self.doctype, self.name, masked_fieldnames, as_dict=True) or {}
+
+		for df in to_reset:
+			if df.get("mask_readonly") and not self.is_new():
+				if df.fieldname in ref_values:
+					self.set(df.fieldname, ref_values[df.fieldname])
+			else:
 				self.set(df.fieldname, ref_doc.get(df.fieldname))
 
 	def get_value(self, fieldname):

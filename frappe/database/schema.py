@@ -444,7 +444,7 @@ def get_definition(fieldtype, precision=None, length=None, *, options=None):
 		if length:
 			if coltype == "varchar":
 				# Reference: https://mariadb.com/docs/server/server-usage/storage-engines/innodb/innodb-row-formats/troubleshooting-row-size-too-large-errors-with-innodb
-				if length < 64:
+				if cint(length) < 64:
 					length = 64
 				size = length
 			elif coltype == "int" and length < 11:

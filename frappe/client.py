@@ -437,6 +437,14 @@ def validate_link(doctype: str, docname: str, fields=None):
 	if not values.name:
 		return values
 
+	if not frappe.has_permission(doctype, "read", doc=values.name):
+		frappe.throw(
+			_("You do not have permission to access {0} {1}").format(
+				frappe.bold(doctype), frappe.bold(docname)
+			),
+			frappe.PermissionError,
+		)
+
 	if not fields:
 		frappe.local.response_headers.set("Cache-Control", "private,max-age=1800,stale-while-revalidate=7200")
 		return values

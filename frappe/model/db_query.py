@@ -219,7 +219,56 @@ class DatabaseQuery:
 		if pluck:
 			return [d[pluck] for d in result]
 
+		if self.doctype and result:
+			result = self.mask_fields(result)
+
 		return result
+
+	def mask_fields(self, result):
+		"""Mask fields in the result based on the doctype's masked fields"""
+		masked_fields = self.get_masked_fields()
+
+		if not masked_fields:
+			return result
+
+		if self.as_list:
+			masked_result = []
+			field_index_map = {}
+			for idx, field in enumerate(self.fields):
+				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
+				if " as " in field.lower():
+					alias = field.split(" as ")[1].strip(" '")
+					field_index_map[alias] = idx
+				else:
+					# extract last part after `.`
+					col = field.split(".")[-1].strip("`")
+					field_index_map[col] = idx
+			# if as_list then we don't have field names in the result so we need to mask by position
+			for row in result:
+				row = list(row)  # convert tuple to list mutable
+				for field in masked_fields:
+					if field.fieldname in field_index_map:
+						idx = field_index_map[field.fieldname]
+						val = row[idx]
+						row[idx] = mask_field_value(field, val)
+
+				masked_result.append(tuple(row))  # convert back to tuple
+			result = masked_result
+		else:
+			for row in result:
+				for field in masked_fields:
+					if field.fieldname in row:
+						val = row[field.fieldname]
+						row[field.fieldname] = mask_field_value(field, val)
+
+		return result
+
+	def get_masked_fields(self):
+		"""Get masked fields for the doctype"""
+
+		meta = self.get_meta(self.doctype)
+
+		return meta.get_masked_fields()
 
 	def build_and_run(self):
 		args = self.prepare_args()
@@ -623,6 +672,7 @@ from {tables}
 				ignore_virtual=True,
 			)
 		)
+
 		permitted_child_table_fields = {}
 
 		# Create a copy of the fields list and reverse it to avoid index issues when removing fields
@@ -1198,6 +1248,26 @@ from {tables}
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
+
+
+def mask_field_value(field, val):
+	if not val:
+		return val
+
+	if field.fieldtype == "Data" and field.options == "Phone":
+		if len(val) > 3:
+			return val[:3] + "XXXXXX"
+		else:
+			return "X" * len(val)
+	elif field.fieldtype == "Data" and field.options == "Email":
+		email = val.split("@")
+		return "XXXXXX@" + email[1] if len(email) > 1 else "XXXXXX"
+	elif field.fieldtype == "Date":
+		return "XX-XX-XXXX"
+	elif field.fieldtype == "Time":
+		return "XX:XX"
+	else:
+		return "XXXXXXXX"
 
 
 def cast_name(column: str) -> str:
