@@ -188,6 +188,11 @@ const extensions = computed(() => {
 				},
 			}),
 		}),
+		EditorView.domEventHandlers({
+			cut: (event, _view) => {
+				event.stopPropagation()
+			},
+		}),
 	]
 	if (languageExtension.value) {
 		baseExtensions.push(languageExtension.value)
