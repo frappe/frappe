@@ -197,6 +197,11 @@ const extensions = computed(() => {
 				},
 			}),
 		}),
+    EditorView.domEventHandlers({
+			cut: (event, _view) => {
+				event.stopPropagation()
+			},
+		}),
 		keymap.of([
 			{
 				key: "Tab",
