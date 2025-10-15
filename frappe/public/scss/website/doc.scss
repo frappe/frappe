@@ -76,6 +76,13 @@ $navbar-height-lg: 4.5rem;
 	}
 }
 
+/* Stronger fallback: ensure the brand/app name remains visible even when other
+   theme or site CSS has higher specificity. This forces the navbar brand to
+   use the theme text color (or white) in dark mode. */
+.doc-navbar .navbar-brand {
+	color: var(--text-color, #ffffff) !important;
+}
+
 .doc-search-container {
 	display: flex;
 	margin-top: 0.75rem;
