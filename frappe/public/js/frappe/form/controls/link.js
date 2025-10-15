@@ -316,7 +316,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 										"</span>",
 									label: __("Create a new {0}", [__(me.get_options())]),
 									value: "create_new__link_option",
-									action: me.new_doc,
+									action: me.custom_new_doc || me.new_doc,
 								});
 							}
 
@@ -593,6 +593,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// turn off value translation
 					if (q.translate_values !== undefined) {
 						this.translate_values = q.translate_values;
+					}
+
+					if (q.new_doc && typeof q.new_doc === "function") {
+						this.custom_new_doc = q.new_doc;
+						delete q.new_doc;
 					}
 
 					// extend args for custom functions
