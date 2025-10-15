@@ -291,59 +291,172 @@ class SQLiteSearch(ABC):
 			},
 		}
 
-	def build_index(self):
-		"""Build the complete search index from scratch using atomic replacement."""
+	def build_index(self, batch_size=1000, max_runtime_minutes=1, is_continuation=False):
+		"""Build the search index incrementally with progress tracking and time-based exit."""
 		if not self.is_search_enabled():
 			return
 
-		# Use temporary database path for atomic replacement
-		temp_db_path = self._get_db_path(is_temp=True)
+		start_time = time.time()
+		max_runtime = max_runtime_minutes * 60
+
+		# Use temporary database path for atomic replacement (only for new index builds)
+		temp_db_path = None
 		original_db_path = self.db_path
 
-		# Remove temp file if it exists
-		if os.path.exists(temp_db_path):
-			os.unlink(temp_db_path)
+		# Check if this is a completely fresh build or a continuation
+		if not is_continuation and not self.index_exists():
+			# Fresh build - use temporary database for atomic replacement
+			temp_db_path = self._get_db_path(is_temp=True)
 
-		# Temporarily switch to temp database for building
-		self.db_path = temp_db_path
+			# Remove temp file if it exists
+			if os.path.exists(temp_db_path):
+				os.unlink(temp_db_path)
+
+			# Switch to temp database for building
+			self.db_path = temp_db_path
+		elif is_continuation:
+			# Check if we're continuing a fresh build (temp db exists)
+			potential_temp_path = self._get_db_path(is_temp=True)
+			if os.path.exists(potential_temp_path):
+				# Continue with temporary database from fresh build
+				temp_db_path = potential_temp_path
+				self.db_path = temp_db_path
+				print(f"Continuation: Using temporary database {temp_db_path}")
+			else:
+				print(f"Continuation: Using regular database {self.db_path}")
+			# If no temp db exists, we're continuing with regular database (already set)
+
+		# Debug: Show which database we're working with
+		if temp_db_path:
+			print(f"Working with temporary database: {self.db_path}")
+		else:
+			print(f"Working with regular database: {self.db_path}")
 
 		try:
-			self._update_progress("Setting up search tables", 0, 100, absolute=True)
+			# Setup tables if needed (for fresh builds or when temp DB was just created)
+			if not is_continuation or (temp_db_path and not self._tables_exist()):
+				self._update_progress("Setting up search tables", 0, 100, absolute=True)
+				self._ensure_fts_table()
 
-			# Setup tables in temp database
-			self._ensure_fts_table()
+				# Clear existing index data for fresh build
+				if temp_db_path and not is_continuation:
+					conn = self._get_connection()
+					try:
+						cursor = conn.cursor()
+						cursor.execute("DELETE FROM search_fts")
+						conn.commit()
+					finally:
+						conn.close()
 
-			self._update_progress("Fetching records", 20, 100, absolute=True)
+				# Initialize progress tracking (only for completely fresh builds)
+				if not is_continuation:
+					self._initialize_index_progress()
 
-			records = self.get_documents()
-			documents = []
+			# Get current progress
+			progress = self._get_index_progress()
 
-			self._update_progress("Preparing documents", 30, 100, absolute=True)
+			# Check if indexing is already complete
+			if self._is_indexing_complete():
+				self._update_progress("Search index already complete", 100, 100, absolute=True)
+				return
 
-			total_records = len(records)
-			for i, doc in enumerate(records):
-				document = self.prepare_document(doc)
-				if document:
-					documents.append(document)
+			# Process each doctype incrementally
+			total_doctypes = len(self.doc_configs)
+			processed_doctypes = 0
 
-				# Update progress during document preparation
-				if i % 100 == 0:
-					progress = 30 + int((i / total_records) * 20)  # 30-50% range
-					self._update_progress("Preparing documents", progress, 100, absolute=True)
+			for doctype in self.doc_configs.keys():
+				# Check time limit
+				if time.time() - start_time > max_runtime:
+					self._update_progress(
+						"Time limit reached, queuing continuation job", 90, 100, absolute=True
+					)
+					self._queue_continuation_job()
+					return
 
-			self._update_progress("Indexing documents", 50, 100, absolute=True)
+				doctype_progress = progress.get(doctype, {})
 
-			self._index_documents(documents)
+				# Skip if doctype is already complete
+				if doctype_progress.get("is_complete"):
+					processed_doctypes += 1
+					continue
 
-			self._update_progress("Building spell correction vocabulary", 80, 100, absolute=True)
+				self._update_progress(
+					f"Indexing {doctype}",
+					20 + (processed_doctypes * 60 // total_doctypes),
+					100,
+					absolute=True,
+				)
 
-			# Build vocabulary for spelling correction
-			self._build_vocabulary(documents)
+				# Process this doctype in batches
+				last_indexed_modified = doctype_progress.get("last_indexed_modified")
+				batch_count = 0
 
-			# Atomic replacement: move temp database to final location
-			if os.path.exists(original_db_path):
-				os.unlink(original_db_path)
-			os.rename(temp_db_path, original_db_path)
+				while True:
+					# Check time limit before each batch
+					if time.time() - start_time > max_runtime:
+						self._update_progress(
+							"Time limit reached during doctype processing, queuing continuation",
+							90,
+							100,
+							absolute=True,
+						)
+						self._queue_continuation_job()
+						return
+
+					# Get batch of documents
+					docs = self.get_documents_paginated(
+						doctype, limit=batch_size, last_indexed_modified=last_indexed_modified
+					)
+
+					if not docs:
+						# No more documents for this doctype
+						self._mark_doctype_complete(doctype)
+						break
+
+					# Prepare and index documents
+					print(f"preparing {len(docs)} documents {doctype}")
+					print(time.time() - start_time)
+					documents = []
+					for doc in docs:
+						document = self.prepare_document(doc)
+						if document:
+							documents.append(document)
+
+					if documents:
+						self._index_documents(documents)
+
+						# Update progress with last processed document's modification time
+						# Use hardcoded 'modified' field since it's reliable in all Frappe doctypes
+						last_doc_modified = docs[-1]["modified"]
+
+						last_doc_name = docs[-1]["name"]
+						self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
+						last_indexed_modified = last_doc_modified
+
+					batch_count += 1
+
+					# Show progress within doctype
+					if batch_count % 5 == 0:  # Update every 5 batches
+						current_progress = 20 + (processed_doctypes * 60 // total_doctypes)
+						self._update_progress(
+							f"Indexing {doctype} (batch {batch_count})", current_progress, 100, absolute=True
+						)
+
+			processed_doctypes += 1
+
+			# Check if all doctypes are indexed before building vocabulary
+			if not self._is_vocabulary_built_needed():
+				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
+
+				# Build vocabulary incrementally
+				self._build_vocabulary_incremental()
+				self._mark_vocabulary_built()
+
+			# Final atomic replacement if this was a fresh build
+			if temp_db_path and os.path.exists(temp_db_path):
+				if os.path.exists(original_db_path):
+					os.unlink(original_db_path)
+				os.rename(temp_db_path, original_db_path)
 
 			self._update_progress("Search index build complete", 100, 100, absolute=True)
 
@@ -352,12 +465,117 @@ class SQLiteSearch(ABC):
 
 		except Exception:
 			# Clean up temp file on error
-			if os.path.exists(temp_db_path):
+			if temp_db_path and os.path.exists(temp_db_path):
 				os.unlink(temp_db_path)
 			raise
 		finally:
 			# Restore original database path
-			self.db_path = original_db_path
+			if temp_db_path:
+				self.db_path = original_db_path
+
+	def _is_vocabulary_built_needed(self):
+		"""Check if vocabulary still needs to be built."""
+		try:
+			result = self.sql(
+				"""
+				SELECT COUNT(*) as incomplete_count
+				FROM search_index_progress
+				WHERE is_complete = 0
+			""",
+				read_only=True,
+			)
+
+			return result[0]["incomplete_count"] > 0
+		except sqlite3.Error:
+			return True
+
+	def _build_vocabulary_incremental(self):
+		"""Build vocabulary incrementally from indexed documents."""
+		import re
+
+		word_freq = defaultdict(int)
+		word_regex = re.compile(r"\w+")
+
+		# Get all indexed documents in batches to avoid memory issues
+		batch_size = 1000
+		offset = 0
+
+		while True:
+			try:
+				# Get batch of documents from FTS table
+				documents = self.sql(
+					f"""
+					SELECT title, content
+					FROM search_fts
+					LIMIT {batch_size} OFFSET {offset}
+				""",
+					read_only=True,
+				)
+
+				if not documents:
+					break
+
+				# Process this batch
+				for i, doc in enumerate(documents):
+					# Show progress for large document sets
+					if (offset + i) % 1000 == 0:
+						self._update_progress(
+							f"Processing vocabulary ({offset + i} docs)", 85, 100, absolute=True
+						)
+
+					# Process title and content together
+					combined_text = " ".join([(doc["title"] or "").lower(), (doc["content"] or "").lower()])
+
+					# Extract all words at once
+					words = word_regex.findall(combined_text)
+
+					for word in words:
+						if len(word) > MIN_WORD_LENGTH - 1 and word.isalpha():
+							word_freq[word] += 1
+
+				offset += batch_size
+
+			except sqlite3.Error:
+				break
+
+		# Build vocabulary tables as before
+		if word_freq:
+			# Clear existing data
+			conn = self._get_connection()
+			try:
+				cursor = conn.cursor()
+				cursor.execute("DELETE FROM search_vocabulary")
+				cursor.execute("DELETE FROM search_trigrams")
+				conn.commit()
+			finally:
+				conn.close()
+
+			# Prepare batch data
+			vocab_data = []
+			trigram_data = []
+			trigram_set = set()
+
+			for word, freq in word_freq.items():
+				vocab_data.append((word, freq, len(word)))
+
+				trigrams = self._generate_trigrams(word)
+				for trigram in trigrams:
+					trigram_key = (trigram, word)
+					if trigram_key not in trigram_set:
+						trigram_set.add(trigram_key)
+						trigram_data.append(trigram_key)
+
+			# Batch insert
+			conn = self._get_connection()
+			try:
+				cursor = conn.cursor()
+				cursor.executemany(
+					"INSERT INTO search_vocabulary (word, frequency, length) VALUES (?, ?, ?)", vocab_data
+				)
+				cursor.executemany("INSERT INTO search_trigrams (trigram, word) VALUES (?, ?)", trigram_data)
+				conn.commit()
+			finally:
+				conn.close()
 
 	# Status and Validation Methods
 
@@ -407,6 +625,183 @@ class SQLiteSearch(ABC):
 				records.append(doc)
 
 		return records
+
+	def get_documents_paginated(self, doctype, limit=1000, last_indexed_modified=None):
+		"""Get records for a specific doctype with pagination support."""
+		config = self.doc_configs.get(doctype)
+		if not config:
+			return []
+
+		filters = config.get("filters", {}).copy()
+		filters = config.get("filters", {}).copy()
+
+		# Ensure 'modified' field is always included for progress tracking
+		fields = config["fields"].copy()
+		if "modified" not in fields:
+			fields.append("modified")
+
+		# Build query with proper ordering and pagination
+		# Order by modified field for reliable resume capability
+		query = frappe.qb.get_query(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by="modified ASC, name ASC",  # Secondary sort by name for consistency
+			limit=limit,
+		)
+
+		# If resuming from a specific timestamp, filter by modification time
+		# This is more reliable than name-based filtering for VARCHAR names
+		if last_indexed_modified:
+			Table = frappe.qb.DocType(doctype)
+			query = query.where(Table.modified > last_indexed_modified)
+
+		docs = query.run(as_dict=True)
+
+		for doc in docs:
+			doc.doctype = doctype
+
+		return docs
+
+	def _get_index_progress(self):
+		"""Get current indexing progress for all doctypes."""
+		try:
+			result = self.sql(
+				"""
+				SELECT doctype, last_indexed_name, last_indexed_modified,
+					   total_docs, indexed_docs, batch_size, is_complete,
+					   started_at, updated_at, vocabulary_built
+				FROM search_index_progress
+			""",
+				read_only=True,
+			)
+
+			progress = {}
+			for row in result:
+				progress[row["doctype"]] = dict(row)
+
+			return progress
+		except sqlite3.Error:
+			return {}
+
+	def _initialize_index_progress(self):
+		"""Initialize progress tracking for all doctypes."""
+		conn = self._get_connection()
+		try:
+			cursor = conn.cursor()
+
+			# Clear existing progress
+			cursor.execute("DELETE FROM search_index_progress")
+
+			# Initialize progress for each doctype
+			for doctype in self.doc_configs.keys():
+				# Get total count for this doctype
+				config = self.doc_configs[doctype]
+				total_count = frappe.qb.get_query(
+					doctype, filters=config.get("filters", {}), fields=[{"COUNT": "name", "as": "count"}]
+				).run(as_dict=True)[0]["count"]
+
+				cursor.execute(
+					"""
+					INSERT INTO search_index_progress
+					(doctype, total_docs, indexed_docs, batch_size, is_complete, started_at, updated_at, vocabulary_built, last_indexed_modified)
+					VALUES (?, ?, 0, 1000, 0, datetime('now'), datetime('now'), 0, 0)
+				""",
+					(doctype, total_count),
+				)
+
+			conn.commit()
+		finally:
+			conn.close()
+
+	def _update_index_progress(self, doctype, last_indexed_name, last_indexed_modified, indexed_count):
+		"""Update progress for a specific doctype."""
+		conn = self._get_connection()
+		try:
+			cursor = conn.cursor()
+			cursor.execute(
+				"""
+				UPDATE search_index_progress
+				SET last_indexed_name = ?,
+					last_indexed_modified = ?,
+					indexed_docs = indexed_docs + ?,
+					updated_at = datetime('now')
+				WHERE doctype = ?
+			""",
+				(last_indexed_name, last_indexed_modified, indexed_count, doctype),
+			)
+			conn.commit()
+		finally:
+			conn.close()
+
+	def _mark_doctype_complete(self, doctype):
+		"""Mark a doctype as completely indexed."""
+		conn = self._get_connection()
+		try:
+			cursor = conn.cursor()
+			cursor.execute(
+				"""
+				UPDATE search_index_progress
+				SET is_complete = 1, updated_at = datetime('now')
+				WHERE doctype = ?
+			""",
+				(doctype,),
+			)
+			conn.commit()
+		finally:
+			conn.close()
+
+	def _mark_vocabulary_built(self):
+		"""Mark vocabulary as built."""
+		conn = self._get_connection()
+		try:
+			cursor = conn.cursor()
+			cursor.execute("""
+				UPDATE search_index_progress
+				SET vocabulary_built = 1, updated_at = datetime('now')
+			""")
+			conn.commit()
+		finally:
+			conn.close()
+
+	def _is_indexing_complete(self):
+		"""Check if all doctypes are completely indexed and vocabulary is built."""
+		try:
+			result = self.sql(
+				"""
+				SELECT COUNT(*) as incomplete_count
+				FROM search_index_progress
+				WHERE is_complete = 0 OR vocabulary_built = 0
+			""",
+				read_only=True,
+			)
+
+			return result[0]["incomplete_count"] == 0
+		except sqlite3.Error:
+			return False
+
+	def _queue_continuation_job(self):
+		"""Queue a continuation job to resume indexing."""
+		search_class_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
+		frappe.enqueue(
+			"frappe.search.sqlite_search.build_index",
+			queue="long",
+			job_id=f"{search_class_path}_continuation",
+			deduplicate=True,
+			search_class_path=search_class_path,
+			force=True,
+			is_continuation=True,
+		)
+
+	def _tables_exist(self):
+		"""Check if the required tables exist in the current database."""
+		try:
+			result = self.sql(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='search_fts'", read_only=True
+			)
+			return bool(result)
+		except sqlite3.Error:
+			return False
 
 	# Private Implementation Methods
 
@@ -925,9 +1320,31 @@ class SQLiteSearch(ABC):
                 )
             """)
 
+			# Create the index progress tracking table
+			cursor.execute("""
+                CREATE TABLE IF NOT EXISTS search_index_progress (
+                    id INTEGER PRIMARY KEY,
+                    doctype TEXT,
+                    last_indexed_name TEXT,
+                    last_indexed_modified TEXT,
+                    total_docs INTEGER DEFAULT 0,
+                    indexed_docs INTEGER DEFAULT 0,
+                    batch_size INTEGER DEFAULT 1000,
+                    is_complete BOOLEAN DEFAULT 0,
+                    started_at DATETIME,
+                    updated_at DATETIME,
+                    vocabulary_built BOOLEAN DEFAULT 0
+                )
+            """)
+
 			# Index for fast trigram lookups
 			cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_trigram_lookup ON search_trigrams(trigram)
+            """)
+
+			# Index for progress tracking lookups
+			cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_progress_doctype ON search_index_progress(doctype)
             """)
 
 			conn.commit()
@@ -1377,7 +1794,10 @@ def build_index_if_not_exists():
 
 
 def build_index(
-	SearchClass: type[SQLiteSearch] | None = None, search_class_path: str | None = None, force: bool = False
+	SearchClass: type[SQLiteSearch] | None = None,
+	search_class_path: str | None = None,
+	force: bool = False,
+	is_continuation: bool = False,
 ):
 	"""Build search index for SearchClass"""
 	if not SearchClass and not search_class_path:
@@ -1389,9 +1809,15 @@ def build_index(
 	search = SearchClass()
 	if not search.is_search_enabled():
 		return
-	if not search.index_exists() or force:
-		print(f"{SearchClass.__name__}: Index does not exist, building...")
-		search.build_index()
+
+	# For continuation jobs, always proceed regardless of existing index
+	# For fresh builds, only build if index doesn't exist or force=True
+	if is_continuation or not search.index_exists() or force:
+		if is_continuation:
+			print(f"{SearchClass.__name__}: Continuing incremental index build...")
+		else:
+			print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
+		search.build_index(is_continuation=is_continuation)
 
 
 def build_index_in_background():
@@ -1400,18 +1826,50 @@ def build_index_in_background():
 	for SearchClass in search_classes:
 		search = SearchClass()
 		if not search.is_search_enabled():
-			return
+			continue
+
 		search_class_path = f"{SearchClass.__module__}.{SearchClass.__name__}"
-		print(f"Enqueuing {search_class_path}.build_index")
-		frappe.enqueue(
-			"frappe.search.sqlite_search.build_index",
-			queue="long",
-			job_id=search_class_path,
-			deduplicate=True,
-			# build_index args
-			search_class_path=search_class_path,
-			force=True,
-		)
+
+		# Check if indexing is already in progress or complete
+		if search.index_exists():
+			try:
+				# Check if there are any incomplete progress records
+				progress = search._get_index_progress()
+				if progress and not search._is_indexing_complete():
+					print(f"Enqueuing continuation for {search_class_path}.build_index")
+					frappe.enqueue(
+						"frappe.search.sqlite_search.build_index",
+						queue="long",
+						job_id=f"{search_class_path}_continuation",
+						deduplicate=True,
+						search_class_path=search_class_path,
+						force=True,
+						is_continuation=True,
+					)
+				else:
+					print(f"Index for {search_class_path} is already complete")
+			except Exception:
+				# If we can't check progress, assume we need to rebuild
+				print(f"Enqueuing fresh build for {search_class_path}.build_index")
+				frappe.enqueue(
+					"frappe.search.sqlite_search.build_index",
+					queue="long",
+					job_id=search_class_path,
+					deduplicate=True,
+					search_class_path=search_class_path,
+					force=True,
+				)
+		else:
+			# No index exists, start fresh build
+			print(f"Enqueuing fresh build for {search_class_path}.build_index")
+			frappe.enqueue(
+				"frappe.search.sqlite_search.build_index",
+				queue="long",
+				job_id=search_class_path,
+				deduplicate=True,
+				search_class_path=search_class_path,
+				force=True,
+			)
 
 
 def update_doc_index(doc: Document, method=None):
