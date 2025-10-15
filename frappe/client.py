@@ -111,7 +111,7 @@ def get_list(
 			val = li.get(fieldname)
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
-				li["_expanded_" + fieldname] = val_title
+				li[fieldname] = val_title
 
 	return _list
 

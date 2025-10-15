@@ -4,10 +4,6 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
-from frappe.desk.form.load import (
-	get_title_values_for_link_and_dynamic_link_fields,
-	get_title_values_for_table_and_multiselect_fields,
-)
 from frappe.utils.data import sbool
 
 
@@ -83,7 +79,7 @@ def read_doc(doctype: str, name: str):
 		raise frappe.PermissionError
 	doc.apply_fieldlevel_read_permissions()
 	doc_dict = doc.as_dict()
-	if frappe.form_dict.get("expand_links") and json.loads(frappe.form_dict["expand_links"]):
+	if frappe.form_dict.get("expand_links") and frappe.form_dict["expand_links"]:
 		get_values_for_link_and_dynamic_link_fields(doc_dict)
 		get_values_for_table_and_multiselect_fields(doc_dict)
 
@@ -101,7 +97,7 @@ def get_values_for_link_and_dynamic_link_fields(doc_dict):
 		doctype = field.options if field.fieldtype == "Link" else doc_dict.get(field.options)
 
 		link_doc = frappe.get_doc(doctype, doc_fieldvalue)
-		doc_dict.update({"_expanded_" + field.fieldname: link_doc})
+		doc_dict.update({field.fieldname: link_doc})
 
 
 def get_values_for_table_and_multiselect_fields(doc_dict):
