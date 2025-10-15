@@ -934,6 +934,7 @@ class FilterArea {
 						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
+						link_filters: df.link_filters,
 					};
 				})
 		);
