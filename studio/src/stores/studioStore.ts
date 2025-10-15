@@ -33,7 +33,7 @@ import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = reactive({
-		leftPanelWidth: 300,
+		leftPanelWidth: 338,
 		rightPanelWidth: 275,
 		showLeftPanel: true,
 		showRightPanel: true,
@@ -55,6 +55,24 @@ const useStudioStore = defineStore("store", () => {
 		const appDoc = await fetchApp(appName)
 		activeApp.value = appDoc
 		await setAppPages(appName)
+	}
+
+	async function deleteApp(appName: string, appTitle: string) {
+		if (!appName) return
+		const confirmed = await confirm(`Are you sure you want to delete the app <b>${appTitle}</b>?`)
+		if (confirmed) {
+			studioApps.delete.submit(appName, {
+				onSuccess() {
+					if (activeApp.value?.name === appName) {
+						router.replace({ name: "Home" })
+					}
+					toast.success(`App "${appTitle}" deleted successfully`)
+				},
+				onError() {
+					toast.error("An unexpected error occurred while deleting the app.")
+				}
+			})
+		}
 	}
 
 	async function setAppPages(appName: string) {
@@ -371,6 +389,7 @@ const useStudioStore = defineStore("store", () => {
 		// studio app
 		activeApp,
 		setApp,
+		deleteApp,
 		updateActiveApp,
 		deleteAppPage,
 		duplicateAppPage,
