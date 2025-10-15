@@ -32,7 +32,12 @@ $navbar-height-lg: 4.5rem;
 }
 
 .doc-navbar {
-	background-color: white;
+	/* Use CSS variable so the navbar background follows the active theme
+	   (for example when data-theme="dark" sets darker colors). Using the
+	   CSS variable allows `--navbar-bg` (and theme overrides) to control
+	   the background instead of a hardcoded color which caused contrast
+	   issues for the brand/app name in dark mode. */
+	background-color: var(--navbar-bg);
 	padding-left: 0;
 	padding-right: 0;
 
@@ -122,8 +127,10 @@ $navbar-height-lg: 4.5rem;
 .page-toc {
 	font-size: $font-size-sm;
 
-	h5 {
-		font-size: $font-size-sm;
+		h5 {
+			// Use a slightly larger size for TOC headings to match other docs pages
+			// This keeps heading sizes consistent across documentation pages.
+			font-size: $font-size-md;
 		margin-bottom: 0.5rem;
 		color: $gray-500;
 	}

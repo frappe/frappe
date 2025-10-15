@@ -12,7 +12,11 @@
 .navbar .navbar-brand,
 .navbar .navbar-link,
 .navbar .nav > li > a {
-	color: {{ theme.top_bar_text_color }};
+	/* Use theme-provided text color if present, otherwise fall back to CSS variables.
+	   This ensures the brand/app name remains visible when the site is in dark mode
+	   (where data-theme="dark" sets --text-color) even if the theme's
+	   `top_bar_text_color` is not set or is incompatible with dark backgrounds. */
+	color: {{ theme.top_bar_text_color or 'var(--text-color)' }};
 	text-shadow: none;
 }
 
