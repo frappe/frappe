@@ -91,8 +91,10 @@ def get_formatted_email(user, mail=None):
 		return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 
-def extract_email_id(email):
+def extract_email_id(email: str) -> str:
 	"""fetch only the email part of the Email Address"""
+	if not email:
+		return ""
 	return cstr(parse_addr(email)[1])
 
 
@@ -602,7 +604,7 @@ def get_disk_usage():
 	files_path = get_files_path()
 	if not os.path.exists(files_path):
 		return 0
-	err, out = execute_in_shell(f"du -hsm {files_path}")
+	_err, out = execute_in_shell(f"du -hsm {files_path}")
 	return cint(out.split("\n")[-2].split("\t")[0])
 
 

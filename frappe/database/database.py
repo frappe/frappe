@@ -109,8 +109,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self._conn: "MariadbConnection" | "PostgresConnection" = self.get_connection()
-		self._cursor: "MariadbCursor" | "PostgresCursor" = self._conn.cursor()
+		self._conn: MariadbConnection | PostgresConnection = self.get_connection()
+		self._cursor: MariadbCursor | PostgresCursor = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -1135,7 +1135,7 @@ class Database:
 	def get_default(self, key, parent="__default"):
 		"""Returns default value as a list if multiple or single"""
 		d = self.get_defaults(key, parent)
-		return isinstance(d, list) and d[0] or d
+		return (isinstance(d, list) and d[0]) or d
 
 	@staticmethod
 	def set_default(key, val, parent="__default", parenttype=None):

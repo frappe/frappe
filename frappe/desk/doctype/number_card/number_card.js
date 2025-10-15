@@ -431,7 +431,11 @@ frappe.ui.form.on("Number Card", {
 		let document_type = frm.doc.document_type;
 		let doc_is_table =
 			document_type &&
-			(await frappe.db.get_value("DocType", document_type, "istable")).message.istable;
+			(await new Promise((resolve) => {
+				frappe.model.with_doctype(document_type, () => {
+					resolve(frappe.get_meta(document_type).istable);
+				});
+			}));
 
 		frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
 

@@ -55,6 +55,7 @@ from frappe.utils.data import (
 	add_years,
 	cast,
 	cint,
+	compare,
 	cstr,
 	duration_to_seconds,
 	evaluate_filters,
@@ -224,6 +225,111 @@ class TestFilters(FrappeTestCase):
 		}
 		self.assertFalse(evaluate_filters(doc, [("last_password_reset_date", "Timespan", "today")]))
 
+	def test_is_operator(self):
+		"""Test 'is' operator for checking if values are set or not set."""
+		# Test "is set" with different fieldtypes and values
+		self.assertTrue(compare("1", "is", "set", "Int"))
+		self.assertTrue(compare(1, "is", "set", "Int"))
+		self.assertTrue(compare(0, "is", "set", "Int"))  # 0 is considered "set"
+		self.assertTrue(compare("hello", "is", "set", "Data"))
+		self.assertTrue(compare(0.0, "is", "set", "Float"))
+
+		# Test "is set" with unset values - None should always be "not set" regardless of fieldtype
+		self.assertFalse(compare(None, "is", "set", "Int"))
+		self.assertFalse(compare(None, "is", "set", "Float"))
+		self.assertFalse(compare(None, "is", "set", "Check"))
+		self.assertFalse(compare(None, "is", "set", "Data"))
+		self.assertFalse(compare("", "is", "set"))
+		self.assertFalse(compare("", "is", "set", "Data"))
+		self.assertFalse(compare(None, "is", "set"))
+
+		# Test "is not set" with set values
+		self.assertFalse(compare("1", "is", "not set", "Int"))
+		self.assertFalse(compare(1, "is", "not set", "Int"))
+		self.assertFalse(compare(0, "is", "not set", "Int"))
+		self.assertFalse(compare("hello", "is", "not set", "Data"))
+		self.assertFalse(compare(0.0, "is", "not set", "Float"))
+
+		# Test "is not set" with unset values - None should always be "not set" regardless of fieldtype
+		self.assertTrue(compare(None, "is", "not set", "Int"))
+		self.assertTrue(compare(None, "is", "not set", "Float"))
+		self.assertTrue(compare(None, "is", "not set", "Check"))
+		self.assertTrue(compare(None, "is", "not set", "Data"))
+		self.assertTrue(compare("", "is", "not set"))
+		self.assertTrue(compare("", "is", "not set", "Data"))
+		self.assertTrue(compare(None, "is", "not set"))
+
+	def test_in_operators(self):
+		"""Test 'in' and 'not in' operators with and without fieldtype casting."""
+		test_list = ["a", "b", "c"]
+
+		# Test "in" operator without fieldtype
+		self.assertTrue(compare("a", "in", test_list))
+		self.assertFalse(compare("", "in", test_list))
+		self.assertFalse(compare("d", "in", test_list))
+		self.assertFalse(compare(None, "in", test_list))
+
+		# Test "not in" operator without fieldtype
+		self.assertFalse(compare("a", "not in", test_list))
+		self.assertTrue(compare("", "not in", test_list))
+		self.assertTrue(compare("d", "not in", test_list))
+		self.assertTrue(compare(None, "not in", test_list))
+
+		# Test "in" operator with fieldtype casting - only first value should be cast
+		string_list = ["1", "2", "3"]
+		self.assertTrue(compare(1, "in", string_list, "Data"))
+		self.assertTrue(compare("2", "in", string_list, "Data"))
+		self.assertFalse(compare(4, "in", string_list, "Data"))
+
+		# Test type mismatch: Int fieldtype with string list (val2 is NOT cast)
+		mixed_list = ["1", "2", "3"]
+		self.assertFalse(compare("1", "in", mixed_list, "Int"))
+		self.assertFalse(compare(1, "in", mixed_list, "Int"))
+
+		# Test with matching types: Int fieldtype with int list
+		int_list = [1, 2, 3]
+		self.assertTrue(compare("1", "in", int_list, "Int"))
+		self.assertTrue(compare(2, "in", int_list, "Int"))
+		self.assertFalse(compare("4", "in", int_list, "Int"))
+
+		# Test "not in" operator with fieldtype casting
+		self.assertFalse(compare(1, "not in", string_list, "Data"))
+		self.assertFalse(compare("2", "not in", string_list, "Data"))
+		self.assertTrue(compare(4, "not in", string_list, "Data"))
+
+		# Test "not in" with type mismatch
+		self.assertTrue(compare("1", "not in", mixed_list, "Int"))
+		self.assertFalse(compare("1", "not in", int_list, "Int"))
+
+		# Test with Float fieldtype
+		float_list = [1.5, 2.5, 3.5]
+		self.assertTrue(compare("1.5", "in", float_list, "Float"))
+		self.assertFalse(compare("4.5", "in", float_list, "Float"))
+
+		# Test None with "in"/"not in" operators - None should not be cast
+		self.assertFalse(compare(None, "in", [""], "Data"))
+		self.assertFalse(compare(None, "in", [0], "Int"))
+		self.assertFalse(compare(None, "in", [0.0], "Float"))
+		self.assertFalse(compare(None, "in", ["", "test"], "Data"))
+		self.assertTrue(compare(None, "in", [None, "test"], "Data"))
+
+		# Test "not in" with None
+		self.assertTrue(compare(None, "not in", [""], "Data"))
+		self.assertTrue(compare(None, "not in", [0], "Int"))
+		self.assertTrue(compare(None, "not in", [0.0], "Float"))
+		self.assertTrue(compare(None, "not in", ["", "test"], "Data"))
+		self.assertFalse(compare(None, "not in", [None, "test"], "Data"))
+
+	def test_is_operator_case_insensitive(self):
+		"""Test that 'is' operator patterns are case insensitive."""
+		self.assertTrue(compare("value", "is", "SET"))
+		self.assertTrue(compare("value", "is", "Set"))
+		self.assertTrue(compare("value", "is", "set"))
+
+		self.assertTrue(compare(None, "is", "NOT SET"))
+		self.assertTrue(compare(None, "is", "Not Set"))
+		self.assertTrue(compare(None, "is", "not set"))
+
 
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
@@ -341,7 +447,7 @@ class TestMathUtils(FrappeTestCase):
 		self.assertEqual(floor(22.7330), 22)
 		self.assertEqual(floor("24.7"), 24)
 		self.assertEqual(floor("26.7"), 26)
-		self.assertEqual(floor(Decimal(29.45)), 29)
+		self.assertEqual(floor(Decimal("29.45")), 29)
 
 	def test_ceil(self):
 		from decimal import Decimal
@@ -351,7 +457,7 @@ class TestMathUtils(FrappeTestCase):
 		self.assertEqual(ceil(22.7330), 23)
 		self.assertEqual(ceil("24.7"), 25)
 		self.assertEqual(ceil("26.7"), 27)
-		self.assertEqual(ceil(Decimal(29.45)), 30)
+		self.assertEqual(ceil(Decimal("29.45")), 30)
 
 
 class TestHTMLUtils(FrappeTestCase):
@@ -743,7 +849,7 @@ class TestResponse(FrappeTestCase):
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
 			"float": [
-				Decimal(29.21),
+				Decimal("29.21"),
 			],
 			"doc": [
 				frappe.get_doc("System Settings"),
@@ -1010,7 +1116,7 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertIsInstance(get_file_timestamp(__file__), str)
 
 	def test_execute_in_shell(self):
-		err, out = execute_in_shell("ls")
+		_err, out = execute_in_shell("ls")
 		self.assertIn("apps", cstr(out))
 
 	def test_get_all_sites(self):

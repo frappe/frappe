@@ -481,6 +481,23 @@ class TestDBQuery(FrappeTestCase):
 		)
 		self.assertTrue("_relevance" in data[0])
 
+		# Test that fields with keywords in strings are allowed
+		data = DatabaseQuery("DocType").execute(
+			fields=["name", "locate('select', name)"],
+			limit_start=0,
+			limit_page_length=1,
+		)
+		self.assertTrue(data)
+
+		# Test that subqueries with other DML are blocked
+		self.assertRaises(
+			frappe.DataError,
+			DatabaseQuery("DocType").execute,
+			fields=["name", "issingle", "(insert into tabUser values (1))"],
+			limit_start=0,
+			limit_page_length=1,
+		)
+
 		data = DatabaseQuery("DocType").execute(
 			fields=["name", "issingle", "date(creation) as creation"],
 			limit_start=0,
@@ -545,6 +562,16 @@ class TestDBQuery(FrappeTestCase):
 				limit_start=0,
 				limit_page_length=1,
 			)
+
+		# Ensure search terms aren't blocked as functions
+		from frappe.desk.search import search_link
+
+		search_terms = ("global", "user")
+
+		for term in search_terms:
+			with self.subTest(term=term):
+				result = search_link("ToDo", term)
+				self.assertIsInstance(result, list)
 
 	def test_nested_permission(self):
 		frappe.set_user("Administrator")
@@ -1076,8 +1103,7 @@ class TestDBQuery(FrappeTestCase):
 
 		class VirtualDocType:
 			@staticmethod
-			def get_list(args):
-				...
+			def get_list(args): ...
 
 		with patch(
 			"frappe.controllers",

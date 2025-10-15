@@ -301,6 +301,7 @@ frappe.ui.form.on("Web Form List Column", {
 		if (!df) return;
 		doc.fieldtype = df.fieldtype;
 		doc.label = df.label;
+		doc.options = df.options;
 		frm.refresh_field("list_columns");
 	},
 });

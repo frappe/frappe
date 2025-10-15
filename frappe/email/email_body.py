@@ -237,7 +237,7 @@ class EMail:
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 
-		maintype, subtype = mime_type.split("/")
+		_maintype, subtype = mime_type.split("/")
 		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
 
 		if as_attachment:
@@ -445,7 +445,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 	from email.mime.text import MIMEText
 
 	if not content_type:
-		content_type, encoding = mimetypes.guess_type(fname)
+		content_type, _encoding = mimetypes.guess_type(fname)
 
 	if not parent:
 		return
@@ -597,7 +597,7 @@ def get_header(header=None):
 	if not title:
 		title = frappe.get_hooks("app_title")[-1]
 
-	email_header, text = get_email_from_template(
+	email_header, _text = get_email_from_template(
 		"email_header", {"header_title": title, "indicator": indicator}
 	)
 

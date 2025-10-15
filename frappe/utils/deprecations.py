@@ -1,8 +1,9 @@
-""" Utils for deprecating functionality in Framework.
+"""Utils for deprecating functionality in Framework.
 
 WARNING: This file is internal, instead of depending just copy the code or use deprecation
 libraries.
 """
+
 import functools
 import warnings
 

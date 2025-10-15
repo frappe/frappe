@@ -139,7 +139,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return name in self.can_read or [] and name in self.restricted_doctypes or []
+			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
 		if item_type == "page":
 			if not self.allowed_pages:
 				self.allowed_pages = get_allowed_pages(cache=True)

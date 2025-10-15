@@ -21,6 +21,7 @@
   "editable_grid",
   "quick_entry",
   "grid_page_length",
+  "rows_threshold_for_grid_search",
   "cb01",
   "track_changes",
   "track_seen",
@@ -697,7 +698,7 @@
    "label": "Protect Attached Files"
   },
   {
-   "default": "0",
+   "default": "20",
    "depends_on": "istable",
    "fieldname": "rows_threshold_for_grid_search",
    "fieldtype": "Int",
@@ -711,6 +712,7 @@
    "label": "Recipient Account Field"
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-bolt",
  "idx": 6,
  "index_web_pages_for_search": 1,
@@ -791,7 +793,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2025-07-19 12:23:16.296416",
+ "modified": "2025-09-23 06:48:13.555017",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

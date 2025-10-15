@@ -323,7 +323,12 @@ function format_content_for_timeline(content) {
 
 function get_user_link(user) {
 	const user_display_text = frappe.user_info(user).fullname || "";
-	return frappe.utils.get_form_link("User", user, true, user_display_text);
+	return frappe.utils.get_form_link(
+		"User",
+		user,
+		true,
+		frappe.utils.xss_sanitise(user_display_text)
+	);
 }
 
 function get_user_message(user, message_self, message_other) {

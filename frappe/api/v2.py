@@ -7,6 +7,7 @@ Note:
 	- None of the functions present here should be called from python code, their location and
 	  internal implementation can change without treating it as "breaking change".
 """
+
 import json
 from typing import Any
 
@@ -73,6 +74,7 @@ def document_list(doctype: str):
 
 	# set limit of records for frappe.get_list
 	frappe.form_dict.limit_page_length = frappe.form_dict.limit or 20
+	frappe.form_dict.limit_start = frappe.form_dict.start or 0
 	# evaluate frappe.get_list
 	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
 

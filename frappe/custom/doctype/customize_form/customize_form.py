@@ -2,9 +2,10 @@
 # MIT License. See LICENSE
 
 """
-	Customize Form is a Single DocType used to mask the Property Setter
-	Thus providing a better UI from user perspective
+Customize Form is a Single DocType used to mask the Property Setter
+Thus providing a better UI from user perspective
 """
+
 import json
 
 import frappe
@@ -51,6 +52,7 @@ class CustomizeForm(Document):
 		email_append_to: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_re_route_to_default_view: DF.Check
+		grid_page_length: DF.Int
 		image_field: DF.Data | None
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
@@ -73,9 +75,11 @@ class CustomizeForm(Document):
 		queue_in_background: DF.Check
 		quick_entry: DF.Check
 		recipient_account_field: DF.Data | None
+		rows_threshold_for_grid_search: DF.Int
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
 		sort_field: DF.Literal[None]
@@ -304,6 +308,8 @@ class CustomizeForm(Document):
 		)
 
 	def set_property_setters_for_doctype(self, meta):
+		if self.get("show_name_in_global_search") != meta.get("show_name_in_global_search"):
+			self.flags.rebuild_doctype_for_global_search = True
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
@@ -733,6 +739,7 @@ doctype_properties = {
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
 	"allow_import": "Check",
+	"show_name_in_global_search": "Check",
 	"show_preview_popup": "Check",
 	"default_email_template": "Data",
 	"email_append_to": "Check",
@@ -745,6 +752,8 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
+	"grid_page_length": "Int",
+	"rows_threshold_for_grid_search": "Int",
 }
 
 docfield_properties = {

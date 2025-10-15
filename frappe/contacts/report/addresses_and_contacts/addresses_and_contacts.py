@@ -31,23 +31,22 @@ def execute(filters=None):
 
 
 def get_columns(filters):
+	reference_doctype = filters.get("reference_doctype")
 	return [
-		"{reference_doctype}:Link/{reference_doctype}".format(
-			reference_doctype=filters.get("reference_doctype")
-		),
-		"Address Line 1",
-		"Address Line 2",
-		"City",
-		"State",
-		"Postal Code",
-		"Country",
-		"Is Primary Address:Check",
-		"First Name",
-		"Last Name",
-		"Address",
-		"Phone",
-		"Email Id",
-		"Is Primary Contact:Check",
+		f"{_(reference_doctype)}:Link/{reference_doctype}",
+		_("Address Line 1"),
+		_("Address Line 2"),
+		_("City"),
+		_("State"),
+		_("Postal Code"),
+		_("Country"),
+		f"{_('Is Primary Address')}:Check",
+		_("First Name"),
+		_("Last Name"),
+		_("Address"),
+		_("Phone"),
+		_("Email Id"),
+		f"{_('Is Primary Contact')}:Check",
 	]
 
 

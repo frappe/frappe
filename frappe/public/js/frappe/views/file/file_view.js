@@ -203,6 +203,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		}
 
 		let title = d.file_name || d.file_url;
+		title = frappe.utils.escape_html(title);
 		title = title.slice(0, 60);
 		d._title = title;
 		d.icon_class = icon_class;

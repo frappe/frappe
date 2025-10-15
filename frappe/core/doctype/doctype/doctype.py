@@ -162,6 +162,7 @@ class DocType(Document):
 		restrict_to_domain: DF.Link | None
 		route: DF.Data | None
 		row_format: DF.Literal["Dynamic", "Compressed"]
+		rows_threshold_for_grid_search: DF.Int
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
@@ -987,7 +988,7 @@ class DocType(Document):
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
-		return max_idx and max_idx[0][0] or 0
+		return (max_idx and max_idx[0][0]) or 0
 
 	def validate_name(self, name=None):
 		if not name:
@@ -1110,10 +1111,8 @@ def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool
 		autoname_before_save = get_autoname_before_save(dt)
 		is_autoname_autoincrement = dt.autoname == "autoincrement"
 
-		if (
-			is_autoname_autoincrement
-			and autoname_before_save != "autoincrement"
-			or (not is_autoname_autoincrement and autoname_before_save == "autoincrement")
+		if (is_autoname_autoincrement and autoname_before_save != "autoincrement") or (
+			not is_autoname_autoincrement and autoname_before_save == "autoincrement"
 		):
 			if dt.doctype == "Customize Form":
 				frappe.throw(_("Cannot change to/from autoincrement autoname in Customize Form"))
@@ -1240,7 +1239,7 @@ def validate_fields(meta: Meta):
 
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(
-			filter(None, map(lambda df: df.fieldname == fieldname and str(df.idx) or None, fields))
+			filter(None, map(lambda df: (df.fieldname == fieldname and str(df.idx)) or None, fields))
 		)
 		if len(duplicates) > 1:
 			frappe.throw(
@@ -1625,6 +1624,18 @@ def validate_fields(meta: Meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
+	def check_decimal_config(docfield):
+		if docfield.fieldtype not in ("Currency", "Float", "Percent"):
+			return
+
+		if docfield.length and docfield.precision:
+			if cint(docfield.precision) > cint(docfield.length):
+				frappe.throw(
+					_("Precision ({0}) for {1} cannot be greater than its length ({2}).").format(
+						docfield.precision, frappe.bold(docfield.label), docfield.length
+					)
+				)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1647,6 +1658,7 @@ def validate_fields(meta: Meta):
 		scrub_options_in_select(d)
 		validate_fetch_from(d)
 		validate_data_field_type(d)
+		check_decimal_config(d)
 
 		if not frappe.flags.in_migrate:
 			check_unique_fieldname(meta.get("name"), d.fieldname)

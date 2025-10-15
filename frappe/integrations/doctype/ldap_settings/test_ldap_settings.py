@@ -240,7 +240,7 @@ class LDAP_TestCase:
 					function_return = self.test_class.connect_to_ldap(
 						base_dn=self.base_dn, password=self.base_password
 					)
-					args, kwargs = ldap3_connection_method.call_args
+					_args, kwargs = ldap3_connection_method.call_args
 
 					for connection_arg in kwargs:
 						if (
@@ -305,7 +305,7 @@ class LDAP_TestCase:
 						base_dn=self.base_dn, password=self.base_password, read_only=False
 					)
 
-					args, kwargs = ldap3_connection_method.call_args
+					_args, kwargs = ldap3_connection_method.call_args
 
 					self.assertFalse(
 						kwargs["read_only"],

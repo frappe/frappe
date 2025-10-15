@@ -7,7 +7,7 @@ from frappe.utils import getdate
 
 
 @frappe.whitelist()
-def get_energy_points_heatmap_data(user, date):
+def get_energy_points_heatmap_data(user: str, date: str | None):
 	try:
 		date = getdate(date)
 	except Exception:
@@ -29,7 +29,10 @@ def get_energy_points_heatmap_data(user, date):
 
 
 @frappe.whitelist()
-def get_energy_points_percentage_chart_data(user, field):
+def get_energy_points_percentage_chart_data(user: str, field: str):
+	if field not in ("type", "reference_doctype", "rule"):
+		frappe.throw(frappe._("Invalid field for grouping"))
+
 	result = frappe.get_all(
 		"Energy Point Log",
 		filters={"user": user, "type": ["!=", "Review"]},
@@ -46,7 +49,7 @@ def get_energy_points_percentage_chart_data(user, field):
 
 
 @frappe.whitelist()
-def get_user_rank(user):
+def get_user_rank(user: str):
 	month_start = datetime.today().replace(day=1)
 	monthly_rank = frappe.get_all(
 		"Energy Point Log",
@@ -75,11 +78,11 @@ def get_user_rank(user):
 @frappe.whitelist()
 def update_profile_info(profile_info):
 	profile_info = frappe.parse_json(profile_info)
-	keys = ["location", "interest", "user_image", "bio"]
+	keys = ("location", "interest", "user_image", "bio")
 
-	for key in keys:
-		if key not in profile_info:
-			profile_info[key] = None
+	for key in list(profile_info.keys()):
+		if key not in keys:
+			del profile_info[key]
 
 	user = frappe.get_doc("User", frappe.session.user)
 	user.update(profile_info)
@@ -88,7 +91,7 @@ def update_profile_info(profile_info):
 
 
 @frappe.whitelist()
-def get_energy_points_list(start, limit, user):
+def get_energy_points_list(start: int, limit: int, user: str):
 	return frappe.db.get_list(
 		"Energy Point Log",
 		filters={"user": user, "type": ["!=", "Review"]},

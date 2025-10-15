@@ -44,7 +44,13 @@
   "section_break_8",
   "description",
   "participants",
-  "event_participants"
+  "event_participants",
+  "section_break_jlqd",
+  "reference_doctype",
+  "column_break_pjkw",
+  "reference_docname",
+  "section_break_qemp",
+  "links"
  ],
  "fields": [
   {
@@ -291,13 +297,43 @@
    "label": "Google Meet Link",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jlqd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "Dynamic Link"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_pjkw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Doc",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "section_break_qemp",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2025-06-17 15:31:01.945146",
+ "modified": "2025-08-12 13:37:36.319985",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

@@ -25,10 +25,8 @@ frappe.ui.form.on("Workspace", {
 		);
 
 		if (
-			frm.doc.for_user ||
-			(frm.doc.public &&
-				!frm.has_perm("write") &&
-				!frappe.user.has_role("Workspace Manager"))
+			(frm.doc.for_user && frm.doc.for_user !== frappe.session.user) ||
+			(frm.doc.public && !frappe.user.has_role("Workspace Manager"))
 		) {
 			frm.trigger("disable_form");
 

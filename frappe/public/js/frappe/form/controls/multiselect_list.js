@@ -244,6 +244,22 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.$list_wrapper.find(".selectable-items").html(html);
 
 		this.highlighted = -1;
+		this.adjust_dropdown_right_position();
+	}
+
+	adjust_dropdown_right_position() {
+		const $dropdown = $(this.$list_wrapper).find("ul.dropdown-menu");
+
+		const dropdown_el = $dropdown[0];
+		const parent_el = dropdown_el.parentElement;
+
+		const dropdown_rect = dropdown_el.getBoundingClientRect();
+		const parent_rect = parent_el.getBoundingClientRect();
+		const right_diff = parent_rect.right - dropdown_rect.right;
+
+		setTimeout(() => {
+			dropdown_el.style.left = `${right_diff}px`;
+		}, 10);
 	}
 
 	get_value() {

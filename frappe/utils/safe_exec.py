@@ -29,6 +29,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.inplacevar import protected_inplacevar
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
@@ -180,7 +181,7 @@ def get_safe_globals():
 	if "_" in form_dict:
 		del frappe.local.form_dict["_"]
 
-	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+	user = (getattr(frappe.local, "session", None) and frappe.local.session.user) or "Guest"
 
 	out = NamespaceDict(
 		# make available limited methods of frappe
@@ -301,6 +302,7 @@ def get_safe_globals():
 	# allow iterators and list comprehension
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+	out._inplacevar_ = protected_inplacevar
 
 	# add common python builtins
 	out.update(get_python_builtins())
@@ -545,7 +547,7 @@ def _validate_attribute_read(object, name):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
 	if name.startswith("_"):
-		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
+		raise AttributeError(f'"{name}" is an invalid attribute name because it starts with "_"')
 
 
 def _write(obj):
@@ -706,4 +708,5 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_getitem_": _getitem,
 	"_getiter_": iter,
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+	"_inplacevar_": protected_inplacevar,
 }
