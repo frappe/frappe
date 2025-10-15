@@ -127,14 +127,21 @@ class StudioPage(Document):
 				blocks = frappe.parse_json(blocks)
 			return blocks[0]
 
-		if self.blocks:
+		if self.has_blocks():
 			root_block = get_root_block(self.blocks)
 			add_component(root_block)
-		if self.draft_blocks:
+		if self.has_blocks(check_draft=True):
 			root_block = get_root_block(self.draft_blocks)
 			add_component(root_block)
 
 		return components
+
+	def has_blocks(self, check_draft: bool = False):
+		if check_draft and self.draft_blocks and self.draft_blocks != "[]":
+			return True
+		if self.blocks and self.blocks != "[]":
+			return True
+		return False
 
 	def on_trash(self):
 		if can_export(self):
