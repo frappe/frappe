@@ -60,7 +60,7 @@
    "fieldname": "chart_type",
    "fieldtype": "Select",
    "label": "Chart Type",
-   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport",
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum\nGroup By\nCustom\nReport",
    "set_only_once": 1
   },
   {
@@ -79,13 +79,13 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average', 'Minimum', 'Maximum'].includes(doc.chart_type)",
    "fieldname": "based_on",
    "fieldtype": "Select",
    "label": "Time Series Based On"
   },
   {
-   "depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
+   "depends_on": "eval: ['Sum', 'Average', 'Minimum', 'Maximum'].includes(doc.chart_type)\n",
    "fieldname": "value_based_on",
    "fieldtype": "Select",
    "label": "Value Based On"

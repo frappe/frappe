@@ -233,6 +233,62 @@ class TestDashboardChart(FrappeTestCase):
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
+	def test_min_dashboard_chart(self):
+		insert_test_records()
+
+		if frappe.db.exists("Dashboard Chart", "Test Minimum Dashboard Chart"):
+			frappe.delete_doc("Dashboard Chart", "Test Minimum Dashboard Chart")
+
+		frappe.get_doc(
+			dict(
+				doctype="Dashboard Chart",
+				chart_name="Test Minimum Dashboard Chart",
+				chart_type="Minimum",
+				document_type="Communication",
+				based_on="communication_date",
+				value_based_on="rating",
+				timespan="Select Date Range",
+				time_interval="Weekly",
+				from_date=datetime(2018, 12, 30),
+				to_date=datetime(2019, 1, 15),
+				filters_json="[]",
+				timeseries=1,
+			)
+		).insert()
+
+		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+			result = get(chart_name="Test Minimum Dashboard Chart", refresh=1)
+			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019"])
+			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 100.0, 100.0])
+
+	def test_max_dashboard_chart(self):
+		insert_test_records()
+
+		if frappe.db.exists("Dashboard Chart", "Test Maximum Dashboard Chart"):
+			frappe.delete_doc("Dashboard Chart", "Test Maximum Dashboard Chart")
+
+		frappe.get_doc(
+			dict(
+				doctype="Dashboard Chart",
+				chart_name="Test Maximum Dashboard Chart",
+				chart_type="Maximum",
+				document_type="Communication",
+				based_on="communication_date",
+				value_based_on="rating",
+				timespan="Select Date Range",
+				time_interval="Weekly",
+				from_date=datetime(2018, 12, 30),
+				to_date=datetime(2019, 1, 15),
+				filters_json="[]",
+				timeseries=1,
+			)
+		).insert()
+
+		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
+			result = get(chart_name="Test Maximum Dashboard Chart", refresh=1)
+			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019"])
+			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 200.0, 400.0])
+
 	def test_user_date_label_dashboard_chart(self):
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 

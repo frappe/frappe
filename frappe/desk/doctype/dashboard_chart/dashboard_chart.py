@@ -56,7 +56,7 @@ def get_permission_query_conditions(user):
 			or `tabDashboard Chart`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
 
 	return f"""
-		((`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average', 'Group By')
+		((`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average', 'Minimum', 'Maximum', 'Group By')
 		and {doctype_condition})
 		or
 		(`tabDashboard Chart`.`chart_type` = 'Report'
@@ -201,7 +201,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	data = frappe.get_list(
 		doctype,
-		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
+		fields=[datefield, f"SUM({value_field})", "COUNT(*)", f"MIN({value_field})", f"MAX({value_field})"],
 		filters=filters,
 		group_by=datefield,
 		order_by=datefield,
@@ -292,6 +292,8 @@ def get_aggregate_function(chart_type):
 		"Sum": "SUM",
 		"Count": "COUNT",
 		"Average": "AVG",
+		"Minimum": "MIN",
+		"Maximum": "MAX"
 	}[chart_type]
 
 
@@ -301,16 +303,30 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 	data_index = 0
 	if data:
 		for d in result:
+			min_value = None
+			max_value = None
 			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += flt(data[data_index][1])
 				count += flt(data[data_index][2])
+				val_min = flt(data[data_index][3])
+				val_max = flt(data[data_index][4])
+				if min_value is None or val_min < min_value:
+					min_value = val_min
+				if max_value is None or val_max > max_value:
+					max_value = val_max
 				data_index += 1
 			if chart_type == "Average" and not count == 0:
 				d[1] = d[1] / count
 			if chart_type == "Count":
 				d[1] = count
-
+			if chart_type == "Minimum":
+					d[1] = min_value
+			if chart_type == "Maximum":
+					d[1] = max_value
+	# Remove dates without valid data since displaying 0 or NaN for min/max is misleading.
+	if chart_type in ("Minimum", "Maximum"):
+		result = [r for r in result if r[1] is not None]
 	return result
 
 
@@ -337,7 +353,7 @@ class DashboardChart(Document):
 		aggregate_function_based_on: DF.Literal[None]
 		based_on: DF.Literal[None]
 		chart_name: DF.Data
-		chart_type: DF.Literal["Count", "Sum", "Average", "Group By", "Custom", "Report"]
+		chart_type: DF.Literal["Count", "Sum", "Average", "Minimum", "Maximum", "Group By", "Custom", "Report"]
 		color: DF.Color | None
 		currency: DF.Link | None
 		custom_options: DF.Code | None
