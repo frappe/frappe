@@ -12,6 +12,7 @@
 								icon: 'arrow-left',
 								onClick: () => $router.push({ name: 'Home' }),
 							},
+							{ label: 'View in Desk', onClick: () => openInDesk(store.activeApp!), icon: 'arrow-up-right' },
 							{
 								label: 'Delete App',
 								icon: 'trash-2',
@@ -147,7 +148,7 @@ import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { isObjectEmpty } from "@/utils/helpers"
+import { isObjectEmpty, openInDesk } from "@/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

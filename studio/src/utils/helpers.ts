@@ -8,6 +8,7 @@ import type { ObjectLiteral, BlockOptions, StyleValue, ExpressionEvaluationConte
 import type { DataResult, DocumentResource, DocumentResult, Filters, Resource } from "@/types/Studio/StudioResource"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import { call } from "frappe-ui"
+import type { StudioApp } from "@/types/Studio/StudioApp"
 
 function getBlockString(block: BlockOptions | Block): string {
 	return jsToJson(getBlockCopyWithoutParent(block))
@@ -314,6 +315,10 @@ async function fetchApp(appName: string) {
 	})
 	await appResource.get.promise
 	return appResource.doc
+}
+
+function openInDesk(app: StudioApp) {
+	window.open(`/app/studio-app/${app.name}`, "_blank")
 }
 
 // page
@@ -806,6 +811,7 @@ export {
 	isHTML,
 	// app
 	fetchApp,
+	openInDesk,
 	// page
 	fetchPage,
 	findPageWithRoute,

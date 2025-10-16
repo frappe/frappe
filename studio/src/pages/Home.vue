@@ -141,6 +141,7 @@ import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
+import { openInDesk } from "@/utils/helpers"
 
 const showDialog = ref(false)
 const emptyAppState = {
@@ -191,9 +192,5 @@ const createStudioApp = (app: NewStudioApp) => {
 function setAppFields(e: Event) {
 	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
 	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
-}
-
-function openInDesk(app: StudioApp) {
-	window.open(`/app/studio-app/${app.name}`, "_blank")
 }
 </script>
