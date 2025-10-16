@@ -143,7 +143,13 @@ class TestResourceAPI(FrappeAPITestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		for _ in range(20):
-			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
+			doc = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": frappe.mock("paragraph"),
+					"allocated_to": "test@example.com",
+				}
+			).insert()
 			cls.GENERATED_DOCUMENTS = []
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
@@ -166,6 +172,35 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn("data", response.json)
+
+	def test_get_list_expand(self):
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{
+				"sid": self.sid,
+				"filters": json.dumps([["name", "in", self.GENERATED_DOCUMENTS]]),
+				"fields": json.dumps(["allocated_to", "name"]),
+				"expand": json.dumps(["allocated_to"]),
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIn("data", response.json)
+		self.assertIn("allocated_to", response.json["data"][0])
+		self.assertIsInstance(response.json["data"][0]["allocated_to"], dict)
+		self.assertIn("name", response.json["data"][0]["allocated_to"])
+
+	def test_get_doc_expand(self):
+		response = self.get(
+			self.resource(self.DOCTYPE, self.GENERATED_DOCUMENTS[0]),
+			{
+				"expand_links": json.dumps(True),
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIn("data", response.json)
+		self.assertIsInstance(response.json["data"]["allocated_to"], dict)
 
 	def test_get_list_limit(self):
 		# test 3: fetch data with limit
