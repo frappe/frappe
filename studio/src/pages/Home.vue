@@ -53,12 +53,30 @@
 				</div>
 				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
 					<router-link
-						class="flex flex-col justify-center gap-1 rounded-lg border-2 p-5"
+						class="flex flex-col justify-center gap-1 rounded-lg border-2 p-4"
 						v-for="app in appList"
 						:to="{ name: 'StudioApp', params: { appID: app.name } }"
 						:key="app.name"
 					>
-						<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
+						<div class="flex flex-row justify-between">
+							<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
+							<Dropdown
+								:options="[
+									{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
+									{
+										label: 'Delete',
+										onClick: () => store.deleteApp(app.name, app.app_title),
+										icon: 'trash-2',
+									},
+								]"
+								size="sm"
+								placement="right"
+							>
+								<template v-slot="{ open }">
+									<Button icon="more-horizontal" variant="ghost" />
+								</template>
+							</Dropdown>
+						</div>
 						<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
 							<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
 						</UseTimeAgo>
@@ -122,6 +140,7 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
+import useStudioStore from "@/stores/studioStore"
 
 const showDialog = ref(false)
 const emptyAppState = {
@@ -132,6 +151,7 @@ const emptyAppState = {
 }
 const newApp = ref({ ...emptyAppState })
 const router = useRouter()
+const store = useStudioStore()
 
 const searchFilter = ref("")
 const appList = ref<StudioApp[]>([])
@@ -171,5 +191,9 @@ const createStudioApp = (app: NewStudioApp) => {
 function setAppFields(e: Event) {
 	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
 	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
+}
+
+function openInDesk(app: StudioApp) {
+	window.open(`/app/studio-app/${app.name}`, "_blank")
 }
 </script>
