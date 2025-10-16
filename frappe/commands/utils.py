@@ -78,6 +78,8 @@ def build(
 
 		# don't minify in developer_mode for faster builds
 		development = frappe.local.conf.developer_mode or frappe._dev_server
+		esbuild_target = frappe.local.conf.get("esbuild_target") or os.environ.get("ESBUILD_TARGET")
+
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -93,6 +95,7 @@ def build(
 			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
 			using_cached=using_cached,
+			esbuild_target=esbuild_target,
 		)
 
 		if apps and isinstance(apps, str):
