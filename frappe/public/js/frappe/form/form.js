@@ -1692,6 +1692,38 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	/**
+	 * Set link query filters and route options at the same time.
+	 */
+	configure_link_field(fieldname, opt1, opt2) {
+		let field;
+		let filters;
+		let df;
+
+		if (opt2) {
+			// on child table
+			// configure_link_field(fieldname, parent_fieldname, query)
+			field = this.fields_dict[opt1].grid.get_field(fieldname);
+			df = this.get_docfield(opt1, fieldname);
+			filters = opt2;
+		} else if (this.fields_dict[fieldname]) {
+			field = this.fields_dict[fieldname];
+			df = this.get_docfield(fieldname);
+			filters = opt1;
+		}
+
+		if (field) {
+			field.get_query = function (doc) {
+				return {
+					filters: filters(doc),
+				};
+			};
+			df.get_route_options_for_new_doc = function (df) {
+				return filters(df.frm.doc);
+			};
+		}
+	}
+
 	clear_table(fieldname) {
 		frappe.model.clear_table(this.doc, fieldname);
 	}
