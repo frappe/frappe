@@ -248,10 +248,12 @@ frappe.ui.form.Control = class BaseControl {
 		}
 		value = this.validate(value);
 		if (value && value.then) {
-			// got a promise
-			return value.then((value) => set(value));
+			this._pending_validation = value.then((v) => {
+				delete this._pending_validation;
+				return v;
+			});
+			return this._pending_validation.then((value) => set(value));
 		} else {
-			// all clear
 			return set(value);
 		}
 	}

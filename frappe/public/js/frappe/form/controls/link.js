@@ -40,6 +40,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}, 250);
 		});
 
+		this.$input.on("paste", function (e) {
+			setTimeout(function () {
+				try {
+					const pasted_value = me.get_input_value();
+					const pasted_label = me.get_label_value();
+					me.parse_validate_and_set_in_model(pasted_value, null, pasted_label);
+				} catch (err) {
+				}
+			}, 0);
+		});
+
 		this.$input_area.on("mouseenter", () => {
 			this.show_link_and_clear_buttons();
 		});
@@ -370,6 +381,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 		});
 
+		this.$input.on("paste", function () {
+			setTimeout(function () {
+				let value = me.get_input_value();
+				let label = me.get_label_value();
+				me.parse_validate_and_set_in_model(value, null, label);
+			}, 0);
+		});
+
 		this.$input.on("awesomplete-open", () => {
 			this.autocomplete_open = true;
 
@@ -682,20 +701,47 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 		};
 
-		// to avoid unnecessary request
 		if (value) {
+			const args = {
+				doctype: options,
+				docname: value,
+				fields: columns_to_fetch,
+			};
+
+			try {
+				const search_args = {
+					txt: value,
+					doctype: options,
+					ignore_user_permissions: this.df.ignore_user_permissions,
+					reference_doctype: this.get_reference_doctype() || "",
+					page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
+				};
+				this.set_custom_query(search_args);
+
+				if (search_args.filters) args.filters = search_args.filters;
+				if (search_args.query) args.query = search_args.query;
+				if (search_args.reference_doctype) args.reference_doctype = search_args.reference_doctype;
+				if (search_args.ignore_user_permissions !== undefined)
+					args.ignore_user_permissions = search_args.ignore_user_permissions;
+			} catch (e) {
+			}
+
 			return frappe
-				.xcall(
-					"frappe.client.validate_link",
-					{
-						doctype: options,
-						docname: value,
-						fields: columns_to_fetch,
-					},
-					"GET",
-					{ cache: !columns_to_fetch.length }
-				)
+				.xcall("frappe.client.validate_link", args, "GET", { cache: !columns_to_fetch.length })
 				.then((response) => {
+					if (!response || !response.name) {
+						this.df.invalid = true;
+						this.set_invalid && this.set_invalid();
+						frappe.msgprint({
+							message: __(
+								"Entered value does not match allowed options for {0}",
+								[__(this.df.label || this.df.fieldname)]
+							),
+							indicator: "orange",
+						});
+						return "";
+					}
+
 					if (this.frm && !this.docname) {
 						return response.name;
 					}

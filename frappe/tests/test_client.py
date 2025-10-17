@@ -174,6 +174,16 @@ class TestClient(IntegrationTestCase):
 				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
 			)
 
+	def test_validate_link_with_filters_rejects_mismatch(self):
+		from frappe.client import validate_link
+
+		todo = frappe.get_doc(doctype="ToDo", description="filter-test").insert()
+		try:
+			res = validate_link("ToDo", todo.name, fields=["name"], filters={"description": "non-existent-description"})
+			self.assertFalse(res.get("name"))
+		finally:
+			frappe.delete_doc("ToDo", todo.name)
+
 	def test_client_insert(self):
 		from frappe.client import insert
 

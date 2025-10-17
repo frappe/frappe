@@ -49,9 +49,11 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 		super().setUpClass()
 		cls.doctype = _get_doctype_from_module(cls)
 		cls.module = frappe.get_module(cls.__module__)
-		# Test Environment
+
+		if not getattr(frappe.local, "session", None):
+			frappe.local.session = frappe._dict()
 		frappe.set_user("Administrator")
-		# Test Environment (cleanup)
+
 		cls.addClassCleanup(frappe.set_user, "Administrator")
 		cls._unit_test_case_class_setup_done = True
 

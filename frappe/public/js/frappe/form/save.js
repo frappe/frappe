@@ -18,19 +18,40 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	var save = function () {
 		$(frm.wrapper).addClass("validated-form");
 		if ((action !== "Save" || frm.is_dirty()) && frappe.ui.form.check_mandatory(frm)) {
-			_call({
-				method: "frappe.desk.form.save.savedocs",
-				args: { doc: frm.doc, action: action },
-				callback: function (r) {
-					$(document).trigger("save", [frm.doc]);
-					callback(r);
-				},
-				error: function (r) {
-					callback(r);
-				},
-				btn: btn,
-				freeze_message: freeze_message,
-			});
+			var wait_for_pending_validations = function () {
+				var pending = [];
+				frm.fields && frm.fields.forEach(function (field) {
+					var control = field.control;
+					if (control && control._pending_validation) {
+						pending.push(control._pending_validation);
+					}
+				});
+				return pending.length ? Promise.all(pending) : Promise.resolve();
+			};
+
+			wait_for_pending_validations()
+				.then(function () {
+					_call({
+						method: "frappe.desk.form.save.savedocs",
+						args: { doc: frm.doc, action: action },
+						callback: function (r) {
+							$(document).trigger("save", [frm.doc]);
+							callback(r);
+						},
+						error: function (r) {
+							callback(r);
+						},
+						btn: btn,
+						freeze_message: freeze_message,
+					});
+				})
+				.catch(function (err) {
+					$(btn).prop("disabled", false);
+					frappe.msgprint({
+						message: __("Cannot save document because some fields are invalid."),
+						indicator: "red",
+					});
+				});
 		} else {
 			!frm.is_dirty() &&
 				frappe.show_alert({ message: __("No changes in document"), indicator: "orange" });

@@ -398,7 +398,7 @@ def is_document_amended(doctype: str, docname: str):
 
 
 @frappe.whitelist()
-def validate_link(doctype: str, docname: str, fields=None):
+def validate_link(doctype: str, docname: str, fields=None, filters=None, query=None, reference_doctype=None, ignore_user_permissions=False):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
 
@@ -432,6 +432,43 @@ def validate_link(doctype: str, docname: str, fields=None):
 		return values
 
 	values.name = frappe.db.get_value(doctype, docname, cache=True)
+
+	if values.name and (filters or query or reference_doctype is not None):
+		try:
+			if isinstance(filters, str):
+				filters = frappe.parse_json(filters)
+		except Exception:
+			filters = None
+
+		try:
+			ignore_perms = bool(int(ignore_user_permissions)) if isinstance(ignore_user_permissions, (str, int)) else bool(ignore_user_permissions)
+		except Exception:
+			ignore_perms = False
+
+		matches = None
+		if query:
+			matches = frappe.db.exists(doctype, docname)
+		else:
+			try:
+				args = dict(doctype=doctype, filters={"name": docname}, fields=["name"], limit_start=0, limit_page_length=1, as_dict=True)
+				if filters:
+					args["filters"] = frappe.get_safe_filters(filters)
+				if reference_doctype:
+					args["reference_doctype"] = reference_doctype
+				args["ignore_permissions"] = ignore_perms
+				res = frappe.get_list(**args)
+				matches = bool(res)
+			except Exception:
+				matches = False
+
+		if not matches:
+			frappe.clear_last_message()
+			frappe.msgprint(
+				_(
+					"Document {0} {1} does not match allowed filters or you do not have permission to access it"
+				).format(frappe.bold(doctype), frappe.bold(docname)),
+			)
+			return frappe._dict()
 
 	fields = frappe.parse_json(fields)
 	if not values.name:
