@@ -304,8 +304,7 @@ class DatabaseQuery:
 		if self.distinct:
 			args.fields = "distinct " + args.fields
 			if frappe.db.db_type == "postgres":
-				# PostgreSQL requires ORDER BY expressions to appear in SELECT list when using DISTINCT
-				args.order_by = ""
+				raise NotImplementedError("DISTINCT queries with ORDER BY are not supported on PostgreSQL")
 
 		# Postgres requires any field that appears in the select clause to also
 		# appear in the order by and group by clause
