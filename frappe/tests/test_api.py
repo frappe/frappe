@@ -142,6 +142,7 @@ class TestResourceAPI(FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.GENERATED_DOCUMENTS = []
 		for _ in range(20):
 			doc = frappe.get_doc(
 				{
@@ -150,7 +151,6 @@ class TestResourceAPI(FrappeAPITestCase):
 					"allocated_to": "test@example.com",
 				}
 			).insert()
-			cls.GENERATED_DOCUMENTS = []
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
 
