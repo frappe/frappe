@@ -43,18 +43,18 @@
 			</div>
 
 			<section class="mt-5 w-full">
-				<div v-if="!appList.length && !searchFilter" class="col-span-full">
+				<div v-if="!studioApps.data?.length && !searchFilter" class="col-span-full">
 					<p class="mt-4 text-base text-gray-500">
 						You don't have any apps yet. Click on the "+ New App" button to create a new app
 					</p>
 				</div>
-				<div v-else-if="!appList.length" class="col-span-full">
+				<div v-else-if="!studioApps.data?.length" class="col-span-full">
 					<p class="mt-4 text-base text-gray-500">No matching apps found</p>
 				</div>
 				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
 					<router-link
 						class="flex flex-col justify-center gap-1 rounded-lg border-2 p-4"
-						v-for="app in appList"
+						v-for="app in studioApps.data"
 						:to="{ name: 'StudioApp', params: { appID: app.name } }"
 						:key="app.name"
 					>
@@ -155,15 +155,16 @@ const router = useRouter()
 const store = useStudioStore()
 
 const searchFilter = ref("")
-const appList = ref<StudioApp[]>([])
 
 const fetchApps = () => {
-	appList.value = studioApps.data
+	const filters = {} as any
 	if (searchFilter.value) {
-		appList.value = studioApps.data?.filter((app: StudioApp) =>
-			app.app_title.toLowerCase().includes(searchFilter.value?.toLowerCase()),
-		)
+		filters["app_title"] = ["like", `%${searchFilter.value}%`]
 	}
+	studioApps.update({
+		filters,
+	})
+	studioApps.fetch()
 }
 
 watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
