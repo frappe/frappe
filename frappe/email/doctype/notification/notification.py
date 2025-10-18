@@ -415,11 +415,13 @@ def get_context(context):
 		try:
 			if self.channel == "Email":
 				self.send_an_email(doc, context)
+				if self.send_system_notification:
+					self.create_system_notification(doc, context)
 			elif self.channel == "Slack":
 				self.send_a_slack_msg(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
-			elif self.channel == "System Notification" or self.send_system_notification:
+			elif self.channel == "System Notification":
 				self.create_system_notification(doc, context)
 		except Exception:
 			self.log_error("Failed to send Notification")

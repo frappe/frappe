@@ -457,7 +457,7 @@ class TestNotification(IntegrationTestCase):
 			frappe.db.delete("Notification Log", {"subject": n.subject})
 
 			user = frappe.get_doc("User", "test@example.com")
-			user.birth_date = frappe.utils.add_days(user.birth_date, 1).date()
+			user.birth_date = frappe.utils.add_days(user.birth_date, 1)
 			user.save()
 
 			user.reload()
