@@ -39,6 +39,7 @@ class SystemSettings(Document):
 			"yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
 		]
 		default_app: DF.Literal[None]
+		delete_background_exported_reports_after: DF.Int
 		deny_multiple_sessions: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
@@ -73,6 +74,7 @@ class SystemSettings(Document):
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
 		max_report_rows: DF.Int
+		max_signups_allowed_per_hour: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
@@ -95,6 +97,7 @@ class SystemSettings(Document):
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
+		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -119,16 +122,19 @@ class SystemSettings(Document):
 			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
 				frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
 
-		if self.enable_two_factor_auth:
-			if self.two_factor_method == "SMS":
-				if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
-					frappe.throw(
-						_("Please setup SMS before setting it as an authentication method, via SMS Settings")
-					)
-			toggle_two_factor_auth(True, roles=["All"])
-		else:
-			self.bypass_2fa_for_retricted_ip_users = 0
-			self.bypass_restrict_ip_check_if_2fa_enabled = 0
+		if self.has_value_changed("enable_two_factor_auth"):
+			if self.enable_two_factor_auth:
+				if self.two_factor_method == "SMS":
+					if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
+						frappe.throw(
+							_(
+								"Please setup SMS before setting it as an authentication method, via SMS Settings"
+							)
+						)
+				toggle_two_factor_auth(True, roles=["All"])
+			else:
+				self.bypass_2fa_for_retricted_ip_users = 0
+				self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
@@ -156,9 +162,8 @@ class SystemSettings(Document):
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
-		login_with_email_link_enabled = frappe.db.get_single_value("System Settings", "login_with_email_link")
 
-		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
+		if not (social_login_enabled or ldap_enabled or self.login_with_email_link):
 			frappe.throw(
 				_(
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."

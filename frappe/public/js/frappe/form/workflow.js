@@ -102,30 +102,50 @@ frappe.ui.form.States = class FormStates {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function () {
-						// set the workflow_action for use in form scripts
-						frappe.dom.freeze();
-						me.frm.selected_workflow_action = d.action;
-						me.frm.script_manager.trigger("before_workflow_action").then(() => {
-							frappe
-								.xcall("frappe.model.workflow.apply_workflow", {
-									doc: me.frm.doc,
-									action: d.action,
-								})
-								.then((doc) => {
-									frappe.model.sync(doc);
-									me.frm.refresh();
-									me.frm.selected_workflow_action = null;
-									me.frm.script_manager.trigger("after_workflow_action");
-								})
-								.finally(() => {
-									frappe.dom.unfreeze();
-								});
-						});
+						frappe.db
+							.get_value(
+								"Workflow",
+								{ document_type: me.frm.doctype },
+								"enable_action_confirmation"
+							)
+							.then((r) => {
+								if (r.message.enable_action_confirmation) {
+									frappe.confirm(
+										__("Are you sure you want to {0}?", [d.action]),
+										() => me.handle_workflow_action(d)
+									);
+								} else {
+									me.handle_workflow_action(d);
+								}
+							});
 					});
 				}
 			});
 
 			this.setup_btn(added);
+		});
+	}
+
+	handle_workflow_action(transition) {
+		var me = this;
+		// set the workflow_action for use in form scripts
+		frappe.dom.freeze();
+		me.frm.selected_workflow_action = transition.action;
+		me.frm.script_manager.trigger("before_workflow_action").then(() => {
+			frappe
+				.xcall("frappe.model.workflow.apply_workflow", {
+					doc: me.frm.doc,
+					action: transition.action,
+				})
+				.then((doc) => {
+					frappe.model.sync(doc);
+					me.frm.refresh();
+					me.frm.selected_workflow_action = null;
+					me.frm.script_manager.trigger("after_workflow_action");
+				})
+				.finally(() => {
+					frappe.dom.unfreeze();
+				});
 		});
 	}
 

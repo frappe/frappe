@@ -295,7 +295,7 @@
    "description": "Do not create new user if user with email does not exist in the system",
    "fieldname": "do_not_create_new_user",
    "fieldtype": "Check",
-   "label": "Do Not Create New User "
+   "label": "Do Not Create New User"
   }
  ],
  "in_create": 1,

@@ -592,7 +592,7 @@ def get_redis_conn(username=None, password=None):
 			return RedisQueue.get_connection(**cred)
 	except redis.exceptions.AuthenticationError:
 		log(
-			f'Wrong credentials used for {cred.username or "default user"}. '
+			f"Wrong credentials used for {cred.username or 'default user'}. "
 			"You can reset credentials using `bench create-rq-users` CLI and restart the server",
 			colour="red",
 		)

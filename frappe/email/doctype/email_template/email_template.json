@@ -51,7 +51,7 @@
    "depends_on": "eval:doc.use_html",
    "fieldname": "response_html",
    "fieldtype": "Code",
-   "label": "Response ",
+   "label": "Response",
    "options": "Jinja"
   }
  ],

@@ -199,10 +199,11 @@ def run(
 	is_tree=False,
 	parent_field=None,
 	are_default_filters=True,
+	js_filters=None,
 ):
 	if not user:
 		user = frappe.session.user
-	validate_filters_permissions(report_name, filters, user)
+	validate_filters_permissions(report_name, filters, user, js_filters)
 	report = get_report_doc(report_name)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
@@ -313,7 +314,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
-	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+	from frappe.desk.utils import pop_csv_params
 
 	form_params = frappe._dict(frappe.local.form_dict)
 	csv_params = pop_csv_params(form_params)
@@ -325,6 +326,42 @@ def export_query():
 		raise_exception=True,
 	)
 
+	export_in_background = int(form_params.export_in_background or 0)
+	if export_in_background:
+		user = frappe.session.user
+		user_email = frappe.get_cached_value("User", user, "email")
+		frappe.enqueue(
+			"frappe.desk.query_report.run_export_query_job",
+			user_email=user_email,
+			form_params=form_params,
+			csv_params=csv_params,
+			queue="long",
+			now=frappe.flags.in_test,
+		)
+		frappe.msgprint(
+			_(
+				"Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
+			).format(user_email)
+		)
+		return
+
+	return _export_query(form_params, csv_params)
+
+
+def run_export_query_job(user_email: str, form_params, csv_params):
+	from frappe.desk.utils import send_report_email
+
+	report_name, file_extension, content = _export_query(form_params, csv_params, populate_response=False)
+	send_report_email(
+		user_email, report_name, file_extension, content, attached_to_name=form_params.report_name
+	)
+
+
+def _export_query(form_params, csv_params, populate_response=True):
+	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
+
+	report_name = form_params.report_name
 	file_format_type = form_params.file_format_type
 	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
@@ -356,16 +393,12 @@ def export_query():
 	)
 
 	if file_format_type == "CSV":
-		from frappe.utils.xlsxutils import handle_html
-
 		content = get_csv_bytes(
 			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
 			csv_params,
 		)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
-		from frappe.utils.xlsxutils import make_xlsx
-
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
 
@@ -380,7 +413,10 @@ def export_query():
 			if valid_report_name(report_name, suffix):
 				report_name += suffix
 
-	provide_binary_file(report_name, file_extension, content)
+	if not populate_response:
+		return report_name, file_extension, content
+
+	provide_binary_file(_(report_name), file_extension, content)
 
 
 def valid_report_name(report_name, suffix):
@@ -638,8 +674,19 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	shared = frappe.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
-	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
+	ref_doctype_meta = frappe.get_meta(ref_doctype)
+
+	role_permissions = get_role_permissions(ref_doctype_meta, user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
+
+	if ref_doctype_meta.get_masked_fields():
+		from frappe.model.db_query import mask_field_value
+
+		# Apply masking to the fields
+		for field in ref_doctype_meta.get_masked_fields():
+			for row in data:
+				val = row.get(field.fieldname)
+				row[field.fieldname] = mask_field_value(field, val)
 
 	if match_filters_per_doctype:
 		for row in data:
@@ -858,25 +905,34 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def validate_filters_permissions(report_name, filters=None, user=None):
+def validate_filters_permissions(report_name, filters=None, user=None, js_filters=None):
 	if not filters:
 		return
+
+	if js_filters is None:
+		js_filters = []
+
+	if isinstance(js_filters, str):
+		js_filters = json.loads(js_filters)
 
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
 	report = frappe.get_doc("Report", report_name)
-	for field in report.filters:
-		if field.fieldname in filters and field.fieldtype == "Link":
-			linked_doctype = field.options
+
+	for field in report.filters + js_filters:
+		if hasattr(field, "as_dict"):
+			field = field.as_dict()
+		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
+			linked_doctype = field.get("options")
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.fieldname], user=user
+				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
 			) and not has_permission(
-				doctype=linked_doctype, ptype="select", doc=filters[field.fieldname], user=user
+				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
 			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
-						linked_doctype, filters[field.fieldname]
+						linked_doctype, filters[field.get("fieldname")]
 					)
 				)
 

@@ -72,7 +72,7 @@ def approve(*args, **kwargs):
 			frappe.flags.oauth_credentials,
 		) = get_oauth_server().validate_authorization_request(r.url, r.method, r.get_data(), r.headers)
 
-		headers, body, status = get_oauth_server().create_authorization_response(
+		headers, _body, _status = get_oauth_server().create_authorization_response(
 			uri=frappe.flags.oauth_credentials["redirect_uri"],
 			body=r.get_data(),
 			headers=r.headers,
@@ -144,7 +144,7 @@ def authorize(**kwargs):
 def get_token(*args, **kwargs):
 	try:
 		r = frappe.request
-		headers, body, status = get_oauth_server().create_token_response(
+		_headers, body, _status = get_oauth_server().create_token_response(
 			r.url, r.method, r.form, r.headers, frappe.flags.oauth_credentials
 		)
 		body = frappe._dict(json.loads(body))
@@ -165,7 +165,7 @@ def get_token(*args, **kwargs):
 def revoke_token(*args, **kwargs):
 	try:
 		r = frappe.request
-		headers, body, status = get_oauth_server().create_revocation_response(
+		_headers, _body, status = get_oauth_server().create_revocation_response(
 			r.url,
 			headers=r.headers,
 			body=r.form,
@@ -184,7 +184,7 @@ def revoke_token(*args, **kwargs):
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request
-		headers, body, status = get_oauth_server().create_userinfo_response(
+		_headers, body, _status = get_oauth_server().create_userinfo_response(
 			r.url,
 			headers=r.headers,
 			body=r.form,

@@ -110,22 +110,28 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	update_datepicker_position() {
 		if (!this.frm) return;
 		// show datepicker above or below the input
-		// based on scroll position
-		// We have to bodge around the timepicker getting its position
-		// wrong by 42px when opening upwards.
-		const $header = $(".page-head");
-		const header_bottom = $header.position().top + $header.outerHeight();
-		const picker_height = this.datepicker.$datepicker.outerHeight() + 12;
-		const picker_top = this.$input.offset().top - $(window).scrollTop() - picker_height;
 
-		var position = "top left";
-		// 12 is the default datepicker.opts[offset]
-		if (picker_top <= header_bottom) {
+		const $input = this.$input;
+		const $datepicker = this.datepicker.$datepicker;
+
+		const input_offset = $input.offset().top;
+		const input_height = $input.outerHeight();
+		const window_height = $(window).height();
+		const scroll_top = $(window).scrollTop();
+
+		const picker_height = $datepicker.outerHeight() + 12; // Add default offset
+
+		const space_below = window_height - (input_offset - scroll_top + input_height);
+		const space_above = input_offset - scroll_top;
+
+		let position = "bottom left";
+
+		if (space_below < picker_height && space_above > picker_height) {
+			position = "top left";
+			if (this.timepicker_only) this.datepicker.opts["offset"] = -30;
+		} else {
 			position = "bottom left";
 			if (this.timepicker_only) this.datepicker.opts["offset"] = 12;
-		} else {
-			// To account for 42px incorrect positioning
-			if (this.timepicker_only) this.datepicker.opts["offset"] = -30;
 		}
 
 		this.datepicker.update("position", position);

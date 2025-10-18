@@ -1610,6 +1610,19 @@ class TestQuery(IntegrationTestCase):
 			frappe.qb.get_query("User", fields=[{"DROP": "TABLE users"}]).get_sql()
 		self.assertIn("Unsupported function or invalid field name: DROP", str(cm.exception))
 
+	def test_not_equal_condition_on_none(self):
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				["*"],
+				[
+					["DocField", "name", "=", None],
+					["DocType", "parent", "!=", None],
+				],
+			).get_sql(),
+			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` IS NULL AND `tabDocType`.`parent` IS NOT NULL",
+		)
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):

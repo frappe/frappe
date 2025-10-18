@@ -6,6 +6,7 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
+  "is_disabled",
   "page_title",
   "company_introduction",
   "sb0",
@@ -75,6 +76,12 @@
    "fieldname": "team_members_subtitle",
    "fieldtype": "Small Text",
    "label": "Team Members Subtitle"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "icon": "fa fa-group",
@@ -82,7 +89,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-23 16:01:26.370657",
+ "modified": "2025-08-22 15:56:33.957707",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "About Us Settings",
@@ -98,6 +105,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

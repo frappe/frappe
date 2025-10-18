@@ -39,6 +39,9 @@ frappe.views.pageview = {
 					}
 					callback();
 				},
+				error: function () {
+					frappe.search.utils.results_to_hide.push(name);
+				},
 				freeze: true,
 			});
 		}

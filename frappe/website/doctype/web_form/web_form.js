@@ -118,6 +118,9 @@ frappe.ui.form.on("Web Form", {
 							read_only: df.read_only,
 							precision: df.precision,
 							depends_on: df.depends_on,
+							placeholder: df.placeholder,
+							max_length: df.length,
+							description: df.description,
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,
 						});
@@ -301,6 +304,7 @@ frappe.ui.form.on("Web Form List Column", {
 		if (!df) return;
 		doc.fieldtype = df.fieldtype;
 		doc.label = df.label;
+		doc.options = df.options;
 		frm.refresh_field("list_columns");
 	},
 });
@@ -336,7 +340,10 @@ frappe.ui.form.on("Web Form Field", {
 		doc.default = df.default;
 		doc.read_only = df.read_only;
 		doc.depends_on = df.depends_on;
+		doc.placeholder = df.placeholder;
+		doc.description = df.description;
 		doc.mandatory_depends_on = df.mandatory_depends_on;
+		doc.max_length = df.length;
 		doc.read_only_depends_on = df.read_only_depends_on;
 
 		frm.refresh_field("web_form_fields");

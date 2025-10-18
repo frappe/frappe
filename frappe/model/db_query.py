@@ -8,7 +8,11 @@ import json
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from functools import cached_property
+from functools import cached_property, lru_cache
+
+import sqlparse
+from sqlparse import tokens
+from sqlparse.sql import Function, Parenthesis, Statement
 
 import frappe
 import frappe.defaults
@@ -32,6 +36,22 @@ from frappe.utils import (
 	get_timespan_date_range,
 )
 from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+
+
+@lru_cache(maxsize=128)
+def _parse_sql(field: str) -> Statement | None:
+	"""
+	Parse a given SQL statement using `sqlparse`.
+
+	Args:
+		field (str): The SQL statement string to parse.
+
+	Returns:
+		Statement | None: A `sqlparse.sql.Statement` object if parsing succeeds, otherwise `None`.
+	"""
+	if parsed := sqlparse.parse(field):
+		return parsed[0]
+
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", flags=re.IGNORECASE)
@@ -219,7 +239,56 @@ class DatabaseQuery:
 		if pluck:
 			return [d[pluck] for d in result]
 
+		if self.doctype and result:
+			result = self.mask_fields(result)
+
 		return result
+
+	def mask_fields(self, result):
+		"""Mask fields in the result based on the doctype's masked fields"""
+		masked_fields = self.get_masked_fields()
+
+		if not masked_fields:
+			return result
+
+		if self.as_list:
+			masked_result = []
+			field_index_map = {}
+			for idx, field in enumerate(self.fields):
+				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
+				if " as " in field.lower():
+					alias = field.split(" as ")[1].strip(" '")
+					field_index_map[alias] = idx
+				else:
+					# extract last part after `.`
+					col = field.split(".")[-1].strip("`")
+					field_index_map[col] = idx
+			# if as_list then we don't have field names in the result so we need to mask by position
+			for row in result:
+				row = list(row)  # convert tuple to list mutable
+				for field in masked_fields:
+					if field.fieldname in field_index_map:
+						idx = field_index_map[field.fieldname]
+						val = row[idx]
+						row[idx] = mask_field_value(field, val)
+
+				masked_result.append(tuple(row))  # convert back to tuple
+			result = masked_result
+		else:
+			for row in result:
+				for field in masked_fields:
+					if field.fieldname in row:
+						val = row[field.fieldname]
+						row[field.fieldname] = mask_field_value(field, val)
+
+		return result
+
+	def get_masked_fields(self):
+		"""Get masked fields for the doctype"""
+
+		meta = self.get_meta(self.doctype)
+
+		return meta.get_masked_fields()
 
 	def build_and_run(self):
 		args = self.prepare_args()
@@ -394,8 +463,6 @@ from {tables}
 			"concat",
 			"concat_ws",
 			"if",
-			"ifnull",
-			"nullif",
 			"coalesce",
 			"connection_id",
 			"current_user",
@@ -406,7 +473,48 @@ from {tables}
 			"user",
 			"version",
 			"global",
+			"sleep",
 		]
+
+		def _find_subqueries(parsed: Statement) -> list:
+			"""
+			Recursively find all subqueries in a parsed SQL statement.
+			"""
+			subqueries = []
+
+			for token in parsed.tokens:
+				if isinstance(token, Parenthesis):
+					# Check for DML token for subquery check
+					is_subquery = False
+					for sub_token in token.tokens:
+						if sub_token.ttype is tokens.DML:
+							is_subquery = True
+							break
+					if is_subquery:
+						subqueries.append(token)
+					# Recursively check for nested subqueries
+					subqueries.extend(_find_subqueries(token))
+				elif token.is_group:
+					subqueries.extend(_find_subqueries(token))
+
+			return subqueries
+
+		def _check_sql_token(statement: Statement) -> None:
+			"""
+			Checks the output of `sqlparse.parse()` to detect blocked functions and subqueries.
+			"""
+			if _find_subqueries(statement):
+				_raise_exception()
+
+			for token in statement.tokens:
+				if isinstance(token, Function):
+					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
+						_raise_exception()
+				if token.ttype == tokens.Keyword:
+					if token.value.lower() in blacklisted_keywords:
+						_raise_exception()
+				if token.is_group:
+					_check_sql_token(token)
 
 		def _raise_exception():
 			frappe.throw(_("Use of sub-query or function is restricted"), frappe.DataError)
@@ -422,18 +530,8 @@ from {tables}
 			lower_field = field.lower().strip()
 
 			if SUB_QUERY_PATTERN.match(field):
-				# Check for subquery anywhere in the field, not just at the beginning
-				if "(" in lower_field:
-					location = lower_field.index("(")
-					subquery_token = lower_field[location + 1 :].lstrip().split(" ", 1)[0]
-					if any(keyword in subquery_token for keyword in blacklisted_keywords):
-						_raise_exception()
-
-				function = lower_field.split("(", 1)[0].rstrip()
-				if function in blacklisted_functions:
-					frappe.throw(
-						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
-					)
+				# Check all tokens for subquery detection
+				_check_sql_token(_parse_sql(field))
 
 				if "@" in lower_field:
 					# prevent access to global variables
@@ -621,6 +719,7 @@ from {tables}
 				ignore_virtual=True,
 			)
 		)
+
 		permitted_child_table_fields = {}
 
 		# Create a copy of the fields list and reverse it to avoid index issues when removing fields
@@ -1125,7 +1224,12 @@ from {tables}
 			r"select\b.*\bfrom",
 		}
 
-		if any(re.search("\b" + pattern + "\b", _lower) for pattern in subquery_indicators):
+		# Replace doctype names with a hardcoded string "doc"
+		# This is to avoid false positives based on doctype name
+		sanitized = re.sub(r"`tab[^`]*`", " doc ", _lower)
+
+		# Run the subquery checks against the sanitized string
+		if any(re.search(r"\b" + pattern + r"\b", sanitized) for pattern in subquery_indicators):
 			frappe.throw(_("Cannot use sub-query here."))
 
 		blacklisted_sql_functions = {
@@ -1138,6 +1242,10 @@ from {tables}
 			"version",
 			"substr",
 			"substring",
+			"updatexml",
+			"load_file",
+			"session_user",
+			"system_user",
 		}
 
 		for field in parameters.split(","):
@@ -1187,6 +1295,26 @@ from {tables}
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
+
+
+def mask_field_value(field, val):
+	if not val:
+		return val
+
+	if field.fieldtype == "Data" and field.options == "Phone":
+		if len(val) > 3:
+			return val[:3] + "XXXXXX"
+		else:
+			return "X" * len(val)
+	elif field.fieldtype == "Data" and field.options == "Email":
+		email = val.split("@")
+		return "XXXXXX@" + email[1] if len(email) > 1 else "XXXXXX"
+	elif field.fieldtype == "Date":
+		return "XX-XX-XXXX"
+	elif field.fieldtype == "Time":
+		return "XX:XX"
+	else:
+		return "XXXXXXXX"
 
 
 def cast_name(column: str) -> str:

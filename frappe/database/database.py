@@ -1192,12 +1192,14 @@ class Database:
 			self.sql("commit")
 			self.begin()
 
+		self.value_cache.clear()
 		self.after_commit.run()
 
 	def rollback(self, *, save_point=None, chain=False):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self.value_cache.clear()
 		elif not self._disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
@@ -1206,10 +1208,12 @@ class Database:
 
 			if chain:
 				self.sql("rollback and chain")
+				self.value_cache.clear()
 			else:
 				self.sql("rollback")
 				self.begin()
 
+			self.value_cache.clear()
 			self.after_rollback.run()
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)

@@ -309,21 +309,22 @@ def make_boilerplate(
 		base_class_import = "from frappe.utils.nestedset import NestedSet"
 
 	if doc.get("is_virtual"):
-		controller_body = indent(
-			dedent(
-				"""
+		controller_body = """
 			def db_insert(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def load_from_db(self):
+			def load_from_db(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def db_update(self):
+			def db_update(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def delete(self):
+			def delete(self, *args, **kwargs):
 				raise NotImplementedError
+		"""
 
+		if not doc.get("istable"):
+			controller_body += """
 			@staticmethod
 			def get_list(filters=None, page_length=20, **kwargs):
 				pass
@@ -336,9 +337,8 @@ def make_boilerplate(
 			def get_stats(**kwargs):
 				pass
 			"""
-			),
-			"\t",
-		)
+
+		controller_body = indent(dedent(controller_body), "\t")
 
 	with open(target_file_path, "w") as target, open(template_file_path) as source:
 		template = source.read()

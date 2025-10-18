@@ -321,7 +321,10 @@ def set_authenticate_headers(response: Response):
 def make_form_dict(request: Request):
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
-		args = orjson.loads(request_data)
+		try:
+			args = orjson.loads(request_data)
+		except orjson.JSONDecodeError:
+			frappe.throw(_("Invalid request body"), frappe.DataError)
 	else:
 		args = {}
 		args.update(request.args or {})

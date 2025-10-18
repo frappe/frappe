@@ -259,12 +259,28 @@ frappe.ui.form.PrintView = class {
 			print_format.name &&
 			(print_format.print_format_builder || print_format.print_format_builder_beta) &&
 			print_format.standard === "No";
-		let is_standard_but_editable = print_format.name && print_format.custom_format;
 
-		if (is_standard_but_editable) {
+		let is_standard_jinja_custom =
+			print_format.standard === "Yes" &&
+			print_format.custom_format &&
+			print_format.print_format_type === "Jinja";
+
+		if (is_standard_jinja_custom) {
+			let doc = frappe.get_doc("Print Format", print_format.name);
+			frappe.model.with_doctype("Print Format", () => {
+				let newdoc = frappe.model.copy_doc(doc);
+				frappe.set_route("Form", "Print Format", newdoc.name);
+			});
+			return;
+		}
+
+		let is_editable = print_format.name && print_format.custom_format;
+
+		if (is_editable) {
 			frappe.set_route("Form", "Print Format", print_format.name);
 			return;
 		}
+
 		if (is_custom_format) {
 			if (print_format.print_format_builder_beta) {
 				frappe.set_route("print-format-builder-beta", print_format.name);
@@ -361,6 +377,14 @@ frappe.ui.form.PrintView = class {
 	setup_keyboard_shortcuts() {
 		this.wrapper.find(".print-toolbar a.btn-default").each((i, el) => {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
+		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "shift+r",
+			action: (e) => {
+				this.refresh_print_format();
+			},
+			description: __("Refresh Print Preview"),
 		});
 	}
 
@@ -480,6 +504,25 @@ frappe.ui.form.PrintView = class {
 
 		setTimeout(() => {
 			$print_format.height(this.$print_format_body.find(".print-format").outerHeight());
+
+			// Add keyboard shortcut to refresh the print preview inside the iframe,
+			// since Frappe's default shortcuts don't work within iframes.
+
+			const iframe = this.print_wrapper.find("iframe.print-format-container")[0];
+			const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+			// Add a flag on the iframe document to avoid duplicate listeners
+			if (!iframeDoc._refreshShortcutAttached) {
+				iframeDoc.addEventListener("keydown", (e) => {
+					if (e.shiftKey && e.key.toLowerCase() === "r") {
+						e.preventDefault();
+						this.refresh_print_format();
+					}
+				});
+
+				// Set the flag so this block won't run again
+				iframeDoc._refreshShortcutAttached = true;
+			}
 		}, 500);
 	}
 
@@ -653,11 +696,15 @@ frappe.ui.form.PrintView = class {
 			}
 		} else {
 			this.is_wkhtmltopdf_valid();
-			this.render_page("/api/method/frappe.utils.print_format.download_pdf?");
+			this.render_page(
+				"/api/method/frappe.utils.print_format.download_pdf?",
+				false,
+				print_format?.pdf_generator
+			);
 		}
 	}
 
-	render_page(method, printit = false) {
+	render_page(method, printit = false, pdf_generator = "wkhtmltopdf") {
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +
@@ -674,7 +721,9 @@ frappe.ui.form.PrintView = class {
 					encodeURIComponent(this.get_letterhead()) +
 					"&settings=" +
 					encodeURIComponent(JSON.stringify(this.additional_settings)) +
-					(this.lang_code ? "&_lang=" + this.lang_code : "")
+					(this.lang_code ? "&_lang=" + this.lang_code : "") +
+					"&pdf_generator=" +
+					encodeURIComponent(pdf_generator)
 			)
 		);
 		if (!w) {

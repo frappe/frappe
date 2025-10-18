@@ -34,6 +34,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.count_upper_bound = 1001;
 		this._element_factory = new ElementFactory(this.doctype);
 		this.column_max_widths = {};
+		this.max_number_of_avatars = 3;
+		this.max_number_of_fields = 50;
 	}
 
 	has_permissions() {
@@ -330,7 +332,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.list_view_settings = list_view_settings;
 
 		this.setup_columns();
-		this.refresh(true);
+		this.refresh();
 	}
 
 	refresh(refresh_header = false) {
@@ -430,7 +432,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			total_fields = 10;
 		}
 
-		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
+		this.columns = this.columns.slice(0, this.max_number_of_fields);
 
 		// 2nd column: tag - normally hidden doesn't count towards total_fields
 		this.columns.splice(1, 0, {
@@ -480,7 +482,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_documentation_link() {
 		if (this.meta.documentation) {
-			return `<a href="${this.meta.documentation}" target="blank" class="meta-description small text-muted">Need Help?</a>`;
+			return `<a href="${
+				this.meta.documentation
+			}" target="blank" class="meta-description small text-muted">${__("Need Help?")}</a>`;
 		}
 		return "";
 	}
@@ -633,32 +637,36 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		this.parent.page.main.parent().addClass("list-view");
-		if (this.list_view_settings?.disable_scrolling && !frappe.is_mobile()) {
-			this.parent.page.main.parent().addClass("disable-scrolling");
-		}
 		this.render_header();
 
 		let has_assignto = false;
 
+		let assign_to_count = 0;
+		let assign_to_length = 0;
 		if (this.data.length > 0) {
 			// append rows
 			let idx = 0;
 			for (let doc of this.data) {
 				doc._idx = idx++;
 				this.$result.append(this.get_list_row_html(doc));
-				if (!has_assignto && doc._assign) {
-					has_assignto = true;
+				if (doc._assign) {
+					assign_to_length = JSON.parse(doc._assign)?.length;
+
+					assign_to_count = Math.max(
+						assign_to_count,
+						assign_to_length > this.max_number_of_avatars
+							? this.max_number_of_avatars
+							: assign_to_length
+					);
+
+					if (!has_assignto) {
+						has_assignto = true;
+					}
 				}
 			}
 		}
 		this.apply_column_widths();
-
-		// add class to result to indetify that it has assignto
-		if (has_assignto) {
-			this.$result.addClass("has-assign-to");
-		} else {
-			this.$result.addClass("no-assign-to");
-		}
+		this.update_listview_classes(has_assignto, assign_to_count);
 	}
 
 	render_count() {
@@ -796,11 +804,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
-				left_html += `<div class="mobile-layout">${this.get_column_html(
-					col,
-					doc,
-					true
-				)}</div>`;
+				left_html += `<div class="mobile-layout ${
+					i == 3 ? "mobile-layout-seperator" : ""
+				}">${this.get_column_html(col, doc, true)}</div>`;
 			} else {
 				left_html += this.get_column_html(col, doc, false);
 			}
@@ -916,6 +922,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				_value = _value * out_of_ratings;
 			}
 
+			let masked_fields = frappe.get_meta(this.doctype).masked_fields || [];
+			let is_masked = masked_fields.includes(df.fieldname);
+
+			let filterable = is_masked ? "no-underline" : " filterable";
+
 			if (df.fieldtype === "Image") {
 				html = df.options
 					? `<img src="${doc[df.options]}"
@@ -924,22 +935,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="${filterable} indicator-pill ${frappe.utils.guess_colour(
 					_value
 				)} ellipsis"
 					data-filter="${fieldname},=,${value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
 			} else if (df.fieldtype === "Link") {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">${_value}</a>`;
+				html = `<a class="${filterable} ellipsis "
+					data-filter="${fieldname},=,${value}">
+					${_value}
+				</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">${format()}</a>`;
+				html = `<a class="${filterable} ellipsis"
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
+					${format()}
+				</a>`;
 			}
 
 			return `<span class="ellipsis"
@@ -1018,6 +1033,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	update_listview_classes(has_assignto, assign_to_count) {
+		// add class to result to indetify that it has assignto
+		if (has_assignto) {
+			this.$result.addClass(["has-assign-to", `assign-to-length-${assign_to_count}`]);
+			this.$result.removeClass("no-assign-to");
+		} else {
+			this.$result.removeClass("has-assign-to");
+			this.$result.addClass("no-assign-to");
+		}
+
+		// disable scrolling
+		if (this.list_view_settings?.disable_scrolling && !frappe.is_mobile()) {
+			this.parent.page.main.parent().addClass("disable-scrolling");
+		}
+
+		// if no scroll then remove borders
+		let list_row = this.$result.find(".list-row-container .list-row").first();
+		let result_container_width = this.$result.width();
+		let left_width = list_row.find(".level-left").width();
+		let right_width = list_row.find(".level-right").width();
+
+		if (result_container_width - right_width > left_width) {
+			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
+		}
+	}
+
 	get_tags_html(user_tags, limit, colored = false) {
 		let get_tag_html = (tag) => {
 			let color = "",
@@ -1048,7 +1089,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
-					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
+					${
+						frappe.avatar_group(assigned_users, this.max_number_of_avatars - 1, {
+							filterable: true,
+						})[0].outerHTML
+					}
 				</div>`;
 		}
 
@@ -1708,12 +1753,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// in the listview according to filters applied
 				// let's remove it manually
 				this.data = this.data.filter((d) => !names.includes(d.name));
-				for (let name of names) {
-					this.$result
-						.find(`.list-row-checkbox[data-name='${name.replace(/'/g, "\\'")}']`)
-						.closest(".list-row-container")
-						.remove();
-				}
+				this.remove_list_items(names);
 				return;
 			}
 
@@ -1766,6 +1806,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return true;
 		}
 		return false;
+	}
+
+	remove_list_items(names) {
+		for (let name of names) {
+			this.$result
+				.find(`.list-row-checkbox[data-name='${name.replace(/'/g, "\\'")}']`)
+				.closest(".list-row-container")
+				.remove();
+		}
 	}
 
 	set_rows_as_checked() {
@@ -2302,7 +2351,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 
 			let value_array;
-			if ($.isArray(value) && value[0].startsWith("[") && value[0].endsWith("]")) {
+			if (
+				Array.isArray(value) &&
+				!Array.isArray(value[0]) &&
+				value[0].startsWith("[") &&
+				value[0].endsWith("]")
+			) {
 				value_array = [];
 				for (var i = 0; i < value.length; i++) {
 					value_array.push(JSON.parse(value[i]));
@@ -2329,13 +2383,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (doctype) {
 				if (value_array) {
 					for (var j = 0; j < value_array.length; j++) {
-						if ($.isArray(value_array[j])) {
+						if (Array.isArray(value_array[j])) {
 							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
 						} else {
 							filters.push([doctype, field, "=", value_array[j]]);
 						}
 					}
-				} else if ($.isArray(value)) {
+				} else if (Array.isArray(value) && Array.isArray(value[0])) {
+					value.forEach((val) => {
+						filters.push([doctype, field, val[0], val[1]]);
+					});
+				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);

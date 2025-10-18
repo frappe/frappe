@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any
 
 import orjson
 import RestrictedPython.Guards
-from AccessControl.ZopeGuards import protected_inplacevar
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
 
@@ -33,6 +32,7 @@ from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.utils.caching import site_cache
+from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.number_format import NumberFormat
 from frappe.utils.response import json_handler
 from frappe.website.utils import get_next_link, get_toc
@@ -97,7 +97,7 @@ def safe_exec(
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
 		docs_cta = _("Read the documentation to know more")
-		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script' target='_blank' rel='noopener noreferrer'>{docs_cta}</a>"
 		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals

@@ -827,6 +827,45 @@ class TestDocType(IntegrationTestCase):
 		self.assertEqual(get_format(compressed_dt), "COMPRESSED")
 		self.assertEqual(get_format(dynamic_dt), "DYNAMIC")
 
+	def test_decimal_field_configuration(self):
+		doctype = new_doctype(
+			"Test Decimal Config",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 30,
+					"precision": 3,
+				}
+			],
+		).insert(ignore_if_duplicate=True)
+		decimal_field_type = frappe.db.get_column_type(doctype.name, "decimal_field")
+		self.assertIn("(30,3)", decimal_field_type.lower())
+
+	def test_decimal_field_precision_exceeds_length(self):
+		doctype = new_doctype(
+			"Test Decimal Config 2",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 10,
+					"precision": 11,
+				}
+			],
+		)
+		self.assertRaises(frappe.ValidationError, doctype.insert)
+
+	def test_delete_doc_clears_cache(self):
+		dt = new_doctype(
+			fields=[{"fieldname": "test_fdname", "fieldtype": "Data", "label": "Test Field"}],
+		).insert()
+		frappe.get_meta(dt.name)
+		frappe.delete_doc("DocType", dt.name, force=1, delete_permanently=False)
+		frappe.db.commit()
+		with self.assertRaises(frappe.DoesNotExistError):
+			frappe.get_meta(dt.name)
+
 
 def new_doctype(
 	name: str | None = None,

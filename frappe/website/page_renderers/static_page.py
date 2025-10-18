@@ -1,5 +1,6 @@
 import mimetypes
 import os
+from pathlib import Path
 
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
@@ -34,9 +35,15 @@ class StaticPage(BaseRenderer):
 		if not self.is_valid_file_path():
 			return
 		for app in frappe.get_installed_apps():
-			file_path = frappe.get_app_path(app, "www") + "/" + self.path
-			if os.path.isfile(file_path) and is_binary_file(file_path):
-				self.file_path = file_path
+			app_path = Path(frappe.get_app_path(app, "www"))
+			requested_path = (app_path / self.path).resolve()
+			if (
+				requested_path.is_relative_to(app_path)
+				and requested_path.is_file()
+				and is_binary_file(requested_path)
+			):
+				self.file_path = requested_path
+				break
 
 	def can_render(self):
 		return self.is_valid_file_path() and self.file_path

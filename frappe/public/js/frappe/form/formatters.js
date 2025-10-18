@@ -38,6 +38,10 @@ frappe.form.formatters = {
 			if (!value) return;
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
+		if (df && df.options == "IBAN") {
+			if (!value) return;
+			return frappe.utils.get_formatted_iban(value);
+		}
 		value = value == null ? "" : value;
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);
@@ -95,7 +99,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(flt(value, precision) + "%", options);
+		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
@@ -413,7 +417,13 @@ frappe.form.get_formatter = function (fieldtype) {
 };
 
 frappe.format = function (value, df, options, doc) {
-	if (!df) df = { fieldtype: "Data" };
+	let mask_readonly = false;
+	if (df.parent) {
+		const mask_fields = frappe.get_meta(df.parent)?.masked_fields;
+		mask_readonly = mask_fields?.includes(df.fieldname);
+	}
+
+	if (!df || mask_readonly) df = { fieldtype: "Data" };
 	if (df.fieldname == "_user_tags") df = { ...df, fieldtype: "Tag" };
 	var fieldtype = df.fieldtype || "Data";
 

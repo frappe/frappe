@@ -152,6 +152,9 @@ def get_context(context):
 		else:
 			context.template = "website/doctype/web_form/templates/web_form.html"
 
+		# By default, assume no delete permissions
+		context.has_delete_permission = False
+
 		# check permissions
 		if frappe.form_dict.name:
 			assert isinstance(frappe.form_dict.name, str | int)
@@ -171,6 +174,10 @@ def get_context(context):
 				frappe.throw(
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
+
+			context.has_delete_permission = frappe.has_permission(
+				self.doc_type, "delete", frappe.form_dict.name
+			)
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
@@ -267,53 +274,69 @@ def get_context(context):
 
 	def load_translations(self, context):
 		messages = [
-			"Sr",
-			"Attach",
-			"Next",
-			"Previous",
-			"Discard?",
-			"Cancel",
-			"Discard:Button in web form",
-			"Edit:Button in web form",
-			"See previous responses:Button in web form",
-			"Edit your response:Button in web form",
+			"{0} if you are not redirected within {1} seconds",
+			"← Back to upload files",
+			"Are you sure you want to delete this record?",
 			"Are you sure you want to discard the changes?",
-			"Mandatory fields required::Error message in web form",
-			"Invalid values for fields::Error message in web form",
-			"Error:Title of error message in web form",
-			"Page {0} of {1}",
-			"Couldn't save, please check the data you have entered",
-			"Validation Error",
-			"No {0} found",
-			"Create a new {0}",
+			"Attach a web link",
+			"Attach",
+			"Attachments",
 			"Camera",
-			"Delete",
+			"Cancel",
+			"Capture",
+			"Click here",
+			"Comments",
+			("Confirm", "Title of confirmation dialog"),
+			"Couldn't save, please check the data you have entered",
+			"Create a new {0}",
+			("Delete", "Button in web form"),
+			"Deleted!",
+			("Discard", "Button in web form"),
+			"Discard?",
 			"Drag and drop files here or upload from",
-			"Following fields have missing values::Error message in web form",
+			"Drop files here",
+			("Edit your response", "Button in web form"),
+			("Edit", "Button in web form"),
+			("Error", "Title of error message in web form"),
+			"Following fields have missing values:",
+			("Invalid values for fields", "Error message in web form"),
+			"Link",
 			"Link",
 			"Load More",
 			"Message",
-			"Missing Values Required:Error message in web form",
+			"Missing Values Required",
 			"My Device",
+			"New",
+			"Next",
+			"No {0} found",
 			"No comments yet.",
+			"No Images",
 			"No more items to display",
+			("No", "Dismiss confirmation dialog"),
+			"Not Saved",
+			"Optimize",
+			"Page {0} of {1}",
+			"Preview",
+			"Previous",
+			"Private",
+			"Public",
+			("See previous responses", "Button in web form"),
 			"Set all private",
 			"Set all public",
+			"Sr",
 			"Start a new discussion",
-			"Upload",
-			"Link",
-			"Public",
-			"Private",
-			"Optimize",
-			"Drop files here",
+			("Submit another response", "Button in web form"),
+			("Submit", "Button in web form"),
+			"Submitted",
 			"Take Photo",
-			"No Images",
+			"Thank you for spending your valuable time to fill this form",
 			"Total Images",
-			"Preview",
-			"Submit",
-			"Capture",
-			"Attach a web link",
-			"← Back to upload files",
+			"Updated",
+			"Upload",
+			"Validation Error",
+			("View your response", "Button in web form"),
+			("Yes", "Approve confirmation dialog"),
+			"Your form has been successfully updated",
 			self.title,
 			self.introduction_text,
 			self.success_title,
@@ -331,53 +354,64 @@ def get_context(context):
 
 		# When at least one field in self.web_form_fields has fieldtype "Table" then add "No data" to messages
 		if any(field.fieldtype == "Table" for field in self.web_form_fields):
-			messages.append("Move")
-			messages.append("Insert Above")
-			messages.append("Insert Below")
-			messages.append("Duplicate")
-			messages.append("Shortcuts")
-			messages.append("Ctrl + Up")
-			messages.append("Ctrl + Down")
-			messages.append("ESC")
-			messages.append("Editing Row")
-			messages.append("Add / Remove Columns")
-			messages.append("Fieldname")
-			messages.append("Column Width")
-			messages.append("Configure Columns")
-			messages.append("Select Fields")
-			messages.append("Select All")
-			messages.append("Update")
-			messages.append("Reset to default")
-			messages.append("No Data")
-			messages.append("Delete")
-			messages.append("Delete All")
-			messages.append("Add Row")
-			messages.append("Add Multiple")
-			messages.append("Download")
-			messages.append("of")
-			messages.append("Upload")
-			messages.append("Last")
-			messages.append("First")
-			messages.append("No.")
-
+			messages.extend(
+				(
+					"Move",
+					"Insert Above",
+					"Insert Below",
+					"Duplicate",
+					"Shortcuts",
+					"Ctrl + Up",
+					"Ctrl + Down",
+					"ESC",
+					"Editing Row",
+					"Add / Remove Columns",
+					"Fieldname",
+					"Column Width",
+					"Configure Columns",
+					"Select Fields",
+					"Select All",
+					"Update",
+					"Reset to default",
+					"No Data",
+					"Delete",
+					"Delete All",
+					"Add Row",
+					"Add Multiple",
+					"Download",
+					"of",
+					"Upload",
+					"Last",
+					"First",
+					"No.",
+				)
+			)
 		# Phone Picker
 		if any(field.fieldtype == "Phone" for field in self.web_form_fields):
 			messages.append("Search for countries...")
 
 		# Dates
 		if any(field.fieldtype == "Date" for field in self.web_form_fields):
-			messages.append("Now")
-			messages.append("Today")
-			messages.append("Date {0} must be in format: {1}")
-			messages.append("{0} to {1}")
-
+			messages.extend(("Now", "Today", "Date {0} must be in format: {1}", "{0} to {1}"))
 		# Time
 		if any(field.fieldtype == "Time" for field in self.web_form_fields):
 			messages.append("Now")
 
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
-		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
+		translation_dict = {}
+		for key in messages:
+			if not key:
+				continue
+
+			if isinstance(key, tuple):
+				msg, ctx = key
+				# Use the original tuple as the key for backward compatibility
+				translation_dict[f"{msg}:{ctx}"] = _(msg, context=ctx)
+			else:
+				translation_dict[key] = _(key)
+
+		context.translated_messages = frappe.as_json(translation_dict)
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -434,7 +468,9 @@ def get_context(context):
 			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
 			context.web_form_title = context.title
 			context.title = (
-				strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				strip_html(
+					frappe.cstr(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				)
 				or context.doc_name
 			)
 			context.reference_doc.add_seen()
@@ -605,6 +641,10 @@ def accept(web_form, data):
 		# insert
 		doc = frappe.new_doc(doctype)
 
+	# Set ignore_mandatory flag if allow_incomplete is enabled
+	if web_form.allow_incomplete:
+		doc.flags.ignore_mandatory = True
+
 	# set values
 	for field in web_form.web_form_fields:
 		fieldname = field.fieldname
@@ -635,7 +675,7 @@ def accept(web_form, data):
 		if web_form.login_required and frappe.session.user == "Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		ignore_mandatory = True if files else False
+		ignore_mandatory = True if (files or web_form.allow_incomplete) else False
 
 		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
 

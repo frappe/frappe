@@ -37,18 +37,6 @@ frappe.ui.form.on("User", {
 		}
 	},
 
-	role_profiles: function (frm) {
-		if (frm.doc.role_profiles && frm.doc.role_profiles.length) {
-			frm.roles_editor.disable = 1;
-			frm.call("populate_role_profile_roles").then(() => {
-				frm.roles_editor.show();
-			});
-		} else {
-			frm.roles_editor.disable = 0;
-			frm.roles_editor.show();
-		}
-	},
-
 	module_profile: function (frm) {
 		if (frm.doc.module_profile) {
 			frappe.call({
@@ -431,6 +419,25 @@ frappe.ui.form.on("User Email", {
 	},
 });
 
+frappe.ui.form.on("User Role Profile", {
+	role_profiles_add: function (frm) {
+		if (frm.doc.role_profiles.length > 0) {
+			frm.roles_editor.disable = 1;
+			frm.call("populate_role_profile_roles").then(() => {
+				frm.roles_editor.show();
+			});
+			$(".deselect-all, .select-all").prop("disabled", true);
+		}
+	},
+	role_profiles_remove: function (frm) {
+		if (frm.doc.role_profiles.length == 0) {
+			frm.roles_editor.disable = 0;
+			frm.roles_editor.show();
+			$(".deselect-all, .select-all").prop("disabled", false);
+		}
+	},
+});
+
 function has_access_to_edit_user() {
 	return has_common(frappe.user_roles, get_roles_for_editing_user());
 }
@@ -492,3 +499,11 @@ function show_api_key_dialog(api_key, api_secret) {
 		1
 	);
 }
+
+frappe.ui.form.on("User Session Display", {
+	sign_out(frm, doctype, name) {
+		frappe
+			.xcall("frappe.core.doctype.user.user.clear_session", { sid_hash: name })
+			.then(() => frm.reload_doc());
+	},
+});

@@ -18,6 +18,7 @@ class WebFormListColumn(Document):
 		fieldtype: DF.Data | None
 		label: DF.Data | None
 		name: DF.Int | None
+		options: DF.Text | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
