@@ -36,7 +36,9 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 
 			if (!pasted_data || in_grid_form) return;
 
-			let data = frappe.utils.csv_to_array(pasted_data, "\t");
+			let data = frappe.utils.csv_to_array(pasted_data, "\t").filter((row) => {
+				return row.filter(Boolean).length;
+			});
 
 			if (data.length === 1 && data[0].length === 1) return;
 
@@ -72,42 +74,33 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			let data_length = data.length;
 			data.forEach((row, i) => {
 				setTimeout(() => {
-					let blank_row = !row.filter(Boolean).length;
-					if (!blank_row) {
-						if (row_idx > this.frm.doc[table_field].length) {
-							this.grid.add_new_row();
-						}
+					if (row_idx > this.frm.doc[table_field].length) {
+						this.grid.add_new_row();
+					}
 
-						if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0) {
-							grid_pagination.go_to_page(grid_pagination.page_index + 1);
-						}
+					if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0) {
+						grid_pagination.go_to_page(grid_pagination.page_index + 1);
+					}
 
-						const row_name = grid_rows[row_idx - 1].doc.name;
-						row.forEach((value, data_index) => {
-							if (fieldnames[data_index]) {
-								// format value before setting
-								value = value_formatter_map[fieldtypes[data_index]]
-									? value_formatter_map[fieldtypes[data_index]](value)
-									: value;
-								frappe.model.set_value(
-									doctype,
-									row_name,
-									fieldnames[data_index],
-									value
-								);
-							}
-						});
-						row_idx++;
-						if (data_length >= 10) {
-							let progress = i + 1;
-							frappe.show_progress(
-								__("Processing"),
-								progress,
-								data_length,
-								null,
-								true
+					const row_name = grid_rows[row_idx - 1].doc.name;
+					row.forEach((value, data_index) => {
+						if (fieldnames[data_index]) {
+							// format value before setting
+							value = value_formatter_map[fieldtypes[data_index]]
+								? value_formatter_map[fieldtypes[data_index]](value)
+								: value;
+							frappe.model.set_value(
+								doctype,
+								row_name,
+								fieldnames[data_index],
+								value
 							);
 						}
+					});
+					row_idx++;
+					if (data_length >= 10) {
+						let progress = i + 1;
+						frappe.show_progress(__("Processing"), progress, data_length, null, true);
 					}
 				}, 0);
 			});
