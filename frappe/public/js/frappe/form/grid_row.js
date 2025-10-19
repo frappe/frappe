@@ -1574,6 +1574,15 @@ export default class GridRow {
 
 	get_visible_columns(blacklist = []) {
 		var me = this;
+
+		// Use grid's visible_columns if available (respects user-defined column settings)
+		if (this.grid?.visible_columns?.length > 0) {
+			return this.grid.visible_columns
+				.map((col) => col[0])
+				.filter((df) => !blacklist.includes(df.fieldname));
+		}
+
+		// Fallback to default behavior
 		var visible_columns = $.map(this.docfields, function (df) {
 			var visible =
 				!df.hidden &&
