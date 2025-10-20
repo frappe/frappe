@@ -33,7 +33,7 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 
 
 def write_document_file(doc, record_module=None, create_init=True, folder_name=None):
-	doc_export = doc.as_dict(no_nulls=True)
+	doc_export = doc.as_dict(no_nulls=True, ignore_computed_child_tables=True)
 	doc.run_method("before_export", doc_export)
 
 	doc_export = strip_default_fields(doc, doc_export)

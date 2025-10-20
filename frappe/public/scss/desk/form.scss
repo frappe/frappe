@@ -445,30 +445,6 @@
 	}
 }
 
-// above mobile
-@media (min-width: map-get($grid-breakpoints, "md")) {
-	// for 1, 2 column layouts, implement horizontal, else vertical
-	.col-sm-12 > form > .frappe-control > .horizontal,
-	.col-sm-6 > form > .frappe-control > .horizontal {
-		display: flex;
-		justify-content: space-between;
-		vertical-align: middle;
-
-		.clearfix {
-			width: 38%;
-		}
-
-		.control-input-wrapper {
-			width: 62%; // golden ratio
-		}
-
-		.control-label {
-			margin-top: 3px;
-			margin-bottom: 3px;
-		}
-	}
-}
-
 .form-footer {
 	max-width: var(--page-max-width);
 	margin: auto;

@@ -26,7 +26,8 @@
   "section_break_6",
   "description",
   "column_break_8",
-  "default"
+  "default",
+  "placeholder"
  ],
  "fields": [
   {
@@ -152,16 +153,22 @@
    "fieldtype": "Select",
    "label": "Precision",
    "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+  },
+  {
+   "fieldname": "placeholder",
+   "fieldtype": "Data",
+   "label": "Placeholder"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2024-04-15 16:11:58.469820",
+ "modified": "2025-10-13 16:53:27.147994",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

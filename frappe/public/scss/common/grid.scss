@@ -8,9 +8,6 @@
 	color: var(--text-color);
 	min-height: 150px;
 	background-color: var(--subtle-accent);
-	&:focus-visible {
-		@include grid-focus();
-	}
 }
 
 .form-grid.error {
@@ -165,7 +162,9 @@
 	display: flex;
 	vertical-align: middle;
 }
-
+.grid-static-col:focus-visible {
+	@include grid-focus();
+}
 .grid-static-col,
 .row-index {
 	// height: 38px;
@@ -383,14 +382,6 @@
 		div[data-fieldname="options"],
 		div[data-fieldtype="Text Editor"] {
 			height: 40px;
-		}
-	}
-	.grid-row:not(.grid-row-open) {
-		.awesomplete > ul {
-			position: fixed !important;
-			left: auto !important;
-			top: auto;
-			width: 250px !important;
 		}
 	}
 	.grid-static-col {
@@ -686,8 +677,7 @@
 }
 .column-limit-reached {
 	background-color: var(--subtle-accent);
-	border-top-left-radius: var(--border-radius-md);
-	border-top-right-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-md);
 	border: 1px solid var(--table-border-color);
 	overflow-y: hidden;
 	.form-grid {
@@ -696,6 +686,9 @@
 		border: unset;
 		&:focus-visible {
 			@include grid-focus();
+		}
+		.grid-static-col {
+			height: 38px;
 		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;

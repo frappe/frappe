@@ -20,6 +20,7 @@ class DocPerm(Document):
 		email: DF.Check
 		export: DF.Check
 		if_owner: DF.Check
+		mask: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

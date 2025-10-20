@@ -1642,13 +1642,20 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Option"),
 			)
 
-		if meta.is_virtual != child_doctype_meta.is_virtual:
-			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
+		if meta.is_virtual and not child_doctype_meta.is_virtual:
 			frappe.throw(
-				_("Child Table {0} for field {1}" + error_msg).format(
+				_("Child Table {0} for field {1} must be virtual").format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
 				title=_("Invalid Option"),
+			)
+
+		if not meta.is_virtual and child_doctype_meta.is_virtual and not docfield.is_virtual:
+			frappe.throw(
+				_("Field {0} must be a virtual field to support virtual doctype.").format(
+					frappe.bold(docfield.fieldname)
+				),
+				title=_("Virtual tables must be virtual fields"),
 			)
 
 	def check_max_height(docfield):

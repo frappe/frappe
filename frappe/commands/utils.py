@@ -1027,6 +1027,13 @@ def list_sites(context: CliCtxObj, output_json=False):
 		click.echo("No sites found")
 
 
+@click.command("setup-chrome")
+def setup_chrome():
+	from frappe.utils.print_utils import setup_chromium
+
+	setup_chromium()
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1059,4 +1066,5 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	list_sites,
+	setup_chrome,
 ]

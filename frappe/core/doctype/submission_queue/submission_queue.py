@@ -164,6 +164,18 @@ class SubmissionQueue(Document):
 
 
 def queue_submission(doc: Document, action: str, alert: bool = True):
+	if existing_queue := frappe.db.get_value(
+		"Submission Queue", {"ref_doctype": doc.doctype, "ref_docname": doc.name, "status": "Queued"}
+	):
+		frappe.msgprint(
+			_(
+				"This document has already been queued for submission. You can track the progress over {0}."
+			).format(f"<a href='/app/submission-queue/{existing_queue}'><b>here</b></a>"),
+			indicator="orange",
+			alert=True,
+		)
+		return
+
 	queue = frappe.new_doc("Submission Queue")
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name

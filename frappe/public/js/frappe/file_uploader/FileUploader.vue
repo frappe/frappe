@@ -377,6 +377,7 @@ function on_file_input(e) {
 }
 function remove_file(file) {
 	files.value = files.value.filter((f) => f !== file);
+	if (file_input.value) file_input.value.value = "";
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;

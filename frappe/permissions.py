@@ -802,7 +802,9 @@ def has_child_permission(
 
 	if parent_meta.istable or not (
 		valid_parentfields := [
-			df.fieldname for df in parent_meta.get_table_fields() if df.options == child_doctype
+			df.fieldname
+			for df in parent_meta.get_table_fields(include_computed=True)
+			if df.options == child_doctype
 		]
 	):
 		push_perm_check_log(

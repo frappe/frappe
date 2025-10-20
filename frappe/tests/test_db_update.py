@@ -176,6 +176,18 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_varchar_length(self):
+		from frappe.database.schema import add_column
+
+		test_doc = new_doctype().insert()
+		col_name = f"col_{frappe.generate_hash(length=4)}"
+		add_column(test_doc.name, fieldtype="Data", column_name=col_name, length=50)
+		length = frappe.db.sql(
+			f"SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'tab{test_doc.name}' AND COLUMN_NAME = '{col_name}' ",
+		)[0][0]
+		self.assertEqual(length, 64)
+
 
 class TestDBUpdateSanityChecks(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)

@@ -20,6 +20,7 @@
   "is_virtual",
   "search_index",
   "not_nullable",
+  "mask",
   "column_break_18",
   "options",
   "sort_options",
@@ -607,6 +608,13 @@
    "fieldname": "sticky",
    "fieldtype": "Check",
    "label": "Sticky"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Select\", \"Read Only\", \"Phone\", \"Percent\", \"Password\", \"Link\", \"Int\", \"Float\", \"Dynamic Link\", \"Duration\", \"Datetime\", \"Currency\", \"Data\", \"Date\"].includes(doc.fieldtype)",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask"
   }
  ],
  "grid_page_length": 50,

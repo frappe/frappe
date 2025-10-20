@@ -180,6 +180,10 @@ class TestWebsite(IntegrationTestCase):
 			"route_redirects",
 			{"source": "/testdoc307", "target": "/testtarget", "redirect_http_status": 307},
 		)
+		website_settings.append(
+			"route_redirects",
+			{"source": "/test-query", "target": "/test-query-new", "forward_query_parameters": 1},
+		)
 		website_settings.save()
 
 		set_request(method="GET", path="/testfrom")
@@ -225,6 +229,11 @@ class TestWebsite(IntegrationTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 307)
 		self.assertEqual(response.headers.get("Location"), "/test")
+
+		set_request(method="GET", path="/test-query?param=123")
+		response = get_response()
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/test-query-new?param=123")
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")

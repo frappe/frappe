@@ -27,7 +27,14 @@ def get_context(context, **dict_params):
 
 
 @frappe.whitelist(allow_guest=True)
-def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
+def get(
+	doctype: str,
+	txt: str | None = None,
+	limit_start: int = 0,
+	limit: int = 20,
+	pathname: str | None = None,
+	**kwargs,
+):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 	raw_result = get_list_data(doctype, txt, limit_start, limit=limit + 1, **kwargs)
@@ -76,7 +83,14 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def get_list_data(
-	doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, web_form_name=None, **kwargs
+	doctype: str,
+	txt: str | None = None,
+	limit_start: int = 0,
+	fields: list | None = None,
+	cmd: str | None = None,
+	limit: int = 20,
+	web_form_name: str | None = None,
+	**kwargs,
 ):
 	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
