@@ -67,7 +67,6 @@ def relink(name, reference_doctype=None, reference_name=None):
 		(reference_doctype, reference_name, name),
 	)
 
-
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
@@ -92,10 +91,19 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
+	# Clean the doctype names - remove extra commas and whitespace
+	cleaned_doctypes = []
+	for dt in com_doctypes:
+		if dt:
+			# Remove trailing/leading commas and whitespace
+			cleaned_dt = dt.strip().rstrip(',').lstrip(',').strip()
+			if cleaned_dt and cleaned_dt not in cleaned_doctypes:
+				cleaned_doctypes.append(cleaned_dt)
+
 	results = []
 	txt_lower = txt.lower().replace("%", "")
 
-	for dt in com_doctypes:
+	for dt in cleaned_doctypes:
 		if dt in can_read:
 			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
 				results.append([dt])
