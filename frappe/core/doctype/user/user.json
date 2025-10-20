@@ -44,6 +44,7 @@
   "bio",
   "column_break_22",
   "mobile_no",
+  "applying_for",
   "settings_tab",
   "desk_settings_section",
   "mute_sounds",
@@ -111,9 +112,7 @@
   "column_break_65",
   "api_secret",
   "onboarding_status",
-  "connections_tab",
-  "sessions_tab",
-  "active_sessions"
+  "connections_tab"
  ],
  "fields": [
   {
@@ -839,17 +838,10 @@
    "label": "Show Absolute Datetime in Timeline"
   },
   {
-   "fieldname": "sessions_tab",
-   "fieldtype": "Tab Break",
-   "label": "Sessions"
-  },
-  {
-   "depends_on": "eval:doc.name == frappe.session.user",
-   "fieldname": "active_sessions",
-   "fieldtype": "Table",
-   "is_virtual": 1,
-   "label": "Active Sessions",
-   "options": "User Session Display"
+   "fieldname": "applying_for",
+   "fieldtype": "Link",
+   "label": "Applying For",
+   "options": "Portal User Type"
   }
  ],
  "icon": "fa fa-user",
@@ -903,7 +895,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-15 18:07:21.606511",
+ "modified": "2025-10-18 21:29:56.853448",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

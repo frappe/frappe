@@ -64,14 +64,13 @@ class User(Document):
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.user_email.user_email import UserEmail
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
-		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
 		from frappe.types import DF
 
-		active_sessions: DF.Table[UserSessionDisplay]
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
+		applying_for: DF.Link | None
 		banner_image: DF.AttachImage | None
 		bio: DF.SmallText | None
 		birth_date: DF.Date | None
