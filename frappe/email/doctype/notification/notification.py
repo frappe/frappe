@@ -636,11 +636,13 @@ def get_context(context):
 	def get_attachment(self, doc) -> list[dict]:
 		"""Check Attachment Settings and return attachments accordingly"""
 		attachments = []
+
 		if self.attach_print:
 			attachments.append(self.get_print(doc))
+
 		if self.attach == "From Field" and self.attach_field:
 			attachments.append({"file_url": doc.get(self.attach_field)})
-		if self.attach == "All":
+		elif self.attach == "All":
 			attachments.extend(
 				frappe.get_all(
 					"File",
@@ -648,6 +650,7 @@ def get_context(context):
 					filters={"attached_to_doctype": self.document_type, "attached_to_name": doc.name},
 				)
 			)
+
 		return attachments
 
 	def get_print(self, doc):
