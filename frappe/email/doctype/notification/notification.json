@@ -352,18 +352,18 @@
    "options": "\nFrom Field\nAll"
   },
   {
-   "depends_on": "eval:doc.attach_files == \"From Field\"",
+   "depends_on": "eval:doc.attach_files === \"From Field\"",
    "fieldname": "from_attach_field",
    "fieldtype": "Select",
    "label": "From Attach Field",
-   "mandatory_depends_on": "eval:doc.attach == \"From Field\""
+   "mandatory_depends_on": "eval:doc.attach_files === \"From Field\""
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-21 18:34:02.246018",
+ "modified": "2025-10-21 18:41:29.897230",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

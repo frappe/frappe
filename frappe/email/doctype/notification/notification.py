@@ -168,6 +168,9 @@ class Notification(Document):
 		if self.event == "Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
+		if self.attach_files == "From Field" and not self.from_attach_field:
+			frappe.throw(_("Please specify the field from which to attach files"))
+
 		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_filters()
