@@ -492,6 +492,13 @@ def get_context(context):
 			comm = frappe.get_lazy_doc("Communication", communication)
 			comm.get_outgoing_email_account()
 
+		# We expect at most one print format attachment, but we don't know where it is.
+		print_letterhead = any(
+			attachment.get("print_letterhead")
+			for attachment in attachments
+			if attachment.get("print_format_attachment") == 1
+		)
+
 		frappe.sendmail(
 			recipients=recipients,
 			subject=subject,
@@ -503,7 +510,7 @@ def get_context(context):
 			reference_name=get_reference_name(doc),
 			attachments=attachments,
 			expose_recipients="header",
-			print_letterhead=((attachments and attachments[0].get("print_letterhead")) or False),
+			print_letterhead=print_letterhead,
 			communication=communication,
 		)
 
