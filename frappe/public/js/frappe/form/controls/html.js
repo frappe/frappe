@@ -4,8 +4,7 @@ frappe.ui.form.ControlHTML = class ControlHTML extends frappe.ui.form.Control {
 		this.disp_area = this.wrapper;
 	}
 	refresh_input() {
-		var content = this.get_content();
-		if (content) this.$wrapper.html(content);
+		this.html();
 	}
 	get_content() {
 		var content = this.df.options || "";
@@ -17,7 +16,11 @@ frappe.ui.form.ControlHTML = class ControlHTML extends frappe.ui.form.Control {
 		}
 	}
 	html(html) {
-		this.$wrapper.html(html || this.get_content());
+		const content = html || this.get_content();
+		this.$wrapper.html(content);
+		if (content.includes("<pre")) {
+			frappe.utils.highlight_pre(this.$wrapper);
+		}
 	}
 	set_value(html) {
 		if (html.appendTo) {
