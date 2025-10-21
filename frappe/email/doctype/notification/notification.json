@@ -50,8 +50,8 @@
   "attach_print",
   "print_format",
   "column_break_llcs",
-  "attach",
-  "attach_field"
+  "attach_files",
+  "from_attach_field"
  ],
  "fields": [
   {
@@ -346,24 +346,24 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.attach == \"From Field\"",
-   "fieldname": "attach_field",
+   "fieldname": "attach_files",
    "fieldtype": "Select",
-   "label": "Attach Field",
-   "mandatory_depends_on": "eval:doc.attach == \"From Field\""
+   "label": "Attach Files",
+   "options": "\nFrom Field\nAll"
   },
   {
-   "fieldname": "attach",
+   "depends_on": "eval:doc.attach_files == \"From Field\"",
+   "fieldname": "from_attach_field",
    "fieldtype": "Select",
-   "label": "Attach",
-   "options": "\nFrom Field\nAll"
+   "label": "From Attach Field",
+   "mandatory_depends_on": "eval:doc.attach == \"From Field\""
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 13:17:37.123847",
+ "modified": "2025-10-21 18:34:02.246018",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

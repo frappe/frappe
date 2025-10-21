@@ -34,8 +34,7 @@ class Notification(Document):
 		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
 		from frappe.types import DF
 
-		attach: DF.Literal["", "From Field", "All"]
-		attach_field: DF.Literal[None]
+		attach_files: DF.Literal["", "From Field", "All"]
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
@@ -61,6 +60,7 @@ class Notification(Document):
 			"Custom",
 		]
 		filters: DF.Code | None
+		from_attach_field: DF.Literal[None]
 		is_standard: DF.Check
 		message: DF.Code | None
 		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
@@ -640,9 +640,9 @@ def get_context(context):
 		if self.attach_print:
 			attachments.append(self.get_print(doc))
 
-		if self.attach == "From Field" and self.attach_field:
-			attachments.append({"file_url": doc.get(self.attach_field)})
-		elif self.attach == "All":
+		if self.attach_files == "From Field" and self.from_attach_field:
+			attachments.append({"file_url": doc.get(self.from_attach_field)})
+		elif self.attach_files == "All":
 			attachments.extend(
 				frappe.get_all(
 					"File",
