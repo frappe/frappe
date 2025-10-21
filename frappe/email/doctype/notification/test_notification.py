@@ -25,6 +25,51 @@ def get_test_notification(config):
 		frappe.db.commit()
 
 
+@contextmanager
+def get_test_doctype_with_attach_field(doctype_name="Test Attach Doctype"):
+	"""Create a temporary doctype with an attach field for testing."""
+	try:
+		# Create custom doctype with attach field
+		if not frappe.db.exists("DocType", doctype_name):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": doctype_name,
+					"module": "Core",
+					"custom": 1,
+					"fields": [
+						{"label": "Title", "fieldname": "title", "fieldtype": "Data", "reqd": 1},
+						{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+					],
+					"permissions": [
+						{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}
+					],
+				}
+			).insert()
+
+		yield doctype_name
+
+	finally:
+		frappe.db.delete(doctype_name)
+		frappe.delete_doc_if_exists("DocType", doctype_name, force=1)
+		frappe.db.commit()
+
+
+@contextmanager
+def create_test_file(file_name="test_attachment.txt", content="Test file content"):
+	"""Create a test file and return its File document."""
+	try:
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+
+		yield file_doc
+
+	finally:
+		frappe.delete_doc_if_exists("File", file_doc.name, force=1)
+		frappe.db.commit()
+
+
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
@@ -464,6 +509,159 @@ class TestNotification(IntegrationTestCase):
 			user.birth_date = frappe.utils.getdate(user.birth_date)
 			user.save()
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
+
+	def test_attach_files_from_field(self):
+		"""Test notification with 'From Field' attachment option."""
+		frappe.db.delete("Email Queue")
+
+		with get_test_doctype_with_attach_field("Test From Field Doctype") as test_doctype:
+			with create_test_file("from_field_test.txt", "Content from specific field") as test_file:
+				# Create notification with "From Field" attachment
+				notification_config = {
+					"name": "Test From Field Attachment",
+					"subject": "Test From Field Attachment",
+					"document_type": test_doctype,
+					"event": "Save",
+					"message": "Document saved with attachment",
+					"channel": "Email",
+					"attach_files": "From Field",
+					"from_attach_field": "attachment",
+					"recipients": [{"receiver_by_document_field": "owner"}],
+				}
+
+				with get_test_notification(notification_config):
+					# Create document with attachment
+					test_doc = frappe.get_doc(
+						{
+							"doctype": test_doctype,
+							"title": "Test Document with Attachment",
+							"attachment": test_file.file_url,
+						}
+					).insert()
+
+					# Trigger save event to send notification
+					test_doc.save()
+
+					# Verify Email Queue created
+					email_queue = frappe.get_doc(
+						"Email Queue", {"reference_doctype": test_doctype, "reference_name": test_doc.name}
+					)
+
+					self.assertTrue(email_queue, "Email Queue not created")
+
+					# Verify attachment metadata in Email Queue
+					attachments = json.loads(email_queue.attachments) if email_queue.attachments else []
+					self.assertEqual(len(attachments), 1, "Expected exactly one attachment")
+					self.assertEqual(
+						attachments[0].get("file_url"), test_file.file_url, "Attachment URL doesn't match"
+					)
+
+					# Clean up test document
+					test_doc.delete()
+
+	def test_attach_files_all(self):
+		"""Test notification with 'All' attachment option."""
+		frappe.db.delete("Email Queue")
+
+		with get_test_doctype_with_attach_field("Test All Attachments Doctype") as test_doctype:
+			with create_test_file("all_test_1.txt", "First file content") as test_file1:
+				# Create notification with "All" attachment option
+				notification_config = {
+					"name": "Test All Attachments",
+					"subject": "Test All Attachments",
+					"document_type": test_doctype,
+					"event": "Save",
+					"message": "Document saved with all attachments",
+					"channel": "Email",
+					"attach_files": "All",
+					"recipients": [{"receiver_by_document_field": "owner"}],
+				}
+
+				with get_test_notification(notification_config):
+					# Create document with one attachment
+					test_doc = frappe.get_doc(
+						{
+							"doctype": test_doctype,
+							"title": "Test Document with Multiple Attachments",
+							"attachment": test_file1.file_url,
+						}
+					).insert()
+
+					# Upload additional file that is not attached to a specific field
+					with create_test_file(
+						"additional_file.txt", "Additional file content"
+					) as additional_file:
+						additional_file.attached_to_doctype = test_doctype
+						additional_file.attached_to_name = test_doc.name
+						additional_file.save()
+
+						# Trigger save event to send notification
+						test_doc.save()
+
+						# Verify Email Queue created
+						email_queue = frappe.get_doc(
+							"Email Queue",
+							{"reference_doctype": test_doctype, "reference_name": test_doc.name},
+						)
+
+						self.assertTrue(email_queue, "Email Queue not created")
+
+						# Verify all attachments in Email Queue
+						attachments = json.loads(email_queue.attachments) if email_queue.attachments else []
+
+						# Should have the additional file that's directly attached to the document
+						self.assertEqual(len(attachments), 2, "Expected exactly two attachments")
+
+						# Verify the additional file is included
+						attachment_urls = [att.get("file_url") for att in attachments]
+						self.assertIn(
+							test_file1.file_url, attachment_urls, "First file not found in attachments"
+						)
+						self.assertIn(
+							additional_file.file_url,
+							attachment_urls,
+							"Additional file not found in attachments",
+						)
+
+					test_doc.delete()
+
+	def test_attach_files_empty_option(self):
+		"""Test notification with empty attachment option (no attachments)."""
+		frappe.db.delete("Email Queue")
+
+		# Create notification with empty attach_files option
+		notification_config = {
+			"name": "Test No Attachments",
+			"subject": "Test No Attachments",
+			"document_type": "ToDo",
+			"event": "Save",
+			"message": "Todo saved without attachments",
+			"channel": "Email",
+			"attach_print": 0,
+			"attach_files": "",  # Empty option
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification_config):
+			# Create a ToDo
+			todo = frappe.new_doc("ToDo")
+			todo.description = "Test ToDo"
+			todo.insert()
+			todo.save()
+
+			# Verify Email Queue created
+			email_queue = frappe.get_doc(
+				"Email Queue", {"reference_doctype": "ToDo", "reference_name": todo.name}
+			)
+
+			self.assertTrue(email_queue, "Email Queue not created")
+
+			# Verify no attachments in Email Queue (or empty list)
+			attachments = json.loads(email_queue.attachments) if email_queue.attachments else []
+			self.assertEqual(len(attachments), 0, "Expected no attachments")
+
+			# Clean up
+			todo.delete(ignore_permissions=True)
 
 	@classmethod
 	def tearDownClass(cls):
