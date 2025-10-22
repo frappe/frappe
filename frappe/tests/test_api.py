@@ -137,18 +137,27 @@ class FrappeAPITestCase(FrappeTestCase):
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
+<<<<<<< HEAD
 	GENERATED_DOCUMENTS: typing.ClassVar = []
+=======
+	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
+	TEST_USER = "test@restapi.com"
+>>>>>>> 4cfc0c6b55 (test: added rest api test user to avoid past user creation inconsistency)
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.GENERATED_DOCUMENTS = []
+		user = frappe.get_doc(
+			{"doctype": "User", "email": cls.TEST_USER, "first_name": "Test User", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+
 		for _ in range(20):
 			doc = frappe.get_doc(
 				{
 					"doctype": "ToDo",
 					"description": frappe.mock("paragraph"),
-					"allocated_to": "test@example.com",
+					"allocated_to": user.name,
 				}
 			).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
@@ -159,6 +168,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		frappe.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
+		frappe.delete_doc_if_exists("User", cls.TEST_USER)
 		frappe.db.commit()
 
 	def test_unauthorized_call(self):
@@ -178,7 +188,7 @@ class TestResourceAPI(FrappeAPITestCase):
 			self.resource(self.DOCTYPE),
 			{
 				"sid": self.sid,
-				"filters": json.dumps([["name", "in", self.GENERATED_DOCUMENTS]]),
+				"filters": json.dumps([["name", "=", self.GENERATED_DOCUMENTS[0]]]),
 				"fields": json.dumps(["allocated_to", "name"]),
 				"expand": json.dumps(["allocated_to"]),
 			},
