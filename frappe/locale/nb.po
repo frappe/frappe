@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-12 09:32+0000\n"
-"PO-Revision-Date: 2025-10-14 01:21\n"
+"PO-Revision-Date: 2025-10-22 03:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -273,12 +273,12 @@ msgstr "<div class=\"alert\">Ikke oppdater den, da det kan ødelegge skjemaet di
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Be om en fil som inneholder personlig identifiserbar informasjon (PII) som er lagret i systemet vårt. Filen vil være i JSON-format og sendes til deg via e-post. Hvis du ønsker å få PII-en din slettet fra systemet vårt, kan du sende en <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">forespørsel om å slette data.</a></p></div>"
 
 #. Introduction text of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Send a request to delete your account and personally identifiable information (PII) that is stored on our system. You will receive an email to verify your request. Once the request is verified we will take care of deleting your PII. If you just want to check what PII we have stored, you can <a href=\"/request-data\" rel=\"noopener noreferrer\">request your data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Send en forespørsel om å slette kontoen din og personlig identifiserbar informasjon (PII) som er lagret i systemet vårt. Du vil motta en e-post for å bekrefte forespørselen din. Når forespørselen er bekreftet, vil vi sørge for å slette PII-en din. Hvis du bare vil sjekke hvilke PII vi har lagret, kan du be om å få ut <a href=\"/request-data\" rel=\"noopener noreferrer\">dataene dine.</a></p></div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -768,7 +768,7 @@ msgstr "En Frappe Framework-instans kan fungere som en OAuth-klient, ressurs ell
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "A download link with your data will be sent to the email address associated with your account."
-msgstr ""
+msgstr "En nedlastingslenke med dataene dine vil bli sendt til e-postadressen som er knyttet til kontoen din."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:175
 msgid "A field with the name {0} already exists in {1}"
@@ -2188,7 +2188,7 @@ msgstr "Alternativ e-post-ID"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Always"
-msgstr ""
+msgstr "Alltid"
 
 #. Label of the always_bcc (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -2269,7 +2269,7 @@ msgstr "Regler for navngivning av korrigeringer oppdatert."
 #. Success message of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "An email to verify your request has been sent to your email address. Please verify your request to complete the process."
-msgstr ""
+msgstr "En e-post for å bekrefte forespørselen din har blitt sendt til e-postadressen din. Vennligst bekreft forespørselen din for å fullføre prosessen."
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:354
 msgid "An error occurred while setting Session Defaults"
@@ -2641,7 +2641,7 @@ msgstr "I henhold til forespørselen din er kontoen din og dataene på {0} knytt
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Ask"
-msgstr ""
+msgstr "Spør"
 
 #. Label of the assign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -7507,7 +7507,7 @@ msgstr "Ikke rediger overskrifter som er forhåndsinnstilte i malen"
 
 #: frappe/public/js/frappe/router.js:624
 msgid "Do not warn me again about {0}"
-msgstr ""
+msgstr "Ikke advar meg igjen om {0}"
 
 #: frappe/core/doctype/system_settings/system_settings.js:71
 msgid "Do you still want to proceed?"
@@ -10920,7 +10920,7 @@ msgstr "Videresend"
 #. Route Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Forward Query Parameters"
-msgstr ""
+msgstr "Videresend spørringsparametere"
 
 #. Label of the forward_to_email (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -11110,7 +11110,7 @@ msgstr "Funksjon {0} krever argumenter, men ingen ble oppgitt"
 
 #: frappe/public/js/frappe/views/treeview.js:419
 msgid "Further sub-groups can only be created under records marked as 'Group'"
-msgstr ""
+msgstr "Ytterligere undergrupper kan bare opprettes under poster merket som «Gruppe»"
 
 #: frappe/core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
@@ -13529,7 +13529,7 @@ msgstr "Ugyldige forespørselsargumenter"
 
 #: frappe/app.py:327
 msgid "Invalid request body"
-msgstr ""
+msgstr "Ugyldig forespørselsdel"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:181
 msgid "Invalid role"
@@ -15584,7 +15584,7 @@ msgstr "Markedsføringssjef"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/docperm/docperm.json
 msgid "Mask"
-msgstr ""
+msgstr "Maske"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Master"
@@ -15915,7 +15915,7 @@ msgstr "Mellomnavn"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "Mellomnavn (Valgfritt)"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -16026,7 +16026,7 @@ msgstr "Mobile No"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr ""
+msgstr "Mobil Nummer"
 
 #. Label of the modal_trigger (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -16534,7 +16534,7 @@ msgstr "Navigasjonsinnstillinger"
 
 #: frappe/public/js/frappe/list/list_view.js:485
 msgid "Need Help?"
-msgstr ""
+msgstr "Trenger du Hjelp?"
 
 #: frappe/desk/doctype/workspace/workspace.py:322
 msgid "Need Workspace Manager role to edit private workspace of other users"
@@ -16561,7 +16561,7 @@ msgstr "Innstillinger for nettverksskriver"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Never"
-msgstr ""
+msgstr "Aldri"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
@@ -20165,12 +20165,12 @@ msgstr "Profil"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Profile Picture"
-msgstr ""
+msgstr "Profil Bilde"
 
 #. Success message of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Profile updated successfully."
-msgstr ""
+msgstr "Profilen er oppdatert."
 
 #: frappe/public/js/frappe/socketio_client.js:82
 msgid "Progress"
@@ -21719,7 +21719,7 @@ msgstr "Forespørsels-URL"
 #. Title of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Request for Account Deletion"
-msgstr ""
+msgstr "Forespørsel om sletting av konto"
 
 #. Label of the requested_numbers (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -23177,7 +23177,7 @@ msgstr "Velg et felt for å redigere egenskapene."
 
 #: frappe/public/js/frappe/views/treeview.js:358
 msgid "Select a group {0} first."
-msgstr ""
+msgstr "Velg gruppe {0} først."
 
 #: frappe/core/doctype/doctype/doctype.py:1956
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -24050,7 +24050,7 @@ msgstr "Vis feil"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show External Link Warning"
-msgstr ""
+msgstr "Vis ekstern kobling advarsel"
 
 #: frappe/public/js/frappe/form/layout.js:586
 msgid "Show Fieldname (click to copy on clipboard)"
@@ -24391,19 +24391,19 @@ msgstr "Påmelding er deaktivert for dette nettstedet."
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == \"Invalid\"</code>"
-msgstr ""
+msgstr "Enkelt Python Uttrykk, eksempel: <code class=\"language-python\">status == \"Ugyldig\"</code>"
 
 #. Description of the 'Assign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>"
-msgstr ""
+msgstr "Enkelt Python Uttrykk, eksempel: <code class=\"language-python\">status == 'Åpen' og problemtype == 'Feil'</code>"
 
 #. Description of the 'Unassign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Simple Python Expression, Example: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>"
-msgstr ""
+msgstr "Enkelt Python Uttrykk, eksempel: <code class=\"language-python\">status i (\"Lukket\", \"Avbrutt\")</code>"
 
 #. Label of the simultaneous_sessions (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -26487,7 +26487,7 @@ msgstr "Dette dokumentet kan ikke slettes akkurat nå, siden det redigeres av en
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:171
 msgid "This document has already been queued for submission. You can track the progress over {0}."
-msgstr ""
+msgstr "Dette dokumentet er allerede satt i kø for innsending. Du kan spore fremdriften over {0}."
 
 #: frappe/www/confirm_workflow_action.html:8
 msgid "This document has been modified after the email was sent."
@@ -27967,7 +27967,7 @@ msgstr "Oppdater passord"
 #. Title of the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Update Profile"
-msgstr ""
+msgstr "Oppdater Profil"
 
 #. Label of the update_series (Section Break) field in DocType 'Document Naming
 #. Settings'
@@ -29859,7 +29859,7 @@ msgstr "Du la til {0} rader til {1}"
 
 #: frappe/public/js/frappe/router.js:642
 msgid "You are about to open an external link. To confirm, click the link again."
-msgstr ""
+msgstr "Du er i ferd med å åpne en ekstern lenke. Klikk på lenken igjen for å bekrefte."
 
 #: frappe/public/js/frappe/dom.js:438
 msgid "You are connected to internet."
@@ -30314,7 +30314,7 @@ msgstr "Du så dette"
 
 #: frappe/public/js/frappe/router.js:653
 msgid "You will be redirected to:"
-msgstr ""
+msgstr "Du vil bli omdirigert til:"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
