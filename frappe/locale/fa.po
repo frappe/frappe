@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-12 09:32+0000\n"
-"PO-Revision-Date: 2025-10-20 03:05\n"
+"PO-Revision-Date: 2025-10-23 03:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -28952,7 +28952,7 @@ msgstr "آدرس وب هوک"
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 #: frappe/website/workspace/website/website.json
 msgid "Website"
-msgstr "سایت اینترنتی"
+msgstr "وب‌سایت"
 
 #. Name of a report
 #: frappe/website/report/website_analytics/website_analytics.json
