@@ -145,7 +145,8 @@ frappe.ui.misc.about = function () {
 	});
 
 	// Listener for copy app version
-	$(dialog.body).on("click", ".app-version", function () {
+	$(dialog.body).on("click", ".app-version", function (event) {
+		event.stopPropagation();
 		const title = $(this).attr("title");
 		if (title) {
 			frappe.utils.copy_to_clipboard(title);
