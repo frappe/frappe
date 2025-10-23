@@ -62,11 +62,11 @@
    "label": "Send Email Alert"
   },
   {
-    "default": "0",
-    "description": "If checked, a confirmation will be required before performing workflow actions.",
-    "fieldname": "enable_action_confirmation",
-    "fieldtype": "Check",
-    "label": "Enable Action Confirmation"
+   "default": "0",
+   "description": "If checked, a confirmation will be required before performing workflow actions.",
+   "fieldname": "enable_action_confirmation",
+   "fieldtype": "Check",
+   "label": "Enable Action Confirmation"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
@@ -112,10 +112,11 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:04:04.849665",
+ "modified": "2025-10-23 21:07:05.944239",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -129,6 +130,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

@@ -16,12 +16,11 @@ class Workflow(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-		from frappe.workflow.doctype.workflow_document_state.workflow_document_state import (
-			WorkflowDocumentState,
-		)
+		from frappe.workflow.doctype.workflow_document_state.workflow_document_state import WorkflowDocumentState
 		from frappe.workflow.doctype.workflow_transition.workflow_transition import WorkflowTransition
 
 		document_type: DF.Link
+		enable_action_confirmation: DF.Check
 		is_active: DF.Check
 		override_status: DF.Check
 		send_email_alert: DF.Check
