@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-23 23:10:11.220552",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module_to_export",
+  "doctype_to_export"
+ ],
+ "fields": [
+  {
+   "fieldname": "module_to_export",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module to Export",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "fieldname": "doctype_to_export",
+   "fieldtype": "Table",
+   "label": "DocType to Export",
+   "options": "Bulk Customization Export Doctype"
+  }
+ ],
+ "grid_page_length": 50,
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-10-23 23:15:48.254596",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Bulk Customization Export",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

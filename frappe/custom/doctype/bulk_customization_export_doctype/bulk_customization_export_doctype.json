@@ -1,0 +1,55 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-23 23:07:01.228161",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "export_doctype",
+  "sync_on_migrate",
+  "export_custom_permissions"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "export_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Export Doctype",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "default": "1",
+   "fieldname": "sync_on_migrate",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Sync on Migrate"
+  },
+  {
+   "columns": 3,
+   "default": "0",
+   "description": "Exported permissions will be force-synced on every migrate overriding any other customization.\n\n",
+   "fieldname": "export_custom_permissions",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Export Custom Permissions"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-23 23:44:18.331749",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Bulk Customization Export Doctype",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
