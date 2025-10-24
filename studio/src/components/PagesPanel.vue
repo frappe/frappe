@@ -80,6 +80,7 @@ const getPageMenu = (page: StudioPage) => {
 		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			condition: () => !isAppHome(page),
 			onClick: async () => {
 				await store.deleteAppPage(app.name, page)

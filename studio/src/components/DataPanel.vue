@@ -275,6 +275,7 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deleteResource(resource, resource_name),
 		},
 		{
@@ -400,6 +401,7 @@ const getVariableMenu = (variable_name: string, value: any) => {
 		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deleteVariable(variableConfig),
 		},
 		{
