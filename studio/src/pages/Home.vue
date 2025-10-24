@@ -76,6 +76,7 @@
 											label: 'Delete',
 											onClick: () => store.deleteApp(app.name, app.app_title),
 											icon: 'trash-2',
+											theme: 'red',
 										},
 									]"
 									:button="{

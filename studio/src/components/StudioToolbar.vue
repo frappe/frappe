@@ -21,6 +21,7 @@
 							{
 								label: 'Delete App',
 								icon: 'trash-2',
+								theme: 'red',
 								onClick: () => store.deleteApp(store.activeApp?.app_name!, store.activeApp?.app_title!),
 							},
 						],
