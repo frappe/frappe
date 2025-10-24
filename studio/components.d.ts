@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppComponent: typeof import('./src/components/AppComponent.vue')['default']
+    AppDialog: typeof import('./src/components/AppDialog.vue')['default']
     AppHeader: typeof import('./src/components/AppLayout/AppHeader.vue')['default']
     AppLogo: typeof import('./src/components/Icons/AppLogo.vue')['default']
     Audio: typeof import('./src/components/AppLayout/Audio.vue')['default']

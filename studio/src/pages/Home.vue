@@ -15,7 +15,7 @@
 				</template>
 			</Dropdown>
 
-			<Button variant="solid" icon-left="plus" @click="showDialog = true">New App</Button>
+			<Button variant="solid" icon-left="plus" @click="showAppDialog = true">New App</Button>
 		</div>
 
 		<div class="flex h-full flex-col items-center px-20 py-10">
@@ -62,6 +62,14 @@
 							<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
 							<Dropdown
 								:options="[
+									{
+										label: 'Edit',
+										onClick: () => {
+											activeApp = app
+											showAppDialog = true
+										},
+										icon: 'edit',
+									},
 									{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
 									{
 										label: 'Delete',
@@ -85,73 +93,21 @@
 			</section>
 		</div>
 
-		<Dialog
-			v-model="showDialog"
-			:options="{
-				title: 'New App',
-				width: 'md',
-			}"
-			@after-leave="
-				() => {
-					newApp = { ...emptyAppState }
-					appCreationError = ''
-				}
-			"
-		>
-			<template #body-content>
-				<div class="flex flex-col gap-3">
-					<FormControl
-						label="Title"
-						type="text"
-						variant="outline"
-						v-model="newApp.app_title"
-						@input="setAppFields"
-						:required="true"
-					/>
-					<FormControl label="App Route" type="text" variant="outline" v-model="newApp.route" />
-					<FormControl
-						label="App Name"
-						type="text"
-						variant="outline"
-						v-model="newApp.app_name"
-						:placeholder="newApp.app_name_placeholder"
-					/>
-				</div>
-			</template>
-
-			<template #actions>
-				<div class="space-y-1">
-					<ErrorMessage class="mb-2" :message="appCreationError" />
-					<Button variant="solid" label="Create" @click="() => createStudioApp(newApp)" class="w-full" />
-				</div>
-			</template>
-		</Dialog>
+		<AppDialog v-model:showDialog="showAppDialog" :app="activeApp" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
-import { Dialog, FormControl } from "frappe-ui"
-import { useRouter } from "vue-router"
+import { ref, watch } from "vue"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
-import type { NewStudioApp, StudioApp } from "@/types/Studio/StudioApp"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import { openInDesk } from "@/utils/helpers"
 
-const showDialog = ref(false)
-const emptyAppState = {
-	app_title: "",
-	route: "",
-	app_name: "",
-	app_name_placeholder: "",
-}
-const newApp = ref({ ...emptyAppState })
-const router = useRouter()
 const store = useStudioStore()
 
 const searchFilter = ref("")
@@ -169,29 +125,11 @@ const fetchApps = () => {
 
 watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
 
-const appCreationError = ref("")
-const createStudioApp = (app: NewStudioApp) => {
-	studioApps.insert.submit(
-		{
-			app_title: app.app_title,
-			route: app.route,
-			app_name: app.app_name,
-		},
-		{
-			onSuccess(res: StudioApp) {
-				showDialog.value = false
-				appCreationError.value = ""
-				router.push({ name: "StudioApp", params: { appID: res.name } })
-			},
-			onError(error: any) {
-				appCreationError.value = error.messages.join(", ")
-			},
-		},
-	)
-}
-
-function setAppFields(e: Event) {
-	const kebabCasedTitle = (e.target as HTMLInputElement).value.toLowerCase().replace(/\s+/g, "-")
-	newApp.value.route = newApp.value.app_name_placeholder = kebabCasedTitle
-}
+const showAppDialog = ref(false)
+const activeApp = ref()
+watch(showAppDialog, (show) => {
+	if (!show) {
+		activeApp.value = null
+	}
+})
 </script>
