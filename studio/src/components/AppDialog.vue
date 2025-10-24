@@ -68,7 +68,7 @@ const emptyAppState = {
 }
 const activeApp = ref({ ...emptyAppState })
 watch(
-	() => props.app,
+	() => showDialog.value,
 	() => {
 		if (props.app?.name) {
 			activeApp.value = {
@@ -88,7 +88,7 @@ watch(
 const error = ref("")
 const router = useRouter()
 
-const isEditing = computed(() => props.app?.name)
+const isEditing = computed(() => !!props.app?.name)
 
 function handleSave() {
 	if (isEditing.value) {
@@ -119,6 +119,7 @@ const createStudioApp = () => {
 	)
 }
 
+const emit = defineEmits(["update"])
 const updateStudioApp = () => {
 	studioApps.setValue.submit(
 		{
@@ -128,10 +129,11 @@ const updateStudioApp = () => {
 			app_name: activeApp.value.app_name,
 		},
 		{
-			onSuccess() {
+			onSuccess(data: StudioApp) {
 				showDialog.value = false
 				error.value = ""
 				toast.success(`App ${activeApp.value.app_title} updated`)
+				emit("update", data)
 			},
 			onError(error: any) {
 				error.value = error.messages.join(", ")

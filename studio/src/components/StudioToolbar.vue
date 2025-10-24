@@ -14,6 +14,11 @@
 							},
 							{ label: 'View in Desk', onClick: () => openInDesk(store.activeApp!), icon: 'arrow-up-right' },
 							{
+								label: 'App Settings',
+								icon: 'settings',
+								onClick: () => (showAppDialog = true),
+							},
+							{
 								label: 'Delete App',
 								icon: 'trash-2',
 								onClick: () => store.deleteApp(store.activeApp?.app_name!, store.activeApp?.app_title!),
@@ -132,6 +137,11 @@
 				Publish
 			</Button>
 		</div>
+		<AppDialog
+			v-model:showDialog="showAppDialog"
+			:app="store.activeApp"
+			@update="(app) => store.setApp(app.name)"
+		/>
 	</div>
 </template>
 
@@ -157,4 +167,6 @@ const publishing = ref(false)
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
+
+const showAppDialog = ref(false)
 </script>
