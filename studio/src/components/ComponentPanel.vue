@@ -24,20 +24,22 @@
 
 		<template v-if="activeTab === 'Standard'">
 			<EmptyState v-if="!componentList.length" message="No matching components" />
-			<div v-else class="grid grid-cols-3 items-center gap-x-2 gap-y-4">
-				<div v-for="component in componentList" :key="component.name">
+			<div v-else class="grid grid-cols-3 items-start gap-x-2 gap-y-4">
+				<div v-for="component in componentList" :key="component.name" class="flex flex-col">
 					<div
-						class="flex cursor-grab flex-col items-center justify-center gap-2 text-gray-700"
+						class="group flex cursor-grab flex-col items-center justify-center gap-3 text-gray-700 transition-all duration-200 hover:scale-105"
 						draggable="true"
 						@dragstart="(ev) => canvasStore.handleDragStart(ev, component.name)"
 						@dragend="(_ev) => canvasStore.handleDragEnd()"
 					>
 						<div
-							class="flex flex-col items-center justify-center gap-2 truncate rounded border-[1px] border-gray-300 bg-gray-50 p-4 transition duration-300 ease-in-out"
+							class="flex h-16 w-16 flex-col items-center justify-center rounded-lg border border-gray-300 bg-gray-50 p-3 transition-all duration-200 group-hover:border-gray-400 group-hover:bg-gray-100 group-hover:shadow-sm"
 						>
 							<component :is="component.icon" class="h-6 w-6" />
 						</div>
-						<span class="truncate text-xs">{{ component.title }}</span>
+						<span class="wrap-normal w-full text-center text-xs">
+							{{ component.title }}
+						</span>
 					</div>
 				</div>
 			</div>
