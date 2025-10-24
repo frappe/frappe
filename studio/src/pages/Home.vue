@@ -58,32 +58,35 @@
 						:to="{ name: 'StudioApp', params: { appID: app.name } }"
 						:key="app.name"
 					>
-						<div class="flex flex-row justify-between">
+						<div class="group flex flex-row justify-between">
 							<div class="font-semibold text-gray-800">{{ app.app_title }}</div>
-							<Dropdown
-								:options="[
-									{
-										label: 'Edit',
-										onClick: () => {
-											activeApp = app
-											showAppDialog = true
+							<div class="invisible shrink-0 group-hover:visible has-[[data-state=open]]:visible">
+								<Dropdown
+									:options="[
+										{
+											label: 'Edit',
+											onClick: () => {
+												activeApp = app
+												showAppDialog = true
+											},
+											icon: 'edit',
 										},
-										icon: 'edit',
-									},
-									{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
-									{
-										label: 'Delete',
-										onClick: () => store.deleteApp(app.name, app.app_title),
-										icon: 'trash-2',
-									},
-								]"
-								size="sm"
-								placement="right"
-							>
-								<template v-slot="{ open }">
-									<Button icon="more-horizontal" variant="ghost" />
-								</template>
-							</Dropdown>
+										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
+										{
+											label: 'Delete',
+											onClick: () => store.deleteApp(app.name, app.app_title),
+											icon: 'trash-2',
+										},
+									]"
+									:button="{
+										icon: 'more-horizontal',
+										label: 'App Options',
+										variant: 'ghost',
+									}"
+									size="sm"
+									placement="right"
+								/>
+							</div>
 						</div>
 						<UseTimeAgo v-slot="{ timeAgo }" :time="app.creation">
 							<p class="mt-1 block text-xs text-gray-500">Created {{ timeAgo }}</p>
