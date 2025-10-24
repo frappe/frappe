@@ -211,6 +211,7 @@ export default class Grid {
 				for (let ri = (page_index - 1) * page_length; ri < result_length; ri++) {
 					this.grid_rows[ri].select(checked);
 				}
+				this.grid_pagination.save_page_checkbox_state();
 			} else if (docname) {
 				if (e.shiftKey && this.last_checked_docname) {
 					this.check_range(docname, this.last_checked_docname, checked);

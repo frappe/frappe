@@ -150,6 +150,7 @@ export default class GridPagination {
 		} else {
 			this.page_index = index;
 		}
+		this.restore_page_checkbox_state();
 		let $rows = $(this.grid.parent).find(".rows").empty();
 		this.grid.render_result_rows($rows, true);
 		if (this.$page_number) {
@@ -161,6 +162,23 @@ export default class GridPagination {
 		if (!from_refresh) {
 			this.grid.scroll_to_top();
 		}
+	}
+
+	save_page_checkbox_state() {
+		if (!this.page_checkbox_states) {
+			this.page_checkbox_states = {};
+		}
+		this.page_checkbox_states[this.page_index] = this.wrapper
+			.find(".grid-heading-row .grid-row-check")
+			.prop("checked");
+	}
+
+	restore_page_checkbox_state() {
+		if (!this.page_checkbox_states) {
+			return;
+		}
+		const checked = this.page_checkbox_states[this.page_index] === true;
+		this.wrapper.find(".grid-heading-row .grid-row-check").prop("checked", checked);
 	}
 
 	go_to_last_page_to_add_row() {
