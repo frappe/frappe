@@ -93,12 +93,12 @@
 			</section>
 		</div>
 
-		<AppDialog v-model:showDialog="showAppDialog" :app="activeApp" />
+		<AppDialog v-model:showDialog="showAppDialog" :app="activeApp" @after-leave="() => (activeApp = null)" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref } from "vue"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
@@ -127,9 +127,4 @@ watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
 
 const showAppDialog = ref(false)
 const activeApp = ref()
-watch(showAppDialog, (show) => {
-	if (!show) {
-		activeApp.value = null
-	}
-})
 </script>
