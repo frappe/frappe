@@ -29,6 +29,7 @@
 					variant="outline"
 					v-model="activeApp.app_name"
 					:placeholder="activeApp.app_name_placeholder"
+					:disabled="isEditing"
 				/>
 			</div>
 		</template>
