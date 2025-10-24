@@ -383,7 +383,6 @@ class Workspace:
 
 
 @frappe.whitelist()
-@frappe.read_only()
 def get_desktop_page(page):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
