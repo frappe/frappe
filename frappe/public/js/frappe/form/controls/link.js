@@ -441,7 +441,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (newArr.length === 0) return [currElem];
 			let element_with_same_value = newArr.find((e) => e.value === currElem.value);
 			if (element_with_same_value) {
-				element_with_same_value.description += `, ${currElem.description}`;
+				if (currElem.description) {
+					element_with_same_value.description += `, ${currElem.description}`;
+				}
 				return [...newArr];
 			}
 			return [...newArr, currElem];
