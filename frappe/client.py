@@ -398,7 +398,15 @@ def is_document_amended(doctype: str, docname: str):
 
 
 @frappe.whitelist()
-def validate_link(doctype: str, docname: str, fields=None, filters=None, query=None, reference_doctype=None, ignore_user_permissions=False):
+def validate_link(
+	doctype: str,
+	docname: str,
+	fields=None,
+	filters=None,
+	query=None,
+	reference_doctype=None,
+	ignore_user_permissions=False,
+):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
 
@@ -441,7 +449,11 @@ def validate_link(doctype: str, docname: str, fields=None, filters=None, query=N
 			filters = None
 
 		try:
-			ignore_perms = bool(int(ignore_user_permissions)) if isinstance(ignore_user_permissions, (str, int)) else bool(ignore_user_permissions)
+			ignore_perms = (
+				bool(int(ignore_user_permissions))
+				if isinstance(ignore_user_permissions, (str, int))
+				else bool(ignore_user_permissions)
+			)
 		except Exception:
 			ignore_perms = False
 
@@ -450,7 +462,14 @@ def validate_link(doctype: str, docname: str, fields=None, filters=None, query=N
 			matches = frappe.db.exists(doctype, docname)
 		else:
 			try:
-				args = dict(doctype=doctype, filters={"name": docname}, fields=["name"], limit_start=0, limit_page_length=1, as_dict=True)
+				args = dict(
+					doctype=doctype,
+					filters={"name": docname},
+					fields=["name"],
+					limit_start=0,
+					limit_page_length=1,
+					as_dict=True,
+				)
 				if filters:
 					args["filters"] = frappe.get_safe_filters(filters)
 				if reference_doctype:

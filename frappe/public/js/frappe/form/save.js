@@ -20,12 +20,13 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		if ((action !== "Save" || frm.is_dirty()) && frappe.ui.form.check_mandatory(frm)) {
 			var wait_for_pending_validations = function () {
 				var pending = [];
-				frm.fields && frm.fields.forEach(function (field) {
-					var control = field.control;
-					if (control && control._pending_validation) {
-						pending.push(control._pending_validation);
-					}
-				});
+				frm.fields &&
+					frm.fields.forEach(function (field) {
+						var control = field.control;
+						if (control && control._pending_validation) {
+							pending.push(control._pending_validation);
+						}
+					});
 				return pending.length ? Promise.all(pending) : Promise.resolve();
 			};
 

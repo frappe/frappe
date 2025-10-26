@@ -179,7 +179,9 @@ class TestClient(IntegrationTestCase):
 
 		todo = frappe.get_doc(doctype="ToDo", description="filter-test").insert()
 		try:
-			res = validate_link("ToDo", todo.name, fields=["name"], filters={"description": "non-existent-description"})
+			res = validate_link(
+				"ToDo", todo.name, fields=["name"], filters={"description": "non-existent-description"}
+			)
 			self.assertFalse(res.get("name"))
 		finally:
 			frappe.delete_doc("ToDo", todo.name)

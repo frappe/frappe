@@ -47,6 +47,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					const pasted_label = me.get_label_value();
 					me.parse_validate_and_set_in_model(pasted_value, null, pasted_label);
 				} catch (err) {
+					// ignore parse errors
 				}
 			}, 0);
 		});
@@ -720,23 +721,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 				if (search_args.filters) args.filters = search_args.filters;
 				if (search_args.query) args.query = search_args.query;
-				if (search_args.reference_doctype) args.reference_doctype = search_args.reference_doctype;
+				if (search_args.reference_doctype)
+					args.reference_doctype = search_args.reference_doctype;
 				if (search_args.ignore_user_permissions !== undefined)
 					args.ignore_user_permissions = search_args.ignore_user_permissions;
 			} catch (e) {
+				// ignore query computation errors
 			}
 
 			return frappe
-				.xcall("frappe.client.validate_link", args, "GET", { cache: !columns_to_fetch.length })
+				.xcall("frappe.client.validate_link", args, "GET", {
+					cache: !columns_to_fetch.length,
+				})
 				.then((response) => {
 					if (!response || !response.name) {
 						this.df.invalid = true;
 						this.set_invalid && this.set_invalid();
 						frappe.msgprint({
-							message: __(
-								"Entered value does not match allowed options for {0}",
-								[__(this.df.label || this.df.fieldname)]
-							),
+							message: __("Entered value does not match allowed options for {0}", [
+								__(this.df.label || this.df.fieldname),
+							]),
 							indicator: "orange",
 						});
 						return "";
