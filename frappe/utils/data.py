@@ -2007,6 +2007,41 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
 
 
+def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:
+	"""
+	Get a filtered list view URL for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+
+	:return: URL to the filtered list view
+	"""
+	list_url = get_url_to_list(doctype)
+
+	if not docnames:
+		return list_url
+
+	return "".join((list_url, "?", urlencode({"name": json.dumps(["in", docnames])})))
+
+
+def get_filtered_list_link(doctype: str, docnames: list[str] | None = None, label: str | None = None) -> str:
+	"""
+	Get an HTML link to a filtered list view for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+	:param label: Optional label for the link. If not provided, uses doctype
+
+	:return: HTML link to the filtered list view
+	"""
+	from frappe import _
+
+	url = get_filtered_list_url(doctype, docnames)
+	label = label or _(doctype)
+
+	return f"""<a href="{url}">{label}</a>"""
+
+
 def sql_like(value: str, pattern: str) -> bool:
 	if not (isinstance(pattern, str) and isinstance(value, str)):
 		return False
