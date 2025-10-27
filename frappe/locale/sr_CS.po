@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-12 09:32+0000\n"
-"PO-Revision-Date: 2025-10-20 03:05\n"
+"PO-Revision-Date: 2025-10-27 05:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -19824,12 +19824,12 @@ msgstr "Pregled:"
 #: frappe/templates/includes/slideshow.html:34
 #: frappe/website/web_template/slideshow/slideshow.html:40
 msgid "Previous"
-msgstr "Prethodni"
+msgstr "Prethodno"
 
 #: frappe/public/js/frappe/ui/slides.js:351
 msgctxt "Go to previous slide"
 msgid "Previous"
-msgstr "Prethodni"
+msgstr "Prethodno"
 
 #: frappe/public/js/frappe/form/form.js:2229
 msgid "Previous Submission"
