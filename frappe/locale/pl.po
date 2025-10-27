@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-12 09:32+0000\n"
-"PO-Revision-Date: 2025-10-26 04:58\n"
+"PO-Revision-Date: 2025-10-27 05:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -72,7 +72,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1355
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr "'In Global Search' niedozwolone dla typu {0} w wierszu {1}"
+msgstr ""
 
 #: frappe/public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -1322,7 +1322,7 @@ msgstr "Dodaj {0}"
 #: frappe/public/js/frappe/list/list_view.js:289
 msgctxt "Primary action in list view"
 msgid "Add {0}"
-msgstr "Dodaj {0}"
+msgstr "Dodaj"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -2671,7 +2671,7 @@ msgstr "Załącz wydruk dokumentu"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Attach Image"
-msgstr "Dołącz obrazek"
+msgstr "Załącz obrazek"
 
 #. Label of the attach_package (Attach) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -2699,7 +2699,7 @@ msgstr "Załączony plik"
 #. Label of the attached_to_doctype (Link) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To DocType"
-msgstr "Dołączone Do DocType"
+msgstr "Dołączono do DocType"
 
 #. Label of the attached_to_field (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -16563,7 +16563,7 @@ msgstr ""
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
-msgstr ""
+msgstr "Nowe aktualizacje są dostępne"
 
 #. Description of the 'Disable signups' (Check) field in DocType 'Website
 #. Settings'
@@ -16575,7 +16575,7 @@ msgstr ""
 #. Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "New value to be set"
-msgstr "Wstawiam nową wartość"
+msgstr "Nowa wartość do ustawienia"
 
 #: frappe/public/js/frappe/form/quick_entry.js:179
 #: frappe/public/js/frappe/form/toolbar.js:37
@@ -16591,11 +16591,11 @@ msgstr "Wstawiam nową wartość"
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
 #: frappe/website/doctype/web_form/web_form.py:438
 msgid "New {0}"
-msgstr ""
+msgstr "Nowy rekord \"{0}\""
 
 #: frappe/public/js/frappe/views/reports/query_report.js:393
 msgid "New {0} Created"
-msgstr ""
+msgstr "Nowy rekord \"{0}\" utworzono"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:385
 msgid "New {0} {1} added to Dashboard {2}"
@@ -19737,7 +19737,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Print Format"
-msgstr ""
+msgstr "Format wydruku"
 
 #. Label of a Link in the Tools Workspace
 #. Label of the print_format_builder (Check) field in DocType 'Print Format'
@@ -19777,12 +19777,12 @@ msgstr ""
 #. Label of the print_format_help (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Help"
-msgstr "Format Drukuj Pomoc"
+msgstr ""
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Type"
-msgstr "Drukuj Typ Formatu"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1605
 msgid "Print Format not found"
@@ -20439,7 +20439,7 @@ msgstr "Raw email"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Raw Printing"
-msgstr "Drukowanie surowe"
+msgstr ""
 
 #: frappe/printing/page/print/print.js:178
 msgid "Raw Printing Setting"
@@ -21091,11 +21091,11 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:493
 msgid "Remove Field"
-msgstr ""
+msgstr "Usuń pole"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:427
 msgid "Remove Section"
-msgstr ""
+msgstr "Usuń sekcję"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:138
 msgid "Remove all customizations?"
@@ -21109,7 +21109,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/datatable.js:9
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:120
 msgid "Remove column"
-msgstr ""
+msgstr "Usuń kolumnę"
 
 #: frappe/public/js/form_builder/components/Field.vue:260
 msgid "Remove field"
@@ -21121,12 +21121,12 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:130
 msgid "Remove page break"
-msgstr ""
+msgstr "Usuń podział strony"
 
 #: frappe/public/js/form_builder/components/Section.vue:266
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:135
 msgid "Remove section"
-msgstr ""
+msgstr "Usuń sekcję"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:140
 msgid "Remove tab"
@@ -21586,7 +21586,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:21
 #: frappe/public/js/workflow_builder/workflow_builder.bundle.js:37
 msgid "Reset Changes"
-msgstr ""
+msgstr "Zresetuj zmiany"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:306
 msgid "Reset Chart"
@@ -21818,13 +21818,13 @@ msgstr ""
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Right"
-msgstr ""
+msgstr "Prawo"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:484
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:156
 msgctxt "alignment"
 msgid "Right"
-msgstr ""
+msgstr "Prawo"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -22642,7 +22642,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:87
 msgid "Search fields"
-msgstr ""
+msgstr "Pola wyszukiwania"
 
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:19
 msgid "Search fieldtypes..."
@@ -22710,7 +22710,7 @@ msgstr "Podział Sekcji"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:421
 msgid "Section Heading"
-msgstr ""
+msgstr "Nagłówek sekcji"
 
 #. Label of the section_id (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -22720,7 +22720,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Section.vue:28
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:8
 msgid "Section Title"
-msgstr ""
+msgstr "Tytuł sekcji"
 
 #: frappe/public/js/form_builder/components/Section.vue:217
 #: frappe/public/js/form_builder/components/Section.vue:240
@@ -22823,7 +22823,7 @@ msgstr ""
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:42
 #: frappe/public/js/frappe/form/print_utils.js:73
 msgid "Select Columns"
-msgstr ""
+msgstr "Wybierz kolumny"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:399
 msgid "Select Country"
@@ -22859,7 +22859,7 @@ msgstr "Wybierz DocType"
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:50
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:50
 msgid "Select Document Type"
-msgstr ""
+msgstr "Wybierz typ dokumentu"
 
 #: frappe/core/page/permission_manager/permission_manager.js:179
 msgid "Select Document Type or Role to start."
@@ -22947,11 +22947,11 @@ msgstr ""
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:68
 #: frappe/public/js/frappe/views/communication.js:160
 msgid "Select Print Format"
-msgstr ""
+msgstr "Wybierz format wydruku"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:82
 msgid "Select Print Format to Edit"
-msgstr ""
+msgstr "Wybierz format wydruku do edycji"
 
 #. Label of the report_name (Link) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -22960,7 +22960,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:631
 msgid "Select Table Columns for {0}"
-msgstr ""
+msgstr "Wybierz kolumny tabeli dla {0}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:408
 msgid "Select Time Zone"
@@ -22993,7 +22993,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:108
 msgid "Select a DocType to make a new format"
-msgstr ""
+msgstr "Wybierz DocType, aby utworzyć nowy format"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:56
 msgid "Select a field to edit its properties."
@@ -23021,7 +23021,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
-msgstr ""
+msgstr "Wybierz istniejący format, aby edytować lub utworzyć nowy format."
 
 #. Description of the 'Brand Image' (Attach Image) field in DocType 'Website
 #. Settings'
@@ -23075,7 +23075,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_view_select.js:153
 #: frappe/public/js/print_format_builder/Preview.vue:90
 msgid "Select {0}"
-msgstr ""
+msgstr "Wybierz {0}"
 
 #: frappe/model/workflow.py:120
 msgid "Self approval is not allowed"
@@ -23522,7 +23522,7 @@ msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
-msgstr ""
+msgstr "Ustaw właściwości"
 
 #. Label of the property_section (Section Break) field in DocType
 #. 'Notification'
@@ -23806,7 +23806,7 @@ msgstr ""
 #. Label of the absolute_value (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Absolute Values"
-msgstr ""
+msgstr "Pokaż wartości bezwzględne"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:73
 msgid "Show All"
@@ -23902,7 +23902,7 @@ msgstr ""
 #. Label of the line_breaks (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Line Breaks after Sections"
-msgstr "Pokaż podziały wiersza po sekcji"
+msgstr ""
 
 #: frappe/public/js/frappe/form/toolbar.js:410
 msgid "Show Links"
@@ -23927,7 +23927,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:18
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Show Preview"
-msgstr ""
+msgstr "Pokaż podgląd"
 
 #. Label of the show_preview_popup (Check) field in DocType 'DocType'
 #. Label of the show_preview_popup (Check) field in DocType 'Customize Form'
@@ -23966,7 +23966,7 @@ msgstr ""
 #. Label of the show_section_headings (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Section Headings"
-msgstr "Pokaż Sekcja Nagłówki"
+msgstr ""
 
 #. Label of the show_sidebar (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -25746,7 +25746,7 @@ msgstr ""
 #. Template'
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
 msgid "Template File"
-msgstr ""
+msgstr "Plik szablonu"
 
 #. Label of the template_options (Code) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -29223,11 +29223,11 @@ msgstr ""
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:8
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:11
 msgid "Width"
-msgstr ""
+msgstr "Szerokość"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr ""
+msgstr "Szerokości można ustawić w px lub %."
 
 #. Label of the wildcard_filter (Check) field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
@@ -30911,7 +30911,7 @@ msgstr ""
 #. Option for the 'PDF Generator' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "wkhtmltopdf"
-msgstr ""
+msgstr "wkhtmltopdf"
 
 #: frappe/printing/page/print/print.js:662
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
