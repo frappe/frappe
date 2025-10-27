@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import TYPE_CHECKING
 
 import frappe
+from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (
 	cint,
@@ -236,7 +237,7 @@ class EMail:
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 
-		maintype, subtype = mime_type.split("/")
+		_maintype, subtype = mime_type.split("/")
 		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
 
 		if as_attachment:
@@ -314,6 +315,16 @@ class EMail:
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
 		self.set_header("In-Reply-To", in_reply_to)
+
+	def add_headers(self, headers):
+		"""Add custom headers to the email"""
+		if not isinstance(headers, dict):
+			frappe.throw(_("Headers must be a dictionary"))
+
+		for key, value in headers.items():
+			if value is not None:
+				key = "X-" + key if not key.startswith("X-") else key
+				self.set_header(key, value)
 
 	def make(self):
 		"""build into msg_root"""
@@ -434,7 +445,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 	from email.mime.text import MIMEText
 
 	if not content_type:
-		content_type, encoding = mimetypes.guess_type(fname)
+		content_type, _encoding = mimetypes.guess_type(fname)
 
 	if not parent:
 		return
@@ -586,7 +597,7 @@ def get_header(header=None):
 	if not title:
 		title = frappe.get_hooks("app_title")[-1]
 
-	email_header, text = get_email_from_template(
+	email_header, _text = get_email_from_template(
 		"email_header", {"header_title": title, "indicator": indicator}
 	)
 

@@ -864,6 +864,20 @@ def pull(now=False):
 				)
 
 
+@frappe.whitelist()
+def pull_emails(email_account: str) -> None:
+	"""Pull emails from given email account."""
+	frappe.has_permission("Email Account", "read", throw=True)
+
+	job_name = f"pull_from_email_account|{email_account}"
+	queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+
+	if job_name not in queued_jobs:
+		pull_from_email_account(email_account)
+	else:
+		frappe.msgprint(_("Emails are already being pulled from this account."))
+
+
 def pull_from_email_account(email_account):
 	"""Runs within a worker process"""
 	email_account = frappe.get_doc("Email Account", email_account)

@@ -95,7 +95,7 @@
   },
   {
    "fieldname": "link",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Link"
   }
@@ -103,7 +103,7 @@
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2024-08-03 09:38:10.497711",
+ "modified": "2025-05-30 20:17:44.969738",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",

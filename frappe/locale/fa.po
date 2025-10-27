@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-05-26 04:27\n"
+"PO-Revision-Date: 2025-06-02 05:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1192,7 +1192,7 @@ msgstr "افزودن یک نقش جدید"
 
 #: frappe/public/js/frappe/form/form_tour.js:211
 msgid "Add a Row"
-msgstr ""
+msgstr "افزودن یک ردیف"
 
 #: frappe/templates/includes/comments/comments.html:30
 #: frappe/templates/includes/comments/comments.html:47
@@ -2125,7 +2125,7 @@ msgstr "افزودن به می‌تواند یکی از {0} باشد"
 #. Description of the 'Append To' (Link) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype."
-msgstr "به عنوان ارتباط در مقابل این DocType اضافه شود (باید دارای فیلدهای: \"فرستنده\" و \"موضوع\"). این فیلدها را می‌توان در قسمت تنظیمات ایمیل از doctype ضمیمه شده تعریف کرد."
+msgstr "به عنوان ارتباط در مقابل این DocType اضافه شود (باید دارای فیلدهای: \"فرستنده\" و \"موضوع\"). این فیلدها را می‌توان در قسمت تنظیمات ایمیل از doctype پیوست شده تعریف کرد."
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:105
 msgid "Applicable Document Types"
@@ -2531,7 +2531,7 @@ msgstr "پیوست"
 
 #: frappe/public/js/frappe/views/communication.js:143
 msgid "Attach Document Print"
-msgstr "ضمیمه چاپ سند"
+msgstr "پیوست چاپ سند"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2567,7 +2567,7 @@ msgstr "فایل ها / آدرس ها را پیوست کنید و در جدول 
 #. Label of a Code field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Attached File"
-msgstr "فایل ضمیمه شده"
+msgstr "فایل پیوست شده"
 
 #. Label of a Link field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -5481,7 +5481,7 @@ msgstr "ماژول های اصلی {0} را نمی‌توان در جستجوی 
 
 #: frappe/printing/page/print/print.js:620
 msgid "Correct version :"
-msgstr ""
+msgstr "نسخه صحیح:"
 
 #: frappe/email/smtp.py:78
 msgid "Could not connect to outgoing email server"
@@ -5623,7 +5623,7 @@ msgstr "ایجاد ثبت"
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
 msgid "Create Letter Head"
-msgstr ""
+msgstr "ایجاد سربرگ"
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -10656,7 +10656,7 @@ msgstr "صفحه ساز Frappe با استفاده از کامپوننت ها"
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:112
 msgctxt "Image Cropper"
 msgid "Free"
-msgstr "رایگان"
+msgstr "آزاد"
 
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Scheduled Job Type'
@@ -17563,7 +17563,7 @@ msgstr "اپراتور باید یکی از {0} باشد"
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:27
 msgid "Optimize"
-msgstr "بهینه سازی کنید"
+msgstr "بهینه‌سازی"
 
 #: frappe/core/doctype/file/file.js:96
 msgid "Optimizing image..."

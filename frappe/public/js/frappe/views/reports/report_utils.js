@@ -176,6 +176,11 @@ frappe.report_utils = {
 				reqd: 1,
 			},
 			{
+				label: __("Export in Background"),
+				fieldname: "export_in_background",
+				fieldtype: "Check",
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "csv_settings",
 				label: "Settings",

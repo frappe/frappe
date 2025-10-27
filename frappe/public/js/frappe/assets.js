@@ -93,10 +93,14 @@ class AssetManager {
 
 		let fetched_assets = {};
 		async function fetch_item(path) {
-			// Add the version to the URL to bust the cache for non-bundled assets
 			let url = new URL(path, window.location.origin);
 
-			if (!path.includes(".bundle.") && !url.searchParams.get("v")) {
+			// Add the version to the URL to bust the cache for non-bundled assets
+			if (
+				url.hostname === window.location.hostname &&
+				!path.includes(".bundle.") &&
+				!url.searchParams.get("v")
+			) {
 				url.searchParams.append("v", version_string);
 			}
 			const response = await fetch(url.toString());

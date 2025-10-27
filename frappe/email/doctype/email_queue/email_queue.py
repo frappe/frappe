@@ -505,6 +505,7 @@ class QueueBuilder:
 		with_container=False,
 		email_read_tracker_url=None,
 		x_priority: Literal[1, 3, 5] = 3,
+		email_headers=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -531,6 +532,7 @@ class QueueBuilder:
 		:param with_container: Wraps email inside styled container
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -567,6 +569,7 @@ class QueueBuilder:
 		self.inline_images = inline_images
 		self.print_letterhead = print_letterhead
 		self.email_read_tracker_url = email_read_tracker_url
+		self.email_headers = email_headers
 
 	@property
 	def unsubscribe_method(self):
@@ -719,10 +722,15 @@ class QueueBuilder:
 		)
 
 		mail.set_message_id(self.message_id, self.is_notification)
+
+		if self.email_headers:
+			mail.add_headers(self.email_headers)
+
 		if self.read_receipt:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
-			mail.set_in_reply_to(self.in_reply_to)
+			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
+				mail.set_in_reply_to(get_string_between("<", message_id, ">"))
 		return mail
 
 	def process(self, send_now=False) -> EmailQueue | None:

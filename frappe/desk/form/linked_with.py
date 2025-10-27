@@ -42,7 +42,7 @@ def get_submitted_linked_docs(doctype: str, name: str, ignore_doctypes_on_cancel
 	if isinstance(ignore_doctypes_on_cancel_all, str):
 		ignore_doctypes_on_cancel_all = json.loads(ignore_doctypes_on_cancel_all)
 
-	frappe.has_permission(doctype, doc=name)
+	frappe.has_permission(doctype, doc=name, throw=True)
 	tree = SubmittableDocumentTree(doctype, name)
 	visited_documents = tree.get_all_children(ignore_doctypes_on_cancel_all)
 	docs = []
@@ -523,7 +523,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 @frappe.whitelist()
 def get(doctype, docname):
-	frappe.has_permission(doctype, doc=docname)
+	frappe.has_permission(doctype, doc=docname, throw=True)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 
@@ -622,8 +622,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		"DocField", fields=["parent", "options"], filters=child_filters, as_list=1
 	):
 		ret[parent] = {"child_doctype": options, "fieldname": links_dict[options]}
-		if options in ret:
-			del ret[options]
+		ret.pop(options, None)
 
 	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
 	for dt in virtual_doctypes:

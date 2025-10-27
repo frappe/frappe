@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-29 19:40\n"
+"PO-Revision-Date: 2025-06-05 06:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -13679,7 +13679,7 @@ msgstr "Tüm güncelleme akışlarını takip edin"
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr ""
+msgstr "Tüm iletişimleri takip eder"
 
 #. Label of a Data field in DocType 'DefaultValue'
 #. Label of a Data field in DocType 'Document Share Key'

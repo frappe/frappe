@@ -1,6 +1,6 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-""" Patch Handler.
+"""Patch Handler.
 
 This file manages execution of manaully written patches. Patches are script
 that apply changes in database schema or data to accomodate for changes in the
@@ -176,7 +176,7 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	)
 
 	start_time = time.monotonic()
-	frappe.db.begin()
+	frappe.db.commit()
 	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:

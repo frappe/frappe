@@ -68,6 +68,9 @@ class HTTPRequest:
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
 
+		elif frappe.request and getattr(frappe.request, "remote_addr", None):
+			frappe.local.request_ip = frappe.request.remote_addr
+
 		else:
 			frappe.local.request_ip = "127.0.0.1"
 
@@ -99,7 +102,7 @@ class HTTPRequest:
 
 
 class LoginManager:
-	__slots__ = ("user", "info", "full_name", "user_type", "resume")
+	__slots__ = ("full_name", "info", "resume", "user", "user_type")
 
 	def __init__(self):
 		self.user = None
@@ -655,7 +658,7 @@ def validate_oauth(authorization_header):
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(
 			get_url_delimiter()
 		)
-		valid, oauthlib_request = get_oauth_server().verify_request(
+		valid, _oauthlib_request = get_oauth_server().verify_request(
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
@@ -693,6 +696,9 @@ def validate_auth_via_api_keys(authorization_header):
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
+	if not api_key or not api_secret:
+		raise frappe.AuthenticationError
+
 	doctype = frappe_authorization_source or "User"
 	docname = frappe.db.get_value(
 		doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
@@ -700,8 +706,8 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 	if not docname:
 		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict
-	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret")
-	if api_secret == doc_secret:
+	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret", raise_exception=False)
+	if doc_secret and api_secret == doc_secret:
 		if doctype == "User":
 			user = frappe.db.get_value(doctype="User", filters={"api_key": api_key}, fieldname=["name"])
 		else:

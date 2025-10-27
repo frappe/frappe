@@ -41,7 +41,7 @@ def make_home_folder() -> None:
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:
-	file: "File" = frappe.get_doc("File", filename)
+	file: File = frappe.get_doc("File", filename)
 	file.folder = new_parent
 	file.save()
 
@@ -360,7 +360,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			)
 			continue
 
-		file: "File" = frappe.get_doc(
+		file: File = frappe.get_doc(
 			doctype="File",
 			file_url=value,
 			attached_to_name=doc.name,
@@ -438,6 +438,6 @@ def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
-		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-03-31 17:42\n"
+"PO-Revision-Date: 2025-06-06 06:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -628,7 +628,18 @@ msgid "<pre>*  *  *  *  *\n"
 "* - Any value\n"
 "/ - Step values\n"
 "</pre>\n"
-msgstr ""
+msgstr "<pre>* * * * *\n"
+"┬ ┬ ┬ ┬ ┬\n"
+"│ │ │ │ │\n"
+"│ │ │ │ └ jour de la semaine (0 - 6) (0 est dimanche)\n"
+"│ │ │ └───── mois (1 - 12)\n"
+"│ │ └────────── jour du mois (1 - 31)\n"
+"│ └──────────────── heure (0 - 23)\n"
+"└──────────────────── minute (0 - 59)\n\n"
+"---\n\n"
+"* - Toute valeur\n"
+"/ - Valeurs d'étape\n"
+"</pre>\n"
 
 #. Content of the 'Example' (HTML) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -1225,7 +1236,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr ""
+msgstr "Ajout multiple"
 
 #: frappe/core/page/permission_manager/permission_manager.js:438
 msgid "Add New Permission Rule"
@@ -1755,7 +1766,7 @@ msgstr "Autoriser la Modification en Masse"
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow Bulk Editing"
-msgstr ""
+msgstr "Autoriser l'édition en masse"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1918,7 +1929,8 @@ msgstr "Autoriser la création de documents par e-mail"
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Allow editing even if the doctype has a workflow set up.\n\n"
 "Does nothing if a workflow isn't set up."
-msgstr ""
+msgstr "Autoriser l'édition même s'il existe workflow configuré.\n\n"
+"Ne fais rien si un flux de travail n'est pas configuré."
 
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -2002,7 +2014,7 @@ msgstr ""
 #. Label of a Table MultiSelect field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Allowed Roles"
-msgstr ""
+msgstr "Rôles Autorisés"
 
 #. Label of a Small Text field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2456,11 +2468,11 @@ msgstr "Voulez-vous vraiment réinitialiser toutes les personnalisations?"
 
 #: frappe/workflow/doctype/workflow/workflow.js:125
 msgid "Are you sure you want to save this document?"
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir enregistrer ce document ?"
 
 #: frappe/email/doctype/newsletter/newsletter.js:60
 msgid "Are you sure you want to send this newsletter now?"
-msgstr ""
+msgstr "Etes-vous sûr de vouloir envoyer cette newsletter maintenant ?"
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:16
 #: frappe/core/doctype/user_permission/user_permission_list.js:165
@@ -2505,7 +2517,7 @@ msgstr "Attribuer À"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:180
 msgid "Assign To User Group"
-msgstr ""
+msgstr "Affecter au groupe d'utilisateurs"
 
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -2514,7 +2526,7 @@ msgstr "Attribuer aux utilisateurs"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:258
 msgid "Assign a user"
-msgstr ""
+msgstr "Affecter un utilisateur"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.js:52
 msgid "Assign one by one, in sequence"
@@ -2564,7 +2576,7 @@ msgstr "Assigné À /Responsable"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:267
 msgid "Assigning..."
-msgstr ""
+msgstr "Affectation en cours..."
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -2686,7 +2698,7 @@ msgstr "Joindre l'Impression"
 
 #: frappe/public/js/frappe/file_uploader/WebLink.vue:10
 msgid "Attach a web link"
-msgstr ""
+msgstr "Joindre un lien Web"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:8
 msgid "Attach files / urls and add in table."
@@ -2907,7 +2919,7 @@ msgstr "Répétition automatique"
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json
 msgid "Auto Repeat Day"
-msgstr ""
+msgstr "Jour de répétition automatique"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:165
 msgid "Auto Repeat Day{0} {1} has been repeated."
@@ -2919,7 +2931,7 @@ msgstr "La répétition automatique de la création de document a échoué"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:115
 msgid "Auto Repeat Schedule"
-msgstr ""
+msgstr "Planification de répétition automatique"
 
 #: frappe/public/js/frappe/utils/common.js:434
 msgid "Auto Repeat created for this document"
@@ -2970,7 +2982,7 @@ msgstr "Suivi automatique des documents que vous créez"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:227
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "La répétition automatique a échoué. Veuillez activer la répétition automatique après avoir résolu les problèmes."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3001,7 +3013,7 @@ msgstr "Message automatique"
 #: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/ui/theme_switcher.js:69
 msgid "Automatic"
-msgstr ""
+msgstr "Automatique"
 
 #: frappe/email/doctype/email_account/email_account.py:715
 msgid "Automatic Linking can be activated only for one Email Account."
@@ -3014,11 +3026,11 @@ msgstr "La liaison automatique ne peut être activée que si l&#39;option Entran
 #. Description of a DocType
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Automatically Assign Documents to Users"
-msgstr ""
+msgstr "Affecter automatiquement des documents aux utilisateurs"
 
 #: frappe/public/js/frappe/list/list_view.js:131
 msgid "Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
-msgstr ""
+msgstr "Application automatique d'un filtre pour les données récentes. Vous pouvez désactiver ce comportement dans les paramètres de l'affichage de la liste."
 
 #. Label of a Int field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3077,7 +3089,7 @@ msgstr "En attente Mot de Passe"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
-msgstr ""
+msgstr "Excellent travail"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:358
 msgid "Awesome, now try making an entry yourself"
@@ -3191,7 +3203,7 @@ msgstr "Travaux en Arrière-plan"
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Jobs Check"
-msgstr ""
+msgstr "Vérification des Travaux en Arrière-plan"
 
 #. Label of a Autocomplete field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -3200,7 +3212,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/bulk_operations.js:87
 msgid "Background Print (required for >25 documents)"
-msgstr ""
+msgstr "Impression en tache d'arrière-plan (obligatoire pour > 25 documents)"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Table field in DocType 'System Health Report'
@@ -3211,7 +3223,7 @@ msgstr "Exécution d'Opérations en Arrière-Plan"
 
 #: frappe/integrations/doctype/google_drive/google_drive.py:172
 msgid "Backing up Data."
-msgstr ""
+msgstr "Sauvegarde des données."
 
 #: frappe/integrations/doctype/google_drive/google_drive.js:32
 msgid "Backing up to Google Drive."
@@ -3273,11 +3285,11 @@ msgstr "Sauvegardes"
 #. Label of a Float field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Backups (MB)"
-msgstr ""
+msgstr "Sauvegardes (MB)"
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:67
 msgid "Bad Cron Expression"
-msgstr ""
+msgstr "Expression cron incorrecte"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -3314,7 +3326,7 @@ msgstr "La Bannière est au-dessus de la Barre de Menu Supérieure."
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Bar"
-msgstr ""
+msgstr "Bar"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3558,7 +3570,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Blue"
-msgstr ""
+msgstr "Bleue"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -3972,7 +3984,7 @@ msgstr "Caméra"
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
-msgstr ""
+msgstr "Campagne"
 
 #. Label of a Small Text field in DocType 'Marketing Campaign'
 #: frappe/website/doctype/marketing_campaign/marketing_campaign.json
@@ -5899,7 +5911,7 @@ msgstr "Format Cron"
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:61
 msgid "Cron format is required for job types with Cron frequency."
-msgstr ""
+msgstr "Le format Cron est requis pour les types de tâches avec fréquence Cron."
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:34
 msgid "Crop"
@@ -7104,7 +7116,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #. Description of the 'Blog Intro' (Small Text) field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -7230,7 +7242,7 @@ msgstr "Désactiver l&#39;actualisation automatique"
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr ""
+msgstr "Désactiver les filtres automatiques de récurrence"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -8481,7 +8493,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/www/login.html:7 frappe/www/login.py:102
 msgid "Email"
-msgstr ""
+msgstr "Courriel"
 
 #. Label of a Link in the Tools Workspace
 #. Label of a Link field in DocType 'Communication'
@@ -16768,7 +16780,7 @@ msgstr "Pas de courrier {0}"
 #: frappe/public/js/frappe/form/grid_row.js:252
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr ""
+msgstr "N°."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -16973,7 +16985,7 @@ msgstr "Non autorisé à afficher {0}"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/note/note.json
 msgid "Note"
-msgstr ""
+msgstr "Note"
 
 #. Name of a DocType
 #: frappe/desk/doctype/note_seen_by/note_seen_by.json
@@ -17388,7 +17400,7 @@ msgstr ""
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "On Hold"
-msgstr ""
+msgstr "En attente"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -17858,7 +17870,7 @@ msgstr "Sortie"
 #: frappe/desk/page/user_profile/user_profile.html:6
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
-msgstr ""
+msgstr "Vue d'ensemble"
 
 #: frappe/core/report/transaction_log_report/transaction_log_report.py:100
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.js:42
@@ -20946,7 +20958,7 @@ msgstr "Type de Rapport"
 
 #: frappe/public/js/frappe/list/base_list.js:202
 msgid "Report View"
-msgstr ""
+msgstr "Vue rapport"
 
 #: frappe/core/doctype/doctype/doctype.py:1772
 msgid "Report cannot be set for Single types"
@@ -28799,7 +28811,7 @@ msgstr "L&#39;action de flux de travail n&#39;est pas créée pour les états fa
 #: frappe/workflow/doctype/workflow/workflow.js:25
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:4
 msgid "Workflow Builder"
-msgstr ""
+msgstr "Constructeur de Workflow"
 
 #. Label of a Data field in DocType 'Workflow Document State'
 #. Label of a Data field in DocType 'Workflow Transition'
@@ -31019,7 +31031,7 @@ msgstr "Réduire"
 
 #: frappe/desk/doctype/event/event.js:87
 msgid "{0}"
-msgstr ""
+msgstr "{0}"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:193
 msgid "{0} ${skip_list ? \"\" : type}"
@@ -31438,7 +31450,7 @@ msgstr ""
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:66
 msgid "{0} is not a valid Cron expression."
-msgstr ""
+msgstr "{0} n'est pas une expression Cron valide."
 
 #: frappe/public/js/frappe/form/controls/dynamic_link.js:27
 msgid "{0} is not a valid DocType for Dynamic Link"

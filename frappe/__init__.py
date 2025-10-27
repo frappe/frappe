@@ -51,7 +51,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.69.3"
+__version__ = "15.86.0"
 __title__ = "Frappe Framework"
 
 # This if block is never executed when running the code. It is only used for
@@ -711,6 +711,7 @@ def sendmail(
 	with_container=False,
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
+	email_headers=None,
 ) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -739,6 +740,7 @@ def sendmail(
 	:param header: Append header in email
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	"""
 
 	if recipients is None:
@@ -795,6 +797,7 @@ def sendmail(
 		with_container=with_container,
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
+		email_headers=email_headers,
 	)
 
 	# build email queue and send the email if send_now is True.
@@ -860,7 +863,7 @@ def is_whitelisted(method):
 	from frappe.utils import sanitize_html
 
 	is_guest = session["user"] == "Guest"
-	if method not in whitelisted or is_guest and method not in guest_methods:
+	if method not in whitelisted or (is_guest and method not in guest_methods):
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
@@ -1305,6 +1308,15 @@ def get_doc(*args, **kwargs):
 	return frappe.model.document.get_doc(*args, **kwargs)
 
 
+def get_single_value(setting: str, fieldname: str, /, *, as_dict: bool = False):
+	"""Return the cached value associated with the given fieldname from single DocType.
+
+	Usage:
+	        telemetry_enabled = frappe.get_single_value("System Settings", "telemetry_enabled")
+	"""
+	return get_cached_value(setting, setting, fieldname=fieldname, as_dict=as_dict)
+
+
 def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
@@ -1548,8 +1560,8 @@ def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 
 
 def get_doc_hooks():
-	"""Returns hooked methods for given doc. It will expand the dict tuple if required."""
-	if not hasattr(local, "doc_events_hooks"):
+	"""Return hooked methods for given doc. Expand the dict tuple if required."""
+	if not getattr(local, "doc_events_hooks", None):
 		hooks = get_hooks("doc_events", {})
 		out = {}
 		for key, value in hooks.items():
@@ -1782,7 +1794,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_property_setter(
-	args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True
+	args, ignore_validate=False, validate_fields_for_doctype=True, is_system_generated=True, *, module=None
 ):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).
 
@@ -1821,6 +1833,7 @@ def make_property_setter(
 				"doctype": "Property Setter",
 				"doctype_or_field": args.doctype_or_field,
 				"doc_type": doctype,
+				"module": module,
 				"field_name": args.fieldname,
 				"row_name": args.row_name,
 				"property": args.property,
@@ -2286,16 +2299,30 @@ def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_
 	)
 
 
-def get_desk_link(doctype, name, show_title_with_name=False):
+def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
+	from urllib.parse import quote
+
 	meta = get_meta(doctype)
 	title = get_value(doctype, name, meta.get_title_field())
 
-	if show_title_with_name and name != title:
-		html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
-	else:
-		html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {title_local}</a>'
+	target_attr = ' target="_blank"' if open_in_new_tab else ""
 
-	return html.format(doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title))
+	# encode for href
+	encoded_name = quote(name)
+
+	if show_title_with_name and name != title:
+		html = '<a href="/app/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
+	else:
+		html = '<a href="/app/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
+
+	return html.format(
+		doctype=doctype,
+		name=name,
+		encoded_name=encoded_name,
+		doctype_local=_(doctype),
+		title_local=_(title),
+		target=target_attr,
+	)
 
 
 def bold(text):
@@ -2387,6 +2414,24 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	else:
 		if raise_err:
 			raise ValueError(_("{0} has no versions tracked.").format(doctype))
+
+
+@request_cache
+def is_setup_complete():
+	is_setup_complete = False
+	if not frappe.db.table_exists("Installed Application"):
+		return is_setup_complete
+
+	if all(
+		frappe.get_all(
+			"Installed Application",
+			{"app_name": ("in", ["frappe", "erpnext"])},
+			pluck="is_setup_complete",
+		)
+	):
+		is_setup_complete = True
+
+	return is_setup_complete
 
 
 @whitelist(allow_guest=True)
@@ -2493,3 +2538,5 @@ if _tune_gc:
 
 # Remove references to pattern that are pre-compiled and loaded to global scopes.
 re.purge()
+
+get_lazy_doc = get_doc

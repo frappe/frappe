@@ -137,7 +137,7 @@
    "label": "Time Window (Seconds)"
   },
   {
-   "depends_on": "eval:doc.event_frequency==='Cron'",
+   "depends_on": "eval:doc.script_type === \"Scheduler Event\" && doc.event_frequency === 'Cron'",
    "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
    "fieldname": "cron_format",
    "fieldtype": "Data",
@@ -151,7 +151,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2024-04-08 16:18:52.901097",
+ "modified": "2025-09-02 11:11:07.528661",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

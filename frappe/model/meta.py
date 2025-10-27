@@ -14,6 +14,7 @@ Example:
 
 
 """
+
 import json
 import os
 from datetime import datetime
@@ -746,7 +747,7 @@ def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError:
-		raise Exception("Cannot determine whether %s is single" % doctype)
+		raise Exception("Cannot determine whether {} is single".format(doctype))
 
 
 def get_parent_dt(dt):
@@ -824,7 +825,7 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(frappe.db.get_default("currency_precision"))
 		if not precision:
 			number_format = frappe.db.get_default("number_format") or "#,###.##"
-			decimal_str, comma_str, precision = get_number_format_info(number_format)
+			_decimal_str, _comma_str, precision = get_number_format_info(number_format)
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 

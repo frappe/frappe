@@ -31,7 +31,9 @@
   "dynamic_filters_section",
   "dynamic_filters_json",
   "section_break_16",
-  "color"
+  "color",
+  "column_break_xtre",
+  "background_color"
  ],
  "fields": [
   {
@@ -207,10 +209,19 @@
    "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_xtre",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Color",
+   "label": "Background Color"
   }
  ],
  "links": [],
- "modified": "2025-01-28 18:22:27.268239",
+ "modified": "2025-05-21 10:49:51.759985",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
@@ -250,6 +261,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "label, document_type",
  "sort_field": "modified",
  "sort_order": "DESC",

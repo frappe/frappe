@@ -55,8 +55,10 @@ class TestBackgroundJobs(FrappeTestCase):
 
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
-		with freeze_local() as locals, frappe.init_site(locals.site), patch(
-			"frappe.get_hooks", patch_job_hooks
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch("frappe.get_hooks", patch_job_hooks),
 		):
 			frappe.connect()
 			self.assertIsNone(_test_JOB_HOOK.get("before_job"))

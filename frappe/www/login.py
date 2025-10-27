@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import frappe
 import frappe.utils
@@ -72,7 +72,9 @@ def get_context(context):
 	)
 
 	for provider in providers:
-		client_secret = get_decrypted_password("Social Login Key", provider.name, "client_secret")
+		client_secret = get_decrypted_password(
+			"Social Login Key", provider.name, "client_secret", raise_exception=False
+		)
 		if not client_secret:
 			continue
 
@@ -134,8 +136,12 @@ def login_via_token(login_token: str):
 	)
 
 
+def get_login_with_email_link_ratelimit() -> int:
+	return frappe.get_system_settings("rate_limit_email_link_login") or 5
+
+
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=5, seconds=60 * 60)
+@rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def send_login_link(email: str):
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
@@ -169,10 +175,6 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
 
 
-def get_login_with_email_link_ratelimit() -> int:
-	return frappe.get_system_settings("rate_limit_email_link_login") or 5
-
-
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
@@ -200,17 +202,21 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 
 	Allowed redirects:
 	- Same host e.g. https://frappe.localhost/path
-	- Just path e.g. /app
+	- Just path e.g. /app gets converted to https://frappe.localhost/app
 	"""
 	if not redirect:
 		return redirect
 
 	parsed_redirect = urlparse(redirect)
-	if not parsed_redirect.netloc:
-		return redirect
 
 	parsed_request_host = urlparse(frappe.local.request.url)
-	if parsed_request_host.netloc == parsed_redirect.netloc:
-		return redirect
+	output_parsed_url = parsed_redirect._replace(
+		netloc=parsed_request_host.netloc, scheme=parsed_request_host.scheme
+	)
+	if parsed_redirect.netloc:
+		if parsed_request_host.netloc != parsed_redirect.netloc:
+			output_parsed_url = output_parsed_url._replace(path="/app")
+		else:
+			output_parsed_url = output_parsed_url._replace(path=parsed_redirect.path)
 
-	return None
+	return output_parsed_url.geturl()

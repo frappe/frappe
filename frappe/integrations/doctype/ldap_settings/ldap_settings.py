@@ -205,7 +205,7 @@ class LDAPSettings(Document):
 		user.remove_roles(*roles_to_remove)
 
 	def create_or_update_user(self, user_data: dict, groups: list | None = None):
-		user: "User" = None
+		user: User = None
 		role: str = None
 
 		if frappe.db.exists("User", user_data["email"]):
@@ -278,13 +278,14 @@ class LDAPSettings(Document):
 		elif self.ldap_directory_server.lower() == "openldap":
 			ldap_object_class = "posixgroup"
 			ldap_group_members_attribute = "memberuid"
-			user_search_str = getattr(user, self.ldap_username_field).value
+			user_search_str = escape_filter_chars(getattr(user, self.ldap_username_field).value)
 
 		elif self.ldap_directory_server.lower() == "custom":
 			ldap_object_class = self.ldap_group_objectclass
 			ldap_group_members_attribute = self.ldap_group_member_attribute
 			ldap_custom_group_search = self.ldap_custom_group_search or "{0}"
-			user_search_str = ldap_custom_group_search.format(getattr(user, self.ldap_username_field).value)
+			user_value = escape_filter_chars(getattr(user, self.ldap_username_field).value)
+			user_search_str = ldap_custom_group_search.format(user_value)
 
 		else:
 			# NOTE: depreciate this else path
@@ -308,6 +309,7 @@ class LDAPSettings(Document):
 		if not self.enabled:
 			frappe.throw(_("LDAP is not enabled."))
 
+		username = escape_filter_chars(username)
 		user_filter = self.ldap_search_string.format(username)
 		ldap_attributes = self.get_ldap_attributes()
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
@@ -335,7 +337,8 @@ class LDAPSettings(Document):
 		except LDAPInvalidCredentialsResult:
 			frappe.throw(_("Invalid username or password"))
 
-	def reset_password(self, user, password, logout_sessions=False):
+	def reset_password(self, user: str, password: str, logout_sessions: int = 0):
+		user = escape_filter_chars(user)
 		search_filter = f"({self.ldap_email_field}={user})"
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False), read_only=False)
@@ -420,7 +423,7 @@ def login():
 
 
 @frappe.whitelist()
-def reset_password(user, password, logout):
+def reset_password(user: str, password: str, logout: int):
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 	if not ldap.enabled:
 		frappe.throw(_("LDAP is not enabled."))

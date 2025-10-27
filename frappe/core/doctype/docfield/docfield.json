@@ -11,8 +11,8 @@
   "label",
   "fieldtype",
   "fieldname",
-  "precision",
   "length",
+  "precision",
   "non_negative",
   "hide_days",
   "hide_seconds",
@@ -134,7 +134,7 @@
   },
   {
    "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
-   "description": "Set non-standard precision for a Float or Currency field",
+   "description": "Set non-standard precision for a Float, Currency or Percent field",
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
@@ -142,7 +142,7 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int'], doc.fieldtype)",
+   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -595,7 +595,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-10-01 07:26:16.380090",
+ "modified": "2025-09-17 13:20:57.852396",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

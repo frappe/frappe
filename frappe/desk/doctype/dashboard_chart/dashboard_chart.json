@@ -33,6 +33,7 @@
   "time_interval",
   "timeseries",
   "type",
+  "show_values_over_chart",
   "currency",
   "filters_section",
   "filters_json",
@@ -293,10 +294,17 @@
    "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.type == \"Bar\" || doc.type == \"Line\"",
+   "fieldname": "show_values_over_chart",
+   "fieldtype": "Check",
+   "label": "Show Values over Chart"
   }
  ],
  "links": [],
- "modified": "2025-02-01 21:06:05.808591",
+ "modified": "2025-06-08 22:49:08.587921",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

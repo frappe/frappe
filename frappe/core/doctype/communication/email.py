@@ -142,7 +142,7 @@ def _make(
 	cc = list_to_str(cc) if isinstance(cc, list) else cc
 	bcc = list_to_str(bcc) if isinstance(bcc, list) else bcc
 
-	comm: "Communication" = frappe.get_doc(
+	comm: Communication = frappe.get_doc(
 		{
 			"doctype": "Communication",
 			"subject": subject,

@@ -288,7 +288,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 						frappe.message_log.pop()
 						message_dict = {"docname": docname, "message": message.get("message")}
 
-						if message.get("raise_exception", False):
+						if message.get("raise_exception", False) or "Error" in message.get("message", ""):
 							failed_transactions[docname].append(message_dict)
 						else:
 							successful_transactions[docname].append(message_dict)

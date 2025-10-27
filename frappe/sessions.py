@@ -6,6 +6,7 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, default variables, system defaults etc
 """
+
 import json
 from datetime import datetime, timezone
 from urllib.parse import unquote
@@ -169,7 +170,7 @@ def get():
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
-	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
+	bootinfo["setup_complete"] = frappe.is_setup_complete()
 	apps = get_apps() or []
 	bootinfo["apps_data"] = {
 		"apps": apps,
@@ -204,7 +205,7 @@ def generate_csrf_token():
 
 
 class Session:
-	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
+	__slots__ = ("_update_in_cache", "data", "full_name", "sid", "time_diff", "user", "user_type")
 
 	def __init__(
 		self,
@@ -264,6 +265,7 @@ class Session:
 			self.data.data.update(
 				{
 					"last_updated": frappe.utils.now(),
+					"creation": frappe.utils.now(),
 					"session_expiry": get_expiry_period(),
 					"full_name": self.full_name,
 					"user_type": self.user_type,
@@ -375,7 +377,7 @@ class Session:
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = frappe._dict(frappe.safe_eval((record and record[0][1]) or "{}"))
 			data.user = record[0][0]
 		else:
 			self._delete_session()
