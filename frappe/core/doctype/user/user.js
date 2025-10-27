@@ -499,3 +499,11 @@ function show_api_key_dialog(api_key, api_secret) {
 		1
 	);
 }
+
+frappe.ui.form.on("User Session Display", {
+	sign_out(frm, doctype, name) {
+		frappe
+			.xcall("frappe.core.doctype.user.user.clear_session", { sid_hash: name })
+			.then(() => frm.reload_doc());
+	},
+});

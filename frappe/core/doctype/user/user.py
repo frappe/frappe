@@ -3,6 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
+from functools import cached_property
 
 import frappe
 import frappe.defaults
@@ -63,9 +64,11 @@ class User(Document):
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.user_email.user_email import UserEmail
 		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
+		from frappe.core.doctype.user_session_display.user_session_display import UserSessionDisplay
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
 		from frappe.types import DF
 
+		active_sessions: DF.Table[UserSessionDisplay]
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
@@ -142,6 +145,41 @@ class User(Document):
 	# end: auto-generated types
 
 	__new_password = None
+
+	@cached_property
+	def active_sessions(self):
+		sessions = frappe.qb.DocType("Sessions")
+		if self.name != frappe.session.user:
+			# sec: only allow users to see their sessions.
+			return []
+
+		sessions_data = (
+			frappe.qb.from_(sessions)
+			.select(sessions.user, sessions.sessiondata, sessions.sid)
+			.where(sessions.user == self.name)
+		).run(as_dict=True)
+
+		def mask(sid: str):
+			return sid[:4] + "*" * 10
+
+		session_docs = []
+		for session in sessions_data:
+			data = frappe.parse_json(session.sessiondata)
+			sid_hash = sha256_hash(session.sid)
+			session_docs.append(
+				{
+					"name": sid_hash,
+					"id": mask(sid_hash),
+					"owner": session.user,
+					"modified_by": session.user,
+					"ip_address": data.session_ip,
+					"last_updated": data.last_updated,
+					"is_current": session.sid == frappe.session.sid,
+					"session_created": data.creation,
+					"user_agent": data.user_agent,
+				}
+			)
+		return session_docs
 
 	def __setup__(self):
 		# because it is handled separately
@@ -1395,3 +1433,20 @@ def impersonate(user: str, reason: str):
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
 	frappe.local.login_manager.impersonate(user)
+
+
+@frappe.whitelist()
+@rate_limit(limit=10, seconds=60 * 60, methods="POST")
+def clear_session(sid_hash: str):
+	from frappe.sessions import delete_session
+
+	sessions = frappe.qb.DocType("Sessions")
+	sessions_data = (
+		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	).run(pluck=True)
+
+	for session in sessions_data:
+		if sha256_hash(session) == sid_hash:
+			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
+			frappe.toast(_("Successfully signed out"))
+			return

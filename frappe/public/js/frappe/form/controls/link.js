@@ -441,7 +441,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (newArr.length === 0) return [currElem];
 			let element_with_same_value = newArr.find((e) => e.value === currElem.value);
 			if (element_with_same_value) {
-				element_with_same_value.description += `, ${currElem.description}`;
+				if (currElem.description) {
+					element_with_same_value.description += `, ${currElem.description}`;
+				}
 				return [...newArr];
 			}
 			return [...newArr, currElem];
@@ -743,9 +745,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					"Float",
 					"Int",
 					"Date",
+					"Datetime",
 					"Select",
 					"Duration",
 					"Time",
+					"Percent",
+					"Phone",
+					"Barcode",
+					"Autocomplete",
+					"Icon",
+					"Color",
+					"Rating",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;

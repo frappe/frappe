@@ -2176,7 +2176,7 @@ def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
 			# try and match the doctype name from child tables
-			for df in meta.get_table_fields():
+			for df in meta.get_table_fields(include_computed=True):
 				if frappe.get_meta(df.options).has_field(f.fieldname):
 					f.doctype = df.options
 					break

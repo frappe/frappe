@@ -288,7 +288,8 @@ class Document(BaseDocument):
 		for fieldname, child_doctype in self._table_fieldnames.items():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
 			if not is_doctype and is_virtual_doctype(child_doctype):
-				self.set(fieldname, [])
+				# Remove cache so that the virtual field loads again
+				self.__dict__.pop(fieldname, None)
 				continue
 
 			if is_doctype:
@@ -442,6 +443,7 @@ class Document(BaseDocument):
 			for d in self.get_all_children():
 				d.db_insert()
 
+		self.reset_computed_child_tables()
 		self.run_method("after_insert")
 		self.flags.in_insert = True
 
@@ -547,6 +549,7 @@ class Document(BaseDocument):
 			self.db_update()
 
 		self.update_children()
+		self.reset_computed_child_tables()
 		self.run_post_save_methods()
 
 		# clear unsaved flag
@@ -594,6 +597,8 @@ class Document(BaseDocument):
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
 		df: DocField = df or self.meta.get_field(fieldname)
+		if df.is_virtual:
+			return
 		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
@@ -622,6 +627,12 @@ class Document(BaseDocument):
 		for d in all_rows:
 			d: Document
 			d.db_update()
+
+	def reset_computed_child_tables(self):
+		"""Reset computed child tables so that they are reloaded next time"""
+		for df in self.meta.get_table_fields(include_computed=True):
+			if df.is_virtual:
+				self.__dict__.pop(df.fieldname, None)
 
 	def get_doc_before_save(self) -> "Self":
 		return getattr(self, "_doc_before_save", None)
@@ -887,7 +898,7 @@ class Document(BaseDocument):
 			return
 
 		all_fields = self.meta.fields.copy()
-		for table_field in self.meta.get_table_fields():
+		for table_field in self.meta.get_table_fields(include_computed=True):
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
 		if all(df.permlevel == 0 for df in all_fields):
@@ -903,7 +914,7 @@ class Document(BaseDocument):
 					# hasattr might return True for class attribute which can't be delattr-ed.
 					continue
 
-		for table_field in self.meta.get_table_fields():
+		for table_field in self.meta.get_table_fields(include_computed=True):
 			for df in frappe.get_meta(table_field.options).fields or []:
 				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
@@ -1118,12 +1129,16 @@ class Document(BaseDocument):
 			msg = ", ".join(each[2] for each in cancelled_links)
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None) -> list["Document"]:
-		"""Return all children documents from **Table** type fields in a list."""
+	def get_all_children(self, parenttype=None, *, include_computed=False) -> list["Document"]:
+		"""
+		Return all child documents from **Table** type fields in a list.
+		Excludes computed tables by default, unless `include_computed` is set to True.
+		"""
 
 		children = []
+		table_fieldnames = self._table_fieldnames if include_computed else self._non_computed_table_fieldnames
 
-		for fieldname, child_doctype in self._table_fieldnames.items():
+		for fieldname, child_doctype in table_fieldnames.items():
 			if parenttype and child_doctype != parenttype:
 				continue
 
@@ -1323,7 +1338,7 @@ class Document(BaseDocument):
 
 			return frappe.clear_last_message()
 
-		for fieldname in self._table_fieldnames:
+		for fieldname in self._non_computed_table_fieldnames:
 			for row in self.get(fieldname):
 				row._doc_before_save = next(
 					(d for d in (self._doc_before_save.get(fieldname) or []) if d.name == row.name), None
@@ -1985,8 +2000,8 @@ def get_lazy_controller(doctype):
 
 		# Dynamically construct a class that subclasses LazyDocument and original controller.
 		lazy_controller = type(f"Lazy{original_controller.__name__}", (LazyDocument, original_controller), {})
-		for fieldname, child_doctype in meta._table_doctypes.items():
-			setattr(lazy_controller, fieldname, LazyChildTable(fieldname, child_doctype))
+		for df in meta.get_table_fields():
+			setattr(lazy_controller, df.fieldname, LazyChildTable(df.fieldname, df.options))
 
 		lazy_controllers[doctype] = lazy_controller
 	return lazy_controllers[doctype]
