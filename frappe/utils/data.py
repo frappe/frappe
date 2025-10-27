@@ -2466,6 +2466,37 @@ def map_trackers(url_trackers: dict, create: bool = False):
 
 
 def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
+	"""
+	Expands specified link or dynamic link fields in a list of documents by replacing
+	their linked values (names) with full document records.
+
+	This function takes a list of documents and a list of link fieldnames that should be
+	expanded. For each specified field, it retrieves all referenced linked records from
+	the corresponding doctypes and replaces the link value in each document with the
+	full linked record (as a dict).
+
+	Args:
+		doctype (str): The parent doctype of the provided documents.
+		docs (list[dict]): A list of document dictionaries whose link fields are to be expanded.
+		fields_to_expand (list[str]): A list of fieldnames corresponding to link or dynamic
+			link fields that should be expanded.
+
+	Returns:
+		None: The function modifies the `docs` list in place.
+
+	Example:
+		>>> docs = [{"customer": "CUST-001"}, {"customer": "CUST-002"}]
+		>>> attach_expanded_links("Sales Invoice", docs, ["customer"])
+		>>> docs[0]["customer"]
+		{
+			"name": "CUST-001",
+			"customer_name": "John Doe",
+			"customer_group": "Retail",
+			...
+		}
+
+	"""
+
 	if not fields_to_expand:
 		return
 
