@@ -21,7 +21,6 @@ import {
 	FormLabel,
 	GreenCheckIcon,
 	Input,
-	Link,
 	ListItem,
 	ListView,
 	LoadingIndicator,
@@ -84,7 +83,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("FormLabel", FormLabel)
 	app.component("GreenCheckIcon", GreenCheckIcon)
 	app.component("Input", Input)
-	app.component("Link", Link)
 	app.component("ListItem", ListItem)
 	app.component("ListView", ListView)
 	app.component("LoadingIndicator", LoadingIndicator)
