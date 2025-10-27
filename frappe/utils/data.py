@@ -2491,7 +2491,7 @@ def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
 	doctype_title_maps = {}
 
 	for link_doctype, values in doctype_values.items():
-		records = frappe.get_all(
+		records = frappe.get_list(
 			link_doctype,
 			filters={"name": ["in", list(values)]},
 			fields=["*"],
