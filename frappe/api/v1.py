@@ -4,6 +4,7 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
+from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
 
@@ -105,11 +106,8 @@ def get_values_for_table_and_multiselect_fields(doc_dict):
 	table_fields = meta.get_table_fields()
 
 	for field in table_fields:
-		if not doc_dict.get(field.fieldname):
-			continue
-
-		for value in doc_dict.get(field.fieldname):
-			value.update(get_values_for_link_and_dynamic_link_fields(value))
+		table_link_fieldnames = [f.fieldname for f in frappe.get_meta(field.options).get_link_fields()]
+		attach_expanded_links(field.options, doc_dict.get(field.fieldname), table_link_fieldnames)
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
