@@ -33,7 +33,7 @@ class Currency(Document):
 			"#.###",
 			"#,###",
 		]
-		smallest_currency_fraction_value: DF.Currency
+		smallest_currency_fraction_value: DF.Float
 		symbol: DF.Data | None
 		symbol_on_right: DF.Check
 	# end: auto-generated types
