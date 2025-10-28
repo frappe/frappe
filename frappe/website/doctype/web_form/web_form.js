@@ -148,14 +148,8 @@ frappe.ui.form.on("Web Form", {
 				fields
 					.filter(
 						(df) =>
-							![
-								"Table",
-								"Table MultiSelect",
-								"Page Break",
-								"Section Break",
-								"Column Break",
-								"Tab Break",
-							].includes(df.fieldtype) && df.is_virtual !== 1
+							!frappe.model.no_value_type.includes(df.fieldtype) &&
+							df.is_virtual !== 1
 					)
 					.map(as_select_option)
 			);
