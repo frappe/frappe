@@ -284,7 +284,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function () {
-		hljs.initHighlighting();
+		hljs.highlightAll();
 	},
 	bind_filters: function () {
 		// set in select
