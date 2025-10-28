@@ -366,21 +366,31 @@ class DocType(Document):
 						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
+					# Determine appropriate NULL check based on field type
+					# Numeric types should use IS NULL, text types use empty string comparison
+					from frappe.model import numeric_fieldtypes
+					if df.fieldtype in numeric_fieldtypes:
+						null_condition_postgres = "`{fieldname}` IS NULL"
+						null_condition_mysql = "`target`.`{fieldname}` IS NULL"
+					else:
+						null_condition_postgres = "ifnull(`{fieldname}`, '')=''"
+						null_condition_mysql = "ifnull(`target`.`{fieldname}`, '')=\"\""
+
 					if frappe.db.db_type == "postgres":
-						update_query = """
-							UPDATE `tab{doctype}`
-							SET `{fieldname}` = source.`{source_fieldname}`
-							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
-							AND ifnull(`{fieldname}`, '')=''
+						update_query = f"""
+							UPDATE `tab{{doctype}}`
+							SET `{{fieldname}}` = source.`{{source_fieldname}}`
+							FROM `tab{{link_doctype}}` as source
+							WHERE `{{link_fieldname}}` = source.name
+							AND {null_condition_postgres}
 						"""
 					else:
-						update_query = """
-							UPDATE `tab{doctype}` as target
-							INNER JOIN `tab{link_doctype}` as source
-							ON `target`.`{link_fieldname}` = `source`.`name`
-							SET `target`.`{fieldname}` = `source`.`{source_fieldname}`
-							WHERE ifnull(`target`.`{fieldname}`, '')=""
+						update_query = f"""
+							UPDATE `tab{{doctype}}` as target
+							INNER JOIN `tab{{link_doctype}}` as source
+							ON `target`.`{{link_fieldname}}` = `source`.`name`
+							SET `target`.`{{fieldname}}` = `source`.`{{source_fieldname}}`
+							WHERE {null_condition_mysql}
 						"""
 
 					self.flags.update_fields_to_fetch_queries.append(
