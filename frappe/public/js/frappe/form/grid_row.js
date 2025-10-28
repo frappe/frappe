@@ -1037,6 +1037,8 @@ export default class GridRow {
 			input_field.trigger("focus");
 		}
 
+		let is_focused = false;
+
 		var $col = $(
 			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
 		)
@@ -1044,22 +1046,39 @@ export default class GridRow {
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
-			.on("click", function (event) {
+			.on("focusin", function (event) {
+				if (is_focused) return;
+				is_focused = true;
 				if (df.fieldtype === "Link" || df.fieldtype === "Dynamic Link") {
-					frappe.utils.sleep(500).then(() => {
-						let element_position = event.target.getBoundingClientRect();
-						$(this)
-							.find(".awesomplete > ul:first-of-type")
-							.css(
-								"top",
-								`${
-									element_position.bottom
-										? element_position.bottom
-										: event.clientY + 20
-								}px`
+					frappe.utils.sleep(300).then(() => {
+						let $dropdown = $(this).find(".awesomplete > ul:first-of-type");
+						let $grid_field = $dropdown.closest(".grid-field");
+
+						if ($grid_field.length) {
+							let $wrapper = $grid_field.find("div.awesomplete");
+							$wrapper = $(
+								`<div class="awesomplete ${$dropdown.attr("id")}"></div>`
 							);
+							$grid_field.append($wrapper);
+							$wrapper.append($dropdown);
+
+							let element_position = event.target.getBoundingClientRect();
+
+							let left_difference =
+								element_position.left - $grid_field.offset().left;
+							let top_difference =
+								element_position.top - $grid_field.offset().top + 30;
+							$wrapper.css({
+								position: "absolute",
+								top: `${top_difference + 10}px`,
+								left: `${left_difference}px`,
+								width: "250px",
+							});
+						}
 					});
 				}
+			})
+			.on("click", function (event) {
 				if (frappe.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
 				}
@@ -1457,7 +1476,10 @@ export default class GridRow {
 			this.grid_form.wrapper.css("display", "none");
 		}
 		this.wrapper.removeClass("grid-row-open");
-		this.open_form_button.parent().focus();
+
+		if (this.grid.meta.editable_grid) {
+			this.open_form_button.parent().focus();
+		}
 	}
 	has_prev() {
 		return this.doc.idx > 1;

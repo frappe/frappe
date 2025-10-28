@@ -21,6 +21,7 @@ class CustomDocPerm(Document):
 		email: DF.Check
 		export: DF.Check
 		if_owner: DF.Check
+		mask: DF.Check
 		parent: DF.Data | None
 		permlevel: DF.Int
 		print: DF.Check

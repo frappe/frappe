@@ -416,6 +416,13 @@ class Communication(Document, CommunicationEmailMixin):
 
 	# Timeline Links
 	def set_timeline_links(self):
+		# Skip timeline links if a "Sent" communication already exists
+		# else will create duplicate timeline entries
+		if self.sent_or_received == "Received" and self.find_one_by_filters(
+			message_id=self.message_id, sent_or_received="Sent"
+		):
+			return
+
 		contacts = []
 		create_contact_enabled = self.email_account and frappe.db.get_value(
 			"Email Account", self.email_account, "create_contact"

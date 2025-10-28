@@ -90,7 +90,7 @@
   },
   {
    "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
-   "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
+   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
@@ -200,7 +200,7 @@
    "depends_on": "eval:doc.condition_type===\"Python\"",
    "fieldname": "html_7",
    "fieldtype": "HTML",
-   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>\n"
+   "options": "<p><strong>Condition Examples:</strong></p>\n<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</code></pre>\n"
   },
   {
    "collapsible": 1,
@@ -343,7 +343,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-10 21:03:15.561558",
+ "modified": "2025-10-21 18:54:38.454748",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

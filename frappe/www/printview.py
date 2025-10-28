@@ -308,7 +308,7 @@ def set_title_values_for_link_and_dynamic_link_fields(
 
 
 def set_title_values_for_table_and_multiselect_fields(meta: "Meta", doc: "Document") -> None:
-	for field in meta.get_table_fields():
+	for field in meta.get_table_fields(include_computed=True):
 		if not doc.get(field.fieldname):
 			continue
 

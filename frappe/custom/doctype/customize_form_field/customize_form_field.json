@@ -78,6 +78,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Label",
+   "length": 255,
    "oldfieldname": "label",
    "oldfieldtype": "Data",
    "search_index": 1
@@ -486,17 +487,19 @@
    "label": "Placeholder"
   }
  ],
+ "grid_page_length": 50,
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-28 20:24:03.278884",
+ "modified": "2025-10-14 13:56:58.033573",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

@@ -384,14 +384,6 @@
 			height: 40px;
 		}
 	}
-	.grid-row:not(.grid-row-open) {
-		.awesomplete > ul {
-			position: fixed !important;
-			left: auto !important;
-			top: auto;
-			width: 250px !important;
-		}
-	}
 	.grid-static-col {
 		background-color: var(--fg-color);
 		&.sticky-grid-col {
@@ -685,8 +677,7 @@
 }
 .column-limit-reached {
 	background-color: var(--subtle-accent);
-	border-top-left-radius: var(--border-radius-md);
-	border-top-right-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-md);
 	border: 1px solid var(--table-border-color);
 	overflow-y: hidden;
 	.form-grid {
@@ -695,6 +686,9 @@
 		border: unset;
 		&:focus-visible {
 			@include grid-focus();
+		}
+		.grid-static-col {
+			height: 38px;
 		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;

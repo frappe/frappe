@@ -76,6 +76,9 @@ class FormMeta(Meta):
 		for k in ASSET_KEYS:
 			d[k] = __dict.get(k)
 
+		# add masked fields (per-user, per-meta)
+		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields()]
+
 		return d
 
 	def add_code(self):

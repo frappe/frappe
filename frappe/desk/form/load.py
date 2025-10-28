@@ -447,7 +447,7 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 
 	if not table_fields:
 		meta = frappe.get_meta(doc.doctype)
-		table_fields = meta.get_table_fields()
+		table_fields = meta.get_table_fields(include_computed=True)
 
 	for field in table_fields:
 		if not doc.get(field.fieldname):

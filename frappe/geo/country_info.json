@@ -2988,6 +2988,19 @@
   ],
   "isd": "+260"
  },
+ "Kosovo": {
+  "code": "xk",
+  "currency": "EUR",
+  "currency_fraction": "Cent",
+  "currency_fraction_units": 100,
+  "currency_name": "Euro",
+  "currency_symbol": "€",
+  "number_format": "#,###.##",
+  "timezones": [
+    "Europe/Belgrade"
+  ],
+  "isd": "+383"
+ },
  "Zimbabwe": {
   "code": "zw",
   "currency": "ZWL",

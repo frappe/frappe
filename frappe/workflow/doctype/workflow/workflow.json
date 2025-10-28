@@ -13,6 +13,7 @@
   "is_active",
   "override_status",
   "send_email_alert",
+  "enable_action_confirmation",
   "states_head",
   "states",
   "transition_rules",
@@ -59,6 +60,13 @@
    "fieldname": "send_email_alert",
    "fieldtype": "Check",
    "label": "Send Email Alert"
+  },
+  {
+    "default": "0",
+    "description": "If checked, a confirmation will be required before performing workflow actions.",
+    "fieldname": "enable_action_confirmation",
+    "fieldtype": "Check",
+    "label": "Enable Action Confirmation"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",

@@ -123,14 +123,14 @@ jobs:
           ( tail -f ${GITHUB_WORKSPACE}/sites/*-coverage*.xml & ) | grep -q "\/coverage"
 
       - name: Upload JS coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: inputs.enable-coverage
         with:
           name: coverage-js-${{ matrix.index }}
           path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: inputs.enable-coverage
         with:
           name: coverage-py-${{ matrix.index }}

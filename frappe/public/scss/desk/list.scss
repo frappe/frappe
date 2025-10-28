@@ -649,7 +649,8 @@ input.list-header-checkbox {
 							padding-left: 37px;
 						}
 					}
-					.mobile-layout:not(.mobile-layout ~ .mobile-layout) {
+					.mobile-layout-seperator:not(.mobile-layout-seperator
+							~ .mobile-layout-seperator) {
 						padding-left: 27px;
 						margin-right: 6px;
 
