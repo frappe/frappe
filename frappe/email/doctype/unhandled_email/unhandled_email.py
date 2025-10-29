@@ -26,6 +26,6 @@ class UnhandledEmail(Document):
 		frappe.db.delete(
 			"Unhandled Email",
 			{
-				"modified": ("<", frappe.utils.add_days(frappe.utils.nowdate(), -1 * days)),
+				"creation": ("<", frappe.utils.add_days(frappe.utils.nowdate(), -1 * days)),
 			},
 		)

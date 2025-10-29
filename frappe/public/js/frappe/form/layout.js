@@ -113,11 +113,11 @@ frappe.ui.form.Layout = class Layout {
 		let $html;
 		if (!frappe.utils.is_html(html)) {
 			// wrap in a block if `html` does not contain html tags
-			$html = $("<div class='form-message'></div>").text(html);
+			$html = $("<div class='form-message border-bottom'></div>").text(html);
 		} else {
 			// Wrap in a block just in case the string does not begin with a tag
 			// as Jquery assumes it to be a CSS selector and breaks.
-			$html = $("<div class='form-message'>").html(html);
+			$html = $("<div class='form-message border-bottom'>").html(html);
 		}
 
 		// Add close button to block if not permanent
@@ -245,6 +245,14 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	init_field(df, parent, render = false) {
+		if (df.mask) {
+			let masked_fields = frappe.get_meta(this.doctype).masked_fields || [];
+			if (masked_fields.includes(df.fieldname)) {
+				df.fieldtype = "Data";
+				df.read_only = 1;
+			}
+		}
+
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
@@ -430,6 +438,14 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
+		// Set active tab based on hash
+		const tab_from_hash = window.location.hash.replace("#", "");
+		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
+		if (tab) {
+			tab.set_active();
+			return;
+		}
+
 		let frm_active_tab = this.frm?.get_active_tab?.();
 		if (frm_active_tab) {
 			frm_active_tab.set_active();
@@ -510,7 +526,7 @@ frappe.ui.form.Layout = class Layout {
 		let tabs_content = this.tabs_content[0];
 		if (!tabs_list.length) return;
 
-		$(window).scroll(
+		$(".main-section").scroll(
 			frappe.utils.throttle(() => {
 				let current_scroll = document.documentElement.scrollTop;
 				if (current_scroll > 0 && last_scroll <= current_scroll) {

@@ -74,12 +74,14 @@ class EmailDomain(Document):
 		use_ssl_for_outgoing: DF.Check
 		use_starttls: DF.Check
 		use_tls: DF.Check
-
+		validate_ssl_certificate: DF.Check
+		validate_ssl_certificate_for_outgoing: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		"""Validate POP3/IMAP and SMTP connections."""
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test or frappe.local.flags.in_install:
+		if frappe.local.flags.in_patch or frappe.in_test or frappe.local.flags.in_install:
 			return
 
 		self.validate_incoming_server_conn()

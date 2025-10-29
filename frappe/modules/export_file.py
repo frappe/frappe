@@ -33,7 +33,7 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 
 
 def write_document_file(doc, record_module=None, create_init=True, folder_name=None):
-	doc_export = doc.as_dict(no_nulls=True)
+	doc_export = doc.as_dict(no_nulls=True, ignore_computed_child_tables=True)
 	doc.run_method("before_export", doc_export)
 
 	doc_export = strip_default_fields(doc, doc_export)
@@ -54,7 +54,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	if is_custom_module and not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 		frappe.throw("Invalid export path: " + Path(path).as_posix())
 	with open(path, "w+") as txtfile:
-		txtfile.write(frappe.as_json(doc_export))
+		txtfile.write(frappe.as_json(doc_export) + "\n")
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 

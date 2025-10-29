@@ -74,7 +74,8 @@
   }
  ],
  "row_format": "Compressed",
- "sort_field": "modified",
+ "sort_field": "creation",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "deleted_name",
  "track_changes": 1

@@ -65,7 +65,7 @@ export default class LinksWidget extends Widget {
 						<div class="arrow"></div>
 						<h3 class="popover-title" style="display: none;"></h3>
 						<div class="popover-content" style="padding: 12px;">
-							<div class="small text-muted">${__("You need to create these first: ")}</div>
+							<div class="small text-muted">${__("You need to create these first:") + " "}</div>
 							<div class="small">${item.incomplete_dependencies.join(", ")}</div>
 						</div>
 					</div>`;

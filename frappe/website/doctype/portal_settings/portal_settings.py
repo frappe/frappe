@@ -23,6 +23,7 @@ class PortalSettings(Document):
 		menu: DF.Table[PortalMenuItem]
 
 	# end: auto-generated types
+
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
 		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]

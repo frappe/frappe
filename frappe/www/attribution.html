@@ -1,0 +1,64 @@
+{% extends "templates/web.html" %}
+
+{% block head_include %}
+<link rel="stylesheet" href="/assets/frappe/css/fonts/fontawesome/font-awesome.min.css">
+{% endblock %}
+
+{% block page_content %}
+
+<h1>{{ _("Attribution") }}</h1>
+<p>
+    {{ _("This software is built on top of many open source packages.") }}
+    {{ _("We would like to thank the authors of these packages for their contribution.") }}
+</p>
+
+{% for app_info in apps %}
+<section id="{{ app_info.name }}">
+    <h2><a href="#{{ app_info.name }}">{{ app_info.name }}</a></h2>
+    <table class="table">
+        <tr>
+            <th>{{ _("Authors") }}</th>
+            <td>{{ app_info.authors }}</td>
+        </tr>
+        <tr>
+            <th>{{ _("Description") }}</th>
+            <td>{{ app_info.description }}</td>
+        </tr>
+        {% if app_info["dependencies"] %}
+        <tr>
+            <th>{{ _("Dependencies") }}</th>
+            <td>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>{{ _("Package") }}</th>
+                            <th>{{ _("Type") }}</th>
+                            <th>{{ _("License") }}</th>
+                            <th>{{ _("Authors / Maintainers") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for package in app_info["dependencies"] %}
+                        <tr>
+                            <td class="package">
+                                {{ package.name | e }}
+                            </td>
+                            <td class="type">{{ package.type }}</td>
+                            <td class="license">
+                                {{ package.license or "Unknown" }}
+                            </td>
+                            <td class="author">
+                                {{ package.author or "Unknown" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</section>
+{% endfor %}
+
+{% endblock %}

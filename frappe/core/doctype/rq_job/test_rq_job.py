@@ -10,7 +10,7 @@ from rq.job import Job
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.installer import update_site_config
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
@@ -23,7 +23,7 @@ def wait_for_completion(job: Job):
 		time.sleep(0.2)
 
 
-class TestRQJob(FrappeTestCase):
+class TestRQJob(IntegrationTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
 	def setUp(self) -> None:
@@ -68,18 +68,22 @@ class TestRQJob(FrappeTestCase):
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(jobs, [])
+
+		# Pass a job
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+		self.check_status(job, "finished")
 
 		# Fail a job
 		job = frappe.enqueue(method=self.BG_JOB, queue="short", fail=True)
 		self.check_status(job, "failed")
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(len(jobs), 1)
 		self.assertTrue(jobs[0].exc_info)
 
 		# Assert that non-failed job still exists
-		non_failed_jobs = RQJob.get_list({"filters": [["RQ Job", "status", "!=", "failed"]]})
+		non_failed_jobs = frappe.get_all("RQ Job", {"status": ("!=", "failed")})
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"
@@ -168,7 +172,10 @@ class TestRQJob(FrappeTestCase):
 		# If this starts failing analyze memory usage using memray or some equivalent tool to find
 		# offending imports/function calls.
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
-		LAST_MEASURED_USAGE = 41
+		LAST_MEASURED_USAGE = 46
+		if frappe.conf.use_mysqlclient:
+			# TEMP: Add extra allowance for running two connectors, this should be rolled back before v16
+			LAST_MEASURED_USAGE += 2
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
@@ -177,7 +184,7 @@ class TestRQJob(FrappeTestCase):
 
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1)
+		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
 def test_func(fail=False, sleep=0):

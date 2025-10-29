@@ -43,7 +43,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-03 12:20:51.822287",
+ "modified": "2024-03-23 16:03:59.723830",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Unhandled Email",
@@ -54,7 +54,7 @@
    "role": "System Manager"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+
+pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
 from packaging.version import Version
 from pypdf import PdfReader, PdfWriter, errors
@@ -20,6 +22,8 @@ from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
+
+cssutils.log.setLog(frappe.logger("cssutils"))
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -61,7 +65,7 @@ def pdf_body_html(template, args, **kwargs):
 
 
 def _guess_template_error_line_number(template) -> int | None:
-	"""Guess line on which exception occured from current traceback."""
+	"""Guess line on which exception occurred from current traceback."""
 	with contextlib.suppress(Exception):
 		import sys
 		import traceback
@@ -125,6 +129,37 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	filedata = get_file_data_from_writer(writer)
 
 	return filedata
+
+
+def measure_time(func):
+	import time
+
+	def wrapper(*args, **kwargs):
+		start_time = time.time()
+		result = func(*args, **kwargs)
+		end_time = time.time()
+		print(f"Function {func.__name__} took {end_time - start_time:.4f} seconds")
+		return result
+
+	return wrapper
+
+
+@measure_time
+def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
+	from frappe.utils.pdf_generator.browser import Browser
+	from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
+	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+
+	if pdf_generator != "chrome":
+		# Use the default pdf generator
+		return
+	# scrubbing url to expand url is not required as we have set url.
+	# also, planning to remove network requests anyway 🤞
+	generator = ChromePDFGenerator()
+	browser = Browser(generator, print_format, html, options)
+	transformer = PDFTransformer(browser)
+	# transforms and merges header, footer into body pdf and returns merged pdf
+	return transformer.transform_pdf(output=output)
 
 
 def get_file_data_from_writer(writer_obj):
@@ -387,10 +422,10 @@ def pdf_contains_js(file_content: bytes):
 	Check if a PDF file contains JavaScript.
 
 	Args:
-	        file_content (bytes): The content of the PDF file.
+		file_content (bytes): The content of the PDF file.
 
 	Returns:
-	        bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
+		bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
 	"""
 	from io import BytesIO
 

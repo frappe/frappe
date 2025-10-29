@@ -89,7 +89,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-29 12:27:54.754054",
+ "modified": "2024-03-23 16:03:39.111282",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -111,7 +111,7 @@
    "role": "Desk User"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [
   {

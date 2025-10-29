@@ -116,40 +116,36 @@ class BackupGenerator:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
 
+	def _set_existing_tables(self):
+		"""Ensure self._existing_tables is set."""
+		if not hasattr(self, "_existing_tables"):
+			self._existing_tables = frappe.db.get_tables()
+
 	def setup_backup_tables(self):
-		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_tables = frappe.db.get_tables()
+		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
+		self._set_existing_tables()
 
-		def get_tables(doctypes):
-			tables = []
-			for doctype in doctypes:
-				if not doctype:
-					continue
-				table = frappe.utils.get_table_name(doctype)
-				if table in existing_tables:
-					tables.append(table)
-			return tables
+		self.backup_includes = _get_tables(self.include_doctypes.strip().split(","), self._existing_tables)
+		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
 
-		passed_tables = {
-			"include": get_tables(self.include_doctypes.strip().split(",")),
-			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
-		}
-		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
-		include_tables = (specified_tables + base_tables) if specified_tables else []
-
-		conf_tables = {
-			"include": include_tables,
-			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
-		}
-
-		self.backup_includes = passed_tables["include"]
-		self.backup_excludes = passed_tables["exclude"]
-
-		if not (self.backup_includes or self.backup_excludes) and not self.ignore_conf:
-			self.backup_includes = self.backup_includes or conf_tables["include"]
-			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
-
+		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+
+	def set_backup_tables_from_config(self):
+		"""Set self.backup_includes, self.backup_excludes based on site config"""
+		if self.ignore_conf:
+			return
+
+		backup_conf = frappe.conf.get("backup", {})
+		self._set_existing_tables()
+		if not self.backup_includes:
+			if specified_tables := _get_tables(backup_conf.get("includes", []), self._existing_tables):
+				self.backup_includes = specified_tables + base_tables
+			else:
+				self.backup_includes = []
+
+		if not self.backup_excludes:
+			self.backup_excludes = _get_tables(backup_conf.get("excludes", []), self._existing_tables)
 
 	@property
 	def site_config_backup_path(self):
@@ -344,7 +340,7 @@ class BackupGenerator:
 
 		for _type, info in backup_summary.items():
 			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
-			print(template.format(_type.title(), info["path"], info["size"]))
+			print(template.format(_type.title(), os.path.abspath(info["path"]), info["size"]))
 
 	def backup_files(self):
 		for folder in ("public", "private"):
@@ -380,12 +376,24 @@ class BackupGenerator:
 			n.write(c.read())
 
 	def take_dump(self):
+		if self.db_type == "sqlite":
+			from pathlib import Path
+
+			import frappe
+
+			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
+			command = f"gzip -k {db_path} -c > {self.backup_path_db}"
+
+			frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
+
+			return
+
 		import shlex
 
 		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
-		gzip_exc = which("gzip")
+		gzip_exc: str = which("gzip")
 		if not gzip_exc:
 			frappe.throw(
 				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
@@ -522,18 +530,31 @@ download only after 24 hours."""
 			self.add_to_rollback(lambda: os.remove(path))
 
 
-@frappe.whitelist()
-def fetch_latest_backups(partial=False):
-	"""Fetches paths of the latest backup taken in the last 30 days
-	Only for: System Managers
+def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
+	"""Return a list of tables for the given doctypes that exist in the database."""
+	tables = []
+	for doctype in doctypes:
+		if not doctype:
+			continue
+		table = frappe.utils.get_table_name(doctype)
+		if table in existing_tables:
+			tables.append(table)
+	return tables
 
-	Returns:
+
+@frappe.whitelist()
+def fetch_latest_backups(partial=False) -> dict:
+	"""Fetch paths of the latest backup taken in the last 30 days.
+
+	Note: Only for System Managers
+
+	Return:
 	        dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
@@ -604,7 +625,7 @@ def new_backup(
 	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
@@ -641,13 +662,8 @@ def delete_temp_backups(older_than=24):
 				os.remove(this_file_path)
 
 
-def is_file_old(file_path, older_than=24):
-	"""
-	Checks if file exists and is older than specified hours
-	Returns ->
-	True: file does not exist or file is old
-	False: file is new
-	"""
+def is_file_old(file_path, older_than=24) -> bool:
+	"""Return True if file exists and is older than specified hours."""
 	if os.path.isfile(file_path):
 		from datetime import timedelta
 

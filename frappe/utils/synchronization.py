@@ -40,7 +40,7 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 		with _StrongFileLock(lock_path, timeout=timeout):
 			yield
 	except Timeout as e:
-		frappe.log_error("Filelock: Failed to aquire {lock_path}")
+		frappe.log_error(f"Filelock: Failed to aquire {lock_path}")
 
 		raise LockTimeoutError(
 			_("Failed to aquire lock: {}. Lock may be held by another process.").format(lock_name)

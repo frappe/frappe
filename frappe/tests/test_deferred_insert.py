@@ -1,9 +1,9 @@
 import frappe
 from frappe.deferred_insert import deferred_insert, save_to_db
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestDeferredInsert(FrappeTestCase):
+class TestDeferredInsert(IntegrationTestCase):
 	def test_deferred_insert(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
 		deferred_insert("Route History", [route_history])

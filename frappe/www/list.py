@@ -13,8 +13,9 @@ no_cache = 1
 
 
 def get_context(context, **dict_params):
-	"""Returns context for a list standard list page.
-	Will also update `get_list_context` from the doctype module file"""
+	"""Return context for a list standard list page.
+
+	Also update `get_list_context` from the doctype module file."""
 	frappe.local.form_dict.update(dict_params)
 	doctype = frappe.local.form_dict.doctype
 	context.parents = [{"route": "me", "title": _("My Account")}]
@@ -62,7 +63,7 @@ def get(
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
 			new_context.update(new_context.doc.as_dict())
 
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			pathname = pathname or frappe.local.request.path
 			new_context["pathname"] = pathname.strip("/ ")
 		new_context.update(list_context)
@@ -91,7 +92,7 @@ def get_list_data(
 	web_form_name: str | None = None,
 	**kwargs,
 ):
-	"""Returns processed HTML page for a standard listing."""
+	"""Return processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 
 	if frappe.is_table(doctype):
@@ -121,7 +122,7 @@ def get_list_data(
 		filters=filters,
 		limit_start=limit_start,
 		limit_page_length=limit,
-		order_by=list_context.order_by or "modified desc",
+		order_by=list_context.order_by or "creation desc",
 	)
 
 	# allow guest if flag is set
@@ -210,7 +211,7 @@ def get_list_context(context, doctype, web_form_name=None):
 
 	# get context from web form module
 	if web_form_name:
-		web_form = frappe.get_doc("Web Form", web_form_name)
+		web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
 
 	# get path from '/templates/' folder of the doctype
@@ -232,6 +233,7 @@ def get_list(
 	ignore_permissions=False,
 	fields=None,
 	order_by=None,
+	or_filters=None,
 ):
 	meta = frappe.get_meta(doctype)
 	if not filters:
@@ -240,7 +242,8 @@ def get_list(
 	if not fields:
 		fields = "distinct *"
 
-	or_filters = []
+	if or_filters is None:
+		or_filters = []
 
 	if txt:
 		if meta.search_fields:

@@ -17,11 +17,5 @@ class OAuthProviderSettings(Document):
 
 		skip_authorization: DF.Literal["Force", "Auto"]
 	# end: auto-generated types
+
 	pass
-
-
-def get_oauth_settings():
-	"""Returns oauth settings"""
-	return frappe._dict(
-		{"skip_authorization": frappe.db.get_single_value("OAuth Provider Settings", "skip_authorization")}
-	)

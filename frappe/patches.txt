@@ -44,7 +44,6 @@ execute:frappe.db.sql("delete from tabSessions where user is null")
 execute:frappe.delete_doc("DocType", "Backup Manager")
 execute:frappe.permissions.reset_perms("Web Page")
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
-execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
 execute:frappe.db.set_default('language', '')
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
@@ -196,6 +195,7 @@ frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
+frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -233,12 +233,17 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
+frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
+frappe.patches.v15_0.migrate_session_data
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
+frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
+execute:frappe.db.set_single_value("Workspace Settings", "workspace_setup_completed", 1)
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
-frappe.patches.v15_0.remove_workspace_settings_navbar_items
+frappe.desk.doctype.workspace.patches.update_app
 frappe.patches.v16_0.move_role_desk_settings_to_user
-frappe.patches.v14_0.fix_user_settings_collation
-execute:frappe.core.doctype.system_settings.system_settings.sync_system_settings 
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
-frappe.patches.v16_0.social_eps_deprecation_warning
+frappe.patches.v14_0.fix_user_settings_collation
+execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
+frappe.patches.v15_0.migrate_to_utm
+frappe.patches.v16_0.add_module_deprecation_warning

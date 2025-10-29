@@ -6,7 +6,7 @@ from urllib.parse import quote
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import encode, get_request_site_address
+from frappe.utils import cint, encode, get_request_site_address
 from frappe.website.utils import get_boot_data
 
 
@@ -171,7 +171,7 @@ class WebsiteSettings(Document):
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
 	context = frappe._dict(context or {})
-	settings: WebsiteSettings = frappe.get_cached_doc("Website Settings")
+	settings: WebsiteSettings = frappe.client_cache.get_doc("Website Settings")
 
 	context = context.update(
 		{
@@ -218,7 +218,7 @@ def get_website_settings(context=None):
 		"linked_in_share",
 		"disable_signup",
 	]:
-		context[k] = int(context.get(k) or 0)
+		context[k] = cint(context.get(k))
 
 	if settings.address:
 		context["footer_address"] = settings.address
@@ -229,8 +229,8 @@ def get_website_settings(context=None):
 	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
-
 	context.web_include_css = hooks.web_include_css or []
+	context.web_include_icons = hooks.web_include_icons or []
 
 	via_hooks = hooks.website_context or []
 	for key in via_hooks:
@@ -278,6 +278,10 @@ def get_items(parentfield: str) -> list[dict]:
 def modify_header_footer_items(items: list):
 	top_items = items.copy()
 	# attach child items to top bar
+
+	for item in items:
+		item.child_items = []  # clear cached list
+
 	for item in items:
 		if not item.parent_label:
 			continue

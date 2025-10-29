@@ -6,7 +6,7 @@ $disabled-input-height: 22px;
 	--brand-color: var(--primary);
 
 	--padding-xs: 5px;
-	--padding-sm: 6px;
+	--padding-sm: 7px;
 	--padding-md: 15px;
 	--padding-lg: 20px;
 	--padding-xl: 30px;
@@ -18,6 +18,8 @@ $disabled-input-height: 22px;
 	--margin-lg: 20px;
 	--margin-xl: 30px;
 	--margin-2xl: 40px;
+
+	--page-max-width: 900px;
 
 	--modal-shadow: var(--shadow-md);
 	--card-shadow: var(--shadow-sm);
@@ -79,7 +81,7 @@ $disabled-input-height: 22px;
 	--fg-color: white;
 	--subtle-accent: var(--gray-50);
 	--subtle-fg: var(--gray-100);
-	--navbar-bg: white;
+	--navbar-bg: var(--neutral);
 	--fg-hover-color: var(--gray-100);
 	--card-bg: var(--fg-color);
 	--disabled-text-color: var(--gray-600);
@@ -153,4 +155,8 @@ $disabled-input-height: 22px;
 
 	--right-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.25 7.5L4.75 4L1.25 0.5' stroke='%231F272E' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 	--left-arrow-svg: url("data: image/svg+xml;utf8, <svg width='6' height='8' viewBox='0 0 6 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M7.5 9.5L4 6l3.5-3.5' stroke='%231F272E' stroke-linecap='round' stroke-linejoin='round'></path></svg>");
+
+	@include media-breakpoint-down(md) {
+		--checkbox-size: 18px;
+	}
 }

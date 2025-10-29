@@ -45,8 +45,15 @@ function show_toggle_sending_button(list_view) {
 
 function add_bulk_retry_button_to_actions(list_view) {
 	list_view.page.add_actions_menu_item(__("Retry Sending"), () => {
+		frappe.msgprint(
+			__(
+				"Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
+			),
+			__("Processing...")
+		);
+
 		frappe.call({
-			method: "frappe.email.doctype.email_queue.email_queue.bulk_retry",
+			method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
 			args: {
 				queues: list_view.get_checked_items(true),
 			},

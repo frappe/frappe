@@ -13,10 +13,10 @@ from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestEmailAccount(FrappeTestCase):
+class TestEmailAccount(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -159,16 +159,23 @@ class TestEmailAccount(FrappeTestCase):
 		)
 
 	def test_outgoing(self):
-		make(
+		comm_name = make(
 			subject="test-mail-000",
 			content="test mail 000",
 			recipients="test_receiver@example.com",
 			send_email=True,
 			sender="test_sender@example.com",
-		)
+		)["name"]
 
-		mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
-		self.assertTrue("test-mail-000" in mail.get("Subject"))
+		sent_mail = email.message_from_string(
+			frappe.get_doc(
+				"Email Queue",
+				{
+					"communication": comm_name,
+				},
+			).message
+		)
+		self.assertTrue("test-mail-000" in sent_mail.get("Subject"))
 
 	def test_sendmail(self):
 		frappe.sendmail(
@@ -183,7 +190,7 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
-		make(
+		comm_name = make(
 			sender="test_sender@example.com",
 			recipients="test_recipient@example.com",
 			content="test mail 001",
@@ -192,9 +199,15 @@ class TestEmailAccount(FrappeTestCase):
 			name="_Test Email Account 1",
 			print_format="Standard",
 			send_email=True,
+		)["name"]
+		sent_mail = email.message_from_string(
+			frappe.get_doc(
+				"Email Queue",
+				{
+					"communication": comm_name,
+				},
+			).message
 		)
-
-		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
@@ -268,7 +281,7 @@ class TestEmailAccount(FrappeTestCase):
 		frappe.db.delete("Email Queue")
 
 		# reference document for testing
-		event = frappe.get_doc(dict(doctype="Event", subject="test-message")).insert()
+		event = frappe.get_doc(doctype="Event", subject="test-message").insert()
 
 		# send a mail against this
 		frappe.sendmail(
@@ -454,7 +467,7 @@ class TestEmailAccount(FrappeTestCase):
 			email_account.receive()
 
 
-class TestInboundMail(FrappeTestCase):
+class TestInboundMail(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -510,7 +523,7 @@ class TestInboundMail(FrappeTestCase):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id)
+		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)

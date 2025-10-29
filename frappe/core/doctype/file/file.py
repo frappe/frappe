@@ -17,7 +17,13 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.exceptions import DoesNotExistError
 from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
-from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
+from frappe.utils import (
+	call_hook_method,
+	cint,
+	get_files_path,
+	get_hook_method,
+	get_url,
+)
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.html_utils import escape_html
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -32,12 +38,11 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
 
-
 URL_PREFIXES = ("http://", "https://", "/api/method/")
+FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
@@ -67,6 +72,7 @@ class File(Document):
 		uploaded_to_dropbox: DF.Check
 		uploaded_to_google_drive: DF.Check
 	# end: auto-generated types
+
 	no_feed_on_delete = True
 
 	def __init__(self, *args, **kwargs):
@@ -95,6 +101,9 @@ class File(Document):
 			self.name = frappe.generate_hash(length=10)
 
 	def before_insert(self):
+		# Ensure correct formatting and type
+		self.file_url = unquote(self.file_url) if self.file_url else ""
+
 		self.set_folder_name()
 		self.set_is_private()
 		self.set_file_name()
@@ -122,9 +131,6 @@ class File(Document):
 		if self.is_folder:
 			return
 
-		# Ensure correct formatting and type
-		self.file_url = unquote(self.file_url) if self.file_url else ""
-
 		self.validate_attachment_references()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
@@ -142,7 +148,10 @@ class File(Document):
 			return
 
 		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
-			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
+			frappe.throw(
+				_("Attached To Name must be a string or an integer"),
+				frappe.ValidationError,
+			)
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
@@ -216,8 +225,8 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
-		if not self.file_url.startswith(("/files/", "/private/files/")):
-			# Probably an invalid URL since it doesn't start with http either
+		if not self.file_url.startswith(("/files/", "/private/files/", "/api/method/")):
+			# Probably an invalid URL since it doesn't start with http and isn't an internal URL either
 			frappe.throw(
 				_("URL must start with http:// or https://"),
 				title=_("Invalid URL"),
@@ -321,7 +330,9 @@ class File(Document):
 			if current_attachment_count >= attachment_limit:
 				frappe.throw(
 					_("Maximum Attachment Limit of {0} has been reached for {1} {2}.").format(
-						frappe.bold(attachment_limit), self.attached_to_doctype, self.attached_to_name
+						frappe.bold(attachment_limit),
+						self.attached_to_doctype,
+						self.attached_to_name,
 					),
 					exc=AttachmentLimitReached,
 					title=_("Attachment Limit Reached"),
@@ -375,7 +386,10 @@ class File(Document):
 			return
 
 		if self.file_type not in allowed_extensions.splitlines():
-			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
+			frappe.throw(
+				_("File type of {0} is not allowed").format(self.file_type),
+				exc=FileTypeNotAllowed,
+			)
 
 	def check_content(self):
 		if self.file_type == "PDF" and self._content and pdf_contains_js(self._content):
@@ -414,7 +428,8 @@ class File(Document):
 	def set_file_name(self):
 		if not self.file_name and not self.file_url:
 			frappe.throw(
-				_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError
+				_("Fields `file_name` or `file_url` must be set for File"),
+				exc=frappe.MandatoryError,
 			)
 		elif not self.file_name and self.file_url:
 			self.file_name = self.file_url.split("/")[-1]
@@ -563,10 +578,11 @@ class File(Document):
 	def exists_on_disk(self):
 		return os.path.exists(self.get_full_path())
 
-	def get_content(self) -> bytes:
+	def get_content(self, encodings=None) -> bytes | str:
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
 			if self.decode:
@@ -579,20 +595,25 @@ class File(Document):
 			self.validate_file_url()
 		file_path = self.get_full_path()
 
-		# read the file
+		if encodings is None:
+			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			try:
-				# for plain text files
-				self._content = self._content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
+			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+			# encoded so the first iteration will be enough most of the time
+			for encoding in encodings:
+				try:
+					# read file with proper encoding
+					self._content = self._content.decode(encoding)
+					break
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					continue
 
 		return self._content
 
 	def get_full_path(self):
-		"""Returns file path from given file name"""
+		"""Return file path using the set file name."""
 
 		file_path = self.file_url or self.file_name
 
@@ -758,7 +779,7 @@ class File(Document):
 		return has_permission(self, "read")
 
 	def get_extension(self):
-		"""returns split filename and extension"""
+		"""Split and return filename and extension for the set `file_name`."""
 		return os.path.splitext(self.file_name)
 
 	def create_attachment_record(self):
@@ -780,6 +801,9 @@ class File(Document):
 				frappe.clear_messages()
 
 	def set_is_private(self):
+		if self.is_private:
+			return
+
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
@@ -845,9 +869,6 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user == "Administrator":
 		return True
-
-	if ptype == "create":
-		return frappe.has_permission("File", "create", user=user, debug=debug)
 
 	if not doc.is_private and ptype in ("read", "select"):
 		return True

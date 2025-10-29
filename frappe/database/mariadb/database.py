@@ -1,4 +1,3 @@
-import re
 from contextlib import contextmanager
 
 import pymysql
@@ -10,8 +9,6 @@ from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
-
 
 class MariaDBExceptionUtil:
 	ProgrammingError = pymysql.ProgrammingError
@@ -20,6 +17,7 @@ class MariaDBExceptionUtil:
 	InternalError = pymysql.InternalError
 	SQLError = pymysql.ProgrammingError
 	DataError = pymysql.DataError
+	InterfaceError = pymysql.InterfaceError
 
 	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
 	SequenceGeneratorLimitExceeded = pymysql.OperationalError
@@ -178,7 +176,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			"Long Int": ("bigint", "20"),
 			"Float": ("decimal", "21,9"),
 			"Percent": ("decimal", "21,9"),
-			"Check": ("int", "1"),
+			"Check": ("tinyint", 4),
 			"Small Text": ("text", ""),
 			"Long Text": ("longtext", ""),
 			"Code": ("longtext", ""),
@@ -210,7 +208,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		}
 
 	def get_database_size(self):
-		"""'Returns database size in MB"""
+		"""Return database size in MB."""
 		db_size = self.sql(
 			"""
 			SELECT `table_schema` as `database_name`,
@@ -223,10 +221,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		return db_size[0].get("database_size")
 
-	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._executed
-		self._log_query(self.last_query, debug, explain, query)
-		return self.last_query
+	def log_query(self, query, query_type, values, debug):
+		mogrified_query = self._cursor._executed
+		self.last_query = mogrified_query
+		self._log_query(mogrified_query, query_type, debug, query)
+		return mogrified_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
@@ -237,7 +236,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
 		# of this method should be limited.
@@ -301,7 +300,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,
 				`password` TEXT NOT NULL,
-				`encrypted` INT(1) NOT NULL DEFAULT 0,
+				`encrypted` TINYINT NOT NULL DEFAULT 0,
 				PRIMARY KEY (`doctype`, `name`, `fieldname`)
 			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"""
 		)
@@ -316,7 +315,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				content text,
 				fulltext(content),
 				route varchar({self.VARCHAR_LEN}),
-				published int(1) not null default 0,
+				published TINYINT not null default 0,
 				unique `doctype_name` (doctype, name))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
@@ -334,11 +333,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	@staticmethod
-	def get_on_duplicate_update(key=None):
+	def get_on_duplicate_update():
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
-		"""Returns list of column and its description"""
+		"""Return list of columns with descriptions."""
 		return self.sql(
 			f"""select
 			column_name as 'name',
@@ -353,14 +352,16 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
-			column_key = 'UNI' as 'unique'
+			column_key = 'UNI' as 'unique',
+			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
-			where table_name = '{table_name}' """,
+			where table_name = '{table_name}'
+   			and table_schema = '{frappe.db.cur_db_name}' """,
 			as_dict=1,
 		)
 
 	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
+		"""Return column type from database."""
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
@@ -370,6 +371,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			.where(
 				(information_schema.columns.table_name == table)
 				& (information_schema.columns.column_name == column)
+				& (information_schema.columns.table_schema == self.cur_db_name)
 			)
 			.run(pluck=True)[0]
 		)
@@ -474,11 +476,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return self.sql("SHOW DATABASES", pluck=True)
 
 	def get_tables(self, cached=True):
-		"""Returns list of tables"""
+		"""Return list of tables."""
 		to_query = not cached
 
 		if cached:
-			tables = frappe.cache.get_value("db_tables")
+			tables = frappe.client_cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
@@ -490,7 +492,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
 				.run(pluck=True)
 			)
-			frappe.cache.set_value("db_tables", tables)
+			frappe.client_cache.set_value("db_tables", tables)
 
 		return tables
 

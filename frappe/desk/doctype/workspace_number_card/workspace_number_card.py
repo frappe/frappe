@@ -20,4 +20,5 @@ class WorkspaceNumberCard(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 	# end: auto-generated types
+
 	pass

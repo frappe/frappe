@@ -12,7 +12,7 @@ frappe.report_utils = {
 
 		let labels = get_column_values(x_field);
 		let datasets = y_fields.map((y_field) => ({
-			name: frappe.model.unscrub(y_field),
+			name: get_translated_column_label(y_field),
 			values: get_column_values(y_field).map((d) => Number(d)),
 		}));
 
@@ -46,6 +46,11 @@ frappe.report_utils = {
 			} else {
 				return rows.map((row) => row[column_name]);
 			}
+		}
+
+		function get_translated_column_label(fieldname) {
+			let column = columns.find((column) => column.fieldname === fieldname);
+			return column?.label ?? __(frappe.model.unscrub(fieldname));
 		}
 	},
 
@@ -209,6 +214,14 @@ frappe.report_utils = {
 				depends_on: "eval:doc.file_format=='CSV'",
 			},
 			{
+				fieldtype: "Data",
+				label: "CSV Decimal Separator",
+				fieldname: "csv_decimal_sep",
+				default: ".",
+				length: 1,
+				depends_on: "eval:doc.file_format=='CSV' && doc.csv_quoting != 2",
+			},
+			{
 				fieldtype: "Small Text",
 				label: "CSV Preview",
 				fieldname: "csv_preview",
@@ -253,17 +266,23 @@ frappe.report_utils = {
 				frappe.report_utils.get_csv_preview(
 					PREVIEW_DATA,
 					dialog.get_value("csv_quoting"),
-					dialog.get_value("csv_delimiter")
+					dialog.get_value("csv_delimiter"),
+					dialog.get_value("csv_decimal_sep")
 				)
 			);
 		}
 
 		dialog.fields_dict["file_format"].df.onchange = () => update_csv_preview(dialog);
 		dialog.fields_dict["csv_quoting"].df.onchange = () => update_csv_preview(dialog);
-		dialog.fields_dict["csv_delimiter"].df.onchange = () => update_csv_preview(dialog);
 		dialog.fields_dict["csv_delimiter"].df.onchange = () => {
 			if (!dialog.get_value("csv_delimiter")) {
 				dialog.set_value("csv_delimiter", ",");
+			}
+			update_csv_preview(dialog);
+		};
+		dialog.fields_dict["csv_decimal_sep"].df.onchange = () => {
+			if (!dialog.get_value("csv_decimal_sep")) {
+				dialog.set_value("csv_decimal_sep", ".");
 			}
 			update_csv_preview(dialog);
 		};
@@ -271,7 +290,7 @@ frappe.report_utils = {
 		return dialog;
 	},
 
-	get_csv_preview(data, quoting, delimiter) {
+	get_csv_preview(data, quoting, delimiter, decimal_sep) {
 		// data: array of arrays
 		// quoting: 0 - minimal, 1 - all, 2 - non-numeric, 3 - none
 		// delimiter: any single character
@@ -287,8 +306,16 @@ frappe.report_utils = {
 			frappe.throw(__("Delimiter must be a single character"));
 		}
 
+		if (decimal_sep.length > 1) {
+			frappe.throw(__("Decimal Separator must be a single character"));
+		}
+
 		if (0 > quoting || quoting > 3) {
 			frappe.throw(__("Quoting must be between 0 and 3"));
+		}
+
+		if (decimal_sep !== "." && quoting === QUOTING.NonNumeric) {
+			frappe.throw(__("Decimal Separator must be '.' when Quoting is set to Non-numeric"));
 		}
 
 		return data
@@ -301,6 +328,10 @@ frappe.report_utils = {
 
 						if (typeof col == "string" && col.includes('"')) {
 							col = col.replace(/"/g, '""');
+						}
+
+						if (typeof col == "number" && decimal_sep !== ".") {
+							col = col.toString().replace(".", decimal_sep);
 						}
 
 						switch (quoting) {

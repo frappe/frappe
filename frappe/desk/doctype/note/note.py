@@ -18,14 +18,14 @@ class Note(Document):
 		from frappe.types import DF
 
 		content: DF.TextEditor | None
-		expire_notification_on: DF.Date | None
+		expire_notification_on: DF.Datetime | None
 		notify_on_every_login: DF.Check
 		notify_on_login: DF.Check
 		public: DF.Check
 		seen_by: DF.Table[NoteSeenBy]
 		title: DF.Data
-
 	# end: auto-generated types
+
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)
@@ -40,6 +40,10 @@ class Note(Document):
 	def before_print(self, settings=None):
 		self.print_heading = self.name
 		self.sub_heading = ""
+
+	def clear_cache(self):
+		frappe.cache.delete_keys(UNSEEN_NOTES_KEY)
+		return super().clear_cache()
 
 	def mark_seen_by(self, user: str) -> None:
 		if user in [d.user for d in self.seen_by]:
@@ -63,7 +67,7 @@ def get_permission_query_conditions(user):
 
 
 def has_permission(doc, user):
-	return doc.public or doc.owner == user
+	return bool(doc.public or doc.owner == user)
 
 
 def get_unseen_notes():

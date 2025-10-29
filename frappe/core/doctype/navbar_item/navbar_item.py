@@ -25,4 +25,5 @@ class NavbarItem(Document):
 		parenttype: DF.Data
 		route: DF.Data | None
 	# end: auto-generated types
+
 	pass

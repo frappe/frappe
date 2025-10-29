@@ -3,7 +3,7 @@ from frappe import _
 
 
 class DbManager:
-	def __init__(self, db):
+	def __init__(self, db: frappe.database.database.Database | None = None):
 		"""
 		Pass root_conn here for access to all databases.
 		"""
@@ -16,7 +16,7 @@ class DbManager:
 	def create_user(self, user, password, host=None):
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
-		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
+		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
 
 	def delete_user(self, target, host=None):
 		host = host or self.get_current_host()
@@ -78,11 +78,12 @@ class DbManager:
 		else:
 			command.extend(["cat", source, "|"])
 
-		# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
-		command.extend(["sed", r"'/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d'", "|"])
+		if frappe.conf.db_type == "mariadb":
+			# Newer versions of MariaDB add in a line that'll break on older versions, so remove it
+			command.extend(["sed", r"'/\/\*M\{0,1\}!999999\\- enable the sandbox mode \*\//d'", "|"])
 
-		# Remove view security definers
-		command.extend(["sed", r"'/\/\*![0-9]* DEFINER=[^ ]* SQL SECURITY DEFINER \*\//d'", "|"])
+			# Remove view security definers
+			command.extend(["sed", r"'/\/\*![0-9]* DEFINER=[^ ]* SQL SECURITY DEFINER \*\//d'", "|"])
 
 		# Generate the restore command
 		bin, args, bin_name = get_command(

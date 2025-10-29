@@ -46,7 +46,7 @@
  ],
  "icon": "icon-list",
  "links": [],
- "modified": "2022-08-03 12:20:50.025294",
+ "modified": "2024-03-23 16:03:27.650255",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Category",
@@ -65,7 +65,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

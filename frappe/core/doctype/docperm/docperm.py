@@ -20,6 +20,7 @@ class DocPerm(Document):
 		email: DF.Check
 		export: DF.Check
 		if_owner: DF.Check
+		mask: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
@@ -33,4 +34,5 @@ class DocPerm(Document):
 		submit: DF.Check
 		write: DF.Check
 	# end: auto-generated types
+
 	pass

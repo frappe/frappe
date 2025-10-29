@@ -35,6 +35,7 @@ class ActivityLog(Document):
 		user: DF.Link | None
 
 	# end: auto-generated types
+
 	def before_insert(self):
 		self.full_name = strip_html(get_fullname(self.user))
 		self.date = now()
@@ -60,7 +61,7 @@ class ActivityLog(Document):
 		if not days:
 			days = 90
 		doctype = DocType("Activity Log")
-		frappe.db.delete(doctype, filters=(doctype.modified < (Now() - Interval(days=days))))
+		frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))
 
 
 def on_doctype_update():

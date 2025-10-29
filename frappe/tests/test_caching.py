@@ -2,8 +2,9 @@ import time
 from unittest.mock import MagicMock
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils.caching import redis_cache, request_cache, site_cache
 
 CACHE_TTL = 4
@@ -34,19 +35,24 @@ def ping_with_ttl() -> str:
 	return frappe.local.site
 
 
-class TestCachingUtils(FrappeTestCase):
+class TestCachingUtils(IntegrationTestCase):
 	def test_request_cache(self):
 		retval = []
-		acceptable_args = [
-			[1, 2, 3, 4],
+		hashable_values = [
 			range(10),
-			{"abc": "test-key"},
 			frappe.get_last_doc("DocType"),
+			True,
+			None,
+		]
+
+		unhashable_values = [
+			[1, 2, 3, 4],
+			{"abc": "test-key"},
 			frappe._dict(),
 		]
 
 		def same_output_received():
-			return all([x for x in set(retval) if x == retval[0]])
+			return len(set(retval)) == 1
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
@@ -54,27 +60,33 @@ class TestCachingUtils(FrappeTestCase):
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure that cache differentiates between int & float
-		# types. Giving different return values for both
+		# hash() function does not differentiate between int & float
+		# Giving same values for both
 		retval.append(request_specific_api(120.0, 23))
-		self.assertTrue(external_service.call_count, 2)
-
-		# ensure that function is executed when call isn't
-		# already cached
-		retval.clear()
-		for _ in range(10):
-			request_specific_api(120, 13)
-		self.assertTrue(external_service.call_count, 3)
+		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
-		# ensure key generation capacity for different types
+		# ensure that function is executed when call isn't already cached
 		retval.clear()
-		for arg in acceptable_args:
+		retval.extend(request_specific_api(120, 13) for _ in range(10))
+		self.assertEqual(external_service.call_count, 2)
+		self.assertTrue(same_output_received())
+
+		# ensure single call if key is hashable
+		for arg in hashable_values:
 			external_service.call_count = 0
 			for _ in range(2):
 				request_specific_api(arg, 13)
-			self.assertTrue(external_service.call_count, 1)
-		self.assertTrue(same_output_received())
+
+			self.assertEqual(external_service.call_count, 1)
+
+		# multiple calls if key cannot be generated
+		for arg in unhashable_values:
+			external_service.call_count = 0
+			for _ in range(2):
+				request_specific_api(arg, 13)
+
+			self.assertEqual(external_service.call_count, 2)
 
 
 class TestSiteCache(FrappeAPITestCase):
@@ -109,6 +121,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(function_call_count, 1)
 
 		time.sleep(CACHE_TTL * 1.5)
+		frappe.local.cache.clear()
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 2)
 
@@ -222,7 +235,7 @@ class TestDocumentCache(FrappeAPITestCase):
 		self.test_value = frappe.generate_hash()
 
 	def test_caching(self):
-		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		with self.assertQueryCount(0):
 			doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
@@ -271,5 +284,89 @@ class TestRedisWrapper(FrappeAPITestCase):
 		frappe.cache.delete_keys(prefix)
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
 
+	def test_hash(self):
+		key = "test_hash"
+
+		# Confirm that there's no data initially
+		exists = frappe.cache.exists(key)
+		self.assertFalse(exists)
+
+		# Insert 5 key-value pairs
+		for i in range(5):
+			frappe.cache.hset(key, f"key_{i}", f"value_{i}")
+
+		# Check that we have 5 values
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 5)
+
+		# Check that each value matches
+		for i in range(5):
+			value = frappe.cache.hget(key, f"key_{i}")
+			self.assertEqual(value, f"value_{i}")
+
+		# Check the keys themselves
+		keys = frappe.cache.hkeys(key)
+		for i in range(5):
+			self.assertIn(f"key_{i}".encode(), keys)
+
+		# Delete a single key and check that we still have the remaining 4
+		frappe.cache.hdel(key, "key_1")
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 4)
+
+		# Delete 2 keys and check that we still have the remaining 2
+		frappe.cache.hdel(key, ["key_2", "key_3"])
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 2)
+
+		# Delete the hash itself and confirm that there's no data
+		frappe.cache.delete_value(key)
+		exists = frappe.cache.exists(key)
+		self.assertFalse(exists)
+
+	def test_user_cache_clear(self):
+		from frappe.cache_manager import user_cache_keys
+
+		# Set some keys that a user's cache would usually have
+		user1 = frappe.utils.random_string(10)
+		user2 = frappe.utils.random_string(10)
+		for key in user_cache_keys:
+			frappe.cache.hset(key, user1, key)
+			frappe.cache.hset(key, user2, key)
+
+		frappe.clear_cache(user=user1)
+
+		# Check that the keys for user1 are gone
+		for key in set(user_cache_keys) - {"home_page"}:
+			self.assertFalse(frappe.cache.hexists(key, user1))
+			self.assertTrue(frappe.cache.hexists(key, user2))
+
+	def test_doctype_cache_clear(self):
+		from frappe.cache_manager import doctype_cache_keys
+
+		# Set some keys that a user's cache would usually have
+		doctype1 = new_doctype(frappe.utils.random_string(10))
+		doctype2 = new_doctype(frappe.utils.random_string(10))
+		for key in doctype_cache_keys:
+			frappe.cache.hset(key, doctype1.name, key)
+			frappe.cache.hset(key, doctype2.name, key)
+
+		frappe.clear_cache(doctype=doctype1.name)
+
+		# Check that the keys for doctype1 are gone
+		for key in doctype_cache_keys:
+			self.assertFalse(frappe.cache.hexists(key, doctype1.name))
+			self.assertTrue(frappe.cache.hexists(key, doctype2.name))
+
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
+
+
+class TestHttpCache(FrappeAPITestCase):
+	def test_http_headers(self):
+		resp = self.get(
+			self.method("frappe.client.is_document_amended"),
+			{"sid": self.sid, "doctype": "User", "docname": "Guest"},
+		)
+		self.assertEqual(resp.cache_control.max_age, 600)
+		self.assertTrue(resp.cache_control.private)

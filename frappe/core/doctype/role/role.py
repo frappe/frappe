@@ -25,8 +25,8 @@ class Role(Document):
 		restrict_to_domain: DF.Link | None
 		role_name: DF.Data
 		two_factor_auth: DF.Check
-
 	# end: auto-generated types
+
 	def before_rename(self, old, new, merge=False):
 		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
@@ -121,10 +121,14 @@ def get_users(role):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def role_query(doctype, txt, searchfield, start, page_len, filters):
-	report_filters = [["Role", "name", "like", f"%{txt}%"], ["Role", "is_custom", "=", 0]]
-	if filters and isinstance(filters, list):
-		report_filters.extend(filters)
-
 	return frappe.get_all(
-		"Role", limit_start=start, limit_page_length=page_len, filters=report_filters, as_list=1
+		"Role",
+		limit_start=start,
+		limit_page_length=page_len,
+		filters=[
+			["Role", "name", "like", f"%{txt}%"],
+			["Role", "is_custom", "=", 0],
+			["Role", "name", "!=", "All"],
+		],
+		as_list=True,
 	)

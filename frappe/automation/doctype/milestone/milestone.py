@@ -20,6 +20,7 @@ class Milestone(Document):
 		track_field: DF.Data
 		value: DF.Data
 	# end: auto-generated types
+
 	pass
 
 

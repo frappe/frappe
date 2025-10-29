@@ -41,7 +41,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-28 22:34:53.394652",
+ "modified": "2024-03-23 16:03:22.555030",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Document Follow",
@@ -73,7 +73,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

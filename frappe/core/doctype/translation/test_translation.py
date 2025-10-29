@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestTranslation(FrappeTestCase):
+class TestTranslation(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Translation")
 
@@ -61,6 +61,7 @@ class TestTranslation(FrappeTestCase):
 		self.assertNotEqual(_(source, lang="de"), _(source, lang="es"))
 
 	def test_html_content_data_translation(self):
+		# ruff: noqa: RUF001
 		source = """
 			<span style="color: rgb(51, 51, 51); font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
 			small;">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to

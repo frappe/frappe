@@ -14,24 +14,55 @@ frappe.notification = {
 			let get_select_options = function (df, parent_field) {
 				// Append parent_field name along with fieldname for child table fields
 				let select_value = parent_field ? df.fieldname + "," + parent_field : df.fieldname;
+				let path = parent_field ? parent_field + " > " + df.fieldname : df.fieldname;
 
 				return {
 					value: select_value,
-					label: df.fieldname + " (" + __(df.label, null, df.parent) + ")",
+					label: path + " (" + __(df.label, null, df.parent) + ")",
 				};
 			};
 
-			let get_date_change_options = function () {
+			let get_date_change_options = function (fieldtypes) {
 				let date_options = $.map(fields, function (d) {
-					return d.fieldtype == "Date" || d.fieldtype == "Datetime"
-						? get_select_options(d)
-						: null;
+					return fieldtypes.includes(d.fieldtype) ? get_select_options(d) : null;
 				});
 				// append creation and modified date to Date Change field
 				return date_options.concat([
 					{ value: "creation", label: `creation (${__("Created On")})` },
 					{ value: "modified", label: `modified (${__("Last Modified Date")})` },
 				]);
+			};
+			let get_receiver_fields = function (
+				fields,
+				is_extra_receiver_field = (_) => {
+					return false;
+				}
+			) {
+				// finds receiver fields from the fields or any child table
+				// by default finds any link to the User doctype
+				// however an additional optional predicate can be passed as argument
+				// to find additional fields
+				let is_receiver_field = function (df) {
+					return (
+						is_extra_receiver_field(df) ||
+						(df.options == "User" && df.fieldtype == "Link") ||
+						(df.options == "Customer" && df.fieldtype == "Link")
+					);
+				};
+				let extract_receiver_field = function (df) {
+					// Add recipients from child doctypes into select dropdown
+					if (frappe.model.table_fields.includes(df.fieldtype)) {
+						let child_fields = frappe.get_doc("DocType", df.options).fields;
+						return $.map(child_fields, function (cdf) {
+							return is_receiver_field(cdf)
+								? get_select_options(cdf, df.fieldname)
+								: null;
+						});
+					} else {
+						return is_receiver_field(df) ? get_select_options(df) : null;
+					}
+				};
+				return $.map(fields, extract_receiver_field);
 			};
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
@@ -46,31 +77,25 @@ frappe.notification = {
 			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
-			frm.set_df_property("date_changed", "options", get_date_change_options());
+			frm.set_df_property(
+				"date_changed",
+				"options",
+				get_date_change_options(["Date", "Datetime"])
+			);
+			frm.set_df_property(
+				"datetime_changed",
+				"options",
+				get_date_change_options(["Datetime"])
+			);
 
 			let receiver_fields = [];
 			if (frm.doc.channel === "Email") {
-				receiver_fields = $.map(fields, function (d) {
-					// Add User and Email fields from child into select dropdown
-					if (frappe.model.table_fields.includes(d.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", d.options).fields;
-						return $.map(child_fields, function (df) {
-							return df.options == "Email" ||
-								(df.options == "User" && df.fieldtype == "Link")
-								? get_select_options(df, d.fieldname)
-								: null;
-						});
-						// Add User and Email fields from parent into select dropdown
-					} else {
-						return d.options == "Email" ||
-							(d.options == "User" && d.fieldtype == "Link")
-							? get_select_options(d)
-							: null;
-					}
+				receiver_fields = get_receiver_fields(fields, function (df) {
+					return df.options == "Email";
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
-				receiver_fields = $.map(fields, function (d) {
-					return d.options == "Phone" ? get_select_options(d) : null;
+				receiver_fields = get_receiver_fields(fields, function (df) {
+					return df.options == "Phone" || df.options == "Mobile";
 				});
 			}
 
@@ -87,7 +112,7 @@ frappe.notification = {
 		if (frm.doc.channel === "Email") {
 			template = `<h5>Message Example</h5>
 
-<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;
+<pre><code class="language-xml">&lt;h3&gt;Order Overdue&lt;/h3&gt;
 
 &lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;
 
@@ -99,10 +124,10 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;h4&gt;Details&lt;/h4&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Customer: {{ doc.customer }}
-&lt;li&gt;Amount: {{ doc.grand_total }}
+&lt;li&gt;Customer: {{ doc.customer }}&lt;/li&gt;
+&lt;li&gt;Amount: {{ doc.grand_total }}&lt;/li&gt;
 &lt;/ul&gt;
-</pre>
+</code></pre>
 			`;
 		} else if (["Slack", "System Notification", "SMS"].includes(frm.doc.channel)) {
 			template = `<h5>Message Example</h5>
@@ -123,7 +148,11 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 </pre>`;
 		}
 		if (template) {
-			frm.set_df_property("message_examples", "options", template);
+			const message_examples_field = frm.get_field("message_examples");
+			message_examples_field.html(template);
+			if (frm.doc.channel === "Email") {
+				frappe.utils.highlight_pre(message_examples_field.$wrapper);
+			}
 		}
 	},
 };
@@ -161,9 +190,31 @@ frappe.ui.form.on("Notification", {
 		});
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger("event");
+		if (frm.doc.document_type) {
+			frm.add_custom_button(__("Preview"), () => {
+				const args = {
+					doc: frm.doc,
+					doctype: frm.doc.document_type,
+					preview_fields: [
+						{
+							label: __("Meets Condition?"),
+							fieldtype: "Data",
+							method: "preview_meets_condition",
+						},
+						{ label: __("Subject"), fieldtype: "Data", method: "preview_subject" },
+						{ label: __("Message"), fieldtype: "Code", method: "preview_message" },
+					],
+				};
+				let dialog = new frappe.views.RenderPreviewer(args);
+				return dialog;
+			});
+		}
+
+		frm.trigger("set_up_filters_editor");
 	},
 	document_type: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
+		frm.trigger("set_up_filters_editor");
 	},
 	view_properties: function (frm) {
 		frappe.route_options = { doc_type: frm.doc.document_type };
@@ -201,5 +252,42 @@ frappe.ui.form.on("Notification", {
 		} else {
 			frm.set_df_property("channel", "description", ` `);
 		}
+	},
+	condition_type: function (frm) {
+		if (frm.doc.condition_type === "Filters") {
+			frm.set_value("condition", "");
+		} else {
+			frm.set_value("filters", "");
+		}
+
+		frm.trigger("set_up_filters_editor");
+	},
+	set_up_filters_editor(frm) {
+		const parent = frm.get_field("filters_editor").$wrapper;
+		parent.empty();
+
+		if (!frm.doc.document_type || frm.doc.condition_type !== "Filters") {
+			return;
+		}
+
+		const filters =
+			frm.doc.filters && frm.doc.filters !== "[]" ? JSON.parse(frm.doc.filters) : [];
+
+		frappe.model.with_doctype(frm.doc.document_type, () => {
+			const filter_group = new frappe.ui.FilterGroup({
+				parent: parent,
+				doctype: frm.doc.document_type,
+				on_change: () => {
+					frappe.model.set_value(
+						frm.doc.doctype,
+						frm.doc.name,
+						"filters",
+						JSON.stringify(filter_group.get_filters())
+					);
+				},
+			});
+
+			filter_group.add_filters_to_filter_group(filters);
+		});
 	},
 });

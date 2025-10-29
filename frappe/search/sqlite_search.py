@@ -96,9 +96,9 @@ class SQLiteSearch(ABC):
 		included in the scoring pipeline.
 
 		Usage:
-		        @SQLiteSearch.scoring_function
-		        def custom_boost(self, row, query, query_words):
-		                return 1.5
+		    @SQLiteSearch.scoring_function
+		    def custom_boost(self, row, query, query_words):
+		        return 1.5
 		"""
 		func._is_scoring_function = True
 		return func
@@ -219,11 +219,11 @@ class SQLiteSearch(ABC):
 		Return filters to apply to search results.
 
 		Returns:
-		        dict: Permission filters in format:
-		                {
-		                        "field_name": value,  # Single value: field = value
-		                        "field_name": [val1, val2]  # List: field IN (val1, val2)
-		                }
+		    dict: Permission filters in format:
+		        {
+		            "field_name": value,  # Single value: field = value
+		            "field_name": [val1, val2]  # List: field IN (val1, val2)
+		        }
 		"""
 		pass
 
@@ -234,12 +234,12 @@ class SQLiteSearch(ABC):
 		Main search method with advanced filtering support.
 
 		Args:
-		        query (str): Search query text
-		        title_only (bool): Whether to search only in titles
-		        filters (dict): Optional filters by field names
+		    query (str): Search query text
+		    title_only (bool): Whether to search only in titles
+		    filters (dict): Optional filters by field names
 
 		Returns:
-		        dict: Search results with summary statistics
+		    dict: Search results with summary statistics
 		"""
 		if not self.is_search_enabled():
 			return self._empty_search_result(title_only, filters)
@@ -427,7 +427,22 @@ class SQLiteSearch(ABC):
 				if not values:  # Skip empty filters
 					continue
 
-				if isinstance(values, list):
+				# Check if this is a LIKE filter (list with 'LIKE' operator)
+				if isinstance(values, list) and len(values) == 2 and values[0] == "LIKE":
+					# Handle LIKE filters in format ['LIKE', tag_filters]
+					like_values = values[1]
+					if isinstance(like_values, list):
+						# Multiple LIKE conditions (OR them together)
+						like_conditions = []
+						for like_val in like_values:
+							like_conditions.append(f"{field} LIKE ?")
+							filter_params.append(f"%{like_val}%")
+						filter_conditions.append(f"({' OR '.join(like_conditions)})")
+					else:
+						# Single LIKE condition
+						filter_conditions.append(f"{field} LIKE ?")
+						filter_params.append(f"%{like_values}%")
+				elif isinstance(values, list):
 					if len(values) == 1:
 						filter_conditions.append(f"{field} = ?")
 						filter_params.append(values[0])
@@ -480,16 +495,16 @@ class SQLiteSearch(ABC):
 
 		if title_only:
 			sql = f"""
-				SELECT
-					doc_id,
-					{select_clause}
-				FROM search_fts
-				WHERE search_fts MATCH ?
-				AND {title_field} MATCH ?
-				{filter_clause}
-				ORDER BY bm25_score
-				LIMIT ?
-			"""
+                SELECT
+                    doc_id,
+                    {select_clause}
+                FROM search_fts
+                WHERE search_fts MATCH ?
+                AND {title_field} MATCH ?
+                {filter_clause}
+                ORDER BY bm25_score
+                LIMIT ?
+            """
 			return self.sql(sql, (fts_query, fts_query, *filter_params, MAX_SEARCH_RESULTS), read_only=True)
 		else:
 			params = []
@@ -498,15 +513,16 @@ class SQLiteSearch(ABC):
 			params.extend([fts_query, *filter_params, MAX_SEARCH_RESULTS])
 
 			sql = f"""
-				SELECT
-					doc_id,
-					{select_clause}
-				FROM search_fts
-				WHERE search_fts MATCH ?
-				{filter_clause}
-				ORDER BY bm25_score
-				LIMIT ?
-			"""
+                SELECT
+                    doc_id,
+                    {select_clause}
+                FROM search_fts
+                WHERE search_fts MATCH ?
+                {filter_clause}
+                ORDER BY bm25_score
+                LIMIT ?
+            """
+			print(sql)
 			return self.sql(sql, params, read_only=True)
 
 	def _process_search_results(self, raw_results, query):
@@ -611,15 +627,38 @@ class SQLiteSearch(ABC):
 		return 1.0 / (1.0 + bm25_score) if bm25_score > 0 else 0.5
 
 	def _get_title_boost(self, row, query, query_words):
-		"""Calculate the title matching boost."""
+		"""Calculate the title matching boost based on percentage of words matched."""
 		original_title = (row["original_title"] or "").lower()
 		query_lower = query.lower()
 
+		# Check for exact phrase match first (highest boost)
 		if query_lower in original_title:
 			return TITLE_EXACT_MATCH_BOOST
-		if any(word.lower() in original_title for word in query_words):
-			return TITLE_PARTIAL_MATCH_BOOST
-		return 1.0
+
+		# Calculate percentage of query words that match in title
+		if not query_words:
+			return 1.0
+
+		matched_words = 0
+		for word in query_words:
+			if word.lower() in original_title:
+				matched_words += 1
+
+		if matched_words == 0:
+			return 1.0
+
+		# Calculate match percentage
+		match_percentage = matched_words / len(query_words)
+
+		# Scale the boost between TITLE_PARTIAL_MATCH_BOOST (2.0) and TITLE_EXACT_MATCH_BOOST (5.0)
+		# based on the percentage of words matched
+		min_boost = TITLE_PARTIAL_MATCH_BOOST  # 2.0
+		max_boost = TITLE_EXACT_MATCH_BOOST  # 5.0
+
+		# Linear interpolation: boost = min_boost + (max_boost - min_boost) * match_percentage
+		boost = min_boost + (max_boost - min_boost) * match_percentage
+
+		return boost
 
 	def _get_recency_boost(self, row, query):
 		"""Calculate the time-based recency boost."""
@@ -693,15 +732,15 @@ class SQLiteSearch(ABC):
 			placeholders = ",".join("?" * len(word_trigrams))
 			candidates = self.sql(
 				f"""
-				SELECT t.word, v.frequency, v.length, COUNT(*) as shared_trigrams
-				FROM search_trigrams t
-				JOIN search_vocabulary v ON t.word = v.word
-				WHERE t.trigram IN ({placeholders})
-					AND ABS(v.length - ?) <= ?  -- Length filter for efficiency
-				GROUP BY t.word, v.frequency, v.length
-				HAVING shared_trigrams >= 1  -- Must share at least 1 trigram
-				ORDER BY shared_trigrams DESC, v.frequency DESC
-			""",
+                SELECT t.word, v.frequency, v.length, COUNT(*) as shared_trigrams
+                FROM search_trigrams t
+                JOIN search_vocabulary v ON t.word = v.word
+                WHERE t.trigram IN ({placeholders})
+                    AND ABS(v.length - ?) <= ?  -- Length filter for efficiency
+                GROUP BY t.word, v.frequency, v.length
+                HAVING shared_trigrams >= 1  -- Must share at least 1 trigram
+                ORDER BY shared_trigrams DESC, v.frequency DESC
+            """,
 				(*word_trigrams, word_length, MAX_EDIT_DISTANCE),
 				read_only=True,
 			)
@@ -861,44 +900,36 @@ class SQLiteSearch(ABC):
 			cursor = conn.cursor()
 
 			# Create the FTS table with dynamic columns
-			cursor.execute(
-				f"""
-				CREATE VIRTUAL TABLE IF NOT EXISTS search_fts USING fts5(
-					doc_id UNINDEXED,
-					{", ".join([f"{field}" for field in text_fields])},
-					{", ".join([f"{field} UNINDEXED" for field in metadata_fields])},
-					tokenize="{tokenizer}"
-				)
-			"""
-			)
+			cursor.execute(f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS search_fts USING fts5(
+                    doc_id UNINDEXED,
+                    {", ".join([f"{field}" for field in text_fields])},
+                    {", ".join([f"{field} UNINDEXED" for field in metadata_fields])},
+                    tokenize="{tokenizer}"
+                )
+            """)
 
 			# Create the vocabulary and trigram tables
-			cursor.execute(
-				"""
-				CREATE TABLE IF NOT EXISTS search_vocabulary (
-					word TEXT PRIMARY KEY,
-					frequency INTEGER DEFAULT 1,
-					length INTEGER
-				)
-			"""
-			)
+			cursor.execute("""
+                CREATE TABLE IF NOT EXISTS search_vocabulary (
+                    word TEXT PRIMARY KEY,
+                    frequency INTEGER DEFAULT 1,
+                    length INTEGER
+                )
+            """)
 
-			cursor.execute(
-				"""
-				CREATE TABLE IF NOT EXISTS search_trigrams (
-					trigram TEXT,
-					word TEXT,
-					PRIMARY KEY (trigram, word)
-				)
-			"""
-			)
+			cursor.execute("""
+                CREATE TABLE IF NOT EXISTS search_trigrams (
+                    trigram TEXT,
+                    word TEXT,
+                    PRIMARY KEY (trigram, word)
+                )
+            """)
 
 			# Index for fast trigram lookups
-			cursor.execute(
-				"""
-				CREATE INDEX IF NOT EXISTS idx_trigram_lookup ON search_trigrams(trigram)
-			"""
-			)
+			cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_trigram_lookup ON search_trigrams(trigram)
+            """)
 
 			conn.commit()
 		finally:
@@ -919,9 +950,9 @@ class SQLiteSearch(ABC):
 		field_names = ",".join(all_fields)
 
 		insert_sql = f"""
-			INSERT INTO search_fts ({field_names})
-			VALUES ({placeholders})
-		"""
+            INSERT INTO search_fts ({field_names})
+            VALUES ({placeholders})
+        """
 
 		# Process documents in chunks to prevent memory issues with large datasets
 		chunk_size = 1000
@@ -1392,8 +1423,13 @@ def update_doc_index(doc: Document, method=None):
 
 				any_field_changed = any(doc.has_value_changed(field) for field in fields)
 				if any_field_changed:
-					print(f"Enqueuing {search.__class__.__name__}.index_doc for {doc.doctype}:{doc.name}")
-					search.index_doc(doctype, doc.name)
+					try:
+						search.index_doc(doctype, doc.name)
+					except Exception:
+						frappe.log_error(
+							title="SQLite Search Index Update Error",
+							message=f"Failed to update index for {doctype}:{doc.name} in {search.__class__.__name__}",
+						)
 
 
 def delete_doc_index(doc: Document, method=None):
@@ -1411,8 +1447,14 @@ def delete_doc_index(doc: Document, method=None):
 				if not fields:
 					continue
 
-				print(f"Enqueuing {search.__class__.__name__}.remove_doc for {doc.doctype}:{doc.name}")
-				search.remove_doc(doctype, doc.name)
+				try:
+					# Remove the document from the index
+					search.remove_doc(doctype, doc.name)
+				except Exception:
+					frappe.log_error(
+						title="SQLite Search Index Delete Error",
+						message=f"Failed to remove index for {doctype}:{doc.name} in {search.__class__.__name__}",
+					)
 
 
 def get_search_classes() -> list[type[SQLiteSearch]]:

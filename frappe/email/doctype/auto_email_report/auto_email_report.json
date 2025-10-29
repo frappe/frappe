@@ -182,7 +182,7 @@
    "fieldname": "format",
    "fieldtype": "Select",
    "label": "Format",
-   "options": "HTML\nXLSX\nCSV",
+   "options": "HTML\nXLSX\nCSV\nPDF",
    "reqd": 1
   },
   {
@@ -220,7 +220,7 @@
   }
  ],
  "links": [],
- "modified": "2024-02-04 13:31:08.624648",
+ "modified": "2025-07-04 17:33:36.750217",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Auto Email Report",
@@ -251,7 +251,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

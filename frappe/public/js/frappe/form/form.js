@@ -38,7 +38,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.events = {};
 		this.fetch_dict = {};
 		this.parent = parent;
-		this.doctype_layout = frappe.get_doc("DocType Layout", doctype_layout_name);
+		this.doctype_layout = frappe.get_meta(doctype_layout_name);
 		this.undo_manager = new UndoManager({ frm: this });
 		this.setup_meta(doctype);
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
@@ -52,7 +52,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_meta() {
-		this.meta = frappe.get_doc("DocType", this.doctype);
+		this.meta = frappe.get_meta(this.doctype);
 
 		if (this.meta.istable) {
 			this.meta.in_dialog = 1;
@@ -67,6 +67,7 @@ frappe.ui.form.Form = class FrappeForm {
 			Cancel: "cancel",
 			Amend: "amend",
 			Delete: "delete",
+			Mask: "mask",
 		};
 	}
 
@@ -84,6 +85,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
 			single_column: is_single_column,
+			sidebar_position: "Right",
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
@@ -311,19 +313,34 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function (i, df) {
-			frappe.model.on(df.options, "*", function (fieldname, value, doc) {
-				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
-					me.dirty();
-					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			frappe.model.on(
+				df.options,
+				"*",
+				function (fieldname, value, doc, skip_dirty_trigger = false) {
+					if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
+						if (!skip_dirty_trigger) {
+							me.dirty();
+						}
+
+						me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
+						return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					}
 				}
-			});
+			);
 		});
 	}
 
 	setup_notify_on_rename() {
 		$(document).on("rename", (ev, dt, old_name, new_name) => {
 			if (dt == this.doctype) this.rename_notify(dt, old_name, new_name);
+		});
+
+		frappe.realtime.on("doc_rename", (data) => {
+			// the current form has been renamed by some backend process
+			if (data.doctype == this.doctype && data.old == this.docname) {
+				// the current form does not exist anymore, route to the new one
+				frappe.set_route("Form", this.doctype, data.new);
+			}
 		});
 	}
 
@@ -448,6 +465,8 @@ frappe.ui.form.Form = class FrappeForm {
 			this.show_conflict_message();
 			this.show_submission_queue_banner();
 
+			this.mark_mask_fields_readonly();
+
 			if (frappe.boot.read_only) {
 				this.disable_form();
 			}
@@ -537,7 +556,6 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	trigger_onload(switched) {
-		this.cscript.is_onload = false;
 		if (!this.opendocs[this.docname]) {
 			var me = this;
 			this.cscript.is_onload = true;
@@ -615,6 +633,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh(),
+				() => (this.cscript.is_onload = false),
 			]);
 		} else {
 			this.refresh_header(switched);
@@ -658,6 +677,10 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+		if (this.layout === undefined) {
+			return;
+		}
+
 		this.layout.refresh(this.doc);
 		this.layout.primary_button = this.$wrapper.find(".btn-primary");
 
@@ -820,6 +843,17 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.ui.form.save(me, save_action, after_save, btn);
 		}
+	}
+
+	discard(btn, callback, on_error) {
+		const me = this;
+		return new Promise((resolve) => {
+			frappe.confirm(__("Discard {0}", [this.docname]), function () {
+				me.script_manager.trigger("before_discard").then(function () {
+					return me._discard(btn, callback, on_error, false); // ?
+				});
+			});
+		});
 	}
 
 	savesubmit(btn, callback, on_error) {
@@ -1001,6 +1035,52 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	_discard(btn, on_error, skip_confirm) {
+		const me = this;
+		const discard_doc = () => {
+			frappe.validated = true;
+			me.script_manager.trigger("before_discard").then(() => {
+				if (!frappe.validated) {
+					return me.handle_save_fail(btn, on_error);
+				}
+
+				var after_discard = function (r) {
+					if (r.exc) {
+						me.handle_save_fail(btn, on_error);
+					} else {
+						frappe.utils.play_sound("cancel");
+						me.refresh();
+						me.script_manager.trigger("after_discard");
+					}
+					me.reload_doc();
+				};
+				//frappe.ui.form.discard(me, after_discard, btn);
+				frappe.call({
+					freeze: true,
+					method: "frappe.desk.form.save.discard",
+					args: {
+						doctype: me.doc.doctype,
+						name: me.doc.name,
+					},
+					btn: btn,
+					callback: function (r) {
+						after_discard(r);
+					},
+				});
+			});
+		};
+
+		if (skip_confirm) {
+			discard_doc();
+		} else {
+			frappe.confirm(
+				__("Permanently Discard {0}?", [this.docname]),
+				discard_doc,
+				me.handle_save_fail(btn, on_error)
+			);
+		}
+	}
+
 	savetrash() {
 		this.validate_form_action("Delete");
 		frappe.model.delete_doc(this.doctype, this.docname, function () {
@@ -1091,6 +1171,15 @@ frappe.ui.form.Form = class FrappeForm {
 			this.set_df_property(field.df.fieldname, "read_only", "1");
 		});
 		this.disable_save();
+	}
+
+	mark_mask_fields_readonly() {
+		const masked_fields = this.meta.masked_fields || [];
+
+		masked_fields.forEach((fieldname) => {
+			this.set_df_property(fieldname, "read_only", 1);
+			this.set_df_property(fieldname, "fieldtype", "Data");
+		});
 	}
 
 	handle_save_fail(btn, on_error) {
@@ -1263,12 +1352,14 @@ frappe.ui.form.Form = class FrappeForm {
 			prev,
 		};
 
-		frappe.call("frappe.desk.form.utils.get_next", args).then((r) => {
-			if (r.message) {
-				frappe.set_route("Form", this.doctype, r.message);
-				this.focus_on_first_input();
-			}
-		});
+		frappe
+			.call({ method: "frappe.desk.form.utils.get_next", args, freeze: true })
+			.then((r) => {
+				if (r.message) {
+					frappe.set_route("Form", this.doctype, r.message);
+					this.focus_on_first_input();
+				}
+			});
 	}
 
 	rename_doc() {
@@ -1390,14 +1481,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		let btn = this.page.add_inner_button(label, fn, group);
 
-		if (btn) {
-			// Add actions as menu item in Mobile View
-			let menu_item_label = group ? `${group} > ${label}` : label;
-			let menu_item = this.page.add_menu_item(menu_item_label, fn, false);
-			menu_item.parent().addClass("hidden-xl");
-
-			this.custom_buttons[label] = btn;
-		}
 		return btn;
 	}
 
@@ -1411,9 +1494,28 @@ frappe.ui.form.Form = class FrappeForm {
 		this.custom_buttons = {};
 	}
 
-	//Remove specific custom button by button Label
+	// Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
+
+		// Remove actions from menu
+		delete this.custom_buttons[label];
+		let menu_item_label = group ? `${group} > ${label}` : label;
+		let $btn = this.page.is_in_group_button_dropdown(
+			this.page.menu,
+			"li > a.grey-link > span",
+			menu_item_label
+		);
+
+		if ($btn) {
+			let $linkBody = $btn.parent().parent();
+			if ($linkBody) {
+				// If last button, remove divider too
+				let $divider = $linkBody.next(".dropdown-divider");
+				if ($divider) $divider.remove();
+				$linkBody.remove();
+			}
+		}
 	}
 
 	scroll_to_element() {
@@ -1664,7 +1766,7 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 			} else {
 				frappe.msgprint(__("Field {0} not found.", [f]));
-				throw "frm.set_value";
+				throw `frm.set_value: '${f}' does not exist in the form`;
 			}
 		};
 
@@ -1746,8 +1848,10 @@ frappe.ui.form.Form = class FrappeForm {
 				share: p.share,
 				print: p.print,
 				email: p.email,
+				mask: p.mask,
 			};
 		});
+		this.refresh_fields();
 	}
 
 	trigger(event, doctype, docname) {
@@ -1768,18 +1872,14 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	get_title() {
-		if (this.meta.title_field) {
-			return this.doc[this.meta.title_field];
-		} else {
-			return String(this.doc.name);
-		}
+		return frappe.model.get_doc_title(this.doc);
 	}
 
 	get_selected() {
 		// returns list of children that are selected. returns [parentfield, name] for each
 		var selected = {},
 			me = this;
-		frappe.meta.get_table_fields(this.doctype).forEach(function (df) {
+		frappe.meta.get_table_fields(this.doctype, true).forEach(function (df) {
 			// handle TableMultiselect child fields
 			let _selected = [];
 
@@ -1800,7 +1900,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (frappe.meta.docfield_map[this.doctype][fieldname]) {
 			doctype = this.doctype;
 		} else {
-			frappe.meta.get_table_fields(this.doctype).every(function (df) {
+			frappe.meta.get_table_fields(this.doctype, true).every(function (df) {
 				if (frappe.meta.docfield_map[df.options][fieldname]) {
 					doctype = df.options;
 					return false;
@@ -1994,16 +2094,11 @@ frappe.ui.form.Form = class FrappeForm {
 					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1);
 				}
 			}
-			// no need to update timeline of owner of comment
-			// gets handled via comment submit code
-			if (
-				!(
-					["add", "update"].includes(action) &&
-					doc.doctype === "Comment" &&
-					doc.owner === frappe.session.user
-				)
-			) {
-				this.timeline && this.timeline.refresh();
+
+			this.timeline && this.timeline.refresh();
+
+			if (["add", "delete"].includes(action) && doc.doctype === "Comment") {
+				this.footer.refresh_comments_count();
 			}
 		});
 	}
@@ -2037,14 +2132,45 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		});
 	}
+
 	set_active_tab(tab) {
-		if (!this.active_tab_map) {
-			this.active_tab_map = {};
+		const previous_tab_name = this.active_tab_map?.[this.docname]?.df?.fieldname || "";
+		const next_tab_name = tab?.df?.fieldname || "";
+		const has_changed = previous_tab_name !== next_tab_name;
+
+		// A change is always detected on first render, because next_tab_name is always set (= fieldname)
+		// but the previous_tab_name is always empty.
+
+		if (!has_changed) {
+			return; // No change in tab, don't trigger on_tab_change, don't update URL hash
 		}
+
+		this.active_tab_map ??= {};
 		this.active_tab_map[this.docname] = tab;
 
+		// Update URL hash to reflect the active tab
+		const new_hash = next_tab_name.replace("__details", "");
+		const url = new URL(window.location.href);
+		url.hash = new_hash;
+		if (url.href !== window.location.href) {
+			history.replaceState(null, null, url);
+		}
+
 		this.script_manager.trigger("on_tab_change");
+
+		// When switching tabs, we should tell fields to update their display if needed (e.g. Geolocation and Signature fields).
+		// This is done using the already existing on_section_collapse optional method.
+		let in_tab = false;
+		for (const df of this.layout.fields) {
+			const field = this.get_field(df.fieldname);
+			if (df?.fieldtype == "Tab Break") {
+				in_tab = df === tab?.df;
+			} else if (typeof field?.on_section_collapse == "function") {
+				field.on_section_collapse(!in_tab); // hide = !in_tab
+			}
+		}
 	}
+
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
 	}

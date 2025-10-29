@@ -67,7 +67,7 @@
   }
  ],
  "links": [],
- "modified": "2023-08-28 22:35:02.993039",
+ "modified": "2024-03-23 16:02:16.071715",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
@@ -108,7 +108,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "dashboard_name",

@@ -35,7 +35,7 @@
   }
  ],
  "links": [],
- "modified": "2020-06-26 18:00:37.421491",
+ "modified": "2024-03-23 16:02:16.623353",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart Source",
@@ -63,7 +63,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

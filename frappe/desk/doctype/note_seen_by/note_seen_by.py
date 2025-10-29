@@ -18,4 +18,5 @@ class NoteSeenBy(Document):
 		parenttype: DF.Data
 		user: DF.Link | None
 	# end: auto-generated types
+
 	pass

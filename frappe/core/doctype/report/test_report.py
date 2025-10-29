@@ -11,16 +11,15 @@ from frappe.custom.doctype.customize_form.customize_form import reset_customizat
 from frappe.desk.query_report import add_total_row, run, save_report
 from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
-test_records = frappe.get_test_records("Report")
-test_dependencies = ["User"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
-class TestReport(FrappeTestCase):
+class TestReport(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
+		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
 	def test_report_builder(self):
@@ -176,12 +175,11 @@ class TestReport(FrappeTestCase):
 		)
 
 	def test_report_permissions(self):
-		frappe.set_user("test@example.com")
-		frappe.db.delete("Has Role", {"parent": frappe.session.user, "role": "Test Has Role"})
-		frappe.db.commit()
+		# create role "Test Has Role"
 		if not frappe.db.exists("Role", "Test Has Role"):
 			frappe.get_doc({"doctype": "Role", "role_name": "Test Has Role"}).insert(ignore_permissions=True)
 
+		# create report "Test Report"
 		if not frappe.db.exists("Report", "Test Report"):
 			report = frappe.get_doc(
 				{
@@ -196,13 +194,16 @@ class TestReport(FrappeTestCase):
 		else:
 			report = frappe.get_doc("Report", "Test Report")
 
-		self.assertNotEqual(report.is_permitted(), True)
-		frappe.set_user("Administrator")
+		with self.set_user("test@example.com"):
+			# remove role "Test Has Role" from user if found
+			frappe.db.delete("Has Role", {"parent": frappe.session.user, "role": "Test Has Role"})
+			self.assertNotEqual(report.is_permitted(), True)
 
 	def test_report_custom_permissions(self):
-		frappe.set_user("test@example.com")
+		# delete custom role if exists
 		frappe.db.delete("Custom Role", {"report": "Test Custom Role Report"})
-		frappe.db.commit()  # nosemgrep
+
+		# create report if not exists
 		if not frappe.db.exists("Report", "Test Custom Role Report"):
 			report = frappe.get_doc(
 				{
@@ -217,8 +218,11 @@ class TestReport(FrappeTestCase):
 		else:
 			report = frappe.get_doc("Report", "Test Custom Role Report")
 
-		self.assertEqual(report.is_permitted(), True)
+		# check report is permitted without custom role created
+		with self.set_user("test@example.com"):
+			self.assertEqual(report.is_permitted(), True)
 
+		# create custom role for report
 		frappe.get_doc(
 			{
 				"doctype": "Custom Role",
@@ -228,8 +232,9 @@ class TestReport(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		self.assertNotEqual(report.is_permitted(), True)
-		frappe.set_user("Administrator")
+		# check report is not permitted with custom role created
+		with self.set_user("test@example.com"):
+			self.assertNotEqual(report.is_permitted(), True)
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
 	def test_format_method(self):

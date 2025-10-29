@@ -280,7 +280,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	add_check(cell, d, fieldname, label, description = "") {
 		if (!label) label = toTitle(fieldname.replace(/_/g, " "));
-		if (d.permlevel > 0 && ["read", "write"].indexOf(fieldname) == -1) {
+		if (d.permlevel > 0 && ["read", "write", "mask"].indexOf(fieldname) == -1) {
 			return;
 		}
 
@@ -331,6 +331,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			"import",
 			"export",
 			"share",
+			"mask",
 		];
 	}
 

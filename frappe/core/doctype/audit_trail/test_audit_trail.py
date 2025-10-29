@@ -2,10 +2,11 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
+from frappe.utils import today
 
 
-class TestAuditTrail(FrappeTestCase):
+class TestAuditTrail(IntegrationTestCase):
 	def setUp(self):
 		self.child_doctype = create_custom_child_doctype()
 		self.custom_doctype = create_custom_doctype()
@@ -129,6 +130,11 @@ def amend_document(amend_from, changed_fields, rows_updated, submit=False):
 
 def create_comparator_doc(doctype_name, document):
 	comparator = frappe.new_doc("Audit Trail")
-	comparator.doctype_name = doctype_name
-	comparator.document = document
+	args_dict = {
+		"doctype_name": doctype_name,
+		"document": document,
+		"start_date": today(),
+		"end_date": today(),
+	}
+	comparator.update(args_dict)
 	return comparator

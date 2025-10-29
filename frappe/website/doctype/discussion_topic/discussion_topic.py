@@ -18,6 +18,7 @@ class DiscussionTopic(Document):
 		reference_doctype: DF.Link | None
 		title: DF.Data | None
 	# end: auto-generated types
+
 	pass
 
 

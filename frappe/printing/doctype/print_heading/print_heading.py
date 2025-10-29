@@ -17,4 +17,5 @@ class PrintHeading(Document):
 		description: DF.SmallText | None
 		print_heading: DF.Data
 	# end: auto-generated types
+
 	pass

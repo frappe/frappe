@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
-
-# test_records = frappe.get_test_records('Email Group Member')
+from frappe.tests import IntegrationTestCase
 
 
-class TestEmailGroupMember(FrappeTestCase):
+class TestEmailGroupMember(IntegrationTestCase):
 	pass

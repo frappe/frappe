@@ -15,15 +15,6 @@ frappe.route_options = null;
 frappe.open_in_new_tab = false;
 frappe.route_hooks = {};
 
-$(window).on("hashchange", function (e) {
-	// v1 style routing, route is in hash
-	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
-		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		frappe.router.push_state(sub_path);
-		return false;
-	}
-});
-
 window.addEventListener("popstate", (e) => {
 	// forward-back button, just re-render based on current route
 	frappe.router.route();
@@ -36,6 +27,11 @@ $("body").on("click", "a", function (e) {
 	const target_element = e.currentTarget;
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
+
+	if (frappe.router.show_external_link_warning_if_needed(target_element)) {
+		e.preventDefault();
+		return; // warning shown
+	}
 
 	if (target_element.getAttribute("target") === "_blank") {
 		return;
@@ -56,11 +52,6 @@ $("body").on("click", "a", function (e) {
 		href === "#" // hash is home
 	) {
 		return;
-	}
-
-	if (href && href.startsWith("#")) {
-		// target startswith "#", this is a v1 style route, so remake it.
-		return override(target_element.hash);
 	}
 
 	if (frappe.router.is_app_route(target_element.pathname)) {
@@ -139,7 +130,6 @@ frappe.router = {
 		// resolve the route from the URL or hash
 		// translate it so the objects are well defined
 		// and render the page as required
-
 		if (!frappe.app) return;
 
 		let sub_path = this.get_sub_path();
@@ -155,6 +145,7 @@ frappe.router = {
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
 		this.set_history(sub_path);
+		this.set_active_sidebar_item();
 		this.render();
 		this.set_title(sub_path);
 		this.trigger("change");
@@ -177,19 +168,12 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
-
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
-			route = ["Workspaces", frappe.workspaces[route[0]].title];
+			route = ["Workspaces", frappe.workspaces[route[0]].name];
 		} else if (route[0] == "private") {
 			// private workspace
 			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
-			if (!frappe.workspaces[private_workspace] && localStorage.new_workspace) {
-				let new_workspace = JSON.parse(localStorage.new_workspace);
-				if (frappe.router.slug(new_workspace.title) === route[1]) {
-					frappe.workspaces[private_workspace] = new_workspace;
-				}
-			}
 			if (!frappe.workspaces[private_workspace]) {
 				frappe.msgprint(
 					__("Workspace <b>{0}</b> does not exist", [
@@ -198,7 +182,7 @@ frappe.router = {
 				);
 				return ["Workspaces"];
 			}
-			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
+			route = ["Workspaces", "private", frappe.workspaces[private_workspace].name];
 		} else if (this.routes[route[0]]) {
 			// route
 			route = await this.set_doctype_route(route);
@@ -305,6 +289,10 @@ frappe.router = {
 		frappe.ui.hide_open_dialog();
 	},
 
+	async set_active_sidebar_item() {
+		frappe.app.sidebar.set_active_workspace_item();
+	},
+
 	render() {
 		if (this.current_route[0]) {
 			this.render_page();
@@ -381,7 +369,17 @@ frappe.router = {
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
-				this.push_state(sub_path);
+				try {
+					const route_options = frappe.route_options || {};
+					const query_params = Object.entries(route_options)
+						.map(
+							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+						)
+						.join("&");
+					this.push_state(sub_path, query_params ? `?${query_params}` : "");
+				} catch (e) {
+					this.push_state(sub_path);
+				}
 			}
 			setTimeout(() => {
 				frappe.after_ajax &&
@@ -476,7 +474,8 @@ frappe.router = {
 		// 1. User's default workspace in user doctype
 		// 2. Private home
 		// 3. Public home
-		// 4. First workspace in list
+		// 4. First workspace in list of current app
+		// 5. First workspace in list
 		let private_home = `home-${frappe.user.name.toLowerCase()}`;
 		let default_workspace = frappe.router.slug(frappe.boot.user.default_workspace?.name || "");
 
@@ -484,25 +483,31 @@ frappe.router = {
 			frappe.workspaces[default_workspace] ||
 			frappe.workspaces[private_home] ||
 			frappe.workspaces["home"] ||
+			Object.values(frappe.workspace_map).find((w) => w.app === frappe.current_app) ||
 			Object.values(frappe.workspaces)[0];
 
 		if (workspace) {
 			return (
-				"/app/" +
-				(workspace.public ? "" : "private/") +
-				frappe.router.slug(workspace.title)
+				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
 			);
 		}
 
 		return "/app";
 	},
 
-	push_state(url) {
-		// change the URL and call the router
-		if (window.location.pathname !== url) {
+	/**
+	 * Changes the URL and calls the router.
+	 *
+	 * @param {string} path - The desired URI path to replace or push,
+	 *    without query string. Example: "/app/todo"
+	 * @param {string} query_params - The desired query parameter string.
+	 * @returns {void}
+	 */
+	push_state(path, query_params = "") {
+		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, url);
+			history[method](null, null, path);
 
 			// now process the route
 			this.route();
@@ -511,13 +516,8 @@ frappe.router = {
 
 	get_sub_path_string(route) {
 		// return clean sub_path from hash or url
-		// supports both v1 and v2 routing
 		if (!route) {
 			route = window.location.pathname;
-			if (route.includes("app#")) {
-				// to support v1
-				route = window.location.hash;
-			}
 		}
 
 		return this.strip_prefix(route);
@@ -574,6 +574,105 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
+	},
+
+	show_external_link_warning_if_needed(/** @type {HTMLAnchorElement} */ aElement) {
+		try {
+			if (!aElement?.href) {
+				return false; // not a true link
+			}
+
+			// Get the external link handling type
+			/** @type {'Always' | 'Ask' | 'Never' | null} */
+			const showWarningWhen = frappe.boot.show_external_link_warning || "Never";
+			if (showWarningWhen == "Never") {
+				return false; // the feature is disabled
+			}
+
+			// Check that the origin is external (does not prevent self-clickjacking on GET endpoints)
+			const url = new URL(aElement.href);
+			const hostname = url.hostname;
+			if (hostname === window.location.hostname) {
+				return false; // self-linking is allowed
+			}
+
+			// Check if the origin was ignored by the user
+			const localStorageKey = `skip-external-link-warning:${hostname}`;
+			if (showWarningWhen == "Ask" && localStorage.getItem(localStorageKey)) {
+				return false; // user chose to skip warning forever
+			}
+
+			// Check if the link if inside the confirmation popup
+			const incominSkipToken = aElement.getAttribute("data-skip-link-warning");
+			if (incominSkipToken && sessionStorage.getItem(incominSkipToken) == "1") {
+				return false; // anchor is the confirmation itself
+			}
+
+			// Finally, show the warning
+			const dialog = new frappe.ui.Dialog({
+				title: __("Warning"),
+				primary_action: null,
+				fields: [
+					{
+						fieldname: "warning_html",
+						fieldtype: "HTML",
+					},
+					{
+						fieldname: "confirm_checkbox",
+						fieldtype: "Check",
+						label: __("Do not warn me again about {0}", [
+							frappe.utils.escape_html(hostname).bold(),
+						]),
+						default: 0,
+						hidden: showWarningWhen == "Always",
+						change() {
+							if (dialog.get_value("confirm_checkbox")) {
+								localStorage.setItem(localStorageKey, "1");
+							} else {
+								localStorage.removeItem(localStorageKey);
+							}
+						},
+					},
+				],
+			});
+
+			const warningElement = dialog.fields_dict.warning_html.$wrapper.get(0);
+
+			const introElement = document.createElement("p");
+			introElement.textContent = __(
+				"You are about to open an external link. To confirm, click the link again."
+			);
+			warningElement.appendChild(introElement);
+
+			const boxElement = document.createElement("div");
+			boxElement.classList.add("border", "rounded-lg", "p-3", "mt-6", "mb-6", "text-center");
+			warningElement.appendChild(boxElement);
+
+			const hintElement = document.createElement("p");
+			hintElement.classList.add("text-sm", "mb-1");
+			hintElement.textContent = __("You will be redirected to:");
+			boxElement.appendChild(hintElement);
+
+			const confirmElement = document.createElement("a");
+			confirmElement.classList.add("text-sm", "font-mono");
+			confirmElement.style.wordBreak = "break-all";
+			confirmElement.textContent = aElement.href;
+			confirmElement.href = aElement.href;
+			confirmElement.target = aElement.target;
+			confirmElement.addEventListener("click", () => dialog.hide(), { capture: true });
+
+			// Add a token to skip the warning when clicking inside the confirmation dialog
+			const skipToken = frappe.utils.get_random(16);
+			confirmElement.setAttribute("data-skip-link-warning", skipToken);
+			sessionStorage.setItem(skipToken, "1");
+			boxElement.appendChild(confirmElement);
+
+			dialog.show();
+			return true; // prevent default handling
+		} catch (e) {
+			console.error(e);
+		}
+		return false;
 	},
 };
 

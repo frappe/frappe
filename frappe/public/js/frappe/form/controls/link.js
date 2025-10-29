@@ -14,9 +14,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
-					${frappe.utils.icon("close", "xs", "es-icon")}
-				</a>
 				<a class="btn-open" tabIndex='-1' style="display: inline-block;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
@@ -25,11 +22,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
 		this.$link = this.$input_area.find(".link-btn");
-		this.$link_clear = this.$input_area.find(".btn-clear");
-		this.$link_clear.on("click", function () {
-			me.$link.toggle(false);
-			me.$input.val("").focus();
-		});
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();
 		this.$input.on("focus", function () {
@@ -73,13 +65,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const name = this.get_input_value();
 			this.$link.toggle(true);
 			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
-			this.$link_clear.toggle(true);
 		}
 	}
 
 	hide_link_and_clear_buttons() {
 		this.$link.toggle(false);
-		this.$link_clear.toggle(false);
 	}
 
 	get_options() {
@@ -234,7 +224,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					d.label = d.value;
 				}
 
-				let _label = me.get_translated(d.label);
+				// Sanitize label and description before using them to build HTML
+				let _label = frappe.utils.escape_html(me.get_translated(d.label));
 				let html = d.html || "<strong>" + _label + "</strong>";
 				if (
 					d.description &&
@@ -242,7 +233,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// because it will not visible otherwise
 					(me.is_title_link() || d.value !== d.description)
 				) {
-					html += '<br><span class="small">' + __(d.description) + "</span>";
+					html +=
+						'<br><span class="small">' +
+						__(frappe.utils.escape_html(d.description)) +
+						"</span>";
 				}
 				return $(`<div role="option">`)
 					.on("click", (event) => {
@@ -634,6 +628,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		link_filters.forEach((filter) => {
 			let [_, fieldname, operator, value] = filter;
 			if (value?.startsWith?.("eval:")) {
+				// get the value to calculate
 				value = value.split("eval:")[1];
 				let context = {
 					doc: this.doc,
@@ -692,11 +687,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// to avoid unnecessary request
 		if (value) {
 			return frappe
-				.xcall("frappe.client.validate_link", {
-					doctype: options,
-					docname: value,
-					fields: columns_to_fetch,
-				})
+				.xcall(
+					"frappe.client.validate_link",
+					{
+						doctype: options,
+						docname: value,
+						fields: columns_to_fetch,
+					},
+					"GET",
+					{ cache: !columns_to_fetch.length }
+				)
 				.then((response) => {
 					if (this.frm && !this.docname) {
 						return response.name;
@@ -749,6 +749,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					"Select",
 					"Duration",
 					"Time",
+					"Percent",
+					"Phone",
+					"Barcode",
+					"Autocomplete",
+					"Icon",
+					"Color",
+					"Rating",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;

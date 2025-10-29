@@ -4,13 +4,15 @@ import datetime
 import time
 
 import requests
+from werkzeug.test import EnvironBuilder
+from werkzeug.wrappers import Request
 
 import frappe
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
@@ -19,7 +21,7 @@ from frappe.www.login import _generate_temporary_login_link
 def add_user(email, password, username=None, mobile_no=None):
 	first_name = email.split("@", 1)[0]
 	user = frappe.get_doc(
-		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
+		doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no
 	).insert()
 	user.new_password = password
 	user.simultaneous_sessions = 1
@@ -27,7 +29,7 @@ def add_user(email, password, username=None, mobile_no=None):
 	frappe.db.commit()
 
 
-class TestAuth(FrappeTestCase):
+class TestAuth(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -160,16 +162,59 @@ class TestAuth(FrappeTestCase):
 			self.fail("Rate limting not working")
 
 	def test_correct_cookie_expiry_set(self):
-		import pytz
-
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
 		expiry_time = next(x for x in client.session.cookies if x.name == "sid").expires
-		current_time = datetime.datetime.now(tz=pytz.UTC).timestamp()
+		current_time = datetime.datetime.now(tz=datetime.timezone.utc).timestamp()
 		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
 
 
-class TestLoginAttemptTracker(FrappeTestCase):
+class TestAllowedReferrer(UnitTestCase):
+	def test_is_allowed_referrer(self):
+		def create_request(headers):
+			builder = EnvironBuilder(headers=headers)
+			env = builder.get_environ()
+			return Request(env)
+
+		# Set a single allowed referrer
+		frappe.cache.set_value("allowed_referrers", ["https://example.com"])
+
+		# Test with valid referrer
+		frappe.local.request = create_request({"Referer": "https://example.com/some/path"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertTrue(http_request.is_allowed_referrer())
+
+		# Test with invalid referrer
+		frappe.local.request = create_request({"Referer": "https://malicious.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertFalse(http_request.is_allowed_referrer())
+
+		# Test with valid origin
+		frappe.local.request = create_request({"Origin": "https://example.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertTrue(http_request.is_allowed_referrer())
+
+		# Test with invalid origin
+		frappe.local.request = create_request({"Origin": "https://malicious.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertFalse(http_request.is_allowed_referrer())
+
+		# Test subdomain bypass prevention
+		frappe.local.request = create_request({"Referer": "https://example.com.evil.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertFalse(http_request.is_allowed_referrer())
+
+		# Test exact domain match for referrer
+		frappe.local.request = create_request({"Referer": "https://example.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertTrue(http_request.is_allowed_referrer())
+
+		# Clean up
+		frappe.cache.delete_value("allowed_referrers")
+		frappe.local.request = None
+
+
+class TestLoginAttemptTracker(IntegrationTestCase):
 	def test_account_lock(self):
 		"""Make sure that account locks after `n consecutive failures"""
 		tracker = LoginAttemptTracker("tester", max_consecutive_login_attempts=3, lock_interval=60)

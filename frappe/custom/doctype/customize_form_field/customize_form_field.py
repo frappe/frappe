@@ -51,6 +51,7 @@ class CustomizeFormField(Document):
 			"Icon",
 			"Image",
 			"Int",
+			"JSON",
 			"Link",
 			"Long Text",
 			"Markdown Editor",

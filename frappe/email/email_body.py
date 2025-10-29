@@ -138,7 +138,7 @@ class EMail:
 			recipients = split_emails(recipients)
 
 		# remove null
-		recipients = filter(None, (strip(r) for r in recipients))
+		recipients = [r for r in (strip(r) for r in recipients) if r]
 
 		self.sender = sender
 		self.reply_to = reply_to or sender
@@ -418,7 +418,7 @@ def get_email_html(template, args, subject, header=None, with_container=False):
 
 
 def inline_style_in_html(html):
-	"""Convert email.css and html to inline-styled html"""
+	"""Convert email.css and html to inline-styled html."""
 	from premailer import Premailer
 
 	from frappe.utils.jinja_globals import bundled_asset
@@ -484,7 +484,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 
 
 def get_message_id():
-	"""Returns Message ID created from doctype and name"""
+	"""Return Message ID created from doctype and name."""
 	return email.utils.make_msgid(domain=frappe.local.site)
 
 

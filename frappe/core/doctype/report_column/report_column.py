@@ -37,4 +37,5 @@ class ReportColumn(Document):
 		parenttype: DF.Data
 		width: DF.Int
 	# end: auto-generated types
+
 	pass

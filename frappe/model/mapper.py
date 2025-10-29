@@ -10,14 +10,13 @@ from frappe.utils import cstr
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
-	"""Returns the mapped document calling the given mapper method.
-	Sets selected_children as flags for the `get_mapped_doc` method.
+	"""Return the mapped document calling the given mapper method.
+	Set `selected_children` as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
 	method = frappe.get_attr(frappe.override_whitelisted_method(method))
 
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	frappe.is_whitelisted(method)
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
@@ -32,14 +31,15 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 @frappe.whitelist()
 def map_docs(method, source_names, target_doc, args=None):
-	'''Returns the mapped document calling the given mapper method
-	with each of the given source docs on the target doc
+	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
-	E.g. args: "{ 'supplier': 'XYZ' }"'''
+
+	e.g. args: "{ 'supplier': 'XYZ' }"
+	"""
 	method = frappe.get_attr(frappe.override_whitelisted_method(method))
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+
+	frappe.is_whitelisted(method)
 
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
@@ -61,16 +61,28 @@ def get_mapped_doc(
 
 	# main
 	if not target_doc:
-		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
+		target_doctype = table_maps[from_doctype]["doctype"]
+		if table_maps[from_doctype].get("on_parent"):
+			target_parent = table_maps[from_doctype].get("on_parent")
+			if isinstance(target_parent, str):
+				target_parent = frappe.get_doc(json.loads(target_parent))
+			target_parentfield = target_parent.get_parentfield_of_doctype(target_doctype)
+			target_doc = frappe.new_doc(
+				target_doctype, parent_doc=target_parent, parentfield=target_parentfield
+			)
+			target_parent.append(target_parentfield, target_doc)
+			ret_doc = target_parent
+		else:
+			target_doc = frappe.new_doc(target_doctype)
+			ret_doc = target_doc
 	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
+		ret_doc = target_doc
+	else:
+		ret_doc = target_doc
 
-	if (
-		not apply_strict_user_permissions
-		and not ignore_permissions
-		and not target_doc.has_permission("create")
-	):
-		target_doc.raise_no_permission_to("create")
+	if not apply_strict_user_permissions and not ignore_permissions:
+		target_doc.check_permission("create")
 
 	if cached:
 		source_doc = frappe.get_cached_doc(from_doctype, from_docname)
@@ -78,10 +90,9 @@ def get_mapped_doc(
 		source_doc = frappe.get_doc(from_doctype, from_docname)
 
 	if not ignore_permissions:
-		if not source_doc.has_permission("read"):
-			source_doc.raise_no_permission_to("read")
+		source_doc.check_permission("read")
 
-	target_doc.run_method("before_mapping", source_doc, table_maps)
+	ret_doc.run_method("before_mapping", source_doc, table_maps)
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
@@ -147,13 +158,13 @@ def get_mapped_doc(
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
-	target_doc.run_method("after_mapping", source_doc)
-	target_doc.set_onload("load_after_mapping", True)
+	ret_doc.run_method("after_mapping", source_doc)
+	ret_doc.set_onload("load_after_mapping", True)
 
-	if apply_strict_user_permissions and not ignore_permissions and not target_doc.has_permission("create"):
-		target_doc.raise_no_permission_to("create")
+	if apply_strict_user_permissions and not ignore_permissions:
+		ret_doc.check_permission("create")
 
-	return target_doc
+	return ret_doc
 
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
@@ -177,11 +188,7 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 			for d in source_doc.meta.get("fields")
 			if (d.no_copy == 1 or d.fieldtype in table_fields)
 		]
-		+ [
-			d.fieldname
-			for d in target_doc.meta.get("fields")
-			if (d.no_copy == 1 or d.fieldtype in table_fields)
-		]
+		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.fieldtype in table_fields)]
 		+ list(default_fields)
 		+ list(child_table_fields)
 		+ list(table_map.get("field_no_map", []))

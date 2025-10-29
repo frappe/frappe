@@ -26,7 +26,7 @@ let docfield_df = computed(() => {
 		}
 
 		if (
-			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
+			["fetch_from", "fetch_if_empty"].includes(df.fieldname) &&
 			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
 		) {
 			return false;
@@ -41,7 +41,7 @@ let docfield_df = computed(() => {
 			df.options = "";
 			args.value = {};
 
-			if (in_list(["Table", "Link"], store.form.selected_field.fieldtype)) {
+			if (["Table", "Link"].includes(store.form.selected_field.fieldtype)) {
 				df.fieldtype = "Link";
 				df.options = "DocType";
 

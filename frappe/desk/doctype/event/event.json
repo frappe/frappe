@@ -129,7 +129,7 @@
    "fieldtype": "Select",
    "in_global_search": 1,
    "label": "Repeat On",
-   "options": "\nDaily\nWeekly\nMonthly\nYearly"
+   "options": "\nDaily\nWeekly\nMonthly\nQuarterly\nHalf Yearly\nYearly"
   },
   {
    "depends_on": "repeat_this_event",
@@ -376,7 +376,7 @@
  "read_only": 1,
  "row_format": "Dynamic",
  "sender_field": "sender",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "subject_field": "subject",

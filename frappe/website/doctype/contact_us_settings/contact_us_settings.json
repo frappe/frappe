@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "introduction_section",
+  "is_disabled",
   "forward_to_email",
   "heading",
   "introduction",
@@ -115,13 +116,19 @@
    "fieldname": "skype",
    "fieldtype": "Data",
    "label": "Skype"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-15 07:19:31.401053",
+ "modified": "2025-08-22 12:59:39.463182",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
@@ -137,7 +144,10 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "track_changes": 1
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }

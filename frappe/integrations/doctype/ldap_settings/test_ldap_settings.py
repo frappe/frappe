@@ -439,7 +439,7 @@ class LDAP_TestCase:
 			for user_role in updated_user_roles:  # match each users role mapped to ldap groups
 				self.assertTrue(
 					role_to_group_map[user_role] in test_user_data[test_user],
-					f"during sync_roles(), the user was given role {user_role} which should not have occured",
+					f"during sync_roles(), the user was given role {user_role} which should not have occurred",
 				)
 
 	@mock_ldap_connection
@@ -613,7 +613,7 @@ class Test_OpenLDAP(LDAP_TestCase, TestCase):
 			"ldap_group": "Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Users", "erpnext_role": "Website Manager"},
 		{"doctype": "LDAP Group Mapping", "ldap_group": "Group3", "erpnext_role": "Accounts User"},
 	]
 	LDAP_USERNAME_FIELD = "uid"
@@ -637,7 +637,7 @@ class Test_ActiveDirectory(LDAP_TestCase, TestCase):
 			"ldap_group": "Domain Administrators",
 			"erpnext_role": "System Manager",
 		},
-		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Blogger"},
+		{"doctype": "LDAP Group Mapping", "ldap_group": "Domain Users", "erpnext_role": "Website Manager"},
 		{
 			"doctype": "LDAP Group Mapping",
 			"ldap_group": "Enterprise Administrators",

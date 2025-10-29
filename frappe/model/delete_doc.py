@@ -3,6 +3,7 @@
 
 import os
 import shutil
+from typing import Any
 
 import frappe
 import frappe.defaults
@@ -20,19 +21,58 @@ from frappe.utils.password import delete_all_passwords_for
 
 
 def delete_doc(
-	doctype=None,
-	name=None,
-	force=0,
-	ignore_doctypes=None,
-	for_reload=False,
-	ignore_permissions=False,
-	flags=None,
-	ignore_on_trash=False,
-	ignore_missing=True,
-	delete_permanently=False,
-):
+	doctype: str | None = None,
+	name: str | int | list[str | int] | None = None,
+	force: int | bool = 0,
+	ignore_doctypes: list[str] | None = None,
+	for_reload: bool = False,
+	ignore_permissions: bool = False,
+	flags: dict[str, Any] | None = None,
+	ignore_on_trash: bool = False,
+	ignore_missing: bool = True,
+	delete_permanently: bool = False,
+) -> bool | None:
 	"""
-	Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
+	Deletes a document and validates if it is not submitted and not linked in a live record.
+
+	Args:
+		doctype (str, optional): The document type to delete. If not provided,
+			retrieved from frappe.form_dict.get("dt"). Defaults to None.
+		name (str | int | list, optional): The name/ID of the document(s) to delete.
+			Can be a single name or a list of names. If not provided,
+			retrieved from frappe.form_dict.get("dn"). Defaults to None.
+		force (bool, optional): When True, bypasses link existence checks and allows
+			deletion of documents that are linked to other records. Also allows
+			deletion of standard DocTypes. Defaults to 0 (False).
+		ignore_doctypes (list, optional): A list of child doctypes to ignore when
+			deleting child table records associated with the document. Defaults to None.
+		for_reload (bool, optional): When True, indicates the deletion is for reloading
+			purposes (like during doctype updates). Skips certain validations like
+			permissions and on_trash methods, and automatically sets delete_permanently=True.
+			Defaults to False.
+		ignore_permissions (bool, optional): When True, bypasses permission checks
+			during deletion. Useful for system operations. Defaults to False.
+		flags (dict, optional): Additional flags to set on the document during the
+			deletion process. These flags affect document behavior during deletion.
+			Defaults to None.
+		ignore_on_trash (bool, optional): When True, skips calling the document's
+			on_trash method, which typically contains cleanup logic. Defaults to False.
+		ignore_missing (bool, optional): When True, doesn't raise an error if the
+			document doesn't exist and returns False. When False, raises
+			frappe.DoesNotExistError if document is missing. Defaults to True.
+		delete_permanently (bool, optional): When True, permanently deletes the document
+			without adding it to the "Deleted Document" table for recovery purposes.
+			When False, the document is soft-deleted and can be recovered. Defaults to False.
+
+	Raises:
+		frappe.DoesNotExistError: When document doesn't exist and ignore_missing=False.
+		frappe.LinkExistsError: When document is linked to other records and force=False.
+		frappe.PermissionError: When user doesn't have delete permissions and ignore_permissions=False.
+		frappe.ValidationError: When trying to delete a submitted document.
+		frappe.QueryTimeoutError: When document is locked by another user.
+
+	Returns:
+		bool: False if document doesn't exist and ignore_missing=True, otherwise None.
 	"""
 	if not ignore_doctypes:
 		ignore_doctypes = []
@@ -104,6 +144,8 @@ def delete_doc(
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
+			frappe.clear_cache(doctype=name)
+
 		else:
 			# Lock the doc without waiting
 			try:
@@ -154,7 +196,7 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.flags.in_test,
+					now=frappe.in_test,
 					enqueue_after_commit=True,
 				)
 
@@ -184,13 +226,11 @@ def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""
 	if doc.doctype != "Deleted Document" and frappe.flags.in_install != "frappe":
 		frappe.get_doc(
-			dict(
-				doctype="Deleted Document",
-				deleted_doctype=doc.doctype,
-				deleted_name=doc.name,
-				data=doc.as_json(),
-				owner=frappe.session.user,
-			)
+			doctype="Deleted Document",
+			deleted_doctype=doc.doctype,
+			deleted_name=doc.name,
+			data=doc.as_json(),
+			owner=frappe.session.user,
 		).db_insert()
 
 
@@ -238,15 +278,11 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 def check_permission_and_not_submitted(doc):
 	# permission
-	if (
-		not doc.flags.ignore_permissions
-		and frappe.session.user != "Administrator"
-		and (not doc.has_permission("delete") or (doc.doctype == "DocType" and not doc.custom))
-	):
-		frappe.msgprint(
-			_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name),
-			raise_exception=frappe.PermissionError,
-		)
+	if not doc.flags.ignore_permissions and frappe.session.user != "Administrator":
+		if doc.doctype == "DocType" and not doc.custom:
+			frappe.throw(_("Only the Administrator can delete a standard DocType."))
+		else:
+			doc.check_permission("delete")
 
 	# check if submitted
 	if doc.meta.is_submittable and doc.docstatus.is_submitted():
@@ -263,7 +299,7 @@ def check_permission_and_not_submitted(doc):
 
 def check_if_doc_is_linked(doc, method="Delete"):
 	"""
-	Raises excption if the given doc(dt, dn) is linked in another record.
+	Raises exception if the given document is linked in another record.
 	"""
 	from frappe.model.rename_doc import get_link_fields
 

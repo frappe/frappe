@@ -13,10 +13,6 @@ Metrics:
 - Storage - files usage
 - Backups
 - User - new users, sessions stats, failed login attempts
-
-
-
-
 """
 
 import functools
@@ -61,7 +57,7 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
-				if frappe.flags.in_test:
+				if frappe.in_test:
 					raise
 				frappe.log(frappe.get_traceback())
 				# nosemgrep
@@ -206,19 +202,55 @@ class SystemHealthReport(Document):
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job
 		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
-		failing_jobs = frappe.db.sql(
-			"""
-			select scheduled_job_type,
-				   avg(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 as failure_rate
-			from `tabScheduled Job Log`
-			where
-				creation > %(lower_threshold)s
-				and modified > %(lower_threshold)s
-				and creation < %(upper_threshold)s
-			group by scheduled_job_type
-			having failure_rate > 0
-			order by failure_rate desc
-			limit 5""",
+
+		mariadb_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
+		postgres_query = """
+  				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS "failure_rate"
+				FROM "tabScheduled Job Log"
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 > 0
+				ORDER BY "failure_rate" DESC
+				LIMIT 5
+    	"""
+
+		sqlite_query = """
+				SELECT scheduled_job_type,
+					AVG(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 AS failure_rate
+				FROM `tabScheduled Job Log`
+				WHERE
+					creation > %(lower_threshold)s
+					AND modified > %(lower_threshold)s
+					AND creation < %(upper_threshold)s
+				GROUP BY scheduled_job_type
+				HAVING failure_rate > 0
+				ORDER BY failure_rate DESC
+				LIMIT 5
+		"""
+
+		failing_jobs = frappe.db.multisql(
+			{
+				"mariadb": mariadb_query,
+				"postgres": postgres_query,
+				"sqlite": sqlite_query,
+			},
 			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
 			as_dict=True,
 		)
@@ -278,10 +310,14 @@ class SystemHealthReport(Document):
 
 		_cols, data = db_report()
 		self.database = frappe.db.db_type
-		self.db_storage_usage = sum(table.size for table in data)
+		self.db_storage_usage = sum(table.size or 0.0 for table in data)
 		for row in data[:5]:
 			self.append("top_db_tables", row)
-		self.database_version = frappe.db.sql("select version()")[0][0]
+
+		if frappe.db.db_type == "sqlite":
+			self.database_version = frappe.db.sql("select sqlite_version()")[0][0]
+		else:
+			self.database_version = frappe.db.sql("select version()")[0][0]
 
 		if frappe.db.db_type == "mariadb":
 			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]

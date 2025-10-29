@@ -24,7 +24,7 @@ export default {
 	naming_rule: "By fieldname",
 	owner: "Administrator",
 	permissions: [],
-	sort_field: "modified",
+	sort_field: "creation",
 	sort_order: "ASC",
 	track_changes: 1,
 };

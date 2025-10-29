@@ -36,7 +36,6 @@ frappe.ui.form.on("DocType", {
 			if (doc.custom && frappe.session.user != "Administrator") {
 				return {
 					query: "frappe.core.doctype.role.role.role_query",
-					filters: [["Role", "name", "!=", "All"]],
 				};
 			}
 		});
@@ -51,15 +50,12 @@ frappe.ui.form.on("DocType", {
 		}
 
 		if (!frm.is_new() && !frm.doc.istable) {
-			if (frm.doc.issingle) {
-				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
-				});
-			} else {
-				frm.add_custom_button(__("Go to {0} List", [__(frm.doc.name)]), () => {
-					window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
-				});
-			}
+			const button_text = frm.doc.issingle
+				? __("Go to {0}", [__(frm.doc.name)])
+				: __("Go to {0} List", [__(frm.doc.name)]);
+			frm.add_custom_button(button_text, () => {
+				window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+			});
 		}
 
 		const customize_form_link = `<a href="/app/customize-form">${__("Customize Form")}</a>`;
@@ -68,7 +64,7 @@ frappe.ui.form.on("DocType", {
 			frm.set_read_only();
 			frm.dashboard.clear_comment();
 			frm.dashboard.add_comment(
-				__("DocTypes can not be modified, please use {0} instead", [customize_form_link]),
+				__("DocTypes cannot be modified, please use {0} instead", [customize_form_link]),
 				"blue",
 				true
 			);
@@ -77,10 +73,6 @@ frappe.ui.form.on("DocType", {
 			let msg = __(
 				"This site is running in developer mode. Any change made here will be updated in code."
 			);
-			msg += "<br>";
-			msg += __("If you just want to customize for your site, use {0} instead.", [
-				customize_form_link,
-			]);
 			frm.dashboard.add_comment(msg, "yellow", true);
 		}
 

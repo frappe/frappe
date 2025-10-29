@@ -29,6 +29,7 @@ class UserPermission(Document):
 		user: DF.Link
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_user_permission()
 		self.validate_default_permission()
@@ -75,6 +76,9 @@ class UserPermission(Document):
 		if overlap_exists:
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
+
+	def get_permission_log_options(self, event=None):
+		pass
 
 
 def send_user_permissions(bootinfo):
@@ -178,7 +182,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 
 def get_permitted_documents(doctype):
-	"""Returns permitted documents from the given doctype for the session user"""
+	"""Return permitted documents from the given doctype for the session user."""
 	# sort permissions in a way to make the first permission in the list to be default
 	user_perm_list = sorted(
 		get_user_permissions().get(doctype, []), key=lambda x: x.get("is_default"), reverse=True

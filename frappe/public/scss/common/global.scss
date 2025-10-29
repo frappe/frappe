@@ -12,7 +12,7 @@ body {
 .checkbox {
 	label {
 		display: inline-flex;
-		align-items: center;
+		align-items: start;
 		margin-bottom: 0;
 	}
 	--checkbox-right-margin: 8px;
@@ -26,12 +26,29 @@ body {
 	.disp-area {
 		display: flex;
 	}
+
+	.input-area {
+		padding-top: 2.5px;
+
+		@media (max-width: map-get($grid-breakpoints, "lg")) {
+			padding-top: 1px;
+		}
+	}
+
+	.help-box {
+		padding-left: 22px;
+		margin-top: 0px;
+
+		@media (max-width: map-get($grid-breakpoints, "lg")) {
+			padding-left: 26px;
+		}
+	}
 }
 
 .frappe-card {
 	@include card();
 	box-shadow: none;
-	border: 1px solid var(--gray-300);
+	border: 1px solid var(--border-color);
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {

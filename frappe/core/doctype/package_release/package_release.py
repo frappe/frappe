@@ -29,6 +29,7 @@ class PackageRelease(Document):
 		release_notes: DF.MarkdownEditor | None
 
 	# end: auto-generated types
+
 	def set_version(self):
 		# set the next patch release by default
 		doctype = frappe.qb.DocType("Package Release")
@@ -121,12 +122,10 @@ class PackageRelease(Document):
 
 		# make attachment
 		file = frappe.get_doc(
-			dict(
-				doctype="File",
-				file_url="/" + os.path.join("files", filename),
-				attached_to_doctype=self.doctype,
-				attached_to_name=self.name,
-			)
+			doctype="File",
+			file_url="/" + os.path.join("files", filename),
+			attached_to_doctype=self.doctype,
+			attached_to_name=self.name,
 		)
 
 		# Set path to tarball

@@ -46,7 +46,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-14 13:57:28.050678",
+ "modified": "2024-03-23 16:03:22.892995",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Share Key",
@@ -67,7 +67,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

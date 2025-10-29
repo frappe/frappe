@@ -16,13 +16,11 @@ _SCOPES = {
 }
 _SERVICES = {
 	"contacts": ("people", "v1"),
-	"drive": ("drive", "v3"),
 	"indexing": ("indexing", "v3"),
 }
 _DOMAIN_CALLBACK_METHODS = {
 	"mail": "frappe.email.oauth.authorize_google_access",
 	"contacts": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
-	"drive": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
 	"indexing": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
 }
 
@@ -34,7 +32,7 @@ class GoogleAuthenticationError(Exception):
 class GoogleOAuth:
 	OAUTH_URL = "https://oauth2.googleapis.com/token"
 
-	def __init__(self, domain: str, validate: bool = True):
+	def __init__(self, domain: str, validate: bool = True, config=None):
 		self.google_settings = frappe.get_single("Google Settings")
 		self.domain = domain.lower()
 		self.scopes = (
@@ -42,6 +40,10 @@ class GoogleOAuth:
 			if isinstance(_SCOPES[self.domain], list | tuple)
 			else _SCOPES[self.domain]
 		)
+
+		if config:
+			_DOMAIN_CALLBACK_METHODS[self.domain] = config["domain_callback_url"]
+			_SERVICES[self.domain] = config["service_version"]
 
 		if validate:
 			self.validate_google_settings()
@@ -56,7 +58,7 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
-		"""Returns a dict with access and refresh token.
+		"""Return a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
 		"""
@@ -99,7 +101,7 @@ class GoogleOAuth:
 		)
 
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
-		"""Returns google authentication url.
+		"""Return Google authentication url.
 
 		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
@@ -117,7 +119,7 @@ class GoogleOAuth:
 		}
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
-		"""Returns google service object"""
+		"""Return Google service object."""
 
 		credentials_dict = {
 			"token": access_token,

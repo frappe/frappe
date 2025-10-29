@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 # import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestWorkflowAction(FrappeTestCase):
+class TestWorkflowAction(IntegrationTestCase):
 	pass

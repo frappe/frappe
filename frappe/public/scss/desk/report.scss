@@ -86,13 +86,17 @@
 
 .report-wrapper {
 	overflow: auto;
+	padding-left: 15px;
+	padding-right: 15px;
 }
-
-.report-view {
-	.result {
-		.dt-row:last-child:not(.dt-row-filter) {
-			.dt-cell {
-				border-bottom: 1px solid var(--border-color);
+@include media-breakpoint-up(sm) {
+	.report-view {
+		width: calc(100% - 220px);
+		.result {
+			.dt-row:last-child:not(.dt-row-filter) {
+				.dt-cell {
+					border-bottom: 1px solid var(--border-color);
+				}
 			}
 		}
 	}
@@ -100,6 +104,14 @@
 
 .group-by-button {
 	margin: 5px;
+}
+
+.btn {
+	.button-label,
+	.button-icon {
+		display: inline-flex;
+		vertical-align: middle;
+	}
 }
 .group-by-icon.active {
 	--icon-stroke: var(--primary);
@@ -281,4 +293,17 @@
 	.group-by-box .row > div[class*="col-sm-"] {
 		margin-bottom: 5px;
 	}
+}
+
+.input-group > * {
+	margin-right: 10px;
+}
+.check-filter-area {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.datatable-wrapper {
+	padding-left: var(--padding-md);
+	padding-right: var(--padding-md);
 }

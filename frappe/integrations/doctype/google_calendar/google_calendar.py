@@ -98,8 +98,8 @@ class GoogleCalendar(Document):
 		push_to_google_calendar: DF.Check
 		refresh_token: DF.Password | None
 		user: DF.Link
-
 	# end: auto-generated types
+
 	def validate(self):
 		google_settings = frappe.get_cached_doc("Google Settings")
 		if not google_settings.enable:
@@ -272,8 +272,8 @@ def check_google_calendar(account: GoogleCalendar, google_calendar):
 
 
 def sync_events_from_google_calendar(g_calendar, method=None):
-	"""
-	Syncs Events from Google Calendar in Framework Calendar.
+	"""Sync Events from Google Calendar in Framework Calendar.
+
 	Google Calendar returns nextSyncToken when all the events in Google Calendar are fetched.
 	nextSyncToken is returned at the very last page
 	https://developers.google.com/calendar/v3/sync
@@ -390,7 +390,6 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"google_calendar_event_id": event.get("id"),
 		"google_meet_link": event.get("hangoutLink"),
 		"pulled_from_google_calendar": 1,
-		"owner": account.user,
 		"event_type": "Public" if account.sync_as_public else "Private",
 	} | google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end"))
 
@@ -715,12 +714,10 @@ def format_date_according_to_google_calendar(all_day, starts_on, ends_on=None):
 
 
 def parse_google_calendar_recurrence_rule(repeat_day_week_number, repeat_day_name):
-	"""
-	Returns (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month
-	"""
+	"""Return (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month."""
 	if repeat_day_week_number < 0:
 		# Consider a month with 5 weeks and event is to be repeated in last week of every month, google caledar considers
-		# a month has 4 weeks and hence itll return -1 for a month with 5 weeks.
+		# a month has 4 weeks and hence it'll return -1 for a month with 5 weeks.
 		repeat_day_week_number = 4
 
 	weekdays = get_weekdays()
@@ -744,9 +741,7 @@ def parse_google_calendar_recurrence_rule(repeat_day_week_number, repeat_day_nam
 
 
 def repeat_on_to_google_calendar_recurrence_rule(doc):
-	"""
-	Returns event (repeat_on) in Google Calendar format ie RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH
-	"""
+	"""Return event (repeat_on) in Google Calendar format ie RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH."""
 	recurrence = framework_frequencies.get(doc.repeat_on)
 	weekdays = get_weekdays()
 
@@ -801,20 +796,20 @@ def get_conference_data(doc):
 
 
 def get_attendees(doc):
-	"""
-	Returns a list of dicts with attendee emails, if available in event_participants table
-	"""
+	"""Return a list of dicts with attendee emails, if available in event_participants table."""
 	attendees, email_not_found = [], []
+	owner = frappe.db.get_value("Google Calendar", doc.google_calendar, "user")
 
 	for participant in doc.event_participants:
-		if participant.get("email"):
-			attendees.append({"email": participant.email})
+		p_email = participant.get("email")
+		if p_email and p_email != owner:
+			attendees.append({"email": p_email})
 		else:
 			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
 
 	if email_not_found:
 		frappe.msgprint(
-			_("Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}").format(
+			_("Contact / email not found. Did not add attendee for -<br>{0}").format(
 				"<br>".join(f"{d.get('dt')} {d.get('dn')}" for d in email_not_found)
 			),
 			alert=True,

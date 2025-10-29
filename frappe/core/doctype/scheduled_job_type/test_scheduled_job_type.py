@@ -4,17 +4,44 @@ from datetime import timedelta
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_datetime
 from frappe.utils.data import add_to_date, now_datetime
 
 
-class TestScheduledJobType(FrappeTestCase):
+class TestScheduledJobType(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
 		frappe.db.commit()
+
+	def test_throws_on_duplicate_job(self):
+		job_config = dict(
+			doctype="Scheduled Job Type",
+			method="frappe.desk.notifications.clear_notifications",
+			frequency="Weekly",
+		)
+		frappe.get_doc(job_config).insert()
+
+		duplicate_job = frappe.get_doc(job_config)
+
+		self.assertRaises(Exception, duplicate_job.insert)
+		frappe.db.rollback()
+
+	def test_throws_on_duplicate_job_with_cron_format(self):
+		job_config = dict(
+			doctype="Scheduled Job Type",
+			method="frappe.desk.notifications.clear_notifications",
+			frequency="Cron",
+			cron_format="*/1 * * * *",
+		)
+		frappe.get_doc(job_config).insert()
+
+		duplicate_job = frappe.get_doc(job_config)
+
+		self.assertRaises(Exception, duplicate_job.insert)
+		frappe.db.rollback()
 
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.email.queue.flush"))
@@ -49,7 +76,7 @@ class TestScheduledJobType(FrappeTestCase):
 	def test_weekly_job(self):
 		job = frappe.get_doc(
 			"Scheduled Job Type",
-			dict(method="frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"),
+			dict(method="frappe.desk.form.document_follow.send_weekly_updates"),
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-06 00:10:01")))  # +10 min because of jitter

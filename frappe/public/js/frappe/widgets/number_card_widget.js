@@ -85,9 +85,18 @@ export default class NumberCardWidget extends Widget {
 		const filters = this.get_filters();
 		if (is_document_type) {
 			frappe.route_options = filters.reduce((acc, filter) => {
-				return Object.assign(acc, {
-					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
-				});
+				const field = filter[1];
+				const value = [filter[2], filter[3]];
+
+				// if we have multiple filters for the same field,
+				// we convert it into an array
+				if (acc[field]) {
+					acc[field].push(value);
+				} else {
+					acc[field] = [value];
+				}
+
+				return acc;
 			}, {});
 		} else {
 			if (filters && Object.keys(filters).length) {
@@ -223,10 +232,17 @@ export default class NumberCardWidget extends Widget {
 
 	set_formatted_number(df, doc) {
 		const default_country = frappe.sys_defaults.country;
-		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
-		let number_parts = shortened_number.split(" ");
-		const symbol = number_parts[1] || "";
 
+		let number_parts;
+
+		// Use full number if the checkbox is enabled
+		if (this.card_doc.show_full_number) {
+			number_parts = [this.number.toString(), ""];
+		} else {
+			const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
+			number_parts = shortened_number.split(" ");
+		}
+		const symbol = number_parts[1] || "";
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
 			this.formatted_number =

@@ -73,7 +73,7 @@ def get_notifications_for_doctypes(config, notification_count):
 				except frappe.PermissionError:
 					frappe.clear_messages()
 					pass
-					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
+				# frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
 				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
@@ -150,11 +150,10 @@ def clear_notifications(user=None):
 	for_module = list(config.get("for_module")) if config.get("for_module") else []
 	groups = for_doctype + for_module
 
-	for name in groups:
-		if user:
-			frappe.cache.hdel("notification_count:" + name, user)
-		else:
-			frappe.cache.delete_key("notification_count:" + name)
+	if user:
+		frappe.cache.hdel_names([f"notification_count:{name}" for name in groups], user)
+	else:
+		frappe.cache.delete_value([f"notification_count:{name}" for name in groups])
 
 
 def clear_notification_config(user):
@@ -265,7 +264,7 @@ def get_open_count(doctype: str, name: str, items=None):
 
 
 def _get_linked_document_counts(doctype: str, name: str, items=None):
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_lazy_doc(doctype, name)
 	doc.check_permission()
 	meta = doc.meta
 	links = meta.get_dashboard_data()

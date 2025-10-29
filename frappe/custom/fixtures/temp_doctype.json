@@ -24,7 +24,7 @@
   "allow_import": 0,
   "allow_events_in_timeline": 0,
   "allow_auto_repeat": 0,
-  "sort_field": "modified",
+  "sort_field": "creation",
   "sort_order": "DESC",
   "document_type": "",
   "show_preview_popup": 0,

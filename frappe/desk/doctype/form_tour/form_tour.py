@@ -41,6 +41,7 @@ class FormTour(Document):
 		workspace_name: DF.Link | None
 
 	# end: auto-generated types
+
 	def before_save(self):
 		if self.is_standard and not self.module:
 			if self.workspace_name:

@@ -37,6 +37,7 @@ class DocumentNamingSettings(Document):
 		user_must_always_select: DF.Check
 
 	# end: auto-generated types
+
 	@frappe.whitelist()
 	def get_transactions_and_prefixes(self):
 		transactions = self._get_transactions()

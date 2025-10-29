@@ -3,6 +3,7 @@ import KanbanSettings from "./kanban_settings";
 frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
+	static full_page = true;
 	static no_sidebar = true;
 
 	static load_last_view() {
@@ -154,7 +155,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_view() {
-		if (this.board.columns.filter((col) => col.status !== "Archived").length > 5) {
+		if (this.board.columns.filter((col) => col.status !== "Archived").length > 4) {
 			this.page.container.addClass("full-width");
 		}
 		this.setup_realtime_updates();

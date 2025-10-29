@@ -28,6 +28,7 @@ class DocShare(Document):
 		user: DF.Link | None
 		write: DF.Check
 	# end: auto-generated types
+
 	no_feed_on_delete = True
 
 	def validate(self):
@@ -45,7 +46,7 @@ class DocShare(Document):
 
 	def get_doc(self):
 		if not getattr(self, "_doc", None):
-			self._doc = frappe.get_doc(self.share_doctype, self.share_name)
+			self._doc = frappe.get_lazy_doc(self.share_doctype, self.share_name)
 		return self._doc
 
 	def validate_user(self):

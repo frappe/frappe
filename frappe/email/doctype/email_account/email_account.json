@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:email_account_name",
- "creation": "2014-09-11 12:04:34.163728",
+ "creation": "2024-06-11 16:39:01.323289",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -10,31 +10,41 @@
   "account_section",
   "email_id",
   "email_account_name",
+  "enable_incoming",
+  "enable_outgoing",
   "column_break_3",
-  "domain",
   "service",
+  "domain",
+  "frappe_mail_site",
   "authentication_column",
   "auth_method",
   "backend_app_flow",
   "authorize_api_access",
+  "validate_frappe_mail_settings",
   "password",
   "awaiting_password",
   "ascii_encode_password",
   "column_break_10",
+  "api_key",
+  "api_secret",
   "connected_app",
   "connected_user",
   "login_id_is_different",
   "login_id",
-  "mailbox_settings",
-  "enable_incoming",
+  "incoming_popimap_tab",
+  "section_break_uc6h",
   "default_incoming",
+  "column_break_uynb",
+  "attachment_limit",
+  "last_received_at",
+  "mailbox_settings",
   "use_imap",
   "use_ssl",
+  "validate_ssl_certificate",
   "use_starttls",
   "email_server",
   "incoming_port",
   "column_break_18",
-  "attachment_limit",
   "email_sync_option",
   "initial_sync_count",
   "section_break_25",
@@ -49,18 +59,19 @@
   "notify_if_unreplied",
   "unreplied_for_mins",
   "send_notification_to",
+  "outgoing_tab",
+  "default_outgoing",
+  "column_break_h5pd",
+  "always_use_account_email_id_as_sender",
+  "always_use_account_name_as_sender_name",
+  "send_unsubscribe_message",
+  "track_email_status",
   "outgoing_mail_settings",
-  "enable_outgoing",
   "use_tls",
   "use_ssl_for_outgoing",
   "smtp_server",
   "smtp_port",
   "column_break_38",
-  "default_outgoing",
-  "always_use_account_email_id_as_sender",
-  "always_use_account_name_as_sender_name",
-  "send_unsubscribe_message",
-  "track_email_status",
   "no_smtp_authentication",
   "always_bcc",
   "signature_section",
@@ -86,12 +97,11 @@
    "in_list_view": 1,
    "label": "Email Address",
    "options": "Email",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "default": "0",
-   "depends_on": "eval: !doc.backend_app_flow",
+   "depends_on": "eval: doc.service != \"Frappe Mail\" && !doc.backend_app_flow",
    "fieldname": "login_id_is_different",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -107,7 +117,7 @@
    "label": "Alternative Email ID"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "password",
    "fieldtype": "Password",
    "hide_days": 1,
@@ -116,7 +126,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -125,7 +135,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -159,9 +169,10 @@
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Service",
-   "options": "\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
+   "options": "\nFrappe Mail\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
   },
   {
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "mailbox_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -178,7 +189,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: !doc.domain && doc.enable_incoming",
    "fetch_from": "domain.use_imap",
    "fieldname": "use_imap",
    "fieldtype": "Check",
@@ -187,7 +197,6 @@
    "label": "Use IMAP"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
    "description": "e.g. pop.gmail.com / imap.gmail.com",
    "fetch_from": "domain.email_server",
    "fieldname": "email_server",
@@ -198,7 +207,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
    "fetch_from": "domain.use_ssl",
    "fieldname": "use_ssl",
    "fieldtype": "Check",
@@ -207,7 +215,6 @@
    "label": "Use SSL"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
    "description": "Ignore attachments over this size",
    "fetch_from": "domain.attachment_limit",
    "fieldname": "attachment_limit",
@@ -217,7 +224,7 @@
    "label": "Attachment Limit (MB)"
   },
   {
-   "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
+   "depends_on": "eval: !doc.use_imap",
    "description": "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype.",
    "fieldname": "append_to",
    "fieldtype": "Link",
@@ -239,7 +246,7 @@
   },
   {
    "default": "UNSEEN",
-   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
+   "depends_on": "use_imap",
    "fieldname": "email_sync_option",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -249,8 +256,8 @@
   },
   {
    "default": "250",
-   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
-   "description": "Total number of emails to sync in initial sync process ",
+   "depends_on": "use_imap",
+   "description": "Total number of emails to sync in initial sync process",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -284,14 +291,16 @@
   },
   {
    "depends_on": "notify_if_unreplied",
-   "description": "Email Addresses",
+   "description": "List of email addresses, separated by comma or new line.",
    "fieldname": "send_notification_to",
    "fieldtype": "Small Text",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Send Notification to"
+   "label": "Send Notification to",
+   "mandatory_depends_on": "notify_if_unreplied"
   },
   {
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "outgoing_mail_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -300,7 +309,6 @@
   },
   {
    "default": "0",
-   "description": "SMTP Settings for outgoing emails",
    "fieldname": "enable_outgoing",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -308,7 +316,6 @@
    "label": "Enable Outgoing"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
    "description": "e.g. smtp.gmail.com",
    "fetch_from": "domain.smtp_server",
    "fieldname": "smtp_server",
@@ -319,7 +326,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
    "fetch_from": "domain.use_tls",
    "fieldname": "use_tls",
    "fieldtype": "Check",
@@ -328,7 +334,6 @@
    "label": "Use TLS"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
    "description": "If non standard port (e.g. 587). If on Google Cloud, try port 2525.",
    "fetch_from": "domain.smtp_port",
    "fieldname": "smtp_port",
@@ -339,7 +344,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "description": "Notifications and bulk mails will be sent from this outgoing server.",
    "fieldname": "default_outgoing",
    "fieldtype": "Check",
@@ -349,7 +353,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "fieldname": "always_use_account_email_id_as_sender",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -358,7 +361,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "fieldname": "always_use_account_name_as_sender_name",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -418,6 +420,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "enable_auto_reply",
+   "depends_on": "enable_incoming",
    "fieldname": "auto_reply",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -494,7 +497,7 @@
   },
   {
    "default": "0",
-   "description": "For more information, <a class=\"text-muted\" href=\"https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document\">click here</a>.",
+   "documentation_url": "https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document",
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -502,8 +505,8 @@
    "label": "Enable Automatic Linking in Documents"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
    "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fetch_from": "domain.incoming_port",
    "fieldname": "incoming_port",
    "fieldtype": "Data",
    "hide_days": 1,
@@ -521,7 +524,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fetch_from": "domain.use_ssl_for_outgoing",
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -568,7 +571,7 @@
    "label": "Account"
   },
   {
-   "depends_on": "eval: doc.use_imap && doc.enable_incoming",
+   "depends_on": "use_imap",
    "fieldname": "imap_folder",
    "fieldtype": "Table",
    "label": "IMAP Folder",
@@ -594,7 +597,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
+   "depends_on": "eval: doc.use_imap && !doc.use_ssl",
    "fetch_from": "domain.use_starttls",
    "fieldname": "use_starttls",
    "fieldtype": "Check",
@@ -617,6 +620,68 @@
    "options": "User"
   },
   {
+   "default": "1",
+   "depends_on": "use_ssl",
+   "fetch_from": "domain.use_ssl",
+   "fieldname": "validate_ssl_certificate",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Validate SSL Certificate"
+  },
+  {
+   "depends_on": "enable_incoming",
+   "fieldname": "incoming_popimap_tab",
+   "fieldtype": "Tab Break",
+   "label": "Incoming"
+  },
+  {
+   "default": "https://frappemail.com",
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "frappe_mail_site",
+   "fieldtype": "Data",
+   "label": "Frappe Mail Site",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
+  },
+  {
+   "depends_on": "enable_outgoing",
+   "fieldname": "outgoing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Outgoing"
+  },
+  {
+   "fieldname": "column_break_h5pd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_uc6h",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uynb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: (doc.service == \"Frappe Mail\" && doc.auth_method != \"Basic\" && !doc.__islocal && !doc.__unsaved)",
+   "fieldname": "validate_frappe_mail_settings",
+   "fieldtype": "Button",
+   "label": "Validate Frappe Mail Settings"
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\"",
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\""
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\"",
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\""
+  },
+  {
    "default": "0",
    "depends_on": "eval: doc.auth_method === \"OAuth\"",
    "fieldname": "backend_app_flow",
@@ -624,7 +689,7 @@
    "label": "Authenticate as Service Principal"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap && doc.append_emails_to_sent_folder",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap",
    "fetch_from": "domain.sent_folder_name",
    "fieldname": "sent_folder_name",
    "fieldtype": "Data",
@@ -636,13 +701,19 @@
    "fieldtype": "Data",
    "label": "Always BCC Address",
    "options": "Email"
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "last_received_at",
+   "fieldtype": "Datetime",
+   "label": "Last Received At"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-04-03 13:19:11.021118",
+ "modified": "2025-08-20 11:35:14.540578",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
@@ -661,7 +732,8 @@
    "role": "Inbox User"
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

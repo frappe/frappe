@@ -3,8 +3,9 @@
 
 import frappe
 from frappe import _
-from frappe.model import no_value_fields
 from frappe.model.document import Document
+from frappe.model.workflow import DEFAULT_WORKFLOW_TASKS
+from frappe.utils import cint
 
 
 class Workflow(Document):
@@ -31,6 +32,7 @@ class Workflow(Document):
 		workflow_state_field: DF.Data
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_active()
 		self.validate_docstatus()
@@ -109,7 +111,7 @@ class Workflow(Document):
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
 	def set_active(self):
-		if int(self.is_active or 0):
+		if cint(self.is_active):
 			# clear all other
 			frappe.db.sql(
 				"""UPDATE `tabWorkflow` SET `is_active`=0
@@ -131,3 +133,8 @@ def get_workflow_state_count(doctype, workflow_state_field, states):
 			group_by=workflow_state_field,
 		)
 		return [r for r in result if r[workflow_state_field]]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_workflow_methods():
+	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS

@@ -117,7 +117,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-02-28 22:24:12.377693",
+ "modified": "2024-03-23 16:03:35.631784",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Property Setter",
@@ -147,7 +147,7 @@
   }
  ],
  "search_fields": "doc_type,property",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

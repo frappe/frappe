@@ -21,4 +21,5 @@ class SocialLinkSettings(Document):
 		parenttype: DF.Data
 		social_link_type: DF.Literal["", "facebook", "linkedin", "twitter", "email"]
 	# end: auto-generated types
+
 	pass

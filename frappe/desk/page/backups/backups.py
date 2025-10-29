@@ -31,7 +31,6 @@ def get_size(path: Path):
 def get_context(context):
 	context.no_cache = True
 	backup_limit = frappe.get_system_settings("backup_limit")
-
 	backups_path = Path(get_site_path("private", "backups"))
 	backup_files = [
 		(

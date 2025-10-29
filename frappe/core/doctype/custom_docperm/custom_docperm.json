@@ -23,6 +23,7 @@
   "submit",
   "cancel",
   "amend",
+  "mask",
   "additional_permissions",
   "report",
   "export",
@@ -154,6 +155,16 @@
    "width": "32px"
   },
   {
+   "default": "0",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask",
+   "oldfieldname": "mask",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
    "fieldname": "additional_permissions",
    "fieldtype": "Section Break",
    "label": "Additional Permissions"
@@ -214,11 +225,13 @@
    "label": "Select"
   }
  ],
+ "grid_page_length": 50,
  "links": [],
- "modified": "2023-02-20 13:19:04.889081",
+ "modified": "2025-05-22 16:59:35.484376",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -235,7 +248,9 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "ASC",
+ "states": [],
  "title_field": "parent"
 }

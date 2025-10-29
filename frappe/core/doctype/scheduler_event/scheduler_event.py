@@ -15,7 +15,7 @@ class SchedulerEvent(Document):
 		from frappe.types import DF
 
 		method: DF.Data | None
-		scheduled_against: DF.Link | None
+		scheduled_against: DF.Link
 	# end: auto-generated types
 
 	pass

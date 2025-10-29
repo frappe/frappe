@@ -36,7 +36,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-08-28 22:32:51.465521",
+ "modified": "2024-03-23 16:03:29.075357",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",
@@ -56,7 +56,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

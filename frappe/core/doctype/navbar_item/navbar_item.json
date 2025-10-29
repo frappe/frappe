@@ -20,9 +20,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Item Label",
-   "mandatory_depends_on": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'",
-   "show_days": 1,
-   "show_seconds": 1
+   "mandatory_depends_on": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'"
   },
   {
    "columns": 2,
@@ -31,27 +29,21 @@
    "in_list_view": 1,
    "label": "Item Type",
    "options": "Route\nAction\nSeparator",
-   "read_only_depends_on": "eval:doc.is_standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only_depends_on": "eval:doc.is_standard"
   },
   {
    "default": "0",
    "fieldname": "hidden",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Hidden",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Hidden"
   },
   {
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
-   "read_only": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only": 1
   },
   {
    "columns": 4,
@@ -61,9 +53,7 @@
    "in_list_view": 1,
    "label": "Route",
    "mandatory_depends_on": "eval:doc.item_type == 'Route'",
-   "read_only_depends_on": "eval:doc.is_standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only_depends_on": "eval:doc.is_standard"
   },
   {
    "depends_on": "eval:doc.item_type == 'Action'",
@@ -71,9 +61,7 @@
    "fieldtype": "Data",
    "label": "Action",
    "mandatory_depends_on": "eval:doc.item_type == 'Action'",
-   "read_only_depends_on": "eval:doc.is_standard",
-   "show_days": 1,
-   "show_seconds": 1
+   "read_only_depends_on": "eval:doc.is_standard"
   },
   {
    "fieldname": "condition",
@@ -95,7 +83,8 @@
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

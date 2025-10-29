@@ -33,6 +33,8 @@
   "max_attachment_size",
   "show_attachments",
   "column_break_hhec",
+  "hide_navbar",
+  "hide_footer",
   "allowed_embedding_domains",
   "condition_section",
   "condition_description",
@@ -97,7 +99,7 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard",
+   "label": "Is standard",
    "no_copy": 1
   },
   {
@@ -119,27 +121,27 @@
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Editing After Submit"
+   "label": "Allow editing after submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple Responses"
+   "label": "Allow multiple responses"
   },
   {
    "default": "0",
    "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
-   "label": "Allow Delete"
+   "label": "Allow delete"
   },
   {
    "default": "0",
    "fieldname": "allow_print",
    "fieldtype": "Check",
-   "label": "Allow Print"
+   "label": "Allow print"
   },
   {
    "depends_on": "allow_print",
@@ -153,21 +155,21 @@
    "depends_on": "login_required",
    "fieldname": "allow_comments",
    "fieldtype": "Check",
-   "label": "Allow Comments"
+   "label": "Allow comments"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_attachments",
    "fieldtype": "Check",
-   "label": "Show Attachments"
+   "label": "Show attachments"
   },
   {
    "default": "0",
    "description": "Allow saving if mandatory fields are not filled",
    "fieldname": "allow_incomplete",
    "fieldtype": "Check",
-   "label": "Allow Incomplete Forms"
+   "label": "Allow incomplete forms"
   },
   {
    "fieldname": "introduction_text",
@@ -216,7 +218,7 @@
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
-   "label": "Show Sidebar"
+   "label": "Show sidebar"
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
@@ -235,14 +237,14 @@
    "default": "0",
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
-   "label": "Apply Document Permissions"
+   "label": "Apply document permissions"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
-   "label": "Show List"
+   "label": "Show list"
   },
   {
    "depends_on": "eval: doc.login_required && doc.show_list",
@@ -391,6 +393,18 @@
    "label": "Condition JSON"
   },
   {
+   "default": "0",
+   "fieldname": "hide_navbar",
+   "fieldtype": "Check",
+   "label": "Hide navbar"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_footer",
+   "fieldtype": "Check",
+   "label": "Hide footer"
+  },
+  {
    "description": "Specify the domains or origins that are permitted to embed this form. Enter one domain per line (e.g., https://example.com). If no domains are specified, the form can only be embedded on the same origin.",
    "fieldname": "allowed_embedding_domains",
    "fieldtype": "Small Text",
@@ -431,7 +445,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",

@@ -60,6 +60,6 @@ def version_query(doctype, txt, searchfield, start, page_len, filters):
 		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
-		order_by="modified desc",
+		order_by="creation desc",
 	)
 	return [(d.name, pretty_date(d.modified), d.modified, d.owner) for d in results]

@@ -23,4 +23,5 @@ class DocTypeState(Document):
 		parenttype: DF.Data
 		title: DF.Data
 	# end: auto-generated types
+
 	pass

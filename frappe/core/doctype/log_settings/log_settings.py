@@ -41,6 +41,7 @@ class LogSettings(Document):
 		logs_to_clear: DF.Table[LogsToClear]
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()
@@ -154,6 +155,8 @@ LOG_DOCTYPES = [
 	"Email Queue",
 	"Email Queue Recipient",
 	"Error Log",
+	"OAuth Bearer Token",
+	"API Request Log",
 ]
 
 
@@ -180,7 +183,7 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql(
 			f"""INSERT INTO `{temporary}`
 				SELECT * FROM `{original}`
-				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
+				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
 		)
 		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:

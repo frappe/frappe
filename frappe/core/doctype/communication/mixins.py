@@ -6,7 +6,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import get_formatted_email, get_url, parse_addr
+from frappe.utils import cstr, get_formatted_email, get_url, parse_addr
 
 
 class CommunicationEmailMixin:
@@ -29,7 +29,7 @@ class CommunicationEmailMixin:
 		)
 
 	def get_email_with_displayname(self, email_address):
-		"""Returns email address after adding displayname."""
+		"""Return email address after adding displayname."""
 		display_name, email = parse_addr(email_address)
 		if display_name and display_name != email:
 			return email_address
@@ -81,7 +81,7 @@ class CommunicationEmailMixin:
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
-			assignees = set(self.get_assignees())
+			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.
 			for assignee in assignees.copy():
 				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
@@ -146,12 +146,12 @@ class CommunicationEmailMixin:
 		return get_formatted_email(self.mail_sender_fullname(), mail=self.mail_sender())
 
 	def get_content(self, print_format=None):
-		if print_format and frappe.db.get_single_value("System Settings", "attach_view_link"):
-			return self.content + self.get_attach_link(print_format)
+		if print_format and frappe.get_system_settings("attach_view_link"):
+			return cstr(self.content) + self.get_attach_link(print_format)
 		return self.content
 
 	def get_attach_link(self, print_format):
-		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
+		"""Return public link for the attachment via `templates/emails/print_link.html`."""
 		return frappe.get_template("templates/emails/print_link.html").render(
 			{
 				"url": get_url(),
@@ -278,13 +278,22 @@ class CommunicationEmailMixin:
 			print_format=print_format, print_html=print_html, print_language=print_language
 		)
 		incoming_email_account = self.get_incoming_email_account()
+
+		reply_to = None
+
+		# If this is a reply to an existing email, set reply_to as the sender of the reply
+		if self.in_reply_to:
+			reply_to = self.get_mail_sender_with_displayname()
+		elif incoming_email_account:
+			reply_to = incoming_email_account.email_id
+
 		return {
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc,
 			"expose_recipients": "header",
 			"sender": self.get_mail_sender_with_displayname(),
-			"reply_to": incoming_email_account and incoming_email_account.email_id,
+			"reply_to": reply_to,
 			"subject": self.subject,
 			"content": self.get_content(print_format=print_format),
 			"reference_doctype": self.reference_doctype,
@@ -295,7 +304,7 @@ class CommunicationEmailMixin:
 			"delayed": True,
 			"communication": self.name,
 			"read_receipt": self.read_receipt,
-			"is_notification": (self.sent_or_received == "Received" and True) or False,
+			"is_notification": (self.sent_or_received == "Received"),
 			"print_letterhead": print_letterhead,
 			"send_after": self.send_after,
 		}

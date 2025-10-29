@@ -42,7 +42,7 @@ def create_email_flag_queue(names, action):
 	"""create email flag queue to mark email either as read or unread"""
 
 	def mark_as_seen_unseen(name, action):
-		doc = frappe.get_doc("Communication", name)
+		doc = frappe.get_lazy_doc("Communication", name)
 		if action == "Read":
 			doc.add_seen()
 		else:
@@ -79,7 +79,7 @@ def create_email_flag_queue(names, action):
 
 			for queue in email_flag_queue:
 				if queue.action != action:
-					frappe.delete_doc("Email Flag Queue", queue.name, ignore_permissions=True)
+					frappe.delete_doc("Email Flag Queue", queue.name, ignore_permissions=True, force=True)
 				elif queue.action == action:
 					# Read or Unread request for email is already available
 					create_new = False

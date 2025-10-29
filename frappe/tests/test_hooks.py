@@ -3,11 +3,11 @@
 import frappe
 from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase, patch_hooks
 
 
-class TestHooks(FrappeTestCase):
+class TestHooks(IntegrationTestCase):
 	def test_hooks(self):
 		hooks = frappe.get_hooks()
 		self.assertTrue(isinstance(hooks.get("app_name"), list))
@@ -26,7 +26,7 @@ class TestHooks(FrappeTestCase):
 		hooks.override_doctype_class = {"ToDo": ["frappe.tests.test_hooks.CustomToDo"]}
 
 		# Clear cache
-		frappe.cache.delete_value("app_hooks")
+		frappe.client_cache.delete_value("app_hooks")
 		clear_controller_cache("ToDo")
 
 		todo = frappe.get_doc(doctype="ToDo", description="asdf")
@@ -53,7 +53,7 @@ class TestHooks(FrappeTestCase):
 		hooks.has_permission["*"] = wildcard_has_permission_hook
 
 		# Clear cache
-		frappe.cache.delete_value("app_hooks")
+		frappe.client_cache.delete_value("app_hooks")
 
 		# Init User and Address
 		username = "test@example.com"
@@ -111,10 +111,84 @@ class TestHooks(FrappeTestCase):
 
 		event.delete()
 
+	def test_fixture_prefix(self):
+		import os
+		import shutil
+
+		from frappe import hooks
+		from frappe.utils.fixtures import export_fixtures
+
+		app = "frappe"
+		if os.path.isdir(frappe.get_app_path(app, "fixtures")):
+			shutil.rmtree(frappe.get_app_path(app, "fixtures"))
+
+		# use any set of core doctypes for test purposes
+		hooks.fixtures = [
+			{"dt": "User"},
+			{"dt": "Contact"},
+			{"dt": "Role"},
+		]
+		hooks.fixture_auto_order = False
+		# every call to frappe.get_hooks loads the hooks module into cache
+		# therefor the cache has to be invalidated after every manual overwriting of hooks
+		# TODO replace with a more elegant solution if there is one or build a util function for this purpose
+		if frappe._load_app_hooks in frappe.local.request_cache.keys():
+			del frappe.local.request_cache[frappe._load_app_hooks]
+		self.assertEqual([False], frappe.get_hooks("fixture_auto_order", app_name=app))
+		self.assertEqual(
+			[
+				{"dt": "User"},
+				{"dt": "Contact"},
+				{"dt": "Role"},
+			],
+			frappe.get_hooks("fixtures", app_name=app),
+		)
+
+		export_fixtures(app)
+		# use assertCountEqual (replaced assertItemsEqual), beacuse os.listdir might return the list in a different order, depending on OS
+		self.assertCountEqual(
+			["user.json", "contact.json", "role.json"], os.listdir(frappe.get_app_path(app, "fixtures"))
+		)
+
+		hooks.fixture_auto_order = True
+		del frappe.local.request_cache[frappe._load_app_hooks]
+		self.assertEqual([True], frappe.get_hooks("fixture_auto_order", app_name=app))
+
+		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
+		export_fixtures(app)
+		self.assertCountEqual(
+			["1_user.json", "2_contact.json", "3_role.json"],
+			os.listdir(frappe.get_app_path(app, "fixtures")),
+		)
+
+		hooks.fixtures = [
+			{"dt": "User", "prefix": "my_prefix"},
+			{"dt": "Contact"},
+			{"dt": "Role"},
+		]
+		hooks.fixture_auto_order = False
+
+		del frappe.local.request_cache[frappe._load_app_hooks]
+		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
+		export_fixtures(app)
+		self.assertCountEqual(
+			["my_prefix_user.json", "contact.json", "role.json"],
+			os.listdir(frappe.get_app_path(app, "fixtures")),
+		)
+
+		hooks.fixture_auto_order = True
+		del frappe.local.request_cache[frappe._load_app_hooks]
+		shutil.rmtree(frappe.get_app_path(app, "fixtures"))
+		export_fixtures(app)
+		self.assertCountEqual(
+			["1_my_prefix_user.json", "2_contact.json", "3_role.json"],
+			os.listdir(frappe.get_app_path(app, "fixtures")),
+		)
+
 
 class TestAPIHooks(FrappeAPITestCase):
 	def test_auth_hook(self):
-		with patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.custom_auth"]}):
+		with self.patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.custom_auth"]}):
 			site_url = frappe.utils.get_site_url(frappe.local.site)
 			response = self.get(
 				site_url + "/api/method/frappe.auth.get_logged_user",
@@ -127,6 +201,7 @@ class TestAPIHooks(FrappeAPITestCase):
 def custom_has_permission(doc, ptype, user):
 	if doc.flags.dont_touch_me:
 		return False
+	return True
 
 
 def custom_auth():

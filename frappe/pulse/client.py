@@ -1,6 +1,7 @@
 import time
 from contextlib import suppress
-from json import JSONDecodeError
+
+from orjson import JSONDecodeError
 
 import frappe
 from frappe.pulse.utils import anonymize_user, ensure_http, parse_interval, utc_iso

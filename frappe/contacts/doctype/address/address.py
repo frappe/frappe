@@ -51,8 +51,8 @@ class Address(Document):
 		phone: DF.Data | None
 		pincode: DF.Data | None
 		state: DF.Data | None
-
 	# end: auto-generated types
+
 	def __setup__(self):
 		self.flags.linked = False
 
@@ -140,7 +140,7 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 @frappe.whitelist()
 def get_default_address(doctype: str, name: str | None, sort_key: str = "is_primary_address") -> str | None:
-	"""Returns default Address name for the given doctype, name"""
+	"""Return default Address name for the given doctype, name."""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None
 
@@ -222,7 +222,7 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
-	"""Returns true if there is a related lead or contact related to this document"""
+	"""Return True if there is a related lead or contact related to this document."""
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
 	if contact_name:
@@ -279,8 +279,18 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
-def get_condensed_address(doc):
-	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
+def get_condensed_address(doc, no_title=False):
+	fields = [
+		"address_title",
+		"address_line1",
+		"address_line2",
+		"city",
+		"county",
+		"state",
+		"country",
+	]
+	if no_title:
+		fields.remove("address_title")
 	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 

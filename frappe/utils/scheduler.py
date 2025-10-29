@@ -8,6 +8,7 @@ Events:
 	weekly
 """
 
+import datetime
 import os
 import random
 import time
@@ -22,6 +23,7 @@ from frappe.utils.background_jobs import set_niceness
 from frappe.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_SCHEDULER_TICK = 4 * 60
 
 
 def cprint(*args, **kwargs):
@@ -35,7 +37,7 @@ def cprint(*args, **kwargs):
 
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
-	Specify scheduler_interval in seconds in common_site_config.json"""
+	Specify scheduler_tick_interval in seconds in common_site_config.json"""
 
 	tick = get_scheduler_tick()
 	set_niceness()
@@ -50,7 +52,7 @@ def start_scheduler() -> NoReturn:
 		return
 
 	while True:
-		time.sleep(tick)
+		time.sleep(sleep_duration(tick))
 		enqueue_events_for_all_sites()
 
 
@@ -71,6 +73,22 @@ def is_schduler_process_running() -> bool:
 		return False
 	except Timeout:
 		return True
+
+
+def sleep_duration(tick):
+	if tick != DEFAULT_SCHEDULER_TICK:
+		# Assuming user knows what they want.
+		return tick
+
+	# Sleep until next multiple of tick.
+	# This makes scheduler aligned with real clock,
+	# so event scheduled at 12:00 happen at 12:00 and not 12:00:35.
+	minutes = tick // 60
+	now = datetime.datetime.now(datetime.timezone.utc)
+	left_minutes = minutes - now.minute % minutes
+	next_execution = now.replace(second=0) + datetime.timedelta(minutes=left_minutes)
+
+	return (next_execution - now).total_seconds()
 
 
 def enqueue_events_for_all_sites() -> None:
@@ -94,12 +112,12 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
-		frappe.init(site=site)
+		frappe.init(site)
 		frappe.connect()
 		if is_scheduler_inactive():
 			return
 
-		enqueue_events(site=site)
+		enqueue_events()
 
 		frappe.logger("scheduler").debug(f"Queued events for site {site}")
 	except Exception as e:
@@ -111,7 +129,7 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.destroy()
 
 
-def enqueue_events(site: str) -> list[str] | None:
+def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
 		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
@@ -152,9 +170,7 @@ def is_scheduler_disabled(verbose=True) -> bool:
 			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
 		return True
 
-	scheduler_disabled = not frappe.utils.cint(
-		frappe.db.get_single_value("System Settings", "enable_scheduler")
-	)
+	scheduler_disabled = not frappe.get_system_settings("enable_scheduler")
 	if scheduler_disabled:
 		if verbose:
 			cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
@@ -175,11 +191,11 @@ def disable_scheduler():
 
 @redis_cache(ttl=60 * 60)
 def schedule_jobs_based_on_activity(check_time=None):
-	"""Returns True for active sites defined by Activity Log
-	Returns True for inactive sites once in 24 hours"""
+	"""Return True for active sites as defined by `Activity Log`.
+	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
-		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")
+		last_job_timestamp = _get_last_creation_timestamp("Scheduled Job Log")
 		if not last_job_timestamp:
 			return True
 		else:
@@ -200,7 +216,6 @@ def is_dormant(check_time=None):
 
 	if frappe.conf.developer_mode or not on_frappecloud():
 		return False
-
 	threshold = cint(frappe.get_system_settings("dormant_days")) * 86400
 	if not threshold:
 		return False
@@ -216,8 +231,8 @@ def is_dormant(check_time=None):
 	return False
 
 
-def _get_last_modified_timestamp(doctype):
-	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
+def _get_last_creation_timestamp(doctype):
+	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="creation", order_by="creation desc")
 	if timestamp:
 		return get_datetime(timestamp)
 
@@ -245,4 +260,5 @@ def get_scheduler_status():
 
 
 def get_scheduler_tick() -> int:
-	return cint(frappe.get_conf().scheduler_tick_interval) or 60
+	conf = frappe.get_conf()
+	return cint(conf.scheduler_tick_interval) or DEFAULT_SCHEDULER_TICK

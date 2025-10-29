@@ -20,7 +20,6 @@
    "label": "Country",
    "options": "Country",
    "reqd": 1,
-   "search_index": 1,
    "unique": 1
   },
   {
@@ -40,7 +39,7 @@
  ],
  "icon": "fa fa-map-marker",
  "links": [],
- "modified": "2022-08-03 12:20:49.095228",
+ "modified": "2024-03-23 16:01:27.242795",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address Template",
@@ -58,7 +57,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

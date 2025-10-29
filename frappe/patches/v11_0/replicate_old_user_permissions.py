@@ -37,7 +37,7 @@ def execute():
 
 
 def get_doctypes_to_skip(doctype, user):
-	"""Returns doctypes to be skipped from user permission check"""
+	"""Return doctypes to be skipped from user permission check."""
 	doctypes_to_skip = []
 	valid_perms = get_user_valid_perms(user) or []
 	for perm in valid_perms:

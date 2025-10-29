@@ -29,7 +29,7 @@ def get():
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = compress(controller.get_list(args))
+		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -42,7 +42,7 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller.get_list(args)
+		data = frappe.call(controller.get_list, args=args, **args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -52,22 +52,44 @@ def get_list():
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_count() -> int:
+def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		count = controller.get_count(args)
-	else:
-		args.distinct = sbool(args.distinct)
-		distinct = "distinct " if args.distinct else ""
-		args.limit = cint(args.limit)
-		fieldname = f"{distinct}`tab{args.doctype}`.name"
-		args.order_by = None
+		return frappe.call(controller.get_count, args=args, **args)
 
+	args.distinct = sbool(args.distinct)
+	distinct = "distinct " if args.distinct else ""
+	args.limit = cint(args.limit)
+	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	args.order_by = None
+
+	# args.limit is specified to avoid getting accurate count.
+	if not args.limit:
 		args.fields = [fieldname]
 		partial_query = execute(**args, run=0)
-		count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
+
+	args.fields = [fieldname]
+	partial_query = execute(**args, run=0)
+
+	# Count queries are notoriously unpredictable based on the type of filters used.
+	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
+	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
+	# Users can request accurate count by dropping limit from arguments.
+	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
+
+	try:
+		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
+			count = None
+		else:
+			raise
+
+	if count == args.limit or count is None:
+		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
 
 	return count
 
@@ -186,7 +208,7 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 
-@lru_cache
+@lru_cache(maxsize=1024)
 def extract_fieldnames(field):
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 
@@ -242,6 +264,10 @@ def parse_json(data):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
+	if isinstance(data.get("start"), str):
+		data["start"] = cint(data.get("start"))
+	if isinstance(data.get("page_length"), str):
+		data["page_length"] = cint(data.get("page_length"))
 
 
 def get_parenttype_and_fieldname(field, data):
@@ -350,6 +376,7 @@ def export_query():
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
+
 	form_params["as_list"] = True
 	csv_params = pop_csv_params(form_params)
 	export_in_background = int(form_params.pop("export_in_background", 0))
@@ -582,12 +609,15 @@ def delete_bulk(doctype, items):
 	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
+			frappe.flags.in_bulk_delete = True
 			frappe.delete_doc(doctype, d)
 			if len(items) >= 5:
 				frappe.publish_realtime(
 					"progress",
 					dict(
-						progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d
+						progress=[i + 1, len(items)],
+						title=_("Deleting {0}").format(_(doctype)),
+						description=d,
 					),
 					user=frappe.session.user,
 				)
@@ -622,7 +652,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
-		data = controller.get_stats(args)
+		data = frappe.call(controller.get_stats, args=args, **args)
 	else:
 		data = get_stats(stats, doctype, filters)
 

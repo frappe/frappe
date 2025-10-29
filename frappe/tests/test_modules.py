@@ -12,7 +12,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.model.meta import trim_table
 from frappe.modules import export_customizations, export_module_json, get_module_path
 from frappe.modules.utils import export_doc, sync_customizations
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import now_datetime
 
 
@@ -31,7 +31,7 @@ def delete_path(path):
 		shutil.rmtree(path, ignore_errors=True)
 
 
-class TestUtils(FrappeTestCase):
+class TestUtils(IntegrationTestCase):
 	def setUp(self):
 		self._dev_mode = frappe.local.conf.developer_mode
 		frappe.local.conf.developer_mode = True

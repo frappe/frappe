@@ -32,7 +32,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Script Type",
-   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
+   "options": "DocType Event\nScheduler Event\nPermission Query\nAPI\nWorkflow Task",
    "reqd": 1
   },
   {
@@ -57,7 +57,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nBefore Print\nOn Payment Authorization"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Discard\nAfter Discard\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nBefore Print\nOn Payment Authorization\nOn Payment Paid\nOn Payment Failed\nOn Payment Charge Processed\nOn Payment Mandate Charge Processed\nOn Payment Mandate Acquisition Processed"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -171,7 +171,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

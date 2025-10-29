@@ -26,4 +26,5 @@ class DocTypeLink(Document):
 		parenttype: DF.Data
 		table_fieldname: DF.Data | None
 	# end: auto-generated types
+
 	pass

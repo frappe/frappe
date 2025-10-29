@@ -40,6 +40,7 @@ class AssignmentRule(Document):
 		users: DF.TableMultiSelect[AssignmentRuleUser]
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()

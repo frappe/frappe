@@ -37,12 +37,13 @@ export default class QuickListWidget extends Widget {
 
 		this.add_new_button.appendTo(this.action_area);
 		this.add_new_button.on("click", () => {
-			frappe.set_route(
-				frappe.utils.generate_route({
-					type: "doctype",
-					name: this.document_type,
-					doc_view: "New",
-				})
+			frappe.ui.form.make_quick_entry(
+				this.document_type,
+				// Callback to ensure no redirection after insert
+				() => {
+					this.body.empty();
+					this.set_body(); // Refresh the quicklist
+				}
 			);
 		});
 	}
@@ -206,8 +207,13 @@ export default class QuickListWidget extends Widget {
 
 			let add_fields = frappe.listview_settings?.[this.document_type]?.add_fields;
 			if (Array.isArray(add_fields)) {
-				fields.push(...add_fields);
-				fields = [...new Set(fields)];
+				for (const fieldname of add_fields) {
+					// Only keep fields that exist and are permitted
+					if (frappe.meta.has_field(this.document_type, fieldname)) {
+						fields.push(fieldname);
+					}
+				}
+				fields = [...new Set(fields)]; // Remove duplicates
 			}
 
 			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);
@@ -218,7 +224,7 @@ export default class QuickListWidget extends Widget {
 					doctype: this.document_type,
 					fields: fields,
 					filters: quick_list_filter,
-					order_by: "modified desc",
+					order_by: "creation desc",
 					start: 0,
 					page_length: 4,
 				},

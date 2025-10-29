@@ -1,6 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
 frappe.provide("frappe.treeview_settings");
 frappe.provide("frappe.views.trees");
 window.cur_tree = null;
@@ -61,7 +60,6 @@ frappe.views.TreeView = class TreeView {
 		this.make_page();
 		this.make_filters();
 		this.root_value = null;
-
 		if (me.opts.get_tree_root) {
 			this.get_root();
 		}
@@ -86,6 +84,7 @@ frappe.views.TreeView = class TreeView {
 		var me = this;
 		if (!this.opts || !this.opts.do_not_make_page) {
 			this.parent = frappe.container.add_page(this.page_name);
+			$(this.parent).addClass("treeview");
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);
@@ -106,14 +105,39 @@ frappe.views.TreeView = class TreeView {
 			$(this.page[0]).addClass("frappe-card");
 		}
 
-		if (this.opts.show_expand_all) {
-			this.page.add_inner_button(__("Collapse All"), function () {
-				me.tree.load_children(me.tree.root_node, false);
-			});
+		if (frappe.meta.has_field(me.doctype, "disabled")) {
+			this.page.add_inner_button(
+				__("Include Disabled"),
+				function () {
+					me.toggle_disable(event.target);
+					me.make_tree();
+				},
+				__("Expand"),
+				"default",
+				true
+			);
+		}
 
-			this.page.add_inner_button(__("Expand All"), function () {
-				me.tree.load_children(me.tree.root_node, true);
-			});
+		if (this.opts.show_expand_all) {
+			this.page.add_inner_button(
+				__("Collapse All"),
+				function () {
+					me.tree.load_children(me.tree.root_node, false);
+				},
+				__("Expand"),
+				"default",
+				true
+			);
+
+			this.page.add_inner_button(
+				__("Expand All"),
+				function () {
+					me.tree.load_children(me.tree.root_node, true);
+				},
+				__("Expand"),
+				"default",
+				true
+			);
 		}
 
 		if (this.opts.view_template) {
@@ -154,7 +178,11 @@ frappe.views.TreeView = class TreeView {
 				};
 			}
 
-			me.page.add_field(filter);
+			if (filter.render_on_toolbar) {
+				me.page.add_field(filter, me.page.filters);
+			} else {
+				me.page.add_field(filter);
+			}
 
 			if (filter.default) {
 				$("[data-fieldname='" + filter.fieldname + "']").trigger("change");
@@ -163,23 +191,27 @@ frappe.views.TreeView = class TreeView {
 	}
 	get_root() {
 		var me = this;
-
 		frappe.call({
 			method: me.get_tree_nodes,
 			args: me.args,
 			callback: function (r) {
 				if (r.message) {
-					if (r.message.length > 1) {
-						me.root_label = me.doctype;
-						me.root_value = "";
-					} else {
-						me.root_label = r.message[0]["value"];
-						me.root_value = me.root_label;
-					}
+					me.root_label = me.doctype;
+					me.root_value = "";
 					me.make_tree();
 				}
 			},
 		});
+	}
+	toggle_disable(el) {
+		if (this.args["include_disabled"]) {
+			this.args["include_disabled"] = false;
+			el.innerText = el.innerText.replace("Exclude", "Include");
+		} else {
+			this.args["include_disabled"] = true;
+			console.log(el);
+			el.innerText = el.innerText.replace("Include", "Exclude");
+		}
 	}
 	make_tree() {
 		$(this.parent).find(".tree").remove();
@@ -189,6 +221,7 @@ frappe.views.TreeView = class TreeView {
 		if (use_value == null) {
 			use_value = use_label;
 		}
+
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: use_label,
@@ -213,10 +246,11 @@ frappe.views.TreeView = class TreeView {
 		cur_tree.view_name = "Tree";
 		this.post_render();
 	}
-
+	toggle_label() {
+		console.log("hello");
+	}
 	rebuild_tree() {
 		let me = this;
-
 		frappe.call({
 			method: "frappe.utils.nestedset.rebuild_tree",
 			args: {

@@ -30,7 +30,7 @@ class WebTemplate(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if self.standard and not (frappe.conf.developer_mode or frappe.flags.in_patch):
+		if self.standard and not frappe.conf.developer_mode and not frappe.flags.in_patch:
 			frappe.throw(_("Enable developer mode to create a standard Web Template"))
 
 		for field in self.fields:

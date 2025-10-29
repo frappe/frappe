@@ -65,6 +65,7 @@ class LDAPSettings(Document):
 		ssl_tls_mode: DF.Literal["Off", "StartTLS"]
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.default_user_type = self.default_user_type or "Website User"
 

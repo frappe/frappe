@@ -46,7 +46,7 @@
  "idx": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2022-08-03 12:20:49.654403",
+ "modified": "2024-03-23 16:04:04.409255",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Slideshow",
@@ -64,7 +64,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

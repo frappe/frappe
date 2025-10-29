@@ -1,12 +1,13 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import time
 
 import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
@@ -20,26 +21,19 @@ from frappe.twofactor import (
 )
 from frappe.utils import cint, set_request
 
-from . import get_system_setting, update_system_settings
 
-
-class TestTwoFactor(FrappeTestCase):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.default_allowed_login_attempts = get_system_setting("allow_consecutive_login_attempts")
-
+class TestTwoFactor(IntegrationTestCase):
 	def setUp(self):
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
-		update_system_settings({"allow_consecutive_login_attempts": 2})
+		self.enterContext(self.change_settings("System Settings", {"allow_consecutive_login_attempts": 2}))
 
 	def tearDown(self):
 		frappe.local.response["verification"] = None
 		frappe.local.response["tmp_id"] = None
 		disable_2fa()
 		frappe.clear_cache(user=self.user)
-		update_system_settings({"allow_consecutive_login_attempts": self.default_allowed_login_attempts})
 
 	def test_should_run_2fa(self):
 		"""Should return true if enabled."""
@@ -122,11 +116,14 @@ class TestTwoFactor(FrappeTestCase):
 		otp = "wrongotp"
 		with self.assertRaises(frappe.AuthenticationError):
 			confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id)
-		otp = get_otp(self.user)
-		self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+
+		# Freeze the time to avoid expiry during test
+		with self.freeze_time(datetime.datetime.now()):
+			otp = get_otp(self.user)
+			self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+
 		frappe.flags.otp_expiry = None
-		if frappe.flags.tests_verbose:
-			print("Sleeping for 2 secs to confirm token expires..")
+		print("Sleeping for 2 secs to confirm token expires..")
 		time.sleep(2)
 		with self.assertRaises(ExpiredLoginException):
 			confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id)
@@ -194,8 +191,10 @@ class TestTwoFactor(FrappeTestCase):
 		tracker = get_login_attempt_tracker(self.user, raise_locked_exception=False)
 		tracker.add_success_attempt()
 
-		otp = get_otp(self.user)
-		self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
+		# Freeze the time to avoid expiry during test
+		with self.freeze_time(datetime.datetime.now()):
+			otp = get_otp(self.user)
+			self.assertTrue(confirm_otp_token(self.login_manager, otp=otp, tmp_id=tmp_id))
 
 
 def create_http_request():

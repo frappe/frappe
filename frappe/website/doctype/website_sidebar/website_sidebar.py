@@ -19,6 +19,7 @@ class WebsiteSidebar(Document):
 		title: DF.Data
 
 	# end: auto-generated types
+
 	def get_items(self):
 		items = frappe.get_all(
 			"Website Sidebar Item",

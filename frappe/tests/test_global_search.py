@@ -4,12 +4,12 @@
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
 from frappe.utils import global_search, now_datetime
 
 
-class TestGlobalSearch(FrappeTestCase):
+class TestGlobalSearch(IntegrationTestCase):
 	def setUp(self):
 		update_global_search_doctypes()
 		global_search.setup_global_search_table()
@@ -39,7 +39,7 @@ class TestGlobalSearch(FrappeTestCase):
 
 		for text in phrases:
 			frappe.get_doc(
-				dict(doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime())
+				doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime()
 			).insert()
 
 		global_search.sync_global_search()
@@ -199,9 +199,9 @@ class TestGlobalSearch(FrappeTestCase):
 		global_search.update_global_search_for_all_web_pages()
 		global_search.sync_global_search()
 		frappe.db.commit()
-		results = global_search.web_search("unsubscribe")
-		self.assertTrue("Unsubscribe" in results[0].content)
+		results = global_search.web_search("company")
+		self.assertTrue("About" in results[0].content)
 		results = global_search.web_search(
-			text="unsubscribe", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
+			text="company", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
 		)
 		self.assertTrue(results == [])

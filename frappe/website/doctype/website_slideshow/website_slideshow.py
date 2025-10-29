@@ -25,6 +25,7 @@ class WebsiteSlideshow(Document):
 		slideshow_name: DF.Data
 
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_images()
 

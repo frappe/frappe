@@ -212,55 +212,17 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
-	get_from_localstorage: function (doctype) {
-		if (localStorage["_doctype:" + doctype]) {
-			return JSON.parse(localStorage["_doctype:" + doctype]);
-		}
-	},
-
-	set_in_localstorage: function (doctype, docs) {
-		try {
-			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
-		} catch (e) {
-			// if quota is exceeded, clear local storage and set item
-			console.warn("localStorage quota exceeded, clearing doctype cache");
-			frappe.model.clear_local_storage();
-			localStorage["_doctype:" + doctype] = JSON.stringify(docs);
-		}
-	},
-
-	clear_local_storage: function () {
-		for (var key in localStorage) {
-			if (key.startsWith("_doctype:")) {
-				localStorage.removeItem(key);
-			}
-		}
-	},
-
 	with_doctype: function (doctype, callback, async) {
 		if (locals.DocType[doctype]) {
 			callback && callback();
 			return Promise.resolve();
 		} else {
-			let cached_timestamp = null;
-			let cached_doc = null;
-
-			let cached_docs = frappe.model.get_from_localstorage(doctype);
-
-			if (cached_docs) {
-				cached_doc = cached_docs.filter((doc) => doc.name === doctype)[0];
-				if (cached_doc) {
-					cached_timestamp = cached_doc.modified;
-				}
-			}
-
 			return frappe.call({
 				method: "frappe.desk.form.load.getdoctype",
 				type: "GET",
 				args: {
 					doctype: doctype,
 					with_parent: 1,
-					cached_timestamp: cached_timestamp,
 				},
 				async: async,
 				callback: function (r) {
@@ -268,12 +230,8 @@ $.extend(frappe.model, {
 						frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
 					}
-					if (r.message == "use_cache") {
-						frappe.model.sync(cached_doc);
-					} else {
-						frappe.model.set_in_localstorage(doctype, r.docs);
-					}
-					frappe.model.init_doctype(doctype);
+					let meta = r.docs[0];
+					frappe.model.init_doctype(meta);
 
 					if (r.user_settings) {
 						// remember filters and other settings from last view
@@ -286,15 +244,13 @@ $.extend(frappe.model, {
 		}
 	},
 
-	init_doctype: function (doctype) {
-		var meta = locals.DocType[doctype];
-		for (const asset_key of [
-			"__list_js",
-			"__custom_list_js",
-			"__calendar_js",
-			"__map_js",
-			"__tree_js",
-		]) {
+	init_doctype: function (meta) {
+		if (meta.name === "DocType") {
+			// store doctype "meta" separate as it will be overridden by doctype "doc"
+			// meta has sugar, like __js and other properties that doc won't have
+			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
+		}
+		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -625,6 +581,7 @@ $.extend(frappe.model, {
 	get_doc: function (doctype, name) {
 		if (!name) name = doctype;
 		if ($.isPlainObject(name)) {
+			// not string, filter
 			var doc = frappe.get_list(doctype, name);
 			return doc && doc.length ? doc[0] : null;
 		}
@@ -646,6 +603,20 @@ $.extend(frappe.model, {
 			return frappe.utils.filter_dict(children, filters);
 		} else {
 			return children;
+		}
+	},
+
+	get_doc_title(doc) {
+		if (typeof doc.name == "string") {
+			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
+				return __("New {0}", [__(doc.doctype)]);
+			}
+		}
+		let meta = frappe.get_meta(doc.doctype);
+		if (meta.title_field) {
+			return doc[meta.title_field];
+		} else {
+			return String(doc.name);
 		}
 	},
 
@@ -692,7 +663,7 @@ $.extend(frappe.model, {
 	get_no_copy_list: function (doctype) {
 		var no_copy_list = ["name", "amended_from", "amendment_date", "cancel_reason"];
 
-		var docfields = frappe.get_doc("DocType", doctype).fields || [];
+		var docfields = frappe.get_meta(doctype).fields || [];
 		for (var i = 0, j = docfields.length; i < j; i++) {
 			var df = docfields[i];
 			if (cint(df.no_copy)) no_copy_list.push(df.fieldname);
@@ -702,9 +673,9 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function (doctype, docname, callback) {
-		let title = docname;
+		let title = docname.toString();
 		const title_field = frappe.get_meta(doctype).title_field;
-		if (frappe.get_meta(doctype).autoname == "hash" && title_field) {
+		if (title_field) {
 			const value = frappe.model.get_value(doctype, docname, title_field);
 			if (value) {
 				title = `${value} (${docname})`;

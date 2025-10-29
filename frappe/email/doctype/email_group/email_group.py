@@ -24,8 +24,8 @@ class EmailGroup(Document):
 		total_subscribers: DF.Int
 		welcome_email_template: DF.Link | None
 		welcome_url: DF.Data | None
-
 	# end: auto-generated types
+
 	def onload(self):
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [
@@ -102,7 +102,7 @@ class EmailGroup(Document):
 
 	def on_trash(self):
 		for d in frappe.get_all("Email Group Member", "name", {"email_group": self.name}):
-			frappe.delete_doc("Email Group Member", d.name)
+			frappe.delete_doc("Email Group Member", d.name, force=True)
 
 
 @frappe.whitelist()

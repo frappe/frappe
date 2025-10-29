@@ -310,6 +310,7 @@ textarea.form-control {
 }
 
 .barcode-wrapper {
+	margin-top: var(--margin-xs);
 	text-align: center;
 	background-color: var(--control-bg);
 	border-radius: var(--border-radius);
@@ -374,7 +375,7 @@ textarea.form-control {
 
 .phone-btn {
 	position: absolute;
-	top: 4px;
+	top: -1px;
 	right: 8px;
 	padding: 3px;
 }
@@ -385,6 +386,17 @@ textarea.form-control {
 	min-height: 300px;
 	max-height: 600px;
 	overflow: auto;
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+
+		th,
+		td {
+			border: 1px solid var(--border-color);
+			padding: var(--padding-sm);
+		}
+	}
 }
 
 .markdown-toggle,

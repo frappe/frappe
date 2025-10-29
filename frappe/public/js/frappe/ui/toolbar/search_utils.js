@@ -5,7 +5,7 @@ frappe.search.utils = {
 	setup_recent: function () {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
-
+	results_to_hide: [],
 	get_recent_pages: function (keywords) {
 		if (keywords === null) keywords = "";
 		var me = this,
@@ -105,10 +105,19 @@ frappe.search.utils = {
 			out.index = 80;
 			return out;
 		});
-
+		this.hide_results(options);
 		return options;
 	},
-
+	hide_results(options) {
+		if (this.results_to_hide.length == 0) return;
+		this.results_to_hide.forEach((v, i) => {
+			options.forEach((o, j) => {
+				if (o.value == v) {
+					options.splice(j, 1);
+				}
+			});
+		});
+	},
 	get_frequent_links() {
 		let options = [];
 		frappe.boot.frequently_visited_links.forEach((link) => {
@@ -447,7 +456,7 @@ frappe.search.utils = {
 			data.forEach(function (d) {
 				// more properties
 				result = {
-					label: d.name,
+					label: d.title || d.name, // show title if exists
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],
@@ -577,9 +586,13 @@ frappe.search.utils = {
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
-		const item = __(_item);
+		let item = __(_item);
 
-		const [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		let [, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		if (score == 0 && frappe.boot.lang !== "en" && item != _item) {
+			item = _item || "";
+			[, score, matches] = fuzzy_match(keywords, item, return_marked_string);
+		}
 
 		if (!return_marked_string) {
 			return score;
@@ -619,40 +632,11 @@ frappe.search.utils = {
 		return { score, marked_string };
 	},
 
+	/**
+	 * @deprecated Use frappe.search.utils.fuzzy_search(subseq, str, true).marked_string instead.
+	 */
 	bolden_match_part: function (str, subseq) {
-		if (fuzzy_match(subseq, str)[0] === false) {
-			return str;
-		}
-		if (str.indexOf(subseq) == 0) {
-			var tail = str.split(subseq)[1];
-			return "<mark>" + subseq + "</mark>" + tail;
-		}
-		var rendered = "";
-		var str_orig = str;
-		var str_len = str.length;
-		str = str.toLowerCase();
-		subseq = subseq.toLowerCase();
-
-		outer: for (var i = 0, j = 0; i < subseq.length; i++) {
-			var sub_ch = subseq.charCodeAt(i);
-			while (j < str_len) {
-				if (str.charCodeAt(j) === sub_ch) {
-					var str_char = str_orig.charAt(j);
-					if (str_char === str_char.toLowerCase()) {
-						rendered += "<mark>" + subseq.charAt(i) + "</mark>";
-					} else {
-						rendered += "<mark>" + subseq.charAt(i).toUpperCase() + "</mark>";
-					}
-					j++;
-					continue outer;
-				}
-				rendered += str_orig.charAt(j);
-				j++;
-			}
-			return str_orig;
-		}
-		rendered += str_orig.slice(j);
-		return rendered;
+		return this.fuzzy_search(subseq, str, true).marked_string;
 	},
 
 	get_executables(keywords) {

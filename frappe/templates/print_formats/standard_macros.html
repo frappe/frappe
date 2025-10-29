@@ -3,7 +3,7 @@
 		{{ render_table(df, doc) }}
 	{%- elif df.fieldtype=="HTML" and df.options -%}
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
-	{%- elif df.fieldtype in ("Text", "Text Editor", "Code", "Long Text") -%}
+	{%- elif df.fieldtype in ("Text", "Code", "Long Text") -%}
 		{{ render_text_field(df, doc) }}
 	{%- elif df.fieldtype in ("Image", "Attach Image")
 		and (
@@ -88,7 +88,13 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		}) -%}
 
 		{% set render_field = doc.get(df.fieldname) != 0 if df.fieldtype == "Check" else doc.get(df.fieldname) != None %}
-		{% if render_field %}
+		{% if render_field and df.nolabel %}
+			<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
+				<div class="col-xs-12 {{ get_align_class(df, no_of_cols) }} value">
+					{{ _(print_value(df, doc)) }}
+				</div>
+			</div>
+		{% elif render_field %}
 			<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 				<div class="{{label_col_class}}
 					{%- if doc.align_labels_right %} text-right{%- endif -%}">
@@ -107,7 +113,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_text_field(df, doc) -%}
 {%- if doc.get(df.fieldname) != None -%}
 <div style="padding: 10px 0px" {{ fieldmeta(df) }}>
-	{%- if df.fieldtype in ("Text", "Code", "Long Text") %}<label>{{ _(df.label, context=df.parent) }}</label>{%- endif %}
+	{%- if df.fieldtype in ("Text", "Code", "Long Text") and not df.nolabel -%}
+		<label>{{ _(df.label, context=df.parent) }}</label>
+	{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname)|e }}</pre>
 	{% else -%}
@@ -153,7 +161,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Signature" %}
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-	{% elif df.fieldtype in ("Attach", "Attach Image") %}
+	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="HTML" %}

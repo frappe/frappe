@@ -33,22 +33,20 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
 				"app_license": "mit",
+				"branch_name": "develop",
 				"create_github_workflow": False,
 			}
 		)
 
-		cls.default_user_input = frappe._dict(
-			{
-				"title": "Test App",
-				"description": "This app's description contains 'single quotes' and \"double quotes\".",
-				"publisher": "Test Publisher",
-				"email": "example@example.org",
-				"icon": "",  # empty -> default
-				"color": "",
-				"app_license": "mit",
-				"github_workflow": "n",
-			}
-		)
+		cls.default_user_input = [
+			"",  # title (accept default)
+			"This app's description contains 'single quotes' and \"double quotes\".",  #
+			"Test Publisher",  # publisher
+			"example@example.org",  # email
+			"",  # license (accept default)
+			"",  # create github workflow (accept default)
+			"develop",  # branch name
+		]
 
 		cls.bench_path = frappe.utils.get_bench_path()
 		cls.apps_dir = os.path.join(cls.bench_path, "apps")
@@ -86,7 +84,7 @@ class TestBoilerPlate(unittest.TestCase):
 	@staticmethod
 	def get_user_input_stream(inputs):
 		user_inputs = []
-		for value in inputs.values():
+		for value in inputs:
 			if isinstance(value, list):
 				user_inputs.extend(value)
 			else:
@@ -99,14 +97,13 @@ class TestBoilerPlate(unittest.TestCase):
 		self.assertDictEqual(hooks, self.default_hooks)
 
 	def test_invalid_inputs(self):
-		invalid_inputs = copy.copy(self.default_user_input).update(
-			{
-				"title": ["1nvalid Title", "valid title"],
-				"email": ["notavalidemail", "what@is@this.email", "example@example.org"],
-			}
-		)
+		invalid_inputs = copy.copy(self.default_user_input)
+		invalid_inputs[0] = ["1nvalid Title", "valid title"]
+		invalid_inputs[3] = ["notavalidemail", "what@is@this.email", "example@example.org"]
+
 		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
 			hooks = _get_user_inputs(self.default_hooks.app_name)
+
 		self.assertEqual(hooks.app_title, "valid title")
 		self.assertEqual(hooks.app_email, "example@example.org")
 
@@ -118,17 +115,9 @@ class TestBoilerPlate(unittest.TestCase):
 	)
 	def test_create_app(self):
 		app_name = "test_app"
-
-		hooks = frappe._dict(
-			{
-				"app_name": app_name,
-				"app_title": "Test App",
-				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
-				"app_publisher": "Test Publisher",
-				"app_email": "example@example.org",
-				"app_license": "mit",
-			}
-		)
+		hooks = self.default_hooks.copy()
+		hooks.app_name = app_name
+		del hooks["create_github_workflow"]
 
 		self.create_app(hooks)
 		new_app_dir = os.path.join(self.bench_path, self.apps_dir, app_name)
@@ -152,17 +141,10 @@ class TestBoilerPlate(unittest.TestCase):
 	)
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
+		hooks = self.default_hooks.copy()
+		hooks.app_name = app_name
+		del hooks["create_github_workflow"]
 
-		hooks = frappe._dict(
-			{
-				"app_name": app_name,
-				"app_title": "Test App",
-				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
-				"app_publisher": "Test Publisher",
-				"app_email": "example@example.org",
-				"app_license": "mit",
-			}
-		)
 		self.create_app(hooks, no_git=True)
 
 		new_app_dir = os.path.join(self.apps_dir, app_name)
@@ -198,13 +180,13 @@ class TestBoilerPlate(unittest.TestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_new_patch_util(self):
-		user_inputs = {
-			"app_name": "frappe",
-			"doctype": "User",
-			"docstring": "Delete all users",
-			"file_name": "",  # Accept default
-			"patch_folder_confirmation": "Y",
-		}
+		user_inputs = [
+			"frappe",  # app name
+			"User",  # doctype
+			"Delete all users",  # docstring
+			"",  # file_name: accept default
+			"Y",  # confirm patch folder
+		]
 
 		patches_txt = pathlib.Path(pathlib.Path(frappe.get_app_path("frappe", "patches.txt")))
 		original_patches = patches_txt.read_text()

@@ -30,13 +30,7 @@
   "webhook_headers",
   "sb_webhook_data",
   "webhook_data",
-  "webhook_json",
-  "preview_tab",
-  "preview_document",
-  "column_break_26",
-  "meets_condition",
-  "section_break_28",
-  "preview_request_body"
+  "webhook_json"
  ],
  "fields": [
   {
@@ -62,7 +56,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Doc Event",
-   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
+   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change\nworkflow_transition",
    "set_only_once": 1
   },
   {
@@ -170,37 +164,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "preview_tab",
-   "fieldtype": "Tab Break",
-   "label": "Preview"
-  },
-  {
-   "fieldname": "preview_document",
-   "fieldtype": "Dynamic Link",
-   "label": "Select Document",
-   "options": "webhook_doctype"
-  },
-  {
-   "fieldname": "preview_request_body",
-   "fieldtype": "Code",
-   "is_virtual": 1,
-   "label": "Request Body"
-  },
-  {
-   "fieldname": "meets_condition",
-   "fieldtype": "Data",
-   "is_virtual": 1,
-   "label": "Meets Condition?"
-  },
-  {
-   "fieldname": "column_break_26",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_28",
-   "fieldtype": "Section Break"
-  },
-  {
    "default": "0",
    "description": "On checking this option, URL will be treated like a jinja template string",
    "fieldname": "is_dynamic_url",
@@ -226,7 +189,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-10-28 12:21:52.172428",
+ "modified": "2025-07-18 18:22:38.276809",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
@@ -246,7 +209,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

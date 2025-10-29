@@ -26,6 +26,7 @@
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
+  "role_profiles",
   "roles_html",
   "roles",
   "sb_allow_modules",
@@ -47,6 +48,7 @@
   "desk_settings_section",
   "mute_sounds",
   "desk_theme",
+  "code_editor_type",
   "banner_image",
   "navigation_settings_section",
   "search_bar",
@@ -59,6 +61,7 @@
   "form_sidebar",
   "timeline",
   "dashboard",
+  "show_absolute_datetime_in_timeline",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -108,7 +111,9 @@
   "column_break_65",
   "api_secret",
   "onboarding_status",
-  "connections_tab"
+  "connections_tab",
+  "sessions_tab",
+  "active_sessions"
  ],
  "fields": [
   {
@@ -227,9 +232,9 @@
    "read_only": 1
   },
   {
-   "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Role Profile",
    "options": "Role Profile",
    "permlevel": 1
@@ -409,7 +414,7 @@
   },
   {
    "fieldname": "email_signature",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "label": "Email Signature",
    "no_copy": 1
   },
@@ -722,6 +727,14 @@
    "label": "Onboarding Status"
   },
   {
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
+  },
+  {
    "description": "If left empty, the default workspace will be the last visited workspace",
    "fieldname": "default_workspace",
    "fieldtype": "Link",
@@ -735,6 +748,13 @@
    "label": "Workspace"
   },
   {
+   "default": "vscode",
+   "fieldname": "code_editor_type",
+   "fieldtype": "Select",
+   "label": "Code Editor Type",
+   "options": "vscode\nvim\nemacs"
+  },
+  {
    "collapsible": 1,
    "fieldname": "app_section",
    "fieldtype": "Section Break",
@@ -744,8 +764,7 @@
    "description": "Redirect to the selected app after login",
    "fieldname": "default_app",
    "fieldtype": "Select",
-   "label": "Default App",
-   "options": ""
+   "label": "Default App"
   },
   {
    "collapsible": 1,
@@ -812,6 +831,25 @@
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_absolute_datetime_in_timeline",
+   "fieldtype": "Check",
+   "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "fieldname": "sessions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sessions"
+  },
+  {
+   "depends_on": "eval:doc.name == frappe.session.user",
+   "fieldname": "active_sessions",
+   "fieldtype": "Table",
+   "is_virtual": 1,
+   "label": "Active Sessions",
+   "options": "User Session Display"
   }
  ],
  "icon": "fa fa-user",
@@ -824,11 +862,6 @@
    "link_fieldname": "user"
   },
   {
-   "group": "Profile",
-   "link_doctype": "Blogger",
-   "link_fieldname": "user"
-  },
-  {
    "group": "Logs",
    "link_doctype": "Access Log",
    "link_fieldname": "user"
@@ -836,11 +869,6 @@
   {
    "group": "Logs",
    "link_doctype": "Activity Log",
-   "link_fieldname": "user"
-  },
-  {
-   "group": "Logs",
-   "link_doctype": "Energy Point Log",
    "link_fieldname": "user"
   },
   {
@@ -875,7 +903,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-05-21 14:57:24.333141",
+ "modified": "2025-10-15 18:07:21.606511",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -910,7 +938,7 @@
  "row_format": "Dynamic",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "full_name",

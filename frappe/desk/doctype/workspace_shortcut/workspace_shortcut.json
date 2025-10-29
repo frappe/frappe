@@ -45,7 +45,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "DocType View",
-   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban"
+   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage"
   },
   {
    "fieldname": "column_break_4",
@@ -131,7 +131,8 @@
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

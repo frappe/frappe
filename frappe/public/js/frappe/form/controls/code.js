@@ -4,37 +4,42 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.load_lib().then(() => this.make_ace_editor());
 	}
 
-	make_wrapper() {
-		super.make_wrapper();
-		this.set_copy_button();
+	refresh() {
+		super.refresh();
+		if (this.df.fieldtype === "Code") {
+			// Don't show for derived classes
+			this.setup_copy_button();
+		}
 	}
 
-	set_copy_button() {
-		if (!this.frm?.doc) {
+	setup_copy_button() {
+		if (this.get_status() === "Write") {
+			this.copy_button?.remove();
+			this.copy_button = null;
+			return; // Don't show copy button in write mode
+		}
+
+		if (this.copy_button) {
 			return;
 		}
 
-		const codeField = this.df.fieldtype === "Code";
-		if ((codeField && this.df.read_only === 1) || (codeField && this.frm.doc.docstatus > 0)) {
-			this.button = $(
-				`<button
-					class="btn icon-btn"
-					style="position: absolute; top: 32px; right: 5px;"
-					onmouseover="this.classList.add('btn-default')"
-					onmouseout="this.classList.remove('btn-default')"
-				>
-					<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
-						<use class="" href="#es-line-copy-light"></use>
-					</svg>
-				</button>`
-			);
-			this.button.on("click", () => {
-				frappe.utils.copy_to_clipboard(
-					frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
-				);
-			});
-			this.button.appendTo(this.$wrapper);
-		}
+		this.copy_button = $(
+			`<button
+				class="btn icon-btn"
+				style="position: absolute; top: 32px; right: 5px;"
+				onmouseover="this.classList.add('btn-default')"
+				onmouseout="this.classList.remove('btn-default')"
+				title="${__("Copy to Clipboard")}"
+			>
+				<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
+					<use class="" href="#es-line-copy-light"></use>
+				</svg>
+			</button>`
+		);
+		this.copy_button.on("click", () => {
+			frappe.utils.copy_to_clipboard(this.get_model_value() || this.get_value());
+		});
+		this.copy_button.appendTo(this.$wrapper);
 	}
 
 	make_ace_editor() {
@@ -61,7 +66,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		} else {
 			this.expanded = false;
 			this.$expand_button = $(
-				`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`
+				`<button class="btn btn-xs btn-default mt-2">${this.get_button_label()}</button>`
 			)
 				.click(() => {
 					this.expanded = !this.expanded;
@@ -77,6 +82,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		}
 
 		this.editor.setTheme("ace/theme/tomorrow");
+		this.editor.setOption("placeholder", this.df.placeholder);
 		this.editor.setOption("showPrintMargin", false);
 		this.editor.setOption("wrap", this.df.wrap);
 		this.set_language();
@@ -195,6 +201,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			Golang: "ace/mode/golang",
 			Go: "ace/mode/golang",
 			Jinja: "ace/mode/django",
+			SQL: "ace/mode/sql",
 		};
 		const language = this.df.options;
 
@@ -209,7 +216,9 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 		const ace_language_mode = language_map[language] || "";
 		this.editor.session.setMode(ace_language_mode);
-		this.editor.setKeyboardHandler("ace/keyboard/vscode");
+		this.editor.setKeyboardHandler(
+			`ace/keyboard/${frappe.boot.user.code_editor_type || "vscode"}`
+		);
 	}
 
 	parse(value) {
@@ -232,6 +241,10 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 	get_input_value() {
 		return this.editor ? this.editor.session.getValue() : "";
+	}
+
+	set_focus() {
+		this.editor?.focus();
 	}
 
 	load_lib() {

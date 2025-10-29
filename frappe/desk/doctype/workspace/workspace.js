@@ -20,9 +20,7 @@ frappe.ui.form.on("Workspace", {
 			.attr("target", "_blank");
 
 		frm.layout.message.empty();
-		let message = __(
-			"This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
-		);
+		let message = __("Please click Edit on the Workspace for best results");
 
 		if (
 			(frm.doc.for_user && frm.doc.for_user !== frappe.session.user) ||

@@ -14,8 +14,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 	tree_method = frappe.get_attr(tree_method)
 
-	if tree_method not in frappe.whitelisted:
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+	frappe.is_whitelisted(tree_method)
 
 	data = tree_method(doctype, parent, **filters)
 	out = [dict(parent=label, data=data)]
@@ -35,13 +34,17 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 
 @frappe.whitelist()
-def get_children(doctype, parent="", **filters):
-	return _get_children(doctype, parent)
+def get_children(doctype, parent="", include_disabled=False, **filters):
+	if isinstance(include_disabled, str):
+		include_disabled = frappe.sbool(include_disabled)
+	return _get_children(doctype, parent, include_disabled=include_disabled)
 
 
-def _get_children(doctype, parent="", ignore_permissions=False):
+def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
 	parent_field = "parent_" + frappe.scrub(doctype)
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
+	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
+		filters.append(["disabled", "=", False])
 
 	meta = frappe.get_meta(doctype)
 
@@ -77,6 +80,8 @@ def make_tree_args(**kwarg):
 	if kwarg["is_root"] == "true":
 		kwarg["is_root"] = True
 
-	kwarg.update({parent_field: kwarg.get("parent") or kwarg.get(parent_field)})
+	parent = kwarg.get("parent") or kwarg.get(parent_field)
+	if doctype != parent:
+		kwarg.update({parent_field: parent})
 
 	return frappe._dict(kwarg)

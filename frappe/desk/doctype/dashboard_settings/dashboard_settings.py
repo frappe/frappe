@@ -21,6 +21,7 @@ class DashboardSettings(Document):
 		chart_config: DF.Code | None
 		user: DF.Link | None
 	# end: auto-generated types
+
 	pass
 
 

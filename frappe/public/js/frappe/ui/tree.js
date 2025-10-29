@@ -273,7 +273,11 @@ frappe.ui.Tree = class {
 		}
 
 		$(icon_html).appendTo(node.$tree_link);
-		$(`<a class="tree-label"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);
+		$(
+			`<a class="tree-label" data-doctype="${this.args.doctype}" data-name="${
+				node.label
+			}"> ${this.get_node_label(node)}</a>`
+		).appendTo(node.$tree_link);
 
 		node.$tree_link.on("click", () => {
 			setTimeout(() => {

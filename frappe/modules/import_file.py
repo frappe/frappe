@@ -1,8 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
-import json
 import os
+
+import orjson
 
 import frappe
 from frappe.model.base_document import get_controller
@@ -12,13 +13,10 @@ from frappe.utils import get_datetime, now
 
 
 def calculate_hash(path: str) -> str:
-	"""Calculate md5 hash of the file in binary mode
+	"""Calculate and return md5 hash of the file in binary mode.
 
 	Args:
 	        path (str): Path to the file to be hashed
-
-	Returns:
-	        str: The calculated hash
 	"""
 	hash_md5 = hashlib.md5(usedforsecurity=False)
 	with open(path, "rb") as f:
@@ -80,8 +78,8 @@ def import_file_by_path(
 	pre_process=None,
 	ignore_version: bool | None = None,
 	reset_permissions: bool = False,
-):
-	"""Import file from the given path
+) -> bool:
+	"""Import file from the given path.
 
 	Some conditions decide if a file should be imported or not.
 	Evaluation takes place in the order they are mentioned below.
@@ -105,16 +103,16 @@ def import_file_by_path(
 	        ignore_version (bool, optional): ignore current version. Defaults to None.
 	        reset_permissions (bool, optional): reset permissions for the file. Defaults to False.
 
-	Returns:
-	        [bool]: True if import takes place. False if it wasn't imported.
+	Return True if import takes place, False if it wasn't imported.
 	"""
 	try:
 		docs = read_doc_from_file(path)
 	except OSError:
 		print(f"{path} missing")
-		return
+		return False
 
 	calculated_hash = calculate_hash(path)
+	imported = False
 
 	if docs:
 		if not isinstance(docs, list):
@@ -151,6 +149,7 @@ def import_file_by_path(
 				reset_permissions=reset_permissions,
 				path=path,
 			)
+			imported = True
 
 			if doc["doctype"] == "DocType":
 				doctype_table = DocType("DocType")
@@ -167,7 +166,7 @@ def import_file_by_path(
 			if new_modified_timestamp:
 				update_modified(new_modified_timestamp, doc)
 
-	return True
+	return imported
 
 
 def read_doc_from_file(path):
@@ -175,7 +174,7 @@ def read_doc_from_file(path):
 	if os.path.exists(path):
 		with open(path) as f:
 			try:
-				doc = json.loads(f.read())
+				doc = orjson.loads(f.read())
 			except ValueError:
 				print(f"bad json: {path}")
 				raise

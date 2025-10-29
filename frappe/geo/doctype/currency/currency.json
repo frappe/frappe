@@ -82,7 +82,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-01-30 13:18:12.053557",
+ "modified": "2024-03-23 16:01:31.809369",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Currency",
@@ -119,7 +119,7 @@
    "role": "Purchase User"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

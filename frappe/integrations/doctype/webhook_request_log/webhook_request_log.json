@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "webhook",
+  "reference_doctype",
   "reference_document",
   "headers",
   "data",
@@ -73,7 +74,16 @@
    "fieldname": "webhook",
    "fieldtype": "Link",
    "label": "Webhook",
-   "options": "Webhook"
+   "options": "Webhook",
+   "search_index": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "read_only": 1
   }
  ],
  "in_create": 1,
@@ -99,7 +109,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Compressed",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

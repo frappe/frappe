@@ -65,7 +65,7 @@ export default {
 			write: 1,
 		},
 	],
-	sort_field: "modified",
+	sort_field: "creation",
 	sort_order: "ASC",
 	track_changes: 1,
 };

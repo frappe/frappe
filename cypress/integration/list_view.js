@@ -13,7 +13,7 @@ context("List View", () => {
 	it("Keep checkbox checked after Refresh", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.get("button[data-original-title='Reload List']").click();
 		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
 	});
@@ -31,7 +31,7 @@ context("List View", () => {
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
 			.should("have.length", 8)
@@ -50,5 +50,33 @@ context("List View", () => {
 				cy.clear_filters();
 				cy.get(".list-row-container:visible").should("contain", "Approved");
 			});
+	});
+
+	it("Adds a button to each list view row", () => {
+		// Get a ToDo with a reference name
+		cy.call("frappe.client.get_value", {
+			doctype: "ToDo",
+			filters: {
+				reference_name: ["is", "set"],
+			},
+			fieldname: "name",
+		}).then((r) => {
+			const todo_name = r.message.name;
+			cy.go_to_list("ToDo");
+
+			// Check if the 'Open' button is present in the ToDo list view
+			cy.get(`.btn-default[data-name="${todo_name}"]`)
+				.scrollIntoView({ inline: "center", block: "nearest" })
+				.should("be.visible")
+				.click();
+
+			cy.window()
+				.its("cur_frm")
+				.then((frm) => {
+					// Routes to the reference document
+					expect(frm.doc.doctype).to.equal("ToDo");
+					expect(frm.doc.name).to.not.equal(todo_name);
+				});
+		});
 	});
 });

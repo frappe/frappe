@@ -31,6 +31,7 @@ class Package(Document):
 		readme: DF.MarkdownEditor | None
 
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.package_name:
 			self.package_name = self.name.lower().replace(" ", "-")

@@ -13,12 +13,11 @@ login.bind_events = function () {
 		login.route();
 	});
 
-
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "login";
-		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
+		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
 			{# striptags is used to remove newlines, e is used for escaping #}
@@ -300,13 +299,6 @@ login.login_handlers = (function () {
 frappe.ready(function () {
 
 	login.bind_events();
-
-	if (!window.location.hash) {
-		window.location.hash = "#login";
-	} else {
-		$(window).trigger("hashchange");
-	}
-
 	if (window.show_footer_on_login) {
 		$("body .web-footer").show();
 	}

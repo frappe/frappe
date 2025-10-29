@@ -7,7 +7,7 @@
 # use the following pattern
 # 1. name your parent field as "parent_item_group" if not have a property nsm_parent_field as your field name in the document class
 # 2. have a field called "old_parent" in your fields list - this identifies whether the parent has been changed
-# 3. call update_nsm(doc_obj) in the on_upate method
+# 3. call update_nsm(doc_obj) in the on_update method
 
 # ------------------------------------------
 from collections.abc import Iterator
@@ -165,12 +165,8 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
-def rebuild_tree(doctype, parent_field=None):
-	"""Call rebuild_node for all root nodes.
-
-	The `parent_field` parameter is ignored and will be removed in v16+ (kept for backward compatibility).
-	"""
-
+def rebuild_tree(doctype: str) -> None:
+	"""Call rebuild_node for all root nodes."""
 	# Check for perm if called from client-side
 	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
 		frappe.only_for("System Manager")
@@ -340,7 +336,7 @@ class NestedSet(Document):
 		)
 
 		if merge:
-			rebuild_tree(self.doctype, parent_field)
+			rebuild_tree(self.doctype)
 
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):

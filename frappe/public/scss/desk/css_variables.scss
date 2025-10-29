@@ -3,12 +3,12 @@
 :root,
 [data-theme="light"] {
 	// breakpoints
-	--xxl-width: #{map-get($grid-breakpoints, "2xl")};
-	--xl-width: #{map-get($grid-breakpoints, "xl")};
-	--lg-width: #{map-get($grid-breakpoints, "lg")};
-	--md-width: #{map-get($grid-breakpoints, "md")};
-	--sm-width: #{map-get($grid-breakpoints, "sm")};
-	--xs-width: #{map-get($grid-breakpoints, "xs")};
+	--xxl-width: 1440px;
+	--xl-width: 1200px;
+	--lg-width: 992px;
+	--md-width: 768px;
+	--sm-width: 567px;
+	--xs-width: 0;
 
 	--appreciation-color: var(--green-600);
 	--appreciation-bg: var(--green-100);
@@ -20,7 +20,7 @@
 	--error-border: var(--red-400);
 
 	// page
-	--page-head-height: 60px;
+	--page-head-height: 45px;
 	--page-bottom-margin: 60px;
 
 	// checkbox
@@ -50,4 +50,12 @@
 
 	// progress bar
 	--progress-bar-bg: var(--primary);
+
+	// list
+	--list-row-height: 30px;
+	--list-checkbox-padding: calc((var(--list-row-height) - var(--checkbox-size)) / 2);
+
+	@include media-breakpoint-down(md) {
+		--checkbox-size: 18px;
+	}
 }

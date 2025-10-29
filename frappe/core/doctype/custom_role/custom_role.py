@@ -21,9 +21,15 @@ class CustomRole(Document):
 		roles: DF.Table[HasRole]
 
 	# end: auto-generated types
+
 	def validate(self):
 		if self.report and not self.ref_doctype:
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
+
+	def get_permission_log_options(self, event=None):
+		if self.report:
+			return {"for_doctype": "Report", "for_document": self.report, "fields": ["roles"]}
+		return {"for_doctype": "Page", "for_document": self.page, "fields": ["roles"]}
 
 
 def get_custom_allowed_roles(field, name):

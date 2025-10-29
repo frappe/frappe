@@ -3,6 +3,7 @@ import re
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
+from frappe.utils.defaults import get_not_null_defaults
 
 # This matches anything that isn't [a-zA-Z0-9_]
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
@@ -30,6 +31,7 @@ class DBTable:
 		self.add_column: list[DbColumn] = []
 		self.change_type: list[DbColumn] = []
 		self.change_name: list[DbColumn] = []
+		self.change_nullability: list[DbColumn] = []
 		self.add_unique: list[DbColumn] = []
 		self.add_index: list[DbColumn] = []
 		self.drop_unique: list[DbColumn] = []
@@ -46,7 +48,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
-			frappe.cache.hdel("table_columns", self.table_name)
+			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
 			self.alter()
 
 	def create(self):
@@ -95,15 +97,16 @@ class DBTable:
 				continue
 
 			self.columns[field.get("fieldname")] = DbColumn(
-				self,
-				field.get("fieldname"),
-				field.get("fieldtype"),
-				field.get("length"),
-				field.get("default"),
-				field.get("search_index"),
-				field.get("options"),
-				field.get("unique"),
-				field.get("precision"),
+				table=self,
+				fieldname=field.get("fieldname"),
+				fieldtype=field.get("fieldtype"),
+				length=field.get("length"),
+				default=field.get("default"),
+				set_index=field.get("search_index"),
+				options=field.get("options"),
+				unique=field.get("unique"),
+				precision=field.get("precision"),
+				not_nullable=field.get("not_nullable"),
 			)
 
 	def validate(self):
@@ -176,8 +179,24 @@ class DBTable:
 		pass
 
 
+NOT_NULL_TYPES = ("Check", "Int", "Currency", "Float", "Percent")
+
+
 class DbColumn:
-	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision):
+	def __init__(
+		self,
+		*,
+		table,
+		fieldname,
+		fieldtype,
+		length,
+		default,
+		set_index,
+		options,
+		unique,
+		precision,
+		not_nullable,
+	):
 		self.table = table
 		self.fieldname = fieldname
 		self.fieldtype = fieldtype
@@ -187,31 +206,57 @@ class DbColumn:
 		self.options = options
 		self.unique = unique
 		self.precision = precision
+		self.not_nullable = not_nullable
 
 	def get_definition(self, for_modification=False):
-		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
+		column_def = get_definition(
+			self.fieldtype,
+			precision=self.precision,
+			length=self.length,
+			options=self.options,
+		)
 
 		if not column_def:
 			return column_def
 
+		null = True
+		default = None
+		unique = False
+
+		if self.fieldtype in NOT_NULL_TYPES:
+			null = False
+
 		if self.fieldtype in ("Check", "Int"):
-			default_value = cint(self.default) or 0
-			column_def += f" not null default {default_value}"
+			default = cint(self.default)
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
-			default_value = flt(self.default) or 0
-			column_def += f" not null default {default_value}"
+			default = flt(self.default)
 
 		elif (
 			self.default
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
 		):
-			column_def += f" default {frappe.db.escape(self.default)}"
+			default = frappe.db.escape(self.default)
+
+		if self.not_nullable and null:
+			if default is None:
+				default = get_not_null_defaults(self.fieldtype)
+				if isinstance(default, str):
+					default = frappe.db.escape(default)
+			null = False
 
 		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
-			column_def += " unique"
+			unique = True
 
+		if not null:
+			column_def += " NOT NULL"
+
+		if default is not None:
+			column_def += f" DEFAULT {default}"
+
+		if unique:
+			column_def += " UNIQUE"
 		return column_def
 
 	def build_for_alter_table(self, current_def):
@@ -234,13 +279,16 @@ class DbColumn:
 			return
 
 		# type
-		if current_def["type"] != column_type:
+		if current_def["type"] != column_type and not (
+			# XXX: MariaDB JSON is same as longtext and information schema still returns longtext
+			current_def["type"] == "longtext" and column_type == "json" and frappe.db.db_type == "mariadb"
+		):
 			self.table.change_type.append(self)
 
 		# unique
-		if (self.unique and not current_def["unique"]) and column_type not in ("text", "longtext"):
+		if (self.unique and not current_def.get("unique")) and column_type not in ("text", "longtext"):
 			self.table.add_unique.append(self)
-		elif (current_def["unique"] and not self.unique) and column_type not in ("text", "longtext"):
+		elif (current_def.get("unique") and not self.unique) and column_type not in ("text", "longtext"):
 			self.table.drop_unique.append(self)
 
 		# default
@@ -251,42 +299,62 @@ class DbColumn:
 		):
 			self.table.set_default.append(self)
 
+		# nullability
+		if (
+			self.not_nullable is not None
+			and (self.not_nullable != current_def.get("not_nullable"))
+			and self.fieldtype not in NOT_NULL_TYPES
+		):
+			self.table.change_nullability.append(self)
+
 		# index should be applied or dropped irrespective of type change
-		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):
+		if (current_def.get("index") and not self.set_index) and column_type not in ("text", "longtext"):
 			self.table.drop_index.append(self)
 
-		elif (not current_def["index"] and self.set_index) and column_type not in ("text", "longtext"):
+		elif (not current_def.get("index") and self.set_index) and column_type not in ("text", "longtext"):
 			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):
 		if "decimal" in current_def["type"]:
 			return self.default_changed_for_decimal(current_def)
 		else:
-			cur_default = current_def["default"]
+			cur_default = current_def.get("default")
 			new_default = self.default
 			if cur_default == "NULL" or cur_default is None:
 				cur_default = None
 			else:
 				# Strip quotes from default value
 				# eg. database returns default value as "'System Manager'"
-				cur_default = cur_default.lstrip("'").rstrip("'")
+				cur_default = cur_default.lstrip("'").rstrip("'").replace("\\\\", "\\")
 
 			fieldtype = self.fieldtype
+			db_field_type = frappe.db.type_map.get(fieldtype)
 			if fieldtype in ["Int", "Check"]:
 				cur_default = cint(cur_default)
 				new_default = cint(new_default)
 			elif fieldtype in ["Currency", "Float", "Percent"]:
 				cur_default = flt(cur_default)
 				new_default = flt(new_default)
+			elif fieldtype == "Time":
+				return self.default_changed_for_time(cur_default, new_default)
+			elif db_field_type and db_field_type[0] in ("varchar", "longtext", "text"):
+				new_default = cstr(new_default)
+				if not current_def.get("not_nullable"):
+					cur_default = cstr(cur_default)
 			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
+		cur_default = current_def["default"]
+		if cur_default == "NULL":
+			cur_default = None
 		try:
-			if current_def["default"] in ("", None) and self.default in ("", None):
-				# both none, empty
+			if cur_default in ("", None) and self.default in ("", None):
 				return False
 
-			elif current_def["default"] in ("", None):
+			elif flt(cur_default) == 0.0 and flt(self.default) == 0.0:
+				return False
+
+			elif cur_default in ("", None):
 				try:
 					# check if new default value is valid
 					float(self.default)
@@ -300,9 +368,27 @@ class DbColumn:
 
 			else:
 				# NOTE float() raise ValueError when "" or None is passed
-				return float(current_def["default"]) != float(self.default)
+				return float(cur_default) != float(self.default)
 		except TypeError:
 			return True
+
+	def default_changed_for_time(self, cur_default: str, new_default: str):
+		from datetime import datetime
+
+		# Normalize time values to HH:MM:SS.ssssss format, from formats: HH:MM:SS.ssssss, HH:MM:SS, HH:MM
+		def normalize_time(val):
+			if not val:
+				return None
+			for fmt in ("%H:%M:%S.%f", "%H:%M:%S", "%H:%M"):
+				try:
+					return datetime.strptime(val, fmt).time().strftime("%H:%M:%S.%f")
+				except ValueError:
+					continue
+			return val
+
+		cur = normalize_time(cur_default)
+		new = normalize_time(new_default)
+		return cur != new
 
 
 def validate_column_name(n):
@@ -322,8 +408,19 @@ def validate_column_length(fieldname):
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 
-def get_definition(fieldtype, precision=None, length=None):
+def get_definition(fieldtype, precision=None, length=None, *, options=None):
 	d = frappe.db.type_map.get(fieldtype)
+
+	if (
+		fieldtype == "Link"
+		and options
+		# XXX: This might not trigger if referred doctype is not yet created
+		# This is largely limitation of how migration happens though.
+		# Maybe we can sort by creation and then modified?
+		and frappe.db.exists("DocType", options)
+		and frappe.get_meta(options).autoname == "UUID"
+	):
+		d = ("uuid", None)
 
 	if not d:
 		return
@@ -364,11 +461,20 @@ def get_definition(fieldtype, precision=None, length=None):
 
 def add_column(doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False):
 	frappe.db.commit()
-	query = "alter table `tab{}` add column if not exists {} {}".format(
-		doctype,
-		column_name,
-		get_definition(fieldtype, precision, length),
-	)
+	if frappe.db.db_type == "sqlite":
+		if column_name in frappe.db.get_table_columns(doctype):
+			return
+		query = "alter table `tab{}` add column {} {}".format(
+			doctype,
+			column_name,
+			get_definition(fieldtype, precision, length),
+		)
+	else:
+		query = "alter table `tab{}` add column if not exists {} {}".format(
+			doctype,
+			column_name,
+			get_definition(fieldtype, precision, length),
+		)
 
 	if not_null:
 		query += " not null"

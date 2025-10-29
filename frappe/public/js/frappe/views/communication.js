@@ -55,6 +55,10 @@ frappe.views.CommunicationComposer = class {
 				reqd: 0,
 				fieldname: "recipients",
 				default: this.get_default_recipients("recipients"),
+				ignore_validation: true,
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
 				fieldtype: "Button",
@@ -74,12 +78,20 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
 				default: this.get_default_recipients("cc"),
+				ignore_validation: true,
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
 				label: __("BCC", null, "Email Recipients"),
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
 				default: this.get_default_recipients("bcc"),
+				ignore_validation: true,
+				onchange: function () {
+					me.sanitize_emails(this);
+				},
 			},
 			{
 				label: __("Schedule Send At"),
@@ -973,5 +985,17 @@ frappe.views.CommunicationComposer = class {
 
 		const text = frappe.utils.html2text(html);
 		return text.replace(/\n{3,}/g, "\n\n");
+	}
+
+	sanitize_emails(control) {
+		let emails = control.get_value();
+		if (!emails) return;
+		let sanitized = emails
+			.split(",")
+			.map((email) => frappe.utils.xss_sanitise(email.trim()))
+			.join(",");
+		if (sanitized != emails) {
+			control.set_value(sanitized);
+		}
 	}
 };

@@ -6,16 +6,14 @@ import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
-test_records = frappe.get_test_records("Communication")
 
-
-class TestCommunication(FrappeTestCase):
+class TestCommunication(IntegrationTestCase):
 	def test_email(self):
 		valid_email_list = [
 			"Full Name <full@example.com>",
@@ -221,11 +219,20 @@ class TestCommunication(FrappeTestCase):
 	def test_parse_email(self):
 		to = "Jon Doe <jon.doe@example.org>"
 		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
-	erp+Customer+that%20company@example.org"""
+	erp+Customer=Plus%2BCompany@example.org,
+	erp+Customer+Space%20Company@example.org,
+	erp+Customer+Space+Company+Plus+Encoded@example.org"""
 		bcc = ""
 
 		results = list(parse_email([to, cc, bcc]))
-		self.assertEqual([("Customer", "that company")], results)
+		self.assertEqual(
+			[
+				("Customer", "Plus+Company"),
+				("Customer", "Space Company"),
+				("Customer", "Space Company Plus Encoded"),
+			],
+			results,
+		)
 
 		results = list(parse_email([to, bcc]))
 		self.assertEqual(results, [])
@@ -316,7 +323,7 @@ class TestCommunication(FrappeTestCase):
 		self.assertNotEqual(normal_comm.email_status, "Spam")
 
 
-class TestCommunicationEmailMixin(FrappeTestCase):
+class TestCommunicationEmailMixin(IntegrationTestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
 		recipients = ", ".join(recipients or [])
 		cc = ", ".join(cc or [])
@@ -380,7 +387,8 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		user = self.new_user(email="bcc+2@test.com", enabled=0)
 		comm = self.new_communication(bcc=bcc_list)
 		res = comm.get_mail_bcc_with_displayname()
-		self.assertCountEqual(res, bcc_list)
+		# Disabled users have thread_notify disabled, so they'll be removed from the list
+		self.assertCountEqual(res, bcc_list[:1])
 		user.delete()
 		comm.delete()
 

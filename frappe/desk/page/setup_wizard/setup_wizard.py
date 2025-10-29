@@ -61,7 +61,7 @@ def setup_complete(args):
 	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
 
 	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=kwargs, is_background_task=True)
+		process_setup_stages.enqueue(stages=stages, user_input=kwargs, is_background_task=True, at_front=True)
 		return {"status": "registered"}
 	else:
 		return process_setup_stages(stages, kwargs)
@@ -265,7 +265,7 @@ def update_system_settings(args):  # nosemgrep
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
-			"enable_scheduler": 1 if not frappe.flags.in_test else 0,
+			"enable_scheduler": 1 if not frappe.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
 			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
@@ -401,13 +401,6 @@ def load_languages():
 		"languages": sorted(frappe.db.sql_list("select language_name from tabLanguage order by name")),
 		"codes_to_names": codes_to_names,
 	}
-
-
-@frappe.whitelist()
-def load_country():
-	from frappe.sessions import get_geo_ip_country
-
-	return get_geo_ip_country(frappe.local.request_ip) if frappe.local.request_ip else None
 
 
 @frappe.whitelist()

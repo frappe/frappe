@@ -27,13 +27,18 @@ frappe.ui.form.on("Email Queue", {
 		} else if (frm.doc.status == "Error") {
 			frm.add_custom_button("Retry Sending", function () {
 				frm.call({
-					method: "retry_sending",
-					doc: frm.doc,
+					method: "frappe.email.doctype.email_queue.email_queue.retry_sending",
 					args: {
-						name: frm.doc.name,
+						queues: [frm.doc.name],
 					},
 					callback: function () {
 						frm.reload_doc();
+						frappe.show_alert({
+							message: __(
+								"Status Updated. The email will be picked up in the next scheduled run."
+							),
+							indicator: "green",
+						});
 					},
 				});
 			});

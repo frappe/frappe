@@ -19,4 +19,5 @@ class EmailFlagQueue(Document):
 		is_completed: DF.Check
 		uid: DF.Data | None
 	# end: auto-generated types
+
 	pass

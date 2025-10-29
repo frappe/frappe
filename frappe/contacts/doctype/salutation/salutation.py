@@ -15,4 +15,5 @@ class Salutation(Document):
 
 		salutation: DF.Data | None
 	# end: auto-generated types
+
 	pass

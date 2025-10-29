@@ -54,6 +54,13 @@ String.prototype.plural = function (revert) {
 		"(octop)us$": "$1i",
 		"(ax|test)is$": "$1es",
 		"(us)$": "$1es",
+		"(f)oot$": "$1eet",
+		"(g)oose$": "$1eese",
+		"(sex)$": "$1es",
+		"(child)$": "$1ren",
+		"(m)an$": "$1en",
+		"(t)ooth$": "$1eeth",
+		"(pe)rson$": "$1ople",
 		"([^s]+)$": "$1s",
 	};
 
@@ -85,18 +92,14 @@ String.prototype.plural = function (revert) {
 		"(h|bl)ouses$": "$1ouse",
 		"(corpse)s$": "$1",
 		"(us)es$": "$1",
+		"(f)eet$": "$1oot",
+		"(g)eese$": "$1oose",
+		"(sex)es$": "$1",
+		"(child)ren$": "$1",
+		"(m)en$": "$1an",
+		"(t)eeth$": "$1ooth",
+		"(pe)ople$": "$1rson",
 		s$: "",
-	};
-
-	const irregular = {
-		move: "moves",
-		foot: "feet",
-		goose: "geese",
-		sex: "sexes",
-		child: "children",
-		man: "men",
-		tooth: "teeth",
-		person: "people",
 	};
 
 	const uncountable = [
@@ -115,29 +118,12 @@ String.prototype.plural = function (revert) {
 	// save some time in the case that singular and plural are the same
 	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
 
-	// check for irregular forms
-	let word;
-	let pattern;
-	let replace;
-	for (word in irregular) {
-		if (revert) {
-			pattern = new RegExp(irregular[word] + "$", "i");
-			replace = word;
-		} else {
-			pattern = new RegExp(word + "$", "i");
-			replace = irregular[word];
-		}
-		if (pattern.test(this)) return this.replace(pattern, replace);
-	}
-
-	let array;
-	if (revert) array = singular;
-	else array = plural;
-
 	// check for matches using regular expressions
+	const array = revert ? singular : plural;
+
 	let reg;
 	for (reg in array) {
-		pattern = new RegExp(reg, "i");
+		const pattern = new RegExp(reg, "i");
 
 		if (pattern.test(this)) return this.replace(pattern, array[reg]);
 	}
@@ -308,6 +294,9 @@ Object.assign(frappe.utils, {
 				</a></p>'
 			);
 		return content.html();
+	},
+	scroll_page_to_top() {
+		$(".main-section").scrollTop(0);
 	},
 	scroll_to: function (
 		element,
@@ -931,16 +920,19 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return __("{0} Report", [__(route[3]) || __(route[1])]);
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
 		}
 		if (route[0] === "List") {
-			return __("{0} List", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return __("{0} Modules", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Module");
+		}
+		if (route[0] === "Workspaces") {
+			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
-			return __("{0} Dashboard", [__(route[1])]);
+			return __(route[1]).bold() + " " + __("Dashboard");
 		}
 		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
@@ -1209,10 +1201,34 @@ Object.assign(frappe.utils, {
 	map_defaults: {
 		center: [19.08, 72.8961],
 		zoom: 13,
-		tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-		options: {
-			attribution:
-				'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+		tiles: {
+			default_tile: {
+				url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+				options: {
+					attribution:
+						'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+				},
+			},
+			satellite_tile: {
+				url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+				options: {
+					attribution: "© Esri © OpenStreetMap Contributors",
+				},
+			},
+			labels_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_toner_labels/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
+			terrain_lines_tail: {
+				url: "https://tiles.stadiamaps.com/tiles/stamen_terrain_lines/{z}/{x}/{y}{r}.png",
+				options: {
+					attribution:
+						'&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a>',
+				},
+			},
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
@@ -1239,9 +1255,7 @@ Object.assign(frappe.utils, {
 	},
 
 	flag(country_code) {
-		return `<img
-		src="https://flagcdn.com/${country_code}.svg"
-		width="20" height="15">`;
+		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1318,6 +1332,9 @@ Object.assign(frappe.utils, {
 							if (item.kanban_board) {
 								route += `/${item.kanban_board}`;
 							}
+							break;
+						case "Image":
+							route = `${doctype_slug}/view/image`;
 							break;
 						default:
 							route = doctype_slug;
@@ -1738,7 +1755,10 @@ Object.assign(frappe.utils, {
 				{
 					fieldname: "source",
 					label: __("Source"),
-					fieldtype: "Data",
+					fieldtype: "Link",
+					reqd: 1,
+					options: "UTM Source",
+					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
 				{
@@ -1746,31 +1766,53 @@ Object.assign(frappe.utils, {
 					label: __("Campaign"),
 					fieldtype: "Link",
 					ignore_link_validation: 1,
-					options: "Marketing Campaign",
+					options: "UTM Campaign",
 					default: localStorage.getItem("tracker_url:campaign"),
 				},
 				{
 					fieldname: "medium",
 					label: __("Medium"),
-					fieldtype: "Data",
+					fieldtype: "Link",
+					options: "UTM Medium",
+					description: "Marketing medium (e.g. cpc, banner, email)",
 					default: localStorage.getItem("tracker_url:medium"),
 				},
+				{
+					fieldname: "content",
+					label: __("Content"),
+					fieldtype: "Data",
+					description: "Use to differentiate ad variants (e.g. A/B testing)",
+					default: localStorage.getItem("tracker_url:content"),
+				},
 			],
-			function (data) {
+			async function (data) {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				if (data.source) {
-					url += "?source=" + data.source;
-					localStorage.setItem("tracker_url:source", data.source);
-				}
+				const { message } = await frappe.db.get_value("UTM Source", data.source, "slug");
+				url += "?utm_source=" + encodeURIComponent(message.slug || data.source);
+				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
-					url += "&campaign=" + data.campaign;
+					const { message } = await frappe.db.get_value(
+						"UTM Campaign",
+						data.campaign,
+						"slug"
+					);
+					url += "&utm_campaign=" + encodeURIComponent(message.slug || data.campaign);
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&medium=" + data.medium.toLowerCase();
+					const { message } = await frappe.db.get_value(
+						"UTM Medium",
+						data.medium,
+						"slug"
+					);
+					url += "&utm_medium=" + encodeURIComponent(message.slug || data.medium);
 					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+				if (data.content) {
+					url += "&utm_content=" + encodeURIComponent(data.content);
+					localStorage.setItem("tracker_url:content", data.content);
 				}
 
 				frappe.utils.copy_to_clipboard(url);
@@ -1786,6 +1828,24 @@ Object.assign(frappe.utils, {
 		);
 	},
 	/**
+	 * Checks if a value is empty.
+	 *
+	 * Returns false for: "hello", 0, 1, 3.1415, {"a": 1}, [1, 2, 3]
+	 * Returns true for: "", null, undefined, {}, []
+	 *
+	 * @param {*} value - The value to check.
+	 * @returns {boolean} - Returns `true` if the value is empty, `false` otherwise.
+	 */
+	is_empty(value) {
+		if (!value && value !== 0) return true;
+
+		if (typeof value === "object")
+			return (Array.isArray(value) ? value : Object.keys(value)).length === 0;
+
+		return false;
+	},
+
+	/**
 	 * Masks passwords in an object by replacing the values of keys containing
 	 * "password" or "passphrase" with "*****".
 	 *
@@ -1798,5 +1858,30 @@ Object.assign(frappe.utils, {
 				obj[key] = "*****";
 			}
 		}
+	},
+
+	/**
+	 * Adds syntax highlighting to all <pre> tags in the given jQuery wrapper.
+	 * Example wrapper:
+	 *
+	 * ```html
+	 * <pre><code class="language-python">
+	 * def add(a, b):
+	 *     return a + b
+	 *
+	 * print(add(1, 2))
+	 *
+	 * # Output: 3
+	 * </code></pre>
+	 * ```
+	 *
+	 * @param {jQuery} $wrapper - The jQuery wrapper to add syntax highlighting to.
+	 */
+	highlight_pre($wrapper) {
+		frappe.require("syntax_highlighting.bundle.js").then(() => {
+			$wrapper.find("pre").each(function () {
+				hljs.highlightElement(this);
+			});
+		});
 	},
 });

@@ -19,6 +19,7 @@ class EmailGroupMember(Document):
 		unsubscribed: DF.Check
 
 	# end: auto-generated types
+
 	def after_delete(self):
 		email_group = frappe.get_doc("Email Group", self.email_group)
 		email_group.update_total_subscribers()

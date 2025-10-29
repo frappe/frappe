@@ -27,10 +27,9 @@ class WebsiteSearch(FullTextSearch):
 		return "path"
 
 	def get_items_to_index(self):
-		"""Get all routes to be indexed, this includes the static pages
-		in www/ and routes from published documents
+		"""Get all routes to be indexed, this includes the static pages in www/ and routes from published documents.
 
-		Returns:
+		Return:
 		        self (object): FullTextSearch Instance
 		"""
 
@@ -49,14 +48,13 @@ class WebsiteSearch(FullTextSearch):
 
 		return self.get_items_to_index()
 
-	def get_document_to_index(self, route):
-		"""Render a page and parse it using BeautifulSoup
+	def get_document_to_index(self, route: str) -> frappe._dict | None:
+		"""Render a page and parse it using `BeautifulSoup`.
 
 		Args:
-		        path (str): route of the page to be parsed
+		        path: route of the page to be parsed
 
-		Returns:
-		        document (_dict): A dictionary with title, path and content
+		Return a dictionary with title, path and content.
 		"""
 		frappe.set_user("Guest")
 		frappe.local.no_cache = True

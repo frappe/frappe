@@ -117,13 +117,15 @@ def search_widget(
 
 	meta = frappe.get_meta(doctype)
 
-	if isinstance(filters, dict):
-		filters_items = filters.items()
-		filters = []
-		for key, value in filters_items:
-			filters.append(make_filter_tuple(doctype, key, value))
+	include_disabled = False
+	if filters and "include_disabled" in filters:
+		if filters["include_disabled"] == 1:
+			include_disabled = True
+		filters.pop("include_disabled")
 
-	if filters is None:
+	if isinstance(filters, dict):
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+	elif filters is None:
 		filters = []
 	or_filters = []
 
@@ -151,10 +153,11 @@ def search_widget(
 			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
 				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
-	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
-		filters.append([doctype, "enabled", "=", 1])
-	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
-		filters.append([doctype, "disabled", "!=", 1])
+	if not include_disabled:
+		if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+			filters.append([doctype, "enabled", "=", 1])
+		if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+			filters.append([doctype, "disabled", "!=", 1])
 
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")
@@ -265,10 +268,16 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 				item = [item[0], item[0]]
 			label = item[1]  # use title as label
 			item[1] = item[0]  # show name in description instead of title
+
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
 				del item[2]
-			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
+
+			autosuggest_row = {"value": item[0], "description": to_string(item[1:])}
+			if label:
+				autosuggest_row["label"] = label
+
+			results.append(autosuggest_row)
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
 

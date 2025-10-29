@@ -72,7 +72,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-01-10 14:17:49.722593",
+ "modified": "2024-03-23 16:03:34.140177",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Inspector",
@@ -84,7 +84,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

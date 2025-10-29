@@ -19,7 +19,7 @@
 	background: var(--fg-color);
 	padding: 45px 80px;
 	border-radius: var(--border-radius-md);
-	border: 1px solid var(--border-color);
+	box-shadow: var(--shadow-lg);
 }
 
 .apps {

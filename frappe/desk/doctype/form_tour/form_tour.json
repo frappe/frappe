@@ -72,11 +72,11 @@
   {
    "depends_on": "eval: doc.ui_tour && doc.is_standard",
    "fetch_from": "reference_doctype.module",
+   "fetch_if_empty": 1,
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "options": "Module Def",
-   "read_only": 1
+   "options": "Module Def"
   },
   {
    "fieldname": "column_break_6",
@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-28 20:24:42.594360",
+ "modified": "2024-11-17 13:06:48.120836",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
@@ -202,7 +202,7 @@
    "role": "Desk User"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

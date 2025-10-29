@@ -21,6 +21,7 @@ class AddressTemplate(Document):
 		template: DF.Code | None
 
 	# end: auto-generated types
+
 	def validate(self):
 		validate_template(self.template)
 

@@ -19,6 +19,7 @@ class DiscussionReply(Document):
 		topic: DF.Link | None
 
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.publish_realtime(
 			event="update_message",

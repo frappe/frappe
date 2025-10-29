@@ -1,14 +1,14 @@
 from frappe.model.docstatus import DocStatus
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestDocStatus(FrappeTestCase):
+class TestDocStatus(IntegrationTestCase):
 	def test_draft(self):
 		self.assertEqual(DocStatus(0), DocStatus.DRAFT)
 
 		self.assertTrue(DocStatus.DRAFT.is_draft())
-		self.assertFalse(DocStatus.DRAFT.is_submitted())
 		self.assertFalse(DocStatus.DRAFT.is_cancelled())
+		self.assertFalse(DocStatus.DRAFT.is_submitted())
 
 	def test_submitted(self):
 		self.assertEqual(DocStatus(1), DocStatus.SUBMITTED)

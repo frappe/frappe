@@ -21,7 +21,6 @@
 @import "website_avatar";
 @import "web_form";
 @import "page_builder";
-@import "blog";
 @import "markdown";
 @import "sidebar";
 @import "portal";
@@ -30,7 +29,6 @@
 @import "navbar";
 @import "footer";
 @import "error-state";
-@import "my_account";
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -184,7 +182,7 @@ a.card-link:hover {
 }
 
 .text-extra-muted {
-	color: #d1d8dd !important;
+	color: var(--gray-500) !important;
 }
 
 .no-underline {

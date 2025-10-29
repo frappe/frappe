@@ -51,7 +51,7 @@
  ],
  "quick_entry": 1,
  "row_format": "Compressed",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

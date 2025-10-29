@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "creation": "2024-06-24 18:25:23.163914",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "existing_role",
+  "column_break_ydyj",
+  "new_role"
+ ],
+ "fields": [
+  {
+   "fieldname": "existing_role",
+   "fieldtype": "Link",
+   "label": "Existing Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "column_break_ydyj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Input existing role name if you would like to extend it with access of another role.",
+   "fieldname": "new_role",
+   "fieldtype": "Data",
+   "label": "New Role"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-06-24 19:26:54.279801",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Role Replication",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

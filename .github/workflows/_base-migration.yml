@@ -1,0 +1,201 @@
+name: Migration Base
+on:
+  workflow_call:
+    inputs:
+      pre:
+        required: false
+        type: string
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.10'
+      node-version:
+        required: false
+        type: number
+        default: 22
+      db-artifact-url:
+        required: false
+        type: string
+jobs:
+  migration-test:
+    name: Migrate
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+    env:
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/setup
+      name: Environment Setup
+      with:
+        python-version: ${{ inputs.python-version }}
+        node-version: ${{ inputs.node-version }}
+        disable-socketio: true
+        disable-web: true
+        db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+
+    - name: Execute pre-migration tasks
+      if: inputs.pre
+      run: |
+        ${{ inputs.pre }}
+
+    - name: Download database artifact
+      env:
+        DB_ARTIFACT_URL: ${{ inputs.db-artifact-url }}
+      run: |
+        source ${GITHUB_WORKSPACE}/env/bin/activate
+        wget "$DB_ARTIFACT_URL"
+        bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$DB_ARTIFACT_URL")
+
+        function update_to_version() {
+            version="$1"
+            if [ -z "$version" ]; then
+                base_ref="${{ github.base_ref || github.ref_name }}"
+                head_ref="${{ github.sha }}"
+            else
+                base_ref="version-$version-hotfix"
+                head_ref="version-$version-hotfix"
+            fi
+
+            source ${GITHUB_WORKSPACE}/env/bin/activate
+            echo "Updating to version ${version:-$head_ref}"
+
+            # Fetch and checkout branches
+            for app in ${GITHUB_WORKSPACE}/apps/*/; do
+                app_name=$(basename "$app")
+                echo "Processing app: $app_name"
+
+                if [[ "$app_name" == "${{ github.event.repository.name }}" ]]; then
+                  git -C "$app" fetch --depth 1 origin $head_ref:$head_ref
+                  if git -C "$app" checkout --quiet --force $head_ref; then
+                      echo "Checked out $head_ref successfully at $app"
+                  else
+                      echo "Failed to checkout $ref at $app" >&2
+                      return 1
+                  fi
+                else
+                  git -C "$app" fetch --depth 1 origin $base_ref:$base_ref
+                    if git -C "$app" checkout --quiet --force $base_ref; then
+                        echo "Checked out $base_ref successfully at $app"
+                    else
+                        echo "Failed to checkout $base_ref at $app" >&2
+                        return 1
+                    fi
+                fi
+            done
+
+            # Resetup env and install apps
+            if pgrep honcho > /dev/null; then
+                echo "Stopping honcho process..."
+                pgrep honcho | xargs kill
+                sleep 10
+            fi
+
+            echo "Setting up environment..."
+            if rm -rf ${GITHUB_WORKSPACE}/env && python -m venv ${GITHUB_WORKSPACE}/env; then
+                source ${GITHUB_WORKSPACE}/env/bin/activate
+                pip install --quiet --upgrade pip
+                pip install --quiet frappe-bench
+                echo "Environment setup completed."
+            else
+                echo "Environment setup failed." >&2
+                return 1
+            fi
+
+            echo "Installing apps..."
+            for app in ${GITHUB_WORKSPACE}/apps/*/; do
+                if pip install --upgrade -e "$app"; then
+                    echo "Installed $app successfully."
+                else
+                    echo "Failed to install $app." >&2
+                    return 1
+                fi
+            done
+
+            echo "Starting bench..."
+            bench start &>> ${GITHUB_WORKSPACE}/bench_start.log &
+
+            echo "Running migrations on test_site..."
+            if bench --site test_site migrate; then
+                echo "Migration completed successfully."
+            else
+                echo "Migration failed." >&2
+                return 1
+            fi
+
+            echo "Update to version ${version:-$base_ref} completed."
+        }
+
+        # Save this script into a file for later use.
+        declare -f update_to_version > "$RUNNER_TEMP/migrate"
+
+    - name: Update to v14
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version 14
+        exit $?
+
+    - name: Update to v15
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version 15
+        exit $?
+
+    - name: Update to last commit
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version
+        exit $?
+        bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+    - name: Show bench output
+      if: ${{ always() }}
+      run: |
+        cat bench_start.log || true
+        cd logs
+        for f in ${GITHUB_WORKSPACE}/*.log*; do
+          echo "Printing log: $f";
+          cat $f
+        done
+
+  # TIP: Use these for checks, e.g. Migration / Success
+  success:
+    name: Success
+    needs: [migration-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Migration '${{ needs.migration-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.migration-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)

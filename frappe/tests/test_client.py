@@ -3,13 +3,13 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import get_site_url
 
 
-class TestClient(FrappeTestCase):
+class TestClient(IntegrationTestCase):
 	def test_set_value(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
 		self.assertEqual(frappe.get_value("ToDo", todo.name, "description"), "test 1")
 
@@ -74,19 +74,16 @@ class TestClient(FrappeTestCase):
 	def test_run_doc_method(self):
 		from frappe.handler import execute_cmd
 
-		if not frappe.db.exists("Report", "Test Run Doc Method"):
-			report = frappe.get_doc(
-				{
-					"doctype": "Report",
-					"ref_doctype": "User",
-					"report_name": "Test Run Doc Method",
-					"report_type": "Query Report",
-					"is_standard": "No",
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert()
-		else:
-			report = frappe.get_doc("Report", "Test Run Doc Method")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": frappe.generate_hash(),
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
 
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"

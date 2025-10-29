@@ -2,15 +2,19 @@
 # License: MIT. See LICENSE
 
 import datetime
-import decimal
-import json
+import functools
 import mimetypes
 import os
 import sys
-import uuid
+from collections.abc import Iterable
+from decimal import Decimal
+from pathlib import Path
+from re import Match
 from typing import TYPE_CHECKING
 from urllib.parse import quote
+from uuid import UUID
 
+import orjson
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
@@ -22,10 +26,13 @@ import frappe.sessions
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils import format_timedelta
+from frappe.utils import format_timedelta, orjson_dumps
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
+
+DateOrTimeTypes = datetime.date | datetime.datetime | datetime.time
+timedelta = datetime.timedelta
 
 
 def report_error(status_code):
@@ -46,6 +53,7 @@ def report_error(status_code):
 		case ApiVersion.V2:
 			error_log = {"type": exc_type.__name__}
 			if allow_traceback:
+				print(traceback)
 				error_log["exception"] = traceback
 			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
 			frappe.local.response.errors = [error_log]
@@ -57,10 +65,13 @@ def report_error(status_code):
 
 
 def is_traceback_allowed():
+	from frappe.permissions import is_system_user
+
 	return (
 		frappe.db
 		and frappe.get_system_settings("allow_error_traceback")
 		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
+		and is_system_user()
 	)
 
 
@@ -138,7 +149,7 @@ def as_json():
 		del frappe.local.response["http_status_code"]
 
 	response.mimetype = "application/json"
-	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(",", ":"))
+	response.data = orjson_dumps(frappe.local.response, default=json_handler)
 	return response
 
 
@@ -181,13 +192,15 @@ def _make_logs_v1():
 	if frappe.error_log and is_traceback_allowed():
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
-		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
+		response["exc"] = orjson.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log]).decode()
 
 	if frappe.local.message_log:
-		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
+		response["_server_messages"] = orjson.dumps(
+			[orjson.dumps(d).decode() for d in frappe.local.message_log]
+		).decode()
 
 	if frappe.debug_log and is_traceback_allowed():
-		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
+		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
 
 	if frappe.flags.error_message:
 		response["_error_message"] = frappe.flags.error_message
@@ -205,25 +218,24 @@ def _make_logs_v2():
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
-	from collections.abc import Iterable
-	from re import Match
 
-	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
+	if isinstance(obj, DateOrTimeTypes):
 		return str(obj)
 
-	elif isinstance(obj, datetime.timedelta):
+	elif isinstance(obj, timedelta):
 		return format_timedelta(obj)
-
-	elif isinstance(obj, decimal.Decimal):
-		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
 		return str(obj)
 
-	elif isinstance(obj, frappe.model.document.BaseDocument):
-		return obj.as_dict(no_nulls=True)
+	elif hasattr(obj, "__json__"):
+		return obj.__json__()
+
 	elif isinstance(obj, Iterable):
 		return list(obj)
+
+	elif isinstance(obj, Decimal):
+		return float(obj)
 
 	elif isinstance(obj, Match):
 		return obj.string
@@ -234,7 +246,12 @@ def json_handler(obj):
 	elif callable(obj):
 		return repr(obj)
 
-	elif isinstance(obj, uuid.UUID):
+	elif isinstance(obj, Path):
+		return str(obj)
+
+	# orjson does this already
+	# but json_handler needs to be compatible with built-in json module also
+	elif isinstance(obj, UUID):
 		return str(obj)
 
 	else:

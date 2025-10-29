@@ -54,7 +54,7 @@
   {
    "depends_on": "eval:doc.notify_on_login && doc.public",
    "fieldname": "expire_notification_on",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "label": "Expire Notification On",
    "permlevel": 1,
    "search_index": 1
@@ -83,10 +83,11 @@
    "permlevel": 1
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2025-03-26 18:19:45.079747",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",
@@ -140,7 +141,8 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "title",

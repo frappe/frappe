@@ -14,7 +14,7 @@ context("FileUploader", () => {
 			.then((frappe) => {
 				new frappe.ui.FileUploader();
 			});
-		cy.wait(1000);
+		cy.wait(500);
 	}
 
 	it("upload dialog api works", () => {

@@ -62,18 +62,20 @@ class SystemSettings(Document):
 		float_precision: DF.Literal["", "2", "3", "4", "5", "6", "7", "8", "9"]
 		force_user_to_reset_password: DF.Int
 		force_web_capture_mode_for_uploads: DF.Check
+		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
+		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
-		minimum_password_score: DF.Literal["2", "3", "4"]
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
+		minimum_password_score: DF.Literal["1", "2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -94,6 +96,8 @@ class SystemSettings(Document):
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		show_absolute_datetime_in_timeline: DF.Check
+		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -106,8 +110,8 @@ class SystemSettings(Document):
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
-		enable_password_policy = (cint(self.enable_password_policy) and True) or False
-		minimum_password_score = cint(getattr(self, "minimum_password_score", 0)) or 0
+		enable_password_policy = cint(self.enable_password_policy)
+		minimum_password_score = cint(getattr(self, "minimum_password_score", 0))
 		if enable_password_policy and minimum_password_score <= 0:
 			frappe.throw(_("Please select Minimum Password Score"))
 		elif not enable_password_policy:
@@ -181,9 +185,7 @@ class SystemSettings(Document):
 
 	def on_update(self):
 		self.set_defaults()
-
-		frappe.cache.delete_value("system_settings")
-		frappe.cache.delete_value("time_zone")
+		clear_system_settings_cache()
 
 		if frappe.flags.update_last_reset_password_date:
 			update_last_reset_password_date()
@@ -225,6 +227,25 @@ def load():
 			defaults[df.fieldname] = all_defaults.get(df.fieldname)
 
 	return {"timezones": get_all_timezones(), "defaults": defaults}
+
+
+def get_system_settings(key: str):
+	"""Return the value associated with the given `key` from System Settings DocType."""
+	if not (system_settings := getattr(frappe.local, "system_settings", None)):
+		try:
+			system_settings = frappe.client_cache.get_doc("System Settings")
+			frappe.local.system_settings = system_settings
+		except frappe.DoesNotExistError:  # possible during new install
+			frappe.clear_last_message()
+			return
+
+	return system_settings.get(key)
+
+
+def clear_system_settings_cache():
+	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
+	frappe.cache.delete_value("system_settings")
+	frappe.cache.delete_value("time_zone")
 
 
 def sync_system_settings():

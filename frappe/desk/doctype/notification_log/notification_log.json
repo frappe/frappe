@@ -16,7 +16,8 @@
   "attachment_link",
   "open_reference_document",
   "from_user",
-  "link"
+  "link",
+  "email_header"
  ],
  "fields": [
   {
@@ -98,6 +99,11 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Link"
+  },
+  {
+   "fieldname": "email_header",
+   "fieldtype": "Data",
+   "label": "Email Header"
   }
  ],
  "hide_toolbar": 1,
@@ -119,7 +125,8 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "subject",

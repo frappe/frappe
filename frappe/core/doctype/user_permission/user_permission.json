@@ -90,7 +90,7 @@
   }
  ],
  "links": [],
- "modified": "2022-01-03 11:25:03.726150",
+ "modified": "2024-03-23 16:04:00.823875",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",
@@ -109,7 +109,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "user",

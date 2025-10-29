@@ -1,6 +1,3 @@
-# This workflow is agnostic to branches. Only maintain on develop branch.
-# To add/remove branches just modify the matrix.
-
 name: Regenerate POT file (translatable strings)
 on:
   schedule:
@@ -15,20 +12,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ["version-15-hotfix"]
+        branch: ["develop"]
     permissions:
       contents: write
 
     steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          uses: actions/checkout@v5
           with:
             ref: ${{ matrix.branch }}
 
         - name: Setup Python
-          uses: actions/setup-python@v5
+          uses: actions/setup-python@v6
           with:
-            python-version: "3.12"
+            python-version: "3.13"
 
         - name: Run script to update POT file
           run: |

@@ -178,11 +178,6 @@ export default class OnboardingWidget extends Widget {
 					actions[step.action](step);
 				});
 
-			// Fire only once, on hashchange
-			$(window).one("hashchange", () => {
-				plyr.pause();
-			});
-
 			$(`<button class="btn btn-secondary ml-2 btn-sm">${__("Back")}</button>`)
 				.appendTo(this.step_footer)
 				.on("click", toggle_content);

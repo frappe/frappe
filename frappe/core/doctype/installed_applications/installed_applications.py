@@ -25,6 +25,7 @@ class InstalledApplications(Document):
 		installed_applications: DF.Table[InstalledApplication]
 
 	# end: auto-generated types
+
 	def update_versions(self):
 		self.reload_doc_if_required()
 

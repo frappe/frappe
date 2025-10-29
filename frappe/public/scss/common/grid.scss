@@ -6,9 +6,8 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	&:focus-visible {
-		@include grid-focus();
-	}
+	min-height: 150px;
+	background-color: var(--subtle-accent);
 }
 
 .form-grid.error {
@@ -18,15 +17,33 @@
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--gray-600);
-	background-color: var(--subtle-fg);
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
 
+	.grid-row {
+		background-color: var(--subtle-fg);
+		border-top-left-radius: var(--border-radius-md);
+		border-top-right-radius: var(--border-radius-md);
+
+		.row-check {
+			border-top-left-radius: var(--border-radius-md);
+		}
+		.row .col:last-child {
+			border-top-right-radius: var(--border-radius-md);
+		}
+	}
+
 	&.with-filter {
-		height: 64px;
+		height: 66px;
+		.grid-row:nth-child(2) {
+			.row-check,
+			.row-index {
+				background-color: var(--fg-color);
+			}
+		}
 	}
 	.filter-row {
 		background-color: var(--bg-color);
@@ -34,7 +51,7 @@
 		.search {
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
-			border-bottom: 1px solid var(--table-border-color);
+			background-color: var(--fg-color);
 		}
 	}
 
@@ -42,7 +59,17 @@
 	.row-check,
 	.row-index {
 		height: 32px;
-		padding: 6px 8px !important;
+		padding: 4px 8px !important;
+		background-color: var(--subtle-fg);
+	}
+	.row-check,
+	.row-index {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+	}
+	.row-index {
+		left: 31px;
 	}
 	.grid-static-col {
 		padding: 6px 8px !important;
@@ -103,6 +130,16 @@
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
 	color: var(--text-muted);
+	.row-check,
+	.row-index {
+		position: sticky;
+		left: 0;
+		background-color: var(--fg-color);
+		z-index: 1;
+	}
+	.row-index {
+		left: 31px;
+	}
 	button.col:focus-visible {
 		outline: 1px solid #c9c9c9;
 	}
@@ -119,30 +156,38 @@
 	}
 }
 
+.grid-empty {
+	height: 110px;
+	background-color: var(--subtle-accent);
+	display: flex;
+	vertical-align: middle;
+}
 .grid-static-col:focus-visible {
 	@include grid-focus();
 }
 .grid-static-col,
 .row-index {
-	height: 38px;
+	// height: 38px;
 	max-height: 200px;
 
 	&.search {
 		padding: 7px !important;
 
 		input {
-			height: -webkit-fill-available;
+			height: 100%;
 			padding: 3px 7px;
 		}
 	}
 }
 
 .row-check {
-	height: 38px;
+	// height: 38px;
 	text-align: center;
+	flex-grow: 0;
 
 	input {
 		margin-right: 0 !important;
+		margin-bottom: -3px;
 	}
 
 	&.search {
@@ -151,7 +196,7 @@
 }
 
 .grid-row-check {
-	margin-top: 2px;
+	margin-top: 3px;
 
 	&::after {
 		// Extend the checkbox's clickable area
@@ -188,12 +233,15 @@
 
 .row-index {
 	text-align: center;
+	flex-grow: 0;
 }
 
 .grid-row > .row {
 	.col:last-child {
 		border-right: none;
 		min-width: 0;
+		display: flex;
+		justify-content: center;
 	}
 
 	.col {
@@ -201,20 +249,24 @@
 		border-right: 1px solid var(--table-border-color);
 		// overflow: hidden;
 	}
+	.sticky-grid-col {
+		position: sticky;
+		z-index: 1;
+	}
 }
 
 .grid-body {
-	background-color: var(--fg-color);
+	background-color: var(--subtle-accent);
 	border-bottom-left-radius: var(--border-radius);
 	border-bottom-right-radius: var(--border-radius);
+	margin-bottom: -1px; // double bottom border
 
 	.col:last-child {
 		border: none;
+		background-color: var(--fg-color);
 	}
 
 	.btn-open-row {
-		display: flex;
-		justify-content: center;
 		line-height: unset;
 		div {
 			margin-left: var(--margin-xs);
@@ -228,6 +280,9 @@
 		.grid-static-col {
 			padding: 0px !important;
 		}
+		.grid-static-col.row-index {
+			padding: var(--grid-padding) !important;
+		}
 
 		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
 			top: 9px;
@@ -240,7 +295,7 @@
 		}
 
 		textarea {
-			height: 46px !important;
+			height: 39px !important;
 		}
 
 		.form-control,
@@ -263,7 +318,6 @@
 		}
 
 		.has-error .form-control {
-			z-index: 1;
 			&:focus {
 				border-color: var(--error-border);
 			}
@@ -290,12 +344,13 @@
 	}
 
 	.grid-static-col[data-fieldtype="Check"] .static-area {
-		padding-top: 2px;
+		padding-top: 4px;
+		margin-bottom: -4px;
 	}
 
 	.grid-static-col[data-fieldtype="Rating"] .field-area {
-		margin-top: 1rem;
-		margin-left: 1rem;
+		margin-top: 0.6rem;
+		margin-left: 0.5rem;
 	}
 
 	.grid-static-col[data-fieldtype="Code"],
@@ -323,6 +378,23 @@
 			line-height: 1.3 !important;
 		}
 	}
+	.data-row {
+		div[data-fieldname="options"],
+		div[data-fieldtype="Text Editor"] {
+			height: 40px;
+		}
+	}
+	.grid-static-col {
+		background-color: var(--fg-color);
+		&.sticky-grid-col {
+			position: sticky;
+			z-index: 1;
+		}
+	}
+	// check if the awesomplete dropdown is hidden
+	.grid-static-col:has(.awesomplete > ul:not([hidden])) {
+		z-index: 2;
+	}
 }
 
 @media (max-width: 767px) {
@@ -340,15 +412,10 @@
 }
 
 .grid-row {
-	padding: 0px var(--padding-md);
 	border-bottom: 1px solid var(--table-border-color);
+	background-color: var(--fg-color);
+
 	@include transition(0.2s);
-	// REDESIGN TODO: Fix border bottom for last item
-	&:last-child {
-		border-bottom-left-radius: var(--border-radius);
-		border-bottom-right-radius: var(--border-radius);
-		border: none;
-	}
 
 	td {
 		vertical-align: top;
@@ -359,7 +426,7 @@
 	}
 
 	.frappe-control {
-		margin-bottom: 0px;
+		margin-bottom: 0px !important;
 		position: relative;
 	}
 
@@ -440,9 +507,19 @@
 .grid-row-open .form-in-grid {
 	opacity: 1;
 	height: auto;
-	overflow: visible;
-	margin: 0px calc(-1 * var(--margin-md));
+	overflow: auto;
+	margin: auto;
 	padding: var(--padding-sm) var(--padding-md);
+	max-width: 865px;
+	position: fixed;
+	top: 5%;
+	left: 50%;
+	transform: translate(-50%, 0%);
+	width: 100%;
+	.grid-form-body {
+		max-height: 80vh;
+		overflow: scroll;
+	}
 }
 
 .grid-form-heading {
@@ -498,11 +575,16 @@
 
 .grid-pagination {
 	padding: 0;
+	display: flex;
+	.last-page {
+		margin-left: 5px;
+	}
 }
 
 .page-text {
 	display: inline-block;
 	cursor: default;
+	margin-right: 6px;
 }
 
 .current-page-number {
@@ -568,28 +650,184 @@
 	margin-bottom: 4px;
 }
 
-@media (max-width: map-get($grid-breakpoints, "md")) {
-	.form-grid-container {
-		overflow-x: clip;
+.form-grid-container {
+	position: relative;
+	overflow-x: auto;
+	width: 100%;
+}
 
-		.form-grid {
-			min-width: 738px;
+.form-grid-container:has(.grid-row.grid-row-open) {
+	overflow-x: clip;
+	white-space: normal;
+	overflow-y: unset;
+	.form-grid {
+		left: 0px !important;
+	}
+}
+.sortable-handle span {
+	width: 31px;
+	display: block;
+}
+
+.data-row.row {
+	flex-wrap: nowrap;
+}
+.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached) {
+	overflow-x: clip;
+}
+.column-limit-reached {
+	background-color: var(--subtle-accent);
+	border-radius: var(--border-radius-md);
+	border: 1px solid var(--table-border-color);
+	overflow-y: hidden;
+	.form-grid {
+		display: grid;
+		grid-auto-rows: min-content;
+		border: unset;
+		&:focus-visible {
+			@include grid-focus();
+		}
+		.grid-static-col {
+			height: 38px;
+		}
+		.grid-static-col.col-xs-1 {
+			flex: 1 0 60px;
+			width: 60px;
+		}
+		.grid-static-col.col-xs-2 {
+			flex: 1 0 100px;
+			width: 100px;
+		}
+		.grid-static-col.col-xs-3 {
+			flex: 1 0 140px;
+			width: 140px;
+		}
+		.grid-static-col.col-xs-4 {
+			flex: 1 0 200px;
+			width: 200px;
+		}
+		.grid-static-col.col-xs-5 {
+			flex: 1 0 250px;
+			width: 250px;
+		}
+		.grid-static-col.col-xs-6 {
+			flex: 1 0 300px;
+			width: 300px;
+		}
+		.grid-static-col.col-xs-7 {
+			flex: 1 0 350px;
+			width: 350px;
+		}
+		.grid-static-col.col-xs-8 {
+			flex: 1 0 400px;
+			width: 400px;
+		}
+		.grid-static-col.col-xs-9 {
+			flex: 1 0 450px;
+			width: 450px;
+		}
+		.grid-static-col.col-xs-10 {
+			flex: 1 0 500px;
+			width: 500px;
+		}
+		.grid-static-col.col-xs-11 {
+			flex: 1 0 550px;
+			width: 550px;
+		}
+		.grid-static-col.col-xs-12 {
+			flex: 1 0 600px;
+			width: 600px;
+		}
+		.grid-row > .row .col:last-child,
+		.grid-row > .dialog-assignment-row .col:first-child,
+		.grid-row > .dialog-assignment-row .col:last-child {
+			max-width: 30px;
+			min-width: 30px;
+			position: sticky;
+			right: 0;
+			z-index: 1;
+		}
+		.grid-row > .row .col:nth-child(2),
+		.grid-row > .dialog-assignment-row .col:nth-child(2) {
+			max-width: 40px;
+			min-width: 40px;
+		}
+		.grid-heading-row .grid-row .data-row.row,
+		.grid-body .rows .grid-row .data-row.row {
+			justify-content: space-between;
 		}
 	}
+	scrollbar-width: auto;
+	scrollbar-color: auto;
+}
+.grid-scroll-bar {
+	overflow-x: auto;
+	height: 12px;
+	position: relative;
+	scrollbar-width: auto;
+	scrollbar-color: auto;
+}
 
+.grid-scroll-bar::-webkit-scrollbar {
+	height: 11px !important;
+}
+
+.grid-scroll-bar-rows {
+	height: 100%;
+}
+
+@media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-column.col-sm-6 .form-grid {
 		.row-index {
 			display: block;
 		}
 	}
-}
-
-@media (min-width: map-get($grid-breakpoints, "md")) {
-	.form-grid-container {
-		overflow-x: unset !important;
-
+	.column-limit-reached {
 		.form-grid {
-			position: unset !important;
+			.grid-static-col.col-xs-2 {
+				flex: 1 0 90px;
+				width: 90px;
+			}
+			.grid-static-col.col-xs-3 {
+				flex: 1 0 120px;
+				width: 120px;
+			}
+			.grid-static-col.col-xs-4 {
+				flex: 1 0 160px;
+				width: 160px;
+			}
+			.grid-static-col.col-xs-5 {
+				flex: 1 0 200px;
+				width: 200px;
+			}
+			.grid-static-col.col-xs-6 {
+				flex: 1 0 240px;
+				width: 240px;
+			}
+			.grid-static-col.col-xs-7 {
+				flex: 1 0 300px;
+				width: 300px;
+			}
+			.grid-static-col.col-xs-8 {
+				flex: 1 0 350px;
+				width: 350px;
+			}
+			.grid-static-col.col-xs-9 {
+				flex: 1 0 400px;
+				width: 400px;
+			}
+			.grid-static-col.col-xs-10 {
+				flex: 1 0 450px;
+				width: 450px;
+			}
+			.grid-static-col.col-xs-11 {
+				flex: 1 0 500px;
+				width: 500px;
+			}
+			.grid-static-col.col-xs-12 {
+				flex: 1 0 550px;
+				width: 550px;
+			}
 		}
 	}
 }

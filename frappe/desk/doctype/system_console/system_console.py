@@ -22,14 +22,16 @@ class SystemConsole(Document):
 		output: DF.Code | None
 		show_processlist: DF.Check
 		type: DF.Literal["Python", "SQL"]
-
 	# end: auto-generated types
+
 	def run(self):
-		frappe.only_for("System Manager")
+		frappe.only_for(["System Manager", "Administrator"])
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":
-				safe_exec(self.console, script_filename="System Console")
+				safe_exec(
+					self.console, script_filename="System Console", restrict_commit_rollback=not self.commit
+				)
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
@@ -42,7 +44,7 @@ class SystemConsole(Document):
 		else:
 			frappe.db.rollback()
 		frappe.get_doc(
-			dict(doctype="Console Log", script=self.console, type=self.type, committed=self.commit)
+			doctype="Console Log", script=self.console, type=self.type, committed=self.commit
 		).insert()
 		frappe.db.commit()
 
@@ -57,6 +59,12 @@ def execute_code(doc):
 @frappe.whitelist()
 def show_processlist():
 	frappe.only_for("System Manager")
+	return _show_processlist()
+
+
+def _show_processlist():
+	if frappe.db.db_type == "sqlite":
+		return []
 
 	return frappe.db.multisql(
 		{

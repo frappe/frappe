@@ -18,4 +18,5 @@ class ListFilter(Document):
 		for_user: DF.Link | None
 		reference_doctype: DF.Link | None
 	# end: auto-generated types
+
 	pass

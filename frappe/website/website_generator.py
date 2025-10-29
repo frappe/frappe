@@ -43,8 +43,7 @@ class WebsiteGenerator(Document):
 			self.route = self.route.strip("/.")[:139]
 
 	def make_route(self):
-		"""Returns the default route. If `route` is specified in DocType it will be
-		route/title"""
+		"""Return the default route. If `route` is specified in DocType it will be route/title."""
 		from_title = self.scrubbed_title()
 		if self.meta.route:
 			return self.meta.route + "/" + from_title
@@ -71,6 +70,9 @@ class WebsiteGenerator(Document):
 		super().clear_cache()
 		clear_cache(self.route)
 
+		frappe.db.after_commit.add(lambda: clear_cache(self.route))
+		frappe.db.after_rollback.add(lambda: clear_cache(self.route))
+
 	def scrub(self, text):
 		return cleanup_page_name(text).replace("_", "-")
 
@@ -96,8 +98,8 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if self.get_condition_field():
-			return (self.get(self.get_condition_field()) and True) or False
+		if condition_field := self.get_condition_field():
+			return self.get(condition_field) or False
 		else:
 			return True
 
@@ -153,7 +155,7 @@ class WebsiteGenerator(Document):
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
-		if self.allow_website_search_indexing() or frappe.flags.in_test:
+		if self.allow_website_search_indexing() or frappe.in_test:
 			return
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
@@ -167,7 +169,7 @@ class WebsiteGenerator(Document):
 		- remove document from index if document is unpublished
 		- update index otherwise
 		"""
-		if not self.allow_website_search_indexing() or frappe.flags.in_test:
+		if not self.allow_website_search_indexing() or frappe.in_test:
 			return
 
 		if self.is_website_published():

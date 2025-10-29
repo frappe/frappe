@@ -4,10 +4,10 @@
 import frappe
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.smtp import SMTPServer
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestSMTP(FrappeTestCase):
+class TestSMTP(IntegrationTestCase):
 	def test_smtp_ssl_session(self):
 		for port in [None, 0, 465, "465"]:
 			make_server(port, 1, 0)
@@ -47,11 +47,9 @@ class TestSMTP(FrappeTestCase):
 			password="password",
 			enable_outgoing=1,
 			default_outgoing=1,
-			append_to="Blog Post",
+			append_to="Todo",
 		)
-		self.assertEqual(
-			EmailAccount.find_outgoing(match_by_doctype="Blog Post").email_id, "append_to@gmail.com"
-		)
+		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="Todo").email_id, "append_to@gmail.com")
 
 		# add back the mail_server
 		frappe.conf["mail_server"] = mail_server

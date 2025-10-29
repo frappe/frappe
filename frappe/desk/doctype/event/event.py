@@ -6,6 +6,7 @@ import json
 from datetime import date, datetime
 
 import frappe
+import frappe.share
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -17,6 +18,7 @@ from frappe.utils import (
 	add_days,
 	add_months,
 	add_years,
+	date_diff,
 	format_datetime,
 	get_fullname,
 	getdate,
@@ -24,6 +26,7 @@ from frappe.utils import (
 	now_datetime,
 	nowdate,
 )
+from frappe.utils.caching import http_cache
 from frappe.utils.user import get_enabled_system_users
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -71,7 +74,7 @@ class Event(Document):
 		pulled_from_google_calendar: DF.Check
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
-		repeat_on: DF.Literal["", "Daily", "Weekly", "Monthly", "Yearly"]
+		repeat_on: DF.Literal["", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"]
 		repeat_this_event: DF.Check
 		repeat_till: DF.Date | None
 		saturday: DF.Check
@@ -85,8 +88,8 @@ class Event(Document):
 		thursday: DF.Check
 		tuesday: DF.Check
 		wednesday: DF.Check
-
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
@@ -232,7 +235,10 @@ def delete_communication(event, reference_doctype, reference_docname):
 def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
-	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+	query = f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+	if shared_events := frappe.share.get_shared("Event", user=user):
+		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
+	return query
 
 
 def has_permission(doc, user):
@@ -274,6 +280,7 @@ def send_event_digest():
 
 
 @frappe.whitelist()
+@http_cache(max_age=5 * 60, stale_while_revalidate=60 * 60)
 def get_events(
 	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
 ) -> list[frappe._dict]:
@@ -413,6 +420,15 @@ def get_events(
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
 				target_date = add_months(target_date, 1)
 
+		elif e.repeat_on == "Quarterly":
+			first_occurence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurence_in_range) // 3
+			target_date = add_months(first_occurence_in_range, 3 * jump_ahead)
+
+			while target_date <= end:
+				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
+				target_date = add_months(target_date, 3)
+
 		elif e.repeat_on == "Yearly":
 			first_occurence_in_range = e.starts_on.date()
 			jump_ahead = month_diff(start, first_occurence_in_range) // 12
@@ -421,6 +437,15 @@ def get_events(
 			while target_date <= end:
 				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
 				target_date = add_years(target_date, 1)
+
+		elif e.repeat_on == "Half Yearly":
+			first_occurence_in_range = e.starts_on.date()
+			jump_ahead = month_diff(start, first_occurence_in_range) // 6
+			target_date = add_months(first_occurence_in_range, 6 * jump_ahead)
+
+			while target_date <= end:
+				resolve_event(e, target_date=target_date, repeat_till=repeat_till)
+				target_date = add_months(target_date, 6)
 
 	# Remove events that are not in the range and boolean weekdays fields
 	for event in resolved_events:

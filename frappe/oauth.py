@@ -6,7 +6,6 @@ from http import cookies
 from urllib.parse import unquote, urljoin, urlparse
 
 import jwt
-import pytz
 from oauthlib.openid import RequestValidator
 
 import frappe
@@ -162,7 +161,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			if code_challenge and not request.code_verifier:
 				if frappe.db.exists("OAuth Authorization Code", code):
-					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True)
+					frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
 					frappe.db.commit()
 				return False
 
@@ -245,10 +244,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
-		are_scopes_valid = True
-		for scp in scopes:
-			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
-
+		are_scopes_valid = all(scope in client_scopes for scope in scopes)
 		return is_token_valid and are_scopes_valid
 
 	# Token refresh request

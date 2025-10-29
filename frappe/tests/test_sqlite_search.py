@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
 class TestSQLiteSearch(SQLiteSearch):
@@ -41,7 +41,7 @@ class TestSQLiteSearch(SQLiteSearch):
 		return {"owner": frappe.session.user}
 
 
-class TestSQLiteSearchAPI(FrappeTestCase):
+class TestSQLiteSearchAPI(IntegrationTestCase):
 	"""Test suite for SQLiteSearch public API functionality."""
 
 	@classmethod

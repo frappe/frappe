@@ -27,6 +27,15 @@ TRANSLATE_PATTERN = re.compile(
 	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
 )
 
+EXCLUDE_SELECT_OPTIONS = [
+	"naming_series",
+	"number_format",
+	"float_precision",
+	"currency_precision",
+	"minimum_password_score",
+	"icon",
+]
+
 
 def extract_messages_from_code(code):
 	"""
@@ -82,3 +91,49 @@ def add_line_number(messages, code):
 			newline_i += 1
 		ret.append([line, message, context])
 	return ret
+
+
+def extract_messages_from_docfield(doctype: str, field: dict):
+	"""Extract translatable strings from docfield definition.
+
+	`field` should have the following keys:
+
+	- fieldtype: str
+	- fieldname: str
+	- label: str (optional)
+	- description: str (optional)
+	- options: str (optional)
+	"""
+	fieldtype = field.get("fieldtype")
+	fieldname = field.get("fieldname")
+	label = field.get("label")
+
+	if label:
+		yield label, f"Label of the {fieldname} ({fieldtype}) field in DocType '{doctype}'"
+		_label = label
+	else:
+		_label = fieldname
+
+	if description := field.get("description"):
+		yield description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'"
+
+	if message := field.get("options"):
+		if fieldtype == "Select" and fieldname not in EXCLUDE_SELECT_OPTIONS:
+			select_options = [option for option in message.split("\n") if option and not option.isdigit()]
+
+			yield from (
+				(
+					option,
+					f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
+				)
+				for option in select_options
+			)
+		elif fieldtype == "HTML":
+			yield message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'"
+
+
+def extract_messages_from_links(doctype: str, links: list[dict]):
+	"""Extract translatable strings from a list of link definitions."""
+	for link in links:
+		if group := link.get("group"):
+			yield group, f"Group in {doctype}'s connections"

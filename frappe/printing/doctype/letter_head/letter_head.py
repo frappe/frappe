@@ -24,7 +24,9 @@ class LetterHead(Document):
 		footer_image: DF.AttachImage | None
 		footer_image_height: DF.Float
 		footer_image_width: DF.Float
+		footer_script: DF.Code | None
 		footer_source: DF.Literal["Image", "HTML"]
+		header_script: DF.Code | None
 		image: DF.AttachImage | None
 		image_height: DF.Float
 		image_width: DF.Float
@@ -33,9 +35,11 @@ class LetterHead(Document):
 		source: DF.Literal["Image", "HTML"]
 
 	# end: auto-generated types
+
 	def before_insert(self):
 		# for better UX, let user set from attachment
-		self.source = "Image"
+		if not frappe.flags.in_migrate and not frappe.flags.in_install:
+			self.source = "Image"
 
 	def validate(self):
 		self.set_image()
@@ -45,7 +49,12 @@ class LetterHead(Document):
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
-		if not self.is_default and not self.disabled:
+		if (
+			not self.is_default
+			and not self.disabled
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_install
+		):
 			if not frappe.db.exists("Letter Head", dict(is_default=1)):
 				self.is_default = 1
 
@@ -112,7 +121,7 @@ class LetterHead(Document):
 		from frappe.utils import set_default
 
 		if self.is_default:
-			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
+			frappe.db.set_value("Letter Head", {"name": ["!=", self.name]}, "is_default", 0)
 
 			set_default("letter_head", self.name)
 

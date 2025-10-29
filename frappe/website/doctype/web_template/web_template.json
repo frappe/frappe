@@ -54,7 +54,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-12 20:01:21.524022",
+ "modified": "2024-03-23 16:04:02.852688",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
@@ -74,7 +74,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

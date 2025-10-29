@@ -21,6 +21,7 @@
   "report_function",
   "is_public",
   "currency",
+  "show_full_number",
   "custom_configuration_section",
   "filters_config",
   "stats_section",
@@ -218,6 +219,13 @@
    "fieldname": "background_color",
    "fieldtype": "Color",
    "label": "Background Color"
+  },
+  {
+   "default": "0",
+   "description": "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M).",
+   "fieldname": "show_full_number",
+   "fieldtype": "Check",
+   "label": "Show Full Number"
   }
  ],
  "links": [],
@@ -263,7 +271,7 @@
  ],
  "row_format": "Dynamic",
  "search_fields": "label, document_type",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "label",

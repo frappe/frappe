@@ -32,12 +32,45 @@ class WidgetDialog {
 	}
 
 	get_title() {
-		// DO NOT REMOVE: Comment to load translation
-		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
+		if (this.editing) {
+			switch (this.type) {
+				case "chart":
+					return __("Edit Chart");
+				case "shortcut":
+					return __("Edit Shortcut");
+				case "links":
+					return __("Edit Links");
+				case "number_card":
+					return __("Edit Number Card");
+				case "onboarding":
+					return __("Edit Onboarding");
+				case "quick_list":
+					return __("Edit Quick List");
+				case "custom_block":
+					return __("Edit Custom Block");
+				default:
+					return __("Edit {0}", [__(frappe.model.unscrub(this.type))]);
+			}
+		}
 
-		let action = this.editing ? "Edit" : "Add";
-		let label = (action = action + " " + frappe.model.unscrub(this.type));
-		return __(label);
+		switch (this.type) {
+			case "chart":
+				return __("New Chart");
+			case "shortcut":
+				return __("New Shortcut");
+			case "links":
+				return __("New Links");
+			case "number_card":
+				return __("New Number Card");
+			case "onboarding":
+				return __("New Onboarding");
+			case "quick_list":
+				return __("New Quick List");
+			case "custom_block":
+				return __("New Custom Block");
+			default:
+				return __("New {0}", [__(frappe.model.unscrub(this.type))]);
+		}
 	}
 
 	get_fields() {
@@ -143,10 +176,6 @@ class QuickListDialog extends WidgetDialog {
 						},
 					};
 				},
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_4",
 			},
 			{
 				fieldtype: "Data",
@@ -289,10 +318,6 @@ class CardDialog extends WidgetDialog {
 						label: "Icon",
 					},
 					{
-						fieldname: "column_break_7",
-						fieldtype: "Column Break",
-					},
-					{
 						fieldname: "dependencies",
 						fieldtype: "Data",
 						label: __("Dependencies"),
@@ -379,6 +404,7 @@ class ShortcutDialog extends WidgetDialog {
 				label: __("Type"),
 				reqd: 1,
 				options: "DocType\nReport\nPage\nDashboard\nURL",
+				initial_value: "DocType",
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
@@ -394,15 +420,6 @@ class ShortcutDialog extends WidgetDialog {
 						this.dialog.fields_dict.link_to.get_query = null;
 					}
 				},
-			},
-			{
-				fieldtype: "Data",
-				fieldname: "label",
-				label: __("Label"),
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_4",
 			},
 			{
 				fieldtype: "Dynamic Link",
@@ -424,6 +441,7 @@ class ShortcutDialog extends WidgetDialog {
 
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === 1) views.push("Tree");
+							if (meta.image_field) views.push("Image");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value(
@@ -444,6 +462,11 @@ class ShortcutDialog extends WidgetDialog {
 			},
 			{
 				fieldtype: "Data",
+				fieldname: "label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "Data",
 				fieldname: "url",
 				label: __("URL"),
 				default: "",
@@ -454,7 +477,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: __("DocType View"),
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
@@ -535,10 +558,6 @@ class ShortcutDialog extends WidgetDialog {
 						.find(".color-box")
 						.get(0).style.backgroundColor = `var(--text-on-${color})`;
 				},
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_3",
 			},
 			{
 				fieldtype: "Data",
@@ -675,10 +694,6 @@ class NumberCardDialog extends WidgetDialog {
 				label: __("Color"),
 				fieldname: "color",
 				fieldtype: "Color",
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "cb_1",
 			},
 			{
 				label: __("Function"),

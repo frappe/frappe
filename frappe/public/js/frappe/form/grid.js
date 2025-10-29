@@ -24,6 +24,9 @@ export default class Grid {
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
+		this.sticky_row_sum = 71;
+		this.sticky_rows = [];
+
 		if (this.doctype) {
 			this.meta = frappe.get_meta(this.doctype);
 		}
@@ -71,13 +74,8 @@ export default class Grid {
 						<div class="grid-heading-row"></div>
 						<div class="grid-body">
 							<div class="rows"></div>
-							<div class="grid-empty text-center">
-								<img
-									src="/assets/frappe/images/ui-states/grid-empty-state.svg"
-									alt="Grid Empty State"
-									class="grid-empty-illustration"
-								>
-								${__("No Data")}
+							<div class="grid-empty text-center text-extra-muted">
+								${__("No rows")}
 							</div>
 						</div>
 					</div>
@@ -88,6 +86,10 @@ export default class Grid {
 							<button type="button" class="btn btn-xs btn-danger grid-remove-rows hidden"
 								data-action="delete_rows">
 								${__("Delete")}
+							</button>
+							<button type="button" class="btn btn-xs btn-secondary hidden grid-duplicate-row"
+								data-action="duplicate_rows">
+								${__("Duplicate Row")}
 							</button>
 							<button type="button" class="btn btn-xs btn-danger grid-remove-all-rows hidden"
 								data-action="delete_all_rows">
@@ -124,7 +126,6 @@ export default class Grid {
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.form_grid = this.wrapper.find(".form-grid");
-
 		this.setup_add_row();
 
 		this.setup_grid_pagination();
@@ -135,6 +136,7 @@ export default class Grid {
 		this.grid_custom_buttons = this.wrapper.find(".grid-custom-buttons");
 		this.remove_rows_button = this.grid_buttons.find(".grid-remove-rows");
 		this.remove_all_rows_button = this.grid_buttons.find(".grid-remove-all-rows");
+		this.duplicate_row_button = this.grid_buttons.find(".grid-duplicate-row");
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
@@ -157,9 +159,13 @@ export default class Grid {
 				d.idx = ri + 1;
 			}
 			if (d.name === undefined) {
-				d.name = "row " + d.idx;
+				d.name = this.get_random_name();
 			}
 		});
+	}
+
+	get_random_name() {
+		return Math.random().toString(36).slice(2, 10);
 	}
 
 	set_doc_url() {
@@ -214,6 +220,7 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
+			this.refresh_duplicate_rows_button();
 		});
 	}
 
@@ -235,6 +242,14 @@ export default class Grid {
 			row.select(checked);
 			row.row_check?.find(".grid-row-check").prop("checked", checked);
 		}
+	}
+
+	duplicate_rows() {
+		let selected_children = this.get_selected_children();
+		selected_children.forEach((doc) => {
+			this.add_new_row(null, null, false, doc, false);
+			this.check_range(doc.name, doc.name, false);
+		});
 	}
 
 	delete_rows() {
@@ -321,6 +336,27 @@ export default class Grid {
 			select_all_checkbox_checked && this.data.length > this.get_selected_children().length;
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 	}
+
+	debounced_refresh_remove_rows_button = frappe.utils.debounce(
+		this.refresh_remove_rows_button,
+		100
+	);
+
+	refresh_duplicate_rows_button() {
+		if (this.df.cannot_add_rows) {
+			return;
+		}
+
+		this.duplicate_row_button.toggleClass(
+			"hidden",
+			this.wrapper.find(".grid-body .grid-row-check:checked:first").length ? false : true
+		);
+	}
+
+	debounced_duplicate_rows_button = frappe.utils.debounce(
+		this.refresh_duplicate_rows_button,
+		100
+	);
 
 	get_selected() {
 		return (this.grid_rows || [])
@@ -483,7 +519,7 @@ export default class Grid {
 				d.idx = ri + 1;
 			}
 			if (d.name === undefined) {
-				d.name = "row " + d.idx;
+				d.name = this.get_random_name();
 			}
 			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
@@ -513,7 +549,9 @@ export default class Grid {
 			// show, hide buttons to add rows
 			if (this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
 				// add 'hidden' to buttons
-				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").addClass("hidden");
+				this.wrapper
+					.find(".grid-add-row, .grid-add-multiple-rows, .grid-duplicate-row")
+					.addClass("hidden");
 			} else {
 				// show buttons
 				this.wrapper.find(".grid-add-row").removeClass("hidden");
@@ -978,7 +1016,6 @@ export default class Grid {
 				}
 
 				total_colsize += df.colsize;
-				if (total_colsize > 11) return false;
 				this.visible_columns.push([df, df.colsize]);
 			}
 		}
@@ -1035,6 +1072,7 @@ export default class Grid {
 					if (column) {
 						column.in_list_view = 1;
 						column.columns = row.columns;
+						column.sticky = row.sticky;
 						return column;
 					}
 				})

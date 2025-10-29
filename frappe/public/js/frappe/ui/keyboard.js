@@ -1,4 +1,5 @@
 import "./alt_keyboard_shortcuts";
+import { DropdownConsole } from "./dropdown_console";
 
 frappe.provide("frappe.ui.keys.handlers");
 
@@ -187,6 +188,7 @@ frappe.ui.keys.off = function (key, page) {
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+s",
 	action: function (e) {
+		document.activeElement?.blur();
 		frappe.app.trigger_primary_action();
 		e.preventDefault();
 		return false;
@@ -196,7 +198,7 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+g",
+	shortcut: "ctrl+k",
 	action: function (e) {
 		$("#navbar-search").focus();
 		e.preventDefault();
@@ -206,12 +208,13 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
-	shortcut: "ctrl+h",
+	shortcut: "ctrl+k",
 	action: function (e) {
+		$("#navbar-search").focus();
 		e.preventDefault();
-		$(".navbar-home img").click();
+		return false;
 	},
-	description: __("Navigate Home"),
+	description: __("Open Awesomebar"),
 });
 
 frappe.ui.keys.add_shortcut({
@@ -255,19 +258,25 @@ frappe.ui.keys.on("enter", function (e) {
 });
 
 frappe.ui.keys.on("ctrl+down", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
-	grid_row &&
+	const grid_row = frappe.ui.form.get_open_grid_form();
+	if (grid_row?.has_next()) {
 		grid_row.toggle_view(false, function () {
 			grid_row.open_next();
 		});
+	} else {
+		e.preventDefault();
+	}
 });
 
 frappe.ui.keys.on("ctrl+up", function (e) {
-	var grid_row = frappe.ui.form.get_open_grid_form();
-	grid_row &&
+	const grid_row = frappe.ui.form.get_open_grid_form();
+	if (grid_row?.has_prev()) {
 		grid_row.toggle_view(false, function () {
 			grid_row.open_prev();
 		});
+	} else {
+		e.preventDefault();
+	}
 });
 
 frappe.ui.keys.add_shortcut({
@@ -340,6 +349,23 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+
+frappe.ui.keys.add_shortcut({
+	shortcut: "shift+t",
+	action: function (e) {
+		if (!frappe.model.can_write("System Console")) {
+			return;
+		}
+		if (cur_dialog?.is_minimized) {
+			cur_dialog.toggle_minimize();
+			cur_dialog.focus_on_first_input();
+		} else {
+			let dropdown_console = new DropdownConsole();
+			dropdown_console.show();
+		}
+	},
+	description: __("Open console"),
+});
 
 $.fn.enterKey = function (fnc) {
 	return this.each(function () {

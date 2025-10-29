@@ -11,8 +11,8 @@
 					{% let doctype = transactions[i].items[j]; %}
 					<div class="document-link" data-doctype="{{ doctype }}">
 						<div class="document-link-badge" data-doctype="{{ doctype }}">
-							<span class="count hidden"></span>
 							<a class="badge-link">{{ __(doctype) }}</a>
+							<span class="count hidden"></span>
 						</div>
 						<span class="open-notification hidden"
 							title="{{ __("Open {0}", [__(doctype)])}}">

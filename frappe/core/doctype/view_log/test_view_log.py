@@ -1,10 +1,10 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestViewLog(FrappeTestCase):
+class TestViewLog(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 

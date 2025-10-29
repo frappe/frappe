@@ -10,17 +10,19 @@ frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
 
-frappe.xcall = function (method, params) {
+frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
 		frappe.call({
 			method: method,
 			args: params,
+			type: type || "POST",
 			callback: (r) => {
 				resolve(r.message);
 			},
 			error: (r) => {
 				reject(r?.message);
 			},
+			...opts,
 		});
 	});
 };
@@ -117,11 +119,11 @@ frappe.call = function (opts) {
 		freeze_message: opts.freeze_message,
 		headers: opts.headers || {},
 		error_handlers: opts.error_handlers || {},
-		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		silent: opts.silent,
 		api_version: opts.api_version,
 		url,
+		cache: opts.cache,
 	});
 };
 
@@ -157,6 +159,7 @@ frappe.request.call = function (opts) {
 					title: __("Not permitted"),
 					indicator: "red",
 					message: xhr.responseJSON._error_message,
+					re_route: true,
 				});
 
 				xhr.responseJSON._server_messages = null;
@@ -269,7 +272,7 @@ frappe.request.call = function (opts) {
 			},
 			opts.headers
 		),
-		cache: false,
+		cache: window.dev_server ? false : opts.cache || false,
 	};
 
 	if (opts.args && opts.args.doctype) {
@@ -607,20 +610,20 @@ frappe.request.report_error = function (xhr, request_opts) {
 			frappe.error_dialog = new frappe.ui.Dialog({
 				title: __("Server Error"),
 			});
-
-			if (error_report_email) {
-				frappe.error_dialog.set_primary_action(__("Report"), () => {
-					show_communication();
-					frappe.error_dialog.hide();
-				});
-			} else {
-				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
-					copy_markdown_to_clipboard();
-					frappe.error_dialog.hide();
-				});
-			}
-			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
+
+		if (error_report_email) {
+			frappe.error_dialog.set_primary_action(__("Report"), () => {
+				show_communication();
+				frappe.error_dialog.hide();
+			});
+		} else {
+			frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
+				copy_markdown_to_clipboard();
+				frappe.error_dialog.hide();
+			});
+		}
+		frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 
 		let parts = strip(exc).split("\n");
 

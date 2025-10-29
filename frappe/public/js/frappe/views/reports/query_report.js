@@ -103,9 +103,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_no_result_message() {
 		return `<div class="msg-box no-border">
-			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
-			</div>
+			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
+				<use href="#icon-table"></use>
+			</svg>
 			<p>${__("Nothing to show")}</p>
 		</div>`;
 	}
@@ -531,12 +531,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const { filters = [] } = this.report_settings;
 
 		let filter_area = this.page.page_form;
+		this.filters = [];
+		if (this.report_settings.seperate_check_filters) this.setup_check_filter_area();
 		this.filters = filters
-			.map((df) => {
+			.map((df, index) => {
 				if (df.fieldtype === "Break") return;
-
-				let f = this.page.add_field(df, filter_area);
-
+				let f;
+				if (df.fieldtype === "Check" && this.check_filter_area) {
+					f = this.page.add_field(df, this.check_filter_area);
+				} else {
+					f = this.page.add_field(df, filter_area);
+				}
 				if (df.default) {
 					f.set_input(df.default);
 				}
@@ -571,13 +576,73 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				return f;
 			})
 			.filter(Boolean);
-
+		if (this.report_settings.seperate_check_filters) this.move_check_filter_area();
+		if (this.report_settings.collapsible_filters) {
+			this.filters_hidden = true;
+			this.filter_row_length = this.get_filter_row_length();
+			this.add_collapse_button();
+			this.toggle_filter_visiblity();
+		}
 		this.refresh_filters_dependency();
 		if (this.filters.length === 0) {
 			// hide page form if no filters
 			this.page.hide_form();
 		} else {
 			this.page.show_form();
+		}
+	}
+
+	move_check_filter_area() {
+		this.page.page_form.append(this.check_filter_area);
+	}
+
+	setup_check_filter_area() {
+		let check_filter_area = "<div class='check-filter-area'> </div>";
+		this.page.page_form.append(check_filter_area);
+		this.check_filter_area = this.page.page_form.find(".check-filter-area");
+	}
+
+	get_filter_row_length() {
+		let max_width = document.documentElement.clientWidth;
+		let all_filters_position = this.filters.map((f) => f.wrapper.getBoundingClientRect().x);
+		let closest_width = all_filters_position.reduce(function (prev, curr) {
+			return Math.abs(curr - max_width) < Math.abs(prev - max_width) ? curr : prev;
+		});
+		return all_filters_position.indexOf(closest_width) + 1;
+	}
+
+	toggle_filter_visiblity() {
+		let icon_name;
+		if (this.filters_hidden) {
+			for (let i = this.filter_row_length; i < this.filters.length; i++) {
+				$(this.filters[i].wrapper).addClass("hidden");
+			}
+			this.check_filter_area.css("display", "none");
+			this.filters_hidden = false;
+			icon_name = "chevron-down";
+		} else {
+			for (let i = this.filter_row_length; i < this.filters.length; i++) {
+				$(this.filters[i].wrapper).removeClass("hidden");
+			}
+			this.check_filter_area.css("display", "flex");
+			this.filters_hidden = true;
+			icon_name = "chevron-up";
+		}
+		this.$collapse_button.find("use").attr("href", `#icon-${icon_name}`);
+	}
+
+	add_collapse_button() {
+		const me = this;
+		let filter_no = this.filter_row_length - 1;
+		if (this.filters[filter_no]) {
+			this.$collapse_button = $(`<div>${frappe.utils.icon("chevron-down", "md")}</div>`);
+			$(this.filters[filter_no].wrapper).append(this.$collapse_button);
+			$(this.filters[filter_no].wrapper).css("display", "flex");
+			$(this.filters[filter_no].wrapper).css("align-items", "center");
+			$(this.filters[filter_no].wrapper).css("gap", "5px");
+			this.$collapse_button.on("click", function () {
+				me.toggle_filter_visiblity();
+			});
 		}
 	}
 
@@ -655,6 +720,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		return new Promise((resolve) => {
+			const js_filters = (frappe.query_reports[this.report_name]?.filters || [])
+				.filter(
+					(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
+				)
+				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
+
+			console.log(js_filters, "js_filters");
+
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
 				type: "GET",
@@ -665,6 +738,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
 					are_default_filters: are_default_filters,
+					js_filters: js_filters,
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
@@ -743,6 +817,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.finally(() => {
 				this.hide_loading_screen();
 				this.update_url_with_filters();
+				this.report_settings.after_refresh?.(this);
 			});
 	}
 
@@ -964,6 +1039,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
+		if (this.report_doc?.ref_doctype) {
+			columns = this.update_masked_fields_in_columns(columns, this.report_doc?.ref_doctype);
+		}
+
 		if (data.length > (cint(frappe.boot.sysdefaults.max_report_rows) || 100000)) {
 			let msg = __(
 				"This report contains {0} rows and is too big to display in browser, you can {1} this report instead.",
@@ -1018,11 +1097,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
+	update_masked_fields_in_columns(columns) {
+		const masked_fields = frappe.get_meta(this.report_doc?.ref_doctype).masked_fields;
+
+		return columns.map((col) => {
+			if (masked_fields.includes(col.fieldname)) {
+				return {
+					...col,
+					fieldtype: "Data",
+					options: [],
+				};
+			}
+			return col;
+		});
+	}
+
 	show_loading_screen() {
 		const loading_state = `<div class="msg-box no-border">
-			<div>
-				<img src="/assets/frappe/images/ui-states/list-empty-state.svg" alt="Generic Empty State" class="null-state">
-			</div>
+			<svg class="icon icon-xl mb-4" style="stroke: var(--text-light);">
+				<use href="#icon-table"></use>
+			</svg>
 			<p>${__("Loading")}...</p>
 		</div>`;
 
@@ -1334,13 +1428,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_filter_values(raise) {
 		// check for mandatory property for filters added via UI
-		const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
-		const missing_mandatory = mandatory.filter((f) => !f.get_value());
-		if (raise && missing_mandatory.length > 0) {
-			let message = __("Please set filters");
-			this.hide_loading_screen();
-			this.toggle_message(raise, message);
-			throw "Filter missing";
+		if (raise) {
+			const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
+			const missing_mandatory = mandatory.filter((f) => !f.get_value());
+			if (missing_mandatory.length > 0) {
+				let message = __("Please set filters");
+				this.hide_loading_screen();
+				this.toggle_message(raise, message);
+				throw "Filter missing";
+			}
 		}
 
 		raise && this.toggle_message(false);
@@ -1518,7 +1614,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
 
-				if (docfield.hidden_due_to_dependency) {
+				if (frappe.utils.is_empty(value) || docfield.hidden_due_to_dependency) {
 					return null;
 				}
 
@@ -1554,6 +1650,29 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
+		if (this.report_settings.export_hidden_cols) {
+			const hidden_fields = [];
+			this.columns.forEach((column) => {
+				if (column.hidden) {
+					hidden_fields.push(column.label);
+				}
+			});
+			if (hidden_fields.length) {
+				extra_fields.push(
+					{
+						fieldname: "column_break_1",
+						fieldtype: "Column Break",
+					},
+					{
+						label: __("Include hidden columns"),
+						fieldname: "include_hidden_columns",
+						description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
+						fieldtype: "Check",
+					}
+				);
+			}
+		}
+
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
@@ -1565,6 +1684,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				include_hidden_columns,
 				csv_delimiter,
 				csv_quoting,
+				csv_decimal_sep,
 			}) => {
 				this.make_access_log("Export", file_format);
 
@@ -1598,6 +1718,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					visible_idx,
 					csv_delimiter,
 					csv_quoting,
+					csv_decimal_sep,
 					include_indentation,
 					include_filters,
 					export_in_background,
@@ -2016,11 +2137,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.page.main
 		);
 		if (this.tree_report) {
-			this.$tree_footer = $(`<div class="tree-footer col-md-6">
-				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
-					${__("Expand All")}</button>
-				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
-					${__("Collapse All")}</button>
+			this.$tree_footer = $(`<div class="tree-footer col-md-3">
+				<div class="input-group">
+				  <input id="tree-level" type="number" class="form-control" aria-label="Tree Level" value="2">
+					<button class="btn btn-xs btn-secondary" data-action="set_tree_level">
+						${__("Set Level")}</button>
+					<button class="btn btn-xs btn-secondary" data-action="expand_all_rows">
+						${__("Expand All")}</button>
+					<button class="btn btn-xs btn-secondary" data-action="collapse_all_rows">
+						${__("Collapse All")}</button>
+				</div>
 			</div>`);
 			$(this.$report_footer).append(this.$tree_footer);
 			this.$tree_footer.find("[data-action=collapse_all_rows]").show();
@@ -2039,18 +2165,47 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	expand_all_rows() {
 		this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+		let rows = this.datatable.rowmanager.datamanager.getRows();
+		let maxDepth = rows.reduce((max, row) => {
+			return Math.max(max, row.meta.indent || 0);
+		}, 0);
+		var treeLevel = maxDepth + 1;
+		this.$tree_footer.find("#tree-level").val(treeLevel);
 		this.datatable.rowmanager.expandAllNodes();
 		this.$tree_footer.find("[data-action=collapse_all_rows]").show();
 	}
 
 	collapse_all_rows() {
 		this.$tree_footer.find("[data-action=collapse_all_rows]").hide();
+		this.$tree_footer.find("#tree-level").val(1);
 		this.datatable.rowmanager.collapseAllNodes();
 		this.$tree_footer.find("[data-action=expand_all_rows]").show();
 	}
 
+	set_tree_level() {
+		var inputVal = parseInt(this.$tree_footer.find("#tree-level").val(), 10) || 0;
+		let rows = this.datatable.rowmanager.datamanager.getRows();
+		let maxDepth = rows.reduce((max, row) => {
+			return Math.max(max, row.meta.indent || 0);
+		}, 0);
+		var treeLevel = Math.min(maxDepth + 1, Math.max(1, inputVal));
+		var treeDepth = treeLevel - 1;
+		this.$tree_footer.find("#tree-level").val(treeLevel);
+		if (treeDepth === 0) {
+			this.$tree_footer.find("[data-action=collapse_all_rows]").hide();
+		} else {
+			this.$tree_footer.find("[data-action=collapse_all_rows]").show();
+		}
+		this.datatable.rowmanager.setTreeDepth(treeDepth);
+		if (treeDepth === 0) {
+			this.$tree_footer.find("[data-action=expand_all_rows]").show();
+		} else {
+			this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+		}
+	}
+
 	message_div(message) {
-		return `<div class='flex justify-center align-center text-muted' style='height: 50vh;'>
+		return `<div class='flex justify-center align-center text-muted' style='height: calc(100vh - 280px);'>
 			<div>${message}</div>
 		</div>`;
 	}

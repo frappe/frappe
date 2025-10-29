@@ -5,15 +5,17 @@ import time
 import typing
 
 import frappe
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils.background_jobs import get_queue
 
 if typing.TYPE_CHECKING:
 	from rq.job import Job
 
 
-class TestSubmissionQueue(FrappeTestCase):
-	queue = get_queue(qtype="default")
+class TestSubmissionQueue(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.queue = get_queue(qtype="default")
 
 	@timeout(seconds=20)
 	def check_status(self, job: "Job", status, wait=True):

@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "column_break_oyyj",
   "total_subscribers",
   "sign_up_and_confirmation_section",
   "confirmation_email_template",
@@ -47,10 +46,6 @@
    "options": "Email Template"
   },
   {
-   "fieldname": "column_break_oyyj",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "sign_up_and_confirmation_section",
    "fieldtype": "Section Break",
    "label": "Sign Up and Confirmation"
@@ -78,7 +73,7 @@
    "link_fieldname": "email_group"
   }
  ],
- "modified": "2023-11-24 18:35:17.268492",
+ "modified": "2024-09-25 15:24:37.576084",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group",
@@ -101,7 +96,7 @@
  ],
  "quick_entry": 1,
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -145,6 +145,7 @@
   {
    "fieldname": "options",
    "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Options",
    "oldfieldname": "options",
@@ -188,6 +189,7 @@
   {
    "fieldname": "default",
    "fieldtype": "Text",
+   "ignore_xss_filter": 1,
    "label": "Default Value",
    "oldfieldname": "default",
    "oldfieldtype": "Text"
@@ -503,7 +505,7 @@
  ],
  "row_format": "Dynamic",
  "search_fields": "dt,label,fieldtype,options",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

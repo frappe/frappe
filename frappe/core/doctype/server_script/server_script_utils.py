@@ -15,12 +15,19 @@ EVENT_MAP = {
 	"on_submit": "After Submit",
 	"before_cancel": "Before Cancel",
 	"on_cancel": "After Cancel",
+	"before_discard": "Before Discard",
+	"on_discard": "After Discard",
 	"on_trash": "Before Delete",
 	"after_delete": "After Delete",
 	"before_update_after_submit": "Before Save (Submitted Document)",
 	"on_update_after_submit": "After Save (Submitted Document)",
 	"before_print": "Before Print",
+	"on_payment_paid": "On Payment Paid",
+	"on_payment_failed": "On Payment Failed",
 	"on_payment_authorized": "On Payment Authorization",
+	"on_payment_charge_processed": "On Payment Charge Processed",
+	"on_payment_mandated_charge_processed": "On Payment Mandate Charge Processed",
+	"on_payment_mandate_acquisition_processed": "On Payment Mandate Acquisition Processed",
 }
 
 
@@ -39,7 +46,7 @@ def run_server_script_for_doc_event(doc, event):
 	if scripts:
 		# run all scripts for this doctype + event
 		for script_name in scripts:
-			frappe.get_doc("Server Script", script_name).execute_doc(doc)
+			frappe.get_cached_doc("Server Script", script_name).execute_doc(doc)
 
 
 def get_server_script_map():
@@ -58,7 +65,7 @@ def get_server_script_map():
 	if frappe.flags.in_patch and not frappe.db.table_exists("Server Script"):
 		return {}
 
-	script_map = frappe.cache.get_value("server_script_map")
+	script_map = frappe.client_cache.get_value("server_script_map")
 	if script_map is None:
 		script_map = {"permission_query": {}}
 		enabled_server_scripts = frappe.get_all(
@@ -76,6 +83,6 @@ def get_server_script_map():
 			else:
 				script_map.setdefault("_api", {})[script.api_method] = script.name
 
-		frappe.cache.set_value("server_script_map", script_map)
+		frappe.client_cache.set_value("server_script_map", script_map)
 
 	return script_map

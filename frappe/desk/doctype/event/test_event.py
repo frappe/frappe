@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-"""Use blog post test to test user permissions logic"""
 
 import json
 from datetime import date
@@ -8,18 +7,14 @@ from datetime import date
 import frappe
 from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
-from frappe.test_runner import make_test_objects
-from frappe.tests.utils import FrappeTestCase
-
-test_records = frappe.get_test_records("Event")
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects
 
 
-class TestEvent(FrappeTestCase):
+class TestEvent(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)
-
-		self.test_records = frappe.get_test_records("Event")
 		self.test_user = "test1@example.com"
 
 	def tearDown(self):
@@ -56,13 +51,13 @@ class TestEvent(FrappeTestCase):
 		self.assertFalse("_Test Event 2" in subjects)
 
 	def test_revert_logic(self):
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 		name = ev.name
 
 		frappe.delete_doc("Event", ev.name)
 
 		# insert again
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 
 		# the name should be same!
 		self.assertEqual(ev.name, name)
@@ -70,7 +65,7 @@ class TestEvent(FrappeTestCase):
 	def test_assign(self):
 		from frappe.desk.form.assign_to import add
 
-		ev = frappe.get_doc(self.test_records[0]).insert()
+		ev = frappe.get_doc(self.globalTestRecords["Event"][0]).insert()
 
 		add(
 			{
@@ -196,6 +191,100 @@ class TestEvent(FrappeTestCase):
 				self.assertTrue(
 					find(event_list, test_record_matched),
 					f"Event not found between {start_date} and {end_date}",
+				)
+
+	def test_quaterly_repeat(self):
+		ev = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Event",
+				"starts_on": "2023-02-17",
+				"repeat_till": "2024-02-17",
+				"event_type": "Public",
+				"repeat_this_event": 1,
+				"repeat_on": "Quarterly",
+			}
+		).insert()
+
+		def test_record_matched(e):
+			return e.name == ev.name
+
+		# Test Quaterly months
+		applicable_dates = [
+			(date(2023, 2, 17), date(2023, 2, 17)),
+			(date(2023, 5, 17), date(2023, 5, 17)),
+			(date(2023, 8, 17), date(2023, 8, 17)),
+			(date(2023, 11, 17), date(2023, 11, 17)),
+		]
+
+		for start_date, end_date in applicable_dates:
+			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
+			with self.subTest(start_date=start_date, end_date=end_date):
+				self.assertTrue(
+					find(event_list, test_record_matched),
+					f"Event not found between {start_date} and {end_date}",
+				)
+
+		unapplicable_dates = [
+			# Test before event start date and after event end date
+			(date(2022, 11, 17), date(2022, 11, 17)),
+			(date(2024, 2, 17), date(2024, 2, 17)),
+			# Test months that aren't part of the quarterly cycle
+			(date(2023, 12, 17), date(2023, 12, 17)),
+			(date(2023, 3, 17), date(2023, 3, 17)),
+		]
+
+		for start_date, end_date in unapplicable_dates:
+			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
+			with self.subTest(start_date=start_date, end_date=end_date):
+				self.assertFalse(
+					find(event_list, test_record_matched), f"Event found between {start_date} and {end_date}"
+				)
+
+	def test_half_yearly_repeat(self):
+		ev = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Event",
+				"starts_on": "2023-02-17",
+				"repeat_till": "2024-02-17",
+				"event_type": "Public",
+				"repeat_this_event": 1,
+				"repeat_on": "Half Yearly",
+			}
+		).insert()
+
+		def test_record_matched(e):
+			return e.name == ev.name
+
+		# Test Half Yearly months
+		applicable_dates = [
+			(date(2023, 2, 17), date(2023, 2, 17)),
+			(date(2023, 8, 17), date(2023, 8, 17)),
+		]
+
+		for start_date, end_date in applicable_dates:
+			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
+			with self.subTest(start_date=start_date, end_date=end_date):
+				self.assertTrue(
+					find(event_list, test_record_matched),
+					f"Event not found between {start_date} and {end_date}",
+				)
+
+		unapplicable_dates = [
+			# Test before event start date and after event end date
+			(date(2022, 8, 17), date(2022, 8, 17)),
+			(date(2024, 2, 17), date(2024, 2, 17)),
+			# Test months that aren't part of the half yearly cycle
+			(date(2023, 12, 17), date(2023, 12, 17)),
+			(date(2023, 5, 17), date(2023, 5, 17)),
+		]
+
+		for start_date, end_date in unapplicable_dates:
+			event_list = get_events(start_date, end_date, "Administrator", for_reminder=True)
+			with self.subTest(start_date=start_date, end_date=end_date):
+				self.assertFalse(
+					find(event_list, test_record_matched), f"Event found between {start_date} and {end_date}"
 				)
 
 	def test_daily_repeat(self):

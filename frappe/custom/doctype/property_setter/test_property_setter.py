@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from frappe.tests.utils import FrappeTestCase
-
-# test_records = frappe.get_test_records('Property Setter')
+from frappe.tests import IntegrationTestCase
 
 
-class TestPropertySetter(FrappeTestCase):
+class TestPropertySetter(IntegrationTestCase):
 	pass

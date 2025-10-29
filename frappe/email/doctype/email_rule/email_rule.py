@@ -16,4 +16,5 @@ class EmailRule(Document):
 		email_id: DF.Data | None
 		is_spam: DF.Check
 	# end: auto-generated types
+
 	pass

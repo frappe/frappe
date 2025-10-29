@@ -27,6 +27,7 @@ class Translation(Document):
 		translated_text: DF.Code
 
 	# end: auto-generated types
+
 	def validate(self):
 		if is_html(self.source_text):
 			self.remove_html_from_source()

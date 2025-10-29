@@ -16,9 +16,6 @@ ASSET_KEYS = (
 	"__css",
 	"__list_js",
 	"__calendar_js",
-	"__map_js",
-	"__linked_with",
-	"__messages",
 	"__print_formats",
 	"__workflow_docs",
 	"__form_grid_templates",
@@ -29,20 +26,24 @@ ASSET_KEYS = (
 	"__templates",
 	"__custom_js",
 	"__custom_list_js",
+	"__workspaces",
 )
 
 
 def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
 	cached = cached and not frappe.conf.developer_mode
+	key = f"doctype_form_meta::{doctype}"
 	if cached:
-		meta = frappe.cache.hget("doctype_form_meta", doctype)
+		meta = frappe.client_cache.get_value(key)
 		if not meta:
-			# Cache miss - explicitly get meta from DB to avoid
+			# Cache miss - explicitly get meta from DB to avoid mismatches
 			meta = FormMeta(doctype, cached=False)
-			frappe.cache.hset("doctype_form_meta", doctype, meta)
+			frappe.client_cache.set_value(key, meta)
 	else:
-		meta = FormMeta(doctype)
+		# NOTE: In developer mode use cached `Meta` for better DX
+		#       In prod don't use cached meta when explicitly requesting from DB.
+		meta = FormMeta(doctype, cached=frappe.conf.developer_mode)
 
 	return meta
 
@@ -56,9 +57,6 @@ class FormMeta(Meta):
 		if self.get("__assets_loaded", False):
 			return
 
-		self.add_search_fields()
-		self.add_linked_document_type()
-
 		if not self.istable:
 			self.add_code()
 			self.add_custom_script()
@@ -67,20 +65,19 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
+			self.load_workspaces()
 
 		self.set("__assets_loaded", True)
 
 	def as_dict(self, no_nulls=False):
 		d = super().as_dict(no_nulls=no_nulls)
+		__dict = self.__dict__
 
 		for k in ASSET_KEYS:
-			d[k] = self.get(k)
+			d[k] = __dict.get(k)
 
-		# d['fields'] = d.get('fields', [])
-
-		for i, df in enumerate(d.get("fields") or []):
-			for k in ("search_fields", "is_custom_field", "linked_document_type"):
-				df[k] = self.get("fields")[i].get(k)
+		# add masked fields (per-user, per-meta)
+		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields()]
 
 		return d
 
@@ -181,19 +178,6 @@ class FormMeta(Meta):
 		self.set("__custom_js", form_script)
 		self.set("__custom_list_js", list_script)
 
-	def add_search_fields(self):
-		"""add search fields found in the doctypes indicated by link fields' options"""
-		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
-			if df.options:
-				try:
-					search_fields = frappe.get_meta(df.options).search_fields
-				except frappe.DoesNotExistError:
-					self._show_missing_doctype_msg(df)
-
-				if search_fields:
-					search_fields = search_fields.split(",")
-					df.search_fields = [sf.strip() for sf in search_fields]
-
 	def _show_missing_doctype_msg(self, df):
 		# A link field is referring to non-existing doctype, this usually happens when
 		# customizations are removed or some custom app is removed but hasn't cleaned
@@ -211,14 +195,6 @@ class FormMeta(Meta):
 			)
 
 		frappe.throw(msg, title=_("Missing DocType"))
-
-	def add_linked_document_type(self):
-		for df in self.get("fields", {"fieldtype": "Link"}):
-			if df.options:
-				try:
-					df.linked_document_type = frappe.get_meta(df.options).document_type
-				except frappe.DoesNotExistError:
-					self._show_missing_doctype_msg(df)
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql(
@@ -256,6 +232,37 @@ class FormMeta(Meta):
 
 	def load_dashboard(self):
 		self.set("__dashboard", self.get_dashboard_data())
+
+	def load_workspaces(self):
+		Shortcut = frappe.qb.DocType("Workspace Shortcut")
+		Workspace = frappe.qb.DocType("Workspace")
+		shortcut = (
+			frappe.qb.from_(Shortcut)
+			.select(Shortcut.parent)
+			.inner_join(Workspace)
+			.on(Workspace.name == Shortcut.parent)
+			.where(Shortcut.link_to == self.name)
+			.where(Shortcut.type == "DocType")
+			.where(Workspace.public == 1)
+			.run()
+		)
+		if shortcut:
+			self.set("__workspaces", [shortcut[0][0]])
+		else:
+			Link = frappe.qb.DocType("Workspace Link")
+			link = (
+				frappe.qb.from_(Link)
+				.select(Link.parent)
+				.inner_join(Workspace)
+				.on(Workspace.name == Link.parent)
+				.where(Link.link_type == "DocType")
+				.where(Link.link_to == self.name)
+				.where(Workspace.public == 1)
+				.run()
+			)
+
+			if link:
+				self.set("__workspaces", [link[0][0]])
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
