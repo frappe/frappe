@@ -208,8 +208,6 @@ frappe.breadcrumbs = {
 
 		let title = frappe.model.get_doc_title(doc);
 
-		if (title == doc.name) return; // title and name are same, don't add breadcrumb
-
 		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
 		this.append_breadcrumb_element(form_route, doc.name);
 
