@@ -176,7 +176,10 @@ def search_widget(
 	if not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
-		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
+		if frappe.db.db_type == "postgres":
+			_relevance = f"(1 / nullif(strpos(CAST(`tab{doctype}`.`name` AS varchar), {_txt}), 0))"
+		else:
+			_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
 		formatted_fields.append(f"""{_relevance} as `_relevance`""")
 		# Since we are sorting by alias postgres needs to know number of column we are sorting
 		if frappe.db.db_type == "mariadb":
