@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-26 09:33+0000\n"
-"PO-Revision-Date: 2025-10-29 05:37\n"
+"PO-Revision-Date: 2025-10-30 06:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -620,7 +620,8 @@ msgstr "<h5>Пример поруке</h5>\n\n"
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>Примери услова:</strong></p><pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -2612,7 +2613,7 @@ msgstr "Да ли сте сигурни да желите да сачувате 
 
 #: frappe/public/js/frappe/form/workflow.js:114
 msgid "Are you sure you want to {0}?"
-msgstr ""
+msgstr "Да ли сте сигурни да желите да {0}?"
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:16
 #: frappe/core/doctype/user_permission/user_permission_list.js:165
@@ -4605,7 +4606,7 @@ msgstr "Зависни DocType"
 
 #: frappe/core/doctype/doctype/doctype.py:1647
 msgid "Child Table {0} for field {1} must be virtual"
-msgstr ""
+msgstr "Зависна табела {0} за поље {1} мора бити виртуелна"
 
 #. Description of the 'Is Child Table' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -4643,7 +4644,7 @@ msgstr "Изабери метод аутентификације који ће �
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:94
 msgid "Chromium is not downloaded. Please run the setup first."
-msgstr ""
+msgstr "Chromium није преузет. Молимо Вас да најпре покренете поставку."
 
 #. Label of the city (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:39
@@ -5689,7 +5690,7 @@ msgstr "Није могуће обрадити поље: {0}"
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:199
 msgid "Could not start Chromium. Check logs for details."
-msgstr ""
+msgstr "Није могуће покренути Chromium. Проверите евиденцију за детаље."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up:"
@@ -8919,7 +8920,7 @@ msgstr "Омогући"
 #. Label of the enable_action_confirmation (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Enable Action Confirmation"
-msgstr ""
+msgstr "Омогући потврду радње"
 
 #. Label of the enable_address_autocompletion (Check) field in DocType
 #. 'Geolocation Settings'
@@ -10081,7 +10082,7 @@ msgstr "Поље {0} се односи на непостојећи доцтyпе
 
 #: frappe/core/doctype/doctype/doctype.py:1655
 msgid "Field {0} must be a virtual field to support virtual doctype."
-msgstr ""
+msgstr "Поље {0} мора бити виртуелно да би подржавало виртуелни DocType."
 
 #: frappe/public/js/frappe/form/form.js:1768
 msgid "Field {0} not found."
@@ -10776,7 +10777,7 @@ msgstr "За вредност"
 #. Description of the 'Subject' (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>"
-msgstr ""
+msgstr "За динамички наслов користите Jinja ознаке попут ове: <code>{{ doc.name }} Delivered</code>"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2156
 #: frappe/public/js/frappe/views/reports/report_view.js:108
@@ -12332,7 +12333,7 @@ msgstr "Уколико улога нема приступ на нивоу 0, в�
 #. 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "If checked, a confirmation will be required before performing workflow actions."
-msgstr ""
+msgstr "Уколико је означено, биће потребна потврда пре извршавања радњи у радном току."
 
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -13704,7 +13705,7 @@ msgstr "Завршено"
 #. Label of the is_current (Check) field in DocType 'User Session Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Is Current"
-msgstr ""
+msgstr "Активно"
 
 #. Label of the is_custom (Check) field in DocType 'Role'
 #. Label of the is_custom (Check) field in DocType 'User Document Type'
@@ -14521,7 +14522,7 @@ msgstr "Последња синхронизација на"
 #. Label of the last_updated (Datetime) field in DocType 'User Session Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Last Updated"
-msgstr ""
+msgstr "Последње ажурирање"
 
 #: frappe/model/meta.py:57 frappe/public/js/frappe/model/meta.js:213
 #: frappe/public/js/frappe/model/model.js:130
@@ -23638,7 +23639,7 @@ msgstr "Услуга"
 #. Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Session Created"
-msgstr ""
+msgstr "Сесија креирана"
 
 #. Name of a DocType
 #: frappe/core/doctype/session_default/session_default.json
@@ -23679,7 +23680,7 @@ msgstr "Истек сесије мора бити у формату {0}"
 #. Label of the sessions_tab (Tab Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Sessions"
-msgstr ""
+msgstr "Сесије"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:400
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:487
@@ -24408,7 +24409,7 @@ msgstr "Бочна трака и коментари"
 #. Label of the sign_out (Button) field in DocType 'User Session Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Sign Out"
-msgstr ""
+msgstr "Одјава"
 
 #. Label of the sign_up_and_confirmation_section (Section Break) field in
 #. DocType 'Email Group'
@@ -25457,7 +25458,7 @@ msgstr "Успешно је ресетован статус уводне обу�
 
 #: frappe/core/doctype/user/user.py:1451
 msgid "Successfully signed out"
-msgstr ""
+msgstr "Успешно одјављивање"
 
 #: frappe/public/js/frappe/views/translation_manager.js:22
 msgid "Successfully updated translations"
@@ -28511,7 +28512,7 @@ msgstr "Корисник бира врсту документа"
 #. Name of a DocType
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "User Session Display"
-msgstr ""
+msgstr "Приказ корисничке сесије"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -29032,7 +29033,7 @@ msgstr "Виртуелни DocType {} захтева редефинисање и
 
 #: frappe/core/doctype/doctype/doctype.py:1658
 msgid "Virtual tables must be virtual fields"
-msgstr ""
+msgstr "Виртуелне табеле морају бити виртуелна поља"
 
 #. Label of the visibility_section (Section Break) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -30599,7 +30600,7 @@ msgstr "отказано"
 #. Option for the 'PDF Generator' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "chrome"
-msgstr ""
+msgstr "chrome"
 
 #: frappe/templates/includes/list/filters.html:19
 msgid "clear"
