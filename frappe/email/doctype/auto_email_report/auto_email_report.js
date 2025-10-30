@@ -1,6 +1,8 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+frappe.provide("frappe.query_report");
+
 frappe.ui.form.on("Auto Email Report", {
 	refresh: function (frm) {
 		frm.trigger("fetch_report_filters");
@@ -169,6 +171,7 @@ frappe.ui.form.on("Auto Email Report", {
 				$("<td>" + frappe.format(filters[f.fieldname], f) + "</td>")
 					.css(css)
 					.appendTo(row);
+				f.onchange = f.on_change;
 			});
 
 			table.on("click", function () {
@@ -183,7 +186,11 @@ frappe.ui.form.on("Auto Email Report", {
 						}
 					},
 				});
+
+				bind_query_report_to_dialog(dialog);
 				dialog.show();
+				reference_report.onload();
+
 				dialog.set_values(filters);
 			});
 
@@ -197,3 +204,24 @@ frappe.ui.form.on("Auto Email Report", {
 		}
 	},
 });
+
+const bind_query_report_to_dialog = function (dialog) {
+	frappe.query_report = {
+		get_filter_value(fieldname) {
+			return dialog.get_value(fieldname);
+		},
+
+		set_filter_value(fieldname, value) {
+			let field_value_map = {};
+			if (typeof fieldname === "string") {
+				field_value_map[fieldname] = value;
+			} else {
+				field_value_map = fieldname;
+			}
+
+			Object.keys(field_value_map).forEach((key) => {
+				dialog.set_value(key, field_value_map[key]);
+			});
+		},
+	};
+};
