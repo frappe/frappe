@@ -91,13 +91,21 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		# I don't know why we support currency option for float
 		currency = currency or get_field_currency(df, doc)
 
-		# show 1.000000 as 1
-		# options should not specified
-		if not df.options and value is not None:
+		system_float_precision = frappe.db.get_default("float_precision")
+		has_system_precision = system_float_precision is not None and system_float_precision != ""
+		has_explicit_precision = df.precision is not None and df.precision != ""
+		# Auto-detect precision for whole numbers when:
+		# 1. No field-specific precision is set
+		# 2. No system-wide precision is configured
+		# This ensures values like 1.000000 are displayed as "1" instead of "1.000000"
+		if not has_explicit_precision and not has_system_precision and not df.options and value is not None:
 			temp = cstr(value).split(".")
 			if len(temp) == 1 or cint(temp[1]) == 0:
 				precision = 0
-
+		elif (has_explicit_precision or has_system_precision) and not df.options and value is not None:
+			# Format as regular float with specified precision
+			return "%.*f" % (precision, flt(value))
+		
 		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Percent":
