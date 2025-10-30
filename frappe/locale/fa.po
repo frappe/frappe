@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-26 09:33+0000\n"
-"PO-Revision-Date: 2025-10-29 05:37\n"
+"PO-Revision-Date: 2025-10-30 06:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9894,7 +9894,7 @@ msgstr "فیلد {0} به نوع سند موجود {1} اشاره دارد."
 
 #: frappe/core/doctype/doctype/doctype.py:1655
 msgid "Field {0} must be a virtual field to support virtual doctype."
-msgstr ""
+msgstr "فیلد {0} باید یک فیلد مجازی باشد تا از نوع سند مجازی پشتیبانی کند."
 
 #: frappe/public/js/frappe/form/form.js:1768
 msgid "Field {0} not found."
