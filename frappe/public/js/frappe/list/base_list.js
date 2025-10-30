@@ -794,7 +794,13 @@ class FilterArea {
 						fields_dict[fieldname]?.df?.fieldtype == "Link"))
 			) {
 				// standard filter
-				out.promise = out.promise.then(() => fields_dict[fieldname].set_value(value));
+				out.promise = out.promise.then(() => {
+					// Set match type for fields that support it
+					if (fields_dict[fieldname].df) {
+						fields_dict[fieldname].df.match_type = condition;
+					}
+					return fields_dict[fieldname].set_value(value);
+				});
 			} else {
 				// filter out non standard filters
 				out.non_standard_filters.push(filter);
@@ -941,23 +947,110 @@ class FilterArea {
 
 		fields.map((df) => {
 			this.list_view.page.add_field(df, this.standard_filters_wrapper);
+
+			const input_fieldtypes = [
+				"Data",
+				"Text",
+				"Small Text",
+				"Long Text",
+				"Code",
+				"Phone",
+				"Read Only",
+				"Barcode",
+			];
+
+			if (input_fieldtypes.includes(df.fieldtype)) {
+				df.match_type = df.condition === "=" ? "=" : "like";
+				this.filter_field_with_match_type(df);
+			}
 		});
+	}
+
+	filter_field_with_match_type(df) {
+		setTimeout(() => {
+			const field = this.list_view.page.fields_dict[df.fieldname];
+			if (!field || !field.$wrapper) return;
+
+			const $wrapper = field.$wrapper.addClass("filter-match-type-enhanced");
+			const $input = $wrapper.find("input").first();
+			if (!$input.length) return;
+
+			$input.wrap('<div class="position-relative"></div>');
+			const $input_container = $input.parent();
+
+			const $select = $(`
+				<select class="form-control" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; opacity: 0; border: none; background: transparent; z-index: 1;">
+					<option value="like">Wildcard (Like)</option>
+					<option value="=">Exact (Is)</option>
+				</select>
+			`).appendTo($input_container);
+
+			const $indicator = $(`
+				<span title="Filter Match Type"
+					style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; z-index: 2;">
+					${frappe.utils.icon("filter", "xs")}
+				</span>
+			`).appendTo($input_container);
+
+			if (!$("#filter-select-options-styles").length) {
+				$(
+					'<style id="filter-select-options-styles">\
+					.filter-match-type-enhanced select option {\
+						background-color: var(--control-bg);\
+						color: var(--text-color);\
+					}\
+				</style>'
+				).appendTo("head");
+			}
+
+			$select.val(field.df.match_type || "like");
+
+			$indicator.off("click").on("click", (e) => {
+				e.stopPropagation();
+
+				if (typeof $select[0].showPicker === "function") {
+					$select[0].showPicker();
+				} else {
+					const mouseEvent = new MouseEvent("mousedown", {
+						bubbles: true,
+						cancelable: true,
+						view: window,
+					});
+					$select[0].dispatchEvent(mouseEvent);
+				}
+			});
+
+			$select.on("change", (e) => {
+				field.df.match_type = $(e.target).val();
+				this.debounced_refresh_list_view();
+			});
+		}, 100);
 	}
 
 	get_standard_filters() {
 		const filters = [];
 		const fields_dict = this.list_view.page.fields_dict;
+
 		for (let key in fields_dict) {
 			let field = fields_dict[key];
 			let value = field.get_value();
 			if (value) {
-				if (field.df.condition === "like" && !value.includes("%")) {
-					value = "%" + value + "%";
+				let match_type = field.df.match_type || "like";
+				let condition = field.df.condition || match_type;
+
+				if (match_type === "like") {
+					if (condition === "like" && !value.includes("%")) {
+						value = "%" + value + "%";
+					}
+				} else if (match_type === "=") {
+					condition = "=";
+					value = value.replace(/^%+/, "").replace(/%+$/, "");
 				}
+
 				filters.push([
 					field.df.doctype || this.list_view.doctype,
 					field.df.fieldname,
-					field.df.condition || "=",
+					condition,
 					value,
 				]);
 			}
