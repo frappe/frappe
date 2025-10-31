@@ -84,12 +84,9 @@ def get_data(filters: dict) -> list[list]:
 	"""
 	agg_perms = defaultdict(lambda: {perm_type: 0 for perm_type in PERM_TYPES})
 	doctype, user = filters.get("doctype"), filters.get("user")
-	role_user_map = None
+	role_user_map = get_all_user_roles() if not user else {}
 
-	if not user:
-		role_user_map = get_all_user_roles()
-
-	for perm in get_valid_perms(doctype, user, role_user_map and role_user_map.keys()):
+	for perm in get_valid_perms(doctype, user, role_user_map.keys()):
 		if perm["permlevel"] != 0:  # ignore permlevel
 			continue
 
@@ -97,10 +94,7 @@ def get_data(filters: dict) -> list[list]:
 		if_owner = perm["if_owner"]
 		role = perm["role"]
 
-		if user:
-			users = [user]
-		else:
-			users = role_user_map.get(role, [])
+		users = [user] if user else role_user_map.get(role, [])
 
 		for perm_type in PERM_TYPES:
 			if perm_type not in perm:
