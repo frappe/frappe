@@ -8,7 +8,12 @@ frappe.query_reports["User Doctype Permissions"] = {
 			label: __("User"),
 			fieldtype: "Link",
 			options: "User",
-			reqd: 1,
+		},
+		{
+			fieldname: "doctype",
+			label: __("Doctype"),
+			fieldtype: "Link",
+			options: "DocType",
 		},
 	],
 };
