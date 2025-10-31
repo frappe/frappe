@@ -180,6 +180,69 @@
             },
             "showFooter": {
               "type": "boolean"
+            },
+            "compareFn": {
+              "$comment": "(a: Option, b: Option) => boolean",
+              "type": "object",
+              "properties": {
+                "namedArgs": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ]
+                    },
+                    "b": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "maxOptions": {
+              "type": "number"
             }
           },
           "required": [
@@ -356,6 +419,69 @@
             },
             "showFooter": {
               "type": "boolean"
+            },
+            "compareFn": {
+              "$comment": "(a: Option, b: Option) => boolean",
+              "type": "object",
+              "properties": {
+                "namedArgs": {
+                  "type": "object",
+                  "properties": {
+                    "a": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ]
+                    },
+                    "b": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "value"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "a",
+                    "b"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "maxOptions": {
+              "type": "number"
             }
           },
           "required": [

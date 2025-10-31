@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TimePickerProps",
+  "definitions": {
+    "TimePickerProps": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "modelValue": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "number"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "placement": {
+          "type": "string",
+          "enum": [
+            "bottom-start",
+            "top-start",
+            "top-end",
+            "bottom-end",
+            "right-start",
+            "right-end",
+            "left-start",
+            "left-end"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "outline",
+            "subtle"
+          ]
+        },
+        "allowCustom": {
+          "type": "boolean"
+        },
+        "autoClose": {
+          "type": "boolean"
+        },
+        "use12Hour": {
+          "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "scrollMode": {
+          "type": "string",
+          "enum": [
+            "center",
+            "start",
+            "nearest"
+          ]
+        },
+        "minTime": {
+          "type": "string"
+        },
+        "maxTime": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -21,12 +21,9 @@
         "disabled": {
           "type": "boolean"
         },
-        "modelValue": {
-          "type": [
-            "boolean",
-            "number",
-            "string"
-          ]
+        "icon": {},
+        "labelClasses": {
+          "type": "string"
         }
       },
       "additionalProperties": false
