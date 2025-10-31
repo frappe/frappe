@@ -68,7 +68,7 @@ import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/helpers"
 import type { DocTypeField } from "@/types"
 import components from "@/data/components"
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
 import { toast } from "vue-sonner"
 

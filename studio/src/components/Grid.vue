@@ -102,7 +102,7 @@ import { reactive, computed } from "vue"
 import { FormControl, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 import { generateId } from "@/utils/helpers"
 import type { GridColumn, GridRow } from "@/types/doctype"
 

@@ -108,7 +108,7 @@ export type Operators = "=" | "!=" | ">" | "<" | ">=" | "<=" | "like" | "not lik
 export type Filter = {
 	fieldname: string
 	operator: Operators
-	value: string
+	value?: string | null
 	field: DocTypeField
 }
 

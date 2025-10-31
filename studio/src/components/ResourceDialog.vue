@@ -173,7 +173,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl } from "frappe-ui"
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 import Code from "@/components/Code.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
