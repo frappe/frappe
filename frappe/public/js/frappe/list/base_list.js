@@ -860,7 +860,7 @@ class FilterArea {
 			fields.push({
 				fieldtype: "Data",
 				label: "ID",
-				condition: "like",
+				condition: "=",
 				fieldname: "name",
 				onchange: () => this.debounced_refresh_list_view(),
 			});
@@ -915,7 +915,7 @@ class FilterArea {
 						].includes(fieldtype)
 					) {
 						fieldtype = "Data";
-						condition = "like";
+						condition = "=";
 					}
 					if (df.fieldtype == "Select" && df.options) {
 						options = df.options.split("\n");
@@ -960,7 +960,7 @@ class FilterArea {
 			];
 
 			if (input_fieldtypes.includes(df.fieldtype)) {
-				df.match_type = df.condition === "=" ? "=" : "like";
+				df.match_type = df.condition || "=";
 				this.filter_field_with_match_type(df);
 			}
 		});
@@ -978,59 +978,67 @@ class FilterArea {
 			$input.wrap('<div class="position-relative"></div>');
 			const $input_container = $input.parent();
 
-			const $select = $(`
-				<select class="form-control" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; opacity: 0; border: none; background: transparent; z-index: 1;">
-					<option value="like">Wildcard (Like)</option>
-					<option value="=">Exact (=)</option>
-				</select>
-			`).appendTo($input_container);
-			const getSymbol = (match_type) => (match_type === "=" ? "=" : "%");
+			const getSymbol = (match_type) => (match_type === "=" ? "=" : "≈");
+			const getTitle = (match_type) =>
+				match_type === "=" ? __("Exact Match") : __("Contains Match");
 
 			const $indicator = $(`
-				<span title="Match Type"
-					style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 2;">
-					${getSymbol(df.match_type || "like")}
+				<span title="${getTitle(df.match_type || "=")}" class="filter-match-type-indicator">
+					${getSymbol(df.match_type || "=")}
 				</span>
 			`).appendTo($input_container);
 
-			if (!$("#filter-select-options-styles").length) {
-				$(
-					'<style id="filter-select-options-styles">\
-					.filter-match-type-enhanced select option {\
-						background-color: var(--control-bg);\
-						color: var(--text-color);\
-					}\
-				</style>'
-				).appendTo("head");
-			}
+			const $dropdown = $(`
+				<div class="filter-match-type-dropdown dropdown-menu">
+					<a class="dropdown-item" data-value="=">${__("Exact Match (Equals)")}</a>
+					<a class="dropdown-item" data-value="like">${__("Contains Match (Like)")}</a>
+				</div>
+			`).appendTo($input_container);
 
-			$select.val(field.df.match_type || "like");
+			// Update active state
+			const updateDropdown = (match_type) => {
+				$dropdown.find(".dropdown-item").removeClass("active");
+				$dropdown.find(`[data-value="${match_type}"]`).addClass("active");
+			};
 
+			updateDropdown(field.df.match_type || "=");
+
+			// Toggle dropdown on click
 			$indicator.off("click").on("click", (e) => {
 				e.stopPropagation();
+				const isVisible = $dropdown.is(":visible");
 
-				if (typeof $select[0].showPicker === "function") {
-					$select[0].showPicker();
-				} else {
-					const mouseEvent = new MouseEvent("mousedown", {
-						bubbles: true,
-						cancelable: true,
-						view: window,
-					});
-					$select[0].dispatchEvent(mouseEvent);
+				// Hide all other dropdowns
+				$(".filter-match-type-dropdown").hide();
+
+				if (!isVisible) {
+					$dropdown.show();
 				}
 			});
 
-			$select.on("change", (e) => {
-				const new_type = $(e.target).val();
+			// Handle dropdown item click
+			$dropdown.on("click", ".dropdown-item", (e) => {
+				e.preventDefault();
+				const new_type = $(e.currentTarget).data("value");
 				field.df.match_type = new_type;
 				$indicator.text(getSymbol(new_type));
+				$indicator.attr("title", getTitle(new_type));
+				updateDropdown(new_type);
+				$dropdown.hide();
+
 				let value = field.get_value?.();
-				if (new_type === "=" && value && value.startsWith("%") && value.endsWith("%")) {
-					field.set_value(value.slice(1, -1));
+				if (new_type === "=" && value) {
+					field.set_value(value.replace(/^%+|%+$/g, ""));
 				}
 
 				this.debounced_refresh_list_view();
+			});
+
+			// Close dropdown when clicking outside
+			$(document).on("click", (e) => {
+				if (!$(e.target).closest($input_container).length) {
+					$dropdown.hide();
+				}
 			});
 		}, 100);
 	}
@@ -1043,16 +1051,20 @@ class FilterArea {
 			let field = fields_dict[key];
 			let value = field.get_value();
 			if (value) {
-				let match_type = field.df.match_type || "like";
-				let condition = field.df.condition || match_type;
+				let match_type = field.df.match_type || "=";
+				let condition;
 
 				if (match_type === "like") {
-					if (condition === "like" && !value.includes("%")) {
+					condition = "like";
+					if (!value.includes("%")) {
 						value = "%" + value + "%";
 					}
 				} else if (match_type === "=") {
 					condition = "=";
-					value = value.replace(/^%+/, "").replace(/%+$/, "");
+					value = value.replace(/^%+|%+$/g, "");
+				} else {
+					// For special conditions like "descendants of (inclusive)"
+					condition = field.df.condition || match_type;
 				}
 
 				filters.push([
