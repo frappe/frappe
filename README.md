@@ -2,7 +2,8 @@
 	<img src=".github/framework-logo-new.svg" width="80" height="80"/>
 	<h1>Frappe Framework</h1>
 
- **Low Code Web Framework For Real World Applications, In Python And JavaScript**
+**Low Code Web Framework For Real World Applications, In Python And JavaScript**
+
 </div>
 
 <div align="center">
@@ -19,6 +20,7 @@
 </div>
 
 ## Frappe Framework
+
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for ERPNext.
 
 ## Philosophy
@@ -27,7 +29,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 Started in 2005, Frappe Framework was inspired by the Semantic Web. The "big idea" behind semantic web was of a framework that not only described how information is shown (like headings, body etc), but also what it means, like name, address etc.
 
-By creating a web framework that allowed for easy definition of metadata, it made building complex applications easy. Applications usually designed around how users interact with a system, but not based on semantics of the underlying system. Applications built on semantics end up being much more consistent and extensible. 
+By creating a web framework that allowed for easy definition of metadata, it made building complex applications easy. Applications usually designed around how users interact with a system, but not based on semantics of the underlying system. Applications built on semantics end up being much more consistent and extensible.
 
 The first application built on Framework was ERPNext, a beast with more than 700 object types. Framework is not for the light hearted - it is not the first thing you might want to learn if you are beginning to learn web programming, but if you are ready to do real work, then Framework is the right tool for the job.
 
@@ -51,6 +53,7 @@ The first application built on Framework was ERPNext, a beast with more than 700
 ![List View](.github/fw-list-view.png)
 ![Form View](.github/fw-form-view.png)
 ![Role Permission Manager](.github/fw-rpm.png)
+
 </details>
 
 ## Production Setup
@@ -73,6 +76,7 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 ### Self Hosting
 
 ### Docker
+
 Prerequisites: docker, docker-compose, git. Refer [Docker Documentation](https://docs.docker.com) for more details on Docker setup.
 
 Run following commands:
@@ -80,16 +84,18 @@ Run following commands:
 ```
 git clone https://github.com/frappe/frappe_docker
 cd frappe_docker
-docker compose -f pwd.yml up -d
+docker-compose -f pwd.yml up -d
 ```
 
 After a couple of minutes, site should be accessible on your localhost port: 8080. Use below default login credentials to access the site.
+
 - Username: Administrator
 - Password: admin
 
 See [Frappe Docker](https://github.com/frappe/frappe_docker?tab=readme-ov-file#to-run-on-arm64-architecture-follow-this-instructions) for ARM based docker setup.
 
 ## Development Setup
+
 ### Manual Install
 
 The Easy Way: our install script for bench will install all dependencies (e.g. MariaDB). See https://github.com/frappe/bench for more details.
@@ -101,11 +107,13 @@ New passwords will be created for the Frappe "Administrator" user, the MariaDB r
 To setup the repository locally follow the steps mentioned below:
 
 1. Setup bench by following the [Installation Steps](https://docs.frappe.io/framework/user/en/installation) and start the server
+
    ```
    bench start
    ```
 
 2. In a separate terminal window, run the following commands:
+
    ```
    # Create a new site
    bench new-site frappe.localhost
@@ -125,7 +133,7 @@ To setup the repository locally follow the steps mentioned below:
 1. [Issue Guidelines](https://github.com/frappe/erpnext/wiki/Issue-Guidelines)
 1. [Report Security Vulnerabilities](https://frappe.io/security)
 1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
-2. [Translations](https://crowdin.com/project/frappe)
+1. [Translations](https://crowdin.com/project/frappe)
 
 <br>
 <br>
