@@ -77,7 +77,15 @@ const props = defineProps<{
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
-const formMeta = ref({
+type FormField = DocTypeField & {
+	componentName: string
+	componentType: string
+	name: string
+}
+const formMeta = ref<{
+	doctype: string
+	fields: FormField[]
+}>({
 	doctype: "",
 	fields: [],
 })
@@ -95,6 +103,7 @@ const doctypeFields = createResource({
 				value: field.fieldname,
 				componentName: componentName,
 				componentType: componentType,
+				name: field.fieldname,
 			}
 		})
 	},
@@ -150,7 +159,7 @@ const getComponentFromFieldType = (fieldType: string) => {
 const addFields = () => {
 	if (!props.block) return
 
-	formMeta.value.fields.forEach((field) => {
+	formMeta.value.fields.forEach((field: FormField) => {
 		const newBlock = getComponentBlock(field.componentName)
 		newBlock?.setProp("label", field.label)
 		if (field.componentName === "FormControl") {
