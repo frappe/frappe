@@ -4,30 +4,35 @@ import path from "path"
 
 const configMap: Record<string, any> = {
 	frappeui: {
-		typesFolder: "../node_modules/frappe-ui/src/components",
+		srcFolders: [
+			"../node_modules/frappe-ui/src/components",
+			"../node_modules/frappe-ui/frappe",
+		],
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.json",
-		isFrappeUI: true,
 	},
 	studio: {
-		typesFolder: "src/types/studio_components",
+		srcFolders: ["src/types/studio_components"],
 		destFolder: "src/json_types/studio",
 		tsconfigPath: "tsconfig.json",
-		isFrappeUI: false,
 	},
 }
 
 const moduleName = process.argv[2]
 if (!moduleName || !configMap[moduleName]) {
 	console.error(
-		`Invalid or missing moduleName. Please specify one of the following modules:\n- ${Object.keys(configMap).join("\n- ")}`,
+		`Invalid or missing moduleName. Please specify one of the following modules:\n- ${Object.keys(
+			configMap,
+		).join("\n- ")}`,
 	)
 	process.exit(1)
 }
 
 /* 1. Generate JSON types */
-const { typesFolder, destFolder, tsconfigPath, isFrappeUI } = configMap[moduleName]
-tsToJSON(typesFolder, destFolder, tsconfigPath, isFrappeUI)
+const { srcFolders, destFolder, tsconfigPath } = configMap[moduleName]
+srcFolders.forEach((srcFolder: string) => {
+	tsToJSON(srcFolder, destFolder, tsconfigPath, moduleName === "frappeui")
+})
 
 /* 2. Update index file */
 const indexFilePath = "src/json_types/index.ts"
