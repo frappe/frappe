@@ -981,14 +981,15 @@ class FilterArea {
 			const $select = $(`
 				<select class="form-control" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; opacity: 0; border: none; background: transparent; z-index: 1;">
 					<option value="like">Wildcard (Like)</option>
-					<option value="=">Exact (Is)</option>
+					<option value="=">Exact (=)</option>
 				</select>
 			`).appendTo($input_container);
+			const getSymbol = (match_type) => (match_type === "=" ? "=" : "%");
 
 			const $indicator = $(`
-				<span title="Filter Match Type"
-					style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; z-index: 2;">
-					${frappe.utils.icon("filter", "xs")}
+				<span title="Match Type"
+					style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 2;">
+					${getSymbol(df.match_type || "like")}
 				</span>
 			`).appendTo($input_container);
 
@@ -1021,7 +1022,14 @@ class FilterArea {
 			});
 
 			$select.on("change", (e) => {
-				field.df.match_type = $(e.target).val();
+				const new_type = $(e.target).val();
+				field.df.match_type = new_type;
+				$indicator.text(getSymbol(new_type));
+				let value = field.get_value?.();
+				if (new_type === "=" && value && value.startsWith("%") && value.endsWith("%")) {
+					field.set_value(value.slice(1, -1));
+				}
+
 				this.debounced_refresh_list_view();
 			});
 		}, 100);
