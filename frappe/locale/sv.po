@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-10-26 09:33+0000\n"
-"PO-Revision-Date: 2025-10-29 05:37\n"
+"PO-Revision-Date: 2025-11-01 07:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -15648,7 +15648,7 @@ msgstr "Maximum 500 poster åt gången"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Max Attachments"
-msgstr "Maximum Antal Bilagor"
+msgstr "Maximal Antal Bilagor"
 
 #. Label of the max_file_size (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -15684,7 +15684,7 @@ msgstr "Max Bilaga storlek"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max auto email report per user"
-msgstr "Maximum Antal Automatiska E-post Rapporter per Användare"
+msgstr "Maximal Antal Automatiska E-post Rapporter per Användare"
 
 #. Label of the max_signups_allowed_per_hour (Int) field in DocType 'System
 #. Settings'
@@ -18845,7 +18845,7 @@ msgstr "Lösenord Återställning"
 #. Label of the password_reset_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Password Reset Link Generation Limit"
-msgstr "Maximum Antal Lösenord Återställning Länkar per timme"
+msgstr "Maximal Antal Lösenord Återställning Länkar per timme"
 
 #: frappe/public/js/frappe/form/grid_row.js:897
 msgid "Password cannot be filtered"
