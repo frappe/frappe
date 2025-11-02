@@ -1477,8 +1477,8 @@ export default class GridRow {
 		}
 		this.wrapper.removeClass("grid-row-open");
 
-		if (this.grid.meta.editable_grid) {
-			this.open_form_button.parent().focus();
+		if (this.grid.meta?.editable_grid) {
+			this.open_form_button?.parent().focus();
 		}
 	}
 	has_prev() {
