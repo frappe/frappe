@@ -3,6 +3,8 @@
 
 import os
 
+from rq.command import send_stop_job_command
+from rq.exceptions import InvalidJobOperation
 from rq.timeouts import JobTimeoutException
 
 import frappe
@@ -12,7 +14,7 @@ from frappe.core.doctype.data_import.importer import Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils.background_jobs import enqueue, is_job_enqueued
+from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
 BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
@@ -149,6 +151,21 @@ def form_start_import(data_import: str):
 	di: DataImport = frappe.get_doc("Data Import", data_import)
 	di.check_permission("write")
 	return di.start_import()
+
+
+@frappe.whitelist()
+def stop_data_import(doc_name: str):
+	"""Stop a running Data Import job."""
+	data_import = frappe.get_doc("Data Import", doc_name)
+	data_import.check_permission("write")
+
+	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
+	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
+	try:
+		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
+	except InvalidJobOperation:
+		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+	return {"status": "success", "message": "Job stopped successfully"}
 
 
 def start_import(data_import):

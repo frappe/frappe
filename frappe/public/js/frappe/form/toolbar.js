@@ -26,7 +26,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.page.hide_menu();
 				this.print_icon && this.print_icon.addClass("hide");
 			} else {
-				this.page.show_menu();
+				if (this.page.menu.children().length > 0) {
+					this.page.show_menu();
+				} else {
+					this.page.hide_menu();
+				}
 				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}

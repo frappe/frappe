@@ -4,12 +4,16 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
+from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
 
 def document_list(doctype: str):
 	if frappe.form_dict.get("fields"):
 		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
+
+	if frappe.form_dict.get("expand"):
+		frappe.form_dict["expand"] = json.loads(frappe.form_dict["expand"])
 
 	# set limit of records for frappe.get_list
 	frappe.form_dict.setdefault(
@@ -74,7 +78,35 @@ def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
-	return doc
+	doc_dict = doc.as_dict()
+	if sbool(frappe.form_dict.get("expand_links")):
+		get_values_for_link_and_dynamic_link_fields(doc_dict)
+		get_values_for_table_and_multiselect_fields(doc_dict)
+
+	return doc_dict
+
+
+def get_values_for_link_and_dynamic_link_fields(doc_dict):
+	meta = frappe.get_meta(doc_dict.doctype)
+	link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+
+	for field in link_fields:
+		if not (doc_fieldvalue := getattr(doc_dict, field.fieldname, None)):
+			continue
+
+		doctype = field.options if field.fieldtype == "Link" else doc_dict.get(field.options)
+
+		link_doc = frappe.get_doc(doctype, doc_fieldvalue)
+		doc_dict.update({field.fieldname: link_doc})
+
+
+def get_values_for_table_and_multiselect_fields(doc_dict):
+	meta = frappe.get_meta(doc_dict.doctype)
+	table_fields = meta.get_table_fields()
+
+	for field in table_fields:
+		table_link_fieldnames = [f.fieldname for f in frappe.get_meta(field.options).get_link_fields()]
+		attach_expanded_links(field.options, doc_dict.get(field.fieldname), table_link_fieldnames)
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):

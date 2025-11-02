@@ -720,7 +720,9 @@ class InboundMail(Email):
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(message_id=self.message_id, order_by="creation DESC")
+		return Communication.find_one_by_filters(
+			message_id=self.message_id, sent_or_received="Received", order_by="creation DESC"
+		)
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
@@ -766,7 +768,9 @@ class InboundMail(Email):
 		if not self.is_reply():
 			return ""
 
-		communication = Communication.find_one_by_filters(message_id=self.in_reply_to)
+		communication = Communication.find_one_by_filters(
+			message_id=self.in_reply_to, order_by="creation DESC"
+		)
 		if not communication:
 			if self.parent_email_queue() and self.parent_email_queue().communication:
 				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)

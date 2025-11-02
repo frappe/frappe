@@ -64,6 +64,7 @@ from frappe.utils.data import (
 	duration_to_seconds,
 	evaluate_filters,
 	expand_relative_urls,
+	format_duration,
 	get_datetime,
 	get_first_day_of_week,
 	get_time,
@@ -783,6 +784,24 @@ class TestDateUtils(IntegrationTestCase):
 		self.assertEqual(duration_to_seconds("1h"), 3600)
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
+
+	def test_format_duration(self):
+		# Basic positive durations
+		self.assertEqual(format_duration(0), "")
+		self.assertEqual(format_duration(45.7), "45s")
+		self.assertEqual(format_duration(90.9), "1m 30s")
+		self.assertEqual(format_duration(3600), "1h")
+		self.assertEqual(format_duration("12885"), "3h 34m 45s")
+		self.assertEqual(format_duration(86400), "1d")
+		self.assertEqual(format_duration(86401), "1d 1s")
+
+		# Negative durations
+		self.assertEqual(format_duration(-45.3), "-45s")
+		self.assertEqual(format_duration(-12885), "-3h 34m 45s")
+
+		# hide_days parameter
+		self.assertEqual(format_duration(86400, hide_days=True), "24h")
+		self.assertEqual(format_duration(90061, hide_days=True), "25h 1m 1s")
 
 	def test_get_timespan_date_range(self):
 		supported_timespans = [
