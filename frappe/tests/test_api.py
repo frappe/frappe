@@ -138,13 +138,24 @@ class FrappeAPITestCase(IntegrationTestCase):
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
 	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
+	TEST_USER = "test@restapi.com"
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.GENERATED_DOCUMENTS = []
+		user = frappe.get_doc(
+			{"doctype": "User", "email": cls.TEST_USER, "first_name": "Test User", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+
 		for _ in range(20):
-			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
-			cls.GENERATED_DOCUMENTS = []
+			doc = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": frappe.mock("paragraph"),
+					"allocated_to": user.name,
+				}
+			).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
 
@@ -153,6 +164,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		frappe.db.commit()
 		for name in cls.GENERATED_DOCUMENTS:
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
+		frappe.delete_doc_if_exists("User", cls.TEST_USER)
 		frappe.db.commit()
 
 	def test_unauthorized_call(self):
@@ -166,6 +178,35 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn("data", response.json)
+
+	def test_get_list_expand(self):
+		response = self.get(
+			self.resource(self.DOCTYPE),
+			{
+				"sid": self.sid,
+				"filters": json.dumps([["name", "=", self.GENERATED_DOCUMENTS[0]]]),
+				"fields": json.dumps(["allocated_to", "name"]),
+				"expand": json.dumps(["allocated_to"]),
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIn("data", response.json)
+		self.assertIn("allocated_to", response.json["data"][0])
+		self.assertIsInstance(response.json["data"][0]["allocated_to"], dict)
+		self.assertIn("name", response.json["data"][0]["allocated_to"])
+
+	def test_get_doc_expand(self):
+		response = self.get(
+			self.resource(self.DOCTYPE, self.GENERATED_DOCUMENTS[0]),
+			{
+				"expand_links": json.dumps(True),
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIn("data", response.json)
+		self.assertIsInstance(response.json["data"]["allocated_to"], dict)
 
 	def test_get_list_limit(self):
 		# test 3: fetch data with limit
