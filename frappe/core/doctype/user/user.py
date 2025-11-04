@@ -857,7 +857,7 @@ class User(Document):
 				"label": _("Add Roles"),
 				"client_action": "eval",
 				"args": f"""
-							frappe.set_route('Form', 'User', {self.name}) + history.replaceState(null, '', '#roles_permissions_tab')
+							frappe.set_route('Form', 'User', '{self.name}') + history.replaceState(null, '', '#roles_permissions_tab')
 							cur_frm.refresh()
 							cur_dialog.hide()
 						""",
