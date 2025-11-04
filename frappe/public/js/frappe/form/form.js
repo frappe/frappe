@@ -369,6 +369,8 @@ frappe.ui.form.Form = class FrappeForm {
 				on_success(file_doc) {
 					me.attachments.attachment_uploaded(file_doc);
 				},
+				make_attachments_public: me.meta.make_attachments_public,
+				attachments_must_be_private: me.meta.attachments_must_be_private,
 			});
 		});
 	}

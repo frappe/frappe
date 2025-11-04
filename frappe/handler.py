@@ -144,6 +144,10 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
+	attachments_must_be_private = doctype and frappe.get_meta(doctype).attachments_must_be_private
+	if attachments_must_be_private:
+		is_private = True
+
 	if library_file := frappe.form_dict.get("library_file_name"):
 		frappe.has_permission("File", doc=library_file, throw=True)
 		doc = frappe.get_value(
@@ -152,7 +156,8 @@ def upload_file():
 			["is_private", "file_url", "file_name"],
 			as_dict=True,
 		)
-		is_private = doc.is_private
+		# Use library file's privacy setting unless doctype requires private attachments
+		is_private = doc.is_private if not attachments_must_be_private else True
 		file_url = doc.file_url
 		filename = doc.file_name
 

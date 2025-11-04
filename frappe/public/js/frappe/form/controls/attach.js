@@ -84,6 +84,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			options.make_attachments_public = this.df.make_attachment_public
 				? 1
 				: this.frm.meta.make_attachments_public;
+			options.attachments_must_be_private = this.df.attachments_must_be_private
+				? 1
+				: this.frm.meta.attachments_must_be_private;
 		}
 
 		if (this.df.options) {

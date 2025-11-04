@@ -137,6 +137,7 @@ class DocType(Document):
 		istable: DF.Check
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
+		attachments_must_be_private: DF.Check
 		max_attachments: DF.Int
 		migration_hash: DF.Data | None
 		module: DF.Link

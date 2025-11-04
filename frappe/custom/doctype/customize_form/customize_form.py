@@ -60,6 +60,7 @@ class CustomizeForm(Document):
 		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
+		attachments_must_be_private: DF.Check
 		max_attachments: DF.Int
 		naming_rule: DF.Literal[
 			"",
@@ -734,6 +735,7 @@ doctype_properties = {
 	"editable_grid": "Check",
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
+	"attachments_must_be_private": "Check",
 	"protect_attached_files": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",

@@ -56,6 +56,7 @@
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "make_attachments_public",
+  "attachments_must_be_private",
   "view_settings",
   "show_title_field_in_link",
   "translated_doctype",
@@ -605,6 +606,12 @@
    "label": "Make Attachments Public by Default"
   },
   {
+     "default": "0",
+     "fieldname": "attachments_must_be_private",
+     "fieldtype": "Check",
+     "label": "Attachments Must Be Private"
+   },
+   {
    "default": "0",
    "depends_on": "eval: doc.is_submittable",
    "description": "Enabling this will submit documents in background",
@@ -792,7 +799,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2025-09-23 06:48:13.555017",
+ "modified": "2025-10-16 13:23:15.386425",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

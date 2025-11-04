@@ -244,6 +244,7 @@ frappe.ui.form.Attachments = class Attachments {
 			},
 			restrictions,
 			make_attachments_public: this.frm.meta.make_attachments_public,
+			attachments_must_be_private: this.frm.meta.attachments_must_be_private,
 		});
 	}
 	get_args() {

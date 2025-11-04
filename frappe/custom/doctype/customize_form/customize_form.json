@@ -34,6 +34,7 @@
   "column_break_21",
   "allow_copy",
   "make_attachments_public",
+  "attachments_must_be_private",
   "protect_attached_files",
   "view_settings_section",
   "title_field",
@@ -353,6 +354,12 @@
    "label": "Make Attachments Public by Default"
   },
   {
+     "default": "0",
+     "fieldname": "attachments_must_be_private",
+     "fieldtype": "Check",
+     "label": "Attachments Must Be Private"
+   },
+   {
    "default": "0",
    "description": "Enabling this will submit documents in background",
    "fieldname": "queue_in_background",
@@ -445,7 +452,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-09-23 07:13:52.631903",
+ "modified": "2025-10-16 13:24:14.896552",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

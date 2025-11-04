@@ -198,7 +198,7 @@
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
-					:allow_toggle_private="allow_toggle_private"
+					:allow_toggle_private="allow_toggle_private && !attachments_must_be_private"
 					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"
 					@toggle_private="file.private = !file.private"
@@ -277,6 +277,9 @@ const props = defineProps({
 		default: null,
 	},
 	make_attachments_public: {
+		default: null,
+	},
+	attachments_must_be_private: {
 		default: null,
 	},
 	restrictions: {
@@ -428,6 +431,10 @@ function add_files(file_array) {
 		.map((file) => {
 			let is_image = file.type.startsWith("image");
 			let size_kb = file.size / 1024;
+			const is_private = props.attachments_must_be_private
+				? true
+				: !props.make_attachments_public;
+
 			return {
 				file_obj: file,
 				cropper_file: file,
@@ -441,7 +448,7 @@ function add_files(file_array) {
 				request_succeeded: false,
 				error_message: null,
 				uploading: false,
-				private: !props.make_attachments_public,
+				private: is_private,
 			};
 		});
 
@@ -660,7 +667,9 @@ function upload_file(file, i) {
 		if (file.file_obj) {
 			form_data.append("file", file.file_obj, file.name);
 		}
-		form_data.append("is_private", +file.private);
+		const is_private = props.attachments_must_be_private ? true : file.private;
+		form_data.append("is_private", +is_private);
+
 		form_data.append("folder", props.folder);
 
 		if (file.file_url) {
