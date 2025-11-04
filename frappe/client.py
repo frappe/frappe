@@ -11,13 +11,8 @@ from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
-<<<<<<< HEAD
-from frappe.utils import get_safe_filters
-from frappe.utils.deprecations import deprecated
-=======
 from frappe.utils import attach_expanded_links, get_safe_filters
-from frappe.utils.caching import http_cache
->>>>>>> f5fed5b4be (perf: optimize expand link for table fields)
+from frappe.utils.deprecations import deprecated
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
