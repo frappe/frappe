@@ -376,20 +376,17 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					// @ts-ignore
-					icon: () => h(FeatherIcon, { name: "edit-2" }),
+					icon: "edit-2",
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					// @ts-ignore
-					icon: () => h(FeatherIcon, { name: "users" }),
+					icon: "users",
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					// @ts-ignore
-					icon: () => h(FeatherIcon, { name: "trash" }),
+					icon: "trash",
 				},
 			],
 			button: { label: "Actions" },
