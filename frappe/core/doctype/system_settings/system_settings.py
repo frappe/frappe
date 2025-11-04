@@ -164,7 +164,9 @@ class SystemSettings(Document):
 
 		if "{{otp}}" not in self.otp_sms_template.replace(" ", ""):
 			frappe.throw(
-				_("OTP SMS Template must contain <code>{{otp}}</code> placeholder to insert the OTP.")
+				_("OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP.").format(
+					"{{otp}}"
+				)
 			)
 
 	def validate_user_pass_login(self):
