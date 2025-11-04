@@ -203,7 +203,6 @@ const componentProps = computed(() => {
 })
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
-const target = ref<HTMLElement | null>(null)
 
 // visibility
 const showComponent = computed(() => {
@@ -322,7 +321,6 @@ watch(
 	() => {
 		if (!componentRef.value) return
 		// set data-component-id on update since some frappeui components have inheritAttrs: false
-		target.value = getComponentRoot(componentRef)
 		if (target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
 			target.value?.setAttribute("data-breakpoint", props.breakpoint)
@@ -331,6 +329,11 @@ watch(
 	},
 	{ immediate: true },
 )
+
+const target = computed<HTMLElement | null>(() => {
+	if (!componentRef.value) return null
+	return getComponentRoot(componentRef)
+})
 
 watch(
 	() => componentContext?.value,

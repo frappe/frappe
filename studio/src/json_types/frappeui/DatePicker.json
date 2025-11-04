@@ -5,55 +5,35 @@
     "DatePickerProps": {
       "type": "object",
       "properties": {
-        "value": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
+        "placement": {
+          "type": "string",
+          "enum": [
+            "top-start",
+            "top-end",
+            "bottom-start",
+            "bottom-end",
+            "right-start",
+            "right-end",
+            "left-start",
+            "left-end"
           ]
         },
-        "modelValue": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          ]
-        },
-        "placeholder": {
+        "format": {
           "type": "string"
         },
-        "formatter": {
-          "$comment": "(date: string) => string",
-          "type": "object",
-          "properties": {
-            "namedArgs": {
-              "type": "object",
-              "properties": {
-                "date": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "date"
-              ],
-              "additionalProperties": false
-            }
-          }
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "ghost",
+            "outline"
+          ]
         },
         "readonly": {
           "type": "boolean"
+        },
+        "placeholder": {
+          "type": "string"
         },
         "inputClass": {
           "anyOf": [
@@ -74,10 +54,25 @@
             }
           ]
         },
-        "placement": {
-          "type": "string"
+        "allowCustom": {
+          "type": "boolean"
+        },
+        "autoClose": {
+          "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
         },
         "label": {
+          "type": "string"
+        },
+        "clearable": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string"
+        },
+        "modelValue": {
           "type": "string"
         }
       },

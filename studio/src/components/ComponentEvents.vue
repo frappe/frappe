@@ -176,7 +176,7 @@ import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/he
 
 import type { SelectOption } from "@/types"
 import type { Actions, ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"

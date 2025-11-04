@@ -74,7 +74,8 @@
                 {
                   "type": "object"
                 }
-              ]
+              ],
+              "description": "Route Location the link should navigate to when clicked on."
             },
             "link": {
               "type": "string"
@@ -98,6 +99,12 @@
                       "null"
                     ]
                   },
+                  "switch": {
+                    "type": "boolean"
+                  },
+                  "switchValue": {
+                    "type": "boolean"
+                  },
                   "theme": {
                     "type": "string",
                     "enum": [
@@ -107,7 +114,20 @@
                   },
                   "component": {},
                   "onClick": {
-                    "$comment": "() => void"
+                    "$comment": "(val: any) => void",
+                    "type": "object",
+                    "properties": {
+                      "namedArgs": {
+                        "type": "object",
+                        "properties": {
+                          "val": {}
+                        },
+                        "required": [
+                          "val"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
                   },
                   "route": {
                     "anyOf": [
@@ -124,7 +144,7 @@
                     "$comment": "() => boolean"
                   },
                   "submenu": {
-                    "$ref": "#/definitions/alias-1044900505-518-569-1044900505-0-678"
+                    "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
                   }
                 },
                 "required": [
@@ -155,6 +175,12 @@
                             "null"
                           ]
                         },
+                        "switch": {
+                          "type": "boolean"
+                        },
+                        "switchValue": {
+                          "type": "boolean"
+                        },
                         "theme": {
                           "type": "string",
                           "enum": [
@@ -164,7 +190,20 @@
                         },
                         "component": {},
                         "onClick": {
-                          "$comment": "() => void"
+                          "$comment": "(val: any) => void",
+                          "type": "object",
+                          "properties": {
+                            "namedArgs": {
+                              "type": "object",
+                              "properties": {
+                                "val": {}
+                              },
+                              "required": [
+                                "val"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
                         },
                         "route": {
                           "anyOf": [
@@ -181,7 +220,7 @@
                           "$comment": "() => boolean"
                         },
                         "submenu": {
-                          "$ref": "#/definitions/alias-1044900505-518-569-1044900505-0-678"
+                          "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
                         }
                       },
                       "required": [
@@ -212,11 +251,23 @@
         },
         "placement": {
           "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "offset": {
+          "type": "number"
         }
       },
       "additionalProperties": false
     },
-    "alias-1044900505-518-569-1044900505-0-678": {
+    "alias-1044900505-618-669-1044900505-0-841": {
       "type": "array",
       "items": {
         "anyOf": [
@@ -232,6 +283,12 @@
                   "null"
                 ]
               },
+              "switch": {
+                "type": "boolean"
+              },
+              "switchValue": {
+                "type": "boolean"
+              },
               "theme": {
                 "type": "string",
                 "enum": [
@@ -241,7 +298,20 @@
               },
               "component": {},
               "onClick": {
-                "$comment": "() => void"
+                "$comment": "(val: any) => void",
+                "type": "object",
+                "properties": {
+                  "namedArgs": {
+                    "type": "object",
+                    "properties": {
+                      "val": {}
+                    },
+                    "required": [
+                      "val"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
               },
               "route": {
                 "anyOf": [
@@ -258,7 +328,7 @@
                 "$comment": "() => boolean"
               },
               "submenu": {
-                "$ref": "#/definitions/alias-1044900505-518-569-1044900505-0-678"
+                "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
               }
             },
             "required": [
@@ -289,6 +359,12 @@
                         "null"
                       ]
                     },
+                    "switch": {
+                      "type": "boolean"
+                    },
+                    "switchValue": {
+                      "type": "boolean"
+                    },
                     "theme": {
                       "type": "string",
                       "enum": [
@@ -298,7 +374,20 @@
                     },
                     "component": {},
                     "onClick": {
-                      "$comment": "() => void"
+                      "$comment": "(val: any) => void",
+                      "type": "object",
+                      "properties": {
+                        "namedArgs": {
+                          "type": "object",
+                          "properties": {
+                            "val": {}
+                          },
+                          "required": [
+                            "val"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
                     },
                     "route": {
                       "anyOf": [
@@ -315,7 +404,7 @@
                       "$comment": "() => boolean"
                     },
                     "submenu": {
-                      "$ref": "#/definitions/alias-1044900505-518-569-1044900505-0-678"
+                      "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
                     }
                   },
                   "required": [

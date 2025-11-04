@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/LinkProps",
+  "definitions": {
+    "LinkProps": {
+      "type": "object",
+      "properties": {
+        "doctype": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            ]
+          }
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "allowCreate": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "doctype"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

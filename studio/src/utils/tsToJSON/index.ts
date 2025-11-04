@@ -3,10 +3,10 @@ import path from "path"
 import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
 import { SVGElementParser, VueComponentParser, RouteLocationParser } from "./customParser.js"
 
-function tsToJSON(typesFolder: string, destFolder: string, tsconfig = "", isFrappeUI = false) {
+function tsToJSON(srcFolder: string, destFolder: string, tsconfig = "", isFrappeUI = false) {
 	// Get project root (where package.json is)
 	const root = process.cwd()
-	const inputDirPath = path.resolve(root, typesFolder)
+	const inputDirPath = path.resolve(root, srcFolder)
 	const outputDirPath = path.resolve(root, destFolder)
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 

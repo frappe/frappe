@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ComboboxProps",
+  "definitions": {
+    "ComboboxProps": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "option"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "custom"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "onClick": {
+                    "$comment": "(context: { searchTerm: string }) => void",
+                    "type": "object",
+                    "properties": {
+                      "namedArgs": {
+                        "type": "object",
+                        "properties": {
+                          "context": {
+                            "type": "object",
+                            "properties": {
+                              "searchTerm": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "searchTerm"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "context"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "keepOpen": {
+                    "type": "boolean"
+                  },
+                  "slotName": {
+                    "type": "string"
+                  },
+                  "render": {
+                    "$comment": "() => VNode"
+                  },
+                  "condition": {
+                    "$comment": "(context: { searchTerm: string }) => boolean",
+                    "type": "object",
+                    "properties": {
+                      "namedArgs": {
+                        "type": "object",
+                        "properties": {
+                          "context": {
+                            "type": "object",
+                            "properties": {
+                              "searchTerm": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "searchTerm"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "context"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "label",
+                  "key",
+                  "onClick"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "group": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "option"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            },
+                            "icon": {
+                              "type": [
+                                "string"
+                              ]
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "custom"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "icon": {
+                              "type": [
+                                "string"
+                              ]
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "onClick": {
+                              "$comment": "(context: { searchTerm: string }) => void",
+                              "type": "object",
+                              "properties": {
+                                "namedArgs": {
+                                  "type": "object",
+                                  "properties": {
+                                    "context": {
+                                      "type": "object",
+                                      "properties": {
+                                        "searchTerm": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "searchTerm"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "context"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "keepOpen": {
+                              "type": "boolean"
+                            },
+                            "slotName": {
+                              "type": "string"
+                            },
+                            "render": {
+                              "$comment": "() => VNode"
+                            },
+                            "condition": {
+                              "$comment": "(context: { searchTerm: string }) => boolean",
+                              "type": "object",
+                              "properties": {
+                                "namedArgs": {
+                                  "type": "object",
+                                  "properties": {
+                                    "context": {
+                                      "type": "object",
+                                      "properties": {
+                                        "searchTerm": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "searchTerm"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "context"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "label",
+                            "key",
+                            "onClick"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "group",
+                  "options"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "openOnFocus": {
+          "type": "boolean"
+        },
+        "openOnClick": {
+          "type": "boolean"
+        },
+        "placement": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        }
+      },
+      "required": [
+        "options"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

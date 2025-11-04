@@ -53,7 +53,7 @@
 									:doctype="row.link_type"
 									v-model="row[column.fieldname]"
 									class="text-sm text-gray-800"
-									@update:modelValue="(e) => column.onChange && column.onChange(e, index)"
+									@update:modelValue="(e) => column.onChange && column.onChange(e ?? '', index)"
 								/>
 								<Code
 									v-else-if="column.fieldtype === 'Code'"
@@ -102,7 +102,7 @@ import { reactive, computed } from "vue"
 import { FormControl, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 import { generateId } from "@/utils/helpers"
 import type { GridColumn, GridRow } from "@/types/doctype"
 

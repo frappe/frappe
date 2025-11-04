@@ -160,7 +160,8 @@
                       {
                         "type": "object"
                       }
-                    ]
+                    ],
+                    "description": "Route Location the link should navigate to when clicked on."
                   },
                   "link": {
                     "type": "string"
@@ -173,6 +174,12 @@
               "enum": [
                 "top",
                 "center"
+              ]
+            },
+            "paddingTop": {
+              "type": [
+                "string",
+                "number"
               ]
             }
           },

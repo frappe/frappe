@@ -1,4 +1,4 @@
-import { FRAPPE_UI_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
+import { FRAPPE_UI_COMPONENTS, FRAPPE_COMPONENTS, STUDIO_COMPONENTS } from "../utils/constants.js"
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
@@ -39,32 +39,38 @@ export async function generateAppBuild(appName, components) {
 
 function findComponentSources(appComponents) {
 	const frappeUIComponents = []
+	const frappeComponents = []
 	const studioComponents = []
 
 	appComponents.forEach((component) => {
 		if (FRAPPE_UI_COMPONENTS.includes(component)) {
 			frappeUIComponents.push(component)
+		} else if (FRAPPE_COMPONENTS.includes(component)) {
+			frappeComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
 		}
 	})
 	return {
 		frappeUIComponents: frappeUIComponents,
+		frappeComponents: frappeComponents,
 		studioComponents: studioComponents,
 	}
 }
 
 function getRendererContent(componentSources) {
-	const { frappeUIComponents, studioComponents } = componentSources
+	const { frappeUIComponents, frappeComponents, studioComponents } = componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
-
+	const frappeImports =
+		frappeComponents.length > 0 ? `import { ${frappeComponents.join(",\n ")} } from "frappe-ui/frappe";` : ""
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
 		.join("\n")
 
 	const componentRegistrations = [
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
 
@@ -78,6 +84,7 @@ import { resourcesPlugin } from "frappe-ui"
 import "@/utils/appUtils"
 
 ${frappeUIImports}
+${frappeImports}
 ${studioImports}
 
 const app = createApp(AppRenderer)

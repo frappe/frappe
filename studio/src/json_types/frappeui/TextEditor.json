@@ -40,25 +40,25 @@
         "editable": {
           "type": "boolean"
         },
+        "autofocus": {
+          "type": "boolean"
+        },
         "bubbleMenu": {
-    		"type": "boolean"
+          "type": "boolean"
         },
         "bubbleMenuOptions": {
           "type": "object"
         },
         "fixedMenu": {
-			"type": "boolean"
+          "type": "boolean"
         },
         "floatingMenu": {
-			"type": "boolean"
+          "type": "boolean"
         },
         "extensions": {
           "type": "array",
           "items": {}
         },
-        "starterkitOptions": {
-			"type": "object"
-		},
         "mentions": {
           "anyOf": [
             {
@@ -190,6 +190,9 @@
               "additionalProperties": false
             }
           }
+        },
+        "uploadArgs": {
+          "type": "object"
         }
       },
       "additionalProperties": false

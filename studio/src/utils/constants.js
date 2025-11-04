@@ -8,7 +8,9 @@ export const FRAPPE_UI_COMPONENTS = [
 	"Card",
 	"Checkbox",
 	"Calendar",
+	"Combobox",
 	"DatePicker",
+	"TimePicker",
 	"DateTimePicker",
 	"DateRangePicker",
 	"Dialog",
@@ -34,6 +36,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"NumberChart",
 	"DonutChart",
 ]
+export const FRAPPE_COMPONENTS = ["Link"]
 export const STUDIO_COMPONENTS = [
 	"Container",
 	"FitContainer",

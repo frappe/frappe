@@ -37,7 +37,8 @@
           "type": "string",
           "enum": [
             "subtle",
-            "outline"
+            "outline",
+            "ghost"
           ]
         },
         "placeholder": {

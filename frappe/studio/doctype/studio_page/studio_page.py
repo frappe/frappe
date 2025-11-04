@@ -137,9 +137,10 @@ class StudioPage(Document):
 		return components
 
 	def has_blocks(self, check_draft: bool = False):
-		if check_draft and self.draft_blocks and self.draft_blocks != "[]":
-			return True
-		if self.blocks and self.blocks != "[]":
+		if check_draft:
+			if self.draft_blocks and self.draft_blocks != "[]":
+				return True
+		elif self.blocks and self.blocks != "[]":
 			return True
 		return False
 

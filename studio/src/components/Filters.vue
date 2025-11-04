@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
-import Link from "@/components/Link.vue"
+import { Link } from "frappe-ui/frappe"
 
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
