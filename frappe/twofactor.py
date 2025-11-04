@@ -343,7 +343,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 
 
 def get_rendered_sms_otp_template(otp: str) -> str:
-	default_template = "Your verification code is {otp}"
+	default_template = "Your verification code is {{otp}}"
 	custom_template = frappe.get_system_settings("otp_sms_template")
 	template = custom_template or default_template
 
