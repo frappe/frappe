@@ -192,7 +192,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			return;
 		}
 		if (this.df.description) {
-			this.$wrapper.find(".help-box").html(__(this.df.description));
+			this.$wrapper.find(".help-box").html(__(this.df.description, null, this.df.parent));
 		} else {
 			this.set_empty_description();
 		}

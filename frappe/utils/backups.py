@@ -302,7 +302,7 @@ class BackupGenerator:
 	def zip_files(self):
 		# For backwards compatibility - pre v13
 		click.secho(
-			"BackupGenerator.zip_files has been deprecated in favour of" " BackupGenerator.backup_files",
+			"BackupGenerator.zip_files has been deprecated in favour of BackupGenerator.backup_files",
 			fg="yellow",
 		)
 		return self.backup_files()

@@ -384,14 +384,17 @@ class NotificationsView extends BaseNotificationsView {
 class EventsView extends BaseNotificationsView {
 	make() {
 		let today = frappe.datetime.get_today();
-		frappe
-			.xcall("frappe.desk.doctype.event.event.get_events", {
+		frappe.call({
+			method: "frappe.desk.doctype.event.event.get_events",
+			args: {
 				start: today,
 				end: today,
-			})
-			.then((event_list) => {
-				this.render_events_html(event_list);
-			});
+			},
+			type: "GET",
+			callback: ({ message }) => {
+				this.render_events_html(message);
+			},
+		});
 	}
 
 	render_events_html(event_list) {

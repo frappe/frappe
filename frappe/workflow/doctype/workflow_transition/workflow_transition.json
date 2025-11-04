@@ -11,6 +11,7 @@
   "next_state",
   "allowed",
   "allow_self_approval",
+  "send_email_to_creator",
   "conditions",
   "condition",
   "column_break_7",
@@ -87,21 +88,29 @@
    "options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions:\n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
   },
   {
-    "fieldname": "workflow_builder_id",
-    "fieldtype": "Data",
-    "hidden": 1,
-    "label": "Workflow Builder ID"
+   "fieldname": "workflow_builder_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Workflow Builder ID"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.allow_self_approval == 1",
+   "fieldname": "send_email_to_creator",
+   "fieldtype": "Check",
+   "label": "Send Email To Creator"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-05-02 19:57:42.370841",
+ "modified": "2025-03-24 02:47:44.188152",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Transition",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

@@ -8,7 +8,8 @@
  "field_order": [
   "fieldname",
   "fieldtype",
-  "label"
+  "label",
+  "options"
  ],
  "fields": [
   {
@@ -30,12 +31,18 @@
    "in_list_view": 1,
    "label": "Fieldtype",
    "read_only": 1
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Options"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-08-17 19:09:01.417841",
+ "modified": "2025-09-24 22:28:54.931089",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form List Column",

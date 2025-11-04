@@ -44,7 +44,6 @@ def after_install():
 		# only set home_page if the value doesn't exist in the db
 		if not frappe.db.get_default("desktop:home_page"):
 			frappe.db.set_default("desktop:home_page", "setup-wizard")
-			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
 	with open(frappe.get_site_path(".test_log"), "w") as f:
@@ -111,27 +110,6 @@ def install_basic_docs():
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Review"},
-		{
-			"doctype": "Email Domain",
-			"domain_name": "example.com",
-			"email_id": "account@example.com",
-			"password": "pass",
-			"email_server": "imap.example.com",
-			"use_imap": 1,
-			"smtp_server": "smtp.example.com",
-		},
-		{
-			"doctype": "Email Account",
-			"domain": "example.com",
-			"email_id": "notifications@example.com",
-			"default_outgoing": 1,
-		},
-		{
-			"doctype": "Email Account",
-			"domain": "example.com",
-			"email_id": "replies@example.com",
-			"default_incoming": 1,
-		},
 	]
 
 	for d in install_docs:
@@ -167,7 +145,7 @@ def before_tests():
 	frappe.clear_cache()
 
 	# complete setup if missing
-	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
+	if not frappe.is_setup_complete():
 		complete_setup_wizard()
 
 	frappe.db.set_single_value("Website Settings", "disable_signup", 0)

@@ -6,13 +6,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "print_format_for",
   "doc_type",
+  "report",
   "module",
   "default_print_language",
   "column_break_3",
   "standard",
   "custom_format",
   "disabled",
+  "pdf_generator",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -42,14 +45,15 @@
  ],
  "fields": [
   {
+   "depends_on": "eval:doc.print_format_for == \"DocType\"",
    "fieldname": "doc_type",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "DocType",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.print_format_for == \"DocType\"",
+   "options": "DocType"
   },
   {
    "fieldname": "module",
@@ -77,6 +81,7 @@
    "oldfieldname": "standard",
    "oldfieldtype": "Select",
    "options": "No\nYes",
+   "read_only_depends_on": "eval:doc.print_format_for === \"Report\";",
    "reqd": 1,
    "search_index": 1
   },
@@ -84,10 +89,11 @@
    "default": "0",
    "fieldname": "custom_format",
    "fieldtype": "Check",
-   "label": "Custom Format"
+   "label": "Custom Format",
+   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
   },
   {
-   "depends_on": "custom_format",
+   "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
    "fieldname": "section_break_6",
    "fieldtype": "Section Break"
   },
@@ -101,6 +107,7 @@
   },
   {
    "default": "0",
+   "depends_on": "custom_format",
    "fieldname": "raw_printing",
    "fieldtype": "Check",
    "label": "Raw Printing"
@@ -255,12 +262,37 @@
    "fieldtype": "Select",
    "label": "Page Number",
    "options": "Hide\nTop Left\nTop Center\nTop Right\nBottom Left\nBottom Center\nBottom Right"
+  },
+  {
+   "default": "wkhtmltopdf",
+   "fieldname": "pdf_generator",
+   "fieldtype": "Select",
+   "label": "PDF Generator",
+   "options": "wkhtmltopdf"
+  },
+  {
+   "default": "DocType",
+   "fieldname": "print_format_for",
+   "fieldtype": "Select",
+   "label": "Print Format For",
+   "options": "DocType\nReport"
+  },
+  {
+   "depends_on": "eval:doc.print_format_for == \"Report\"",
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Report",
+   "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
+   "options": "Report"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2023-12-12 19:59:37.133301",
+ "modified": "2025-09-16 11:20:20.151669",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -283,7 +315,7 @@
    "select": 1
   }
  ],
- "sort_field": "modified",
+"sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

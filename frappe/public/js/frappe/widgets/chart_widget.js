@@ -605,14 +605,20 @@ export default class ChartWidget extends Widget {
 			options = chart_options.options;
 		}
 
-		chart_args.tooltipOptions = {
-			formatTooltipY: (value) =>
-				frappe.format(
-					value,
-					{ fieldtype, options },
-					{ always_show_decimals: true, inline: true }
-				),
-		};
+		if (this.chart_doc.currency) {
+			chart_args.tooltipOptions = {
+				formatTooltipY: (value) => format_currency(value, this.chart_doc.currency),
+			};
+		} else {
+			chart_args.tooltipOptions = {
+				formatTooltipY: (value) =>
+					frappe.format(
+						value,
+						{ fieldtype, options },
+						{ always_show_decimals: true, inline: true }
+					),
+			};
+		}
 
 		if (this.chart_doc.type == "Heatmap") {
 			const heatmap_year = parseInt(
@@ -623,7 +629,7 @@ export default class ChartWidget extends Widget {
 			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
 			chart_args.data.end = new Date(`${heatmap_year + 1}-01-01`);
 		}
-
+		if (this.chart_doc.show_values_over_chart) chart_args.valuesOverPoints = true;
 		let set_options = (options) => {
 			let custom_options = JSON.parse(options);
 			for (let key in custom_options) {

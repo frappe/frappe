@@ -25,6 +25,7 @@ from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_table_name
 
 
 class TestDocType(FrappeTestCase):
@@ -786,6 +787,59 @@ class TestDocType(FrappeTestCase):
 			],
 		)
 		self.assertRaises(frappe.ValidationError, recursive_dt.insert)
+
+	def test_row_compression(self):
+		if frappe.db.db_type != "mariadb":
+			return
+
+		compressed_dt = new_doctype(row_format="Compressed").insert().name
+		dynamic_dt = new_doctype().insert().name
+
+		information_schema = frappe.qb.Schema("information_schema")
+
+		def get_format(dt):
+			return (
+				frappe.qb.from_(information_schema.tables)
+				.select("row_format")
+				.where(
+					(information_schema.tables.table_schema == frappe.conf.db_name)
+					& (information_schema.tables.table_name == get_table_name(dt))
+				)
+				.run()[0][0]
+				.upper()
+			)
+
+		self.assertEqual(get_format(compressed_dt), "COMPRESSED")
+		self.assertEqual(get_format(dynamic_dt), "DYNAMIC")
+
+	def test_decimal_field_configuration(self):
+		doctype = new_doctype(
+			"Test Decimal Config",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 30,
+					"precision": 3,
+				}
+			],
+		).insert(ignore_if_duplicate=True)
+		decimal_field_type = frappe.db.get_column_type(doctype.name, "decimal_field")
+		self.assertIn("(30,3)", decimal_field_type.lower())
+
+	def test_decimal_field_precision_exceeds_length(self):
+		doctype = new_doctype(
+			"Test Decimal Config 2",
+			fields=[
+				{
+					"fieldname": "decimal_field",
+					"fieldtype": "Currency",
+					"length": 10,
+					"precision": 11,
+				}
+			],
+		)
+		self.assertRaises(frappe.ValidationError, doctype.insert)
 
 
 def new_doctype(

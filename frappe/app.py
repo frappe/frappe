@@ -24,6 +24,7 @@ import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
+from frappe.permissions import handle_does_not_exist_error
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.deprecations import deprecation_warning
@@ -175,14 +176,13 @@ def init_request(request):
 		# site does not exist
 		raise NotFound
 
+	frappe.connect(set_admin_as_user=False)
 	if frappe.local.conf.maintenance_mode:
-		frappe.connect()
 		if frappe.local.conf.allow_reads_during_maintenance:
 			setup_read_only_mode()
 		else:
 			raise frappe.SessionStopped("Session Stopped")
-	else:
-		frappe.connect(set_admin_as_user=False)
+
 	if request.path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
@@ -309,16 +309,15 @@ def make_form_dict(request: Request):
 		frappe.throw(_("Invalid request arguments"))
 
 
+@handle_does_not_exist_error
 def handle_exception(e):
 	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 	accept_header = frappe.get_request_header("Accept") or ""
 	respond_as_json = (
-		frappe.get_request_header("Accept")
-		and (frappe.local.is_ajax or "application/json" in accept_header)
-		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
-	)
+		frappe.get_request_header("Accept") and (frappe.local.is_ajax or "application/json" in accept_header)
+	) or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 
 	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
@@ -376,7 +375,7 @@ def handle_exception(e):
 	else:
 		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
 		# disable traceback in production if flag is set
-		if frappe.local.flags.disable_traceback or not allow_traceback and not frappe.local.dev_server:
+		if frappe.local.flags.disable_traceback or (not allow_traceback and not frappe.local.dev_server):
 			traceback = ""
 
 		frappe.respond_as_web_page(

@@ -20,6 +20,7 @@
   "report_field",
   "report_function",
   "is_public",
+  "currency",
   "custom_configuration_section",
   "filters_config",
   "stats_section",
@@ -30,11 +31,13 @@
   "dynamic_filters_section",
   "dynamic_filters_json",
   "section_break_16",
-  "color"
+  "color",
+  "column_break_xtre",
+  "background_color"
  ],
  "fields": [
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "depends_on": "eval: ['Document Type', 'Custom'].includes(doc.type)",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -200,10 +203,25 @@
    "fieldtype": "Link",
    "label": "Parent Document Type",
    "options": "DocType"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_xtre",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Color",
+   "label": "Background Color"
   }
  ],
  "links": [],
- "modified": "2023-11-09 13:44:00.280846",
+ "modified": "2025-09-17 21:00:11.351605",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
@@ -243,6 +261,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "label, document_type",
  "sort_field": "modified",
  "sort_order": "DESC",

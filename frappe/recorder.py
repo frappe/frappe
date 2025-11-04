@@ -8,6 +8,7 @@ import json
 import pstats
 import re
 import time
+import typing
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -25,6 +26,10 @@ RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
 TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
 RECORDER_AUTO_DISABLE = 5 * 60
+
+
+if typing.TYPE_CHECKING:
+	from frappe.database.database import Database
 
 
 @dataclass
@@ -178,6 +183,7 @@ def record(force=False):
 	if __debug__:
 		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder(force=force)
+			return frappe.local._recorder
 
 
 def dump():
@@ -190,7 +196,6 @@ class Recorder:
 	def __init__(self, force=False):
 		self.config = RecorderConfig.retrieve()
 		self.calls = []
-		self._patched_sql = False
 		self.profiler = None
 		self._recording = True
 		self.force = force
@@ -198,6 +203,7 @@ class Recorder:
 		self.method = None
 		self.headers = None
 		self.form_dict = None
+		self.patched_databases = []
 
 		if (
 			self.config.record_requests
@@ -226,9 +232,7 @@ class Recorder:
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = now_datetime()
 
-		if self.config.record_sql:
-			self._patch_sql()
-			self._patched_sql = True
+		self._patch_sql(frappe.db)
 
 		if self.config.profile:
 			self.profiler = cProfile.Profile()
@@ -240,16 +244,13 @@ class Recorder:
 	def cleanup(self):
 		if self.profiler:
 			self.profiler.disable()
-		if self._patched_sql:
-			self._unpatch_sql()
+		self._unpatch_sql()
 
 	def process_profiler(self):
 		if self.config.profile or self.profiler:
 			self.profiler.disable()
 			profiler_output = io.StringIO()
-			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
-				"cumulative"
-			).print_stats()
+			pstats.Stats(self.profiler, stream=profiler_output).sort_stats("cumulative").print_stats()
 			profile = profiler_output.getvalue()
 			profiler_output.close()
 			return profile
@@ -257,7 +258,7 @@ class Recorder:
 	def dump(self):
 		if not self._recording:
 			return
-		profiler_output = self.process_profiler()
+		profiler_output = self.process_profiler() or ""
 
 		request_data = {
 			"uuid": self.uuid,
@@ -275,20 +276,22 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		request_data["profile"] = profiler_output
+		request_data["profile"] = "".join(profiler_output.splitlines(keepends=True)[:200])
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
-		if self.config.record_sql:
-			self._unpatch_sql()
+		self._unpatch_sql()
 
-	@staticmethod
-	def _patch_sql():
+	def _patch_sql(self, db: "Database"):
+		if not self.config.record_sql:
+			return
+
 		frappe.db._sql = frappe.db.sql
 		frappe.db.sql = record_sql
+		self.patched_databases.append(db)
 
-	@staticmethod
-	def _unpatch_sql():
-		frappe.db.sql = frappe.db._sql
+	def _unpatch_sql(self):
+		for db in self.patched_databases:
+			db.sql = db._sql
 
 
 def do_not_record(function):
@@ -386,11 +389,11 @@ def record_queries(func: Callable):
 
 	@functools.wraps(func)
 	def wrapped(*args, **kwargs):
-		record(force=True)
-		frappe.local._recorder.path = f"Function call: {func.__module__}.{func.__qualname__}"
+		recorder = record(force=True)
+		recorder.path = f"Function call: {func.__module__}.{func.__qualname__}"
 		ret = func(*args, **kwargs)
 		dump()
-		Recorder._unpatch_sql()
+		recorder._unpatch_sql()
 		post_process()
 		print("Recorded queries, open recorder to view them.")
 		return ret

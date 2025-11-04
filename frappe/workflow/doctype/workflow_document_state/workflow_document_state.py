@@ -23,6 +23,7 @@ class WorkflowDocumentState(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		send_email: DF.Check
 		state: DF.Link
 		update_field: DF.Literal[None]
 		update_value: DF.Data | None

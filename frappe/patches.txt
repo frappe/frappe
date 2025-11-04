@@ -1,4 +1,5 @@
 [pre_model_sync]
+frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -104,7 +105,6 @@ frappe.patches.v12_0.setup_tags
 frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
 frappe.patches.v12_0.create_notification_settings_for_user
 frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
-frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.change_existing_dashboard_chart_filters
 frappe.patches.v12_0.set_correct_assign_value_in_docs #2020-07-13
 execute:frappe.delete_doc('DocType', 'Test Runner') # 2022-05-19
@@ -238,4 +238,7 @@ frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oau
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.patches.v15_0.remove_workspace_settings_navbar_items
 frappe.patches.v16_0.move_role_desk_settings_to_user
-frappe.patches.v16_0.update_expression_series
+frappe.patches.v14_0.fix_user_settings_collation
+execute:frappe.core.doctype.system_settings.system_settings.sync_system_settings 
+frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
+frappe.patches.v16_0.social_eps_deprecation_warning

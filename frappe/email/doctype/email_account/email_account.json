@@ -62,6 +62,7 @@
   "send_unsubscribe_message",
   "track_email_status",
   "no_smtp_authentication",
+  "always_bcc",
   "signature_section",
   "add_signature",
   "signature",
@@ -493,7 +494,7 @@
   },
   {
    "default": "0",
-   "description": "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>.",
+   "description": "For more information, <a class=\"text-muted\" href=\"https://docs.frappe.io/erpnext/user/manual/en/linking-emails-to-document\">click here</a>.",
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -579,7 +580,7 @@
    "label": "IMAP Details"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved && !doc.backend_app_flow",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && doc.connected_app && doc.connected_user && !doc.backend_app_flow",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
@@ -628,12 +629,20 @@
    "fieldname": "sent_folder_name",
    "fieldtype": "Data",
    "label": "Sent Folder Name"
+  },
+  {
+   "description": "Use this, for example, if all sent emails should also be send to an archive.",
+   "fieldname": "always_bcc",
+   "fieldtype": "Data",
+   "label": "Always BCC Address",
+   "options": "Email"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-05 12:45:15.801652",
+ "make_attachments_public": 1,
+ "modified": "2025-04-03 13:19:11.021118",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

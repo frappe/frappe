@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from datetime import timedelta
 
 import frappe
 from frappe import _, msgprint
@@ -177,3 +178,27 @@ def get_queue():
 		{"now": now_datetime()},
 		as_dict=True,
 	)
+
+
+def retry_sending_emails():
+	emails_in_sending = frappe.get_all(
+		"Email Queue", filters={"status": "Sending"}, fields=["name", "modified"]
+	)
+	for e in emails_in_sending:
+		if now_datetime() - e["modified"] > timedelta(minutes=15):
+			update_fields = {}
+			email_queue = frappe.get_doc("Email Queue", e["name"])
+			sent_to_atleast_one_recipient = any(
+				rec.recipient for rec in email_queue.recipients if rec.is_mail_sent()
+			)
+			if email_queue.retry < cint(frappe.db.get_system_setting("email_retry_limit")) or 3:
+				update_fields.update(
+					{
+						"status": "Partially Sent" if sent_to_atleast_one_recipient else "Not Sent",
+						"retry": email_queue.retry + 1,
+					}
+				)
+			else:
+				update_fields.update({"status": "Error"})
+				update_fields.update({"error": "Retry Limit Exceeded"})
+			email_queue.update_status(**update_fields, commit=True)

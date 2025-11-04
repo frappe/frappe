@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.utils.data import flt
 
 
 @frappe.whitelist()
@@ -46,14 +47,19 @@ def merge_location_features_in_one(coords):
 
 def create_gps_markers(coords):
 	"""Build Marker based on latitude and longitude."""
-	geojson_dict = []
-	for i in coords:
-		node = {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": None}}
-		node["properties"]["name"] = i.name
-		node["geometry"]["coordinates"] = [i.longitude, i.latitude]  # geojson needs it reverse!
-		geojson_dict.append(node.copy())
-
-	return geojson_dict
+	return [
+		{
+			"type": "Feature",
+			"properties": {
+				"name": i.name,
+			},
+			"geometry": {
+				"type": "Point",
+				"coordinates": [flt(i.longitude), flt(i.latitude)],  # geojson needs it reverse!
+			},
+		}
+		for i in coords
+	]
 
 
 def return_location(doctype, filters_sql):

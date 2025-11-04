@@ -265,6 +265,8 @@ frappe.Application = class Application {
 			if (frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
+
+			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
 			frappe.router.setup();
 		} else {
@@ -364,6 +366,7 @@ frappe.Application = class Application {
 				if (r.exc) {
 					return;
 				}
+
 				me.redirect_to_login();
 			},
 		});
@@ -453,11 +456,12 @@ frappe.Application = class Application {
 		if (frappe.boot.notes.length) {
 			frappe.boot.notes.forEach(function (note) {
 				if (!note.seen || note.notify_on_every_login) {
-					var d = frappe.msgprint({ message: note.content, title: note.title });
+					var d = new frappe.ui.Dialog({ content: note.content, title: note.title });
 					d.keep_open = true;
-					d.custom_onhide = function () {
+					d.msg_area = $('<div class="msgprint">').appendTo(d.body);
+					d.msg_area.append(note.content);
+					d.onhide = function () {
 						note.seen = true;
-
 						// Mark note as read if the Notify On Every Login flag is not set
 						if (!note.notify_on_every_login) {
 							frappe.call({
@@ -466,11 +470,13 @@ frappe.Application = class Application {
 									note: note.name,
 								},
 							});
+						} else {
+							frappe.call({
+								method: "frappe.desk.doctype.note.note.reset_notes",
+							});
 						}
-
-						// next note
-						me.show_notes();
 					};
+					d.show();
 				}
 			});
 		}
@@ -507,6 +513,8 @@ frappe.Application = class Application {
 							delete doc.name;
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
+							newdoc.on_paste_event = true;
+							newdoc = JSON.parse(JSON.stringify(newdoc));
 							frappe.set_route("Form", newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});

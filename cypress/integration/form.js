@@ -87,15 +87,16 @@ context("Form", () => {
 		cy.visit("/app/contact/new");
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as("table");
 		cy.get("@table").find("button.grid-add-row").click();
-		cy.get("@table").find("button.grid-add-row").click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
-		cy.get("@table").find('[data-idx="2"]').as("row2");
+
 		cy.get("@row1").click();
 		cy.get("@row1").find("input.input-with-feedback.form-control").as("email_input1");
 
 		cy.get("@email_input1").type(website_input, { waitForAnimations: false });
 		cy.fill_field("company_name", "Test Company");
 
+		cy.get("@table").find("button.grid-add-row").click();
+		cy.get("@table").find('[data-idx="2"]').as("row2");
 		cy.get("@row2").click();
 		cy.get("@row2").find("input.input-with-feedback.form-control").as("email_input2");
 		cy.get("@email_input2").type(valid_email, { waitForAnimations: false });

@@ -56,7 +56,7 @@ class MariaDBTable(DBTable):
 			idx int(8) not null default '0',
 			{additional_definitions})
 			ENGINE={engine}
-			ROW_FORMAT=DYNAMIC
+			ROW_FORMAT={(self.meta.get("row_format") or "Dynamic").upper()}
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci"""
 

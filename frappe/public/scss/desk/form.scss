@@ -54,6 +54,12 @@
 			margin-left: 10px;
 			position: relative;
 			padding: 0px;
+			&:focus-visible {
+				outline: 1px solid #c9c9c9;
+			}
+		}
+		&:focus-visible {
+			outline: 1px solid #c9c9c9;
 		}
 	}
 
@@ -308,7 +314,7 @@
 	border-radius: var(--border-radius);
 	padding: 8px 10px;
 	font-size: var(--text-md, 13px);
-	margin-bottom: var(--margin-md);
+	margin-bottom: var(--margin-sm);
 
 	&.blue {
 		@include form-message-background("blue");
@@ -430,11 +436,16 @@
 				color: var(--text-muted);
 				padding: 10px 0;
 				margin: 0 var(--margin-md);
-
+				background-color: var(--card-bg);
+				border: 0;
 				&.active {
 					font-weight: 600;
 					border-bottom: 1px solid var(--primary);
 					color: var(--text-color);
+				}
+				&:focus-visible {
+					outline: none;
+					font-weight: 600;
 				}
 			}
 		}

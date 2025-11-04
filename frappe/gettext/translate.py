@@ -332,7 +332,7 @@ def escape_percent(s: str):
 	return s.replace("%", "&#37;")
 
 
-def update_csv_from_po(app: str, locale: str):
+def update_csv_from_po(app: str, locale: str | None = None):
 	"""Writes new strings from PO files to CSV
 
 	Steps:
@@ -345,25 +345,33 @@ def update_csv_from_po(app: str, locale: str):
 	6. Append the remaining translations from the catalog to the CSV file.
 	"""
 	generate_pot(app)
-	update_po(app, locale)
+	locales = [locale] if locale else get_locales(app)
 
-	catalog = get_catalog(app, locale)
-	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
+	for _locale in locales:
+		csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{_locale.replace('_', '-')}.csv"
 
-	if not csv_file.exists():
-		return
+		if not csv_file.exists():
+			continue
 
-	with open(csv_file) as f:
-		csv_translations = {(row[0], row[2] if len(row) > 2 else None): row[1] for row in csv.reader(f)}
+		update_po(app, _locale)
+		catalog = get_catalog(app, _locale)
 
-	for message in list(catalog):
-		if (message.id, message.context or "") in csv_translations or not message.string:
-			catalog.delete(message.id, message.context)
+		with open(csv_file) as f:
+			csv_translations = {(row[0], row[2] if len(row) > 2 else None): row[1] for row in csv.reader(f)}
 
-	with open(csv_file, "a") as f:
-		writer = csv.writer(f)
-		for message in catalog._messages.values():
-			if message.id == message.string or message.id == message.context or not message.id.strip():
-				continue
+		for message in list(catalog):
+			if (message.id, message.context or "") in csv_translations or not message.string:
+				catalog.delete(message.id, message.context)
 
-			writer.writerow([message.id, message.string, message.context or ""])
+		with open(csv_file, "a") as f:
+			writer = csv.writer(f)
+			for message in catalog._messages.values():
+				if (
+					message.id == message.string
+					or message.id == message.context
+					or not message.id.strip()
+					or not message.string.strip()
+				):
+					continue
+
+				writer.writerow([message.id, message.string, message.context or ""])

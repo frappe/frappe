@@ -6,7 +6,9 @@ frappe.pages["backups"].on_page_load = function (wrapper) {
 	});
 
 	page.add_inner_button(__("Set Number of Backups"), function () {
-		frappe.set_route("Form", "System Settings");
+		frappe.set_route("Form", "System Settings").then(() => {
+			cur_frm.scroll_to_field("backup_limit");
+		});
 	});
 
 	page.add_inner_button(__("Download Files Backup"), function () {

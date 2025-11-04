@@ -341,3 +341,85 @@ import "air-datepicker/dist/js/i18n/datepicker.zh.js";
 		firstDay: 0,
 	};
 })(jQuery);
+
+(function ($) {
+	$.fn.datepicker.language["sr"] = {
+		days: ["Недеља", "Понедељак", "Уторак", "Среда", "Четвртак", "Петак", "Субота"],
+		daysShort: ["Нед", "Пон", "Уто", "Сре", "Чет", "Пет", "Суб"],
+		daysMin: ["Не", "По", "Ут", "Ср", "Че", "Пе", "Су"],
+		months: [
+			"Јануар",
+			"Фебруар",
+			"Март",
+			"Април",
+			"Мај",
+			"Јун",
+			"Јул",
+			"Август",
+			"Септембар",
+			"Октобар",
+			"Новембар",
+			"Децембар",
+		],
+		monthsShort: [
+			"Јан",
+			"Феб",
+			"Мар",
+			"Апр",
+			"Мај",
+			"Јун",
+			"Јул",
+			"Авг",
+			"Сеп",
+			"Окт",
+			"Нов",
+			"Дец",
+		],
+		today: "Данас",
+		clear: "Ресетуј",
+		dateFormat: "dd/mm/yyyy",
+		timeFormat: "hh:ii",
+		firstDay: 1,
+	};
+})(jQuery);
+
+(function ($) {
+	$.fn.datepicker.language["sr-CS"] = {
+		days: ["Nedelja", "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"],
+		daysShort: ["Ned", "Pon", "Uto", "Sre", "Čet", "Pet", "Sub"],
+		daysMin: ["Ne", "Po", "Ut", "Sr", "Če", "Pe", "Su"],
+		months: [
+			"Januar",
+			"Februar",
+			"Mart",
+			"April",
+			"Maj",
+			"Juni",
+			"Juli",
+			"Avgust",
+			"Septembar",
+			"Oktobar",
+			"Novembar",
+			"Decembar",
+		],
+		monthsShort: [
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"Maj",
+			"Jun",
+			"Jul",
+			"Avg",
+			"Sep",
+			"Okt",
+			"Nov",
+			"Dec",
+		],
+		today: "Danas",
+		clear: "Resetiraj",
+		dateFormat: "dd/mm/yyyy",
+		timeFormat: "hh:ii",
+		firstDay: 1,
+	};
+})(jQuery);

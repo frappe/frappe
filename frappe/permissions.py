@@ -83,6 +83,7 @@ def has_permission(
 	*,
 	parent_doctype=None,
 	debug=False,
+	ignore_share_permissions=False,
 ) -> bool:
 	"""Return True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, also check user, share and owner permissions.
@@ -185,7 +186,7 @@ def has_permission(
 
 		return False
 
-	if not perm:
+	if not perm and not ignore_share_permissions:
 		debug and _debug_log("Checking if document/doctype is explicitly shared with user")
 		perm = false_if_not_shared()
 
@@ -229,7 +230,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 			"User is owner of document, so permissions are updated to: " + frappe.as_json(permissions)
 		)
 
-	if not has_user_permission(doc, user, debug=debug):
+	if not has_user_permission(doc, user, debug=debug, ptype=ptype):
 		if is_user_owner():
 			# replace with owner permissions
 			permissions = permissions.get("if_owner", {})
@@ -316,7 +317,7 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False):
+def has_user_permission(doc, user=None, debug=False, ptype=None):
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -340,21 +341,34 @@ def has_user_permission(doc, user=None, debug=False):
 	# STEP 1: ---------------------
 	# check user permissions on self
 	if doctype in user_permissions:
-		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
+		doctype_up = user_permissions.get(doctype, [])
+		allowed_docs = get_allowed_docs_for_doctype(doctype_up, doctype)
 
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and str(docname) not in allowed_docs:
-			# no user permissions for this doc specified
-			debug and _debug_log(
-				"User doesn't have access to this document because of User Permissions, allowed documents: "
-				+ str(allowed_docs)
-			)
-			push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
-			return False
-		else:
-			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
+		if allowed_docs:
+			not_permitted = True
+			if doc.meta.is_tree and ptype == "create":
+				if parent := doc.get(doc.nsm_parent_field):
+					doc_hide_descendants = {d.doc: d.hide_descendants for d in doctype_up}
+					for d in _get_parent_and_ancestors(doctype, parent):
+						if d in allowed_docs and not doc_hide_descendants[d]:
+							not_permitted = False
+							break
+			else:
+				not_permitted = not docname or str(docname) not in allowed_docs
+
+			if not_permitted:
+				# no user permissions for this doc specified
+				debug and _debug_log(
+					"User doesn't have access to this document because of User Permissions, allowed documents: "
+					+ str(allowed_docs)
+				)
+				push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
+				return False
+
+		debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
@@ -392,7 +406,7 @@ def has_user_permission(doc, user=None, debug=False):
 					msg = _(
 						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 					).format(
-						_(meta.doctype),
+						_(meta.name),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						d.idx,
@@ -403,7 +417,7 @@ def has_user_permission(doc, user=None, debug=False):
 					msg = _(
 						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 					).format(
-						_(meta.doctype),
+						_(meta.name),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						_(field.label, context=field.parent) if field.label else field.fieldname,
@@ -732,7 +746,7 @@ def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=
 	for doc in user_permissions:
 		if not doc.get("applicable_for") or doc.get("applicable_for") == doctype:
 			allowed_doc.append(doc.get("doc"))
-			if doc.get("is_default") or len(user_permissions) == 1 and with_default_doc:
+			if doc.get("is_default") or (len(user_permissions) == 1 and with_default_doc):
 				default_doc = doc.get("doc")
 
 	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
@@ -833,3 +847,47 @@ def has_child_permission(
 
 def is_system_user(user: str | None = None) -> bool:
 	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
+
+
+def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
+	"""
+	Designed specfically to override DoesNotExistError in some scenarios.
+	Ignores share permissions.
+	"""
+
+	_message_log = frappe.local.message_log
+	frappe.local.message_log = []
+	try:
+		frappe.has_permission(doctype, ptype, throw=True, ignore_share_permissions=True)
+	except frappe.PermissionError:
+		frappe.flags.disable_traceback = True
+		raise
+
+	frappe.local.message_log = _message_log
+
+
+def handle_does_not_exist_error(fn):
+	"""
+	Decorator to override DoesNotExistError when handling exceptions.
+	Requires the first argument to be an Exception.
+	"""
+
+	@functools.wraps(fn)
+	def wrapper(e, *args, **kwargs):
+		if isinstance(e, frappe.DoesNotExistError) and (doctype := getattr(e, "doctype", None)):
+			try:
+				check_doctype_permission(doctype)
+			except frappe.PermissionError as _e:
+				return fn(_e, *args, **kwargs)
+
+		return fn(e, *args, **kwargs)
+
+	return wrapper
+
+
+def _get_parent_and_ancestors(doctype, parent):
+	yield parent
+
+	from frappe.utils.nestedset import get_ancestors_of
+
+	yield from get_ancestors_of(doctype, parent)

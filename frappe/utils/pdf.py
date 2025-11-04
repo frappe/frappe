@@ -12,7 +12,7 @@ import cssutils
 import pdfkit
 from bs4 import BeautifulSoup
 from packaging.version import Version
-from pypdf import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter, errors
 
 import frappe
 from frappe import _
@@ -29,9 +29,11 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def pdf_header_html(soup, head, content, styles, html_id, css):
+def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
+	if not path:
+		path = "templates/print_formats/pdf_header_footer.html"
 	return frappe.render_template(
-		"templates/print_formats/pdf_header_footer.html",
+		path,
 		{
 			"head": head,
 			"content": content,
@@ -71,8 +73,10 @@ def _guess_template_error_line_number(template) -> int | None:
 				return frame.lineno
 
 
-def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css)
+def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
+	return pdf_header_html(
+		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css, path=path
+	)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
@@ -279,7 +283,7 @@ def _get_base64_image(src):
 		mime_type = mimetypes.guess_type(path)[0]
 		if mime_type is None or not mime_type.startswith("image/"):
 			return
-		filename = query.get("fid") and query["fid"][0] or None
+		filename = (query.get("fid") and query["fid"][0]) or None
 		file = find_file_by_url(path, name=filename)
 		if not file or not file.is_private:
 			return
@@ -312,7 +316,8 @@ def prepare_header_footer(soup: BeautifulSoup):
 			toggle_visible_pdf(content)
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
-			html = frappe.get_attr(hook_func[-1])(
+			html = frappe.call(
+				hook_func[-1],
 				soup=soup,
 				head=head,
 				content=content,
@@ -375,3 +380,44 @@ def get_wkhtmltopdf_version():
 			pass
 
 	return wkhtmltopdf_version or "0"
+
+
+def pdf_contains_js(file_content: bytes):
+	"""
+	Check if a PDF file contains JavaScript.
+
+	Args:
+	        file_content (bytes): The content of the PDF file.
+
+	Returns:
+	        bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
+	"""
+	from io import BytesIO
+
+	reader = PdfReader(BytesIO(file_content))
+
+	def has_javascript(obj):
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				if key in ("/JS", "/JavaScript"):
+					return True
+				if has_javascript(value):
+					return True
+		elif isinstance(obj, list):
+			for item in obj:
+				if has_javascript(item):
+					return True
+		return False
+
+	root = reader.trailer.get("/Root", {})
+	if has_javascript(root):
+		return True
+
+	try:
+		for page in reader.pages:
+			if has_javascript(page):
+				return True
+	except errors.FileNotDecryptedError:
+		pass
+
+	return False

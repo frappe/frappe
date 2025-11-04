@@ -1,5 +1,6 @@
 exclude: 'node_modules|.git'
 default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
 
 
@@ -21,7 +22,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.0
+    rev: v0.13.2
     hooks:
       - id: ruff
         name: "Run ruff linter and apply fixes"
@@ -65,6 +66,13 @@ repos:
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*
             )$
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.22.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ['conventional-changelog-conventionalcommits']
 
 ci:
     autoupdate_schedule: weekly

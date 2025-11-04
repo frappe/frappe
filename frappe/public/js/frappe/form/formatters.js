@@ -38,6 +38,10 @@ frappe.form.formatters = {
 			if (!value) return;
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
+		if (df && df.options == "IBAN") {
+			if (!value) return;
+			return frappe.utils.get_formatted_iban(value);
+		}
 		value = value == null ? "" : value;
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);
@@ -95,7 +99,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(flt(value, precision) + "%", options);
+		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";

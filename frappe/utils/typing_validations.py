@@ -4,7 +4,8 @@ from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, PydanticUserError
+from pydantic import TypeAdapter as PyTypeAdapter
 
 from frappe.exceptions import FrappeTypeError
 
@@ -68,9 +69,14 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
-	from pydantic import TypeAdapter as PyTypeAdapter
+	try:
+		return PyTypeAdapter(type_, config=FrappePydanticConfig)
+	except PydanticUserError as e:
+		# Cannot set config for types BaseModel, TypedDict and dataclass
+		if e.code == "type-adapter-config-unused":
+			return PyTypeAdapter(type_)
 
-	return PyTypeAdapter(type_, config=FrappePydanticConfig)
+		raise e
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):

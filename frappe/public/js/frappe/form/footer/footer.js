@@ -45,6 +45,7 @@ frappe.ui.form.Footer = class FormFooter {
 							this.frm.comment_box.set_value("");
 							frappe.utils.play_sound("click");
 							this.frm.timeline.add_timeline_item(comment_item);
+							this.frm.get_docinfo().comments.push(comment);
 							this.frm.sidebar.refresh_comments_count &&
 								this.frm.sidebar.refresh_comments_count();
 						})

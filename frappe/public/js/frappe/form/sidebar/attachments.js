@@ -126,11 +126,11 @@ frappe.ui.form.Attachments = class Attachments {
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
 				class="ellipsis" style="max-width: calc(100% - 43px);"
 			>
-				<span>${file_name}</span>
+				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>`;
 
 		let remove_action = null;
-		if (frappe.model.can_write(this.frm.doctype, this.frm.name)) {
+		if (this.can_delete_attachment()) {
 			remove_action = function (target_id) {
 				frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
 					let target_attachment = me
@@ -154,6 +154,21 @@ frappe.ui.form.Attachments = class Attachments {
 		$(`<li class="attachment-row">`)
 			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
 			.insertAfter(this.add_attachment_wrapper);
+	}
+
+	can_delete_attachment() {
+		if (this.frm.meta.protect_attached_files) {
+			switch (this.frm.doc.docstatus) {
+				case 0:
+					return this.frm.has_perm("write");
+				case 2:
+					return this.frm.has_perm("write") && this.frm.has_perm("delete");
+				default:
+					return false;
+			}
+		}
+
+		return this.frm.has_perm("write");
 	}
 
 	get_file_url(attachment) {

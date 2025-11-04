@@ -174,6 +174,10 @@ Object.assign(frappe.model, {
 			}
 		}
 
+		if (local_doc?.on_paste_event && local_doc?.__newname) {
+			doc.__newname = local_doc.__newname;
+		}
+
 		// clear keys on parent
 		clear_keys(doc, local_doc);
 	},

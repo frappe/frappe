@@ -43,6 +43,13 @@
 			<!-- submit button -->
 			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
 		{% endif %}
+		{% if has_delete_permission %}
+			<!-- delete button -->
+			<button type="button" class="delete-btn btn btn-default btn-sm">
+				{{ _("Delete", context="Button in web form") }}
+			</button>
+		{% endif %}
+
 	</div>
 	{% endblock %}
 {% endmacro %}
@@ -66,7 +73,7 @@
 				<div class="title">
 					<div class="web-form-title ellipsis">
 						{% if show_list and not is_new %}
-							<h1 class="ellipsis">{{ _(web_form_title) }}</h1>
+							<h1 class="ellipsis">{{ _(web_form_title) or _(title) }}</h1>
 							<p class="ellipsis">{{ _(title) }}</p>
 						{% else %}
 							<h1 class="ellipsis">{{ _(title) }}</h1>

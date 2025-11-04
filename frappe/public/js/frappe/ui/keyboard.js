@@ -322,6 +322,7 @@ frappe.ui.keyCode = {
 function handle_escape_key() {
 	close_grid_and_dialog();
 	document.activeElement?.blur();
+	$(document).trigger("escape");
 }
 
 function close_grid_and_dialog() {
@@ -339,3 +340,14 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+
+$.fn.enterKey = function (fnc) {
+	return this.each(function () {
+		$(this).keypress(function (ev) {
+			var keycode = ev.keyCode ? ev.keyCode : ev.which;
+			if (keycode == "13") {
+				fnc.call(this, ev);
+			}
+		});
+	});
+};

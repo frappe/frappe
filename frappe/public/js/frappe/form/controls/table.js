@@ -15,7 +15,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 		if (this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
 		}
-
+		const me = this;
 		this.$wrapper.on("paste", ":text", (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;

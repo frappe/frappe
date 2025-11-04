@@ -1,13 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
+from __future__ import annotations
+
 import email.utils
 import os
 import re
 from email import policy
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
+from typing import TYPE_CHECKING
 
 import frappe
+from frappe import _
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import (
 	cint,
@@ -22,6 +27,9 @@ from frappe.utils import (
 	to_markdown,
 )
 from frappe.utils.pdf import get_pdf
+
+if TYPE_CHECKING:
+	from typing import Literal
 
 EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
 
@@ -44,6 +52,7 @@ def get_email(
 	expose_recipients=None,
 	inline_images=None,
 	header=None,
+	x_priority: Literal[1, 3, 5] = 3,
 ):
 	"""Prepare an email with the following format:
 	- multipart/mixed
@@ -72,6 +81,7 @@ def get_email(
 		bcc=bcc,
 		email_account=email_account,
 		expose_recipients=expose_recipients,
+		x_priority=x_priority,
 	)
 
 	if not content.strip().startswith("<"):
@@ -117,6 +127,7 @@ class EMail:
 		bcc=(),
 		email_account=None,
 		expose_recipients=None,
+		x_priority: Literal[1, 3, 5] = 3,
 	):
 		from email import charset as Charset
 
@@ -141,6 +152,8 @@ class EMail:
 		self.cc = cc or []
 		self.bcc = bcc or []
 		self.html_set = False
+
+		self.x_priority: Literal[1, 3, 5] = x_priority
 
 		self.email_account = email_account or EmailAccount.find_outgoing(
 			match_by_email=sender, _raise_error=True
@@ -224,7 +237,7 @@ class EMail:
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 
-		maintype, subtype = mime_type.split("/")
+		_maintype, subtype = mime_type.split("/")
 		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
 
 		if as_attachment:
@@ -303,6 +316,16 @@ class EMail:
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
 		self.set_header("In-Reply-To", in_reply_to)
 
+	def add_headers(self, headers):
+		"""Add custom headers to the email"""
+		if not isinstance(headers, dict):
+			frappe.throw(_("Headers must be a dictionary"))
+
+		for key, value in headers.items():
+			if value is not None:
+				key = "X-" + key if not key.startswith("X-") else key
+				self.set_header(key, value)
+
 	def make(self):
 		"""build into msg_root"""
 		headers = {
@@ -314,6 +337,13 @@ class EMail:
 			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients == "header" else None,
 			"X-Frappe-Site": get_url(),
 		}
+
+		if self.x_priority != 3:
+			headers.update(
+				{
+					"X-Priority": str(self.x_priority),
+				}
+			)
 
 		# reset headers as values may be changed.
 		for key, val in headers.items():
@@ -415,7 +445,7 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 	from email.mime.text import MIMEText
 
 	if not content_type:
-		content_type, encoding = mimetypes.guess_type(fname)
+		content_type, _encoding = mimetypes.guess_type(fname)
 
 	if not parent:
 		return
@@ -567,7 +597,7 @@ def get_header(header=None):
 	if not title:
 		title = frappe.get_hooks("app_title")[-1]
 
-	email_header, text = get_email_from_template(
+	email_header, _text = get_email_from_template(
 		"email_header", {"header_title": title, "indicator": indicator}
 	)
 

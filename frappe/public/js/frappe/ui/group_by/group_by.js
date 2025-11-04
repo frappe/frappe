@@ -243,6 +243,18 @@ frappe.ui.GroupBy = class {
 	}
 
 	apply_group_by() {
+		if (
+			this.group_by_doctype &&
+			this.aggregate_on_doctype &&
+			this.aggregate_on_doctype != this.doctype &&
+			this.group_by_doctype != this.aggregate_on_doctype
+		) {
+			frappe.msgprint(
+				__("Parent-to-child or child-to-different-child grouping is not allowed.")
+			);
+			return false;
+		}
+
 		this.group_by = "`tab" + this.group_by_doctype + "`.`" + this.group_by_field + "`";
 
 		if (this.aggregate_function === "count") {

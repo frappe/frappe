@@ -200,15 +200,35 @@ def _restore(
 	with_public_files=None,
 	with_private_files=None,
 ):
+	from pathlib import Path
+
 	from frappe.installer import extract_files
 	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
+
+	# Check for the backup file in the backup directory, as well as the main bench directory
+	dirs = (f"{site}/private/backups", "..")
+
+	# Try to resolve path to the file if we can't find it directly
+	if not Path(sql_file_path).exists():
+		click.secho(
+			f"File {sql_file_path} not found. Trying to check in alternative directories.", fg="yellow"
+		)
+		for dir in dirs:
+			potential_path = Path(dir) / Path(sql_file_path)
+			if potential_path.exists():
+				sql_file_path = str(potential_path.resolve())
+				click.secho(f"File {sql_file_path} found.", fg="green")
+				break
+		else:
+			click.secho(f"File {sql_file_path} not found.", fg="red")
+			sys.exit(1)
 
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
 		sys.exit(1)
 
-	if "cipher" in out.decode().split(":")[-1].strip():
+	if "AES" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 
@@ -287,24 +307,6 @@ def restore_backup(
 
 	from frappe.installer import _new_site, is_downgrade, is_partial, validate_database_sql
 
-	# Check for the backup file in the backup directory, as well as the main bench directory
-	dirs = (f"{site}/private/backups", "..")
-
-	# Try to resolve path to the file if we can't find it directly
-	if not Path(sql_file_path).exists():
-		click.secho(
-			f"File {sql_file_path} not found. Trying to check in alternative directories.", fg="yellow"
-		)
-		for dir in dirs:
-			potential_path = Path(dir) / Path(sql_file_path)
-			if potential_path.exists():
-				sql_file_path = str(potential_path.resolve())
-				click.secho(f"File {sql_file_path} found.", fg="green")
-				break
-		else:
-			click.secho(f"File {sql_file_path} not found.", fg="red")
-			sys.exit(1)
-
 	if is_partial(sql_file_path):
 		click.secho(
 			"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
@@ -319,7 +321,7 @@ def restore_backup(
 	# Check if the backup is of an older version of frappe and the user hasn't specified force
 	if is_downgrade(sql_file_path, verbose=True) and not force:
 		warn_message = (
-			"This is not recommended and may lead to unexpected behaviour. " "Do you want to continue anyway?"
+			"This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
 
@@ -550,23 +552,12 @@ def list_apps(context, format):
 @pass_context
 def add_db_index(context, doctype, column):
 	"Adds a new DB index and creates a property setter to persist it."
-	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 	columns = column  # correct naming
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
-			if len(columns) == 1:
-				make_property_setter(
-					doctype,
-					columns[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -1037,7 +1028,7 @@ def move(dest_dir, site):
 	site_dump_exists = True
 	count = 0
 	while site_dump_exists:
-		final_new_path = new_path + (count and str(count) or "")
+		final_new_path = new_path + ((count and str(count)) or "")
 		site_dump_exists = os.path.exists(final_new_path)
 		count = int(count or 0) + 1
 
@@ -1154,8 +1145,16 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 @click.command("browse")
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
+@click.option(
+	"--session-end",
+	required=False,
+	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
+)
+@click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
 @pass_context
-def browse(context, site, user=None):
+def browse(
+	context, site, user: str | None = None, session_end: str | None = None, user_for_audit: str | None = None
+):
 	"""Opens the site on web browser"""
 	from frappe.auth import CookieManager, LoginManager
 
@@ -1181,7 +1180,7 @@ def browse(context, site, user=None):
 			frappe.utils.set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
+			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = f"/app?sid={frappe.session.sid}"
 		else:
 			click.echo("Please enable developer mode to login as a user")

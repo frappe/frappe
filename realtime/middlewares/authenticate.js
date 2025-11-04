@@ -18,8 +18,12 @@ function authenticate_with_frappe(socket, next) {
 		return;
 	}
 
-	if (!socket.request.headers.cookie) {
-		next(new Error("No cookie transmitted."));
+	if (!socket.request.headers.cookie && !socket.request.headers.authorization) {
+		next(
+			new Error(
+				"Missing cookie and authorization header. Either one needed for authentication."
+			)
+		);
 		return;
 	}
 
@@ -32,10 +36,10 @@ function authenticate_with_frappe(socket, next) {
 	}
 
 	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
-	if (cookies.sid) {
-		auth_req = auth_req.query({ sid: cookies.sid });
-	} else {
+	if (authorization_header) {
 		auth_req = auth_req.set("Authorization", authorization_header);
+	} else if (cookies.sid) {
+		auth_req = auth_req.query({ sid: cookies.sid });
 	}
 
 	auth_req

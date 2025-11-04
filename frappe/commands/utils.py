@@ -418,8 +418,7 @@ def import_doc(context, path, force=False):
 	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 	required=True,
 	help=(
-		"Path to import file (.csv, .xlsx)."
-		"Consider that relative paths will resolve from 'sites' directory"
+		"Path to import file (.csv, .xlsx). Consider that relative paths will resolve from 'sites' directory"
 	),
 )
 @click.option("--doctype", type=str, required=True)

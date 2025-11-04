@@ -111,7 +111,11 @@ def process_workflow_actions(doc, state):
 	roles = {t.allowed for t in next_possible_transitions}
 	create_workflow_actions_for_roles(roles, doc)
 
-	if send_email_alert(workflow):
+	if send_email_alert(workflow) and frappe.db.get_value(
+		"Workflow Document State",
+		filters={"parent": workflow, "state": get_doc_workflow_state(doc)},
+		fieldname="send_email",
+	):
 		enqueue(
 			send_workflow_action_email,
 			queue="short",
@@ -337,7 +341,8 @@ def get_users_next_action_data(transitions, doc):
 		filtered_users = [
 			user for user in users if has_approval_access(user, doc, transition) and user_has_permission(user)
 		]
-
+		if doc.get("owner") in filtered_users and not transition.get("send_email_to_creator"):
+			filtered_users.remove(doc.get("owner"))
 		for user in filtered_users:
 			if not user_data_map.get(user):
 				user_data_map[user] = frappe._dict(
@@ -514,6 +519,9 @@ def get_email_template_from_workflow(doc):
 
 	if not template_name:
 		return
+
+	if isinstance(doc, Document):
+		doc = doc.as_dict()
 	return get_email_template(template_name, doc)
 
 

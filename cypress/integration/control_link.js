@@ -290,7 +290,7 @@ context("Control Link", () => {
 			});
 
 		cy.clear_cache();
-		cy.wait(1000);
+		cy.wait(500);
 
 		get_dialog_with_gender_link().as("dialog");
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");

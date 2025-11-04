@@ -82,14 +82,17 @@ export default class NumberCardWidget extends Widget {
 			type: is_document_type ? "doctype" : "report",
 			is_query_report: !is_document_type,
 		});
-
+		const filters = this.get_filters();
 		if (is_document_type) {
-			const filters = JSON.parse(this.card_doc.filters_json);
 			frappe.route_options = filters.reduce((acc, filter) => {
 				return Object.assign(acc, {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
 				});
 			}, {});
+		} else {
+			if (filters && Object.keys(filters).length) {
+				frappe.route_options = filters;
+			}
 		}
 
 		frappe.set_route(route);
@@ -157,6 +160,8 @@ export default class NumberCardWidget extends Widget {
 	async render_card() {
 		this.prepare_actions();
 		this.set_title();
+		this.card_doc?.background_color &&
+			this.widget.css("background-color", this.card_doc.background_color);
 		this.set_loading_state();
 
 		if (!this.card_doc.type) {
@@ -220,8 +225,15 @@ export default class NumberCardWidget extends Widget {
 		const default_country = frappe.sys_defaults.country;
 		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(" ");
-
 		const symbol = number_parts[1] || "";
+
+		// done to add multicurrency support in number card
+		if (this.card_doc.currency) {
+			this.formatted_number =
+				format_currency(number_parts[0], this.card_doc.currency) + " " + symbol;
+			return;
+		}
+
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
 		const formatted_number = frappe.format(number_parts[0], df, null, doc);
 		this.formatted_number =

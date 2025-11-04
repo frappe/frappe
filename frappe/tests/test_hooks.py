@@ -130,7 +130,7 @@ def custom_has_permission(doc, ptype, user):
 
 
 def custom_auth():
-	auth_type, token = frappe.get_request_header("Authorization", "Bearer ").split(" ")
+	_auth_type, token = frappe.get_request_header("Authorization", "Bearer ").split(" ")
 	if token == "set_test_example_user":
 		frappe.set_user("test@example.com")
 

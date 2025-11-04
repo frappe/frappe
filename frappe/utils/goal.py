@@ -116,7 +116,7 @@ def get_monthly_goal_graph_data(
 			{
 				"title": _("Completed"),
 				"color": "#28a745",
-				"value": f"{int(round(flt(current_month_value) / flt(goal) * 100))}%",
+				"value": f"{round(flt(current_month_value) / flt(goal) * 100)}%",
 			},
 		]
 		y_markers = {"yMarkers": [{"label": _("Goal"), "lineType": "dashed", "value": flt(goal)}]}
