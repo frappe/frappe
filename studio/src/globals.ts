@@ -8,7 +8,9 @@ import {
 	Button,
 	Card,
 	Checkbox,
+	Combobox,
 	DatePicker,
+	TimePicker,
 	DateTimePicker,
 	DateRangePicker,
 	Dialog,
@@ -45,6 +47,7 @@ import {
 	AxisChart,
 	DonutChart,
 } from "frappe-ui"
+import { Link } from "frappe-ui/frappe"
 
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
@@ -70,7 +73,9 @@ export function registerGlobalComponents(app: App) {
 	app.component("Button", Button)
 	app.component("Card", Card)
 	app.component("Checkbox", Checkbox)
+	app.component("Combobox", Combobox)
 	app.component("DatePicker", DatePicker)
+	app.component("TimePicker", TimePicker)
 	app.component("DateTimePicker", DateTimePicker)
 	app.component("DateRangePicker", DateRangePicker)
 	app.component("Dialog", Dialog)
@@ -83,6 +88,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("FormLabel", FormLabel)
 	app.component("GreenCheckIcon", GreenCheckIcon)
 	app.component("Input", Input)
+	app.component("Link", Link)
 	app.component("ListItem", ListItem)
 	app.component("ListView", ListView)
 	app.component("LoadingIndicator", LoadingIndicator)

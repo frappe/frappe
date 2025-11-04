@@ -12,6 +12,7 @@ import LucideRectangleHorizontal from "~icons/lucide/rectangle-horizontal"
 import LucideIdCard from "~icons/lucide/id-card"
 import LucideCircleCheck from "~icons/lucide/circle-check"
 import LucideCalendar from "~icons/lucide/calendar"
+import LucideClock from "~icons/lucide/clock"
 import LucideCalendarCheck from "~icons/lucide/calendar-check"
 import LucideCalendarClock from "~icons/lucide/calendar-clock"
 import LucideCalendarSearch from "~icons/lucide/calendar-search"
@@ -39,6 +40,7 @@ import LucideSidebar from "~icons/lucide/sidebar"
 import LucideSquareSplitHorizontal from "~icons/lucide/square-split-horizontal"
 import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
+import LucideLink from "~icons/lucide/link"
 import LucideMusic from "~icons/lucide/music"
 import LucideType from "~icons/lucide/type"
 import LucideFilePenLine from "~icons/lucide/file-pen-line"
@@ -172,6 +174,66 @@ export const COMPONENTS: FrappeUIComponents = {
 			checked: true,
 		},
 	},
+	Combobox: {
+		name: "Combobox",
+		title: "Combobox",
+		icon: LucideListCheck,
+		initialState: {
+			placeholder: "Select Fruit",
+			options: [
+				{
+					group: "Fruits",
+					options: [
+						{
+							label: "Apple",
+							value: "apple",
+							icon: "🍎",
+						},
+						{
+							label: "Banana",
+							value: "banana",
+							icon: "🍌",
+						},
+						{
+							label: "Orange",
+							value: "orange",
+							icon: "🍊",
+						},
+						{
+							label: "Grape",
+							value: "grape",
+							icon: "🍇",
+						},
+					],
+				},
+				{
+					group: "Vegetables",
+					options: [
+						{
+							label: "Carrot",
+							value: "carrot",
+							icon: "🥕",
+						},
+						{
+							label: "Broccoli",
+							value: "broccoli",
+							icon: "🥦",
+						},
+						{
+							label: "Tomato",
+							value: "tomato",
+							icon: "🍅",
+						},
+						{
+							label: "Lettuce",
+							value: "lettuce",
+							icon: "🥬",
+						},
+					],
+				},
+			],
+		},
+	},
 	Calendar: {
 		name: "Calendar",
 		title: "Calendar",
@@ -251,6 +313,14 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideCalendarCheck,
 		initialState: {
 			placeholder: "Select Date",
+		},
+	},
+	TimePicker: {
+		name: "TimePicker",
+		title: "Time",
+		icon: LucideClock,
+		initialState: {
+			placeholder: "Select Time",
 		},
 	},
 	DateTimePicker: {
@@ -368,8 +438,8 @@ export const COMPONENTS: FrappeUIComponents = {
 				required: false,
 				type: Array,
 				default: () => ["John Doe", "Jane Doe"],
-				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete"
-			}
+				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete",
+			},
 		},
 	},
 	FormLabel: {
@@ -383,7 +453,7 @@ export const COMPONENTS: FrappeUIComponents = {
 	ListView: {
 		name: "ListView",
 		title: "List View",
-		icon: LucideListCheck,
+		icon: LucideList,
 		initialState: {
 			columns: [
 				{
@@ -435,6 +505,14 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 			rowKey: "id",
+		},
+	},
+	Link: {
+		name: "Link",
+		title: "Link",
+		icon: LucideLink,
+		initialState: {
+			doctype: "User",
 		},
 	},
 	Progress: {
