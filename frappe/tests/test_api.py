@@ -137,12 +137,8 @@ class FrappeAPITestCase(FrappeTestCase):
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
-<<<<<<< HEAD
-	GENERATED_DOCUMENTS: typing.ClassVar = []
-=======
 	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
 	TEST_USER = "test@restapi.com"
->>>>>>> 4cfc0c6b55 (test: added rest api test user to avoid past user creation inconsistency)
 
 	@classmethod
 	def setUpClass(cls):
