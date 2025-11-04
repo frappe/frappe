@@ -49,11 +49,9 @@
   "column_break_34",
   "allow_login_after_fail",
   "two_factor_authentication",
-  "column_break_odhl",
   "enable_two_factor_auth",
   "bypass_2fa_for_retricted_ip_users",
   "bypass_restrict_ip_check_if_2fa_enabled",
-  "column_break_bzfr",
   "two_factor_method",
   "lifespan_qrcode_image",
   "otp_issuer_name",
@@ -367,6 +365,13 @@
    "fieldname": "otp_issuer_name",
    "fieldtype": "Data",
    "label": "OTP Issuer Name"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
+   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
+   "fieldname": "otp_sms_template",
+   "fieldtype": "Small Text",
+   "label": "OTP SMS Template"
   },
   {
    "fieldname": "email",
@@ -737,41 +742,12 @@
    "fieldtype": "Int",
    "label": "Max signups allowed per hour",
    "non_negative": 1
-<<<<<<< HEAD
-=======
-  },
-  {
-   "default": "Never",
-   "fieldname": "show_external_link_warning",
-   "fieldtype": "Select",
-   "label": "Show External Link Warning",
-   "options": "Never\nAsk\nAlways"
-  },
-  {
-   "fieldname": "column_break_odhl",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
-   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
-   "fieldname": "otp_sms_template",
-   "fieldtype": "Small Text",
-   "label": "OTP SMS Template"
-  },
-  {
-   "fieldname": "column_break_bzfr",
-   "fieldtype": "Column Break"
->>>>>>> 1774021901 (feat: configure SMS OTP template for 2FA (#34585))
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-09-03 10:52:38.096662",
-=======
  "modified": "2025-11-04 16:47:54.230874",
->>>>>>> 1774021901 (feat: configure SMS OTP template for 2FA (#34585))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
