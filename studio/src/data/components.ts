@@ -510,6 +510,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideLink,
 		initialState: {
 			doctype: "User",
+			filters: {
+				enabled: 1,
+			}
 		},
 	},
 	Progress: {
