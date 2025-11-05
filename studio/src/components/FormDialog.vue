@@ -89,9 +89,6 @@ type FormField = DocTypeField & {
 	componentName: string
 	componentType?: string
 	name: string
-	reqd: number
-	read_only: number
-	options?: string
 }
 const formMeta = ref<{
 	doctype: string
@@ -200,6 +197,9 @@ const addFields = () => {
 			newBlock?.setProp("type", field.componentType)
 			if (formMeta.value.variant) {
 				newBlock?.setProp("variant", formMeta.value.variant)
+			}
+			if (field.description) {
+				newBlock?.setProp("description", field.description)
 			}
 		}
 		if (field.label) {

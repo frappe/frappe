@@ -102,6 +102,9 @@ export type DocTypeField = {
 	is_virtual?: boolean
 	options?: string
 	value?: any
+	reqd: number
+	read_only: number
+	description?: string
 }
 export type Operators = "=" | "!=" | ">" | "<" | ">=" | "<=" | "like" | "not like" | "in" | "not in" | "between" | "not between" | "is" | "is not"
 
