@@ -173,8 +173,12 @@ const addFields = () => {
 		if (field.reqd) {
 			newBlock?.setProp("required", true)
 		}
-		if (field.options && field.componentType === "select") {
-			newBlock?.setProp("options", field.options.split("\n"))
+		if (field.options) {
+			if (field.componentType === "select") {
+				newBlock?.setProp("options", field.options.split("\n"))
+			} else if (field.componentType === "Link") {
+				newBlock?.setProp("doctype", field.options)
+			}
 		}
 		props.block?.addChild(newBlock)
 	})
