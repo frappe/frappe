@@ -18,7 +18,7 @@ context("Control Select", () => {
 		});
 	}
 
-	it("toggles placholder on clicking an option", () => {
+	it("toggles placeholder on clicking an option", () => {
 		get_dialog_with_select().as("dialog");
 
 		cy.get(".frappe-control[data-fieldname=select_control] .control-input").as("control");
