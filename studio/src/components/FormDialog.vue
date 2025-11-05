@@ -81,6 +81,8 @@ type FormField = DocTypeField & {
 	componentName: string
 	componentType: string
 	name: string
+	reqd: number
+	options?: string
 }
 const formMeta = ref<{
 	doctype: string
@@ -161,9 +163,18 @@ const addFields = () => {
 
 	formMeta.value.fields.forEach((field: FormField) => {
 		const newBlock = getComponentBlock(field.componentName)
-		newBlock?.setProp("label", field.label)
 		if (field.componentName === "FormControl") {
 			newBlock?.setProp("type", field.componentType)
+		}
+		if (field.label) {
+			newBlock?.setProp("label", field.label)
+			newBlock?.setProp("placeholder", "")
+		}
+		if (field.reqd) {
+			newBlock?.setProp("required", true)
+		}
+		if (field.options && field.componentType === "select") {
+			newBlock?.setProp("options", field.options.split("\n"))
 		}
 		props.block?.addChild(newBlock)
 	})
