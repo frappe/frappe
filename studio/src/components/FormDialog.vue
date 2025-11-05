@@ -124,13 +124,16 @@ const fieldTypes = [
 	"Data",
 	"Int",
 	"Float",
-	"Link",
+	"Password",
+	"Text",
+	"Small Text",
+	"Long Text",
 	"Select",
 	"Check",
 	"Date",
 	"Datetime",
+	"Link",
 	"Text Editor",
-	"Small Text",
 ]
 
 const getComponentFromFieldType = (fieldType: string) => {
@@ -140,10 +143,12 @@ const getComponentFromFieldType = (fieldType: string) => {
 		case "Int":
 		case "Float":
 			return { componentName: "FormControl", componentType: "number" }
+		case "Password":
+			return { componentName: "FormControl", componentType: "password" }
+		case "Text":
 		case "Small Text":
+		case "Long Text":
 			return { componentName: "FormControl", componentType: "textarea" }
-		case "Link":
-			return { componentName: "Link" }
 		case "Select":
 			return { componentName: "FormControl", componentType: "select" }
 		case "Check":
@@ -152,6 +157,8 @@ const getComponentFromFieldType = (fieldType: string) => {
 			return { componentName: "FormControl", componentType: "date" }
 		case "Datetime":
 			return { componentName: "FormControl", componentType: "datetime-local" }
+		case "Link":
+			return { componentName: "Link" }
 		case "Text Editor":
 			return { componentName: "TextEditor" }
 		default:
