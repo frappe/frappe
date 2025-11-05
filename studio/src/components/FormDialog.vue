@@ -132,6 +132,7 @@ const fieldTypes = [
 	"Check",
 	"Date",
 	"Datetime",
+	"Time",
 	"Link",
 	"Text Editor",
 ]
@@ -157,6 +158,8 @@ const getComponentFromFieldType = (fieldType: string) => {
 			return { componentName: "FormControl", componentType: "date" }
 		case "Datetime":
 			return { componentName: "FormControl", componentType: "datetime-local" }
+		case "Time":
+			return { componentName: "FormControl", componentType: "time" }
 		case "Link":
 			return { componentName: "Link" }
 		case "Text Editor":
