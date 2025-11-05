@@ -55,7 +55,7 @@ def handle(request: Request):
 
 	try:
 		endpoint, arguments = API_URL_MAP.bind_to_environ(request.environ).match()
-	except NotFound:  # Wrap 404 - backward compatiblity
+	except NotFound:  # Wrap 404 - backward compatibility
 		raise frappe.DoesNotExistError
 
 	data = endpoint(**arguments)
