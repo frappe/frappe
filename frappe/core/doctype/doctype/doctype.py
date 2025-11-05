@@ -458,7 +458,7 @@ class DocType(Document):
 			frappe.db.set_value("DocType", p.parent, {})
 
 	def scrub_field_names(self):
-		"""Sluggify fieldnames if not set from Label."""
+		"""Slugify fieldnames if not set from Label."""
 		restricted = (
 			"name",
 			"parent",
@@ -600,7 +600,7 @@ class DocType(Document):
 
 	def set_base_class_for_controller(self):
 		"""If DocType.has_web_view has been changed, updates the controller class and import
-		from `WebsiteGenertor` to `Document` or viceversa"""
+		from `WebsiteGenertor` to `Document` or vice-versa"""
 
 		if not self.has_value_changed("has_web_view"):
 			return
@@ -748,7 +748,7 @@ class DocType(Document):
 		if not naming_series:
 			return
 
-		# check if atleast 1 record exists
+		# check if at least 1 record exists
 		if not (
 			frappe.db.table_exists(self.name)
 			and frappe.get_all(self.name, fields=["name"], limit=1, as_list=True)
@@ -1565,7 +1565,7 @@ def validate_fields(meta: Meta):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
 	def check_table_multiselect_option(docfield):
-		"""check if the doctype provided in Option has atleast 1 Link field"""
+		"""check if the doctype provided in Option has at least 1 Link field"""
 		if docfield.fieldtype != "Table MultiSelect":
 			return
 
@@ -1576,7 +1576,7 @@ def validate_fields(meta: Meta):
 		if not link_field:
 			frappe.throw(
 				_(
-					"DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
+					"DocType <b>{0}</b> provided for the field <b>{1}</b> must have at least one Link field"
 				).format(doctype, docfield.fieldname),
 				frappe.ValidationError,
 			)
