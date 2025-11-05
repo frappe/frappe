@@ -35,7 +35,7 @@
 							fieldtype: 'Autocomplete',
 							options: fieldTypes,
 							onChange: (_value: string, index: number) => {
-								const { componentName, componentType } = getComponentFromFieldType(_value)
+								const { componentName, componentType } = getComponentForField(_value)
 								formMeta.fields[index].componentName = componentName
 								formMeta.fields[index].componentType = componentType
 							},
@@ -52,6 +52,14 @@
 					v-model:rows="formMeta.fields"
 					:showDeleteBtn="true"
 				/>
+				<FormControl
+					v-if="showVariantField"
+					label="Field Variant"
+					type="select"
+					:options="['subtle', 'outline']"
+					v-model="formMeta.variant"
+					description="Selected variant will be applied to all FormControl fields"
+				/>
 			</div>
 		</template>
 
@@ -62,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { createResource, Dialog } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/helpers"
@@ -79,12 +87,13 @@ const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
 type FormField = DocTypeField & {
 	componentName: string
-	componentType: string
+	componentType?: string
 	name: string
 }
 const formMeta = ref<{
 	doctype: string
 	fields: FormField[]
+	variant?: string
 }>({
 	doctype: "",
 	fields: [],
@@ -97,7 +106,7 @@ const doctypeFields = createResource({
 	},
 	transform: (data: DocTypeField[]) => {
 		return data.map((field) => {
-			const { componentName, componentType } = getComponentFromFieldType(field.fieldtype)
+			const { componentName, componentType } = getComponentForField(field)
 			return {
 				...field,
 				value: field.fieldname,
@@ -117,30 +126,47 @@ watch(
 	},
 )
 
+const showVariantField = computed(() => {
+	return formMeta.value.fields.some((field) => field.componentName === "FormControl")
+})
+
 const fieldTypes = [
 	"Data",
 	"Int",
 	"Float",
-	"Link",
+	"Password",
+	"Text",
+	"Small Text",
+	"Long Text",
 	"Select",
 	"Check",
 	"Date",
 	"Datetime",
-	"Markdown Editor",
-	"Small Text",
+	"Time",
+	"Link",
+	"Text Editor",
+	"Rating",
 ]
 
-const getComponentFromFieldType = (fieldType: string) => {
+const getComponentForField = (arg?: DocTypeField | string) => {
+	const fieldType = typeof arg === "string" ? arg : arg?.fieldtype
+	const field = typeof arg === "object" ? arg : null
+
 	switch (fieldType) {
 		case "Data":
+			if (field?.options === "Email") {
+				return { componentName: "FormControl", componentType: "email" }
+			}
 			return { componentName: "FormControl", componentType: "text" }
 		case "Int":
 		case "Float":
 			return { componentName: "FormControl", componentType: "number" }
+		case "Password":
+			return { componentName: "FormControl", componentType: "password" }
+		case "Text":
 		case "Small Text":
+		case "Long Text":
 			return { componentName: "FormControl", componentType: "textarea" }
-		case "Link":
-			return { componentName: "Link", componentType: "Link" }
 		case "Select":
 			return { componentName: "FormControl", componentType: "select" }
 		case "Check":
@@ -149,8 +175,14 @@ const getComponentFromFieldType = (fieldType: string) => {
 			return { componentName: "FormControl", componentType: "date" }
 		case "Datetime":
 			return { componentName: "FormControl", componentType: "datetime-local" }
-		case "Markdown Editor":
-			return { componentName: "MarkdownEditor", componentType: "MarkdownEditor" }
+		case "Time":
+			return { componentName: "FormControl", componentType: "time" }
+		case "Link":
+			return { componentName: "Link" }
+		case "Text Editor":
+			return { componentName: "TextEditor" }
+		case "Rating":
+			return { componentName: "Rating" }
 		default:
 			return { componentName: "FormControl", componentType: "text" }
 	}
@@ -161,9 +193,31 @@ const addFields = () => {
 
 	formMeta.value.fields.forEach((field: FormField) => {
 		const newBlock = getComponentBlock(field.componentName)
-		newBlock?.setProp("label", field.label)
 		if (field.componentName === "FormControl") {
 			newBlock?.setProp("type", field.componentType)
+			if (formMeta.value.variant) {
+				newBlock?.setProp("variant", formMeta.value.variant)
+			}
+			if (field.description) {
+				newBlock?.setProp("description", field.description)
+			}
+		}
+		if (field.label) {
+			newBlock?.setProp("label", field.label)
+			newBlock?.setProp("placeholder", "")
+		}
+		if (field.reqd) {
+			newBlock?.setProp("required", true)
+		}
+		if (field.read_only) {
+			newBlock?.setProp("disabled", true)
+		}
+		if (field.options) {
+			if (field.componentType === "select") {
+				newBlock?.setProp("options", field.options.split("\n"))
+			} else if (field.componentType === "Link") {
+				newBlock?.setProp("doctype", field.options)
+			}
 		}
 		props.block?.addChild(newBlock)
 	})
