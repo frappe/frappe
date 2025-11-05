@@ -464,7 +464,7 @@ async function write_assets_json(metafile) {
 	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
 	if (argv["save-metafiles"]) {
-		// use current timestamp in readable formate as a suffix for filename
+		// use current timestamp in readable format as a suffix for filename
 		let current_timestamp = new Date().getTime();
 		const metafile_name = `meta-${current_timestamp}.json`;
 		await fs.promises.writeFile(`${metafile_name}`, JSON.stringify(metafile));
