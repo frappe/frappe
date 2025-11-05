@@ -143,7 +143,7 @@ class BaseTestCommands(IntegrationTestCase):
 
 	@classmethod
 	def execute(self, command, kwargs=None):
-		# tests might have written to DB which wont be visible to commands until we end current transaction
+		# tests might have written to DB which won't be visible to commands until we end current transaction
 		frappe.db.commit()
 
 		site = {"site": frappe.local.site}
@@ -168,7 +168,7 @@ class BaseTestCommands(IntegrationTestCase):
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
 
-		# Commands might have written to DB which wont be visible until we end current transaction
+		# Commands might have written to DB which won't be visible until we end current transaction
 		frappe.db.rollback()
 
 	@classmethod
