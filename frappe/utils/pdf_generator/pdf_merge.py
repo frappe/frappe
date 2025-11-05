@@ -31,6 +31,9 @@ class PDFTransformer:
 		footer = self.footer_pdf
 
 		if not header and not footer:
+			if output:
+				output.append_pages_from_reader(body)
+				return output
 			return body
 
 		body_height = body.pages[0].mediabox.top
