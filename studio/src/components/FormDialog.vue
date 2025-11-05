@@ -135,6 +135,7 @@ const fieldTypes = [
 	"Time",
 	"Link",
 	"Text Editor",
+	"Rating",
 ]
 
 const getComponentFromFieldType = (fieldType: string) => {
@@ -164,6 +165,8 @@ const getComponentFromFieldType = (fieldType: string) => {
 			return { componentName: "Link" }
 		case "Text Editor":
 			return { componentName: "TextEditor" }
+		case "Rating":
+			return { componentName: "Rating" }
 		default:
 			return { componentName: "FormControl", componentType: "text" }
 	}

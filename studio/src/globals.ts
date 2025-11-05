@@ -29,6 +29,7 @@ import {
 	LoadingText,
 	Progress,
 	Popover,
+	Rating,
 	Select,
 	Spinner,
 	Switch,
@@ -95,6 +96,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("LoadingText", LoadingText)
 	app.component("Progress", Progress)
 	app.component("Popover", Popover)
+	app.component("Rating", Rating)
 	app.component("Select", Select)
 	app.component("Spinner", Spinner)
 	app.component("Switch", Switch)
