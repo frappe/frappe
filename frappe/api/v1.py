@@ -34,7 +34,7 @@ def document_list(doctype: str):
 def handle_rpc_call(method: str):
 	import frappe.handler
 
-	method = method.split("/")[0]  # for backward compatiblity
+	method = method.split("/")[0]  # for backward compatibility
 
 	frappe.form_dict.cmd = method
 	return frappe.handler.handle()
@@ -71,7 +71,7 @@ def delete_doc(doctype: str, name: str):
 
 
 def read_doc(doctype: str, name: str):
-	# Backward compatiblity
+	# Backward compatibility
 	if "run_method" in frappe.form_dict:
 		return execute_doc_method(doctype, name)
 
