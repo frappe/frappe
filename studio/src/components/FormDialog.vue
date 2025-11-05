@@ -79,7 +79,7 @@ const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
 type FormField = DocTypeField & {
 	componentName: string
-	componentType: string
+	componentType?: string
 	name: string
 	reqd: number
 	read_only: number
@@ -129,7 +129,7 @@ const fieldTypes = [
 	"Check",
 	"Date",
 	"Datetime",
-	"Markdown Editor",
+	"Text Editor",
 	"Small Text",
 ]
 
@@ -143,7 +143,7 @@ const getComponentFromFieldType = (fieldType: string) => {
 		case "Small Text":
 			return { componentName: "FormControl", componentType: "textarea" }
 		case "Link":
-			return { componentName: "Link", componentType: "Link" }
+			return { componentName: "Link" }
 		case "Select":
 			return { componentName: "FormControl", componentType: "select" }
 		case "Check":
@@ -152,8 +152,8 @@ const getComponentFromFieldType = (fieldType: string) => {
 			return { componentName: "FormControl", componentType: "date" }
 		case "Datetime":
 			return { componentName: "FormControl", componentType: "datetime-local" }
-		case "Markdown Editor":
-			return { componentName: "MarkdownEditor", componentType: "MarkdownEditor" }
+		case "Text Editor":
+			return { componentName: "TextEditor" }
 		default:
 			return { componentName: "FormControl", componentType: "text" }
 	}
