@@ -47,7 +47,7 @@ context("Realtime updates", () => {
 		});
 	});
 
-	it("Recieves custom messages from server", { scrollBehavior: false }, () => {
+	it("Receives custom messages from server", { scrollBehavior: false }, () => {
 		const event = "cypress_event";
 		let handler = {
 			handle() {
