@@ -16,13 +16,13 @@ context("Depends On", () => {
 							in_list_view: 1,
 						},
 						{
-							label: "Child Dependant Field",
+							label: "Child Dependent Field",
 							fieldname: "child_dependant_field",
 							fieldtype: "Data",
 							in_list_view: 1,
 						},
 						{
-							label: "Child Display Dependant Field",
+							label: "Child Display Dependent Field",
 							fieldname: "child_display_dependant_field",
 							fieldtype: "Data",
 							in_list_view: 1,
@@ -40,14 +40,14 @@ context("Depends On", () => {
 							fieldtype: "Data",
 						},
 						{
-							label: "Dependant Field",
+							label: "Dependent Field",
 							fieldname: "dependant_field",
 							fieldtype: "Data",
 							mandatory_depends_on: "eval:doc.test_field=='Some Value'",
 							read_only_depends_on: "eval:doc.test_field=='Some Other Value'",
 						},
 						{
-							label: "Display Dependant Field",
+							label: "Display Dependent Field",
 							fieldname: "display_dependant_field",
 							fieldtype: "Data",
 							depends_on: "eval:doc.test_field=='Value'",
