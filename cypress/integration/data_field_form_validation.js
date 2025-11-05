@@ -23,7 +23,7 @@ context("Data Field Input Validation in New Form", () => {
 	describe("Data Field Options", () => {
 		it("should validate email address", () => {
 			cy.new_form(doctype_name);
-			validateField("email", "captian", "hello@test.com");
+			validateField("email", "captain", "hello@test.com");
 		});
 
 		it("should validate URL", () => {
