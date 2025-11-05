@@ -174,7 +174,7 @@ context("Control Link", () => {
 		});
 	});
 
-	it("should update dependant fields (via fetch_from)", () => {
+	it("should update dependent fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
 			cy.visit(`/app/todo/${todos[0]}`);
 			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
