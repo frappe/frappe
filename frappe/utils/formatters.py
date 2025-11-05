@@ -105,7 +105,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		elif (has_explicit_precision or has_system_precision) and not df.options and value is not None:
 			# Format as regular float with specified precision
 			return "%.*f" % (precision, flt(value))
-		
 		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Percent":
