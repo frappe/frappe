@@ -833,7 +833,7 @@ class File(Document):
 
 	@property
 	def unique_url(self) -> str:
-		"""Unique URL contains file ID in URL to speed up permisison checks."""
+		"""Unique URL contains file ID in URL to speed up permission checks."""
 		from urllib.parse import urlencode
 
 		if self.is_private:
