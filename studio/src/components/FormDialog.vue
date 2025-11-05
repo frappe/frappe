@@ -82,6 +82,7 @@ type FormField = DocTypeField & {
 	componentType: string
 	name: string
 	reqd: number
+	read_only: number
 	options?: string
 }
 const formMeta = ref<{
@@ -172,6 +173,9 @@ const addFields = () => {
 		}
 		if (field.reqd) {
 			newBlock?.setProp("required", true)
+		}
+		if (field.read_only) {
+			newBlock?.setProp("disabled", true)
 		}
 		if (field.options) {
 			if (field.componentType === "select") {
