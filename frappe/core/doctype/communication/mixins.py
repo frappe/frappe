@@ -40,7 +40,7 @@ class CommunicationEmailMixin:
 
 	def mail_recipients(self, is_inbound_mail_communcation=False):
 		"""Build to(recipient) list to send an email."""
-		# Incase of inbound mail, recipients already received the mail, no need to send again.
+		# In case of inbound mail, recipients already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
 			return []
 
@@ -77,7 +77,7 @@ class CommunicationEmailMixin:
 			cc.append(sender)
 
 		if is_inbound_mail_communcation:
-			# inform parent document owner incase communication is created through inbound mail
+			# inform parent document owner in case communication is created through inbound mail
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
@@ -91,7 +91,7 @@ class CommunicationEmailMixin:
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
 
-		# # Incase of inbound mail, to and cc already received the mail, no need to send again.
+		# # In case of inbound mail, to and cc already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
 			cc = cc - set(self.cc_list() + self.to_list())
 
@@ -119,7 +119,7 @@ class CommunicationEmailMixin:
 		bcc = bcc - set(self.filter_thread_notification_disbled_users(bcc))
 		bcc = bcc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
 
-		# Incase of inbound mail, to and cc & bcc already received the mail, no need to send again.
+		# In case of inbound mail, to and cc & bcc already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
 			bcc = bcc - set(self.bcc_list() + self.to_list())
 
