@@ -36,9 +36,23 @@ def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0
 def add_docshare(
 	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
 ):
-	"""Share the given document with a user."""
+	"""Share the given document with a user.
+
+	Added validation to prevent sharing with Website Users (except for internal system cases).
+	"""
 	if not user:
 		user = frappe.session.user
+
+	# --- 🔒 Validation: prevent sharing with Website Users ---
+	# Skip if sharing with everyone or the shared document itself is a User record.
+	if not cint(everyone) and doctype != "User":
+		user_type = frappe.db.get_value("User", user, "user_type")
+		if user_type != "System User":
+			frappe.throw(
+				_("You can only share documents with System Users. '{0}' is a {1}.").format(user, user_type),
+				frappe.ValidationError,
+			)
+	# ---------------------------------------------------------
 
 	if not (flags or {}).get("ignore_share_permission"):
 		check_share_permission(doctype, name)
