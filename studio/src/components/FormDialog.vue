@@ -52,6 +52,14 @@
 					v-model:rows="formMeta.fields"
 					:showDeleteBtn="true"
 				/>
+				<FormControl
+					v-if="showVariantField"
+					label="Field Variant"
+					type="select"
+					:options="['subtle', 'outline']"
+					v-model="formMeta.variant"
+					description="Selected variant will be applied to all FormControl fields"
+				/>
 			</div>
 		</template>
 
@@ -62,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { createResource, Dialog } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/helpers"
@@ -88,6 +96,7 @@ type FormField = DocTypeField & {
 const formMeta = ref<{
 	doctype: string
 	fields: FormField[]
+	variant?: string
 }>({
 	doctype: "",
 	fields: [],
@@ -119,6 +128,10 @@ watch(
 		doctypeFields.fetch()
 	},
 )
+
+const showVariantField = computed(() => {
+	return formMeta.value.fields.some((field) => field.componentName === "FormControl")
+})
 
 const fieldTypes = [
 	"Data",
@@ -185,6 +198,9 @@ const addFields = () => {
 		const newBlock = getComponentBlock(field.componentName)
 		if (field.componentName === "FormControl") {
 			newBlock?.setProp("type", field.componentType)
+			if (formMeta.value.variant) {
+				newBlock?.setProp("variant", formMeta.value.variant)
+			}
 		}
 		if (field.label) {
 			newBlock?.setProp("label", field.label)
