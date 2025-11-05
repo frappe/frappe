@@ -538,14 +538,15 @@ def update_reference(docname: str, reference: str):
 	return "success"  # backward compatbility
 
 
-@frappe.whitelist()
-def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
+@frappe.whitelist(methods=["POST"])
+def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
-	doc = frappe.get_doc(reference_dt, reference_doc)
+	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
+	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(message, {"doc": doc})
-	if subject:
-		subject_preview = frappe.render_template(subject, {"doc": doc})
+	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc})
+	if auto_repeat.subject:
+		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc})
 
 	return {"message": msg_preview, "subject": subject_preview}
