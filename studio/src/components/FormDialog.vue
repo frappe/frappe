@@ -35,7 +35,7 @@
 							fieldtype: 'Autocomplete',
 							options: fieldTypes,
 							onChange: (_value: string, index: number) => {
-								const { componentName, componentType } = getComponentFromFieldType(_value)
+								const { componentName, componentType } = getComponentForField(_value)
 								formMeta.fields[index].componentName = componentName
 								formMeta.fields[index].componentType = componentType
 							},
@@ -100,7 +100,7 @@ const doctypeFields = createResource({
 	},
 	transform: (data: DocTypeField[]) => {
 		return data.map((field) => {
-			const { componentName, componentType } = getComponentFromFieldType(field.fieldtype)
+			const { componentName, componentType } = getComponentForField(field)
 			return {
 				...field,
 				value: field.fieldname,
@@ -138,9 +138,15 @@ const fieldTypes = [
 	"Rating",
 ]
 
-const getComponentFromFieldType = (fieldType: string) => {
+const getComponentForField = (arg?: DocTypeField | string) => {
+	const fieldType = typeof arg === "string" ? arg : arg?.fieldtype
+	const field = typeof arg === "object" ? arg : null
+
 	switch (fieldType) {
 		case "Data":
+			if (field?.options === "Email") {
+				return { componentName: "FormControl", componentType: "email" }
+			}
 			return { componentName: "FormControl", componentType: "text" }
 		case "Int":
 		case "Float":
