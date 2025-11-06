@@ -9,6 +9,7 @@
 			() => {
 				formMeta.doctype = ''
 				formMeta.fields = []
+				formMeta.variant = undefined
 			}
 		"
 	>
