@@ -23,9 +23,7 @@ from frappe.utils import (
 BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
 
 
-def format_value(
-    value, df=None, doc=None, currency=None, translated=False, format=None
-):
+def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
     """
     Format value based on given fieldtype, document reference, currency reference.
     If docfield info (df) is not given, it will try and guess based on the datatype of the value.
@@ -51,6 +49,7 @@ def format_value(
                 df.fieldtype = "Float"
             case _:
                 df.fieldtype = "Data"
+
     elif isinstance(df, dict):
         # Convert dict to object if necessary
         df = frappe._dict(df)
@@ -86,12 +85,7 @@ def format_value(
     elif df.get("fieldtype") == "Currency":
         default_currency = frappe.db.get_default("currency")
         currency = currency or get_field_currency(df, doc) or default_currency
-        return fmt_money(
-            value,
-            precision=get_field_precision(df, doc),
-            currency=currency,
-            format=format,
-        )
+        return fmt_money(value, precision=get_field_precision(df, doc), currency=currency, format=format)
 
     elif df.get("fieldtype") == "Float":
         precision = get_field_precision(df, doc)
@@ -123,9 +117,7 @@ def format_value(
         link_field = next(df for df in meta.fields if df.fieldtype == "Link")
         for v in value:
             v.update({"__link_titles": doc.get("__link_titles")})
-            formatted_value = format_value(
-                v.get(link_field.fieldname, ""), link_field, v
-            )
+            formatted_value = format_value(v.get(link_field.fieldname, ""), link_field, v)
             values.append(formatted_value)
 
         return ", ".join(values)
