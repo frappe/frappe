@@ -174,6 +174,17 @@ def find_or_download_chromium_executable():
 	import platform
 	from pathlib import Path
 
+	"""Fetch from common site config, if present"""
+	site_config = frappe.get_common_site_config()
+	chromium_binary_path = site_config.get("chromium_binary_path", "")
+	if chromium_binary_path:
+		exec_path = Path(chromium_binary_path)
+		if exec_path.exists():
+			return str(exec_path)
+		else:
+			click.echo("Chromium is not available at the configured path. Downloading...")
+			download_chromium()	
+	
 	bench_path = frappe.utils.get_bench_path()
 	"""Determine the path to the Chromium executable."""
 	chromium_dir = os.path.join(bench_path, "chromium")
