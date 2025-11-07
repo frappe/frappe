@@ -27,7 +27,10 @@
   "params",
   "transform_section",
   "transform_results",
-  "transform"
+  "transform",
+  "on_success_error_section",
+  "on_success",
+  "on_error"
  ],
  "fields": [
   {
@@ -157,13 +160,27 @@
    "fieldtype": "Select",
    "label": "Sort Order",
    "options": "\nASC\nDESC"
+  },
+  {
+   "fieldname": "on_success",
+   "fieldtype": "Code",
+   "label": "On Success"
+  },
+  {
+   "fieldname": "on_error",
+   "fieldtype": "Code",
+   "label": "On Error"
+  },
+  {
+   "fieldname": "on_success_error_section",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-30 15:07:09.288298",
+ "modified": "2025-11-07 14:13:42.410955",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Resource",

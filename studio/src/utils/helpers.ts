@@ -522,6 +522,24 @@ function getTransforms(resource: Resource) {
 	return {}
 }
 
+function getSuccessErrorHandlers(resource: Resource) {
+	const handlers: Record<string, Function> = {}
+	if (resource.on_success) {
+		handlers["onSuccess"] = (data: any) => {
+			const successFn = new Function(resource.on_success + "\nreturn onSuccess")()
+			return successFn.call(null, data);
+		}
+	}
+	if (resource.on_error) {
+		handlers["onError"] = (error: any) => {
+			const errorFn = new Function(resource.on_error + "\nreturn onError")()
+			return errorFn.call(null, error);
+		}
+	}
+	return handlers
+}
+
+
 function getWhitelistedMethods(resource: DocumentResource) {
 	if (resource.whitelisted_methods) {
 		let whitelisted_methods = resource.whitelisted_methods
@@ -550,6 +568,7 @@ async function getDocumentResource(resource: DocumentResource, context: Expressi
 		name: docname,
 		auto: true,
 		...getTransforms(resource),
+		...getSuccessErrorHandlers(resource),
 		...getWhitelistedMethods(resource),
 	})
 }
@@ -571,6 +590,7 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 				pageLength: resource.limit,
 				auto: true,
 				...getTransforms(resource),
+				...getSuccessErrorHandlers(resource),
 			}
 			if (resource.sort_field) {
 				params["orderBy"] = `${resource.sort_field} ${resource.sort_order}`
@@ -583,6 +603,7 @@ function getNewResource(resource: Resource, context?: ExpressionEvaluationContex
 				params: getAPIParams(resource.params, context),
 				auto: true,
 				...getTransforms(resource),
+				...getSuccessErrorHandlers(resource),
 			})
 	}
 }

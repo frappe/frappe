@@ -143,6 +143,77 @@
 					:emitOnChange="true"
 					:completions="getCompletions"
 				/>
+
+				<!-- Success Section -->
+				<div class="border-t border-gray-200 pt-4">
+					<div class="mb-3">
+						<div class="mb-2 flex items-center justify-between">
+							<h3 class="text-sm font-medium text-gray-900">On Success</h3>
+							<Button
+								v-if="newResource.on_success"
+								variant="ghost"
+								size="sm"
+								icon="x"
+								@click="() => (newResource.on_success = '')"
+							/>
+						</div>
+						<Code
+							v-if="newResource.on_success"
+							:completions="(context: CompletionContext) => getEditorCompletions(context)"
+							:emitOnChange="true"
+							:modelValue="newResource.on_success?.toString()"
+							@update:modelValue="(val: string) => (newResource.on_success = val)"
+						/>
+						<div class="flex flex-col items-center rounded-lg border border-gray-200 p-4" v-else>
+							<span class="px-2 py-1 text-center text-sm leading-5 text-gray-500">
+								Update variables or control other data sources everytime the data loads successfully
+							</span>
+							<button
+								class="flex cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-gray-300"
+								@click="() => (newResource.on_success = getFnBoilerplate('success'))"
+							>
+								<FeatherIcon name="plus" class="h-3 w-3" />
+								<span class="ml-1 text-sm">Add Script</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Failure Section -->
+				<div class="border-t border-gray-200 pt-4">
+					<div class="mb-3">
+						<div class="mb-2 flex items-center justify-between">
+							<h3 class="text-sm font-medium text-gray-900">On Failure</h3>
+							<Button
+								v-if="newResource.on_error"
+								variant="ghost"
+								size="sm"
+								icon="x"
+								@click="() => (newResource.on_error = '')"
+								title="Remove Script"
+							/>
+						</div>
+						<Code
+							v-if="newResource.on_error"
+							:completions="(context: CompletionContext) => getEditorCompletions(context)"
+							:emitOnChange="true"
+							:modelValue="newResource.on_error?.toString()"
+							@update:modelValue="(val: string) => (newResource.on_error = val)"
+						/>
+						<div class="flex flex-col items-center rounded border border-gray-200 p-4" v-else>
+							<span class="px-2 py-1 text-sm text-gray-500">
+								Handle errors gracefully with fallback logic or user alerts
+							</span>
+							<button
+								class="flex cursor-pointer items-center rounded-lg p-1 text-gray-700 hover:bg-gray-300"
+								@click="() => (newResource.on_error = getFnBoilerplate('error'))"
+							>
+								<FeatherIcon name="plus" class="h-3 w-3" />
+								<span class="ml-1 text-sm">Add Script</span>
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</template>
 
@@ -183,12 +254,15 @@ import type { DocTypeField, SelectOption } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import type { CompletionContext } from "@codemirror/autocomplete"
+import { get } from "ace-builds-internal/lib/net"
 
 const props = defineProps<{
 	resource?: Resource | null
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource", "editResource"])
+const getEditorCompletions = useStudioCompletions()
 const getCompletions = useStudioCompletions()
 
 const emptyResource: Resource = {
@@ -209,6 +283,8 @@ const emptyResource: Resource = {
 	whitelisted_methods: [],
 	transform_results: false,
 	transform: "",
+	on_success: "",
+	on_error: "",
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
@@ -301,6 +377,14 @@ function getTransformFnBoilerplate(resource_type: ResourceType) {
 		return "function transform(doc) { \n\treturn doc; \n}"
 	} else {
 		return "function transform(data) { \n\treturn data; \n}"
+	}
+}
+
+function getFnBoilerplate(event: "success" | "error") {
+	if (event === "success") {
+		return "function onSuccess(data) {}"
+	} else {
+		return "function onError(error) {}"
 	}
 }
 

@@ -21,6 +21,8 @@ class StudioPageResource(Document):
 		filters: DF.JSON | None
 		limit: DF.Int
 		method: DF.Literal["GET", "POST", "PUT", "DELETE"]
+		on_error: DF.Code | None
+		on_success: DF.Code | None
 		params: DF.JSON | None
 		parent: DF.Data
 		parentfield: DF.Data
