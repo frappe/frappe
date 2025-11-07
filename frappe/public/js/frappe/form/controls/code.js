@@ -46,6 +46,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		// styling
 		this.ace_editor_target.addClass("border rounded");
 		this.ace_editor_target.css("height", 300);
+		this.ace_editor_target.css("position", "relative");
 
 		if (this.df.max_height) {
 			this.ace_editor_target.css("max-height", this.df.max_height);
@@ -80,6 +81,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		this.editor.setOption("showPrintMargin", false);
 		this.editor.setOption("wrap", this.df.wrap);
 		this.set_language();
+		this.set_placeholder();
 		this.is_setting_content = false;
 
 		// events
@@ -201,8 +203,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		const valid_languages = Object.keys(language_map);
 		if (language && !valid_languages.includes(language)) {
 			console.warn(
-				`Invalid language option provided for field "${
-					this.df.label
+				`Invalid language option provided for field "${this.df.label
 				}". Valid options are ${valid_languages.join(", ")}.`
 			);
 		}
@@ -222,16 +223,77 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 	set_formatted_input(value) {
 		return this.load_lib().then(() => {
 			if (!this.editor) return;
+			this.set_placeholder();
 			if (!value) value = "";
-			if (value === this.get_input_value()) return;
+			if (value === this.get_input_value()) {
+				this.toggle_placeholder();
+				return;
+			}
 			this.is_setting_content = true;
 			this.editor.session.setValue(value);
 			this.is_setting_content = false;
+			this.toggle_placeholder();
 		});
 	}
 
 	get_input_value() {
 		return this.editor ? this.editor.session.getValue() : "";
+	}
+
+	set_placeholder() {
+		if (!this.editor) return;
+		const placeholder = this.get_placeholder_text();
+		if (!placeholder) {
+			this.remove_placeholder();
+			return;
+		}
+		if (!this.placeholder_node) {
+			this.placeholder_node = $('<div class="ace-placeholder"></div>').appendTo(
+				this.ace_editor_target
+			);
+			this.placeholder_node.css({
+				position: "absolute",
+				top: "12px",
+				left: "12px",
+				pointerEvents: "none",
+				color: "var(--text-muted, #606880)",
+				fontSize: "13px",
+				lineHeight: "1.4",
+				whiteSpace: "pre-wrap",
+				opacity: 0.65,
+				zIndex: 1,
+			});
+			this.placeholder_change_handler = () => this.toggle_placeholder();
+			this.editor.session.on("change", this.placeholder_change_handler);
+		}
+		this.placeholder_node.text(placeholder);
+		this.toggle_placeholder();
+	}
+
+	get_placeholder_text() {
+		return this.df?.placeholder || "";
+	}
+
+	remove_placeholder() {
+		if (!this.placeholder_node) return;
+		this.placeholder_node.remove();
+		this.placeholder_node = null;
+		if (this.placeholder_change_handler) {
+			const session = this.editor.session;
+			if (session.off) {
+				session.off("change", this.placeholder_change_handler);
+			} else if (session.removeListener) {
+				session.removeListener("change", this.placeholder_change_handler);
+			}
+			this.placeholder_change_handler = null;
+		}
+	}
+
+	toggle_placeholder() {
+		if (!this.placeholder_node || !this.editor) return;
+		const value = this.editor.session.getValue();
+		const has_content = Boolean(value);
+		this.placeholder_node.toggle(!has_content);
 	}
 
 	load_lib() {
