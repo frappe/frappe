@@ -286,7 +286,7 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
 		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
 		assignment_rule.delete()
-		frappe.db.commit()  # undo changes commited by DDL
+		frappe.db.commit()  # undo changes committed by DDL
 
 	def test_submittable_assignment(self):
 		# create a submittable doctype

@@ -602,7 +602,7 @@ def update_reference(docname: str, reference: str):
 	doc = frappe.get_doc("Auto Repeat", str(docname))
 	doc.check_permission("write")
 	doc.db_set("reference_document", str(reference))
-	return "success"  # backward compatbility
+	return "success"  # backward compatibility
 
 
 @frappe.whitelist(methods=["POST"])
