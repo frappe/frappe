@@ -51,7 +51,6 @@ def format_value(
                 df.fieldtype = "Float"
             case _:
                 df.fieldtype = "Data"
-
     elif isinstance(df, dict):
         # Convert dict to object if necessary
         df = frappe._dict(df)
