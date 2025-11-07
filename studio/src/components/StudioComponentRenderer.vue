@@ -7,7 +7,7 @@ import { provide, computed } from "vue"
 import AppComponent from "@/components/AppComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { getDynamicValue, isDynamicValue } from "@/utils/helpers"
+import { getDynamicValue, isDynamicValue } from "@/utils/code"
 
 const props = defineProps<{
 	studioComponent: Block

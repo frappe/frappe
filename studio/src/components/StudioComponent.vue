@@ -109,14 +109,8 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import {
-	getComponentRoot,
-	isDynamicValue,
-	getDynamicValue,
-	isHTML,
-	getValueFromObject,
-	setValueInObject,
-} from "@/utils/helpers"
+import { getComponentRoot, isHTML, getValueFromObject, setValueInObject } from "@/utils/helpers"
+import { isDynamicValue, getDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"

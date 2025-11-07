@@ -10,10 +10,10 @@ import {
 	jsonToJs,
 	fetchApp,
 	fetchPage,
-	getNewResource,
 	confirm,
 	getInitialVariableValue,
 } from "@/utils/helpers"
+import { getNewResource } from "@/utils/code"
 import { studioPages } from "@/data/studioPages"
 import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"

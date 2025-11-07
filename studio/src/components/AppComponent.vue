@@ -39,16 +39,8 @@ import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, toRefs } 
 import type { ComponentPublicInstance } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { createResource } from "frappe-ui"
-import {
-	getComponentRoot,
-	isDynamicValue,
-	getDynamicValue,
-	isHTML,
-	executeUserScript,
-	getValueFromObject,
-	setValueInObject,
-	getAPIParams,
-} from "@/utils/helpers"
+import { getComponentRoot, isHTML, getValueFromObject, setValueInObject } from "@/utils/helpers"
+import { isDynamicValue, getDynamicValue, executeUserScript, getAPIParams } from "@/utils/code"
 import { useScreenSize } from "@/utils/useScreenSize"
 
 import useAppStore from "@/stores/appStore"
