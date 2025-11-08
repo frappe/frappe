@@ -7,7 +7,7 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "vue-sonner"
 import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
-import { useComponentStore } from "@/stores/componentStore"
+import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "./studioStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
