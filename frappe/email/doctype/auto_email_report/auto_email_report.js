@@ -171,7 +171,7 @@ frappe.ui.form.on("Auto Email Report", {
 					.appendTo(row);
 			});
 
-			// remove hidden and mandatory filters from dialog
+			// remove mandatory but hidden filters from dialog
 			const dialog_filter_fields = report_filters.filter(
 				(f) => !(f.hidden == 1 && f.reqd == 1)
 			);
