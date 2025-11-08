@@ -98,12 +98,18 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 		return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 
 
-def evaluate_workflow_value(value, doc):
+def evaluate_workflow_value(value, evaluate_as_expression, doc):
 	if not value:
 		return None
-	try:
-		return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
-	except Exception:
+	if evaluate_as_expression:
+		try:
+			return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
+		except Exception as e:
+			frappe.throw(
+				_("Invalid expression in Workflow Update Value: {0}").format(e),
+				title=_("Workflow Evaluation Error"),
+			)
+	else:
 		return value
 
 
@@ -136,7 +142,9 @@ def apply_workflow(doc, action):
 
 	# update any additional field
 	if next_state.update_field:
-		update_value = evaluate_workflow_value(next_state.update_value, doc)
+		update_value = evaluate_workflow_value(
+			next_state.update_value, next_state.evaluate_as_expression, doc
+		)
 		doc.set(next_state.update_field, update_value)
 
 	if transition.transition_tasks:
