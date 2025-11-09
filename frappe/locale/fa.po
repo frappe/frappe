@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-02 09:32+0000\n"
-"PO-Revision-Date: 2025-11-04 08:26\n"
+"PO-Revision-Date: 2025-11-09 10:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4114,7 +4114,7 @@ msgstr "نمی‌توان چندین چاپگر را به یک قالب چاپ �
 
 #: frappe/public/js/frappe/form/grid.js:1154
 msgid "Cannot import table with more than 5000 rows."
-msgstr ""
+msgstr "نمی‌توان جدولی با بیش از ۵۰۰۰ ردیف را درون‌بُرد کرد."
 
 #: frappe/model/document.py:1130
 msgid "Cannot link cancelled document: {0}"
@@ -4468,7 +4468,7 @@ msgstr "روش احراز هویت را برای استفاده توسط همه 
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:94
 msgid "Chromium is not downloaded. Please run the setup first."
-msgstr ""
+msgstr "کرومیوم دانلود نشده است. لطفاً ابتدا راه‌انداز را اجرا کنید."
 
 #. Label of the city (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:39
@@ -5514,7 +5514,7 @@ msgstr ""
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:199
 msgid "Could not start Chromium. Check logs for details."
-msgstr ""
+msgstr "نتوانست کرومیوم را راه‌اندازی کند. برای جزئیات بیشتر، لاگ‌ها را بررسی کنید."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up:"
@@ -30390,7 +30390,7 @@ msgstr "لغو شده"
 #. Option for the 'PDF Generator' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "chrome"
-msgstr ""
+msgstr "کروم"
 
 #: frappe/templates/includes/list/filters.html:19
 msgid "clear"
