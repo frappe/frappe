@@ -554,4 +554,4 @@ add_to_apps_screen = [
 	}
 ]
 
-link_formatters = {}
+link_formatters = ["User", "Customer"]

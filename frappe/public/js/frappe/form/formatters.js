@@ -456,7 +456,40 @@ frappe.get_format_helper = function (doc) {
 	return helper;
 };
 
-frappe.form.link_formatters["User"] = function (value, doc, docfield) {
-	let full_name = doc && (doc.full_name || (docfield && doc[`${docfield.fieldname}_full_name`]));
-	return full_name || value;
-};
+/**
+ * Format a link value based on the provided document and field information.
+ *
+ * @param {string} value - The value to add a link value.
+ * @param {Object} doc - The document object.
+ * @param {Object} df - The field object.
+ * @returns {string} - The formatted link value.
+ */
+
+(frappe.boot.link_formatters || []).forEach((doctype) => {
+	frappe.form.link_formatters[doctype] = function (value, doc, df) {
+		return add_link_title(value, doc, df);
+	};
+});
+
+function add_link_title(value, doc, df) {
+	let fieldname = `${df.fieldname}_name`;
+	if (df.options === "Item") {
+		fieldname = "item_name";
+	} else if (df.options === "User") {
+		fieldname = `${df.fieldname}_full_name`;
+	}
+
+	if (
+		doc &&
+		value &&
+		doc[fieldname] &&
+		doc[fieldname] !== value &&
+		doc[df.fieldname] === value
+	) {
+		return value + ": " + doc[fieldname];
+	} else if (!value && doc.doctype && doc[fieldname]) {
+		return doc[fieldname];
+	} else {
+		return value;
+	}
+}
