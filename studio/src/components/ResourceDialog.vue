@@ -261,7 +261,7 @@ const props = defineProps<{
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource", "editResource"])
-const getEditorCompletions = useStudioCompletions()
+const getEditorCompletions = useStudioCompletions(true)
 const getCompletions = useStudioCompletions()
 
 const emptyResource: Resource = {
