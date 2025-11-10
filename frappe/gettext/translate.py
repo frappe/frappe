@@ -180,7 +180,13 @@ def _get_ignored_strings(app: str) -> set[tuple[str, str | None]]:
 		try:
 			catalog = get_catalog(ignore_app)
 		except ModuleNotFoundError:
-			secho(f"App {ignore_app} not found. Skipping", err=True, fg="yellow")
+			secho(f"App '{ignore_app}' is not installed. Skipping", err=True, fg="yellow")
+			continue
+		except ImportError:
+			secho(f"App '{ignore_app}' hooks.py could not be imported. Skipping", err=True, fg="yellow")
+			continue
+		except AttributeError:
+			secho(f"Site not initialized. Cannot load app '{ignore_app}'. Skipping", err=True, fg="yellow")
 			continue
 
 		for message in catalog:
