@@ -15,6 +15,7 @@ import {
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
+import { studioVariables } from "@/data/studioVariables"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
@@ -310,7 +311,7 @@ const useStudioStore = defineStore("store", () => {
 
 	const variableConfigs = computed<Record<string, Variable>>(() => {
 		const configs: Record<string, Variable> = {}
-		Object.values(codeStore.variables).forEach((variable: Variable) => {
+		studioVariables.data.map((variable: Variable) => {
 			configs[variable.variable_name] = {
 				...variable,
 				initial_value: getInitialVariableValue(variable),
