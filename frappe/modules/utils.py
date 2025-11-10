@@ -6,6 +6,7 @@ Utilities for using modules
 
 import json
 import os
+from pathlib import Path
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
@@ -200,7 +201,11 @@ def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
 	"""Return path of a doc in a module."""
-	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
+	module_path = Path(get_module_path(module))
+	path = module_path / Path(*scrub_dt_dn(doctype, name))
+	if not path.resolve().is_relative_to(module_path.resolve()):
+		raise ValueError(_("Path {0} is not within module {1}").format(path, module))
+	return path.resolve()
 
 
 def reload_doc(

@@ -31,6 +31,7 @@ from frappe.utils import (
 	get_bench_path,
 	get_file_timestamp,
 	get_gravatar,
+	get_link_to_report,
 	get_site_info,
 	get_sites,
 	get_url,
@@ -342,6 +343,13 @@ class TestFilters(IntegrationTestCase):
 		self.assertTrue(compare(None, "is", "NOT SET"))
 		self.assertTrue(compare(None, "is", "Not Set"))
 		self.assertTrue(compare(None, "is", "not set"))
+
+	def test_get_link_to_report_with_between_filter(self):
+		filters = {
+			"creation": [["between", ["2024-01-01", "2024-12-31"]]],
+		}
+		link = get_link_to_report(name="ToDo", filters=filters)
+		self.assertIn('creation=["between",["2024-01-01","2024-12-31"]]', link)
 
 
 class TestMoney(IntegrationTestCase):

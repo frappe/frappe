@@ -51,12 +51,15 @@
   "column_break_34",
   "allow_login_after_fail",
   "two_factor_authentication",
+  "column_break_odhl",
   "enable_two_factor_auth",
   "bypass_2fa_for_retricted_ip_users",
   "bypass_restrict_ip_check_if_2fa_enabled",
+  "column_break_bzfr",
   "two_factor_method",
   "lifespan_qrcode_image",
   "otp_issuer_name",
+  "otp_sms_template",
   "password_tab",
   "password_settings",
   "logout_on_password_reset",
@@ -752,12 +755,27 @@
    "fieldtype": "Select",
    "label": "Show External Link Warning",
    "options": "Never\nAsk\nAlways"
+  },
+  {
+   "fieldname": "column_break_odhl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
+   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
+   "fieldname": "otp_sms_template",
+   "fieldtype": "Small Text",
+   "label": "OTP SMS Template"
+  },
+  {
+   "fieldname": "column_break_bzfr",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-09-24 16:04:02.016562",
+ "modified": "2025-11-04 16:47:54.230874",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
