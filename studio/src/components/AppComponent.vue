@@ -212,27 +212,9 @@ const componentEvents = computed(() => {
 	return events
 })
 
-// Helper functions for handling success and error responses
 const handleSuccess = (event: any) => (data: DataResult) => {
-	if (event.on_success === "script") {
-		if (event.on_success_script) {
-			const variablesRefs = toRefs(codeStore.variables)
-			const context = {
-				...variablesRefs,
-				...codeStore.resources,
-				...repeaterContext,
-				...componentContext?.value,
-				data,
-			}
-			const successFn = new Function(
-				"ctx",
-				`with(ctx) {
-					${event.on_success_script}
-					return onSuccess(data);
-				}`,
-			)
-			return successFn(context)
-		}
+	if (event.on_success === "script" && event.on_success_script) {
+		return codeStore.handleSuccess(event.on_success_script, data, repeaterContext, componentContext?.value)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
@@ -243,25 +225,8 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 }
 
 const handleError = (event: any) => (error: any) => {
-	if (event.on_error === "script") {
-		if (event.on_error_script) {
-			const variablesRefs = toRefs(codeStore.variables)
-			const context = {
-				...variablesRefs,
-				...codeStore.resources,
-				...repeaterContext,
-				...componentContext?.value,
-				error,
-			}
-			const errorFn = new Function(
-				"ctx",
-				`with(ctx) {
-					${event.on_error_script}
-					return onError(error);
-				}`,
-			)
-			return errorFn(context)
-		}
+	if (event.on_error === "script" && event.on_error_script) {
+		return codeStore.handleError(event.on_error_script, error, repeaterContext, componentContext?.value)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)

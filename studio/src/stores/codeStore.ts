@@ -6,7 +6,7 @@ import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
-import type { Filters, Resource, DocumentResource } from "@/types/Studio/StudioResource"
+import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
@@ -101,6 +101,17 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	})
 
+	const globalExecutionContext = computed(() => {
+		// Pass variable refs as context so that users can access variables without 'variable.' prefix
+		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
+		const variablesRefs = toRefs(variables.value)
+		return {
+			...variablesRefs,
+			...resources.value,
+			route: unref(routeObject.value),
+		}
+	})
+
 	function getDynamicValue(value: string, localContext: ExpressionEvaluationContext) {
 		let result = ""
 		let lastIndex = 0
@@ -170,10 +181,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		componentContext?: Record<string, any>,
 	) {
 		try {
-			// Pass variable refs as context so that users can access variables without 'variable.' prefix
-			// eg: - {{ variable_name }} in templates or variable_name.value in scripts
-			const variablesRefs = toRefs(variables.value)
-			const context = { ...globalContext.value, ...variablesRefs, ...repeaterContext, ...componentContext }
+			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext }
 
 			const scriptToExecute = `
 				with (context) {
@@ -184,6 +192,58 @@ const useCodeStore = defineStore("codeStore", () => {
 			scriptFunction(context, resources);
 		} catch (error) {
 			console.error(`Error executing the script: ${script}`, error)
+		}
+	}
+
+	function handleSuccess(
+		script: string,
+		data: DataResult,
+		repeaterContext?: Record<string, any>,
+		componentContext?: Record<string, any>,
+	) {
+		try {
+			const context = {
+				...globalExecutionContext.value,
+				...repeaterContext,
+				...componentContext,
+				data,
+			}
+			const successFn = new Function(
+				"ctx",
+				`with(ctx) {
+					${script}
+					return onSuccess(data);
+				}`,
+			)
+			return successFn(context)
+		} catch (error) {
+			console.error(`Error executing success script: ${script}`, error)
+		}
+	}
+
+	function handleError(
+		script: string,
+		error: any,
+		repeaterContext?: Record<string, any>,
+		componentContext?: Record<string, any>,
+	) {
+		try {
+			const context = {
+				...globalExecutionContext.value,
+				...repeaterContext,
+				...componentContext,
+				error,
+			}
+			const errorFn = new Function(
+				"ctx",
+				`with(ctx) {
+					${script}
+					return onError(error);
+				}`,
+			)
+			return errorFn(context)
+		} catch (err) {
+			console.error(`Error executing error script: ${script}`, err)
 		}
 	}
 
@@ -306,15 +366,13 @@ const useCodeStore = defineStore("codeStore", () => {
 	const getSuccessErrorHandlers = (resource: Resource) => {
 		const handlers: Record<string, Function> = {}
 		if (resource.on_success) {
-			handlers["onSuccess"] = (data: any) => {
-				const successFn = new Function(resource.on_success + "\nreturn onSuccess")()
-				return successFn.call(null, data);
+			handlers["onSuccess"] = (data: DataResult) => {
+				return handleSuccess(resource.on_success!, data)
 			}
 		}
 		if (resource.on_error) {
 			handlers["onError"] = (error: any) => {
-				const errorFn = new Function(resource.on_error + "\nreturn onError")()
-				return errorFn.call(null, error);
+				return handleError(resource.on_error!, error)
 			}
 		}
 		return handlers
@@ -349,6 +407,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		// code execution
 		getDynamicValue,
 		executeUserScript,
+		handleSuccess,
+		handleError,
 		getAPIParams,
 	}
 })
