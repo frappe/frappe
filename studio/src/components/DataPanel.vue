@@ -210,7 +210,7 @@ const addResource = (resource: Resource) => {
 		})
 		.then(async () => {
 			if (store.activePage) {
-				await codeStore.setPageResources(store.activePage)
+				await codeStore.setPageResources(store.activePage, true)
 			}
 			showResourceDialog.value = false
 		})

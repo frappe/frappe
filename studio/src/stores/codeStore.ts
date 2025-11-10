@@ -34,6 +34,8 @@ const useCodeStore = defineStore("codeStore", () => {
 			return {
 				resource_name: resource.resource_name,
 				value: newResource,
+				resource_id: resource.resource_id,
+				resource_type: resource.resource_type,
 			}
 		})
 
