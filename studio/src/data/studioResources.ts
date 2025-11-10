@@ -18,7 +18,6 @@ export const studioPageResources = createListResource({
 		"method",
 		"params",
 		"whitelisted_methods",
-		"transform_results",
 		"transform",
 		"on_success",
 		"on_error",

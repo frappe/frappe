@@ -32,7 +32,6 @@ class StudioPageResource(Document):
 		sort_field: DF.Data | None
 		sort_order: DF.Literal["", "ASC", "DESC"]
 		transform: DF.Code | None
-		transform_results: DF.Check
 		url: DF.Data | None
 		whitelisted_methods: DF.JSON | None
 	# end: auto-generated types

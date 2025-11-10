@@ -345,7 +345,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		 * Create a function that includes the user's transform function
 		 * Invoke the transform function with data/doc
 		 */
-		if (resource.transform_results) {
+		if (resource.transform) {
 			if (resource.resource_type === "Document") {
 				return {
 					transform: (doc: any) => {

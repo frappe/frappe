@@ -130,19 +130,41 @@
 				</template>
 
 				<!-- Transform Results for any Resource Type -->
-				<div class="flex flex-row items-center gap-1.5">
-					<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
-					<InputLabel>Transform Results</InputLabel>
-				</div>
+				<div class="border-t border-gray-200 pt-4">
+					<div class="mb-3">
+						<div class="mb-2 flex items-center justify-between">
+							<h3 class="text-sm font-medium text-gray-900">Transform Results</h3>
+							<Button
+								v-if="newResource.transform"
+								variant="ghost"
+								size="sm"
+								icon="x"
+								@click="() => (newResource.transform = '')"
+							/>
+						</div>
 
-				<Code
-					v-if="newResource.transform_results"
-					v-model="newResource.transform"
-					language="javascript"
-					height="150px"
-					:emitOnChange="true"
-					:completions="getCompletions"
-				/>
+						<Code
+							v-if="newResource.transform"
+							v-model="newResource.transform"
+							language="javascript"
+							height="150px"
+							:emitOnChange="true"
+							:completions="getCompletions"
+						/>
+						<div class="flex flex-col items-center rounded-lg border border-gray-200 p-4" v-else>
+							<span class="px-2 py-1 text-center text-sm leading-5 text-gray-500">
+								Transform fetched data before use - reshape objects, format values or add extra properties
+							</span>
+							<button
+								class="flex cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-gray-300"
+								@click="() => (newResource.transform = getTransformFnBoilerplate(newResource.resource_type))"
+							>
+								<FeatherIcon name="plus" class="h-3 w-3" />
+								<span class="ml-1 text-sm">Add Script</span>
+							</button>
+						</div>
+					</div>
+				</div>
 
 				<!-- Success Section -->
 				<div class="border-t border-gray-200 pt-4">
@@ -280,7 +302,6 @@ const emptyResource: Resource = {
 	sort_field: "",
 	sort_order: "",
 	whitelisted_methods: [],
-	transform_results: false,
 	transform: "",
 	on_success: "",
 	on_error: "",
@@ -398,9 +419,9 @@ watch(
 )
 
 watch(
-	() => [newResource.value?.resource_type, newResource.value?.transform_results],
-	([resource_type, transform_results]) => {
-		if (!resource_type || !transform_results || newResource.value.transform) return
+	() => newResource.value?.resource_type,
+	(resource_type) => {
+		if (!resource_type || newResource.value.transform) return
 		if (typeof resource_type === "string") {
 			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
 		}
