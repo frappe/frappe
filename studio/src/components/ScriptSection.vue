@@ -1,7 +1,7 @@
 <template>
 	<div class="border-t border-gray-200 pt-4">
 		<div class="mb-3">
-			<div class="mb-2 flex items-center justify-between">
+			<div class="mb-2 flex min-h-7 items-center justify-between">
 				<h3 class="text-sm font-medium text-gray-900">{{ title }}</h3>
 				<Button v-if="modelValue" variant="ghost" size="sm" icon="x" @click="handleRemove" />
 			</div>

@@ -1,6 +1,6 @@
 <template>
 	<div class="flex h-full w-full flex-col gap-1.5">
-		<InputLabel :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
+		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 			{{ label }}
 		</InputLabel>
 		<codemirror
