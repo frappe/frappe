@@ -130,112 +130,29 @@
 				</template>
 
 				<!-- Transform Results for any Resource Type -->
-				<div class="border-t border-gray-200 pt-4">
-					<div class="mb-3">
-						<div class="mb-2 flex items-center justify-between">
-							<h3 class="text-sm font-medium text-gray-900">Transform Results</h3>
-							<Button
-								v-if="newResource.transform"
-								variant="ghost"
-								size="sm"
-								icon="x"
-								@click="() => (newResource.transform = '')"
-							/>
-						</div>
+				<ScriptSection
+					title="Transform Results"
+					description="Transform fetched data before use - reshape objects, format values or add extra properties"
+					v-model="newResource.transform"
+					:boilerplate="getTransformFnBoilerplate(newResource.resource_type)"
+					:completions="getCompletions"
+				/>
 
-						<Code
-							v-if="newResource.transform"
-							v-model="newResource.transform"
-							language="javascript"
-							height="150px"
-							:emitOnChange="true"
-							:completions="getCompletions"
-						/>
-						<div class="flex flex-col items-center rounded-lg border border-gray-200 p-4" v-else>
-							<span class="px-2 py-1 text-center text-sm leading-5 text-gray-500">
-								Transform fetched data before use - reshape objects, format values or add extra properties
-							</span>
-							<button
-								class="flex cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-gray-300"
-								@click="() => (newResource.transform = getTransformFnBoilerplate(newResource.resource_type))"
-							>
-								<FeatherIcon name="plus" class="h-3 w-3" />
-								<span class="ml-1 text-sm">Add Script</span>
-							</button>
-						</div>
-					</div>
-				</div>
+				<ScriptSection
+					title="On Success"
+					description="Update variables or control other data sources everytime the data loads successfully"
+					v-model="newResource.on_success"
+					:boilerplate="getFnBoilerplate('success')"
+					:completions="(context: CompletionContext) => getEditorCompletions(context)"
+				/>
 
-				<!-- Success Section -->
-				<div class="border-t border-gray-200 pt-4">
-					<div class="mb-3">
-						<div class="mb-2 flex items-center justify-between">
-							<h3 class="text-sm font-medium text-gray-900">On Success</h3>
-							<Button
-								v-if="newResource.on_success"
-								variant="ghost"
-								size="sm"
-								icon="x"
-								@click="() => (newResource.on_success = '')"
-							/>
-						</div>
-						<Code
-							v-if="newResource.on_success"
-							:completions="(context: CompletionContext) => getEditorCompletions(context)"
-							:emitOnChange="true"
-							:modelValue="newResource.on_success?.toString()"
-							@update:modelValue="(val: string) => (newResource.on_success = val)"
-						/>
-						<div class="flex flex-col items-center rounded-lg border border-gray-200 p-4" v-else>
-							<span class="px-2 py-1 text-center text-sm leading-5 text-gray-500">
-								Update variables or control other data sources everytime the data loads successfully
-							</span>
-							<button
-								class="flex cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-gray-300"
-								@click="() => (newResource.on_success = getFnBoilerplate('success'))"
-							>
-								<FeatherIcon name="plus" class="h-3 w-3" />
-								<span class="ml-1 text-sm">Add Script</span>
-							</button>
-						</div>
-					</div>
-				</div>
-
-				<!-- Failure Section -->
-				<div class="border-t border-gray-200 pt-4">
-					<div class="mb-3">
-						<div class="mb-2 flex items-center justify-between">
-							<h3 class="text-sm font-medium text-gray-900">On Failure</h3>
-							<Button
-								v-if="newResource.on_error"
-								variant="ghost"
-								size="sm"
-								icon="x"
-								@click="() => (newResource.on_error = '')"
-								title="Remove Script"
-							/>
-						</div>
-						<Code
-							v-if="newResource.on_error"
-							:completions="(context: CompletionContext) => getEditorCompletions(context)"
-							:emitOnChange="true"
-							:modelValue="newResource.on_error?.toString()"
-							@update:modelValue="(val: string) => (newResource.on_error = val)"
-						/>
-						<div class="flex flex-col items-center rounded border border-gray-200 p-4" v-else>
-							<span class="px-2 py-1 text-sm text-gray-500">
-								Handle errors gracefully with fallback logic or user alerts
-							</span>
-							<button
-								class="flex cursor-pointer items-center rounded-lg p-1 text-gray-700 hover:bg-gray-300"
-								@click="() => (newResource.on_error = getFnBoilerplate('error'))"
-							>
-								<FeatherIcon name="plus" class="h-3 w-3" />
-								<span class="ml-1 text-sm">Add Script</span>
-							</button>
-						</div>
-					</div>
-				</div>
+				<ScriptSection
+					title="On Failure"
+					description="Handle errors gracefully with fallback logic or user alerts"
+					v-model="newResource.on_error"
+					:boilerplate="getFnBoilerplate('error')"
+					:completions="(context: CompletionContext) => getEditorCompletions(context)"
+				/>
 			</div>
 		</template>
 
@@ -267,7 +184,7 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl } from "frappe-ui"
 import { Link } from "frappe-ui/frappe"
-import Code from "@/components/Code.vue"
+import ScriptSection from "@/components/ScriptSection.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 import Grid from "@/components/Grid.vue"
