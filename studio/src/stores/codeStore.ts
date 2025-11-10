@@ -80,9 +80,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const isDeep = typeof variables.value[watcher.source] === "object"
 		const watcherFn = watch(
 			() => variables.value[watcher.source],
-			() => {
-				executeUserScript(watcher.script, variables.value, resources.value)
-			},
+			() => executeUserScript(watcher.script),
 			{ deep: isDeep, immediate: watcher.immediate }
 		)
 		activeWatchers.value[watcher.name || watcher.source] = watcherFn
