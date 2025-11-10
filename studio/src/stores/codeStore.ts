@@ -25,6 +25,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
 		studioPageResources.filters = { parent: page.name }
 		await studioPageResources.reload()
+		resources.value = {}
 
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource, {
@@ -54,6 +55,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	async function setPageVariables(page: StudioPage) {
 		studioVariables.filters = { parent: page.name }
 		await studioVariables.reload()
+		variables.value = {}
 
 		studioVariables.data.map((variable: Variable) => {
 			variables.value[variable.variable_name] = getInitialVariableValue(variable)
