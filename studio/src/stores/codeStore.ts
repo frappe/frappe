@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs } from "vue"
+import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref } from "vue"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
@@ -19,7 +19,7 @@ const useCodeStore = defineStore("codeStore", () => {
 	const routeObject = ref<ComputedRef>()
 
 	function setRouteObject(route: ComputedRef) {
-		routeObject.value = route?.value ?? route
+		routeObject.value = route
 	}
 
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
@@ -97,7 +97,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {
 			...variables.value,
 			...resources.value,
-			route: routeObject.value,
+			route: unref(routeObject.value),
 		}
 	})
 
@@ -173,7 +173,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			// Pass variable refs as context so that users can access variables without 'variable.' prefix
 			// eg: - {{ variable_name }} in templates or variable_name.value in scripts
 			const variablesRefs = toRefs(variables.value)
-			const context = { ...variablesRefs, ...resources.value, ...repeaterContext, ...componentContext }
+			const context = { ...globalContext.value, ...variablesRefs, ...repeaterContext, ...componentContext }
 
 			const scriptToExecute = `
 				with (context) {

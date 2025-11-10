@@ -39,7 +39,7 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 		})
 
 		sources.push({
-			item: codeStore.routeObject,
+			item: codeStore.routeObject?.value,
 			completion: {
 				label: "route",
 				type: "variable",
