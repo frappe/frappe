@@ -109,11 +109,12 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isHTML, getValueFromObject, setValueInObject } from "@/utils/helpers"
-import { isDynamicValue, getDynamicValue } from "@/utils/code"
+import { getComponentRoot, isHTML } from "@/utils/helpers"
+import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
+import useCodeStore from "@/stores/codeStore"
 
 const props = withDefaults(
 	defineProps<{
@@ -132,6 +133,7 @@ defineOptions({
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const codeStore = useCodeStore()
 
 const isComponentReady = ref(false)
 const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
@@ -148,7 +150,7 @@ const styles = computed(() => {
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
 			if (isDynamicValue(value.toString())) {
-				_styles[key] = getDynamicValue(value.toString(), evaluationContext.value)
+				_styles[key] = codeStore.getDynamicValue(value.toString(), evaluationContext.value)
 			}
 		}
 	})
@@ -166,11 +168,8 @@ const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
 	return {
-		...store.variables,
-		...store.resources,
 		...repeaterContext,
 		...componentContext?.value,
-		route: store.routeObject,
 	}
 })
 
@@ -182,7 +181,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, evaluationContext.value)
+			propValues[propName] = codeStore.getDynamicValue(config, evaluationContext.value)
 		}
 	})
 	return propValues
@@ -201,7 +200,7 @@ const componentRef = ref<ComponentPublicInstance | null>(null)
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
+		const value = codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 		// Handle different return types:
 		// - Boolean: return as-is
 		// - String "true"/"false": convert to boolean
@@ -222,9 +221,9 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			return getValueFromObject(store.variables, modelValue.name)
+			return codeStore.getValueFromVariable(modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, evaluationContext.value)
+			return codeStore.getDynamicValue(modelValue, evaluationContext.value)
 		}
 		return modelValue
 	},
@@ -232,7 +231,7 @@ const boundValue = computed({
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
 			// update the variable in the store
-			setValueInObject(store.variables, modelValue.name, newValue)
+			codeStore.setValueInVariable(modelValue.name, newValue)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)

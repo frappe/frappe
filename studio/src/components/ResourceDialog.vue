@@ -255,7 +255,6 @@ import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { get } from "ace-builds-internal/lib/net"
 
 const props = defineProps<{
 	resource?: Resource | null

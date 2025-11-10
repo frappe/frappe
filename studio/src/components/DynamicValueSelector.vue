@@ -34,6 +34,7 @@ import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
+import useCodeStore from "@/stores/codeStore"
 
 const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
 	formatValuesAsTemplate: true,
@@ -43,6 +44,7 @@ const emit = defineEmits<{
 }>()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const codeStore = useCodeStore()
 
 const formatValue = (value: string) => {
 	if (props.formatValuesAsTemplate) {
@@ -83,9 +85,9 @@ const dynamicValueOptions = computed(() => {
 			})
 		}
 		// Data Sources group
-		const dataSourceOptions = Object.keys(store.resources).map((resourceName) => {
+		const dataSourceOptions = Object.keys(codeStore.resources).map((resourceName) => {
 			const completion =
-				store.resources[resourceName]?.resource_type === "Document"
+				codeStore.resources[resourceName]?.resource_type === "Document"
 					? `${resourceName}.doc`
 					: `${resourceName}.data`
 			return {

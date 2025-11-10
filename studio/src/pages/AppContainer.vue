@@ -11,12 +11,14 @@ import { getBlockInstance, jsonToJs, findPageWithRoute } from "@/utils/helpers"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
+import useCodeStore from "@/stores/codeStore"
 
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import Block from "@/utils/block"
 
 const store = useAppStore()
 const route = useRoute()
+const codeStore = useCodeStore()
 const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
@@ -38,7 +40,7 @@ watch(
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
 			await store.setPageData(page.value)
-			await store.setPageWatchers(page.value)
+			await codeStore.setPageWatchers(page.value)
 
 			const blocks = window.is_preview
 				? jsonToJs(page.value?.draft_blocks || page.value?.blocks)

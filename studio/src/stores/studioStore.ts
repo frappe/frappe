@@ -301,9 +301,11 @@ const useStudioStore = defineStore("store", () => {
 	})
 
 	const codeStore = useCodeStore()
+	codeStore.setRouteObject(routeObject)
+
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)
-		await codeStore.setPageResources(page, routeObject, true)
+		await codeStore.setPageResources(page, true)
 	}
 
 	const variableConfigs = computed<Record<string, Variable>>(() => {
