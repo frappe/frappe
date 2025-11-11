@@ -30,7 +30,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
 			const newResource = await getNewResource(resource, {
 				...variables.value,
-				route: routeObject.value,
+				route: unref(routeObject.value),
 			})
 			return {
 				resource_name: resource.resource_name,
