@@ -15,6 +15,7 @@
 	.for-description {
 		@include get_textstyle("sm", "regular");
 	}
+
 	min-height: var(--input-height);
 	border-radius: var(--border-radius-sm);
 	padding: 4px 8px;
@@ -27,4 +28,12 @@
 	font-size: var(--text-xl);
 	font-weight: 700;
 	color: var(--heading-color);
+}
+
+.duration-input {
+	background-color: #F3F3F3 !important;
+}
+
+.duration-picker .picker-row > .col:last-child {
+	display: block !important;
 }
