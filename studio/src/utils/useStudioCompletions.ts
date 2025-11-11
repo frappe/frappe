@@ -1,16 +1,16 @@
 import { computed } from "vue"
-import useStudioStore from "@/stores/studioStore"
+import useCodeStore from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 export const useStudioCompletions = (canEditValues: boolean = false) => {
-	const store = useStudioStore()
+	const codeStore = useCodeStore()
 
 	const completionSources = computed(() => {
 		const sources: CompletionSource[] = []
-		Object.entries(store.variables || {}).forEach(([variable, item]) => {
+		Object.entries(codeStore.variables || {}).forEach(([variable, item]) => {
 			sources.push({
 				item,
 				completion: {
@@ -27,7 +27,7 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		})
 
-		Object.entries(store.resources || {}).forEach(([resource, item]) => {
+		Object.entries(codeStore.resources || {}).forEach(([resource, item]) => {
 			sources.push({
 				item,
 				completion: {
@@ -39,7 +39,7 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 		})
 
 		sources.push({
-			item: store.routeObject,
+			item: codeStore.routeObject?.value,
 			completion: {
 				label: "route",
 				type: "variable",

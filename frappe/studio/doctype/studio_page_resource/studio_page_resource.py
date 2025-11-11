@@ -21,6 +21,8 @@ class StudioPageResource(Document):
 		filters: DF.JSON | None
 		limit: DF.Int
 		method: DF.Literal["GET", "POST", "PUT", "DELETE"]
+		on_error: DF.Code | None
+		on_success: DF.Code | None
 		params: DF.JSON | None
 		parent: DF.Data
 		parentfield: DF.Data
@@ -30,7 +32,6 @@ class StudioPageResource(Document):
 		sort_field: DF.Data | None
 		sort_order: DF.Literal["", "ASC", "DESC"]
 		transform: DF.Code | None
-		transform_results: DF.Check
 		url: DF.Data | None
 		whitelisted_methods: DF.JSON | None
 	# end: auto-generated types

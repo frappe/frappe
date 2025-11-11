@@ -183,6 +183,7 @@ import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "vue-sonner"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import useCodeStore from "@/stores/codeStore"
 
 const props = defineProps<{
 	block?: Block
@@ -260,10 +261,11 @@ watch(
 
 		if (!newEvent.value.isEditing) {
 			newEvent.value.fields = []
+			const codeStore = useCodeStore()
 			doctypeFields.value.forEach((field) => {
 				newEvent.value.fields?.push({
 					field: field.value,
-					value: Object.keys(store.variables).includes(field.value) ? field.value : "",
+					value: Object.keys(codeStore.variables).includes(field.value) ? field.value : "",
 					name: field.value,
 				})
 			})

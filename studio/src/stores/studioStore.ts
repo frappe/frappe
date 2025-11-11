@@ -10,23 +10,21 @@ import {
 	jsonToJs,
 	fetchApp,
 	fetchPage,
-	getNewResource,
 	confirm,
 	getInitialVariableValue,
 } from "@/utils/helpers"
 import { studioPages } from "@/data/studioPages"
-import { studioPageResources } from "@/data/studioResources"
 import { studioApps } from "@/data/studioApps"
+import { studioVariables } from "@/data/studioVariables"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
+import useCodeStore from "@/stores/codeStore"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Resource } from "@/types/Studio/StudioResource"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
-import { studioVariables } from "@/data/studioVariables"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast } from "vue-sonner"
 import { createResource } from "frappe-ui"
@@ -266,20 +264,6 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	const routeObject = computed(() => {
-		if (!activePage.value) return ""
-
-		const newRoute = toRaw(router.currentRoute.value)
-		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
-		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
-		newRoute.params = paramNames.reduce((params, name) => {
-			params[name] = ""
-			return params
-		}, {} as Record<string, string>)
-
-		return newRoute
-	})
-
 	// build
 	function generateAppBuild() {
 		if (!activeApp.value) return
@@ -303,57 +287,38 @@ const useStudioStore = defineStore("store", () => {
 	const stylePropertyFilter = ref<string | null>(null)
 
 	// data
-	const resources = ref<Record<string, Resource>>({})
-	const variableConfigs = ref<Record<string, Variable>>({})
-	const variables = ref<Record<string, any>>({})
+	const routeObject = computed(() => {
+		if (!activePage.value) return ""
+
+		const newRoute = toRaw(router.currentRoute.value)
+		// Extract param names from active page's route (e.g., ["employee", "id"] from "/hr/:employee/:id")
+		const paramNames = (activePage.value.route.match(/:\w+/g) || []).map(param => param.slice(1))
+		newRoute.params = paramNames.reduce((params, name) => {
+			params[name] = ""
+			return params
+		}, {} as Record<string, string>)
+
+		return newRoute
+	})
+
+	const codeStore = useCodeStore()
+	codeStore.setRouteObject(routeObject)
 
 	async function setPageData(page: StudioPage) {
-		await setPageVariables(page)
-		await setPageResources(page)
+		await codeStore.setPageVariables(page)
+		await codeStore.setPageResources(page, true)
 	}
 
-	async function setPageResources(page: StudioPage) {
-		studioPageResources.filters = { parent: page.name }
-		await studioPageResources.reload()
-		resources.value = {}
-
-		const resourcePromises = studioPageResources.data.map(async (resource: Resource) => {
-			const newResource = await getNewResource(resource, {
-				...variables.value,
-				route: routeObject.value,
-			})
-			return {
-				resource_name: resource.resource_name,
-				value: newResource,
-				resource_id: resource.resource_id,
-				resource_type: resource.resource_type,
-			}
-		})
-
-		const resolvedResources = await Promise.all(resourcePromises)
-
-		resolvedResources.forEach((item) => {
-			resources.value[item.resource_name] = item.value
-			if (!item.value) return
-			resources.value[item.resource_name].resource_id = item.resource_id
-			resources.value[item.resource_name].resource_type = item.resource_type
-		})
-	}
-
-	async function setPageVariables(page: StudioPage) {
-		studioVariables.filters = { parent: page.name }
-		await studioVariables.reload()
-		variableConfigs.value = {}
-		variables.value = {}
-
+	const variableConfigs = computed<Record<string, Variable>>(() => {
+		const configs: Record<string, Variable> = {}
 		studioVariables.data.map((variable: Variable) => {
-			variableConfigs.value[variable.variable_name] = {
+			configs[variable.variable_name] = {
 				...variable,
 				initial_value: getInitialVariableValue(variable),
 			}
-			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
-	}
+		return configs
+	})
 
 	const variableOptions = computed(() => {
 		const options: VariableOption[] = []
@@ -375,7 +340,7 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 
-		traverse(variables.value)
+		traverse(codeStore.variables)
 		return options
 	})
 
@@ -412,13 +377,9 @@ const useStudioStore = defineStore("store", () => {
 		generateAppBuild,
 		// styles
 		stylePropertyFilter,
-		// data
-		resources,
-		variables,
+		// data/code
 		variableConfigs,
 		setPageData,
-		setPageResources,
-		setPageVariables,
 		variableOptions,
 	}
 })

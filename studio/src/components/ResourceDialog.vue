@@ -130,18 +130,28 @@
 				</template>
 
 				<!-- Transform Results for any Resource Type -->
-				<div class="flex flex-row items-center gap-1.5">
-					<FormControl size="sm" type="checkbox" v-model="newResource.transform_results" />
-					<InputLabel>Transform Results</InputLabel>
-				</div>
-
-				<Code
-					v-if="newResource.transform_results"
+				<ScriptSection
+					title="Transform Results"
+					description="Transform fetched data before use - reshape objects, format values or add extra properties"
 					v-model="newResource.transform"
-					language="javascript"
-					height="150px"
-					:emitOnChange="true"
+					:boilerplate="getTransformFnBoilerplate(newResource.resource_type)"
 					:completions="getCompletions"
+				/>
+
+				<ScriptSection
+					title="On Success"
+					description="Update variables or control other data sources everytime the data loads successfully"
+					v-model="newResource.on_success"
+					:boilerplate="getFnBoilerplate('success')"
+					:completions="(context: CompletionContext) => getEditorCompletions(context)"
+				/>
+
+				<ScriptSection
+					title="On Failure"
+					description="Handle errors gracefully with fallback logic or user alerts"
+					v-model="newResource.on_error"
+					:boilerplate="getFnBoilerplate('error')"
+					:completions="(context: CompletionContext) => getEditorCompletions(context)"
 				/>
 			</div>
 		</template>
@@ -174,7 +184,7 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl } from "frappe-ui"
 import { Link } from "frappe-ui/frappe"
-import Code from "@/components/Code.vue"
+import ScriptSection from "@/components/ScriptSection.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Filters from "@/components/Filters.vue"
 import Grid from "@/components/Grid.vue"
@@ -183,12 +193,14 @@ import type { DocTypeField, SelectOption } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
 	resource?: Resource | null
 }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 const emit = defineEmits(["addResource", "editResource"])
+const getEditorCompletions = useStudioCompletions(true)
 const getCompletions = useStudioCompletions()
 
 const emptyResource: Resource = {
@@ -207,8 +219,9 @@ const emptyResource: Resource = {
 	sort_field: "",
 	sort_order: "",
 	whitelisted_methods: [],
-	transform_results: false,
 	transform: "",
+	on_success: "",
+	on_error: "",
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
@@ -304,6 +317,14 @@ function getTransformFnBoilerplate(resource_type: ResourceType) {
 	}
 }
 
+function getFnBoilerplate(event: "success" | "error") {
+	if (event === "success") {
+		return "function onSuccess(data) {}"
+	} else {
+		return "function onError(error) {}"
+	}
+}
+
 watch(
 	() => newResource.value?.document_type,
 	(doctype) => {
@@ -315,9 +336,9 @@ watch(
 )
 
 watch(
-	() => [newResource.value?.resource_type, newResource.value?.transform_results],
-	([resource_type, transform_results]) => {
-		if (!resource_type || !transform_results || newResource.value.transform) return
+	() => newResource.value?.resource_type,
+	(resource_type) => {
+		if (!resource_type || newResource.value.transform) return
 		if (typeof resource_type === "string") {
 			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
 		}

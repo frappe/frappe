@@ -6,7 +6,7 @@ import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockInstance, getBlockObject, isObjectEmpty } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 
-export const useComponentStore = defineStore("componentStore", () => {
+const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())

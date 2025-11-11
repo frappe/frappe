@@ -37,21 +37,13 @@
 import Block from "@/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, toRefs } from "vue"
 import type { ComponentPublicInstance } from "vue"
-import { useRouter, useRoute } from "vue-router"
+import { useRouter } from "vue-router"
 import { createResource } from "frappe-ui"
-import {
-	getComponentRoot,
-	isDynamicValue,
-	getDynamicValue,
-	isHTML,
-	executeUserScript,
-	getValueFromObject,
-	setValueInObject,
-	getAPIParams,
-} from "@/utils/helpers"
+import { getComponentRoot, isHTML } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
+import { isDynamicValue } from "@/utils/code"
 
-import useAppStore from "@/stores/appStore"
+import useCodeStore from "@/stores/codeStore"
 import { toast } from "vue-sonner"
 import type { Field } from "@/types/ComponentEvent"
 import type { DataResult } from "@/types/Studio/StudioResource"
@@ -75,7 +67,7 @@ const styles = computed(() => {
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
 			if (isDynamicValue(value.toString())) {
-				_styles[key] = getDynamicValue(value.toString(), evaluationContext.value)
+				_styles[key] = codeStore.getDynamicValue(value.toString(), evaluationContext.value)
 			}
 		}
 	})
@@ -85,17 +77,14 @@ const classes = computed(() => {
 	return [attrs.class, ...props.block.getClasses()]
 })
 
-const store = useAppStore()
+const codeStore = useCodeStore()
 const repeaterContext = inject("repeaterContext", {})
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 
 const evaluationContext = computed(() => {
 	return {
-		...store.variables,
-		...store.resources,
 		...repeaterContext,
 		...componentContext?.value,
-		route: store.routeObject,
 	}
 })
 
@@ -107,7 +96,7 @@ const getComponentProps = () => {
 
 	Object.entries(propValues).forEach(([propName, config]) => {
 		if (isDynamicValue(config)) {
-			propValues[propName] = getDynamicValue(config, evaluationContext.value)
+			propValues[propName] = codeStore.getDynamicValue(config, evaluationContext.value)
 		}
 	})
 	return propValues
@@ -124,7 +113,7 @@ const componentProps = computed(() => {
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
+		const value = codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 		// Handle different return types:
 		// - Boolean: return as-is
 		// - String "true"/"false": convert to boolean
@@ -145,16 +134,16 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			return getValueFromObject(store.variables, modelValue.name)
+			return codeStore.getValueFromVariable(modelValue.name)
 		} else if (isDynamicValue(modelValue)) {
-			return getDynamicValue(modelValue, evaluationContext.value)
+			return codeStore.getDynamicValue(modelValue, evaluationContext.value)
 		}
 		return modelValue
 	},
 	set(newValue) {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			setValueInObject(store.variables, modelValue.name, newValue)
+			codeStore.setValueInVariable(modelValue.name, newValue)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)
@@ -177,7 +166,7 @@ const componentEvents = computed(() => {
 				return () => {
 					const path: string[] = event.api_endpoint.split(".")
 					// get resource
-					const resource = store.resources[path[0]]
+					const resource = codeStore.resources[path[0]]
 
 					if (resource) {
 						// access and call whitelisted method
@@ -186,7 +175,7 @@ const componentEvents = computed(() => {
 						createResource({
 							url: event.api_endpoint,
 							auto: true,
-							params: getAPIParams(event.params, evaluationContext.value),
+							params: codeStore.getAPIParams(event.params, evaluationContext.value),
 							onSuccess: handleSuccess(event),
 							onError: handleError(event),
 						})
@@ -196,7 +185,7 @@ const componentEvents = computed(() => {
 				return () => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
-						fields[field.field] = getValueFromObject(store.variables, field.value)
+						fields[field.field] = codeStore.getValueFromVariable(field.value)
 					})
 					createResource({
 						url: "frappe.client.insert",
@@ -213,13 +202,7 @@ const componentEvents = computed(() => {
 				}
 			} else if (event.action === "Run Script") {
 				return () => {
-					executeUserScript(
-						event.script,
-						store.variables,
-						store.resources,
-						repeaterContext,
-						componentContext?.value,
-					)
+					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value)
 				}
 			}
 		}
@@ -229,27 +212,9 @@ const componentEvents = computed(() => {
 	return events
 })
 
-// Helper functions for handling success and error responses
 const handleSuccess = (event: any) => (data: DataResult) => {
-	if (event.on_success === "script") {
-		if (event.on_success_script) {
-			const variablesRefs = toRefs(store.variables)
-			const context = {
-				...variablesRefs,
-				...store.resources,
-				...repeaterContext,
-				...componentContext?.value,
-				data,
-			}
-			const successFn = new Function(
-				"ctx",
-				`with(ctx) {
-					${event.on_success_script}
-					return onSuccess(data);
-				}`,
-			)
-			return successFn(context)
-		}
+	if (event.on_success === "script" && event.on_success_script) {
+		return codeStore.handleSuccess(event.on_success_script, data, repeaterContext, componentContext?.value)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
@@ -260,25 +225,8 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 }
 
 const handleError = (event: any) => (error: any) => {
-	if (event.on_error === "script") {
-		if (event.on_error_script) {
-			const variablesRefs = toRefs(store.variables)
-			const context = {
-				...variablesRefs,
-				...store.resources,
-				...repeaterContext,
-				...componentContext?.value,
-				error,
-			}
-			const errorFn = new Function(
-				"ctx",
-				`with(ctx) {
-					${event.on_error_script}
-					return onError(error);
-				}`,
-			)
-			return errorFn(context)
-		}
+	if (event.on_error === "script" && event.on_error_script) {
+		return codeStore.handleError(event.on_error_script, error, repeaterContext, componentContext?.value)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)

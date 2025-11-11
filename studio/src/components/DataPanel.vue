@@ -1,9 +1,9 @@
 <template>
 	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
-			<div class="ml-3 flex flex-col gap-2" v-if="!isObjectEmpty(store.resources)">
+			<div class="ml-3 flex flex-col gap-2" v-if="!isObjectEmpty(codeStore.resources)">
 				<div
-					v-for="(resource, resource_name) in store.resources"
+					v-for="(resource, resource_name) in codeStore.resources"
 					:key="resource_name"
 					class="group/resource flex flex-row justify-between"
 				>
@@ -40,9 +40,9 @@
 
 		<!-- Variables -->
 		<CollapsibleSection sectionName="Variables">
-			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(store.variables)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(codeStore.variables)">
 				<div
-					v-for="(value, variable_name) in store.variables"
+					v-for="(value, variable_name) in codeStore.variables"
 					:key="variable_name"
 					class="group/variable flex flex-row justify-between"
 				>
@@ -164,6 +164,7 @@
 import { ref, watch } from "vue"
 import { Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
+import useCodeStore from "@/stores/codeStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -184,6 +185,7 @@ import { toast } from "vue-sonner"
  */
 
 const store = useStudioStore()
+const codeStore = useCodeStore()
 const showResourceDialog = ref(false)
 const existingResource = ref<Resource | null>()
 
@@ -208,7 +210,7 @@ const addResource = (resource: Resource) => {
 		})
 		.then(async () => {
 			if (store.activePage) {
-				await store.setPageResources(store.activePage)
+				await codeStore.setPageResources(store.activePage, true)
 			}
 			showResourceDialog.value = false
 		})
@@ -221,7 +223,7 @@ const deleteResource = async (resource: Resource, resource_name: string) => {
 			.submit(resource.resource_id)
 			.then(async () => {
 				if (store.activePage) {
-					await store.setPageResources(store.activePage)
+					await codeStore.setPageResources(store.activePage, true)
 				}
 				toast.success(`Data Source ${resource_name} deleted successfully`)
 			})
@@ -236,7 +238,7 @@ const editResource = async (resource: Resource) => {
 		.submit(getResourceValues(resource))
 		.then(async () => {
 			if (store.activePage) {
-				await store.setPageResources(store.activePage)
+				await codeStore.setPageResources(store.activePage, true)
 			}
 			toast.success(`Data Source ${resource.resource_name} updated successfully`)
 			showResourceDialog.value = false
@@ -340,7 +342,7 @@ const addVariable = (variable: Variable) => {
 		{
 			async onSuccess() {
 				if (store.activePage) {
-					await store.setPageVariables(store.activePage)
+					await codeStore.setPageVariables(store.activePage)
 				}
 				showVariableDialog.value = false
 			},
@@ -364,7 +366,7 @@ const editVariable = (variable: Variable) => {
 		})
 		.then(async () => {
 			if (store.activePage) {
-				await store.setPageVariables(store.activePage)
+				await codeStore.setPageVariables(store.activePage)
 			}
 			showVariableDialog.value = false
 		})
@@ -377,7 +379,7 @@ const deleteVariable = async (variable: Variable) => {
 			.submit(variable.name)
 			.then(async () => {
 				if (store.activePage) {
-					await store.setPageVariables(store.activePage)
+					await codeStore.setPageVariables(store.activePage)
 				}
 				toast.success(`Variable ${variable.variable_name} deleted successfully`)
 			})

@@ -7,7 +7,8 @@ import { provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { getDynamicValue, isDynamicValue } from "@/utils/helpers"
+import useCodeStore from "@/stores/codeStore"
+import { isDynamicValue } from "@/utils/code"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -15,6 +16,7 @@ const props = defineProps<{
 	breakpoint?: string
 }>()
 const componentStore = useComponentStore()
+const codeStore = useCodeStore()
 
 const componentContext = computed(() => {
 	const context = { ...props.studioComponent.componentProps }
@@ -27,7 +29,7 @@ const componentContext = computed(() => {
 
 			Object.entries(context).forEach(([inputName, value]) => {
 				if (isDynamicValue(value)) {
-					context[inputName] = getDynamicValue(value, props.evaluationContext)
+					context[inputName] = codeStore.getDynamicValue(value, props.evaluationContext)
 				}
 			})
 		})
