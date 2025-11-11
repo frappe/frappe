@@ -424,7 +424,7 @@ textarea.form-control {
 /* duration control */
 
 .duration-picker {
-	position: absolute;
+	position: fixed;
 	z-index: 999;
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
@@ -470,7 +470,7 @@ textarea.form-control {
 		width: 55px;
 		border: none;
 		color: var(--text-color);
-		background-color: var(--control-bg);
+		background-color: var(--gray-100);
 		border-radius: var(--border-radius);
 		padding: 4px 8px;
 	}

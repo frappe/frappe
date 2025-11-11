@@ -30,10 +30,16 @@
 	color: var(--heading-color);
 }
 
-.duration-input {
-	background-color: #F3F3F3 !important;
+.head-title {
+	font-size: var(--text-xl);
+	font-weight: 700;
+	color: var(--heading-color);
 }
 
-.duration-picker .picker-row > .col:last-child {
-	display: block !important;
+.grid-row .duration-picker .picker-row > .col:last-child {
+	display: block;
+	justify-content: initial;
+}
+.grid-row .duration-picker .picker-row > .col {
+	border-right: none;
 }
