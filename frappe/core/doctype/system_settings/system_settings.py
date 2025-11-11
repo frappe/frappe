@@ -89,6 +89,7 @@ class SystemSettings(Document):
 			"#,###",
 		]
 		otp_issuer_name: DF.Data | None
+		otp_sms_template: DF.SmallText | None
 		password_reset_limit: DF.Int
 		rate_limit_email_link_login: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
@@ -145,6 +146,7 @@ class SystemSettings(Document):
 		self.validate_user_pass_login()
 		self.validate_backup_limit()
 		self.validate_file_extensions()
+		self.validate_otp_sms_template()
 
 		if not self.link_field_results_limit:
 			self.link_field_results_limit = 10
@@ -154,6 +156,17 @@ class SystemSettings(Document):
 			label = _(self.meta.get_label("link_field_results_limit"))
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
+			)
+
+	def validate_otp_sms_template(self):
+		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
+			return
+
+		if "{{otp}}" not in self.otp_sms_template.replace(" ", ""):
+			frappe.throw(
+				_("OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP.").format(
+					"{{otp}}"
+				)
 			)
 
 	def validate_user_pass_login(self):

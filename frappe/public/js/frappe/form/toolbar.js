@@ -26,7 +26,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.page.hide_menu();
 				this.print_icon && this.print_icon.addClass("hide");
 			} else {
-				this.page.show_menu();
+				if (this.page.menu.children().length > 0) {
+					this.page.show_menu();
+				} else {
+					this.page.hide_menu();
+				}
 				this.print_icon && this.print_icon.removeClass("hide");
 			}
 		}
@@ -300,8 +304,30 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_menu();
 
 		if (frappe.boot.desk_settings.form_sidebar) {
-			// this.make_navigation();
+			this.make_navigation();
 			this.make_menu_items();
+		}
+	}
+
+	make_navigation() {
+		// Navigate
+		if (!this.frm.is_new() && !this.frm.meta.issingle) {
+			this.page.add_action_icon(
+				"es-line-left-chevron",
+				() => {
+					this.frm.navigate_records(1);
+				},
+				"prev-doc",
+				__("Previous Document")
+			);
+			this.page.add_action_icon(
+				"es-line-right-chevron",
+				() => {
+					this.frm.navigate_records(0);
+				},
+				"next-doc",
+				__("Next Document")
+			);
 		}
 	}
 

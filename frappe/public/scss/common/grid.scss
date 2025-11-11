@@ -314,7 +314,6 @@
 
 		.form-control:focus {
 			border-color: $text-muted;
-			z-index: 2;
 		}
 
 		.has-error .form-control {
@@ -688,7 +687,7 @@
 			@include grid-focus();
 		}
 		.grid-static-col {
-			height: 38px;
+			height: 40px;
 		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;

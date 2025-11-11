@@ -87,7 +87,8 @@ body {
 
 			.field-icon {
 				left: 9px;
-				top: 5px;
+				top: 50%;
+				transform: translateY(-50%);
 				position: absolute;
 				z-index: 2;
 				fill: var(--text-light);

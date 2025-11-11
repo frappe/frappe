@@ -997,7 +997,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		 * If the length of the text is not available, it defaults to a length of 22.5.
 		 */
 		let textLength = $(column_html).text()?.trim()?.length || 22.5;
-		let calculatedWidth = (textLength * 10) / 1.3;
+		let calculatedWidth = (textLength * 10) / 1.3 + (col.type == "Subject" ? 30 : 0);
 
 		/**
 		 * Updates the `column_max_widths` object by setting the maximum width for a specific column (fieldname).
