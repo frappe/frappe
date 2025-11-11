@@ -79,12 +79,13 @@ def read_doc(doctype: str, name: str):
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 	doc.apply_fieldlevel_read_permissions()
-	doc_dict = doc.as_dict()
 	if sbool(frappe.form_dict.get("expand_links")):
+		doc_dict = doc.as_dict()
 		get_values_for_link_and_dynamic_link_fields(doc_dict)
 		get_values_for_table_and_multiselect_fields(doc_dict)
+		return doc_dict
 
-	return doc_dict
+	return doc
 
 
 def get_values_for_link_and_dynamic_link_fields(doc_dict):
