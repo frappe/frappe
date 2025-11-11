@@ -290,6 +290,7 @@ export default class Grid {
 		if (selected_children.length == this.grid_pagination.page_length) {
 			this.scroll_to_top();
 		}
+		this.remove_duplicate_rows_button();
 	}
 
 	delete_all_rows() {
@@ -341,7 +342,11 @@ export default class Grid {
 		this.refresh_remove_rows_button,
 		100
 	);
-
+	remove_duplicate_rows_button() {
+		this.duplicate_row_button.toggleClass(
+			"hidden"
+		);
+	}
 	refresh_duplicate_rows_button() {
 		if (this.df.cannot_add_rows) {
 			return;
