@@ -971,60 +971,37 @@ class FilterArea {
 			const field = this.list_view.page.fields_dict[df.fieldname];
 			if (!field || !field.$wrapper) return;
 
-			const $wrapper = field.$wrapper.addClass("filter-match-type-enhanced");
-			const $input = $wrapper.find("input").first();
-			if (!$input.length) return;
-
-			$input.wrap('<div class="position-relative"></div>');
-			const $input_container = $input.parent();
+			const $input = field.$wrapper.find("input").first();
+			if (!$input.length || $input.closest(".input-group").length) return;
 
 			const getSymbol = (match_type) => (match_type === "=" ? "=" : "≈");
 			const getTitle = (match_type) =>
 				match_type === "=" ? __("Exact Match") : __("Contains Match");
 
-			const $indicator = $(`
-				<span title="${getTitle(df.match_type || "=")}" class="filter-match-type-indicator">
-					${getSymbol(df.match_type || "=")}
-				</span>
-			`).appendTo($input_container);
-
-			const $dropdown = $(`
-				<div class="filter-match-type-dropdown dropdown-menu">
-					<a class="dropdown-item" data-value="=">${__("Exact Match (Equals)")}</a>
-					<a class="dropdown-item" data-value="like">${__("Contains Match (Like)")}</a>
+			$input.wrap('<div class="input-group"></div>');
+			const $inputGroup = $input.parent();
+			const $toggle = $(`
+				<div class="input-group-btn">
+					<button type="button"
+						class="btn btn-default match-type-toggle-btn "
+						title="${getTitle(df.match_type || "=")}">
+						${getSymbol(df.match_type || "=")}
+					</button>
 				</div>
-			`).appendTo($input_container);
+			`);
 
-			// Update active state
-			const updateDropdown = (match_type) => {
-				$dropdown.find(".dropdown-item").removeClass("active");
-				$dropdown.find(`[data-value="${match_type}"]`).addClass("active");
-			};
+			$inputGroup.append($toggle);
 
-			updateDropdown(field.df.match_type || "=");
-
-			// Toggle dropdown on click
-			$indicator.off("click").on("click", (e) => {
-				e.stopPropagation();
-				const isVisible = $dropdown.is(":visible");
-
-				// Hide all other dropdowns
-				$(".filter-match-type-dropdown").hide();
-
-				if (!isVisible) {
-					$dropdown.show();
-				}
-			});
-
-			// Handle dropdown item click
-			$dropdown.on("click", ".dropdown-item", (e) => {
+			$toggle.find("button").on("click", (e) => {
 				e.preventDefault();
-				const new_type = $(e.currentTarget).data("value");
+				e.stopPropagation();
+
+				const current_type = field.df.match_type || "=";
+				const new_type = current_type === "=" ? "like" : "=";
+
 				field.df.match_type = new_type;
-				$indicator.text(getSymbol(new_type));
-				$indicator.attr("title", getTitle(new_type));
-				updateDropdown(new_type);
-				$dropdown.hide();
+				$toggle.find("button").text(getSymbol(new_type));
+				$toggle.find("button").attr("title", getTitle(new_type));
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {
@@ -1032,13 +1009,6 @@ class FilterArea {
 				}
 
 				this.debounced_refresh_list_view();
-			});
-
-			// Close dropdown when clicking outside
-			$(document).on("click", (e) => {
-				if (!$(e.target).closest($input_container).length) {
-					$dropdown.hide();
-				}
 			});
 		}, 100);
 	}
