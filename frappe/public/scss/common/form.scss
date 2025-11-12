@@ -35,11 +35,3 @@
 	font-weight: 700;
 	color: var(--heading-color);
 }
-
-.grid-row .duration-picker .picker-row > .col:last-child {
-	display: block;
-	justify-content: initial;
-}
-.grid-row .duration-picker .picker-row > .col {
-	border-right: none;
-}
