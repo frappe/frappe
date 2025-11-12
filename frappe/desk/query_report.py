@@ -384,7 +384,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths = build_xlsx_data(
+	xlsx_data, column_widths, cell_styles = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
@@ -400,7 +400,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
-		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
+		content = make_xlsx(
+			xlsx_data, "Query Report", column_widths=column_widths, cell_styles=cell_styles
+		).getvalue()
 
 	if include_filters:
 		for value in (data.filters or {}).values():
@@ -468,6 +470,7 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
+	cell_styles = []
 
 	if cint(include_filters):
 		filter_data = []
@@ -480,8 +483,13 @@ def build_xlsx_data(
 				if isinstance(filter_value, list)
 				else cstr(filter_value)
 			)
-			filter_data.append([cstr(filter_name), filter_value])
+			filter_row = [cstr(filter_name), filter_value]
+			filter_data.append(filter_row)
+			# Add empty style for filter row
+			cell_styles.append([{}] * len(filter_row))
 		filter_data.append([])
+		# Add empty style for the blank row after filters
+		cell_styles.append([])
 		result += filter_data
 
 	column_data = []
@@ -494,12 +502,15 @@ def build_xlsx_data(
 		column_width /= 10
 		column_widths.append(column_width)
 	result.append(column_data)
+	# Add empty style for header row
+	cell_styles.append([{}] * len(column_data))
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
 		if ignore_visible_idx or row_idx in visible_idx:
 			row_data = []
+			row_styles = []
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):
 					if column.get("hidden") and not cint(include_hidden_columns):
@@ -512,13 +523,23 @@ def build_xlsx_data(
 
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+					# Collect formatting info instead of modifying text
+					cell_style = {}
+					if cint(row.get("italic")):
+						cell_style["italic"] = True
+					if cint(row.get("bold")):
+						cell_style["bold"] = True
+
+					row_styles.append(cell_style)
 					row_data.append(cell_value)
 			elif row:
 				row_data = row
 
 			result.append(row_data)
+			cell_styles.append(row_styles)
 
-	return result, column_widths
+	return result, column_widths, cell_styles
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):

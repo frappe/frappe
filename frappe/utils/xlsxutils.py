@@ -31,8 +31,11 @@ def get_excel_date_format():
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None):
+def make_xlsx(data, sheet_name, wb=None, column_widths=None, cell_styles=None):
+	frappe.log_error(title="make_xlsx called", message=frappe.as_json(data))
 	column_widths = column_widths or []
+	cell_styles = cell_styles or []
+
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
 
@@ -48,9 +51,11 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 	date_format, time_format = get_excel_date_format()
 
-	for row in data:
+	for row_idx, row in enumerate(data):
 		clean_row = []
-		for item in row:
+		row_styles = cell_styles[row_idx] if row_idx < len(cell_styles) else []
+
+		for col_idx, item in enumerate(row):
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
@@ -60,16 +65,29 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
+			# Get cell style if available
+			cell_style = row_styles[col_idx] if col_idx < len(row_styles) else {}
+
+			# Create cell with formatting
+			cell = WriteOnlyCell(ws, value=value)
+
 			if isinstance(value, datetime.date | datetime.datetime):
 				number_format = date_format
 				if isinstance(value, datetime.datetime):
 					number_format = f"{date_format} {time_format}"
-
-				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
-				clean_row.append(cell)
-			else:
-				clean_row.append(value)
+
+			# Apply font styles (bold/italic)
+			if cell_style:
+				font_kwargs = {"name": "Calibri"}
+				if cell_style.get("bold"):
+					font_kwargs["bold"] = True
+				if cell_style.get("italic"):
+					font_kwargs["italic"] = True
+				if len(font_kwargs) > 1:  # More than just name
+					cell.font = Font(**font_kwargs)
+
+			clean_row.append(cell)
 
 		ws.append(clean_row)
 
