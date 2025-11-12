@@ -58,7 +58,6 @@
 	.grid-static-col,
 	.row-check,
 	.row-index {
-		height: 32px;
 		padding: 4px 8px !important;
 		background-color: var(--subtle-fg);
 	}
@@ -188,6 +187,7 @@
 	input {
 		margin-right: 0 !important;
 		margin-bottom: -3px;
+		margin-top: 5px;
 	}
 
 	&.search {
@@ -686,9 +686,7 @@
 		&:focus-visible {
 			@include grid-focus();
 		}
-		.grid-static-col {
-			height: 40px;
-		}
+
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
 			width: 60px;
