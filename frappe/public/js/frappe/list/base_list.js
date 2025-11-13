@@ -975,33 +975,41 @@ class FilterArea {
 			if (!$input.length || $input.closest(".input-group").length) return;
 
 			const getSymbol = (match_type) => (match_type === "=" ? "=" : "≈");
-			const getTitle = (match_type) =>
-				match_type === "=" ? __("Exact Match") : __("Contains Match");
 
 			$input.wrap('<div class="input-group"></div>');
 			const $inputGroup = $input.parent();
-			const $toggle = $(`
-				<div class="input-group-btn">
-					<button type="button"
-						class="btn btn-default match-type-toggle-btn "
-						title="${getTitle(df.match_type || "=")}">
-						${getSymbol(df.match_type || "=")}
-					</button>
-				</div>
-			`);
 
-			$inputGroup.append($toggle);
+			const $dropdown = $(`
+            <div class="input-group-btn">
+                <button type="button"
+                    class="btn btn-default  match-type-dropdown-btn"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                    ${getSymbol(df.match_type || "=")}
 
-			$toggle.find("button").on("click", (e) => {
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <li class="grey-link dropdown-item" data-match-type="=">${__("Equals")}</li>
+                    <li class="grey-link dropdown-item" data-match-type="like">${__("Like")}</li>
+                </ul>
+            </div>
+        `);
+
+			$inputGroup.append($dropdown);
+
+			$dropdown.find(".dropdown-item").on("click", (e) => {
 				e.preventDefault();
 				e.stopPropagation();
+				$dropdown.find("button").dropdown("toggle");
 
+				const new_type = $(e.currentTarget).data("match-type");
 				const current_type = field.df.match_type || "=";
-				const new_type = current_type === "=" ? "like" : "=";
+
+				if (new_type === current_type) return;
 
 				field.df.match_type = new_type;
-				$toggle.find("button").text(getSymbol(new_type));
-				$toggle.find("button").attr("title", getTitle(new_type));
+				$dropdown.find("button").html(`${getSymbol(new_type)}`);
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {
@@ -1012,7 +1020,6 @@ class FilterArea {
 			});
 		}, 100);
 	}
-
 	get_standard_filters() {
 		const filters = [];
 		const fields_dict = this.list_view.page.fields_dict;
