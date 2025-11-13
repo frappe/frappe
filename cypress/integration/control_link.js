@@ -192,10 +192,17 @@ context("Control Link", () => {
 			cy.get(".frappe-control[data-fieldname=assigned_by] input").focus().as("input");
 			cy.get("@input").clear().type(cy.config("testUser"), { delay: 300 }).blur();
 			cy.wait("@validate_link");
-			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
-				"contain",
-				"Frappe"
-			);
+			cy.call("frappe.client.get_value", {
+				doctype: "User",
+				filters: {
+					name: cy.config("testUser"),
+				},
+				fieldname: "full_name",
+			}).then((r) => {
+				cy.get(
+					".frappe-control[data-fieldname=assigned_by_full_name] .control-value"
+				).should("contain", r.message.full_name);
+			});
 
 			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
 
@@ -244,10 +251,19 @@ context("Control Link", () => {
 		cy.new_form("ToDo");
 		cy.fill_field("description", "new", "Text Editor").blur().wait(200);
 		cy.save();
-		cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
-			"contain",
-			"Frappe"
-		);
+		cy.call("frappe.client.get_value", {
+			doctype: "User",
+			filters: {
+				name: cy.config("testUser"),
+			},
+			fieldname: "full_name",
+		}).then((r) => {
+			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
+				"contain",
+				r.message.full_name
+			);
+		});
+
 		// if user clears default value explicitly, system should not reset default again
 		cy.get_field("assigned_by").clear().blur();
 		cy.save();
