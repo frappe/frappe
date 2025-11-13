@@ -989,9 +989,9 @@ class FilterArea {
                     ${getSymbol(df.match_type || "=")}
 
                 </button>
-                <ul class="dropdown-menu dropdown-menu-right">
-                    <li class="grey-link dropdown-item" data-match-type="=">${__("Equals")}</li>
-                    <li class="grey-link dropdown-item" data-match-type="like">${__("Like")}</li>
+                <ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-right">
+                    <li class="dropdown-item" data-match-type="=">${__("Equals")}</li>
+                    <li class="dropdown-item" data-match-type="like">${__("Like")}</li>
                 </ul>
             </div>
         `);
