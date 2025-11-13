@@ -79,7 +79,7 @@ context("Workspace Blocks", () => {
 		cy.get(".block-list-container .block-list-item").contains("Quick List").click();
 
 		cy.fill_field("label", "ToDo", "Data");
-		cy.fill_field("document_type", "ToDo", "Link").blur();
+		cy.fill_field("document_type", "ToDo", "Link");
 		cy.wait("@get_doctype");
 
 		cy.get_open_dialog().find(".filter-edit-area").should("contain", "No filters selected");
