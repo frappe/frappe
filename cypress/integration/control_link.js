@@ -62,12 +62,13 @@ context("Control Link", () => {
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("todo for link", { delay: 200 });
 		cy.wait("@search_link");
 		cy.wait(500);
-		cy.get(".frappe-control[data-fieldname=link]").findByRole("listbox").should("be.visible");
-		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
-		cy.get(".frappe-control[data-fieldname=link] input").blur();
+		cy.get("@input").parent().findByRole("listbox").should("be.visible");
+		cy.get("@input").type("{enter}", { delay: 100 });
+		cy.get("@input").blur();
 		cy.get("@dialog").then((dialog) => {
 			cy.get("@todos").then((todos) => {
 				let value = dialog.get_value("link");
@@ -80,24 +81,29 @@ context("Control Link", () => {
 		get_dialog_with_link().as("dialog");
 
 		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
-
-		cy.get(".frappe-control[data-fieldname=link] input")
-			.type("invalid value", { delay: 100 })
-			.blur();
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+		cy.wait("@search_link");
+		cy.wait(500);
+		cy.get("@input").type("invalid value", { delay: 100 }).blur();
 		cy.wait("@validate_link");
 		cy.wait(500);
-		cy.get(".frappe-control[data-fieldname=link] input").should("have.value", "");
+		cy.get("@input").should("have.value", "");
 	});
 
 	it("should be possible set empty value explicitly", () => {
 		get_dialog_with_link().as("dialog");
 
 		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
-		cy.get(".frappe-control[data-fieldname=link] input").type("  ", { delay: 100 }).blur();
+		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+		cy.wait("@search_link");
+		cy.wait(500);
+		cy.get("@input").type("  ", { delay: 100 }).blur();
 		cy.wait("@validate_link");
 		cy.wait(500);
-		cy.get(".frappe-control[data-fieldname=link] input").should("have.value", "");
+		cy.get("@input").should("have.value", "");
 		cy.window()
 			.its("cur_dialog")
 			.then((dialog) => {
@@ -112,11 +118,12 @@ context("Control Link", () => {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get("@todos").then((todos) => {
-			cy.get(".frappe-control[data-fieldname=link] input").as("input");
-			cy.get("@input").focus();
+			cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 			cy.wait("@search_link");
-			cy.get("@input").type(todos[0]).blur();
+			cy.wait(500);
+			cy.get("@input").type(todos[0], { delay: 200 }).blur();
 			cy.wait("@validate_link");
+			cy.wait(500);
 			cy.get("@input").trigger("mouseover");
 			cy.get(".frappe-control[data-fieldname=link] .btn-open")
 				.should("be.visible")
@@ -157,11 +164,13 @@ context("Control Link", () => {
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("todo for link", { delay: 200 });
 		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
-		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
-		cy.get(".frappe-control[data-fieldname=link] input").blur();
+		cy.get("@input").type("{enter}", { delay: 100 });
+		cy.get("@input").blur();
 		cy.get("@dialog").then((dialog) => {
 			cy.get("@todos").then((todos) => {
 				let field = dialog.get_field("link");
