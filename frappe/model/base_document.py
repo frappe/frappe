@@ -721,6 +721,8 @@ class BaseDocument:
 		)
 
 		columns = list(d)
+		savepoint = "before_insert"
+		frappe.db.savepoint(savepoint)
 		try:
 			frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
@@ -736,7 +738,7 @@ class BaseDocument:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
-					frappe.db.rollback()  # rollback needed for postgres behavior
+					frappe.db.rollback(save_point=savepoint)  # rollback needed for postgres behavior
 					self.flags.retry_count = (self.flags.retry_count or 0) + 1
 					if self.flags.retry_count > 5:
 						raise
