@@ -401,7 +401,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
 		content = make_xlsx(
-			xlsx_data, "Query Report", column_widths=column_widths, cell_styles=cell_styles
+			xlsx_data,
+			"Query Report",
+			column_widths=column_widths,
+			cell_styles=cell_styles,
 		).getvalue()
 
 	if include_filters:
@@ -470,7 +473,7 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
-	cell_styles = []
+	cell_styles = []  # 2D list to hold styles for each cell
 
 	if cint(include_filters):
 		filter_data = []
@@ -485,10 +488,11 @@ def build_xlsx_data(
 			)
 			filter_row = [cstr(filter_name), filter_value]
 			filter_data.append(filter_row)
+
 			# Add empty style for filter row
 			cell_styles.append([{}] * len(filter_row))
+
 		filter_data.append([])
-		# Add empty style for the blank row after filters
 		cell_styles.append([])
 		result += filter_data
 
@@ -502,6 +506,7 @@ def build_xlsx_data(
 		column_width /= 10
 		column_widths.append(column_width)
 	result.append(column_data)
+
 	# Add empty style for header row
 	cell_styles.append([{}] * len(column_data))
 
@@ -510,7 +515,8 @@ def build_xlsx_data(
 		# only pick up rows that are visible in the report
 		if ignore_visible_idx or row_idx in visible_idx:
 			row_data = []
-			row_styles = []
+			row_styles = []  # list to hold styles for each cell in the row
+
 			if isinstance(row, dict):
 				for col_idx, column in enumerate(data.columns):
 					if column.get("hidden") and not cint(include_hidden_columns):

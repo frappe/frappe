@@ -32,7 +32,6 @@ def get_excel_date_format():
 
 # return xlsx file object
 def make_xlsx(data, sheet_name, wb=None, column_widths=None, cell_styles=None):
-	frappe.log_error(title="make_xlsx called", message=frappe.as_json(data))
 	column_widths = column_widths or []
 	cell_styles = cell_styles or []
 
