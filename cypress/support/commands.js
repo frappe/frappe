@@ -184,7 +184,6 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.get("@input").type("{enter}", { delay: 100 });
 		cy.get("@input").blur();
 		cy.wait("@validate_link");
-		cy.wait(500);
 	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {

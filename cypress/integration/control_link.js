@@ -87,7 +87,6 @@ context("Control Link", () => {
 		cy.wait(500);
 		cy.get("@input").type("invalid value", { delay: 100 }).blur();
 		cy.wait("@validate_link");
-		cy.wait(500);
 		cy.get("@input").should("have.value", "");
 	});
 
@@ -102,7 +101,6 @@ context("Control Link", () => {
 		cy.wait(500);
 		cy.get("@input").type("  ", { delay: 100 }).blur();
 		cy.wait("@validate_link");
-		cy.wait(500);
 		cy.get("@input").should("have.value", "");
 		cy.window()
 			.its("cur_dialog")
@@ -123,7 +121,6 @@ context("Control Link", () => {
 			cy.wait(500);
 			cy.get("@input").type(todos[0], { delay: 200 }).blur();
 			cy.wait("@validate_link");
-			cy.wait(500);
 			cy.get("@input").trigger("mouseover");
 			cy.get(".frappe-control[data-fieldname=link] .btn-open")
 				.should("be.visible")
