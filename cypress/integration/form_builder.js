@@ -65,6 +65,10 @@ context("Form Builder", () => {
 		cy.get(".btn-modal-primary").click();
 		cy.wait(500);
 
+		// Save the document
+		cy.click_doc_primary_button("Save");
+		cy.wait(1000);
+
 		cy.compare_document({
 			fields: [
 				{},
