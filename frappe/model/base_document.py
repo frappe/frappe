@@ -736,6 +736,7 @@ class BaseDocument:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
+					frappe.db.rollback()  # rollback needed for postgres behavior
 					self.flags.retry_count = (self.flags.retry_count or 0) + 1
 					if self.flags.retry_count > 5:
 						raise
