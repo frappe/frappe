@@ -19,6 +19,10 @@ context("Web Form", () => {
 		cy.fill_field("doc_type", "Note", "Link");
 		cy.fill_field("module", "Website", "Link");
 		cy.click_custom_action_button("Get Fields");
+		// wait until Get Fields finishes populating the grid
+		cy.get('[data-fieldname="web_form_fields"] .grid-row').should(($rows) => {
+			expect($rows.length, "web form fields").to.be.greaterThan(0);
+		});
 		cy.click_custom_action_button("Publish");
 
 		cy.wait("@save_form");
