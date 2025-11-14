@@ -106,44 +106,6 @@
 	}
 }
 
-// Match type selector for standard filters
-.filter-match-type-enhanced {
-	.position-relative {
-		position: relative;
-
-		input {
-			padding-right: 36px !important;
-		}
-	}
-}
-
-.filter-match-type-indicator {
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
-	cursor: pointer;
-	min-width: 28px;
-	height: calc(100% - 4px);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 600;
-	font-size: 13px;
-	z-index: 2;
-	background-color: var(--btn-default-bg, var(--gray-100));
-	border-left: 1px solid var(--border-color);
-	border-radius: 0 var(--border-radius) var(--border-radius) 0;
-	padding: 0 6px;
-	color: var(--text-muted);
-	transition: all 0.2s ease;
-
-	&:hover {
-		background-color: var(--btn-default-hover-bg, var(--gray-200));
-		color: var(--heading-color, var(--text-color));
-	}
-}
-
 .input-group > .form-control:not(:last-child) {
 	border-top-right-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
