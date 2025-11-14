@@ -11,6 +11,7 @@ context("Workspace Blocks", () => {
 	});
 
 	it("Create Test Page", () => {
+		cy.remove_doc("Workspace", `Test Block Page-${Cypress.config("testUser")}`, true);
 		cy.intercept({
 			method: "POST",
 			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
