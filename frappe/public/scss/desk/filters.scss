@@ -117,6 +117,10 @@
 	border-bottom-left-radius: 0 !important;
 	height: var(--btn-height);
 	border-left: 1px solid var(--btn-group-border-color);
+
+	&:focus {
+		box-shadow: none !important;
+	}
 }
 .match-type-dropdown-menu {
 	min-width: 100px;
