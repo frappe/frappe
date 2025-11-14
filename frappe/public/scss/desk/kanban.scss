@@ -29,6 +29,7 @@
 		@include transition();
 
 		flex: 1 0 260px;
+		max-width: 300px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 150px);

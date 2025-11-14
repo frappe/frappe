@@ -55,6 +55,7 @@
   "two_factor_method",
   "lifespan_qrcode_image",
   "otp_issuer_name",
+  "otp_sms_template",
   "password_tab",
   "password_settings",
   "logout_on_password_reset",
@@ -364,6 +365,13 @@
    "fieldname": "otp_issuer_name",
    "fieldtype": "Data",
    "label": "OTP Issuer Name"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
+   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
+   "fieldname": "otp_sms_template",
+   "fieldtype": "Small Text",
+   "label": "OTP SMS Template"
   },
   {
    "fieldname": "email",
@@ -739,7 +747,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-09-03 10:52:38.096662",
+ "modified": "2025-11-04 16:47:54.230874",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

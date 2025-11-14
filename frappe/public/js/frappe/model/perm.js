@@ -60,8 +60,12 @@ $.extend(frappe.perm, {
 			perm[0].read = 1;
 		}
 
-		if (!meta) return perm;
-
+		if (!meta) {
+			if (frappe.boot.user.can_read.includes(doctype)) {
+				perm[0].read = 1;
+			}
+			return perm;
+		}
 		perm = frappe.perm.get_role_permissions(meta);
 		const base_perm = perm[0];
 

@@ -1256,9 +1256,13 @@ export default class GridRow {
 					if (is_last_column) {
 						// last row
 						if (me.doc.idx === values.length) {
-							me.grid.add_new_row(null, null, true);
-							me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
-							me.grid.set_focus_on_row();
+							setTimeout(function () {
+								me.grid.add_new_row(null, null, true);
+								me.grid.grid_rows[
+									me.grid.grid_rows.length - 1
+								].toggle_editable_row();
+								me.grid.set_focus_on_row();
+							}, 100);
 						} else {
 							// last column before last row
 							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
@@ -1437,8 +1441,8 @@ export default class GridRow {
 		}
 		this.wrapper.removeClass("grid-row-open");
 
-		if (this.grid.meta.editable_grid) {
-			this.open_form_button.parent().focus();
+		if (this.grid.meta?.editable_grid) {
+			this.open_form_button?.parent().focus();
 		}
 	}
 	open_prev() {
