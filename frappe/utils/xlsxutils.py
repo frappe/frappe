@@ -43,6 +43,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 		if column_width:
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
 
+	# TODO: instead of ROW 1 to bold, make header row bold dynamically
 	row1 = ws.row_dimensions[1]
 	row1.font = Font(name="Calibri", bold=True)
 
@@ -51,6 +52,12 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	for row in data:
 		clean_row = []
 		for item in row:
+			cell_style = None
+
+			if isinstance(item, dict) and "value" in item:
+				cell_style = item.get("style")
+				item = item.get("value")
+
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
@@ -60,16 +67,29 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
+			cell = WriteOnlyCell(ws, value=value)
+
 			if isinstance(value, datetime.date | datetime.datetime):
 				number_format = date_format
 				if isinstance(value, datetime.datetime):
 					number_format = f"{date_format} {time_format}"
 
-				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
-				clean_row.append(cell)
-			else:
-				clean_row.append(value)
+
+			if cell_style:
+				font_kwargs = {"name": "Calibri"}
+
+				if cell_style.get("bold"):
+					font_kwargs["bold"] = True
+				if cell_style.get("italic"):
+					font_kwargs["italic"] = True
+				if color := cell_style.get("color"):
+					# TODO: handle colors with different formats if needed
+					font_kwargs["color"] = color
+
+				cell.font = Font(**font_kwargs)
+
+			clean_row.append(cell)
 
 		ws.append(clean_row)
 

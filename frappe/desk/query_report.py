@@ -507,11 +507,22 @@ def build_xlsx_data(
 					label = column.get("label")
 					fieldname = column.get("fieldname")
 					cell_value = row.get(fieldname, row.get(label, ""))
+					cell_style = None
+
+					if isinstance(cell_value, dict) and "value" in cell_value:
+						cell_style = cell_value.get("style")
+						cell_value = cell_value.get("value")
+
+					# check for dict and style and value
 					if not isinstance(cell_value, EXCEL_TYPES):
 						cell_value = cstr(cell_value)
 
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+					if cell_style:
+						cell_value = {"value": cell_value, "style": cell_style}
+
 					row_data.append(cell_value)
 			elif row:
 				row_data = row

@@ -1405,6 +1405,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	prepare_data(data) {
 		return data.map((row) => {
 			let row_obj = {};
+
 			if (Array.isArray(row)) {
 				this.columns.forEach((column, i) => {
 					row_obj[column.id] = row[i];
@@ -1412,6 +1413,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				return row_obj;
 			}
+
+			if (typeof row === "object") {
+				// handles {column: {value:1, style : {"bold":true}}} format
+				this.columns.forEach((column) => {
+					row_obj[column.id] = row[column.id]?.value ?? row[column.id];
+				});
+
+				if (row.indent) {
+					row_obj.indent = row.indent;
+				}
+
+				return row_obj;
+			}
+
 			return row;
 		});
 	}
