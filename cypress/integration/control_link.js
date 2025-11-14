@@ -186,9 +186,7 @@ context("Control Link", () => {
 			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 			cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 
-			cy.get(".frappe-control[data-fieldname=assigned_by] input").focus().as("input");
-			cy.get("@input").clear().type(cy.config("testUser"), { delay: 300 }).blur();
-			cy.wait("@validate_link");
+			cy.fill_field("assigned_by", cy.config("testUser"), "Link");
 			cy.call("frappe.client.get_value", {
 				doctype: "User",
 				filters: {
