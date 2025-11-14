@@ -63,6 +63,7 @@ def get_count() -> int | None:
 	distinct = "distinct " if args.distinct else ""
 	args.limit = cint(args.limit)
 	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	args.pop("distinct")  # to avoid a double DISTINCT concat in db_query
 	args.order_by = None
 
 	# args.limit is specified to avoid getting accurate count.

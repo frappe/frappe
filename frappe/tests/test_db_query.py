@@ -221,8 +221,8 @@ class TestDBQuery(IntegrationTestCase):
 		# get as conditions
 		if frappe.db.db_type == "mariadb":
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
-		else:
-			assertion_string = """(((ifnull(cast(`tabBlog Post`.`name` as varchar), '')='' or cast(`tabBlog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
+		elif frappe.db.db_type == "postgres":
+			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 
 		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
 
@@ -1244,7 +1244,6 @@ class TestDBQuery(IntegrationTestCase):
 
 
 class TestReportView(IntegrationTestCase):
-	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -1282,7 +1281,7 @@ class TestReportView(IntegrationTestCase):
 		child_filter_response = execute_cmd("frappe.desk.reportview.get_count")
 		current_value = frappe.db.sql(
 			# the below query is equivalent to the one in reportview.get_count
-			"select distinct count(distinct `tabDocType`.name) as total_count"
+			"select count(distinct `tabDocType`.name) as total_count"
 			" from `tabDocType` left join `tabDocField`"
 			" on (`tabDocField`.parenttype = 'DocType' and `tabDocField`.parent = `tabDocType`.name)"
 			" where `tabDocField`.`fieldtype` = 'Data'"
