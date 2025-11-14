@@ -173,17 +173,12 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
-
-		cy.get("@input").focus();
-		cy.wait("@search_link");
-		cy.wait(500);
-		cy.get("@input").type(value, { delay: 100 });
-		cy.wait("@search_link");
-		cy.wait(500);
-		cy.get("@input").type("{enter}", { delay: 100 });
+		cy.get("@input").clear().focus();
+		cy.wait("@search_link").wait(250);
+		cy.get("@input").type(value, { delay: 25 });
+		cy.wait("@search_link").wait(250);
+		cy.get("@input").type("{enter}");
 		cy.get("@input").blur();
-		cy.wait("@validate_link");
 	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {
