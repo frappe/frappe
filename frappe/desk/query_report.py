@@ -546,6 +546,20 @@ def build_xlsx_data(
 
 			result.append(row_data)
 
+	if data.add_total_row and frappe.flags.cell_styling_in_export:
+		total_row = result[-1]
+		row_with_styles = []
+
+		for value in total_row:
+			style = get_cell_style(value, {}, {})
+
+			if style and isinstance(style, dict):
+				value = frappe._dict({"value": value, "style": style})
+
+			row_with_styles.append(value)
+
+		result[-1] = row_with_styles
+
 	return result, column_widths
 
 
