@@ -401,7 +401,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
 		content = make_xlsx(
-			xlsx_data, "Query Report", column_widths=column_widths, report_result_index=report_result_index
+			xlsx_data,
+			"Query Report",
+			column_widths=column_widths,
+			report_result_index=report_result_index,
+			bold_filters=bool(include_filters),
 		).getvalue()
 
 	if include_filters:
