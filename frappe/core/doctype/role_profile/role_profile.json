@@ -43,11 +43,8 @@
    "link_fieldname": "role_profile_name"
   }
  ],
-<<<<<<< HEAD
- "modified": "2021-12-03 15:45:45.270963",
-=======
+
  "modified": "2025-11-15 20:00:18.844434",
->>>>>>> 84145194e8 (fix(Role Profile): enable `translated_doctype` (#34709))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Profile",
@@ -78,12 +75,7 @@
    "write": 1
   }
  ],
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "sort_field": "creation",
->>>>>>> 84145194e8 (fix(Role Profile): enable `translated_doctype` (#34709))
  "sort_order": "DESC",
  "title_field": "role_profile",
  "track_changes": 1,
