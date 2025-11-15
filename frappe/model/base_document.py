@@ -6,6 +6,8 @@ import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
 
+from psycopg2.errors import UniqueViolation
+
 import frappe
 from frappe import _, _dict
 from frappe.model import (
@@ -691,6 +693,14 @@ class BaseDocument:
 			None,
 		)
 
+	def regen_hash(self):
+		"""Regenerate hash name in case of collisions"""
+		self.flags.retry_count = (self.flags.retry_count or 0) + 1
+		if self.flags.retry_count > 5:
+			raise UniqueViolation('duplicate key value violates unique constraint "_pkey"')
+		self.name = None
+		return self.db_insert()
+
 	def db_insert(self, ignore_if_duplicate=False):
 		"""INSERT the document (with valid columns) in the database.
 
@@ -704,10 +714,13 @@ class BaseDocument:
 			set_new_name(self)
 
 		conflict_handler = ""
+		returning = ""
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
-		if ignore_if_duplicate and frappe.db.db_type == "postgres":
+		if (ignore_if_duplicate or self.meta.autoname == "hash") and frappe.db.db_type == "postgres":
 			conflict_handler = "on conflict (name) do nothing"
+			if self.meta.autoname == "hash":
+				returning = "RETURNING name"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -721,36 +734,27 @@ class BaseDocument:
 		)
 
 		columns = list(d)
-		savepoint = None
-		need_savepoint = (
-			frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not ignore_if_duplicate
-		)  # flag to indicate savepoint is needed (pg specific behavior)
-		if need_savepoint:
-			savepoint = "before_insert"
-			frappe.db.savepoint(savepoint)
 		try:
-			frappe.db.sql(
+			rows = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values}) {conflict_handler}""".format(
+					VALUES ({values}) {conflict_handler} {returning}""".format(
 					doctype=self.doctype,
 					columns=", ".join("`" + c + "`" for c in columns),
 					values=", ".join(["%s"] * len(columns)),
 					conflict_handler=conflict_handler,
+					returning=returning,
 				),
 				list(d.values()),
 			)
+			if (
+				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not rows
+			):  # To avoid a transaction block, we regen in try (pg specific)
+				return self.regen_hash()
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
-					if need_savepoint:
-						frappe.db.rollback(save_point=savepoint)  # rollback needed for postgres behavior
-					self.flags.retry_count = (self.flags.retry_count or 0) + 1
-					if self.flags.retry_count > 5:
-						raise
-					self.name = None
-					self.db_insert()
-					return
+					return self.regen_hash()
 
 				if not ignore_if_duplicate:
 					frappe.msgprint(
