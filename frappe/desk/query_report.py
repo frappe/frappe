@@ -384,7 +384,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths = build_xlsx_data(
+	xlsx_data, column_widths, report_result_index = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
@@ -400,7 +400,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
-		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
+		content = make_xlsx(
+			xlsx_data, "Query Report", column_widths=column_widths, report_result_index=report_result_index
+		).getvalue()
 
 	if include_filters:
 		for value in (data.filters or {}).values():
@@ -468,6 +470,7 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
+	result_index = 0
 
 	if cint(include_filters):
 		filter_data = []
@@ -483,6 +486,9 @@ def build_xlsx_data(
 			filter_data.append([cstr(filter_name), filter_value])
 		filter_data.append([])
 		result += filter_data
+
+	# result index starts after filters
+	result_index = len(result)
 
 	column_data = []
 	for column in data.columns:
@@ -518,7 +524,7 @@ def build_xlsx_data(
 
 			result.append(row_data)
 
-	return result, column_widths
+	return result, column_widths, result_index
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):

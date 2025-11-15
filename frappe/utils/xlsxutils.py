@@ -31,7 +31,7 @@ def get_excel_date_format():
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None):
+def make_xlsx(data, sheet_name, wb=None, column_widths=None, report_result_index=0):
 	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
@@ -43,13 +43,12 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 		if column_width:
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
 
-	row1 = ws.row_dimensions[1]
-	row1.font = Font(name="Calibri", bold=True)
-
 	date_format, time_format = get_excel_date_format()
 
-	for row in data:
+	for row_idx, row in enumerate(data):
 		clean_row = []
+		is_header_row = row_idx == report_result_index
+
 		for item in row:
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
@@ -60,16 +59,19 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
+			cell = WriteOnlyCell(ws, value=value)
+
 			if isinstance(value, datetime.date | datetime.datetime):
 				number_format = date_format
 				if isinstance(value, datetime.datetime):
 					number_format = f"{date_format} {time_format}"
-
-				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
-				clean_row.append(cell)
-			else:
-				clean_row.append(value)
+
+			# Make report result header row bold
+			if is_header_row:
+				cell.font = Font(name="Calibri", bold=True)
+
+			clean_row.append(cell)
 
 		ws.append(clean_row)
 
