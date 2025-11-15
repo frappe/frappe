@@ -44,6 +44,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None, report_result_index
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
 
 	date_format, time_format = get_excel_date_format()
+	bold_font = Font(name="Calibri", bold=True)
 
 	for row_idx, row in enumerate(data):
 		clean_row = []
@@ -68,8 +69,9 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None, report_result_index
 					number_format = f"{date_format} {time_format}"
 				cell.number_format = number_format
 
+			# Apply bold font for header row or first column of filter rows
 			if is_header_row or (is_filter_row and col_idx == 0):
-				cell.font = Font(name="Calibri", bold=True)
+				cell.font = bold_font
 
 			clean_row.append(cell)
 
