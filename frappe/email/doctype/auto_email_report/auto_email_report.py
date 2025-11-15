@@ -176,8 +176,20 @@ class AutoEmailReport(Document):
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
-			xlsx_file = make_xlsx(xlsx_data, "Auto Email Report", column_widths=column_widths)
+			xlsx_data, column_widths, report_result_index = build_xlsx_data(
+				report_data,
+				[],
+				1,
+				ignore_visible_idx=True,
+			)
+
+			xlsx_file = make_xlsx(
+				xlsx_data,
+				"Auto Email Report",
+				column_widths=column_widths,
+				report_result_index=report_result_index,
+			)
+
 			return xlsx_file.getvalue()
 
 		elif self.format == "CSV":
@@ -185,7 +197,12 @@ class AutoEmailReport(Document):
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
+			xlsx_data, column_widths, report_result_index = build_xlsx_data(
+				report_data,
+				[],
+				1,
+				ignore_visible_idx=True,
+			)
 			return to_csv(xlsx_data)
 
 		elif self.format == "PDF":

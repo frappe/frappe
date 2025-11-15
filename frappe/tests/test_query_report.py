@@ -27,7 +27,7 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -53,9 +53,11 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, _column_widths = build_xlsx_data(
+		xlsx_data, _column_widths, result_index = build_xlsx_data(
 			data, visible_idx, include_indentation=False, include_filters=True
 		)
+
+		self.assertEqual(result_index, 3)  # 2 filter rows + 1 empty row
 
 		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
@@ -80,7 +82,7 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 1]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
