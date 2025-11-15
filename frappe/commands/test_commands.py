@@ -733,12 +733,14 @@ class TestBackups(BaseTestCommands):
 		self.assertIsNotNone(after_backup["public"])
 		self.assertIsNotNone(after_backup["private"])
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_clear_log_table(self):
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
 		d.db_set("creation", "2010-01-01", update_modified=False)
 		frappe.db.commit()
-
+		frappe.db.sql_ddl(
+			IntegrationTestCase.normalize_sql("DROP TABLE IF EXISTS `tabError Log backup_table`")
+		)  # drop old tables if exists (Maintain Sanity)
+		frappe.db.sql_ddl(IntegrationTestCase.normalize_sql("DROP TABLE IF EXISTS `tabError Log temp_table`"))
 		tables_before = frappe.db.get_tables(cached=False)
 
 		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
@@ -747,7 +749,6 @@ class TestBackups(BaseTestCommands):
 
 		self.assertFalse(frappe.db.exists("Error Log", d.name))
 		tables_after = frappe.db.get_tables(cached=False)
-
 		self.assertEqual(set(tables_before), set(tables_after))
 
 	def test_backup_with_custom_path(self):
