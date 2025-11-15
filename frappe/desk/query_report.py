@@ -461,16 +461,16 @@ def build_xlsx_data(
 		datetime.timedelta,
 	)
 
-	get_cell_style = None
+	get_xlsx_cell_style = None
 
 	if report and isinstance(report, str):
 		report = frappe.get_doc("Report", report)
 
 	if report:
 		try:
-			get_cell_style = report.get_module_method("get_cell_style")
+			get_xlsx_cell_style = report.get_module_method("get_xlsx_cell_style")
 
-			if get_cell_style and callable(get_cell_style):
+			if get_xlsx_cell_style and callable(get_xlsx_cell_style):
 				frappe.flags.cell_styling_in_export = True
 		except AttributeError:
 			pass
@@ -535,7 +535,7 @@ def build_xlsx_data(
 						else:
 							value = cell_value
 
-						style = get_cell_style(value, column, row)
+						style = get_xlsx_cell_style(value, column, row)
 
 						if style and isinstance(style, dict):
 							cell_value = frappe._dict({"value": cell_value, "style": style})
@@ -551,7 +551,7 @@ def build_xlsx_data(
 		row_with_styles = []
 
 		for value in total_row:
-			style = get_cell_style(value, {}, {})
+			style = get_xlsx_cell_style(value, {}, {})
 
 			if style and isinstance(style, dict):
 				value = frappe._dict({"value": value, "style": style})
