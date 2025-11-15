@@ -51,6 +51,12 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	for row in data:
 		clean_row = []
 		for item in row:
+			cell_style = None
+
+			if frappe.flags.cell_styling_in_export and isinstance(item, dict) and "value" in item:
+				cell_style = item.get("style")
+				item = item.get("value")
+
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
@@ -60,16 +66,27 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
+			cell = WriteOnlyCell(ws, value=value)
+
 			if isinstance(value, datetime.date | datetime.datetime):
 				number_format = date_format
 				if isinstance(value, datetime.datetime):
 					number_format = f"{date_format} {time_format}"
-
-				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
-				clean_row.append(cell)
-			else:
-				clean_row.append(value)
+
+			if cell_style:
+				style = {"name": "Calibri"}
+
+				if cell_style.get("bold"):
+					style["bold"] = True
+				if cell_style.get("italic"):
+					style["italic"] = True
+				if color := cell_style.get("color"):
+					style["color"] = color
+
+				cell.font = Font(**style)
+
+			clean_row.append(cell)
 
 		ws.append(clean_row)
 

@@ -390,6 +390,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
+		report=report_name,
 	)
 
 	if file_format_type == "CSV":
@@ -446,6 +447,7 @@ def build_xlsx_data(
 	include_filters=False,
 	ignore_visible_idx=False,
 	include_hidden_columns=False,
+	report=None,
 ):
 	EXCEL_TYPES = (
 		str,
@@ -458,6 +460,20 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
+
+	get_cell_style = None
+
+	if report and isinstance(report, str):
+		report = frappe.get_doc("Report", report)
+
+	if report:
+		try:
+			get_cell_style = report.get_module_method("get_cell_style")
+
+			if get_cell_style and callable(get_cell_style):
+				frappe.flags.cell_styling_in_export = True
+		except AttributeError:
+			pass
 
 	if len(visible_idx) == len(data.result) or not visible_idx:
 		# It's not possible to have same length and different content.
@@ -512,6 +528,18 @@ def build_xlsx_data(
 
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+					if frappe.flags.cell_styling_in_export:
+						if isinstance(cell_value, str):
+							value = cell_value.strip()
+						else:
+							value = cell_value
+
+						style = get_cell_style(value, column, row)
+
+						if style and isinstance(style, dict):
+							cell_value = frappe._dict({"value": cell_value, "style": style})
+
 					row_data.append(cell_value)
 			elif row:
 				row_data = row
