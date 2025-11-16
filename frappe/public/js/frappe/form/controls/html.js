@@ -18,7 +18,7 @@ frappe.ui.form.ControlHTML = class ControlHTML extends frappe.ui.form.Control {
 	html(html) {
 		const content = html || this.get_content();
 		this.$wrapper.html(content);
-		if (content.includes("<pre")) {
+		if (typeof content === "string" && /<pre[\s>]/i.test(content)) {
 			frappe.utils.highlight_pre(this.$wrapper);
 		}
 	}
