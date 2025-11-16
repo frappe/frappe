@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-09 09:33+0000\n"
-"PO-Revision-Date: 2025-11-11 11:10\n"
+"PO-Revision-Date: 2025-11-16 12:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -13785,7 +13785,7 @@ msgstr "全局有效？"
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Is Group"
-msgstr "是否为组"
+msgstr "是否分组"
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
