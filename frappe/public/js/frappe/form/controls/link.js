@@ -660,7 +660,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// List of doctypes that should be excluded from the filter validation
 		const white_listed_doctype = ["[Select]"];
 
-		if (!white_listed_doctype.includes(options) && this.awesomplete?._list && this.frm && value) {
+		if (
+			!white_listed_doctype.includes(options) &&
+			this.awesomplete?._list &&
+			this.frm &&
+			value
+		) {
 			// Check if the entered value exists in the filtered awesomplete list
 			const found = this.awesomplete._list.find((item) => item.value === value);
 
