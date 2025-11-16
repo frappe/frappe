@@ -131,6 +131,15 @@ frappe.ui.form.check_mandatory = function (frm) {
 			if (docfield.fieldname) {
 				const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
 
+				// skip fields that don't hold data
+				if (
+					["Section Break", "Column Break", "Tab Break", "HTML", "Heading"].includes(
+						df.fieldtype
+					)
+				) {
+					return;
+				}
+
 				if (df.fieldtype === "Fold") {
 					folded = frm.layout.folded;
 				}
