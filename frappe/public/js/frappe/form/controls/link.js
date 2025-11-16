@@ -656,6 +656,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return;
 		}
 
+		// Validate against filtered awesomplete list to respect filter criteria
+		// List of doctypes that should be excluded from the filter validation
+		const white_listed_doctype = ["[Select]"];
+
+		if (!white_listed_doctype.includes(options) && this.awesomplete?._list && this.frm && value) {
+			// Check if the entered value exists in the filtered awesomplete list
+			const found = this.awesomplete._list.find((item) => item.value === value);
+
+			if (!found) {
+				// Value doesn't exist in the filtered list - reject it
+				frappe.msgprint(__("{0} {1} does not match filters", [options, value.bold()]));
+				// Return undefined to signal validation failure
+				return undefined;
+			}
+		}
+
 		const columns_to_fetch = Object.values(this.fetch_map);
 
 		// if default and no fetch, no need to validate
