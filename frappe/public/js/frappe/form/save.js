@@ -222,8 +222,9 @@ frappe.ui.form.check_mandatory = function (frm) {
 	}
 
 	function scroll_to(fieldname) {
-		frm.scroll_to_field(fieldname);
-		frm.scroll_set = true;
+		if (frm.scroll_to_field(fieldname)) {
+			frm.scroll_set = true;
+		}
 	}
 };
 
