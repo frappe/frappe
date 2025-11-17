@@ -1,0 +1,29 @@
+
+<a class="sidebar-header" style="text-decoration: none; width: auto;">
+<div class="sidebar-item-icon header-logo-container" style="background-color: var({{ header_bg_color }});">
+    <div class="header-logo">
+        {%= header_icon %}
+    </div>
+</div>
+<div class="title-container">
+
+    <div class="sidebar-item-label header-title" data-name-style="{%=frappe.boot.app_name_style%}">
+        {% if (frappe.boot.app_name_style == "Title") { %}
+            {%= frappe.app.sidebar.app_name %}
+        {% } else { %}
+            {%= workspace_title %}
+        {% }  %}
+    </div>
+    <div class="sidebar-item-label header-subtitle">
+        {%= frappe.app.sidebar.header_subtitle %}
+    </div>
+</div>
+<button class="btn-reset drop-icon show-in-edit-mode">
+    <svg class="icon icon-sm" style="display: block;margin:auto;" aria-hidden="true">
+        <use class="" href="#icon-chevron-down"></use>
+    </svg>
+</button>
+</a>
+
+<div class="sidebar-header-menu hidden" role="menu">
+</div>

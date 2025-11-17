@@ -1,3 +1,6 @@
+.underline-hover {
+	display: initial;
+}
 // form sidebar
 .form-sidebar {
 	padding-top: var(--padding-sm);
@@ -145,7 +148,7 @@
 		&:hover,
 		&:focus,
 		&:active {
-			@extend .underline-hover;
+			@extend .underline-hover !optional;
 		}
 	}
 

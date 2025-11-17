@@ -167,6 +167,8 @@ class Meta(Document):
 		# don't process for special doctypes
 		# prevents circular dependency
 		if self.name in self.special_doctypes:
+			if self.name == "DocPerm":
+				self.add_custom_fields()
 			self.init_field_caches()
 			return
 
