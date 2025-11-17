@@ -218,6 +218,16 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
+	shortcut: "ctrl+g",
+	action: function (e) {
+		$("#navbar-search").focus();
+		e.preventDefault();
+		return false;
+	},
+	description: __("Open Awesomebar"),
+});
+
+frappe.ui.keys.add_shortcut({
 	shortcut: "alt+s",
 	action: function (e) {
 		e.preventDefault();

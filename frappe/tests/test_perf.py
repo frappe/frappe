@@ -154,7 +154,7 @@ class TestPerformance(IntegrationTestCase):
 		)
 
 	def test_homepage_resolver(self):
-		paths = ["/", "/app"]
+		paths = ["/", "/desk"]
 		for path in paths:
 			PathResolver(path).resolve()
 			with self.assertQueryCount(1):

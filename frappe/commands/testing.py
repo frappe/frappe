@@ -437,6 +437,7 @@ def run_parallel_tests(
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--browser", default="chrome", help="Browser to run tests in")
+@click.option("--spec", help="Spec file to run")
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
@@ -448,6 +449,7 @@ def run_ui_tests(
 	browser="chrome",
 	ci_build_id=None,
 	cypressargs=None,
+	spec=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -494,6 +496,8 @@ def run_ui_tests(
 
 	# run for headless mode
 	run_or_open = f"run --browser {browser}" if headless else "open"
+	if headless and spec:
+		run_or_open += f" --spec {spec}"
 	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
 
 	if os.environ.get("CYPRESS_RECORD_KEY"):

@@ -18,9 +18,6 @@ frappe.ui.form.on("Workspace Settings", {
 				frm.docfields.push({
 					fieldtype: "Check",
 					fieldname: page.name,
-					hidden: !frappe.boot.app_data_map[frappe.current_app].workspaces.includes(
-						page.title
-					),
 					label: page.title + (page.parent_page ? ` (${page.parent_page})` : ""),
 					initial_value: workspace_visibilty[page.name] !== 0, // not set is also visible
 				});

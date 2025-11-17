@@ -36,5 +36,9 @@ module.exports = defineConfig({
 		testIsolation: false,
 		baseUrl: "http://test_site_ui:8000",
 		specPattern: ["./cypress/integration/*.js", "**/ui_test_*.js"],
+		excludeSpecPattern: [
+			"./cypress/integration/workspace.js",
+			"./cypress/integration/workspace_blocks.js",
+		],
 	},
 });

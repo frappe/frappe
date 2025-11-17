@@ -1,7 +1,7 @@
 context("Depends On", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
