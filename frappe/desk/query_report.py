@@ -549,6 +549,7 @@ def build_xlsx_data(
 		styled_total_row = []
 
 		for value in total_row:
+			# TODO: valid column required?
 			style = get_xlsx_cell_style(value, {}, {})
 
 			if style:
