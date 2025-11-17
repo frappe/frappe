@@ -1,7 +1,7 @@
 context("List Paging", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
@@ -11,7 +11,7 @@ context("List Paging", () => {
 	});
 
 	it("test load more with count selection buttons", () => {
-		cy.visit("/app/todo/view/report");
+		cy.visit("/desk/todo/view/report");
 		cy.clear_filters();
 
 		cy.get(".list-paging-area .list-count").should("contain.text", "20 of");

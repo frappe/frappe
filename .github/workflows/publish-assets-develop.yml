@@ -19,7 +19,7 @@ jobs:
           node-version: 22
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - name: Set up bench and build assets
         run: |
           npm install -g yarn

@@ -81,7 +81,7 @@ def get_default_path():
 	if len(_apps) == 1:
 		return _apps[0].get("route") or "/apps"
 	elif is_desk_apps(_apps):
-		return "/app"
+		return "/desk"
 	return "/apps"
 
 

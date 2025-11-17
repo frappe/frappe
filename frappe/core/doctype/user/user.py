@@ -951,7 +951,7 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
-		return get_default_path() or "/app"
+		return get_default_path() or "/desk"
 	else:
 		return redirect_url or get_default_path() or get_home_page()
 
@@ -1409,9 +1409,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	# Note: For now we only allow admins, we MIGHT allow system manager in future.
-	# All the impersonation code doesn't assume anything about user.
-	frappe.only_for("Administrator")
+	frappe.has_permission("User", "impersonate")
 
 	impersonator = frappe.session.user
 	frappe.get_doc(

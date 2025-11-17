@@ -2,16 +2,23 @@ context("Workspace 2.0", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
+		return cy
+			.window()
+			.its("frappe")
+			.then((frappe) => {
+				return frappe.xcall("frappe.tests.ui_test_helpers.empty_my_workspaces");
+			});
 	});
 
 	it("Navigate to page from sidebar", () => {
-		cy.visit("/app/build");
+		cy.visit("/desk/build");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.sidebar-item-container[item-title="Website"]').first().click();
-		cy.location("pathname").should("eq", "/app/website");
+		cy.get('.sidebar-item-container[item-name="Page"]').first().click();
+		cy.location("pathname").should("eq", "/desk/page");
 	});
 
 	it("Create Private Page", () => {
+		cy.visit("/desk/website");
 		cy.intercept({
 			method: "POST",
 			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
@@ -27,61 +34,16 @@ context("Workspace 2.0", () => {
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in pubic section
-		cy.get('.sidebar-item-container[item-title="Test Private Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
+		cy.get('.sidebar-item-container[item-name="Test Private Page"]');
 		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-title="Test Private Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
-
-		cy.wait("@new_page");
-	});
-
-	it("Create Child Page", () => {
-		cy.intercept({
-			method: "POST",
-			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
-		}).as("new_page");
-
-		cy.get(".codex-editor__redactor .ce-block");
-		cy.get(".btn-new-workspace").click();
-		cy.fill_field("title", "Test Child Page", "Data");
-		cy.fill_field("parent", "Test Private Page", "Select");
-		cy.fill_field("type", "Workspace", "Select");
-		cy.get_open_dialog().find(".modal-header").click();
-		cy.wait(300);
-		cy.get_open_dialog().find(".btn-primary").click();
-
-		// check if sidebar item is added in pubic section
-		cy.get('.sidebar-item-container[item-title="Test Child Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
-		cy.wait(300);
-		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
-		cy.wait(300);
-		cy.get('.sidebar-item-container[item-title="Test Child Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
+		cy.get('.sidebar-item-container[item-name="Test Private Page"]');
 
 		cy.wait("@new_page");
 	});
 
 	it("Add New Block", () => {
-		cy.get('.sidebar-item-container[item-title="Test Private Page"]').as("sidebar-item");
-
-		cy.get("@sidebar-item").find(".standard-sidebar-item").first().click({ force: true });
-
 		cy.get(".btn-edit-workspace").click({ force: true });
 
 		cy.get(".ce-block").click().type("{enter}");

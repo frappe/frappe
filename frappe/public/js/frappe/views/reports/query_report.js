@@ -726,8 +726,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				)
 				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
 
-			console.log(js_filters, "js_filters");
-
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
 				type: "GET",

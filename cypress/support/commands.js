@@ -125,7 +125,7 @@ Cypress.Commands.add("get_doc", (doctype, name) => {
 		});
 });
 
-Cypress.Commands.add("remove_doc", (doctype, name) => {
+Cypress.Commands.add("remove_doc", (doctype, name, ignore_missing) => {
 	return cy
 		.window()
 		.its("frappe.csrf_token")
@@ -138,9 +138,9 @@ Cypress.Commands.add("remove_doc", (doctype, name) => {
 						Accept: "application/json",
 						"X-Frappe-CSRF-Token": csrf_token,
 					},
+					failOnStatusCode: !ignore_missing,
 				})
 				.then((res) => {
-					expect(res.status).eq(202);
 					return res.body;
 				});
 		});

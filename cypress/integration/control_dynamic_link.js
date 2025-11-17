@@ -1,7 +1,7 @@
 context("Dynamic Link", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		return cy
 			.window()
 			.its("frappe")
@@ -108,7 +108,7 @@ context("Dynamic Link", () => {
 	});
 
 	it("Shows dynamic link options in list filters", () => {
-		cy.visit("/app/test-dynamic-link");
+		cy.visit("/desk/test-dynamic-link");
 
 		//Clicking on the Document ID field
 		cy.get_field("doc_type").clear();

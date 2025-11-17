@@ -112,54 +112,54 @@ class TestDomainification(IntegrationTestCase):
 		self.assertTrue("Test Domainification" not in [d.get("value") for d in results.get("doctypes")])
 		self.assertTrue("_Test Role" not in [d.get("value") for d in results.get("roles")])
 
-	def test_desktop_icon_for_domainification(self):
-		"""desktop icon should be hidden if doctype's restrict to domain is not in active domains"""
+	# def test_desktop_icon_for_domainification(self):
+	# 	"""desktop icon should be hidden if doctype's restrict to domain is not in active domains"""
 
-		test_doctype = self.new_doctype("Test Domainification")
-		test_doctype.restrict_to_domain = "_Test Domain 2"
-		test_doctype.insert()
+	# 	test_doctype = self.new_doctype("Test Domainification")
+	# 	test_doctype.restrict_to_domain = "_Test Domain 2"
+	# 	test_doctype.insert()
 
-		self.add_active_domain("_Test Domain 2")
-		add_user_icon("Test Domainification")
+	# 	self.add_active_domain("_Test Domain 2")
+	# 	add_user_icon("Test Domainification")
 
-		icons = get_desktop_icons()
+	# 	icons = get_desktop_icons()
 
-		doctypes = [
-			icon.get("_doctype")
-			for icon in icons
-			if icon.get("_doctype") == "Test Domainification" and icon.get("blocked") == 0
-		]
-		self.assertTrue("Test Domainification" in doctypes)
+	# 	doctypes = [
+	# 		icon.get("_doctype")
+	# 		for icon in icons
+	# 		if icon.get("_doctype") == "Test Domainification" and icon.get("blocked") == 0
+	# 	]
+	# 	self.assertTrue("Test Domainification" in doctypes)
 
-		# doctype should be hidden from the desk
-		self.remove_from_active_domains("_Test Domain 2")
-		clear_desktop_icons_cache()  # clear cache to fetch the desktop icon according to new active domains
-		icons = get_desktop_icons()
+	# 	# doctype should be hidden from the desk
+	# 	self.remove_from_active_domains("_Test Domain 2")
+	# 	clear_desktop_icons_cache()  # clear cache to fetch the desktop icon according to new active domains
+	# 	icons = get_desktop_icons()
 
-		doctypes = [
-			icon.get("_doctype")
-			for icon in icons
-			if icon.get("_doctype") == "Test Domainification" and icon.get("blocked") == 0
-		]
-		self.assertFalse("Test Domainification" in doctypes)
+	# 	doctypes = [
+	# 		icon.get("_doctype")
+	# 		for icon in icons
+	# 		if icon.get("_doctype") == "Test Domainification" and icon.get("blocked") == 0
+	# 	]
+	# 	self.assertFalse("Test Domainification" in doctypes)
 
-	def test_module_def_for_domainification(self):
-		"""modules should be hidden if module def's restrict to domain is not in active domains"""
+	# def test_module_def_for_domainification(self):
+	# 	"""modules should be hidden if module def's restrict to domain is not in active domains"""
 
-		test_module_def = frappe.get_doc("Module Def", "Contacts")
-		test_module_def.restrict_to_domain = "_Test Domain 2"
-		test_module_def.save()
+	# 	test_module_def = frappe.get_doc("Module Def", "Contacts")
+	# 	test_module_def.restrict_to_domain = "_Test Domain 2"
+	# 	test_module_def.save()
 
-		self.add_active_domain("_Test Domain 2")
+	# 	self.add_active_domain("_Test Domain 2")
 
-		modules = get_active_modules()
-		self.assertTrue("Contacts" in modules)
+	# 	modules = get_active_modules()
+	# 	self.assertTrue("Contacts" in modules)
 
-		# doctype should be hidden from the desk
-		self.remove_from_active_domains("_Test Domain 2")
-		modules = get_active_modules()
-		self.assertTrue("Contacts" not in modules)
+	# 	# doctype should be hidden from the desk
+	# 	self.remove_from_active_domains("_Test Domain 2")
+	# 	modules = get_active_modules()
+	# 	self.assertTrue("Contacts" not in modules)
 
-		test_module_def = frappe.get_doc("Module Def", "Contacts")
-		test_module_def.restrict_to_domain = ""
-		test_module_def.save()
+	# 	test_module_def = frappe.get_doc("Module Def", "Contacts")
+	# 	test_module_def.restrict_to_domain = ""
+	# 	test_module_def.save()

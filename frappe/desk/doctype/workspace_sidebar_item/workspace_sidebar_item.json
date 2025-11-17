@@ -1,0 +1,173 @@
+{
+ "actions": [],
+ "creation": "2025-08-12 12:46:41.926121",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "label",
+  "link_type",
+  "icon",
+  "column_break_krzu",
+  "type",
+  "link_to",
+  "child",
+  "url",
+  "display_section",
+  "collapsible_column",
+  "collapsible",
+  "indent",
+  "keep_closed",
+  "show_arrow",
+  "column_break_jexf",
+  "display_depends_on",
+  "section_break_whjq",
+  "filters",
+  "route_options"
+ ],
+ "fields": [
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Link\nSection Break\nSpacer\nSidebar Item Group"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "default": "DocType",
+   "depends_on": "eval: doc.type == 'Link' || doc.indent == 1",
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Link Type",
+   "options": "DocType\nPage\nReport\nWorkspace\nDashboard\nURL"
+  },
+  {
+   "depends_on": "eval: doc.link_type != \"URL\" && doc.type == 'Link' || doc.indent == 1",
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "link_type"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Link\"",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "in_list_view": 1,
+   "label": "Icon",
+   "options": "Emojis"
+  },
+  {
+   "default": "0",
+   "fieldname": "child",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Child Item"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.type == \"Section Break\"",
+   "fieldname": "indent",
+   "fieldtype": "Check",
+   "label": "Indent"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval: doc.type == \"Section Break\"",
+   "fieldname": "collapsible",
+   "fieldtype": "Check",
+   "label": "Collapsible"
+  },
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "column_break_krzu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Section Break\"",
+   "fieldname": "display_section",
+   "fieldtype": "Section Break",
+   "label": "Display"
+  },
+  {
+   "depends_on": "eval: doc.type == \"Section Break\"",
+   "fieldname": "collapsible_column",
+   "fieldtype": "Column Break",
+   "label": "Collapsible"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.type == \"Section Break\"",
+   "fieldname": "keep_closed",
+   "fieldtype": "Check",
+   "label": "Keep Closed"
+  },
+  {
+   "fieldname": "column_break_jexf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "display_depends_on",
+   "fieldtype": "Code",
+   "label": "Display Depends On (JS)",
+   "options": "JS",
+   "width": "30"
+  },
+  {
+   "depends_on": "eval: doc.link_type == \"URL\"",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.indent == 1",
+   "fieldname": "show_arrow",
+   "fieldtype": "Check",
+   "label": "Show Arrow"
+  },
+  {
+   "fieldname": "section_break_whjq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "route_options",
+   "fieldtype": "Code",
+   "label": "Route Options",
+   "options": "JSON"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-13 10:30:13.048477",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Sidebar Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

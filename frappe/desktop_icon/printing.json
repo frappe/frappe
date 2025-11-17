@@ -1,0 +1,35 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-06 10:43:13.440877",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "printer",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Printing",
+ "link_to": "Print Format",
+ "link_type": "DocType",
+ "modified": "2025-11-13 16:39:42.995097",
+ "modified_by": "Administrator",
+ "name": "Printing",
+ "owner": "Administrator",
+ "parent_icon": "Frappe Framework",
+ "roles": [
+  {
+   "creation": "2025-10-31 13:08:16.747930",
+   "docstatus": 0,
+   "doctype": "Has Role",
+   "idx": 1,
+   "modified": "2025-11-13 16:39:42.995097",
+   "modified_by": "Administrator",
+   "name": "3sjtumcivg",
+   "owner": "Administrator",
+   "parent": "Printing",
+   "parentfield": "roles",
+   "parenttype": "Desktop Icon",
+   "role": "System Manager"
+  }
+ ],
+ "standard": 1
+}

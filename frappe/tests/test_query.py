@@ -67,9 +67,8 @@ class TestQuery(IntegrationTestCase):
 	def setUp(self):
 		setup_for_tests()
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				["*"],
@@ -81,7 +80,6 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
 		)
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),
@@ -352,88 +350,73 @@ class TestQuery(IntegrationTestCase):
 			.get_sql(),
 		)
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_filters(self):
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": ("like", "frap%")},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"permissions.role": "System Manager"},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' AND `tabDocPerm`.`parentfield`='permissions' WHERE `tabDocPerm`.`role`='System Manager'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' AND `tabDocPerm`.`parentfield`='permissions' WHERE `tabDocPerm`.`role`='System Manager'",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["module"],
 				filters="",
 			).get_sql(),
-			"SELECT `module` FROM `tabDocType` WHERE `name`=''".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `module` FROM `tabDocType` WHERE `name`=''",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters=["ToDo", "Note"],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters={"name": ("in", [])},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('')",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters=[1, 2, 3],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN (1,2,3)".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN (1,2,3)",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters=[],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType`".replace("`", '"' if frappe.db.db_type == "postgres" else "`"),
+			"SELECT `name` FROM `tabDocType`",
 		)
 
 	def test_nested_filters(self):
@@ -1191,7 +1174,7 @@ class TestQuery(IntegrationTestCase):
 			query = frappe.qb.get_query(
 				"DocType",
 				fields=["module.app_name", "name"],
-				group_by="module.app_name",
+				group_by="module.app_name, name",
 			)
 			result = query.run(as_dict=True)
 			self.assertTrue(len(result) > 0)
@@ -1210,7 +1193,7 @@ class TestQuery(IntegrationTestCase):
 				"Note",
 				fields=["seen_by.user", "name"],
 				filters={"name": note.name},
-				group_by="seen_by.user",
+				group_by="seen_by.user, name",
 			)
 			result = query.run(as_dict=True)
 			self.assertTrue(len(result) >= 1)
@@ -1268,7 +1251,7 @@ class TestQuery(IntegrationTestCase):
 			query = frappe.qb.get_query(
 				"DocType",
 				fields=["module", "module.app_name", "name"],
-				group_by="module, module.app_name",
+				group_by="module, module.app_name, name",
 				order_by="module.app_name",
 			)
 			result = query.run(as_dict=True)
@@ -1513,7 +1496,7 @@ class TestQuery(IntegrationTestCase):
 		# Test simple function without alias
 		query = frappe.qb.get_query("User", fields=["user_type", {"COUNT": "name"}], group_by="user_type")
 		sql = query.get_sql()
-		self.assertIn("COUNT(`name`)", sql)
+		self.assertIn(self.normalize_sql("COUNT(`name`)"), sql)
 		self.assertIn("GROUP BY", sql)
 
 		# Test function with alias
@@ -1521,52 +1504,54 @@ class TestQuery(IntegrationTestCase):
 			"User", fields=[{"COUNT": "name", "as": "total_users"}], group_by="user_type"
 		)
 		sql = query.get_sql()
-		self.assertIn("COUNT(`name`) `total_users`", sql)
+		self.assertIn(self.normalize_sql("COUNT(`name`) `total_users`"), sql)
 
 		# Test SUM function with alias
 		query = frappe.qb.get_query(
 			"User", fields=[{"SUM": "enabled", "as": "total_enabled"}], group_by="user_type"
 		)
 		sql = query.get_sql()
-		self.assertIn("SUM(`enabled`) `total_enabled`", sql)
+		self.assertIn(self.normalize_sql("SUM(`enabled`) `total_enabled`"), sql)
 
 		# Test MAX function
 		query = frappe.qb.get_query(
 			"User", fields=[{"MAX": "creation", "as": "latest_user"}], group_by="user_type"
 		)
 		sql = query.get_sql()
-		self.assertIn("MAX(`creation`) `latest_user`", sql)
+		self.assertIn(self.normalize_sql("MAX(`creation`) `latest_user`"), sql)
 
 		# Test MIN function
 		query = frappe.qb.get_query(
 			"User", fields=[{"MIN": "creation", "as": "earliest_user"}], group_by="user_type"
 		)
 		sql = query.get_sql()
-		self.assertIn("MIN(`creation`) `earliest_user`", sql)
+		self.assertIn(self.normalize_sql("MIN(`creation`) `earliest_user`"), sql)
 
 		# Test AVG function
 		query = frappe.qb.get_query(
 			"User", fields=[{"AVG": "enabled", "as": "avg_enabled"}], group_by="user_type"
 		)
 		sql = query.get_sql()
-		self.assertIn("AVG(`enabled`) `avg_enabled`", sql)
+		self.assertIn(self.normalize_sql("AVG(`enabled`) `avg_enabled`"), sql)
 
 		# Test ABS function
 		query = frappe.qb.get_query("User", fields=[{"ABS": "enabled", "as": "abs_enabled"}])
 		sql = query.get_sql()
-		self.assertIn("ABS(`enabled`) `abs_enabled`", sql)
+		self.assertIn(self.normalize_sql("ABS(`enabled`) `abs_enabled`"), sql)
 
 		# Test IFNULL function with two parameters
 		query = frappe.qb.get_query(
 			"User", fields=[{"IFNULL": ["first_name", "'Unknown'"], "as": "safe_name"}]
 		)
 		sql = query.get_sql()
-		self.assertIn("IFNULL(`first_name`,'Unknown') `safe_name`", sql)
+		self.assertIn(
+			self.normalize_sql("IFNULL(`first_name`,'Unknown') `safe_name`"), self.normalize_sql(sql)
+		)
 
 		# Test TIMESTAMP function
 		query = frappe.qb.get_query("User", fields=[{"TIMESTAMP": "creation", "as": "ts"}])
 		sql = query.get_sql()
-		self.assertIn("TIMESTAMP(`creation`) `ts`", sql)
+		self.assertIn(self.normalize_sql("TIMESTAMP(`creation`) `ts`"), self.normalize_sql(sql))
 
 		# Test mixed regular fields and function fields
 		query = frappe.qb.get_query(
@@ -1579,21 +1564,23 @@ class TestQuery(IntegrationTestCase):
 			group_by="user_type",
 		)
 		sql = query.get_sql()
-		self.assertIn("`user_type`", sql)
-		self.assertIn("COUNT(`name`) `total_users`", sql)
-		self.assertIn("MAX(`creation`) `latest_creation`", sql)
+		self.assertIn(self.normalize_sql("`user_type`"), sql)
+		self.assertIn(self.normalize_sql("COUNT(`name`) `total_users`"), sql)
+		self.assertIn(self.normalize_sql("MAX(`creation`) `latest_creation`"), sql)
 
 		# Test NOW function with no arguments
 		query = frappe.qb.get_query("User", fields=[{"NOW": None, "as": "current_time"}])
 		sql = query.get_sql()
-		self.assertIn("NOW() `current_time`", sql)
+		self.assertIn(self.normalize_sql("NOW() `current_time`"), sql)
 
 		# Test CONCAT function (which is supported)
 		query = frappe.qb.get_query(
 			"User", fields=[{"CONCAT": ["first_name", "last_name"], "as": "full_name"}]
 		)
 		sql = query.get_sql()
-		self.assertIn("CONCAT(`first_name`,`last_name`) `full_name`", sql)
+		self.assertIn(
+			self.normalize_sql("CONCAT(`first_name`,`last_name`) `full_name`"), self.normalize_sql(sql)
+		)
 
 		# Test unsupported function validation
 		with self.assertRaises(frappe.ValidationError) as cm:
@@ -1611,7 +1598,7 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn("Unsupported function or invalid field name: DROP", str(cm.exception))
 
 	def test_not_equal_condition_on_none(self):
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				["*"],

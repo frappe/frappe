@@ -907,7 +907,9 @@ Object.assign(frappe.utils, {
 	) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, "-"))}/${name}`;
+		let route = `/desk/${encodeURIComponent(
+			doctype.toLowerCase().replace(/ /g, "-")
+		)}/${name}`;
 		if (query_params_obj) {
 			route += frappe.utils.make_query_string(query_params_obj);
 		}
@@ -1066,6 +1068,9 @@ Object.assign(frappe.utils, {
 	},
 
 	eval(code, context = {}) {
+		if (code.substr(0, 5) == "eval:") {
+			code = code.substr(5);
+		}
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
 		code = `let out = ${code}; return out`;
@@ -1233,7 +1238,18 @@ Object.assign(frappe.utils, {
 		image_path: "/assets/frappe/images/leaflet/",
 	},
 
-	icon(icon_name, size = "sm", icon_class = "", icon_style = "", svg_class = "") {
+	icon(
+		icon_name,
+		size = "sm",
+		icon_class = "",
+		icon_style = "",
+		svg_class = "",
+		current_color = false,
+		stroke_color = null
+	) {
+		if (frappe.utils.is_emoji(icon_name)) {
+			return `<span>${icon_name}</span>`;
+		}
 		let size_class = "";
 		let is_espresso = icon_name.startsWith("es-");
 
@@ -1243,19 +1259,31 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="${
+		let $svg = `<svg class="${
 			is_espresso
 				? icon_name.startsWith("es-solid")
 					? "es-icon es-solid"
 					: "es-icon es-line"
 				: "icon"
-		} ${svg_class} ${size_class}" style="${icon_style}" aria-hidden="true">
-			<use class="${icon_class}" href="${icon_name}"></use>
+		} ${svg_class} ${size_class}"
+			${current_color ? 'stroke="currentColor"' : ""}
+			${stroke_color ? `stroke="${stroke_color}"` : ""}
+			style="${icon_style}" aria-hidden="true">
+			<use class="${icon_class}" href="${icon_name}"
+				${stroke_color ? `stroke="${stroke_color}"` : ""}
+			>
+			</use>
 		</svg>`;
+
+		return $svg;
 	},
 
 	flag(country_code) {
 		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+	},
+	is_emoji(emoji_name) {
+		let emojiList = gemoji.map((emoji) => emoji.emoji);
+		return emojiList.includes(emoji_name);
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1370,7 +1398,7 @@ Object.assign(frappe.utils, {
 		// (item.doctype && frappe.model.can_read(item.doctype))) {
 		//     item.shown = true;
 		// }
-		return `/app/${route}`;
+		return `/desk/${route}`;
 	},
 
 	shorten_number: function (number, country, min_length = 4, max_no_of_decimals = 2) {

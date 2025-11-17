@@ -12,7 +12,7 @@ from email.policy import SMTP
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe import _, safe_encode, task
+from frappe import _, are_emails_muted, safe_encode, task
 from frappe.core.utils import html2text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
@@ -73,6 +73,9 @@ class EmailQueue(Document):
 	# end: auto-generated types
 
 	DOCTYPE = "Email Queue"
+
+	def onload(self):
+		self.set_onload("mute_emails", bool(are_emails_muted()))
 
 	def set_recipients(self, recipients):
 		self.set("recipients", [])

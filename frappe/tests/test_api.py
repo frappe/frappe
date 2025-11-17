@@ -504,9 +504,9 @@ class TestResponse(FrappeAPITestCase):
 		expected_redirects = {
 			"/app/user": "http://localhost/app/user",
 			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
-			"http://example.com": "http://localhost/app",  # No external redirect
-			"https://google.com": "http://localhost/app",
-			"http://localhost:8000": "http://localhost/app",
+			"http://example.com": "http://localhost/desk",  # No external redirect
+			"https://google.com": "http://localhost/desk",
+			"http://localhost:8000": "http://localhost/desk",
 			"http://localhost/app": "http://localhost/app",
 			"////example.com": "http://localhost//example.com",  # malicious redirect attempt
 		}

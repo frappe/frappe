@@ -81,8 +81,11 @@
 
 .section-head,
 .section-body {
-	max-width: var(--page-max-width);
 	margin: auto !important;
+
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 }
 
 #doctype-form_builder_tab .section-body {
@@ -446,7 +449,9 @@
 }
 
 .form-footer {
-	max-width: var(--page-max-width);
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 	margin: auto;
 	padding: 0 15px;
 
