@@ -40,7 +40,11 @@ context("Web Form", () => {
 		cy.url().should("include", "/note/new");
 
 		cy.fill_field("title", "Guest Note 1");
-		cy.get(".web-form-actions button").contains("Save").click();
+		cy.window()
+			.its("__")
+			.then((__) => {
+				cy.get(".web-form-actions button").contains(__("Save")).click();
+			});
 
 		cy.url().should("include", "/note/new");
 
