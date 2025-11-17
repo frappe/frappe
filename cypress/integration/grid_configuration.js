@@ -1,7 +1,7 @@
 context("Grid Configuration", () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit("/app/website-settings");
+		cy.visit("/desk/website-settings");
 	});
 	it("Set user wise grid settings", () => {
 		cy.findByRole("tab", { name: "Navbar" }).click();

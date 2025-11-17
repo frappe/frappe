@@ -9,9 +9,11 @@ import os
 
 import frappe
 from frappe.cache_manager import clear_controller_cache
+from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 from frappe.model.base_document import get_controller
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
+from frappe.modules.utils import get_app_level_directory_path
 from frappe.utils import update_progress_bar
 
 IMPORTABLE_DOCTYPES = [
@@ -27,6 +29,7 @@ IMPORTABLE_DOCTYPES = [
 	("email", "notification"),
 	("printing", "print_style"),
 	("desk", "workspace"),
+	("desk", "workspace_sidebar"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
 	("desk", "form_tour"),
@@ -39,7 +42,6 @@ IMPORTABLE_DOCTYPES = [
 
 def sync_all(force=0, reset_permissions=False):
 	_patch_mode(True)
-
 	for app in frappe.get_installed_apps():
 		sync_for(app, force, reset_permissions=reset_permissions)
 
@@ -93,6 +95,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace_number_card",
 			"workspace_custom_block",
 			"workspace",
+			"workspace_sidebar",
+			"workspace_sidebar_item",
 		]:
 			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
 
@@ -105,8 +109,15 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 
-	l = len(files)
+	app_level_folders = ["desktop_icon", "workspace_sidebar", "sidebar_item_group"]
+	for folder_name in app_level_folders:
+		directory_path = get_app_level_directory_path(folder_name, app_name)
+		if os.path.exists(directory_path):
+			icon_files = [os.path.join(directory_path, filename) for filename in os.listdir(directory_path)]
+			for doc_path in icon_files:
+				files.append(doc_path)
 
+	l = len(files)
 	if l:
 		for i, doc_path in enumerate(files):
 			imported = import_file_by_path(

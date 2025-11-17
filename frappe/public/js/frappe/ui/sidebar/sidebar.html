@@ -1,0 +1,35 @@
+<div class="body-sidebar-container {%= expanded ? 'expanded' : ''%}">
+	<div class="body-sidebar-placeholder"></div>
+		<div class="body-sidebar">
+			<div class="body-sidebar-top">
+				<div class="sidebar-items">
+				</div>
+				<div class="edit-mode standard-sidebar-item hidden" data-name="add-sidebar-item" >
+					<a
+						class="item-anchor"
+					>
+						<span class="sidebar-item-icon text-ink-gray-7">
+							{%= frappe.utils.icon("add" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+						</span>
+						<span class="sidebar-item-label">Add Sidebar Item<span>
+					</a>
+				</div>
+			</div>
+			<div class="body-sidebar-bottom">
+				<div class="edit-mode bottom-edit-controls hidden">
+					<button class="btn-outline btn-sm discard-button">
+						Discard
+					</button>
+					<button class="btn btn-primary btn-sm save-sidebar">
+						Save
+					</button>
+				</div>
+				<a class="collapse-sidebar-link">
+					{%= frappe.utils.icon("arrow-left-to-line" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+		 			<span> {%= __("Collapse") %} </span>
+				</a>
+			</div>
+		</div>
+		<div class="overlay" style="z-index: 1021;"></div>
+	</div>
+</div>

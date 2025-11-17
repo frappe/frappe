@@ -176,3 +176,23 @@ def add_standard_navbar_items():
 		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()
+
+
+def auto_generate_icons_and_sidebar(app_name=None):
+	"""Auto Create desktop icons and workspace sidebars."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	try:
+		print("Creating Desktop Icons")
+		create_desktop_icons()
+		print("Creating Workspace Sidebars")
+		create_workspace_sidebar_for_workspaces()
+		# Save the generated icons
+		frappe.db.commit()  # nosemgrep
+		# Save the genreated sidebar links
+		frappe.db.commit()  # nosemgrep
+	except Exception as e:
+		print(f"Error creating icons {e}")

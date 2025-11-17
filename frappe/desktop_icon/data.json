@@ -1,0 +1,35 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-11 02:27:30.898706",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "table_2",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Data",
+ "link_to": "Data Import",
+ "link_type": "DocType",
+ "modified": "2025-11-13 16:46:11.428362",
+ "modified_by": "Administrator",
+ "name": "Data",
+ "owner": "Administrator",
+ "parent_icon": "Frappe Framework",
+ "roles": [
+  {
+   "creation": "2025-10-31 12:58:11.621125",
+   "docstatus": 0,
+   "doctype": "Has Role",
+   "idx": 1,
+   "modified": "2025-11-13 16:46:11.428362",
+   "modified_by": "Administrator",
+   "name": "q8qhb7fg13",
+   "owner": "Administrator",
+   "parent": "Data",
+   "parentfield": "roles",
+   "parenttype": "Desktop Icon",
+   "role": "Accounts User"
+  }
+ ],
+ "standard": 1
+}

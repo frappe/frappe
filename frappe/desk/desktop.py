@@ -707,3 +707,8 @@ def update_onboarding_step(name, field, value):
 	frappe.db.set_value("Onboarding Step", name, field, value)
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
+
+
+@frappe.whitelist()
+def get_installed_apps():
+	return frappe.get_installed_apps()

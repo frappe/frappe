@@ -40,7 +40,7 @@ describe(
 	() => {
 		before(() => {
 			cy.login();
-			cy.visit(`/app/note/new`);
+			cy.visit(`/desk/note/new`);
 			// close the sidebar cause default is expanded
 			cy.get(".body-sidebar .collapse-sidebar-link").click();
 		});

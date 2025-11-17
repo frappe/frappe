@@ -375,7 +375,7 @@ class TestUser(IntegrationTestCase):
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
 		key = self.reset_password(test_user)
-		self.assertEqual(update_password(new_password, key=key), "/app")
+		self.assertEqual(update_password(new_password, key=key), "/desk")
 		self.assertEqual(
 			update_password(new_password, key="wrong_key"),
 			"The reset password link has either been used before or is invalid",

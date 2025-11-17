@@ -176,6 +176,13 @@ class TestRQJob(IntegrationTestCase):
 		if frappe.conf.use_mysqlclient:
 			# TEMP: Add extra allowance for running two connectors, this should be rolled back before v16
 			LAST_MEASURED_USAGE += 2
+
+		# Observed higher usage on 3.14. Temporarily raising the limit
+		from sys import version_info
+
+		if version_info >= (3, 14):
+			LAST_MEASURED_USAGE += 5
+
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):

@@ -4,7 +4,7 @@ context("FileUploader", () => {
 	});
 
 	beforeEach(() => {
-		cy.visit("/app");
+		cy.visit("/desk");
 		cy.wait(2000); // workspace can load async and clear active dialog
 	});
 

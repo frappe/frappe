@@ -2,11 +2,11 @@ context("Awesome Bar", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		cy.visit("/app/todo"); // Make sure ToDo filters are cleared.
+		cy.visit("/desk/todo"); // Make sure ToDo filters are cleared.
 		cy.clear_filters();
-		cy.visit("/app/web-page"); // Make sure Blog Post filters are cleared.
+		cy.visit("/desk/web-page"); // Make sure Blog Post filters are cleared.
 		cy.clear_filters();
-		cy.visit("/app/build"); // Go to some other page.
+		cy.visit("/desk/build"); // Go to some other page.
 	});
 
 	beforeEach(() => {
@@ -18,7 +18,7 @@ context("Awesome Bar", () => {
 	});
 
 	after(() => {
-		cy.visit("/app/todo"); // Make sure we're not bleeding any filters to the next spec.
+		cy.visit("/desk/todo"); // Make sure we're not bleeding any filters to the next spec.
 		cy.clear_filters();
 	});
 
@@ -28,7 +28,7 @@ context("Awesome Bar", () => {
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.location("pathname").should("eq", "/app/todo");
+		cy.location("pathname").should("eq", "/desk/todo");
 	});
 
 	it("finds text in doctype list", () => {
@@ -40,7 +40,7 @@ context("Awesome Bar", () => {
 		cy.get('[data-original-title="ID"]:visible > input').should("have.value", "%test%");
 
 		// filter preserved, now finds something else
-		cy.visit("/app/todo");
+		cy.visit("/desk/todo");
 		cy.get(".title-text").should("contain", "To Do");
 		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.get('[data-original-title="ID"]:visible > input').as("filter");
