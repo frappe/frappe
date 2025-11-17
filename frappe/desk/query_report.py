@@ -520,25 +520,23 @@ def build_xlsx_data(
 				for col_idx, column in enumerate(data.columns):
 					if column.get("hidden") and not cint(include_hidden_columns):
 						continue
+
 					label = column.get("label")
 					fieldname = column.get("fieldname")
 					cell_value = row.get(fieldname, row.get(label, ""))
+					cell_style = None
+
 					if not isinstance(cell_value, EXCEL_TYPES):
 						cell_value = cstr(cell_value)
+
+					if frappe.flags.cell_styling_in_export:
+						cell_style = get_xlsx_cell_style(cell_value, column, row)
 
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 
-					if frappe.flags.cell_styling_in_export:
-						if isinstance(cell_value, str):
-							value = cell_value.strip()
-						else:
-							value = cell_value
-
-						style = get_xlsx_cell_style(value, column, row)
-
-						if style and isinstance(style, dict):
-							cell_value = frappe._dict({"value": cell_value, "style": style})
+					if cell_style:
+						cell_value = {"value": cell_value, "style": cell_style}
 
 					row_data.append(cell_value)
 			elif row:
@@ -548,17 +546,17 @@ def build_xlsx_data(
 
 	if data.add_total_row and frappe.flags.cell_styling_in_export:
 		total_row = result[-1]
-		row_with_styles = []
+		styled_total_row = []
 
 		for value in total_row:
 			style = get_xlsx_cell_style(value, {}, {})
 
-			if style and isinstance(style, dict):
-				value = frappe._dict({"value": value, "style": style})
+			if style:
+				value = {"value": value, "style": style}
 
-			row_with_styles.append(value)
+			styled_total_row.append(value)
 
-		result[-1] = row_with_styles
+		result[-1] = styled_total_row
 
 	return result, column_widths
 
