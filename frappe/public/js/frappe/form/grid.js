@@ -499,6 +499,7 @@ export default class Grid {
 		this.form_grid.toggleClass("error", !!(this.df.reqd && !(this.data && this.data.length)));
 
 		this.refresh_remove_rows_button();
+		this.refresh_duplicate_rows_button();
 
 		this.wrapper.trigger("change");
 	}
