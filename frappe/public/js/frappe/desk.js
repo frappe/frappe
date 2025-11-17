@@ -292,7 +292,7 @@ frappe.Application = class Application {
 	setup_workspaces() {
 		frappe.modules = {};
 		frappe.workspaces = {};
-		frappe.boot.allowed_workspaces = frappe.boot.sidebar_pages.pages;
+		frappe.boot.allowed_workspaces = frappe.boot.workspaces.pages;
 
 		for (let page of frappe.boot.allowed_workspaces || []) {
 			frappe.modules[page.module] = page;

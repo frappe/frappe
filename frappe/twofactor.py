@@ -320,7 +320,8 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		return False
 
 	hotp = pyotp.HOTP(otpsecret)
-	args = {ss.message_parameter: f"Your verification code is {hotp.at(int(token))}"}
+	otp = hotp.at(int(token))
+	args = {ss.message_parameter: get_rendered_otp_message(otp)}
 
 	for d in ss.get("parameters"):
 		args[d.parameter] = d.value
@@ -339,6 +340,14 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		**sms_args,
 	)
 	return True
+
+
+def get_rendered_otp_message(otp: str) -> str:
+	default_template = "Your verification code is {{otp}}"
+	custom_template = frappe.get_system_settings("otp_sms_template")
+	template = custom_template or default_template
+
+	return frappe.render_template(template, {"otp": otp})
 
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):

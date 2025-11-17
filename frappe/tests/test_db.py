@@ -1050,14 +1050,13 @@ class TestDDLCommandsPost(IntegrationTestCase):
 
 	def test_is(self):
 		user = frappe.qb.DocType("User")
-		self.assertIn(
-			'coalesce("name",',
-			frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower(),
-		)
-		self.assertIn(
-			'coalesce("name",',
-			frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower(),
-		)
+		query_is_set = frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower()
+
+		query_is_not_set = frappe.db.get_values(
+			user, filters={user.name: ("is", "not set")}, run=False
+		).lower()
+		self.assertIn('"name"<>%(param1)s', query_is_set)
+		self.assertIn('"name" is null or "name"=%(param1)s', query_is_not_set)
 
 
 @run_only_if(db_type_is.POSTGRES)

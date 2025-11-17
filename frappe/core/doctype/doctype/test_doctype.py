@@ -840,7 +840,20 @@ class TestDocType(IntegrationTestCase):
 			],
 		).insert(ignore_if_duplicate=True)
 		decimal_field_type = frappe.db.get_column_type(doctype.name, "decimal_field")
-		self.assertIn("(30,3)", decimal_field_type.lower())
+		if frappe.db.db_type == "postgres":
+			result = frappe.db.sql(
+				"""
+				SELECT numeric_precision, numeric_scale
+				FROM information_schema.columns
+				WHERE lower(table_name) = lower(%s)
+				AND column_name = %s
+				""",
+				(f"tab{doctype.name}", "decimal_field"),
+			)
+			length, precision = result[0]
+			self.assertEqual((length, precision), (30, 3))
+		elif frappe.db.db_type == "mariadb":
+			self.assertIn("(30,3)", decimal_field_type.lower())
 
 	def test_decimal_field_precision_exceeds_length(self):
 		doctype = new_doctype(

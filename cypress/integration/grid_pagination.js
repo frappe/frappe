@@ -1,11 +1,11 @@
 context("Grid Pagination", () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
@@ -16,14 +16,14 @@ context("Grid Pagination", () => {
 			});
 	});
 	it("creates pages for child table", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
 		cy.get("@table").find(".current-page-number").should("have.value", "1");
 		cy.get("@table").find(".total-page-number").should("contain", "20");
 		cy.get("@table").find(".grid-body .grid-row").should("have.length", 50);
 	});
 	it("goes to the next and previous page", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
 		cy.get("@table").find(".next-page").click();
 		cy.get("@table").find(".current-page-number").should("have.value", "2");
@@ -36,7 +36,7 @@ context("Grid Pagination", () => {
 		cy.get("@table").find(".grid-body .grid-row").first().should("have.attr", "data-idx", "1");
 	});
 	it("adds and deletes rows and changes page", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
 		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
 		cy.get("@table").find(".grid-body .row-index").should("contain", 1001);
@@ -49,7 +49,7 @@ context("Grid Pagination", () => {
 		cy.get("@table").find(".total-page-number").should("contain", "20");
 	});
 	it("go to specific page, use up and down arrow, type characters, 0 page and more than existing page", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
 		cy.get("@table").find(".current-page-number").focus().clear().type("17").blur();
 		cy.get("@table").find(".grid-body .row-index").should("contain", 801);

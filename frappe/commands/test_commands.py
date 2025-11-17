@@ -469,11 +469,10 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
 	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
+		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type != "sqlite"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_bench_drop_site_should_archive_site(self):
-		# TODO: Make this test postgres compatible
 		site = TEST_SITE
 
 		self.execute(
@@ -499,7 +498,7 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(os.path.exists(archive_directory))
 
 	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
+		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type != "sqlite"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_force_install_app(self):
@@ -656,10 +655,10 @@ class TestBackups(BaseTestCommands):
 				except OSError:
 					pass
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_backup_no_options(self):
 		"""Take a backup without any options"""
 		before_backup = fetch_latest_backups(partial=True)
+		time.sleep(1)
 		self.execute("bench --site {site} backup")
 		after_backup = fetch_latest_backups(partial=True)
 
@@ -1003,9 +1002,11 @@ class TestDBCli(BaseTestCommands):
 		self.execute("bench --site {site} db-console", kwargs={"cmd_input": cmd_input})
 		self.assertEqual(self.returncode, 0)
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_db_cli_with_sql(self):
-		self.execute("bench --site {site} db-console -e 'select 1'")
+		if frappe.db.db_type == "postgres":
+			self.execute("bench --site {site} db-console -c 'select 1'")
+		elif frappe.db.db_type == "mariadb":
+			self.execute("bench --site {site} db-console -e 'select 1'")
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("1", self.stdout)
 

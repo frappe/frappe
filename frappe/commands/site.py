@@ -1584,6 +1584,33 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 			frappe.destroy()
 
 
+@click.command("create-desktop-icons-and-sidebar")
+@pass_context
+def create_icons_and_sidebar(context: CliCtxObj):
+	"""Create desktop icons and workspace sidebars."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+	for site in context.sites:
+		frappe.init(site)
+		frappe.connect()
+		try:
+			print("Creating Desktop Icons")
+			create_desktop_icons()
+			print("Creating Workspace Sidebars")
+			create_workspace_sidebar_for_workspaces()
+			# Saving it in a command need it
+			frappe.db.commit()  # nosemgrep
+		except Exception as e:
+			print(f"Error creating icons {site}: {e}")
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1620,4 +1647,5 @@ commands = [
 	trim_database,
 	clear_log_table,
 	bypass_patch,
+	create_icons_and_sidebar,
 ]

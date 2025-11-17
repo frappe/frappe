@@ -93,10 +93,29 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(email_sig_column.index, 1)
 
 	def check_unique_indexes(self, doctype: str, field: str):
-		indexes = frappe.db.sql(
-			f"""show index from `tab{doctype}` where column_name = '{field}' and Non_unique = 0""",
-			as_dict=1,
-		)
+		if frappe.db.db_type == "postgres":
+			"""Check if the column has a unique index (PostgreSQL equivalent of "SHOW INDEX ... WHERE Non_unique = 0")"""
+			indexes = frappe.db.sql(
+				"""
+				SELECT i.relname AS index_name, a.attname AS column_name
+				FROM
+					pg_class t
+					JOIN pg_index ix ON t.oid = ix.indrelid
+					JOIN pg_class i ON i.oid = ix.indexrelid
+					JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
+				WHERE
+					t.relname = %s
+					AND a.attname = %s
+					AND ix.indisunique = true
+				""",
+				(f"tab{doctype}", field),
+				as_dict=1,
+			)
+		elif frappe.db.db_type == "mariadb":
+			indexes = frappe.db.sql(
+				f"""show index from `tab{doctype}` where column_name = '{field}' and Non_unique = 0""",
+				as_dict=1,
+			)
 		self.assertEqual(
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
@@ -111,7 +130,6 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
@@ -126,30 +144,31 @@ class TestDBUpdate(IntegrationTestCase):
 		"""Only one unique index should be added"""
 
 		doctype = new_doctype(unique=1).insert()
-		field = "some_fieldname"
+		try:
+			field = "some_fieldname"
 
-		self.check_unique_indexes(doctype.name, field)
-		doctype.fields[0].length = 142
-		doctype.save()
-		self.check_unique_indexes(doctype.name, field)
+			self.check_unique_indexes(doctype.name, field)
+			doctype.fields[0].length = 142
+			doctype.save()
+			self.check_unique_indexes(doctype.name, field)
 
-		doctype.fields[0].unique = 0
-		doctype.save()
+			doctype.fields[0].unique = 0
+			doctype.save()
 
-		doctype.fields[0].unique = 1
-		doctype.save()
-		self.check_unique_indexes(doctype.name, field)
+			doctype.fields[0].unique = 1
+			doctype.save()
+			self.check_unique_indexes(doctype.name, field)
 
-		# New column with a unique index
-		# This works because index name is same as fieldname.
-		new_field = frappe.copy_doc(doctype.fields[0])
-		new_field.fieldname = "duplicate_field"
-		doctype.append("fields", new_field)
-		doctype.save()
-		self.check_unique_indexes(doctype.name, new_field.fieldname)
-
-		doctype.delete()
-		frappe.db.commit()
+			# New column with a unique index
+			# This works because index name is same as fieldname.
+			new_field = frappe.copy_doc(doctype.fields[0])
+			new_field.fieldname = "duplicate_field"
+			doctype.append("fields", new_field)
+			doctype.save()
+			self.check_unique_indexes(doctype.name, new_field.fieldname)
+		finally:
+			doctype.delete()
+			frappe.db.commit()
 
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()
@@ -176,7 +195,6 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 

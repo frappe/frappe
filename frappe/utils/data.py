@@ -1935,10 +1935,23 @@ def get_link_to_report(
 		conditions = []
 		for k, v in filters.items():
 			if isinstance(v, list):
-				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
-					for value in v
-				)
+				for value in v:
+					if value[0] == "between":
+						conditions.append(
+							str(k)
+							+ "="
+							+ '["'
+							+ str(value[0])
+							+ '",["'
+							+ str(value[1][0])
+							+ '","'
+							+ str(value[1][1])
+							+ '"]]'
+						)
+					else:
+						conditions.append(
+							str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+						)
 			else:
 				conditions.append(str(k) + "=" + quote(str(v)))
 

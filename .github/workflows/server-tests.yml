@@ -44,6 +44,7 @@ jobs:
     name: Tests
     uses: ./.github/workflows/_base-server-tests.yml
     with:
+      enable-postgres: ${{ contains(github.event.pull_request.labels.*.name, 'postgres') }} # This enables PostgreSQL to run tests
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
       enable-coverage: ${{ github.event_name != 'pull_request' }}

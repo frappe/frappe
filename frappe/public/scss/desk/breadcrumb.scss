@@ -6,12 +6,25 @@
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
 	a {
-		margin-right: 10px;
+		font-size: var(--text-lg);
+		text-decoration: none;
+		color: var(--ink-gray-5);
+		font-weight: var(--weight-medium);
+		letter-spacing: get_letterspacing("sm", "regular");
+		&:hover {
+			color: var(--ink-gray-7);
+		}
 		&:before {
 			// content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
 			content: "/";
 			display: inline-block;
-			margin-right: 10px;
+			margin-left: 4px;
+			margin-right: 4px;
+			color: var(--ink-gray-4);
+			font-size: 14px;
+			line-height: 1.15;
+			letter-spacing: 0.02em;
+			font-weight: 420;
 		}
 	}
 
@@ -26,7 +39,8 @@
 		}
 	}
 
-	li:last-child {
-		font-weight: var(--weight-semibold);
+	li:last-child > a {
+		font-weight: var(--weight-medium);
+		color: var(--ink-gray-9) !important;
 	}
 }

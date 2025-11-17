@@ -650,3 +650,10 @@ def slow_task(duration, title, doctype, docname):
 	for i in range(steps + 1):
 		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
 		time.sleep(int(duration) / steps)
+
+
+@whitelist_for_tests
+def empty_my_workspaces():
+	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
+	my_workspaces.items = []
+	my_workspaces.save()
