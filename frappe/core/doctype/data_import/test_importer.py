@@ -78,7 +78,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(preview.columns), 16)
 
 	# ignored on postgres because myisam doesn't exist on pg
-	@unimplemented_for(db_type_is.POSTGRES or db_type_is.SQLITE)
+	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file("sample_import_file_without_mandatory")
 		data_import = self.get_importer(doctype_name, import_file)
