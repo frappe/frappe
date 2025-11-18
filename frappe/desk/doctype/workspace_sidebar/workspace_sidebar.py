@@ -46,9 +46,9 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 	def before_save(self):
-		if frappe.conf.developer_mode:
-			if self.app:
-				self.export_sidebar()
+		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
+		if allow_export:
+			self.export_sidebar()
 		self.set_module()
 
 	def export_sidebar(self):

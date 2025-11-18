@@ -42,7 +42,7 @@ frappe.ui.menu = class ContextMenu {
 				me.hide();
 			});
 		} else {
-			$(item_wrapper).attr("href", item.url);
+			$(item_wrapper).find("a").attr("href", item.url);
 		}
 		item_wrapper.appendTo(this.template);
 	}
