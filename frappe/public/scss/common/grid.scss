@@ -188,7 +188,6 @@
 	input {
 		margin-right: 0 !important;
 		margin-bottom: -3px;
-		margin-top: 5px;
 	}
 
 	&.search {
@@ -305,7 +304,7 @@
 			border: 0px;
 			padding-top: 10px;
 			padding-bottom: 10px;
-			height: 38px;
+			height: auto;
 		}
 
 		.link-btn {
@@ -686,6 +685,9 @@
 		border: unset;
 		&:focus-visible {
 			@include grid-focus();
+		}
+		.grid-static-col .grid-body {
+			height: 40px;
 		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;

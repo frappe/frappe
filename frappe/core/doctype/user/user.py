@@ -1409,9 +1409,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	# Note: For now we only allow admins, we MIGHT allow system manager in future.
-	# All the impersonation code doesn't assume anything about user.
-	frappe.only_for("Administrator")
+	frappe.has_permission("User", "impersonate")
 
 	impersonator = frappe.session.user
 	frappe.get_doc(

@@ -114,7 +114,7 @@
 		.item-anchor {
 			@include truncate();
 			display: flex;
-			gap: 5px;
+			gap: 2px;
 			align-items: center;
 			// padding: 3px 0px 3px 11px;
 			flex: 1;
@@ -275,11 +275,11 @@
 }
 .indent {
 	.sidebar-item-control {
-		margin-left: -5px;
+		margin-left: auto;
 	}
 }
 .indent + .nested-container {
-	margin-left: 27px;
+	margin-left: 16px;
 }
 .context-menu {
 	position: absolute;
