@@ -190,8 +190,8 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2025-01-15 11:46:42.917146",
- "modified_by": "Administrator",
+ "modified": "2025-08-30 10:27:16.983827",
+ "modified_by": "hoa00001@gmail.com",
  "module": "Core",
  "name": "File",
  "owner": "Administrator",
@@ -217,6 +217,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

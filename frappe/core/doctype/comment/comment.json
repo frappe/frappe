@@ -11,6 +11,7 @@
   "comment_by",
   "published",
   "seen",
+  "topic_name",
   "column_break_5",
   "reference_doctype",
   "reference_name",
@@ -46,7 +47,7 @@
    "label": "Comment By"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "published",
    "fieldtype": "Check",
    "label": "Published"
@@ -96,11 +97,17 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "IP Address"
+  },
+  {
+   "fieldname": "topic_name",
+   "fieldtype": "Link",
+   "label": "Topic",
+   "options": "Topic Comment"
   }
  ],
  "links": [],
- "modified": "2023-07-24 13:52:55.651462",
- "modified_by": "Administrator",
+ "modified": "2025-09-27 15:02:34.309737",
+ "modified_by": "hoa00001@gmail.com",
  "module": "Core",
  "name": "Comment",
  "owner": "Administrator",
@@ -131,6 +138,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

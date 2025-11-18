@@ -13,6 +13,7 @@ def write_file_to_s3(file_doc):
     Trình xử lý tệp lưu trữ lên S3 cho Frappe, thay thế cơ chế ghi tệp mặc định.
     Giới hạn kích thước tệp tối đa là 200MB.
     """
+    print(f"Uploading {file_doc.file_name} to S3...")
     s3_config = get_s3_config()
     if not s3_config:
         # Fallback: Nếu S3 fail → lưu local
@@ -68,8 +69,8 @@ def upload_small_file_to_s3(file_doc, s3_client, s3_config, s3_key):
         original_name = normalize_filename(file_doc.file_name)
 
         s3_client.upload_fileobj(
-            BytesIO(file_doc._content), 
-            s3_config['s3_bucket'], 
+            BytesIO(file_doc._content),
+            s3_config['s3_bucket'],
             s3_key,
             ExtraArgs={
                 'ContentType': file_doc.content_type or 'application/octet-stream',
@@ -239,7 +240,7 @@ def delete_file_from_s3(file_doc, only_thumbnail=False):
     if not s3_config:
         # Fallback: Quay lại xóa mặc định
         return file_doc.delete_file_from_filesystem(only_thumbnail=only_thumbnail)
-    
+
     try:
         s3_client = boto3.client(
             's3',
@@ -248,20 +249,20 @@ def delete_file_from_s3(file_doc, only_thumbnail=False):
             endpoint_url=s3_config.get('aws_s3_endpoint_url'),
             region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
         )
-        
+
         # Trích xuất S3 key từ file_url
         if file_doc.file_url and ('s3' in file_doc.file_url.lower() or 'amazonaws' in file_doc.file_url.lower()):
             s3_key = extract_s3_key_from_url(file_doc.file_url, s3_config['s3_bucket'])
             if s3_key:
                 s3_client.delete_object(Bucket=s3_config['s3_bucket'], Key=s3_key)
                 frappe.logger().info(f"Deleted {file_doc.file_name} from S3")
-        
+
         # Xử lý hình thu nhỏ nếu cần
         if file_doc.thumbnail_url and not only_thumbnail:
             thumbnail_key = extract_s3_key_from_url(file_doc.thumbnail_url, s3_config['s3_bucket'])
             if thumbnail_key:
                 s3_client.delete_object(Bucket=s3_config['s3_bucket'], Key=thumbnail_key)
-        
+
     except Exception as e:
         frappe.logger().error(f"Failed to deletto filesystem deletione {file_doc.file_name} from S3: {str(e)}")
         # Fallback: Quay lại xóa hệ thống tập tin
@@ -271,13 +272,13 @@ def delete_file_from_s3(file_doc, only_thumbnail=False):
 def get_s3_config():
     """Nhận cấu hình S3 từ site_config"""
     conf = frappe.local.conf
-    
+
     required_keys = ['s3_bucket', 'aws_access_key_id', 'aws_secret_access_key']
-    
+
     # Kiểm tra xem tất cả cấu hình S3 cần thiết có tồn tại không
     if not all(conf.get(key) for key in required_keys):
         return None
-    
+
     return {
         's3_bucket': conf.get('s3_bucket'),
         'aws_access_key_id': conf.get('aws_access_key_id'),
@@ -291,11 +292,11 @@ def generate_s3_key(filename):
     # Tạo cấu trúc thư mục: year/month/uuid_filename
     now = datetime.now()
     folder = f"{now.year}/{now.month:02d}"
-    
+
     # Thêm UUID vào tên tệp để tránh conflicts
     name, ext = os.path.splitext(filename)
     unique_filename = f"{uuid.uuid4().hex[:8]}_{name}{ext}"
-    
+
     return f"{folder}/{unique_filename}"
 
 
@@ -321,7 +322,7 @@ def test_s3_connection():
     s3_config = get_s3_config()
     if not s3_config:
         return {"status": "error", "message": "S3 config not found"}
-    
+
     try:
         s3_client = boto3.client(
             's3',
@@ -330,17 +331,17 @@ def test_s3_connection():
             endpoint_url=s3_config.get('aws_s3_endpoint_url'),
             region_name=s3_config.get('aws_default_region', 'ap-southeast-1')
         )
-        
+
         # Kiểm tra bằng cách liệt kê các buckets
         response = s3_client.list_buckets()
         buckets = [b['Name'] for b in response['Buckets']]
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": "S3 connection successful",
             "buckets": buckets,
             "target_bucket": s3_config['s3_bucket']
         }
-        
+
     except Exception as e:
         return {"status": "error", "message": str(e)}

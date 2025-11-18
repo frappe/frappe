@@ -22,27 +22,7 @@ class Comment(Document):
 
 		comment_by: DF.Data | None
 		comment_email: DF.Data | None
-		comment_type: DF.Literal[
-			"Comment",
-			"Like",
-			"Info",
-			"Label",
-			"Workflow",
-			"Created",
-			"Submitted",
-			"Cancelled",
-			"Updated",
-			"Deleted",
-			"Assigned",
-			"Assignment Completed",
-			"Attachment",
-			"Attachment Removed",
-			"Shared",
-			"Unshared",
-			"Bot",
-			"Relinked",
-			"Edit",
-		]
+		comment_type: DF.Literal["Comment", "Like", "Info", "Label", "Workflow", "Created", "Submitted", "Cancelled", "Updated", "Deleted", "Assigned", "Assignment Completed", "Attachment", "Attachment Removed", "Shared", "Unshared", "Bot", "Relinked", "Edit"]
 		content: DF.HTMLEditor | None
 		ip_address: DF.Data | None
 		published: DF.Check
@@ -51,6 +31,7 @@ class Comment(Document):
 		reference_owner: DF.Data | None
 		seen: DF.Check
 		subject: DF.Text | None
+		topic_name: DF.Link | None
 	# end: auto-generated types
 
 	no_feed_on_delete = True

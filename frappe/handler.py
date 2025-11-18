@@ -167,6 +167,7 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
+	print("sssssssssssssssssssssssssssssssssssssss")
 	user = None
 	if frappe.session.user == "Guest":
 		if frappe.get_system_settings("allow_guests_to_upload_files"):
