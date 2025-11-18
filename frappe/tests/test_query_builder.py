@@ -26,6 +26,10 @@ def run_only_if(dbtype: db_type_is) -> Callable:
 	return unittest.skipIf(db_type_is(frappe.conf.db_type) != dbtype, f"Only runs for {dbtype.value}")
 
 
+def unimplemented_for(dbtype: db_type_is) -> Callable:
+	return unittest.skipIf(db_type_is(frappe.conf.db_type) == dbtype, f"Not Implemented for {dbtype.value}")
+
+
 @run_only_if(db_type_is.MARIADB)
 class TestCustomFunctionsMariaDB(IntegrationTestCase):
 	def test_concat(self):
