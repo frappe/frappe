@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-17 12:22\n"
+"PO-Revision-Date: 2025-11-18 12:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -11927,7 +11927,7 @@ msgstr "HTML Hjälp"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:149
 msgid "Help on Search"
-msgstr "Hjälp om Sökning"
+msgstr "Sök Hjälp"
 
 #. Description of the 'Content' (Text Editor) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
