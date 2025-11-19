@@ -421,7 +421,7 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		} else {
 			$(this.active_item).addClass("active-sidebar");
-			$(".collapse-sidebar-link").removeClass("hidden");
+			$(".collapse-sidebar-link").removeClass("hidden").css("display", "flex");
 			this.wrapper.find(".edit-mode").addClass("hidden");
 			this.add_new_item_button = this.wrapper.find("[data-name='add-sidebar-item']");
 		}
