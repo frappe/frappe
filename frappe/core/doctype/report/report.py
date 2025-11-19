@@ -76,7 +76,7 @@ class Report(Document):
 				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
 			# Letter Head is visible only for non-standard reports.
-			# This prevents non-sensical values from being exported to JSON.
+			# It should not remain set when it's invisible.
 			self.letter_head = None
 
 		if self.report_type == "Report Builder":
