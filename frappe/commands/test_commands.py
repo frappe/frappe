@@ -244,7 +244,10 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
 
-	@run_only_if(db_type_is.MARIADB)
+	@skipIf(
+		frappe.conf.db_type == "sqlite",
+		"Not for SQLite for now",
+	)
 	def test_restore(self):
 		# step 0: create a site to run the test on
 		global_config = {
