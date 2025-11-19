@@ -93,6 +93,8 @@
 	.report-view {
 		width: calc(100% - 220px);
 		.result {
+			overflow: hidden;
+			max-height: calc(100vh - 215px) !important;
 			.dt-row:last-child:not(.dt-row-filter) {
 				.dt-cell {
 					border-bottom: 1px solid var(--border-color);
