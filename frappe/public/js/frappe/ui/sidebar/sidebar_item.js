@@ -185,7 +185,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 				$(me.wrapper.find(".section-break")).addClass("hidden");
 				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
-				me.open();
 			}
 		});
 	}
@@ -233,15 +232,37 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 	setup_event_listner() {
 		const me = this;
 
-		$(this.wrapper.find(".standard-sidebar-item")[0]).on("click", (e) => {
+		const toggle_section = () => {
 			me.collapsed = me.$drop_icon.find("use").attr("href") === "#icon-chevron-down";
 			me.toggle();
+			me.save_section_break_state();
+		};
 
-			if (e.originalEvent.isTrusted) {
-				me.save_section_break_state();
+		const expand_sidebar_if_collapsed = () => {
+			if (frappe.app.sidebar && !frappe.app.sidebar.sidebar_expanded) {
+				frappe.app.sidebar.open();
 			}
-		});
+		};
+
+		const handle_click = (e, is_arrow_click = false) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			expand_sidebar_if_collapsed();
+
+			if (!is_arrow_click && $(e.target).closest(".drop-icon").length) {
+				return;
+			}
+
+			toggle_section();
+		};
+
+		this.$drop_icon.on("click", (e) => handle_click(e, true));
+
+		const $item = $(this.wrapper).find(".standard-sidebar-item").eq(0);
+		$item.on("click", handle_click);
 	}
+
 	save_section_break_state() {
 		if (!this.section_breaks_state[this.workspace_title]) {
 			this.section_breaks_state[this.workspace_title] = {};
