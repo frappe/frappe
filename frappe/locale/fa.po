@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-17 12:22\n"
+"PO-Revision-Date: 2025-11-19 12:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1048,7 +1048,7 @@ msgstr "افزودن پیوست"
 #. Label of the add_background_image (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Background Image"
-msgstr "افزودن تصویر پس زمینه"
+msgstr "افزودن تصویر پس‌زمینه"
 
 #. Label of the add_border_at_bottom (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -1107,7 +1107,7 @@ msgstr "افزودن فیلترها"
 #. Label of the add_shade (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr "افزودن پس زمینه خاکستری"
+msgstr "افزودن پس‌زمینه خاکستری"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:430
@@ -3185,13 +3185,13 @@ msgstr "بازگشت به صفحه ورود"
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Background Color"
-msgstr "رنگ پس زمینه"
+msgstr "رنگ پس‌زمینه"
 
 #. Label of the background_image (Attach Image) field in DocType 'Web Page
 #. Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Background Image"
-msgstr "تصویر پس زمینه"
+msgstr "تصویر پس‌زمینه"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -3200,7 +3200,7 @@ msgstr "تصویر پس زمینه"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:183
 msgid "Background Jobs"
-msgstr "کارهای پس زمینه"
+msgstr "کارهای پس‌زمینه"
 
 #. Label of the background_jobs_check (Data) field in DocType 'System Health
 #. Report'
@@ -3224,7 +3224,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Workers"
-msgstr "کارگران پیشینه"
+msgstr "ورکرهای پس‌زمینه"
 
 #: frappe/desk/page/backups/backups.js:28
 msgid "Backup Encryption Key"
@@ -3651,7 +3651,7 @@ msgstr "عملیات انبوه فقط تا 500 سند را پشتیبانی م�
 
 #: frappe/model/workflow.py:299
 msgid "Bulk {0} is enqueued in background."
-msgstr "انبوه {0} در پس زمینه در صف قرار می گیرد."
+msgstr "انبوه {0} در پس‌زمینه در صف قرار می گیرد."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5503,7 +5503,7 @@ msgstr "کپی رایت"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:125
 msgid "Core DocTypes cannot be customized."
-msgstr "Core DocTypes را نمی‌توان سفارشی کرد."
+msgstr "DocTypeهای اصلی قابل سفارشی‌سازی نیستند."
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:36
 msgid "Core Modules {0} cannot be searched in Global Search."
@@ -9428,7 +9428,7 @@ msgstr "آزمایشی"
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Expert"
-msgstr "کارشناس"
+msgstr "متخصص"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -9577,7 +9577,7 @@ msgstr "افشای گیرندگان"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Expression"
-msgstr "اصطلاح"
+msgstr "عبارت"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -11653,7 +11653,7 @@ msgstr "سربرگ، ربات ها"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
-msgstr "برای افزودن رفتارهای پویا می‌توان از اسکریپت های Header/Foter استفاده کرد."
+msgstr "برای افزودن رفتارهای پویا می‌توان از اسکریپت‌های Header/Foter استفاده کرد."
 
 #. Label of the webhook_headers (Table) field in DocType 'Webhook'
 #. Label of the headers (Code) field in DocType 'Webhook Request Log'
@@ -14564,7 +14564,7 @@ msgstr "نام سربرگ"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
-msgstr "اسکریپت های سربرگ"
+msgstr "اسکریپت‌های سربرگ"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:49
 msgid "Letter Head cannot be both disabled and default"
@@ -14905,7 +14905,7 @@ msgstr "فهرست به عنوان [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "List of email addresses, separated by comma or new line."
-msgstr ""
+msgstr "لیست آدرس‌های ایمیل، که با کاما یا خط جدید از هم جدا شده‌اند."
 
 #. Description of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
@@ -19227,7 +19227,7 @@ msgstr "لطفاً اقدام خود را در {0} این سند تأیید کن
 
 #: frappe/printing/page/print/print.js:674
 msgid "Please contact your system manager to install correct version."
-msgstr ""
+msgstr "لطفا برای نصب نسخه صحیح با مدیر سیستم خود تماس بگیرید."
 
 #: frappe/desk/doctype/number_card/number_card.js:45
 msgid "Please create Card first"
@@ -20385,7 +20385,7 @@ msgstr "گزارش پرسمان"
 
 #: frappe/core/doctype/recorder/recorder.py:188
 msgid "Query analysis complete. Check suggested indexes."
-msgstr ""
+msgstr "تحلیل پرسمان کامل شد. شاخص‌های پیشنهادی را بررسی کنید."
 
 #: frappe/utils/safe_exec.py:497
 msgid "Query must be of SELECT or read-only WITH type."
@@ -22711,7 +22711,7 @@ msgstr "اسکریپت / سبک"
 #. Label of the scripts_section (Section Break) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Scripts"
-msgstr "اسکریپت ها"
+msgstr "اسکریپت‌ها"
 
 #. Label of the search_section (Section Break) field in DocType 'System
 #. Settings'
@@ -23507,7 +23507,7 @@ msgstr "اسکریپت سرور"
 
 #: frappe/utils/safe_exec.py:98
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
-msgstr "اسکریپت های سرور غیرفعال هستند. لطفاً اسکریپت های سرور را از پیکربندی بنچ فعال کنید."
+msgstr "اسکریپت‌های سرور غیرفعال هستند. لطفاً اسکریپت‌های سرور را از پیکربندی بنچ فعال کنید."
 
 #: frappe/core/doctype/server_script/server_script.js:39
 msgid "Server Scripts feature is not available on this site."
@@ -23707,7 +23707,7 @@ msgstr "به عنوان تم پیش‌فرض تنظیم کنید"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Set by user"
-msgstr "توسط کاربر تنظیم شده است"
+msgstr "تنظیم توسط کاربر"
 
 #: frappe/public/js/frappe/utils/dashboard_utils.js:162
 msgid "Set dynamic filter values in JavaScript for the required fields here."
@@ -25817,7 +25817,7 @@ msgstr "لینک را تگ کنید"
 #: frappe/public/js/frappe/model/model.js:133
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:171
 msgid "Tags"
-msgstr ""
+msgstr "تگ‌ها"
 
 #: frappe/public/js/frappe/ui/capture.js:220
 msgid "Take Photo"
@@ -26499,7 +26499,7 @@ msgstr "این بالاتر از نمایش اسلاید است."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2214
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
-msgstr "این یک گزارش پس زمینه است. لطفا فیلترهای مناسب را تنظیم کنید و سپس گزارش جدیدی ایجاد کنید."
+msgstr "این یک گزارش پس‌زمینه است. لطفا فیلترهای مناسب را تنظیم کنید و سپس گزارش جدیدی ایجاد کنید."
 
 #: frappe/utils/password_strength.py:158
 msgid "This is a top-10 common password."
@@ -26948,7 +26948,7 @@ msgstr "برای فعال کردن آن، دستورالعمل‌های موجو
 
 #: frappe/core/doctype/server_script/server_script.js:40
 msgid "To enable server scripts, read the {0}."
-msgstr "برای فعال کردن اسکریپت های سرور، {0} را بخوانید."
+msgstr "برای فعال کردن اسکریپت‌های سرور، {0} را بخوانید."
 
 #: frappe/desk/doctype/onboarding_step/onboarding_step.js:18
 msgid "To export this step as JSON, link it in a Onboarding document and save the document."
@@ -27168,7 +27168,7 @@ msgstr "جمع"
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr ""
+msgstr "کل ورکرهای پس‌زمینه"
 
 #. Label of the total_errors (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -28959,7 +28959,7 @@ msgstr ""
 
 #: frappe/desk/doctype/workspace/workspace.js:34
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr "ما اجازه ویرایش این سند را نمی دهیم. به سادگی روی دکمه ویرایش در صفحه محیط کار کلیک کنید تا محیط کار شما قابل ویرایش باشد و آن را به دلخواه شخصی سازی کنید."
+msgstr ""
 
 #: frappe/templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -29415,12 +29415,12 @@ msgstr "با سربرگ"
 #. Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Worker Information"
-msgstr "اطلاعات کارگر"
+msgstr "اطلاعات ورکر"
 
 #. Label of the worker_name (Data) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Worker Name"
-msgstr "نام کارگر"
+msgstr "نام ورکر"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Group in DocType's connections
