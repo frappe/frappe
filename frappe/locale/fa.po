@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-19 12:30\n"
+"PO-Revision-Date: 2025-11-20 12:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3547,8 +3547,8 @@ msgstr "لوگوی برند"
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr "برند همان چیزی است که در سمت چپ بالای نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
-"دارای پس‌زمینه شفاف است و از تگ &lt;img /&gt; استفاده کنید. اندازه را 200×30 پیکسل نگه دارید"
+msgstr "برند چیزی است که در بالا سمت چپ نوار ابزار ظاهر می‌شود. اگر تصویر است، مطمئن شوید که\n"
+"دارای پس‌زمینه شفاف است و از تگ &lt;img /&gt; استفاده کنید. اندازه را 200px x 30px نگه دارید"
 
 #. Label of the breadcrumbs (Code) field in DocType 'Web Form'
 #. Label of the breadcrumbs (Code) field in DocType 'Web Page'
@@ -9584,13 +9584,13 @@ msgstr "عبارت"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Expression (old style)"
-msgstr "بیان (سبک قدیمی)"
+msgstr "عبارت (سبک قدیمی)"
 
 #. Description of the 'Condition' (Data) field in DocType 'Notification
 #. Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Expression, Optional"
-msgstr "بیان، اختیاری"
+msgstr "عبارت، اختیاری"
 
 #. Label of the external_link (Data) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -10035,7 +10035,7 @@ msgstr ""
 #. Description of the 'Search Fields' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box"
-msgstr "فیلدهایی که با کاما (،) از هم جدا شده اند در لیست \"جستجو بر اساس\" کادر گفتگوی جستجو گنجانده می‌شوند."
+msgstr "فیلدهایی که با کاما (،) از هم جدا شده اند در لیست \"جستجو بر اساس\" کادر محاوره‌ای جستجو گنجانده می‌شوند"
 
 #. Label of the fieldtype (Select) field in DocType 'Report Column'
 #. Label of the fieldtype (Select) field in DocType 'Report Filter'
@@ -11883,7 +11883,7 @@ msgstr "پنهان کردن پیش‌نمایش"
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hide Previous, Next and Close button on highlight dialog."
-msgstr "پنهان کردن دکمه قبلی، بعدی و بستن در گفتگوی برجسته."
+msgstr "دکمه‌های قبلی، بعدی و بستن را در پنجره‌ی هایلایت پنهان کنید."
 
 #: frappe/public/js/frappe/list/list_filter.js:94
 msgid "Hide Saved"
@@ -12200,7 +12200,7 @@ msgstr "اگر علامت زده شود، مقادیر عددی منفی ارز�
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "If checked, users will not see the Confirm Access dialog."
-msgstr "اگر علامت زده شود، کاربران کادر گفتگوی تأیید دسترسی را نخواهند دید."
+msgstr "اگر علامت زده شود، کاربران کادر محاوره‌ای تأیید دسترسی را نخواهند دید."
 
 #. Description of the 'Disabled' (Check) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -15279,7 +15279,7 @@ msgstr "عمده"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr "نام را در جستجوی سراسری قابل جستجو کنید"
+msgstr "قابل جستجو کردن «نام» در جستجوی سراسری"
 
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -18092,7 +18092,7 @@ msgstr "URL را در یک برگه جدید باز کنید"
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
-msgstr ""
+msgstr "برای ایجاد سریع یک رکورد جدید، یک کادر محاوره‌ای با فیلدهای اجباری باز کنید. حداقل باید یک فیلد اجباری برای نمایش در کادر محاوره‌ای وجود داشته باشد."
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:176
 msgid "Open a module or tool"
@@ -26603,7 +26603,7 @@ msgstr "این پس از مسیریابی به صورت مدال نشان داد
 #. Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown to the user in a dialog after routing to the report"
-msgstr "پس از مسیریابی به گزارش، این در یک گفتگو به کاربر نشان داده می‌شود"
+msgstr "این مورد پس از مسیریابی به گزارش، در یک کادر محاوره‌ای به کاربر نشان داده خواهد شد"
 
 #: frappe/www/third_party_apps.html:23
 msgid "This will log out {0} from all other devices"
@@ -29465,7 +29465,7 @@ msgstr "عملکرد گردش کار برای حالت های اختیاری ا�
 #: frappe/workflow/doctype/workflow/workflow.js:25
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:4
 msgid "Workflow Builder"
-msgstr "گردش کار ساز"
+msgstr "سازنده گردش کار"
 
 #. Label of the workflow_builder_id (Data) field in DocType 'Workflow Document
 #. State'
@@ -29474,7 +29474,7 @@ msgstr "گردش کار ساز"
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Workflow Builder ID"
-msgstr "شناسه گردش کار ساز"
+msgstr "شناسه سازنده گردش کار"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
