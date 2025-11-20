@@ -4,7 +4,7 @@ from contextlib import suppress
 from orjson import JSONDecodeError
 
 import frappe
-from frappe.pulse.utils import anonymize_user, ensure_http, parse_interval, utc_iso
+from frappe.pulse.utils import anonymize, ensure_http, parse_interval, utc_iso
 from frappe.utils import get_request_session
 from frappe.utils.caching import site_cache
 from frappe.utils.frappecloud import on_frappecloud
@@ -18,8 +18,13 @@ def is_enabled() -> bool:
 		and not frappe.conf.get("pulse_disabled", 0)
 		and frappe.conf.get("pulse_api_key")
 		and on_frappecloud()
-		and frappe.get_system_settings("enable_telemetry")
 	)
+
+
+@frappe.whitelist()
+@site_cache()
+def is_telemetry_enabled() -> bool:
+	return is_enabled() and frappe.get_system_settings("enable_telemetry")
 
 
 def capture(event_name, site=None, app=None, user=None, properties=None, interval=None):
@@ -31,13 +36,17 @@ def capture(event_name, site=None, app=None, user=None, properties=None, interva
 		if _is_ratelimited(event_key, interval):
 			return
 
+		user = anonymize(user)
+		site = site or frappe.local.site
+		site = anonymize(site) if not is_telemetry_enabled() else site
+
 		_queue_event(
 			{
 				"event_name": event_name,
 				"captured_at": utc_iso(),
 				"app": app,
-				"user": anonymize_user(user),
-				"site": site or frappe.local.site,
+				"user": user,
+				"site": site,
 				"properties": properties,
 			}
 		)

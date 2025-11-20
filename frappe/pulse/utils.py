@@ -4,23 +4,13 @@ from datetime import datetime, timezone
 import frappe
 
 
-def anonymize_user(user):
+def anonymize(data, digits=6):
 	"""
-	Create consistent anonymous ID from user email.
-	Same email always produces same anonymous ID.
+	Create deterministic hash of the input data.
 	"""
-	if not user or user in frappe.STANDARD_USERS:
-		return user
-
-	# Use site-specific salt for additional security
-	site_salt = frappe.local.site or "default"
-
-	# Create deterministic hash
-	hash_input = f"{user}:{site_salt}".encode()
-	user_hash = hashlib.sha256(hash_input).hexdigest()
-
-	# Return first 12 characters for readability
-	return f"anon_{user_hash[:12]}"
+	if not data:
+		return None
+	return hashlib.sha256(data.encode()).hexdigest()[:digits]
 
 
 def parse_interval(interval):
