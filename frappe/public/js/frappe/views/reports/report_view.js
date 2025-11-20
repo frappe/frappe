@@ -108,9 +108,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const message = __(
 			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 		);
-		this.$paging_area.before(
-			`<span class="comparison-message text-extra-muted">${message}</span>`
-		);
+		// this.$paging_area.before(
+		// 	`<span class="comparison-message text-extra-muted">${message}</span>`
+		// );
 	}
 
 	setup_sort_selector() {
@@ -337,7 +337,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			language: frappe.boot.lang,
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
-			inlineFilters: true,
+			inlineFilters: false,
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 			events: {
