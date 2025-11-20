@@ -201,7 +201,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	data = frappe.get_list(
 		doctype,
-		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
+		fields=[datefield, {"SUM": value_field}, {"COUNT": "*"}],
 		filters=filters,
 		group_by=datefield,
 		order_by=datefield,
@@ -244,7 +244,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 			doctype,
 			fields=[
 				timestamp_field,
-				f"{aggregate_function}({value_field})",
+				{aggregate_function: value_field},
 			],
 			filters=filters,
 			group_by=f"date({datefield})",
@@ -270,7 +270,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		doctype,
 		fields=[
 			f"{group_by_field} as name",
-			f"{aggregate_function}({value_field}) as count",
+			{aggregate_function: value_field, "as": "count"},
 		],
 		filters=filters,
 		parent_doctype=chart.parent_document_type,

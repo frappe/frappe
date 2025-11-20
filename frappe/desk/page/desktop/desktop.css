@@ -4,6 +4,10 @@
     --desktop-modal-height: 448px;
     --folder-thumbnail-icon-height: 12px;
     --desktop-icon-dimension: 54px;
+    --folder-icon-background-color: var(--surface-gray-1);
+}
+[data-theme="dark"]{
+    --folder-icon-background-color: #2b2b2b;
 }
 .desktop-wrapper{
     max-width: 100%;
@@ -201,11 +205,11 @@
 }
 
 .folder-icon{
-    background-color: var(--gray-50) !important;
+   background-color: var(--folder-icon-background-color) !important;
     box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
     padding: 7px;
     align-items: normal;
-
+    box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
     & .icons{
         gap: 2.1px;
         margin-top: 0px;

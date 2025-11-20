@@ -42,6 +42,7 @@ def get_bootinfo():
 
 	# user
 	get_user(bootinfo)
+	# desktop icon info
 
 	# system info
 	bootinfo.sitename = frappe.local.site
@@ -56,6 +57,7 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
+	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
@@ -149,7 +151,6 @@ def load_conf_settings(bootinfo):
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
-	bootinfo.desktop_icons = get_desktop_icons()
 	bootinfo.workspaces = get_workspace_sidebar_items()
 	bootinfo.show_app_icons_as_folder = frappe.db.get_single_value(
 		"Desktop Settings", "show_app_icons_as_folder"

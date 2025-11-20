@@ -32,14 +32,20 @@ def get_roles_and_doctypes():
 
 	active_domains = frappe.get_active_domains()
 
-	doctypes = frappe.get_all(
-		"DocType",
-		filters={
-			"istable": 0,
-			"name": ("not in", ",".join(not_allowed_in_permission_manager)),
-		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		fields=["name"],
+	DocType = frappe.qb.DocType("DocType")
+	doctype_domain_condition = (DocType.restrict_to_domain.isnull()) | (DocType.restrict_to_domain == "")
+	if active_domains:
+		doctype_domain_condition = doctype_domain_condition | DocType.restrict_to_domain.isin(active_domains)
+
+	doctypes = (
+		frappe.qb.from_(DocType)
+		.select(DocType.name)
+		.where(
+			(DocType.istable == 0)
+			& (DocType.name.notin(not_allowed_in_permission_manager))
+			& doctype_domain_condition
+		)
+		.run(as_dict=True)
 	)
 
 	restricted_roles = ["Administrator"]
@@ -48,14 +54,16 @@ def get_roles_and_doctypes():
 		restricted_roles.extend(row.role for row in custom_user_type_roles)
 		restricted_roles.extend(AUTOMATIC_ROLES)
 
-	roles = frappe.get_all(
-		"Role",
-		filters={
-			"name": ("not in", restricted_roles),
-			"disabled": 0,
-		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		fields=["name"],
+	Role = frappe.qb.DocType("Role")
+	role_domain_condition = (Role.restrict_to_domain.isnull()) | (Role.restrict_to_domain == "")
+	if active_domains:
+		role_domain_condition = role_domain_condition | Role.restrict_to_domain.isin(active_domains)
+
+	roles = (
+		frappe.qb.from_(Role)
+		.select(Role.name)
+		.where((Role.name.notin(restricted_roles)) & (Role.disabled == 0) & role_domain_condition)
+		.run(as_dict=True)
 	)
 
 	doctypes_list = [{"label": _(d.get("name")), "value": d.get("name")} for d in doctypes]

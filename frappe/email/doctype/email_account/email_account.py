@@ -950,7 +950,7 @@ def get_max_email_uid(email_account):
 			"sent_or_received": "Received",
 			"email_account": email_account,
 		},
-		fields=["max(uid) as uid"],
+		fields=[{"MAX": "uid", "as": "uid"}],
 	):
 		return cint(result[0].get("uid", 0)) + 1
 	return 1
