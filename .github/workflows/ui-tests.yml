@@ -55,7 +55,7 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:10.6
+        image: mariadb:10.6.24
         env:
           MARIADB_ROOT_PASSWORD: travis
         ports:

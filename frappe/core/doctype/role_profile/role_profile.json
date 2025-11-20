@@ -36,13 +36,15 @@
    "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "links": [
   {
    "link_doctype": "User",
    "link_fieldname": "role_profile_name"
   }
  ],
- "modified": "2021-12-03 15:45:45.270963",
+
+ "modified": "2025-11-15 20:00:18.844434",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Profile",
@@ -76,5 +78,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "role_profile",
- "track_changes": 1
+ "track_changes": 1,
+ "translated_doctype": 1
 }
