@@ -182,21 +182,8 @@ def get_context(context):
 
 		if self.is_standard:
 			self.load_standard_properties(context)
-		try:
-			if self.channel == "Email":
-				self.send_an_email(doc, context)
 
-			if self.channel == "Slack":
-				self.send_a_slack_msg(doc, context)
-
-			if self.channel == "SMS":
-				self.send_sms(doc, context)
-
-			if self.channel == "System Notification" or self.send_system_notification:
-				self.create_system_notification(doc, context)
-
-		except Exception:
-			self.log_error("Failed to send Notification")
+		self.send_notification_by_channel(doc, context)
 
 		if self.set_property_after_alert:
 			allow_update = True
@@ -225,8 +212,6 @@ def get_context(context):
 			except Exception:
 				self.log_error("Document update failed")
 
-<<<<<<< HEAD
-=======
 	def send_notification_by_channel(self, doc, context):
 		"""Send notification based on the specified channel."""
 		try:
@@ -246,7 +231,6 @@ def get_context(context):
 		except Exception:
 			self.log_error("Failed to send Notification")
 
->>>>>>> 9f04636736 (fix(Notification): create system notification when explicitly enabled (#34454))
 	def create_system_notification(self, doc, context):
 		subject = self.subject
 		if "{" in subject:
