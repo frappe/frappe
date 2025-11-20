@@ -1,11 +1,11 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import json
 from contextlib import contextmanager
 
 import frappe
 import frappe.utils
-import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests.utils import FrappeTestCase
 
@@ -21,9 +21,6 @@ def get_test_notification(config):
 		notification.delete()
 
 
-<<<<<<< HEAD
-class TestNotification(FrappeTestCase):
-=======
 @contextmanager
 def get_test_doctype_with_attach_field(doctype_name="Test Attach Doctype"):
 	"""Create a temporary doctype with an attach field for testing."""
@@ -69,8 +66,7 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 		frappe.db.commit()
 
 
-class TestNotification(IntegrationTestCase):
->>>>>>> 93bff464bd (feat: add attachments to notification (#34197))
+class TestNotification(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")

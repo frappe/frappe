@@ -289,48 +289,6 @@
    "fieldtype": "Select",
    "label": "Message Type",
    "options": "Markdown\nHTML\nPlain Text"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
-   "description": "Send alert if datetime matches this field's value",
-   "fieldname": "datetime_changed",
-   "fieldtype": "Select",
-   "label": "Reference Datetime"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
-   "description": "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence.",
-   "fieldname": "minutes_offset",
-   "fieldtype": "Int",
-   "label": "Minutes Offset"
-  },
-  {
-   "depends_on": "eval:doc.document_type && (doc.event==\"Minutes After\" || doc.event==\"Minutes Before\")",
-   "fieldname": "datetime_last_run",
-   "fieldtype": "Datetime",
-   "label": "Last Run",
-   "read_only": 1
-  },
-  {
-   "default": "Python",
-   "fieldname": "condition_type",
-   "fieldtype": "Select",
-   "label": "Condition Type",
-   "options": "Python\nFilters"
-  },
-  {
-   "depends_on": "eval:doc.condition_type===\"Filters\"",
-   "fieldname": "filters_editor",
-   "fieldtype": "HTML",
-   "label": "Filters Editor"
-  },
-  {
-   "fieldname": "filters_section",
-   "fieldtype": "Section Break",
-   "label": "Filters"
   },
   {
    "fieldname": "column_break_llcs",
@@ -348,17 +306,12 @@
    "fieldtype": "Select",
    "label": "From Attach Field",
    "mandatory_depends_on": "eval:doc.attach_files === \"From Field\""
->>>>>>> 93bff464bd (feat: add attachments to notification (#34197))
   }
  ],
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-07-04 05:53:40.595130",
-=======
  "modified": "2025-10-21 23:14:52.345857",
->>>>>>> 93bff464bd (feat: add attachments to notification (#34197))
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

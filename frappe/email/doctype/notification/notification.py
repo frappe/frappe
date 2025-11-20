@@ -52,11 +52,7 @@ class Notification(Document):
 			"Method",
 			"Custom",
 		]
-<<<<<<< HEAD
-=======
-		filters: DF.Code | None
 		from_attach_field: DF.Literal[None]
->>>>>>> 93bff464bd (feat: add attachments to notification (#34197))
 		is_standard: DF.Check
 		message: DF.Code | None
 		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
