@@ -154,7 +154,15 @@ function add_existing_filter(frm, df) {
 }
 
 function edit_filters() {
-	let field_doctype = props.field.df.options;
+	const field_doctype = props.field.df.options;
+
+	if (!field_doctype) {
+		frappe.throw({
+			message: __("Please select a DocType in options before setting filters"),
+			title: __("DocType Missing"),
+		});
+	}
+
 	const { frm } = store;
 
 	make_dialog(frm);
@@ -329,10 +337,20 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		}
 	}
 }
+
 .btn-filter-applied {
 	background-color: var(--gray-300) !important;
+
 	&:hover {
 		background-color: var(--gray-400) !important;
+	}
+
+	[data-theme="dark"] & {
+		background-color: var(--gray-700) !important;
+
+		&:hover {
+			background-color: var(--gray-800) !important;
+		}
 	}
 }
 </style>

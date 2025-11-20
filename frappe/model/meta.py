@@ -420,11 +420,6 @@ class Meta(Document):
 		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
-		"""
-		Property Setters are set via Customize Form. They override standard properties
-		of the doctype or its child properties like fields, links etc. This method
-		applies the customized properties over the standard meta object
-		"""
 		if not frappe.db.table_exists("Property Setter"):
 			return
 

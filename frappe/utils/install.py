@@ -196,3 +196,21 @@ def auto_generate_icons_and_sidebar(app_name=None):
 		frappe.db.commit()  # nosemgrep
 	except Exception as e:
 		print(f"Error creating icons {e}")
+
+
+def delete_desktop_icon(app_name):
+	frappe.get_hooks(app_name=app_name)
+	app_title = frappe.get_hooks(app_name=app_name)["app_title"][0]
+	icons_to_be_deleted = frappe.get_all(
+		"Desktop Icon",
+		pluck="name",
+		or_filters=[
+			["Desktop Icon", "name", "=", app_title],
+			["Desktop Icon", "parent_icon", "=", app_title],
+		],
+	)
+	print("Deleting Desktop Icons")
+	for icon in icons_to_be_deleted:
+		frappe.delete_doc_if_exists("Desktop Icon", icon)
+	# Delete icons
+	frappe.db.commit()  # nosemgrep

@@ -17,6 +17,7 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -63,7 +64,8 @@ website_route_rules = [
 ]
 
 website_redirects = [
-	{"source": r"/app(.*)", "target": r"/desk\1"},
+	{"source": r"/app/(.*)", "target": r"/desk/\1"},
+	{"source": "/apps", "target": "/desk"},
 ]
 
 base_template = "templates/base.html"

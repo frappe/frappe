@@ -3,6 +3,7 @@
 
 import re
 import string
+from collections.abc import KeysView, ValuesView
 from functools import cached_property, wraps
 
 import frappe
@@ -31,6 +32,10 @@ QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 def convert_to_value(o: FilterValue):
 	if isinstance(o, bool):
 		return int(o)
+	elif isinstance(o, dict):
+		return frappe.as_json(o)
+	elif isinstance(o, (KeysView, ValuesView)):
+		return tuple(convert_to_value(item) for item in o)
 	return o
 
 
@@ -51,6 +56,28 @@ def get_doctype_name(table_name: str) -> str:
 		table_name = table_name.replace("tab", "", 1)
 	table_name = table_name.replace("`", "")
 	return table_name.replace('"', "")
+
+
+def get_doctype_sort_info(doctype: str) -> tuple[str, str]:
+	"""
+	Get sort_field and sort_order for a DocType from meta.
+
+	Args:
+		doctype: The DocType name
+
+	Returns:
+		Tuple of (sort_field, sort_order) with defaults ("creation", "DESC") if not found
+	"""
+	from frappe.database.query import CORE_DOCTYPES
+
+	if doctype in CORE_DOCTYPES:
+		return "creation", "DESC"
+
+	try:
+		meta = frappe.get_meta(doctype)
+		return meta.sort_field or "creation", meta.sort_order or "DESC"
+	except frappe.DoesNotExistError:
+		return "creation", "DESC"
 
 
 class LazyString:

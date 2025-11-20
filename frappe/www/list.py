@@ -239,8 +239,10 @@ def get_list(
 	if not filters:
 		filters = []
 
+	distinct = False
 	if not fields:
-		fields = "distinct *"
+		fields = "*"
+		distinct = True
 
 	if or_filters is None:
 		or_filters = []
@@ -267,4 +269,5 @@ def get_list(
 		limit_page_length=limit_page_length,
 		ignore_permissions=ignore_permissions,
 		order_by=order_by,
+		distinct=distinct,
 	)

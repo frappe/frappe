@@ -2,11 +2,16 @@
     class="sidebar-item-container {%= item.is_editable ? 'is-draggable' : '' %} {% if (item.type == 'Section Break') { %}section-item{% } %}"
     item-name="{{ item.label }}"
     data-id="{{ item.label }}"
+    title="{{ item.label }}"
+    data-toggle="tooltip"
+    data-placement="right"
 >
-    <div class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
+    <div
+        class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
+
         {% if (item.type == "Section Break" && item.indent != 1) { %}
             <div class="divider hidden"></div>
-            <div class="item-anchor section-break" title="{{ item.label }}">
+            <div class="item-anchor section-break">
                 <span class="sidebar-item-label">{{ item.label }}</span>
                 <div class="sidebar-item-control"></div>
             </div>
@@ -19,7 +24,6 @@
                 href="{{ path }}"
                 target="{%= item.link_type === "URL" ? "_blank" : "" %}"
                 class="item-anchor"
-                title="{{ item.label }}"
             >
                 {% let icon = item.icon %}
                 {% if (item.show_arrow) { %}

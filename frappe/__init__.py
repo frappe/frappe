@@ -1355,9 +1355,9 @@ def get_list(doctype, *args, **kwargs):
 	        # filter as a list of lists
 	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 	"""
-	import frappe.model.db_query
+	import frappe.model.qb_query
 
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
+	return frappe.model.qb_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
 def get_all(doctype, *args, **kwargs):

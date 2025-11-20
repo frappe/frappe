@@ -5,7 +5,7 @@
 	padding: 8px;
 	height: 48px;
 	button {
-		margin-left: 12px;
+		margin-left: 8px;
 		@include truncate();
 	}
 }
@@ -32,12 +32,24 @@
 .title-container {
 	flex: 1 1 0%;
 	margin-left: 8px;
+	display: flex;
+	flex-direction: column;
+	text-align: left;
 	@include truncate();
 }
 .header-title {
 	font-weight: 500;
 	line-height: 1;
 	@include truncate();
+	overflow: unset;
+}
+
+.header-subtitle {
+	color: var(--ink-gray-6);
+	font-size: var(--text-sm);
+	@include truncate();
+	line-height: 1;
+	margin-top: 4px;
 }
 
 .sidebar-header-menu {
@@ -82,9 +94,4 @@
 		text-wrap: nowrap;
 		overflow: hidden;
 	}
-}
-
-.header-subtitle {
-	color: var(--ink-gray-6);
-	font-size: var(--text-sm);
 }
