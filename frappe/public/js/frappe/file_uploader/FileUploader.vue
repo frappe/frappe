@@ -630,11 +630,10 @@ function upload_file(file, i) {
 				} else if (xhr.status === 417) {
 					// regular frappe.throw() in backend
 					file.failed = true;
-					file.error_message = null;
 					let response = parse_error_response(xhr.responseText);
-					if (response.server_messages.length) {
-						file.error_message = response.server_messages.join("\n");
-					}
+					file.error_message = response.server_messages.length
+						? response.server_messages.join("\n")
+						: __("File upload failed.");
 				} else {
 					file.failed = true;
 					file.error_message =
