@@ -208,7 +208,7 @@ frappe.dashboard_utils = {
 			: null;
 
 		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
-			return filters;
+			return this.cleanup_filters(filters);
 		}
 
 		if (Array.isArray(dynamic_filters)) {
@@ -232,9 +232,15 @@ frappe.dashboard_utils = {
 			Object.assign(filters, dynamic_filters);
 		}
 
+		return this.cleanup_filters(filters);
+	},
+	cleanup_filters(filters) {
+		if (filters.length && filters[0].length == 5) {
+			filters.pop();
+			return filters;
+		}
 		return filters;
 	},
-
 	get_dashboard_link_field() {
 		let field = {
 			label: __("Select Dashboard"),

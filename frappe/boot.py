@@ -575,8 +575,8 @@ def get_sidebar_items():
 			):
 				sidebar_items[s["name"].lower()]["items"].append(workspace_sidebar)
 
-	old_name = f"my workspaces-{frappe.session.user}"
-	if old_name in sidebar_items:
+	old_name = f"my workspaces-{frappe.session.user.lower()}"
+	if old_name in sidebar_items.keys():
 		sidebar_items["my workspaces"] = sidebar_items.pop(old_name)
 	return sidebar_items
 

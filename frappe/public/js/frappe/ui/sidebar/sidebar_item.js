@@ -186,6 +186,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
+				if (me.item.indent) {
+					me.close();
+				}
 			}
 		});
 	}

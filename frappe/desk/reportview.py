@@ -738,10 +738,12 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:
+			from frappe.query_builder import Field, functions
+
 			tagcount = frappe.get_list(
 				doctype,
 				fields=[tag["name"], {"COUNT": "*"}],
-				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
+				filters=[*filters, functions.IfNull(Field(tag["name"]), "") != ""],
 				group_by=tag["name"],
 				as_list=True,
 			)

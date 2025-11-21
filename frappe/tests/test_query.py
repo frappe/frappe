@@ -1889,6 +1889,29 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` IS NULL AND `tabDocType`.`parent`<>''",
 		)
 
+	def test_field_alias_in_group_by(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields=["creation as created_date", {"COUNT": "*"}],
+			group_by="created_date",
+			order_by="created_date",
+		)
+
+		sql = query.get_sql()
+		self.assertIn("GROUP BY `created_date`", sql)
+		self.assertIn("ORDER BY `created_date`", sql)
+		self.assertIn("`creation` `created_date`", sql)
+
+	def test_field_alias_permission_check(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields=["creation as created_date", {"COUNT": "*"}],
+			group_by="created_date",
+		)
+		sql = query.get_sql()
+		# If we get here without PermissionError, the test passes
+		self.assertIn("GROUP BY `created_date`", sql)
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):

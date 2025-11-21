@@ -199,6 +199,7 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.function_aliases = set()
+		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 
 		if isinstance(table, Table):
@@ -259,6 +260,12 @@ class Engine:
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
+
+		# Track field aliases for use in group_by/order_by
+		for field in self.fields:
+			if isinstance(field, Field) and field.alias:
+				self.field_aliases.add(field.alias)
+
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
 
@@ -875,6 +882,8 @@ class Engine:
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
 		elif isinstance(fields, list | tuple):
 			for item in fields:
+				if item is None:
+					continue
 				if isinstance(item, str) and "," in item:
 					# Split comma-separated strings within the list
 					initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(item) if f.strip())
@@ -1076,8 +1085,8 @@ class Engine:
 			# For numeric field references, return as-is (will be handled by caller)
 			return field_name
 
-		# Allow function aliases - return as Field (no table prefix)
-		if field_name in self.function_aliases:
+		# Allow function aliases and field aliases - return as Field (no table prefix)
+		if field_name in self.function_aliases or field_name in self.field_aliases:
 			return Field(field_name)
 
 		# Parse backtick table.field notation: `tabDocType`.`fieldname`

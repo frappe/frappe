@@ -22,9 +22,12 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 10px 20px 10px 20px; /* Add padding if needed */
+    padding: 10px 20px 10px 20px;
     box-sizing: border-box;
     height: 52px;
+    position: sticky;
+    top: 0px;
+    z-index: 1030;
 }
 
 .desktop-search-wrapper{
