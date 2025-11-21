@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-17 12:21\n"
+"PO-Revision-Date: 2025-11-21 12:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3206,7 +3206,7 @@ msgstr "Die automatische Verknüpfung kann nur aktiviert werden, wenn Eingehend 
 
 #: frappe/email/doctype/email_queue/email_queue.js:49
 msgid "Automatic sending of emails is disabled via site config."
-msgstr ""
+msgstr "Der automatische E-Mail-Versand ist in site_config deaktiviert."
 
 #. Description of a DocType
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
