@@ -42,7 +42,12 @@ describe(
 			cy.login();
 			cy.visit(`/desk/note/new`);
 			// close the sidebar cause default is expanded
-			cy.get(".body-sidebar .collapse-sidebar-link").click();
+			cy.get(".body-sidebar-container").then(($sidebar) => {
+				if ($sidebar.hasClass("expanded")) {
+					cy.get(".body-sidebar .collapse-sidebar-link").click();
+					cy.get(".body-sidebar-container").should("not.have.class", "expanded");
+				}
+			});
 		});
 
 		test_button_names.forEach((button_name) => {
