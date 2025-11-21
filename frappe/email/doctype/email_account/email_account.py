@@ -1060,3 +1060,167 @@ def on_doctype_update() -> None:
 		["email_id", "enable_incoming", "enable_outgoing"],
 		constraint_name="unique_email_account_type",
 	)
+
+@frappe.whitelist()
+def get_opportunity_replies(opportunity_name: str, email_account: str | None=None)-> dict:
+    """Get all email replies linked to an opportunity."""
+    if not email_account:
+        email_account= frappe.db.get_value(
+            "Email Account",
+            {"enable_incoming": 1, "default_incoming": 1},
+            "name"
+        )
+        if not email_account:
+            frappe.throw("No default incoming email account found. Please enable and set a default incoming email account.")
+
+    if not opportunity_name:
+        frappe.throw("Opportunity name is required")
+
+    sent_comm = frappe.get_all(
+        "Communication",
+        filters={
+            "reference_doctype": "Opportunity",
+            "reference_name": opportunity_name,
+            "sent_or_received": "Sent",
+        },
+        fields=["subject", "sender", "content", "creation"],
+        order_by="creation desc",
+        limit=1,
+    )
+
+    if not sent_comm:
+         return {
+            "saved": 0,
+            "already_exist": 0,
+            "errors": [],
+            "status": "no_sent_email",
+            "message": "you didn't sent Email for this Opportunity"
+        }
+
+    try:
+        acc = frappe.get_doc("Email Account", email_account)
+
+        if acc.use_ssl:
+            M = imaplib.IMAP4_SSL(acc.email_server, int(acc.incoming_port))
+        else:
+            M = imaplib.IMAP4(acc.email_server, int(acc.incoming_port))
+
+        M.login(acc.email_id, acc.get_password())
+        M.select("INBOX")
+
+    except Exception as e:
+        frappe.throw(f"Failed to connect to email account: {str(e)}")
+
+    subject = sent_comm[0]["subject"].replace('"', "'")
+    search_subject = f'SUBJECT "{subject}"'
+
+    try:
+        status, email_ids = M.search(None, search_subject)
+    except Exception as e:
+        M.logout()
+        frappe.throw(f"Failed to search emails: {str(e)}")
+
+    email_list = email_ids[0].split() if email_ids[0] else []
+
+    if not email_list:
+        M.logout()
+        frappe.msgprint("No reply emails found")
+        return {
+            "saved": 0,
+            "already_exist": 0,
+            "errors": [],
+            "status": "no_reply_found",
+            "message": "No reply emails found"
+        }
+
+    saved_count = 0
+    already_exist = 0
+    errors = []
+
+    for email_id in email_list:
+
+        try:
+            status, uid_response = M.fetch(email_id, "(UID)")
+            if status != "OK":
+                continue
+
+            uid_str = uid_response[0].decode().split()
+            uid = uid_str[-1].rstrip(')') if uid_str else email_id.decode()
+
+            # Fetch full email
+            status, msg_data = M.fetch(email_id, "(RFC822)")
+            if status != "OK":
+                continue
+
+            raw_email = msg_data[0][1]
+            inbound = InboundMail(raw_email, acc)
+            sender = inbound.from_email
+            subject = inbound.subject
+            date = inbound.date
+            body = inbound.get_content()
+
+            # Check if already exists with uid and reference_name
+            existing = frappe.get_list("Communication",
+                filters={
+                    "reference_doctype": "Opportunity",
+                    "reference_name": opportunity_name,
+                    "sent_or_received": "Received",
+                    "uid": uid
+                },
+                limit=1
+            )
+
+            if existing:
+                already_exist += 1
+                continue
+
+            # Create New Communication
+            comm = frappe.get_doc({
+                "doctype": "Communication",
+                "communication_type": "Communication",
+                "communication_medium": "Email",
+                "sent_or_received": "Received",
+                "email_account": email_account,
+                "sender": sender,
+                "subject": subject,
+                "content": body,
+                "reference_doctype": "Opportunity",
+                "reference_name": opportunity_name,
+                "status": "Open",
+                "uid": uid,
+
+            })
+
+            comm.insert(ignore_permissions=True)
+            frappe.db.commit()
+            saved_count += 1
+
+        except Exception as e:
+            status = "failed"
+            errors.append(f"Error processing email {email_id}: {str(e)}")
+            continue
+
+    M.logout()
+
+    status = "success"
+
+    if saved_count == 0:
+        frappe.msgprint(f"{opportunity_name} has no replies yet")
+    else:
+        try:
+            opp = frappe.get_doc("Opportunity", opportunity_name)
+            opp.status =  "Replied"
+            opp.save(ignore_permissions=True)
+            frappe.db.commit()
+
+        except Exception as e:
+            status = "failed"
+            errors.append(f"Error updating opportunity: {str(e)}")
+
+    result ={
+        "saved": saved_count,
+        "already_exist": already_exist,
+        "errors": errors,
+        "status": status
+    }
+    return result
