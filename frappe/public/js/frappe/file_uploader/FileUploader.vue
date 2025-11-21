@@ -599,13 +599,13 @@ function upload_file(file, i) {
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
-					file.error_message = `Not permitted. ${response.error_message || ""}.`;
+					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
 					file.failed = true;
-					file.error_message = "Size exceeds the maximum allowed file size.";
+					file.error_message = __("Size exceeds the maximum allowed file size.");
 				} else if (xhr.status === 417) {
 					// regular frappe.throw() in backend
 					file.failed = true;
@@ -617,7 +617,7 @@ function upload_file(file, i) {
 					file.failed = true;
 					file.error_message =
 						xhr.status === 0
-							? "XMLHttpRequest Error"
+							? __("XMLHttpRequest Error")
 							: `${xhr.status} : ${xhr.statusText}`;
 
 					let error = null;
