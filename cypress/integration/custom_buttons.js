@@ -11,18 +11,19 @@ const add_button = (label, group = "TestGroup") => {
 	cy.window()
 		.its("cur_frm")
 		.then((frm) => {
+			// Add custom button inside the specified group
 			frm.add_custom_button(label, () => {}, group);
 		});
 };
 
 const check_button_count = (label, group = "TestGroup") => {
-	// Verify main buttons
+	// Verify main (desktop) buttons
 	cy.findByRole("button", { name: group }).click();
 	cy.get(`[data-label="${encodeURIComponent(label)}"]`)
 		.should("have.length", 1)
 		.should("be.visible");
 
-	// Verify dropdown buttons in mobile view
+	// Verify dropdown menu in mobile view
 	cy.viewport(420, 900);
 	const dropdown_btn_label = `${group} > ${label}`;
 	cy.get(".menu-btn-group > .btn").click();
@@ -30,7 +31,7 @@ const check_button_count = (label, group = "TestGroup") => {
 		.should("have.length", 1)
 		.should("be.visible");
 
-	//reset viewport
+	// Reset viewport to original
 	cy.viewport(Cypress.config("viewportWidth"), Cypress.config("viewportHeight"));
 };
 
@@ -49,10 +50,11 @@ describe(
 
 		test_button_names.forEach((button_name) => {
 			it(`Custom button works with name '${button_name}'`, () => {
+				// First add button and verify
 				add_button(button_name);
 				check_button_count(button_name);
 
-				// duplicate button shouldn't be added
+				// Adding duplicate button should NOT create multiple buttons
 				add_button(button_name);
 				check_button_count(button_name);
 			});
