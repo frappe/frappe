@@ -55,13 +55,6 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
-<<<<<<< HEAD
-=======
-	def before_export(self, doc):
-		doc.letter_head = None
-		doc.prepared_report = 0
-
->>>>>>> cbd9a14425 (fix: prevent Letter Head from being exported in standard report (#34767))
 	def on_trash(self):
 		if (
 			self.is_standard == "Yes"
