@@ -704,20 +704,27 @@ function upload_file(file, i) {
 	});
 }
 function parse_error_response(response_text) {
-	let response = JSON.parse(response_text);
-	let error_message = response._error_message;
+	let error_message = "";
 	let server_messages = [];
 
 	try {
-		server_messages.push(
-			...JSON.parse(response._server_messages).map((m) => {
-				let parsed = JSON.parse(m);
-				return parsed.message;
-			})
-		);
+		let response = JSON.parse(response_text);
+		error_message = response._error_message;
+
+		try {
+			server_messages.push(
+				...JSON.parse(response._server_messages).map((m) => {
+					let parsed = JSON.parse(m);
+					return parsed.message;
+				})
+			);
+		} catch (e) {
+			console.warning("Failed to parse server message", e);
+		}
 	} catch (e) {
-		console.warning("Failed to parse server message", e);
+		console.warning("Failed to parse error response", e);
 	}
+
 	return {
 		error_message,
 		server_messages,
