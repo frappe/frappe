@@ -849,7 +849,7 @@ def get_site_info():
 	kwargs = {
 		"fields": ["user", "creation", "full_name"],
 		"filters": {"operation": "Login", "status": "Success"},
-		"limit": "10",
+		"limit": 10,
 	}
 
 	site_info = {

@@ -126,6 +126,10 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
+		# TODO: extract_fieldnames needs to handle dict fields for qb_query aggregations
+		if isinstance(field, dict):
+			continue
+
 		fieldname = extract_fieldnames(field)[0]
 		if not fieldname:
 			raise_invalid_field(fieldname)
@@ -686,7 +690,7 @@ def get_stats(stats, doctype, filters=None):
 		try:
 			tag_count = frappe.get_list(
 				doctype,
-				fields=[column, "count(*)"],
+				fields=[column, {"COUNT": "*"}],
 				filters=[*filters, [column, "!=", ""]],
 				group_by=column,
 				as_list=True,
@@ -697,7 +701,7 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[column, "count(*)"],
+					fields=[column, {"COUNT": "1"}],
 					filters=[*filters, [column, "in", ("", ",")]],
 					as_list=True,
 					group_by=column,
@@ -734,10 +738,12 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:
+			from frappe.query_builder import Field, functions
+
 			tagcount = frappe.get_list(
 				doctype,
-				fields=[tag["name"], "count(*)"],
-				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
+				fields=[tag["name"], {"COUNT": "*"}],
+				filters=[*filters, functions.IfNull(Field(tag["name"]), "") != ""],
 				group_by=tag["name"],
 				as_list=True,
 			)
@@ -758,7 +764,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 					"No Data",
 					frappe.get_list(
 						doctype,
-						fields=[tag["name"], "count(*)"],
+						fields=[tag["name"], {"COUNT": "*"}],
 						filters=[*filters, "({0} = '' or {0} is null)".format(tag["name"])],
 						as_list=True,
 					)[0][1],

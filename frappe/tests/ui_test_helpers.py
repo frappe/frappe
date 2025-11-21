@@ -1,3 +1,5 @@
+import os
+
 import frappe
 from frappe import _
 from frappe.permissions import AUTOMATIC_ROLES
@@ -8,8 +10,10 @@ UI_TEST_USER = "frappe@example.com"
 
 
 def whitelist_for_tests(fn):
-	if frappe.request and not frappe.in_test and not frappe._dev_server:
-		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
+	if frappe.request and not (frappe._dev_server and (frappe.conf.allow_tests or os.environ.get("CI"))):
+		frappe.throw(  # nosemgrep: frappe-missing-translate-function-python
+			'Cannot run UI tests. Use a development server with "bench start" and ensure that the "allow_tests" site config is enabled.'
+		)
 
 	return frappe.whitelist()(fn)
 

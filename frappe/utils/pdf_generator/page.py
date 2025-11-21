@@ -3,6 +3,7 @@ import time
 import urllib
 
 import frappe
+from frappe.utils.pdf import get_host_url
 
 """
 CDP commands documentation can be found here.
@@ -124,8 +125,8 @@ class Page:
 				data["request_id"] = params["requestId"]
 				url = params["request"]["url"]
 
-				if url.startswith(frappe.request.host_url):
-					path = url.replace(frappe.request.host_url, "").split("?v", 1)[0]
+				if url.startswith(get_host_url()):
+					path = url.replace(get_host_url(), "").split("?v", 1)[0]
 					if path.startswith("assets/") or path.startswith("files/"):
 						path = urllib.parse.unquote(path)
 						if path.startswith("files/"):

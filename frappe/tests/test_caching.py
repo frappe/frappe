@@ -25,14 +25,14 @@ def request_specific_api(a: list | tuple | dict | int, b: int) -> int:
 @site_cache
 def ping() -> str:
 	register_with_external_service(frappe.local.site)
-	return frappe.local.site
+	return "pong"
 
 
 @frappe.whitelist(allow_guest=True)
 @site_cache(ttl=CACHE_TTL)
 def ping_with_ttl() -> str:
 	register_with_external_service(frappe.local.site)
-	return frappe.local.site
+	return "pong"
 
 
 class TestCachingUtils(IntegrationTestCase):

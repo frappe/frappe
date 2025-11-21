@@ -8,7 +8,7 @@
  "doctype": "Dashboard Chart",
  "document_type": "Activity Log",
  "dynamic_filters_json": "[]",
- "filters_json": "[[\"Activity Log\",\"status\",\"=\",\"Success\",false]]",
+ "filters_json": "[[\"Activity Log\",\"status\",\"=\",\"Success\"]]",
  "group_by_type": "Count",
  "idx": 0,
  "is_public": 0,

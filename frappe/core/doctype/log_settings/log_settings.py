@@ -147,18 +147,6 @@ def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	return supported_doctypes[start:page_len]
 
 
-LOG_DOCTYPES = [
-	"Scheduled Job Log",
-	"Activity Log",
-	"Route History",
-	"Email Queue",
-	"Email Queue Recipient",
-	"Error Log",
-	"OAuth Bearer Token",
-	"API Request Log",
-]
-
-
 def clear_log_table(doctype, days=90):
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
@@ -168,7 +156,7 @@ def clear_log_table(doctype, days=90):
 	"""
 	from frappe.utils import get_table_name
 
-	if doctype not in LOG_DOCTYPES:
+	if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
 		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 	original = get_table_name(doctype)
