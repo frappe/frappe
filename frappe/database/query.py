@@ -1480,7 +1480,12 @@ class Engine:
 			return "''"
 
 		if df is None:
-			return "''"
+			# Try to get standard field definition
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+			if df is None:
+				return "''"
 
 		fieldtype = df.fieldtype
 
