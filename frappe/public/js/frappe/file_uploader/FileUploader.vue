@@ -709,7 +709,7 @@ function parse_error_response(response_text) {
 
 	try {
 		let response = JSON.parse(response_text);
-		error_message = response._error_message;
+		error_message = response._error_message || "";
 
 		try {
 			server_messages.push(
