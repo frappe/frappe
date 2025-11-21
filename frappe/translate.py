@@ -210,6 +210,8 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 		csv_content = read_csv_file(path)
 
 		for item in csv_content:
+			item[0] = item[0].replace("\\n", "\n")
+			item[1] = item[1].replace("\\n", "\n")
 			if len(item) == 3 and item[2]:
 				key = item[0] + ":" + item[2]
 				translation_map[key] = strip(item[1])
@@ -695,9 +697,9 @@ def write_csv_file(path, app_messages, lang_dict):
 			if len(app_message) == 2:
 				path, message = app_message
 			elif len(app_message) == 3:
-				path, message, lineno = app_message
+				path, message, _lineno = app_message
 			elif len(app_message) == 4:
-				path, message, context, lineno = app_message
+				path, message, context, _lineno = app_message
 			else:
 				continue
 

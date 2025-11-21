@@ -924,7 +924,7 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 
 def get_doc_hooks():
 	"""Return hooked methods for given doc. Expand the dict tuple if required."""
-	if not hasattr(local, "doc_events_hooks"):
+	if not getattr(local, "doc_events_hooks", None):
 		hooks = get_hooks("doc_events", {})
 		out = {}
 		for key, value in hooks.items():
@@ -1355,9 +1355,9 @@ def get_list(doctype, *args, **kwargs):
 	        # filter as a list of lists
 	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 	"""
-	import frappe.model.db_query
+	import frappe.model.qb_query
 
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
+	return frappe.model.qb_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
 def get_all(doctype, *args, **kwargs):

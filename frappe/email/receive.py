@@ -205,7 +205,7 @@ class EmailServer:
 			readonly = self.settings.email_sync_rule != "UNSEEN"
 
 			self.imap.select(folder, readonly=readonly)
-			response, message = self.imap.uid("search", None, self.settings.email_sync_rule)
+			_response, message = self.imap.uid("search", None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list = message[0].split()
 		else:
@@ -217,7 +217,7 @@ class EmailServer:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
-		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
+		_response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
 		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
@@ -270,7 +270,7 @@ class EmailServer:
 	def retrieve_message(self, uid, msg_num, folder):
 		try:
 			if cint(self.settings.use_imap):
-				status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
+				_status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
 				raw = message[0]
 
 				self.get_email_seen_status(uid, raw[0])
@@ -446,6 +446,15 @@ class Email:
 		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
 		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
+		if not _from_email:
+			# happens in some cases when email server is misconfigured
+			# should not fail the entire syncing process
+			frappe.log_error(
+				f"Email missing `From` header. UID: {getattr(self, 'uid', 'unknown')}", str(self.mail)
+			)
+			self.from_email = None
+			return
+
 		if _reply_to and not frappe.db.get_value(
 			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
 		):
@@ -453,9 +462,7 @@ class Email:
 		else:
 			self.from_email = extract_email_id(_from_email)
 
-		if self.from_email:
-			self.from_email = self.from_email.lower()
-
+		self.from_email = self.from_email.lower()
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
 	@staticmethod
@@ -713,7 +720,9 @@ class InboundMail(Email):
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(message_id=self.message_id, order_by="creation DESC")
+		return Communication.find_one_by_filters(
+			message_id=self.message_id, sent_or_received="Received", order_by="creation DESC"
+		)
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
@@ -759,7 +768,9 @@ class InboundMail(Email):
 		if not self.is_reply():
 			return ""
 
-		communication = Communication.find_one_by_filters(message_id=self.in_reply_to)
+		communication = Communication.find_one_by_filters(
+			message_id=self.in_reply_to, order_by="creation DESC"
+		)
 		if not communication:
 			if self.parent_email_queue() and self.parent_email_queue().communication:
 				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)

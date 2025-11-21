@@ -7,17 +7,13 @@ frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.f
 			//for dialog box
 			options = cur_dialog.get_value(this.df.options);
 		} else if (!cur_frm) {
-			const selector = `input[data-fieldname="${this.df.options}"]`;
-			let input = null;
 			if (cur_list) {
 				// for list page
-				input = cur_list.filter_area.standard_filters_wrapper.find(selector);
-			}
-			if (cur_page) {
-				input = $(cur_page.page).find(selector);
-			}
-			if (input) {
-				options = input.val();
+				options = cur_list.page.fields_dict[this.df.options].get_input_value();
+			} else if (cur_page) {
+				const selector = `input[data-fieldname="${this.df.options}"]`;
+				let input = $(cur_page.page).find(selector);
+				options = input.length ? input.val() : null;
 			}
 		} else {
 			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);

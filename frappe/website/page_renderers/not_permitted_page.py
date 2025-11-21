@@ -17,7 +17,7 @@ class NotPermittedPage(TemplatePage):
 
 	def render(self):
 		action = f"/login?redirect-to={quote_plus(frappe.request.path)}"
-		if frappe.request.path.startswith("/app/") or frappe.request.path == "/app":
+		if frappe.request.path.startswith("/app/") or frappe.request.path == "/desk":
 			action = "/login"
 		frappe.local.message_title = _("Not Permitted")
 		frappe.local.response["context"] = dict(

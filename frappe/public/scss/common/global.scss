@@ -26,6 +26,23 @@ body {
 	.disp-area {
 		display: flex;
 	}
+
+	.input-area {
+		padding-top: 2.5px;
+
+		@media (max-width: map-get($grid-breakpoints, "lg")) {
+			padding-top: 1px;
+		}
+	}
+
+	.help-box {
+		padding-left: 22px;
+		margin-top: 0px;
+
+		@media (max-width: map-get($grid-breakpoints, "lg")) {
+			padding-left: 26px;
+		}
+	}
 }
 
 .frappe-card {

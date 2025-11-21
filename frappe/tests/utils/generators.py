@@ -63,7 +63,7 @@ def get_missing_records_doctypes(doctype, visited=None) -> list[str]:
 	# Mark as visited
 	visited.add(doctype)
 
-	module, test_module = get_modules(doctype)
+	_module, test_module = get_modules(doctype)
 	meta = frappe.get_meta(doctype)
 	link_fields = meta.get_link_fields()
 
@@ -158,12 +158,11 @@ def _generate_records_for(
 	index_doctype: str, reset: bool = False, commit: bool = False, initial_doctype: str | None = None
 ) -> Generator[tuple[str, "Document"], None, None]:
 	"""Create and yield test records for a specific doctype."""
-	module: str
 	test_module: ModuleType
 
 	logstr = f" {index_doctype} via {initial_doctype}"
 
-	module, test_module = get_modules(index_doctype)
+	_module, test_module = get_modules(index_doctype)
 
 	# First prioriry: module's _make_test_records as an escape hatch
 	# to completely bypass the standard loading and create test records

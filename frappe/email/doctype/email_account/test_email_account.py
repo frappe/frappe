@@ -523,7 +523,7 @@ class TestInboundMail(IntegrationTestCase):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id)
+		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)

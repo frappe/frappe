@@ -3,14 +3,14 @@
 
 import frappe
 from frappe import _
+from frappe.query_builder import Field, functions
 
 
 @frappe.whitelist()
 def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	"""Recursively gets all data from tree nodes"""
 
-	if "cmd" in filters:
-		del filters["cmd"]
+	filters.pop("cmd", None)
 	filters.pop("data", None)
 
 	tree_method = frappe.get_attr(tree_method)
@@ -20,8 +20,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	data = tree_method(doctype, parent, **filters)
 	out = [dict(parent=label, data=data)]
 
-	if "is_root" in filters:
-		del filters["is_root"]
+	filters.pop("is_root", None)
 	to_check = [d.get("value") for d in data if d.get("expandable")]
 
 	while to_check:
@@ -44,23 +43,24 @@ def get_children(doctype, parent="", include_disabled=False, **filters):
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
 	parent_field = "parent_" + frappe.scrub(doctype)
-	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
-	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
-		filters.append(["disabled", "=", False])
-
 	meta = frappe.get_meta(doctype)
 
-	return frappe.get_list(
-		doctype,
-		fields=[
-			"name as value",
-			"{} as title".format(meta.get("title_field") or "name"),
-			"is_group as expandable",
-		],
-		filters=filters,
-		order_by="name",
-		ignore_permissions=ignore_permissions,
+	qb = (
+		frappe.qb.from_(doctype)
+		.select(
+			Field("name").as_("value"),
+			Field(meta.get("title_field") or "name").as_("title"),
+			Field("is_group").as_("expandable"),
+		)
+		.where(functions.IfNull(Field(parent_field), "").eq(parent))
+		.where(Field("docstatus") < 2)
 	)
+
+	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
+		qb = qb.where(Field("disabled").eq(False))
+
+	# Order by name and execute
+	return qb.orderby("name").run(as_dict=True)
 
 
 @frappe.whitelist()

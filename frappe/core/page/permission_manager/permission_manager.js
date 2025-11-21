@@ -132,13 +132,13 @@ frappe.PermissionEngine = class PermissionEngine {
 			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
 		let $wrapper = $("<p></p>").appendTo($d);
 		data.message.forEach((d) => {
-			let rights = this.rights
+			let custom_rights = this.options.doctype_ptype_map[doctype] || [];
+			d.rights = this.rights
 				.filter((r) => d[r])
+				.concat(custom_rights)
 				.map((r) => {
 					return __(toTitle(frappe.unscrub(r)));
 				});
-
-			d.rights = rights.join(", ");
 
 			$wrapper.append(`<div class="row">\
 				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
@@ -265,6 +265,10 @@ frappe.PermissionEngine = class PermissionEngine {
 				}
 			});
 
+			this.options.doctype_ptype_map[d.parent]?.forEach((r) => {
+				this.add_check(perm_container, d, r);
+			});
+
 			// buttons
 			this.add_delete_button(row, d);
 		});
@@ -280,7 +284,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	add_check(cell, d, fieldname, label, description = "") {
 		if (!label) label = toTitle(fieldname.replace(/_/g, " "));
-		if (d.permlevel > 0 && ["read", "write"].indexOf(fieldname) == -1) {
+		if (d.permlevel > 0 && ["read", "write", "mask"].indexOf(fieldname) == -1) {
 			return;
 		}
 
@@ -331,6 +335,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			"import",
 			"export",
 			"share",
+			"mask",
 		];
 	}
 

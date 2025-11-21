@@ -345,3 +345,13 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 }
+.modal-dialog-centered {
+	display: flex;
+	align-items: center;
+	min-height: calc(100% - 1rem);
+}
+@media (min-width: 576px) {
+	.modal-dialog-centered {
+		min-height: calc(100% - 3.5rem);
+	}
+}

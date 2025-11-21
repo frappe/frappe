@@ -1,3 +1,7 @@
+@mixin grid-focus() {
+	outline: none;
+	border: 1px solid var(--gray-400) !important;
+}
 .form-grid {
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
@@ -158,10 +162,12 @@
 	display: flex;
 	vertical-align: middle;
 }
-
+.grid-static-col:focus-visible {
+	@include grid-focus();
+}
 .grid-static-col,
 .row-index {
-	// height: 38px;
+	height: 43px;
 	max-height: 200px;
 
 	&.search {
@@ -298,7 +304,7 @@
 			border: 0px;
 			padding-top: 10px;
 			padding-bottom: 10px;
-			height: 38px;
+			height: auto;
 		}
 
 		.link-btn {
@@ -308,7 +314,6 @@
 
 		.form-control:focus {
 			border-color: $text-muted;
-			z-index: 2;
 		}
 
 		.has-error .form-control {
@@ -376,14 +381,6 @@
 		div[data-fieldname="options"],
 		div[data-fieldtype="Text Editor"] {
 			height: 40px;
-		}
-	}
-	.grid-row:not(.grid-row-open) {
-		.awesomplete > ul {
-			position: fixed !important;
-			left: auto !important;
-			top: auto;
-			width: 250px !important;
 		}
 	}
 	.grid-static-col {
@@ -679,14 +676,19 @@
 }
 .column-limit-reached {
 	background-color: var(--subtle-accent);
-	border-top-left-radius: var(--border-radius-md);
-	border-top-right-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-md);
 	border: 1px solid var(--table-border-color);
 	overflow-y: hidden;
 	.form-grid {
 		display: grid;
 		grid-auto-rows: min-content;
 		border: unset;
+		&:focus-visible {
+			@include grid-focus();
+		}
+		.grid-static-col .grid-body {
+			height: 40px;
+		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
 			width: 60px;

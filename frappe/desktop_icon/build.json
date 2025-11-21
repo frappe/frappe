@@ -1,0 +1,20 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 11:24:16.723769",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "hammer",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Build",
+ "link_to": "DocType",
+ "link_type": "DocType",
+ "modified": "2025-11-13 16:00:56.980768",
+ "modified_by": "Administrator",
+ "name": "Build",
+ "owner": "Administrator",
+ "parent_icon": "Frappe Framework",
+ "roles": [],
+ "standard": 1
+}

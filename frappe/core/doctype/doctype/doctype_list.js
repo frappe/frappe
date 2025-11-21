@@ -24,6 +24,7 @@ frappe.listview_settings["DocType"] = {
 				fieldtype: "Data",
 				reqd: 1,
 				default: doctype_name,
+				length: 61,
 			},
 			{ fieldtype: "Column Break" },
 			{

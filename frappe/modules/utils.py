@@ -6,6 +6,8 @@ Utilities for using modules
 
 import json
 import os
+import shutil
+from pathlib import Path
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
@@ -200,7 +202,11 @@ def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
 	"""Return path of a doc in a module."""
-	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
+	module_path = Path(get_module_path(module))
+	path = module_path / Path(*scrub_dt_dn(doctype, name))
+	if not path.resolve().is_relative_to(module_path.resolve()):
+		raise ValueError(_("Path {0} is not within module {1}").format(path, module))
+	return path.resolve()
 
 
 def reload_doc(
@@ -309,21 +315,22 @@ def make_boilerplate(
 		base_class_import = "from frappe.utils.nestedset import NestedSet"
 
 	if doc.get("is_virtual"):
-		controller_body = indent(
-			dedent(
-				"""
+		controller_body = """
 			def db_insert(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def load_from_db(self):
+			def load_from_db(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def db_update(self):
+			def db_update(self, *args, **kwargs):
 				raise NotImplementedError
 
-			def delete(self):
+			def delete(self, *args, **kwargs):
 				raise NotImplementedError
+		"""
 
+		if not doc.get("istable"):
+			controller_body += """
 			@staticmethod
 			def get_list(filters=None, page_length=20, **kwargs):
 				pass
@@ -336,9 +343,8 @@ def make_boilerplate(
 			def get_stats(**kwargs):
 				pass
 			"""
-			),
-			"\t",
-		)
+
+		controller_body = indent(dedent(controller_body), "\t")
 
 	with open(target_file_path, "w") as target, open(template_file_path) as source:
 		template = source.read()
@@ -353,3 +359,24 @@ def make_boilerplate(
 			custom_controller=controller_body,
 		)
 		target.write(frappe.as_unicode(controller_file_content))
+
+
+def create_directory_on_app_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	folder_path = os.path.join(app_path, folder_name)
+
+	if not os.path.exists(folder_path):
+		frappe.create_folder(folder_path)
+
+	return folder_path
+
+
+def get_app_level_directory_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	path = os.path.join(app_path, folder_name)
+	return path
+
+
+def delete_app_level_folder(folder_name, app_name):
+	path = get_app_level_directory_path(folder_name, app_name)
+	shutil.rmtree(path, ignore_errors=True)

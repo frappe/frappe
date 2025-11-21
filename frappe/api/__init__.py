@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from contextlib import suppress
 from enum import Enum
 
 from werkzeug.exceptions import NotFound
@@ -7,8 +8,8 @@ from werkzeug.routing import Map, Submount
 from werkzeug.wrappers import Request, Response
 
 import frappe
-import frappe.client
 from frappe import _
+from frappe.pulse.app_heartbeat_event import capture_app_heartbeat
 from frappe.utils.response import build_response
 
 
@@ -63,7 +64,12 @@ def handle(request: Request):
 
 	if data is not None:
 		frappe.response["data"] = data
-	return build_response("json")
+	data = build_response("json")
+
+	with suppress(Exception):
+		capture_app_heartbeat(arguments)
+
+	return data
 
 
 # Merge all API version routing rules

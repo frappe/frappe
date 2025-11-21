@@ -303,7 +303,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<kbd>↵</kbd>
 				</span>
 			`,
-			value: __("Search for {0}", [txt]),
+			value: __("Search for {0}", [frappe.utils.xss_sanitise(txt)]),
 			match: txt,
 			index: 100,
 			default: "Search",
@@ -328,7 +328,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					frappe.utils.xss_sanitise(txt).bold(),
 					__(route[1]).bold(),
 				]),
-				value: __("Find {0} in {1}", [txt, __(route[1])]),
+				value: __("Find {0} in {1}", [frappe.utils.xss_sanitise(txt), __(route[1])]),
 				route_options: options,
 				onclick: function () {
 					cur_list.show();
@@ -371,10 +371,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				// Adjust the result to the maximum number of decimal places found or default precision
 				var rounded_val = parseFloat(val.toFixed(maxDecimalPlaces));
 
-				var formatted_value = __("{0} = {1}", [txt, (rounded_val + "").bold()]);
+				var formatted_value = __("{0} = {1}", [
+					frappe.utils.xss_sanitise(txt),
+					(rounded_val + "").bold(),
+				]);
 				this.options.push({
 					label: formatted_value,
-					value: __("{0} = {1}", [txt, rounded_val]),
+					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), rounded_val]),
 					match: rounded_val,
 					index: 80,
 					default: "Calculator",

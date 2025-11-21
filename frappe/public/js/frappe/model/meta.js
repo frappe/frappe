@@ -149,9 +149,17 @@ $.extend(frappe.meta, {
 		return docfield_map && docfield_map[fn];
 	},
 
-	get_table_fields: function (dt) {
+	get_table_fields: function (dt, include_computed = false) {
 		return $.map(frappe.meta.docfield_list[dt], function (d) {
-			return frappe.model.table_fields.includes(d.fieldtype) ? d : null;
+			if (!frappe.model.table_fields.includes(d.fieldtype)) {
+				return null;
+			}
+
+			if (!include_computed && d.is_virtual) {
+				return null;
+			}
+
+			return d;
 		});
 	},
 
@@ -164,7 +172,7 @@ $.extend(frappe.meta, {
 			// found in parent
 			out = doctype;
 		} else {
-			frappe.meta.get_table_fields(doctype).every(function (d) {
+			frappe.meta.get_table_fields(doctype, true).every(function (d) {
 				if (
 					frappe.meta.has_field(d.options, key) ||
 					frappe.model.child_table_field_list.includes(key)

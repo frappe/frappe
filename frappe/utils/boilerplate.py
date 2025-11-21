@@ -564,6 +564,14 @@ app_license = "{app_license}"
 
 # before_tests = "{app_name}.install.before_tests"
 
+# Extend DocType Class
+# ------------------------------
+#
+# Specify custom mixins to extend the standard doctype controller.
+# extend_doctype_class = {{
+# 	"Task": "{app_name}.custom.task.CustomTaskMixin"
+# }}
+
 # Overriding Methods
 # ------------------------------
 #
@@ -634,6 +642,11 @@ app_license = "{app_license}"
 # default_log_clearing_doctypes = {{
 # 	"Logging DocType Name": 30  # days to retain logs
 # }}
+
+# Translation
+# ------------
+# List of apps whose translatable strings should be excluded from this app's translations.
+# ignore_translatable_strings_from = []
 
 """
 

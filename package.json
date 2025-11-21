@@ -55,6 +55,7 @@
     "frappe-datatable": "1.19.0",
     "frappe-gantt": "^0.6.0",
     "frappe-quill-image-resize": "^3.0.9",
+    "gemoji": "^8.1.0",
     "highlight.js": "^10.4.1",
     "html5-qrcode": "^2.3.8",
     "jquery": "3.7.0",

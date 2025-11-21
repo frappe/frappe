@@ -147,7 +147,7 @@ class PostgresTable(DBTable):
 			if isinstance(default, str):
 				default = frappe.db.escape(default)
 			change_nullability.append(
-				f"ALTER COLUMN \"{col.fieldname}\" {'SET' if col.not_nullable else 'DROP'} NOT NULL"
+				f'ALTER COLUMN "{col.fieldname}" {"SET" if col.not_nullable else "DROP"} NOT NULL'
 			)
 			change_nullability.append(f'ALTER COLUMN "{col.fieldname}" SET DEFAULT {default}')
 

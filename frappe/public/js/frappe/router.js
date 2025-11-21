@@ -28,6 +28,11 @@ $("body").on("click", "a", function (e) {
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
 
+	if (frappe.router.show_external_link_warning_if_needed(target_element)) {
+		e.preventDefault();
+		return; // warning shown
+	}
+
 	if (target_element.getAttribute("target") === "_blank") {
 		return;
 	}
@@ -102,7 +107,7 @@ frappe.router = {
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
 		if (path[0]) {
-			return path[0] === "app";
+			return path[0] === "desk";
 		}
 	},
 
@@ -139,11 +144,11 @@ frappe.router = {
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+
 		this.set_history(sub_path);
-		this.set_active_sidebar_item();
 		this.render();
 		this.set_title(sub_path);
-		this.trigger("change");
+		this.trigger("change", this);
 	},
 
 	async parse(route) {
@@ -197,7 +202,7 @@ frappe.router = {
 		return frappe.model.with_doctype(doctype_route.doctype).then(() => {
 			// doctype route
 			let meta = frappe.get_meta(doctype_route.doctype);
-
+			this.meta = meta;
 			if (route[1] && route[1] === "view" && route[2]) {
 				route = this.get_standard_route_for_list(
 					route,
@@ -284,10 +289,6 @@ frappe.router = {
 		frappe.ui.hide_open_dialog();
 	},
 
-	async set_active_sidebar_item() {
-		frappe.app.sidebar.set_active_workspace_item();
-	},
-
 	render() {
 		if (this.current_route[0]) {
 			this.render_page();
@@ -303,7 +304,6 @@ frappe.router = {
 
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
-
 		if (route[1] && frappe.views[factory + "Factory"]) {
 			route[0] = factory;
 			// has a view generator, generate!
@@ -462,9 +462,12 @@ frappe.router = {
 		}).join("/");
 
 		if (path_string) {
-			return "/app/" + path_string;
+			return "/desk/" + path_string;
 		}
 
+		if (params.length == 0) {
+			return "/desk";
+		}
 		// Resolution order
 		// 1. User's default workspace in user doctype
 		// 2. Private home
@@ -483,11 +486,13 @@ frappe.router = {
 
 		if (workspace) {
 			return (
-				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
+				"/desk/" +
+				(workspace.public ? "" : "private/") +
+				frappe.router.slug(workspace.name)
 			);
 		}
 
-		return "/app";
+		return "/desk";
 	},
 
 	/**
@@ -520,8 +525,8 @@ frappe.router = {
 
 	strip_prefix(route) {
 		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
-		if (route == "app") route = route.substr(4); // for app
-		if (route.startsWith("app/")) route = route.substr(4); // for desk/sub
+		if (route == "desk") route = route.substr(4); // for app
+		if (route.startsWith("desk/")) route = route.substr(4); // for desk/sub
 		if (route.substr(0, 1) == "/") route = route.substr(1);
 		if (route.substr(0, 1) == "#") route = route.substr(1);
 		if (route.substr(0, 1) == "!") route = route.substr(1);
@@ -569,6 +574,105 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
+	},
+
+	show_external_link_warning_if_needed(/** @type {HTMLAnchorElement} */ aElement) {
+		try {
+			if (!aElement?.href) {
+				return false; // not a true link
+			}
+
+			// Get the external link handling type
+			/** @type {'Always' | 'Ask' | 'Never' | null} */
+			const showWarningWhen = frappe.boot.show_external_link_warning || "Never";
+			if (showWarningWhen == "Never") {
+				return false; // the feature is disabled
+			}
+
+			// Check that the origin is external (does not prevent self-clickjacking on GET endpoints)
+			const url = new URL(aElement.href);
+			const hostname = url.hostname;
+			if (hostname === window.location.hostname) {
+				return false; // self-linking is allowed
+			}
+
+			// Check if the origin was ignored by the user
+			const localStorageKey = `skip-external-link-warning:${hostname}`;
+			if (showWarningWhen == "Ask" && localStorage.getItem(localStorageKey)) {
+				return false; // user chose to skip warning forever
+			}
+
+			// Check if the link if inside the confirmation popup
+			const incominSkipToken = aElement.getAttribute("data-skip-link-warning");
+			if (incominSkipToken && sessionStorage.getItem(incominSkipToken) == "1") {
+				return false; // anchor is the confirmation itself
+			}
+
+			// Finally, show the warning
+			const dialog = new frappe.ui.Dialog({
+				title: __("Warning"),
+				primary_action: null,
+				fields: [
+					{
+						fieldname: "warning_html",
+						fieldtype: "HTML",
+					},
+					{
+						fieldname: "confirm_checkbox",
+						fieldtype: "Check",
+						label: __("Do not warn me again about {0}", [
+							frappe.utils.escape_html(hostname).bold(),
+						]),
+						default: 0,
+						hidden: showWarningWhen == "Always",
+						change() {
+							if (dialog.get_value("confirm_checkbox")) {
+								localStorage.setItem(localStorageKey, "1");
+							} else {
+								localStorage.removeItem(localStorageKey);
+							}
+						},
+					},
+				],
+			});
+
+			const warningElement = dialog.fields_dict.warning_html.$wrapper.get(0);
+
+			const introElement = document.createElement("p");
+			introElement.textContent = __(
+				"You are about to open an external link. To confirm, click the link again."
+			);
+			warningElement.appendChild(introElement);
+
+			const boxElement = document.createElement("div");
+			boxElement.classList.add("border", "rounded-lg", "p-3", "mt-6", "mb-6", "text-center");
+			warningElement.appendChild(boxElement);
+
+			const hintElement = document.createElement("p");
+			hintElement.classList.add("text-sm", "mb-1");
+			hintElement.textContent = __("You will be redirected to:");
+			boxElement.appendChild(hintElement);
+
+			const confirmElement = document.createElement("a");
+			confirmElement.classList.add("text-sm", "font-mono");
+			confirmElement.style.wordBreak = "break-all";
+			confirmElement.textContent = aElement.href;
+			confirmElement.href = aElement.href;
+			confirmElement.target = aElement.target;
+			confirmElement.addEventListener("click", () => dialog.hide(), { capture: true });
+
+			// Add a token to skip the warning when clicking inside the confirmation dialog
+			const skipToken = frappe.utils.get_random(16);
+			confirmElement.setAttribute("data-skip-link-warning", skipToken);
+			sessionStorage.setItem(skipToken, "1");
+			boxElement.appendChild(confirmElement);
+
+			dialog.show();
+			return true; // prevent default handling
+		} catch (e) {
+			console.error(e);
+		}
+		return false;
 	},
 };
 

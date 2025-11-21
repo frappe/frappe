@@ -181,6 +181,7 @@ def get():
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
+	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
 
 	return bootinfo
 
@@ -255,6 +256,9 @@ class Session:
 		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
+
+		if frappe.request:
+			self.data.data.user_agent = frappe.request.headers.get("User-Agent")
 
 		if session_end:
 			self.data.data.session_end = session_end
@@ -419,6 +423,7 @@ class Session:
 		) and not frappe.flags.read_only:
 			self.data.data.last_updated = now
 			self.data.data.lang = str(frappe.lang)
+			self.data.data.session_ip = frappe.local.request_ip
 
 			Sessions = frappe.qb.DocType("Sessions")
 			# update sessions table

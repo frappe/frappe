@@ -1,5 +1,6 @@
 exclude: 'node_modules|.git'
 default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
 
 
@@ -21,7 +22,7 @@ repos:
         exclude: ^frappe/tests/classes/context_managers\.py$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.13.2
     hooks:
       - id: ruff
         name: "Run ruff import sorter"
@@ -68,6 +69,13 @@ repos:
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*
             )$
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.22.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ['conventional-changelog-conventionalcommits']
 
 ci:
     autoupdate_schedule: weekly

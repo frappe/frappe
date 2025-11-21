@@ -87,7 +87,7 @@ export default class Grid {
 								data-action="delete_rows">
 								${__("Delete")}
 							</button>
-							<button type="button" class="btn btn-xs btn-secondary grid-remove-rows hidden"
+							<button type="button" class="btn btn-xs btn-secondary hidden grid-duplicate-row"
 								data-action="duplicate_rows">
 								${__("Duplicate Row")}
 							</button>
@@ -136,6 +136,7 @@ export default class Grid {
 		this.grid_custom_buttons = this.wrapper.find(".grid-custom-buttons");
 		this.remove_rows_button = this.grid_buttons.find(".grid-remove-rows");
 		this.remove_all_rows_button = this.grid_buttons.find(".grid-remove-all-rows");
+		this.duplicate_row_button = this.grid_buttons.find(".grid-duplicate-row");
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
@@ -219,6 +220,7 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
+			this.refresh_duplicate_rows_button();
 		});
 	}
 
@@ -337,6 +339,22 @@ export default class Grid {
 
 	debounced_refresh_remove_rows_button = frappe.utils.debounce(
 		this.refresh_remove_rows_button,
+		100
+	);
+
+	refresh_duplicate_rows_button() {
+		if (this.df.cannot_add_rows) {
+			return;
+		}
+
+		this.duplicate_row_button.toggleClass(
+			"hidden",
+			this.wrapper.find(".grid-body .grid-row-check:checked:first").length ? false : true
+		);
+	}
+
+	debounced_duplicate_rows_button = frappe.utils.debounce(
+		this.refresh_duplicate_rows_button,
 		100
 	);
 
@@ -481,6 +499,7 @@ export default class Grid {
 		this.form_grid.toggleClass("error", !!(this.df.reqd && !(this.data && this.data.length)));
 
 		this.refresh_remove_rows_button();
+		this.refresh_duplicate_rows_button();
 
 		this.wrapper.trigger("change");
 	}
@@ -531,7 +550,9 @@ export default class Grid {
 			// show, hide buttons to add rows
 			if (this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
 				// add 'hidden' to buttons
-				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").addClass("hidden");
+				this.wrapper
+					.find(".grid-add-row, .grid-add-multiple-rows, .grid-duplicate-row")
+					.addClass("hidden");
 			} else {
 				// show buttons
 				this.wrapper.find(".grid-add-row").removeClass("hidden");
@@ -939,8 +960,9 @@ export default class Grid {
 		}
 
 		setTimeout(() => {
+			this.grid_rows[idx].toggle_editable_row(true);
 			this.grid_rows[idx].row
-				.find('input[type="checkbox"],input[type="Text"],textarea,select')
+				.find('input[type="Text"],textarea,select')
 				.filter(":visible:first")
 				.focus();
 		}, 100);
@@ -1275,5 +1297,15 @@ export default class Grid {
 		}
 
 		this.debounced_refresh();
+	}
+
+	get_current_row(target) {
+		let current_row = null;
+		for (let i = 0; i < this.grid_rows.length; i++) {
+			if (this.grid_rows[i].wrapper.get(0).contains(target)) {
+				current_row = i;
+			}
+		}
+		return current_row;
 	}
 }

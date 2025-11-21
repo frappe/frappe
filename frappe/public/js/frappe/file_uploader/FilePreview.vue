@@ -68,7 +68,7 @@
 				{{ file.error_message }}
 			</div>
 			<div
-				v-if="!file.private && !file.error_message"
+				v-if="!file.private && !file.error_message && !uploaded && !file.failed"
 				class="alert alert-warning mb-0"
 				role="alert"
 			>

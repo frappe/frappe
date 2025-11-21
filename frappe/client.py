@@ -11,7 +11,7 @@ from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import get_safe_filters
+from frappe.utils import attach_expanded_links, get_safe_filters
 from frappe.utils.caching import http_cache
 
 if TYPE_CHECKING:
@@ -37,6 +37,7 @@ def get_list(
 	debug: bool = False,
 	as_dict: bool = True,
 	or_filters=None,
+	expand=None,
 ):
 	"""Return a list of records by filters, fields, ordering and limit.
 
@@ -64,7 +65,17 @@ def get_list(
 	)
 
 	validate_args(args)
-	return frappe.get_list(**args)
+	_list = frappe.get_list(**args)
+
+	if not expand:
+		return _list
+
+	if fields and not fields[0] == "*":
+		expand = [f for f in expand if f in fields]
+
+	attach_expanded_links(doctype, _list, expand)
+
+	return _list
 
 
 @frappe.whitelist()

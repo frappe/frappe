@@ -68,8 +68,8 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 	data = frappe.get_list(
 		doctype,
 		filters=current_filters,
-		group_by=f"`tab{doctype}`.{field}",
-		fields=["count(*) as count", f"`{field}` as name"],
+		group_by=field,
+		fields=[{"COUNT": "*", "as": "count"}, f"{field} as name"],
 		order_by="count desc",
 		limit=1000,
 	)
@@ -83,7 +83,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 				break
 
 		if owner_idx:
-			data = [data.pop(owner_idx)] + data[0:49]
+			data = [data.pop(owner_idx), *data[0:49]]
 		else:
 			data = data[0:50]
 	else:

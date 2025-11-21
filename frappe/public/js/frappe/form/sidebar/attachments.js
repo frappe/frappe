@@ -126,7 +126,7 @@ frappe.ui.form.Attachments = class Attachments {
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
 				class="ellipsis attachment-file-label"
 			>
-				<span>${file_name}</span>
+				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>`;
 
 		let remove_action = null;

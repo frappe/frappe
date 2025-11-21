@@ -141,7 +141,7 @@ class TestWebsite(IntegrationTestCase):
 
 	def test_app(self):
 		frappe.set_user("Administrator")
-		set_request(method="GET", path="/app")
+		set_request(method="GET", path="/desk")
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 
@@ -179,6 +179,10 @@ class TestWebsite(IntegrationTestCase):
 		website_settings.append(
 			"route_redirects",
 			{"source": "/testdoc307", "target": "/testtarget", "redirect_http_status": 307},
+		)
+		website_settings.append(
+			"route_redirects",
+			{"source": "/test-query", "target": "/test-query-new", "forward_query_parameters": 1},
 		)
 		website_settings.save()
 
@@ -225,6 +229,11 @@ class TestWebsite(IntegrationTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 307)
 		self.assertEqual(response.headers.get("Location"), "/test")
+
+		set_request(method="GET", path="/test-query?param=123")
+		response = get_response()
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/test-query-new?param=123")
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")
@@ -396,8 +405,8 @@ class TestWebsite(IntegrationTestCase):
 			frappe.conf.update({"app_include_js": ["test_app_include_via_site_config.js"]})
 			frappe.conf.update({"app_include_css": ["test_app_include_via_site_config.css"]})
 
-			set_request(method="GET", path="/app")
-			content = get_response_content("/app")
+			set_request(method="GET", path="/desk")
+			content = get_response_content("/desk")
 			self.assertIn('<script type="text/javascript" src="/test_app_include.js"></script>', content)
 			self.assertIn(
 				'<script type="text/javascript" src="/test_app_include_via_site_config.js"></script>', content

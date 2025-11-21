@@ -117,6 +117,12 @@ def search_widget(
 
 	meta = frappe.get_meta(doctype)
 
+	include_disabled = False
+	if filters and "include_disabled" in filters:
+		if filters["include_disabled"] == 1:
+			include_disabled = True
+		filters.pop("include_disabled")
+
 	if isinstance(filters, dict):
 		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
 	elif filters is None:
@@ -147,34 +153,39 @@ def search_widget(
 			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
 				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
-	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
-		filters.append([doctype, "enabled", "=", 1])
-	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
-		filters.append([doctype, "disabled", "!=", 1])
+	if not include_disabled:
+		if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+			filters.append([doctype, "enabled", "=", 1])
+		if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+			filters.append([doctype, "disabled", "!=", 1])
 
 	# format a list of fields combining search fields and filter fields
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
 		fields = list(set(fields + json.loads(filter_fields)))
-	formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
+	formatted_fields = [f.strip() for f in fields]
 
 	# Insert title field query after name
 	if meta.show_title_field_in_link and meta.title_field:
-		formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+		formatted_fields.insert(1, f"{meta.title_field} as label")
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
 	# `idx` is number of times a document is referred, check link_count.py
-	order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
+	order_by = f"idx desc, {order_by_based_on_meta}"
 
 	if not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
-		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
-		formatted_fields.append(f"""{_relevance} as `_relevance`""")
-		# Since we are sorting by alias postgres needs to know number of column we are sorting
+		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
+
+		# For MariaDB, wrap in IFNULL for sorting to push nulls to end
 		if frappe.db.db_type == "mariadb":
-			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
+			_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
+			formatted_fields.append(_relevance)
+			order_by = f"_relevance desc, {order_by}"
 		elif frappe.db.db_type == "postgres":
+			_relevance = {**_relevance_expr, "as": "_relevance"}
+			formatted_fields.append(_relevance)
 			# Since we are sorting by alias postgres needs to know number of column we are sorting
 			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
 

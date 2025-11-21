@@ -1,7 +1,7 @@
 context("Utils", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	function run_util(name, ...args) {
@@ -46,6 +46,24 @@ context("Utils", () => {
 				days: -0,
 				hours: -0,
 				minutes: -2,
+				seconds: 0,
+			});
+		});
+
+		run_util("seconds_to_duration", 60 * 60, { hide_seconds: 1 }).then((duration) => {
+			expect(duration).to.deep.equal({
+				days: 0,
+				hours: 1,
+				minutes: 0,
+				seconds: 0,
+			});
+		});
+
+		run_util("seconds_to_duration", 15 * 60, { hide_seconds: 1 }).then((duration) => {
+			expect(duration).to.deep.equal({
+				days: 0,
+				hours: 0,
+				minutes: 15,
 				seconds: 0,
 			});
 		});
