@@ -187,7 +187,7 @@ def search_widget(
 			_relevance = {**_relevance_expr, "as": "_relevance"}
 			formatted_fields.append(_relevance)
 			# Since we are sorting by alias postgres needs to know number of column we are sorting
-			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
+			order_by = f"_relevance desc nulls last, {order_by}"
 
 	ignore_permissions = doctype == "DocType" or (
 		cint(ignore_user_permissions)

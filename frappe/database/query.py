@@ -1177,6 +1177,16 @@ class Engine:
 				direction = None
 				field_name = _order_by
 
+				if (
+					frappe.db.db_type == "postgres"
+					and len(parts) >= 2
+					and parts[-2].lower() == "nulls"
+					and parts[-1].lower() in ["first", "last"]
+				):  # required in particular for postgres (nulls last)
+					# Remove the two parts (e.g., "nulls last") from the list of parts
+					parts = parts[:-2]
+					_order_by = " ".join(parts).strip()
+
 				if len(parts) > 1 and parts[-1].lower() in valid_directions:
 					# Last part is a direction, so field_name is everything before it
 					direction = parts[-1].lower()
