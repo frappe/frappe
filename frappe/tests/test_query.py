@@ -1906,9 +1906,9 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		sql = query.get_sql()
-		self.assertIn("GROUP BY `created_date`", sql)
-		self.assertIn("ORDER BY `created_date`", sql)
-		self.assertIn("`creation` `created_date`", sql)
+		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), sql)
+		self.assertIn(UnitTestCase.normalize_sql("ORDER BY `created_date`"), sql)
+		self.assertIn(UnitTestCase.normalize_sql("`creation` `created_date`"), sql)
 
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
