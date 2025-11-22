@@ -664,6 +664,7 @@ def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=F
 			filters={df.doctype_fieldname: doctype},
 			fields=["parenttype"] if is_child else None,
 			distinct=True,
+			order_by=None,
 		)
 
 		if not possible_link:
