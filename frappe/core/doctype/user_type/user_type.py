@@ -69,6 +69,7 @@ class UserType(Document):
 			filters={"name": ("in", [d.document_type for d in self.user_doctypes])},
 			distinct=True,
 			pluck="module",
+			order_by=None,
 		)
 
 		self.set("user_type_modules", [])
