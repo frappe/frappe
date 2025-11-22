@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-17 12:22\n"
+"PO-Revision-Date: 2025-11-22 12:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -2547,7 +2547,7 @@ msgstr "Jeste li sigurni da želite otkazati pozivnicu?"
 
 #: frappe/public/js/frappe/list/list_view.js:2122
 msgid "Are you sure you want to clear the assignments?"
-msgstr "Jeste li sigurni da želite izbrisati zadatke?"
+msgstr "Jeste li sigurni da želite izbrisati dodjelu?"
 
 #: frappe/public/js/frappe/form/grid.js:296
 msgid "Are you sure you want to delete all rows?"
@@ -2743,7 +2743,7 @@ msgstr "Dodjela"
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Assignment Completed"
-msgstr "Zadatak je Završen"
+msgstr "Dodjela je Završena"
 
 #. Label of the sb (Section Break) field in DocType 'Assignment Rule'
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
