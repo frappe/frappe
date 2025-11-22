@@ -695,6 +695,7 @@ def get_stats(stats, doctype, filters=None):
 				group_by=column,
 				as_list=True,
 				distinct=1,
+				order_by=None,
 			)
 
 			if column == "_user_tags":
