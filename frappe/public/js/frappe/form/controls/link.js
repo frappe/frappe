@@ -262,7 +262,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
 
-		this.$input.on("input", frappe.utils.debounce(this.on_input.bind(this), 250));
+		this.$input.on("input", frappe.utils.debounce(this.on_input.bind(this), 500));
 
 		this.$input.on("blur", function () {
 			if (me.selected) {
