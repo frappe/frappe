@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-18 12:22\n"
+"PO-Revision-Date: 2025-11-22 12:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2741,7 +2741,7 @@ msgstr "Tilldelning"
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Assignment Completed"
-msgstr "Uppgift Klar"
+msgstr "Tilldelning Klar"
 
 #. Label of the sb (Section Break) field in DocType 'Assignment Rule'
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
@@ -2796,7 +2796,7 @@ msgstr "Tilldelning av {0} är borttagen av {1}"
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:255
 msgid "Assignments"
-msgstr "Uppgifter"
+msgstr "Tillldelningar"
 
 #. Label of the asynchronous (Check) field in DocType 'Workflow Transition
 #. Task'
