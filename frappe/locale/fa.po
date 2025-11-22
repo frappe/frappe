@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-20 12:25\n"
+"PO-Revision-Date: 2025-11-22 12:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -266,7 +266,7 @@ msgstr "<b>{0}</b> یک URL معتبر نیست"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">لطفاً آن را به روز نکنید زیرا ممکن است فرم شما را به هم بریزد. از سفارشی‌سازی فرم View و Custom Fields برای تنظیم ویژگی ها استفاده کنید!</div>"
+msgstr "<div class=\"alert\">لطفاً آن را به روز نکنید زیرا ممکن است فرم شما را به هم بریزد. از سفارشی‌سازی فرم View و Custom Fields برای تنظیم ویژگی‌ها استفاده کنید!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -2459,7 +2459,7 @@ msgstr "از آنجایی که اشتراک‌گذاری سند غیرفعال �
 
 #: frappe/templates/emails/account_deletion_notification.html:3
 msgid "As per your request, your account and data on {0} associated with email {1} has been permanently deleted"
-msgstr "طبق درخواست شما، حساب و داده های شما در {0} مرتبط با ایمیل {1} برای همیشه حذف شده است"
+msgstr "طبق درخواست شما، حساب و داده‌های شما در {0} مرتبط با ایمیل {1} برای همیشه حذف شده است"
 
 #. Option for the 'Show External Link Warning' (Select) field in DocType
 #. 'System Settings'
@@ -2772,7 +2772,7 @@ msgstr "مسیر حسابرسی"
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Auth URL Data"
-msgstr "داده های URL را تأیید کنید"
+msgstr "داده‌های URL را تأیید کنید"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:96
 msgid "Auth URL data should be valid JSON"
@@ -4313,7 +4313,7 @@ msgstr "تغییر هر یک از تنظیمات بر روی تمام حساب�
 
 #: frappe/core/doctype/system_settings/system_settings.js:67
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
-msgstr "تغییر روش گرد کردن در سایت با داده ها می‌تواند منجر به رفتار غیرمنتظره شود."
+msgstr "تغییر روش گرد کردن در سایت با داده‌ها می‌تواند منجر به رفتار غیرمنتظره شود."
 
 #. Label of the channel (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -5299,7 +5299,7 @@ msgstr "موفقیت در اتصال"
 
 #: frappe/public/js/frappe/dom.js:446
 msgid "Connection lost. Some features might not work."
-msgstr "اتصال قطع شد. برخی از ویژگی ها ممکن است کار نکنند."
+msgstr "اتصال قطع شد. برخی از ویژگی‌ها ممکن است کار نکنند."
 
 #. Label of the connections_tab (Tab Break) field in DocType 'DocType'
 #. Label of the connections_tab (Tab Break) field in DocType 'Module Def'
@@ -5423,7 +5423,7 @@ msgstr "نوع محتوا"
 
 #: frappe/desk/doctype/workspace/workspace.py:86
 msgid "Content data shoud be a list"
-msgstr "داده های محتوا باید یک لیست باشد"
+msgstr "داده‌های محتوا باید یک لیست باشد"
 
 #: frappe/website/doctype/web_page/web_page.js:91
 msgid "Content type for building the page"
@@ -6333,16 +6333,16 @@ msgstr "داشبوردها"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Data"
-msgstr "داده ها"
+msgstr "داده‌ها"
 
 #: frappe/public/js/frappe/form/controls/data.js:59
 msgid "Data Clipped"
-msgstr "داده ها بریده شد"
+msgstr "داده‌ها بریده شد"
 
 #. Name of a DocType
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Data Export"
-msgstr "برون‌بُرد داده ها"
+msgstr "برون‌بُرد داده‌ها"
 
 #. Name of a DocType
 #. Label of the data_import (Link) field in DocType 'Data Import Log'
@@ -6798,7 +6798,7 @@ msgstr "حذف ستون"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
-msgstr "حذف داده ها"
+msgstr "حذف داده‌ها"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:116
 msgid "Delete Kanban Board"
@@ -8007,7 +8007,7 @@ msgstr "دانلود نسخه پشتیبان"
 
 #: frappe/templates/emails/download_data.html:6
 msgid "Download Data"
-msgstr "دانلود داده ها"
+msgstr "دانلود داده‌ها"
 
 #: frappe/desk/page/backups/backups.js:14
 msgid "Download Files Backup"
@@ -8034,7 +8034,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.py:69
 #: frappe/website/doctype/personal_data_download_request/test_personal_data_download_request.py:48
 msgid "Download Your Data"
-msgstr "داده های خود را دانلود کنید"
+msgstr "داده‌های خود را دانلود کنید"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:49
 msgid "Download as CSV"
@@ -8343,7 +8343,7 @@ msgstr "ویرایش نمایه"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:173
 msgid "Edit Properties"
-msgstr "ویرایش ویژگی ها"
+msgstr "ویرایش ویژگی‌ها"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:48
 msgid "Edit Quick List"
@@ -9502,7 +9502,7 @@ msgstr "برون‌بُرد سفارشی سازی ها"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
-msgstr "برون‌بُرد داده ها"
+msgstr "برون‌بُرد داده‌ها"
 
 #: frappe/core/doctype/data_import/data_import.js:87
 #: frappe/public/js/frappe/data_import/import_preview.js:199
@@ -9551,7 +9551,7 @@ msgstr "برون‌بُرد مجاز نیست برای برون‌بُرد به 
 #. 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Export the data without any header notes and column descriptions"
-msgstr "داده ها را بدون هیچ یادداشت سربرگ و شرح ستون برون‌بُرد کنید"
+msgstr "داده‌ها را بدون هیچ یادداشت سربرگ و شرح ستون برون‌بُرد کنید"
 
 #. Label of the export_without_main_header (Check) field in DocType 'Data
 #. Export'
@@ -9846,7 +9846,7 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
-msgstr "رشته"
+msgstr "فیلد"
 
 #: frappe/core/doctype/doctype/doctype.py:418
 msgid "Field \"route\" is mandatory for Web Views"
@@ -10174,7 +10174,7 @@ msgstr "فیلتر کردن بر اساس"
 #. Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Filter Data"
-msgstr "فیلتر کردن داده ها"
+msgstr "فیلتر کردن داده‌ها"
 
 #. Label of the filter_list (HTML) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
@@ -10462,7 +10462,7 @@ msgstr "فونت"
 #. Label of the font_properties (Data) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Font Properties"
-msgstr "ویژگی های فونت"
+msgstr "ویژگی‌های فونت"
 
 #. Label of the font_size (Int) field in DocType 'Print Format'
 #. Label of the font_size (Float) field in DocType 'Print Settings'
@@ -10773,7 +10773,7 @@ msgstr "قالب"
 #. Label of the format_data (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Format Data"
-msgstr "فرمت داده ها"
+msgstr "فرمت داده‌ها"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -12924,7 +12924,7 @@ msgstr "درج در بالا"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/public/js/frappe/views/reports/query_report.js:1910
 msgid "Insert After"
-msgstr "درج بعد"
+msgstr "درج بعد از"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:251
 msgid "Insert After cannot be set as {0}"
@@ -14992,7 +14992,7 @@ msgstr ""
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Log Data"
-msgstr "ثبت داده ها"
+msgstr "ثبت داده‌ها"
 
 #. Label of the ref_doctype (Link) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -15323,7 +15323,7 @@ msgstr "مدیریت برنامه‌های شخص ثالث"
 #. Description of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Manage your data"
-msgstr "داده های خود را مدیریت کنید"
+msgstr "داده‌های خود را مدیریت کنید"
 
 #. Label of the reqd (Check) field in DocType 'DocField'
 #. Label of the mandatory (Check) field in DocType 'Report Filter'
@@ -18647,7 +18647,7 @@ msgstr "نوع سند والد برای ایجاد نمودار داشبورد �
 
 #: frappe/core/doctype/data_export/exporter.py:253
 msgid "Parent is the name of the document to which the data will get added to."
-msgstr "والد نام سندی است که داده ها به آن اضافه می‌شوند."
+msgstr "والد نام سندی است که داده‌ها به آن اضافه می‌شوند."
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:253
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
@@ -19054,7 +19054,7 @@ msgstr "مرحله حذف اطلاعات شخصی"
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 msgid "Personal Data Download Request"
-msgstr "درخواست دانلود داده های شخصی"
+msgstr "درخواست دانلود داده‌های شخصی"
 
 #. Label of the phone (Data) field in DocType 'Address'
 #. Label of the phone (Data) field in DocType 'Contact'
@@ -19093,7 +19093,7 @@ msgstr "شماره تلفن {0} تنظیم شده در فیلد {1} معتبر �
 #: frappe/public/js/frappe/views/reports/report_view.js:1581
 #: frappe/public/js/frappe/views/reports/report_view.js:1584
 msgid "Pick Columns"
-msgstr "ستون ها را انتخاب کنید"
+msgstr "انتخاب ستون‌ها"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -21908,7 +21908,7 @@ msgstr "رنگ نماد معکوس"
 
 #: frappe/database/schema.py:165
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
-msgstr "در حال برگرداندن طول به {0} برای «{1}» در «{2}». تنظیم طول به عنوان {3} باعث کوتاه شدن داده ها می‌شود."
+msgstr "در حال برگرداندن طول به {0} برای «{1}» در «{2}». تنظیم طول به عنوان {3} باعث کوتاه شدن داده‌ها می‌شود."
 
 #. Label of the revocation_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -22626,7 +22626,7 @@ msgstr "وقتی حالت تعمیر و نگهداری فعال است، زما�
 
 #: frappe/core/doctype/data_import/data_import.py:109
 msgid "Scheduler is inactive. Cannot import data."
-msgstr "زمانبند غیرفعال است. نمی‌توان داده ها را وارد کرد."
+msgstr "زمانبند غیرفعال است. نمی‌توان داده‌ها را وارد کرد."
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:19
 msgid "Scheduler: Active"
@@ -24566,7 +24566,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/desk.js:20
 msgid "Some of the features might not work in your browser. Please update your browser to the latest version."
-msgstr "برخی از ویژگی ها ممکن است در مرورگر شما کار نکنند. لطفا مرورگر خود را به آخرین نسخه به روز کنید."
+msgstr "برخی از ویژگی‌ها ممکن است در مرورگر شما کار نکنند. لطفا مرورگر خود را به آخرین نسخه به روز کنید."
 
 #: frappe/public/js/frappe/views/translation_manager.js:101
 msgid "Something went wrong"
@@ -24821,7 +24821,7 @@ msgstr "بحث جدیدی را شروع کنید"
 
 #: frappe/core/doctype/data_export/exporter.py:22
 msgid "Start entering data below this line"
-msgstr "شروع به وارد کردن داده ها در زیر این خط کنید"
+msgstr "شروع به وارد کردن داده‌ها در زیر این خط کنید"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:165
 msgid "Start new Format"
@@ -26160,7 +26160,7 @@ msgstr "گذرواژه حساب شما منقضی شده است."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:398
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
-msgstr "فرآیند حذف {0} داده های مرتبط با {1} آغاز شده است."
+msgstr "فرآیند حذف {0} داده‌های مرتبط با {1} آغاز شده است."
 
 #. Description of the 'App ID' (Data) field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
@@ -26515,7 +26515,7 @@ msgstr "این یک گذرواژه بسیار رایج است."
 
 #: frappe/core/doctype/rq_job/rq_job.js:9
 msgid "This is a virtual doctype and data is cleared periodically."
-msgstr "این یک Doctype مجازی است و داده ها به صورت دوره ای پاک می‌شوند."
+msgstr "این یک Doctype مجازی است و داده‌ها به صورت دوره ای پاک می‌شوند."
 
 #: frappe/templates/emails/auto_reply.html:5
 msgid "This is an automatically generated reply"
@@ -28472,7 +28472,7 @@ msgstr ""
 #: frappe/templates/emails/data_deletion_approval.html:1
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:112
 msgid "User {0} has requested for data deletion"
-msgstr "کاربر {0} درخواست حذف داده ها را داده است"
+msgstr "کاربر {0} درخواست حذف داده‌ها را داده است"
 
 #: frappe/core/doctype/user/user.py:1422
 msgid "User {0} impersonated as {1}"
@@ -28963,7 +28963,7 @@ msgstr ""
 
 #: frappe/templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
-msgstr "ما درخواستی برای حذف {0} داده های مرتبط با: {1} دریافت کرده ایم"
+msgstr "ما درخواستی برای حذف {0} داده‌های مرتبط با: {1} دریافت کرده ایم"
 
 #: frappe/templates/emails/download_data.html:2
 msgid "We have received a request from you to download your {0} data associated with: {1}"
@@ -29072,7 +29072,7 @@ msgstr "وب هوک"
 #: frappe/integrations/doctype/webhook/webhook.json
 #: frappe/integrations/doctype/webhook_data/webhook_data.json
 msgid "Webhook Data"
-msgstr "داده های وب هوک"
+msgstr "داده‌های وب هوک"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/webhook_header/webhook_header.json
@@ -29478,12 +29478,12 @@ msgstr "شناسه سازنده گردش کار"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
-msgstr "Workflow Builder به شما امکان می دهد گردش کار را به صورت بصری ایجاد کنید. می‌توانید حالت ها را بکشید و رها کنید و آنها را برای ایجاد انتقال پیوند دهید. همچنین می‌توانید ویژگی های آنها را از نوار کناری به روز کنید."
+msgstr "Workflow Builder به شما امکان می دهد گردش کار را به صورت بصری ایجاد کنید. می‌توانید حالت ها را بکشید و رها کنید و آنها را برای ایجاد انتقال پیوند دهید. همچنین می‌توانید ویژگی‌های آنها را از نوار کناری به روز کنید."
 
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Data"
-msgstr "داده های گردش کار"
+msgstr "داده‌های گردش کار"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:44
 msgid "Workflow Details"
@@ -29882,7 +29882,7 @@ msgstr "شما {0} را پیوست کردید"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:749
 msgid "You can add dynamic properties from the document by using Jinja templating."
-msgstr "با استفاده از قالب Jinja می‌توانید ویژگی های پویا را از سند اضافه کنید."
+msgstr "با استفاده از قالب Jinja می‌توانید ویژگی‌های پویا را از سند اضافه کنید."
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
