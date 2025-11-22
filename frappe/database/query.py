@@ -1498,7 +1498,7 @@ class Engine:
 		if fieldtype == "Time":
 			return "'00:00:00'"
 
-		if fieldtype in ("Float", "Int", "Currency", "Percent"):
+		if fieldtype in ("Float", "Int", "Currency", "Percent", "Check"):
 			return "0"
 
 		try:
