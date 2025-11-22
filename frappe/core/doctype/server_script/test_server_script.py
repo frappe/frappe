@@ -158,10 +158,7 @@ class TestServerScript(IntegrationTestCase):
 
 	def test_permission_query(self):
 		sql = frappe.db.get_list("ToDo", run=False)
-		if frappe.conf.db_type != "postgres":
-			self.assertTrue("where (1 = 1)" in sql.lower())
-		else:
-			self.assertTrue("where (1 = '1')" in sql.lower())
+		self.assertTrue("where (1 = 1)" in sql.lower())
 		self.assertTrue(isinstance(frappe.db.get_list("ToDo"), list))
 
 	def test_attribute_error(self):
