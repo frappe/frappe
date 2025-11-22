@@ -1906,9 +1906,11 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), sql)
-		self.assertIn(UnitTestCase.normalize_sql("ORDER BY `created_date`"), sql)
-		self.assertIn(UnitTestCase.normalize_sql("`creation` `created_date`"), sql)
+		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), UnitTestCase.normalize_sql(sql))
+		self.assertIn(UnitTestCase.normalize_sql("ORDER BY `created_date`"), UnitTestCase.normalize_sql(sql))
+		self.assertIn(
+			UnitTestCase.normalize_sql("`creation` `created_date`"), UnitTestCase.normalize_sql(sql)
+		)
 
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
@@ -1918,7 +1920,7 @@ class TestQuery(IntegrationTestCase):
 		)
 		sql = query.get_sql()
 		# If we get here without PermissionError, the test passes
-		self.assertIn("GROUP BY `created_date`", sql)
+		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), UnitTestCase.normalize_sql(sql))
 
 
 # This function is used as a permission query condition hook
