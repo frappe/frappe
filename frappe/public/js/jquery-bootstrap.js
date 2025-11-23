@@ -10,13 +10,11 @@ import Scrollspy from "bootstrap/js/dist/scrollspy";
 import Tab from "bootstrap/js/dist/tab";
 import Toast from "bootstrap/js/dist/toast";
 import Tooltip from "bootstrap/js/dist/tooltip";
-import Util from "bootstrap/js/dist/util";
 
 window.jQuery = jQuery;
 window.$ = jQuery;
 
 export {
-	Util,
 	Alert,
 	Button,
 	Carousel,

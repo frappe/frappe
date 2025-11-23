@@ -244,7 +244,7 @@ h5.modal-title {
 }
 
 .btn-default {
-	@extend .btn-light;
+	@extend .btn-light !optional;
 }
 
 .btn-xs {

@@ -129,7 +129,7 @@ pre {
 }
 
 .btn-default {
-	@extend .btn-light;
+	@extend .btn-light !optional;
 }
 
 .hidden-xs,
