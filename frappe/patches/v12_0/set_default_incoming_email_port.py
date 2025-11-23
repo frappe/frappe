@@ -32,7 +32,7 @@ def setup_incoming_email_port_in_email_domains():
 
 def setup_incoming_email_port_in_email_accounts():
 	email_accounts = frappe.get_all(
-		"Email Account", ["incoming_port", "use_imap", "use_ssl", "name", "enable_incoming"]
+		"Email Account", ["incoming_port", "use_imap", "use_ssl", "name", "enable_incoming", "idx"]
 	)
 
 	for account in email_accounts:
