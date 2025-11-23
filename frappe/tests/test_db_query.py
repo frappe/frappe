@@ -849,11 +849,7 @@ class TestDBQuery(IntegrationTestCase):
 			as_list=True,
 			order_by=None,
 		)
-		if frappe.conf.db_type == "mariadb":
-			self.assertTrue(len(doctypes[0]) == 2)
-		else:
-			self.assertTrue(len(doctypes[0]) == 3)
-			self.assertTrue(isinstance(doctypes[0][2], datetime.datetime))
+		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
 	def test_column_comparison(self):
 		"""Test DatabaseQuery.execute to test column comparison"""
