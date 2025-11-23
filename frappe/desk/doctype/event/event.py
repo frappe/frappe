@@ -139,6 +139,7 @@ class Event(Document):
 				],
 				pluck="name",
 				distinct=True,
+				order_by=None,
 			):
 				for comm in communications:
 					communication = frappe.get_doc("Communication", comm)
