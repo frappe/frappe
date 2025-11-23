@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-16 09:34+0000\n"
-"PO-Revision-Date: 2025-11-22 12:30\n"
+"PO-Revision-Date: 2025-11-23 13:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9902,7 +9902,7 @@ msgstr "فیلد در پرسمان مجاز نیست"
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-msgstr "فیلدی که وضعیت گردش کار تراکنش را نشان می دهد (اگر فیلد موجود نباشد، یک فیلد سفارشی مخفی جدید ایجاد می‌شود)"
+msgstr "فیلدی که وضعیت گردش کار تراکنش را نشان می‌دهد (اگر فیلد موجود نباشد، یک فیلد سفارشی مخفی جدید ایجاد می‌شود)"
 
 #. Label of the track_field (Select) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
@@ -11132,7 +11132,7 @@ msgstr "دریافت اطلاعات بیشتر با"
 #. DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Get notified when an email is received on any of the documents assigned to you."
-msgstr "هنگامی که ایمیلی در مورد هر یک از اسنادی که به شما اختصاص داده شده است، مطلع شوید."
+msgstr "وقتی ایمیلی در مورد هر یک از اسنادی که به شما اختصاص داده شده است دریافت کردید، مطلع شوید."
 
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -26133,11 +26133,11 @@ msgstr "پیوندی که می‌خواهید وارد شوید نامعتبر �
 
 #: frappe/website/doctype/web_page/web_page.js:125
 msgid "The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates."
-msgstr "توضیحات متا یک ویژگی HTML است که خلاصه ای از یک صفحه وب را ارائه می دهد. موتورهای جستجو مانند گوگل اغلب توضیحات متا را در نتایج جستجو نشان می دهند که می‌تواند بر نرخ کلیک تأثیر بگذارد."
+msgstr "توضیحات متا یک ویژگی HTML است که خلاصه ای از یک صفحه وب را ارائه می‌دهد. موتورهای جستجو مانند گوگل اغلب توضیحات متا را در نتایج جستجو نشان می دهند که می‌تواند بر نرخ کلیک تأثیر بگذارد."
 
 #: frappe/website/doctype/web_page/web_page.js:132
 msgid "The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height."
-msgstr "تصویر متا یک تصویر منحصر به فرد است که محتوای صفحه را نشان می دهد. تصاویر این کارت باید حداقل 280 پیکسل عرض و حداقل 150 پیکسل در ارتفاع داشته باشند."
+msgstr "تصویر متا یک تصویر منحصر به فرد است که محتوای صفحه را نشان می‌دهد. تصاویر این کارت باید حداقل 280 پیکسل عرض و حداقل 150 پیکسل در ارتفاع داشته باشند."
 
 #. Description of the 'Calendar Name' (Data) field in DocType 'Google Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
@@ -26199,7 +26199,7 @@ msgstr "سیستم در حال به‌روزرسانی است. لطفاً پس �
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
-msgstr "این سیستم نقش‌های از پیش تعریف شده زیادی را ارائه می دهد. می‌توانید نقش‌های جدیدی را برای تنظیم مجوزهای دقیق‌تر اضافه کنید."
+msgstr "این سیستم نقش‌های از پیش تعریف شده زیادی را ارائه می‌دهد. می‌توانید نقش‌های جدیدی را برای تنظیم مجوزهای دقیق‌تر اضافه کنید."
 
 #: frappe/core/doctype/user_type/user_type.py:97
 msgid "The total number of user document types limit has been crossed."
@@ -29478,7 +29478,7 @@ msgstr "شناسه سازنده گردش کار"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
-msgstr "Workflow Builder به شما امکان می دهد گردش کار را به صورت بصری ایجاد کنید. می‌توانید حالت ها را بکشید و رها کنید و آنها را برای ایجاد انتقال پیوند دهید. همچنین می‌توانید ویژگی‌های آنها را از نوار کناری به روز کنید."
+msgstr "Workflow Builder به شما امکان می‌دهد گردش کار را به صورت بصری ایجاد کنید. می‌توانید حالت ها را بکشید و رها کنید و آنها را برای ایجاد انتقال پیوند دهید. همچنین می‌توانید ویژگی‌های آنها را از نوار کناری به روز کنید."
 
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
