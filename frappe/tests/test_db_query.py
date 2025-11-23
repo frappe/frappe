@@ -847,6 +847,7 @@ class TestDBQuery(IntegrationTestCase):
 			fields=["document_type", {"SUM": "is_submittable", "as": "is_submittable"}],
 			limit=1,
 			as_list=True,
+			order_by=None,
 		)
 		if frappe.conf.db_type == "mariadb":
 			self.assertTrue(len(doctypes[0]) == 2)
