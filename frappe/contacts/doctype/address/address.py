@@ -262,8 +262,18 @@ def get_company_address(company):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def address_query(doctype, txt, searchfield, start, page_len, filters):
+def address_query(
+	doctype: str = "Address",
+	txt: str = "",
+	searchfield: str = "name",
+	start: int = 0,
+	page_len: int = 10,
+	filters: dict | None = None,
+):
 	from frappe.desk.search import search_widget
+
+	if not filters:
+		filters = {}
 
 	_filters = []
 	if link_doctype := filters.pop("link_doctype", None):
