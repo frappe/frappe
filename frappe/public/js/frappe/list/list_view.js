@@ -1234,7 +1234,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		return `/app/${encodeURIComponent(
+		return `/desk/${encodeURIComponent(
 			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
 		)}/${encodeURIComponent(cstr(doc.name))}`;
 	}
@@ -2295,6 +2295,135 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true,
 			};
 		};
+
+		const copy_to_clipboard = () => {
+			return {
+				label: __("Copy to Clipboard"),
+				action: () => {
+					const selected_items = this.get_checked_items();
+					if (selected_items.length === 0) {
+						frappe.show_alert({
+							message: __("No rows selected"),
+							indicator: "orange",
+						});
+						return;
+					}
+
+					let columns;
+					if (
+						this.columns &&
+						this.columns.length &&
+						(this.columns[0].docfield || this.columns[0].type == "Status")
+					) {
+						// Report View - has columns with docfield property
+						columns = this.columns.map((col) => ({
+							fieldname: col.id || col.field,
+							label: col.content || col.name,
+							docfield: col.docfield, // Keep the docfield for link field processing
+						}));
+					} else if (this.columns && this.columns.length && this.columns[0].type) {
+						// List View - has columns with type and df properties
+						columns = this.columns
+							.filter((col) => {
+								// Include columns with df.fieldname, or Subject/Status types
+								return (
+									(col.df && col.df.fieldname) ||
+									col.type === "Subject" ||
+									col.type === "Status"
+								);
+							})
+							.map((col) => {
+								if (col.type === "Subject") {
+									return {
+										fieldname: col.df?.fieldname || "name",
+										label: __(col.df?.label || "ID"),
+										type: "Subject",
+									};
+								} else if (col.type === "Status") {
+									return {
+										fieldname: "status",
+										label: __("Status"),
+										type: "Status",
+									};
+								} else {
+									return {
+										fieldname: col.df.fieldname,
+										label: __(col.df.label || col.df.fieldname),
+										type: col.type,
+									};
+								}
+							});
+					}
+
+					// Prepare data for clipboard
+					const headers = columns.map((col) => col.label).join("\t");
+					const rows = selected_items.map((item) => {
+						return columns
+							.map((col) => {
+								let value;
+								const df = col.df || col.docfield; // Check if this is a Status column (by type) or docstatus field (in Report view)
+								if (col.type === "Status" || col.fieldname === "docstatus") {
+									// For Status columns, get the indicator text
+									const indicator = frappe.get_indicator(item, this.doctype);
+									if (indicator && indicator.length > 0) {
+										value = indicator[0];
+									} else {
+										// Fallback to status field
+										value = item.status || "";
+									}
+								} else {
+									// Check if this is a link field with title field
+									const link_title_fieldname =
+										this.link_field_title_fields?.[col.fieldname];
+									if (link_title_fieldname) {
+										// List view: Use the title field value if available
+										value =
+											item[col.fieldname + "_" + link_title_fieldname] ||
+											item[col.fieldname];
+									} else if (
+										df &&
+										df.fieldtype === "Link" &&
+										df.options &&
+										item[col.fieldname]
+									) {
+										// For Link fields, try to get the title
+										// First check if the doctype has show_title_field_in_link enabled
+										if (
+											frappe.boot.link_title_doctypes?.includes(df.options)
+										) {
+											// Try to get from cache
+											let link_title = frappe.utils.get_link_title(
+												df.options,
+												item[col.fieldname]
+											);
+											value = link_title || item[col.fieldname];
+										} else {
+											value = item[col.fieldname];
+										}
+									} else {
+										value = item[col.fieldname];
+									}
+								}
+								// Handle null or undefined values
+								if (value == null) return "";
+								// Convert to string and remove HTML tags if any
+								return String(value).replace(/<[^>]*>/g, "");
+							})
+							.join("\t");
+					});
+					const clipboard_data = [headers, ...rows].join("\n"); // Copy to clipboard
+					const message = __("Copied {0} {1} to clipboard", [
+						selected_items.length,
+						selected_items.length === 1 ? __("row") : __("rows"),
+					]);
+					frappe.utils.copy_to_clipboard(clipboard_data, message);
+				},
+				standard: true,
+			};
+		};
+
+		// Copy to clipboard
+		actions_menu_items.push(copy_to_clipboard());
 
 		// bulk edit
 		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {

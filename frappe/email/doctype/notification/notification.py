@@ -424,7 +424,12 @@ def get_context(context):
 				self.send_a_slack_msg(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
-			elif self.channel == "System Notification" or self.send_system_notification:
+			elif self.channel == "System Notification":
+				self.create_system_notification(doc, context)
+
+			# Additionally, if explicitly enabled, create a system notification
+			# even when the primary channel is not "System Notification".
+			if self.send_system_notification and self.channel != "System Notification":
 				self.create_system_notification(doc, context)
 		except Exception:
 			self.log_error("Failed to send Notification")

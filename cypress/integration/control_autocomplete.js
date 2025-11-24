@@ -1,7 +1,7 @@
 context("Control Autocomplete", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		cy.wait(4000);
 	});
 

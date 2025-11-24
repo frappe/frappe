@@ -6,6 +6,7 @@ Utilities for using modules
 
 import json
 import os
+import shutil
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
@@ -358,3 +359,24 @@ def make_boilerplate(
 			custom_controller=controller_body,
 		)
 		target.write(frappe.as_unicode(controller_file_content))
+
+
+def create_directory_on_app_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	folder_path = os.path.join(app_path, folder_name)
+
+	if not os.path.exists(folder_path):
+		frappe.create_folder(folder_path)
+
+	return folder_path
+
+
+def get_app_level_directory_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	path = os.path.join(app_path, folder_name)
+	return path
+
+
+def delete_app_level_folder(folder_name, app_name):
+	path = get_app_level_directory_path(folder_name, app_name)
+	shutil.rmtree(path, ignore_errors=True)

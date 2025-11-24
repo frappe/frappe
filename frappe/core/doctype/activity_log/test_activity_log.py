@@ -50,7 +50,7 @@ class TestActivityLog(IntegrationTestCase):
 				"user": "Administrator",
 				"operation": operation,
 			},
-			order_by="`creation` DESC",
+			order_by="creation DESC",
 		)
 
 		name = names[0]

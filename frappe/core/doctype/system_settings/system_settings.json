@@ -96,6 +96,7 @@
   "disable_system_update_notification",
   "disable_change_log_notification",
   "hide_empty_read_only_fields",
+  "disable_product_suggestion",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -770,12 +771,18 @@
   {
    "fieldname": "column_break_bzfr",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_product_suggestion",
+   "fieldtype": "Check",
+   "label": "Disable Product Suggestion"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-11-04 16:47:54.230874",
+ "modified": "2025-11-23 13:17:57.577690",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

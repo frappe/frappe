@@ -9,6 +9,7 @@ frappe.standard_pages["Workspaces"] = function () {
 		name: "Workspaces",
 		title: __("Workspace"),
 		single_column: true,
+		hide_sidebar: false,
 	});
 
 	frappe.workspace = new frappe.views.Workspace(wrapper);
@@ -21,6 +22,8 @@ frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
+		this.workspaces = frappe.boot.workspaces.pages;
+
 		this.blocks = frappe.workspace_block.blocks;
 		this.is_read_only = true;
 		this.pages = {};
@@ -46,15 +49,28 @@ frappe.views.Workspace = class Workspace {
 
 		this.prepare_container();
 		this.sidebar = frappe.app.sidebar;
-		this.app_switcher_menu = frappe.app.app_switcher_menu;
-		this.sidebar.setup_pages();
-		this.cached_pages = $.extend(true, {}, frappe.boot.sidebar_pages);
-		this.has_access = frappe.boot.sidebar_pages.has_access;
-		this.has_create_access = frappe.boot.sidebar_pages.has_create_access;
+		this.cached_pages = $.extend(true, {}, frappe.boot.workspaces);
+		this.has_access = frappe.boot.workspaces.has_access;
+		this.has_create_access = frappe.boot.workspaces.has_create_access;
+		this.setup();
 		this.show();
 		this.register_awesomebar_shortcut();
 	}
+	setup() {
+		const me = this;
+		this.workspaces.map((workspace) => {
+			workspace.is_editable = !workspace.public || me.has_access;
+			if (typeof workspace.content == "string") {
+				workspace.content = JSON.parse(workspace.content);
+			}
+		});
+	}
 
+	setup_sidebar() {
+		if (this._page) {
+			this.sidebar.setup(this._page.name);
+		}
+	}
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
 		this.prepare_new_and_edit();
@@ -94,7 +110,6 @@ frappe.views.Workspace = class Workspace {
 			this.editor.isReady.then(() => {
 				this.setup_customization_buttons(this._page);
 				this.make_blocks_sortable();
-				frappe.app.sidebar.toggle_sorting();
 			});
 		});
 	}
@@ -104,7 +119,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	show() {
-		if (!this.sidebar.all_pages) {
+		if (!this.workspaces) {
 			// pages not yet loaded, call again after a bit
 			setTimeout(() => this.show(), 100);
 			return;
@@ -167,17 +182,16 @@ frappe.views.Workspace = class Workspace {
 			};
 		} else if (
 			localStorage.current_page &&
-			this.sidebar.all_pages.filter((page) => page.name == localStorage.current_page)
-				.length != 0
+			this.workspaces.filter((page) => page.name == localStorage.current_page).length != 0
 		) {
 			default_page = {
 				name: localStorage.current_page,
 				public: localStorage.is_current_page_public != "false",
 			};
-		} else if (Object.keys(this.sidebar.all_pages).length !== 0) {
+		} else if (Object.keys(this.workspaces).length !== 0) {
 			default_page = {
-				name: this.sidebar.all_pages[0].name,
-				public: this.sidebar.all_pages[0].public,
+				name: this.workspaces[0].name,
+				public: this.workspaces[0].public,
 			};
 		} else {
 			default_page = { name: "Build", public: true };
@@ -197,11 +211,22 @@ frappe.views.Workspace = class Workspace {
 			`).appendTo(this.body.find(".editor-js-container"));
 		}
 
-		if (this.sidebar.all_pages.length) {
+		if (this.workspaces.length) {
 			this.create_page_skeleton();
 
-			let current_page = this.sidebar.all_pages.find((p) => p.name == page.name);
+			let current_page = this.workspaces.find((p) => p.name == page.name);
 			this._page = current_page;
+			if (frappe.boot.app_name_style == "Title") {
+				frappe.breadcrumbs.add({
+					type: "Custom",
+					label: __(this._page.name),
+				});
+				this.wrapper.find(".workspace-header").hide();
+				this.wrapper
+					.find(".editor-js-container")
+					.get(0)
+					.style.setProperty("margin-top", "var(--margin-sm)");
+			}
 
 			// set app
 			let app;
@@ -236,7 +261,6 @@ frappe.views.Workspace = class Workspace {
 			$(".item-anchor").removeClass("disable-click");
 
 			this.remove_page_skeleton();
-			frappe.app.sidebar.apps_switcher.set_current_app(app);
 			this.wrapper.find(".workspace-title").html(__(this._page.title));
 			this.wrapper
 				.find(".workspace-icon")
@@ -282,7 +306,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	setup_actions(page) {
-		let current_page = this.sidebar.all_pages.filter((p) => p.name == page.name)[0];
+		let current_page = this.workspaces.filter((p) => p.name == page.name)[0];
 
 		if (!this.is_read_only) {
 			this.setup_customization_buttons(current_page);
@@ -342,7 +366,6 @@ frappe.views.Workspace = class Workspace {
 						this.editor.readOnly.toggle();
 						this.is_read_only = true;
 					});
-					frappe.app.sidebar.toggle_sorting();
 				},
 				null,
 				__("Saving")
@@ -353,7 +376,7 @@ frappe.views.Workspace = class Workspace {
 			this.clear_page_actions();
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
-			frappe.boot.sidebar_pages = this.cached_pages;
+			frappe.boot.workspaces = this.cached_pages;
 			this.reload();
 			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
@@ -527,6 +550,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	create_page(new_page) {
+		const me = this;
 		return new Promise((resolve) => {
 			frappe.call({
 				method: "frappe.desk.doctype.workspace.workspace.new_page",
@@ -542,12 +566,17 @@ frappe.views.Workspace = class Workspace {
 								indicator: "green",
 							});
 						}
-						frappe.boot.sidebar_pages = r.message;
-						this.sidebar.setup_pages();
-
-						if (!frappe.boot.app_data_map["private"] && new_page.public === 0) {
-							this.sidebar.apps_switcher.add_private_app();
+						if (r.message) {
+							frappe.boot.workspaces = r.message.workspace_pages;
+							me.workspaces = frappe.boot.workspaces.pages;
+							me.setup_pages(frappe.boot.workspaces.pages);
+							frappe.boot.workspace_sidebar_item = r.message.sidebar_items;
 						}
+
+						if (new_page.public === 0) {
+							frappe.app.sidebar.setup("private");
+						}
+
 						resolve();
 					}
 				},
@@ -555,6 +584,31 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
+	setup_pages(all_pages) {
+		all_pages.forEach((page) => {
+			page.is_editable = !page.public || this.has_access;
+			if (typeof page.content == "string") {
+				page.content = JSON.parse(page.content);
+			}
+		});
+
+		if (all_pages) {
+			frappe.workspaces = {};
+			frappe.workspace_list = [];
+			frappe.workspace_map = {};
+			for (let page of all_pages) {
+				frappe.workspaces[frappe.router.slug(page.name)] = {
+					name: page.name,
+					public: page.public,
+				};
+				if (!page.app && page.module) {
+					page.app = frappe.boot.module_app[frappe.slug(page.module)];
+				}
+				frappe.workspace_map[page.name] = page;
+				frappe.workspace_list.push(page);
+			}
+		}
+	}
 	initialize_editorjs(blocks) {
 		this.tools = {
 			header: {
@@ -699,8 +753,8 @@ frappe.views.Workspace = class Workspace {
 		delete this.pages[this._page.name];
 		this._page = null;
 		return this.get_pages().then((r) => {
-			frappe.boot.sidebar_pages = r;
-			this.sidebar.setup_pages();
+			frappe.boot.workspaces = r;
+			this.setup_pages(frappe.boot.workspaces.pages);
 			this.show();
 			if (this.undo) this.undo.readOnly = true;
 		});
@@ -709,7 +763,7 @@ frappe.views.Workspace = class Workspace {
 	get_parent_pages(page) {
 		this.public_parent_pages = [
 			"",
-			...this.sidebar.all_pages
+			...this.workspaces
 				.filter((p) => p.public && !p.parent_page)
 				.map((p) => {
 					return { label: p.title, value: p.name };
@@ -717,7 +771,7 @@ frappe.views.Workspace = class Workspace {
 		];
 		this.private_parent_pages = [
 			"",
-			...this.sidebar.all_pages
+			...this.workspaces
 				.filter((p) => !p.public && !p.parent_page)
 				.map((p) => {
 					return { label: p.title, value: p.name };

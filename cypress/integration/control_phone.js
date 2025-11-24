@@ -3,7 +3,7 @@ import doctype_with_phone from "../fixtures/doctype_with_phone";
 context("Control Phone", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	afterEach(() => {
@@ -68,13 +68,13 @@ context("Control Phone", () => {
 	});
 
 	it("existing document should render phone field with data", () => {
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		cy.insert_doc("DocType", doctype_with_phone, true);
 		cy.clear_cache();
 
 		// Creating custom doctype
 		cy.insert_doc("DocType", doctype_with_phone, true);
-		cy.visit("/app/doctype-with-phone");
+		cy.visit("/desk/doctype-with-phone");
 		cy.click_listview_primary_button("Add Doctype With Phone");
 
 		// create a record

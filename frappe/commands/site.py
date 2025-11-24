@@ -1328,19 +1328,18 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
-	from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-	if doctype not in LOG_DOCTYPES:
-		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
-
 	for site in context.sites:
 		frappe.init(site)
 		frappe.connect()
+
+		if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
+			raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 		if not no_backup:
 			scheduled_backup(
@@ -1584,6 +1583,33 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 			frappe.destroy()
 
 
+@click.command("create-desktop-icons-and-sidebar")
+@pass_context
+def create_icons_and_sidebar(context: CliCtxObj):
+	"""Create desktop icons and workspace sidebars."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+	for site in context.sites:
+		frappe.init(site)
+		frappe.connect()
+		try:
+			print("Creating Desktop Icons")
+			create_desktop_icons()
+			print("Creating Workspace Sidebars")
+			create_workspace_sidebar_for_workspaces()
+			# Saving it in a command need it
+			frappe.db.commit()  # nosemgrep
+		except Exception as e:
+			print(f"Error creating icons {site}: {e}")
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1620,4 +1646,5 @@ commands = [
 	trim_database,
 	clear_log_table,
 	bypass_patch,
+	create_icons_and_sidebar,
 ]

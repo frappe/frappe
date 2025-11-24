@@ -371,7 +371,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 			self.assertEqual(sent_mail["subject"], subject)
 		self.assertSetEqual(set(recipients.split(",")), {m["to"][0] for m in sent_mails})
 
-	@run_only_if(db_type_is.MARIADB)
 	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=1)
 	def test_store_attachments(self):
 		""" "attach print" feature just tells email queue which document to attach, this is not

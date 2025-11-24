@@ -30,7 +30,7 @@ let display_checked = computed(() => {
 				type="checkbox"
 				:checked="display_checked"
 				:disabled="read_only"
-				@change="(event) => $emit('update:modelValue', event.target.checked)"
+				@change="(event) => $emit('update:modelValue', event.target.checked ? 1 : 0)"
 			/>
 			<span class="label-area" :class="{ reqd: df.reqd }">{{ __(df.label) }}</span>
 		</label>
