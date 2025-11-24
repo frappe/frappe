@@ -417,12 +417,9 @@ def validate_link(doctype: str, docname: str, fields=None):
 		frappe.throw(_("Document Name must be a string"))
 
 	if doctype != "DocType":
-		parent_doctype = None
-		if frappe.get_meta(doctype).istable:  # needed for links to child rows
-			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
 		if not (
-			frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
-			or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
+			frappe.has_permission(doctype, "select", doc=docname)
+			or frappe.has_permission(doctype, "read", doc=docname)
 		):
 			frappe.throw(
 				_("You do not have Read or Select Permissions for {}").format(frappe.bold(doctype)),
