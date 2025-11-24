@@ -28,9 +28,7 @@ def run_only_if(dbtype: db_type_is) -> Callable:
 
 def unimplemented_for(*dbtypes: db_type_is) -> Callable:
 	current_db_type = db_type_is(frappe.conf.db_type)
-	db_names = ", ".join(str(db.value) for db in dbtypes)
-
-	return unittest.skipIf(current_db_type in dbtypes, f"Not Implemented for {db_names}")
+	return unittest.skipIf(current_db_type in dbtypes, f"Not Implemented for {current_db_type.value}")
 
 
 @run_only_if(db_type_is.MARIADB)
