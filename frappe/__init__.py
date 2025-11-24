@@ -1544,11 +1544,17 @@ def validate_and_sanitize_search_inputs(fn):
 		from frappe.desk.search import sanitize_searchfield
 
 		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
 
-		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
+		if "searchfield" in kwargs:
+			sanitize_searchfield(kwargs["searchfield"])
+
+		if "start" in kwargs:
+			kwargs["start"] = cint(kwargs["start"])
+
+		if "page_len" in kwargs:
+			kwargs["page_len"] = cint(kwargs["page_len"])
+
+		if "doctype" in kwargs and kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
 			return []
 
 		return fn(**kwargs)
