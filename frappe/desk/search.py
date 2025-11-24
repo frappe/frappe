@@ -179,7 +179,7 @@ def search_widget(
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
 
 		# For MariaDB, wrap in IFNULL for sorting to push nulls to end
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in ("mariadb", "sqlite"):
 			_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
 			formatted_fields.append(_relevance)
 			order_by = f"_relevance desc, {order_by}"
