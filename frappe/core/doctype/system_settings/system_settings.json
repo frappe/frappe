@@ -95,8 +95,11 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "column_break_ncjm",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
+  "column_break_yaxd",
+  "column_break_rbsx",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -777,12 +780,24 @@
    "fieldname": "disable_product_suggestion",
    "fieldtype": "Check",
    "label": "Disable Product Suggestion"
+  },
+  {
+   "fieldname": "column_break_ncjm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_yaxd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_rbsx",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-11-23 13:17:57.577690",
+ "modified": "2025-11-24 15:57:24.227252",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
