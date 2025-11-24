@@ -278,8 +278,8 @@ class DesktopIconGrid {
 	}
 
 	prepare() {
-		this.icons_data = this.icons_data.sort((a, b) => a.idx - b.idx);
 		this.total_pages = 1;
+		this.icons_data = this.icons_data.sort((a, b) => a.name.localeCompare(b.name));
 		this.icons_data_by_page =
 			this.icons_data || this.split_data(this.icons_data, this.page_size.total());
 	}

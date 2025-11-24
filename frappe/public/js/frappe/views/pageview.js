@@ -86,7 +86,7 @@ frappe.views.Page = class Page {
 
 			// set content, script and style
 			if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
-			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || "");
+			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 			frappe.dom.set_style(this.pagedoc.style || "");
 
 			// set breadcrumbs

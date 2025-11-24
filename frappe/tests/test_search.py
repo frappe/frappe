@@ -7,6 +7,7 @@ from functools import partial
 import frappe
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 
 
 class TestSearch(IntegrationTestCase):
@@ -186,7 +187,7 @@ def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 @frappe.validate_and_sanitize_search_inputs
 def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, filters, reference_doctype=None):
 	return []

@@ -16,6 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import cint, get_test_client, get_url
 
 try:
@@ -522,7 +523,7 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:
@@ -533,6 +534,6 @@ def test(*, fail=False, handled=True, message="Failed"):
 		frappe.msgprint(message)
 
 
-@frappe.whitelist(allow_guest=True)
+@whitelist_for_tests(allow_guest=True)
 def test_array(data):
 	return data

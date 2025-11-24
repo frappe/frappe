@@ -449,6 +449,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_result_height() {
+		if (this.view !== "List") return;
 		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
 
