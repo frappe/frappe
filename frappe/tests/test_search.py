@@ -243,17 +243,21 @@ def custom_translation(language: str, source_text: str, translated_text: str):
 	doc.translated_text = translated_text
 	doc.save()
 
-	yield
-
-	doc.delete()
+	try:
+		yield
+	finally:
+		doc.delete()
 
 
 @contextmanager
 def use_language(language: str):
 	original_lang = frappe.local.lang
 	frappe.local.lang = language
-	yield
-	frappe.local.lang = original_lang
+
+	try:
+		yield
+	finally:
+		frappe.local.lang = original_lang
 
 
 def teardown_test_link_field_order(TestCase):
