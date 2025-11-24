@@ -708,7 +708,10 @@ def get_stats(stats, doctype, filters=None):
 					order_by=column,
 				)
 
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+				try:
+            no_tag_count = no_tag_count[0][1]
+        except IndexError:
+            no_tag_count = 0
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
