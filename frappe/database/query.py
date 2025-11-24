@@ -159,7 +159,7 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
-		fields: str | list | tuple | None = None,
+		fields: str | list | tuple | set | None = None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
@@ -871,7 +871,7 @@ class Engine:
 			return pypika_field
 
 	def parse_fields(
-		self, fields: str | list | tuple | Field | AggregateFunction | None
+		self, fields: str | list | tuple | set | Field | AggregateFunction | None
 	) -> "list[Field | AggregateFunction | Criterion | DynamicTableField | ChildQuery]":
 		if not fields:
 			return []
@@ -884,7 +884,7 @@ class Engine:
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
-		elif isinstance(fields, list | tuple):
+		elif isinstance(fields, list | tuple | set):
 			for item in fields:
 				if item is None:
 					continue
@@ -945,7 +945,7 @@ class Engine:
 						)
 
 					# Ensure child_fields_list is a list or tuple
-					if not isinstance(child_fields_list, list | tuple):
+					if not isinstance(child_fields_list, list | tuple | set):
 						frappe.throw(
 							_("Child query fields for '{0}' must be a list or tuple.").format(child_field)
 						)
