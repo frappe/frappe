@@ -1539,27 +1539,9 @@ def ping():
 
 
 def validate_and_sanitize_search_inputs(fn):
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		from frappe.desk.search import sanitize_searchfield
+	from frappe.desk.search import validate_and_sanitize_search_inputs as get_wrapper
 
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
-
-		if "searchfield" in kwargs:
-			sanitize_searchfield(kwargs["searchfield"])
-
-		if "start" in kwargs:
-			kwargs["start"] = cint(kwargs["start"])
-
-		if "page_len" in kwargs:
-			kwargs["page_len"] = cint(kwargs["page_len"])
-
-		if "doctype" in kwargs and kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
-			return []
-
-		return fn(**kwargs)
-
-	return wrapper
+	return get_wrapper(fn)
 
 
 def override_whitelisted_method(original_method: str) -> str:
