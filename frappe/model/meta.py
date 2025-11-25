@@ -816,20 +816,40 @@ def get_field_currency(df, doc=None):
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
+<<<<<<< HEAD
 	from frappe.utils import get_number_format_info
 
+=======
+>>>>>>> a8c835190d (fix: use number format from currency document if defined (#34886))
 	if df.precision:
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
 		precision = cint(frappe.db.get_default("currency_precision"))
 		if not precision:
+<<<<<<< HEAD
 			number_format = frappe.db.get_default("number_format") or "#,###.##"
 			_decimal_str, _comma_str, precision = get_number_format_info(number_format)
+=======
+			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
+>>>>>>> a8c835190d (fix: use number format from currency document if defined (#34886))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
 	return precision
+
+
+def get_precision_from_currency_format(currency: str) -> int:
+	"""Get precision from currency format string if applicable."""
+	from frappe.locale import get_number_format
+	from frappe.utils.number_format import NumberFormat
+
+	use_format_from_currency = frappe.get_system_settings("use_number_format_from_currency")
+	number_format = get_number_format()
+	if use_format_from_currency:
+		currency_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
+		number_format = NumberFormat.from_string(currency_format) if currency_format else number_format
+	return number_format.precision
 
 
 def get_default_df(fieldname):
