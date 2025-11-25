@@ -73,6 +73,7 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
+		this.attributes = reactive(options.attributes || {})
 
 		this.componentSlots = options.componentSlots || {}
 		if (!options.componentSlots) {
@@ -83,7 +84,6 @@ class Block implements BlockOptions {
 		}
 
 		this.componentEvents = options.componentEvents || {}
-		this.attributes = reactive(options.attributes || {})
 		this.initializeSlots()
 
 		// Define as non-reactive property

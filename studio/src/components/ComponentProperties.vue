@@ -3,12 +3,12 @@
 		<EmptyState v-if="!block?.componentName || block?.isRoot()" message="Select a block to edit properties" />
 		<div v-else class="flex flex-col gap-3">
 			<!-- props -->
-			<SectionContainer title="Props" class="mb-4">
+			<SectionContainer title="Props">
 				<PropsEditor :block="block" />
 			</SectionContainer>
 
 			<!-- slots -->
-			<SectionContainer title="Slots" class="mb-4">
+			<SectionContainer title="Slots">
 				<template #actions>
 					<Autocomplete
 						:options="componentSlots"
@@ -53,7 +53,7 @@
 			</SectionContainer>
 
 			<!-- Attributes -->
-			<SectionContainer title="Attributes" class="mb-4">
+			<SectionContainer title="Attributes">
 				<template #actions>
 					<Button @click="attributesEditor?.addObjectKey()" size="sm" variant="ghost" icon="plus" />
 				</template>

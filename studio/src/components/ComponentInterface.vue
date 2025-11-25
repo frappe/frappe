@@ -2,7 +2,7 @@
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
 			<!-- inputs -->
-			<SectionContainer title="Inputs" class="mb-4">
+			<SectionContainer title="Inputs">
 				<template #actions>
 					<Autocomplete
 						:options="fieldTypeOptions"
