@@ -652,7 +652,11 @@ class TestQuery(IntegrationTestCase):
 			.where(
 				(User.creation > "2023-01-01")
 				& (
-					(User.email.like("%@example.com"))
+					(
+						User.email.ilike("%@example.com")
+						if frappe.db.db_type == "postgres"
+						else User.email.like("%@example.com")
+					)
 					| ((User.first_name.isin(["Admin", "Guest"])) & (User.enabled != 1))
 				)
 			)
