@@ -251,6 +251,13 @@ def get_defaults_for(parent="__default"):
 
 		defaults = frappe._dict()
 		for d in res:
+			if d.defvalue:
+				try:
+					if str(int(d.defvalue)) == d.defvalue:
+						d.defvalue = int(d.defvalue)
+				except (ValueError, TypeError):
+					pass
+
 			if d.defkey in defaults:
 				# listify
 				if not isinstance(defaults[d.defkey], list) and defaults[d.defkey] != d.defvalue:
