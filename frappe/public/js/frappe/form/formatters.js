@@ -459,36 +459,37 @@ frappe.get_format_helper = function (doc) {
 /**
  * Format a link value based on the provided document and field information.
  *
- * @param {string} value - The value to add a link value.
- * @param {Object} doc - The document object.
- * @param {Object} df - The field object.
+ * @param {string} doctype - The Link Field DocType to apply formatting for.
+ * @param {string} source_field - The field for which formatting is applied.
+ * @param {string} target_field - The field whose value should be used for formatting.
+ * @param {string} value - The default value of the link field.
+ * @param {Object} doc - The document object containing field values.
  * @returns {string} - The formatted link value.
  */
 
-(frappe.boot.link_formatters || []).forEach((doctype) => {
-	frappe.form.link_formatters[doctype] = function (value, doc, df) {
-		return add_link_title(value, doc, df);
-	};
+Object.keys(frappe.boot.link_formatters || {}).forEach((doctype) => {
+	const mappings = frappe.boot.link_formatters[doctype];
+
+	Object.keys(mappings).forEach((source_field) => {
+		const target_field = mappings[source_field];
+
+		frappe.form.link_formatters[doctype] = function (value, doc, df) {
+			return add_link_title(value, doc, source_field, target_field);
+		};
+	});
 });
 
-function add_link_title(value, doc, df) {
-	let fieldname = `${df.fieldname}_name`;
-	if (df.options === "Item") {
-		fieldname = "item_name";
-	} else if (df.options === "User") {
-		fieldname = `${df.fieldname}_full_name`;
-	}
-
+function add_link_title(value, doc, source_field, target_field) {
 	if (
 		doc &&
 		value &&
-		doc[fieldname] &&
-		doc[fieldname] !== value &&
-		doc[df.fieldname] === value
+		doc[target_field] &&
+		doc[target_field] !== value &&
+		doc[source_field] === value
 	) {
-		return value + ": " + doc[fieldname];
-	} else if (!value && doc.doctype && doc[fieldname]) {
-		return doc[fieldname];
+		return value + ": " + doc[target_field];
+	} else if (!value && doc.doctype && doc[target_field]) {
+		return doc[target_field];
 	} else {
 		return value;
 	}
