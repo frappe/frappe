@@ -13,7 +13,7 @@
 				:max-dimension="400"
 			/>
 
-			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-2 text-base">
+			<div class="sticky top-0 z-[12] flex w-full border-gray-200 bg-white px-1 text-base">
 				<button
 					v-for="tab of tabs"
 					:key="tab"
@@ -31,12 +31,12 @@
 
 			<ComponentProperties
 				v-show="activeTab === 'Properties'"
-				class="p-4"
+				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentEvents
 				v-show="activeTab === 'Events'"
-				class="p-4"
+				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentStyles
@@ -46,7 +46,7 @@
 			/>
 			<ComponentInterface
 				v-if="activeTab === 'Interface' && showInterfaceTab"
-				class="p-4"
+				class="p-3"
 				@vue:unmounted="store.studioLayout.rightPanelActiveTab = 'Properties'"
 			/>
 		</div>
