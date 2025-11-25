@@ -468,7 +468,7 @@
     "fieldname": "only_system_managers_upload_public_files",
     "fieldtype": "Check",
     "label": "Only allow System Managers to upload public files",
-    "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog."
+    "description": "If enabled, only System Managers can upload public files. The <i>Is Private</i> field becomes read-only for other users in the File DocType, and the checkbox is hidden in the upload dialog."
   }, 
   {
    "default": "0",

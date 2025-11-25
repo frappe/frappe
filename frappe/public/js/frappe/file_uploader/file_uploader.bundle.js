@@ -30,15 +30,11 @@ class FileUploader {
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
-		const sysdefaults = (frappe.boot && frappe.boot.sysdefaults) || {};
-		const onlySysMgr = Number(sysdefaults.only_system_managers_upload_public_files) === 1;
-
-		const roles = frappe.user_roles || [];
-		const isSystemManager = roles.includes("System Manager");
-
 		// If system setting(only_system_managers_upload_public_files) is OFF → everyone can use the button (old behaviour)
 		// If system setting(only_system_managers_upload_public_files) is ON → only System Manager / Administrator see it
-		this.can_toggle_private = !onlySysMgr || isSystemManager;
+		this.can_toggle_private =
+			Number(frappe.boot?.sysdefaults?.only_system_managers_upload_public_files) !== 1 ||
+			frappe.user.has_role(["System Manager", "Administrator"]);
 
 		if (!wrapper) {
 			this.make_dialog(dialog_title);

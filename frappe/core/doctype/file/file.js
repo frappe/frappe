@@ -38,13 +38,13 @@ frappe.ui.form.on("File", {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
 
-		// --- NEW: restrict "Is Private" field based on System Settings ---
-		const sysdefaults = (frappe.boot && frappe.boot.sysdefaults) || {};
-		const onlySysMgr = Number(sysdefaults.only_system_managers_upload_public_files) === 1;
-		const roles = frappe.user_roles || [];
-		const isSystemManager = roles.includes("System Manager");
-
-		if (onlySysMgr && !isSystemManager) {
+		// Restrict "Is Private" field based on System Settings
+		if (
+			Number(frappe.boot.sysdefaults?.only_system_managers_upload_public_files) === 1 &&
+			!frappe.user.has_role(["System Manager", "Administrator"]) &&
+			frm.doc.is_private
+		) {
+			// Only make read-only if the file is currently private
 			frm.set_df_property("is_private", "read_only", 1);
 		}
 	},

@@ -161,9 +161,7 @@ class File(Document):
 		if (not cint(self.is_private)) and cint(
 			frappe.get_system_settings("only_system_managers_upload_public_files")
 		):
-			roles = frappe.get_roles()
-			if "System Manager" not in roles:
-				frappe.throw(_("Public files can only be created by System Managers."))
+			frappe.only_for("System Manager")
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():

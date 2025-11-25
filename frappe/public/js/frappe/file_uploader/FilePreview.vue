@@ -129,19 +129,12 @@ let allow_toggle_optimize = computed(() => {
 });
 
 let allow_toggle_private = computed(() => {
-	const sysdefaults = (frappe.boot && frappe.boot.sysdefaults) || {};
-
-	const onlySysMgr = Number(sysdefaults.only_system_managers_upload_public_files) === 1;
-
-	const roles = frappe.user_roles || [];
-	const isSystemManager = roles.includes("System Manager");
-
-	// If system setting(only_system_managers_upload_public_files) is ON and user is NOT a System Manager → hide Private checkbox
-	if (onlySysMgr && !isSystemManager) {
+	if (
+		Number(frappe.boot.sysdefaults?.only_system_managers_upload_public_files) === 1 &&
+		!frappe.user.has_role(["System Manager", "Administrator"])
+	) {
 		return false;
 	}
-
-	// Otherwise keep existing behaviour
 	return props.allow_toggle_private && !uploaded.value && !props.file.failed;
 });
 
