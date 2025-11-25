@@ -22,7 +22,6 @@
 			></Button>
 		</div>
 		<Button
-			v-if="showAddButton"
 			variant="subtle"
 			label="Add"
 			class="dark:bg-zinc-800 dark:text-gray-100"
@@ -41,16 +40,10 @@
 import { mapToObject, replaceMapKey } from "@/utils/helpers"
 import { ref } from "vue"
 
-const props = withDefaults(
-	defineProps<{
-		obj: Record<string, string>
-		description?: string
-		showAddButton?: boolean
-	}>(),
-	{
-		showAddButton: true,
-	},
-)
+const props = defineProps<{
+	obj: Record<string, string>
+	description?: string
+}>()
 
 const emit = defineEmits({
 	"update:obj": (obj: Record<string, string>) => true,
@@ -109,8 +102,4 @@ const pasteObj = (e: ClipboardEvent) => {
 		emit("update:obj", mapToObject(map))
 	}
 }
-
-defineExpose({
-	addObjectKey,
-})
 </script>

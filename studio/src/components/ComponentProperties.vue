@@ -52,17 +52,13 @@
 				<EmptyState v-else message="No slots added" />
 			</SectionContainer>
 
-			<!-- Attributes -->
+			<!-- attributes -->
 			<SectionContainer title="Attributes">
-				<template #actions>
-					<Button @click="attributesEditor?.addObjectKey()" size="sm" variant="ghost" icon="plus" />
-				</template>
 				<ObjectEditor
 					ref="attributesEditor"
 					:obj="blockController.getAttributes() || {}"
 					@update:obj="(obj: Record<string, any>) => blockController.setAttributes(obj)"
-					description="Pass additional HTML attributes or props not explicitly defined in the component"
-					:showAddButton="false"
+					description="Pass additional HTML attributes or props that are not explicitly defined in the component"
 				/>
 			</SectionContainer>
 
