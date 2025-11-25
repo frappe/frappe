@@ -53,6 +53,19 @@
 
 			<EmptyState v-else message="No slots added" />
 
+			<!-- Attributes -->
+			<div class="mt-3 flex items-center justify-between text-sm font-medium">
+				<h3 class="cursor-pointer text-base text-gray-900">Attributes</h3>
+				<Button @click="attributesEditor?.addObjectKey()" size="sm" variant="ghost" icon="plus" />
+			</div>
+			<ObjectEditor
+				ref="attributesEditor"
+				:obj="blockController.getAttributes() || {}"
+				@update:obj="(obj: Record<string, any>) => blockController.setAttributes(obj)"
+				description="Pass additional HTML attributes or props not explicitly defined in the component"
+				:showAddButton="false"
+			/>
+
 			<!-- Visibility Condition -->
 			<div class="mt-7 flex items-center justify-between text-sm font-medium">
 				<h3 class="cursor-pointer text-base text-gray-900">Visibility Condition</h3>
@@ -76,6 +89,7 @@ import Block from "@/utils/block"
 
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
+import ObjectEditor from "@/components/ObjectEditor.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption, Slot } from "@/types"
@@ -90,12 +104,12 @@ const props = defineProps<{
 }>()
 const getCompletions = useStudioCompletions()
 
+const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
+
 const componentSlots = ref<string[]>([])
 watch(
 	() => props.block?.componentName,
-	async () => {
-		await updateAvailableSlots()
-	},
+	() => updateAvailableSlots(),
 )
 
 watch(
