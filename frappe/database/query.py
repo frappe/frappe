@@ -500,7 +500,12 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		operator_fn = OPERATOR_MAP[_operator.casefold()]
+		if (
+			self.is_postgres and _operator.casefold() == "like"
+		):  # use `ILIKE` to support case insensitive search in postgres
+			operator_fn = OPERATOR_MAP["ilike"]
+		else:
+			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
 				filter_field_name = (
@@ -2263,6 +2268,7 @@ class SQLFunctionParser:
 			"some",
 			"true",
 			"false",
+			"ilike",
 		}
 
 		if alias.lower() in sql_keywords:
