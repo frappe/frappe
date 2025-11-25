@@ -3,7 +3,7 @@
 		v-if="isObjectEmpty(componentProps)"
 		:message="`${block?.getBlockDescription()} has no editable properties`"
 	/>
-	<div v-else class="mb-4 mt-3 flex flex-col gap-3">
+	<div v-else class="mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
 			<DynamicValueSelector
 				v-if="propName === 'modelValue'"
