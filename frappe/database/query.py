@@ -20,6 +20,7 @@ from frappe.database.utils import (
 )
 from frappe.model import get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -454,6 +455,9 @@ class Engine:
 		else:
 			# Regular value processing for literal comparisons like: table.field = 'value'
 			_value = convert_to_value(value)
+
+		if isinstance(value, Document):
+			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
