@@ -69,6 +69,8 @@ class TestQuery(IntegrationTestCase):
 		setup_for_tests()
 
 	def test_multiple_tables_in_filters(self):
+		query = "SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'"
+		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -78,7 +80,7 @@ class TestQuery(IntegrationTestCase):
 					["DocType", "parent", "=", "something"],
 				],
 			).get_sql(),
-			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
+			query,
 		)
 
 	def test_string_fields(self):
@@ -361,13 +363,15 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'",
 		)
 
+		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'"
+		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": ("like", "frap%")},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'",
+			query,
 		)
 
 		self.assertQueryEqual(
@@ -423,141 +427,125 @@ class TestQuery(IntegrationTestCase):
 	def test_or_filters(self):
 		"""Test OR filter conditions."""
 		# Test 1: Basic dict or_filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'",
 		)
 
 		# Test 2: List format or_filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters=[["name", "=", "User"], ["module", "=", "Core"]],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'",
 		)
 
 		# Test 3: OR filters with operators
-		self.assertEqual(
+		query = "SELECT `name` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `module` IN ('Core','Custom')"
+		query = query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("like", "User%"), "module": ("in", ["Core", "Custom"])},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `module` IN ('Core','Custom')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			query,
 		)
 
 		# Test 4: Combining filters (AND) with or_filters (OR)
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"issingle": 0},
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND (`name`='User' OR `module`='Core')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND (`name`='User' OR `module`='Core')",
 		)
 
 		# Test 5: Multiple AND filters with OR filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"issingle": 0, "custom": 0},
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND `custom`=0 AND (`name`='User' OR `module`='Core')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND `custom`=0 AND (`name`='User' OR `module`='Core')",
 		)
 
 		# Test 6: OR filters with simple list (name IN)
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				or_filters=["User", "Role", "Note"],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('User','Role','Note')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('User','Role','Note')",
 		)
 
 		# Test 7: OR filters with greater than and less than
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"idx": (">", 5), "issingle": ("=", 1)},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `idx`>5 OR `issingle`=1".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `idx`>5 OR `issingle`=1",
 		)
 
 		# Test 8: OR filters with list including doctype
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters=[["DocType", "name", "=", "User"], ["DocType", "name", "=", "Role"]],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `name`='Role'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `name`='Role'",
 		)
 
 		# Test 9: OR filters with != operator
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("!=", "User"), "module": ("!=", "Core")},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`<>'User' OR `module`<>'Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`<>'User' OR `module`<>'Core'",
 		)
 
 		# Test 10: Empty or_filters should return query without OR conditions
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"custom": 0},
 				or_filters={},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `custom`=0".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `custom`=0",
 		)
 
 		# Test 11: OR filters with not in operator
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("not in", ["User", "Role"]), "module": ("=", "Core")},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` NOT IN ('User','Role') OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` NOT IN ('User','Role') OR `module`='Core'",
 		)
 
 		# Test 12: OR filters with mixed field types
-		self.assertEqual(
+		query = (
+			"SELECT `name`,`module` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `issingle`=1 OR `custom`=0"
+		)
+		query = query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name", "module"],
@@ -567,9 +555,7 @@ class TestQuery(IntegrationTestCase):
 					["custom", "=", 0],
 				],
 			).get_sql(),
-			"SELECT `name`,`module` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `issingle`=1 OR `custom`=0".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			query,
 		)
 
 	def test_nested_filters(self):
@@ -711,49 +697,41 @@ class TestQuery(IntegrationTestCase):
 	def test_implicit_join_query(self):
 		self.maxDiff = None
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 		# output doesn't contain parentfield condition because it can't be inferred
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 		# output contains parentfield condition because it can be inferred by "seen_by.user"
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "seen_by.user as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' AND `tabNote Seen By`.`parentfield`='seen_by' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' AND `tabNote Seen By`.`parentfield`='seen_by' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name", "module.app_name as app_name"],
 			).get_sql(),
-			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`",
 		)
 
 	# fields now has strict validation, so this test is not valid anymore
