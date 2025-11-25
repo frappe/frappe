@@ -22,7 +22,7 @@
 				</Autocomplete>
 			</div>
 
-			<div class="mb-4 mt-3 flex flex-col gap-3" v-if="!isObjectEmpty(block?.componentSlots)">
+			<div class="mb-4 flex flex-col gap-3" v-if="!isObjectEmpty(block?.componentSlots)">
 				<div
 					v-for="(slot, name) in block?.componentSlots"
 					:key="name"
