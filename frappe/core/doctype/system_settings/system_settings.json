@@ -86,6 +86,7 @@
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
+  "only_system_managers_upload_public_files",
   "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
@@ -410,6 +411,7 @@
    "fieldtype": "Check",
    "label": "Allow Guests to Upload Files"
   },
+
   {
    "default": "4",
    "description": "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler.",
@@ -461,6 +463,13 @@
    "fieldtype": "Check",
    "label": "Strip EXIF tags from uploaded images"
   },
+  {
+    "default": "0",
+    "fieldname": "only_system_managers_upload_public_files",
+    "fieldtype": "Check",
+    "label": "Only allow System Managers to upload public files",
+    "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog."
+  }, 
   {
    "default": "0",
    "fieldname": "encrypt_backup",

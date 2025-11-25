@@ -37,6 +37,16 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name && frm.doc.file_name.split(".").splice(-1)[0] === "zip") {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
+
+		// --- NEW: restrict "Is Private" field based on System Settings ---
+		const sysdefaults = (frappe.boot && frappe.boot.sysdefaults) || {};
+		const onlySysMgr = Number(sysdefaults.only_system_managers_upload_public_files) === 1;
+		const roles = frappe.user_roles || [];
+		const isSystemManager = roles.includes("System Manager");
+
+		if (onlySysMgr && !isSystemManager) {
+			frm.set_df_property("is_private", "read_only", 1);
+		}
 	},
 
 	preview_file: function (frm) {

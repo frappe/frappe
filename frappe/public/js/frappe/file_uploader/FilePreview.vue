@@ -127,9 +127,24 @@ let allow_toggle_optimize = computed(() => {
 		!props.file.failed
 	);
 });
+
 let allow_toggle_private = computed(() => {
+	const sysdefaults = (frappe.boot && frappe.boot.sysdefaults) || {};
+
+	const onlySysMgr = Number(sysdefaults.only_system_managers_upload_public_files) === 1;
+
+	const roles = frappe.user_roles || [];
+	const isSystemManager = roles.includes("System Manager");
+
+	// If system setting(only_system_managers_upload_public_files) is ON and user is NOT a System Manager → hide Private checkbox
+	if (onlySysMgr && !isSystemManager) {
+		return false;
+	}
+
+	// Otherwise keep existing behaviour
 	return props.allow_toggle_private && !uploaded.value && !props.file.failed;
 });
+
 let is_cropable = computed(() => {
 	let croppable_types = ["image/jpeg", "image/png"];
 	return (

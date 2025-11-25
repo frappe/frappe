@@ -132,6 +132,7 @@ class File(Document):
 			return
 
 		self.validate_attachment_references()
+		self.enforce_public_file_restrictions()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
@@ -155,6 +156,14 @@ class File(Document):
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+
+	def enforce_public_file_restrictions(self):
+		if (not cint(self.is_private)) and cint(
+			frappe.get_system_settings("only_system_managers_upload_public_files")
+		):
+			roles = frappe.get_roles()
+			if "System Manager" not in roles:
+				frappe.throw(_("Public files can only be created by System Managers."))
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
