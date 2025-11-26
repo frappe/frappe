@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:12\n"
+"PO-Revision-Date: 2025-11-26 13:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2346,7 +2346,7 @@ msgstr "برنامه‌ها"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Apps with Search"
-msgstr ""
+msgstr "برنامه‌های دارای جستجو"
 
 #: frappe/public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -3553,7 +3553,7 @@ msgstr "لوگوی برند"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Brand Logo with Search"
-msgstr ""
+msgstr "لوگوی برند با قابلیت جستجو"
 
 #. Description of the 'Brand HTML' (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4434,7 +4434,7 @@ msgstr "فرزند Doctype\t"
 #. Label of the child (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Child Item"
-msgstr ""
+msgstr "آیتم فرزند"
 
 #: frappe/core/doctype/doctype/doctype.py:1647
 msgid "Child Table {0} for field {1} must be virtual"
@@ -7026,7 +7026,7 @@ msgstr "توضیحات برای اطلاع کاربر از هر اقدامی ک�
 #. Label of the designation (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Designation"
-msgstr ""
+msgstr "نقش سازمانی"
 
 #. Label of the desk_access (Check) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -7083,7 +7083,7 @@ msgstr "کاربر پیشخوان"
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:11
 #: frappe/www/me.html:80
 msgid "Desktop"
-msgstr ""
+msgstr "دسکتاپ"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -9799,7 +9799,7 @@ msgstr "بازخورد"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:29
 msgid "Female"
-msgstr ""
+msgstr "مونث"
 
 #. Label of the fetch_from (Small Text) field in DocType 'DocField'
 #. Label of the fetch_from (Small Text) field in DocType 'Custom Field'
@@ -10155,7 +10155,7 @@ msgstr "نوع فایل {0} مجاز نیست"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:636
 msgid "File upload failed."
-msgstr ""
+msgstr "آپلود فایل ناموفق بود."
 
 #: frappe/core/doctype/file/file.py:377 frappe/core/doctype/file/file.py:448
 msgid "File {0} does not exist"
@@ -11651,7 +11651,7 @@ msgstr "تنظیم HTML سربرگ از پیوست {0}"
 #. Label of the header_icon (Icon) field in DocType 'Workspace Sidebar'
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 msgid "Header Icon"
-msgstr ""
+msgstr "آیکون سربرگ"
 
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -12162,12 +12162,12 @@ msgstr "آیکون"
 #. Label of the icon_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Icon Style"
-msgstr ""
+msgstr "سبک آیکون"
 
 #. Label of the icon_type (Select) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Icon Type"
-msgstr ""
+msgstr "نوع آیکون"
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -18366,7 +18366,7 @@ msgstr "مقدار اصلی"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/page/setup_wizard/install_fixtures.py:30
 msgid "Other"
-msgstr "دیگر"
+msgstr "سایر"
 
 #. Label of the outgoing_tab (Tab Break) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -27435,7 +27435,7 @@ msgstr "URL ردیابی تولید و در کلیپ بورد کپی شد"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:31
 msgid "Transgender"
-msgstr ""
+msgstr "تراجنسیتی"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
@@ -29820,7 +29820,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:41
 msgid "Wrapping up"
-msgstr ""
+msgstr "جمع‌بندی"
 
 #. Label of the write (Check) field in DocType 'Custom DocPerm'
 #. Label of the write (Check) field in DocType 'DocPerm'
