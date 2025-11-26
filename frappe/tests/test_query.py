@@ -858,9 +858,12 @@ class TestQuery(IntegrationTestCase):
 		query = str(frappe.qb.get_query("Test Blog Post", ignore_permissions=False))
 
 		# Check for user permission condition in the query string
-		self.assertIn(
-			"IFNULL(`name`,'')='' OR `name` IN ('_Test Blog Post 1','_Test Blog Post')", query
-		)  # works in pg due to `coalesce` sub during sql execution
+		if frappe.db.db_type == "mariadb":
+			self.assertIn("IFNULL(`name`,'')='' OR `name` IN ('_Test Blog Post 1','_Test Blog Post')", query)
+		elif frappe.db.db_type == "postgres":
+			self.assertIn(
+				"IFNULL(\"name\",'')='' OR \"name\" IN ('_Test Blog Post 1','_Test Blog Post')", query
+			)  # works in pg due to `coalesce` sub during sql execution
 
 		frappe.set_user("Administrator")
 		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
