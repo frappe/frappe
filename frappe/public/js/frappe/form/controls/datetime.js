@@ -104,6 +104,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!value && !this.doc) {
 			value = this.last_value;
 		}
-		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
+		return value || "";
 	}
 };
