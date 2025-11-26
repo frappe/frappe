@@ -1,44 +1,36 @@
 <!-- Extracted from Builder -->
 <template>
 	<div ref="objectEditor" class="flex flex-col gap-2" @paste="pasteObj">
-		<div v-for="(value, key) in obj" :key="key" class="flex gap-2">
+		<div v-for="(value, key, index) in obj" :key="index" class="flex gap-2">
 			<Input
 				placeholder="Property"
 				:modelValue="key"
 				@update:modelValue="(val: string) => replaceKey(key, val)"
-				class="dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:focus:bg-zinc-700 rounded-md text-sm text-gray-800"
 			/>
 			<Input
 				placeholder="Value"
 				:modelValue="value"
 				@update:modelValue="(val: string) => updateObjectValue(key, val)"
-				class="dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:focus:bg-zinc-700 rounded-md text-sm text-gray-800"
 			/>
 			<Button
-				variant="outline"
+				class="flex-shrink-0 text-xs"
+				variant="subtle"
 				icon="x"
-				class="dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 p-2 dark:text-gray-100 dark:outline-0 dark:hover:text-gray-100"
 				@click="deleteObjectKey(key as string)"
 			></Button>
 		</div>
-		<Button
-			variant="subtle"
-			label="Add"
-			class="dark:bg-zinc-800 dark:text-gray-100"
-			@click="addObjectKey"
-		></Button>
-		<p
-			class="dark:bg-zinc-800 dark:text-zinc-300 rounded-sm bg-gray-100 p-2 text-2xs text-gray-800"
-			v-show="description"
-		>
+		<Button variant="subtle" label="Add" @click="addObjectKey"></Button>
+		<p class="rounded-sm bg-surface-gray-1 p-2 text-xs text-ink-gray-7" v-show="description">
 			<span v-html="description"></span>
 		</p>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { Button } from "frappe-ui"
+import Input from "@/components/Input.vue"
 import { mapToObject, replaceMapKey } from "@/utils/helpers"
-import { ref } from "vue"
+import { nextTick, ref } from "vue"
 
 const props = defineProps<{
 	obj: Record<string, string>
@@ -49,10 +41,16 @@ const emit = defineEmits({
 	"update:obj": (obj: Record<string, string>) => true,
 })
 
-const addObjectKey = () => {
+const addObjectKey = async () => {
 	const map = new Map(Object.entries(props.obj))
 	map.set("", "")
 	emit("update:obj", mapToObject(map))
+	await nextTick()
+	const inputs = objectEditor.value?.querySelectorAll("input")
+	if (inputs) {
+		const lastInput = inputs[inputs.length - 2]
+		lastInput.focus()
+	}
 }
 
 const updateObjectValue = (key: string, value: string) => {
