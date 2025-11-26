@@ -41,8 +41,11 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (should_refresh) {
 			// Prevent change event during programmatic update to avoid false dirty flags
 			this._setting_value = true;
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
-			this._setting_value = false;
+			try {
+				this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			} finally {
+				this._setting_value = false;
+			}
 		}
 	}
 
