@@ -1891,7 +1891,12 @@ class TestQuery(IntegrationTestCase):
 
 		sql = query.get_sql()
 		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), UnitTestCase.normalize_sql(sql))
-		self.assertIn(UnitTestCase.normalize_sql("ORDER BY `created_date`"), UnitTestCase.normalize_sql(sql))
+		if (
+			frappe.db.db_type != "postgres"
+		):  # since Postgres requires fields in Order by to be grouped or aggregated, order by is dropped
+			self.assertIn(
+				UnitTestCase.normalize_sql("ORDER BY `created_date`"), UnitTestCase.normalize_sql(sql)
+			)
 		self.assertIn(
 			UnitTestCase.normalize_sql("`creation` `created_date`"), UnitTestCase.normalize_sql(sql)
 		)
