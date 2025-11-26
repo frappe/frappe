@@ -179,15 +179,9 @@ def search_widget(
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
 
 		# For MariaDB, wrap in IFNULL for sorting to push nulls to end
-		if frappe.db.db_type in ("mariadb", "sqlite"):
-			_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
-			formatted_fields.append(_relevance)
-			order_by = f"_relevance desc, {order_by}"
-		elif frappe.db.db_type == "postgres":
-			_relevance = {**_relevance_expr, "as": "_relevance"}
-			formatted_fields.append(_relevance)
-			# Since we are sorting by alias postgres needs to know number of column we are sorting
-			order_by = f"_relevance desc nulls last, {order_by}"
+		_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
+		formatted_fields.append(_relevance)
+		order_by = f"_relevance desc, {order_by}"
 
 	ignore_permissions = doctype == "DocType" or (
 		cint(ignore_user_permissions)
