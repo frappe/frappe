@@ -673,7 +673,15 @@ def get_stats(stats, doctype, filters=None):
 					order_by=column,
 				)
 
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+				if (
+					no_tag_count
+					and isinstance(no_tag_count[0], (list, tuple))
+					and len(no_tag_count[0]) >= 1
+					and no_tag_count[0][0] is not None
+				):
+					no_tag_count = no_tag_count[0][0]
+				else:
+					no_tag_count = 0
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
