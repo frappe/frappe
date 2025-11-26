@@ -45,7 +45,7 @@
 									Component Tree
 								</Badge>
 							</div>
-							<Button variant="outline" size="sm" icon="x" @click="block?.removeSlot(name)" />
+							<Button variant="subtle" size="sm" icon="x" @click="block?.removeSlot(name)" />
 						</div>
 					</div>
 				</div>
