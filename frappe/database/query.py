@@ -250,7 +250,7 @@ class Engine:
 
 		if order_by:
 			if not (
-				distinct and self.is_postgres and is_select
+				self.is_postgres and is_select and (distinct or group_by)
 			):  # ignore in Postgres since order by fields need to appear in select distinct
 				self.apply_order_by(order_by)
 

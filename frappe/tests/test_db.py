@@ -384,7 +384,6 @@ class TestDB(IntegrationTestCase):
 						fields=[f"`{random_field}` as total"],
 						distinct=True,
 						limit=1,
-						order_by=None,
 					)[0]
 				)
 			),
@@ -398,7 +397,6 @@ class TestDB(IntegrationTestCase):
 						fields=[f"`{random_field}`"],
 						distinct=True,
 						limit=1,
-						order_by=None,
 					)[0]
 				)
 			),

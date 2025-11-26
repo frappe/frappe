@@ -73,14 +73,12 @@ class TestFrappeClient(IntegrationTestCase):
 			fields=[{"COUNT": "name", "as": "user_count"}],
 			filters={"user_type": "System User"},
 			group_by="user_type",
-			order_by=None,
 		)
 		getall_users = frappe.db.get_all(
 			"User",
 			fields=[{"COUNT": "name", "as": "system_user_count"}],
 			filters={"user_type": "System User"},
 			group_by="user_type",
-			order_by=None,
 		)
 		self.assertEqual(getlist_users[0]["user_count"], getall_users[0]["system_user_count"])
 

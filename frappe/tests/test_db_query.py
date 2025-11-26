@@ -847,7 +847,6 @@ class TestDBQuery(IntegrationTestCase):
 			fields=["document_type", {"SUM": "is_submittable", "as": "is_submittable"}],
 			limit=1,
 			as_list=True,
-			order_by=None,
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
