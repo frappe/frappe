@@ -39,8 +39,19 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
+			// Prevent change event during programmatic update to avoid false dirty flags
+			this._setting_value = true;
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			this._setting_value = false;
 		}
+	}
+
+	parse_validate_and_set_in_model(value, e) {
+		// Skip if we're programmatically setting the value (e.g., during form load)
+		if (this._setting_value) {
+			return Promise.resolve();
+		}
+		return super.parse_validate_and_set_in_model(value, e);
 	}
 	set_date_options() {
 		// webformTODO:

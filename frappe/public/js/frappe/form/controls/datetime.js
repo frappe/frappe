@@ -27,7 +27,10 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			}
 		}
 		if (should_refresh) {
+			// Prevent change event during programmatic update to avoid false dirty flags
+			this._setting_value = true;
 			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+			this._setting_value = false;
 		}
 	}
 
@@ -105,5 +108,14 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			value = this.last_value;
 		}
 		return value || "";
+	}
+
+	parse_validate_and_set_in_model(value, e) {
+		// Skip if we're programmatically setting the value (e.g., during form load)
+		// This prevents false dirty flags from datetime precision mismatches
+		if (this._setting_value) {
+			return Promise.resolve();
+		}
+		return super.parse_validate_and_set_in_model(value, e);
 	}
 };
