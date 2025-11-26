@@ -52,16 +52,6 @@
 				<EmptyState v-else message="No slots added" />
 			</SectionContainer>
 
-			<!-- attributes -->
-			<SectionContainer title="Attributes">
-				<ObjectEditor
-					ref="attributesEditor"
-					:obj="blockController.getAttributes() || {}"
-					@update:obj="(obj: Record<string, any>) => blockController.setAttributes(obj)"
-					description="Pass additional HTML attributes or props that are not explicitly defined in the component"
-				/>
-			</SectionContainer>
-
 			<!-- Visibility Condition -->
 			<SectionContainer title="Visibility Condition">
 				<Code
@@ -71,6 +61,16 @@
 					:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 					:modelValue="block?.visibilityCondition"
 					@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
+				/>
+			</SectionContainer>
+
+			<!-- attributes -->
+			<SectionContainer title="Attributes">
+				<ObjectEditor
+					ref="attributesEditor"
+					:obj="blockController.getAttributes() || {}"
+					@update:obj="(obj: Record<string, any>) => blockController.setAttributes(obj)"
+					description="Pass additional HTML attributes or props that are not explicitly defined in the component"
 				/>
 			</SectionContainer>
 		</div>
