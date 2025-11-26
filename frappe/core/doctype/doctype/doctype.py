@@ -1226,7 +1226,7 @@ def _test_connection_query(doctype, field, idx):
 	filters[field] = ""
 
 	try:
-		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True, order_by=None)
+		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
 	except Exception as e:
 		frappe.clear_last_message()
 		msg = _("Document Links Row #{0}: Invalid doctype or fieldname.").format(idx)

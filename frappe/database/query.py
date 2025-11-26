@@ -214,6 +214,7 @@ class Engine:
 		if self.apply_permissions:
 			self.check_read_permission()
 
+		is_select = False
 		if update:
 			self.query = qb.update(self.table, immutable=False)
 		elif into:
@@ -223,6 +224,7 @@ class Engine:
 		else:
 			self.query = qb.from_(self.table, immutable=False)
 			self.apply_fields(fields)
+			is_select = True
 
 		self.apply_filters(filters)
 		self.apply_or_filters(or_filters)
@@ -247,7 +249,10 @@ class Engine:
 			self.apply_group_by(group_by)
 
 		if order_by:
-			self.apply_order_by(order_by)
+			if not (
+				distinct and self.is_postgres and is_select
+			):  # ignore in Postgres since order by fields need to appear in select distinct
+				self.apply_order_by(order_by)
 
 		if self.apply_permissions:
 			self.add_permission_conditions()

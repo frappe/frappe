@@ -496,7 +496,7 @@ def get_permission_query_conditions_for_communication(user):
 		accounts = frappe.get_all(
 			"User Email",
 			filters={"parent": user},
-			fields=["email_account", "idx"],
+			fields=["email_account"],
 			distinct=True,
 			order_by="idx",
 		)

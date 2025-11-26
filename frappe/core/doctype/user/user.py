@@ -1022,7 +1022,6 @@ def ask_pass_update():
 		filters={"awaiting_password": 1, "used_oauth": 0},
 		pluck="parent",
 		distinct=True,
-		order_by=None,
 	)
 	set_default("email_user_password", ",".join(password_list))
 

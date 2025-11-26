@@ -310,7 +310,6 @@ def get_references_across_doctypes_by_dynamic_link_field(
 				pluck=doctype_fieldname,
 				filters=filters,
 				distinct=1,
-				order_by=None,
 			):
 				if linked_to:
 					links_by_doctype[linked_to].append(
@@ -670,7 +669,6 @@ def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=F
 			filters={df.doctype_fieldname: doctype},
 			fields=["parenttype"] if is_child else None,
 			distinct=True,
-			order_by=None,
 		)
 
 		if not possible_link:

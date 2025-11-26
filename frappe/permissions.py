@@ -565,7 +565,7 @@ def get_perms_for(roles, perm_doctype="DocPerm"):
 def get_doctypes_with_custom_docperms():
 	"""Return all the doctypes with Custom Docperms."""
 
-	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1, order_by=None)
+	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
 
 

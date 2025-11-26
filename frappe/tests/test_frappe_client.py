@@ -73,6 +73,7 @@ class TestFrappeClient(IntegrationTestCase):
 			fields=[{"COUNT": "name", "as": "user_count"}],
 			filters={"user_type": "System User"},
 			group_by="user_type",
+			order_by=None,
 		)
 		getall_users = frappe.db.get_all(
 			"User",

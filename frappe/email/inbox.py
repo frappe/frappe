@@ -13,7 +13,7 @@ def get_email_accounts(user=None):
 	accounts = frappe.get_all(
 		"User Email",
 		filters={"parent": user},
-		fields=["email_account", "email_id", "enable_outgoing", "idx"],
+		fields=["email_account", "email_id", "enable_outgoing"],
 		distinct=True,
 		order_by="idx",
 	)

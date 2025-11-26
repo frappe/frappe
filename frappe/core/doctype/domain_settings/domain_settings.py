@@ -82,7 +82,6 @@ def get_active_domains():
 			filters={"parent": "Domain Settings"},
 			fields=["domain"],
 			distinct=True,
-			order_by=None,
 		)
 
 		active_domains = [row.get("domain") for row in domains]
