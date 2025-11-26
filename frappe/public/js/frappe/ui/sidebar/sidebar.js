@@ -311,166 +311,258 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	set_workspace_sidebar(router) {
-		let route = frappe.get_route();
-		// Guard against null/undefined/empty route
-		if (!route || !Array.isArray(route) || route.length === 0) {
-			// Preserve current sidebar if route is invalid
-			if (this.workspace_title) {
-				this.setup(this.workspace_title);
-			}
-			this.set_active_workspace_item();
+		const route = frappe.get_route();
+		
+		// Validate route before processing
+		if (!this.is_valid_route(route)) {
+			this.preserve_current_sidebar();
 			return;
 		}
 
-		if (route[0] == "setup-wizard") return;
+		// Skip setup wizard
+		if (route[0] === "setup-wizard") {
+			return;
+		}
 
-		if (route[0] == "Workspaces") {
-			let workspace;
-			if (!route[1]) {
-				workspace = "My Workspaces";
-			} else {
-				workspace = route[1];
-			}
-
-			frappe.app.sidebar.setup(workspace);
-		} else if (route[0] == "List" || route[0] == "Form") {
-			let doctype = route[1];
-			if (!doctype) {
-				// Preserve current sidebar if doctype is missing
-				if (this.workspace_title) {
-					this.setup(this.workspace_title);
-				}
-				this.set_active_workspace_item();
-				return;
-			}
-
-			let sidebars = this.get_correct_workspace_sidebars(doctype);
-			// prevents switching of the sidebar if one item is linked in two sidebars
-			if (sidebars.includes(this.workspace_title)) {
-				frappe.app.sidebar.setup(this.workspace_title);
-				return;
-			}
-			if (sidebars.length == 0) {
-				let module_name = router?.meta?.module;
-				if (module_name && this.sidebar_module_map[module_name]) {
-					let module_sidebars = this.sidebar_module_map[module_name];
-					if (Array.isArray(module_sidebars) && module_sidebars.length > 0) {
-						frappe.app.sidebar.setup(module_sidebars[0]);
-					} else {
-						frappe.app.sidebar.setup(module_name);
-					}
-				} else if (this.workspace_title) {
-					// Preserve current sidebar if no module mapping found
-					this.setup(this.workspace_title);
-				}
-			} else {
-				if (
-					this.workspace_title &&
-					sidebars.includes(this.workspace_title.toLowerCase())
-				) {
-					frappe.app.sidebar.setup(this.workspace_title.toLowerCase());
-				} else if (sidebars.length > 0) {
-					frappe.app.sidebar.setup(sidebars[0]);
-				}
-			}
-		} else if (route[0] == "query-report" || route[0] == "report") {
-			let report_name = route[1];
-			if (!report_name) {
-				// Preserve current sidebar if report name is missing
-				if (this.workspace_title) {
-					this.setup(this.workspace_title);
-				}
-				this.set_active_workspace_item();
-				return;
-			}
-
-			// Decode URL-encoded report name
-			try {
-				report_name = decodeURIComponent(report_name);
-			} catch (e) {
-				// If decoding fails, use original name
-			}
-
-			let sidebars = this.get_correct_workspace_sidebars(report_name);
-			if (sidebars.length > 0) {
-				if (
-					this.workspace_title &&
-					sidebars.includes(this.workspace_title.toLowerCase())
-				) {
-					frappe.app.sidebar.setup(this.workspace_title.toLowerCase());
-				} else {
-					frappe.app.sidebar.setup(sidebars[0]);
-				}
-			} else {
-				// No sidebars found for report - try fallbacks
-				let fallback_workspace = null;
-
-				// Fallback 1: Preserve current sidebar if it exists
-				if (this.workspace_title) {
-					fallback_workspace = this.workspace_title;
-				}
-
-				// Fallback 2: Try module mapping from router
-				if (!fallback_workspace && router?.meta?.module) {
-					let module_name = router.meta.module;
-					if (this.sidebar_module_map[module_name]) {
-						let module_sidebars = this.sidebar_module_map[module_name];
-						if (Array.isArray(module_sidebars) && module_sidebars.length > 0) {
-							fallback_workspace = module_sidebars[0];
-						}
-					}
-				}
-
-				// Fallback 3: Use default workspace from boot data
-				if (!fallback_workspace && frappe.boot?.default_workspace) {
-					fallback_workspace = frappe.boot.default_workspace;
-				}
-
-				// Fallback 4: Use first available workspace
-				if (!fallback_workspace && this.all_sidebar_items) {
-					let first_workspace = Object.keys(this.all_sidebar_items)[0];
-					if (first_workspace) {
-						fallback_workspace = this.all_sidebar_items[first_workspace].label || first_workspace;
-					}
-				}
-
-				// Setup sidebar with fallback if found
-				if (fallback_workspace) {
-					this.setup(fallback_workspace);
-				}
-				this.set_active_workspace_item();
-				return;
-			}
+		// Resolve workspace based on route type
+		const workspace = this.resolve_workspace_for_route(route, router);
+		
+		if (workspace) {
+			this.setup(workspace);
 		} else {
-			// Handle page routes and other unhandled routes
-			// Try to find workspace for the page/route
-			let page_name = route[0];
-			let sidebars = this.get_correct_workspace_sidebars(page_name);
+			// Fallback: preserve current sidebar if resolution fails
+			this.preserve_current_sidebar();
+		}
+
+		this.set_active_workspace_item();
+	}
+
+	/**
+	 * Validates that route is a valid array with at least one element
+	 */
+	is_valid_route(route) {
+		return route && Array.isArray(route) && route.length > 0;
+	}
+
+	/**
+	 * Resolves the appropriate workspace for a given route
+	 * Uses semantic resolution strategies based on route type
+	 */
+	resolve_workspace_for_route(route, router) {
+		const route_type = route[0];
+
+		switch (route_type) {
+			case "Workspaces":
+				return this.resolve_workspace_for_workspaces_route(route);
 			
-			if (sidebars.length > 0) {
-				if (
-					this.workspace_title &&
-					sidebars.includes(this.workspace_title.toLowerCase())
-				) {
-					frappe.app.sidebar.setup(this.workspace_title.toLowerCase());
-				} else {
-					frappe.app.sidebar.setup(sidebars[0]);
-				}
-			} else {
-				// Try module mapping as fallback
-				let module_name = router?.meta?.module;
-				if (module_name && this.sidebar_module_map[module_name]) {
-					let module_sidebars = this.sidebar_module_map[module_name];
-					if (Array.isArray(module_sidebars) && module_sidebars.length > 0) {
-						frappe.app.sidebar.setup(module_sidebars[0]);
-					}
-				} else if (this.workspace_title) {
-					// Preserve current sidebar if no workspace found
-					this.setup(this.workspace_title);
-				}
+			case "List":
+			case "Form":
+				return this.resolve_workspace_for_doctype(route, router);
+			
+			case "query-report":
+			case "report":
+				return this.resolve_workspace_for_report(route, router);
+			
+			default:
+				return this.resolve_workspace_for_page(route, router);
+		}
+	}
+
+	/**
+	 * Resolves workspace for Workspaces route
+	 */
+	resolve_workspace_for_workspaces_route(route) {
+		return route[1] || "My Workspaces";
+	}
+
+	/**
+	 * Resolves workspace for DocType routes (List/Form)
+	 */
+	resolve_workspace_for_doctype(route, router) {
+		const doctype = route[1];
+		
+		if (!doctype) {
+			return null; // Will trigger preserve_current_sidebar
+		}
+
+		// Strategy 1: Find sidebars that explicitly link to this doctype
+		const sidebars = this.get_correct_workspace_sidebars(doctype);
+		
+		// Strategy 2: If current workspace already shows this doctype, preserve it
+		if (this.should_preserve_current_workspace(sidebars)) {
+			return this.workspace_title;
+		}
+
+		// Strategy 3: Use first matching sidebar if available
+		if (sidebars.length > 0) {
+			return this.select_best_workspace(sidebars);
+		}
+
+		// Strategy 4: Try module-based resolution
+		const module_workspace = this.resolve_workspace_by_module(router);
+		if (module_workspace) {
+			return module_workspace;
+		}
+
+		// Strategy 5: Fallback to default resolution
+		return this.get_fallback_workspace(router);
+	}
+
+	/**
+	 * Resolves workspace for report routes
+	 */
+	resolve_workspace_for_report(route, router) {
+		let report_name = route[1];
+		
+		if (!report_name) {
+			return null; // Will trigger preserve_current_sidebar
+		}
+
+		// Decode URL-encoded report name
+		report_name = this.normalize_report_name(report_name);
+
+		// Strategy 1: Find sidebars that explicitly link to this report
+		const sidebars = this.get_correct_workspace_sidebars(report_name);
+		
+		if (sidebars.length > 0) {
+			return this.select_best_workspace(sidebars);
+		}
+
+		// Strategy 2: Fallback to default resolution
+		return this.get_fallback_workspace(router);
+	}
+
+	/**
+	 * Resolves workspace for page routes and other unhandled routes
+	 */
+	resolve_workspace_for_page(route, router) {
+		const page_name = route[0];
+		
+		// Strategy 1: Find sidebars that explicitly link to this page
+		const sidebars = this.get_correct_workspace_sidebars(page_name);
+		
+		if (sidebars.length > 0) {
+			return this.select_best_workspace(sidebars);
+		}
+
+		// Strategy 2: Try module-based resolution
+		const module_workspace = this.resolve_workspace_by_module(router);
+		if (module_workspace) {
+			return module_workspace;
+		}
+
+		// Strategy 3: Fallback to default resolution
+		return this.get_fallback_workspace(router);
+	}
+
+	/**
+	 * Normalizes report name by decoding URL encoding
+	 */
+	normalize_report_name(report_name) {
+		try {
+			return decodeURIComponent(report_name);
+		} catch (e) {
+			// If decoding fails, return original name
+			return report_name;
+		}
+	}
+
+	/**
+	 * Determines if current workspace should be preserved
+	 * Prevents unnecessary sidebar switching when item exists in current workspace
+	 */
+	should_preserve_current_workspace(sidebars) {
+		return (
+			this.workspace_title &&
+			sidebars.includes(this.workspace_title)
+		);
+	}
+
+	/**
+	 * Selects the best workspace from available options
+	 * Prefers current workspace if it's in the list, otherwise uses first available
+	 */
+	select_best_workspace(sidebars) {
+		if (!sidebars || sidebars.length === 0) {
+			return null;
+		}
+
+		// Prefer current workspace if it's in the list
+		if (this.workspace_title) {
+			const normalized_current = this.workspace_title.toLowerCase();
+			const matching_sidebar = sidebars.find(
+				s => s.toLowerCase() === normalized_current
+			);
+			if (matching_sidebar) {
+				return matching_sidebar;
 			}
 		}
 
+		// Otherwise use first available
+		return sidebars[0];
+	}
+
+	/**
+	 * Resolves workspace by module name from router metadata
+	 */
+	resolve_workspace_by_module(router) {
+		const module_name = router?.meta?.module;
+		
+		if (!module_name || !this.sidebar_module_map[module_name]) {
+			return null;
+		}
+
+		const module_sidebars = this.sidebar_module_map[module_name];
+		
+		if (Array.isArray(module_sidebars) && module_sidebars.length > 0) {
+			return module_sidebars[0];
+		}
+
+		// If module_sidebars is not an array, use module_name directly
+		return module_name;
+	}
+
+	/**
+	 * Gets fallback workspace using priority-based resolution
+	 * Follows semantic hierarchy: current > module > default > first available
+	 */
+	get_fallback_workspace(router) {
+		// Priority 1: Preserve current workspace if it exists
+		if (this.workspace_title) {
+			return this.workspace_title;
+		}
+
+		// Priority 2: Try module-based resolution
+		const module_workspace = this.resolve_workspace_by_module(router);
+		if (module_workspace) {
+			return module_workspace;
+		}
+
+		// Priority 3: Use default workspace from boot data
+		if (frappe.boot?.default_workspace) {
+			return frappe.boot.default_workspace;
+		}
+
+		// Priority 4: Use first available workspace as last resort
+		if (this.all_sidebar_items) {
+			const first_workspace_key = Object.keys(this.all_sidebar_items)[0];
+			if (first_workspace_key) {
+				const first_workspace = this.all_sidebar_items[first_workspace_key];
+				return first_workspace?.label || first_workspace_key;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Preserves current sidebar if it exists
+	 * Used when route is invalid or workspace resolution fails
+	 */
+	preserve_current_sidebar() {
+		if (this.workspace_title) {
+			this.setup(this.workspace_title);
+		}
 		this.set_active_workspace_item();
 	}
 
