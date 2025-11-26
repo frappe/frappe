@@ -312,7 +312,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	set_workspace_sidebar(router) {
 		const route = frappe.get_route();
-		
+
 		// Validate route before processing
 		if (!this.is_valid_route(route)) {
 			this.preserve_current_sidebar();
@@ -326,7 +326,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Resolve workspace based on route type
 		const workspace = this.resolve_workspace_for_route(route, router);
-		
+
 		if (workspace) {
 			this.setup(workspace);
 		} else {
@@ -354,15 +354,15 @@ frappe.ui.Sidebar = class Sidebar {
 		switch (route_type) {
 			case "Workspaces":
 				return this.resolve_workspace_for_workspaces_route(route);
-			
+
 			case "List":
 			case "Form":
 				return this.resolve_workspace_for_doctype(route, router);
-			
+
 			case "query-report":
 			case "report":
 				return this.resolve_workspace_for_report(route, router);
-			
+
 			default:
 				return this.resolve_workspace_for_page(route, router);
 		}
@@ -380,14 +380,14 @@ frappe.ui.Sidebar = class Sidebar {
 	 */
 	resolve_workspace_for_doctype(route, router) {
 		const doctype = route[1];
-		
+
 		if (!doctype) {
 			return null; // Will trigger preserve_current_sidebar
 		}
 
 		// Strategy 1: Find sidebars that explicitly link to this doctype
 		const sidebars = this.get_correct_workspace_sidebars(doctype);
-		
+
 		// Strategy 2: If current workspace already shows this doctype, preserve it
 		if (this.should_preserve_current_workspace(sidebars)) {
 			return this.workspace_title;
@@ -413,7 +413,7 @@ frappe.ui.Sidebar = class Sidebar {
 	 */
 	resolve_workspace_for_report(route, router) {
 		let report_name = route[1];
-		
+
 		if (!report_name) {
 			return null; // Will trigger preserve_current_sidebar
 		}
@@ -423,7 +423,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Strategy 1: Find sidebars that explicitly link to this report
 		const sidebars = this.get_correct_workspace_sidebars(report_name);
-		
+
 		if (sidebars.length > 0) {
 			return this.select_best_workspace(sidebars);
 		}
@@ -437,10 +437,10 @@ frappe.ui.Sidebar = class Sidebar {
 	 */
 	resolve_workspace_for_page(route, router) {
 		const page_name = route[0];
-		
+
 		// Strategy 1: Find sidebars that explicitly link to this page
 		const sidebars = this.get_correct_workspace_sidebars(page_name);
-		
+
 		if (sidebars.length > 0) {
 			return this.select_best_workspace(sidebars);
 		}
@@ -472,10 +472,7 @@ frappe.ui.Sidebar = class Sidebar {
 	 * Prevents unnecessary sidebar switching when item exists in current workspace
 	 */
 	should_preserve_current_workspace(sidebars) {
-		return (
-			this.workspace_title &&
-			sidebars.includes(this.workspace_title)
-		);
+		return this.workspace_title && sidebars.includes(this.workspace_title);
 	}
 
 	/**
@@ -490,9 +487,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// Prefer current workspace if it's in the list
 		if (this.workspace_title) {
 			const normalized_current = this.workspace_title.toLowerCase();
-			const matching_sidebar = sidebars.find(
-				s => s.toLowerCase() === normalized_current
-			);
+			const matching_sidebar = sidebars.find((s) => s.toLowerCase() === normalized_current);
 			if (matching_sidebar) {
 				return matching_sidebar;
 			}
@@ -507,13 +502,13 @@ frappe.ui.Sidebar = class Sidebar {
 	 */
 	resolve_workspace_by_module(router) {
 		const module_name = router?.meta?.module;
-		
+
 		if (!module_name || !this.sidebar_module_map[module_name]) {
 			return null;
 		}
 
 		const module_sidebars = this.sidebar_module_map[module_name];
-		
+
 		if (Array.isArray(module_sidebars) && module_sidebars.length > 0) {
 			return module_sidebars[0];
 		}
