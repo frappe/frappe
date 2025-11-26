@@ -19,7 +19,7 @@ const componentStore = useComponentStore()
 const codeStore = useCodeStore()
 
 const componentContext = computed(() => {
-	const context = { ...props.studioComponent.componentProps }
+	const context = props.studioComponent.getPropsAndAttributes()
 	const componentDoc = componentStore.getComponentDoc(props.studioComponent.componentName)
 	if (componentDoc?.inputs) {
 		componentDoc.inputs.forEach((input: any) => {

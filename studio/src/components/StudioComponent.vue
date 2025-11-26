@@ -176,7 +176,7 @@ const evaluationContext = computed(() => {
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
-	const propValues = { ...props.block.componentProps, ...props.block.attributes }
+	const propValues = props.block.getPropsAndAttributes()
 	delete propValues.modelValue
 
 	Object.entries(propValues).forEach(([propName, config]) => {

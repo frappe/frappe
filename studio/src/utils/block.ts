@@ -571,6 +571,10 @@ class Block implements BlockOptions {
 		Object.assign(this.attributes, attributes)
 	}
 
+	getPropsAndAttributes() {
+		return { ...this.componentProps, ...this.attributes }
+	}
+
 	// component slots
 	initializeSlots() {
 		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
