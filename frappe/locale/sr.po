@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:12\n"
+"PO-Revision-Date: 2025-11-26 13:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -2458,7 +2458,7 @@ msgstr "Примењено на"
 #. Label of the doc_type (Link) field in DocType 'Permission Type'
 #: frappe/core/doctype/permission_type/permission_type.json
 msgid "Applies To (DocType)"
-msgstr ""
+msgstr "Односи се на (DocType)"
 
 #: frappe/public/js/form_builder/components/Field.vue:103
 msgid "Apply"
@@ -2530,7 +2530,7 @@ msgstr "Апликације"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Apps with Search"
-msgstr ""
+msgstr "Апликације са претрагом"
 
 #: frappe/public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -3275,7 +3275,7 @@ msgstr "Одлично, сада покушајте да унесте подат
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Awesomebar"
-msgstr ""
+msgstr "Брза претрага"
 
 #: frappe/public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
@@ -3385,7 +3385,7 @@ msgstr "Слика позадине"
 #. Label of a chart in the System Workspace
 #: frappe/core/workspace/system/system.json
 msgid "Background Job Activity"
-msgstr ""
+msgstr "Активност позадинског задатка"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -3737,7 +3737,7 @@ msgstr "Лого бренда"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Brand Logo with Search"
-msgstr ""
+msgstr "Лого бренда са претрагом"
 
 #. Description of the 'Brand HTML' (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4618,7 +4618,7 @@ msgstr "Зависни DocType"
 #. Label of the child (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Child Item"
-msgstr ""
+msgstr "Зависна ставка"
 
 #: frappe/core/doctype/doctype/doctype.py:1647
 msgid "Child Table {0} for field {1} must be virtual"
@@ -7267,7 +7267,7 @@ msgstr "Корисник радне површине"
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:11
 #: frappe/www/me.html:80
 msgid "Desktop"
-msgstr ""
+msgstr "Радна површина"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -7281,7 +7281,7 @@ msgstr "Иконица радне површине већ постоји"
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Desktop Settings"
-msgstr ""
+msgstr "Подешавање радне површине"
 
 #. Label of the details_tab (Tab Break) field in DocType 'Module Def'
 #. Label of the details (Code) field in DocType 'Scheduled Job Log'
@@ -7690,7 +7690,7 @@ msgstr "DocType линк"
 
 #: frappe/public/js/form_builder/components/Field.vue:162
 msgid "DocType Missing"
-msgstr ""
+msgstr "Недостаје DocType"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8557,7 +8557,7 @@ msgstr "Уреди пречицу"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:19
 msgid "Edit Sidebar"
-msgstr ""
+msgstr "Уреди бочну траку"
 
 #. Label of the edit_values (Button) field in DocType 'Web Page Block'
 #. Label of the edit_navbar_template_values (Button) field in DocType 'Website
@@ -10343,7 +10343,7 @@ msgstr "Врста фајла {0} није дозвољена"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:636
 msgid "File upload failed."
-msgstr ""
+msgstr "Отпремање фајла није успело."
 
 #: frappe/core/doctype/file/file.py:377 frappe/core/doctype/file/file.py:448
 msgid "File {0} does not exist"
@@ -10403,7 +10403,7 @@ msgstr "Недостаје услов филтера након оператор
 
 #: frappe/database/query.py:659
 msgid "Filter fields have invalid backtick notation: {0}"
-msgstr ""
+msgstr "Поља филтера имају неважећу backtick нотацију: {0}"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
@@ -11840,7 +11840,7 @@ msgstr "HTML заглавље постављено из прилога {0}"
 #. Label of the header_icon (Icon) field in DocType 'Workspace Sidebar'
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 msgid "Header Icon"
-msgstr ""
+msgstr "Иконица заглавља"
 
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -12351,12 +12351,12 @@ msgstr "Иконица"
 #. Label of the icon_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Icon Style"
-msgstr ""
+msgstr "Стил иконице"
 
 #. Label of the icon_type (Select) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Icon Type"
-msgstr ""
+msgstr "Врста иконице"
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -13517,7 +13517,7 @@ msgstr "Неважећи формат аргумента: {0}. Дозвољен�
 
 #: frappe/database/query.py:2063
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
-msgstr ""
+msgstr "Неважећа врста аргумента: {0}. Дозвољени су само текстови, бројеви, речници и None."
 
 #: frappe/database/query.py:694
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
@@ -13622,7 +13622,7 @@ msgstr "Неважећа серија именовања {}: недостаје 
 
 #: frappe/database/query.py:2055
 msgid "Invalid nested expression: dictionary must represent a function or operator"
-msgstr ""
+msgstr "Неважећи угњеждени израз: Речник мора представљати функцију или оператор"
 
 #: frappe/core/doctype/data_import/importer.py:453
 msgid "Invalid or corrupted content for import"
@@ -13688,7 +13688,7 @@ msgstr "Неважећи услов за {0}"
 
 #: frappe/database/query.py:1944
 msgid "Invalid {0} dictionary format"
-msgstr ""
+msgstr "Неважећи формат речника {0}"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -14180,7 +14180,7 @@ msgstr "Канбан приказ"
 #. Label of the keep_closed (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Keep Closed"
-msgstr ""
+msgstr "Задржи затворено"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -15414,7 +15414,7 @@ msgstr "Лого URI"
 #. Label of the logo_url (Data) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Logo URL"
-msgstr ""
+msgstr "URL логотипа"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/me.html:84
@@ -16325,7 +16325,7 @@ msgstr "Праћење евиденције грешака, позадински
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Monochrome"
-msgstr ""
+msgstr "Монохроматски"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -16654,7 +16654,7 @@ msgstr "Подешавање навигационе траке"
 #. Label of the navbar_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Navbar Style"
-msgstr ""
+msgstr "Стил навигационе траке"
 
 #. Label of the navbar_template (Link) field in DocType 'Website Settings'
 #. Label of the navbar_template_section (Section Break) field in DocType
@@ -17413,7 +17413,7 @@ msgstr "Нема редова"
 
 #: frappe/public/js/frappe/list/list_view.js:2306
 msgid "No rows selected"
-msgstr ""
+msgstr "Нема изабраних редова"
 
 #: frappe/email/doctype/notification/notification.py:137
 msgid "No subject"
@@ -17658,7 +17658,7 @@ msgstr "Није дозвољено за преглед {0}"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
 msgid "Not permitted. {0}."
-msgstr ""
+msgstr "Није дозвољено. {0}."
 
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
@@ -17762,7 +17762,7 @@ msgstr "Документ на који је корисник претплаће�
 #. Label of a chart in the System Workspace
 #: frappe/core/workspace/system/system.json
 msgid "Notification Summary"
-msgstr ""
+msgstr "Резиме обавештења"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:8
 msgid "Notification sent to"
@@ -18425,7 +18425,7 @@ msgstr "Оператор мора бити један од следећих {0}"
 
 #: frappe/database/query.py:2011
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
-msgstr ""
+msgstr "Оператор {0} захтева тачно 2 аргумента (леви и десни операнд)"
 
 #: frappe/core/doctype/file/file.js:34
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
@@ -18897,7 +18897,7 @@ msgstr "Матично поље мора бити важећи назив пољ
 #. Label of the parent_icon (Link) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Parent Icon"
-msgstr ""
+msgstr "Матична иконица"
 
 #. Label of the parent_label (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -19256,7 +19256,7 @@ msgstr "Врста дозволе"
 
 #: frappe/core/doctype/permission_type/permission_type.py:40
 msgid "Permission Type '{0}' is reserved. Please choose another name."
-msgstr ""
+msgstr "Врста дозволе '{0}' је резервисана. Молимо Вас да изаберете други назив."
 
 #. Label of the section_break_4 (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -19678,7 +19678,7 @@ msgstr "Молимо Вас да изаберете X и Y поља"
 
 #: frappe/public/js/form_builder/components/Field.vue:161
 msgid "Please select a DocType in options before setting filters"
-msgstr ""
+msgstr "Молимо Вас да изаберете DocType у опцијама пре постављања филтера"
 
 #: frappe/utils/__init__.py:131
 msgid "Please select a country code for field {1}."
@@ -20505,12 +20505,12 @@ msgstr "Објављено"
 #. Label of a number card in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Published Web Forms"
-msgstr ""
+msgstr "Објављени веб-обрасци"
 
 #. Label of a number card in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Published Web Pages"
-msgstr ""
+msgstr "Објављене веб-странице"
 
 #. Label of the publishing_dates_section (Section Break) field in DocType 'Web
 #. Page'
@@ -22449,7 +22449,7 @@ msgstr "Историја путање"
 #. Label of the route_options (Code) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Route Options"
-msgstr ""
+msgstr "Опције путање"
 
 #. Label of the route_redirects (Table) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -22666,7 +22666,7 @@ msgstr "SQL упити"
 
 #: frappe/database/query.py:1844
 msgid "SQL functions are not allowed in SELECT fields: {0}. Use the query builder API with functions instead."
-msgstr ""
+msgstr "SQL функције нису дозвољене у SELECT пољима: {0}. Уместо тога користите query builder API са функцијама."
 
 #. Label of the ssl_tls_mode (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -22818,7 +22818,7 @@ msgstr "Чување прилагођавања..."
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:756
 msgid "Saving Sidebar"
-msgstr ""
+msgstr "Чување бочне траке"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.js:8
 msgid "Saving this will export this document as well as the steps linked here as json."
@@ -24265,12 +24265,12 @@ msgstr "Прикажи све"
 #. Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Show App Icons As Folder"
-msgstr ""
+msgstr "Прикажи иконице апликација као датотеку"
 
 #. Label of the show_arrow (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Show Arrow"
-msgstr ""
+msgstr "Прикажи стрелицу"
 
 #. Label of the show_auth_server_metadata (Check) field in DocType 'OAuth
 #. Settings'
@@ -24598,12 +24598,12 @@ msgstr "Бочна трака"
 #: frappe/desk/doctype/sidebar_item_group/sidebar_item_group.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Sidebar Item Group"
-msgstr ""
+msgstr "Група ставки у бочној траци"
 
 #. Name of a DocType
 #: frappe/desk/doctype/sidebar_item_group_link/sidebar_item_group_link.json
 msgid "Sidebar Item Group Link"
-msgstr ""
+msgstr "Веза групе ставки у бочној траци"
 
 #. Label of the sidebar_items (Table) field in DocType 'Website Sidebar'
 #: frappe/website/doctype/website_sidebar/website_sidebar.json
@@ -24716,7 +24716,7 @@ msgstr "Величина (MB)"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:629
 msgid "Size exceeds the maximum allowed file size."
-msgstr ""
+msgstr "Величина премашује максимално дозвољену величину фајла."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
@@ -25599,17 +25599,17 @@ msgstr "Поднаслов"
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle"
-msgstr ""
+msgstr "Неупадљиво"
 
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle Reverse"
-msgstr ""
+msgstr "Неупадљиво са инверзијом"
 
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle Reverse w Opacity"
-msgstr ""
+msgstr "Неупадљиво са инверзијом и провидношћу"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -27128,7 +27128,7 @@ msgstr "Истекло"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Timeless Launchpad"
-msgstr ""
+msgstr "Timeless Launchpad"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
@@ -28203,11 +28203,11 @@ msgstr "Отказана претплата"
 
 #: frappe/database/query.py:939
 msgid "Unsupported function or operator: {0}"
-msgstr ""
+msgstr "Неподржана функција или оператор: {0}"
 
 #: frappe/database/query.py:1947
 msgid "Unsupported {0}: {1}"
-msgstr ""
+msgstr "Неподржано {0}: {1}"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:72
 msgid "Untitled Column"
@@ -29217,7 +29217,7 @@ msgstr "Прикажи подешавања"
 
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.js:7
 msgid "View Sidebar"
-msgstr ""
+msgstr "Приказ бочне траке"
 
 #. Label of the view_switcher (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29299,7 +29299,7 @@ msgstr "Посета"
 
 #: frappe/desk/doctype/desktop_settings/desktop_settings.js:6
 msgid "Visit Desktop"
-msgstr ""
+msgstr "Посети радну површину"
 
 #: frappe/website/doctype/website_route_meta/website_route_meta.js:7
 msgid "Visit Web Page"
@@ -29624,12 +29624,12 @@ msgstr "Линк слике у теми веб-сајта"
 #. Label of a number card in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Website Themes Available"
-msgstr ""
+msgstr "Доступне теме веб-сајта"
 
 #. Label of a chart in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Website Visits"
-msgstr ""
+msgstr "Посете веб-сајту"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -30023,12 +30023,12 @@ msgstr "Пречица до радног простора"
 #: frappe/desk/doctype/desktop_icon/desktop_icon.js:17
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 msgid "Workspace Sidebar"
-msgstr ""
+msgstr "Бочна трака радног простора"
 
 #. Name of a DocType
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Workspace Sidebar Item"
-msgstr ""
+msgstr "Ставка бочне траке радног простора"
 
 #. Label of the workspace_visibility_json (JSON) field in DocType 'Workspace
 #. Settings'
@@ -30089,7 +30089,7 @@ msgstr "XLSX"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:641
 msgid "XMLHttpRequest Error"
-msgstr ""
+msgstr "XMLHttpRequest Грешка"
 
 #. Label of the y_axis (Table) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -31113,7 +31113,7 @@ msgstr "m"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "macOS Launchpad"
-msgstr ""
+msgstr "macOS Launchpad"
 
 #: frappe/model/rename_doc.py:215
 msgid "merged {0} into {1}"
@@ -31754,7 +31754,7 @@ msgstr "{0} је већ доделио подразумевану вреднос
 
 #: frappe/database/query.py:1100
 msgid "{0} has invalid backtick notation: {1}"
-msgstr ""
+msgstr "{0} садржи неважећу backtick нотацију: {1}"
 
 #: frappe/email/queue.py:124
 msgid "{0} has left the conversation in {1} {2}"
