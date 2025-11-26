@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:13\n"
+"PO-Revision-Date: 2025-11-26 13:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -24266,7 +24266,7 @@ msgstr "Prikaži sve"
 #. Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Show App Icons As Folder"
-msgstr ""
+msgstr "Prikaži ikonice aplikacija kao datoteku"
 
 #. Label of the show_arrow (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
@@ -25600,17 +25600,17 @@ msgstr "Podnaslov"
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle"
-msgstr ""
+msgstr "Neupadljivo"
 
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle Reverse"
-msgstr ""
+msgstr "Neupadljivo sa inverzijom"
 
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Subtle Reverse w Opacity"
-msgstr ""
+msgstr "Neupadljivo sa inverzijom i providnošću"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -27129,7 +27129,7 @@ msgstr "Isteklo"
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Timeless Launchpad"
-msgstr ""
+msgstr "Timeless Launchpad"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
@@ -29299,7 +29299,7 @@ msgstr "Poseta"
 
 #: frappe/desk/doctype/desktop_settings/desktop_settings.js:6
 msgid "Visit Desktop"
-msgstr ""
+msgstr "Poseti radnu površinu"
 
 #: frappe/website/doctype/website_route_meta/website_route_meta.js:7
 msgid "Visit Web Page"
@@ -30023,12 +30023,12 @@ msgstr "Prečica do radnog prostora"
 #: frappe/desk/doctype/desktop_icon/desktop_icon.js:17
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 msgid "Workspace Sidebar"
-msgstr ""
+msgstr "Bočna traka radnog prostora"
 
 #. Name of a DocType
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Workspace Sidebar Item"
-msgstr ""
+msgstr "Stavka bočne trake radnog prostora"
 
 #. Label of the workspace_visibility_json (JSON) field in DocType 'Workspace
 #. Settings'
