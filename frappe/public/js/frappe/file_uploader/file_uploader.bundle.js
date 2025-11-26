@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import FileUploaderComponent from "./FileUploader.vue";
 import { watch } from "vue";
+import { can_upload_public_files } from "./utils";
 
 class FileUploader {
 	static UploadOptions = [];
@@ -30,11 +31,7 @@ class FileUploader {
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
-		// If system setting(only_system_managers_upload_public_files) is OFF → everyone can use the button (old behaviour)
-		// If system setting(only_system_managers_upload_public_files) is ON → only System Manager / Administrator see it
-		this.can_toggle_private =
-			Number(frappe.boot?.sysdefaults?.only_system_managers_upload_public_files) !== 1 ||
-			frappe.user.has_role(["System Manager", "Administrator"]);
+		this.can_toggle_private = can_upload_public_files();
 
 		if (!wrapper) {
 			this.make_dialog(dialog_title);

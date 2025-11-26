@@ -85,6 +85,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import ProgressRing from "./ProgressRing.vue";
+import { can_upload_public_files } from "./utils";
 
 // emits
 let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropper", "remove"]);
@@ -129,10 +130,7 @@ let allow_toggle_optimize = computed(() => {
 });
 
 let allow_toggle_private = computed(() => {
-	if (
-		Number(frappe.boot.sysdefaults?.only_system_managers_upload_public_files) === 1 &&
-		!frappe.user.has_role(["System Manager", "Administrator"])
-	) {
+	if (!can_upload_public_files()) {
 		return false;
 	}
 	return props.allow_toggle_private && !uploaded.value && !props.file.failed;

@@ -39,11 +39,7 @@ frappe.ui.form.on("File", {
 		}
 
 		// Restrict "Is Private" field based on System Settings
-		if (
-			Number(frappe.boot.sysdefaults?.only_system_managers_upload_public_files) === 1 &&
-			!frappe.user.has_role(["System Manager", "Administrator"]) &&
-			frm.doc.is_private
-		) {
+		if (!frappe.file_utils.can_upload_public_files() && frm.doc.is_private) {
 			// Only make read-only if the file is currently private
 			frm.set_df_property("is_private", "read_only", 1);
 		}
