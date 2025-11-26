@@ -130,6 +130,14 @@ const blockController = {
 			block[key] = value;
 		});
 	},
+	getAttributes: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().getAttributes()
+	},
+	setAttributes: (attributes: Record<string, any>) => {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			block.setAttributes(attributes)
+		})
+	},
 }
 
 export default blockController

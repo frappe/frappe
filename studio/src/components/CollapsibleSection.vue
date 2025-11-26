@@ -1,8 +1,11 @@
 <!-- Extracted from Builder -->
 <template>
 	<div>
-		<div class="dark:text-zinc-400 flex items-center justify-between text-sm font-medium">
-			<h3 class="dark:text-zinc-300 cursor-pointer text-base text-gray-900" @click="toggleCollapsed">
+		<div class="flex items-center justify-between">
+			<h3
+				class="dark:text-zinc-300 cursor-pointer text-base font-medium text-gray-900"
+				@click="toggleCollapsed"
+			>
 				{{ sectionName }}
 			</h3>
 			<Button

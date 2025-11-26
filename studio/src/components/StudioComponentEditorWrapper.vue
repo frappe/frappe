@@ -17,7 +17,7 @@ const componentEditorStore = useComponentEditorStore()
 const componentBlock = computed(() => componentEditorStore.studioComponentBlock!)
 
 const componentContext = computed(() => {
-	const context = { ...componentBlock.value.componentProps }
+	const context = componentBlock.value.getPropsAndAttributes()
 	componentEditorStore.componentInputs.forEach((input) => {
 		if (!(input.input_name in context) && input.default !== undefined) {
 			context[input.input_name] = input.default

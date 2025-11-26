@@ -1,6 +1,6 @@
 <!-- Extracted from Builder -->
 <template>
-	<div class="relative w-full">
+	<div class="relative w-full" :class="type === 'checkbox' ? 'flex items-center' : ''">
 		<FormControl
 			:class="classes"
 			:type="type"
@@ -52,6 +52,8 @@ const data = useVModel(props, "modelValue", emit)
 defineOptions({
 	inheritAttrs: false,
 })
+
+const attrs = useAttrs()
 
 const classes = computed(() => {
 	const _classes = []
@@ -113,8 +115,6 @@ const classes = computed(() => {
 	}
 	return _classes
 })
-
-const attrs = useAttrs()
 
 const clearValue = () => {
 	data.value = ""

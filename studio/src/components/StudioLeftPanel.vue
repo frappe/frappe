@@ -51,7 +51,7 @@
 
 				<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
 				<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
-				<div v-show="activeTab === 'Layers'" class="p-4 pt-3">
+				<div v-show="activeTab === 'Layers'" class="p-3">
 					<ComponentLayers
 						v-if="canvasStore.activeCanvas"
 						class="no-scrollbar overflow-auto"

@@ -20,6 +20,7 @@ class Block implements BlockOptions {
 	componentProps: Record<string, any>
 	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
+	attributes: Record<string, any>
 	blockName: string
 	children: Block[]
 	parentBlock: Block | null
@@ -72,6 +73,7 @@ class Block implements BlockOptions {
 		} else {
 			this.componentProps = options.componentProps
 		}
+		this.attributes = reactive(options.attributes || {})
 
 		this.componentSlots = options.componentSlots || {}
 		if (!options.componentSlots) {
@@ -553,6 +555,24 @@ class Block implements BlockOptions {
 
 	removeProp(propName: string) {
 		delete this.componentProps[propName]
+	}
+
+	// attributes
+	getAttributes() {
+		return { ...this.attributes }
+	}
+
+	setAttributes(attributes: Record<string, any>) {
+		Object.keys(this.attributes).forEach((key) => {
+			if (!(key in attributes)) {
+				delete this.attributes[key]
+			}
+		})
+		Object.assign(this.attributes, attributes)
+	}
+
+	getPropsAndAttributes() {
+		return { ...this.componentProps, ...this.attributes }
 	}
 
 	// component slots

@@ -2,145 +2,145 @@
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
 			<!-- inputs -->
-			<div class="flex items-center justify-between text-sm font-medium">
-				<h3 class="cursor-pointer text-base text-gray-900">Inputs</h3>
-				<Autocomplete
-					:options="fieldTypeOptions"
-					@update:modelValue="(option: SelectOption) => showAddInputPopover(option.value)"
-					class="!w-auto"
-				>
-					<template #target="{ togglePopover }">
-						<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
-					</template>
-				</Autocomplete>
-			</div>
+			<SectionContainer title="Inputs">
+				<template #actions>
+					<Autocomplete
+						:options="fieldTypeOptions"
+						@update:modelValue="(option: SelectOption) => showAddInputPopover(option.value)"
+						class="!w-auto"
+					>
+						<template #target="{ togglePopover }">
+							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+						</template>
+					</Autocomplete>
+				</template>
 
-			<div class="mb-4 flex flex-col gap-1" v-if="componentInputs.length > 0">
-				<Popover
-					v-for="(input, index) in componentInputs"
-					:key="input.input_name"
-					:show="showEditPopover && editingIndex === index"
-					@update:show="
-						(show: boolean) => {
-							if (!show) cancelEdit()
-						}
-					"
-					placement="bottom-center"
-				>
-					<template #target>
-						<div
-							class="group flex flex-1 cursor-pointer justify-between rounded border border-gray-300 px-2 py-1 hover:bg-gray-50"
-							@click="editInput(input, index)"
-						>
-							<div class="flex items-center gap-2">
-								<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
-								<span class="text-sm text-gray-800">{{ input.input_name }}</span>
-							</div>
-							<button
-								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
-								@click.stop="componentEditorStore.removeComponentInput(index)"
+				<div class="flex flex-col gap-1" v-if="componentInputs.length > 0">
+					<Popover
+						v-for="(input, index) in componentInputs"
+						:key="input.input_name"
+						:show="showEditPopover && editingIndex === index"
+						@update:show="
+							(show: boolean) => {
+								if (!show) cancelEdit()
+							}
+						"
+						placement="bottom-center"
+					>
+						<template #target>
+							<div
+								class="group flex flex-1 cursor-pointer justify-between rounded border border-gray-300 px-2 py-1 hover:bg-gray-50"
+								@click="editInput(input, index)"
 							>
-								<FeatherIcon name="x" class="h-4 w-4" />
-							</button>
-						</div>
-					</template>
-					<template #body-main>
-						<div
-							class="w-64 space-y-4 p-4"
-							v-if="editingInput && editingIndex === index"
-							@keydown="handleInputKeydown"
-						>
-							<FormControl
-								type="text"
-								label="Name"
-								v-model="editingInput.input_name"
-								placeholder="e.g. user_name"
-								autocomplete="off"
-								:required="true"
-							/>
-							<FormControl
-								type="autocomplete"
-								label="Type"
-								:options="fieldTypeOptions"
-								:modelValue="
-									editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
-								"
-								@update:modelValue="
-									(option: SelectOption) => {
-										if (editingInput) {
-											editingInput.type = option.value
-											setInputControl()
+								<div class="flex items-center gap-2">
+									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-gray-500" />
+									<span class="text-sm text-gray-800">{{ input.input_name }}</span>
+								</div>
+								<button
+									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 opacity-0 transition-opacity hover:text-gray-900 group-hover:opacity-100"
+									@click.stop="componentEditorStore.removeComponentInput(index)"
+								>
+									<FeatherIcon name="x" class="h-4 w-4" />
+								</button>
+							</div>
+						</template>
+						<template #body-main>
+							<div
+								class="w-64 space-y-4 p-4"
+								v-if="editingInput && editingIndex === index"
+								@keydown="handleInputKeydown"
+							>
+								<FormControl
+									type="text"
+									label="Name"
+									v-model="editingInput.input_name"
+									placeholder="e.g. user_name"
+									autocomplete="off"
+									:required="true"
+								/>
+								<FormControl
+									type="autocomplete"
+									label="Type"
+									:options="fieldTypeOptions"
+									:modelValue="
+										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
+									"
+									@update:modelValue="
+										(option: SelectOption) => {
+											if (editingInput) {
+												editingInput.type = option.value
+												setInputControl()
+											}
 										}
-									}
-								"
-								:required="true"
-							>
-								<template #prefix>
-									<FeatherIcon
-										:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
-										class="mr-1 h-3 w-3 text-gray-500"
-									/>
-								</template>
-								<template #item-prefix="{ option }">
-									<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
-								</template>
-							</FormControl>
-							<FormControl
-								v-if="editingInput.type === 'select'"
-								type="textarea"
-								label="Options"
-								v-model="editingInput.options"
-								:required="true"
-								placeholder="Enter list of options, each on a new line"
-							/>
+									"
+									:required="true"
+								>
+									<template #prefix>
+										<FeatherIcon
+											:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
+											class="mr-1 h-3 w-3 text-gray-500"
+										/>
+									</template>
+									<template #item-prefix="{ option }">
+										<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
+									</template>
+								</FormControl>
+								<FormControl
+									v-if="editingInput.type === 'select'"
+									type="textarea"
+									label="Options"
+									v-model="editingInput.options"
+									:required="true"
+									placeholder="Enter list of options, each on a new line"
+								/>
 
-							<!-- Default value -->
-							<component
-								:is="editingInput.inputControl"
-								:type="editingInput.inputType"
-								label="Default Value"
-								v-model="editingInput.default"
-							/>
-							<FormControl
-								type="textarea"
-								label="Description"
-								v-model="editingInput.description"
-								placeholder="Enter description (optional)"
-							/>
-							<FormControl
-								type="checkbox"
-								label="Is Required"
-								size="sm"
-								v-model="editingInput.required"
-								class="[&>label]:text-sm [&>label]:text-ink-gray-5"
-							/>
-							<div class="flex gap-2">
-								<Button variant="solid" @click="saveInput">Save</Button>
-								<Button variant="outline" @click="cancelEdit">Cancel</Button>
+								<!-- Default value -->
+								<component
+									:is="editingInput.inputControl"
+									:type="editingInput.inputType"
+									label="Default Value"
+									v-model="editingInput.default"
+								/>
+								<FormControl
+									type="textarea"
+									label="Description"
+									v-model="editingInput.description"
+									placeholder="Enter description (optional)"
+								/>
+								<FormControl
+									type="checkbox"
+									label="Is Required"
+									size="sm"
+									v-model="editingInput.required"
+									class="[&>label]:text-sm [&>label]:text-ink-gray-5"
+								/>
+								<div class="flex gap-2">
+									<Button variant="solid" @click="saveInput">Save</Button>
+									<Button variant="outline" @click="cancelEdit">Cancel</Button>
+								</div>
+								<div class="text-xs text-gray-500">
+									Press
+									<kbd class="rounded bg-gray-100 px-1 py-0.5">⌘</kbd>
+									+
+									<kbd class="rounded bg-gray-100 px-1 py-0.5">S</kbd>
+									to save
+								</div>
 							</div>
-							<div class="text-xs text-gray-500">
-								Press
-								<kbd class="rounded bg-gray-100 px-1 py-0.5">⌘</kbd>
-								+
-								<kbd class="rounded bg-gray-100 px-1 py-0.5">S</kbd>
-								to save
-							</div>
-						</div>
-					</template>
-				</Popover>
-			</div>
+						</template>
+					</Popover>
+				</div>
 
-			<EmptyState v-else message="No inputs added" />
+				<EmptyState v-else message="No inputs added" />
+			</SectionContainer>
 
 			<!-- Test Inputs -->
-			<div class="flex items-center justify-between text-sm font-medium">
-				<h3 class="cursor-pointer text-base text-gray-900">Test Inputs</h3>
-			</div>
-			<PropsEditor
-				v-if="componentEditorStore.studioComponentBlock"
-				:block="componentEditorStore.studioComponentBlock"
-				:isTestingComponent="true"
-			/>
+			<SectionContainer title="Test Inputs">
+				<PropsEditor
+					v-if="componentEditorStore.studioComponentBlock"
+					:block="componentEditorStore.studioComponentBlock"
+					:isTestingComponent="true"
+				/>
+			</SectionContainer>
 		</div>
 	</div>
 </template>
