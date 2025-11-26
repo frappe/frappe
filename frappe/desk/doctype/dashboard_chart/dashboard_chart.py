@@ -274,7 +274,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		],
 		filters=filters,
 		parent_doctype=chart.parent_document_type,
-		group_by=group_by_field,
+		group_by=group_by_field if "." in group_by_field else f"`tab{doctype}`.`{group_by_field}`",
 		order_by="count desc",
 		ignore_ifnull=True,
 	)
