@@ -18,7 +18,7 @@ from frappe.database.utils import (
 	get_doctype_name,
 	get_doctype_sort_info,
 )
-from frappe.model import get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -80,8 +80,6 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 
 	return value
 
-
-OPTIONAL_COLUMNS = frozenset(["_user_tags", "_comments", "_assign", "_liked_by", "_seen"])
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -805,7 +803,7 @@ class Engine:
 			user=self.user,
 		)
 
-		if fieldname in OPTIONAL_COLUMNS:
+		if fieldname in OPTIONAL_FIELDS:
 			return
 
 		if fieldname not in permitted_fields:
@@ -1152,12 +1150,8 @@ class Engine:
 			if not field_name:
 				continue
 
-			# Skip permission check for optional system columns in group_by
-			if field_name in OPTIONAL_COLUMNS:
-				parsed_fields.append(self.table[field_name])
-			else:
-				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
-				parsed_fields.append(parsed_field)
+			parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
+			parsed_fields.append(parsed_field)
 
 		return parsed_fields
 
@@ -1288,11 +1282,8 @@ class Engine:
 					# Expand '*' to include all permitted fields
 					# Avoid reparsing '*' recursively by passing the actual list
 					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
-				# Check if the field name (without alias) is permitted
-				elif field.name in permitted_fields_set:
-					allowed_fields.append(field)
-				# Handle cases where the field might be aliased but the base name is permitted
-				elif hasattr(field, "alias") and field.alias and field.name in permitted_fields_set:
+				# Check if the field name is an optional field (like _user_tags) or in permitted fields
+				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
 
 			elif isinstance(field, Term):
