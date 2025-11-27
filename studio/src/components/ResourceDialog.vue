@@ -15,23 +15,36 @@
 					v-model="newResource.resource_name"
 					autocomplete="off"
 				/>
-				<FormControl
-					label="Type"
-					type="select"
-					:options="['Document List', 'Document', 'API Resource']"
-					autocomplete="off"
-					v-model="newResource.resource_type"
-				/>
-
-				<!-- API Resource -->
-				<template v-if="newResource.resource_type === 'API Resource'">
-					<FormControl label="URL" v-model="newResource.url" :required="true" />
+				<div class="flex w-full flex-row gap-2">
 					<FormControl
+						label="Type"
+						type="select"
+						:options="['Document List', 'Document', 'API Resource']"
+						autocomplete="off"
+						v-model="newResource.resource_type"
+						class="w-full"
+					/>
+					<Link
+						v-if="newResource.resource_type !== 'API Resource'"
+						label="Document Type"
+						:required="true"
+						doctype="DocType"
+						v-model="newResource.document_type"
+						class="w-full"
+					/>
+					<FormControl
+						v-else
 						label="Method"
 						type="select"
 						:options="['GET', 'POST', 'PUT', 'DELETE']"
 						v-model="newResource.method"
+						class="w-full"
 					/>
+				</div>
+
+				<!-- API Resource -->
+				<template v-if="newResource.resource_type === 'API Resource'">
+					<FormControl label="URL" v-model="newResource.url" :required="true" class="grow" />
 					<Grid
 						label="Parameters"
 						:columns="[
@@ -43,14 +56,6 @@
 						@update:rows="(val) => (newResource.params = val)"
 					/>
 				</template>
-
-				<Link
-					v-else
-					label="Document Type"
-					:required="true"
-					doctype="DocType"
-					v-model="newResource.document_type"
-				/>
 
 				<!-- Document List -->
 				<template v-if="newResource.resource_type === 'Document List' && newResource.document_type">
@@ -90,13 +95,15 @@
 							:options="['', 'ASC', 'DESC']"
 							class="w-full"
 						/>
+						<FormControl
+							label="Limit"
+							type="number"
+							placeholder="Number of records to fetch"
+							v-model="newResource.limit"
+							class="w-full"
+							description="default: 20"
+						/>
 					</div>
-					<FormControl
-						label="Limit"
-						type="number"
-						placeholder="Number of records to fetch (default: 20)"
-						v-model="newResource.limit"
-					/>
 				</template>
 
 				<!-- Document -->
