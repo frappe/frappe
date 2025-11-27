@@ -124,6 +124,8 @@ def get(
 	if not filters:
 		filters = []
 
+	filters = [l[:4] for l in filters if len(l)]
+
 	# don't include cancelled documents
 	filters.append([chart.document_type, "docstatus", "<", 2])
 
