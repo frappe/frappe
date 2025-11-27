@@ -604,6 +604,8 @@ frappe.ui.Sidebar = class Sidebar {
 	toggle_editing_mode() {
 		const me = this;
 		if (this.edit_mode) {
+			// Force sidebar open when entering edit mode so the user can see and edit items
+			this.open();
 			this.wrapper.attr("data-mode", "edit");
 			this.new_sidebar_items = Array.from(me.workspace_sidebar_items);
 			$(this.active_item).removeClass("active-sidebar");
