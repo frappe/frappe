@@ -88,6 +88,7 @@ class SystemSettings(Document):
 			"#.###",
 			"#,###",
 		]
+		only_allow_system_managers_to_upload_public_files: DF.Check
 		otp_issuer_name: DF.Data | None
 		otp_sms_template: DF.SmallText | None
 		password_reset_limit: DF.Int

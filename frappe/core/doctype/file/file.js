@@ -38,9 +38,7 @@ frappe.ui.form.on("File", {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
 
-		// Restrict "Is Private" field based on System Settings
-		if (!frappe.file_utils.can_upload_public_files() && frm.doc.is_private) {
-			// Only make read-only if the file is currently private
+		if (!frappe.utils.can_upload_public_files() && frm.doc.is_private) {
 			frm.set_df_property("is_private", "read_only", 1);
 		}
 	},

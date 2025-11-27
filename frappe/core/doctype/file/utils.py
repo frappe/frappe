@@ -440,10 +440,3 @@ def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
-
-
-def can_upload_public_files() -> bool:
-	"""Return True if current user can upload public files."""
-	if not cint(frappe.get_system_settings("only_system_managers_upload_public_files")):
-		return True
-	return "System Manager" in frappe.get_roles()

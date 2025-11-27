@@ -158,8 +158,13 @@ class File(Document):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def enforce_public_file_restrictions(self):
-		if not cint(self.is_private) and not can_upload_public_files():
-			frappe.only_for("System Manager")
+		if not self.is_private and frappe.get_system_settings(
+			"only_allow_system_managers_to_upload_public_files"
+		):
+			try:
+				frappe.only_for("System Manager")
+			except PermissionError:
+				frappe.throw(_("Only System Managers can make this file public."))
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():

@@ -1912,4 +1912,18 @@ Object.assign(frappe.utils, {
 			});
 		});
 	},
+
+	/**
+	 * Check if current user can upload public files.
+	 * @returns {boolean}
+	 */
+	can_upload_public_files() {
+		if (
+			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
+			1
+		) {
+			return true;
+		}
+		return frappe.user.has_role(["System Manager", "Administrator"]);
+	},
 });
