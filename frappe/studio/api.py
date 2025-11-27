@@ -11,7 +11,7 @@ def get_document(doctype: str, filters: dict | str) -> dict:
 	if isinstance(filters, str):
 		filters = frappe.parse_json(filters)
 
-	document = get_value(doctype, filters, "name")
+	document = get_value(doctype, "name", filters)
 	if document:
 		return document
 
