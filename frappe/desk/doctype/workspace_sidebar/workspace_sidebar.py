@@ -10,6 +10,7 @@ import frappe
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 
 
@@ -55,6 +56,7 @@ class WorkspaceSidebar(Document):
 		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
 		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
 		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+		doc_export = strip_default_fields(self, doc_export)
 		with open(file_path, "w+") as doc_file:
 			doc_file.write(frappe.as_json(doc_export) + "\n")
 
