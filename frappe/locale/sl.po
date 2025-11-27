@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:13\n"
+"PO-Revision-Date: 2025-11-27 13:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -15732,7 +15732,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Master"
-msgstr ""
+msgstr "Nastavitve"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -20543,7 +20543,7 @@ msgstr ""
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Purchase Master Manager"
-msgstr ""
+msgstr "Glavni Vodja Nabave"
 
 #. Name of a role
 #: frappe/contacts/doctype/address/address.json
@@ -21855,7 +21855,7 @@ msgstr ""
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr ""
+msgstr "Poročila & Nastavitve"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:935
 msgid "Reports already in Queue"
@@ -22672,7 +22672,7 @@ msgstr ""
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Sales Master Manager"
-msgstr ""
+msgstr "Glavni Vodja Prodaje"
 
 #. Name of a role
 #: frappe/contacts/doctype/address/address.json
@@ -25175,11 +25175,11 @@ msgstr ""
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "State"
-msgstr ""
+msgstr "Stanje"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:26
 msgid "State Properties"
-msgstr ""
+msgstr "Lastnosti Stanja"
 
 #. Label of the state (Data) field in DocType 'Address'
 #. Label of the state (Data) field in DocType 'Contact Us Settings'
@@ -25195,7 +25195,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "States"
-msgstr ""
+msgstr "Stanja"
 
 #. Label of the parameters (Table) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
@@ -25273,7 +25273,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: frappe/www/update-password.html:188
 msgid "Status Updated"
@@ -26016,7 +26016,7 @@ msgstr ""
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "System Manager"
-msgstr ""
+msgstr "Voditelj Sistema"
 
 #: frappe/desk/page/backups/backups.js:38
 msgid "System Manager privileges required."
@@ -29762,25 +29762,25 @@ msgstr ""
 #: frappe/public/js/workflow_builder/store.js:129
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow"
-msgstr ""
+msgstr "Delovni Tok"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:446
 msgid "Workflow Action"
-msgstr ""
+msgstr "Akcija Delovnega Toka"
 
 #. Name of a DocType
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Master"
-msgstr ""
+msgstr "Nastavitve Akcije Delovnega Toka"
 
 #. Label of the workflow_action_name (Data) field in DocType 'Workflow Action
 #. Master'
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Name"
-msgstr ""
+msgstr "Ime Akcije Delovnega Toka"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
@@ -29829,64 +29829,64 @@ msgstr ""
 #. Label of the workflow_name (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Name"
-msgstr ""
+msgstr "Ime Delovnega Toka"
 
 #. Label of the workflow_state (Data) field in DocType 'Workflow Action'
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow State"
-msgstr ""
+msgstr "Stanje Delovnega Toka"
 
 #. Label of the workflow_state_field (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow State Field"
-msgstr ""
+msgstr "Polje Stanja Delovnega Toka"
 
 #: frappe/model/workflow.py:64
 msgid "Workflow State not set"
-msgstr ""
+msgstr "Stanje Delovnega Toka ni nastavljeno"
 
 #: frappe/model/workflow.py:260 frappe/model/workflow.py:268
 msgid "Workflow State transition not allowed from {0} to {1}"
-msgstr ""
+msgstr "Prehod v Stanje Delovnega Toka ni dovoljen iz {0} na {1}"
 
 #: frappe/workflow/doctype/workflow/workflow.js:140
 msgid "Workflow States Don't Exist"
-msgstr ""
+msgstr "Stanja Delovnega Toka ne obstajajo"
 
 #: frappe/model/workflow.py:384
 msgid "Workflow Status"
-msgstr ""
+msgstr "Status Delovnega Toka"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Workflow Task"
-msgstr ""
+msgstr "Naloga Delovnega Toka"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Workflow Transition"
-msgstr ""
+msgstr "Prehod Delovnega Toka"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Workflow Transition Task"
-msgstr ""
+msgstr "Naloga Prehoda Delovnega Toka"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Workflow Transition Tasks"
-msgstr ""
+msgstr "Naloge Prehoda Delovnega Toka"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow state represents the current state of a document."
-msgstr ""
+msgstr "Stanje Delovnega Toka predstavlja trenutno stanje dokumenta."
 
 #: frappe/public/js/workflow_builder/store.js:83
 msgid "Workflow updated successfully"
-msgstr ""
+msgstr "Delovni Tok uspešno posodobljen"
 
 #. Label of the workspace_section (Section Break) field in DocType 'User'
 #. Label of a Link in the Build Workspace
@@ -30773,7 +30773,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/workflow.js:35
 msgid "by Role"
-msgstr ""
+msgstr "po Vlogi"
 
 #. Label of the profile (Code) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -31402,7 +31402,7 @@ msgstr ""
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "workflow_transition"
-msgstr ""
+msgstr "workflow_transition"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31810,7 +31810,7 @@ msgstr ""
 
 #: frappe/model/workflow.py:245
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
-msgstr ""
+msgstr "{0} ni veljavno stanje Delovnega  Toka. Posodobite Delovni Tok in poskusite znova."
 
 #: frappe/permissions.py:824
 msgid "{0} is not a valid parent DocType for {1}"
@@ -31947,7 +31947,7 @@ msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow.py:91
 msgid "{0} not a valid State"
-msgstr ""
+msgstr "{0} ni veljavno Stanje"
 
 #: frappe/model/rename_doc.py:394
 msgid "{0} not allowed to be renamed"
@@ -32236,7 +32236,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "{0}: Other permission rules may also apply"
-msgstr ""
+msgstr "{0}: Veljajo lahko tudi druga pravila dovoljenj"
 
 #: frappe/core/doctype/doctype/doctype.py:1805
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
@@ -32257,7 +32257,7 @@ msgstr ""
 
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:172
 msgid "{0}: {1} is set to state {2}"
-msgstr ""
+msgstr "{0}: {1} je nastavljeno na stanje {2}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1308
 msgid "{0}: {1} vs {2}"
