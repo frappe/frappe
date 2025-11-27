@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:12\n"
+"PO-Revision-Date: 2025-11-27 13:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1493,7 +1493,7 @@ msgstr "Lägg till {0}"
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Added"
-msgstr "Lagt till av"
+msgstr "Tillagd"
 
 #. Description of the '&lt;head&gt; HTML' (Code) field in DocType 'Website
 #. Settings'
