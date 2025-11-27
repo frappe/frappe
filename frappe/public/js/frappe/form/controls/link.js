@@ -184,8 +184,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
-		frappe._from_link = frappe.utils.deep_clone(this);
-		frappe._from_link_scrollY = $(document).scrollTop();
+		frappe._from_link = {
+			field_obj: this,
+			from_doctype: this.doctype,
+			from_docname: this.doc?.name,
+			scrollY: $(document).scrollTop(),
+		};
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
 			return me.set_value(doc.name);

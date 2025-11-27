@@ -12,7 +12,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		});
 
 		// used as an internal model to store values
-		this.rows = this.frm?.doc[this.df.fieldname] || [];
+		this.rows = this._get_rows() || [];
 		// used as an internal model to filter awesomplete values
 		this._rows_list = [];
 
@@ -28,33 +28,32 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			this.rows = this.rows.filter((row) => {
-				if (row[link_field.fieldname] !== value) {
-					return row;
-				} else {
-					frappe.run_serially([
-						() => {
-							return this.frm.script_manager.trigger(
-								`before_${this.df.fieldname}_remove`,
-								this.df.options,
-								row.name
-							);
-						},
-						() => {
-							frappe.model.clear_doc(this.df.options, row.name);
+			const rows = this._get_rows().filter((row) => {
+				if (row[link_field.fieldname] !== value) return row;
 
-							this.frm.dirty();
-							this.refresh();
+				frappe.run_serially([
+					() => {
+						return this.frm?.script_manager.trigger(
+							`before_${this.df.fieldname}_remove`,
+							this.df.options,
+							row.name
+						);
+					},
+					() => {
+						frappe.model.clear_doc(this.df.options, row.name);
 
-							return this.frm.script_manager.trigger(
-								`${this.df.fieldname}_remove`,
-								this.df.options,
-								row.name
-							);
-						},
-					]);
-				}
+						this.frm?.dirty();
+						this.refresh();
+
+						return this.frm?.script_manager.trigger(
+							`${this.df.fieldname}_remove`,
+							this.df.options,
+							row.name
+						);
+					},
+				]);
 			});
+			this._update_rows(rows);
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
@@ -67,61 +66,60 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
-				this.rows = this.rows.slice(0, this.rows.length - 1);
-				this.parse_validate_and_set_in_model("");
+				const rows = this._get_rows().slice(0, -1);
+				this.parse_validate_and_set_in_model(rows);
 			}
 		});
+	}
+	_get_rows() {
+		return this.get_model_value() || this.rows;
+	}
+	_update_rows(rows) {
+		this.rows = rows;
+
+		const link_fieldname = this.get_link_field().fieldname;
+		this._rows_list = rows.map((row) => row[link_fieldname]);
+
+		return rows;
 	}
 	setup_buttons() {
 		this.$input_area.find(".link-btn").remove();
 	}
 	parse(value) {
-		if (typeof value == "object" || !this.rows) {
+		let rows = this._get_rows();
+
+		if (typeof value == "object" || !rows) {
 			return value;
 		}
 
 		const link_field = this.get_link_field();
 		value = value?.trim();
-		if (!value) return this.rows;
+		if (!value) return rows;
 
 		// clear input to prevent multiple additions
 		this.set_input_value("");
 
+		let new_row;
 		if (this.frm) {
-			// ⚠️ we are setting the model value earlier
-			// it will need to be removed if validation fails.
-			const new_row = frappe.model.add_child(
-				this.frm.doc,
-				this.df.options,
-				this.df.fieldname
-			);
+			new_row = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname);
 			new_row[link_field.fieldname] = value;
-			this.rows = this.frm.doc[this.df.fieldname];
+
+			// to ensure we pop from the correct rows array
+			rows = this.get_model_value();
+			rows.pop();
 		} else {
-			this.rows.push({
+			new_row = {
 				[link_field.fieldname]: value,
-			});
+			};
 		}
 
-		return this.rows;
-	}
-	get_model_value() {
-		let value = super.get_model_value();
-		return value ? value.filter((d) => !d.__islocal) : value;
-	}
-	_update_rows(rows) {
-		this.rows = this.frm?.doc[this.df.fieldname] || rows;
-
-		const link_fieldname = this.get_link_field().fieldname;
-		this._rows_list = this.rows.map((row) => row[link_fieldname]);
-
-		return rows;
+		return [...rows, new_row];
 	}
 	async validate(value) {
 		const rows = (value || []).slice();
 
 		if (rows.length === 0) {
-			return this._update_rows(rows);
+			return rows;
 		}
 
 		const all_rows_except_last = rows.slice(0, rows.length - 1);
@@ -136,33 +134,39 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			frappe.utils.is_empty(link_value) ||
 			all_rows_except_last.map((row) => row[link_field.fieldname]).includes(link_value)
 		) {
-			// model value may already be set in parse
-			frappe.model.clear_doc(last_row.doctype, last_row.name);
-			return this._update_rows(all_rows_except_last);
+			return all_rows_except_last;
 		}
 
 		if (!this.df.ignore_link_validation) {
 			const validated_value = await this.validate_link_and_fetch(link_value);
 			if (frappe.utils.is_empty(validated_value)) {
-				// model value may already be set in parse
-				frappe.model.clear_doc(last_row.doctype, last_row.name);
-				return this._update_rows(all_rows_except_last);
+				return all_rows_except_last;
 			}
 			last_row[link_field.fieldname] = validated_value;
 		}
 
-		// trigger row added event
-		this.frm?.script_manager.trigger(
-			`${this.df.fieldname}_add`,
-			this.df.options,
-			last_row.name
-		);
-		return this._update_rows(rows);
+		return rows;
+	}
+	async set_model_value(value) {
+		const old_length = this._get_rows()?.length || 0;
+		const new_length = value?.length || 0;
+		const result = super.set_model_value(...arguments);
+		this._update_rows(value);
+
+		if (new_length - old_length === 1 && this.frm) {
+			// trigger add event only if one row is added
+			const new_row = value[value.length - 1];
+			await this.frm.script_manager.trigger(
+				`${this.df.fieldname}_add`,
+				this.df.options,
+				new_row.name
+			);
+		}
+		return result;
 	}
 	set_formatted_input(value) {
-		this.rows = value || [];
 		const link_field = this.get_link_field();
-		const values = this.rows.map((row) => row[link_field.fieldname]);
+		const values = (value || []).map((row) => row[link_field.fieldname]);
 		this.set_pill_html(values);
 	}
 	set_pill_html(values) {
