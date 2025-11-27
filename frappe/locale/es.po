@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:12\n"
+"PO-Revision-Date: 2025-11-27 13:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -88,7 +88,7 @@ msgstr "'Destinatarios' no especificados"
 
 #: frappe/utils/__init__.py:271
 msgid "'{0}' is not a valid IBAN"
-msgstr ""
+msgstr "'{0}' no es un IBAN válido"
 
 #: frappe/utils/__init__.py:261
 msgid "'{0}' is not a valid URL"
@@ -257,7 +257,9 @@ msgstr "<="
 msgid "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n"
 "  Click here to learn about token-based authentication\n"
 "</a>"
-msgstr ""
+msgstr "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n"
+"  Haga clic aquí para conocer la autenticación basada en token\n"
+"</a>"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:601
 msgid "<b>{0}</b> is not a valid URL"
@@ -271,12 +273,12 @@ msgstr "<div class=\"alert\">Por favor, no lo actualice, ya que puede estropear 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Solicite un archivo que contenga su información de identificación personal (IIP) guardada en nuestro sistema. El archivo estará en formato JSON y se le enviará por correo electrónico. Si desea que eliminemos su IIP de nuestro sistema, realice una <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">solicitud de eliminación de datos</a>.</p></div>"
 
 #. Introduction text of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Send a request to delete your account and personally identifiable information (PII) that is stored on our system. You will receive an email to verify your request. Once the request is verified we will take care of deleting your PII. If you just want to check what PII we have stored, you can <a href=\"/request-data\" rel=\"noopener noreferrer\">request your data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>Envíe una solicitud para eliminar su cuenta y la información de identificación personal (IIP) almacenada en nuestro sistema. Recibirá un correo electrónico para verificar su solicitud. Una vez verificada la solicitud, nos encargaremos de borrar su IIP. Si sólo desea comprobar qué IIP tenemos almacenada, puede <a href=\"/request-data\" rel=\"noopener noreferrer\">solicitar sus datos</a>.</p></div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -320,7 +322,45 @@ msgid "<div class=\"well\">\n"
 "    </ul>\n"
 "</div>\n"
 "<br>\n"
-msgstr ""
+msgstr "<div class=\"well\">\n"
+"    Edite la lista de series en el cuadro. Reglas:\n"
+"    <ul>\n"
+"        <li>Cada prefijo de serie en una nueva línea.</li>\n"
+"        <li>Los caracteres especiales permitidos son \"/\" y \"-\".</li>\n"
+"        <li>\n"
+"            Opcionalmente, establezca el número de dígitos de la serie utilizando el punto (.)\n"
+"            seguido de hashes (#). Por ejemplo, \".####\" significa que la serie\n"
+"            tendrá cuatro dígitos. Por defecto son cinco dígitos.\n"
+"        </li>\n"
+"        <li>\n"
+"            También puede utilizar variables en el nombre de la serie colocándolas\n"
+"            entre puntos (.)\n"
+"            <br>\n"
+"            Variables admitidas:\n"
+"            <ul>\n"
+"                <li><code>.YYYY</code> - Año en 4 dígitos</li>\n"
+"                <li><code>.YY.</code> - Año en 2 dígitos</li>\n"
+"                <li><code>.MM.</code> - Mes</li>\n"
+"                <li><code>.DD.</code> - Día del mes</li>\n"
+"                <li><code>.WW.</code> - Semana del año</li>\n"
+"                <li>\n"
+"                    <code>.{fieldname}.</code> - Nombre del campo en el documento, por ejemplo:\n"
+"                    <code>branch</code>\n"
+"                </li>\n"
+"                <li><code>.FY.</code> - Año fiscal (necesita que ERPNext esté instalado)</li>\n"
+"                <li><code>.ABBR.</code> - Abreviatura de la empresa (necesita que ERPNext esté instalado)</li>\n"
+"            </ul>\n"
+"        </li>\n"
+"    </ul>\n"
+"    Ejemplos:\n"
+"    <ul>\n"
+"        <li>INV-</li>\n"
+"        <li>INV-10-</li>\n"
+"        <li>INVK-</li>\n"
+"        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n"
+"    </ul>\n"
+"</div>\n"
+"<br>\n"
 
 #. Content of the 'Custom HTML Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -571,7 +611,9 @@ msgstr "Ejemplo de mensaje <h5></h5>\n\n"
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>Ejemplos de condición:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -710,12 +752,12 @@ msgstr "El nombre de un DocType debe empezar por una letra y sólo puede estar f
 #. Description of a DocType
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "A Frappe Framework instance can function as an OAuth Client, Resource, or Authorization server. This DocType contains settings related to all three."
-msgstr ""
+msgstr "Una instancia de Frappe Framework puede funcionar como cliente OAuth, recurso o servidor de autorización. Este DocType contiene configuración relacionada con los tres."
 
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "A download link with your data will be sent to the email address associated with your account."
-msgstr ""
+msgstr "Se enviará un enlace de descarga con sus datos a la dirección de correo electrónico asociada a su cuenta."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:175
 msgid "A field with the name {0} already exists in {1}"
@@ -752,7 +794,9 @@ msgstr "Ya existe una plantilla para el campo {0} de {1}"
 msgid "A version identifier string for the client software.\n"
 "<br>\n"
 "The value of the should change on any update of the client software with the same Software ID."
-msgstr ""
+msgstr "Una cadena identificadora de la versión del software cliente.\n"
+"<br>\n"
+"Su valor debe cambiar con cualquier actualización del software cliente con el mismo identificador de software."
 
 #: frappe/utils/password_strength.py:169
 msgid "A word by itself is easy to guess."
@@ -835,7 +879,7 @@ msgstr "Argumentos del endpoint de la API"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:102
 msgid "API Endpoint Args should be valid JSON"
-msgstr ""
+msgstr "API Endpoint Args debe ser JSON válido"
 
 #. Label of the api_key (Data) field in DocType 'User'
 #. Label of the api_key (Data) field in DocType 'Email Account'
@@ -864,13 +908,13 @@ msgstr "No se puede regenerar la clave API"
 
 #: frappe/core/doctype/user/user.js:456
 msgid "API Keys"
-msgstr ""
+msgstr "Claves API"
 
 #. Label of the api_logging_section (Section Break) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "API Logging"
-msgstr ""
+msgstr "Registro API"
 
 #. Label of the api_method (Data) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -880,7 +924,7 @@ msgstr "Método API"
 #. Name of a DocType
 #: frappe/core/doctype/api_request_log/api_request_log.json
 msgid "API Request Log"
-msgstr ""
+msgstr "Registro de solicitudes API"
 
 #. Label of the api_secret (Password) field in DocType 'User'
 #. Label of the api_secret (Password) field in DocType 'Email Account'
@@ -890,7 +934,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr "Clave Secreta de API"
+msgstr "Secreto API"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -923,19 +967,19 @@ msgstr "Miembro del Equipo Acerca de Nosotros"
 
 #: frappe/core/doctype/data_import/data_import.js:27
 msgid "About {0} minute remaining"
-msgstr ""
+msgstr "Quedan aproximadamente {0} minutos"
 
 #: frappe/core/doctype/data_import/data_import.js:28
 msgid "About {0} minutes remaining"
-msgstr ""
+msgstr "Quedan aproximadamente {0} minutos"
 
 #: frappe/core/doctype/data_import/data_import.js:25
 msgid "About {0} seconds remaining"
-msgstr ""
+msgstr "Quedan aproximadamente {0} segundos"
 
 #: frappe/templates/emails/user_invitation.html:16
 msgid "Accept Invitation"
-msgstr ""
+msgstr "Aceptar invitación"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -945,7 +989,7 @@ msgstr "Aceptado"
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "Aceptado a las"
 
 #. Label of the access_control_section (Section Break) field in DocType 'Web
 #. Form'
@@ -980,7 +1024,7 @@ msgstr "Acceso no permitido desde esta dirección IP"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Account"
-msgstr ""
+msgstr "Cuenta"
 
 #. Label of the account_deletion_settings_section (Section Break) field in
 #. DocType 'Website Settings'
@@ -1024,7 +1068,7 @@ msgstr ""
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:37
 msgid "Action"
-msgstr ""
+msgstr "Acción"
 
 #. Label of the action (Small Text) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
@@ -3224,7 +3268,7 @@ msgstr "Genial, ahora intenta crear una entrada tú mismo."
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Awesomebar"
-msgstr ""
+msgstr "Awesomebar"
 
 #: frappe/public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
@@ -4055,7 +4099,7 @@ msgstr "Cancelar todos los documentos"
 
 #: frappe/core/doctype/data_import/data_import.js:180
 msgid "Cancel Import"
-msgstr ""
+msgstr "Cancelar Importación"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:66
 msgid "Cancel Prepared Report"
@@ -12300,12 +12344,12 @@ msgstr "Icono"
 #. Label of the icon_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Icon Style"
-msgstr ""
+msgstr "Estilo del icono"
 
 #. Label of the icon_type (Select) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Icon Type"
-msgstr ""
+msgstr "Tipo de ícono"
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
