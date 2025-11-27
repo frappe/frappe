@@ -18,8 +18,9 @@ from frappe.database.utils import (
 	get_doctype_name,
 	get_doctype_sort_info,
 )
-from frappe.model import get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -79,8 +80,6 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 
 	return value
 
-
-OPTIONAL_COLUMNS = frozenset(["_user_tags", "_comments", "_assign", "_liked_by", "_seen"])
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -158,7 +157,7 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
-		fields: str | list | tuple | None = None,
+		fields: str | list | tuple | set | None = None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
@@ -454,6 +453,9 @@ class Engine:
 		else:
 			# Regular value processing for literal comparisons like: table.field = 'value'
 			_value = convert_to_value(value)
+
+		if isinstance(value, Document):
+			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
@@ -801,7 +803,7 @@ class Engine:
 			user=self.user,
 		)
 
-		if fieldname in OPTIONAL_COLUMNS:
+		if fieldname in OPTIONAL_FIELDS:
 			return
 
 		if fieldname not in permitted_fields:
@@ -867,7 +869,7 @@ class Engine:
 			return pypika_field
 
 	def parse_fields(
-		self, fields: str | list | tuple | Field | AggregateFunction | None
+		self, fields: str | list | tuple | set | Field | AggregateFunction | None
 	) -> "list[Field | AggregateFunction | Criterion | DynamicTableField | ChildQuery]":
 		if not fields:
 			return []
@@ -880,7 +882,7 @@ class Engine:
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
-		elif isinstance(fields, list | tuple):
+		elif isinstance(fields, list | tuple | set):
 			for item in fields:
 				if item is None:
 					continue
@@ -941,7 +943,7 @@ class Engine:
 						)
 
 					# Ensure child_fields_list is a list or tuple
-					if not isinstance(child_fields_list, list | tuple):
+					if not isinstance(child_fields_list, list | tuple | set):
 						frappe.throw(
 							_("Child query fields for '{0}' must be a list or tuple.").format(child_field)
 						)
@@ -1148,12 +1150,8 @@ class Engine:
 			if not field_name:
 				continue
 
-			# Skip permission check for optional system columns in group_by
-			if field_name in OPTIONAL_COLUMNS:
-				parsed_fields.append(self.table[field_name])
-			else:
-				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
-				parsed_fields.append(parsed_field)
+			parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
+			parsed_fields.append(parsed_field)
 
 		return parsed_fields
 
@@ -1284,11 +1282,8 @@ class Engine:
 					# Expand '*' to include all permitted fields
 					# Avoid reparsing '*' recursively by passing the actual list
 					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
-				# Check if the field name (without alias) is permitted
-				elif field.name in permitted_fields_set:
-					allowed_fields.append(field)
-				# Handle cases where the field might be aliased but the base name is permitted
-				elif hasattr(field, "alias") and field.alias and field.name in permitted_fields_set:
+				# Check if the field name is an optional field (like _user_tags) or in permitted fields
+				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
 
 			elif isinstance(field, Term):
@@ -1476,7 +1471,12 @@ class Engine:
 			return "''"
 
 		if df is None:
-			return "''"
+			# Try to get standard field definition
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+			if df is None:
+				return "''"
 
 		fieldtype = df.fieldtype
 

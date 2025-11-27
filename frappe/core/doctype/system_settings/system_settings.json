@@ -97,6 +97,7 @@
   "disable_system_update_notification",
   "disable_change_log_notification",
   "hide_empty_read_only_fields",
+  "disable_product_suggestion",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -771,6 +772,12 @@
   {
    "fieldname": "column_break_bzfr",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_product_suggestion",
+   "fieldtype": "Check",
+   "label": "Disable Product Suggestion"
   },
   {
    "default": "0",

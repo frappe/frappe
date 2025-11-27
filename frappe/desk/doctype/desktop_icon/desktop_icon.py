@@ -8,7 +8,7 @@ import random
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.modules.export_file import write_document_file
+from frappe.modules.export_file import strip_default_fields
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.utils import create_directory_on_app_path, get_app_level_directory_path
 
@@ -58,6 +58,7 @@ class DesktopIcon(Document):
 		folder_path = create_directory_on_app_path("desktop_icon", self.app)
 		file_path = os.path.join(folder_path, f"{frappe.scrub(self.label)}.json")
 		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+		strip_default_fields(self, doc_export)
 		# if self.parent_icon:
 		# 	print(self.parent_icon)
 		# 	doc_export["parent_icon"] = frappe.db.get_value("Desktop Icon", self.parent_icon, "label")
@@ -735,18 +736,19 @@ def create_desktop_icons_from_installed_apps():
 	for a in apps:
 		app_title = frappe.get_hooks("app_title", app_name=a)[0]
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
-		if len(app_details) != 0:
-			icon = frappe.new_doc("Desktop Icon")
-			icon.label = app_title
-			icon.link_type = "External"
-			icon.standard = 1
-			icon.idx = index
-			icon.icon_type = "App"
-			icon.link = app_details[0]["route"]
-			icon.logo_url = app_details[0]["logo"]
-			if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
-				icon.save()
-			index += 1
+		if not frappe.db.exists("Desktop Icon", [{"icon_type": "App"}, {"app": a}]):
+			if len(app_details) != 0:
+				icon = frappe.new_doc("Desktop Icon")
+				icon.label = app_title
+				icon.link_type = "External"
+				icon.standard = 1
+				icon.idx = index
+				icon.icon_type = "App"
+				icon.link = app_details[0]["route"]
+				icon.logo_url = app_details[0]["logo"]
+				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
+					icon.save()
+				index += 1
 
 
 @frappe.whitelist()

@@ -164,18 +164,30 @@ def clear_log_table(doctype, days=90):
 	backup = f"{original} backup_table"
 
 	try:
-		frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+		if frappe.db.db_type == "postgres":
+			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
-		# Copy all recent data to new table
-		frappe.db.sql(
-			f"""INSERT INTO `{temporary}`
-				SELECT * FROM `{original}`
-				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
-		)
-		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+			frappe.db.sql(
+				f"""INSERT INTO "{temporary}"
+					SELECT * FROM "{original}"
+					WHERE "{original}"."creation" > NOW() - INTERVAL '{days}' DAY"""
+			)
+			frappe.db.sql_ddl(f'ALTER TABLE "{original}" RENAME TO "{backup}"')
+			frappe.db.sql_ddl(f'ALTER TABLE "{temporary}" RENAME TO "{original}"')
+		elif frappe.db.db_type == "mariadb":
+			frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+
+			# Copy all recent data to new table
+			frappe.db.sql(
+				f"""INSERT INTO `{temporary}`
+					SELECT * FROM `{original}`
+					WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
+			)
+			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:
 		frappe.db.rollback()
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
 		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
+		frappe.db.commit()
