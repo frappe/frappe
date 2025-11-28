@@ -52,4 +52,104 @@ context("FileUploader", () => {
 			.should("have.property", "file_name", "example.json");
 		cy.get(".modal:visible").should("not.exist");
 	});
+
+	describe("Public file upload restriction", () => {
+		const test_user = "test_restricted_uploader@example.com";
+
+		before(() => {
+			// Create a test user
+			cy.call("frappe.tests.ui_test_helpers.create_test_user", {
+				username: test_user,
+			});
+			// Remove System Manager role to make them non-System Manager
+			cy.remove_role(test_user, "System Manager");
+		});
+
+		it("should hide Private checkbox and toggle button when setting is enabled for non-System Manager", () => {
+			// Enable the setting
+			cy.call("frappe.db.set_single_value", {
+				doctype: "System Settings",
+				field: "only_allow_system_managers_to_upload_public_files",
+				value: 1,
+			});
+
+			// Login as non-System Manager
+			cy.login(test_user);
+			cy.visit("/desk");
+			cy.wait(2000);
+
+			// Open upload dialog
+			open_upload_dialog();
+
+			// Verify Private checkbox is hidden
+			cy.get_open_dialog()
+				.find("label.frappe-checkbox")
+				.contains("Private")
+				.should("not.exist");
+
+			// Verify toggle button is hidden (secondary action in dialog footer)
+			cy.get_open_dialog()
+				.find(".modal-footer")
+				.find('button[data-label*="Set all"]')
+				.should("not.exist");
+
+			cy.hide_dialog();
+		});
+
+		it("should show Private checkbox and toggle button when setting is enabled for System Manager", () => {
+			// Enable the setting
+			cy.call("frappe.db.set_single_value", {
+				doctype: "System Settings",
+				field: "only_allow_system_managers_to_upload_public_files",
+				value: 1,
+			});
+
+			// Login as Administrator (System Manager)
+			cy.login("Administrator");
+			cy.visit("/desk");
+			cy.wait(2000);
+
+			// Open upload dialog
+			open_upload_dialog();
+
+			// Verify Private checkbox is visible
+			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+
+			// Verify toggle button is visible (secondary action in dialog footer)
+			cy.get_open_dialog()
+				.find(".modal-footer")
+				.find('button:contains("Set all private"), button:contains("Set all public")')
+				.should("be.visible");
+
+			cy.hide_dialog();
+		});
+
+		it("should show Private checkbox and toggle button when setting is disabled", () => {
+			// Disable the setting
+			cy.call("frappe.db.set_single_value", {
+				doctype: "System Settings",
+				field: "only_allow_system_managers_to_upload_public_files",
+				value: 0,
+			});
+
+			// Login as non-System Manager
+			cy.login(test_user);
+			cy.visit("/desk");
+			cy.wait(2000);
+
+			// Open upload dialog
+			open_upload_dialog();
+
+			// Verify Private checkbox is visible
+			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+
+			// Verify toggle button is visible (secondary action in dialog footer)
+			cy.get_open_dialog()
+				.find(".modal-footer")
+				.find('button:contains("Set all private"), button:contains("Set all public")')
+				.should("be.visible");
+
+			cy.hide_dialog();
+		});
+	});
 });
