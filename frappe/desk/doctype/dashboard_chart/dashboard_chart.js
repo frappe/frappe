@@ -16,7 +16,9 @@ frappe.ui.form.on("Dashboard Chart", {
 			static_filters,
 			dynamic_filters
 		);
-
+		static_filters = Array.isArray(static_filters)
+			? static_filters.map((l) => (Array.isArray(l) ? l.slice(0, 4) : []))
+			: [];
 		frm.set_value("filters_json", JSON.stringify(static_filters));
 		frm.trigger("show_filters");
 	},
