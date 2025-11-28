@@ -74,11 +74,11 @@ const setEditorValue = () => {
 		if (props.language === "json" || typeof value === "object") {
 			value = JSON5.stringify(value, { replacer: null, space: 2, quote: '"' })
 		}
+		code.value = value
 	} catch (e) {
 		console.log("Error while converting value to JSON", e)
 		// do nothing
 	}
-	code.value = value
 }
 
 const isValidObjectString = (text: string) => {
