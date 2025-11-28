@@ -498,7 +498,6 @@ def get_permission_query_conditions_for_communication(user):
 			filters={"parent": user},
 			fields=["email_account"],
 			distinct=True,
-			order_by="idx",
 		)
 
 		if not accounts:

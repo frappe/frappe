@@ -57,10 +57,8 @@ def _get_children(doctype, parent="", ignore_permissions=False, include_disabled
 	)
 
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
-		qb = qb.where(
-			Field("disabled").eq(0)
-		)  # used 0 instead of `false` since type of check in postgres is smallint
-
+		# used 0 instead of `false` since type of check in postgres is smallint
+		qb = qb.where(Field("disabled").eq(0))
 	# Order by name and execute
 	return qb.orderby("name").run(as_dict=True)
 

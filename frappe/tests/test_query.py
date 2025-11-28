@@ -7,7 +7,6 @@ from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
-from frappe.tests.classes.unit_test_case import UnitTestCase
 from frappe.tests.test_db_query import (
 	create_nested_doctype,
 	create_nested_doctype_records,
@@ -1747,41 +1746,39 @@ class TestQuery(IntegrationTestCase):
 		# Test simple addition
 		query = frappe.qb.get_query("User", fields=[{"ADD": [1, 2], "as": "sum_result"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("1+2 `sum_result`"), sql)
+		self.assertIn(self.normalize_sql("1+2 `sum_result`"), sql)
 
 		# Test simple subtraction
 		query = frappe.qb.get_query("User", fields=[{"SUB": [10, 5], "as": "diff_result"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("10-5 `diff_result`"), sql)
+		self.assertIn(self.normalize_sql("10-5 `diff_result`"), sql)
 
 		# Test simple multiplication
 		query = frappe.qb.get_query("User", fields=[{"MUL": [3, 4], "as": "prod_result"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("3*4 `prod_result`"), sql)
+		self.assertIn(self.normalize_sql("3*4 `prod_result`"), sql)
 
 		# Test simple division
 		query = frappe.qb.get_query("User", fields=[{"DIV": [10, 2], "as": "div_result"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("10/2 `div_result`"), sql)
+		self.assertIn(self.normalize_sql("10/2 `div_result`"), sql)
 
 		# Test operator with field names
 		query = frappe.qb.get_query("User", fields=[{"ADD": ["enabled", "login_after"], "as": "field_sum"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("`enabled`+`login_after` `field_sum`"), sql)
+		self.assertIn(self.normalize_sql("`enabled`+`login_after` `field_sum`"), sql)
 
 		# Test nested operators
 		query = frappe.qb.get_query("User", fields=[{"ADD": [{"MUL": [2, 3]}, 4], "as": "nested_result"}])
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("2*3+4 `nested_result`"), sql)
+		self.assertIn(self.normalize_sql("2*3+4 `nested_result`"), sql)
 
 		# Test operator with function - NULLIF
 		query = frappe.qb.get_query(
 			"User", fields=[{"DIV": [1, {"NULLIF": ["enabled", 0]}], "as": "safe_div"}]
 		)
 		sql = query.get_sql()
-		self.assertIn(
-			UnitTestCase.normalize_sql("1/NULLIF(`enabled`,0) `safe_div`"), UnitTestCase.normalize_sql(sql)
-		)
+		self.assertIn(self.normalize_sql("1/NULLIF(`enabled`,0) `safe_div`"), self.normalize_sql(sql))
 
 		# Test complex nested expression: (1 / NULLIF(value, 0))
 		query = frappe.qb.get_query(
@@ -1792,10 +1789,8 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("`name`"), sql)
-		self.assertIn(
-			UnitTestCase.normalize_sql("1/NULLIF(`enabled`,0) `inverse`"), UnitTestCase.normalize_sql(sql)
-		)
+		self.assertIn(self.normalize_sql("`name`"), sql)
+		self.assertIn(self.normalize_sql("1/NULLIF(`enabled`,0) `inverse`"), self.normalize_sql(sql))
 
 		# Test operator with LOCATE function (search relevance pattern)
 		query = frappe.qb.get_query(
@@ -1807,8 +1802,8 @@ class TestQuery(IntegrationTestCase):
 		)
 		sql = query.get_sql()
 		self.assertIn(
-			UnitTestCase.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
-			UnitTestCase.normalize_sql(sql),
+			self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
+			self.normalize_sql(sql),
 		)
 
 		# Test multiple operators in fields
@@ -1821,9 +1816,9 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("`name`"), sql)
-		self.assertIn(UnitTestCase.normalize_sql("`enabled`+1 `enabled_plus_one`"), sql)
-		self.assertIn(UnitTestCase.normalize_sql("`enabled`*2 `enabled_times_two`"), sql)
+		self.assertIn(self.normalize_sql("`name`"), sql)
+		self.assertIn(self.normalize_sql("`enabled`+1 `enabled_plus_one`"), sql)
+		self.assertIn(self.normalize_sql("`enabled`*2 `enabled_times_two`"), sql)
 
 		# Test operator without alias
 		query = frappe.qb.get_query("User", fields=[{"ADD": [1, 1]}])
@@ -1890,16 +1885,12 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		sql = query.get_sql()
-		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), UnitTestCase.normalize_sql(sql))
+		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
 		if (
 			frappe.db.db_type != "postgres"
 		):  # since Postgres requires fields in Order by to be grouped or aggregated, order by is dropped
-			self.assertIn(
-				UnitTestCase.normalize_sql("ORDER BY `created_date`"), UnitTestCase.normalize_sql(sql)
-			)
-		self.assertIn(
-			UnitTestCase.normalize_sql("`creation` `created_date`"), UnitTestCase.normalize_sql(sql)
-		)
+			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
+		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
@@ -1909,7 +1900,7 @@ class TestQuery(IntegrationTestCase):
 		)
 		sql = query.get_sql()
 		# If we get here without PermissionError, the test passes
-		self.assertIn(UnitTestCase.normalize_sql("GROUP BY `created_date`"), UnitTestCase.normalize_sql(sql))
+		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
 
 
 # This function is used as a permission query condition hook
