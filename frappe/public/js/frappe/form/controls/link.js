@@ -307,12 +307,25 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			me.autocomplete_open = false;
 
-			// prevent selection on tab
-			let TABKEY = 9;
-			if (e.keyCode === TABKEY) {
-				e.preventDefault();
-				me.awesomplete.close();
-				return false;
+			// prevent selection on tab/enter if input doesn't match
+			const TABKEY = 9;
+			const ENTERKEY = 13;
+			const event = o.originalEvent;
+			if (event && [TABKEY, ENTERKEY].includes(event.keyCode)) {
+				const input = me.get_label_value().toLowerCase();
+				if (!input && event.keyCode === TABKEY) {
+					e.preventDefault();
+					me.awesomplete.close();
+					return false;
+				} else if (input && !me.input_matches_item(input, item)) {
+					e.preventDefault();
+
+					// prevent browser default tab behavior (focus change)
+					if (event.preventDefault) {
+						event.preventDefault();
+					}
+					return false;
+				}
 			}
 
 			if (item.action) {
@@ -338,6 +351,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.$input.val("");
 			}
 		});
+	}
+
+	/**
+	 * Checks if the current input matches any property (label, value, or description)
+	 * of the provided autocomplete item (case-insensitive).
+	 *
+	 * @param {string} input - The current input value.
+	 * @param {Object} item - The autocomplete item to check against.
+	 * @returns {boolean} - True if input matches the label, value, or description.
+	 */
+	input_matches_item(input, item) {
+		const item_label = (this.get_translated(item.label || item.value) || "").toLowerCase();
+		const item_description = (item.description || "").toLowerCase();
+		return input && (item_label.includes(input) || item_description.includes(input));
 	}
 
 	/**
