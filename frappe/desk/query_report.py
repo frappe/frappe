@@ -466,7 +466,7 @@ def build_xlsx_data(
 	if report and isinstance(report, str):
 		report = frappe.get_doc("Report", report)
 
-	if report:
+	if report and report.is_standard == "Yes" and report.report_type in ("Query Report", "Script Report"):
 		try:
 			get_xlsx_cell_style = report.get_module_method("get_xlsx_cell_style")
 
