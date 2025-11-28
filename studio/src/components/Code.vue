@@ -33,7 +33,8 @@ import { LanguageSupport } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
-import { jsToJson, jsonToJs, isPrivateKey } from "@/utils/helpers"
+import JSON5 from "json5"
+import { jsonToJs, isPrivateKey } from "@/utils/helpers"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -71,7 +72,7 @@ const setEditorValue = () => {
 	let value = props.modelValue ?? ""
 	try {
 		if (props.language === "json" || typeof value === "object") {
-			value = jsToJson(value)
+			value = JSON5.stringify(value, { replacer: null, space: 2, quote: '"' })
 		}
 	} catch (e) {
 		console.log("Error while converting value to JSON", e)
@@ -91,13 +92,6 @@ const isValidObjectString = (text: string) => {
 	return false
 }
 
-const parseObjectString = (text: string) => {
-	if (!isValidObjectString(text)) {
-		throw new Error("Invalid object")
-	}
-	return new Function("return " + text)()
-}
-
 const errorMessage = ref("")
 const emitEditorValue = () => {
 	try {
@@ -109,7 +103,7 @@ const emitEditorValue = () => {
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
 				try {
 					// forgiving single-quoted/unquoted keys; trailing commas
-					value = parseObjectString(value)
+					value = JSON5.parse(value)
 				} catch (e) {
 					// fallback to JSON parsing
 					value = jsonToJs(value)
