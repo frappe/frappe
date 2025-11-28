@@ -271,9 +271,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 url_rules = [
 	# RPC calls
 	Rule("/method/login", endpoint=login),
-	Rule("/method/logout", endpoint=logout),
+	Rule("/method/logout", endpoint=logout, methods=["POST"]),
 	Rule("/method/ping", endpoint=frappe.ping),
-	Rule("/method/upload_file", endpoint=upload_file),
+	Rule("/method/upload_file", endpoint=upload_file, methods=["POST"]),
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",

@@ -147,18 +147,6 @@ def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	return supported_doctypes[start:page_len]
 
 
-LOG_DOCTYPES = [
-	"Scheduled Job Log",
-	"Activity Log",
-	"Route History",
-	"Email Queue",
-	"Email Queue Recipient",
-	"Error Log",
-	"OAuth Bearer Token",
-	"API Request Log",
-]
-
-
 def clear_log_table(doctype, days=90):
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
@@ -168,7 +156,7 @@ def clear_log_table(doctype, days=90):
 	"""
 	from frappe.utils import get_table_name
 
-	if doctype not in LOG_DOCTYPES:
+	if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
 		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 	original = get_table_name(doctype)
@@ -176,18 +164,30 @@ def clear_log_table(doctype, days=90):
 	backup = f"{original} backup_table"
 
 	try:
-		frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+		if frappe.db.db_type == "postgres":
+			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
-		# Copy all recent data to new table
-		frappe.db.sql(
-			f"""INSERT INTO `{temporary}`
-				SELECT * FROM `{original}`
-				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
-		)
-		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
+			frappe.db.sql(
+				f"""INSERT INTO "{temporary}"
+					SELECT * FROM "{original}"
+					WHERE "{original}"."creation" > NOW() - INTERVAL '{days}' DAY"""
+			)
+			frappe.db.sql_ddl(f'ALTER TABLE "{original}" RENAME TO "{backup}"')
+			frappe.db.sql_ddl(f'ALTER TABLE "{temporary}" RENAME TO "{original}"')
+		elif frappe.db.db_type == "mariadb":
+			frappe.db.sql_ddl(f"CREATE TABLE `{temporary}` LIKE `{original}`")
+
+			# Copy all recent data to new table
+			frappe.db.sql(
+				f"""INSERT INTO `{temporary}`
+					SELECT * FROM `{original}`
+					WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
+			)
+			frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:
 		frappe.db.rollback()
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
 		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
+		frappe.db.commit()

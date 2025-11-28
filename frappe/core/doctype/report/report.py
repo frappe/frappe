@@ -71,8 +71,13 @@ class Report(Document):
 			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
-		if self.is_standard == "Yes" and frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+		if self.is_standard == "Yes":
+			if frappe.session.user != "Administrator":
+				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+
+			# Letter Head is visible only for non-standard reports.
+			# It should not remain set when it's invisible.
+			self.letter_head = None
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
@@ -84,7 +89,7 @@ class Report(Document):
 		self.export_doc()
 
 	def before_export(self, doc):
-		doc.letterhead = None
+		doc.letter_head = None
 		doc.prepared_report = 0
 
 	def on_trash(self):

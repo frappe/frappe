@@ -3,7 +3,6 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-import cloneDeepWith from "lodash/cloneDeepWith";
 
 frappe.provide("frappe.utils");
 
@@ -922,21 +921,44 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
+			return (
+				frappe.search.utils.make_icon("table") +
+				(__(route[3]) || __(route[1])).bold() +
+				" " +
+				__("Report")
+			);
 		}
 		if (route[0] === "List") {
-			return __(route[1]).bold() + " " + __("List");
+			return frappe.search.utils.make_icon("list") + __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return __(route[1]).bold() + " " + __("Module");
+			return (
+				frappe.search.utils.make_icon("component") +
+				__(route[1]).bold() +
+				" " +
+				__("Module")
+			);
 		}
 		if (route[0] === "Workspaces") {
-			return __(route[1]).bold() + " " + __("Workspace");
+			return (
+				frappe.search.utils.make_icon("wallpaper") +
+				__(route[1]).bold() +
+				" " +
+				__("Workspace")
+			);
 		}
 		if (route[0] === "dashboard") {
-			return __(route[1]).bold() + " " + __("Dashboard");
+			return (
+				frappe.search.utils.make_icon("dashboard") +
+				__(route[1]).bold() +
+				" " +
+				__("Dashboard")
+			);
 		}
-		return __(frappe.utils.to_title_case(__(route[0]), true));
+		return (
+			frappe.search.utils.make_icon("file-text") +
+			__(frappe.utils.to_title_case(__(route[0]), true))
+		);
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -999,10 +1021,6 @@ Object.assign(frappe.utils, {
 		return deep_equal(a, b);
 	},
 
-	deep_clone(obj, customizer) {
-		return cloneDeepWith(obj, customizer);
-	},
-
 	file_name_ellipsis(filename, length) {
 		let first_part_length = (length * 2) / 3;
 		let last_part_length = length - first_part_length;
@@ -1031,11 +1049,11 @@ Object.assign(frappe.utils, {
 		}
 		return decoded;
 	},
-	copy_to_clipboard(string) {
+	copy_to_clipboard(string, message) {
 		const show_success_alert = () => {
 			frappe.show_alert({
 				indicator: "green",
-				message: __("Copied to clipboard."),
+				message: message || __("Copied to clipboard."),
 			});
 		};
 		if (navigator.clipboard && window.isSecureContext) {

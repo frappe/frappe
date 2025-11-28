@@ -22,13 +22,13 @@
 						</span>
 					{% } %}
 					<div class="input-group search-bar text-muted hidden">
-						<input
-							id="navbar-search"
-							type="text"
-							class="form-control"
-							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}"
-							aria-haspopup="true"
+						<div
+							id="navbar-modal-search"
+							class=""
+							placeholder="Search for type a command"
 						>
+							{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}
+						</div>
 						<span class="search-icon">
 							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 						</span>

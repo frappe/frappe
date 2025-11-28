@@ -26,7 +26,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 
 				path = frappe.utils.generate_route(args);
 			} else if (this.item.link_type == "Workspace") {
-				let workspaces = frappe.workspaces[this.item.link_to.toLowerCase()];
+				let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
 				if (workspaces.public) {
 					path = "/desk/" + frappe.router.slug(this.item.link_to);
 				} else {
@@ -73,7 +73,10 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.menu_items = this.get_menu_items();
 		this.$edit_menu = this.wrapper.find(".edit-menu");
 		this.$sidebar_container = this.$edit_menu.parent();
-		frappe.ui.create_menu(this.$edit_menu, this.menu_items);
+		frappe.ui.create_menu({
+			parent: this.$edit_menu,
+			menu_items: this.menu_items,
+		});
 	}
 	get_menu_items() {
 		let me = this;
@@ -186,6 +189,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
+				if (me.item.indent) {
+					me.close();
+				}
 			}
 		});
 	}

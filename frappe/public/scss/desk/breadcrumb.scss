@@ -44,3 +44,11 @@
 		color: var(--ink-gray-9) !important;
 	}
 }
+
+#navbar-modal-search {
+	border-radius: var(--border-radius-sm);
+	padding: var(--input-padding);
+	background-color: var(--control-bg);
+	width: 100%;
+	padding-left: 40px;
+}
