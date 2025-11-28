@@ -177,7 +177,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.wait("@search_link");
 		cy.get("@input").parent().findByRole("listbox").as("dropdown");
 		cy.get("@dropdown").should("be.visible");
-		cy.get("@input").type(value, { delay: 25 });
+		cy.get("@input").type(value, { delay: 100 });
 		cy.wait("@search_link");
 		cy.get("@dropdown")
 			.should("be.visible")
