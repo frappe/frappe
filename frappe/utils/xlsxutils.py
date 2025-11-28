@@ -77,11 +77,14 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 			if cell_style:
 				style = {"name": "Calibri"}
 
+				if font_family := cell_style.get("font-family"):
+					style["name"] = font_family
 				if cell_style.get("bold"):
 					style["bold"] = True
 				if cell_style.get("italic"):
 					style["italic"] = True
 				if color := cell_style.get("color"):
+					# TODO: convert #FFFFFF to FFFF0000 format
 					style["color"] = color
 
 				cell.font = Font(**style)
