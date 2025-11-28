@@ -1,0 +1,11 @@
+{
+	"id": "{{ id }}",
+	"name": "{{ app_name }}",
+	"scope": "/desk/",
+	"start_url": "/desk",
+	"icons": [
+		{
+			"src": "{{ app_logo }}"
+		}
+	]
+}
