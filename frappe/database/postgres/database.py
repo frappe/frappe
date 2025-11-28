@@ -497,7 +497,6 @@ def modify_query(query):
 	# replace ` with " for definitions
 	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
-	query = query.replace('COUNT("*")', "COUNT(*)")
 	# select from requires ""
 	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
