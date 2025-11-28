@@ -11,7 +11,12 @@ from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.importer import Importer
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
+<<<<<<< HEAD
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
+=======
+from frappe.utils import cint
+from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
+>>>>>>> 45f3bc16b7 (fix: validate allow_import and import permission in data import)
 from frappe.utils.csvutils import validate_google_sheets_url
 
 
@@ -30,6 +35,31 @@ class DataImport(Document):
 		self.validate_google_sheets_url()
 		self.set_payload_count()
 
+<<<<<<< HEAD
+=======
+	def set_delimiters_flag(self):
+		if self.import_file:
+			frappe.flags.delimiter_options = self.delimiter_options or ","
+
+	def validate_doctype(self):
+		if self.reference_doctype in BLOCKED_DOCTYPES:
+			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
+
+		meta = frappe.get_meta(self.reference_doctype)
+		if not cint(meta.allow_import):
+			frappe.throw(
+				_("Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings.").format(
+					self.reference_doctype
+				)
+			)
+
+		if not frappe.has_permission(self.reference_doctype, "import"):
+			frappe.throw(
+				_("You do not have import permission for {0}").format(self.reference_doctype),
+				frappe.PermissionError,
+			)
+
+>>>>>>> 45f3bc16b7 (fix: validate allow_import and import permission in data import)
 	def validate_import_file(self):
 		if self.import_file:
 			# validate template
