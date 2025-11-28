@@ -73,7 +73,10 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.menu_items = this.get_menu_items();
 		this.$edit_menu = this.wrapper.find(".edit-menu");
 		this.$sidebar_container = this.$edit_menu.parent();
-		frappe.ui.create_menu(this.$edit_menu, this.menu_items);
+		frappe.ui.create_menu({
+			parent: this.$edit_menu,
+			menu_items: this.menu_items,
+		});
 	}
 	get_menu_items() {
 		let me = this;

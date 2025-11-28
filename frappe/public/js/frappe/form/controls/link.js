@@ -128,10 +128,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.set_input_value(translated_link_text);
 	}
 	parse_validate_and_set_in_model(value, e, label) {
-		if (this.parse) value = this.parse(value, label);
+		if (this.parse) value = this.parse(value);
 		if (label) {
 			this.label = this.get_translated(label);
-			frappe.utils.add_link_title(this.df.options, value, label);
+			frappe.utils.add_link_title(this.get_options(), value, label);
 		}
 
 		return this.validate_and_set_in_model(value, e);
@@ -184,8 +184,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
-		frappe._from_link = frappe.utils.deep_clone(this);
-		frappe._from_link_scrollY = $(document).scrollTop();
+		frappe._from_link = {
+			field_obj: this,
+			from_doctype: this.doctype,
+			from_docname: this.doc?.name,
+			scrollY: $(document).scrollTop(),
+		};
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
 			return me.set_value(doc.name);
