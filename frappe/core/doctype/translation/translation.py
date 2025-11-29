@@ -36,10 +36,8 @@ class Translation(Document):
 
 	def on_update(self):
 		clear_user_translation_cache(self.language)
-		if self.has_value_changed("language"):
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save:
-				clear_user_translation_cache(doc_before_save.language)
+		if self.has_value_changed("language") and (doc_before_save := self.get_doc_before_save()):
+			clear_user_translation_cache(doc_before_save.language)
 
 	def on_trash(self):
 		clear_user_translation_cache(self.language)
