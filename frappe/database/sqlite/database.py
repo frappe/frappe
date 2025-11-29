@@ -105,12 +105,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
-		conn.isolation_level = None
 		conn.create_function("regexp", 2, regexp)
 		conn.create_function("regexp_replace", 3, regexp_replace)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
+			"busy_timeout": 5000,  # in milliseconds
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():

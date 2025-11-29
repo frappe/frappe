@@ -32,10 +32,23 @@ frappe.ui.toolbar.Toolbar = class {
 		this.app_logo = this.navbar.find(".app-logo");
 		this.bind_click();
 	}
+	change_toolbar() {
+		$(".navbar .container").css("max-width", "43%");
+		$(".navbar-brand").css("display", "block");
+		$(".navbar-brand .app-logo").attr("src", frappe.boot.navbar_settings.app_logo);
+		let nav_elements = $(".navbar-nav").children();
+		$("form").css("display", "none");
+		$("");
+		for (let i = 0; i < nav_elements.length - 1; i++) {
+			$(nav_elements[i]).attr("style", "display: none !important");
+			$(nav_elements[i]).find("*").attr("style", "display: none !important");
+		}
+	}
+
 	bind_click() {
 		$(".navbar-brand .app-logo").on("click", (event) => {
 			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_sidebar();
+			frappe.app.sidebar.toggle_width();
 			frappe.app.sidebar.prevent_scroll();
 		});
 	}
@@ -171,7 +184,7 @@ frappe.ui.toolbar.Toolbar = class {
 	setup_awesomebar() {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup("#navbar-search");
+			awesome_bar.setup("#navbar-modal-search");
 
 			frappe.search.utils.make_function_searchable(
 				frappe.utils.generate_tracking_url,

@@ -165,9 +165,9 @@ class Exporter:
 		filters = self.export_filters
 
 		if self.meta.is_nested_set():
-			order_by = f"`tab{self.doctype}`.`lft` ASC"
+			order_by = "lft ASC"
 		else:
-			order_by = f"`tab{self.doctype}`.`creation` DESC"
+			order_by = "creation DESC"
 
 		parent_fields = [format_column_name(df) for df in self.fields if df.parent == self.doctype]
 		parent_data = frappe.db.get_list(

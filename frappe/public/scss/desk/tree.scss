@@ -1,7 +1,10 @@
 .treeview {
 	.layout-main-section {
-		max-width: var(--page-max-width);
 		margin: auto;
+
+		body:not(.full-width) & {
+			max-width: var(--page-max-width);
+		}
 	}
 }
 

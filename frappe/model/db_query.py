@@ -303,7 +303,9 @@ class DatabaseQuery:
 
 		if self.distinct:
 			args.fields = "distinct " + args.fields
-			args.order_by = ""  # TODO: recheck for alternative
+			if frappe.db.db_type == "postgres":
+				# PostgreSQL requires ORDER BY expressions to appear in SELECT list when using DISTINCT
+				args.order_by = ""
 
 		# Postgres requires any field that appears in the select clause to also
 		# appear in the order by and group by clause
@@ -844,7 +846,7 @@ from {tables}
 				nodes = frappe.get_all(
 					ref_doctype,
 					filters={"lft": [">", lft], "rgt": ["<", rgt]},
-					order_by="`lft` ASC",
+					order_by="lft ASC",
 					pluck="name",
 				)
 				if f.operator.lower() == "descendants of (inclusive)":
@@ -854,7 +856,7 @@ from {tables}
 				nodes = frappe.get_all(
 					ref_doctype,
 					filters={"lft": ["<", lft], "rgt": [">", rgt]},
-					order_by="`lft` DESC",
+					order_by="lft DESC",
 					pluck="name",
 				)
 
@@ -1375,7 +1377,7 @@ def get_order_by(doctype, meta):
 		# will covert to
 		# `tabItem`.`idx` desc, `tabItem`.`creation` desc
 		order_by = ", ".join(
-			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
+			f"{f_split[0].strip()} {f_split[1].strip()}"
 			for f in meta.sort_field.split(",")
 			if (f_split := f.split(maxsplit=2))
 		)
@@ -1383,7 +1385,7 @@ def get_order_by(doctype, meta):
 	else:
 		sort_field = meta.sort_field or "creation"
 		sort_order = (meta.sort_field and meta.sort_order) or "desc"
-		order_by = f"`tab{doctype}`.`{sort_field}` {sort_order}"
+		order_by = f"{sort_field} {sort_order}"
 
 	return order_by
 

@@ -38,7 +38,7 @@ context("Sidebar", () => {
 	before(() => {
 		cy.visit("/");
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		return cy
 			.window()
 			.its("frappe")
@@ -87,7 +87,7 @@ context("Sidebar", () => {
 			description: "Sidebar Attachment ToDo",
 		}).then((todo) => {
 			let todo_name = todo.message.name;
-			cy.visit("/app/todo");
+			cy.visit("/desk/todo");
 			cy.click_sidebar_button("Assigned To");
 
 			//To check if no filter is available in "Assigned To" dropdown
@@ -99,7 +99,7 @@ context("Sidebar", () => {
 			cy.get_field("assign_to_me", "Check").click();
 			cy.wait(1000);
 			cy.get(".modal-footer > .standard-actions > .btn-primary").click();
-			cy.visit("/app/todo");
+			cy.visit("/desk/todo");
 			cy.click_sidebar_button("Assigned To");
 
 			//To check if filter is added in "Assigned To" dropdown after assignment
@@ -136,7 +136,7 @@ context("Sidebar", () => {
 			cy.get(".assignments > .avatar-group > .avatar > .avatar-frame").click();
 			cy.get(".remove-btn").click({ force: true });
 			cy.hide_dialog();
-			cy.visit("/app/todo");
+			cy.visit("/desk/todo");
 			cy.click_sidebar_button("Assigned To");
 			cy.get(".empty-state").should("contain", "No filters found");
 		});

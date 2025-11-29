@@ -3,7 +3,8 @@
 	color: var(--text-muted);
 	--icon-picker-width: 240px;
 	width: var(--icon-picker-width);
-	.icons {
+	.icons,
+	.emojis {
 		margin-top: 10px;
 		display: flex;
 		flex-wrap: wrap;
@@ -27,6 +28,13 @@
 			text-align: center;
 			align-items: center;
 		}
+		.emoji-wrapper {
+			font-size: 20px;
+			width: 30px;
+			height: 30px;
+			text-align: center;
+			align-items: center;
+		}
 	}
 
 	.search-icons {
@@ -42,6 +50,9 @@
 			top: 7px;
 			left: 7px;
 		}
+	}
+	.form-tabs-list {
+		margin-top: 2px;
 	}
 }
 .icon-picker-popover {
@@ -74,10 +85,6 @@
 		}
 	}
 	.horizontal {
-		.selected-icon {
-			top: 2px;
-			left: calc(38% + 5px);
-		}
 		.like-disabled-input {
 			.selected-icon {
 				left: 8px;

@@ -62,6 +62,26 @@ frappe.ui.form.on("Prepared Report", {
 					});
 				});
 			}
+		} else if (frm.doc.status == "Queued" || frm.doc.status == "Started") {
+			frm.add_custom_button(__("Cancel Prepared Report"), () => {
+				frappe.confirm(
+					__(
+						"This will terminate the job immediately and might be dangerous, are you sure?"
+					),
+					() => {
+						frappe
+							.xcall(
+								"frappe.core.doctype.prepared_report.prepared_report.stop_prepared_report",
+								{
+									report_name: frm.doc.name,
+								}
+							)
+							.then((r) => {
+								frm.reload_doc();
+							});
+					}
+				);
+			});
 		}
 	},
 });

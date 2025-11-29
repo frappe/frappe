@@ -249,7 +249,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	show() {
 		// show it
-		if (window.location.pathname.startsWith("/app")) {
+		if (window.location.pathname.startsWith("/desk")) {
 			this.handle_focus();
 		}
 
@@ -282,7 +282,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	handle_focus() {
 		const me = this;
-		if (frappe.get_route()) {
+		if (frappe.get_route?.()) {
 			if (frappe.get_route()[0] == "Form") {
 				if (!me.last_focus) me.last_focus = document.activeElement;
 			}

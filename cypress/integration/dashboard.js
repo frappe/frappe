@@ -1,7 +1,7 @@
 describe("Dashboard view", { scrollBehavior: false }, () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	it("should load", () => {

@@ -14,6 +14,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
+from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
@@ -41,6 +42,7 @@ def get_bootinfo():
 
 	# user
 	get_user(bootinfo)
+	# desktop icon info
 
 	# system info
 	bootinfo.sitename = frappe.local.site
@@ -55,6 +57,7 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
+	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
@@ -148,8 +151,12 @@ def load_conf_settings(bootinfo):
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
-	bootinfo.sidebar_pages = get_workspace_sidebar_items()
-	allowed_pages = [d.name for d in bootinfo.sidebar_pages.get("pages")]
+	bootinfo.workspaces = get_workspace_sidebar_items()
+	bootinfo.show_app_icons_as_folder = frappe.db.get_single_value(
+		"Desktop Settings", "show_app_icons_as_folder"
+	)
+	bootinfo.workspace_sidebar_item = get_sidebar_items()
+	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
@@ -196,7 +203,7 @@ def load_desktop_data(bootinfo):
 					frappe.get_hooks("app_home", app_name=app_name)
 					and frappe.get_hooks("app_home", app_name=app_name)[0]
 				)
-				or (workspaces and "/app/" + frappe.utils.slug(workspaces[0]))
+				or (workspaces and "/desk/" + frappe.utils.slug(workspaces[0]))
 				or "",
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
@@ -360,7 +367,7 @@ def add_home_page(bootinfo, docs):
 		bootinfo["home_page"] = page.name
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		frappe.clear_last_message()
-		bootinfo["home_page"] = "Workspaces"
+		bootinfo["home_page"] = "desktop"
 
 
 def add_timezone_info(bootinfo):
@@ -518,3 +525,68 @@ def get_sentry_dsn():
 		return
 
 	return os.getenv("FRAPPE_SENTRY_DSN")
+
+
+def get_sidebar_items():
+	sidebars = frappe.get_all(
+		"Workspace Sidebar", fields=["name", "header_icon"], filters={"name": ["not like", "%My Workspaces%"]}
+	)
+	add_user_specific_sidebar(sidebars)
+	sidebar_items = {}
+
+	for s in sidebars:
+		w = frappe.get_doc("Workspace Sidebar", s["name"])
+		sidebar_items[s["name"].lower()] = {
+			"label": s["name"],
+			"items": [],
+			"header_icon": s["header_icon"],
+			"module": w.module,
+		}
+		for si in w.items:
+			workspace_sidebar = {
+				"label": si.label,
+				"link_to": si.link_to,
+				"link_type": si.link_type,
+				"type": si.type,
+				"icon": si.icon,
+				"child": si.child,
+				"collapsible": si.collapsible,
+				"indent": si.indent,
+				"keep_closed": si.keep_closed,
+				"display_depends_on": si.display_depends_on,
+				"url": si.url,
+				"show_arrow": si.show_arrow,
+				"filters": si.filters,
+				"route_options": si.route_options,
+			}
+			if si.link_type == "Report" and si.link_to:
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", si.link_to, ["report_type", "ref_doctype"]
+				)
+				workspace_sidebar["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
+				}
+
+			if (
+				"My Workspaces" in s["name"]
+				or si.type == "Section Break"
+				or w.is_item_allowed(si.link_to, si.link_type)
+			):
+				sidebar_items[s["name"].lower()]["items"].append(workspace_sidebar)
+
+	old_name = f"my workspaces-{frappe.session.user.lower()}"
+	if old_name in sidebar_items.keys():
+		sidebar_items["my workspaces"] = sidebar_items.pop(old_name)
+	return sidebar_items
+
+
+def add_user_specific_sidebar(sidebars):
+	try:
+		my_workspace_for_user = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
+		sidebars.append(
+			{"name": my_workspace_for_user.name, "header_icon": my_workspace_for_user.header_icon}
+		)
+	except frappe.DoesNotExistError:
+		my_workspace = frappe.get_doc("Workspace Sidebar", "My Workspaces")
+		sidebars.append({"name": my_workspace.name, "header_icon": my_workspace.header_icon})

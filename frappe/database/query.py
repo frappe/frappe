@@ -1,19 +1,85 @@
+import datetime
 import re
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 import sqlparse
-from pypika.queries import QueryBuilder, Table
-from pypika.terms import AggregateFunction, Term
+from pypika.enums import Arithmetic
+from pypika.queries import Column, QueryBuilder, Table
+from pypika.terms import AggregateFunction, ArithmeticExpression, Term, ValueWrapper
 
 import frappe
 from frappe import _
 from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
-from frappe.database.utils import DefaultOrderBy, FilterValue, convert_to_value, get_doctype_name
-from frappe.model import get_permitted_fields
+from frappe.database.utils import (
+	DefaultOrderBy,
+	FilterValue,
+	convert_to_value,
+	get_doctype_name,
+	get_doctype_sort_info,
+)
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
+from frappe.query_builder.custom import Month, MonthName, Quarter
 from frappe.query_builder.utils import PseudoColumnMapper
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
+
+CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
+	("Custom Field", "Property Setter", "Module Def", "__Auth", "__global_search", "Singles")
+)
+
+
+def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
+	"""Apply datetime to date conversion for Date fieldtype filters.
+
+	This matches db_query behavior where datetime values are truncated to dates
+	when filtering on Date fields, for all operators (not just 'between').
+
+	Args:
+		value: The filter value (can be datetime, tuple of datetimes, or other)
+		operator: The operator being used (between, >, <, etc.)
+		doctype: The doctype to get field metadata from
+		field: The field name or pypika Field object
+
+	Returns:
+		The converted value with datetimes converted to dates if field is Date type
+	"""
+	try:
+		# Extract field name
+		if "." in str(field):
+			field = field.split(".")[-1]
+
+		# Skip querying meta for core doctypes to avoid recursion
+		if doctype in CORE_DOCTYPES:
+			meta = None
+		else:
+			meta = frappe.get_meta(doctype)
+
+		if meta is None:
+			return value
+
+		df = meta.get_field(field)
+		if df is None or df.fieldtype != "Date":
+			return value
+
+		# Convert datetime to date if the fieldtype is date
+		if operator.lower() == "between" and isinstance(value, list | tuple) and len(value) == 2:
+			from_val, to_val = value
+			if isinstance(from_val, datetime.datetime):
+				from_val = from_val.date()
+			if isinstance(to_val, datetime.datetime):
+				to_val = to_val.date()
+			return (from_val, to_val)
+		elif isinstance(value, datetime.datetime):
+			return value.date()
+
+	except (AttributeError, TypeError, KeyError):
+		pass
+
+	return value
+
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -26,9 +92,27 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 # to allow table names like __Auth
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
+
+def _is_function_call(field_str: str) -> bool:
+	"""Check if a string is a SQL function call using sqlparse."""
+	parsed = sqlparse.parse(field_str.strip())
+	if not parsed:
+		return False
+
+	return any(isinstance(token, sqlparse.sql.Function) for token in parsed[0].tokens)
+
+
 # Pattern to validate field names in SELECT:
-# Allows: name, `name`, name as alias, `name` as alias, `table name`.`name`, `table name`.`name` as alias, table.name, table.name as alias
-ALLOWED_FIELD_PATTERN = re.compile(r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+\w+)?$", flags=re.ASCII)
+# Allows: name, `name`, name as alias, `name` as alias, table.name, table.name as alias
+# Also allows backtick-qualified identifiers with spaces/hyphens:
+#   - `tabTable`.`field`
+#   - `tabTable Name`.`field` (spaces in table name)
+#   - `tabTable-Field`.`field` (hyphens in table name)
+#   - Any of above with aliases: ... as alias
+ALLOWED_FIELD_PATTERN = re.compile(
+	r"^(?:(`[\w\s-]+`|\w+)\.)?(`[\w\s-]+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|\w+))?$",
+	flags=re.ASCII | re.IGNORECASE,
+)
 
 # Regex to parse field names:
 # Group 1: Optional quote for table name
@@ -51,6 +135,21 @@ FUNCTION_MAPPING = {
 	"IFNULL": functions.IfNull,
 	"CONCAT": functions.Concat,
 	"NOW": functions.Now,
+	"NULLIF": functions.NullIf,
+	"MONTHNAME": MonthName,
+	"QUARTER": Quarter,
+	"MONTH": Month,
+}
+
+# Mapping from operator names to pypika Arithmetic enum values
+# Operators use dict format: {"ADD": [left, right], "as": "alias"}
+# Supported: ADD (+), SUB (-), MUL (*), DIV (/)
+# Can be nested with functions: {"DIV": [1, {"NULLIF": ["value", 0]}]}
+OPERATOR_MAPPING = {
+	"ADD": Arithmetic.add,
+	"SUB": Arithmetic.sub,
+	"MUL": Arithmetic.mul,
+	"DIV": Arithmetic.div,
 }
 
 
@@ -58,7 +157,7 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
-		fields: str | list | tuple | None = None,
+		fields: str | list | tuple | set | None = None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
@@ -76,7 +175,17 @@ class Engine:
 		ignore_permissions: bool = True,
 		user: str | None = None,
 		parent_doctype: str | None = None,
+		reference_doctype: str | None = None,
+		or_filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+		db_query_compat: bool = False,
 	) -> QueryBuilder:
+		"""Build a query with optional compatibility mode for legacy db_query behavior.
+
+		Args:
+			db_query_compat: When True, uses legacy db_query behavior for sorting and filtering.
+			This is kept optional to not break existing code that relies on the original query builder behaviour.
+		"""
+
 		qb = frappe.local.qb
 		db_type = frappe.local.db.db_type
 
@@ -86,7 +195,11 @@ class Engine:
 		self.validate_filters = validate_filters
 		self.user = user or frappe.session.user
 		self.parent_doctype = parent_doctype
+		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
+		self.function_aliases = set()
+		self.field_aliases = set()
+		self.db_query_compat = db_query_compat
 
 		if isinstance(table, Table):
 			self.table = table
@@ -110,6 +223,7 @@ class Engine:
 			self.apply_fields(fields)
 
 		self.apply_filters(filters)
+		self.apply_or_filters(or_filters)
 
 		if limit:
 			if not isinstance(limit, int) or limit < 0:
@@ -145,6 +259,12 @@ class Engine:
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
+
+		# Track field aliases for use in group_by/order_by
+		for field in self.fields:
+			if isinstance(field, Field) and field.alias:
+				self.field_aliases.add(field.alias)
+
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
 
@@ -163,6 +283,7 @@ class Engine:
 	def apply_filters(
 		self,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+		collect: list | None = None,
 	):
 		if filters is None:
 			return
@@ -175,7 +296,7 @@ class Engine:
 			return
 
 		if isinstance(filters, dict):
-			self.apply_dict_filters(filters)
+			self.apply_dict_filters(filters, collect=collect)
 			return
 
 		if isinstance(filters, list | tuple):
@@ -184,7 +305,9 @@ class Engine:
 
 			# 1. Handle special case: list of names -> name IN (...)
 			if all(isinstance(d, FilterValue) for d in filters):
-				self.apply_dict_filters({"name": ("in", tuple(convert_to_value(f) for f in filters))})
+				self.apply_dict_filters(
+					{"name": ("in", tuple(convert_to_value(f) for f in filters))}, collect=collect
+				)
 				return
 
 			# 2. Check for nested logic format [cond, op, cond, ...] or [[cond, op, cond]]
@@ -227,15 +350,16 @@ class Engine:
 						self.query = self.query.where(combined_criterion)
 				except Exception as e:
 					# Log the original filters list for better debugging context
-					frappe.log_error(f"Filter parsing error: {filters}", "Query Engine Error")
-					frappe.throw(_("Error parsing nested filters: {0}").format(e), exc=e)
+					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, e), exc=e)
 
 			else:  # Not a nested structure, assume it's a list of simple filters (implicitly ANDed)
 				for filter_item in filters:
 					if isinstance(filter_item, list | tuple):
-						self.apply_list_filters(filter_item)  # Handles simple [field, op, value] lists
+						self.apply_list_filters(
+							filter_item, collect=collect
+						)  # Handles simple [field, op, value] lists
 					elif isinstance(filter_item, dict | Criterion):
-						self.apply_filters(filter_item)  # Recursive call for dict/criterion
+						self.apply_filters(filter_item, collect=collect)  # Recursive call for dict/criterion
 					else:
 						# Disallow single values (strings, numbers, etc.) directly in the list
 						# unless it's the name IN (...) case handled above.
@@ -247,26 +371,53 @@ class Engine:
 		# If filters type is none of the above
 		raise ValueError(f"Unsupported filters type: {type(filters).__name__}")
 
-	def apply_list_filters(self, filter: list):
+	def apply_or_filters(
+		self,
+		or_filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
+	):
+		"""Apply OR filters - all conditions are combined with OR operator.
+
+		Example:
+			or_filters={"name": "User", "module": "Core"}
+			→ Collects: [Criterion(name='User'), Criterion(module='Core')]
+			→ Combines: Criterion(name='User') | Criterion(module='Core')
+			→ Result: WHERE name='User' OR module='Core'
+		"""
+		if or_filters is None:
+			return
+
+		# Collect criteria instead of applying immediately
+		criteria = []
+		self.apply_filters(or_filters, collect=criteria)
+
+		# Combine all criteria with OR operator (|)
+		if criteria:
+			from functools import reduce
+
+			# Reduce combines: [Criterion(name='User'), Criterion(module='Core')] → Criterion(name='User') | Criterion(module='Core')
+			combined = reduce(lambda a, b: a | b, criteria)
+			self.query = self.query.where(combined)
+
+	def apply_list_filters(self, filter: list, collect: list | None = None):
 		if len(filter) == 2:
 			field, value = filter
-			self._apply_filter(field, value)
+			self._apply_filter(field, value, collect=collect)
 		elif len(filter) == 3:
 			field, operator, value = filter
-			self._apply_filter(field, value, operator)
+			self._apply_filter(field, value, operator, collect=collect)
 		elif len(filter) == 4:
 			doctype, field, operator, value = filter
-			self._apply_filter(field, value, operator, doctype)
+			self._apply_filter(field, value, operator, doctype, collect=collect)
 		else:
 			raise ValueError(f"Unknown filter format: {filter}")
 
-	def apply_dict_filters(self, filters: dict[str, FilterValue | list]):
+	def apply_dict_filters(self, filters: dict[str, FilterValue | list], collect: list | None = None):
 		for field, value in filters.items():
 			operator = "="
 			if isinstance(value, list | tuple):
 				operator, value = value
 
-			self._apply_filter(field, value, operator)
+			self._apply_filter(field, value, operator, collect=collect)
 
 	def _apply_filter(
 		self,
@@ -274,16 +425,20 @@ class Engine:
 		value: FilterValue | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
+		collect: list | None = None,
 	):
 		"""Applies a simple filter condition to the query."""
 		criterion = self._build_criterion_for_simple_filter(field, value, operator, doctype)
 		if criterion:
-			self.query = self.query.where(criterion)
+			if collect is not None:
+				collect.append(criterion)
+			else:
+				self.query = self.query.where(criterion)
 
 	def _build_criterion_for_simple_filter(
 		self,
 		field: str | Field,
-		value: FilterValue | list | set | None,
+		value: FilterValue | Column | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
 	) -> "Criterion | None":
@@ -291,10 +446,29 @@ class Engine:
 		import operator as builtin_operator
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
-		_value = convert_to_value(value)
+
+		if isinstance(value, Column):
+			_value = self._validate_and_prepare_filter_field(value.name, doctype)
+		else:
+			# Regular value processing for literal comparisons like: table.field = 'value'
+			_value = convert_to_value(value)
+
+		if isinstance(value, Document):
+			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
+		# For Date fields with datetime values, convert to date to match db_query behavior
+		if isinstance(_value, datetime.datetime) or (
+			isinstance(_value, list | tuple) and any(isinstance(v, datetime.datetime) for v in _value)
+		):
+			_value = _apply_date_field_filter_conversion(_value, _operator, doctype or self.doctype, field)
+
 		if not _value and isinstance(_value, list | tuple | set):
+			_value = ("",)
+
+		# db_query compatibility: handle None values for 'in' and 'not in' operators
+		# In db_query, None values are converted to empty tuples for these operators
+		if self.db_query_compat and _value is None and _operator.casefold() in ("in", "not in"):
 			_value = ("",)
 
 		if _operator in NESTED_SET_OPERATORS:
@@ -325,8 +499,58 @@ class Engine:
 
 		operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
-			return _field.isnotnull() if operator_fn == builtin_operator.ne else _field.isnull()
+			if operator_fn == builtin_operator.ne:
+				filter_field_name = (
+					field
+					if isinstance(field, str)
+					else (_field.name if hasattr(_field, "name") else str(_field))
+				)
+				if "." in filter_field_name:
+					filter_field_name = filter_field_name.split(".")[-1]
+
+				target_doctype = doctype or self.doctype
+				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
+
+				if fallback_sql == "''":
+					fallback_value = ""
+				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
+					fallback_value = fallback_sql[1:-1]
+				else:
+					try:
+						fallback_value = int(fallback_sql)
+					except (ValueError, TypeError):
+						fallback_value = fallback_sql
+
+				return operator_fn(_field, ValueWrapper(fallback_value))
+			else:
+				return _field.isnull()
 		else:
+			filter_field_name = (
+				field if isinstance(field, str) else (_field.name if hasattr(_field, "name") else str(_field))
+			)
+
+			if "." in filter_field_name:
+				filter_field_name = filter_field_name.split(".")[-1]
+
+			target_doctype = doctype or self.doctype
+
+			# Skip applying ifnull if field already has null-handling function
+			if isinstance(_field, functions.IfNull | functions.Coalesce):
+				return operator_fn(_field, _value)
+
+			if self._should_apply_ifnull(target_doctype, filter_field_name, _operator, _value):
+				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
+				if fallback_sql == "''":
+					fallback_value = ""
+				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
+					fallback_value = fallback_sql[1:-1]
+				else:
+					try:
+						fallback_value = int(fallback_sql)
+					except (ValueError, TypeError):
+						fallback_value = fallback_sql
+				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
+
 			return operator_fn(_field, _value)
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
@@ -398,10 +622,12 @@ class Engine:
 			field, value, operator, doctype = None, None, None, None
 
 			# Determine structure based on length and types
-			if len(condition) == 3 and isinstance(condition[1], str) and condition[1] in OPERATOR_MAP:
+			if len(condition) == 3 and isinstance(condition[1], str) and condition[1].lower() in OPERATOR_MAP:
 				# [field, operator, value]
 				field, operator, value = condition
-			elif len(condition) == 4 and isinstance(condition[2], str) and condition[2] in OPERATOR_MAP:
+			elif (
+				len(condition) == 4 and isinstance(condition[2], str) and condition[2].lower() in OPERATOR_MAP
+			):
 				# [doctype, field, operator, value]
 				doctype, field, operator, value = condition
 			elif len(condition) == 2:
@@ -421,10 +647,17 @@ class Engine:
 			# return if field is already a pypika Term
 			return field
 
-		# Reject backticks
+		# Parse backtick table.field notation: `tabDocType`.`fieldname`
 		if "`" in field:
+			if parsed := self._parse_backtick_field_notation(field):
+				table_name, field_name = parsed
+
+				# Return query builder field reference
+				return frappe.qb.DocType(table_name)[field_name]
+
+			# If parsing failed, fall through to error handling below
 			frappe.throw(
-				_("Filter fields cannot contain backticks (`)."),
+				_("Filter fields have invalid backtick notation: {0}").format(field),
 				frappe.ValidationError,
 				title=_("Invalid Filter"),
 			)
@@ -508,6 +741,44 @@ class Engine:
 				return child_field_handler.field
 			else:
 				# Field belongs to the main doctype or doctype wasn't specified differently
+				# If doctype wasn't specified, and the field isn't a standard field and doesn't exist in main doctype, check child tables
+				from frappe.model import child_table_fields, default_fields, optional_fields
+
+				if self.doctype in CORE_DOCTYPES:
+					meta = None
+				else:
+					try:
+						meta = frappe.get_meta(self.doctype)
+					except frappe.DoesNotExistError:
+						meta = None
+
+				if (
+					meta
+					and not doctype
+					and target_fieldname not in default_fields + optional_fields + child_table_fields
+					and not meta.has_field(target_fieldname)
+				):
+					for df in meta.get_table_fields(include_computed=True):
+						try:
+							child_meta = frappe.get_meta(df.options)
+						except frappe.DoesNotExistError:
+							continue
+
+						if child_meta.has_field(target_fieldname):
+							# Found in child table, create handler for it
+							child_field_handler = ChildTableField(
+								doctype=df.options,
+								fieldname=target_fieldname,
+								parent_doctype=self.doctype,
+								parent_fieldname=df.fieldname,
+							)
+							parent_doctype_for_perm = self.doctype
+							self._check_field_permission(
+								df.options, target_fieldname, parent_doctype_for_perm
+							)
+							self.query = child_field_handler.apply_join(self.query)
+							return child_field_handler.field
+
 				self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
 				# Convert string field name to pypika Field object for the specified/current doctype
 				return frappe.qb.DocType(target_doctype)[target_fieldname]
@@ -515,6 +786,11 @@ class Engine:
 	def _check_field_permission(self, doctype: str, fieldname: str, parent_doctype: str | None = None):
 		"""Check if the user has permission to access the given field"""
 		if not self.apply_permissions:
+			return
+
+		# Skip field permission check if doctype has no permissions defined
+		meta = frappe.get_meta(doctype)
+		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
 		permission_type = self.get_permission_type(doctype)
@@ -525,6 +801,9 @@ class Engine:
 			ignore_virtual=True,
 			user=self.user,
 		)
+
+		if fieldname in OPTIONAL_FIELDS:
+			return
 
 		if fieldname not in permitted_fields:
 			frappe.throw(
@@ -575,7 +854,9 @@ class Engine:
 			# Ensure the extracted table name is valid before creating DocType object
 			if not TABLE_NAME_PATTERN.match(table_name.lstrip("tab")):
 				frappe.throw(_("Invalid characters in table name: {0}").format(table_name))
-			table_obj = frappe.qb.DocType(table_name)
+
+			doctype_name = table_name[3:] if table_name.startswith("tab") else table_name
+			table_obj = frappe.qb.DocType(doctype_name)
 			pypika_field = table_obj[field_name]
 		else:
 			# Simple field name (e.g., `y` or y) - use the main table
@@ -587,7 +868,7 @@ class Engine:
 			return pypika_field
 
 	def parse_fields(
-		self, fields: str | list | tuple | Field | AggregateFunction | None
+		self, fields: str | list | tuple | set | Field | AggregateFunction | None
 	) -> "list[Field | AggregateFunction | Criterion | DynamicTableField | ChildQuery]":
 		if not fields:
 			return []
@@ -600,8 +881,10 @@ class Engine:
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
-		elif isinstance(fields, list | tuple):
+		elif isinstance(fields, list | tuple | set):
 			for item in fields:
+				if item is None:
+					continue
 				if isinstance(item, str) and "," in item:
 					# Split comma-separated strings within the list
 					initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(item) if f.strip())
@@ -617,8 +900,7 @@ class Engine:
 		for item in initial_field_list:
 			if isinstance(item, str):
 				# Sanitize and split potentially comma-separated strings within the list
-				sanitized_item = _sanitize_field(item.strip(), self.is_mariadb).strip()
-				if sanitized_item:
+				if sanitized_item := _sanitize_field(item.strip(), self.is_mariadb).strip():
 					parsed = self._parse_single_field_item(sanitized_item)
 					if isinstance(parsed, list):  # Result from parsing a child query dict
 						_fields.extend(parsed)
@@ -635,29 +917,32 @@ class Engine:
 		return _fields
 
 	def _parse_single_field_item(
-		self, field: str | Criterion | dict | Field
+		self, field: str | Criterion | dict | Field | Term
 	) -> "list | Criterion | Field | DynamicTableField | ChildQuery | None":
 		"""Parses a single item from the fields list/tuple. Assumes comma-separated strings have already been split."""
-		if isinstance(field, Criterion | Field):
+		if isinstance(field, Term):
+			# Accept any pypika Term (Field, Criterion, ArithmeticExpression, AggregateFunction, etc.)
 			return field
 		elif isinstance(field, dict):
-			# Check if it's a SQL function dictionary
+			# Check if it's a SQL function or operator dictionary
 			function_parser = SQLFunctionParser(engine=self)
 			if function_parser.is_function_dict(field):
 				return function_parser.parse_function(field)
+			elif function_parser.is_operator_dict(field):
+				return function_parser.parse_operator(field)
 			else:
 				# Handle child queries defined as dicts {fieldname: [child_fields]}
 				_parsed_fields = []
 				for child_field, child_fields_list in field.items():
-					# Skip uppercase keys as they might be unsupported SQL functions
+					# Skip uppercase keys as they might be unsupported SQL functions or operators
 					if child_field.isupper():
 						frappe.throw(
-							_("Unsupported function or invalid field name: {0}").format(child_field),
+							_("Unsupported function or operator: {0}").format(child_field),
 							frappe.ValidationError,
 						)
 
 					# Ensure child_fields_list is a list or tuple
-					if not isinstance(child_fields_list, list | tuple):
+					if not isinstance(child_fields_list, list | tuple | set):
 						frappe.throw(
 							_("Child query fields for '{0}' must be a list or tuple.").format(child_field)
 						)
@@ -683,11 +968,108 @@ class Engine:
 
 	def apply_order_by(self, order_by: str | None):
 		if not order_by or order_by == DefaultOrderBy:
+			self._apply_default_order_by()
 			return
 
 		parsed_order_fields = self._validate_order_by(order_by)
 		for order_field, order_direction in parsed_order_fields:
 			self.query = self.query.orderby(order_field, order=order_direction)
+
+	def _apply_default_order_by(self):
+		"""Apply default ordering based on configured DocType metadata"""
+		from pypika.enums import Order
+
+		sort_field, sort_order = get_doctype_sort_info(self.doctype)
+
+		# Handle multiple sort fields
+		if "," in sort_field:
+			for sort_spec in sort_field.split(","):
+				if parts := sort_spec.strip().split(maxsplit=1):
+					field_name = parts[0]
+					spec_order = parts[1].lower() if len(parts) > 1 else sort_order.lower()
+					field = self.table[field_name]
+					if self.db_query_compat:
+						order_direction = Order.desc if spec_order == "desc" else Order.asc
+					else:
+						order_direction = Order.asc if spec_order == "asc" else Order.desc
+					self.query = self.query.orderby(field, order=order_direction)
+		else:
+			field = self.table[sort_field]
+			if self.db_query_compat:
+				order_direction = Order.desc if sort_order.lower() == "desc" else Order.asc
+			else:
+				order_direction = Order.asc if sort_order.lower() == "asc" else Order.desc
+			self.query = self.query.orderby(field, order=order_direction)
+
+	def _parse_backtick_field_notation(self, field_name: str) -> tuple[str, str] | None:
+		"""
+		Parse backtick field notation like `tabDocType`.`fieldname` or `tabDocType`.fieldname and return (table_name, field_name).
+		Uses sqlparse for robust SQL parsing with Identifier support.
+		Returns None if the notation is invalid.
+		"""
+		import sqlparse
+		from sqlparse.sql import Identifier
+
+		# Parse the field name as SQL
+		parsed = sqlparse.parse(field_name.strip())
+		if not parsed or not parsed[0].tokens:
+			return None
+
+		tokens = parsed[0].tokens
+
+		# Filter out whitespace tokens
+		non_ws_tokens = [t for t in tokens if not t.is_whitespace]
+
+		if len(non_ws_tokens) != 1:
+			return None
+
+		# Check if it's an Identifier (which handles table.field notation)
+		first_token = non_ws_tokens[0]
+		if not isinstance(first_token, Identifier):
+			return None
+
+		# Get the sub-tokens within the identifier
+		# Should have: `tabTable` (Name), `.` (Punctuation), `fieldname` (Name)
+		identifier_tokens = [t for t in first_token.tokens if not t.is_whitespace]
+
+		if len(identifier_tokens) != 3:
+			return None
+
+		table_token = identifier_tokens[0]
+		dot_token = identifier_tokens[1]
+		field_token = identifier_tokens[2]
+
+		# Verify the dot
+		if str(dot_token).strip() != ".":
+			return None
+
+		# Extract and validate table name (should be backtick-quoted)
+		table_str = str(table_token).strip()
+		if not (table_str.startswith("`") and table_str.endswith("`")):
+			return None
+
+		# Extract field name (can be backtick-quoted or unquoted)
+		field_str = str(field_token).strip()
+		# Remove backticks if present
+		if field_str.startswith("`") and field_str.endswith("`"):
+			field_str = field_str[1:-1]
+
+		# Remove backticks from table name
+		table_name = table_str[1:-1]
+		field_name = field_str
+
+		# Validate table name starts with "tab"
+		if not table_name.startswith("tab"):
+			return None
+
+		# Extract doctype name by stripping "tab" prefix
+		doctype_name = table_name[3:]
+
+		# Validate doctype name is not empty and table actually exists
+		if not doctype_name or not frappe.db.table_exists(doctype_name):
+			return None
+
+		return (doctype_name, field_name)
 
 	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field:
 		"""
@@ -704,10 +1086,19 @@ class Engine:
 			# For numeric field references, return as-is (will be handled by caller)
 			return field_name
 
-		# Reject backticks
+		# Allow function aliases and field aliases - return as Field (no table prefix)
+		if field_name in self.function_aliases or field_name in self.field_aliases:
+			return Field(field_name)
+
+		# Parse backtick table.field notation: `tabDocType`.`fieldname`
 		if "`" in field_name:
+			if parsed := self._parse_backtick_field_notation(field_name):
+				table_name, field_name = parsed
+				return frappe.qb.DocType(table_name)[field_name]
+
+			# If parsing failed, fall through to error handling below
 			frappe.throw(
-				_("{0} fields cannot contain backticks (`): {1}").format(clause_name, field_name),
+				_("{0} has invalid backtick notation: {1}").format(clause_name, field_name),
 				frappe.ValidationError,
 			)
 
@@ -773,20 +1164,28 @@ class Engine:
 
 		for declaration in order_by.split(","):
 			if _order_by := declaration.strip():
+				# Extract direction from end of declaration (handles backtick identifiers with spaces)
+				# Check if the last word is a valid direction
 				parts = _order_by.split()
-				field_name = parts[0]
 				direction = None
-				if len(parts) > 1:
-					direction = parts[1].lower()
+				field_name = _order_by
 
-				order_direction = Order.asc if direction == "asc" else Order.desc
+				if len(parts) > 1 and parts[-1].lower() in valid_directions:
+					# Last part is a direction, so field_name is everything before it
+					direction = parts[-1].lower()
+					field_name = " ".join(parts[:-1])
+
+				if self.db_query_compat:
+					order_direction = Order.desc if direction == "desc" else Order.asc
+				else:
+					order_direction = Order.asc if direction == "asc" else Order.desc
 
 				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Order By")
 				parsed_order_fields.append((parsed_field, order_direction))
 
 				if direction and direction not in valid_directions:
 					frappe.throw(
-						_("Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'.").format(parts[1]),
+						_("Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'.").format(direction),
 						ValueError,
 					)
 
@@ -804,9 +1203,12 @@ class Engine:
 			)
 
 		if not has_permission("select") and not has_permission("read"):
-			frappe.throw(
-				_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)), frappe.PermissionError
-			)
+			# Check for shared documents
+			if not frappe.share.get_shared(self.doctype, self.user):
+				frappe.throw(
+					_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
+					frappe.PermissionError,
+				)
 
 	def apply_field_permissions(self):
 		"""Filter the list of fields based on permlevel."""
@@ -879,15 +1281,12 @@ class Engine:
 					# Expand '*' to include all permitted fields
 					# Avoid reparsing '*' recursively by passing the actual list
 					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
-				# Check if the field name (without alias) is permitted
-				elif field.name in permitted_fields_set:
-					allowed_fields.append(field)
-				# Handle cases where the field might be aliased but the base name is permitted
-				elif hasattr(field, "alias") and field.alias and field.name in permitted_fields_set:
+				# Check if the field name is an optional field (like _user_tags) or in permitted fields
+				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
 
-			elif isinstance(field, PseudoColumnMapper):
-				# Typically functions or complex terms
+			elif isinstance(field, Term):
+				# Allow any Term subclass, like LiteralValue (raw SQL expressions), AggregateFunction, PseudoColumnMapper (functions or complex terms)
 				allowed_fields.append(field)
 
 		return allowed_fields
@@ -935,7 +1334,7 @@ class Engine:
 					if strict_user_permissions:
 						conditions.append(self.table[field_name].isin(docs))
 					else:
-						empty_value_condition = self.table[field_name].isnull()
+						empty_value_condition = functions.IfNull(self.table[field_name], "") == ""
 						value_condition = self.table[field_name].isin(docs)
 						conditions.append(empty_value_condition | value_condition)
 
@@ -962,6 +1361,17 @@ class Engine:
 			user_perm_conditions, fetch_shared = self.get_user_permission_conditions(role_permissions)
 			conditions.extend(user_perm_conditions)
 			fetch_shared_docs = fetch_shared_docs or fetch_shared
+		else:
+			# No role permissions - check if user has any user permissions
+			# If not, must check for shared documents (like db_query does)
+			user_permissions = frappe.permissions.get_user_permissions(self.user)
+			doctype_user_permissions = user_permissions.get(self.doctype, [])
+			has_user_perm = any(
+				not perm.get("applicable_for") or perm.get("applicable_for") == self.reference_doctype
+				for perm in doctype_user_permissions
+			)
+			if not has_user_perm:
+				fetch_shared_docs = True
 
 		permission_query_conditions = self.get_permission_query_conditions()
 		if permission_query_conditions:
@@ -992,13 +1402,13 @@ class Engine:
 
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
-				conditions.append(RawCriterion(c))
+				conditions.append(RawCriterion(f"({c})"))
 
 		# Get conditions from server scripts
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
 			if condition := script.get_permission_query_conditions(self.user):
-				conditions.append(RawCriterion(condition))
+				conditions.append(RawCriterion(f"({condition})"))
 
 		return conditions
 
@@ -1024,6 +1434,137 @@ class Engine:
 
 		# not checking if either select or read if present in if_owner_perms
 		# because either of those is required to perform a query
+		return True
+
+	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
+		"""Check if a field can contain NULL values."""
+		# primary key is never nullable, modified is usually indexed by default and always present
+		if fieldname in ("name", "modified", "creation"):
+			return False
+
+		try:
+			# Use cached meta to avoid recursion when loading meta
+			if (meta := frappe.client_cache.get_value(f"doctype_meta::{doctype}")) is None:
+				return True
+
+			if (df := meta.get_field(fieldname)) is None:
+				return True
+
+		except Exception:
+			return True
+
+		if df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+			return False
+
+		if getattr(df, "not_nullable", False):
+			return False
+
+		return True
+
+	def _get_ifnull_fallback(self, doctype: str, fieldname: str) -> str:
+		"""Get type-appropriate fallback value for NULL comparisons."""
+		try:
+			meta = frappe.get_meta(doctype)
+			df = meta.get_field(fieldname)
+		except Exception:
+			return "''"
+
+		if df is None:
+			# Try to get standard field definition
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+			if df is None:
+				return "''"
+
+		fieldtype = df.fieldtype
+
+		if fieldtype in ("Link", "Data", "Dynamic Link"):
+			return "''"
+
+		if fieldtype in ("Date", "Datetime"):
+			return "'0001-01-01'"
+
+		if fieldtype == "Time":
+			return "'00:00:00'"
+
+		if fieldtype in ("Float", "Int", "Currency", "Percent"):
+			return "0"
+
+		try:
+			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
+			if db_type_info:
+				db_type = db_type_info[0] if isinstance(db_type_info, (tuple, list)) else db_type_info
+				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
+					return "''"
+		except Exception:
+			pass
+
+		return "''"
+
+	def _should_apply_ifnull(self, doctype: str, fieldname: str, operator: str, value: Any) -> bool:
+		"""Determine if IFNULL wrapping is needed for a filter condition."""
+		# Skip this if we don't need db_query compatibility
+		if not self.db_query_compat:
+			return False
+
+		if not self._is_field_nullable(doctype, fieldname):
+			return False
+
+		if value is None:
+			return False
+
+		if operator.lower() in ("like", "is"):
+			return False
+
+		# For "=" operator, only skip IFNULL if value is truthy (non-empty string, non-zero, etc)
+		# When value is empty string "", we need to check for NULL values too
+		if operator.lower() == "=" and value:
+			return False
+
+		try:
+			meta = frappe.get_meta(doctype)
+			df = meta.get_field(fieldname)
+		except Exception:
+			df = None
+
+		is_datetime_field = df and df.fieldtype in ("Date", "Datetime") if df else False
+		is_creation_or_modified = fieldname in ("creation", "modified")
+
+		if operator.lower() in (">", ">="):
+			# Null values can never be greater than any non-null value
+			if is_datetime_field or is_creation_or_modified:
+				return False
+
+		if operator.lower() == "between":
+			# Between operator never needs to check for null
+			# Explanation: Consider SQL -> `COLUMN between X and Y`
+			# Actual computation:
+			#     for row in rows:
+			#     if Y > row.COLUMN > X:
+			#         yield row
+
+			# Since Y and X can't be null, null value in column will never match filter, so
+			# coalesce is extra cost that prevents index usage
+			if is_datetime_field or is_creation_or_modified:
+				return False
+
+		if operator.lower() == "in":
+			if isinstance(value, (list, tuple)):
+				# if values contain '' or falsy values then only coalesce column
+				# for `in` query this is only required if values contain '' or values are empty.
+				has_null_or_empty = any(v is None or v == "" for v in value)
+				return has_null_or_empty
+			return False
+
+		# for `not in` queries we can't be sure as column values might contain null.
+		if operator.lower() == "not in":
+			return True
+
+		if operator.lower() == "<":
+			if is_datetime_field or is_creation_or_modified:
+				return True
+
 		return True
 
 
@@ -1296,6 +1837,15 @@ def _validate_select_field(field: str):
 	if field.isdigit():
 		return
 
+	# Reject SQL functions
+	if _is_function_call(field):
+		frappe.throw(
+			_(
+				"SQL functions are not allowed in SELECT fields: {0}. Use the query builder API with functions instead."
+			).format(field),
+			frappe.ValidationError,
+		)
+
 	if ALLOWED_FIELD_PATTERN.match(field):
 		return
 
@@ -1365,40 +1915,48 @@ class SQLFunctionParser:
 
 	def is_function_dict(self, field_dict: dict) -> bool:
 		"""Check if a dictionary represents a SQL function definition."""
-		function_keys = [k for k in field_dict.keys() if k != "as"]
+		function_keys = [k for k in field_dict.keys() if k.lower() != "as"]
 		return len(function_keys) == 1 and function_keys[0] in FUNCTION_MAPPING
 
-	def parse_function(self, function_dict: dict) -> Field:
-		"""Parse a SQL function dictionary into a pypika function call."""
-		function_name = None
-		alias = None
-		function_args = None
+	def is_operator_dict(self, field_dict: dict) -> bool:
+		"""Check if a dictionary represents an arithmetic operator expression.
 
-		for key, value in function_dict.items():
-			if key == "as":
+		Example: {"ADD": [1, 2], "as": "sum"} or {"DIV": ["total", "count"]}
+		"""
+		operator_keys = [k for k in field_dict.keys() if k.lower() != "as"]
+		return len(operator_keys) == 1 and operator_keys[0] in OPERATOR_MAPPING
+
+	def _extract_dict_components(self, d: dict, valid_keys: dict, error_msg: str) -> tuple:
+		"""Extract name, alias, and args from function/operator dict."""
+		name = None
+		alias = None
+		args = None
+
+		for key, value in d.items():
+			if key.lower() == "as":
 				alias = value
 			else:
-				function_name = key
-				function_args = value
+				name = key
+				args = value
 
-		if not function_name:
-			frappe.throw(_("Invalid function dictionary format"), frappe.ValidationError)
+		if not name:
+			frappe.throw(_("Invalid {0} dictionary format").format(error_msg), frappe.ValidationError)
 
-		if function_name not in FUNCTION_MAPPING:
-			frappe.throw(
-				_("Unsupported function or invalid field name: {0}").format(function_name),
-				frappe.ValidationError,
-			)
+		if name not in valid_keys:
+			frappe.throw(_("Unsupported {0}: {1}").format(error_msg, name), frappe.ValidationError)
 
 		if alias:
 			self._validate_alias(alias)
 
-		func_class = FUNCTION_MAPPING.get(function_name)
-		if not func_class:
-			frappe.throw(
-				_("Unsupported function or invalid field name: {0}").format(function_name),
-				frappe.ValidationError,
-			)
+		return name, alias, args
+
+	def parse_function(self, function_dict: dict) -> Field:
+		"""Parse a SQL function dictionary into a pypika function call."""
+		function_name, alias, function_args = self._extract_dict_components(
+			function_dict, FUNCTION_MAPPING, "function or invalid field name"
+		)
+
+		func_class = FUNCTION_MAPPING[function_name]
 
 		if isinstance(function_args, str):
 			parsed_arg = self._parse_and_validate_argument(function_args)
@@ -1428,22 +1986,80 @@ class SQLFunctionParser:
 			)
 
 		if alias:
+			self.engine.function_aliases.add(alias)
 			return function_call.as_(alias)
 		else:
 			return function_call
 
+	def parse_operator(self, operator_dict: dict) -> ArithmeticExpression:
+		"""Parse an arithmetic operator dictionary into a pypika ArithmeticExpression.
+
+		Operators require exactly 2 arguments (left and right operands).
+		Arguments can be: numbers, field names, nested functions, or nested operators.
+		Example: {"DIV": [1, {"NULLIF": [{"LOCATE": ["'test'", "name"]}, 0]}]}
+		"""
+		operator_name, alias, operator_args = self._extract_dict_components(
+			operator_dict, OPERATOR_MAPPING, "operator"
+		)
+
+		operator = OPERATOR_MAPPING[operator_name]
+
+		# Operators require exactly 2 arguments (left and right operands)
+		if not isinstance(operator_args, list) or len(operator_args) != 2:
+			frappe.throw(
+				_("Operator {0} requires exactly 2 arguments (left and right operands)").format(
+					operator_name
+				),
+				frappe.ValidationError,
+			)
+
+		# Parse and validate both operands (supports nested functions/operators)
+		left = self._parse_and_validate_argument(operator_args[0])
+		right = self._parse_and_validate_argument(operator_args[1])
+
+		# Wrap raw values (numbers, strings) in ValueWrapper so pypika can process them
+		if not isinstance(left, Term):
+			left = ValueWrapper(left)
+		if not isinstance(right, Term):
+			right = ValueWrapper(right)
+
+		expression = ArithmeticExpression(operator=operator, left=left, right=right)
+
+		if alias:
+			self.engine.function_aliases.add(alias)
+			return expression.as_(alias)
+		else:
+			return expression
+
 	def _parse_and_validate_argument(self, arg):
-		"""Parse and validate a single function argument against SQL injection."""
+		"""Parse and validate a single function/operator argument against SQL injection.
+
+		Supports:
+		- Numbers: 1, 2.5, etc.
+		- Strings: field names or quoted literals
+		- Nested dicts: functions {"COUNT": "name"} or operators {"ADD": [1, 2]}
+		"""
 		if isinstance(arg, (int | float)):
 			return arg
 		elif isinstance(arg, str):
 			return self._validate_string_argument(arg)
+		elif isinstance(arg, dict):
+			# Recursively handle nested functions and operators
+			if self.is_function_dict(arg):
+				return self.parse_function(arg)
+			elif self.is_operator_dict(arg):
+				return self.parse_operator(arg)
+			else:
+				frappe.throw(
+					_("Invalid nested expression: dictionary must represent a function or operator"),
+					frappe.ValidationError,
+				)
 		elif arg is None:
 			# None is allowed for some functions
 			return arg
 		else:
 			frappe.throw(
-				_("Invalid argument type: {0}. Only strings, numbers, and None are allowed.").format(
+				_("Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed.").format(
 					type(arg).__name__
 				),
 				frappe.ValidationError,
@@ -1456,14 +2072,38 @@ class SQLFunctionParser:
 		if not arg:
 			frappe.throw(_("Empty string arguments are not allowed"), frappe.ValidationError)
 
+		# Special case: allow '*' for COUNT(*) and similar aggregate functions
+		if arg == "*":
+			# Return as-is for SQL star expansion (COUNT(*), etc.)
+			# pypika will handle this correctly when used with aggregate functions
+			return Column("*")
+
 		# Check for string literals (quoted strings)
 		if self._is_string_literal(arg):
 			return self._validate_string_literal(arg)
+
+		# Check for backtick notation: `tabDocType`.`fieldname`
+		# Parse and return as Field object to preserve field reference in operators
+		elif "`" in arg:
+			if parsed := self.engine._parse_backtick_field_notation(arg):
+				table_name, field_name = parsed
+				return Table(f"tab{table_name}")[field_name]
+			else:
+				frappe.throw(
+					_(
+						"Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
+					).format(arg),
+					frappe.ValidationError,
+				)
 
 		elif self._is_valid_field_name(arg):
 			# Validate field name and check permissions
 			self._validate_function_field_arg(arg)
 			return self.engine.table[arg]
+
+		# Check if it's a numeric string like "1" (for COUNT(1), etc.)
+		elif arg.isdigit():
+			return int(arg)
 
 		else:
 			frappe.throw(

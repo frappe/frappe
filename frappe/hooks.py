@@ -16,6 +16,9 @@ app_email = "developers@frappe.io"
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
+after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon"
+
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
 # website
@@ -37,6 +40,7 @@ app_include_css = [
 app_include_icons = [
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
+	"/assets/frappe/icons/icons.svg",
 ]
 
 doctype_js = {
@@ -56,11 +60,13 @@ email_css = ["email.bundle.css"]
 website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
-	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+	{"from_route": "/desk/<path:app_path>", "to_route": "desk"},
 ]
 
 website_redirects = [
-	{"source": r"/desk(.*)", "target": r"/app\1"},
+	{"source": r"/app/(.*)", "target": r"/desk/\1"},
+	{"source": "/apps", "target": "/desk"},
+	{"source": "/app", "target": "/desk"},
 ]
 
 base_template = "templates/base.html"
@@ -416,6 +422,7 @@ ignore_links_on_delete = [
 	"Route History",
 	"Access Log",
 	"Permission Log",
+	"Desktop Icon",
 ]
 
 # Request Hooks
@@ -563,6 +570,7 @@ default_log_clearing_doctypes = {
 	"Route History": 90,
 	"OAuth Bearer Token": 30,
 	"API Request Log": 90,
+	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
@@ -581,3 +589,13 @@ user_invitation = {
 		"System Manager": [],
 	},
 }
+
+
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": app_logo_url,
+		"title": app_title,
+		"route": app_home,
+	}
+]

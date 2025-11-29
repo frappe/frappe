@@ -1,0 +1,76 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 23:59:53.675353",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "repeat",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "user-cog",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Assignment Rule",
+   "link_to": "Assignment Rule",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "flag",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Milestone",
+   "link_to": "Milestone",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "repeat-2",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Auto Repeat",
+   "link_to": "Auto Repeat",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "calendar-sync",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Auto Email Report",
+   "link_to": "Auto Email Report",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "bell-ring",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Reminder",
+   "link_to": "Reminder",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-11-25 10:46:09.343679",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation",
+ "owner": "Administrator",
+ "title": "Automation"
+}

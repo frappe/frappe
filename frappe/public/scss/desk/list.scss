@@ -98,7 +98,7 @@
 }
 
 .frappe-list {
-	margin: var(--margin-xs) var(--margin-md);
+	margin: 0 var(--margin-md);
 	.result.has-assign-to {
 		.list-row .level-right {
 			flex: 0 0 180px;
@@ -620,7 +620,7 @@ input.list-header-checkbox {
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.layout-main-section .frappe-list .result-container {
 		.result {
-			overflow-x: hidden;
+			overflow: hidden;
 			input.list-row-checkbox,
 			input.list-header-checkbox {
 				width: 15px !important;

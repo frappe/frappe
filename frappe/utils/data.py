@@ -797,38 +797,37 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 	return formatted_datetime
 
 
-def format_duration(seconds, hide_days=False):
-	"""Convert the given duration value in float(seconds) to duration format.
+def format_duration(seconds: float | int, hide_days: bool = False) -> str:
+	"""Convert the given duration value in seconds to duration format.
 
-	example: convert 12885 to '3h 34m 45s' where 12885 = seconds in float
+	example:
+	convert 12885 to '3h 34m 45s' where 12885 = seconds in float
+	        -12885 to '-3h 34m 45s'
 	"""
-
 	seconds = cint(seconds)
+	negative = seconds < 0
+	seconds = abs(seconds)
 
-	total_duration = {
-		"days": math.floor(seconds / (3600 * 24)),
-		"hours": math.floor(seconds % (3600 * 24) / 3600),
-		"minutes": math.floor(seconds % 3600 / 60),
-		"seconds": math.floor(seconds % 60),
-	}
+	days = (seconds // (3600 * 24)) if not hide_days else 0
+	hours = ((seconds % (3600 * 24)) // 3600) if not hide_days else (seconds // 3600)
+	minutes = (seconds % 3600) // 60
+	seconds = seconds % 60
 
-	if hide_days:
-		total_duration["hours"] = math.floor(seconds / 3600)
-		total_duration["days"] = 0
+	total_duration = []
 
-	duration = ""
-	if total_duration:
-		if total_duration.get("days"):
-			duration += str(total_duration.get("days")) + "d"
-		if total_duration.get("hours"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("hours")) + "h"
-		if total_duration.get("minutes"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("minutes")) + "m"
-		if total_duration.get("seconds"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("seconds")) + "s"
+	if days:
+		total_duration.append(f"{days}d")
+	if hours:
+		total_duration.append(f"{hours}h")
+	if minutes:
+		total_duration.append(f"{minutes}m")
+	if seconds:
+		total_duration.append(f"{seconds}s")
+
+	duration = " ".join(total_duration)
+
+	if negative and duration:
+		duration = "-" + duration
 
 	return duration
 
@@ -1936,10 +1935,23 @@ def get_link_to_report(
 		conditions = []
 		for k, v in filters.items():
 			if isinstance(v, list):
-				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
-					for value in v
-				)
+				for value in v:
+					if value[0] == "between":
+						conditions.append(
+							str(k)
+							+ "="
+							+ '["'
+							+ str(value[0])
+							+ '",["'
+							+ str(value[1][0])
+							+ '","'
+							+ str(value[1][1])
+							+ '"]]'
+						)
+					else:
+						conditions.append(
+							str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+						)
 			else:
 				conditions.append(str(k) + "=" + quote(str(v)))
 
@@ -2005,6 +2017,41 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
 
 	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+
+
+def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:
+	"""
+	Get a filtered list view URL for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+
+	:return: URL to the filtered list view
+	"""
+	list_url = get_url_to_list(doctype)
+
+	if not docnames:
+		return list_url
+
+	return "".join((list_url, "?", urlencode({"name": json.dumps(["in", docnames])})))
+
+
+def get_filtered_list_link(doctype: str, docnames: list[str] | None = None, label: str | None = None) -> str:
+	"""
+	Get an HTML link to a filtered list view for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+	:param label: Optional label for the link. If not provided, uses doctype
+
+	:return: HTML link to the filtered list view
+	"""
+	from frappe import _
+
+	url = get_filtered_list_url(doctype, docnames)
+	label = label or _(doctype)
+
+	return f"""<a href="{url}">{label}</a>"""
 
 
 def sql_like(value: str, pattern: str) -> bool:
@@ -2802,3 +2849,78 @@ def map_trackers(url_trackers: dict, create: bool = False):
 		frappe_trackers["utm_content"] = url_content
 
 	return frappe_trackers
+
+
+def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
+	"""
+	Expands specified link or dynamic link fields in a list of documents by replacing
+	their linked values (names) with full document records.
+
+	This function takes a list of documents and a list of link fieldnames that should be
+	expanded. For each specified field, it retrieves all referenced linked records from
+	the corresponding doctypes and replaces the link value in each document with the
+	full linked record (as a dict).
+
+	Args:
+		doctype (str): The parent doctype of the provided documents.
+		docs (list[dict]): A list of document dictionaries whose link fields are to be expanded.
+		fields_to_expand (list[str]): A list of fieldnames corresponding to link or dynamic
+			link fields that should be expanded.
+
+	Returns:
+		None: The function modifies the `docs` list in place.
+
+	Example:
+		>>> docs = [{"customer": "CUST-001"}, {"customer": "CUST-002"}]
+		>>> attach_expanded_links("Sales Invoice", docs, ["customer"])
+		>>> docs[0]["customer"]
+		{
+			"name": "CUST-001",
+			"customer_name": "John Doe",
+			"customer_group": "Retail",
+			...
+		}
+
+	"""
+
+	if not fields_to_expand:
+		return
+
+	meta = frappe.get_meta(doctype)
+
+	link_fields = {f.fieldname: f for f in meta.get_link_fields() + meta.get_dynamic_link_fields()}
+
+	doctype_values = defaultdict(set)
+	field_to_doctype = {}
+
+	for fieldname in fields_to_expand:
+		if fieldname not in link_fields:
+			continue
+		e = link_fields[fieldname]
+		link_doctype = e.options
+		field_to_doctype[fieldname] = link_doctype
+
+		for li in docs:
+			val = li.get(fieldname)
+			if val:
+				doctype_values[link_doctype].add(val)
+
+	doctype_title_maps = {}
+
+	for link_doctype, values in doctype_values.items():
+		records = frappe.get_list(
+			link_doctype,
+			filters={"name": ["in", list(values)]},
+			fields=["*"],
+		)
+		doctype_title_maps[link_doctype] = {r["name"]: r for r in records}
+
+	for li in docs:
+		for fieldname in fields_to_expand:
+			if fieldname not in field_to_doctype:
+				continue
+			link_doctype = field_to_doctype[fieldname]
+			val = li.get(fieldname)
+			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
+			if val and val_title:
+				li[fieldname] = val_title

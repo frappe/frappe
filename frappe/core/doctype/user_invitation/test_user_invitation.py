@@ -55,15 +55,18 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 	@classmethod
 	def delete_all_user_roles(cls):
-		frappe.db.sql("DELETE FROM `tabUser Role`")
+		query = "DELETE FROM `tabUser Role`"
+		frappe.db.sql(cls.normalize_sql(query))
 
 	@classmethod
 	def delete_all_invitations(cls):
-		frappe.db.sql("DELETE FROM `tabUser Invitation`")
+		query = "DELETE FROM `tabUser Invitation`"
+		frappe.db.sql(cls.normalize_sql(query))
 
 	@classmethod
 	def delete_invitation(cls, name: str):
-		frappe.db.sql(f'DELETE FROM `tabUser Invitation` WHERE name = "{name}"')
+		query = "DELETE FROM `tabUser Invitation` WHERE name = %s"
+		frappe.db.sql(cls.normalize_sql(query), name)
 
 	def setUp(self):
 		super().setUp()

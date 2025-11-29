@@ -1,0 +1,25 @@
+<!-- jinja -->
+<div class="desktop-wrapper">
+    <header class="navbar navbar-expand navbar-container" role="navigation">
+        <div class="navbar-home">
+            <img
+                id="brand-logo"
+                src="{{ brand_logo |e }}"
+                alt="{{ _("App Logo") |e }}"
+            >
+        </div>
+        <div class="desktop-search-wrapper input-group search-bar text-muted ">
+                <div id="navbar-modal-search">
+                    Search or type a command
+                </div>
+                <span class="desktop-search-icon">
+                    <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+                </span>
+        </div>
+        <span class="desktop-avatar" style="margin-left: -10px;">
+
+        </span>
+    </header>
+    <div class="desktop-container">
+    </div>
+</div>

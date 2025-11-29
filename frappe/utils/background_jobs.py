@@ -2,6 +2,7 @@ import os
 import random
 import signal
 import socket
+import sys
 import time
 from collections import defaultdict
 from collections.abc import Callable
@@ -373,6 +374,7 @@ class FrappeWorker(Worker):
 	def start_frappe_scheduler(self):
 		from frappe.utils.scheduler import start_scheduler
 
+		# TODO: switch to multiprocessing.Process() after further investigating of fork -> forkserver
 		Thread(target=start_scheduler, daemon=True).start()
 
 
@@ -418,7 +420,6 @@ def start_worker_pool(
 
 	WARNING: This feature is considered "EXPERIMENTAL".
 	"""
-
 	_start_sentry()
 
 	# If gc.freeze is done then importing modules before forking allows us to share the memory
@@ -447,9 +448,15 @@ def start_worker_pool(
 		logging_level = "WARNING"
 
 	# TODO: Make this true by default eventually. It's limited to RQ WorkerPool
-	no_fork = sbool(os.environ.get("FRAPPE_BACKGROUND_WORKERS_NOFORK", False))
+	if sbool(os.environ.get("FRAPPE_BACKGROUND_WORKERS_NOFORK", False)):
+		worker_klass = FrappeWorkerNoFork
+	else:
+		if sys.version_info >= (3, 14):
+			import multiprocessing
 
-	worker_klass = FrappeWorkerNoFork if no_fork else FrappeWorker
+			multiprocessing.set_start_method("fork", force=True)
+		worker_klass = FrappeWorker
+
 	pool = WorkerPool(
 		queues=queues,
 		connection=redis_connection,

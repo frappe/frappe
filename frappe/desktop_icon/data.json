@@ -1,0 +1,24 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-11 02:27:30.898706",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "table_2",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Data",
+ "link_to": "Data Import",
+ "link_type": "DocType",
+ "modified": "2025-11-25 13:25:18.769875",
+ "modified_by": "Administrator",
+ "name": "Data",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "roles": [
+  {
+   "role": "Accounts User"
+  }
+ ],
+ "standard": 1
+}

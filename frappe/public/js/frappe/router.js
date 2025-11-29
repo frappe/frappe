@@ -107,7 +107,7 @@ frappe.router = {
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
 		if (path[0]) {
-			return path[0] === "app";
+			return path[0] === "desk";
 		}
 	},
 
@@ -144,11 +144,11 @@ frappe.router = {
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+
 		this.set_history(sub_path);
-		this.set_active_sidebar_item();
 		this.render();
 		this.set_title(sub_path);
-		this.trigger("change");
+		this.trigger("change", this);
 	},
 
 	async parse(route) {
@@ -202,7 +202,7 @@ frappe.router = {
 		return frappe.model.with_doctype(doctype_route.doctype).then(() => {
 			// doctype route
 			let meta = frappe.get_meta(doctype_route.doctype);
-
+			this.meta = meta;
 			if (route[1] && route[1] === "view" && route[2]) {
 				route = this.get_standard_route_for_list(
 					route,
@@ -289,10 +289,6 @@ frappe.router = {
 		frappe.ui.hide_open_dialog();
 	},
 
-	async set_active_sidebar_item() {
-		frappe.app.sidebar.set_active_workspace_item();
-	},
-
 	render() {
 		if (this.current_route[0]) {
 			this.render_page();
@@ -308,7 +304,6 @@ frappe.router = {
 
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
-
 		if (route[1] && frappe.views[factory + "Factory"]) {
 			route[0] = factory;
 			// has a view generator, generate!
@@ -467,9 +462,12 @@ frappe.router = {
 		}).join("/");
 
 		if (path_string) {
-			return "/app/" + path_string;
+			return "/desk/" + path_string;
 		}
 
+		if (params.length == 0) {
+			return "/desk";
+		}
 		// Resolution order
 		// 1. User's default workspace in user doctype
 		// 2. Private home
@@ -488,11 +486,13 @@ frappe.router = {
 
 		if (workspace) {
 			return (
-				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
+				"/desk/" +
+				(workspace.public ? "" : "private/") +
+				frappe.router.slug(workspace.name)
 			);
 		}
 
-		return "/app";
+		return "/desk";
 	},
 
 	/**
@@ -525,8 +525,8 @@ frappe.router = {
 
 	strip_prefix(route) {
 		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
-		if (route == "app") route = route.substr(4); // for app
-		if (route.startsWith("app/")) route = route.substr(4); // for desk/sub
+		if (route == "desk") route = route.substr(4); // for app
+		if (route.startsWith("desk/")) route = route.substr(4); // for desk/sub
 		if (route.substr(0, 1) == "/") route = route.substr(1);
 		if (route.substr(0, 1) == "#") route = route.substr(1);
 		if (route.substr(0, 1) == "!") route = route.substr(1);

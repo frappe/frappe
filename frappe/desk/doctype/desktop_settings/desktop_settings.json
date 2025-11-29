@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-07 17:00:48.624209",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "icon_style",
+  "navbar_style",
+  "show_app_icons_as_folder"
+ ],
+ "fields": [
+  {
+   "default": "Subtle Reverse",
+   "fieldname": "icon_style",
+   "fieldtype": "Select",
+   "label": "Icon Style",
+   "options": "Monochrome\nSubtle\nSubtle Reverse\nSubtle Reverse w Opacity"
+  },
+  {
+   "fieldname": "navbar_style",
+   "fieldtype": "Select",
+   "label": "Navbar Style",
+   "options": "Awesomebar\nmacOS Launchpad\nBrand Logo\nBrand Logo with Search\nTimeless Launchpad\nApps with Search"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_app_icons_as_folder",
+   "fieldtype": "Check",
+   "label": "Show App Icons As Folder"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-11-15 11:38:34.968344",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Desktop Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

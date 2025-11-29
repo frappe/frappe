@@ -1,7 +1,7 @@
 <div class="sticky-top">
 	<header class="navbar navbar-expand" role="navigation">
 		<div class="container">
-			<a class="navbar-brand navbar-home" href="/app">
+			<a class="navbar-brand navbar-home" href="/desk">
 				<img
 					class="app-logo"
 					src="{{ frappe.boot.app_data[0].app_logo_url }}"
@@ -22,13 +22,13 @@
 						</span>
 					{% } %}
 					<div class="input-group search-bar text-muted hidden">
-						<input
-							id="navbar-search"
-							type="text"
-							class="form-control"
-							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}"
-							aria-haspopup="true"
+						<div
+							id="navbar-modal-search"
+							class=""
+							placeholder="Search for type a command"
 						>
+							{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}
+						</div>
 						<span class="search-icon">
 							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 						</span>

@@ -167,7 +167,7 @@
 }
 .grid-static-col,
 .row-index {
-	// height: 38px;
+	height: 43px;
 	max-height: 200px;
 
 	&.search {
@@ -304,7 +304,7 @@
 			border: 0px;
 			padding-top: 10px;
 			padding-bottom: 10px;
-			height: 38px;
+			height: auto;
 		}
 
 		.link-btn {
@@ -314,7 +314,6 @@
 
 		.form-control:focus {
 			border-color: $text-muted;
-			z-index: 2;
 		}
 
 		.has-error .form-control {
@@ -687,8 +686,8 @@
 		&:focus-visible {
 			@include grid-focus();
 		}
-		.grid-static-col {
-			height: 38px;
+		.grid-static-col .grid-body {
+			height: 40px;
 		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
