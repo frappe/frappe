@@ -35,6 +35,10 @@ class Translation(Document):
 		self.source_text = strip_html_tags(self.source_text).strip()
 
 	def on_update(self):
+		if self.has_value_changed("language"):
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save:
+				clear_user_translation_cache(doc_before_save.language)
 		clear_user_translation_cache(self.language)
 
 	def on_trash(self):
