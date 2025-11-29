@@ -1,5 +1,6 @@
 import datetime
 import re
+import warnings
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
@@ -253,6 +254,15 @@ class Engine:
 				self.is_postgres and is_select and (distinct or group_by)
 			):  # ignore in Postgres since order by fields need to appear in select distinct
 				self.apply_order_by(order_by)
+			else:
+				warnings.warn(
+					(
+						"ORDER BY fields have been ignored because PostgreSQL requires them to "
+						"appear in the SELECT list when using DISTINCT or GROUP BY."
+					),
+					UserWarning,
+					stacklevel=2,
+				)
 
 		if self.apply_permissions:
 			self.add_permission_conditions()
