@@ -59,6 +59,8 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		return
 
 	trace_id = get_trace_id()
+	metadata = get_error_metadata()
+
 	error_log = frappe.get_doc(
 		doctype="Error Log",
 		error=traceback,
@@ -66,6 +68,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
 		trace_id=trace_id,
+		metadata=metadata,
 	)
 
 	# Capture exception data if telemetry is enabled
@@ -75,6 +78,40 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 		error_log.deferred_insert()
 	else:
 		return error_log.insert(ignore_permissions=True)
+
+
+def get_error_metadata() -> str:
+	"""
+	Returns request/job metadata to store in Error Log for easier debugging
+	"""
+	import rq
+
+	from frappe.utils.logger import sanitized_dict
+
+	metadata = {}
+
+	try:
+		if job := rq.get_current_job():
+			metadata["type"] = "background_job"
+			metadata["job_id"] = job.id
+			metadata["job_name"] = frappe.cstr(job.kwargs.get("method"))
+			metadata["queue"] = job.origin
+			metadata["kwargs"] = sanitized_dict(job.kwargs)
+
+			if "run_scheduled_job" in metadata["job_name"]:
+				metadata["scheduled"] = True
+				metadata["job_type"] = job.kwargs.get("kwargs", {}).get("job_type", "")
+
+		else:
+			metadata["type"] = "http_request"
+			for key in ("method", "path", "referrer"):
+				metadata[key] = getattr(frappe.local.request, key)
+			metadata["form_dict"] = sanitized_dict(frappe.form_dict)
+
+		metadata["user"] = getattr(frappe.session, "user", "Unidentified")
+	finally:
+		# We don't want to bother with exception handling *while* gathering some error's metadata
+		return frappe.as_json(metadata)  # noqa: B012
 
 
 def log_error_snapshot(exception: Exception):
