@@ -25,3 +25,11 @@ class ClientScript(Document):
 
 	def on_trash(self):
 		frappe.clear_cache(doctype=self.dt)
+
+	def before_save(self):
+		script_exists = self.is_dt_script_already_exists()
+		if script_exists:
+			frappe.throw(f"Client Script for {self.dt} Doctype Already Exists")
+
+	def is_dt_script_already_exists(self):
+		return frappe.db.exists("Client Script", {"dt": self.dt})
