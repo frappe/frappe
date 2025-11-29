@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-26 13:11\n"
+"PO-Revision-Date: 2025-11-29 14:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8370,7 +8370,7 @@ msgstr "ویرایش میانبر"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:19
 msgid "Edit Sidebar"
-msgstr ""
+msgstr "ویرایش نوار کناری"
 
 #. Label of the edit_values (Button) field in DocType 'Web Page Block'
 #. Label of the edit_navbar_template_values (Button) field in DocType 'Website
@@ -13508,11 +13508,11 @@ msgstr "معکوس"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "Invitation already accepted"
-msgstr ""
+msgstr "دعوتنامه قبلاً پذیرفته شده است"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:99
 msgid "Invitation already exists"
-msgstr ""
+msgstr "دعوتنامه از قبل وجود دارد"
 
 #: frappe/core/api/user_invitation.py:84
 msgid "Invitation cannot be cancelled"
@@ -28982,7 +28982,7 @@ msgstr "مشاهده تنظیمات"
 
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.js:7
 msgid "View Sidebar"
-msgstr ""
+msgstr "مشاهده نوار کناری"
 
 #. Label of the view_switcher (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29394,7 +29394,7 @@ msgstr ""
 #. Label of a chart in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Website Visits"
-msgstr ""
+msgstr "بازدیدهای وب‌سایت"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -29963,7 +29963,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:244
 msgid "You added {0} rows to {1}"
-msgstr ""
+msgstr "شما {0} ردیف به {1} اضافه کردید"
 
 #: frappe/public/js/frappe/router.js:642
 msgid "You are about to open an external link. To confirm, click the link again."
@@ -30389,7 +30389,7 @@ msgstr "پیوست {0} را حذف کردید"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:289
 msgid "You removed {0} rows from {1}"
-msgstr ""
+msgstr "شما {0} ردیف‌ از {1} حذف کردید"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:520
 msgid "You seem good to go!"
@@ -31381,7 +31381,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:246
 msgid "{0} added {1} rows to {2}"
-msgstr ""
+msgstr "{0} {1} ردیف به {2} اضافه کرد"
 
 #: frappe/public/js/frappe/form/controls/data.js:215
 msgid "{0} already exists. Select another name"
