@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:13\n"
+"PO-Revision-Date: 2025-11-29 14:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -2295,7 +2295,7 @@ msgstr "Analitika"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
-msgstr "Porijeklom od"
+msgstr "Nadređeni Od"
 
 #. Label of the announcement_widget (Text Editor) field in DocType 'Navbar
 #. Settings'
