@@ -10,7 +10,7 @@
 			</a>
 			<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 			<div class="collapse navbar-collapse justify-content-end">
-				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
+				<form class="justify-content-end" role="search" onsubmit="return false;">
 					{% if (frappe.boot.read_only) { %}
 						<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
 							{%= __("Read Only Mode") %}
@@ -29,7 +29,7 @@
 						>
 							{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}
 						</div>
-						<span class="search-icon">
+					<span id="search-icon" class="search-icon">
 							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 						</span>
 					</div>
