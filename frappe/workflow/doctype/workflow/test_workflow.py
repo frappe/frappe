@@ -159,7 +159,7 @@ class TestWorkflow(IntegrationTestCase):
 
 	def test_static_value_when_expression_disabled(self):
 		"""Test that value is not evaluated when evaluate_as_expression is disabled"""
-		self.workflow.states[1].update_field = "sender"
+		self.workflow.states[1].update_field = "description"
 		self.workflow.states[1].update_value = "frappe.session.user"
 		self.workflow.states[1].evaluate_as_expression = 0
 		self.workflow.save()
@@ -167,11 +167,11 @@ class TestWorkflow(IntegrationTestCase):
 		todo = create_new_todo()
 		apply_workflow(todo, "Approve")
 
-		self.assertEqual(todo.sender, "frappe.session.user")
+		self.assertEqual(todo.description, "frappe.session.user")
 
 	def test_invalid_expression_raises_error(self):
 		"""Test that invalid expression raises proper error"""
-		self.workflow.states[1].update_field = "sender"
+		self.workflow.states[1].update_field = "description"
 		self.workflow.states[1].update_value = "invalid_syntax(("
 		self.workflow.states[1].evaluate_as_expression = 1
 		self.workflow.save()
