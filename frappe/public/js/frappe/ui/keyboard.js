@@ -335,10 +335,12 @@ function handle_escape_key() {
 }
 
 function close_grid_and_dialog() {
-	// close open grid row
-	var open_row = $(".grid-row-open");
-	if (open_row.length) {
-		var grid_row = open_row.data("grid_row");
+	// close only the innermost open grid row (last one in DOM order)
+	var open_rows = $(".grid-row-open");
+	if (open_rows.length) {
+		// Get the last (innermost) open row
+		var innermost_row = $(open_rows[open_rows.length - 1]);
+		var grid_row = innermost_row.data("grid_row");
 		grid_row.toggle_view(false);
 		return false;
 	}
