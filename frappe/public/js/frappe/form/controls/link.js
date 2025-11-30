@@ -171,7 +171,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let df = this.df;
 		if (this.frm && this.frm.doctype !== this.df.parent) {
 			// incase of grid use common df set in grid
-			df = this.frm.get_docfield(this.doc.parentfield, this.df.fieldname);
+			// For nested child tables, use the doc's parenttype to find the field
+			if (this.doc.parenttype && this.doc.parenttype !== this.frm.doctype) {
+				// This is a nested child (grand-child), get docfield from the child doctype
+				df = frappe.meta.get_docfield(this.doc.parenttype, this.df.fieldname);
+			} else {
+				df = this.frm.get_docfield(this.doc.parentfield, this.df.fieldname);
+			}
 		}
 		// set values to fill in the new document
 		if (df && df.get_route_options_for_new_doc) {
