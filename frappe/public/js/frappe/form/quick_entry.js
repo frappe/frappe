@@ -27,7 +27,7 @@ frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc, fo
 
 frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 	constructor(doctype, after_insert, init_callback, doc, force) {
-		super({ auto_make: false });
+		super({ auto_make: false, no_close_grid_form: true });
 		this.doctype = doctype;
 		this.after_insert = after_insert;
 		this.init_callback = init_callback;

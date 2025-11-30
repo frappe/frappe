@@ -410,6 +410,7 @@ export default class GridRow {
 					fieldname: "fields_html",
 				},
 			],
+			no_close_grid_form: true, // Don't close parent grid form when this dialog closes
 		});
 
 		this.grid.setup_visible_columns();
