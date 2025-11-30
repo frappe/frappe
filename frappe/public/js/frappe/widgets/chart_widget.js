@@ -510,7 +510,7 @@ export default class ChartWidget extends Widget {
 					</use>
 				</svg>
 			</button>
-			<ul class="dropdown-menu dropdown-menu-right">
+			<ul class="dropdown-menu dropdown-menu-end
 				${actions
 					.map(
 						(action) =>

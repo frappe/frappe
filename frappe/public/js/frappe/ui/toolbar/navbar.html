@@ -51,7 +51,7 @@
 								<svg class="es-icon icon-sm"><use href="#es-line-notifications-unseen"></use></svg>
 							</span>
 						</button>
-						<div class="dropdown-menu notifications-list dropdown-menu-right" role="menu">
+						<div class="dropdown-menu notifications-list dropdown-menu-end" role="menu">
 							<div class="notification-list-header">
 								<div class="header-items"></div>
 								<div class="header-actions"></div>
@@ -88,7 +88,7 @@
 								<svg class="es-icon icon-xs"><use href="#es-line-down"></use></svg>
 							</span>
 						</button>
-						<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
+						<div class="dropdown-menu dropdown-menu-end" id="toolbar-help" role="menu">
 							<div id="help-links"></div>
 							<div class="dropdown-divider documentation-links"></div>
 							{% for item in navbar_settings.help_dropdown %}
@@ -116,7 +116,7 @@
 						>
 							{{ avatar }}
 						</button>
-						<div class="dropdown-menu dropdown-menu-right" id="toolbar-user" role="menu">
+						<div class="dropdown-menu dropdown-menu-end" id="toolbar-user" role="menu">
 							{% for item in navbar_settings.settings_dropdown %}
 								{% var condition = item.condition ? eval(item.condition) : true %}
 								{% if (condition && !item.hidden) { %}

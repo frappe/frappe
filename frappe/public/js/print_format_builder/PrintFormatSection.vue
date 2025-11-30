@@ -28,7 +28,7 @@
 								<use href="#icon-dot-horizontal"></use>
 							</svg>
 						</button>
-						<div class="dropdown-menu dropdown-menu-right" role="menu">
+						<div class="dropdown-menu dropdown-menu-end" role="menu">
 							<button
 								v-for="option in section_options"
 								class="dropdown-item"

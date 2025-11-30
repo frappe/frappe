@@ -1563,7 +1563,7 @@ Object.assign(frappe.utils, {
 					${frappe.utils.icon("down", "xs")}
 				</button>
 
-				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+				<ul class="dropdown-menu dropdown-menu-endrole="menu"></ul>
 			</div>
 		`);
 

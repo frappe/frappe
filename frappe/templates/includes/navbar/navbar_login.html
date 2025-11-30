@@ -6,7 +6,7 @@
 		<a href="#" class="nav-link nav-avatar" data-bs-toggle="dropdown">
 			<span class="user-image-wrapper"></span>
 		</a>
-		<ul class="dropdown-menu dropdown-menu-right" role="menu">
+		<ul class="dropdown-menu dropdown-menu-endrole="menu">
 			{%- for child in post_login -%}
 			{%- if child.url -%}
 			<a class="dropdown-item" href="{{ child.url | abs_url }}"  {% if child.open_in_new_tab %} target="_blank" {% endif %} rel="nofollow">

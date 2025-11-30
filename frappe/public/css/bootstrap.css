@@ -2677,7 +2677,7 @@ tbody.collapse.in {
 .open > a {
   outline: 0;
 }
-.dropdown-menu-right {
+.dropdown-menu-end {
   right: 0;
   left: auto;
 }

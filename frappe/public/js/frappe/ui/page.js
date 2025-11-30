@@ -608,7 +608,7 @@ frappe.ui.Page = class Page {
 						${label}
 						${frappe.utils.icon("select", "xs")}
 					</button>
-					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
+					<div role="menu" class="dropdown-menu ${align_right ? "dropdown-menu-end" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
 		}
