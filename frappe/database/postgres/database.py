@@ -548,154 +548,154 @@ def replace_locate_with_strpos(query: str) -> str:
 			ELSE strpos(substring(haystack from start), needle) + start - 1
 		END
 
-	This intentionally avoids regex parsing so it handles commas inside quoted strings,
-	nested expressions, and fails closed (no rewrite) if parsing is uncertain.
+	Avoids regex parsing so it handles commas inside quoted strings, nested expressions,
+	and fails closed (no rewrite) if parsing is uncertain.
 	"""
 	if not query or not LOCATE_QUERY_PATTERN.search(query):
 		return query
 
 	text = query
 	text_lower = text.lower()
-	text_len = len(text)
+	length = len(text)
 
-	result: list[str] = []
-	cursor = 0
+	output: list[str] = []
+	pos = 0
 	in_single_quote = False
 	in_double_quote = False
 
-	def _is_ident_char(ch: str) -> bool:
+	def _is_ident(ch: str) -> bool:
 		return ch.isalnum() or ch == "_"
 
 	def _parse_locate_call(start: int):
-		# start points at 'l' in "locate"
-		pos = start + 6
-		while pos < text_len and text[pos].isspace():
-			pos += 1
-		if pos >= text_len or text[pos] != "(":
+		"""Parse locate(...) starting at `start` (the 'l' of locate). Return (end_pos, replacement) or None."""
+		scan = start + 6  # after "locate"
+		while scan < length and text[scan].isspace():
+			scan += 1
+		if scan >= length or text[scan] != "(":
 			return None
 
-		pos += 1  # after '('
+		scan += 1  # after '('
 		args: list[str] = []
-		arg_start = pos
+		arg_start = scan
 
 		depth = 1
 		in_sq = False
 		in_dq = False
 
-		while pos < text_len:
-			ch = text[pos]
+		while scan < length:
+			ch = text[scan]
 
 			if in_sq:
 				if ch == "'":
 					# SQL escape for single quote: ''
-					if pos + 1 < text_len and text[pos + 1] == "'":
-						pos += 2
+					if scan + 1 < length and text[scan + 1] == "'":
+						scan += 2
 						continue
 					in_sq = False
-				pos += 1
+				scan += 1
 				continue
 
 			if in_dq:
 				if ch == '"':
 					in_dq = False
-				pos += 1
+				scan += 1
 				continue
 
 			if ch == "'":
 				in_sq = True
-				pos += 1
+				scan += 1
 				continue
 
 			if ch == '"':
 				in_dq = True
-				pos += 1
+				scan += 1
 				continue
 
 			if ch == "(":
 				depth += 1
-				pos += 1
+				scan += 1
 				continue
 
 			if ch == ")":
 				depth -= 1
 				if depth == 0:
-					args.append(text[arg_start:pos].strip())
-					end = pos + 1
+					args.append(text[arg_start:scan].strip())
+					end_pos = scan + 1
 					break
-				pos += 1
+				scan += 1
 				continue
 
 			if ch == "," and depth == 1:
-				args.append(text[arg_start:pos].strip())
-				pos += 1
-				arg_start = pos
+				args.append(text[arg_start:scan].strip())
+				scan += 1
+				arg_start = scan
 				continue
 
-			pos += 1
+			scan += 1
 		else:
 			return None
 
 		if len(args) == 2:
 			needle, haystack = args
-			return end, f"strpos({haystack}, {needle})"
+			return end_pos, f"strpos({haystack}, {needle})"
 
 		if len(args) == 3:
 			needle, haystack, start_pos = args
 			inner = f"strpos(substring({haystack} from {start_pos}), {needle})"
-			repl = f"(case when {inner}=0 then 0 else {inner}+({start_pos})-1 end)"
-			return end, repl
+			replacement = f"(case when {inner}=0 then 0 else {inner}+({start_pos})-1 end)"
+			return end_pos, replacement
 
 		return None
 
-	while cursor < text_len:
-		ch = text[cursor]
+	while pos < length:
+		ch = text[pos]
 
-		# Skip rewriting inside quoted strings/identifiers
+		# Keep content unchanged inside quoted strings/identifiers
 		if in_single_quote:
-			result.append(ch)
+			output.append(ch)
 			if ch == "'":
-				if cursor + 1 < text_len and text[cursor + 1] == "'":
-					result.append("'")
-					cursor += 2
+				if pos + 1 < length and text[pos + 1] == "'":
+					output.append("'")
+					pos += 2
 					continue
 				in_single_quote = False
-			cursor += 1
+			pos += 1
 			continue
 
 		if in_double_quote:
-			result.append(ch)
+			output.append(ch)
 			if ch == '"':
 				in_double_quote = False
-			cursor += 1
+			pos += 1
 			continue
 
 		if ch == "'":
 			in_single_quote = True
-			result.append(ch)
-			cursor += 1
+			output.append(ch)
+			pos += 1
 			continue
 
 		if ch == '"':
 			in_double_quote = True
-			result.append(ch)
-			cursor += 1
+			output.append(ch)
+			pos += 1
 			continue
 
 		# Detect locate(...) at a word boundary
-		if text_lower.startswith("locate", cursor) and (cursor == 0 or not _is_ident_char(text[cursor - 1])):
-			next_pos = cursor + 6
-			while next_pos < text_len and text[next_pos].isspace():
-				next_pos += 1
+		if text_lower.startswith("locate", pos) and (pos == 0 or not _is_ident(text[pos - 1])):
+			open_paren_pos = pos + 6
+			while open_paren_pos < length and text[open_paren_pos].isspace():
+				open_paren_pos += 1
 
-			if next_pos < text_len and text[next_pos] == "(":
-				parsed = _parse_locate_call(cursor)
+			if open_paren_pos < length and text[open_paren_pos] == "(":
+				parsed = _parse_locate_call(pos)
 				if parsed:
 					end_pos, replacement = parsed
-					result.append(replacement)
-					cursor = end_pos
+					output.append(replacement)
+					pos = end_pos
 					continue
 
-		result.append(ch)
-		cursor += 1
+		output.append(ch)
+		pos += 1
 
-	return "".join(result)
+	return "".join(output)
