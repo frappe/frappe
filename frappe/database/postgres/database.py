@@ -538,8 +538,164 @@ def modify_values(values):
 	return values
 
 
-def replace_locate_with_strpos(query):
-	# strpos is the locate equivalent in postgres
-	if LOCATE_QUERY_PATTERN.search(query):
-		query = LOCATE_SUB_PATTERN.sub(r"strpos(\2\3, \1)", query)
-	return query
+def replace_locate_with_strpos(query: str) -> str:
+	"""Rewrite LOCATE(needle, haystack[, start]) to Postgres equivalents.
+
+	- LOCATE(needle, haystack) -> strpos(haystack, needle)
+	- LOCATE(needle, haystack, start) ->
+		CASE
+			WHEN strpos(substring(haystack from start), needle) = 0 THEN 0
+			ELSE strpos(substring(haystack from start), needle) + start - 1
+		END
+
+	This intentionally avoids regex parsing so it handles commas inside quoted strings,
+	nested expressions, and fails closed (no rewrite) if parsing is uncertain.
+	"""
+	if not query or not LOCATE_QUERY_PATTERN.search(query):
+		return query
+
+	text = query
+	text_lower = text.lower()
+	text_len = len(text)
+
+	result: list[str] = []
+	cursor = 0
+	in_single_quote = False
+	in_double_quote = False
+
+	def _is_ident_char(ch: str) -> bool:
+		return ch.isalnum() or ch == "_"
+
+	def _parse_locate_call(start: int):
+		# start points at 'l' in "locate"
+		pos = start + 6
+		while pos < text_len and text[pos].isspace():
+			pos += 1
+		if pos >= text_len or text[pos] != "(":
+			return None
+
+		pos += 1  # after '('
+		args: list[str] = []
+		arg_start = pos
+
+		depth = 1
+		in_sq = False
+		in_dq = False
+
+		while pos < text_len:
+			ch = text[pos]
+
+			if in_sq:
+				if ch == "'":
+					# SQL escape for single quote: ''
+					if pos + 1 < text_len and text[pos + 1] == "'":
+						pos += 2
+						continue
+					in_sq = False
+				pos += 1
+				continue
+
+			if in_dq:
+				if ch == '"':
+					in_dq = False
+				pos += 1
+				continue
+
+			if ch == "'":
+				in_sq = True
+				pos += 1
+				continue
+
+			if ch == '"':
+				in_dq = True
+				pos += 1
+				continue
+
+			if ch == "(":
+				depth += 1
+				pos += 1
+				continue
+
+			if ch == ")":
+				depth -= 1
+				if depth == 0:
+					args.append(text[arg_start:pos].strip())
+					end = pos + 1
+					break
+				pos += 1
+				continue
+
+			if ch == "," and depth == 1:
+				args.append(text[arg_start:pos].strip())
+				pos += 1
+				arg_start = pos
+				continue
+
+			pos += 1
+		else:
+			return None
+
+		if len(args) == 2:
+			needle, haystack = args
+			return end, f"strpos({haystack}, {needle})"
+
+		if len(args) == 3:
+			needle, haystack, start_pos = args
+			inner = f"strpos(substring({haystack} from {start_pos}), {needle})"
+			repl = f"(case when {inner}=0 then 0 else {inner}+({start_pos})-1 end)"
+			return end, repl
+
+		return None
+
+	while cursor < text_len:
+		ch = text[cursor]
+
+		# Skip rewriting inside quoted strings/identifiers
+		if in_single_quote:
+			result.append(ch)
+			if ch == "'":
+				if cursor + 1 < text_len and text[cursor + 1] == "'":
+					result.append("'")
+					cursor += 2
+					continue
+				in_single_quote = False
+			cursor += 1
+			continue
+
+		if in_double_quote:
+			result.append(ch)
+			if ch == '"':
+				in_double_quote = False
+			cursor += 1
+			continue
+
+		if ch == "'":
+			in_single_quote = True
+			result.append(ch)
+			cursor += 1
+			continue
+
+		if ch == '"':
+			in_double_quote = True
+			result.append(ch)
+			cursor += 1
+			continue
+
+		# Detect locate(...) at a word boundary
+		if text_lower.startswith("locate", cursor) and (cursor == 0 or not _is_ident_char(text[cursor - 1])):
+			next_pos = cursor + 6
+			while next_pos < text_len and text[next_pos].isspace():
+				next_pos += 1
+
+			if next_pos < text_len and text[next_pos] == "(":
+				parsed = _parse_locate_call(cursor)
+				if parsed:
+					end_pos, replacement = parsed
+					result.append(replacement)
+					cursor = end_pos
+					continue
+
+		result.append(ch)
+		cursor += 1
+
+	return "".join(result)
