@@ -25,7 +25,7 @@ input[type="checkbox"] {
 	}
 
 	&:checked {
-		background-color: var(--primary);
+		background-color: var(--bs-primary);
 		background-image: $check-icon, var(--checkbox-gradient);
 		background-size: 57%, 100%;
 		box-shadow: none;
