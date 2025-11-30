@@ -1126,7 +1126,10 @@ export default class GridRow {
 				if (me.grid.grid_rows.length == 0) {
 					me.grid.add_new_row();
 				}
-				me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row(true);
+				let last_row = me.grid.grid_rows[me.grid.grid_rows.length - 1];
+				if (last_row && last_row.toggle_editable_row) {
+					last_row.toggle_editable_row(true);
+				}
 				me.grid.set_focus_on_row(0);
 				$col.attr("tabIndex", "");
 			});
@@ -1396,7 +1399,22 @@ export default class GridRow {
 		// hide other
 		var open_row = this.get_open_form();
 
-		if (show === undefined) show = !open_row;
+		// For nested grids, check if open_row is a parent of this row (not the same row)
+		const isNestedInOpenRow =
+			open_row && open_row !== this && this.wrapper.closest(open_row.wrapper).length > 0;
+
+		if (show === undefined) {
+			if (open_row == this) {
+				// Clicking on an already open row - close it
+				show = false;
+			} else if (isNestedInOpenRow) {
+				// We're nested inside an open row - open this nested row
+				show = true;
+			} else {
+				// Toggle based on whether any row is open
+				show = !open_row;
+			}
+		}
 
 		// call blur
 		document.activeElement && document.activeElement.blur();
@@ -1406,8 +1424,8 @@ export default class GridRow {
 				// already open, do nothing
 				callback && callback();
 				return;
-			} else {
-				// close other views
+			} else if (!isNestedInOpenRow) {
+				// close other views only if they're not our parent
 				open_row.toggle_view(false);
 			}
 		}

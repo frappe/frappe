@@ -273,7 +273,10 @@ $.extend(frappe.model, {
 			}
 		}
 
-		if (cur_frm && cur_frm.doc == parent_doc) cur_frm.dirty();
+		// Mark the form as dirty - works for both direct children and grand-children
+		if (cur_frm) {
+			cur_frm.dirty();
+		}
 
 		return child;
 	},

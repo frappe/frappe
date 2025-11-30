@@ -84,21 +84,24 @@ Object.assign(frappe.model, {
 
 		locals[doc.doctype][doc.name] = doc;
 
+		// add child docs to locals (including grand-children)
 		let meta = frappe.get_meta(doc.doctype);
-		let is_table = meta ? meta.istable : doc.parentfield;
-		// add child docs to locals
-		if (!is_table) {
-			for (var i in doc) {
-				var value = doc[i];
+		for (var i in doc) {
+			var value = doc[i];
 
-				if ($.isArray(value)) {
-					for (var x = 0, y = value.length; x < y; x++) {
-						var d = value[x];
+			if ($.isArray(value)) {
+				// check if this is a table field
+				let df = meta && frappe.meta.get_field(doc.doctype, i);
+				if (!df || !frappe.model.table_fields.includes(df.fieldtype)) {
+					continue;
+				}
 
-						if (typeof d == "object" && !d.parent) d.parent = doc.name;
+				for (var x = 0, y = value.length; x < y; x++) {
+					var d = value[x];
 
-						frappe.model.add_to_locals(d);
-					}
+					if (typeof d == "object" && !d.parent) d.parent = doc.name;
+
+					frappe.model.add_to_locals(d);
 				}
 			}
 		}
@@ -150,6 +153,11 @@ Object.assign(frappe.model, {
 						// row exists, just copy the values
 						Object.assign(local_d, d);
 						clear_keys(d, local_d);
+
+						// recursively update grand-children
+						if (locals[d.doctype] && locals[d.doctype][d.name]) {
+							frappe.model.update_in_locals(d);
+						}
 					} else {
 						local_doc[fieldname].push(d);
 						if (!d.parent) d.parent = doc.name;

@@ -311,6 +311,13 @@ class Document(BaseDocument):
 
 			self.set(fieldname, children)
 
+			# Recursively load grand-children (child tables of child tables)
+			if not is_doctype:
+				child_meta = frappe.get_meta(child_doctype)
+				if child_meta.get_table_fields():
+					for child in self.get(fieldname) or []:
+						child.load_children_from_db()
+
 		return self
 
 	def _load_child_table_from_db(self, fieldname, child_doctype):
@@ -623,10 +630,15 @@ class Document(BaseDocument):
 
 			qry.run()
 
-		# update / insert
+		# update / insert child rows and their children (grand-children) recursively
 		for d in all_rows:
 			d: Document
+			# Pass parent flags to child
+			d.flags.update(self.flags)
 			d.db_update()
+			# Recursively update grand-children
+			if d._table_fieldnames:
+				d.update_children()
 
 	def reset_computed_child_tables(self):
 		"""Reset computed child tables so that they are reloaded next time"""
@@ -1062,28 +1074,39 @@ class Document(BaseDocument):
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
-		"""Updates `parent` and `parenttype` property in all children."""
-		for d in self.get_all_children():
+		"""Updates `parent` and `parenttype` property in all children recursively."""
+		for d in self.get_all_children(include_grand_children=False):
 			d.parent = self.name
 			d.parenttype = self.doctype
+			# Recursively set parent for grand-children
+			if d._table_fieldnames:
+				d.set_parent_in_children()
 
 	def set_name_in_children(self):
-		# Set name for any new children
-		for d in self.get_all_children():
+		# Set name for any new children recursively
+		for d in self.get_all_children(include_grand_children=False):
 			if not d.name:
 				set_new_name(d)
+			# Recursively set names for grand-children
+			if d._table_fieldnames:
+				d.set_name_in_children()
 
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
 
 		self._validate_update_after_submit()
-		for d in self.get_all_children():
-			if d.is_new() and self.meta.get_field(d.parentfield).allow_on_submit:
+		for d in self.get_all_children(include_grand_children=False):
+			# Get the correct meta - use parent_doc for proper context
+			parent_meta = d.parent_doc.meta if d.parent_doc else self.meta
+			if d.is_new() and parent_meta.get_field(d.parentfield).allow_on_submit:
 				# in case of a new row, don't validate allow on submit, if table is allow on submit
 				continue
 
 			d._validate_update_after_submit()
+			# Recursively validate grand-children
+			if d._table_fieldnames:
+				d.validate_update_after_submit()
 
 		# TODO check only allowed values are updated
 
@@ -1129,10 +1152,13 @@ class Document(BaseDocument):
 			msg = ", ".join(each[2] for each in cancelled_links)
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None, *, include_computed=False) -> list["Document"]:
+	def get_all_children(
+		self, parenttype=None, *, include_computed=False, include_grand_children=True
+	) -> list["Document"]:
 		"""
 		Return all child documents from **Table** type fields in a list.
 		Excludes computed tables by default, unless `include_computed` is set to True.
+		If `include_grand_children` is True (default), also includes children of children recursively.
 		"""
 
 		children = []
@@ -1144,6 +1170,15 @@ class Document(BaseDocument):
 
 			if value := self.get(fieldname):
 				children.extend(value)
+				# Recursively include grand-children
+				if include_grand_children:
+					for child in value:
+						if child._table_fieldnames:
+							children.extend(
+								child.get_all_children(
+									include_computed=include_computed, include_grand_children=True
+								)
+							)
 
 		return children
 
@@ -1343,6 +1378,18 @@ class Document(BaseDocument):
 				row._doc_before_save = next(
 					(d for d in (self._doc_before_save.get(fieldname) or []) if d.name == row.name), None
 				)
+				# Recursively load doc_before_save for grand-children
+				if row._table_fieldnames and row._doc_before_save:
+					for child_fieldname in row._non_computed_table_fieldnames:
+						for child_row in row.get(child_fieldname) or []:
+							child_row._doc_before_save = next(
+								(
+									d
+									for d in (row._doc_before_save.get(child_fieldname) or [])
+									if d.name == child_row.name
+								),
+								None,
+							)
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:

@@ -5,7 +5,10 @@ import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
 
 frappe.ui.form.get_open_grid_form = function () {
-	return $(".grid-row-open").data("grid_row");
+	// Get the innermost (last) open grid form - important for nested grids
+	const openRows = $(".grid-row-open");
+	if (openRows.length === 0) return null;
+	return $(openRows[openRows.length - 1]).data("grid_row");
 };
 
 frappe.ui.form.close_grid_form = function () {
@@ -44,6 +47,10 @@ export default class Grid {
 		this.is_grid = true;
 		this.debounced_refresh = this.refresh.bind(this);
 		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
+
+		// For nested grids (grand-children), the parent_doc is the child row document
+		// For regular grids, parent_doc is the main form document
+		this.parent_doc = this.control?.doc || (this.frm ? this.frm.doc : null);
 	}
 
 	get perm() {
@@ -197,6 +204,14 @@ export default class Grid {
 	setup_check() {
 		this.wrapper.on("click", ".grid-row-check", (e) => {
 			const $check = $(e.currentTarget);
+
+			// Only handle checkboxes that belong to this grid directly, not nested grids
+			// Check if the closest .form-grid matches this grid's form_grid
+			const $closestFormGrid = $check.closest(".form-grid");
+			if ($closestFormGrid.length && !$closestFormGrid.is(this.form_grid)) {
+				return; // This checkbox belongs to a nested grid, let that grid handle it
+			}
+
 			const checked = $check.prop("checked");
 			const is_select_all = $check.parents(".grid-heading-row:first").length !== 0;
 			const docname = $check.parents(".grid-row:first")?.attr("data-name");
@@ -294,7 +309,9 @@ export default class Grid {
 
 	delete_all_rows() {
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			if (this.parent_doc) {
+				this.parent_doc[this.df.fieldname] = [];
+			}
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();
@@ -324,16 +341,16 @@ export default class Grid {
 			return;
 		}
 
-		this.remove_rows_button.toggleClass(
-			"hidden",
-			this.wrapper.find(".grid-body .grid-row-check:checked:first").length ? false : true
-		);
+		// Only check checkboxes that belong directly to this grid, not nested grids
+		// Use this.form_grid to scope the search to this grid only
+		const hasCheckedRows =
+			this.form_grid.find("> .grid-body .grid-row-check:checked").length > 0;
+		this.remove_rows_button.toggleClass("hidden", !hasCheckedRows);
 
-		let select_all_checkbox_checked = this.wrapper.find(
-			".grid-heading-row .grid-row-check:checked:first"
-		).length;
+		const hasCheckedSelectAll =
+			this.form_grid.find("> .grid-heading-row .grid-row-check:checked").length > 0;
 		let show_delete_all_btn =
-			select_all_checkbox_checked && this.data.length > this.get_selected_children().length;
+			hasCheckedSelectAll && this.data.length > this.get_selected_children().length;
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 	}
 
@@ -347,10 +364,10 @@ export default class Grid {
 			return;
 		}
 
-		this.duplicate_row_button.toggleClass(
-			"hidden",
-			this.wrapper.find(".grid-body .grid-row-check:checked:first").length ? false : true
-		);
+		// Only check checkboxes that belong directly to this grid, not nested grids
+		const hasCheckedRows =
+			this.form_grid.find("> .grid-body .grid-row-check:checked").length > 0;
+		this.duplicate_row_button.toggleClass("hidden", !hasCheckedRows);
 	}
 
 	debounced_duplicate_rows_button = frappe.utils.debounce(
@@ -442,6 +459,9 @@ export default class Grid {
 	refresh() {
 		if (this.frm && this.frm.setting_dependency) return;
 
+		// Update parent_doc in case the control's doc has changed
+		this.parent_doc = this.control?.doc || (this.frm ? this.frm.doc : null);
+
 		this.filter_applied = Object.keys(this.filter).length !== 0;
 		this.data = this.get_data(this.filter_applied);
 
@@ -451,6 +471,7 @@ export default class Grid {
 		this.setup_fields();
 
 		if (this.frm) {
+			// For nested grids, use the main form's doc for permission check
 			this.display_status = frappe.perm.get_field_display_status(
 				this.df,
 				this.frm.doc,
@@ -587,12 +608,16 @@ export default class Grid {
 	setup_fields() {
 		// reset docfield
 		if (this.frm && this.frm.docname) {
+			// Determine the parent doctype for field lookup
+			// For nested grids (grand-children), use the parent row's doctype
+			// For regular grids, use the main form's doctype
+			let parent_doctype = this.control?.doc?.doctype || this.frm.doctype;
+			let parent_docname = this.control?.doc?.name || this.frm.docname;
+
 			// use doc specific docfield object
-			this.df = frappe.meta.get_docfield(
-				this.frm.doctype,
-				this.df.fieldname,
-				this.frm.docname
-			);
+			this.df =
+				frappe.meta.get_docfield(parent_doctype, this.df.fieldname, parent_docname) ||
+				this.df;
 		} else {
 			// use non-doc specific docfield
 			if (this.df.options) {
@@ -661,15 +686,16 @@ export default class Grid {
 		if (filter_field) {
 			data = this.get_filtered_data();
 		} else {
-			data = this.frm
-				? this.frm.doc[this.df.fieldname] || []
+			// Use parent_doc which could be the child row doc for nested grids
+			data = this.parent_doc
+				? this.parent_doc[this.df.fieldname] || []
 				: this.df.data || this.get_modal_data();
 		}
 		return data;
 	}
 
 	get_filtered_data() {
-		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
+		let all_data = this.parent_doc ? this.parent_doc[this.df.fieldname] : this.df.data;
 
 		if (!all_data) return;
 
@@ -864,9 +890,12 @@ export default class Grid {
 				this.grid_pagination.go_to_page(1);
 			}
 
-			if (this.frm) {
+			// Use parent_doc for nested grids (grand-children), otherwise use frm.doc
+			let parent_doc = this.parent_doc;
+
+			if (parent_doc) {
 				var d = frappe.model.add_child(
-					this.frm.doc,
+					parent_doc,
 					this.df.options,
 					this.df.fieldname,
 					idx
@@ -875,7 +904,9 @@ export default class Grid {
 					d = this.duplicate_row(d, copy_doc);
 				}
 				d.__unedited = true;
-				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
+				if (this.frm) {
+					this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
+				}
 				this.refresh();
 			} else {
 				if (!this.df.data) {
@@ -926,7 +957,7 @@ export default class Grid {
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
-			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
+			if (this.parent_doc) this.parent_doc[this.df.fieldname][index] = d;
 			this.data[index] = d;
 			this.grid_rows[index] = this.grid_rows_by_docname[d.name];
 		});
@@ -960,11 +991,14 @@ export default class Grid {
 		}
 
 		setTimeout(() => {
-			this.grid_rows[idx].toggle_editable_row(true);
-			this.grid_rows[idx].row
-				.find('input[type="Text"],textarea,select')
-				.filter(":visible:first")
-				.focus();
+			let row = this.grid_rows[idx];
+			if (row && row.toggle_editable_row) {
+				row.toggle_editable_row(true);
+				row.row
+					.find('input[type="Text"],textarea,select')
+					.filter(":visible:first")
+					.focus();
+			}
 		}, 100);
 	}
 
@@ -1230,7 +1264,7 @@ export default class Grid {
 				});
 
 				// add data
-				$.each(this.frm.doc[this.df.fieldname] || [], (i, d) => {
+				$.each(this.parent_doc?.[this.df.fieldname] || [], (i, d) => {
 					var row = [];
 					$.each(data[2], (i, fieldname) => {
 						var value = d[fieldname];

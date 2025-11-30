@@ -56,9 +56,6 @@ DOCTYPE_TABLE_FIELDS = [
 
 TABLE_DOCTYPES_FOR_DOCTYPE = MappingProxyType({df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS})
 
-# child tables cannot have child tables
-TABLE_DOCTYPES_FOR_CHILD_TABLES = MappingProxyType({})
-
 DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
@@ -433,8 +430,8 @@ class BaseDocument:
 			value["doctype"] = doctype
 			controller = get_controller(doctype)
 			child = controller.__new__(controller)
-			child._table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
-			child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
+			# Child tables can have their own child tables (grand-children)
+			# Table fieldnames will be fetched from meta when needed via cached_property
 			child.__init__(value)
 
 		__dict = child.__dict__
@@ -457,15 +454,17 @@ class BaseDocument:
 			return TABLE_DOCTYPES_FOR_DOCTYPE
 
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
-			return TABLE_DOCTYPES_FOR_CHILD_TABLES
+			return MappingProxyType({})
 
+		# Child tables can have their own child tables (grand-children)
 		return self.meta._table_doctypes
 
 	@cached_property
 	def _non_computed_table_fieldnames(self) -> dict:
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
-			return self._table_fieldnames
+			return MappingProxyType({})
 
+		# Child tables can have their own child tables (grand-children)
 		return self.meta._non_computed_table_doctypes
 
 	def _get_table_fields(self, include_computed=False):
@@ -477,10 +476,11 @@ class BaseDocument:
 		if self.doctype == "DocType":
 			return DOCTYPE_TABLE_FIELDS
 
-		# child tables don't have child tables
+		# Special doctypes for DocType don't have child tables
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 
+		# Child tables can have their own child tables (grand-children)
 		return self.meta.get_table_fields(include_computed=include_computed)
 
 	def _evaluate_virtual_field_options(self, options):

@@ -14,6 +14,8 @@ export default class GridRowForm {
 			body: this.form_area,
 			no_submit_on_enter: true,
 			frm: this.row.frm,
+			doctype: this.row.doc.doctype, // Pass the child row's doctype for proper field lookup
+			doc: this.row.doc, // Pass the child row's doc
 			grid: this.row.grid,
 			grid_row: this.row,
 			grid_row_form: this,

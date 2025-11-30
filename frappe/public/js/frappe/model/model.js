@@ -606,6 +606,33 @@ $.extend(frappe.model, {
 		}
 	},
 
+	// Get all children recursively (including grand-children)
+	get_all_children: function (doc, options = {}) {
+		const { include_grand_children = true } = options;
+		let all_children = [];
+		const meta = frappe.get_meta(doc.doctype);
+
+		if (!meta) return all_children;
+
+		for (let df of meta.fields || []) {
+			if (frappe.model.table_fields.includes(df.fieldtype)) {
+				const children = doc[df.fieldname] || [];
+				all_children = all_children.concat(children);
+
+				// Recursively get grand-children
+				if (include_grand_children) {
+					for (let child of children) {
+						all_children = all_children.concat(
+							frappe.model.get_all_children(child, options)
+						);
+					}
+				}
+			}
+		}
+
+		return all_children;
+	},
+
 	get_doc_title(doc) {
 		if (typeof doc.name == "string") {
 			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
@@ -637,6 +664,21 @@ $.extend(frappe.model, {
 	clear_doc: function (doctype, name) {
 		var doc = locals[doctype] && locals[doctype][name];
 		if (!doc) return;
+
+		// First, recursively clear any grand-children
+		let meta = frappe.get_meta(doctype);
+		if (meta) {
+			for (let df of meta.fields || []) {
+				if (frappe.model.table_fields.includes(df.fieldtype)) {
+					let children = doc[df.fieldname] || [];
+					for (let child of children) {
+						if (child && child.name) {
+							frappe.model.clear_doc(child.doctype, child.name);
+						}
+					}
+				}
+			}
+		}
 
 		var parent = null;
 		if (doc.parenttype) {
@@ -844,6 +886,7 @@ $.extend(frappe.model, {
 // legacy
 frappe.get_doc = frappe.model.get_doc;
 frappe.get_children = frappe.model.get_children;
+frappe.get_all_children = frappe.model.get_all_children;
 frappe.get_list = frappe.model.get_list;
 
 var getchildren = function (doctype, parent, parentfield) {
