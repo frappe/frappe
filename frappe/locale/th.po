@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2025-11-23 09:34+0000\n"
-"PO-Revision-Date: 2025-11-25 13:13\n"
+"POT-Creation-Date: 2025-11-30 09:34+0000\n"
+"PO-Revision-Date: 2025-11-30 14:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -709,7 +709,7 @@ msgstr ""
 #. Label of the api_key (Data) field in DocType 'Google Settings'
 #. Label of the sb_01 (Section Break) field in DocType 'Google Settings'
 #. Label of the api_key (Data) field in DocType 'Push Notification Settings'
-#: frappe/core/doctype/user/user.js:459 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:466 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 #: frappe/integrations/doctype/google_settings/google_settings.json
@@ -728,7 +728,7 @@ msgstr ""
 msgid "API Key cannot be regenerated"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:456
+#: frappe/core/doctype/user/user.js:463
 msgid "API Keys"
 msgstr ""
 
@@ -752,7 +752,7 @@ msgstr ""
 #. Label of the api_secret (Password) field in DocType 'Email Account'
 #. Label of the api_secret (Password) field in DocType 'Push Notification
 #. Settings'
-#: frappe/core/doctype/user/user.js:466 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:473 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
@@ -1167,7 +1167,7 @@ msgstr ""
 msgid "Add Tags"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2158
+#: frappe/public/js/frappe/list/list_view.js:2161
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr ""
@@ -1410,7 +1410,7 @@ msgstr ""
 msgid "Adds a custom field to a DocType"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:561
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:594
 msgid "Administration"
 msgstr ""
 
@@ -1462,8 +1462,8 @@ msgstr ""
 msgid "Advanced Control"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:339
-#: frappe/public/js/frappe/form/controls/link.js:341
+#: frappe/public/js/frappe/form/controls/link.js:343
+#: frappe/public/js/frappe/form/controls/link.js:345
 msgid "Advanced Search"
 msgstr ""
 
@@ -1544,11 +1544,11 @@ msgstr ""
 msgid "Alert"
 msgstr ""
 
-#: frappe/database/query.py:2251
+#: frappe/database/query.py:2250
 msgid "Alias cannot be a SQL keyword: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2176
+#: frappe/database/query.py:2175
 msgid "Alias must be a string"
 msgstr ""
 
@@ -2200,7 +2200,7 @@ msgstr ""
 msgid "App Name (Client Name)"
 msgstr ""
 
-#: frappe/modules/utils.py:286
+#: frappe/modules/utils.py:300
 msgid "App not found for module: {0}"
 msgstr ""
 
@@ -2278,7 +2278,7 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2143
+#: frappe/public/js/frappe/list/list_view.js:2146
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr ""
@@ -2368,7 +2368,7 @@ msgstr ""
 msgid "Are you sure you want to cancel the invitation?"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2122
+#: frappe/public/js/frappe/list/list_view.js:2125
 msgid "Are you sure you want to clear the assignments?"
 msgstr ""
 
@@ -2408,7 +2408,7 @@ msgstr "คุณแน่ใจหรือไม่ว่าต้องกา
 msgid "Are you sure you want to generate a new report?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการสร้างรายงานใหม่?"
 
-#: frappe/public/js/frappe/form/toolbar.js:124
+#: frappe/public/js/frappe/form/toolbar.js:131
 msgid "Are you sure you want to merge {0} with {1}?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการรวม {0} กับ {1}?"
 
@@ -2486,7 +2486,7 @@ msgstr ""
 msgid "Assign To"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2104
+#: frappe/public/js/frappe/list/list_view.js:2107
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr ""
@@ -3319,8 +3319,8 @@ msgstr ""
 
 #. Label of the based_on (Link) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
-#: frappe/printing/page/print/print.js:302
-#: frappe/printing/page/print/print.js:356
+#: frappe/printing/page/print/print.js:304
+#: frappe/printing/page/print/print.js:358
 msgid "Based On"
 msgstr ""
 
@@ -3796,7 +3796,7 @@ msgstr "แคช"
 msgid "Cache Cleared"
 msgstr "ล้างแคชแล้ว"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:181
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:241
 msgid "Calculate"
 msgstr "คำนวณ"
 
@@ -3851,7 +3851,7 @@ msgid "Camera"
 msgstr "กล้อง"
 
 #. Label of the campaign (Data) field in DocType 'Web Page View'
-#: frappe/public/js/frappe/utils/utils.js:1794
+#: frappe/public/js/frappe/utils/utils.js:1812
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -3899,7 +3899,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2213
+#: frappe/public/js/frappe/list/list_view.js:2216
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr ""
@@ -3925,7 +3925,7 @@ msgstr ""
 msgid "Cancel Prepared Report"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2218
+#: frappe/public/js/frappe/list/list_view.js:2221
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr ""
@@ -4110,7 +4110,7 @@ msgstr ""
 msgid "Cannot get file contents of a Folder"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:906
+#: frappe/printing/page/print/print.js:908
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr ""
 
@@ -4442,7 +4442,7 @@ msgstr ""
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr ""
 
-#: frappe/database/query.py:946
+#: frappe/database/query.py:947
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr ""
 
@@ -4502,12 +4502,12 @@ msgstr ""
 msgid "Clear All"
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_view.js:2119
+#: frappe/public/js/frappe/list/list_view.js:2122
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/keyboard.js:297
+#: frappe/public/js/frappe/ui/keyboard.js:287
 msgid "Clear Cache and Reload"
 msgstr ""
 
@@ -5011,6 +5011,12 @@ msgstr ""
 msgid "Communication"
 msgstr ""
 
+#. Label of the communication_date (Datetime) field in DocType 'Communication
+#. Link'
+#: frappe/core/doctype/communication_link/communication_link.json
+msgid "Communication Date"
+msgstr ""
+
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Link"
@@ -5207,7 +5213,7 @@ msgstr ""
 msgid "Configure various aspects of how document naming works like naming series, current counter."
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:400 frappe/public/js/frappe/dom.js:342
+#: frappe/core/doctype/user/user.js:407 frappe/public/js/frappe/dom.js:342
 #: frappe/www/update-password.html:66
 msgid "Confirm"
 msgstr ""
@@ -5226,7 +5232,7 @@ msgstr ""
 msgid "Confirm Deletion of Account"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:184
+#: frappe/core/doctype/user/user.js:189
 msgid "Confirm New Password"
 msgstr ""
 
@@ -5390,7 +5396,7 @@ msgstr ""
 #. Label of the content (Data) field in DocType 'Web Page View'
 #: frappe/core/doctype/comment/comment.json frappe/desk/doctype/note/note.json
 #: frappe/desk/doctype/workspace/workspace.json
-#: frappe/public/js/frappe/utils/utils.js:1810
+#: frappe/public/js/frappe/utils/utils.js:1828
 #: frappe/website/doctype/help_article/help_article.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/web_page_view/web_page_view.json
@@ -5459,9 +5465,13 @@ msgstr ""
 msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected."
 msgstr "ควบคุมว่าสามารถให้ผู้ใช้ใหม่ลงทะเบียนโดยใช้คีย์การเข้าสู่ระบบโซเชียลนี้ได้หรือไม่ หากไม่ได้ตั้งค่า จะใช้การตั้งค่าเว็บไซต์"
 
-#: frappe/public/js/frappe/utils/utils.js:1038
+#: frappe/public/js/frappe/utils/utils.js:1056
 msgid "Copied to clipboard."
 msgstr "คัดลอกไปยังคลิปบอร์ดแล้ว"
+
+#: frappe/public/js/frappe/list/list_view.js:2420
+msgid "Copied {0} {1} to clipboard"
+msgstr ""
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -5475,12 +5485,12 @@ msgstr "คัดลอกรหัสฝัง"
 msgid "Copy error to clipboard"
 msgstr "คัดลอกข้อผิดพลาดไปยังคลิปบอร์ด"
 
-#: frappe/public/js/frappe/form/toolbar.js:533
-#: frappe/public/js/frappe/list/list_view.js:2301
+#: frappe/public/js/frappe/form/toolbar.js:540
+#: frappe/public/js/frappe/list/list_view.js:2304
 msgid "Copy to Clipboard"
 msgstr "คัดลอกไปยังคลิปบอร์ด"
 
-#: frappe/core/doctype/user/user.js:487
+#: frappe/core/doctype/user/user.js:494
 msgid "Copy token to clipboard"
 msgstr ""
 
@@ -5497,7 +5507,7 @@ msgstr "ไม่สามารถปรับแต่ง DocTypes หลั�
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "โมดูลหลัก {0} ไม่สามารถค้นหาใน Global Search ได้"
 
-#: frappe/printing/page/print/print.js:676
+#: frappe/printing/page/print/print.js:678
 msgid "Correct version :"
 msgstr "เวอร์ชันที่ถูกต้อง:"
 
@@ -5513,7 +5523,7 @@ msgstr ""
 msgid "Could not map column {0} to field {1}"
 msgstr ""
 
-#: frappe/database/query.py:844
+#: frappe/database/query.py:845
 msgid "Could not parse field: {0}"
 msgstr ""
 
@@ -5677,7 +5687,7 @@ msgstr ""
 msgid "Create New Kanban Board"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:264
+#: frappe/core/doctype/user/user.js:271
 msgid "Create User Email"
 msgstr ""
 
@@ -5689,16 +5699,16 @@ msgstr ""
 msgid "Create a Reminder"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:546
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:579
 msgid "Create a new ..."
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:156
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:216
 msgid "Create a new record"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:315
-#: frappe/public/js/frappe/form/controls/link.js:317
+#: frappe/public/js/frappe/form/controls/link.js:319
+#: frappe/public/js/frappe/form/controls/link.js:321
 #: frappe/public/js/frappe/form/link_selector.js:139
 #: frappe/public/js/frappe/list/list_view.js:506
 #: frappe/public/js/frappe/web_form/web_form_list.js:226
@@ -6087,13 +6097,13 @@ msgstr "การปรับแต่งถูกละทิ้ง"
 msgid "Customizations Reset"
 msgstr "รีเซ็ตการปรับแต่ง"
 
-#: frappe/modules/utils.py:98
+#: frappe/modules/utils.py:99
 msgid "Customizations for <b>{0}</b> exported to:<br>{1}"
 msgstr "การปรับแต่งสำหรับ <b>{0}</b> ถูกส่งออกไปยัง:<br>{1}"
 
 #: frappe/printing/page/print/print.js:184
 #: frappe/public/js/frappe/form/templates/print_layout.html:39
-#: frappe/public/js/frappe/form/toolbar.js:626
+#: frappe/public/js/frappe/form/toolbar.js:633
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:197
 msgid "Customize"
 msgstr "ปรับแต่ง"
@@ -6245,8 +6255,8 @@ msgstr "ธีมมืด"
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:571
-#: frappe/public/js/frappe/utils/utils.js:937
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:604
+#: frappe/public/js/frappe/utils/utils.js:955
 msgid "Dashboard"
 msgstr "แดชบอร์ด"
 
@@ -6348,6 +6358,10 @@ msgstr "บันทึกการนำเข้าข้อมูล"
 #: frappe/core/doctype/data_export/exporter.py:174
 msgid "Data Import Template"
 msgstr "แม่แบบการนำเข้าข้อมูล"
+
+#: frappe/core/doctype/data_import/data_import.py:76
+msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -6747,7 +6761,7 @@ msgstr "ล่าช้า"
 #: frappe/core/doctype/user_permission/user_permission_list.js:189
 #: frappe/public/js/frappe/form/footer/form_timeline.js:627
 #: frappe/public/js/frappe/form/grid.js:66
-#: frappe/public/js/frappe/form/toolbar.js:490
+#: frappe/public/js/frappe/form/toolbar.js:497
 #: frappe/public/js/frappe/views/reports/report_view.js:1764
 #: frappe/public/js/frappe/views/treeview.js:329
 #: frappe/public/js/frappe/web_form/web_form_list.js:283
@@ -6756,7 +6770,7 @@ msgstr "ล่าช้า"
 msgid "Delete"
 msgstr "ลบ"
 
-#: frappe/public/js/frappe/list/list_view.js:2181
+#: frappe/public/js/frappe/list/list_view.js:2184
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "ลบ"
@@ -6845,12 +6859,12 @@ msgstr "ลบแท็บ"
 msgid "Delete this record to allow sending to this email address"
 msgstr "ลบบันทึกนี้เพื่ออนุญาตให้ส่งไปยังที่อยู่อีเมลนี้"
 
-#: frappe/public/js/frappe/list/list_view.js:2186
+#: frappe/public/js/frappe/list/list_view.js:2189
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr "ลบ {0} รายการอย่างถาวร?"
 
-#: frappe/public/js/frappe/list/list_view.js:2192
+#: frappe/public/js/frappe/list/list_view.js:2195
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "ลบ {0} รายการอย่างถาวร?"
@@ -7084,7 +7098,7 @@ msgstr ""
 msgid "Desktop Icon"
 msgstr ""
 
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:317
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:318
 msgid "Desktop Icon already exists"
 msgstr ""
 
@@ -7179,6 +7193,12 @@ msgstr ""
 msgid "Disable Document Sharing"
 msgstr ""
 
+#. Label of the disable_product_suggestion (Check) field in DocType 'System
+#. Settings'
+#: frappe/core/doctype/system_settings/system_settings.json
+msgid "Disable Product Suggestion"
+msgstr ""
+
 #: frappe/core/doctype/report/report.js:39
 msgid "Disable Report"
 msgstr ""
@@ -7263,7 +7283,7 @@ msgstr ""
 msgid "Disabled Auto Reply"
 msgstr ""
 
-#: frappe/public/js/frappe/form/toolbar.js:364
+#: frappe/public/js/frappe/form/toolbar.js:371
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:71
 #: frappe/public/js/frappe/views/workspace/workspace.js:374
 #: frappe/public/js/frappe/web_form/web_form.js:193
@@ -7550,11 +7570,11 @@ msgstr ""
 msgid "DocType required"
 msgstr ""
 
-#: frappe/modules/utils.py:177
+#: frappe/modules/utils.py:178
 msgid "DocType {0} does not exist."
 msgstr ""
 
-#: frappe/modules/utils.py:244
+#: frappe/modules/utils.py:245
 msgid "DocType {} not found"
 msgstr ""
 
@@ -7845,6 +7865,10 @@ msgstr "ประเภทเอกสารและสิทธิ์"
 msgid "Document Unlocked"
 msgstr "เอกสารถูกปลดล็อก"
 
+#: frappe/database/query.py:457
+msgid "Document cannot be used as a filter value"
+msgstr ""
+
 #: frappe/desk/form/document_follow.py:56
 msgid "Document follow is not enabled for this user."
 msgstr "การติดตามเอกสารไม่ได้เปิดใช้งานสำหรับผู้ใช้นี้"
@@ -7869,11 +7893,11 @@ msgstr "เอกสารสามารถแก้ไขได้เฉพา
 msgid "Document not Relinked"
 msgstr "เอกสารไม่ได้เชื่อมโยงใหม่"
 
-#: frappe/model/rename_doc.py:229 frappe/public/js/frappe/form/toolbar.js:159
+#: frappe/model/rename_doc.py:229 frappe/public/js/frappe/form/toolbar.js:166
 msgid "Document renamed from {0} to {1}"
 msgstr "เอกสารถูกเปลี่ยนชื่อจาก {0} เป็น {1}"
 
-#: frappe/public/js/frappe/form/toolbar.js:168
+#: frappe/public/js/frappe/form/toolbar.js:175
 msgid "Document renaming from {0} to {1} has been queued"
 msgstr "การเปลี่ยนชื่อเอกสารจาก {0} เป็น {1} ถูกจัดคิวแล้ว"
 
@@ -7999,7 +8023,7 @@ msgstr "โดนัท"
 msgid "Double click to edit label"
 msgstr "ดับเบิลคลิกเพื่อแก้ไขป้ายกำกับ"
 
-#: frappe/core/doctype/file/file.js:15 frappe/core/doctype/user/user.js:474
+#: frappe/core/doctype/file/file.js:15 frappe/core/doctype/user/user.js:481
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:8
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Download"
@@ -8114,7 +8138,7 @@ msgid "Due Date Based On"
 msgstr "วันที่ครบกำหนดตาม"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
-#: frappe/public/js/frappe/form/toolbar.js:448
+#: frappe/public/js/frappe/form/toolbar.js:455
 msgid "Duplicate"
 msgstr "ซ้ำ"
 
@@ -8229,7 +8253,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/footer/form_timeline.js:678
 #: frappe/public/js/frappe/form/templates/address_list.html:13
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
-#: frappe/public/js/frappe/form/toolbar.js:774
+#: frappe/public/js/frappe/form/toolbar.js:781
 #: frappe/public/js/frappe/views/reports/query_report.js:886
 #: frappe/public/js/frappe/views/reports/query_report.js:1808
 #: frappe/public/js/frappe/views/workspace/workspace.js:80
@@ -8243,7 +8267,7 @@ msgstr ""
 msgid "Edit"
 msgstr "แก้ไข"
 
-#: frappe/public/js/frappe/list/list_view.js:2267
+#: frappe/public/js/frappe/list/list_view.js:2270
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "แก้ไข"
@@ -8278,7 +8302,7 @@ msgstr "แก้ไขบล็อกที่กำหนดเอง"
 msgid "Edit Custom HTML"
 msgstr "แก้ไข HTML ที่กำหนดเอง"
 
-#: frappe/public/js/frappe/form/toolbar.js:645
+#: frappe/public/js/frappe/form/toolbar.js:652
 msgid "Edit DocType"
 msgstr "แก้ไข DocType"
 
@@ -8465,7 +8489,7 @@ msgstr "ตัวเลือกองค์ประกอบ"
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/success_action.js:85
-#: frappe/public/js/frappe/form/toolbar.js:408
+#: frappe/public/js/frappe/form/toolbar.js:415
 #: frappe/templates/includes/comments/comments.html:25
 #: frappe/templates/signup.html:9
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -8694,7 +8718,7 @@ msgstr "อีเมลถูกทำเครื่องหมายว่า
 msgid "Email has been moved to trash"
 msgstr "อีเมลถูกย้ายไปที่ถังขยะ"
 
-#: frappe/core/doctype/user/user.js:266
+#: frappe/core/doctype/user/user.js:273
 msgid "Email is mandatory to create User Email"
 msgstr "อีเมลเป็นสิ่งจำเป็นในการสร้างอีเมลผู้ใช้"
 
@@ -8737,7 +8761,7 @@ msgstr "อีเมลจะถูกส่งพร้อมกับการ
 msgid "Embed code copied"
 msgstr "คัดลอกรหัสฝังแล้ว"
 
-#: frappe/database/query.py:2180
+#: frappe/database/query.py:2179
 msgid "Empty alias is not allowed"
 msgstr ""
 
@@ -8745,7 +8769,7 @@ msgstr ""
 msgid "Empty column"
 msgstr "คอลัมน์ว่างเปล่า"
 
-#: frappe/database/query.py:2074
+#: frappe/database/query.py:2073
 msgid "Empty string arguments are not allowed"
 msgstr ""
 
@@ -9220,8 +9244,8 @@ msgstr "ข้อผิดพลาดในรูปแบบการพิม
 msgid "Error in {0}.get_list: {1}"
 msgstr ""
 
-#: frappe/database/query.py:355
-msgid "Error parsing nested filters: {0}"
+#: frappe/database/query.py:353
+msgid "Error parsing nested filters: {0}. {1}"
 msgstr ""
 
 #: frappe/email/doctype/email_account/email_account.py:670
@@ -9420,7 +9444,7 @@ msgstr "ขยาย"
 msgid "Expand All"
 msgstr "ขยายทั้งหมด"
 
-#: frappe/database/query.py:577
+#: frappe/database/query.py:578
 msgid "Expected 'and' or 'or' operator, found: {0}"
 msgstr ""
 
@@ -9484,7 +9508,7 @@ msgstr "เวลาหมดอายุของหน้าภาพ QR Code"
 msgid "Export"
 msgstr "ส่งออก"
 
-#: frappe/public/js/frappe/list/list_view.js:2289
+#: frappe/public/js/frappe/list/list_view.js:2292
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "ส่งออก"
@@ -10034,7 +10058,7 @@ msgstr ""
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr ""
 
-#: frappe/database/query.py:895
+#: frappe/database/query.py:896
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr ""
 
@@ -10203,11 +10227,11 @@ msgstr ""
 msgid "Filter Values"
 msgstr ""
 
-#: frappe/database/query.py:583
+#: frappe/database/query.py:584
 msgid "Filter condition missing after operator: {0}"
 msgstr ""
 
-#: frappe/database/query.py:659
+#: frappe/database/query.py:660
 msgid "Filter fields have invalid backtick notation: {0}"
 msgstr ""
 
@@ -10282,7 +10306,7 @@ msgstr ""
 msgid "Filters Section"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/link.js:522
+#: frappe/public/js/frappe/form/controls/link.js:526
 msgid "Filters applied for {0}"
 msgstr ""
 
@@ -10303,14 +10327,14 @@ msgstr ""
 msgid "Filters:"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:581
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:614
 msgid "Find '{0}' in ..."
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:329
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:331
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:150
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:153
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:392
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:394
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:161
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:164
 msgid "Find {0} in {1}"
 msgstr ""
 
@@ -10432,7 +10456,7 @@ msgid "Folio"
 msgstr "โฟลิโอ"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:106
-#: frappe/public/js/frappe/form/toolbar.js:905
+#: frappe/public/js/frappe/form/toolbar.js:912
 msgid "Follow"
 msgstr "ติดตาม"
 
@@ -10989,7 +11013,7 @@ msgstr "ฟังก์ชันตาม"
 msgid "Function {0} is not whitelisted."
 msgstr "ฟังก์ชัน {0} ไม่ได้อยู่ในรายการที่อนุญาต"
 
-#: frappe/database/query.py:1978
+#: frappe/database/query.py:1977
 msgid "Function {0} requires arguments but none were provided"
 msgstr ""
 
@@ -11058,7 +11082,7 @@ msgstr ""
 msgid "Generate New Report"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:397
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:460
 msgid "Generate Random Password"
 msgstr ""
 
@@ -11069,7 +11093,7 @@ msgid "Generate Separate Documents For Each Assignee"
 msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:191
-#: frappe/public/js/frappe/utils/utils.js:1855
+#: frappe/public/js/frappe/utils/utils.js:1873
 msgid "Generate Tracking URL"
 msgstr ""
 
@@ -11131,7 +11155,7 @@ msgstr ""
 msgid "Get a preview of generated names with a series."
 msgstr ""
 
-#: frappe/public/js/frappe/list/list_sidebar.js:305
+#: frappe/public/js/frappe/list/list_sidebar.js:309
 msgid "Get more insights with"
 msgstr ""
 
@@ -11184,7 +11208,7 @@ msgstr ""
 msgid "Global Unsubscribe"
 msgstr ""
 
-#: frappe/public/js/frappe/form/toolbar.js:869
+#: frappe/public/js/frappe/form/toolbar.js:876
 msgid "Go"
 msgstr ""
 
@@ -11470,7 +11494,7 @@ msgstr "จัดกลุ่มตามประเภท"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "ฟิลด์จัดกลุ่มตามเป็นสิ่งจำเป็นในการสร้างแผนภูมิแดชบอร์ด"
 
-#: frappe/database/query.py:1142
+#: frappe/database/query.py:1143
 msgid "Group By must be a string"
 msgstr ""
 
@@ -11748,10 +11772,6 @@ msgstr "เมนูช่วยเหลือแบบเลื่อนลง
 msgid "Help HTML"
 msgstr "HTML ช่วยเหลือ"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:149
-msgid "Help on Search"
-msgstr "ช่วยเหลือในการค้นหา"
-
 #. Description of the 'Content' (Text Editor) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")"
@@ -11772,7 +11792,7 @@ msgstr "เฮลเวติกา"
 msgid "Helvetica Neue"
 msgstr "เฮลเวติกา นอย"
 
-#: frappe/public/js/frappe/utils/utils.js:1852
+#: frappe/public/js/frappe/utils/utils.js:1870
 msgid "Here's your tracking URL"
 msgstr "นี่คือลิงก์ติดตามของคุณ"
 
@@ -12077,7 +12097,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_settings.js:335
 #: frappe/public/js/frappe/list/list_view.js:386
 #: frappe/public/js/frappe/list/list_view.js:450
-#: frappe/public/js/frappe/list/list_view.js:2339
+#: frappe/public/js/frappe/list/list_view.js:2342
 #: frappe/public/js/frappe/model/meta.js:208
 #: frappe/public/js/frappe/model/model.js:122
 msgid "ID"
@@ -12518,11 +12538,11 @@ msgstr "ภาพ"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
-#: frappe/core/doctype/user/user.js:372
+#: frappe/core/doctype/user/user.js:379
 msgid "Impersonate"
 msgstr "แอบอ้าง"
 
-#: frappe/core/doctype/user/user.js:399
+#: frappe/core/doctype/user/user.js:406
 msgid "Impersonate as {0}"
 msgstr "แอบอ้างเป็น {0}"
 
@@ -12628,7 +12648,7 @@ msgstr "แม่แบบการนำเข้าควรมีส่วน
 msgid "Import timed out, please re-try."
 msgstr "การนำเข้าหมดเวลา โปรดลองอีกครั้ง"
 
-#: frappe/core/doctype/data_import/data_import.py:70
+#: frappe/core/doctype/data_import/data_import.py:71
 msgid "Importing {0} is not allowed."
 msgstr "ไม่อนุญาตให้นำเข้า {0}"
 
@@ -12984,8 +13004,8 @@ msgstr "แทรกสไตล์"
 msgid "Instagram"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:678
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:679
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:713
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:714
 msgid "Install {0} from Marketplace"
 msgstr "ติดตั้ง {0} จาก Marketplace"
 
@@ -13019,7 +13039,7 @@ msgstr "ส่งคำแนะนำทางอีเมลแล้ว"
 msgid "Insufficient Permission Level for {0}"
 msgstr "ระดับสิทธิ์ไม่เพียงพอสำหรับ {0}"
 
-#: frappe/database/query.py:1212 frappe/database/query.py:1596
+#: frappe/database/query.py:1209 frappe/database/query.py:1595
 msgid "Insufficient Permission for {0}"
 msgstr "สิทธิ์ไม่เพียงพอสำหรับ {0}"
 
@@ -13177,7 +13197,7 @@ msgstr "วันที่ไม่ถูกต้อง"
 msgid "Invalid DocType"
 msgstr "DocType ไม่ถูกต้อง"
 
-#: frappe/database/query.py:259
+#: frappe/database/query.py:258
 msgid "Invalid DocType: {0}"
 msgstr "DocType ไม่ถูกต้อง: {0}"
 
@@ -13193,8 +13213,8 @@ msgstr "ชื่อฟิลด์ไม่ถูกต้อง"
 msgid "Invalid File URL"
 msgstr "URL ไฟล์ไม่ถูกต้อง"
 
-#: frappe/database/query.py:661 frappe/database/query.py:688
-#: frappe/database/query.py:698 frappe/database/query.py:721
+#: frappe/database/query.py:662 frappe/database/query.py:689
+#: frappe/database/query.py:699 frappe/database/query.py:722
 msgid "Invalid Filter"
 msgstr ""
 
@@ -13230,7 +13250,7 @@ msgstr "เซิร์ฟเวอร์เมลไม่ถูกต้อง
 msgid "Invalid Naming Series: {}"
 msgstr "ชุดการตั้งชื่อไม่ถูกต้อง: {}"
 
-#: frappe/core/doctype/data_import/data_import.py:167
+#: frappe/core/doctype/data_import/data_import.py:182
 #: frappe/core/doctype/prepared_report/prepared_report.py:200
 #: frappe/core/doctype/rq_job/rq_job.py:113
 #: frappe/core/doctype/rq_job/rq_job.py:122
@@ -13308,7 +13328,7 @@ msgstr "Webhook Secret ไม่ถูกต้อง"
 msgid "Invalid aggregate function"
 msgstr "ฟังก์ชันการรวมไม่ถูกต้อง"
 
-#: frappe/database/query.py:2185
+#: frappe/database/query.py:2184
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr ""
 
@@ -13316,19 +13336,19 @@ msgstr ""
 msgid "Invalid app"
 msgstr ""
 
-#: frappe/database/query.py:2094 frappe/database/query.py:2111
+#: frappe/database/query.py:2093 frappe/database/query.py:2110
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr ""
 
-#: frappe/database/query.py:2063
+#: frappe/database/query.py:2062
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr ""
 
-#: frappe/database/query.py:694
+#: frappe/database/query.py:695
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
 msgstr ""
 
-#: frappe/database/query.py:855
+#: frappe/database/query.py:856
 msgid "Invalid characters in table name: {0}"
 msgstr ""
 
@@ -13336,11 +13356,11 @@ msgstr ""
 msgid "Invalid column"
 msgstr "คอลัมน์ไม่ถูกต้อง"
 
-#: frappe/database/query.py:606
+#: frappe/database/query.py:607
 msgid "Invalid condition type in nested filters: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1191
+#: frappe/database/query.py:1188
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr ""
 
@@ -13356,15 +13376,15 @@ msgstr "นิพจน์ที่ตั้งค่าในตัวกรอ
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "นิพจน์ที่ตั้งค่าในตัวกรอง {0} ({1}) ไม่ถูกต้อง"
 
-#: frappe/database/query.py:1854
+#: frappe/database/query.py:1853
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr ""
 
-#: frappe/database/query.py:1126
+#: frappe/database/query.py:1127
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr ""
 
-#: frappe/database/query.py:2263
+#: frappe/database/query.py:2262
 msgid "Invalid field name in function: {0}. Only simple field names are allowed."
 msgstr ""
 
@@ -13372,7 +13392,7 @@ msgstr ""
 msgid "Invalid field name {0}"
 msgstr "ชื่อฟิลด์ไม่ถูกต้อง {0}"
 
-#: frappe/database/query.py:954
+#: frappe/database/query.py:955
 msgid "Invalid field type: {0}"
 msgstr ""
 
@@ -13384,11 +13404,11 @@ msgstr "ชื่อฟิลด์ไม่ถูกต้อง '{0}' ใน a
 msgid "Invalid file path: {0}"
 msgstr "เส้นทางไฟล์ไม่ถูกต้อง: {0}"
 
-#: frappe/database/query.py:589
+#: frappe/database/query.py:590
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
 msgstr ""
 
-#: frappe/database/query.py:684
+#: frappe/database/query.py:685
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
 msgstr ""
 
@@ -13396,7 +13416,7 @@ msgstr ""
 msgid "Invalid filter: {0}"
 msgstr "ตัวกรองไม่ถูกต้อง: {0}"
 
-#: frappe/database/query.py:1983
+#: frappe/database/query.py:1982
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr ""
 
@@ -13425,7 +13445,7 @@ msgstr "ชุดการตั้งชื่อไม่ถูกต้อง
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr ""
 
-#: frappe/database/query.py:2055
+#: frappe/database/query.py:2054
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr ""
 
@@ -13449,15 +13469,15 @@ msgstr ""
 msgid "Invalid role"
 msgstr ""
 
-#: frappe/database/query.py:637
+#: frappe/database/query.py:638
 msgid "Invalid simple filter format: {0}"
 msgstr ""
 
-#: frappe/database/query.py:566
+#: frappe/database/query.py:567
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
 msgstr ""
 
-#: frappe/database/query.py:2132
+#: frappe/database/query.py:2131
 msgid "Invalid string literal format: {0}"
 msgstr ""
 
@@ -13483,7 +13503,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "ค่าที่ไม่ถูกต้องสำหรับฟิลด์:"
 
-#: frappe/printing/page/print/print.js:670
+#: frappe/printing/page/print/print.js:672
 msgid "Invalid wkhtmltopdf version"
 msgstr "เวอร์ชัน wkhtmltopdf ไม่ถูกต้อง"
 
@@ -13491,7 +13511,7 @@ msgstr "เวอร์ชัน wkhtmltopdf ไม่ถูกต้อง"
 msgid "Invalid {0} condition"
 msgstr "เงื่อนไข {0} ไม่ถูกต้อง"
 
-#: frappe/database/query.py:1944
+#: frappe/database/query.py:1943
 msgid "Invalid {0} dictionary format"
 msgstr ""
 
@@ -13921,7 +13941,7 @@ msgstr ""
 msgid "Job is in {0} state and can't be cancelled"
 msgstr ""
 
-#: frappe/core/doctype/data_import/data_import.py:167
+#: frappe/core/doctype/data_import/data_import.py:182
 #: frappe/core/doctype/prepared_report/prepared_report.py:200
 #: frappe/core/doctype/rq_job/rq_job.py:113
 msgid "Job is not running."
@@ -13935,8 +13955,8 @@ msgstr ""
 msgid "Join video conference with {0}"
 msgstr ""
 
-#: frappe/public/js/frappe/form/toolbar.js:424
-#: frappe/public/js/frappe/form/toolbar.js:859
+#: frappe/public/js/frappe/form/toolbar.js:431
+#: frappe/public/js/frappe/form/toolbar.js:866
 msgid "Jump to field"
 msgstr ""
 
@@ -14690,7 +14710,7 @@ msgstr "การถูกใจ"
 msgid "Limit"
 msgstr "ขีดจำกัด"
 
-#: frappe/database/query.py:231
+#: frappe/database/query.py:230
 msgid "Limit must be a non-negative integer"
 msgstr ""
 
@@ -14898,7 +14918,8 @@ msgstr "ลิงก์"
 #: frappe/custom/doctype/client_script/client_script.json
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/utils/utils.js:928
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:92
+#: frappe/public/js/frappe/utils/utils.js:932
 msgid "List"
 msgstr ""
 
@@ -14942,7 +14963,7 @@ msgstr ""
 msgid "List View Settings"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:161
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:221
 msgid "List a document type"
 msgstr ""
 
@@ -14969,7 +14990,7 @@ msgstr ""
 msgid "List setting message"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:551
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:584
 msgid "Lists"
 msgstr ""
 
@@ -15226,7 +15247,7 @@ msgstr ""
 msgid "Logout"
 msgstr "ออกจากระบบ"
 
-#: frappe/core/doctype/user/user.js:190
+#: frappe/core/doctype/user/user.js:195
 msgid "Logout All Sessions"
 msgstr "ออกจากระบบทุกเซสชัน"
 
@@ -15635,7 +15656,7 @@ msgstr "ความหมายของการส่ง ยกเลิก �
 #. Label of the medium (Data) field in DocType 'Web Page View'
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:221
-#: frappe/public/js/frappe/utils/utils.js:1802
+#: frappe/public/js/frappe/utils/utils.js:1820
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
@@ -15684,7 +15705,7 @@ msgstr "การกล่าวถึง"
 msgid "Menu"
 msgstr "เมนู"
 
-#: frappe/public/js/frappe/form/toolbar.js:246
+#: frappe/public/js/frappe/form/toolbar.js:253
 #: frappe/public/js/frappe/model/model.js:705
 msgid "Merge with existing"
 msgstr "รวมกับที่มีอยู่"
@@ -15825,8 +15846,10 @@ msgstr "ชื่อเรื่องเมตา"
 msgid "Meta title for SEO"
 msgstr "ชื่อเรื่องเมตาสำหรับ SEO"
 
+#. Label of the metadata (Code) field in DocType 'Error Log'
 #. Label of the resource_server_section (Section Break) field in DocType 'OAuth
 #. Settings'
+#: frappe/core/doctype/error_log/error_log.json
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Metadata"
 msgstr ""
@@ -16024,7 +16047,7 @@ msgstr "ตัวกระตุ้นโมดอล"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.json
-#: frappe/public/js/frappe/utils/utils.js:931
+#: frappe/public/js/frappe/utils/utils.js:939
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_template/web_template.json
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -16090,7 +16113,7 @@ msgstr "รีเซ็ตความคืบหน้าการเริ่
 msgid "Module to Export"
 msgstr "โมดูลที่จะส่งออก"
 
-#: frappe/modules/utils.py:279
+#: frappe/modules/utils.py:280
 msgid "Module {} not found"
 msgstr "ไม่พบโมดูล {}"
 
@@ -16504,7 +16527,7 @@ msgstr "ต้องการบทบาทผู้จัดการพื้
 msgid "Negative Value"
 msgstr "ค่าติดลบ"
 
-#: frappe/database/query.py:558
+#: frappe/database/query.py:559
 msgid "Nested filters must be provided as a list or tuple."
 msgstr ""
 
@@ -16560,8 +16583,8 @@ msgstr "ผู้ติดต่อใหม่"
 msgid "New Custom Block"
 msgstr "บล็อกที่กำหนดเองใหม่"
 
-#: frappe/printing/page/print/print.js:324
-#: frappe/printing/page/print/print.js:371
+#: frappe/printing/page/print/print.js:326
+#: frappe/printing/page/print/print.js:373
 msgid "New Custom Print Format"
 msgstr "รูปแบบการพิมพ์ที่กำหนดเองใหม่"
 
@@ -16610,7 +16633,7 @@ msgstr "ข้อความใหม่จากหน้าติดต่อ
 
 #. Label of the new_name (Read Only) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
-#: frappe/public/js/frappe/form/toolbar.js:222
+#: frappe/public/js/frappe/form/toolbar.js:229
 #: frappe/public/js/frappe/model/model.js:713
 msgid "New Name"
 msgstr "ชื่อใหม่"
@@ -16627,12 +16650,12 @@ msgstr "การ์ดตัวเลขใหม่"
 msgid "New Onboarding"
 msgstr "การเริ่มต้นใช้งานใหม่"
 
-#: frappe/core/doctype/user/user.js:178 frappe/www/update-password.html:43
+#: frappe/core/doctype/user/user.js:183 frappe/www/update-password.html:43
 msgid "New Password"
 msgstr "รหัสผ่านใหม่"
 
-#: frappe/printing/page/print/print.js:296
-#: frappe/printing/page/print/print.js:350
+#: frappe/printing/page/print/print.js:298
+#: frappe/printing/page/print/print.js:352
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:61
 msgid "New Print Format Name"
 msgstr "ชื่อรูปแบบการพิมพ์ใหม่"
@@ -16712,15 +16735,15 @@ msgid "New value to be set"
 msgstr "ค่าที่จะตั้งใหม่"
 
 #: frappe/public/js/frappe/form/quick_entry.js:179
-#: frappe/public/js/frappe/form/toolbar.js:41
-#: frappe/public/js/frappe/form/toolbar.js:210
-#: frappe/public/js/frappe/form/toolbar.js:225
-#: frappe/public/js/frappe/form/toolbar.js:587
+#: frappe/public/js/frappe/form/toolbar.js:48
+#: frappe/public/js/frappe/form/toolbar.js:217
+#: frappe/public/js/frappe/form/toolbar.js:232
+#: frappe/public/js/frappe/form/toolbar.js:594
 #: frappe/public/js/frappe/model/model.js:612
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:176
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:177
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:226
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:227
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:189
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:190
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:248
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:249
 #: frappe/public/js/frappe/views/treeview.js:366
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
 #: frappe/website/doctype/web_form/web_form.py:438
@@ -16800,7 +16823,7 @@ msgstr "แม่แบบอีเมลการดำเนินการถ
 msgid "Next Actions HTML"
 msgstr "HTML การดำเนินการถัดไป"
 
-#: frappe/public/js/frappe/form/toolbar.js:329
+#: frappe/public/js/frappe/form/toolbar.js:336
 msgid "Next Document"
 msgstr ""
 
@@ -16877,7 +16900,7 @@ msgstr "ถัดไปเมื่อคลิก"
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:341
-#: frappe/public/js/frappe/form/controls/link.js:500
+#: frappe/public/js/frappe/form/controls/link.js:504
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1690
 #: frappe/website/doctype/help_article/templates/help_article.html:26
@@ -16968,8 +16991,8 @@ msgstr ""
 msgid "No Label"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:765
-#: frappe/printing/page/print/print.js:846
+#: frappe/printing/page/print/print.js:767
+#: frappe/printing/page/print/print.js:848
 #: frappe/public/js/frappe/list/bulk_operations.js:98
 #: frappe/public/js/frappe/list/bulk_operations.js:170
 #: frappe/utils/weasyprint.py:52
@@ -17004,11 +17027,11 @@ msgstr ""
 msgid "No Preview"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:769
+#: frappe/printing/page/print/print.js:771
 msgid "No Preview Available"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:924
+#: frappe/printing/page/print/print.js:926
 msgid "No Printer is Available."
 msgstr ""
 
@@ -17212,7 +17235,7 @@ msgstr "จะไม่มีการส่งออกบันทึก"
 msgid "No rows"
 msgstr "ไม่มีแถว"
 
-#: frappe/public/js/frappe/list/list_view.js:2306
+#: frappe/public/js/frappe/list/list_view.js:2309
 msgid "No rows selected"
 msgstr ""
 
@@ -17357,8 +17380,8 @@ msgstr "ไม่ได้รับอนุญาตให้อ่าน {0}"
 msgid "Not Published"
 msgstr "ไม่ได้เผยแพร่"
 
-#: frappe/public/js/frappe/form/toolbar.js:291
-#: frappe/public/js/frappe/form/toolbar.js:842
+#: frappe/public/js/frappe/form/toolbar.js:298
+#: frappe/public/js/frappe/form/toolbar.js:849
 #: frappe/public/js/frappe/model/indicator.js:28
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:183
 #: frappe/public/js/frappe/views/reports/report_view.js:209
@@ -17443,7 +17466,7 @@ msgstr "ไม่ได้อยู่ในโหมดนักพัฒนา
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "ไม่ได้อยู่ในโหมดนักพัฒนา! ตั้งค่าใน site_config.json หรือสร้าง DocType 'Custom'"
 
-#: frappe/core/doctype/system_settings/system_settings.py:233
+#: frappe/core/doctype/system_settings/system_settings.py:234
 #: frappe/public/js/frappe/request.js:159
 #: frappe/public/js/frappe/request.js:170
 #: frappe/public/js/frappe/request.js:175
@@ -17476,7 +17499,7 @@ msgstr "หมายเหตุที่เห็นโดย"
 msgid "Note:"
 msgstr "หมายเหตุ:"
 
-#: frappe/public/js/frappe/utils/utils.js:775
+#: frappe/public/js/frappe/utils/utils.js:774
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "หมายเหตุ: การเปลี่ยนชื่อหน้าจะทำให้ URL ก่อนหน้านี้ไปยังหน้านี้เสีย"
 
@@ -17496,7 +17519,7 @@ msgstr "หมายเหตุ: เพื่อผลลัพธ์ที่�
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "หมายเหตุ: จะอนุญาตให้มีหลายเซสชันในกรณีของอุปกรณ์มือถือ"
 
-#: frappe/core/doctype/user/user.js:387
+#: frappe/core/doctype/user/user.js:394
 msgid "Note: This will be shared with user."
 msgstr "หมายเหตุ: สิ่งนี้จะถูกแชร์กับผู้ใช้"
 
@@ -17691,7 +17714,7 @@ msgstr "จำนวนคำสั่ง Query"
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr "จำนวนฟิลด์ไฟล์แนบมากกว่า {} ขีดจำกัดอัปเดตเป็น {}"
 
-#: frappe/core/doctype/system_settings/system_settings.py:188
+#: frappe/core/doctype/system_settings/system_settings.py:189
 msgid "Number of backups must be greater than zero."
 msgstr "จำนวนการสำรองข้อมูลต้องมากกว่าศูนย์"
 
@@ -17806,7 +17829,7 @@ msgstr ""
 msgid "OTP SMS Template"
 msgstr ""
 
-#: frappe/core/doctype/system_settings/system_settings.py:167
+#: frappe/core/doctype/system_settings/system_settings.py:168
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
 msgstr ""
 
@@ -17864,7 +17887,7 @@ msgstr ""
 msgid "Offset Y"
 msgstr ""
 
-#: frappe/database/query.py:236
+#: frappe/database/query.py:235
 msgid "Offset must be a non-negative integer"
 msgstr ""
 
@@ -18037,7 +18060,7 @@ msgstr "ส่งเฉพาะบันทึกที่อัปเดตใ
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr "เฉพาะผู้จัดการพื้นที่ทำงานเท่านั้นที่สามารถแก้ไขพื้นที่ทำงานสาธารณะได้"
 
-#: frappe/modules/utils.py:67
+#: frappe/modules/utils.py:68
 msgid "Only allowed to export customizations in developer mode"
 msgstr "อนุญาตให้ส่งออกการปรับแต่งในโหมดนักพัฒนาเท่านั้น"
 
@@ -18107,11 +18130,9 @@ msgctxt "Access"
 msgid "Open"
 msgstr ""
 
-#: frappe/desk/page/desktop/desktop.js:211
-#: frappe/desk/page/desktop/desktop.js:220
+#: frappe/desk/page/desktop/desktop.js:221
 #: frappe/public/js/frappe/ui/keyboard.js:207
 #: frappe/public/js/frappe/ui/keyboard.js:217
-#: frappe/public/js/frappe/ui/keyboard.js:227
 msgid "Open Awesomebar"
 msgstr ""
 
@@ -18131,7 +18152,7 @@ msgstr ""
 msgid "Open Documents"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/keyboard.js:253
+#: frappe/public/js/frappe/ui/keyboard.js:243
 msgid "Open Help"
 msgstr ""
 
@@ -18141,7 +18162,7 @@ msgstr ""
 msgid "Open Reference Document"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/keyboard.js:236
+#: frappe/public/js/frappe/ui/keyboard.js:226
 msgid "Open Settings"
 msgstr ""
 
@@ -18159,11 +18180,11 @@ msgstr ""
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:176
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:236
 msgid "Open a module or tool"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/keyboard.js:377
+#: frappe/public/js/frappe/ui/keyboard.js:367
 msgid "Open console"
 msgstr ""
 
@@ -18186,13 +18207,16 @@ msgstr ""
 
 #: frappe/desk/doctype/todo/todo_list.js:17
 #: frappe/public/js/frappe/form/templates/form_links.html:18
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:286
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:287
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:298
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:308
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:317
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:312
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:313
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:324
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:325
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:335
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:336
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:345
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:346
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:366
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:367
 msgid "Open {0}"
 msgstr ""
 
@@ -18224,7 +18248,7 @@ msgstr ""
 msgid "Operator must be one of {0}"
 msgstr "ผู้ปฏิบัติงานต้องเป็นหนึ่งใน {0}"
 
-#: frappe/database/query.py:2011
+#: frappe/database/query.py:2010
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr ""
 
@@ -18325,7 +18349,7 @@ msgstr "สีส้ม"
 msgid "Order"
 msgstr "คำสั่งซื้อ"
 
-#: frappe/database/query.py:1163
+#: frappe/database/query.py:1160
 msgid "Order By must be a string"
 msgstr ""
 
@@ -18464,11 +18488,11 @@ msgstr "การสร้าง PDF ล้มเหลว"
 msgid "PDF generation failed because of broken image links"
 msgstr "การสร้าง PDF ล้มเหลวเนื่องจากลิงก์ภาพเสีย"
 
-#: frappe/printing/page/print/print.js:672
+#: frappe/printing/page/print/print.js:674
 msgid "PDF generation may not work as expected."
 msgstr "การสร้าง PDF อาจไม่ทำงานตามที่คาดไว้"
 
-#: frappe/printing/page/print/print.js:590
+#: frappe/printing/page/print/print.js:592
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr ""
 
@@ -18779,8 +18803,8 @@ msgstr "ไม่กระตือรือร้น"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:165 frappe/core/doctype/user/user.js:212
-#: frappe/core/doctype/user/user.js:232
+#: frappe/core/doctype/user/user.js:170 frappe/core/doctype/user/user.js:217
+#: frappe/core/doctype/user/user.js:237
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/page/setup_wizard/setup_wizard.js:493
@@ -18852,7 +18876,7 @@ msgstr "ขนาดรหัสผ่านเกินขนาดสูงส
 msgid "Passwords do not match"
 msgstr "รหัสผ่านไม่ตรงกัน"
 
-#: frappe/core/doctype/user/user.js:198
+#: frappe/core/doctype/user/user.js:203
 msgid "Passwords do not match!"
 msgstr "รหัสผ่านไม่ตรงกัน!"
 
@@ -18906,7 +18930,7 @@ msgstr "เส้นทางไปยังใบรับรองเซิร
 msgid "Path to private Key File"
 msgstr "เส้นทางไปยังไฟล์คีย์ส่วนตัว"
 
-#: frappe/modules/utils.py:208
+#: frappe/modules/utils.py:209
 msgid "Path {0} is not within module {1}"
 msgstr ""
 
@@ -19007,7 +19031,7 @@ msgstr "ส่ง {0} อย่างถาวร?"
 msgid "Permanently delete {0}?"
 msgstr "ลบ {0} อย่างถาวร?"
 
-#: frappe/core/doctype/user_type/user_type.py:84 frappe/database/query.py:813
+#: frappe/core/doctype/user_type/user_type.py:84 frappe/database/query.py:814
 msgid "Permission Error"
 msgstr "ข้อผิดพลาดในการอนุญาต"
 
@@ -19074,8 +19098,8 @@ msgstr ""
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:131 frappe/core/doctype/user/user.js:140
-#: frappe/core/doctype/user/user.js:149
+#: frappe/core/doctype/user/user.js:136 frappe/core/doctype/user/user.js:145
+#: frappe/core/doctype/user/user.js:154
 #: frappe/core/page/permission_manager/permission_manager.js:221
 #: frappe/core/workspace/users/users.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -19309,7 +19333,7 @@ msgstr "โปรดคลิกที่ลิงก์ต่อไปนี้
 msgid "Please confirm your action to {0} this document."
 msgstr "โปรดยืนยันการกระทำของคุณเพื่อ {0} เอกสารนี้"
 
-#: frappe/printing/page/print/print.js:674
+#: frappe/printing/page/print/print.js:676
 msgid "Please contact your system manager to install correct version."
 msgstr "โปรดติดต่อผู้จัดการระบบของคุณเพื่อติดตั้งเวอร์ชันที่ถูกต้อง"
 
@@ -19333,16 +19357,16 @@ msgstr "โปรดอย่าเปลี่ยนหัวข้อแม่
 msgid "Please duplicate this to make changes"
 msgstr "โปรดทำสำเนานี้เพื่อทำการเปลี่ยนแปลง"
 
-#: frappe/core/doctype/system_settings/system_settings.py:181
+#: frappe/core/doctype/system_settings/system_settings.py:182
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "โปรดเปิดใช้งานคีย์เข้าสู่ระบบโซเชียลอย่างน้อยหนึ่งคีย์หรือ LDAP หรือเข้าสู่ระบบด้วยลิงก์อีเมลก่อนปิดใช้งานการเข้าสู่ระบบด้วยชื่อผู้ใช้/รหัสผ่าน"
 
 #: frappe/desk/doctype/notification_log/notification_log.js:45
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:17
-#: frappe/printing/page/print/print.js:694
-#: frappe/printing/page/print/print.js:730
+#: frappe/printing/page/print/print.js:696
+#: frappe/printing/page/print/print.js:732
 #: frappe/public/js/frappe/list/bulk_operations.js:161
-#: frappe/public/js/frappe/utils/utils.js:1499
+#: frappe/public/js/frappe/utils/utils.js:1517
 msgid "Please enable pop-ups"
 msgstr "โปรดเปิดใช้งานป๊อปอัป"
 
@@ -19433,7 +19457,7 @@ msgstr "โปรดตรวจสอบว่าเอกสารการส
 msgid "Please refresh to get the latest document."
 msgstr "โปรดรีเฟรชเพื่อรับเอกสารล่าสุด"
 
-#: frappe/printing/page/print/print.js:591
+#: frappe/printing/page/print/print.js:593
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "โปรดลบการแมปเครื่องพิมพ์ในการตั้งค่าเครื่องพิมพ์และลองอีกครั้ง"
 
@@ -19469,7 +19493,7 @@ msgstr "โปรดเลือก DocType ก่อน"
 msgid "Please select Entity Type first"
 msgstr "โปรดเลือกประเภทเอนทิตีก่อน"
 
-#: frappe/core/doctype/system_settings/system_settings.py:117
+#: frappe/core/doctype/system_settings/system_settings.py:118
 msgid "Please select Minimum Password Score"
 msgstr "โปรดเลือกคะแนนรหัสผ่านขั้นต่ำ"
 
@@ -19531,7 +19555,7 @@ msgstr "โปรดเลือก {0}"
 msgid "Please set Email Address"
 msgstr "โปรดตั้งค่าที่อยู่อีเมล"
 
-#: frappe/printing/page/print/print.js:605
+#: frappe/printing/page/print/print.js:607
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "โปรดตั้งค่าการแมปเครื่องพิมพ์สำหรับรูปแบบการพิมพ์นี้ในการตั้งค่าเครื่องพิมพ์"
 
@@ -19555,7 +19579,7 @@ msgstr "โปรดตั้งค่าเอกสารต่อไปนี
 msgid "Please set the series to be used."
 msgstr "โปรดตั้งค่าซีรีส์ที่จะใช้"
 
-#: frappe/core/doctype/system_settings/system_settings.py:131
+#: frappe/core/doctype/system_settings/system_settings.py:132
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr "โปรดตั้งค่า SMS ก่อนตั้งค่าเป็นวิธีการยืนยันตัวตนผ่านการตั้งค่า SMS"
 
@@ -19709,7 +19733,7 @@ msgstr "รหัสไปรษณีย์"
 msgid "Posting Timestamp"
 msgstr "การประทับเวลาที่โพสต์"
 
-#: frappe/database/query.py:2161
+#: frappe/database/query.py:2160
 msgid "Potentially dangerous content in string literal: {0}"
 msgstr ""
 
@@ -19859,7 +19883,7 @@ msgctxt "Go to previous slide"
 msgid "Previous"
 msgstr "ก่อนหน้า"
 
-#: frappe/public/js/frappe/form/toolbar.js:321
+#: frappe/public/js/frappe/form/toolbar.js:328
 msgid "Previous Document"
 msgstr ""
 
@@ -19897,7 +19921,7 @@ msgstr "มือถือหลัก"
 msgid "Primary Phone"
 msgstr "โทรศัพท์หลัก"
 
-#: frappe/database/mariadb/schema.py:156 frappe/database/postgres/schema.py:199
+#: frappe/database/mariadb/schema.py:156 frappe/database/postgres/schema.py:202
 #: frappe/database/sqlite/schema.py:141
 msgid "Primary key of doctype {0} can not be changed as there are existing values."
 msgstr "คีย์หลักของประเภทเอกสาร {0} ไม่สามารถเปลี่ยนแปลงได้เนื่องจากมีค่าที่มีอยู่แล้ว"
@@ -19912,8 +19936,8 @@ msgstr "คีย์หลักของประเภทเอกสาร {0
 #: frappe/printing/page/print/print.js:78
 #: frappe/public/js/frappe/form/success_action.js:81
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
-#: frappe/public/js/frappe/form/toolbar.js:386
-#: frappe/public/js/frappe/form/toolbar.js:398
+#: frappe/public/js/frappe/form/toolbar.js:393
+#: frappe/public/js/frappe/form/toolbar.js:405
 #: frappe/public/js/frappe/list/bulk_operations.js:95
 #: frappe/public/js/frappe/views/reports/query_report.js:1814
 #: frappe/public/js/frappe/views/reports/report_view.js:1539
@@ -19921,7 +19945,7 @@ msgstr "คีย์หลักของประเภทเอกสาร {0
 msgid "Print"
 msgstr "พิมพ์"
 
-#: frappe/public/js/frappe/list/list_view.js:2173
+#: frappe/public/js/frappe/list/list_view.js:2176
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "พิมพ์"
@@ -19940,7 +19964,7 @@ msgstr "พิมพ์เอกสาร"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/page/print/print.js:107
-#: frappe/printing/page/print/print.js:883
+#: frappe/printing/page/print/print.js:885
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Print Format"
@@ -20083,11 +20107,11 @@ msgstr "พิมพ์เอกสาร"
 msgid "Print with letterhead"
 msgstr "พิมพ์พร้อมหัวจดหมาย"
 
-#: frappe/printing/page/print/print.js:892
+#: frappe/printing/page/print/print.js:894
 msgid "Printer"
 msgstr "เครื่องพิมพ์"
 
-#: frappe/printing/page/print/print.js:869
+#: frappe/printing/page/print/print.js:871
 msgid "Printer Mapping"
 msgstr "การแมปเครื่องพิมพ์"
 
@@ -20097,11 +20121,11 @@ msgstr "การแมปเครื่องพิมพ์"
 msgid "Printer Name"
 msgstr "ชื่อเครื่องพิมพ์"
 
-#: frappe/printing/page/print/print.js:861
+#: frappe/printing/page/print/print.js:863
 msgid "Printer Settings"
 msgstr "การตั้งค่าเครื่องพิมพ์"
 
-#: frappe/printing/page/print/print.js:604
+#: frappe/printing/page/print/print.js:606
 msgid "Printer mapping not set."
 msgstr "ไม่ได้ตั้งค่าการแมปเครื่องพิมพ์"
 
@@ -20792,7 +20816,7 @@ msgstr "พารามิเตอร์ผู้รับ"
 msgid "Recent years are easy to guess."
 msgstr "ปีล่าสุดคาดเดาได้ง่าย"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:541
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:574
 msgid "Recents"
 msgstr "ล่าสุด"
 
@@ -20909,12 +20933,12 @@ msgstr "เปลี่ยนเส้นทาง"
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "เซิร์ฟเวอร์แคช Redis ไม่ทำงาน โปรดติดต่อผู้ดูแลระบบ/ฝ่ายสนับสนุนด้านเทคนิค"
 
-#: frappe/public/js/frappe/form/toolbar.js:556
+#: frappe/public/js/frappe/form/toolbar.js:563
 msgid "Redo"
 msgstr "ทำซ้ำ"
 
 #: frappe/public/js/frappe/form/form.js:165
-#: frappe/public/js/frappe/form/toolbar.js:564
+#: frappe/public/js/frappe/form/toolbar.js:571
 msgid "Redo last action"
 msgstr "ทำซ้ำการกระทำล่าสุด"
 
@@ -21152,7 +21176,7 @@ msgstr "รีเฟรชทั้งหมด"
 msgid "Refresh Google Sheet"
 msgstr "รีเฟรช Google Sheet"
 
-#: frappe/printing/page/print/print.js:387
+#: frappe/printing/page/print/print.js:389
 msgid "Refresh Print Preview"
 msgstr ""
 
@@ -21173,7 +21197,7 @@ msgid "Refreshing"
 msgstr "กำลังรีเฟรช"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
-#: frappe/core/doctype/user/user.js:362
+#: frappe/core/doctype/user/user.js:369
 #: frappe/desk/page/setup_wizard/setup_wizard.js:211
 msgid "Refreshing..."
 msgstr "กำลังรีเฟรช..."
@@ -21227,7 +21251,7 @@ msgstr "ลิงก์ใหม่แล้ว"
 #. Label of a standard navbar item
 #. Type: Action
 #: frappe/custom/doctype/customize_form/customize_form.js:120 frappe/hooks.py
-#: frappe/public/js/frappe/form/toolbar.js:473
+#: frappe/public/js/frappe/form/toolbar.js:480
 msgid "Reload"
 msgstr "โหลดใหม่"
 
@@ -21258,7 +21282,7 @@ msgstr "จำค่าที่เลือกครั้งสุดท้า
 msgid "Remind At"
 msgstr "เตือนที่"
 
-#: frappe/public/js/frappe/form/toolbar.js:505
+#: frappe/public/js/frappe/form/toolbar.js:512
 msgid "Remind Me"
 msgstr "เตือนฉัน"
 
@@ -21338,9 +21362,9 @@ msgid "Removed"
 msgstr "ลบแล้ว"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:137
-#: frappe/public/js/frappe/form/toolbar.js:258
-#: frappe/public/js/frappe/form/toolbar.js:262
-#: frappe/public/js/frappe/form/toolbar.js:461
+#: frappe/public/js/frappe/form/toolbar.js:265
+#: frappe/public/js/frappe/form/toolbar.js:269
+#: frappe/public/js/frappe/form/toolbar.js:468
 #: frappe/public/js/frappe/model/model.js:723
 #: frappe/public/js/frappe/views/treeview.js:311
 msgid "Rename"
@@ -21368,7 +21392,7 @@ msgstr "แสดงป้ายกำกับทางซ้ายและค
 msgid "Reopen"
 msgstr "เปิดใหม่"
 
-#: frappe/public/js/frappe/form/toolbar.js:573
+#: frappe/public/js/frappe/form/toolbar.js:580
 msgid "Repeat"
 msgstr "ทำซ้ำ"
 
@@ -21494,7 +21518,8 @@ msgstr "ตอบกลับทั้งหมด"
 #: frappe/printing/doctype/print_format/print_format.py:104
 #: frappe/public/js/frappe/form/print_utils.js:31
 #: frappe/public/js/frappe/request.js:616
-#: frappe/public/js/frappe/utils/utils.js:925
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:104
+#: frappe/public/js/frappe/utils/utils.js:928
 msgid "Report"
 msgstr "รายงาน"
 
@@ -21639,8 +21664,8 @@ msgstr "รายงานไม่ได้รับการบันทึก
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "รายงานที่มีมากกว่า 10 คอลัมน์ดูดีกว่าในโหมดแนวนอน"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:260
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:261
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:284
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:285
 msgid "Report {0}"
 msgstr "รายงาน {0}"
 
@@ -21663,7 +21688,7 @@ msgstr "รายงาน:"
 #. Label of the prepared_report_section (Section Break) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:556
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:589
 msgid "Reports"
 msgstr "รายงาน"
 
@@ -21805,7 +21830,7 @@ msgstr ""
 msgid "Reset Fields"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:172 frappe/core/doctype/user/user.js:175
+#: frappe/core/doctype/user/user.js:177 frappe/core/doctype/user/user.js:180
 msgid "Reset LDAP Password"
 msgstr ""
 
@@ -21813,11 +21838,11 @@ msgstr ""
 msgid "Reset Layout"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:223
+#: frappe/core/doctype/user/user.js:228
 msgid "Reset OTP Secret"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:156 frappe/www/login.html:194
+#: frappe/core/doctype/user/user.js:161 frappe/www/login.html:194
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:32
 msgid "Reset Password"
@@ -21963,8 +21988,8 @@ msgctxt "Title of message showing restrictions in list view"
 msgid "Restrictions"
 msgstr "ข้อจำกัด"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:385
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:400
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:448
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:463
 msgid "Result"
 msgstr "ผลลัพธ์"
 
@@ -22465,7 +22490,7 @@ msgstr "ผลลัพธ์ SQL"
 msgid "SQL Queries"
 msgstr "คำสั่ง SQL"
 
-#: frappe/database/query.py:1844
+#: frappe/database/query.py:1843
 msgid "SQL functions are not allowed in SELECT fields: {0}. Use the query builder API with functions instead."
 msgstr ""
 
@@ -22538,7 +22563,7 @@ msgstr "วันเสาร์"
 #: cypress/integration/web_form.js:46
 #: frappe/core/doctype/data_import/data_import.js:119
 #: frappe/email/doctype/notification/notification.json
-#: frappe/printing/page/print/print.js:920
+#: frappe/printing/page/print/print.js:922
 #: frappe/printing/page/print_format_builder/print_format_builder.js:160
 #: frappe/public/js/frappe/form/footer/form_timeline.js:678
 #: frappe/public/js/frappe/form/quick_entry.js:185
@@ -22592,7 +22617,7 @@ msgstr "บันทึกเอกสาร"
 
 #: frappe/model/rename_doc.py:106
 #: frappe/printing/page/print_format_builder/print_format_builder.js:858
-#: frappe/public/js/frappe/form/toolbar.js:290
+#: frappe/public/js/frappe/form/toolbar.js:297
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:917
 #: frappe/public/js/frappe/views/workspace/workspace.js:738
 msgid "Saved"
@@ -22708,7 +22733,7 @@ msgstr ""
 msgid "Scheduler Event"
 msgstr ""
 
-#: frappe/core/doctype/data_import/data_import.py:109
+#: frappe/core/doctype/data_import/data_import.py:124
 msgid "Scheduler Inactive"
 msgstr ""
 
@@ -22721,7 +22746,7 @@ msgstr ""
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
 msgstr ""
 
-#: frappe/core/doctype/data_import/data_import.py:109
+#: frappe/core/doctype/data_import/data_import.py:124
 msgid "Scheduler is inactive. Cannot import data."
 msgstr ""
 
@@ -22835,7 +22860,7 @@ msgstr ""
 msgid "Search Fields"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:186
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:246
 msgid "Search Help"
 msgstr ""
 
@@ -22870,16 +22895,16 @@ msgstr ""
 msgid "Search for anything"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:300
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:306
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:360
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:367
 msgid "Search for {0}"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:166
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:226
 msgid "Search in a document type"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/navbar.html:29
+#: frappe/public/js/frappe/ui/toolbar/navbar.html:30
 msgid "Search or type a command ({0})"
 msgstr ""
 
@@ -23011,7 +23036,7 @@ msgstr ""
 #: frappe/core/doctype/report_filter/report_filter.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
-#: frappe/printing/page/print/print.js:658
+#: frappe/printing/page/print/print.js:660
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -23092,7 +23117,7 @@ msgstr ""
 
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:33
 #: frappe/public/js/frappe/doctype/index.js:200
-#: frappe/public/js/frappe/form/toolbar.js:864
+#: frappe/public/js/frappe/form/toolbar.js:871
 msgid "Select Field"
 msgstr ""
 
@@ -23156,7 +23181,7 @@ msgid "Select Module"
 msgstr "เลือกโมดูล"
 
 #: frappe/printing/page/print/print.js:188
-#: frappe/printing/page/print/print.js:641
+#: frappe/printing/page/print/print.js:643
 msgid "Select Network Printer"
 msgstr "เลือกเครื่องพิมพ์เครือข่าย"
 
@@ -23663,7 +23688,7 @@ msgstr "เซสชันหมดอายุ"
 msgid "Session Expiry (idle timeout)"
 msgstr "การหมดอายุของเซสชัน (หมดเวลาไม่ใช้งาน)"
 
-#: frappe/core/doctype/system_settings/system_settings.py:124
+#: frappe/core/doctype/system_settings/system_settings.py:125
 msgid "Session Expiry must be in format {0}"
 msgstr "การหมดอายุของเซสชันต้องอยู่ในรูปแบบ {0}"
 
@@ -23771,7 +23796,7 @@ msgstr "ตั้งค่าปริมาณ"
 msgid "Set Role For"
 msgstr "ตั้งค่าบทบาทสำหรับ"
 
-#: frappe/core/doctype/user/user.js:124
+#: frappe/core/doctype/user/user.js:129
 #: frappe/core/page/permission_manager/permission_manager.js:72
 msgid "Set User Permissions"
 msgstr "ตั้งค่าสิทธิ์ผู้ใช้"
@@ -23914,7 +23939,7 @@ msgstr "การตั้งค่าสำหรับหน้าเกี่
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:576
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:609
 msgid "Setup"
 msgstr "การตั้งค่า"
 
@@ -24120,7 +24145,7 @@ msgstr "แสดงฟอร์มทั้งหมดหรือไม่?"
 msgid "Show Full Number"
 msgstr "แสดงหมายเลขทั้งหมด"
 
-#: frappe/public/js/frappe/ui/keyboard.js:244
+#: frappe/public/js/frappe/ui/keyboard.js:234
 msgid "Show Keyboard Shortcuts"
 msgstr "แสดงทางลัดแป้นพิมพ์"
 
@@ -24141,7 +24166,7 @@ msgstr "แสดงตัวเลือกภาษา"
 msgid "Show Line Breaks after Sections"
 msgstr "แสดงการแบ่งบรรทัดหลังส่วน"
 
-#: frappe/public/js/frappe/form/toolbar.js:436
+#: frappe/public/js/frappe/form/toolbar.js:443
 msgid "Show Links"
 msgstr "แสดงลิงก์"
 
@@ -24531,7 +24556,7 @@ msgstr "ข้ามคอลัมน์ที่ไม่มีชื่อ"
 msgid "Skipping column {0}"
 msgstr "ข้ามคอลัมน์ {0}"
 
-#: frappe/modules/utils.py:178
+#: frappe/modules/utils.py:179
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
 msgstr "ข้ามการซิงค์ฟิกซ์เจอร์สำหรับประเภทเอกสาร {0} จากไฟล์ {1}"
 
@@ -24746,7 +24771,7 @@ msgstr ""
 
 #. Label of the source (Data) field in DocType 'Web Page View'
 #. Label of the source (Small Text) field in DocType 'Website Route Redirect'
-#: frappe/public/js/frappe/utils/utils.js:1785
+#: frappe/public/js/frappe/utils/utils.js:1803
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 #: frappe/website/report/website_analytics/website_analytics.js:38
@@ -24908,8 +24933,8 @@ msgstr "ไม่สามารถลบประเภทผู้ใช้ม
 
 #: frappe/core/doctype/recorder/recorder_list.js:87
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:45
-#: frappe/printing/page/print/print.js:325
-#: frappe/printing/page/print/print.js:372
+#: frappe/printing/page/print/print.js:327
+#: frappe/printing/page/print/print.js:374
 msgid "Start"
 msgstr ""
 
@@ -25081,7 +25106,7 @@ msgstr ""
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/public/js/frappe/list/list_settings.js:357
-#: frappe/public/js/frappe/list/list_view.js:2345
+#: frappe/public/js/frappe/list/list_view.js:2348
 #: frappe/public/js/frappe/views/reports/report_view.js:980
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -25149,7 +25174,7 @@ msgstr ""
 msgid "Store Attached PDF Document"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:497
+#: frappe/core/doctype/user/user.js:504
 msgid "Store the API secret securely. It won't be displayed again."
 msgstr ""
 
@@ -25275,7 +25300,7 @@ msgstr "คิวการส่ง"
 msgid "Submit"
 msgstr "ส่ง"
 
-#: frappe/public/js/frappe/list/list_view.js:2240
+#: frappe/public/js/frappe/list/list_view.js:2243
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "ส่ง"
@@ -25333,7 +25358,7 @@ msgstr "ส่งเอกสารนี้เพื่อดำเนินก
 msgid "Submit this document to confirm"
 msgstr "ส่งเอกสารนี้เพื่อยืนยัน"
 
-#: frappe/public/js/frappe/list/list_view.js:2245
+#: frappe/public/js/frappe/list/list_view.js:2248
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "ส่งเอกสาร {0} หรือไม่?"
@@ -25397,7 +25422,7 @@ msgstr ""
 #: frappe/core/doctype/data_import/data_import.json
 #: frappe/core/doctype/data_import_log/data_import_log.json
 #: frappe/desk/doctype/bulk_update/bulk_update.js:31
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:550
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:551
 #: frappe/public/js/frappe/form/grid.js:1193
 #: frappe/public/js/frappe/views/translation_manager.js:21
 #: frappe/templates/includes/login/login.js:230
@@ -25549,7 +25574,7 @@ msgstr "สลับธีม"
 msgid "Switch To Desk"
 msgstr "สลับไปที่เดสก์"
 
-#: frappe/public/js/frappe/list/list_sidebar.js:319
+#: frappe/public/js/frappe/list/list_sidebar.js:327
 msgid "Switch to Frappe CRM for smarter sales"
 msgstr "สลับไปที่ Frappe CRM เพื่อการขายที่ชาญฉลาดขึ้น"
 
@@ -25964,7 +25989,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_sidebar.js:253
 #: frappe/public/js/frappe/model/meta.js:215
 #: frappe/public/js/frappe/model/model.js:133
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:171
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:231
 msgid "Tags"
 msgstr ""
 
@@ -26535,7 +26560,7 @@ msgstr "การกระทำนี้ไม่สามารถย้อน
 msgid "This action is only allowed for {}"
 msgstr "การกระทำนี้อนุญาตเฉพาะสำหรับ {}"
 
-#: frappe/public/js/frappe/form/toolbar.js:121
+#: frappe/public/js/frappe/form/toolbar.js:128
 #: frappe/public/js/frappe/model/model.js:706
 msgid "This cannot be undone"
 msgstr "ไม่สามารถย้อนกลับได้"
@@ -26686,7 +26711,7 @@ msgstr "ลิงก์นี้ถูกเปิดใช้งานแล้
 msgid "This link is invalid or expired. Please make sure you have pasted correctly."
 msgstr "ลิงก์นี้ไม่ถูกต้องหรือหมดอายุ โปรดตรวจสอบว่าคุณวางถูกต้อง"
 
-#: frappe/printing/page/print/print.js:447
+#: frappe/printing/page/print/print.js:449
 msgid "This may get printed on multiple pages"
 msgstr "สิ่งนี้อาจถูกพิมพ์ในหลายหน้า"
 
@@ -27419,7 +27444,7 @@ msgstr ""
 msgid "Track milestones for any document"
 msgstr "ติดตามเหตุการณ์สำคัญสำหรับเอกสารใด ๆ"
 
-#: frappe/public/js/frappe/utils/utils.js:1849
+#: frappe/public/js/frappe/utils/utils.js:1867
 msgid "Tracking URL generated and copied to clipboard"
 msgstr "URL การติดตามถูกสร้างและคัดลอกไปยังคลิปบอร์ด"
 
@@ -27502,6 +27527,7 @@ msgstr ""
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
 msgid "Tree"
 msgstr ""
 
@@ -27550,8 +27576,8 @@ msgstr ""
 msgid "Try a Naming Series"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:202
-#: frappe/printing/page/print/print.js:208
+#: frappe/printing/page/print/print.js:203
+#: frappe/printing/page/print/print.js:209
 msgid "Try the new Print Designer"
 msgstr ""
 
@@ -27830,24 +27856,24 @@ msgstr "ยกเลิกการกำหนดเงื่อนไข"
 msgid "Uncaught Exception"
 msgstr "ข้อยกเว้นที่ไม่ได้จับ"
 
-#: frappe/public/js/frappe/form/toolbar.js:107
+#: frappe/public/js/frappe/form/toolbar.js:114
 msgid "Unchanged"
 msgstr "ไม่เปลี่ยนแปลง"
 
-#: frappe/public/js/frappe/form/toolbar.js:544
+#: frappe/public/js/frappe/form/toolbar.js:551
 msgid "Undo"
 msgstr "เลิกทำ"
 
-#: frappe/public/js/frappe/form/toolbar.js:552
+#: frappe/public/js/frappe/form/toolbar.js:559
 msgid "Undo last action"
 msgstr "เลิกทำการกระทำล่าสุด"
 
-#: frappe/database/query.py:2138
+#: frappe/database/query.py:2137
 msgid "Unescaped quotes in string literal: {0}"
 msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:109
-#: frappe/public/js/frappe/form/toolbar.js:905
+#: frappe/public/js/frappe/form/toolbar.js:912
 msgid "Unfollow"
 msgstr "เลิกติดตาม"
 
@@ -27956,11 +27982,11 @@ msgstr "พารามิเตอร์ยกเลิกการสมัค
 msgid "Unsubscribed"
 msgstr "ยกเลิกการสมัครสมาชิกแล้ว"
 
-#: frappe/database/query.py:939
+#: frappe/database/query.py:940
 msgid "Unsupported function or operator: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1947
+#: frappe/database/query.py:1946
 msgid "Unsupported {0}: {1}"
 msgstr ""
 
@@ -28073,8 +28099,8 @@ msgstr "อัปเดตระเบียน {0}"
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/permission_log/permission_log.json
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:550
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:761
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:551
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:763
 #: frappe/desk/doctype/workspace_settings/workspace_settings.py:41
 #: frappe/public/js/frappe/web_form/web_form.js:451
 msgid "Updated"
@@ -28117,7 +28143,7 @@ msgstr "กำลังอัปเดตการตั้งค่าทั่
 msgid "Updating naming series options"
 msgstr "กำลังอัปเดตตัวเลือกซีรีส์การตั้งชื่อ"
 
-#: frappe/public/js/frappe/form/toolbar.js:140
+#: frappe/public/js/frappe/form/toolbar.js:147
 msgid "Updating related fields..."
 msgstr "กำลังอัปเดตฟิลด์ที่เกี่ยวข้อง..."
 
@@ -28133,7 +28159,7 @@ msgstr "กำลังอัปเดต {0} ของ {1}, {2}"
 msgid "Upgrade plan"
 msgstr "อัปเกรดแผน"
 
-#: frappe/public/js/frappe/list/list_sidebar.js:331
+#: frappe/public/js/frappe/list/list_sidebar.js:343
 msgid "Upgrade your support experience with Frappe Helpdesk"
 msgstr "อัปเกรดประสบการณ์การสนับสนุนของคุณด้วย Frappe Helpdesk"
 
@@ -28253,7 +28279,7 @@ msgstr "ใช้หากการตั้งค่าเริ่มต้น
 msgid "Use of sub-query or function is restricted"
 msgstr "การใช้คำสั่งย่อยหรือฟังก์ชันถูกจำกัด"
 
-#: frappe/printing/page/print/print.js:308
+#: frappe/printing/page/print/print.js:310
 msgid "Use the new Print Format Builder"
 msgstr "ใช้ตัวสร้างรูปแบบการพิมพ์ใหม่"
 
@@ -28921,11 +28947,11 @@ msgstr "ดู"
 msgid "View All"
 msgstr "ดูทั้งหมด"
 
-#: frappe/public/js/frappe/form/toolbar.js:606
+#: frappe/public/js/frappe/form/toolbar.js:613
 msgid "View Audit Trail"
 msgstr "ดูเส้นทางการตรวจสอบ"
 
-#: frappe/core/doctype/user/user.js:144
+#: frappe/core/doctype/user/user.js:149
 msgid "View Doctype Permissions"
 msgstr "ดูสิทธิ์ประเภทเอกสาร"
 
@@ -28947,7 +28973,7 @@ msgstr "ดูรายการ"
 msgid "View Log"
 msgstr "ดูบันทึก"
 
-#: frappe/core/doctype/user/user.js:135
+#: frappe/core/doctype/user/user.js:140
 #: frappe/core/doctype/user_permission/user_permission.js:24
 msgid "View Permitted Documents"
 msgstr "ดูเอกสารที่อนุญาต"
@@ -29164,7 +29190,7 @@ msgstr "หน้าเว็บ"
 msgid "Web Page Block"
 msgstr "บล็อกหน้าเว็บ"
 
-#: frappe/public/js/frappe/utils/utils.js:1777
+#: frappe/public/js/frappe/utils/utils.js:1795
 msgid "Web Page URL"
 msgstr "URL หน้าเว็บ"
 
@@ -29713,8 +29739,9 @@ msgstr "อัปเดตเวิร์กโฟลว์สำเร็จ"
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:566
-#: frappe/public/js/frappe/utils/utils.js:934
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:100
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:599
+#: frappe/public/js/frappe/utils/utils.js:947
 #: frappe/public/js/frappe/views/workspace/workspace.js:10
 msgid "Workspace"
 msgstr "พื้นที่ทำงาน"
@@ -29917,7 +29944,7 @@ msgstr "สีเหลือง"
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:336
-#: frappe/public/js/frappe/form/controls/link.js:500
+#: frappe/public/js/frappe/form/controls/link.js:504
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:1690
 #: frappe/website/doctype/help_article/templates/help_article.html:25
@@ -30206,7 +30233,11 @@ msgstr "คุณไม่มีสิทธิ์เพียงพอที่
 msgid "You do not have enough permissions to complete the action"
 msgstr "คุณไม่มีสิทธิ์เพียงพอที่จะดำเนินการให้เสร็จสิ้น"
 
-#: frappe/database/query.py:809
+#: frappe/core/doctype/data_import/data_import.py:83
+msgid "You do not have import permission for {0}"
+msgstr ""
+
+#: frappe/database/query.py:810
 msgid "You do not have permission to access field: {0}"
 msgstr ""
 
@@ -30304,7 +30335,7 @@ msgid "You need the '{0}' permission on {1} {2} to perform this action."
 msgstr "คุณต้องมีสิทธิ์ '{0}' ใน {1} {2} เพื่อดำเนินการนี้"
 
 #: frappe/desk/doctype/workspace/workspace.py:129
-#: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py:72
+#: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py:74
 msgid "You need to be Workspace Manager to delete a public workspace."
 msgstr "คุณต้องเป็นผู้จัดการพื้นที่ทำงานเพื่อที่จะลบพื้นที่ทำงานสาธารณะ"
 
@@ -30571,7 +30602,7 @@ msgstr "หลังจากแทรก"
 msgid "amend"
 msgstr "แก้ไข"
 
-#: frappe/public/js/frappe/utils/utils.js:395 frappe/utils/data.py:1563
+#: frappe/public/js/frappe/utils/utils.js:394 frappe/utils/data.py:1563
 msgid "and"
 msgstr "และ"
 
@@ -30594,7 +30625,7 @@ msgstr "ตามบทบาท"
 msgid "cProfile Output"
 msgstr "ผลลัพธ์ cProfile"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:295
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:321
 msgid "calendar"
 msgstr "ปฏิทิน"
 
@@ -30634,7 +30665,7 @@ msgid "cyan"
 msgstr "สีฟ้า"
 
 #: frappe/public/js/frappe/form/controls/duration.js:219
-#: frappe/public/js/frappe/utils/utils.js:1124
+#: frappe/public/js/frappe/utils/utils.js:1142
 msgctxt "Days (Field: Duration)"
 msgid "d"
 msgstr "วัน"
@@ -30692,7 +30723,7 @@ msgstr "ลบ"
 msgid "descending"
 msgstr "เรียงจากมากไปน้อย"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:163
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:223
 msgid "document type..., e.g. customer"
 msgstr "ประเภทเอกสาร..., เช่น ลูกค้า"
 
@@ -30702,7 +30733,7 @@ msgstr "ประเภทเอกสาร..., เช่น ลูกค้า
 msgid "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:183
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:243
 msgid "e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)..."
 msgstr "เช่น (55 + 434) / 4 หรือ =Math.sin(Math.PI/2)..."
 
@@ -30744,14 +30775,18 @@ msgstr "อีแมคส์"
 msgid "email"
 msgstr "อีเมล"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:314
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:342
 msgid "email inbox"
 msgstr "กล่องจดหมายอีเมล"
 
 #: frappe/permissions.py:431 frappe/permissions.py:442
-#: frappe/public/js/frappe/form/controls/link.js:512
+#: frappe/public/js/frappe/form/controls/link.js:516
 msgid "empty"
 msgstr "ว่างเปล่า"
+
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
+msgid "esc"
+msgstr ""
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -30801,12 +30836,12 @@ msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "ไม่พบ gzip ใน PATH! จำเป็นต้องใช้เพื่อสำรองข้อมูล"
 
 #: frappe/public/js/frappe/form/controls/duration.js:220
-#: frappe/public/js/frappe/utils/utils.js:1128
+#: frappe/public/js/frappe/utils/utils.js:1146
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:305
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:332
 msgid "hub"
 msgstr "ฮับ"
 
@@ -30860,7 +30895,7 @@ msgid "long"
 msgstr "ยาว"
 
 #: frappe/public/js/frappe/form/controls/duration.js:221
-#: frappe/public/js/frappe/utils/utils.js:1132
+#: frappe/public/js/frappe/utils/utils.js:1150
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
 msgstr "นาที"
@@ -30888,15 +30923,15 @@ msgstr "ดด-วว-ปปปป"
 msgid "mm/dd/yyyy"
 msgstr "ดด/วว/ปปปป"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:178
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:238
 msgid "module name..."
 msgstr "ชื่อโมดูล..."
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:169
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:180
 msgid "new"
 msgstr "ใหม่"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:158
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:218
 msgid "new type of document"
 msgstr "ประเภทเอกสารใหม่"
 
@@ -30958,7 +30993,7 @@ msgstr "เมื่ออัปเดต"
 msgid "on_update_after_submit"
 msgstr "เมื่ออัปเดตหลังจากส่ง"
 
-#: frappe/public/js/frappe/utils/utils.js:392 frappe/www/login.html:90
+#: frappe/public/js/frappe/utils/utils.js:391 frappe/www/login.html:90
 #: frappe/www/login.py:112
 msgid "or"
 msgstr "หรือ"
@@ -31031,7 +31066,7 @@ msgid "restored {0} as {1}"
 msgstr "กู้คืน {0} เป็น {1}"
 
 #: frappe/public/js/frappe/form/controls/duration.js:222
-#: frappe/public/js/frappe/utils/utils.js:1136
+#: frappe/public/js/frappe/utils/utils.js:1154
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
 msgstr "วินาที"
@@ -31115,11 +31150,11 @@ msgstr "ค่าข้อความ เช่น {0} หรือ uid={0},ou=
 msgid "submit"
 msgstr "ส่ง"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:173
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:233
 msgid "tag name..., e.g. #tag"
 msgstr "ชื่อแท็ก เช่น #tag"
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:168
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:228
 msgid "text in document type"
 msgstr "ข้อความในประเภทเอกสาร"
 
@@ -31130,6 +31165,18 @@ msgstr "ฟอร์มนี้"
 #: frappe/tests/test_translate.py:174
 msgid "this shouldn't break"
 msgstr "สิ่งนี้ไม่ควรเสียหาย"
+
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
+msgid "to close"
+msgstr ""
+
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
+msgid "to navigate"
+msgstr ""
+
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
+msgid "to select"
+msgstr ""
 
 #: frappe/templates/emails/download_data.html:9
 msgid "to your browser"
@@ -31209,7 +31256,7 @@ msgstr "เมื่อคลิกที่องค์ประกอบ จ�
 msgid "wkhtmltopdf"
 msgstr ""
 
-#: frappe/printing/page/print/print.js:678
+#: frappe/printing/page/print/print.js:680
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (พร้อม qt ที่แก้ไขแล้ว)"
 
@@ -31245,11 +31292,11 @@ msgstr "ปปปป-ดด-วว"
 msgid "{0}"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:202
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:215
 msgid "{0} ${skip_list ? \"\" : type}"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:207
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:227
 msgid "{0} ${type}"
 msgstr ""
 
@@ -31266,8 +31313,8 @@ msgstr "{0} ({1}) (1 แถวจำเป็น)"
 msgid "{0} ({1}) - {2}%"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:376
-#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:380
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:439
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:443
 msgid "{0} = {1}"
 msgstr ""
 
@@ -31280,8 +31327,8 @@ msgid "{0} Chart"
 msgstr "แผนภูมิ {0}"
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:67
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:356
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:357
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:389
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:390
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:12
 msgid "{0} Dashboard"
 msgstr "แดชบอร์ด {0}"
@@ -31304,8 +31351,6 @@ msgstr "รายชื่อ Google {0} ซิงค์แล้ว"
 msgid "{0} Liked"
 msgstr "ชอบ {0}"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:83
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:84
 #: frappe/public/js/frappe/widgets/chart_widget.js:358 frappe/www/list.html:4
 #: frappe/www/list.html:8
 msgid "{0} List"
@@ -31331,8 +31376,6 @@ msgstr "ชื่อ {0}"
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} ไม่อนุญาตให้เปลี่ยน {1} หลังจากส่งจาก {2} เป็น {3}"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
 #: frappe/public/js/frappe/widgets/chart_widget.js:366
 msgid "{0} Report"
 msgstr "รายงาน {0}"
@@ -31345,8 +31388,6 @@ msgstr "รายงาน {0}"
 msgid "{0} Settings"
 msgstr "การตั้งค่า {0}"
 
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:87
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:88
 #: frappe/public/js/frappe/views/treeview.js:152
 msgid "{0} Tree"
 msgstr "ต้นไม้ {0}"
@@ -31355,11 +31396,6 @@ msgstr "ต้นไม้ {0}"
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:73
 msgid "{0} Web page views"
 msgstr "การดูหน้าเว็บ {0}"
-
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:91
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:92
-msgid "{0} Workspace"
-msgstr "พื้นที่ทำงาน {0}"
 
 #: frappe/public/js/frappe/form/link_selector.js:225
 msgid "{0} added"
@@ -31410,7 +31446,7 @@ msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} แนบ {1}"
 
-#: frappe/core/doctype/system_settings/system_settings.py:158
+#: frappe/core/doctype/system_settings/system_settings.py:159
 msgid "{0} can not be more than {1}"
 msgstr "{0} ต้องไม่เกิน {1}"
 
@@ -31483,7 +31519,7 @@ msgstr "{0} วันที่ผ่านมา"
 msgid "{0} does not exist in row {1}"
 msgstr "{0} ไม่มีอยู่ในแถว {1}"
 
-#: frappe/database/mariadb/schema.py:141 frappe/database/postgres/schema.py:184
+#: frappe/database/mariadb/schema.py:141 frappe/database/postgres/schema.py:187
 msgid "{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 msgstr "ฟิลด์ {0} ไม่สามารถตั้งค่าเป็นค่าที่ไม่ซ้ำใน {1} ได้ เนื่องจากมีค่าที่ไม่ซ้ำอยู่แล้ว"
 
@@ -31507,7 +31543,7 @@ msgstr "{0} ชั่วโมง"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} ได้กำหนดค่าเริ่มต้นสำหรับ {1} แล้ว"
 
-#: frappe/database/query.py:1100
+#: frappe/database/query.py:1101
 msgid "{0} has invalid backtick notation: {1}"
 msgstr ""
 
@@ -31581,7 +31617,7 @@ msgstr "{0} คล้ายกับ {1}"
 msgid "{0} is mandatory"
 msgstr "{0} เป็นสิ่งจำเป็น"
 
-#: frappe/database/query.py:719
+#: frappe/database/query.py:720
 msgid "{0} is not a child table of {1}"
 msgstr ""
 
@@ -31767,7 +31803,7 @@ msgstr "{0} ไม่ใช่สถานะที่ถูกต้อง"
 msgid "{0} not allowed to be renamed"
 msgstr "{0} ไม่อนุญาตให้เปลี่ยนชื่อ"
 
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:457
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:458
 msgid "{0} not found"
 msgstr "ไม่พบ {0}"
 
