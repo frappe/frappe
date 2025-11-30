@@ -13,6 +13,9 @@
 				<div class="text-center">
 					{{ __("Drag and drop files here or upload from") }}
 				</div>
+				<div class="text-center text-muted small mt-1" v-if="max_file_size_text">
+					{{ max_file_size_text }}
+				</div>
 				<div class="mt-3 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
 						<svg
@@ -332,6 +335,7 @@ let google_drive_settings = ref({
 	enabled: false,
 });
 let wrapper_ready = ref(false);
+let max_file_size_text = ref("");
 
 // created
 if (props.allow_take_photo) {
@@ -352,7 +356,12 @@ if (frappe.user_id !== "Guest" && props.allow_google_drive) {
 if (props.restrictions.max_file_size == null) {
 	frappe.call("frappe.core.api.file.get_max_file_size").then((res) => {
 		props.restrictions.max_file_size = Number(res.message);
+		max_file_size_text.value = `(${Math.round(res.message / (1024 * 1024))}MB max)`;
 	});
+} else {
+	max_file_size_text.value = `(${Math.round(
+		props.restrictions.max_file_size / (1024 * 1024)
+	)}MB max)`;
 }
 if (props.restrictions.max_number_of_files == null && props.doctype) {
 	props.restrictions.max_number_of_files = frappe.get_meta(props.doctype)?.max_attachments;
@@ -796,6 +805,7 @@ defineExpose({
 	toggle_all_private,
 	wrapper_ready,
 	close_dialog,
+	max_file_size_text,
 });
 </script>
 
@@ -815,6 +825,14 @@ defineExpose({
 	background-color: transparent;
 	border: none;
 	box-shadow: none;
+	font-size: var(--text-xs);
+}
+
+.text-muted {
+	color: var(--text-muted);
+}
+
+.small {
 	font-size: var(--text-xs);
 }
 </style>
