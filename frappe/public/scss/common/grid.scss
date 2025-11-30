@@ -514,6 +514,8 @@
 	left: 50%;
 	transform: translate(-50%, 0%);
 	width: 80%;
+	border: 1px solid var(--gray-300);
+	box-shadow: var(--shadow-lg);
 
 	body:not(.full-width) & {
 		max-width: var(--page-max-width);
@@ -529,6 +531,8 @@
 		width: 95%;
 		top: 7%;
 		z-index: 1022;
+		border: 1px solid var(--gray-300);
+		box-shadow: var(--shadow-lg);
 
 		.grid-form-body {
 			max-height: 76vh;
@@ -539,6 +543,7 @@
 			width: 95%;
 			top: 9%;
 			z-index: 1023;
+			border: 1px solid var(--gray-400);
 
 			.grid-form-body {
 				max-height: 72vh;
