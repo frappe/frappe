@@ -79,12 +79,21 @@ def getdoctype(doctype, with_parent=False):
 	frappe.response.docs.extend(docs)
 
 
-def get_meta_bundle(doctype):
+def get_meta_bundle(doctype, _visited=None):
+	# Track visited doctypes to prevent infinite recursion
+	if _visited is None:
+		_visited = set()
+	
+	if doctype in _visited:
+		return []
+	
+	_visited.add(doctype)
+	
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
 		if df.fieldtype in frappe.model.table_fields:
 			# Recursively get meta for child tables (supports grand-children)
-			bundle.extend(get_meta_bundle(df.options))
+			bundle.extend(get_meta_bundle(df.options, _visited))
 	return bundle
 
 

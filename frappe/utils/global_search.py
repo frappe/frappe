@@ -259,7 +259,7 @@ def update_global_search(doc):
 
 	# Get children
 	for child in doc.meta.get_table_fields():
-		for d in doc.get(child.fieldname):
+		for d in doc.get(child.fieldname) or []:
 			if d.parent == doc.name:
 				content.extend(
 					get_formatted_value(d.get(field.fieldname), field)

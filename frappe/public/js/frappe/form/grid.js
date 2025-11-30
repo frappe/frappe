@@ -337,7 +337,7 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
-		if (this.df.cannot_delete_rows) {
+		if (this.df.cannot_delete_rows || !this.form_grid) {
 			return;
 		}
 
@@ -360,7 +360,7 @@ export default class Grid {
 	);
 
 	refresh_duplicate_rows_button() {
-		if (this.df.cannot_add_rows) {
+		if (this.df.cannot_add_rows || !this.form_grid) {
 			return;
 		}
 
