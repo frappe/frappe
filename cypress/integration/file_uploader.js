@@ -67,10 +67,8 @@ context("FileUploader", () => {
 
 		it("should hide Private checkbox and toggle button when setting is enabled for non-System Manager", () => {
 			// Enable the setting
-			cy.call("frappe.db.set_single_value", {
-				doctype: "System Settings",
-				field: "only_allow_system_managers_to_upload_public_files",
-				value: 1,
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 1,
 			});
 
 			// Login as non-System Manager
@@ -82,31 +80,29 @@ context("FileUploader", () => {
 			open_upload_dialog();
 
 			// Verify Private checkbox is hidden
-			cy.get_open_dialog()
-				.find("label.frappe-checkbox")
-				.contains("Private")
-				.should("not.exist");
+			cy.get_open_dialog().should("not.contain", "Private");
 
 			// Verify toggle button is hidden (secondary action in dialog footer)
 			cy.get_open_dialog()
 				.find(".modal-footer")
-				.find('button[data-label*="Set all"]')
-				.should("not.exist");
+				.should("not.contain", "Set all private")
+				.should("not.contain", "Set all public");
 
 			cy.hide_dialog();
 		});
 
 		it("should show Private checkbox and toggle button when setting is enabled for System Manager", () => {
 			// Enable the setting
-			cy.call("frappe.db.set_single_value", {
-				doctype: "System Settings",
-				field: "only_allow_system_managers_to_upload_public_files",
-				value: 1,
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 1,
 			});
 
 			// Login as Administrator (System Manager)
 			cy.login("Administrator");
 			cy.visit("/desk");
+			cy.wait(2000);
+			// Reload to ensure sysdefaults are refreshed
+			cy.reload();
 			cy.wait(2000);
 
 			// Open upload dialog
@@ -126,10 +122,8 @@ context("FileUploader", () => {
 
 		it("should show Private checkbox and toggle button when setting is disabled", () => {
 			// Disable the setting
-			cy.call("frappe.db.set_single_value", {
-				doctype: "System Settings",
-				field: "only_allow_system_managers_to_upload_public_files",
-				value: 0,
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 0,
 			});
 
 			// Login as non-System Manager
