@@ -81,7 +81,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			}
 
 			return `<div class="group-by-field list-link">
-						<a class="btn btn-default btn-sm list-sidebar-button" data-toggle="dropdown"
+						<a class="btn btn-default btn-sm list-sidebar-button" data-bs-toggle="dropdown"
 						aria-haspopup="true" aria-expanded="false"
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">

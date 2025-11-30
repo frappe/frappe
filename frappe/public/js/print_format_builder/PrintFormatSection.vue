@@ -22,7 +22,7 @@
 					<div class="dropdown">
 						<button
 							class="btn btn-xs btn-section dropdown-button"
-							data-toggle="dropdown"
+							data-bs-toggleglegle="dropdown"
 						>
 							<svg class="icon icon-sm">
 								<use href="#icon-dot-horizontal"></use>

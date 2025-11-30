@@ -370,7 +370,7 @@ export default class NumberCardWidget extends Widget {
 
 	set_card_actions(actions) {
 		this.card_actions = $(`<div class="card-actions dropdown pull-right">
-				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<a data-bs-togglegleglegleglegle="dropdown" aria-haspopup="true" aria-expanded="false">
 				...
 				</a>
 				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">

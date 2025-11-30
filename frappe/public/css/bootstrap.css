@@ -2887,10 +2887,10 @@ tbody.collapse.in {
 .btn-group-justified > .btn-group .dropdown-menu {
   left: auto;
 }
-[data-toggle="buttons"] > .btn input[type="radio"],
-[data-toggle="buttons"] > .btn-group > .btn input[type="radio"],
-[data-toggle="buttons"] > .btn input[type="checkbox"],
-[data-toggle="buttons"] > .btn-group > .btn input[type="checkbox"] {
+[data-bs-toggle="buttons"] > .btn input[type="radio"],
+[data-bs-toggle="buttons"] > .btn-group > .btn input[type="radio"],
+[data-bs-toggle="buttons"] > .btn input[type="checkbox"],
+[data-bs-toggle="buttons"] > .btn-group > .btn input[type="checkbox"] {
   position: absolute;
   clip: rect(0, 0, 0, 0);
   pointer-events: none;

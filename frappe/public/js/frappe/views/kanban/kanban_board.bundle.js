@@ -489,7 +489,7 @@ frappe.provide("frappe.views");
 			}, "");
 			var $dropdown = $(
 				"<div class='dropdown pull-right'>" +
-					"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
+					"<a class='text-muted dropdown-toggle' data-bs-toggle='dropdown'>" +
 					"<span class='dropdown-text'>" +
 					__("Archived Columns") +
 					"</span><i class='caret'></i></a>" +

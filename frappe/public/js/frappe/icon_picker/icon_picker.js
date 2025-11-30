@@ -104,12 +104,12 @@ class Picker {
 		this.icon_picker_wrapper.find(".search-icons").after(`<div class="form-tabs-list">
 				<ul class="nav form-tabs" id="form-tabs" role="tablist">
 					<li class="nav-item show">
-						<button class="nav-link active" data-toggle="tab" role="tab" aria-selected="true">
+						<button class="nav-link active" data-bs-toggle="tab" role="tab" aria-selected="true">
 								Icon
 						</button>
 					</li>
 					<li class="nav-item show">
-						<button class="nav-link" data-toggle="tab" role="tab" aria-selected="true">
+						<button class="nav-link" data-bs-toggle="tab" role="tab" aria-selected="true">
 								Emoji
 						</button>
 					</li>

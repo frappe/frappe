@@ -1559,7 +1559,7 @@ Object.assign(frappe.utils, {
 					<span class="label">${selected_action.label}</span>
 				</button>
 
-				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
 					${frappe.utils.icon("down", "xs")}
 				</button>
 

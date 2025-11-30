@@ -349,7 +349,7 @@ export default class GridRow {
 				if (!this.configure_columns) {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
-						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
+						<div class="btn-open-row" data-bs-toggle="tooltip" data-placement="right" title="${edit_msg}">
 							<a>${frappe.utils.icon("edit", "xs")}</a>
 						</div>
 					`)

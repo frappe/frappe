@@ -472,7 +472,7 @@ frappe.ui.form.on("Data Import", {
 								.join("");
 							let id = frappe.dom.get_unique_id();
 							html = `${messages}
-								<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
+								<button class="btn btn-default btn-xs" type="button" data-bs-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
 									${__("Show Traceback")}
 								</button>
 								<div class="collapse" id="${id}" style="margin-top: 15px;">

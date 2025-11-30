@@ -71,7 +71,7 @@ frappe.ui.Notifications = class Notifications {
 
 			return `<li class="notifications-category ${active}"
    					id="${item.id}"
-   					data-toggle="collapse"
+   					data-bs-toggleglegleglegle="collapse"
    				>${item.label}</li>`;
 		};
 

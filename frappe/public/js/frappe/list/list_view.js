@@ -1164,7 +1164,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let dropdown_buttons = "";
 			if (button_actions) {
 				dropdown_buttons = `
-					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="btn btn-xs btn-default ellipsis" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${this.settings.dropdown_button.get_label}
 						${frappe.utils.icon("select", "xs")}
 					</button>
@@ -1504,7 +1504,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			if ($target.is("[data-toggle='dropdown']")) return true;
+			if ($target.is("[data-bs-toggle='dropdown']")) return true;
 
 			// don't open form when checkbox, like, filterable are clicked
 			if (
