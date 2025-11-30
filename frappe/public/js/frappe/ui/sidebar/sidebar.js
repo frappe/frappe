@@ -256,12 +256,13 @@ frappe.ui.Sidebar = class Sidebar {
 			this.wrapper.addClass("expanded");
 			// this.sidebar_expanded = false
 			direction = "left";
-			$('[data-bs-togglegleglegle="tooltip"]').tooltip("dispose");
+			$('[data-bs-toggle="tooltip"]').tooltip("dispose");
 		} else {
 			this.wrapper.removeClass("expanded");
 			// this.sidebar_expanded = true
 			direction = "right";
-			$('[data-bs-toggleglegleglegle="tooltip"]').tooltip({
+
+			$('[data-bs-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
 				trigger: "hover",
