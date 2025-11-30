@@ -56,6 +56,9 @@ DOCTYPE_TABLE_FIELDS = [
 
 TABLE_DOCTYPES_FOR_DOCTYPE = MappingProxyType({df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS})
 
+# child tables cannot have child tables
+TABLE_DOCTYPES_FOR_CHILD_TABLES = MappingProxyType({})
+
 DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
@@ -430,8 +433,16 @@ class BaseDocument:
 			value["doctype"] = doctype
 			controller = get_controller(doctype)
 			child = controller.__new__(controller)
-			# Child tables can have their own child tables (grand-children)
-			# Table fieldnames will be fetched from meta when needed via cached_property
+			# Allow child tables to have their own child tables (grand-children)
+			# Fetch from meta if available, otherwise use empty dict
+			try:
+				child_meta = frappe.get_meta(doctype)
+				child._table_fieldnames = child_meta._table_doctypes
+				child._non_computed_table_fieldnames = child_meta._non_computed_table_doctypes
+			except Exception:
+				# During installation or if meta is not available, use empty dict
+				child._table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
+				child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
 			child.__init__(value)
 
 		__dict = child.__dict__
@@ -454,17 +465,15 @@ class BaseDocument:
 			return TABLE_DOCTYPES_FOR_DOCTYPE
 
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
-			return MappingProxyType({})
+			return TABLE_DOCTYPES_FOR_CHILD_TABLES
 
-		# Child tables can have their own child tables (grand-children)
 		return self.meta._table_doctypes
 
 	@cached_property
 	def _non_computed_table_fieldnames(self) -> dict:
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
-			return MappingProxyType({})
+			return self._table_fieldnames
 
-		# Child tables can have their own child tables (grand-children)
 		return self.meta._non_computed_table_doctypes
 
 	def _get_table_fields(self, include_computed=False):
@@ -476,11 +485,10 @@ class BaseDocument:
 		if self.doctype == "DocType":
 			return DOCTYPE_TABLE_FIELDS
 
-		# Special doctypes for DocType don't have child tables
+		# child tables don't have child tables
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 
-		# Child tables can have their own child tables (grand-children)
 		return self.meta.get_table_fields(include_computed=include_computed)
 
 	def _evaluate_virtual_field_options(self, options):

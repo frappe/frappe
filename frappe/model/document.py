@@ -633,8 +633,6 @@ class Document(BaseDocument):
 		# update / insert child rows and their children (grand-children) recursively
 		for d in all_rows:
 			d: Document
-			# Pass parent flags to child
-			d.flags.update(self.flags)
 			d.db_update()
 			# Recursively update grand-children
 			if d._table_fieldnames:

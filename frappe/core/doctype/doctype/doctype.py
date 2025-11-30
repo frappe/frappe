@@ -1181,12 +1181,11 @@ def change_name_column_type(doctype_name: str, type: str) -> None:
 
 def validate_links_table_fieldnames(meta):
 	"""Validate fieldnames in Links table"""
-	links = meta.get("links") or []
-	if not links or frappe.flags.in_patch or frappe.flags.in_fixtures or frappe.flags.in_migrate:
+	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures or frappe.flags.in_migrate:
 		return
 
 	fieldnames = tuple(field.fieldname for field in meta.fields)
-	for index, link in enumerate(links, 1):
+	for index, link in enumerate(meta.links, 1):
 		_test_connection_query(doctype=link.link_doctype, field=link.link_fieldname, idx=index)
 
 		if not link.is_child_table:
@@ -1759,7 +1758,7 @@ def clear_permissions_cache(doctype):
 
 
 def validate_permissions(doctype, for_remove=False, alert=False):
-	permissions = doctype.get("permissions") or []
+	permissions = doctype.get("permissions")
 	# Some DocTypes may not have permissions by default, don't show alert for them
 	if not permissions and alert:
 		frappe.msgprint(_("No Permissions Specified"), alert=True, indicator="orange")
