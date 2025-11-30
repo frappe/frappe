@@ -523,6 +523,28 @@
 		max-height: 80vh;
 		overflow: scroll;
 	}
+
+	// Nested grid forms (grand-children) - reduce size by 5% for each level
+	.grid-row-open .form-in-grid {
+		width: 95%;
+		top: 7%;
+		z-index: 1022;
+
+		.grid-form-body {
+			max-height: 76vh;
+		}
+
+		// Third level nesting
+		.grid-row-open .form-in-grid {
+			width: 95%;
+			top: 9%;
+			z-index: 1023;
+
+			.grid-form-body {
+				max-height: 72vh;
+			}
+		}
+	}
 }
 
 .grid-form-heading {
