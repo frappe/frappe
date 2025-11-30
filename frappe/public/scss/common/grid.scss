@@ -10,6 +10,23 @@
 	background-color: var(--subtle-accent);
 }
 
+// Ensure header background shows for nested grids inside form-in-grid
+// Some later generic .grid-row background rules can visually win in nested contexts.
+.form-in-grid {
+	.form-grid-container {
+		.grid-heading-row {
+			.grid-row {
+				background-color: var(--subtle-fg) !important;
+			}
+			.grid-static-col,
+			.row-check,
+			.row-index {
+				background-color: var(--subtle-fg) !important;
+			}
+		}
+	}
+}
+
 .form-grid.error {
 	border-color: var(--error-border);
 }
@@ -866,5 +883,55 @@
 	.form-in-grid .form-section .form-column {
 		padding-left: 0 !important;
 		padding-right: 0 !important;
+	}
+}
+
+// Fix: Nested grids (grand-children tables) inside form-in-grid need borders
+// This must come AFTER .column-limit-reached rules to override the border:unset
+// Using !important to override the original .grid-heading-row .grid-row rules
+.form-in-grid {
+	// When nested grid has column-limit-reached, the container has the border
+	// but .form-grid gets border:unset. We need to ensure the container keeps border.
+	// Also fix overflow-y:hidden which clips the border when combined with heading row height
+	.column-limit-reached {
+		border: 1px solid var(--table-border-color) !important;
+		border-radius: var(--border-radius-md) !important;
+		overflow-y: visible !important;
+
+		// The heading row elements need smaller border-radius so container border shows
+		.grid-heading-row {
+			border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+			border-top-right-radius: calc(var(--border-radius-md) - 1px) !important;
+
+			.grid-row {
+				border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+				border-top-right-radius: calc(var(--border-radius-md) - 1px) !important;
+			}
+
+			.row-check {
+				border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+			}
+		}
+	}
+
+	// When nested grid does NOT have column-limit-reached, .form-grid needs border
+	.form-grid-container:not(.column-limit-reached) .form-grid {
+		border: 1px solid var(--table-border-color) !important;
+		border-radius: var(--border-radius-md) !important;
+
+		// The heading row elements need smaller border-radius so container border shows
+		.grid-heading-row {
+			border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+			border-top-right-radius: calc(var(--border-radius-md) - 1px) !important;
+
+			.grid-row {
+				border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+				border-top-right-radius: calc(var(--border-radius-md) - 1px) !important;
+			}
+
+			.row-check {
+				border-top-left-radius: calc(var(--border-radius-md) - 1px) !important;
+			}
+		}
 	}
 }
