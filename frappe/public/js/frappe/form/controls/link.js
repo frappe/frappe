@@ -190,11 +190,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
+		// For child tables, store additional context to handle nested forms properly
+		const is_child_table = Boolean(this.doc?.parenttype);
 		frappe._from_link = {
 			field_obj: this,
 			from_doctype: this.doctype,
 			from_docname: this.doc?.name,
 			scrollY: $(document).scrollTop(),
+			is_child_table: is_child_table,
+			// Store the root form's doctype and name for proper navigation
+			root_doctype: this.frm?.doctype,
+			root_docname: this.frm?.docname,
 		};
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {

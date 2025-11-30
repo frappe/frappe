@@ -247,7 +247,7 @@ frappe.ui.form.remove_old_form_route = () => {
 frappe.ui.form.update_calling_link = async (newdoc) => {
 	if (!frappe._from_link) return;
 
-	const { field_obj, from_doctype, from_docname, scrollY } = frappe._from_link;
+	const { field_obj, from_doctype, from_docname, scrollY, is_child_table, root_doctype, root_docname } = frappe._from_link;
 	const df = field_obj.df;
 
 	if (!["Link", "Dynamic Link", "Table MultiSelect"].includes(df.fieldtype)) return;
@@ -269,8 +269,15 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 
 	// switch back to the original doc first,
 	// this is necessary in case from_link.doctype === newdoc.doctype
+	// For child table fields, navigate to the root form instead (child rows don't have routes)
 	if (field_obj.frm) {
-		await frappe.set_route("Form", from_doctype, from_docname);
+		if (is_child_table && root_doctype && root_docname) {
+			// For child table fields, navigate to the root parent form
+			await frappe.set_route("Form", root_doctype, root_docname);
+		} else if (!is_child_table) {
+			// Only navigate for non-child table doctypes
+			await frappe.set_route("Form", from_doctype, from_docname);
+		}
 		frappe.utils.scroll_to(scrollY);
 	}
 
@@ -286,15 +293,19 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 
 	// set value
 	if (doc && doc.parentfield) {
-		//update values for child table
-		$.each(
-			field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows,
-			function (_index, field) {
+		// update values for child table
+		// For nested child tables (grand-children), we need to handle the hierarchy properly
+		const parent_grid = field_obj.frm?.fields_dict?.[doc.parentfield]?.grid;
+		if (parent_grid) {
+			$.each(parent_grid.grid_rows, function (_index, field) {
 				if (field.doc && field.doc.name === from_docname) {
 					field_obj.set_value(newdoc.name);
 				}
-			}
-		);
+			});
+		} else {
+			// For nested child forms, the field_obj already has direct access to set value
+			field_obj.set_value(newdoc.name);
+		}
 	} else {
 		// parsing is needed for table multiselect to convert string to array
 		field_obj.parse_validate_and_set_in_model(newdoc.name);
