@@ -247,7 +247,15 @@ frappe.ui.form.remove_old_form_route = () => {
 frappe.ui.form.update_calling_link = async (newdoc) => {
 	if (!frappe._from_link) return;
 
-	const { field_obj, from_doctype, from_docname, scrollY, is_child_table, root_doctype, root_docname } = frappe._from_link;
+	const {
+		field_obj,
+		from_doctype,
+		from_docname,
+		scrollY,
+		is_child_table,
+		root_doctype,
+		root_docname,
+	} = frappe._from_link;
 	const df = field_obj.df;
 
 	if (!["Link", "Dynamic Link", "Table MultiSelect"].includes(df.fieldtype)) return;
