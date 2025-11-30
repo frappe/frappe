@@ -269,15 +269,11 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 
 	// switch back to the original doc first,
 	// this is necessary in case from_link.doctype === newdoc.doctype
-	// For child table fields, navigate to the root form instead (child rows don't have routes)
-	if (field_obj.frm) {
-		if (is_child_table && root_doctype && root_docname) {
-			// For child table fields, navigate to the root parent form
-			await frappe.set_route("Form", root_doctype, root_docname);
-		} else if (!is_child_table) {
-			// Only navigate for non-child table doctypes
-			await frappe.set_route("Form", from_doctype, from_docname);
-		}
+	// For child table fields, we should NOT navigate - the form-in-grid modal is still open
+	// Just set the value directly and refresh
+	if (field_obj.frm && !is_child_table) {
+		// Only navigate for non-child table doctypes (main form links)
+		await frappe.set_route("Form", from_doctype, from_docname);
 		frappe.utils.scroll_to(scrollY);
 	}
 
