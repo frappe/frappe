@@ -175,25 +175,19 @@ def search_widget(
 
 	if not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
+		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
 
-		if frappe.db.db_type == "postgres":
-			# Avoid relying on LOCATE->STRPOS translation edge-cases on Postgres
-			_relevance = f"(1 / nullif(strpos(CAST(`tab{doctype}`.`name` AS varchar), {_txt}), 0))"
-			formatted_fields.append(f"{_relevance} as `_relevance`")
-			# Postgres needs the column index when ordering by a select expression/alias
+		# For MariaDB, wrap in IFNULL for sorting to push nulls to end
+		if frappe.db.db_type in ("mariadb", "sqlite"):
+			_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
+			formatted_fields.append(_relevance)
+			order_by = f"_relevance desc, {order_by}"
+		elif frappe.db.db_type == "postgres":
+			_relevance = {**_relevance_expr, "as": "_relevance"}
+			formatted_fields.append(_relevance)
+			# Since we are sorting by alias postgres needs to know number of column we are sorting
 			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
-
-		else:
-			# develop-style expression (works for mariadb/sqlite in your branch)
-			_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
-
-			if frappe.db.db_type in ("mariadb", "sqlite"):
-				formatted_fields.append({"IFNULL": [_relevance_expr, -9999], "as": "_relevance"})
-				order_by = f"_relevance desc, {order_by}"
-			else:
-				# very defensive fallback (shouldn't happen in normal frappe setups)
-				formatted_fields.append({**_relevance_expr, "as": "_relevance"})
-				order_by = f"_relevance desc, {order_by}"
 
 	ignore_permissions = doctype == "DocType" or (
 		cint(ignore_user_permissions)
