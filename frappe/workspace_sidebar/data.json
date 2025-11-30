@@ -1,0 +1,76 @@
+{
+ "app": "frappe",
+ "creation": "2025-10-31 13:00:40.587536",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "table",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "import",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Import",
+   "link_to": "Data Import",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "file-up",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Data Export",
+   "link_to": "Data Export",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "square-pen",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Bulk Update",
+   "link_to": "Bulk Update",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "database-backup",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Backups",
+   "link_to": "backups",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "trash",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Deleted Document",
+   "link_to": "Deleted Document",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-11-25 10:46:09.376260",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data",
+ "owner": "Administrator",
+ "title": "Data"
+}

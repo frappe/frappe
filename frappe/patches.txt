@@ -196,6 +196,7 @@ execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
+execute:frappe.db.truncate("Desktop Icon")
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -247,3 +248,7 @@ frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
 frappe.patches.v15_0.migrate_to_utm
 frappe.patches.v16_0.add_module_deprecation_warning
+frappe.patches.v16_0.auto_generate_desktop_icon_and_sidebar
+frappe.patches.v16_0.add_private_workspaces_to_sidebar
+frappe.core.doctype.communication_link.patches.copy_communication_date_to_link
+frappe.core.doctype.communication.patches.drop_ref_dt_dn_index

@@ -173,7 +173,7 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	along with committing and redirecting us back to frappe site."""
 
 	state = json.loads(state)
-	redirect = state.pop("redirect", "/app")
+	redirect = state.pop("redirect", "/desk")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")
 

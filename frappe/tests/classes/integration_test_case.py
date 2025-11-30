@@ -118,7 +118,7 @@ class IntegrationTestCase(UnitTestCase):
 
 		def _sql_with_count(*args, **kwargs):
 			ret = orig_sql(*args, **kwargs)
-			queries.append(args[0].last_query)
+			queries.append(str(args[0].last_query))
 			return ret
 
 		try:

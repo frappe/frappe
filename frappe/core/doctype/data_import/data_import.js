@@ -42,6 +42,7 @@ frappe.ui.form.on("Data Import", {
 			frm.page.set_indicator(__("In Progress"), "orange");
 			frm.trigger("update_primary_action");
 
+			frm.trigger("show_cancel_import_btn");
 			// hide progress when complete
 			if (data.current === data.total) {
 				setTimeout(() => {
@@ -108,7 +109,12 @@ frappe.ui.form.on("Data Import", {
 		if (frm.doc.status !== "Success") {
 			if (!frm.is_new() && frm.has_import_file()) {
 				let label = frm.doc.status === "Pending" ? __("Start Import") : __("Retry");
-				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
+				frm.page.set_primary_action(label, () => {
+					frm.events.start_import(frm);
+					if (label === "Retry") {
+						frm.trigger("show_cancel_import_btn");
+					}
+				});
 			} else {
 				frm.page.set_primary_action(__("Save"), () => frm.save());
 			}
@@ -167,6 +173,26 @@ frappe.ui.form.on("Data Import", {
 
 				frm.dashboard.set_headline(message);
 			},
+		});
+	},
+
+	show_cancel_import_btn(frm) {
+		frm.add_custom_button(__("Cancel Import"), () => {
+			frappe.confirm(
+				__(
+					"This will terminate the job immediately and might be dangerous, are you sure?"
+				),
+				() => {
+					frappe
+						.xcall("frappe.core.doctype.data_import.data_import.stop_data_import", {
+							doc_name: frm.doc.name,
+						})
+						.then((r) => {
+							frappe.show_alert(__("Job Stopped Successfully"));
+							frm.reload_doc();
+						});
+				}
+			);
 		});
 	},
 

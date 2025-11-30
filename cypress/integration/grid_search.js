@@ -7,7 +7,7 @@ context("Grid Search", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		cy.insert_doc("DocType", child_table_doctype, true);
 		cy.insert_doc("DocType", child_table_doctype_1, true);
 		cy.insert_doc("DocType", doctype_with_child_table, true);
@@ -40,7 +40,7 @@ context("Grid Search", () => {
 				});
 			});
 
-		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
+		cy.visit(`/desk/doctype-with-child-table/Test Grid Search`);
 
 		cy.get('.frappe-control[data-fieldname="child_table_1"]').as("table");
 		cy.get("@table").find(".grid-row-check:last").click();
@@ -49,7 +49,7 @@ context("Grid Search", () => {
 	});
 
 	it("test search field for different fieldtypes", () => {
-		cy.visit(`/app/doctype-with-child-table/Test Grid Search`);
+		cy.visit(`/desk/doctype-with-child-table/Test Grid Search`);
 
 		cy.get('.frappe-control[data-fieldname="child_table_1"]').as("table");
 

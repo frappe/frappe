@@ -1,0 +1,64 @@
+{
+ "app": "frappe",
+ "creation": "2025-10-28 11:25:19.208413",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "project-2",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "check-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Todo",
+   "link_to": "ToDo",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "calendar-clock",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Event",
+   "link_to": "Event",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "small-file",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "File",
+   "link_to": "File",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "notebook-pen",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Note",
+   "link_to": "Note",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-11-25 16:54:34.049137",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Productivity",
+ "owner": "Administrator",
+ "title": "Productivity"
+}

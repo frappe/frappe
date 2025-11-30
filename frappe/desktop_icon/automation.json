@@ -1,0 +1,20 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 23:58:08.187208",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "repeat-2",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Automation",
+ "link_to": "Assignment Rule",
+ "link_type": "DocType",
+ "modified": "2025-11-25 13:25:38.018090",
+ "modified_by": "Administrator",
+ "name": "Automation",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "roles": [],
+ "standard": 1
+}

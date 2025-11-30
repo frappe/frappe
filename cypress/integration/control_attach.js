@@ -1,7 +1,7 @@
 context("Attach Control", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		return cy
 			.window()
 			.its("frappe")
@@ -166,7 +166,7 @@ context("Attach Control", () => {
 context("Attach Control with Failed Document Save", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		return cy
 			.window()
 			.its("frappe")

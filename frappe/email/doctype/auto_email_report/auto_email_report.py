@@ -124,7 +124,9 @@ class AutoEmailReport(Document):
 		filters = frappe.parse_json(self.filters) if self.filters else {}
 		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
 		throw_list = [
-			meta["label"] for meta in filter_meta if meta.get("reqd") and not filters.get(meta["fieldname"])
+			meta["label"]
+			for meta in filter_meta
+			if (meta.get("reqd") and (not meta.get("hidden"))) and not filters.get(meta["fieldname"])
 		]
 		if throw_list:
 			frappe.throw(

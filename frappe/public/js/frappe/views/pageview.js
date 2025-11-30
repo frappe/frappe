@@ -86,7 +86,7 @@ frappe.views.Page = class Page {
 
 			// set content, script and style
 			if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
-			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || "");
+			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 			frappe.dom.set_style(this.pagedoc.style || "");
 
 			// set breadcrumbs
@@ -147,7 +147,7 @@ frappe.show_message_page = function (opts) {
 			<div class="text-center message-page-content">\
 				%(img)s\
 				<p class="lead">%(message)s</p>\
-				<a class="btn btn-default btn-sm btn-home" href="/app">%(home)s</a>\
+				<a class="btn btn-default btn-sm btn-home" href="/desk">%(home)s</a>\
 			</div>\
 		</div>',
 			{

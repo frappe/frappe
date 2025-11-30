@@ -643,6 +643,11 @@ app_license = "{app_license}"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }}
 
+# Translation
+# ------------
+# List of apps whose translatable strings should be excluded from this app's translations.
+# ignore_translatable_strings_from = []
+
 """
 
 gitignore_template = """# Byte-compiled / optimized / DLL files

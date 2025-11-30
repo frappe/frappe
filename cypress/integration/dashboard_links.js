@@ -24,7 +24,7 @@ context("Dashboard links", () => {
 	});
 
 	it("Adding a new contact, checking for the counter on the dashboard and deleting the created contact", () => {
-		cy.visit("/app/contact");
+		cy.visit("/desk/contact");
 		cy.clear_filters();
 
 		cy.visit(`/app/user/${cy.config("testUser")}`);
@@ -48,7 +48,7 @@ context("Dashboard links", () => {
 		cy.get('[data-doctype="Contact"]').contains("Contact").click();
 
 		//Deleting the newly created contact
-		cy.visit("/app/contact");
+		cy.visit("/desk/contact");
 		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
@@ -56,7 +56,7 @@ context("Dashboard links", () => {
 
 		//To check if the counter from the "Contact" doc link is removed
 		cy.wait(700);
-		cy.visit("/app/user");
+		cy.visit("/desk/user");
 		cy.get(".list-row-col > .level-item > .ellipsis").eq(0).click({ force: true });
 		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
 	});

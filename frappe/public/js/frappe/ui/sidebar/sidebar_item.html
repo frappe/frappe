@@ -1,0 +1,56 @@
+<div
+    class="sidebar-item-container {%= item.is_editable ? 'is-draggable' : '' %} {% if (item.type == 'Section Break') { %}section-item{% } %}"
+    item-name="{{ item.label }}"
+    data-id="{{ item.label }}"
+    title="{{ item.label }}"
+    data-toggle="tooltip"
+    data-placement="right"
+>
+    <div
+        class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
+
+        {% if (item.type == "Section Break" && item.indent != 1) { %}
+            <div class="divider hidden"></div>
+            <div class="item-anchor section-break">
+                <span class="sidebar-item-label">{{ item.label }}</span>
+                <div class="sidebar-item-control"></div>
+            </div>
+        {% } else if (item.type == "Spacer") { %}
+			<div class="item-anchor" style="pointer-events: none;">
+
+			</div>
+		{% } else  { %}
+            <a
+                href="{{ path }}"
+                target="{%= item.link_type === "URL" ? "_blank" : "" %}"
+                class="item-anchor"
+            >
+                {% let icon = item.icon %}
+                {% if (item.show_arrow) { %}
+                    {% icon = "chevron-right" %}
+                {% } %}
+				<span class="sidebar-item-icon text-ink-gray-7" item-icon="{{ icon }}">
+                    {% if (icon) { %}
+                        {%= frappe.utils.icon(icon, "sm", "", "", "text-ink-gray-7 current-color", true) %}
+                    {% } %}
+                </span>
+                <span class="sidebar-item-label">{{ item.label }}</span>
+                {% if (!item.show_arrow) { %}
+                <div class="sidebar-item-control"></div>
+                {% } %}
+            </a>
+        {% } %}
+
+        <div class="sidebar-item-edit-controls edit-mode {%= edit_mode ? '' : 'hidden' %}">
+            <button class="btn btn-secondary btn-sm drag-handle">
+                <svg class="es-icon es-line icon-xs" aria-hidden="true">
+                    <use href="#es-line-drag"></use>
+                </svg>
+            </button>
+            <button data-menu='{{ item.label }}' class="btn btn-secondary btn-xs setting-btn edit-menu" title="">
+                {%= frappe.utils.icon("dot-horizontal", "xs") %}
+            </button>
+        </div>
+    </div>
+    <div class="sidebar-child-item nested-container"></div>
+</div>

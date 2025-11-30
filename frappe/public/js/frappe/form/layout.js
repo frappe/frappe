@@ -129,7 +129,9 @@ frappe.ui.form.Layout = class Layout {
 
 		// Add block color and append to parent container `form-message-container`
 		const block_color =
-			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
+			color && ["yellow", "blue", "red", "green", "orange", "white"].includes(color)
+				? color
+				: "blue";
 		$html.addClass(block_color).appendTo(this.message);
 
 		// Show parent container if hidden

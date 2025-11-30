@@ -109,11 +109,11 @@ class FrappeClient:
 
 	def get_list(
 		self,
-		doctype,
+		doctype: str,
 		fields='["name"]',
 		filters=None,
-		limit_start=0,
-		limit_page_length=None,
+		limit_start: int = 0,
+		limit_page_length: int | None = None,
 		order_by=None,
 		group_by=None,
 	):

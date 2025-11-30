@@ -1,11 +1,11 @@
 context("View", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	it("Route to ToDo List View", () => {
-		cy.visit("/app/todo/view/list");
+		cy.visit("/desk/todo/view/list");
 		cy.wait(500);
 		cy.window()
 			.its("cur_list")
@@ -15,7 +15,7 @@ context("View", () => {
 	});
 
 	it("Route to ToDo Report View", () => {
-		cy.visit("/app/todo/view/report");
+		cy.visit("/desk/todo/view/report");
 		cy.wait(500);
 		cy.window()
 			.its("cur_list")
@@ -25,7 +25,7 @@ context("View", () => {
 	});
 
 	it("Route to ToDo Dashboard View", () => {
-		cy.visit("/app/todo/view/dashboard");
+		cy.visit("/desk/todo/view/dashboard");
 		cy.wait(500);
 		cy.window()
 			.its("cur_list")
@@ -35,7 +35,7 @@ context("View", () => {
 	});
 
 	it("Route to ToDo Gantt View", () => {
-		cy.visit("/app/todo/view/gantt");
+		cy.visit("/desk/todo/view/gantt");
 		cy.wait(500);
 		cy.window()
 			.its("cur_list")
@@ -46,7 +46,7 @@ context("View", () => {
 
 	it("Route to ToDo Kanban View", () => {
 		cy.call("frappe.tests.ui_test_helpers.create_kanban").then(() => {
-			cy.visit("/app/note/view/kanban/_Note _Kanban");
+			cy.visit("/desk/note/view/kanban/_Note _Kanban");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -57,7 +57,7 @@ context("View", () => {
 	});
 
 	it("Route to ToDo Calendar View", () => {
-		cy.visit("/app/todo/view/calendar");
+		cy.visit("/desk/todo/view/calendar");
 		cy.wait(500);
 		cy.window()
 			.its("cur_list")
@@ -68,7 +68,7 @@ context("View", () => {
 
 	it("Route to Custom Tree View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_tree_doctype").then(() => {
-			cy.visit("/app/custom-tree/view/tree");
+			cy.visit("/desk/custom-tree/view/tree");
 			cy.wait(500);
 			cy.window()
 				.its("cur_tree")
@@ -137,7 +137,7 @@ context("View", () => {
 
 	it("Route to default view from app/{doctype}", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
-			cy.visit("/app/event");
+			cy.visit("/desk/event");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -149,7 +149,7 @@ context("View", () => {
 
 	it("Route to default view from app/{doctype}/view", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
-			cy.visit("/app/event/view");
+			cy.visit("/desk/event/view");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -164,7 +164,7 @@ context("View", () => {
 			view: "Report",
 			force_reroute: true,
 		}).then(() => {
-			cy.visit("/app/event");
+			cy.visit("/desk/event");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -179,7 +179,7 @@ context("View", () => {
 			view: "Report",
 			force_reroute: true,
 		}).then(() => {
-			cy.visit("/app/event/view");
+			cy.visit("/desk/event/view");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -194,7 +194,7 @@ context("View", () => {
 			view: "Report",
 			force_reroute: true,
 		}).then(() => {
-			cy.visit("/app/event/view/list");
+			cy.visit("/desk/event/view/list");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
@@ -206,17 +206,17 @@ context("View", () => {
 
 	it("Validate Route History for Default View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
-			cy.visit("/app/event");
-			cy.visit("/app/event/view/list");
-			cy.location("pathname").should("eq", "/app/event/view/list");
+			cy.visit("/desk/event");
+			cy.visit("/desk/event/view/list");
+			cy.location("pathname").should("eq", "/desk/event/view/list");
 			cy.go("back");
-			cy.location("pathname").should("eq", "/app/event");
+			cy.location("pathname").should("eq", "/desk/event");
 		});
 	});
 
 	it("Route to Form", () => {
 		const test_user = cy.config("testUser");
-		cy.visit(`/app/user/${test_user}`);
+		cy.visit(`/desk/user/${test_user}`);
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -225,7 +225,7 @@ context("View", () => {
 	});
 
 	it("Route to Website Workspace", () => {
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		cy.get(".title-text").should("contain", "Website");
 	});
 });

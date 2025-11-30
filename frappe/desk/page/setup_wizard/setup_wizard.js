@@ -32,7 +32,7 @@ frappe.setup = {
 
 frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 	if (frappe.boot.setup_complete) {
-		window.location.href = frappe.boot.apps_data.default_path || "/app";
+		window.location.href = frappe.boot.apps_data.default_path || "/desk";
 	}
 	let requires = frappe.boot.setup_wizard_requires || [];
 	frappe.require(requires, function () {
@@ -219,7 +219,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			localStorage.current_route = "";
 			localStorage.current_app = "";
 
-			window.location.href = current_route || frappe.boot.apps_data.default_path || "/app";
+			window.location.href = current_route || frappe.boot.apps_data.default_path || "/desk";
 		}, 2000);
 	}
 
@@ -672,6 +672,7 @@ frappe.setup.utils = {
 		slide.get_input("country").on("change", function () {
 			let data = frappe.setup.data.regional_data;
 			let country = slide.get_input("country").val();
+			country = country.replace(/\s*\([^)]*\)/, "");
 			if (!(country in data.country_info)) return;
 
 			let $timezone = slide.get_input("timezone");
