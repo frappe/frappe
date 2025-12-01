@@ -10,31 +10,17 @@
 			</a>
 			<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 			<div class="collapse navbar-collapse justify-content-end">
-				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
-					{% if (frappe.boot.read_only) { %}
-						<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
-							{%= __("Read Only Mode") %}
-						</span>
-					{% } %}
-					{% if (frappe.boot.user.impersonated_by) { %}
-						<span class="indicator-pill red no-indicator-dot" title="{%= __("You are impersonating as another user.") %}">
-							{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
-						</span>
-					{% } %}
-					<div class="input-group search-bar text-muted hidden">
-						<div
-							id="navbar-modal-search"
-							class=""
-							placeholder="Search for type a command"
-						>
-							{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}
-						</div>
-						<span class="search-icon">
-							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-						</span>
-					</div>
-				</form>
 				<ul class="navbar-nav">
+					<li>
+						<button
+							id="navbar-modal-search"
+							class="btn-reset text-muted"
+						>
+							<span class="search-icon">
+								<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+							</span>
+						</button>
+					</li>
 					<li class="nav-item dropdown dropdown-notifications dropdown-mobile hidden">
 						<button
 							class="btn-reset nav-link notifications-icon text-muted"

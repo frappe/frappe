@@ -1,3 +1,5 @@
+import sys
+
 import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 
@@ -13,4 +15,6 @@ def get_context(context):
 	context.brand_logo = brand_logo
 	context.desktop_icons = get_desktop_icons()
 	context.current_user = frappe.session.user
+	# check if system is mac or not
+	context.is_mac = sys.platform == "darwin"
 	return context

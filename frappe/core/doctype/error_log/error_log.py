@@ -17,6 +17,7 @@ class ErrorLog(Document):
 		from frappe.types import DF
 
 		error: DF.Code | None
+		metadata: DF.Code | None
 		method: DF.Data | None
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None

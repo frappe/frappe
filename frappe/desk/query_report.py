@@ -485,6 +485,9 @@ def build_xlsx_data(
 	result = []
 	column_widths = []
 
+	include_hidden_columns = cint(include_hidden_columns)
+	include_indentation = cint(include_indentation)
+
 	if cint(include_filters):
 		filter_data = []
 		filters = data.filters
@@ -502,7 +505,7 @@ def build_xlsx_data(
 
 	column_data = []
 	for column in data.columns:
-		if column.get("hidden") and not cint(include_hidden_columns):
+		if column.get("hidden") and not include_hidden_columns:
 			continue
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -514,35 +517,29 @@ def build_xlsx_data(
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if ignore_visible_idx or row_idx in visible_idx:
-			row_data = []
-			if isinstance(row, dict):
-				for col_idx, column in enumerate(data.columns):
-					if column.get("hidden") and not cint(include_hidden_columns):
-						continue
+		if not ignore_visible_idx and row_idx not in visible_idx:
+			continue
 
-					label = column.get("label")
-					fieldname = column.get("fieldname")
-					cell_value = row.get(fieldname, row.get(label, ""))
-					cell_style = None
+		row_data = []
+		row_is_dict = isinstance(row, dict)
 
-					if not isinstance(cell_value, EXCEL_TYPES):
-						cell_value = cstr(cell_value)
+		for col_idx, column in enumerate(data.columns):
+			if column.get("hidden") and not include_hidden_columns:
+				continue
 
-					if frappe.flags.cell_styling_in_export:
-						cell_style = get_xlsx_cell_style(cell_value, column, row)
+			label = column.get("label")
+			fieldname = column.get("fieldname")
+			cell_value = row.get(fieldname, row.get(label, "")) if row_is_dict else row[col_idx]
 
-					if cint(include_indentation) and "indent" in row and col_idx == 0:
-						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+			if not isinstance(cell_value, EXCEL_TYPES):
+				cell_value = cstr(cell_value)
 
-					if cell_style:
-						cell_value = {"value": cell_value, "style": cell_style}
+			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
+				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 
-					row_data.append(cell_value)
-			elif row:
-				row_data = row
+			row_data.append(cell_value)
 
-			result.append(row_data)
+		result.append(row_data)
 
 	if data.add_total_row and frappe.flags.cell_styling_in_export:
 		total_row = result[-1]

@@ -271,7 +271,7 @@ class CommunicationEmailMixin:
 		)
 		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
-		if not (recipients or cc):
+		if not (recipients or cc or bcc):
 			return {}
 
 		final_attachments = self.mail_attachments(

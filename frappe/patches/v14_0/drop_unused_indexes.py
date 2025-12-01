@@ -2,9 +2,8 @@
 This patch just drops some known indexes which aren't being used anymore or never were used.
 """
 
-import click
-
 import frappe
+from frappe.database.utils import drop_index_if_exists
 
 UNUSED_INDEXES = [
 	("Comment", ["link_doctype", "link_name"]),
@@ -39,18 +38,3 @@ def execute():
 		if table not in db_tables:
 			continue
 		drop_index_if_exists(table, index_name)
-
-
-def drop_index_if_exists(table: str, index: str):
-	if not frappe.db.has_index(table, index):
-		click.echo(f"- Skipped {index} index for {table} because it doesn't exist")
-		return
-
-	try:
-		frappe.db.sql_ddl(f"ALTER TABLE `{table}` DROP INDEX `{index}`")
-	except Exception as e:
-		frappe.log_error("Failed to drop index")
-		click.secho(f"x Failed to drop index {index} from {table}\n {e!s}", fg="red")
-		return
-
-	click.echo(f"✓ dropped {index} index from {table}")

@@ -32,24 +32,22 @@
 
 .desktop-search-wrapper{
     flex: 1;
-    max-width: 396px;
     position: relative;
 }
 
-#navbar-modal-search{
-    padding-left: 32px;
+.desktop-search-wrapper span {
+    color: var(--text-light);
 }
-.desktop-search-icon{
-    position: absolute;
-    left: 10px;
-    top: 4px;
+
+#navbar-modal-search{
+    background-color: var(--control-bg);
 }
 #brand-logo{
     width: auto;
 }
 .desktop-search-icon > .icon {
-    stroke: var(--ink-gray-4);
     stroke-width: 1px;
+    margin-bottom: 2px;
 }
 
 .desktop-container{

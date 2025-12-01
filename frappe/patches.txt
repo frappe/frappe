@@ -250,3 +250,5 @@ frappe.patches.v15_0.migrate_to_utm
 frappe.patches.v16_0.add_module_deprecation_warning
 frappe.patches.v16_0.auto_generate_desktop_icon_and_sidebar
 frappe.patches.v16_0.add_private_workspaces_to_sidebar
+frappe.core.doctype.communication_link.patches.copy_communication_date_to_link
+frappe.core.doctype.communication.patches.drop_ref_dt_dn_index
