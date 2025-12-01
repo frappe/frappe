@@ -3,18 +3,18 @@ const doctype_name = form_builder_doctype.name;
 context("Form Builder", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		return cy.insert_doc("DocType", form_builder_doctype, true);
 	});
 
 	it("Open Form Builder for Web Form Doctype/Customize Form", () => {
 		// doctype
-		cy.visit("/app/doctype/Web Form");
+		cy.visit("/desk/doctype/Web Form");
 		cy.findByRole("tab", { name: "Form" }).click();
 		cy.get(".form-builder-container").should("exist");
 
 		// customize form
-		cy.visit("/app/customize-form?doc_type=Web%20Form");
+		cy.visit("/desk/customize-form?doc_type=Web%20Form");
 		cy.findByRole("tab", { name: "Form" }).click();
 		cy.get(".form-builder-container").should("exist");
 	});
@@ -264,7 +264,7 @@ context("Form Builder", () => {
 
 		cy.findByRole("button", { name: "Save" }).click({ force: true });
 
-		cy.visit("/app/form-builder-doctype/new");
+		cy.visit("/desk/form-builder-doctype/new");
 		cy.get("[data-fieldname='data3'] .clearfix label").should("have.text", "New Title");
 	});
 

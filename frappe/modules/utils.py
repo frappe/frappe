@@ -6,6 +6,7 @@ Utilities for using modules
 
 import json
 import os
+import shutil
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING, Union
 import frappe
 from frappe import _, get_module_path, scrub
 from frappe.utils import cint, cstr, now_datetime
+from frappe.utils.caching import site_cache
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -279,6 +281,19 @@ def get_module_app(module: str) -> str:
 	return app
 
 
+@site_cache
+def get_doctype_app_map():
+	DocType = frappe.qb.DocType("DocType")
+	Module = frappe.qb.DocType("Module Def")
+	return dict(
+		frappe.qb.from_(DocType)
+		.left_join(Module)
+		.on(DocType.module == Module.name)
+		.select(DocType.name, Module.app_name)
+		.run()
+	)
+
+
 def get_app_publisher(module: str) -> str:
 	app = get_module_app(module)
 	if not app:
@@ -358,3 +373,24 @@ def make_boilerplate(
 			custom_controller=controller_body,
 		)
 		target.write(frappe.as_unicode(controller_file_content))
+
+
+def create_directory_on_app_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	folder_path = os.path.join(app_path, folder_name)
+
+	if not os.path.exists(folder_path):
+		frappe.create_folder(folder_path)
+
+	return folder_path
+
+
+def get_app_level_directory_path(folder_name, app_name):
+	app_path = frappe.get_app_path(app_name)
+	path = os.path.join(app_path, folder_name)
+	return path
+
+
+def delete_app_level_folder(folder_name, app_name):
+	path = get_app_level_directory_path(folder_name, app_name)
+	shutil.rmtree(path, ignore_errors=True)

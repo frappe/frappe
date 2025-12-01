@@ -1,11 +1,11 @@
 context("Control Link", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	beforeEach(() => {
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		cy.create_records({
 			doctype: "ToDo",
 			description: "this is a test todo for link",
@@ -120,7 +120,7 @@ context("Control Link", () => {
 			cy.get("@input").trigger("mouseover");
 			cy.get(".frappe-control[data-fieldname=link] .btn-open")
 				.should("be.visible")
-				.should("have.attr", "href", `/app/todo/${todos[0]}`);
+				.should("have.attr", "href", `/desk/todo/${todos[0]}`);
 		});
 	});
 
@@ -176,7 +176,7 @@ context("Control Link", () => {
 
 	it("should update dependant fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
-			cy.visit(`/app/todo/${todos[0]}`);
+			cy.visit(`/desk/todo/${todos[0]}`);
 			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 			cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 

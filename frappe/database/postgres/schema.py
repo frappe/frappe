@@ -76,6 +76,8 @@ class PostgresTable(DBTable):
 
 		query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
 
+		new_column_names = {col.fieldname for col in self.add_column}
+
 		for col in self.change_type:
 			using_clause = ""
 			if col.fieldtype in ("Datetime"):
@@ -124,9 +126,10 @@ class PostgresTable(DBTable):
 
 		for col in self.add_unique:
 			# if index key not exists
-			create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
-				index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-			)
+			if col.fieldname not in new_column_names:
+				create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
+					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
+				)
 
 		drop_contraint_query = ""
 		for col in self.drop_index:

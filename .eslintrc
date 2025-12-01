@@ -96,6 +96,7 @@
 		"hljs": true,
 		"Awesomplete": true,
 		"Sortable": true,
+		"gemoji": true,
 		"Showdown": true,
 		"Taggle": true,
 		"Gantt": true,

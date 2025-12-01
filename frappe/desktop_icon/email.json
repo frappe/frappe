@@ -1,0 +1,20 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 22:24:50.822193",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "mail",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Email",
+ "link_to": "Email Account",
+ "link_type": "DocType",
+ "modified": "2025-11-25 13:25:50.374006",
+ "modified_by": "Administrator",
+ "name": "Email",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "roles": [],
+ "standard": 1
+}

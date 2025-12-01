@@ -1,0 +1,20 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-25 13:27:21.246918",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "folder-open",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Productivity",
+ "link_to": "ToDo",
+ "link_type": "DocType",
+ "modified": "2025-11-25 13:27:47.019742",
+ "modified_by": "Administrator",
+ "name": "Productivity",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "roles": [],
+ "standard": 1
+}

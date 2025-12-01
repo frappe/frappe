@@ -1,0 +1,21 @@
+<a class="desktop-icon" data-id="{{ icon.label}}"  data-logo="{{ icon.logo_url }}" data-icon="{{ icon.icon }}" data-type="{{ icon.type }}" style="text-decoration:none">
+    {% if (icon.logo_url) { %}
+        <div class="icon-container">
+            <img class="app-icon" src="{{ icon.logo_url }}" alt="{{ icon.label }}" />
+        </div>
+    {% } else if (icon.icon_type == "Folder") { %}
+        <div class="icon-container folder-icon">
+
+        </div>
+    {% } else { %}
+        <div class="icon-container">
+            {%= frappe.utils.icon(icon.icon || "list-alt" , "lg", "", "", "text-ink-gray-7 current-color", true)%}
+        </div>
+    {% } %}
+    {% if (!in_folder) { %}
+    <div class="icon-caption">
+        <div class="icon-title">{{ icon.label }}</div>
+        <div class="icon-subtitle"></div>
+    </div>
+    {% } %}
+</a>

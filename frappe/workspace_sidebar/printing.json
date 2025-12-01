@@ -1,0 +1,64 @@
+{
+ "app": "frappe",
+ "creation": "2025-10-31 13:08:32.822702",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "printer",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "printer",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Print Format",
+   "link_to": "Print Format",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "heading",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Print Heading",
+   "link_to": "Print Heading",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "pen-tool",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Print Format Builder",
+   "link_to": "print-format-builder",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "settings",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Print Settings",
+   "link_to": "Print Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-11-25 10:46:09.371604",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Printing",
+ "owner": "Administrator",
+ "title": "Printing"
+}

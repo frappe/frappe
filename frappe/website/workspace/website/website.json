@@ -1,6 +1,12 @@
 {
- "charts": [],
- "content": "[{\"id\":\"yq1JKyNTFg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"id\":\"5GuZo0uP_K\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"id\":\"xAkA6ItB7O\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"qEHBG-BEBI\",\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"id\":\"oUox7d-8lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}},{\"id\":\"96xAe0QVaV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ZvrzvEoYtc\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"FVMFcgsiyK\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking\",\"col\":4}}]",
+ "app": "frappe",
+ "charts": [
+  {
+   "chart_name": "Web Page",
+   "label": "Website Visits"
+  }
+ ],
+ "content": "[{\"id\":\"6zVvGE_xaw\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Website Visits\",\"col\":12}},{\"id\":\"_cD8O3c7OX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Published Web Pages\",\"col\":4}},{\"id\":\"7NNFjUlDOJ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Published Web Forms\",\"col\":4}},{\"id\":\"VcwJUwrmU2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Website Themes Available\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
  "custom_blocks": [],
  "docstatus": 0,
@@ -8,7 +14,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "website",
- "idx": 0,
+ "idx": 5,
  "is_hidden": 0,
  "label": "Website",
  "links": [
@@ -68,15 +74,6 @@
    "type": "Link"
   },
   {
-   "hidden": 0,
-   "icon": "project",
-   "is_query_report": 0,
-   "label": "Knowledge Base",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
@@ -97,138 +94,26 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Settings",
-   "link_count": 0,
-   "link_to": "Website Settings",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Theme",
-   "link_count": 0,
-   "link_to": "Website Theme",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Script",
-   "link_count": 0,
-   "link_to": "Website Script",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Portal Settings",
-   "link_count": 0,
-   "link_to": "Portal Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Site",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Page",
-   "link_count": 0,
-   "link_to": "Web Page",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Web Form",
-   "link_count": 0,
-   "link_to": "Web Form",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Sidebar",
-   "link_count": 0,
-   "link_to": "Website Sidebar",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Slideshow",
-   "link_count": 0,
-   "link_to": "Website Slideshow",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Website Route Meta",
-   "link_count": 0,
-   "link_to": "Website Route Meta",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Tracking",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   }
  ],
- "modified": "2024-09-03 19:31:55.698913",
+ "modified": "2025-11-13 13:55:20.457550",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Published Web Pages",
+   "number_card_name": "Published Web Pages"
+  },
+  {
+   "label": "Published Web Forms",
+   "number_card_name": "Published Web Forms"
+  },
+  {
+   "label": "Website Themes Available",
+   "number_card_name": "Website Themes Available"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -236,20 +121,7 @@
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 14.0,
- "shortcuts": [
-  {
-   "color": "Green",
-   "format": "{} Published",
-   "label": "Web Page",
-   "link_to": "Web Page",
-   "stats_filter": "{ \"published\": 1 }",
-   "type": "DocType"
-  },
-  {
-   "label": "Web Form",
-   "link_to": "Web Form",
-   "type": "DocType"
-  }
- ],
- "title": "Website"
+ "shortcuts": [],
+ "title": "Website",
+ "type": "Workspace"
 }

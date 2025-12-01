@@ -31,8 +31,8 @@ class PathResolver:
 			request = frappe.local.request or request
 
 		# WARN: Hardcoded for better performance
-		if self.path == "app" or self.path.startswith("app/"):
-			return "app", TemplatePage("app", self.http_status_code)
+		if self.path == "desk" or self.path.startswith("desk/"):
+			return "desk", TemplatePage("desk", self.http_status_code)
 
 		# check if the request url is in 404 list
 		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
