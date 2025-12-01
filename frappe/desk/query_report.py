@@ -384,7 +384,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths, report_result_index = build_xlsx_data(
+	xlsx_data, column_widths, header_index = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
@@ -404,7 +404,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 			xlsx_data,
 			"Query Report",
 			column_widths=column_widths,
-			report_result_index=report_result_index,
+			header_index=header_index,
 			bold_filters=bool(include_filters),
 		).getvalue()
 
@@ -474,7 +474,7 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
-	result_index = 0
+	header_index = 0
 
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
@@ -494,8 +494,8 @@ def build_xlsx_data(
 		filter_data.append([])
 		result += filter_data
 
-	# result index starts after filters
-	result_index = len(result)
+	# header is after filters + 1 empty row
+	header_index = len(result)
 
 	column_data = []
 	for column in data.columns:
@@ -535,7 +535,7 @@ def build_xlsx_data(
 
 		result.append(row_data)
 
-	return result, column_widths, result_index
+	return result, column_widths, header_index
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
