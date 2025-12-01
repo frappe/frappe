@@ -1,6 +1,6 @@
 context("FileUploader", () => {
 	before(() => {
-		cy.login();
+		cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 	});
 
 	beforeEach(() => {
@@ -54,94 +54,192 @@ context("FileUploader", () => {
 	});
 
 	describe("Public file upload restriction", () => {
-		const test_user = "test_restricted_uploader@example.com";
+		const test_user = "test_file_uploader@example.com";
+		const test_password = "test_password";
 
 		before(() => {
-			// Create a test user
+			// Create test user without System Manager role
 			cy.call("frappe.tests.ui_test_helpers.create_test_user", {
 				username: test_user,
 			});
-			// Remove System Manager role to make them non-System Manager
 			cy.remove_role(test_user, "System Manager");
-		});
-
-		it("should hide Private checkbox and toggle button when setting is enabled for non-System Manager", () => {
-			// Enable the setting
-			cy.set_value("System Settings", "System Settings", {
-				only_allow_system_managers_to_upload_public_files: 1,
+			// Set password for test user
+			cy.set_value("User", test_user, {
+				new_password: test_password,
 			});
-
-			// Login as non-System Manager
-			cy.login(test_user);
-			cy.visit("/desk");
-			cy.wait(2000);
-
-			// Open upload dialog
-			open_upload_dialog();
-
-			// Verify Private checkbox is hidden
-			cy.get_open_dialog().should("not.contain", "Private");
-
-			// Verify toggle button is hidden (secondary action in dialog footer)
-			cy.get_open_dialog()
-				.find(".modal-footer")
-				.should("not.contain", "Set all private")
-				.should("not.contain", "Set all public");
-
-			cy.hide_dialog();
 		});
 
-		it("should show Private checkbox and toggle button when setting is enabled for System Manager", () => {
-			// Enable the setting
-			cy.set_value("System Settings", "System Settings", {
-				only_allow_system_managers_to_upload_public_files: 1,
-			});
-
-			// Login as Administrator (System Manager)
-			cy.login("Administrator");
+		after(() => {
+			// Clean up test user
+			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.wait(2000);
-			// Reload to ensure sysdefaults are refreshed
-			cy.reload();
-			cy.wait(2000);
-
-			// Open upload dialog
-			open_upload_dialog();
-
-			// Verify Private checkbox is visible
-			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
-
-			// Verify toggle button is visible (secondary action in dialog footer)
-			cy.get_open_dialog()
-				.find(".modal-footer")
-				.find('button:contains("Set all private"), button:contains("Set all public")')
-				.should("be.visible");
-
-			cy.hide_dialog();
+			cy.wait(1000);
+			cy.remove_doc("User", test_user, true); // true = ignore_missing
 		});
 
-		it("should show Private checkbox and toggle button when setting is disabled", () => {
+		it("should show checkbox and toggle when setting is disabled for System Manager", () => {
+			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
+			cy.visit("/desk");
+			cy.wait(1000);
+
 			// Disable the setting
 			cy.set_value("System Settings", "System Settings", {
 				only_allow_system_managers_to_upload_public_files: 0,
 			});
-
-			// Login as non-System Manager
-			cy.login(test_user);
+			// Update sysdefaults in window to avoid reload
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 0;
+				});
 			cy.visit("/desk");
 			cy.wait(2000);
 
-			// Open upload dialog
 			open_upload_dialog();
 
-			// Verify Private checkbox is visible
+			// Add a file to the dialog
+			cy.get_open_dialog()
+				.find(".file-upload-area")
+				.selectFile("cypress/fixtures/example.json", {
+					action: "drag-drop",
+				});
+			cy.wait(500);
+
+			// Checkbox should be visible
 			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
 
-			// Verify toggle button is visible (secondary action in dialog footer)
+			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
-				.find(".modal-footer")
-				.find('button:contains("Set all private"), button:contains("Set all public")')
-				.should("be.visible");
+				.find(".modal-footer .btn-secondary")
+				.should("be.visible")
+				.and("contain", "Set all");
+
+			cy.hide_dialog();
+		});
+
+		it("should show checkbox and toggle when setting is disabled for non-System Manager", () => {
+			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
+			cy.visit("/desk");
+			cy.wait(1000);
+
+			// Disable the setting
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 0,
+			});
+			cy.visit("/desk");
+			cy.wait(1000);
+
+			// Login as non-System Manager
+			cy.login(test_user, test_password);
+			cy.visit("/desk");
+			cy.wait(2000);
+			// Update sysdefaults in window
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 0;
+				});
+
+			open_upload_dialog();
+
+			// Add a file to the dialog
+			cy.get_open_dialog()
+				.find(".file-upload-area")
+				.selectFile("cypress/fixtures/example.json", {
+					action: "drag-drop",
+				});
+			cy.wait(500);
+
+			// Checkbox should be visible
+			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+
+			// Toggle button should be visible (secondary action button)
+			cy.get_open_dialog()
+				.find(".modal-footer .btn-secondary")
+				.should("be.visible")
+				.and("contain", "Set all");
+
+			cy.hide_dialog();
+		});
+
+		it("should show checkbox and toggle when setting is enabled for System Manager", () => {
+			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
+			cy.visit("/desk");
+			cy.wait(1000);
+
+			// Enable the setting
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 1,
+			});
+			// Update sysdefaults in window to avoid reload
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 1;
+				});
+			cy.visit("/desk");
+			cy.wait(2000);
+
+			open_upload_dialog();
+
+			// Add a file to the dialog
+			cy.get_open_dialog()
+				.find(".file-upload-area")
+				.selectFile("cypress/fixtures/example.json", {
+					action: "drag-drop",
+				});
+			cy.wait(500);
+
+			// Checkbox should be visible
+			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+
+			// Toggle button should be visible (secondary action button)
+			cy.get_open_dialog()
+				.find(".modal-footer .btn-secondary")
+				.should("be.visible")
+				.and("contain", "Set all");
+
+			cy.hide_dialog();
+		});
+
+		it("should hide checkbox and toggle when setting is enabled for non-System Manager", () => {
+			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
+			cy.visit("/desk");
+			cy.wait(1000);
+
+			// Enable the setting
+			cy.set_value("System Settings", "System Settings", {
+				only_allow_system_managers_to_upload_public_files: 1,
+			});
+			cy.visit("/desk");
+			cy.wait(1000);
+
+			// Login as non-System Manager
+			cy.login(test_user, test_password);
+			cy.visit("/desk");
+			cy.wait(2000);
+			// Update sysdefaults in window
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.boot.sysdefaults.only_allow_system_managers_to_upload_public_files = 1;
+				});
+
+			open_upload_dialog();
+
+			// Add a file to the dialog
+			cy.get_open_dialog()
+				.find(".file-upload-area")
+				.selectFile("cypress/fixtures/example.json", {
+					action: "drag-drop",
+				});
+			cy.wait(500);
+
+			// Checkbox should not be visible in file preview
+			cy.get_open_dialog().find(".file-preview-outline").should("not.contain", "Private");
+
+			// Toggle button should not be visible (secondary action button should be hidden)
+			cy.get_open_dialog().find(".modal-footer .btn-secondary").should("not.be.visible");
 
 			cy.hide_dialog();
 		});
