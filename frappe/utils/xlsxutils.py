@@ -31,7 +31,7 @@ def get_excel_date_format():
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None, header_index=0):
+def make_xlsx(data, sheet_name, wb=None, column_widths=None, header_index=0, has_filters=False):
 	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
@@ -49,7 +49,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None, header_index=0):
 	for row_idx, row in enumerate(data):
 		clean_row = []
 		is_header_row = row_idx == header_index
-		is_filter_row = row_idx < header_index
+		is_filter_row = has_filters and row_idx < header_index
 
 		for col_idx, item in enumerate(row):
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):

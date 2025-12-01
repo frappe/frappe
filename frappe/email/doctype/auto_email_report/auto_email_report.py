@@ -182,7 +182,11 @@ class AutoEmailReport(Document):
 
 			if self.format == "XLSX":
 				xlsx_file = make_xlsx(
-					xlsx_data, "Auto Email Report", column_widths=column_widths, header_index=header_index
+					xlsx_data,
+					"Auto Email Report",
+					column_widths=column_widths,
+					header_index=header_index,
+					has_filters=bool(self.filters),
 				)
 
 				return xlsx_file.getvalue()
