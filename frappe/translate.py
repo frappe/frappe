@@ -272,16 +272,6 @@ def get_lang_js(fortype: str, name: str) -> str:
 	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
-@frappe.whitelist(allow_guest=True)
-def get_app_translations():
-	if frappe.session.user != "Guest":
-		language = frappe.db.get_value("User", frappe.session.user, "language")
-	else:
-		language = frappe.db.get_single_value("System Settings", "language")
-
-	return get_all_translations(language)
-
-
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
