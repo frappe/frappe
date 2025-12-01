@@ -201,17 +201,12 @@ def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
 
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
-<<<<<<< HEAD
-	"""Returns path of a doc in a module"""
-	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
-=======
 	"""Return path of a doc in a module."""
 	module_path = Path(get_module_path(module))
 	path = module_path / Path(*scrub_dt_dn(doctype, name))
 	if not path.resolve().is_relative_to(module_path.resolve()):
 		raise ValueError(_("Path {0} is not within module {1}").format(path, module))
 	return path.resolve()
->>>>>>> 31131ea129 (fix(get_doc_path): don't allow referencing a path outside the doc's module (#34581))
 
 
 def reload_doc(
