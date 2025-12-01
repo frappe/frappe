@@ -238,6 +238,11 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			__("module name...") +
 			"</td></tr>\
 			<tr><td>" +
+			__("Open in new tab") +
+			"</td><td>" +
+			(frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter") +
+			"</td></tr>\
+			<tr><td>" +
 			__("Calculate") +
 			"</td><td>" +
 			__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...") +
