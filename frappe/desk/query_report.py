@@ -522,6 +522,8 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
+	hook_styling = frappe.flags.cell_styling_in_export
+
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
@@ -538,31 +540,23 @@ def build_xlsx_data(
 			label = column.get("label")
 			fieldname = column.get("fieldname")
 			cell_value = row.get(fieldname, row.get(label, "")) if row_is_dict else row[col_idx]
+			cell_style = None
 
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
+			if hook_styling:
+				cell_style = get_xlsx_cell_style(cell_value, column, row)
+
 			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
 				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+			if cell_style:
+				cell_value = {"value": cell_value, "style": cell_style}
 
 			row_data.append(cell_value)
 
 		result.append(row_data)
-
-	if data.add_total_row and frappe.flags.cell_styling_in_export:
-		total_row = result[-1]
-		styled_total_row = []
-
-		for value in total_row:
-			# TODO: valid column required?
-			style = get_xlsx_cell_style(value, {}, {})
-
-			if style:
-				value = {"value": value, "style": style}
-
-			styled_total_row.append(value)
-
-		result[-1] = styled_total_row
 
 	return result, column_widths
 

@@ -47,13 +47,14 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	row1.font = Font(name="Calibri", bold=True)
 
 	date_format, time_format = get_excel_date_format()
+	cell_styling = frappe.flags.cell_styling_in_export
 
 	for row in data:
 		clean_row = []
 		for item in row:
 			cell_style = None
 
-			if frappe.flags.cell_styling_in_export and isinstance(item, dict) and "value" in item:
+			if cell_styling and isinstance(item, dict) and "value" in item:
 				cell_style = item.get("style")
 				item = item.get("value")
 
