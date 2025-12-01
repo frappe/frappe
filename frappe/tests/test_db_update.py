@@ -139,7 +139,6 @@ class TestDBUpdate(IntegrationTestCase):
 				with self.subTest(f"Checking index {doctype.name} - {field.fieldname}"):
 					self.check_unique_indexes(doctype.name, field.fieldname)
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_alter(self):
 		"""Only one unique index should be added"""
 

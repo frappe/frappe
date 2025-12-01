@@ -91,6 +91,7 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
 from frappe.utils.synchronization import LockTimeoutError, filelock
+from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
 
 
 class Capturing(list):
@@ -1246,11 +1247,11 @@ class TestTypingValidations(IntegrationTestCase):
 	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		@frappe.whitelist()
+		@validate_argument_types
 		def simple(string: str, number: int):
 			return
 
-		@frappe.whitelist()
+		@validate_argument_types
 		def varkw(string: str, **kwargs):
 			return
 
@@ -1463,10 +1464,6 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		from unittest.mock import AsyncMock, MagicMock, Mock
 
 		from frappe.core.doctype.doctype.doctype import DocType
-		from frappe.utils.typing_validations import (
-			FrappeTypeError,
-			validate_argument_types,
-		)
 
 		@validate_argument_types
 		def test_simple_types(a: int, b: float, c: bool):

@@ -6,6 +6,7 @@
 // add_fetches
 import Awesomplete from "awesomplete";
 frappe.ui.form.recent_link_validations = {};
+const SPECIAL_VALUES = ["create_new__link_option", "advanced_search__link_option"];
 
 frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
@@ -135,10 +136,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.set_input_value(translated_link_text);
 	}
 	parse_validate_and_set_in_model(value, e, label) {
-		if (this.parse) value = this.parse(value, label);
+		if (this.parse) value = this.parse(value);
 		if (label) {
 			this.label = this.get_translated(label);
-			frappe.utils.add_link_title(this.df.options, value, label);
+			frappe.utils.add_link_title(this.get_options(), value, label);
 		}
 
 		return this.validate_and_set_in_model(value, e);
@@ -191,8 +192,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
-		frappe._from_link = frappe.utils.deep_clone(this);
-		frappe._from_link_scrollY = $(document).scrollTop();
+		frappe._from_link = {
+			field_obj: this,
+			from_doctype: this.doctype,
+			from_docname: this.doc?.name,
+			scrollY: $(document).scrollTop(),
+		};
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
 			return me.set_value(doc.name);
@@ -355,6 +360,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			ignore_user_permissions: this.df.ignore_user_permissions,
 			reference_doctype: this.get_reference_doctype() || "",
 			page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
+			form_doctype: this.doctype,
+			link_fieldname: this.df.fieldname,
 		};
 
 		this.set_custom_query(args);
@@ -663,9 +670,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		const columns_to_fetch = Object.values(this.fetch_map);
+		const nothing_to_fetch = !columns_to_fetch.length;
 
 		// if default and no fetch, no need to validate
-		if (!columns_to_fetch.length && this.df.__default_value === value) {
+		if (nothing_to_fetch && this.df.__default_value === value) {
+			return value;
+		}
+
+		if (
+			nothing_to_fetch &&
+			value &&
+			!SPECIAL_VALUES.includes(value) &&
+			this.awesomplete.get_item(value)
+		) {
+			// if value is in the suggestion list, must be correct
 			return value;
 		}
 

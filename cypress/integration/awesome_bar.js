@@ -10,16 +10,21 @@ context("Awesome Bar", () => {
 	});
 
 	beforeEach(() => {
-		let txt = `Search or type a command (${
-			window.navigator.platform === "MacIntel" ? "⌘" : "Ctrl"
-		} + K)`;
-		cy.findByPlaceholderText(txt).as("awesome_bar");
-		cy.get("@awesome_bar").type("{selectall}");
+		cy.get("body").click(0, 0); // Click on some blank space to avoid any modals.
+		cy.get("#navbar-modal-search").as("awesome_bar_search");
+		cy.get("@awesome_bar_search").click();
+		cy.get("#navbar-search").as("awesome_bar");
+		cy.get("#navbar-search").type("{selectall}");
+		cy.wait(400);
 	});
 
 	after(() => {
 		cy.visit("/desk/todo"); // Make sure we're not bleeding any filters to the next spec.
 		cy.clear_filters();
+	});
+
+	it("opens awesome bar on click", () => {
+		cy.get("@awesome_bar").should("be.visible");
 	});
 
 	it("navigates to doctype list", () => {
@@ -45,6 +50,8 @@ context("Awesome Bar", () => {
 		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.get('[data-original-title="ID"]:visible > input').as("filter");
 		cy.get("@filter").should("have.value", "%test%");
+		cy.get("@awesome_bar_search").click();
+		cy.wait(400);
 		cy.get("@awesome_bar").type("anothertest in todo");
 		cy.wait(200); // Wait a bit longer before hitting enter.
 		cy.get("@awesome_bar").type("{enter}");

@@ -7,7 +7,7 @@
  "doctype": "Number Card",
  "document_type": "Web Page",
  "dynamic_filters_json": "[]",
- "filters_json": "[[\"Web Page\",\"published\",\"=\",1,false]]",
+ "filters_json": "[[\"Web Page\",\"published\",\"=\",1]]",
  "function": "Count",
  "idx": 0,
  "is_public": 0,

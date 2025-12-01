@@ -11,9 +11,9 @@ import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
-from pypika.queries import QueryBuilder
+from pypika.queries import QueryBuilder, Table
 
 import frappe
 import frappe.defaults
@@ -27,6 +27,7 @@ from frappe.database.utils import (
 	Query,
 	QueryValues,
 	convert_to_value,
+	get_doctype_sort_info,
 	get_query_type,
 	is_query_type,
 )
@@ -649,7 +650,6 @@ class Database:
 				try:
 					if order_by:
 						order_by = "creation" if order_by == DefaultOrderBy else order_by
-
 					query = frappe.qb.get_query(
 						table=doctype,
 						filters=filters,
@@ -1323,12 +1323,12 @@ class Database:
 
 		from frappe.utils import now_datetime
 
-		Table = frappe.qb.DocType(doctype)
+		dt = frappe.qb.DocType(doctype)
 
 		return (
-			frappe.qb.from_(Table)
-			.select(Count(Table.name))
-			.where(Table.creation >= now_datetime() - relativedelta(minutes=minutes))
+			frappe.qb.from_(dt)
+			.select(Count(dt.name))
+			.where(dt.creation >= now_datetime() - relativedelta(minutes=minutes))
 			.run()[0][0]
 		)
 

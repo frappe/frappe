@@ -10,11 +10,11 @@ from typing_extensions import NotRequired  # not required in 3.11+
 import frappe
 
 # Backward compatbility
-from frappe import _, is_whitelisted, validate_and_sanitize_search_inputs
+from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, unique
+from frappe.utils import cint, cstr, escape_html, unique
 from frappe.utils.data import make_filter_tuple
 
 
@@ -43,6 +43,9 @@ def search_link(
 	searchfield: str | None = None,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
+	*,
+	form_doctype: str | None = None,
+	link_fieldname: str | None = None,
 ) -> list[LinkSearchResults]:
 	results = search_widget(
 		doctype,
@@ -53,6 +56,8 @@ def search_link(
 		filters=filters,
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
+		form_doctype=form_doctype,
+		link_fieldname=link_fieldname,
 	)
 	return build_for_autosuggest(results, doctype=doctype)
 
@@ -71,7 +76,22 @@ def search_widget(
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
+	*,
+	form_doctype: str | None = None,
+	link_fieldname: str | None = None,
 ):
+	if ignore_user_permissions:
+		if form_doctype and link_fieldname:
+			validate_ignore_user_permissions(form_doctype, link_fieldname, doctype)
+		else:
+			frappe.logger().error(
+				"setting ignore_user_permissions=True in search_link requires "
+				"form_doctype and link_fieldname to be set. "
+				f"Got form_doctype={form_doctype}, link_fieldname={link_fieldname}. "
+				"Ignoring flag."
+			)
+			ignore_user_permissions = False
+
 	start = cint(start)
 
 	if isinstance(filters, str):
@@ -102,6 +122,8 @@ def search_widget(
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
 				ignore_user_permissions=ignore_user_permissions,
+				form_doctype=form_doctype,
+				link_fieldname=link_fieldname,
 			)
 		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError):
 			if frappe.local.conf.developer_mode:
@@ -163,36 +185,31 @@ def search_widget(
 	fields = get_std_fields_list(meta, searchfield or "name")
 	if filter_fields:
 		fields = list(set(fields + json.loads(filter_fields)))
-	formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
+	formatted_fields = [f.strip() for f in fields]
 
 	# Insert title field query after name
 	if meta.show_title_field_in_link and meta.title_field:
-		formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+		formatted_fields.insert(1, f"{meta.title_field} as label")
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
 	# `idx` is number of times a document is referred, check link_count.py
-	order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
+	order_by = f"idx desc, {order_by_based_on_meta}"
 
 	if not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
-		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
-		formatted_fields.append(f"""{_relevance} as `_relevance`""")
-		# Since we are sorting by alias postgres needs to know number of column we are sorting
-		if frappe.db.db_type == "mariadb":
-			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
+		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
+
+		# For MariaDB, wrap in IFNULL for sorting to push nulls to end
+		if frappe.db.db_type in ("mariadb", "sqlite"):
+			_relevance = {"IFNULL": [_relevance_expr, -9999], "as": "_relevance"}
+			formatted_fields.append(_relevance)
+			order_by = f"_relevance desc, {order_by}"
 		elif frappe.db.db_type == "postgres":
+			_relevance = {**_relevance_expr, "as": "_relevance"}
+			formatted_fields.append(_relevance)
 			# Since we are sorting by alias postgres needs to know number of column we are sorting
 			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
-
-	ignore_permissions = doctype == "DocType" or (
-		cint(ignore_user_permissions)
-		and has_permission(
-			doctype,
-			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
-			parent_doctype=reference_doctype,
-		)
-	)
 
 	values = frappe.get_list(
 		doctype,
@@ -202,7 +219,8 @@ def search_widget(
 		limit_start=start,
 		limit_page_length=None if meta.translated_doctype else page_length,
 		order_by=order_by,
-		ignore_permissions=ignore_permissions,
+		ignore_permissions=doctype == "DocType",
+		ignore_user_permissions=ignore_user_permissions,
 		reference_doctype=reference_doctype,
 		as_list=not as_dict,
 		strict=False,
@@ -233,6 +251,63 @@ def search_widget(
 			values = [r[:-1] for r in values]
 
 	return values
+
+
+def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype):
+	def _throw(message):
+		frappe.throw(message, title=_('Error validating "Ignore User Permissions"'))
+
+	meta = frappe.get_meta(form_doctype)
+	link_field = meta.get_field(link_fieldname)
+
+	if not link_field:
+		_throw(
+			_("Field <code>{0}</code> not found in {1}").format(
+				escape_html(link_fieldname), bold(_(form_doctype))
+			)
+		)
+
+	ignore_user_permissions = link_field.ignore_user_permissions
+	found_doctype = None
+
+	if link_field.fieldtype == "Link":
+		found_doctype = link_field.options
+
+	if link_field.fieldtype == "Table MultiSelect":
+		child_meta = frappe.get_meta(link_field.options)
+		child_link_field = next((field for field in child_meta.fields if field.fieldtype == "Link"), None)
+		if not child_link_field:
+			_throw(
+				_(
+					"Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
+				).format(bold(_(link_field.options)))
+			)
+
+		found_doctype = child_link_field.options
+		if not ignore_user_permissions:
+			# ignore user permissions should be set in parent table field
+			# or in child table link field
+			ignore_user_permissions = child_link_field.ignore_user_permissions
+
+	if not ignore_user_permissions:
+		_throw(
+			_("The field {0} in {1} does not allow ignoring user permissions").format(
+				bold(meta.get_label(link_fieldname)), bold(_(form_doctype))
+			)
+		)
+
+	if link_field.fieldtype == "Dynamic Link":
+		return  # skip doctype check for Dynamic Link fields
+
+	if found_doctype != link_doctype:
+		_throw(
+			_("The field {0} in {1} links to {2} and not {3}").format(
+				bold(meta.get_label(link_fieldname)),
+				bold(_(form_doctype)),
+				bold(_(found_doctype)),
+				bold(escape_html(link_doctype)),
+			)
+		)
 
 
 def get_std_fields_list(meta, key):

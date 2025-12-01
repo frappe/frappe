@@ -3,7 +3,7 @@
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
 
 doctype_name = "DocType for Import"
@@ -78,7 +78,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(preview.columns), 16)
 
 	# ignored on postgres because myisam doesn't exist on pg
-	@run_only_if(db_type_is.MARIADB)
+	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_data_import_without_mandatory_values(self):
 		import_file = get_import_file("sample_import_file_without_mandatory")
 		data_import = self.get_importer(doctype_name, import_file)
@@ -231,6 +231,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			"module": "Custom",
 			"custom": 1,
 			"autoname": "field:title",
+			"allow_import": 1,
 			"fields": [
 				{"label": "Title", "fieldname": "title", "reqd": 1, "fieldtype": "Data"},
 				{"label": "Description", "fieldname": "description", "fieldtype": "Small Text"},
@@ -257,7 +258,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 					"options": table_1_name,
 				},
 			],
-			"permissions": [{"role": "System Manager"}],
+			"permissions": [{"role": "System Manager", "import": 1}],
 		}
 	).insert()
 

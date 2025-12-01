@@ -112,7 +112,6 @@ context("Control Link", () => {
 	it("should show open link button", () => {
 		get_dialog_with_link().as("dialog");
 
-		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get("@todos").then((todos) => {
@@ -120,7 +119,7 @@ context("Control Link", () => {
 			cy.wait("@search_link");
 			cy.wait(500);
 			cy.get("@input").type(todos[0], { delay: 100 }).blur();
-			cy.wait("@validate_link");
+			// not waiting for validate_link because it will not get called
 			cy.get("@input").trigger("mouseover");
 			cy.get(".frappe-control[data-fieldname=link] .btn-open")
 				.should("be.visible")

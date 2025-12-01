@@ -238,7 +238,6 @@
 	gap: 0px !important;
 }
 .section-item {
-	margin-top: 5px;
 	.standard-sidebar-item {
 		align-items: center;
 	}
@@ -256,7 +255,7 @@
 		}
 	}
 	.collapse-sidebar-link {
-		display: none;
+		display: flex;
 	}
 }
 .sidebar-item-edit-controls {
@@ -280,8 +279,4 @@
 }
 .indent + .nested-container {
 	margin-left: 16px;
-}
-.context-menu {
-	position: absolute;
-	z-index: 1030;
 }

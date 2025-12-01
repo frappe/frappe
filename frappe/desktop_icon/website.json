@@ -10,11 +10,11 @@
  "label": "Website",
  "link_to": "Website",
  "link_type": "Workspace",
- "modified": "2025-11-13 16:00:56.957106",
+ "modified": "2025-11-25 13:25:58.604796",
  "modified_by": "Administrator",
  "name": "Website",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }

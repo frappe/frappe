@@ -137,7 +137,7 @@ class NamingSeries:
 
 	def get_current_value(self) -> int:
 		prefix = self.get_prefix()
-		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
+		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name", for_update=True))
 
 
 def set_new_name(doc):

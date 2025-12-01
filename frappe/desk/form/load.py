@@ -292,6 +292,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
+		ORDER BY C.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	# communications linked in Timeline Links
@@ -302,6 +304,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
+		ORDER BY `tabCommunication Link`.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	sqlite_query = f"""
@@ -316,8 +320,13 @@ def get_communication_data(
 		OFFSET %(start)s"""
 
 	query = f"""
+		WITH part1 AS ({part1}), part2 AS ({part2})
 		SELECT *
-		FROM (({part1}) UNION ({part2})) AS combined
+		FROM (
+			SELECT * FROM part1
+			UNION
+			SELECT * FROM part2
+		) AS combined
 		{group_by or ""}
 		ORDER BY communication_date DESC
 		LIMIT %(limit)s
@@ -335,6 +344,7 @@ def get_communication_data(
 			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
+			cte_limit=limit + start,
 		),
 		as_dict=as_dict,
 	)
