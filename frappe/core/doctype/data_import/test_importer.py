@@ -231,6 +231,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			"module": "Custom",
 			"custom": 1,
 			"autoname": "field:title",
+			"allow_import": 1,
 			"fields": [
 				{"label": "Title", "fieldname": "title", "reqd": 1, "fieldtype": "Data"},
 				{"label": "Description", "fieldname": "description", "fieldtype": "Small Text"},
@@ -257,7 +258,7 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 					"options": table_1_name,
 				},
 			],
-			"permissions": [{"role": "System Manager"}],
+			"permissions": [{"role": "System Manager", "import": 1}],
 		}
 	).insert()
 

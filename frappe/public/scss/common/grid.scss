@@ -509,12 +509,16 @@
 	overflow: auto;
 	margin: auto;
 	padding: var(--padding-sm) var(--padding-md);
-	max-width: 865px;
 	position: fixed;
 	top: 5%;
 	left: 50%;
 	transform: translate(-50%, 0%);
-	width: 100%;
+	width: 80%;
+
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
+
 	.grid-form-body {
 		max-height: 80vh;
 		overflow: scroll;

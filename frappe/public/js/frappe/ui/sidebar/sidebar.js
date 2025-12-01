@@ -52,6 +52,7 @@ frappe.ui.Sidebar = class Sidebar {
 		for (const app of frappe.boot.app_data) {
 			if (app.workspaces.includes(this.workspace_title)) {
 				this.header_subtitle = app.app_title;
+				frappe.current_app = app;
 				this.app_logo_url = app.app_logo_url;
 				return;
 			}

@@ -246,6 +246,10 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			if (e.originalEvent.isTrusted) {
 				me.save_section_break_state();
 			}
+			if (!frappe.app.sidebar.sidebar_expanded) {
+				frappe.app.sidebar.open();
+				this.open();
+			}
 		});
 	}
 	save_section_break_state() {
