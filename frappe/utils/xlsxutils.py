@@ -84,6 +84,10 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 					style["bold"] = True
 				if cell_style.get("italic"):
 					style["italic"] = True
+				if cell_style.get("underline"):
+					style["underline"] = True
+				if cell_style.get("strike"):
+					style["strike"] = True
 				if color := cell_style.get("color"):
 					# TODO: convert #FFFFFF to FFFF0000 format
 					style["color"] = color
