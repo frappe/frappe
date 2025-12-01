@@ -439,8 +439,32 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 	result = [[]]
 	column_widths = []
 
+<<<<<<< HEAD
 	for column in data.columns:
 		if column.get("hidden"):
+=======
+	include_hidden_columns = cint(include_hidden_columns)
+	include_indentation = cint(include_indentation)
+
+	if cint(include_filters):
+		filter_data = []
+		filters = data.filters
+		for filter_name, filter_value in filters.items():
+			if not filter_value:
+				continue
+			filter_value = (
+				", ".join([cstr(x) for x in filter_value])
+				if isinstance(filter_value, list)
+				else cstr(filter_value)
+			)
+			filter_data.append([cstr(filter_name), filter_value])
+		filter_data.append([])
+		result += filter_data
+
+	column_data = []
+	for column in data.columns:
+		if column.get("hidden") and not include_hidden_columns:
+>>>>>>> af3e272037 (fix: improve handling of hidden columns in XLSX export (#34944))
 			continue
 		result[0].append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -451,6 +475,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
+<<<<<<< HEAD
 		if ignore_visible_idx or row_idx in visible_idx:
 			row_data = []
 			if isinstance(row, dict):
@@ -462,14 +487,31 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 					cell_value = row.get(fieldname, row.get(label, ""))
 					if not isinstance(cell_value, EXCEL_TYPES):
 						cell_value = cstr(cell_value)
+=======
+		if not ignore_visible_idx and row_idx not in visible_idx:
+			continue
+>>>>>>> af3e272037 (fix: improve handling of hidden columns in XLSX export (#34944))
 
-					if cint(include_indentation) and "indent" in row and col_idx == 0:
-						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
-					row_data.append(cell_value)
-			elif row:
-				row_data = row
+		row_data = []
+		row_is_dict = isinstance(row, dict)
 
-			result.append(row_data)
+		for col_idx, column in enumerate(data.columns):
+			if column.get("hidden") and not include_hidden_columns:
+				continue
+
+			label = column.get("label")
+			fieldname = column.get("fieldname")
+			cell_value = row.get(fieldname, row.get(label, "")) if row_is_dict else row[col_idx]
+
+			if not isinstance(cell_value, EXCEL_TYPES):
+				cell_value = cstr(cell_value)
+
+			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
+				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+			row_data.append(cell_value)
+
+		result.append(row_data)
 
 	return result, column_widths
 
