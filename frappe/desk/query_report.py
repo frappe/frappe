@@ -391,6 +391,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
 		report=report_name,
+		hook_cell_style=file_format_type == "Excel",
 	)
 
 	if file_format_type == "CSV":
@@ -448,6 +449,7 @@ def build_xlsx_data(
 	ignore_visible_idx=False,
 	include_hidden_columns=False,
 	report=None,
+	hook_cell_style=False,
 ):
 	EXCEL_TYPES = (
 		str,
@@ -461,12 +463,18 @@ def build_xlsx_data(
 		datetime.timedelta,
 	)
 
+	# hook for cell styling in excel export
 	get_xlsx_cell_style = None
 
-	if report and isinstance(report, str):
+	if hook_cell_style and report and isinstance(report, str):
 		report = frappe.get_doc("Report", report)
 
-	if report and report.is_standard == "Yes" and report.report_type in ("Query Report", "Script Report"):
+	if (
+		hook_cell_style
+		and report
+		and report.is_standard == "Yes"
+		and report.report_type in ("Query Report", "Script Report")
+	):
 		try:
 			get_xlsx_cell_style = report.get_module_method("get_xlsx_cell_style")
 
