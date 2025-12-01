@@ -783,12 +783,19 @@
   {
    "fieldname": "column_break_ewhs",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog.",
+   "fieldname": "only_allow_system_managers_to_upload_public_files",
+   "fieldtype": "Check",
+   "label": "Only allow System Managers to upload public files"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-01 00:12:17.823242",
+ "modified": "2025-12-01 16:52:22.361965",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
