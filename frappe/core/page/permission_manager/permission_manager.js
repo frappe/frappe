@@ -336,6 +336,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			"export",
 			"share",
 			"mask",
+			"upload_public_files",
 		];
 	}
 

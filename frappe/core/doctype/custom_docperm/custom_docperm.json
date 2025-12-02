@@ -31,7 +31,8 @@
   "column_break_19",
   "share",
   "print",
-  "email"
+  "email",
+  "upload_public_files"
  ],
  "fields": [
   {
@@ -210,6 +211,12 @@
    "fieldname": "email",
    "fieldtype": "Check",
    "label": "Email"
+  },
+  {
+   "default": "1",
+   "fieldname": "upload_public_files",
+   "fieldtype": "Check",
+   "label": "Upload Public Files"
   },
   {
    "fieldname": "parent",

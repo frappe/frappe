@@ -25,6 +25,7 @@ std_rights = (
 	"import",
 	"export",
 	"share",
+	"upload_public_files",
 )
 
 rights = std_rights

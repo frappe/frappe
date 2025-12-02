@@ -1951,4 +1951,25 @@ Object.assign(frappe.utils, {
 			});
 		});
 	},
+
+	/**
+	 * Check if current user can upload public files for the given doctype.
+	 * @param {string} doctype - The doctype to check permissions for. Defaults to "File" if not provided.
+	 * @returns {boolean}
+	 */
+	can_upload_public_files(doctype = "File") {
+		// Administrator has all permissions
+		if (
+			frappe.session.user === "Administrator" ||
+			frappe.user_roles.includes("Administrator")
+		) {
+			return true;
+		}
+		try {
+			return frappe.perm.has_perm(doctype, 0, "upload_public_files");
+		} catch (e) {
+			// If permission type doesn't exist, allow by default (backward compatibility)
+			return true;
+		}
+	},
 });

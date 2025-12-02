@@ -15,6 +15,20 @@ frappe.ui.form.on("File", {
 			frm.add_custom_button(__("Download"), () => frm.trigger("download"), "fa fa-download");
 		}
 
+		// Check permission to upload public files based on attached doctype
+		const doctype_to_check = frm.doc.attached_to_doctype || "File";
+		const can_upload_public = frappe.utils.can_upload_public_files(doctype_to_check);
+
+		// Disable is_private field if user doesn't have permission (force private)
+		if (!can_upload_public) {
+			frm.set_df_property("is_private", "read_only", 1);
+			if (!frm.doc.is_private) {
+				frm.set_value("is_private", 1);
+			}
+		} else {
+			frm.set_df_property("is_private", "read_only", 0);
+		}
+
 		if (!frm.doc.is_private) {
 			frm.dashboard.set_headline(
 				__("This file is public. It can be accessed without authentication."),

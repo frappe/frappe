@@ -92,6 +92,9 @@ let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropp
 // props
 const props = defineProps({
 	file: Object,
+	doctype: {
+		default: null,
+	},
 	allow_toggle_private: {
 		default: true,
 	},
@@ -128,7 +131,12 @@ let allow_toggle_optimize = computed(() => {
 	);
 });
 let allow_toggle_private = computed(() => {
-	return props.allow_toggle_private && !uploaded.value && !props.file.failed;
+	if (!props.allow_toggle_private || uploaded.value || props.file.failed) {
+		return false;
+	}
+	// Check permission based on doctype (fallback to "File" if not provided)
+	const doctype_to_check = props.doctype || "File";
+	return frappe.utils.can_upload_public_files(doctype_to_check);
 });
 let is_cropable = computed(() => {
 	let croppable_types = ["image/jpeg", "image/png"];

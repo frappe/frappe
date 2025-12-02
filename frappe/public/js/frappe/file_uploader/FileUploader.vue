@@ -198,6 +198,7 @@
 					v-for="(file, i) in files"
 					:key="file.name"
 					:file="file"
+					:doctype="doctype"
 					:allow_toggle_private="allow_toggle_private"
 					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"

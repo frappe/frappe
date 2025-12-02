@@ -142,6 +142,7 @@ class File(Document):
 		self.validate_file_url()
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
+		self.enforce_public_file_restrictions()
 
 	def validate_attachment_references(self):
 		if not self.attached_to_doctype:
@@ -258,6 +259,10 @@ class File(Document):
 		# as old_file_url to avoid a FileNotFoundError for this case.
 		if updated_file_url == old_file_url:
 			return
+
+		# If changing from private to public, check permission BEFORE moving the file
+		if not cint(self.is_private):
+			self.enforce_public_file_restrictions()
 
 		if not source.exists():
 			frappe.throw(
@@ -806,6 +811,30 @@ class File(Document):
 
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
+
+	def enforce_public_file_restrictions(self):
+		"""Enforce permission check for public file uploads based on attached doctype."""
+		if cint(self.is_private):
+			return
+
+		# Administrator bypasses all permission checks
+		if frappe.session.user == "Administrator":
+			return
+
+		# Determine which doctype to check permissions for
+		doctype_to_check = self.attached_to_doctype or "File"
+
+		try:
+			if not frappe.has_permission(doctype_to_check, "upload_public_files"):
+				msg = _("You do not have permission to upload public files")
+				if self.attached_to_doctype:
+					msg += f" for {_(doctype_to_check)}"
+				raise frappe.PermissionError(msg)
+		except frappe.PermissionError:
+			raise
+		except Exception:
+			# If permission type doesn't exist or other error, allow by default (backward compatibility)
+			pass
 
 	@frappe.whitelist()
 	def optimize_file(self):
