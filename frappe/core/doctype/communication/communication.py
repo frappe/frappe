@@ -447,7 +447,14 @@ class Communication(Document, CommunicationEmailMixin):
 			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
-		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
+		self.append(
+			"timeline_links",
+			{
+				"link_doctype": link_doctype,
+				"link_name": link_name,
+				"communication_date": self.communication_date,
+			},
+		)
 
 		if autosave:
 			self.save(ignore_permissions=True)
@@ -466,9 +473,13 @@ class Communication(Document, CommunicationEmailMixin):
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
-	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 	frappe.db.add_index("Communication", ["message_id(140)"])
+	frappe.db.add_index(
+		"Communication",
+		["reference_doctype", "reference_name", "communication_date", "communication_type"],
+		index_name="comm_ref_type_date_idx",
+	)
 
 
 def has_permission(doc, ptype, user=None, debug=False):

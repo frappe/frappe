@@ -764,8 +764,8 @@ frappe.views.CommunicationComposer = class {
 		const me = this;
 		this.dialog.hide();
 
-		if (!form_values.recipients) {
-			frappe.msgprint(__("Enter Email Recipient(s)"));
+		if (!form_values.recipients && !form_values.cc && !form_values.bcc) {
+			frappe.msgprint(__("Enter Email Recipient(s) in the To, CC, or BCC fields"));
 			return;
 		}
 

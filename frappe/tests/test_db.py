@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests import IntegrationTestCase, timeout
-from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.tests.test_query_builder import db_type_is, run_only_if, unimplemented_for
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
 from frappe.utils.testutils import clear_custom_fields
@@ -1207,7 +1207,7 @@ class TestSqlIterator(IntegrationTestCase):
 				msg=f"{query=} results not same as iterator",
 			)
 
-	@run_only_if(db_type_is.MARIADB)
+	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()

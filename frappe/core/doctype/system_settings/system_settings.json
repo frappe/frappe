@@ -95,6 +95,7 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
   "backups_tab",
@@ -777,12 +778,16 @@
    "fieldname": "disable_product_suggestion",
    "fieldtype": "Check",
    "label": "Disable Product Suggestion"
+  },
+  {
+   "fieldname": "column_break_ewhs",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-11-23 13:17:57.577690",
+ "modified": "2025-12-01 00:12:17.823242",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

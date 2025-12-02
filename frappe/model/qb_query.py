@@ -55,6 +55,7 @@ class DatabaseQuery:
 		ignore_ddl: bool = False,
 		*,
 		parent_doctype: str | None = None,
+		ignore_user_permissions: bool = False,
 	) -> list:
 		"""Execute a database query using the Query Builder engine.
 
@@ -89,6 +90,8 @@ class DatabaseQuery:
 			pluck: Extract single field values as a simple list.
 			ignore_ddl: Ignore DDL operations during query execution (legacy compatibility).
 			parent_doctype: Parent doctype for child table queries.
+			ignore_user_permissions: Ignore user permissions for the query.
+				Useful for link search queries when the link field has `ignore_user_permissions` set.
 
 		Returns:
 			Query results as list of dicts (default) or list of lists (as_list=True).
@@ -186,6 +189,7 @@ class DatabaseQuery:
 			"offset": frappe.cint(offset),
 			"distinct": distinct,
 			"ignore_permissions": ignore_permissions,
+			"ignore_user_permissions": ignore_user_permissions,
 			"user": user,
 			"parent_doctype": parent_doctype,
 			"reference_doctype": reference_doctype,

@@ -452,7 +452,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	if not check_user_permission_on_link_fields(doc):
 		return False
 
-	for d in doc.get_all_children():
+	for d in doc.get_all_children(include_computed=True):
 		if not check_user_permission_on_link_fields(d):
 			return False
 
