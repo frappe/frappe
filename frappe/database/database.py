@@ -315,6 +315,12 @@ class Database:
 		if auto_commit:
 			self.commit()
 
+		if self.db_type == "postgres" and getattr(self._cursor, "name", None):
+			"""named cursors in Postgres are lazy and don't retrieve column names immediately,
+			so explicitly performed here to avoid early exit during `unbuffered_cursor` usage
+			"""
+			self._cursor.fetchmany(0)
+
 		if not self._cursor.description:
 			return ()
 
