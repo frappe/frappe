@@ -522,8 +522,8 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
-	hook_styling = frappe.flags.cell_styling_in_export
-	# TODO: can we make total row as a dict too? Only for this!
+	cell_styling_in_export = frappe.flags.cell_styling_in_export
+	total_row_index = len(data.result) - 1
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -532,6 +532,12 @@ def build_xlsx_data(
 			continue
 
 		row_data = []
+		is_total_row = total_row_index == row_idx and data.add_total_row
+
+		if cell_styling_in_export and isinstance(row, (list, tuple)):
+			# only convert to dict if cell styling is required
+			row = {column.get("fieldname"): value for column, value in zip(data.columns, row, strict=True)}
+
 		row_is_dict = isinstance(row, dict)
 
 		for col_idx, column in enumerate(data.columns):
@@ -546,8 +552,8 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
-			if hook_styling:
-				cell_style = get_xlsx_cell_style(cell_value, column, row)
+			if cell_styling_in_export:
+				cell_style = get_xlsx_cell_style(cell_value, column, row, is_total_row=is_total_row)
 
 			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
 				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
