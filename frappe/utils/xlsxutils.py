@@ -9,7 +9,7 @@ import openpyxl
 import xlrd
 from openpyxl import load_workbook
 from openpyxl.cell import WriteOnlyCell
-from openpyxl.styles import Font
+from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
@@ -21,6 +21,7 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 DEFAULT_FONT_COLOR = "FF000000"  # Black
+DEFAULT_BG_COLOR = "FFFFFFFF"  # White
 
 
 def get_excel_date_format():
@@ -90,7 +91,11 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 				# color
 				if color := cs.get("color"):
-					font_kwargs["color"] = hex_to_argb(color)
+					font_kwargs["color"] = hex_to_argb(color, bg=True)
+
+				# background color
+				if bg_color := cs.get("background"):
+					cell.fill = PatternFill(fill_type="solid", start_color=hex_to_argb(bg_color))
 
 				# weight/style
 				for s in ("bold", "italic", "strike"):
@@ -165,7 +170,7 @@ def build_xlsx_response(data, filename):
 
 
 @lru_cache(maxsize=128)
-def hex_to_argb(color: str) -> str:
+def hex_to_argb(color: str, bg: bool = False) -> str:
 	"""
 	Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
 
@@ -175,17 +180,19 @@ def hex_to_argb(color: str) -> str:
 	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
 
 	"""
+	default_color = DEFAULT_BG_COLOR if bg else DEFAULT_FONT_COLOR
+
 	if not isinstance(color, str):
-		return DEFAULT_FONT_COLOR
+		return default_color
 
 	s = color.strip()
 	if not s.startswith("#"):
-		return DEFAULT_FONT_COLOR
+		return default_color
 
 	hex_part = s[1:]
 
 	if not hex_part or any(ch not in "0123456789abcdefABCDEF" for ch in hex_part):
-		return DEFAULT_FONT_COLOR
+		return default_color
 
 	n = len(hex_part)
 
