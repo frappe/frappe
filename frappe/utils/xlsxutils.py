@@ -89,8 +89,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				if cell_style.get("strike"):
 					style["strike"] = True
 				if color := cell_style.get("color"):
-					# TODO: convert #FFFFFF to FFFF0000 format
-					style["color"] = color
+					style["color"] = hex_to_argb(color)
 
 				cell.font = Font(**style)
 
@@ -155,3 +154,23 @@ def build_xlsx_response(data, filename):
 	from frappe.desk.utils import provide_binary_file
 
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())
+
+
+def hex_to_argb(color: str) -> str:
+	"""
+	Convert color to openpyxl ARGB format ("AARRGGBB").
+
+	Accepts:
+	- "#RGB" or "#RRGGBB" or "#AARRGGBB"
+	"""
+	hex_color = color.lstrip("#")
+	color_length = len(hex_color)
+
+	if color_length == 3:  # #RGB
+		hex_color = "".join(c * 2 for c in hex_color)
+	elif color_length == 6:  # #RRGGBB
+		return f"FF{hex_color.upper()}"
+	elif color_length == 8:  # #AARRGGBB
+		return hex_color.upper()
+
+	return "FF000000"  # Default to black if invalid

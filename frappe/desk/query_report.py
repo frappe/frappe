@@ -523,6 +523,7 @@ def build_xlsx_data(
 	result.append(column_data)
 
 	hook_styling = frappe.flags.cell_styling_in_export
+	# TODO: can we make total row as a dict too? Only for this!
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
