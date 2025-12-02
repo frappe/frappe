@@ -20,7 +20,7 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 	r"[\000-\010]|[\013-\014]|[\016-\037]|\uFEFF|\uFFFE|\uFFFF|[\uD800-\uDFFF]"
 )
 
-DEFAULT_ARGB = "FF000000"  # Black
+DEFAULT_FONT_COLOR = "FF000000"  # Black
 
 
 def get_excel_date_format():
@@ -50,23 +50,24 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	row1.font = Font(name="Calibri", bold=True)
 
 	date_format, time_format = get_excel_date_format()
-	cell_styling = frappe.flags.cell_styling_in_export
+	cell_styling_in_export = frappe.flags.cell_styling_in_export
 
 	for row in data:
 		clean_row = []
 		for item in row:
 			cell_style = None
 
-			if cell_styling and isinstance(item, dict) and "value" in item:
+			# Check for cell styling info
+			if cell_styling_in_export and isinstance(item, dict) and "value" in item:
 				cell_style = item.get("style")
-				item = item.get("value")
+				item = item["value"]
 
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
 				value = item
 
-			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+			if isinstance(value, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
@@ -78,23 +79,27 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 					number_format = f"{date_format} {time_format}"
 				cell.number_format = number_format
 
+			# Apply cell styles if any
 			if cell_style:
-				style = {"name": "Calibri"}
+				cs = cell_style  # alias
+				font_kwargs = {"name": "Calibri"}
 
-				if font_family := cell_style.get("font-family"):
-					style["name"] = font_family
-				if cell_style.get("bold"):
-					style["bold"] = True
-				if cell_style.get("italic"):
-					style["italic"] = True
-				if cell_style.get("underline"):
-					style["underline"] = "single"
-				if cell_style.get("strike"):
-					style["strike"] = True
-				if color := cell_style.get("color"):
-					style["color"] = hex_to_argb(color)
+				# family
+				if font_family := cs.get("font-family"):
+					font_kwargs["name"] = font_family
 
-				cell.font = Font(**style)
+				# color
+				if color := cs.get("color"):
+					font_kwargs["color"] = hex_to_argb(color)
+
+				# weight/style
+				for s in ("bold", "italic", "strike"):
+					font_kwargs[s] = bool(cs.get(s))
+
+				if cs.get("underline"):
+					font_kwargs["underline"] = "single"
+
+				cell.font = Font(**font_kwargs)
 
 			clean_row.append(cell)
 
@@ -169,19 +174,18 @@ def hex_to_argb(color: str) -> str:
 	- "#RRGGBB"    -> converts to "FFRRGGBB"
 	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
 
-	Returns DEFAULT_ARGB (black) if invalid or not starting with '#'.
 	"""
 	if not isinstance(color, str):
-		return DEFAULT_ARGB
+		return DEFAULT_FONT_COLOR
 
 	s = color.strip()
 	if not s.startswith("#"):
-		return DEFAULT_ARGB
+		return DEFAULT_FONT_COLOR
 
 	hex_part = s[1:]
 
 	if not hex_part or any(ch not in "0123456789abcdefABCDEF" for ch in hex_part):
-		return DEFAULT_ARGB
+		return DEFAULT_FONT_COLOR
 
 	n = len(hex_part)
 
@@ -195,4 +199,4 @@ def hex_to_argb(color: str) -> str:
 		h = hex_part.upper()
 		return h[6:8] + h[0:6]
 
-	return DEFAULT_ARGB
+	return DEFAULT_FONT_COLOR

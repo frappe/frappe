@@ -463,7 +463,7 @@ def build_xlsx_data(
 		datetime.timedelta,
 	)
 
-	# hook for cell styling in excel export
+	# hook for cell styling in excel export for standard reports
 	get_xlsx_cell_style = None
 
 	if hook_cell_style and report and isinstance(report, str):
@@ -552,6 +552,7 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
+			# get cell style from hook method
 			if cell_styling_in_export:
 				cell_style = get_xlsx_cell_style(cell_value, column, row, is_total_row=is_total_row)
 
