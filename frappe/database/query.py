@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 from pypika.enums import Arithmetic
-from pypika.queries import Column, QueryBuilder, Table
+from pypika.queries import QueryBuilder, Table
 from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, ValueWrapper
 
 import frappe
@@ -452,7 +452,7 @@ class Engine:
 	def _build_criterion_for_simple_filter(
 		self,
 		field: str | Field,
-		value: FilterValue | Field | Column | list | set | None,
+		value: FilterValue | Field | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
 	) -> "Criterion | None":
@@ -461,8 +461,8 @@ class Engine:
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 
-		if isinstance(value, Field | Column):
-			_value = self._validate_and_prepare_filter_field(value.name, doctype)
+		if isinstance(value, Field):
+			_value = value
 		else:
 			# Regular value processing for literal comparisons like: table.field = 'value'
 			_value = convert_to_value(value)
