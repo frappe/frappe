@@ -1,5 +1,6 @@
 import functools
 import sys
+from collections.abc import Sequence
 from typing import Literal
 
 import frappe
@@ -11,7 +12,7 @@ _strip_html_tags = functools.lru_cache(maxsize=1024)(strip_html_tags)
 
 
 def msgprint(
-	msg: str | list[str] | list[list[str]],
+	msg: str | Sequence[str],
 	title: str | None = None,
 	raise_exception: bool | type[Exception] | Exception = False,
 	as_table: bool = False,
@@ -124,7 +125,7 @@ def clear_last_message():
 
 
 def throw(
-	msg: str | list[str] | list[list[str]],
+	msg: str | Sequence[str],
 	exc: type[Exception] | Exception = frappe.ValidationError,
 	title: str | None = None,
 	is_minimizable: bool = False,
