@@ -24,4 +24,3 @@ def execute():
 		WHERE `upload_public_files` = 0 OR `upload_public_files` IS NULL
 	"""
 	)
-	frappe.db.commit()

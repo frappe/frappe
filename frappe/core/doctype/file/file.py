@@ -813,7 +813,16 @@ class File(Document):
 			self.is_private = cint(self.file_url.startswith("/private"))
 
 	def enforce_public_file_restrictions(self):
-		"""Enforce permission check for public file uploads based on attached doctype."""
+		"""Enforce permission check for public file uploads based on attached doctype.
+
+		Permission check logic:
+		- If file is attached to a doctype (e.g., "Item"), check permissions for that doctype
+		- If file is NOT attached to any doctype (attached_to_doctype is None), check "File" doctype permissions
+		- If file is attached to "File" doctype itself, check "File" doctype permissions
+
+		In summary: "File" doctype permissions only matter when reference doc is not defined
+		or when uploading attachments on File itself.
+		"""
 		if cint(self.is_private):
 			return
 
@@ -821,15 +830,14 @@ class File(Document):
 		if frappe.session.user == "Administrator":
 			return
 
-		# Determine which doctype to check permissions for
-		doctype_to_check = self.attached_to_doctype or "File"
-
+		# Check permission on the attached document if available, otherwise check on File itself
+		# This way, conditions like "Is Owner" and "User Permissions" apply automatically
 		try:
-			if not frappe.has_permission(doctype_to_check, "upload_public_files"):
-				msg = _("You do not have permission to upload public files")
-				if self.attached_to_doctype:
-					msg += f" for {_(doctype_to_check)}"
-				raise frappe.PermissionError(msg)
+			if self.attached_to_doctype and self.attached_to_name:
+				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+				doc.check_permission("upload_public_files")
+			else:
+				self.check_permission("upload_public_files")
 		except frappe.PermissionError:
 			raise
 		except Exception:

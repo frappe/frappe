@@ -102,6 +102,8 @@ context("FileUploader", () => {
 
 		after(() => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
+			cy.visit("/desk");
+			cy.wait(2000); // Ensure page is fully loaded
 			// Clean up test user and role
 			if (test_user) {
 				cy.remove_doc("User", test_user, true);
@@ -321,9 +323,12 @@ context("FileUploader", () => {
 		});
 
 		it("User without permission should be forced to upload private files", () => {
+			// Ensure we're logged in as Administrator first
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
-			cy.wait(1000);
+			// Wait for page to fully load - ensure frappe object is available
+			cy.window().its("frappe").should("exist");
+			cy.wait(2000);
 
 			// Ensure upload_public_files permission is revoked using permission_manager API
 			cy.call("frappe.core.page.permission_manager.permission_manager.add", {
@@ -357,6 +362,8 @@ context("FileUploader", () => {
 			// Login as test user
 			cy.login(test_user, "Eastern_43A1W");
 			cy.visit("/desk");
+			// Wait for page to fully load - ensure frappe object is available
+			cy.window().its("frappe").should("exist");
 			cy.wait(2000);
 
 			open_upload_dialog();
