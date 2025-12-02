@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-11-30 14:29\n"
+"PO-Revision-Date: 2025-12-02 14:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1137,7 +1137,7 @@ msgstr "La acción {0} falló en {1} {2}. Véalo en {3}"
 #: frappe/public/js/frappe/views/reports/query_report.js:214
 #: frappe/public/js/frappe/views/reports/query_report.js:848
 msgid "Actions"
-msgstr ""
+msgstr "Acciones"
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -1181,7 +1181,7 @@ msgstr "Sesiones Activas"
 #: frappe/public/js/frappe/form/dashboard.js:22
 #: frappe/public/js/frappe/form/footer/form_timeline.js:60
 msgid "Activity"
-msgstr ""
+msgstr "Actividad"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -1203,7 +1203,7 @@ msgstr "Registro de Actividad"
 #: frappe/public/js/frappe/views/reports/query_report.js:294
 #: frappe/public/js/frappe/widgets/widget_dialog.js:30
 msgid "Add"
-msgstr ""
+msgstr "Agregar"
 
 #: frappe/public/js/frappe/form/grid_row.js:454
 msgid "Add / Remove Columns"
@@ -1524,7 +1524,7 @@ msgstr "Permisos Adicionales"
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address"
-msgstr ""
+msgstr "Dirección"
 
 #. Label of the address_line1 (Data) field in DocType 'Address'
 #. Label of the address_line1 (Data) field in DocType 'Contact Us Settings'
@@ -1776,7 +1776,7 @@ msgstr "Alinear Valor"
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
@@ -4486,7 +4486,7 @@ msgstr "Canal"
 #. Label of the chart (Link) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgid "Chart"
-msgstr ""
+msgstr "Gráfico"
 
 #. Label of the chart_config (Code) field in DocType 'Dashboard Settings'
 #: frappe/desk/doctype/dashboard_settings/dashboard_settings.json
