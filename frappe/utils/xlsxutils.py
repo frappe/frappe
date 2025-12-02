@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import re
+from functools import lru_cache
 from io import BytesIO
 
 import openpyxl
@@ -18,6 +19,8 @@ from frappe.utils.html_utils import unescape_html
 ILLEGAL_CHARACTERS_RE = re.compile(
 	r"[\000-\010]|[\013-\014]|[\016-\037]|\uFEFF|\uFFFE|\uFFFF|[\uD800-\uDFFF]"
 )
+
+DEFAULT_ARGB = "FF000000"  # Black
 
 
 def get_excel_date_format():
@@ -85,7 +88,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				if cell_style.get("italic"):
 					style["italic"] = True
 				if cell_style.get("underline"):
-					style["underline"] = True
+					style["underline"] = "single"
 				if cell_style.get("strike"):
 					style["strike"] = True
 				if color := cell_style.get("color"):
@@ -156,21 +159,40 @@ def build_xlsx_response(data, filename):
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())
 
 
+@lru_cache(maxsize=128)
 def hex_to_argb(color: str) -> str:
 	"""
-	Convert color to openpyxl ARGB format ("AARRGGBB").
+	Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
 
-	Accepts:
-	- "#RGB" or "#RRGGBB" or "#AARRGGBB"
+	Accepted inputs:
+	- "#RGB"       -> expands to "FFRRGGBB"
+	- "#RRGGBB"    -> converts to "FFRRGGBB"
+	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
+
+	Returns DEFAULT_ARGB (black) if invalid or not starting with '#'.
 	"""
-	hex_color = color.lstrip("#")
-	color_length = len(hex_color)
+	if not isinstance(color, str):
+		return DEFAULT_ARGB
 
-	if color_length == 3:  # #RGB
-		hex_color = "".join(c * 2 for c in hex_color)
-	elif color_length == 6:  # #RRGGBB
-		return f"FF{hex_color.upper()}"
-	elif color_length == 8:  # #AARRGGBB
-		return hex_color.upper()
+	s = color.strip()
+	if not s.startswith("#"):
+		return DEFAULT_ARGB
 
-	return "FF000000"  # Default to black if invalid
+	hex_part = s[1:]
+
+	if not hex_part or any(ch not in "0123456789abcdefABCDEF" for ch in hex_part):
+		return DEFAULT_ARGB
+
+	n = len(hex_part)
+
+	if n == 3:
+		r, g, b = hex_part
+		rgb = (r + r + g + g + b + b).upper()
+		return "FF" + rgb
+	elif n == 6:
+		return "FF" + hex_part.upper()
+	elif n == 8:
+		h = hex_part.upper()
+		return h[6:8] + h[0:6]
+
+	return DEFAULT_ARGB
