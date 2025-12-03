@@ -508,7 +508,11 @@ def build_xlsx_data(
 				else cstr(filter_value)
 			)
 			filter_data.append([cstr(filter_name), filter_value])
-		filter_data.append([])
+
+		# add an empty row after filters if filters exist
+		if filter_data:
+			filter_data.append([])
+
 		result += filter_data
 
 	column_data = []
