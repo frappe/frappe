@@ -9,7 +9,7 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.14'
+        default: "3.14"
       node-version:
         required: false
         type: number
@@ -30,7 +30,6 @@ on:
         required: false
         type: boolean
         default: false
-
 
 jobs:
   unit-test:
@@ -111,6 +110,7 @@ jobs:
           source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
             run-parallel-tests \
+            --with-coverage \
             --app "${{ github.event.repository.name }}" \
             --total-builds ${{ inputs.parallel-runs }} \
             --build-number ${{ matrix.index }} 2> >(tee -a stderr.log >&2)
@@ -145,7 +145,7 @@ jobs:
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
-          path: ./sites/*-coverage*.xml
+          path: ./sites/*coverage*.xml
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -160,7 +160,6 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
-
 
   # TIP: Use these for checks, e.g. Server / Tests / Success
   success:
@@ -184,4 +183,3 @@ jobs:
           if all(r in dopass for r in stati):
             exit(0)
           exit(1)
-

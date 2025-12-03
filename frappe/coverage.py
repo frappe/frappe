@@ -20,6 +20,7 @@ STANDARD_EXCLUSIONS = [
 	"*.html",
 	"*/test_*/*",
 	"*/node_modules/*",
+	"*/.github/*",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
 ]
