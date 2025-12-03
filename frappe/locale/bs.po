@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-12-02 15:00\n"
+"PO-Revision-Date: 2025-12-03 15:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,7 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr "\"Historija Kompanije\""
+msgstr "\"Historija Poduzeća\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -5230,18 +5230,18 @@ msgstr "Tajna Konverzacije nije postavljena"
 #: frappe/website/doctype/company_history/company_history.json
 #: frappe/www/about.html:29
 msgid "Company History"
-msgstr "Istorija Kompanije"
+msgstr "Istorija Poduzeća"
 
 #. Label of the company_introduction (Text Editor) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Company Introduction"
-msgstr "Predstavljanje Kompanije"
+msgstr "Predstavljanje Poduzeća"
 
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr "Naziv Kompanije"
+msgstr "Naziv Poduzeća"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:56
@@ -13322,7 +13322,7 @@ msgstr "URL Uvodnog Videa"
 #. 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr "Predstavite svoju kompaniju posjetitelju web stranice."
+msgstr "Predstavite poduzeće posjetitelju web stranice."
 
 #. Label of the introduction_section (Section Break) field in DocType 'Contact
 #. Us Settings'
