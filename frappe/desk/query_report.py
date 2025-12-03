@@ -495,7 +495,8 @@ def build_xlsx_data(
 
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
-	filters = frappe._dict(data.filters)
+
+	filters = frappe._dict(data.get("filters") or {})
 
 	if cint(include_filters):
 		filter_data = []
