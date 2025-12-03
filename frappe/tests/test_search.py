@@ -6,7 +6,9 @@ from contextlib import contextmanager
 from functools import partial
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 
@@ -180,6 +182,197 @@ class TestSearch(IntegrationTestCase):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
+
+	def test_search_link_with_ignore_user_permissions(self):
+		"""Test that ignore_user_permissions works correctly in search_link
+		when the link field has ignore_user_permissions enabled"""
+
+		# Clean up any leftover doctypes from previous test runs
+		for dt in ("Test Search Form", "Test Search Linked"):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		# Create a test doctype to link to
+		new_doctype(
+			name="Test Search Linked",
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+			search_fields="title",
+		).insert()
+
+		# Create a form doctype with a link field that has ignore_user_permissions
+		new_doctype(
+			name="Test Search Form",
+			fields=[
+				{
+					"label": "Linked Doc",
+					"fieldname": "linked_doc",
+					"fieldtype": "Link",
+					"options": "Test Search Linked",
+					"ignore_user_permissions": 1,
+				}
+			],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+		).insert()
+
+		self.addCleanup(
+			lambda: frappe.delete_doc("DocType", "Test Search Form", force=True, ignore_missing=True)
+		)
+		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Linked", force=True))
+
+		# Create some test documents
+		allowed_doc = frappe.get_doc({"doctype": "Test Search Linked", "title": "Allowed Document"}).insert()
+		restricted_doc = frappe.get_doc(
+			{"doctype": "Test Search Linked", "title": "Restricted Document"}
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("Test Search Linked", allowed_doc.name, force=True))
+		self.addCleanup(lambda: frappe.delete_doc("Test Search Linked", restricted_doc.name, force=True))
+
+		# Create a test user with restricted permissions
+		test_user = "test_search_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search User",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True)
+			user.add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+
+		# Add user permission to restrict the user to only allowed_doc
+		add_user_permission("Test Search Linked", allowed_doc.name, test_user)
+		self.addCleanup(
+			lambda: frappe.db.delete("User Permission", {"user": test_user, "allow": "Test Search Linked"})
+		)
+
+		frappe.set_user(test_user)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# Without ignore_user_permissions, only allowed_doc should be returned
+		results_without_ignore = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			ignore_user_permissions=False,
+		)
+		result_values = [r["value"] for r in results_without_ignore]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertNotIn(restricted_doc.name, result_values)
+
+		# With ignore_user_permissions + form_doctype + link_fieldname, both should be returned
+		results_with_ignore = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			ignore_user_permissions=True,
+			form_doctype="Test Search Form",
+			link_fieldname="linked_doc",
+		)
+		result_values = [r["value"] for r in results_with_ignore]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertIn(restricted_doc.name, result_values)
+
+		# With ignore_user_permissions=True but WITHOUT form_doctype/link_fieldname,
+		# the flag should be silently ignored and user permissions should apply
+		results_without_context = search_link(
+			doctype="Test Search Linked",
+			txt="Document",
+			ignore_user_permissions=True,
+			# form_doctype and link_fieldname not provided
+		)
+		result_values = [r["value"] for r in results_without_context]
+		self.assertIn(allowed_doc.name, result_values)
+		self.assertNotIn(restricted_doc.name, result_values)
+
+	def test_search_link_ignore_user_permissions_validation(self):
+		"""Test that ignore_user_permissions is validated correctly"""
+
+		# Clean up any leftover doctypes from previous test runs
+		for dt in ("Test Search Form No Ignore", "Test Search Form Wrong Link", "Test Search Linked2"):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		# Create doctypes for testing
+		new_doctype(
+			name="Test Search Linked2",
+			fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+		).insert()
+
+		# Form with link field WITHOUT ignore_user_permissions
+		new_doctype(
+			name="Test Search Form No Ignore",
+			fields=[
+				{
+					"label": "Linked Doc",
+					"fieldname": "linked_doc",
+					"fieldtype": "Link",
+					"options": "Test Search Linked2",
+					"ignore_user_permissions": 0,
+				}
+			],
+		).insert()
+
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"DocType", "Test Search Form No Ignore", force=True, ignore_missing=True
+			)
+		)
+		self.addCleanup(
+			lambda: frappe.delete_doc(
+				"DocType", "Test Search Form Wrong Link", force=True, ignore_missing=True
+			)
+		)
+		self.addCleanup(
+			lambda: frappe.delete_doc("DocType", "Test Search Linked2", force=True, ignore_missing=True)
+		)
+
+		# Should throw when field does not have ignore_user_permissions
+		self.assertRaises(
+			frappe.ValidationError,
+			search_link,
+			doctype="Test Search Linked2",
+			txt="test",
+			ignore_user_permissions=True,
+			form_doctype="Test Search Form No Ignore",
+			link_fieldname="linked_doc",
+		)
+
+		# Should throw when field doesn't exist
+		self.assertRaises(
+			frappe.ValidationError,
+			search_link,
+			doctype="Test Search Linked2",
+			txt="test",
+			ignore_user_permissions=True,
+			form_doctype="Test Search Form No Ignore",
+			link_fieldname="nonexistent_field",
+		)
+
+		# Should throw when doctype doesn't match
+		new_doctype(
+			name="Test Search Form Wrong Link",
+			fields=[
+				{
+					"label": "Wrong Link",
+					"fieldname": "wrong_link",
+					"fieldtype": "Link",
+					"options": "User",  # Different doctype
+					"ignore_user_permissions": 1,
+				}
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Form Wrong Link", force=True))
+
+		self.assertRaises(
+			frappe.ValidationError,
+			search_link,
+			doctype="Test Search Linked2",
+			txt="test",
+			ignore_user_permissions=True,
+			form_doctype="Test Search Form Wrong Link",
+			link_fieldname="wrong_link",
+		)
 
 
 @frappe.validate_and_sanitize_search_inputs

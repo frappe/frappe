@@ -2,6 +2,14 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	frappe.ui.form.ControlLink
 ) {
 	static horizontal = false;
+	make() {
+		// parent element
+		super.make();
+		const link_field = this.get_link_field();
+		if (link_field?.ignore_user_permissions) {
+			this.df.ignore_user_permissions = true;
+		}
+	}
 	make_input() {
 		super.make_input();
 		this.$input_area.addClass("form-control table-multiselect");

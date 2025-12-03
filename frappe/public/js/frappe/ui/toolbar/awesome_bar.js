@@ -47,7 +47,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<span class="help-item">${frappe.utils.icon("corner-down-left")}</span>
 					<span>${__("to select")}</span>
 				</span>
-				<span class="help-item">${__("esc")}</span>
+				<span class="help-item help-item-esc">${__("esc")}</span>
 				<span>${__("to close")}</span>
 			</div>
 			<div class="pointer">${frappe.utils.icon("circle-question-mark")}</div>

@@ -103,6 +103,7 @@ jobs:
           echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
 
       - name: Run Tests
+        id: ui-tests
         run: |
           source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
@@ -128,6 +129,20 @@ jobs:
         with:
           name: coverage-js-${{ matrix.index }}
           path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
+      - name: Compress Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        run: | 
+            if find ./cypressVideos -mindepth 1 | read; then
+              zip -r cypress_recordings.zip ./cypressVideos
+            fi
+      - name: Upload Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v5
+        with:
+          name: Cypress CI Video Recordings
+          path: ./cypress_recordings.zip
+
+        
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v5
@@ -135,7 +150,7 @@ jobs:
         with:
           name: coverage-py-${{ matrix.index }}
           path: ./sites/*-coverage*.xml
-
+    
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}

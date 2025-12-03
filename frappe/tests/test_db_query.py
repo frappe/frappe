@@ -13,7 +13,7 @@ from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
-from frappe.query_builder import Column
+from frappe.query_builder import Field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
@@ -854,17 +854,17 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertTrue(len(doctypes[0]) == 3)
 			self.assertTrue(isinstance(doctypes[0][2], datetime.datetime))
 
-	def test_column_comparison(self):
-		"""Test DatabaseQuery.execute to test column comparison"""
+	def test_field_comparison(self):
+		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(
 			"User",
-			filters={"creation": Column("modified")},
+			filters={"creation": Field("modified")},
 			fields=["name", "creation", "modified"],
 			limit=1,
 		)
 		users_edited = frappe.get_all(
 			"User",
-			filters={"creation": ("!=", Column("modified"))},
+			filters={"creation": ("!=", Field("modified"))},
 			fields=["name", "creation", "modified"],
 			limit=1,
 		)

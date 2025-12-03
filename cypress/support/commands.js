@@ -171,7 +171,24 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.get("@input").clear().wait(200);
 	}
 
-	if (fieldtype === "Select") {
+	if (["Link", "Dynamic Link"].includes(fieldtype)) {
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.get("@input").clear().focus();
+		cy.wait("@search_link");
+		cy.get("@input").parent().findByRole("listbox").as("dropdown");
+		cy.get("@dropdown").should("be.visible");
+		cy.get("@input").type(value, { delay: 100 });
+		cy.wait("@search_link");
+		cy.get("@dropdown")
+			.should("be.visible")
+			.find("div[role='option']")
+			.first()
+			.should("include.text", value);
+		cy.get("@input").type("{enter}");
+		cy.get("@input").blur();
+		cy.get("@dropdown").should("not.exist");
+		cy.get("@input").should("have.value", value);
+	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {
 		cy.get("@input").type(value, {
