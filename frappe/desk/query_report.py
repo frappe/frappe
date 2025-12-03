@@ -375,6 +375,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
+	data.raw_filters = form_params.filters  # required for cell styling
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -493,13 +494,10 @@ def build_xlsx_data(
 	result = []
 	column_widths = []
 
-	include_hidden_columns = cint(include_hidden_columns)
-	include_indentation = cint(include_indentation)
-
-	filters = frappe._dict(data.get("filters") or {})
-
 	if cint(include_filters):
 		filter_data = []
+		filters = frappe._dict(data.get("filters") or {})
+
 		for filter_name, filter_value in filters.items():
 			if not filter_value:
 				continue
@@ -517,6 +515,10 @@ def build_xlsx_data(
 		result += filter_data
 
 	column_data = []
+	include_hidden_columns = cint(include_hidden_columns)
+	include_indentation = cint(include_indentation)
+	filters = frappe._dict(data.get("raw_filters") or {})
+
 	for column in data.columns:
 		if column.get("hidden") and not include_hidden_columns:
 			continue
