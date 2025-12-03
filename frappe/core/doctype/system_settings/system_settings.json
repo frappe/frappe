@@ -31,7 +31,7 @@
   "column_break_21",
   "allow_older_web_view_links",
   "show_external_link_warning",
-  "login_tab",
+  "security_tab",
   "security",
   "session_expiry",
   "document_share_key_expiry",
@@ -51,6 +51,7 @@
   "column_break_34",
   "allow_login_after_fail",
   "two_factor_authentication",
+  "column_break_odhl",
   "enable_two_factor_auth",
   "bypass_2fa_for_retricted_ip_users",
   "bypass_restrict_ip_check_if_2fa_enabled",
@@ -608,6 +609,11 @@
    "label": "Allowed File Extensions"
   },
   {
+   "fieldname": "security_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login"
+  },
+  {
    "fieldname": "email_tab",
    "fieldtype": "Tab Break",
    "label": "Email"
@@ -753,9 +759,8 @@
    "options": "Never\nAsk\nAlways"
   },
   {
-   "fieldname": "login_tab",
-   "fieldtype": "Tab Break",
-   "label": "Login"
+   "fieldname": "column_break_odhl",
+   "fieldtype": "Column Break"
   },
   {
    "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
@@ -782,7 +787,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-03 13:04:32.484036",
+ "modified": "2025-12-01 00:12:17.823242",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

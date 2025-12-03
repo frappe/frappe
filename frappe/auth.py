@@ -2,7 +2,6 @@
 # MIT License. See LICENSE
 import base64
 import binascii
-import re
 from urllib.parse import quote, unquote, urlencode, urlparse
 
 from werkzeug.wrappers import Response
@@ -84,7 +83,6 @@ class HTTPRequest:
 			not frappe.request
 			or frappe.request.method not in UNSAFE_HTTP_METHODS
 			or frappe.conf.ignore_csrf
-			or getattr(frappe.local, "ignore_csrf", False)
 			or not frappe.session
 			or not (saved_token := frappe.session.data.csrf_token)
 			or (
@@ -92,7 +90,6 @@ class HTTPRequest:
 				== saved_token
 			)
 			or self.is_allowed_referrer()
-			or self.can_ignore_csrf()
 		):
 			return
 
@@ -119,11 +116,6 @@ class HTTPRequest:
 				return True
 
 		return origin in allowed_referrers if origin else False
-
-	def can_ignore_csrf(self):
-		methods = frappe.get_hooks("ignore_csrf_methods", default=[])
-		method = re.sub(r"/api(/v\d)?/method/", "", frappe.request.path)
-		return method in methods
 
 
 class LoginManager:

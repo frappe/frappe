@@ -100,11 +100,6 @@ IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$", flags=re.ASCII)
 FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.ASCII)
 
 
-def _is_function_call(field_str: str) -> bool:
-	"""Check if a string is a SQL function call."""
-	return bool(FUNCTION_CALL_PATTERN.match(field_str))
-
-
 # Pattern to validate field names in SELECT:
 # Allows: name, `name`, name as alias, `name` as alias, table.name, table.name as alias
 # Also allows backtick-qualified identifiers with spaces/hyphens:
@@ -126,6 +121,12 @@ FIELD_PARSE_REGEX = re.compile(r"^(?:(`?)(tab[\w\s-]+)\1\.)?(`?)(\w+)\3$")
 
 # Like FIELD_PARSE_REGEX but compulsary table name with backticks
 BACKTICK_FIELD_PARSE_REGEX = re.compile(r"^`tab([\w\s-]+)`\.(`?)(\w+)\2$")
+
+# Pattern to match child table field notation: tabChildDoc.field or `tabChild Doc`.field
+# Group 1: Child doctype name (without 'tab' prefix)
+# Group 2: Optional quote for fieldname
+# Group 3: Fieldname
+CHILD_TABLE_FIELD_PATTERN = re.compile(r'^[`"]?tab([\w\s]+)[`"]?\.([`"]?)(\w+)\2$')
 
 # Direct mapping from uppercase function names to pypika function classes
 FUNCTION_MAPPING = {
@@ -1540,14 +1541,7 @@ class DynamicTableField:
 
 			child_match = None
 			if allow_tab_notation:
-				# Regex to match `tabDoc`.`field`, "tabDoc"."field", tabDoc.field
-				# Group 1: Doctype name (without 'tab')
-				# Group 2: Optional quote for fieldname
-				# Group 3: Fieldname
-				# Ensures quotes are consistent or absent on fieldname using backreference \2
-				# Uses re.match to ensure the pattern matches the *entire* field string
-				# Allow spaces in doctype name (Group 1) and field name (Group 3)
-				child_match = re.match(r'[`"]?tab([\w\s]+)[`"]?\.([`"]?)([\w\s]+)\2$', field)
+				child_match = CHILD_TABLE_FIELD_PATTERN.match(field)
 
 			if child_match:
 				child_doctype_name = child_match.group(1)
@@ -1728,6 +1722,11 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 			.run(pluck=True)
 		)
 	return result
+
+
+def _is_function_call(field_str: str) -> bool:
+	"""Check if a string is a SQL function call."""
+	return bool(FUNCTION_CALL_PATTERN.match(field_str))
 
 
 @lru_cache(maxsize=1024)

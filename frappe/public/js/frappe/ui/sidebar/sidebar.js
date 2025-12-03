@@ -15,11 +15,13 @@ frappe.ui.Sidebar = class Sidebar {
 		this.workspace_sidebar_items = [];
 		this.new_sidebar_items = [];
 		this.$items_container = this.wrapper.find(".sidebar-items");
+		this.$standard_items_sections = this.wrapper.find(".standard-items-sections");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
 		this.setup_events();
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
+		this.standard_items_setup = false;
 	}
 
 	prepare() {
@@ -207,10 +209,11 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	create_sidebar(items) {
 		this.empty();
+		this.add_standard_items(items);
 		if (items && items.length > 0) {
 			items.forEach((w) => {
 				if (!w.display_depends_on || frappe.utils.eval(w.display_depends_on)) {
-					this.add_item(w);
+					this.add_item(this.$items_container, w);
 				}
 			});
 		} else {
@@ -225,11 +228,42 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.handle_outside_click();
 	}
+	add_standard_items(items) {
+		if (this.standard_items_setup) return;
+		this.standard_items = [
+			{
+				label: "Search",
+				icon: "search",
+				type: "Button",
+				id: "navbar-modal-search",
+			},
+		];
+		this.standard_items.forEach((w) => {
+			this.add_item(this.$standard_items_sections, w);
+		});
+		this.setup_awesomebar();
+		this.standard_items_setup = true;
+	}
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup("#navbar-modal-search");
 
-	add_item(item) {
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
+		}
+	}
+	add_item(container, item) {
 		this.items.push(
 			this.make_sidebar_item({
-				container: this.$items_container,
+				container: container,
 				item: item,
 			})
 		);

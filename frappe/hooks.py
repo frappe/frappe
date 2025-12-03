@@ -17,7 +17,7 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
-after_app_uninstall = "frappe.utils.install.delete_desktop_icon"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -590,9 +590,6 @@ user_invitation = {
 	},
 }
 
-ignore_csrf_methods = [
-	"frappe.utils.security.csp_report",
-]
 
 add_to_apps_screen = [
 	{
@@ -601,4 +598,8 @@ add_to_apps_screen = [
 		"title": app_title,
 		"route": app_home,
 	}
+]
+
+ignore_csrf_methods = [
+	"frappe.utils.security.csp_report",
 ]
