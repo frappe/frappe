@@ -262,11 +262,16 @@ function jsToJson(obj: ObjectLiteral): string {
 
 const jsonReviver = (_key: string, value: any) => {
 	const registeredComponents = window.__APP_COMPONENTS__ || {}
-	// Convert functions back to functions
-	if (typeof value === "string" && value.startsWith("function")) {
-		// provide access to render function & frappeUI lib for editing props
-		const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
-		return newFunc({"h": h, ...registeredComponents})
+	if (typeof value === "string") {
+		const trimmed = value.trim()
+		// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
+		const isFunctionString = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/.test(trimmed)
+
+		if (isFunctionString) {
+			// provide access to render function & frappeUI lib for editing props
+			const fn = new Function("h", ...Object.keys(registeredComponents), `return (${value})`)
+			return fn(h, ...Object.values(registeredComponents))
+		}
 	}
 	return value
 }
