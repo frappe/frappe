@@ -81,7 +81,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				cell.number_format = number_format
 
 			# Apply cell styles if any
-			if cell_style:
+			if cell_style and isinstance(cell_style, dict):
 				cs = cell_style  # alias
 				font_kwargs = {"name": "Calibri"}
 

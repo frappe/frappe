@@ -564,7 +564,7 @@ def build_xlsx_data(
 			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
 				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 
-			if cell_style:
+			if cell_style and isinstance(cell_style, dict):
 				cell_value = {"value": cell_value, "style": cell_style}
 
 			row_data.append(cell_value)
