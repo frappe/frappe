@@ -14,6 +14,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -34,6 +35,37 @@ def get_excel_date_format():
 	return date_format, time_format
 
 
+def get_excel_number_format_map():
+	default = "#,###"
+
+	float_precision = cint(frappe.get_system_settings("float_precision") or 2)
+	currency_precision = cint(frappe.get_system_settings("currency_precision") or 2)
+
+	def fmt(precision: int, suffix: str = "") -> str:
+		return f"{default}0{get_dec(precision)}{suffix}"
+
+	def get_dec(precision: int):
+		return f".{'0' * precision}" if precision > 0 else ""
+
+	return {
+		"int": f"{default}0",
+		"float": fmt(float_precision),
+		"currency": fmt(currency_precision),
+		"percent": f"0{get_dec(float_precision)}%",
+	}
+
+
+def get_currency_symbols():
+	return frappe._dict(
+		frappe.get_all(
+			"Currency",
+			filters={"enabled": 1},
+			fields=["name", "symbol"],
+			as_list=True,
+		),
+	)
+
+
 # return xlsx file object
 def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	column_widths = column_widths or []
@@ -52,6 +84,12 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 	date_format, time_format = get_excel_date_format()
 	cell_styling_in_export = frappe.flags.cell_styling_in_export
+	number_format_map = {}
+	currency_symbols = {}
+
+	if cell_styling_in_export:
+		number_format_map = get_excel_number_format_map()
+		currency_symbols = get_currency_symbols()
 
 	for row in data:
 		clean_row = []
@@ -103,6 +141,27 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 				if cs.get("underline"):
 					font_kwargs["underline"] = "single"
+
+				# number formatting
+				if isinstance(value, (float, int)):
+					number_format = ""
+					if currency := cs.get("currency"):
+						cur_fmt = number_format_map.get("currency")
+						symbol = currency_symbols.get(currency)
+						number_format = f"{symbol} {cur_fmt}" if symbol else cur_fmt
+					elif cs.get("percent"):
+						if abs(value) >= 1:
+							value = value / 100
+							cell.value = value
+
+						number_format = number_format_map.get("percent")
+					elif isinstance(value, int):
+						number_format = number_format_map.get("int")
+					elif isinstance(value, float):
+						number_format = number_format_map.get("float")
+
+					if number_format:
+						cell.number_format = number_format
 
 				cell.font = Font(**font_kwargs)
 
