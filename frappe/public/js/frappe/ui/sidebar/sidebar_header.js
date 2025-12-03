@@ -47,15 +47,19 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	fetch_sibling_workspaces() {
 		let sibling_workspaces = [];
 		let workspaces = frappe.current_app.workspaces;
-		workspaces.splice(workspaces.indexOf(this.title), 1);
 		workspaces.forEach((w) => {
-			let item = {
-				name: w.toLowerCase(),
-				label: w,
-				icon: "wallpaper",
-				url: frappe.utils.generate_route({ type: "Workspace", route: w.toLowerCase() }),
-			};
-			sibling_workspaces.push(item);
+			if (w !== this.title) {
+				let item = {
+					name: w.toLowerCase(),
+					label: w,
+					icon: "wallpaper",
+					url: frappe.utils.generate_route({
+						type: "Workspace",
+						route: frappe.router.slug(w),
+					}),
+				};
+				sibling_workspaces.push(item);
+			}
 		});
 		return sibling_workspaces;
 	}

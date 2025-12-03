@@ -200,7 +200,12 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
+		// Display collapse button when sidebar is not in edit mode
+		if (!this.edit_mode) {
+			this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
+		} else {
+			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
+		}
 		this.create_sidebar(this.workspace_sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -787,7 +792,7 @@ frappe.ui.Sidebar = class Sidebar {
 		const me = this;
 		this.save_sidebar_button = this.wrapper.find(".save-sidebar");
 		this.discard_button = this.wrapper.find(".discard-button");
-		this.save_sidebar_button.on("click", async function (event) {
+		this.save_sidebar_button.off("click").on("click", async function (event) {
 			frappe.show_alert({
 				message: __("Saving Sidebar"),
 				indicator: "success",
