@@ -81,8 +81,11 @@
 
 .section-head,
 .section-body {
-	max-width: var(--page-max-width);
 	margin: auto !important;
+
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 }
 
 #doctype-form_builder_tab .section-body {
@@ -445,32 +448,10 @@
 	}
 }
 
-// above mobile
-@media (min-width: map-get($grid-breakpoints, "md")) {
-	// for 1, 2 column layouts, implement horizontal, else vertical
-	.col-sm-12 > form > .frappe-control > .horizontal,
-	.col-sm-6 > form > .frappe-control > .horizontal {
-		display: flex;
-		justify-content: space-between;
-		vertical-align: middle;
-
-		.clearfix {
-			width: 38%;
-		}
-
-		.control-input-wrapper {
-			width: 62%; // golden ratio
-		}
-
-		.control-label {
-			margin-top: 3px;
-			margin-bottom: 3px;
-		}
-	}
-}
-
 .form-footer {
-	max-width: var(--page-max-width);
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 	margin: auto;
 	padding: 0 15px;
 
@@ -602,4 +583,9 @@
 	.form-column:not(:first-child) {
 		padding-top: var(--padding-md);
 	}
+}
+
+.popover-header {
+	background: var(--bg-color);
+	color: var(--ink-gray-9);
 }

@@ -430,7 +430,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script || "");
+						frappe.dom.eval(settings.script);
 						frappe.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
@@ -725,8 +725,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
 				)
 				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
-
-			console.log(js_filters, "js_filters");
 
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",
@@ -1039,6 +1037,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
 
+		if (this.report_doc?.ref_doctype) {
+			columns = this.update_masked_fields_in_columns(columns, this.report_doc?.ref_doctype);
+		}
+
 		if (data.length > (cint(frappe.boot.sysdefaults.max_report_rows) || 100000)) {
 			let msg = __(
 				"This report contains {0} rows and is too big to display in browser, you can {1} this report instead.",
@@ -1091,6 +1093,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
+	}
+
+	update_masked_fields_in_columns(columns) {
+		const masked_fields = frappe.get_meta(this.report_doc?.ref_doctype).masked_fields;
+
+		return columns.map((col) => {
+			if (masked_fields.includes(col.fieldname)) {
+				return {
+					...col,
+					fieldtype: "Data",
+					options: [],
+				};
+			}
+			return col;
+		});
 	}
 
 	show_loading_screen() {

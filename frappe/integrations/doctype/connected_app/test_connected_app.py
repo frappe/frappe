@@ -144,6 +144,8 @@ class TestConnectedApp(IntegrationTestCase):
 				doc = frappe.get_doc("OAuth Authorization Code", code.name)
 				doc.delete()
 
+		frappe.db.commit()
+
 		delete_if_exists("user")
 		delete_if_exists("oauth_client")
 

@@ -7,15 +7,18 @@ from contextlib import suppress
 from typing import Any
 
 from rq import get_current_job
+from rq.command import send_stop_job_command
+from rq.exceptions import InvalidJobOperation
 
 import frappe
+from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import add_to_date, now
-from frappe.utils.background_jobs import enqueue
+from frappe.utils.background_jobs import enqueue, get_redis_conn
 
 # If prepared report runs for longer than this time it's automatically considered as failed
 FAILURE_THRESHOLD = 6 * 60 * 60
@@ -173,6 +176,28 @@ def make_prepared_report(report_name, filters=None):
 	).insert(ignore_permissions=True)
 
 	return {"name": prepared_report.name}
+
+
+@frappe.whitelist()
+def stop_prepared_report(report_name: str):
+	"""Stop a running Prepared Report job."""
+	prepared_report = frappe.get_doc("Prepared Report", report_name)
+	prepared_report.check_permission("write")
+
+	job_id = prepared_report.job_id
+	if not job_id.startswith(frappe.local.site):
+		frappe.throw(f"Invalid job_id: must start with {frappe.local.site}")
+
+	try:
+		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
+		frappe.db.set_value(
+			"Prepared Report",
+			prepared_report.name,
+			{"status": "Cancelled"},
+		)
+		frappe.msgprint(_("Job stopped successfully"), alert=True, indicator="green")
+	except InvalidJobOperation:
+		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
 
 def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:

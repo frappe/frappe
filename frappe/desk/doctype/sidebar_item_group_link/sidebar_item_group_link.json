@@ -1,0 +1,35 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-13 10:02:13.869571",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report"
+ ],
+ "fields": [
+  {
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Report",
+   "options": "Report"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-13 10:03:51.263771",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Sidebar Item Group Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

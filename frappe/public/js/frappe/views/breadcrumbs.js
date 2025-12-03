@@ -42,7 +42,6 @@ frappe.breadcrumbs = {
 		}
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
-		frappe.app.sidebar.set_active_workspace_item();
 	},
 
 	current_page() {
@@ -72,15 +71,6 @@ frappe.breadcrumbs = {
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
 			}
-		}
-
-		if (
-			breadcrumbs.workspace &&
-			frappe.workspace_map[breadcrumbs.workspace]?.app &&
-			frappe.workspace_map[breadcrumbs.workspace]?.app != frappe.current_app
-		) {
-			let app = frappe.workspace_map[breadcrumbs.workspace].app;
-			frappe.app.sidebar.apps_switcher.set_current_app(app);
 		}
 
 		this.toggle(true);
@@ -123,7 +113,7 @@ frappe.breadcrumbs = {
 		}
 
 		this.append_breadcrumb_element(
-			`/app/${frappe.router.slug(breadcrumbs.workspace)}`,
+			`/desk/${frappe.router.slug(breadcrumbs.workspace)}`,
 			__(breadcrumbs.workspace)
 		);
 	},
@@ -195,7 +185,7 @@ frappe.breadcrumbs = {
 			} else {
 				route = doctype_route;
 			}
-			this.append_breadcrumb_element(`/app/${route}`, __(doctype));
+			this.append_breadcrumb_element(`/desk/${route}`, __(doctype));
 		}
 	},
 
@@ -210,7 +200,7 @@ frappe.breadcrumbs = {
 
 		if (title == doc.name) return; // title and name are same, don't add breadcrumb
 
-		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
+		let form_route = `/desk/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
 		this.append_breadcrumb_element(form_route, doc.name);
 
 		if (view === "form") {
@@ -227,7 +217,7 @@ frappe.breadcrumbs = {
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route()[1];
-		let dashboard_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
+		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${dashboard_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
 	},
 

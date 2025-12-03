@@ -87,6 +87,7 @@ def get_meta(doctype: "str | DocType", cached: bool = True) -> "_Meta":
 		return meta
 
 	meta = Meta(doctype)
+
 	key = f"doctype_meta::{meta.name}"
 	frappe.client_cache.set_value(key, meta)
 	return meta
@@ -166,6 +167,8 @@ class Meta(Document):
 		# don't process for special doctypes
 		# prevents circular dependency
 		if self.name in self.special_doctypes:
+			if self.name == "DocPerm":
+				self.add_custom_fields()
 			self.init_field_caches()
 			return
 
@@ -192,6 +195,28 @@ class Meta(Document):
 
 	def get_dynamic_link_fields(self):
 		return self._dynamic_link_fields
+
+	def get_masked_fields(self):
+		import copy
+
+		if frappe.session.user == "Administrator":
+			return []
+		cache_key = f"masked_fields::{self.name}::{frappe.session.user}"
+		masked_fields = frappe.cache.get_value(cache_key)
+
+		if masked_fields is None:
+			masked_fields = []
+			for df in self.fields:
+				if df.get("mask") and not self.has_permlevel_access_to(
+					fieldname=df.fieldname, df=df, permission_type="mask"
+				):
+					# work on a copy instead of original df
+					df_copy = copy.deepcopy(df)
+					df_copy.mask_readonly = 1
+					masked_fields.append(df_copy)
+			frappe.cache.set_value(cache_key, masked_fields)
+
+		return masked_fields
 
 	@cached_property
 	def _dynamic_link_fields(self):
@@ -221,8 +246,8 @@ class Meta(Document):
 
 		return set_only_once_fields
 
-	def get_table_fields(self):
-		return self._table_fields
+	def get_table_fields(self, include_computed=False):
+		return self._table_fields if include_computed else self._non_computed_table_fields
 
 	def get_global_search_fields(self):
 		"""Return list of fields with `in_global_search` set and `name` if set."""
@@ -395,11 +420,6 @@ class Meta(Document):
 		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
-		"""
-		Property Setters are set via Customize Form. They override standard properties
-		of the doctype or its child properties like fields, links etc. This method
-		applies the customized properties over the standard meta object
-		"""
 		if not frappe.db.table_exists("Property Setter"):
 			return
 
@@ -482,18 +502,38 @@ class Meta(Document):
 			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
 				self.is_large_table = True
 
-	def init_field_caches(self):
-		# field map
-		self._fields = {field.fieldname: field for field in self.fields}
+	@cached_property
+	def _fields(self):
+		return {field.fieldname: field for field in self.fields}
 
-		# table fields
+	@cached_property
+	def _table_fields(self):
 		if self.name == "DocType":
-			self._table_fields = DOCTYPE_TABLE_FIELDS
-		else:
-			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
+			return DOCTYPE_TABLE_FIELDS
 
-		# table fieldname: doctype map
-		self._table_doctypes = {field.fieldname: field.options for field in self._table_fields}
+		return self.get("fields", {"fieldtype": ["in", table_fields]})
+
+	@cached_property
+	def _non_computed_table_fields(self):
+		if self.name == "DocType":
+			return self._table_fields
+
+		return self.get("fields", {"fieldtype": ["in", table_fields], "is_virtual": 0})
+
+	@cached_property
+	def _table_doctypes(self):
+		return {field.fieldname: field.options for field in self._table_fields}
+
+	@cached_property
+	def _non_computed_table_doctypes(self):
+		return {field.fieldname: field.options for field in self._non_computed_table_fields}
+
+	def init_field_caches(self):
+		self._fields
+		self._table_fields
+		self._non_computed_table_fields
+		self._table_doctypes
+		self._non_computed_table_doctypes
 
 	def sort_fields(self):
 		"""
@@ -956,14 +996,7 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 			field_order.extend(fields)
 
 
-CACHE_PROPERTIES = frozenset(
-	(
-		"_fields",
-		"_table_fields",
-		"_table_doctypes",
-		*(prop for prop, value in vars(Meta).items() if isinstance(value, cached_property)),
-	)
-)
+CACHE_PROPERTIES = frozenset(prop for prop, value in vars(Meta).items() if isinstance(value, cached_property))
 
 
 def _serialize(doc, no_nulls=False, *, is_child=False):

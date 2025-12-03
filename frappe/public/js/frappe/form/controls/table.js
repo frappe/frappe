@@ -16,25 +16,6 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			this.frm.grids[this.frm.grids.length] = this;
 		}
 		const me = this;
-		this.$wrapper.on("keydown", (e) => {
-			if (e.which == 9) {
-				if (e.shiftKey) {
-					let row_idx = me.set_current_row(e.target);
-					if (row_idx) {
-						this.grid.grid_rows[row_idx - 1].toggle_editable_row(true);
-					}
-				} else {
-					if (this.grid.grid_rows.length > 0) {
-						this.grid.grid_rows[this.grid.grid_rows.length - 1].toggle_editable_row(
-							true
-						);
-					} else {
-						this.grid.add_new_row(null, null, true, null, true);
-						this.grid.grid_rows[0].toggle_editable_row(true);
-					}
-				}
-			}
-		});
 		this.$wrapper.on("paste", ":text", (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;
@@ -172,14 +153,5 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 	}
 	check_all_rows() {
 		this.$wrapper.find(".grid-row-check")[0].click();
-	}
-	set_current_row(target) {
-		let current_row = null;
-		for (let i = 0; i < this.grid.grid_rows.length; i++) {
-			if (this.grid.grid_rows[i].wrapper.get(0).contains(target)) {
-				current_row = i + 1;
-			}
-		}
-		return current_row;
 	}
 };

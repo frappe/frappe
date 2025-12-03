@@ -125,19 +125,21 @@ def get_result(doc, filters, to_date=None):
 	doc = frappe.parse_json(doc)
 	fields = []
 	sql_function_map = {
-		"Count": "count",
-		"Sum": "sum",
-		"Average": "avg",
-		"Minimum": "min",
-		"Maximum": "max",
+		"Count": "COUNT",
+		"Sum": "SUM",
+		"Average": "AVG",
+		"Minimum": "MIN",
+		"Maximum": "MAX",
 	}
 
 	function = sql_function_map[doc.function]
 
-	if function == "count":
-		fields = [f"{function}(*) as result"]
+	if function == "COUNT":
+		arg = "*"
 	else:
-		fields = [f"{function}({doc.aggregate_function_based_on}) as result"]
+		arg = doc.aggregate_function_based_on
+
+	fields = [{function: arg, "as": "result"}]
 
 	if not filters:
 		filters = []

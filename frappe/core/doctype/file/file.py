@@ -436,9 +436,6 @@ class File(Document):
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
-		# Escape HTML characters in file name
-		self.file_name = escape_html(self.file_name)
-
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
 			return

@@ -25,6 +25,7 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, che
 from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
+from frappe.security.content_security_policy import csp_constructor
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error, log_error_snapshot
@@ -247,6 +248,9 @@ def process_response(response: Response):
 
 	# Default for all requests is no-cache unless explicitly opted-in by endpoint
 	response.headers.setdefault("Cache-Control", NO_CACHE_HEADERS["Cache-Control"])
+
+	# Content security policy
+	response.headers.update(csp_constructor.headers())
 
 	# rate limiter headers
 	if hasattr(frappe.local, "rate_limiter"):

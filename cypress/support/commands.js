@@ -125,7 +125,7 @@ Cypress.Commands.add("get_doc", (doctype, name) => {
 		});
 });
 
-Cypress.Commands.add("remove_doc", (doctype, name) => {
+Cypress.Commands.add("remove_doc", (doctype, name, ignore_missing) => {
 	return cy
 		.window()
 		.its("frappe.csrf_token")
@@ -138,9 +138,9 @@ Cypress.Commands.add("remove_doc", (doctype, name) => {
 						Accept: "application/json",
 						"X-Frappe-CSRF-Token": csrf_token,
 					},
+					failOnStatusCode: !ignore_missing,
 				})
 				.then((res) => {
-					expect(res.status).eq(202);
 					return res.body;
 				});
 		});
@@ -171,7 +171,24 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.get("@input").clear().wait(200);
 	}
 
-	if (fieldtype === "Select") {
+	if (["Link", "Dynamic Link"].includes(fieldtype)) {
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+		cy.get("@input").clear().focus();
+		cy.wait("@search_link");
+		cy.get("@input").parent().findByRole("listbox").as("dropdown");
+		cy.get("@dropdown").should("be.visible");
+		cy.get("@input").type(value, { delay: 100 });
+		cy.wait("@search_link");
+		cy.get("@dropdown")
+			.should("be.visible")
+			.find("div[role='option']")
+			.first()
+			.should("include.text", value);
+		cy.get("@input").type("{enter}");
+		cy.get("@input").blur();
+		cy.get("@dropdown").should("not.exist");
+		cy.get("@input").should("have.value", value);
+	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {
 		cy.get("@input").type(value, {

@@ -43,6 +43,7 @@ class SystemSettings(Document):
 		deny_multiple_sessions: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
+		disable_product_suggestion: DF.Check
 		disable_standard_email_footer: DF.Check
 		disable_system_update_notification: DF.Check
 		disable_user_pass_login: DF.Check
@@ -89,6 +90,7 @@ class SystemSettings(Document):
 			"#,###",
 		]
 		otp_issuer_name: DF.Data | None
+		otp_sms_template: DF.SmallText | None
 		password_reset_limit: DF.Int
 		rate_limit_email_link_login: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
@@ -122,16 +124,19 @@ class SystemSettings(Document):
 			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
 				frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
 
-		if self.enable_two_factor_auth:
-			if self.two_factor_method == "SMS":
-				if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
-					frappe.throw(
-						_("Please setup SMS before setting it as an authentication method, via SMS Settings")
-					)
-			toggle_two_factor_auth(True, roles=["All"])
-		else:
-			self.bypass_2fa_for_retricted_ip_users = 0
-			self.bypass_restrict_ip_check_if_2fa_enabled = 0
+		if self.has_value_changed("enable_two_factor_auth"):
+			if self.enable_two_factor_auth:
+				if self.two_factor_method == "SMS":
+					if not frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
+						frappe.throw(
+							_(
+								"Please setup SMS before setting it as an authentication method, via SMS Settings"
+							)
+						)
+				toggle_two_factor_auth(True, roles=["All"])
+			else:
+				self.bypass_2fa_for_retricted_ip_users = 0
+				self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(
@@ -142,6 +147,7 @@ class SystemSettings(Document):
 		self.validate_user_pass_login()
 		self.validate_backup_limit()
 		self.validate_file_extensions()
+		self.validate_otp_sms_template()
 
 		if not self.link_field_results_limit:
 			self.link_field_results_limit = 10
@@ -151,6 +157,17 @@ class SystemSettings(Document):
 			label = _(self.meta.get_label("link_field_results_limit"))
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
+			)
+
+	def validate_otp_sms_template(self):
+		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
+			return
+
+		if "{{otp}}" not in self.otp_sms_template.replace(" ", ""):
+			frappe.throw(
+				_("OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP.").format(
+					"{{otp}}"
+				)
 			)
 
 	def validate_user_pass_login(self):

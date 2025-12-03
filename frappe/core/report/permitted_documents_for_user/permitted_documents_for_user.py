@@ -4,7 +4,7 @@
 import frappe
 import frappe.utils.user
 from frappe.model import data_fieldtypes
-from frappe.permissions import rights
+from frappe.permissions import get_rights
 
 
 def execute(filters=None):
@@ -20,6 +20,7 @@ def execute(filters=None):
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
 
 	if show_permissions:
+		rights = get_rights(doctype)
 		columns = columns + [frappe.unscrub(right) + ":Check:80" for right in rights]
 		data = list(data)
 		for i, doc in enumerate(data):

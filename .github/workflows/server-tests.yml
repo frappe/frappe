@@ -30,7 +30,7 @@ jobs:
       build: ${{ steps.check-build.outputs.build }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -44,6 +44,7 @@ jobs:
     name: Tests
     uses: ./.github/workflows/_base-server-tests.yml
     with:
+      enable-postgres: ${{ contains(github.event.pull_request.labels.*.name, 'postgres') }} # This enables PostgreSQL to run tests
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
       enable-coverage: ${{ github.event_name != 'pull_request' }}
@@ -68,9 +69,9 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download artifacts
-        uses: actions/download-artifact@v5.0.0
+        uses: actions/download-artifact@v6.0.0
       - name: Upload coverage data
         uses: codecov/codecov-action@v5
         with:
@@ -93,7 +94,7 @@ jobs:
           - frappe/hrms
     steps:
       - name: Dispatch Downstream CI (if supported)
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.CI_PAT }}
           repository: ${{ matrix.repo }}

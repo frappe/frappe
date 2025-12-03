@@ -144,6 +144,8 @@ def delete_doc(
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
+			frappe.clear_cache(doctype=name)
+
 		else:
 			# Lock the doc without waiting
 			try:

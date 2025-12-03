@@ -50,8 +50,13 @@ frappe.ui.form.on("User", {
 						let d = frm.add_child("block_modules");
 						d.module = v.module;
 					});
-					frm.module_editor.disable = 1;
-					frm.module_editor && frm.module_editor.show();
+
+					// if I am able to edit module profile,
+					// module editor should always be available, but just in case
+					if (frm.module_editor) {
+						frm.module_editor.disable = 1;
+						frm.module_editor.show();
+					}
 				},
 			});
 		}
@@ -241,8 +246,10 @@ frappe.ui.form.on("User", {
 				frm.roles_editor.show();
 			}
 
-			frm.module_editor.disable = frm.doc.module_profile ? 1 : 0;
-			frm.module_editor && frm.module_editor.show();
+			if (frm.module_editor) {
+				frm.module_editor.disable = frm.doc.module_profile ? 1 : 0;
+				frm.module_editor.show();
+			}
 
 			if (frappe.session.user == doc.name) {
 				// update display settings
@@ -499,3 +506,11 @@ function show_api_key_dialog(api_key, api_secret) {
 		1
 	);
 }
+
+frappe.ui.form.on("User Session Display", {
+	sign_out(frm, doctype, name) {
+		frappe
+			.xcall("frappe.core.doctype.user.user.clear_session", { sid_hash: name })
+			.then(() => frm.reload_doc());
+	},
+});

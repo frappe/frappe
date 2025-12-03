@@ -31,7 +31,7 @@
   "column_break_21",
   "allow_older_web_view_links",
   "show_external_link_warning",
-  "security_tab",
+  "login_tab",
   "security",
   "session_expiry",
   "document_share_key_expiry",
@@ -54,9 +54,11 @@
   "enable_two_factor_auth",
   "bypass_2fa_for_retricted_ip_users",
   "bypass_restrict_ip_check_if_2fa_enabled",
+  "column_break_bzfr",
   "two_factor_method",
   "lifespan_qrcode_image",
   "otp_issuer_name",
+  "otp_sms_template",
   "password_tab",
   "password_settings",
   "logout_on_password_reset",
@@ -92,7 +94,9 @@
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "column_break_ewhs",
   "hide_empty_read_only_fields",
+  "disable_product_suggestion",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -604,11 +608,6 @@
    "label": "Allowed File Extensions"
   },
   {
-   "fieldname": "security_tab",
-   "fieldtype": "Tab Break",
-   "label": "Login"
-  },
-  {
    "fieldname": "email_tab",
    "fieldtype": "Tab Break",
    "label": "Email"
@@ -752,12 +751,38 @@
    "fieldtype": "Select",
    "label": "Show External Link Warning",
    "options": "Never\nAsk\nAlways"
+  },
+  {
+   "fieldname": "login_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
+   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
+   "fieldname": "otp_sms_template",
+   "fieldtype": "Small Text",
+   "label": "OTP SMS Template"
+  },
+  {
+   "fieldname": "column_break_bzfr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_product_suggestion",
+   "fieldtype": "Check",
+   "label": "Disable Product Suggestion"
+  },
+  {
+   "fieldname": "column_break_ewhs",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-09-24 16:04:02.016562",
+ "modified": "2025-12-03 13:04:32.484036",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

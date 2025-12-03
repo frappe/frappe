@@ -101,7 +101,7 @@ def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="
 		doctype,
 		fields=["name"],
 		filters=filters,
-		order_by=f"`tab{doctype}`.{sort_field}" + " " + sort_order,
+		order_by=f"{sort_field} {sort_order}",
 		limit_start=0,
 		limit_page_length=1,
 		as_list=True,

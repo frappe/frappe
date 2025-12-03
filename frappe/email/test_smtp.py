@@ -26,7 +26,8 @@ class TestSMTP(IntegrationTestCase):
 
 		# remove mail_server config so that test@example.com is not created
 		mail_server = frappe.conf.get("mail_server")
-		del frappe.conf["mail_server"]
+		if "mail_server" in frappe.conf:
+			del frappe.conf["mail_server"]
 
 		frappe.local.outgoing_email_account = {}
 
@@ -47,9 +48,9 @@ class TestSMTP(IntegrationTestCase):
 			password="password",
 			enable_outgoing=1,
 			default_outgoing=1,
-			append_to="Todo",
+			append_to="ToDo",
 		)
-		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="Todo").email_id, "append_to@gmail.com")
+		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="ToDo").email_id, "append_to@gmail.com")
 
 		# add back the mail_server
 		frappe.conf["mail_server"] = mail_server

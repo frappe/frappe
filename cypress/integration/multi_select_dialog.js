@@ -1,7 +1,7 @@
 context("MultiSelectDialog", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		const contact_template = {
 			doctype: "Contact",
 			first_name: "Test",

@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-06 23:10:07.037346",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "directive",
+  "value"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "directive",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Directive",
+   "reqd": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-06 23:10:07.037346",
+ "modified_by": "hello@ssiyad.com",
+ "module": "Security",
+ "name": "Content Security Policy Directive",
+ "owner": "hello@ssiyad.com",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

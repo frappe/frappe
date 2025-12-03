@@ -485,7 +485,7 @@ frappe.views.TreeView = class TreeView {
 			{
 				label: __("View List"),
 				action: function () {
-					frappe.set_route("List", me.doctype);
+					frappe.set_route(["List", me.doctype, "List"]);
 				},
 			},
 			{

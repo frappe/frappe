@@ -469,6 +469,9 @@ def build_xlsx_data(
 	result = []
 	column_widths = []
 
+	include_hidden_columns = cint(include_hidden_columns)
+	include_indentation = cint(include_indentation)
+
 	if cint(include_filters):
 		filter_data = []
 		filters = data.filters
@@ -486,7 +489,7 @@ def build_xlsx_data(
 
 	column_data = []
 	for column in data.columns:
-		if column.get("hidden") and not cint(include_hidden_columns):
+		if column.get("hidden") and not include_hidden_columns:
 			continue
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -498,25 +501,29 @@ def build_xlsx_data(
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if ignore_visible_idx or row_idx in visible_idx:
-			row_data = []
-			if isinstance(row, dict):
-				for col_idx, column in enumerate(data.columns):
-					if column.get("hidden") and not cint(include_hidden_columns):
-						continue
-					label = column.get("label")
-					fieldname = column.get("fieldname")
-					cell_value = row.get(fieldname, row.get(label, ""))
-					if not isinstance(cell_value, EXCEL_TYPES):
-						cell_value = cstr(cell_value)
+		if not ignore_visible_idx and row_idx not in visible_idx:
+			continue
 
-					if cint(include_indentation) and "indent" in row and col_idx == 0:
-						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
-					row_data.append(cell_value)
-			elif row:
-				row_data = row
+		row_data = []
+		row_is_dict = isinstance(row, dict)
 
-			result.append(row_data)
+		for col_idx, column in enumerate(data.columns):
+			if column.get("hidden") and not include_hidden_columns:
+				continue
+
+			label = column.get("label")
+			fieldname = column.get("fieldname")
+			cell_value = row.get(fieldname, row.get(label, "")) if row_is_dict else row[col_idx]
+
+			if not isinstance(cell_value, EXCEL_TYPES):
+				cell_value = cstr(cell_value)
+
+			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
+				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+			row_data.append(cell_value)
+
+		result.append(row_data)
 
 	return result, column_widths
 
@@ -674,8 +681,19 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	shared = frappe.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
-	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
+	ref_doctype_meta = frappe.get_meta(ref_doctype)
+
+	role_permissions = get_role_permissions(ref_doctype_meta, user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
+
+	if ref_doctype_meta.get_masked_fields():
+		from frappe.model.db_query import mask_field_value
+
+		# Apply masking to the fields
+		for field in ref_doctype_meta.get_masked_fields():
+			for row in data:
+				val = row.get(field.fieldname)
+				row[field.fieldname] = mask_field_value(field, val)
 
 	if match_filters_per_doctype:
 		for row in data:

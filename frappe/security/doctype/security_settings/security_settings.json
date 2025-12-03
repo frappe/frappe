@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-03 12:51:28.339791",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "content_security_policy_section",
+  "csp_enabled",
+  "csp_enable_reporting",
+  "column_break_sofj",
+  "csp_reporting_only",
+  "csp_reporting_url",
+  "section_break_xjuu",
+  "csp_directives"
+ ],
+ "fields": [
+  {
+   "description": "Warning: Misconfigured CSP can break your site or create security risks. Use only trusted sources and test carefully.",
+   "fieldname": "content_security_policy_section",
+   "fieldtype": "Section Break",
+   "label": "Content Security Policy"
+  },
+  {
+   "default": "0",
+   "documentation_url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy",
+   "fieldname": "csp_enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "documentation_url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-to",
+   "fieldname": "csp_enable_reporting",
+   "fieldtype": "Check",
+   "label": "Enable Reporting"
+  },
+  {
+   "fieldname": "column_break_sofj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "documentation_url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy-Report-Only",
+   "fieldname": "csp_reporting_only",
+   "fieldtype": "Check",
+   "label": "Reporting Only"
+  },
+  {
+   "description": "If provided, send reports to this url. Otherwise, creates a \"Content Security Policy Report\" doc.",
+   "documentation_url": "https://developer.mozilla.org/en-US/docs/Web/API/CSPViolationReportBody",
+   "fieldname": "csp_reporting_url",
+   "fieldtype": "Data",
+   "label": "Reporting URL"
+  },
+  {
+   "fieldname": "section_break_xjuu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "documentation_url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#directives",
+   "fieldname": "csp_directives",
+   "fieldtype": "Table",
+   "label": "Directives",
+   "options": "Content Security Policy Directive"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-12-03 12:51:28.339791",
+ "modified_by": "Administrator",
+ "module": "Security",
+ "name": "Security Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

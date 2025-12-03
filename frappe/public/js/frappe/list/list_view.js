@@ -332,7 +332,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.list_view_settings = list_view_settings;
 
 		this.setup_columns();
-		this.refresh(true);
+		this.refresh();
 	}
 
 	refresh(refresh_header = false) {
@@ -804,11 +804,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
-				left_html += `<div class="mobile-layout">${this.get_column_html(
-					col,
-					doc,
-					true
-				)}</div>`;
+				left_html += `<div class="mobile-layout ${
+					i == 3 ? "mobile-layout-seperator" : ""
+				}">${this.get_column_html(col, doc, true)}</div>`;
 			} else {
 				left_html += this.get_column_html(col, doc, false);
 			}
@@ -924,6 +922,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				_value = _value * out_of_ratings;
 			}
 
+			let masked_fields = frappe.get_meta(this.doctype).masked_fields || [];
+			let is_masked = masked_fields.includes(df.fieldname);
+
+			let filterable = is_masked ? "no-underline" : " filterable";
+
 			if (df.fieldtype === "Image") {
 				html = df.options
 					? `<img src="${doc[df.options]}"
@@ -932,22 +935,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("restriction")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
-				html = `<span class="filterable indicator-pill ${frappe.utils.guess_colour(
+				html = `<span class="${filterable} indicator-pill ${frappe.utils.guess_colour(
 					_value
 				)} ellipsis"
 					data-filter="${fieldname},=,${value}">
 					<span class="ellipsis"> ${__(_value)} </span>
 				</span>`;
 			} else if (df.fieldtype === "Link") {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${value}">${_value}</a>`;
+				html = `<a class="${filterable} ellipsis "
+					data-filter="${fieldname},=,${value}">
+					${_value}
+				</a>`;
 			} else if (frappe.model.html_fieldtypes.includes(df.fieldtype)) {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
 			} else {
-				html = `<a class="filterable ellipsis"
-					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">${format()}</a>`;
+				html = `<a class="${filterable} ellipsis"
+					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
+					${format()}
+				</a>`;
 			}
 
 			return `<span class="ellipsis"
@@ -990,7 +997,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		 * If the length of the text is not available, it defaults to a length of 22.5.
 		 */
 		let textLength = $(column_html).text()?.trim()?.length || 22.5;
-		let calculatedWidth = (textLength * 10) / 1.3;
+		let calculatedWidth = (textLength * 10) / 1.3 + (col.type == "Subject" ? 30 : 0);
 
 		/**
 		 * Updates the `column_max_widths` object by setting the maximum width for a specific column (fieldname).
@@ -1227,7 +1234,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		return `/app/${encodeURIComponent(
+		return `/desk/${encodeURIComponent(
 			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
 		)}/${encodeURIComponent(cstr(doc.name))}`;
 	}
@@ -2051,8 +2058,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.then((actions) => {
 				Object.keys(this.workflow_action_items).forEach((key) => {
-					this.workflow_action_items[key].removeClass("disabled");
-					this.workflow_action_items[key].toggle(actions.includes(key));
+					const $link = this.workflow_action_items[key];
+					const $item = $link?.closest("li");
+					$link?.removeClass("disabled");
+					$link?.toggle(actions.includes(key));
+					$item?.toggle(actions.includes(key));
 				});
 			});
 	}
@@ -2288,6 +2298,135 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true,
 			};
 		};
+
+		const copy_to_clipboard = () => {
+			return {
+				label: __("Copy to Clipboard"),
+				action: () => {
+					const selected_items = this.get_checked_items();
+					if (selected_items.length === 0) {
+						frappe.show_alert({
+							message: __("No rows selected"),
+							indicator: "orange",
+						});
+						return;
+					}
+
+					let columns;
+					if (
+						this.columns &&
+						this.columns.length &&
+						(this.columns[0].docfield || this.columns[0].type == "Status")
+					) {
+						// Report View - has columns with docfield property
+						columns = this.columns.map((col) => ({
+							fieldname: col.id || col.field,
+							label: col.content || col.name,
+							docfield: col.docfield, // Keep the docfield for link field processing
+						}));
+					} else if (this.columns && this.columns.length && this.columns[0].type) {
+						// List View - has columns with type and df properties
+						columns = this.columns
+							.filter((col) => {
+								// Include columns with df.fieldname, or Subject/Status types
+								return (
+									(col.df && col.df.fieldname) ||
+									col.type === "Subject" ||
+									col.type === "Status"
+								);
+							})
+							.map((col) => {
+								if (col.type === "Subject") {
+									return {
+										fieldname: col.df?.fieldname || "name",
+										label: __(col.df?.label || "ID"),
+										type: "Subject",
+									};
+								} else if (col.type === "Status") {
+									return {
+										fieldname: "status",
+										label: __("Status"),
+										type: "Status",
+									};
+								} else {
+									return {
+										fieldname: col.df.fieldname,
+										label: __(col.df.label || col.df.fieldname),
+										type: col.type,
+									};
+								}
+							});
+					}
+
+					// Prepare data for clipboard
+					const headers = columns.map((col) => col.label).join("\t");
+					const rows = selected_items.map((item) => {
+						return columns
+							.map((col) => {
+								let value;
+								const df = col.df || col.docfield; // Check if this is a Status column (by type) or docstatus field (in Report view)
+								if (col.type === "Status" || col.fieldname === "docstatus") {
+									// For Status columns, get the indicator text
+									const indicator = frappe.get_indicator(item, this.doctype);
+									if (indicator && indicator.length > 0) {
+										value = indicator[0];
+									} else {
+										// Fallback to status field
+										value = item.status || "";
+									}
+								} else {
+									// Check if this is a link field with title field
+									const link_title_fieldname =
+										this.link_field_title_fields?.[col.fieldname];
+									if (link_title_fieldname) {
+										// List view: Use the title field value if available
+										value =
+											item[col.fieldname + "_" + link_title_fieldname] ||
+											item[col.fieldname];
+									} else if (
+										df &&
+										df.fieldtype === "Link" &&
+										df.options &&
+										item[col.fieldname]
+									) {
+										// For Link fields, try to get the title
+										// First check if the doctype has show_title_field_in_link enabled
+										if (
+											frappe.boot.link_title_doctypes?.includes(df.options)
+										) {
+											// Try to get from cache
+											let link_title = frappe.utils.get_link_title(
+												df.options,
+												item[col.fieldname]
+											);
+											value = link_title || item[col.fieldname];
+										} else {
+											value = item[col.fieldname];
+										}
+									} else {
+										value = item[col.fieldname];
+									}
+								}
+								// Handle null or undefined values
+								if (value == null) return "";
+								// Convert to string and remove HTML tags if any
+								return String(value).replace(/<[^>]*>/g, "");
+							})
+							.join("\t");
+					});
+					const clipboard_data = [headers, ...rows].join("\n"); // Copy to clipboard
+					const message = __("Copied {0} {1} to clipboard", [
+						selected_items.length,
+						selected_items.length === 1 ? __("row") : __("rows"),
+					]);
+					frappe.utils.copy_to_clipboard(clipboard_data, message);
+				},
+				standard: true,
+			};
+		};
+
+		// Copy to clipboard
+		actions_menu_items.push(copy_to_clipboard());
 
 		// bulk edit
 		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {

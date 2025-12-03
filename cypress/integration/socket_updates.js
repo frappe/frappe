@@ -4,7 +4,7 @@ context("Realtime updates", () => {
 	});
 
 	beforeEach(() => {
-		cy.visit("/app/todo");
+		cy.visit("/desk/todo");
 		// required because immediately after load socket is still connecting.
 		// Not a huge deal breaker in prod.
 		cy.wait(500);
