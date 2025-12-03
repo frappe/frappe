@@ -495,10 +495,10 @@ def build_xlsx_data(
 
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
+	filters = frappe._dict(data.filters)
 
 	if cint(include_filters):
 		filter_data = []
-		filters = data.filters
 		for filter_name, filter_value in filters.items():
 			if not filter_value:
 				continue
@@ -554,7 +554,7 @@ def build_xlsx_data(
 
 			# get cell style from hook method
 			if cell_styling_in_export:
-				cell_style = get_xlsx_cell_style(cell_value, column, row, is_total_row=is_total_row)
+				cell_style = get_xlsx_cell_style(cell_value, column, row, filters, is_total_row=is_total_row)
 
 			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
 				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
