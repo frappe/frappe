@@ -130,13 +130,13 @@ jobs:
           name: coverage-js-${{ matrix.index }}
           path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
       - name: Compress Cypress Videos
-        if: steps.ui-tests.outcome == 'failure'
+        if: always() && steps.ui-tests.outcome == 'failure'
         run: | 
             if find ./cypressVideos -mindepth 1 | read; then
               zip -r cypress_recordings.zip ./cypressVideos
             fi
       - name: Upload Cypress Videos
-        if: steps.ui-tests.outcome == 'failure'
+        if: always() && steps.ui-tests.outcome == 'failure'
         uses: actions/upload-artifact@v5
         with:
           name: Cypress CI Video Recordings
