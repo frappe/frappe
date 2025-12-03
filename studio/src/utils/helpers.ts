@@ -239,38 +239,40 @@ function isJSONString(str: string) {
 	return true
 }
 
-function jsToJson(obj: ObjectLiteral): string {
-	const replacer = (_key: string, value: any) => {
-		// Preserve functions by converting them to strings
-		if (typeof value === "function") {
-			return value.toString()
-		}
-		// Handle circular references
-		if (typeof value === "object" && value !== null) {
-			if (value instanceof Set) {
-			return [...value]
-			}
-			if (value instanceof Map) {
-			return Object.fromEntries(value.entries())
-			}
-		}
-		return value
+const jsonReplacer = (_key: string, value: any) => {
+	// Preserve functions by converting them to strings
+	if (typeof value === "function") {
+		return value.toString()
 	}
-	return JSON.stringify(obj, replacer, 2)
+	// Handle circular references
+	if (typeof value === "object" && value !== null) {
+		if (value instanceof Set) {
+			return [...value]
+		}
+		if (value instanceof Map) {
+			return Object.fromEntries(value.entries())
+		}
+	}
+	return value
+}
+
+function jsToJson(obj: ObjectLiteral): string {
+	return JSON.stringify(obj, jsonReplacer, 2)
+}
+
+const jsonReviver = (_key: string, value: any) => {
+	const registeredComponents = window.__APP_COMPONENTS__ || {}
+	// Convert functions back to functions
+	if (typeof value === "string" && value.startsWith("function")) {
+		// provide access to render function & frappeUI lib for editing props
+		const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
+		return newFunc({"h": h, ...registeredComponents})
+	}
+	return value
 }
 
 function jsonToJs(json: string): any {
-	const registeredComponents = window.__APP_COMPONENTS__ || {}
-	const reviver = (_key: string, value: any) => {
-		// Convert functions back to functions
-		if (typeof value === "string" && value.startsWith("function")) {
-			// provide access to render function & frappeUI lib for editing props
-			const newFunc = new Function("scope", `with(scope) { return ${value}; }`)
-			return newFunc({"h": h, ...registeredComponents})
-		}
-		return value
-	}
-	return JSON.parse(json, reviver)
+	return JSON.parse(json, jsonReviver)
 }
 
 const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
@@ -584,6 +586,8 @@ export {
 	isJSONString,
 	jsToJson,
 	jsonToJs,
+	jsonReplacer,
+	jsonReviver,
 	mapToObject,
 	replaceMapKey,
 	isTargetEditable,
