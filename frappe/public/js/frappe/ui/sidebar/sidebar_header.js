@@ -128,7 +128,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	check_editing_access() {
 		if (!frappe.boot.developer_mode) {
-			this.dropdown_items.splice(1, 1);
+			let edit_sidebar_index = this.dropdown_items.findIndex((f) => {
+				return f.name == "edit-sidebar";
+			});
+			this.dropdown_items.splice(edit_sidebar_index, 1);
 		}
 	}
 	add_app_item(item) {

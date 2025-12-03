@@ -1,5 +1,6 @@
 const { defineConfig } = require("cypress");
 const fs = require("fs");
+const path = require("path");
 
 module.exports = defineConfig({
 	projectId: "92odwv",
@@ -8,6 +9,7 @@ module.exports = defineConfig({
 	defaultCommandTimeout: 20000,
 	pageLoadTimeout: 15000,
 	video: true,
+	videosFolder: path.resolve(__dirname, "..", "..") + "/cypressVideos/",
 	viewportHeight: 960,
 	viewportWidth: 1400,
 	retries: {

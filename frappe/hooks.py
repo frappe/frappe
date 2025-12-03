@@ -17,7 +17,7 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
-after_app_uninstall = "frappe.utils.install.delete_desktop_icon"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 

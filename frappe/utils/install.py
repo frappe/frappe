@@ -198,7 +198,7 @@ def auto_generate_icons_and_sidebar(app_name=None):
 		print(f"Error creating icons {e}")
 
 
-def delete_desktop_icon(app_name):
+def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
 	frappe.get_hooks(app_name=app_name)
 	app_title = frappe.get_hooks(app_name=app_name)["app_title"][0]
 	icons_to_be_deleted = frappe.get_all(
@@ -213,4 +213,11 @@ def delete_desktop_icon(app_name):
 	for icon in icons_to_be_deleted:
 		frappe.delete_doc_if_exists("Desktop Icon", icon)
 	# Delete icons
-	frappe.db.commit()  # nosemgrep
+	sidebar_to_be_deleted = frappe.get_all("Workspace Sidebar", pluck="name", filters={"app": app_name})
+	print("Deleting Workspace Sidebars")
+	for icon in sidebar_to_be_deleted:
+		frappe.delete_doc_if_exists("Workspace Sidebar", icon)
+
+	if dry_run:
+		# Delete icons and sidebars
+		frappe.db.commit()  # nosemgrep

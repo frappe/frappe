@@ -519,9 +519,14 @@
 		max-width: var(--page-max-width);
 	}
 
+	// Adjust position when sidebar is expanded to avoid collision
+	.body-sidebar-container.expanded ~ .main-section & {
+		left: calc(50% + var(--sidebar-width, 220px) / 2);
+	}
+
 	.grid-form-body {
 		max-height: 80vh;
-		overflow: scroll;
+		overflow: auto;
 	}
 }
 

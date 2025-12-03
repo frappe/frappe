@@ -362,3 +362,22 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 		});
 	}
 };
+
+frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
+	constructor(item) {
+		super(item);
+		this.title = frappe.app.sidebar.workspace_title;
+		this.item.id && this.wrapper.attr("id", this.item.id);
+		this.wrapper.attr("title", this.item.label);
+		this.setup_click();
+	}
+
+	setup_click() {
+		const me = this;
+		if (this.item.onClick) {
+			this.wrapper.on("click", function () {
+				me.item.onClick && me.item.onClick();
+			});
+		}
+	}
+};

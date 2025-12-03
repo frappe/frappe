@@ -203,18 +203,23 @@ class DesktopPage {
 		if (this.awesomebar_setup) return;
 		this.awesomebar_setup = true;
 
-		$(".desktop-search-wrapper #navbar-search").attr(
-			"placeholder",
-			`Search or type a command (${frappe.utils.is_mac() ? "⌘ + K" : "Ctrl + K"})`
-		);
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup(".desktop-search-wrapper #navbar-modal-search");
+			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
 		}
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+g",
 			action: function (e) {
-				$(".desktop-search-wrapper #navbar-modal-search").click();
+				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+				e.preventDefault();
+				return false;
+			},
+			description: __("Open Awesomebar"),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+k",
+			action: function (e) {
+				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
 				e.preventDefault();
 				return false;
 			},
