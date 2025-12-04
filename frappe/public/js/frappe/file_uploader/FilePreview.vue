@@ -134,9 +134,9 @@ let allow_toggle_private = computed(() => {
 	if (!props.allow_toggle_private || uploaded.value || props.file.failed) {
 		return false;
 	}
-	// Check permission based on doctype (fallback to "File" if not provided)
-	const doctype_to_check = props.doctype || "File";
-	return frappe.utils.can_upload_public_files(doctype_to_check);
+	// Check permission based on doctype
+	// If doctype is not provided, utils.js will default to "File"
+	return frappe.utils.can_upload_public_files(props.doctype);
 });
 let is_cropable = computed(() => {
 	let croppable_types = ["image/jpeg", "image/png"];

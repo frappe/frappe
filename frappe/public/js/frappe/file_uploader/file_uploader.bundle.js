@@ -92,7 +92,8 @@ class FileUploader {
 			() => this.uploader.files,
 			(files) => {
 				let all_private = files.every((file) => file.private);
-				if (this.dialog && frappe.utils.can_upload_public_files(this.doctype || "File")) {
+				// If doctype is not provided, utils.js will default to "File"
+				if (this.dialog && frappe.utils.can_upload_public_files(this.doctype)) {
 					this.dialog.set_secondary_action_label(
 						all_private ? __("Set all public") : __("Set all private")
 					);
@@ -142,8 +143,8 @@ class FileUploader {
 	}
 
 	make_dialog(title) {
-		const doctype_to_check = this.doctype || "File";
-		const can_upload_public = frappe.utils.can_upload_public_files(doctype_to_check);
+		// If doctype is not provided, utils.js will default to "File"
+		const can_upload_public = frappe.utils.can_upload_public_files(this.doctype);
 
 		const dialog_options = {
 			title: title || __("Upload"),

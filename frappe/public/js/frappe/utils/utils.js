@@ -1954,10 +1954,11 @@ Object.assign(frappe.utils, {
 
 	/**
 	 * Check if current user can upload public files for the given doctype.
-	 * @param {string} doctype - The doctype to check permissions for. Defaults to "File" if not provided.
+	 * Uses cached permissions for performance, but server-side is authoritative.
+	 * @param {string} doctype - The doctype to check permissions for. Must be provided.
 	 * @returns {boolean}
 	 */
-	can_upload_public_files(doctype = "File") {
+	can_upload_public_files(doctype) {
 		// Administrator has all permissions
 		if (
 			frappe.session.user === "Administrator" ||
@@ -1965,11 +1966,19 @@ Object.assign(frappe.utils, {
 		) {
 			return true;
 		}
+		// If doctype is not provided, we're uploading from File doctype itself
+		// So check "File" doctype permissions
+		if (!doctype) {
+			doctype = "File";
+		}
 		try {
+			// Use cached permissions for UI responsiveness
+			// Server-side will always validate and block if needed
 			return frappe.perm.has_perm(doctype, 0, "upload_public_files");
 		} catch (e) {
-			// If permission type doesn't exist, allow by default (backward compatibility)
-			return true;
+			// If permission type doesn't exist or permission is not defined,
+			// treat as 0 (only private files allowed)
+			return false;
 		}
 	},
 });

@@ -16,18 +16,29 @@ frappe.ui.form.on("File", {
 		}
 
 		// Check permission to upload public files based on attached doctype
+		// If attached_to_doctype is present, check that doctype
+		// If not attached (uploading from File doctype itself), check "File" doctype permissions
 		const doctype_to_check = frm.doc.attached_to_doctype || "File";
-		const can_upload_public = frappe.utils.can_upload_public_files(doctype_to_check);
+		// Ensure doctype metadata is loaded before checking permissions
+		frappe.model.with_doctype(doctype_to_check, () => {
+			const can_upload_public = frappe.utils.can_upload_public_files(doctype_to_check);
 
-		// Disable is_private field if user doesn't have permission (force private)
-		if (!can_upload_public) {
-			frm.set_df_property("is_private", "read_only", 1);
-			if (!frm.doc.is_private) {
-				frm.set_value("is_private", 1);
+			if (!can_upload_public) {
+				// User doesn't have permission: cannot upload public files or change private to public
+				// Make field read-only
+				frm.set_df_property("is_private", "read_only", 1);
+				// If file is currently public (is_private = 0), force it to private
+				if (!frm.doc.is_private) {
+					frm.doc.is_private = 1;
+					frm.set_value("is_private", 1).then(() => {
+						frm.refresh_field("is_private");
+					});
+				}
+			} else {
+				// User has permission: can upload public files and toggle between public/private
+				frm.set_df_property("is_private", "read_only", 0);
 			}
-		} else {
-			frm.set_df_property("is_private", "read_only", 0);
-		}
+		});
 
 		if (!frm.doc.is_private) {
 			frm.dashboard.set_headline(

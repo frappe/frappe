@@ -5,6 +5,8 @@ context("FileUploader", () => {
 
 	beforeEach(() => {
 		cy.visit("/desk");
+		// Wait for page to fully load - ensure frappe object is available
+		cy.window().its("frappe").should("exist");
 		cy.wait(2000); // workspace can load async and clear active dialog
 	});
 
@@ -62,39 +64,31 @@ context("FileUploader", () => {
 			cy.visit("/desk");
 			cy.wait(1000);
 
-			// Check if role exists, create if it doesn't
-			cy.call("frappe.client.get", {
-				doctype: "Role",
-				filters: { name: test_role },
-			})
-				.then((result) => {
-					if (!result || result.length === 0) {
-						return cy.call("frappe.client.insert", {
-							doc: {
-								doctype: "Role",
-								role_name: test_role,
+			// Create role (ignore if it already exists)
+			cy.insert_doc(
+				"Role",
+				{
+					role_name: test_role,
+				},
+				true // ignore_duplicate
+			).then(() => {
+				// Create test user
+				test_user = `test_file_uploader_${Date.now()}@example.com`;
+				return cy.call("frappe.client.insert", {
+					doc: {
+						doctype: "User",
+						email: test_user,
+						first_name: "Test",
+						new_password: "Eastern_43A1W",
+						send_welcome_email: 0,
+						roles: [
+							{
+								role: test_role,
 							},
-						});
-					}
-				})
-				.then(() => {
-					// Create test user
-					test_user = `test_file_uploader_${Date.now()}@example.com`;
-					return cy.call("frappe.client.insert", {
-						doc: {
-							doctype: "User",
-							email: test_user,
-							first_name: "Test",
-							new_password: "Eastern_43A1W",
-							send_welcome_email: 0,
-							roles: [
-								{
-									role: test_role,
-								},
-							],
-						},
-					});
+						],
+					},
 				});
+			});
 
 			// Note: upload_public_files is a standard right (in std_rights), so it doesn't need a Permission Type
 			// It's available for all doctypes by default
@@ -103,6 +97,8 @@ context("FileUploader", () => {
 		after(() => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
+			// Wait for page to fully load - ensure frappe object is available
+			cy.window().its("frappe").should("exist");
 			cy.wait(2000); // Ensure page is fully loaded
 			// Clean up test user and role
 			if (test_user) {
@@ -256,6 +252,8 @@ context("FileUploader", () => {
 		it("User without permission should NOT see Private checkbox and toggle button", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
+			// Wait for page to fully load - ensure frappe object is available
+			cy.window().its("frappe").should("exist");
 			cy.wait(1000);
 
 			// Revoke upload_public_files permission using permission_manager API
@@ -293,6 +291,8 @@ context("FileUploader", () => {
 			// Login as test user and reload to get fresh permissions
 			cy.login(test_user, "Eastern_43A1W");
 			cy.visit("/desk");
+			// Wait for page to fully load - ensure frappe object is available
+			cy.window().its("frappe").should("exist");
 			cy.wait(2000);
 
 			open_upload_dialog();

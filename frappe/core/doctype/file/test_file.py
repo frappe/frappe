@@ -980,15 +980,8 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 			)
 			user.insert()
 			user.add_roles("Test File Uploader")
-		# Create Permission Type for upload_public_files on File doctype if it doesn't exist
-		if not frappe.db.exists("Permission Type", {"perm_type": "upload_public_files", "doc_type": "File"}):
-			frappe.get_doc(
-				{
-					"doctype": "Permission Type",
-					"perm_type": "upload_public_files",
-					"doc_type": "File",
-				}
-			).insert(ignore_permissions=True)
+		# Note: upload_public_files is a standard right (in std_rights), so it doesn't need a Permission Type
+		# It's automatically available for all doctypes
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -1032,8 +1025,8 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		if custom_docperm_name:
 			frappe.db.set_value("Custom DocPerm", custom_docperm_name, "upload_public_files", 1)
 
-		# Commit changes and clear all caches
-		frappe.db.commit()
+		# Clear all caches
+		# Note: No manual commit needed - framework handles transactions automatically
 
 		# Verify permission was set
 		custom_docperm_value = frappe.db.get_value(
@@ -1088,8 +1081,8 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		if custom_docperm_name:
 			frappe.db.set_value("Custom DocPerm", custom_docperm_name, "upload_public_files", 0)
 
-		# Commit changes and clear all caches
-		frappe.db.commit()
+		# Clear all caches
+		# Note: No manual commit needed - framework handles transactions automatically
 		frappe.clear_cache()
 		frappe.reload_doctype("File")
 		frappe.set_user("test_file_uploader@example.com")
@@ -1121,8 +1114,8 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		if custom_docperm_name:
 			frappe.db.set_value("Custom DocPerm", custom_docperm_name, "upload_public_files", 0)
 
-		# Commit changes and clear all caches
-		frappe.db.commit()
+		# Clear all caches
+		# Note: No manual commit needed - framework handles transactions automatically
 		frappe.clear_cache()
 		frappe.reload_doctype("File")
 		frappe.set_user("test_file_uploader@example.com")
@@ -1155,8 +1148,8 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		if custom_docperm_name:
 			frappe.db.set_value("Custom DocPerm", custom_docperm_name, "upload_public_files", 0)
 
-		# Commit changes and clear all caches
-		frappe.db.commit()
+		# Clear all caches
+		# Note: No manual commit needed - framework handles transactions automatically
 		frappe.clear_cache()
 		frappe.reload_doctype("File")
 		frappe.set_user("Administrator")
@@ -1184,7 +1177,7 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		frappe.delete_doc("File", file_name, force=1)
 
 	def test_permission_check_based_on_attached_doctype(self):
-		"""Permission check should be based on attached_to_doctype, not just File doctype"""
+		"""Permission check should be based on attached_to_doctype, not File doctype fallback"""
 		from frappe.permissions import add_permission, update_permission_property
 
 		# Create a test doctype
@@ -1220,7 +1213,7 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		update_permission_property("File", "Test File Uploader", 0, "read", 1)
 		update_permission_property("File", "Test File Uploader", 0, "write", 1)
 
-		# Set upload_public_files to 0 directly
+		# Set upload_public_files to 0 directly (explicitly disabled for File doctype)
 		custom_docperm_name = frappe.db.get_value(
 			"Custom DocPerm",
 			{"parent": "File", "role": "Test File Uploader", "permlevel": 0},
@@ -1228,8 +1221,7 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		if custom_docperm_name:
 			frappe.db.set_value("Custom DocPerm", custom_docperm_name, "upload_public_files", 0)
 
-		# Commit changes and clear all caches
-		frappe.db.commit()
+		# Clear all caches
 		frappe.clear_cache()
 		frappe.reload_doctype("File")
 		frappe.reload_doctype("Test File Attachment")
@@ -1239,7 +1231,9 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		test_doc.insert()
 
 		frappe.set_user("test_file_uploader@example.com")
-		# Should be able to upload public file when attached to Test File Attachment
+
+		# Test 1: Should be able to upload public file when attached to Test File Attachment
+		# (checks Test File Attachment permissions, not File doctype)
 		file_doc = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -1252,9 +1246,70 @@ class TestPublicFileUploadPermissions(IntegrationTestCase):
 		)
 		file_doc.save()
 		self.assertEqual(file_doc.is_private, 0)
+		file_doc.delete()
+
+		# Test 2: Should NOT be able to upload public file when NOT attached
+		# (checks File doctype permissions, which is set to 0)
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_standalone_file.txt",
+				"content": "test content",
+				"is_private": 0,
+				# No attached_to_doctype - uploading from File doctype itself
+			}
+		)
+		with self.assertRaises(frappe.PermissionError):
+			file_doc.save()
 
 		# Cleanup
 		frappe.set_user("Administrator")
-		file_doc.delete()
 		test_doc.delete()
 		frappe.delete_doc("DocType", "Test File Attachment", force=1)
+
+	def test_permission_not_defined_treated_as_disabled(self):
+		"""Permission NOT defined should be treated as 0 (disabled), not allowed by default"""
+		from frappe.permissions import add_permission, update_permission_property
+
+		# Grant read/write but do NOT set upload_public_files at all (not defined)
+		add_permission("File", "Test File Uploader", 0)
+		update_permission_property("File", "Test File Uploader", 0, "read", 1)
+		update_permission_property("File", "Test File Uploader", 0, "write", 1)
+		# Do NOT set upload_public_files - it should be treated as 0 (disabled)
+
+		# Clear all caches
+		frappe.clear_cache()
+		frappe.reload_doctype("File")
+
+		frappe.set_user("test_file_uploader@example.com")
+
+		# Verify permission check returns False (not defined = 0)
+		self.assertFalse(
+			frappe.has_permission("File", "upload_public_files", user="test_file_uploader@example.com"),
+			"Permission not defined should be treated as 0 (disabled)",
+		)
+
+		# Should NOT be able to upload public files
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_file.txt",
+				"content": "test content",
+				"is_private": 0,
+			}
+		)
+		with self.assertRaises(frappe.PermissionError):
+			file_doc.save()
+
+		# Should still be able to upload private files
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_file.txt",
+				"content": "test content",
+				"is_private": 1,
+			}
+		)
+		file_doc.save()
+		self.assertEqual(file_doc.is_private, 1)
+		file_doc.delete()
