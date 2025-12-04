@@ -34,7 +34,7 @@ import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import JSON5 from "json5"
-import { jsonToJs, isPrivateKey, jsonReplacer, jsonReviver } from "@/utils/helpers"
+import { jsonToJs, isPrivateKey, jsonReplacer, unquoteFunctions, parseObjectString } from "@/utils/helpers"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -73,6 +73,7 @@ const setEditorValue = () => {
 	try {
 		if (props.language === "json" || typeof value === "object") {
 			value = JSON5.stringify(value, { replacer: jsonReplacer, space: 2, quote: '"' })
+			value = unquoteFunctions(value)
 		}
 		code.value = value
 	} catch (e) {
@@ -101,13 +102,7 @@ const emitEditorValue = () => {
 			if (props.language === "json") {
 				value = jsonToJs(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
-				try {
-					// forgiving single-quoted/unquoted keys; trailing commas
-					value = JSON5.parse(value, jsonReviver)
-				} catch (e) {
-					// fallback to JSON parsing
-					value = jsonToJs(value)
-				}
+				value = parseObjectString(value)
 			}
 		}
 

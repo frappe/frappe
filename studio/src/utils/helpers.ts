@@ -260,12 +260,15 @@ function jsToJson(obj: ObjectLiteral): string {
 	return JSON.stringify(obj, jsonReplacer, 2)
 }
 
+// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
+const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/
+
 const jsonReviver = (_key: string, value: any) => {
 	const registeredComponents = window.__APP_COMPONENTS__ || {}
 	if (typeof value === "string") {
 		const trimmed = value.trim()
 		// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
-		const isFunctionString = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/.test(trimmed)
+		const isFunctionString = FUNCTION_STRING_REGEX.test(trimmed)
 
 		if (isFunctionString) {
 			// provide access to render function & frappeUI lib for editing props
@@ -278,6 +281,33 @@ const jsonReviver = (_key: string, value: any) => {
 
 function jsonToJs(json: string): any {
 	return JSON.parse(json, jsonReviver)
+}
+
+function unquoteFunctions(json5String: string) {
+	json5String = json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
+		const unescaped = content
+			.replace(/\\n/g, '\n')
+			.replace(/\\t/g, '\t')
+			.replace(/\\"/g, '"')
+			.replace(/\\\\/g, '\\')
+			.trim()
+
+		if (FUNCTION_STRING_REGEX.test(unescaped)) {
+			return unescaped
+		}
+		return match
+	})
+	return json5String
+}
+
+function parseObjectString(jsString: string) {
+	const registeredComponents = window.__APP_COMPONENTS__ || {}
+	try {
+		const fn = new Function("h", ...Object.keys(registeredComponents), `return (${jsString})`)
+		return fn(h, ...Object.values(registeredComponents))
+	} catch (e) {
+		throw e
+	}
 }
 
 const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
@@ -588,11 +618,15 @@ export {
 	getValueFromObject,
 	setValueInObject,
 	isPrivateKey,
+	// serialization/deserialization
 	isJSONString,
 	jsToJson,
 	jsonToJs,
 	jsonReplacer,
 	jsonReviver,
+	unquoteFunctions,
+	parseObjectString,
+	// maps
 	mapToObject,
 	replaceMapKey,
 	isTargetEditable,

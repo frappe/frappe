@@ -459,10 +459,10 @@ export const COMPONENTS: FrappeUIComponents = {
 					label: "Name",
 					key: "name",
 					width: 3,
-					getLabel: function ({ row }: { row: any }) {
+					getLabel: ({ row }: { row: any }) => {
 						return row.name
 					},
-					prefix: function ({ row }: { row: any }) {
+					prefix: ({ row }: { row: any }) => {
 						// @ts-ignore
 						return h(Avatar, {
 							shape: "circle",
