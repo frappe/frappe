@@ -487,11 +487,7 @@ class ImportFile:
 			frappe.throw(_("Import template should contain a Header row."), title=_("Template Error"))
 
 		for field in mandatory_fields:
-<<<<<<< HEAD
-			if field not in headers:
-=======
 			if field not in headers and _(field) not in headers:
->>>>>>> 4e6fb4a550 (fix(data import): use correct condition for validation of headers)
 				frappe.throw(
 					_(
 						"Mandatory field {0} is missing in the import template for {1}. Please correct the template and try again."
