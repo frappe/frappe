@@ -265,4 +265,4 @@ def hex_to_argb(color: str, bg: bool = False) -> str:
 		h = hex_part.upper()
 		return h[6:8] + h[0:6]
 
-	return DEFAULT_FONT_COLOR
+	return default_color
