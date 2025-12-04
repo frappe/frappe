@@ -163,6 +163,10 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 					if number_format:
 						cell.number_format = number_format
 
+				# change value
+				if update_value := cs.get("update_value"):
+					cell.value = update_value
+
 				cell.font = Font(**font_kwargs)
 
 			clean_row.append(cell)
