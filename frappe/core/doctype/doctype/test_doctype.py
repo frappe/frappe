@@ -153,24 +153,25 @@ class TestDocType(IntegrationTestCase):
 	def test_all_depends_on_fields_conditions(self):
 		import re
 
-		docfields = frappe.get_all(
-			"DocField",
-			or_filters={
-				"ifnull(depends_on, '')": ("!=", ""),
-				"ifnull(collapsible_depends_on, '')": ("!=", ""),
-				"ifnull(mandatory_depends_on, '')": ("!=", ""),
-				"ifnull(read_only_depends_on, '')": ("!=", ""),
-			},
-			fields=[
-				"parent",
-				"depends_on",
-				"collapsible_depends_on",
-				"mandatory_depends_on",
-				"read_only_depends_on",
-				"fieldname",
-				"fieldtype",
-			],
+		DocField = frappe.qb.DocType("DocField")
+		docfields_query = (
+			frappe.qb.from_(DocField)
+			.select(
+				DocField.parent,
+				DocField.depends_on,
+				DocField.collapsible_depends_on,
+				DocField.mandatory_depends_on,
+				DocField.read_only_depends_on,
+				DocField.fieldname,
+			)
+			.where(
+				(DocField.depends_on != "")
+				| (DocField.collapsible_depends_on != "")
+				| (DocField.mandatory_depends_on != "")
+				| (DocField.read_only_depends_on != "")
+			)
 		)
+		docfields = docfields_query.run(as_dict=True)
 
 		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:

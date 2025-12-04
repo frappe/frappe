@@ -42,6 +42,7 @@ def get_bootinfo():
 
 	# user
 	get_user(bootinfo)
+	# desktop icon info
 
 	# system info
 	bootinfo.sitename = frappe.local.site
@@ -56,6 +57,7 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
+	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
@@ -149,7 +151,6 @@ def load_conf_settings(bootinfo):
 def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
-	bootinfo.desktop_icons = get_desktop_icons()
 	bootinfo.workspaces = get_workspace_sidebar_items()
 	bootinfo.show_app_icons_as_folder = frappe.db.get_single_value(
 		"Desktop Settings", "show_app_icons_as_folder"
@@ -540,6 +541,7 @@ def get_sidebar_items():
 			"items": [],
 			"header_icon": s["header_icon"],
 			"module": w.module,
+			"app": w.app,
 		}
 		for si in w.items:
 			workspace_sidebar = {
@@ -558,7 +560,7 @@ def get_sidebar_items():
 				"filters": si.filters,
 				"route_options": si.route_options,
 			}
-			if si.link_type == "Report" and si.link_to:
+			if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", si.link_to, ["report_type", "ref_doctype"]
 				)
@@ -574,8 +576,8 @@ def get_sidebar_items():
 			):
 				sidebar_items[s["name"].lower()]["items"].append(workspace_sidebar)
 
-	old_name = f"my workspaces-{frappe.session.user}"
-	if old_name in sidebar_items:
+	old_name = f"my workspaces-{frappe.session.user.lower()}"
+	if old_name in sidebar_items.keys():
 		sidebar_items["my workspaces"] = sidebar_items.pop(old_name)
 	return sidebar_items
 

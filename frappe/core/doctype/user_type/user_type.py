@@ -234,7 +234,7 @@ def get_user_linked_doctypes(doctype, txt, searchfield, start, page_len, filters
 		"DocType",
 		fields=["`tabDocType`.`name`"],
 		filters=filters,
-		order_by="`tabDocType`.`idx` desc",
+		order_by="idx desc",
 		limit_start=start,
 		limit_page_length=page_len,
 		as_list=1,

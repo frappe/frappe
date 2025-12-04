@@ -10,30 +10,21 @@
 			</a>
 			<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 			<div class="collapse navbar-collapse justify-content-end">
-				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
-					{% if (frappe.boot.read_only) { %}
-						<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
-							{%= __("Read Only Mode") %}
-						</span>
-					{% } %}
-					{% if (frappe.boot.user.impersonated_by) { %}
-						<span class="indicator-pill red no-indicator-dot" title="{%= __("You are impersonating as another user.") %}">
-							{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
-						</span>
-					{% } %}
-					<div class="input-group search-bar text-muted hidden">
-						<input
-							id="navbar-search"
-							type="text"
-							class="form-control"
-							placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K']) %}"
-							aria-haspopup="true"
+				{% if frappe.is_mobile() %}
+					<div class="search-bar text-muted hidden">
+						<div
+							id="navbar-modal-search"
+							class="navbar-modal-search-mobile"
+							placeholder="Search for type a command"
 						>
 						<span class="search-icon">
 							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+							{{ __("Search") }}
 						</span>
+						<span>{%= frappe.utils.is_mac() ? '⌘ + K' : 'Ctrl + K' %}</span>
 					</div>
-				</form>
+					</div>
+				{% endif %}
 				<ul class="navbar-nav">
 					<li class="nav-item dropdown dropdown-notifications dropdown-mobile hidden">
 						<button

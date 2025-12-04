@@ -107,7 +107,9 @@ frappe.notification = {
 			);
 
 			// set options for "From Attach Field"
-			let attach_fields = fields.filter((d) => d.fieldtype === "Attach");
+			let attach_fields = fields.filter((d) =>
+				["Attach", "Attach Image"].includes(d.fieldtype)
+			);
 			let attach_options = $.map(attach_fields, function (d) {
 				return get_select_options(d);
 			});

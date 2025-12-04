@@ -56,6 +56,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	prepare() {}
 	make() {
 		this.path = this.get_path();
+		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
 			this.item.icon = "list-alt";
 		}
@@ -69,11 +70,27 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		$(this.container).append(this.wrapper);
 		this.setup_editing_controls();
 	}
+	set_suffix() {
+		if (this.item.suffix) {
+			if (this.item.suffix.keyboard_shortcut) {
+				this.item.suffix = this.get_shortcut_html(this.item.suffix.keyboard_shortcut);
+			}
+		}
+	}
+	get_shortcut_html(shortcut) {
+		if (frappe.utils.is_mac()) {
+			shortcut = shortcut.replace("Ctrl", "⌘");
+		}
+		return `<span class="sidebar-item-suffix keyboard-shortcut">${shortcut}</span>`;
+	}
 	setup_editing_controls() {
 		this.menu_items = this.get_menu_items();
 		this.$edit_menu = this.wrapper.find(".edit-menu");
 		this.$sidebar_container = this.$edit_menu.parent();
-		frappe.ui.create_menu(this.$edit_menu, this.menu_items);
+		frappe.ui.create_menu({
+			parent: this.$edit_menu,
+			menu_items: this.menu_items,
+		});
 	}
 	get_menu_items() {
 		let me = this;
@@ -186,6 +203,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
+				if (me.item.indent) {
+					me.close();
+				}
 			}
 		});
 	}
@@ -239,6 +259,10 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 
 			if (e.originalEvent.isTrusted) {
 				me.save_section_break_state();
+			}
+			if (!frappe.app.sidebar.sidebar_expanded) {
+				frappe.app.sidebar.open();
+				this.open();
 			}
 		});
 	}
@@ -350,5 +374,24 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 				},
 			});
 		});
+	}
+};
+
+frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
+	constructor(item) {
+		super(item);
+		this.title = frappe.app.sidebar.workspace_title;
+		this.item.id && this.wrapper.attr("id", this.item.id);
+		this.wrapper.attr("title", this.item.label);
+		this.setup_click();
+	}
+
+	setup_click() {
+		const me = this;
+		if (this.item.onClick) {
+			this.wrapper.on("click", function () {
+				me.item.onClick && me.item.onClick();
+			});
+		}
 	}
 };

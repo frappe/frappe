@@ -10,11 +10,11 @@
  "label": "Users",
  "link_to": "Users",
  "link_type": "Workspace",
- "modified": "2025-11-13 16:00:56.962638",
+ "modified": "2025-11-25 13:26:04.757422",
  "modified_by": "Administrator",
  "name": "Users",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }

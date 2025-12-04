@@ -3,9 +3,19 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.sidebar = sidebar;
 		this.sidebar_wrapper = $(".body-sidebar");
 		this.drop_down_expanded = false;
-		this.workspace_title = this.sidebar.workspace_title;
+		this.title = this.sidebar.sidebar_title;
 		const me = this;
+		this.sibling_workspaces = this.fetch_sibling_workspaces();
 		this.dropdown_items = [
+			{
+				name: "workspaces",
+				label: "Workspaces",
+				icon: "wallpaper",
+				condition: function () {
+					return me.sibling_workspaces.length > 0;
+				},
+				items: this.sibling_workspaces,
+			},
 			{
 				name: "desktop",
 				label: __("Desktop"),
@@ -37,23 +47,34 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-
+	fetch_sibling_workspaces() {
+		let sibling_workspaces = [];
+		if (frappe.current_app) {
+			let workspaces = [...frappe.current_app.workspaces];
+			workspaces.splice(workspaces.indexOf(this.title), 1);
+			workspaces.forEach((w) => {
+				let item = {
+					name: w.toLowerCase(),
+					label: w,
+					icon: "wallpaper",
+					url: frappe.utils.generate_route({
+						type: "Workspace",
+						route: w.toLowerCase(),
+					}),
+				};
+				sibling_workspaces.push(item);
+			});
+			return sibling_workspaces;
+		}
+	}
 	make() {
 		$(".sidebar-header").remove();
 		$(".sidebar-header-menu").remove();
 		this.set_header_icon();
 		$(
 			frappe.render_template("sidebar_header", {
-				workspace_title: this.workspace_title,
-				header_icon: frappe.utils.icon(
-					this.header_icon,
-					"lg",
-					"",
-					"",
-					"",
-					false,
-					`var(${this.header_bg_color})`
-				),
+				workspace_title: this.title,
+				header_icon: this.header_icon,
 				header_bg_color: this.header_stroke_color,
 			})
 		).prependTo(this.sidebar_wrapper);
@@ -63,19 +84,45 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 	}
 	set_header_icon() {
-		if (this.sidebar.sidebar_data) this.header_icon = this.sidebar.sidebar_data.header_icon;
+		let desktop_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title);
+		if (desktop_icon && desktop_icon.logo_url) {
+			this.header_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title).logo_url;
+			this.header_icon = `<img src=${this.header_icon}></img>`;
+		} else if (this.sidebar.sidebar_data) {
+			this.header_icon = this.sidebar.sidebar_data.header_icon;
+			this.header_icon = frappe.utils.icon(
+				this.header_icon,
+				"lg",
+				"",
+				"",
+				"",
+				false,
+				`var(${this.header_bg_color})`
+			);
+		}
 	}
-	setup_app_switcher() {
-		this.dropdown_menu = $(".sidebar-header-menu");
-		$(".sidebar-header").on("click", (e) => {
-			this.toggle_dropdown_menu();
-			e.stopImmediatePropagation();
-		});
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key]) &&
+					f.hidden != 1
+				);
+			});
+		}
 	}
 
-	toggle_dropdown_menu() {
-		this.toggle_active();
-		this.dropdown_menu.toggleClass("hidden");
+	setup_app_switcher() {
+		frappe.ui.create_menu({
+			parent: this.wrapper,
+			menu_items: this.dropdown_items,
+			onShow: this.toggle_active,
+			onHide: this.toggle_active,
+			onItemClick: this.toggle_active,
+		});
 	}
 
 	populate_dropdown_menu() {
@@ -87,7 +134,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	check_editing_access() {
 		if (!frappe.boot.developer_mode) {
-			this.dropdown_items.splice(1, 1);
+			let edit_sidebar_index = this.dropdown_items.findIndex((f) => {
+				return f.name == "edit-sidebar";
+			});
+			this.dropdown_items.splice(edit_sidebar_index, 1);
 		}
 	}
 	add_app_item(item) {
@@ -120,19 +170,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		});
 	}
 
-	toggle_active() {
-		this.toggle_dropdown();
-		this.wrapper.toggleClass("active-sidebar");
-		if (!this.sidebar.sidebar_expanded) {
-			this.wrapper.removeClass("active-sidebar");
-		}
-	}
-
-	toggle_dropdown() {
-		if (this.drop_down_expanded) {
-			this.drop_down_expanded = false;
-		} else {
-			this.drop_down_expanded = true;
+	toggle_active(wrapper) {
+		$(wrapper).toggleClass("active-sidebar");
+		if (!frappe.app.sidebar.sidebar_expanded) {
+			$(wrapper).removeClass("active-sidebar");
 		}
 	}
 
