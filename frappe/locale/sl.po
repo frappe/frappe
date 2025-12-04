@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-11-30 14:30\n"
+"PO-Revision-Date: 2025-12-03 15:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -8683,7 +8683,7 @@ msgstr ""
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 #: frappe/www/login.html:8 frappe/www/login.py:104
 msgid "Email"
-msgstr ""
+msgstr "E-pošta"
 
 #. Label of the email_account (Link) field in DocType 'Communication'
 #. Label of the email_account (Link) field in DocType 'User Email'
@@ -14519,7 +14519,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:652
 msgid "Last 6 Months"
-msgstr ""
+msgstr "Zadnjih 6 Mesecev"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:624
 msgid "Last 7 Days"

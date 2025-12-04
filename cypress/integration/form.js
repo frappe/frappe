@@ -99,7 +99,9 @@ context("Form", () => {
 		cy.new_form("User");
 
 		jump_to_field("Location"); // this is in collapsed section
+		cy.wait(500);
 		type_value("Bermuda");
+		cy.wait(500);
 
 		cy.get_field("location").should("have.value", "Bermuda");
 	});

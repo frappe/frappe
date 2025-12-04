@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-11-30 14:29\n"
+"PO-Revision-Date: 2025-12-02 15:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5019,7 +5019,7 @@ msgstr "ارتباط"
 #. Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "تاریخ ارتباط"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -5477,7 +5477,7 @@ msgstr "در کلیپ بورد کپی شد."
 
 #: frappe/public/js/frappe/list/list_view.js:2420
 msgid "Copied {0} {1} to clipboard"
-msgstr ""
+msgstr "{0} {1} در کلیپ‌بورد کپی شد"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -8125,7 +8125,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:189
 msgid "Drop files here"
-msgstr ""
+msgstr "فایل‌ها را اینجا رها کنید"
 
 #. Label of the section_break_2 (Section Break) field in DocType 'Navbar
 #. Settings'
@@ -8187,7 +8187,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Duration"
-msgstr ""
+msgstr "مدت زمان"
 
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -9661,7 +9661,7 @@ msgstr ""
 #: frappe/core/doctype/submission_queue/submission_queue.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Failed"
-msgstr ""
+msgstr "ناموفق"
 
 #. Label of the failed_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -21267,7 +21267,7 @@ msgstr "بارگذاری مجدد فایل"
 
 #: frappe/public/js/frappe/list/base_list.js:249
 msgid "Reload List"
-msgstr "لیست بارگذاری مجدد"
+msgstr "بارگذاری دوباره لیست"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:100
 msgid "Reload Report"
@@ -21360,7 +21360,7 @@ msgstr ""
 
 #: frappe/public/js/form_builder/components/Tabs.vue:140
 msgid "Remove tab"
-msgstr ""
+msgstr "حذف تب"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -22563,7 +22563,7 @@ msgstr "نمونه"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Saturday"
-msgstr ""
+msgstr "شنبه"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: cypress/integration/web_form.js:46
@@ -26827,7 +26827,7 @@ msgstr "URL تصویر کوچک"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Thursday"
-msgstr ""
+msgstr "پنج‌شنبه"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the time (Datetime) field in DocType 'Recorder'
@@ -27614,7 +27614,7 @@ msgstr "سعی کنید از الگوی صفحه کلید بلندتر با چر
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Tuesday"
-msgstr ""
+msgstr "سه‌شنبه"
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -29443,7 +29443,7 @@ msgstr "Websocket"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Wednesday"
-msgstr ""
+msgstr "چهارشنبه"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:276
 msgid "Week"

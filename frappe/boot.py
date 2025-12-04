@@ -541,6 +541,7 @@ def get_sidebar_items():
 			"items": [],
 			"header_icon": s["header_icon"],
 			"module": w.module,
+			"app": w.app,
 		}
 		for si in w.items:
 			workspace_sidebar = {

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-11-30 14:30\n"
+"PO-Revision-Date: 2025-12-03 15:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,7 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr "\"Historija Kompanije\""
+msgstr "\"Historija Poduzeća\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -5205,7 +5205,7 @@ msgstr "Konverzacija"
 #. Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "Datum Komunikacije"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -5230,18 +5230,18 @@ msgstr "Tajna Konverzacije nije postavljena"
 #: frappe/website/doctype/company_history/company_history.json
 #: frappe/www/about.html:29
 msgid "Company History"
-msgstr "Istorija Kompanije"
+msgstr "Istorija Poduzeća"
 
 #. Label of the company_introduction (Text Editor) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Company Introduction"
-msgstr "Predstavljanje Kompanije"
+msgstr "Predstavljanje Poduzeća"
 
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr "Naziv Kompanije"
+msgstr "Naziv Poduzeća"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:56
@@ -5663,7 +5663,7 @@ msgstr "Kopirano u Međuspremnik."
 
 #: frappe/public/js/frappe/list/list_view.js:2420
 msgid "Copied {0} {1} to clipboard"
-msgstr ""
+msgstr "Kopirano {0} {1} u međuspremnik"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -6553,7 +6553,7 @@ msgstr "Šablon Uvoza Podataka"
 
 #: frappe/core/doctype/data_import/data_import.py:76
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "Uvoz podataka nije dozvoljen za {0}. Omogućite 'Dozvoli uvoz' u Postavkama."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -7389,7 +7389,7 @@ msgstr "Onemogući Dijeljenje Dokumenata"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Product Suggestion"
-msgstr ""
+msgstr "Onemogući Prijedlog Artikala"
 
 #: frappe/core/doctype/report/report.js:39
 msgid "Disable Report"
@@ -8062,7 +8062,7 @@ msgstr "Dokument Otključan"
 
 #: frappe/database/query.py:457
 msgid "Document cannot be used as a filter value"
-msgstr ""
+msgstr "Dokument se ne može koristiti kao vrijednost filtera"
 
 #: frappe/desk/form/document_follow.py:56
 msgid "Document follow is not enabled for this user."
@@ -9442,7 +9442,7 @@ msgstr "Greška u {0}.get_list: {1}"
 
 #: frappe/database/query.py:353
 msgid "Error parsing nested filters: {0}. {1}"
-msgstr ""
+msgstr "Greška prilikom parsiranja ugniježđenih filtera: {0}. {1}"
 
 #: frappe/email/doctype/email_account/email_account.py:670
 msgid "Error while connecting to email account {0}"
@@ -13322,7 +13322,7 @@ msgstr "URL Uvodnog Videa"
 #. 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr "Predstavite svoju kompaniju posjetitelju web stranice."
+msgstr "Predstavite poduzeće posjetitelju web stranice."
 
 #. Label of the introduction_section (Section Break) field in DocType 'Contact
 #. Us Settings'
@@ -30482,7 +30482,7 @@ msgstr "Nemate dovoljno dozvola da dovršite radnju"
 
 #: frappe/core/doctype/data_import/data_import.py:83
 msgid "You do not have import permission for {0}"
-msgstr ""
+msgstr "Nemate dozvolu za uvoz za {0}"
 
 #: frappe/database/query.py:810
 msgid "You do not have permission to access field: {0}"
@@ -31033,7 +31033,7 @@ msgstr "prazno"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "esc"
-msgstr ""
+msgstr "esc"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31415,15 +31415,15 @@ msgstr "ovo ne bi trebalo da se pokvari"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to close"
-msgstr ""
+msgstr "za zatvoriti"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to navigate"
-msgstr ""
+msgstr "za navigaciju"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to select"
-msgstr ""
+msgstr "za odabrati"
 
 #: frappe/templates/emails/download_data.html:9
 msgid "to your browser"

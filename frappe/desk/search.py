@@ -44,7 +44,6 @@ def search_link(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 	*,
-	form_doctype: str | None = None,
 	link_fieldname: str | None = None,
 ) -> list[LinkSearchResults]:
 	results = search_widget(
@@ -56,7 +55,6 @@ def search_link(
 		filters=filters,
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
-		form_doctype=form_doctype,
 		link_fieldname=link_fieldname,
 	)
 	return build_for_autosuggest(results, doctype=doctype)
@@ -77,18 +75,15 @@ def search_widget(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 	*,
-	form_doctype: str | None = None,
 	link_fieldname: str | None = None,
 ):
 	if ignore_user_permissions:
-		if form_doctype and link_fieldname:
-			validate_ignore_user_permissions(form_doctype, link_fieldname, doctype)
+		if reference_doctype and link_fieldname:
+			validate_ignore_user_permissions(reference_doctype, link_fieldname, doctype)
 		else:
 			frappe.logger().error(
-				"setting ignore_user_permissions=True in search_link requires "
-				"form_doctype and link_fieldname to be set. "
-				f"Got form_doctype={form_doctype}, link_fieldname={link_fieldname}. "
-				"Ignoring flag."
+				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. "
+				f"Got reference_doctype={reference_doctype}, link_fieldname={link_fieldname}. Ignoring flag."
 			)
 			ignore_user_permissions = False
 
@@ -122,7 +117,6 @@ def search_widget(
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
 				ignore_user_permissions=ignore_user_permissions,
-				form_doctype=form_doctype,
 				link_fieldname=link_fieldname,
 			)
 		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError):
