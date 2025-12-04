@@ -113,9 +113,14 @@ class DatabaseQuery:
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
+		# Set fields to the requested field or `name` if none specified
+		if not fields:
+			fields = [pluck or "name"]
+
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
 			return self._handle_virtual_doctype(
+				fields,
 				filters,
 				or_filters,
 				start,
@@ -161,10 +166,6 @@ class DatabaseQuery:
 			)
 			if limit is None:
 				limit = page_length
-
-		# Set fields to the requested field or `name` if none specified
-		if not fields:
-			fields = [pluck or "name"]
 
 		# Check if table exists before running query
 		from frappe.model.meta import get_table_columns
@@ -285,6 +286,7 @@ class DatabaseQuery:
 
 	def _handle_virtual_doctype(
 		self,
+		fields: list[str] | tuple[str, ...] | str | None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None,
 		or_filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None,
 		start: int | None,
@@ -331,6 +333,7 @@ class DatabaseQuery:
 
 		_page_length = page_length or limit or limit_page_length or 20
 		kwargs = {
+			"fields": fields,
 			"filters": filters,
 			"or_filters": or_filters,
 			"start": start or offset or limit_start or 0,
