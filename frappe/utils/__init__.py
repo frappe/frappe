@@ -30,7 +30,7 @@ from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
 from frappe.utils.data import *
 from frappe.utils.html_utils import sanitize_html
 
-EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
+EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\'\- ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 NON_MD_HTML_PATTERN = re.compile(r"<p[\s]*>|<br[\s]*>")
 HTML_TAGS_PATTERN = re.compile(r"\<[^>]*\>")
