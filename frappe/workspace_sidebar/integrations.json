@@ -1,0 +1,153 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-13 22:52:32.146359",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "integration",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "cable",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Connected App",
+   "link_to": "Connected App",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "bell-dot",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Push Notification",
+   "link_to": "Push Notification Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "webhook",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Webhook",
+   "link_to": "Webhook",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Google",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "contact",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Google Contacts",
+   "link_to": "Google Contacts",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "calendar-days",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Google Calender",
+   "link_to": "Google Calendar",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "settings",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Google Settings",
+   "link_to": "Google Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Authetication",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Social Login Key",
+   "link_to": "Social Login Key",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "settings",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "LDAP Settings",
+   "link_to": "LDAP Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "OAuth Client",
+   "link_to": "OAuth Client",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "OAuth Provider",
+   "link_to": "OAuth Provider Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-11-25 10:46:09.215894",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Integrations",
+ "owner": "Administrator",
+ "title": "Integrations"
+}

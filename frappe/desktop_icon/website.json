@@ -1,0 +1,20 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 11:24:16.762628",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "website",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Website",
+ "link_to": "Website",
+ "link_type": "Workspace",
+ "modified": "2025-11-25 13:25:58.604796",
+ "modified_by": "Administrator",
+ "name": "Website",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "roles": [],
+ "standard": 1
+}

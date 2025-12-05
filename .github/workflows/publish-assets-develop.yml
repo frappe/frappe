@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'frappe'
       - uses: actions/setup-node@v6
@@ -19,7 +19,7 @@ jobs:
           node-version: 22
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - name: Set up bench and build assets
         run: |
           npm install -g yarn

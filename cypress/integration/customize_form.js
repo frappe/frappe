@@ -1,7 +1,7 @@
 context("Customize Form", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/customize-form");
+		cy.visit("/desk/customize-form");
 	});
 	it("Changing to naming rule should update autoname", () => {
 		cy.fill_field("doc_type", "ToDo", "Link").blur();

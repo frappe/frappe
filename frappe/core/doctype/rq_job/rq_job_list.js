@@ -14,6 +14,15 @@ frappe.listview_settings["RQ Job"] = {
 			__("Actions")
 		);
 
+		frappe.xcall("frappe.core.doctype.rq_job.rq_job.get_custom_queues").then((options) => {
+			const select_element = listview.filter_area.standard_filters_wrapper.find(
+				'select[data-fieldname="queue"]'
+			);
+			options.forEach((option) => {
+				select_element.append($("<option>", { value: option, text: option }));
+			});
+		});
+
 		frappe.xcall("frappe.utils.scheduler.get_scheduler_status").then(({ status }) => {
 			if (status === "active") {
 				listview.page.set_indicator(__("Scheduler: Active"), "green");

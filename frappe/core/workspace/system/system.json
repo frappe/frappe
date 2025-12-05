@@ -1,0 +1,41 @@
+{
+ "app": "frappe",
+ "charts": [
+  {
+   "chart_name": "Background Job Activity",
+   "label": "Background Job Activity"
+  },
+  {
+   "chart_name": "Notifications By Type",
+   "label": "Notification Summary"
+  }
+ ],
+ "content": "[{\"id\":\"-bxX6Dwxxy\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Background Job Activity\",\"col\":12}},{\"id\":\"gccD2r7Ut3\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Notification Summary\",\"col\":12}}]",
+ "creation": "2025-09-08 11:33:57.533875",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "monitor-check",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "System",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2025-10-30 18:22:58.416219",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "System",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 27.0,
+ "shortcuts": [],
+ "title": "System",
+ "type": "Workspace"
+}

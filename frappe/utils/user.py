@@ -9,7 +9,7 @@ import frappe.share
 from frappe import _dict
 from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
+from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
 
@@ -101,7 +101,8 @@ class UserPermissions:
 			if dt not in self.perm_map:
 				self.perm_map[dt] = {}
 
-			for k in frappe.permissions.rights:
+			rights = get_rights(dt)
+			for k in rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 
@@ -160,7 +161,9 @@ class UserPermissions:
 						getattr(self, "can_" + key).append(dt)
 
 				if not dtp.get("istable"):
-					if not dtp.get("issingle") and not dtp.get("read_only"):
+					if frappe.session.user == "Administrator":
+						self.can_search.append(dt)
+					elif not dtp.get("issingle") and not dtp.get("read_only"):
 						self.can_search.append(dt)
 					if dtp.get("module") not in self.allow_modules:
 						if active_modules and dtp.get("module") not in active_modules:

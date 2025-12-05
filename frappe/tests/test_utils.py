@@ -31,6 +31,7 @@ from frappe.utils import (
 	get_bench_path,
 	get_file_timestamp,
 	get_gravatar,
+	get_link_to_report,
 	get_site_info,
 	get_sites,
 	get_url,
@@ -90,6 +91,7 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
 from frappe.utils.synchronization import LockTimeoutError, filelock
+from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
 
 
 class Capturing(list):
@@ -342,6 +344,13 @@ class TestFilters(IntegrationTestCase):
 		self.assertTrue(compare(None, "is", "NOT SET"))
 		self.assertTrue(compare(None, "is", "Not Set"))
 		self.assertTrue(compare(None, "is", "not set"))
+
+	def test_get_link_to_report_with_between_filter(self):
+		filters = {
+			"creation": [["between", ["2024-01-01", "2024-12-31"]]],
+		}
+		link = get_link_to_report(name="ToDo", filters=filters)
+		self.assertIn('creation=["between",["2024-01-01","2024-12-31"]]', link)
 
 
 class TestMoney(IntegrationTestCase):
@@ -1238,11 +1247,11 @@ class TestTypingValidations(IntegrationTestCase):
 	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		@frappe.whitelist()
+		@validate_argument_types
 		def simple(string: str, number: int):
 			return
 
-		@frappe.whitelist()
+		@validate_argument_types
 		def varkw(string: str, **kwargs):
 			return
 
@@ -1455,10 +1464,6 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		from unittest.mock import AsyncMock, MagicMock, Mock
 
 		from frappe.core.doctype.doctype.doctype import DocType
-		from frappe.utils.typing_validations import (
-			FrappeTypeError,
-			validate_argument_types,
-		)
 
 		@validate_argument_types
 		def test_simple_types(a: int, b: float, c: bool):
