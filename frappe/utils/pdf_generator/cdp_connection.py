@@ -93,7 +93,7 @@ class CDPSocketClient:
 
 	async def _disconnect(self):
 		try:
-			if self.connection and not self.connection.closed:
+			if self.connection:
 				await self.connection.close()
 			self.connection = None
 		except Exception:
