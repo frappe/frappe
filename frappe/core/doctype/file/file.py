@@ -819,24 +819,21 @@ class File(Document):
 		- If file is public and attached to a doctype (e.g., "Custom"), check permissions for that doctype
 		- If file is NOT attached to any doctype (uploading from File doctype itself), check "File" doctype permissions
 		- Only validates if file is public
+		- Skips check if ignore_permissions flag is set (e.g., during tests or system operations)
 		"""
 		if cint(self.is_private):
 			return
 
-		# Determine which doctype to check permissions for
-		# If attached to a doctype, check that doctype; otherwise check "File" doctype
+		# Skip permission check if ignore_permissions flag is set
+		if self.flags.ignore_permissions:
+			return
+
+		# Check permission on the attached doctype if present, otherwise on File doctype itself
 		if self.attached_to_doctype and self.attached_to_name:
-			doctype_to_check = self.attached_to_doctype
+			frappe.has_permission(self.attached_to_doctype, "upload_public_files", throw=True)
 		else:
 			# File uploaded directly from File doctype itself
-			doctype_to_check = "File"
-
-		# Check permission using the helper function
-		if not can_upload_public_files_for_doctype(doctype_to_check):
-			frappe.throw(
-				_("You do not have permission to upload public files for {0}.").format(doctype_to_check),
-				frappe.PermissionError,
-			)
+			frappe.has_permission("File", "upload_public_files", throw=True)
 
 	@frappe.whitelist()
 	def optimize_file(self):
@@ -893,44 +890,6 @@ class File(Document):
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 	frappe.db.add_index("File", ["file_url(100)"])
-
-
-def can_upload_public_files_for_doctype(doctype, user=None):
-	"""Check if user can upload public files for the given doctype.
-
-	Permission check logic:
-	- Administrator: Always allowed (bypass all checks)
-	- Permission = 0 (explicit disable): Only private files allowed (returns False)
-	- Permission = 1 (explicit enable): Both public and private files allowed (returns True)
-	- Permission NOT defined: Treat as 0 (only private files allowed, returns False)
-
-	For users with multiple roles:
-	- If any role has value 1 → ENABLED (returns True)
-	- Else if any role has value 0 → DISABLED (returns False)
-	- Else → NOT DEFINED → treat as 0 (returns False)
-
-	Args:
-		doctype: The doctype to check permissions for
-		user: The user to check permissions for (defaults to current session user)
-
-	Returns:
-		True if user can upload public files, False otherwise
-	"""
-	user = user or frappe.session.user
-
-	# Administrator bypasses all permission checks
-	if user == "Administrator":
-		return True
-
-	try:
-		# Use frappe.has_permission which handles multiple roles correctly:
-		# - If any role has 1 → returns True
-		# - If all roles have 0 or not defined → returns False
-		return frappe.has_permission(doctype, "upload_public_files", user=user)
-	except Exception:
-		# If permission type doesn't exist or other error,
-		# treat as 0 (only private files allowed)
-		return False
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):

@@ -1037,6 +1037,83 @@ def setup_chrome():
 	setup_chromium()
 
 
+@click.command("allow-public-files")
+@click.argument("app")
+@pass_context
+def allow_public_files(context: CliCtxObj, app):
+	"""Enable upload_public_files permission for all DocPerm entries of an app"""
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+
+			# Get all modules for the app
+			if app not in frappe.local.app_modules:
+				click.echo(f"App '{app}' not found or not installed")
+				continue
+
+			modules = frappe.local.app_modules[app]
+			# Convert module names to their unscrubbed form for querying
+			module_names = [frappe.unscrub(m) for m in modules]
+
+			# Get all doctypes for these modules
+			doctypes = frappe.get_all(
+				"DocType",
+				filters={"module": ["in", module_names]},
+				fields=["name"],
+				pluck="name",
+			)
+
+			if not doctypes:
+				click.echo(f"No doctypes found for app '{app}'")
+				continue
+
+			click.echo(
+				f"Updating upload_public_files permission for {len(doctypes)} doctypes in app '{app}'..."
+			)
+
+			# Format doctypes for IN clause
+			doctypes_tuple = tuple(doctypes)
+			doctypes_placeholders = ",".join(["%s"] * len(doctypes))
+
+			# Update DocPerm entries
+			frappe.db.sql(
+				f"""
+				UPDATE `tabDocPerm`
+				SET `upload_public_files` = 1
+				WHERE `parent` IN ({doctypes_placeholders})
+					AND (`upload_public_files` = 0 OR `upload_public_files` IS NULL)
+				""",
+				doctypes_tuple,
+			)
+			docperm_count = frappe.db._cursor.rowcount
+
+			# Update Custom DocPerm entries
+			frappe.db.sql(
+				f"""
+				UPDATE `tabCustom DocPerm`
+				SET `upload_public_files` = 1
+				WHERE `parent` IN ({doctypes_placeholders})
+					AND (`upload_public_files` = 0 OR `upload_public_files` IS NULL)
+				""",
+				doctypes_tuple,
+			)
+			custom_docperm_count = frappe.db._cursor.rowcount
+
+			frappe.db.commit()
+
+			click.echo(
+				f"✓ Updated {docperm_count} DocPerm entries and {custom_docperm_count} Custom DocPerm entries"
+			)
+			click.echo(f"✓ Public file uploads are now enabled for all doctypes in app '{app}'")
+
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1070,4 +1147,5 @@ commands = [
 	rebuild_global_search,
 	list_sites,
 	setup_chrome,
+	allow_public_files,
 ]
