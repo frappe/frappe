@@ -5,6 +5,7 @@ import { deepCloneObject } from "@/utils/helpers"
 import { FUNCTION_STRING_REGEX } from "@/utils/constants"
 
 import type { ObjectLiteral, BlockOptions } from "@/types"
+import useCodeStore from "@/stores/codeStore"
 
 /**
  * Serialization and Deserialization utilities for Blocks and Objects
@@ -41,6 +42,7 @@ export const useSerializer = () => {
 	}
 
 	const jsonReviver = (_key: string, value: any) => {
+		const codeStore = useCodeStore()
 		const registeredComponents = window.__APP_COMPONENTS__ || {}
 		if (typeof value === "string") {
 			const trimmed = value.trim()
@@ -52,9 +54,10 @@ export const useSerializer = () => {
 				const fn = new Function(
 					"h",
 					...Object.keys(registeredComponents),
+					...Object.keys(codeStore.globalExecutionContext),
 					`return (${value})`
 				)
-				return fn(h, ...Object.values(registeredComponents))
+				return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
 			}
 		}
 		return value
@@ -70,14 +73,16 @@ export const useSerializer = () => {
 	}
 
 	function parseObjectString(jsString: string) {
+		const codeStore = useCodeStore()
 		const registeredComponents = window.__APP_COMPONENTS__ || {}
 		try {
 			const fn = new Function(
 				"h",
 				...Object.keys(registeredComponents),
+				...Object.keys(codeStore.globalExecutionContext),
 				`return (${jsString})`
 			)
-			return fn(h, ...Object.values(registeredComponents))
+			return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
 		} catch (e) {
 			throw e
 		}
