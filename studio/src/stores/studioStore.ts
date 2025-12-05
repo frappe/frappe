@@ -155,6 +155,7 @@ const useStudioStore = defineStore("store", () => {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
 		activePage.value = page
+		await setPageData(page)
 
 		const blocks = jsonToJs(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -163,7 +164,6 @@ const useStudioStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
-		await setPageData(page)
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editingMode = "page"
