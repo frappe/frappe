@@ -5,11 +5,9 @@ import blockController from "@/utils/blockController"
 import {
 	isCtrlOrCmd,
 	isTargetEditable,
-	isJSONString,
-	getBlockCopy,
-	getBlockCopyWithoutParent,
 	setClipboardData,
 } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 
@@ -38,6 +36,8 @@ export function useStudioEvents() {
 
 		const data = e.clipboardData?.getData("studio-copied-blocks") as string
 		// paste blocks directly
+		const { isJSONString, getBlockCopy } = useSerializer()
+
 		if (data && isJSONString(data)) {
 			const dataObj = JSON.parse(data) as { blocks: Block[] }
 
@@ -156,6 +156,7 @@ const copySelectedBlocksToClipboard = (e: ClipboardEvent) => {
 	if (canvasStore.activeCanvas?.selectedBlocks.length) {
 		e.preventDefault()
 
+		const { getBlockCopyWithoutParent } = useSerializer()
 		const blocksToCopy = canvasStore.activeCanvas?.selectedBlocks.map((block) => {
 			return getBlockCopyWithoutParent(block)
 		})

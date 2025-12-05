@@ -1,6 +1,6 @@
 import type { BlockOptions, BlockStyleMap, CompletionSource, Slot } from "@/types"
 import { clamp } from "@vueuse/core"
-import { reactive, CSSProperties, nextTick, computed } from 'vue'
+import { reactive, CSSProperties, nextTick } from 'vue'
 
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentStore from "@/stores/componentStore"
@@ -8,12 +8,14 @@ import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
 import LucideBox from "~icons/lucide/box"
 
-import { copyObject, generateId, getBlockCopy, getComponentBlock, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { useSerializer } from "@/utils/useSerializer"
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
+const { copyObject, getBlockCopy, getComponentBlock } = useSerializer()
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string

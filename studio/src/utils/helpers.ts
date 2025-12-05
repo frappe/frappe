@@ -1,67 +1,11 @@
-import { reactive, toRaw, h, Ref } from "vue"
-import Block from "./block"
-import getBlockTemplate from "./blockTemplate"
+import { Ref } from "vue"
 import { createDocumentResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
-import type { ObjectLiteral, BlockOptions, StyleValue, SelectOption, HashString, RGBString } from "@/types"
+import { FUNCTION_STRING_REGEX } from "@/utils/constants"
+import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-
-function getBlockString(block: BlockOptions | Block): string {
-	return jsToJson(getBlockCopyWithoutParent(block))
-}
-
-function getBlockObjectCopy(block: BlockOptions | Block): BlockOptions {
-	return jsonToJs(getBlockString(block))
-}
-
-function getBlockInstance(options: BlockOptions | string, retainId = true): Block {
-	if (typeof options === "string") {
-		options = jsonToJs(options) as BlockOptions
-	}
-	if (!retainId) {
-		const deleteComponentId = (block: BlockOptions) => {
-			delete block.componentId
-			for (let child of block.children || []) {
-				deleteComponentId(child)
-			}
-
-			// clear componentId of slot children
-			for (let slot of Object.values(block.componentSlots || {})) {
-				if (Array.isArray(slot.slotContent)) {
-					for (let child of slot.slotContent) {
-						deleteComponentId(child)
-					}
-				}
-			}
-		}
-
-		const deleteSlotId = (block: BlockOptions) => {
-			for (let slot of Object.values(block.componentSlots || {})) {
-				delete slot.slotId
-			}
-		}
-
-		deleteComponentId(options)
-		deleteSlotId(options)
-	}
-	return reactive(new Block(options))
-}
-
-function getComponentBlock(componentName: string, isStudioComponent: boolean = false) {
-	return getBlockInstance({ componentName: componentName, isStudioComponent: isStudioComponent, blockName: componentName })
-}
-
-function getRootBlock(): Block {
-	return getBlockInstance(getBlockTemplate("body"))
-}
-
-function getBlockCopy(block: BlockOptions | Block, retainId = false): Block {
-	// remove parent block reference as JSON doesn't accept circular references
-	const b = copyObject(getBlockCopyWithoutParent(block))
-	return getBlockInstance(b, retainId)
-}
 
 function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
 	if (!obj || typeof obj !== "object") {
@@ -83,23 +27,21 @@ function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
 	return clonedObj
 }
 
-function getBlockCopyWithoutParent(block: BlockOptions | Block) {
-	const rawBlock = toRaw(block)
-	const blockCopy = deepCloneObject(rawBlock, ["parentBlock"]) as BlockOptions
-	delete blockCopy.parentBlock
-	delete blockCopy.repeaterDataItem
-	delete blockCopy.componentContext
+function unquoteFunctions(json5String: string) {
+	json5String = json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
+		const unescaped = content
+			.replace(/\\n/g, '\n')
+			.replace(/\\t/g, '\t')
+			.replace(/\\"/g, '"')
+			.replace(/\\\\/g, '\\')
+			.trim()
 
-	blockCopy.children = blockCopy.children?.map((child) => getBlockCopyWithoutParent(child))
-
-	// remove parentBlock reference for slot children
-	for (const slot of Object.values(blockCopy.componentSlots || {})) {
-		if (Array.isArray(slot.slotContent)) {
-			slot.slotContent = slot.slotContent.map((child) => getBlockCopyWithoutParent(child))
+		if (FUNCTION_STRING_REGEX.test(unescaped)) {
+			return unescaped
 		}
-	}
-
-	return blockCopy
+		return match
+	})
+	return json5String
 }
 
 type BlockInfo = {
@@ -164,11 +106,6 @@ function kebabToCamelCase(str: string) {
 	});
 }
 
-function copyObject<T>(obj: T) {
-	if (!obj) return {}
-	return jsonToJs(jsToJson(obj))
-}
-
 function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	const keys1 = Object.keys(obj1)
 	const keys2 = Object.keys(obj2)
@@ -228,86 +165,6 @@ function setValueInObject(obj: Record<string, any>, key: string, value: any) {
 
 function isPrivateKey(key: string) {
 	return key.startsWith("_") || key.startsWith("__")
-}
-
-function isJSONString(str: string) {
-	try {
-		jsonToJs(str)
-	} catch (e) {
-		return false
-	}
-	return true
-}
-
-const jsonReplacer = (_key: string, value: any) => {
-	// Preserve functions by converting them to strings
-	if (typeof value === "function") {
-		return value.toString()
-	}
-	// Handle circular references
-	if (typeof value === "object" && value !== null) {
-		if (value instanceof Set) {
-			return [...value]
-		}
-		if (value instanceof Map) {
-			return Object.fromEntries(value.entries())
-		}
-	}
-	return value
-}
-
-function jsToJson(obj: ObjectLiteral): string {
-	return JSON.stringify(obj, jsonReplacer, 2)
-}
-
-// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
-const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/
-
-const jsonReviver = (_key: string, value: any) => {
-	const registeredComponents = window.__APP_COMPONENTS__ || {}
-	if (typeof value === "string") {
-		const trimmed = value.trim()
-		// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
-		const isFunctionString = FUNCTION_STRING_REGEX.test(trimmed)
-
-		if (isFunctionString) {
-			// provide access to render function & frappeUI lib for editing props
-			const fn = new Function("h", ...Object.keys(registeredComponents), `return (${value})`)
-			return fn(h, ...Object.values(registeredComponents))
-		}
-	}
-	return value
-}
-
-function jsonToJs(json: string): any {
-	return JSON.parse(json, jsonReviver)
-}
-
-function unquoteFunctions(json5String: string) {
-	json5String = json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
-		const unescaped = content
-			.replace(/\\n/g, '\n')
-			.replace(/\\t/g, '\t')
-			.replace(/\\"/g, '"')
-			.replace(/\\\\/g, '\\')
-			.trim()
-
-		if (FUNCTION_STRING_REGEX.test(unescaped)) {
-			return unescaped
-		}
-		return match
-	})
-	return json5String
-}
-
-function parseObjectString(jsString: string) {
-	const registeredComponents = window.__APP_COMPONENTS__ || {}
-	try {
-		const fn = new Function("h", ...Object.keys(registeredComponents), `return (${jsString})`)
-		return fn(h, ...Object.values(registeredComponents))
-	} catch (e) {
-		throw e
-	}
 }
 
 const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
@@ -600,32 +457,18 @@ function scrub(txt: string | null | undefined) {
 }
 
 export {
-	getBlockString,
-	getBlockObjectCopy as getBlockObject,
-	getBlockInstance,
-	getComponentBlock,
-	getRootBlock,
-	getBlockCopy,
-	getBlockCopyWithoutParent,
+	deepCloneObject,
+	unquoteFunctions,
 	getBlockInfo,
 	getComponentRoot,
 	numberToPx,
 	pxToNumber,
 	kebabToCamelCase,
-	copyObject,
 	areObjectsEqual,
 	isObjectEmpty,
 	getValueFromObject,
 	setValueInObject,
 	isPrivateKey,
-	// serialization/deserialization
-	isJSONString,
-	jsToJson,
-	jsonToJs,
-	jsonReplacer,
-	jsonReviver,
-	unquoteFunctions,
-	parseObjectString,
 	// maps
 	mapToObject,
 	replaceMapKey,

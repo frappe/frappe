@@ -54,3 +54,6 @@ export const STUDIO_COMPONENTS = [
 	"BottomTabs",
 	"MarkdownEditor",
 ]
+
+// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
+export const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/

@@ -407,6 +407,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		// watchers
 		setPageWatchers,
 		// code execution
+		globalContext,
+		globalExecutionContext,
 		getDynamicValue,
 		executeUserScript,
 		handleSuccess,

@@ -34,7 +34,8 @@ import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import JSON5 from "json5"
-import { jsonToJs, isPrivateKey, jsonReplacer, unquoteFunctions, parseObjectString } from "@/utils/helpers"
+import { isPrivateKey, unquoteFunctions } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -66,6 +67,7 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
+const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const setEditorValue = () => {
@@ -109,7 +111,7 @@ const emitEditorValue = () => {
 		if (!props.showSaveButton && !props.readonly) {
 			emit("update:modelValue", value)
 		}
-	} catch (e) {
+	} catch (e: any) {
 		console.error("Error while parsing JSON for editor", e)
 		errorMessage.value = `Invalid object/JSON: ${e.message}`
 	}
