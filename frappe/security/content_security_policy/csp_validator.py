@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 DIRECTIVES = [
 	"default-src",
@@ -27,4 +28,4 @@ def check(directives: list[dict[str, int | str]] | None = None):
 	for directive in directives or []:
 		directive_key = directive.get("directive")
 		if directive_key not in DIRECTIVES:
-			frappe.throw(f"Invalid CSP directive: {directive_key}")
+			frappe.throw(_("Invalid CSP directive: {0}").format(directive_key))
