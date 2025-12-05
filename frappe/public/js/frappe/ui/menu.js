@@ -14,7 +14,14 @@ frappe.ui.menu = class ContextMenu {
 		this.template.empty();
 
 		this.menu_items.forEach((f) => {
-			this.add_menu_item(f);
+			f.condition =
+				f.condition ||
+				function () {
+					return true;
+				};
+			if (f.condition()) {
+				this.add_menu_item(f);
+			}
 		});
 
 		// if (!$.contains(document.body, this.template[0])) {

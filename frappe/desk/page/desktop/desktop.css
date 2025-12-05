@@ -41,9 +41,9 @@
 
 .desktop-navbar-modal-search{
     background-color: var(--control-bg);
-	border-radius: var(--border-radius-sm);
-	padding: 6px 10px;
-	width: 100%;
+    border-radius: var(--border-radius-sm);
+    padding: 6px 10px;
+    width: 100%;
 }
 #brand-logo{
     width: auto;

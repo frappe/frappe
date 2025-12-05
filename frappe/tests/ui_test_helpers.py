@@ -92,15 +92,36 @@ def create_doctype_for_attachment():
 
 
 @whitelist_for_tests()
-def create_communication_record():
-	doc = frappe.get_doc(
+def create_datetime_test_doctype():
+	dt = frappe.new_doc("DocType")
+	dt.module = "Core"
+	dt.name = "Test Datetime Precision"
+	dt.custom = 1
+	dt.is_submittable = 1
+	dt.autoname = "autoincrement"
+	dt.append(
+		"fields",
 		{
-			"doctype": "Communication",
-			"recipients": "test@gmail.com",
-			"subject": "Test Form Communication 1",
-			"communication_date": frappe.utils.now_datetime(),
-		}
+			"fieldname": "datetime",
+			"fieldtype": "Datetime",
+			"label": "Datetime",
+		},
 	)
+	dt.append(
+		"permissions",
+		{
+			"role": "System Manager",
+			"read": 1,
+			"submit": 1,
+		},
+	)
+	dt.insert(ignore_if_duplicate=True)
+
+
+@whitelist_for_tests()
+def create_datetime_test_record():
+	doc = frappe.new_doc("Test Datetime Precision")
+	doc.datetime = frappe.utils.now_datetime()
 	doc.insert()
 	return doc
 

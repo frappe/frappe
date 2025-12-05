@@ -155,6 +155,22 @@
 			}
 		}
 	}
+
+	.standard-items-sections {
+		.navbar-search-bar {
+			background-color: var(--control-bg-on-gray);
+			border-radius: var(--border-radius);
+			padding-right: 7px;
+			.standard-sidebar-item a:hover {
+				background-color: var(--control-bg-on-gray);
+			}
+		}
+		.dropdown-notifications {
+			.notifications-list {
+				left: 3.4%;
+			}
+		}
+	}
 }
 
 @mixin body-sidebar-expanded {
@@ -162,6 +178,11 @@
 		// make it an overlay on hover
 		position: absolute;
 		width: var(--sidebar-width);
+		.dropdown-notifications {
+			.notifications-list {
+				left: 100%;
+			}
+		}
 	}
 
 	// show placeholder so that main section remains static
@@ -182,6 +203,13 @@
 			padding: 0px;
 			width: 0px;
 			overflow: hidden;
+			.standard-items-sections {
+				.dropdown-notifications {
+					.notifications-list {
+						left: 0;
+					}
+				}
+			}
 		}
 	}
 
@@ -279,4 +307,14 @@
 }
 .indent + .nested-container {
 	margin-left: 16px;
+}
+.sidebar-item-suffix {
+	margin-left: auto;
+	.keyboard-shortcut {
+		color: var(--ink-gray-4, #999999);
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		letter-spacing: 0.02em;
+		font-weight: 420;
+	}
 }

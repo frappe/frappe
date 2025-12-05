@@ -18,7 +18,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 
 		// this.setup_awesomebar();
-		this.setup_notifications();
 		this.setup_help();
 		this.setup_read_only_mode();
 		this.setup_announcement_widget();
@@ -178,12 +177,6 @@ frappe.ui.toolbar.Toolbar = class {
 			if (path) {
 				e.preventDefault();
 			}
-		}
-	}
-
-	setup_notifications() {
-		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
-			this.notifications = new frappe.ui.Notifications();
 		}
 	}
 

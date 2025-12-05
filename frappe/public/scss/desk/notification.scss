@@ -14,12 +14,20 @@
 
 .mark-all-read {
 	margin-top: 2px;
-	margin-right: 15px;
+	margin-right: 4px;
 	cursor: pointer;
+}
+
+.close-notification-dialogue {
+	cursor: pointer;
+	.icon {
+		stroke-width: 2px;
+	}
 }
 
 .notification-settings {
 	margin-top: 2px;
+	margin-right: 4px;
 	cursor: pointer;
 }
 
@@ -51,7 +59,11 @@
 	padding: 0px;
 	min-height: 480px;
 	position: absolute;
+	top: 0;
 	box-shadow: var(--shadow-2xl);
+	background-color: var(--bg-color);
+	height: 100vh;
+	overflow: hidden;
 
 	.notification-list-header {
 		margin: 0px 10px;
@@ -60,9 +72,8 @@
 	}
 
 	.notification-list-body {
-		// margin: 10px 0px;
-		max-height: 450px;
 		overflow-y: auto;
+		height: 93%;
 
 		.panel-events,
 		.panel-notifications {

@@ -261,25 +261,25 @@ class TestSearch(IntegrationTestCase):
 		self.assertIn(allowed_doc.name, result_values)
 		self.assertNotIn(restricted_doc.name, result_values)
 
-		# With ignore_user_permissions + form_doctype + link_fieldname, both should be returned
+		# With ignore_user_permissions + reference_doctype + link_fieldname, both should be returned
 		results_with_ignore = search_link(
 			doctype="Test Search Linked",
 			txt="Document",
 			ignore_user_permissions=True,
-			form_doctype="Test Search Form",
+			reference_doctype="Test Search Form",
 			link_fieldname="linked_doc",
 		)
 		result_values = [r["value"] for r in results_with_ignore]
 		self.assertIn(allowed_doc.name, result_values)
 		self.assertIn(restricted_doc.name, result_values)
 
-		# With ignore_user_permissions=True but WITHOUT form_doctype/link_fieldname,
+		# With ignore_user_permissions=True but WITHOUT reference_doctype/link_fieldname,
 		# the flag should be silently ignored and user permissions should apply
 		results_without_context = search_link(
 			doctype="Test Search Linked",
 			txt="Document",
 			ignore_user_permissions=True,
-			# form_doctype and link_fieldname not provided
+			# reference_doctype and link_fieldname not provided
 		)
 		result_values = [r["value"] for r in results_without_context]
 		self.assertIn(allowed_doc.name, result_values)
@@ -334,7 +334,7 @@ class TestSearch(IntegrationTestCase):
 			doctype="Test Search Linked2",
 			txt="test",
 			ignore_user_permissions=True,
-			form_doctype="Test Search Form No Ignore",
+			reference_doctype="Test Search Form No Ignore",
 			link_fieldname="linked_doc",
 		)
 
@@ -345,7 +345,7 @@ class TestSearch(IntegrationTestCase):
 			doctype="Test Search Linked2",
 			txt="test",
 			ignore_user_permissions=True,
-			form_doctype="Test Search Form No Ignore",
+			reference_doctype="Test Search Form No Ignore",
 			link_fieldname="nonexistent_field",
 		)
 
@@ -370,7 +370,7 @@ class TestSearch(IntegrationTestCase):
 			doctype="Test Search Linked2",
 			txt="test",
 			ignore_user_permissions=True,
-			form_doctype="Test Search Form Wrong Link",
+			reference_doctype="Test Search Form Wrong Link",
 			link_fieldname="wrong_link",
 		)
 

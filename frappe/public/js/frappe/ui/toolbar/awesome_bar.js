@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar").removeClass("hidden");
+		$(".search-bar, .navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];

@@ -359,7 +359,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			ignore_user_permissions: this.df.ignore_user_permissions,
 			reference_doctype: this.get_reference_doctype() || "",
 			page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
-			form_doctype: this.doctype,
 			link_fieldname: this.df.fieldname,
 		};
 
