@@ -6,8 +6,6 @@ import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
 
-from psycopg2.errors import UniqueViolation
-
 import frappe
 from frappe import _, _dict
 from frappe.model import (
@@ -696,9 +694,8 @@ class BaseDocument:
 	def _handle_hash_conflict(self):
 		"""Regenerate hash name in case of collisions"""
 		self.flags.retry_count = (self.flags.retry_count or 0) + 1
-		if self.flags.retry_count > 5:
-			# TODO remove
-			raise UniqueViolation('duplicate key value violates unique constraint "_pkey"')
+		if self.flags.retry_count >= 5:
+			raise
 		self.name = None
 		return self.db_insert()
 
@@ -718,7 +715,11 @@ class BaseDocument:
 		returning = ""
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
-		if (ignore_if_duplicate or self.meta.autoname == "hash") and frappe.db.db_type == "postgres":
+		if (
+			(ignore_if_duplicate or self.meta.autoname == "hash")
+			and frappe.db.db_type == "postgres"
+			and (self.flags.retry_count or 0) < 5
+		):
 			conflict_handler = "on conflict (name) do nothing"
 			if self.meta.autoname == "hash":
 				returning = "RETURNING name"
