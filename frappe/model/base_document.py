@@ -693,10 +693,11 @@ class BaseDocument:
 			None,
 		)
 
-	def regen_hash(self):
+	def _handle_hash_conflict(self):
 		"""Regenerate hash name in case of collisions"""
 		self.flags.retry_count = (self.flags.retry_count or 0) + 1
 		if self.flags.retry_count > 5:
+			# TODO remove
 			raise UniqueViolation('duplicate key value violates unique constraint "_pkey"')
 		self.name = None
 		return self.db_insert()
@@ -735,7 +736,7 @@ class BaseDocument:
 
 		columns = list(d)
 		try:
-			rows = frappe.db.sql(
+			name = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values}) {conflict_handler} {returning}""".format(
 					doctype=self.doctype,
@@ -747,14 +748,14 @@ class BaseDocument:
 				list(d.values()),
 			)
 			if (
-				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not rows
+				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
 			):  # To avoid a transaction block, we regen in try (pg specific)
-				return self.regen_hash()
+				return self._handle_hash_conflict()
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
-					return self.regen_hash()
+					return self._handle_hash_conflict()
 
 				if not ignore_if_duplicate:
 					frappe.msgprint(
