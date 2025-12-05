@@ -1034,12 +1034,14 @@ class FilterArea {
 
 				if (match_type === "like") {
 					condition = "like";
-					if (!value.includes("%")) {
+					if (typeof value === "string" && !value.includes("%")) {
 						value = "%" + value + "%";
 					}
 				} else if (match_type === "=") {
 					condition = "=";
-					value = value.replace(/^%+|%+$/g, "");
+					if (typeof value === "string") {
+						value = value.replace(/^%+|%+$/g, "");
+					}
 				} else {
 					// For special conditions like "descendants of (inclusive)"
 					condition = field.df.condition || match_type;
