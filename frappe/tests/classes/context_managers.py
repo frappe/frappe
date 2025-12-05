@@ -1,3 +1,4 @@
+import faulthandler
 import logging
 from collections.abc import Callable
 from contextlib import contextmanager
@@ -169,6 +170,7 @@ def timeout_context(seconds=30, error_message="Operation timed out.") -> None:
 	import signal
 
 	def _handle_timeout(signum, frame):
+		faulthandler.dump_traceback()
 		raise Exception(error_message)
 
 	signal.signal(signal.SIGALRM, _handle_timeout)

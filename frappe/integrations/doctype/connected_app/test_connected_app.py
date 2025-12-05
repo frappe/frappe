@@ -8,7 +8,7 @@ import frappe
 from frappe.integrations.doctype.social_login_key.test_social_login_key import (
 	create_or_update_social_login_key,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 
 
 def get_user(usr, pwd):
@@ -92,6 +92,7 @@ class TestConnectedApp(IntegrationTestCase):
 		self.connected_app.reload()
 		self.oauth_client.reload()
 
+	@timeout
 	def test_web_application_flow(self):
 		"""Simulate a logged in user who opens the authorization URL."""
 

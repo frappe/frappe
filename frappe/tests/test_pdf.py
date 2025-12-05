@@ -7,7 +7,7 @@ from pypdf import PdfReader
 import frappe
 import frappe.utils.pdf as pdfgen
 from frappe.core.doctype.file.test_file import make_test_image_file
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 
 
 class TestPdf(IntegrationTestCase):
@@ -63,6 +63,7 @@ class TestPdf(IntegrationTestCase):
 		# so it should not be extracted into options
 		self.assertFalse(options.get("margin-right"))
 
+	@timeout
 	def test_empty_style(self):
 		html = """<style></style>
 			<div class="more-info">Hello</div>
@@ -70,6 +71,7 @@ class TestPdf(IntegrationTestCase):
 		_, options = pdfgen.read_options_from_html(html)
 		self.assertTrue(options)
 
+	@timeout
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
@@ -77,11 +79,13 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+	@timeout
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
 		self.assertTrue(pdf)
 
+	@timeout
 	def test_private_images_in_pdf(self):
 		with make_test_image_file(private=True) as file:
 			html = f""" <div>

@@ -30,7 +30,7 @@ import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import cint
@@ -129,6 +129,7 @@ class TestPerformance(IntegrationTestCase):
 		wait=wait_fixed(0.5),
 		reraise=True,
 	)
+	@timeout
 	def test_req_per_seconds_basic(self):
 		"""Ideally should be ran against gunicorn worker, though I have not seen any difference
 		when using werkzeug's run_simple for synchronous requests."""

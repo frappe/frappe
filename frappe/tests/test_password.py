@@ -3,7 +3,7 @@
 from cryptography.fernet import Fernet
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
 
 
@@ -12,6 +12,7 @@ class TestPassword(IntegrationTestCase):
 		frappe.delete_doc("Email Account", "Test Email Account Password")
 		frappe.delete_doc("Email Account", "Test Email Account Password-new")
 
+	@timeout
 	def test_encrypted_password(self):
 		doc = self.make_email_account()
 
