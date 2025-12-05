@@ -76,7 +76,7 @@ def headers():
 	if not enabled:
 		return {}
 
-	directives = get_directives()
+	directives = get_directives().copy()
 	enable_reporting = get_security_settings("csp_enable_reporting")
 	reporting_uri = get_reporting_uri()
 
