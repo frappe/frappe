@@ -344,23 +344,38 @@ frappe.PermissionEngine = class PermissionEngine {
 			.find("a")
 			.attr("data-role", role)
 			.click(function () {
-				let role = $(this).attr("data-role");
+				const role = $(this).attr("data-role");
 				frappe.call({
 					module: "frappe.core",
 					page: "permission_manager",
 					method: "get_users_with_role",
-					args: {
-						role: role,
-					},
+					args: { role },
 					callback: function (r) {
-						r.message = $.map(r.message, function (p) {
-							return $.format('<a href="/app/user/{0}">{1}</a>', [p, p]);
+						const users = (r.message || []).filter(Boolean);
+						const count = users.length;
+						const roleLabel = __(role);
+
+						const renderList = (users) => {
+							const li = users
+								.map((user) => `<li><a href="/app/user/${user}">${user}</a></li>`)
+								.join("");
+							return `<ul>${li}</ul>`;
+						};
+
+						const messageHtml =
+							count === 0
+								? `<div class="text-muted">${__("No users have the role {0}.", [
+										roleLabel,
+								  ])}</div>`
+								: `
+									<div class="mb-2 text-muted">${__("{0} user(s) with role {1}", [count, roleLabel])}</div>
+									${renderList(users)}`;
+
+						frappe.msgprint({
+							title: __("Users with Role: {0}", [roleLabel]),
+							message: messageHtml,
+							indicator: count === 0 ? "orange" : "blue",
 						});
-						frappe.msgprint(
-							__("Users with role {0}:", [__(role)]) +
-								"<br>" +
-								r.message.join("<br>")
-						);
 					},
 				});
 				return false;
