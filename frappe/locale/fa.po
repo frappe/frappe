@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-12-02 15:00\n"
+"PO-Revision-Date: 2025-12-06 16:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1660,7 +1660,7 @@ msgstr "به API Indexing Access اجازه دهید"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Allow Auto Repeat"
-msgstr "تکرار خودکار مجاز است"
+msgstr "اجازه تکرار خودکار"
 
 #. Label of the allow_bulk_edit (Check) field in DocType 'DocField'
 #. Label of the allow_bulk_edit (Check) field in DocType 'Customize Form Field'
@@ -1743,7 +1743,7 @@ msgstr "اجازه دادن به پیوندهای نمای وب قدیمی (نا
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Cancelled"
-msgstr "چاپ برای لغو مجاز است"
+msgstr "اجازه چاپ برای لغو شده"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
@@ -6756,7 +6756,7 @@ msgstr "وضعیت ها و قوانین گردش کار را برای یک سن�
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Delayed"
-msgstr ""
+msgstr "با تاخیر"
 
 #. Label of the delete (Check) field in DocType 'Custom DocPerm'
 #. Label of the delete (Check) field in DocType 'DocPerm'
@@ -6949,7 +6949,7 @@ msgstr "جداکننده باید یک کاراکتر واحد باشد"
 #. Label of the delivery_status (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Delivery Status"
-msgstr ""
+msgstr "وضعیت تحویل"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -6960,7 +6960,7 @@ msgstr "انکار"
 #. Label of the department (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Department"
-msgstr ""
+msgstr "دپارتمان"
 
 #. Label of the dependencies (Data) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -15693,7 +15693,7 @@ msgstr "استفاده از حافظه"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:63
 msgid "Memory Usage in MB"
-msgstr ""
+msgstr "میزان استفاده از حافظه برحسب مگابایت"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -18464,7 +18464,7 @@ msgstr "تولید PDF در حال انجام است"
 #. Label of the pdf_generator (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "PDF Generator"
-msgstr ""
+msgstr "سازنده PDF"
 
 #. Label of the pdf_page_height (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -19087,7 +19087,7 @@ msgstr "نوع مجوز"
 
 #: frappe/core/doctype/permission_type/permission_type.py:40
 msgid "Permission Type '{0}' is reserved. Please choose another name."
-msgstr ""
+msgstr "نوع مجوز '{0}' رزرو شده است. لطفاً نام دیگری انتخاب کنید."
 
 #. Label of the section_break_4 (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -19325,7 +19325,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_import/data_import.js:164
 msgid "Please click on 'Export Errored Rows', fix the errors and import again."
-msgstr ""
+msgstr "لطفاً روی «برون‌بُرد ردیف‌های دارای خطا» کلیک کنید، خطاها را برطرف کرده و دوباره درون‌بُرد کنید."
 
 #: frappe/twofactor.py:286
 msgid "Please click on the following link and follow the instructions on the page. {0}"
@@ -19648,7 +19648,7 @@ msgstr "لطفاً از یک فیلتر جستجوی معتبر LDAP استفا�
 
 #: frappe/templates/emails/file_backup_notification.html:4
 msgid "Please use following links to download file backup."
-msgstr ""
+msgstr "لطفا برای دانلود فایل پشتیبان از لینک‌های زیر استفاده کنید."
 
 #: frappe/utils/password.py:217
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
@@ -24281,7 +24281,7 @@ msgstr "نمایش ردیابی"
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Show Values over Chart"
-msgstr ""
+msgstr "نمایش مقادیر روی نمودار"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:204
 msgid "Show Warnings"
@@ -24524,7 +24524,7 @@ msgstr "حجم (مگابایت)"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:629
 msgid "Size exceeds the maximum allowed file size."
-msgstr ""
+msgstr "حجم فایل از حداکثر حجم مجاز بیشتر است."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
@@ -25348,7 +25348,7 @@ msgstr "پاسخ دیگری را ثبت کنید"
 #. Label of the button_label (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Submit button label"
-msgstr ""
+msgstr "برچسب دکمه ارسال"
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -26610,7 +26610,7 @@ msgstr "این سند پس از ارسال ایمیل اصلاح شده است."
 
 #: frappe/public/js/frappe/form/form.js:1317
 msgid "This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
-msgstr ""
+msgstr "این سند دارای تغییرات ذخیره‌نشده است که ممکن است در فایل PDF نهایی نمایش داده نشوند. <br> قبل از چاپ، سند را ذخیره کنید."
 
 #: frappe/public/js/frappe/form/form.js:1105
 msgid "This document is already amended, you cannot ammend it again"
@@ -26649,7 +26649,7 @@ msgstr "این فایل به یک سند محافظت شده پیوست شده �
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:76
 msgid "This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-msgstr ""
+msgstr "این فایل عمومی است و هر کسی می‌تواند به آن دسترسی داشته باشد، حتی بدون ورود به سیستم. برای محدود کردن دسترسی، آن را خصوصی علامت‌گذاری کنید."
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -26754,7 +26754,7 @@ msgstr "این سایت در حالت توسعه دهنده در حال اجرا
 
 #: frappe/www/attribution.html:11
 msgid "This software is built on top of many open source packages."
-msgstr ""
+msgstr "این نرم‌افزار بر پایه بسیاری از بسته‌های نرم‌افزاری متن‌باز ساخته شده است."
 
 #: frappe/website/doctype/web_page/web_page.js:71
 msgid "This title will be used as the title of the webpage as well as in meta tags"
@@ -30107,7 +30107,7 @@ msgstr "همچنین می‌توانید این {0} را در مرورگر خو�
 
 #: frappe/templates/emails/user_invitation_expired.html:8
 msgid "You can ask your team to resend the invitation if you'd still like to join."
-msgstr ""
+msgstr "اگر هنوز مایل به عضویت هستید، می‌توانید از تیم خود بخواهید که دعوت‌نامه را دوباره ارسال کند."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
@@ -30250,7 +30250,7 @@ msgstr ""
 
 #: frappe/database/query.py:810
 msgid "You do not have permission to access field: {0}"
-msgstr ""
+msgstr "شما اجازه دسترسی به فیلد را ندارید: {0}"
 
 #: frappe/desk/query_report.py:934
 msgid "You do not have permission to access {0}: {1}."
@@ -30459,15 +30459,15 @@ msgstr "شما هدایت خواهید شد به:"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:113
 msgid "You've been invited to join {0}"
-msgstr ""
+msgstr "از شما دعوت شده است تا به {0} بپیوندید"
 
 #: frappe/templates/emails/user_invitation.html:5
 msgid "You've been invited to join {0}."
-msgstr ""
+msgstr "از شما دعوت شده است تا به {0} بپیوندید."
 
 #: frappe/public/js/frappe/desk.js:547
 msgid "You've logged in as another user from another tab. Refresh this page to continue using system."
-msgstr ""
+msgstr "شما به عنوان یک کاربر دیگر از یک تب دیگر وارد سیستم شده‌اید. برای ادامه استفاده از سیستم، این صفحه را رفرش کنید."
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "YouTube"
@@ -30536,11 +30536,11 @@ msgstr "فرم شما با موفقیت به روز شد"
 
 #: frappe/templates/emails/user_invitation_cancelled.html:5
 msgid "Your invitation to join {0} has been cancelled by the site administrator."
-msgstr ""
+msgstr "دعوت شما برای عضویت {0} توسط مدیر سایت لغو شده است."
 
 #: frappe/templates/emails/user_invitation_expired.html:5
 msgid "Your invitation to join {0} has expired."
-msgstr ""
+msgstr "دعوت شما برای عضویت {0} منقضی شده است."
 
 #: frappe/templates/emails/new_user.html:6
 msgid "Your login id is"
@@ -30566,7 +30566,7 @@ msgstr "پرسمان شما دریافت شد. ما به زودی پاسخ خو�
 
 #: frappe/desk/query_report.py:342 frappe/desk/reportview.py:402
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
-msgstr ""
+msgstr "گزارش شما در پس‌زمینه در حال تولید است. به محض آماده شدن، ایمیلی حاوی لینک دانلود در {0} دریافت خواهید کرد."
 
 #: frappe/app.py:377
 msgid "Your session has expired, please login again to continue."
@@ -31858,7 +31858,7 @@ msgstr "{0} رکورد برون‌بُرد خواهد شد"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:313
 msgid "{0} removed 1 row from {1}"
-msgstr ""
+msgstr "{0} ۱ ردیف از {1} حذف کرد"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:420
 msgctxt "Form timeline"
@@ -31871,7 +31871,7 @@ msgstr "{0} تخصیص خود را حذف کرد."
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:291
 msgid "{0} removed {1} rows from {2}"
-msgstr ""
+msgstr "{0} {1} ردیف از {2} حذف کرد"
 
 #: frappe/public/js/frappe/roles_editor.js:64
 msgid "{0} role does not have permission on any doctype"
