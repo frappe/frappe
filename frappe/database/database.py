@@ -1089,22 +1089,22 @@ class Database:
 
 		Query will be built as:
 		```sql
-		UPDATE `tabItem`
+		UPDATE `tabTask`
 		SET `status` = CASE
-		    WHEN `name` = 'Item-1' THEN 'Close'
-		    WHEN `name` = 'Item-2' THEN 'Open'
-		    WHEN `name` = 'Item-3' THEN 'Close'
-		    WHEN `name` = 'Item-4' THEN 'Cancelled'
+		    WHEN `name` = 'TASK-0001' THEN 'Closed'
+		    WHEN `name` = 'TASK-0002' THEN 'Open'
+		    WHEN `name` = 'TASK-0003' THEN 'Closed'
+		    WHEN `name` = 'TASK-0004' THEN 'Cancelled'
 		    ELSE `status`
-		end,
+		END,
 		`description` = CASE
-		    WHEN `name` = 'Item-1' THEN 'This is the first task'
-		    WHEN `name` = 'Item-2' THEN 'This is the second task'
-		    WHEN `name` = 'Item-3' THEN 'This is the third task'
-		    WHEN `name` = 'Item-4' THEN 'This is the fourth task'
+		    WHEN `name` = 'TASK-0001' THEN 'This is the first task'
+		    WHEN `name` = 'TASK-0002' THEN 'This is the second task'
+		    WHEN `name` = 'TASK-0003' THEN 'This is the third task'
+		    WHEN `name` = 'TASK-0004' THEN 'This is the fourth task'
 		    ELSE `description`
-		end
-		WHERE  `name` IN ( 'Item-1', 'Item-2', 'Item-3', 'Item-4' )
+		END
+		WHERE `name` IN ('TASK-0001', 'TASK-0002', 'TASK-0003', 'TASK-0004');
 		```
 		"""
 		if not doc_updates:
