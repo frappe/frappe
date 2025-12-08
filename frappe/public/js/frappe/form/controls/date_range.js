@@ -1,10 +1,15 @@
 frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.ControlData {
 	make_input() {
 		super.make_input();
-		this.set_date_options();
-		this.set_datepicker();
+		this.make_picker();
 		this.refresh();
 	}
+
+	make_picker() {
+		this.set_date_options();
+		this.set_datepicker();
+	}
+
 	set_date_options() {
 		var me = this;
 
