@@ -56,8 +56,6 @@ def _initialize_test_environment(site, config):
 	frappe.flags.print_messages = logger.getEffectiveLevel() < logging.INFO
 	frappe.flags.tests_verbose = logger.getEffectiveLevel() < logging.INFO
 
-	_decorate_all_methods_and_functions_with_type_checker()
-
 
 def _cleanup_after_tests():
 	"""Perform cleanup operations after running tests"""
