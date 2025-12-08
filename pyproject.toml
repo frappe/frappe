@@ -128,7 +128,7 @@ dev = [
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
-    "coverage~=7.10.0",
+    "coverage~=7.13.1",
     "Faker~=18.10.1",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
