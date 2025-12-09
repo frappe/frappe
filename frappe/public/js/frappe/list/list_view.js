@@ -1900,14 +1900,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_search_params() {
 		let search_params = new URLSearchParams();
-
 		this.get_filters_for_args().forEach((filter) => {
-			if (filter[2] === "=") {
-				search_params.append(filter[1], filter[3]);
-			} else {
-				search_params.append(filter[1], JSON.stringify([filter[2], filter[3]]));
-			}
+			const doctype = filter[0];
+			const field = filter[1];
+			const operator = filter[2];
+			const value = filter[3];
+
+			const key = doctype === this.doctype ? field : `${doctype}.${field}`;
+
+			const val = operator === "=" ? value : JSON.stringify([operator, value]);
+
+			search_params.append(key, val);
 		});
+
 		return search_params;
 	}
 
