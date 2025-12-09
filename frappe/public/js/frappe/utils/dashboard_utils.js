@@ -236,7 +236,7 @@ frappe.dashboard_utils = {
 	},
 	cleanup_filters(filters) {
 		if (filters && filters.length) {
-			filters = filters.map(filter => {
+			filters = filters.map((filter) => {
 				if (Array.isArray(filter) && filter.length == 5) {
 					// Remove the 5th element if present
 					return filter.slice(0, 4);
