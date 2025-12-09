@@ -1906,11 +1906,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const operator = filter[2];
 			const value = filter[3];
 
-			const key = doctype === this.doctype ? field : `${doctype}.${field}`;
+			const query_key = doctype === this.doctype ? field : `${doctype}.${field}`;
+			const query_value = operator === "=" ? value : JSON.stringify([operator, value]);
 
-			const val = operator === "=" ? value : JSON.stringify([operator, value]);
-
-			search_params.append(key, val);
+			search_params.append(query_key, query_value);
 		});
 
 		return search_params;
