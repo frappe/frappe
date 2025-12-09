@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-11-30 09:34+0000\n"
-"PO-Revision-Date: 2025-11-30 14:29\n"
+"PO-Revision-Date: 2025-12-02 14:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -5203,7 +5203,7 @@ msgstr "Комуникација"
 #. Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "Датум комуникације"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -5661,7 +5661,7 @@ msgstr "Копирано у међуспремник."
 
 #: frappe/public/js/frappe/list/list_view.js:2420
 msgid "Copied {0} {1} to clipboard"
-msgstr ""
+msgstr "Копирано {0} {1} у међуспремник"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -6551,7 +6551,7 @@ msgstr "Шаблон за увоз податка"
 
 #: frappe/core/doctype/data_import/data_import.py:76
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "Увоз података није дозвољен за {0}. Омогући 'Дозволи увоз' у DocType подешавањима."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -7387,7 +7387,7 @@ msgstr "Онемогући дељење документа"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Product Suggestion"
-msgstr ""
+msgstr "Онемогући предлог производа"
 
 #: frappe/core/doctype/report/report.js:39
 msgid "Disable Report"
@@ -8060,7 +8060,7 @@ msgstr "Документ је откључан"
 
 #: frappe/database/query.py:457
 msgid "Document cannot be used as a filter value"
-msgstr ""
+msgstr "Документ се не може користити као вредност филтера"
 
 #: frappe/desk/form/document_follow.py:56
 msgid "Document follow is not enabled for this user."
@@ -9440,7 +9440,7 @@ msgstr "Грешка у {0}.get_list: {1}"
 
 #: frappe/database/query.py:353
 msgid "Error parsing nested filters: {0}. {1}"
-msgstr ""
+msgstr "Грешка при обради угњеждених филтера: {0}. {1}"
 
 #: frappe/email/doctype/email_account/email_account.py:670
 msgid "Error while connecting to email account {0}"
@@ -30480,7 +30480,7 @@ msgstr "Немате довољно дозвола да довршите ову 
 
 #: frappe/core/doctype/data_import/data_import.py:83
 msgid "You do not have import permission for {0}"
-msgstr ""
+msgstr "Немате дозволу за увоз за {0}"
 
 #: frappe/database/query.py:810
 msgid "You do not have permission to access field: {0}"
@@ -31031,7 +31031,7 @@ msgstr "празно"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "esc"
-msgstr ""
+msgstr "esc"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31413,15 +31413,15 @@ msgstr "ово не би требало да се поквари"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to close"
-msgstr ""
+msgstr "за затварање"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to navigate"
-msgstr ""
+msgstr "за навигацију"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:39
 msgid "to select"
-msgstr ""
+msgstr "за одабир"
 
 #: frappe/templates/emails/download_data.html:9
 msgid "to your browser"

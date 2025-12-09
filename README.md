@@ -75,7 +75,7 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 ### Docker
 Prerequisites: docker, docker-compose, git. Refer [Docker Documentation](https://docs.docker.com) for more details on Docker setup.
 
-Run following commands:
+Run the following commands:
 
 ```
 git clone https://github.com/frappe/frappe_docker

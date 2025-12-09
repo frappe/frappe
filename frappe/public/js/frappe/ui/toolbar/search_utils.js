@@ -108,7 +108,9 @@ frappe.search.utils = {
 				out.label = icon + __(view_name.bold()) + " " + labelSuffix;
 				out.value = __(view_name) + " " + labelSuffix;
 			} else if (match[0]) {
-				out.label = frappe.utils.escape_html(match[0]).bold();
+				out.label =
+					me.make_icon(me.recent ? "circle-dashed" : "file-text") +
+					frappe.utils.escape_html(match[0]).bold();
 				out.value = match[0];
 			} else {
 				console.log("Illegal match", match);

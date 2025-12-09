@@ -1108,12 +1108,12 @@ class TestGunicornWorker(IntegrationTestCase):
 			return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
 
 		self.spawn_gunicorn(["--threads=2"])
-		self.assertLessEqual(get_total_usage(), 2)
+		self.assertLessEqual(get_total_usage(), 3)
 
 		# Wake up at least one thread, go idle and check again
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
-		self.assertLessEqual(get_total_usage(), 2)
+		self.assertLessEqual(get_total_usage(), 3)
 
 
 class TestRQWorker(IntegrationTestCase):

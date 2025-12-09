@@ -13,7 +13,7 @@ from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
-from frappe.query_builder import Column
+from frappe.query_builder import Field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
@@ -848,23 +848,19 @@ class TestDBQuery(IntegrationTestCase):
 			limit=1,
 			as_list=True,
 		)
-		if frappe.conf.db_type == "mariadb":
-			self.assertTrue(len(doctypes[0]) == 2)
-		else:
-			self.assertTrue(len(doctypes[0]) == 3)
-			self.assertTrue(isinstance(doctypes[0][2], datetime.datetime))
+		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
-	def test_column_comparison(self):
-		"""Test DatabaseQuery.execute to test column comparison"""
+	def test_field_comparison(self):
+		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(
 			"User",
-			filters={"creation": Column("modified")},
+			filters={"creation": Field("modified")},
 			fields=["name", "creation", "modified"],
 			limit=1,
 		)
 		users_edited = frappe.get_all(
 			"User",
-			filters={"creation": ("!=", Column("modified"))},
+			filters={"creation": ("!=", Field("modified"))},
 			fields=["name", "creation", "modified"],
 			limit=1,
 		)
@@ -1051,28 +1047,32 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("count", result[0])
 
 	def test_coalesce_with_in_ops(self):
-		self.assertNotIn("IF", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0))
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0))
+		self.assertNotIn("IF", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
+		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0).get_sql())
 
 		# primary key is never nullable
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", (""))}, run=0))
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ())}, run=0))
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", (""))}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 
 	def test_coalesce_with_datetime_ops(self):
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"last_active": (">", "2022-01-01")}, run=0))
-		self.assertNotIn("IFNULL", frappe.get_all("User", {"creation": ("<", "2022-01-01")}, run=0))
+		self.assertNotIn(
+			"IFNULL", frappe.get_all("User", {"last_active": (">", "2022-01-01")}, run=0).get_sql()
+		)
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"creation": ("<", "2022-01-01")}, run=0).get_sql())
 		self.assertNotIn(
 			"IFNULL",
-			frappe.get_all("User", {"last_active": ("between", ("2022-01-01", "2023-01-01"))}, run=0),
+			frappe.get_all(
+				"User", {"last_active": ("between", ("2022-01-01", "2023-01-01"))}, run=0
+			).get_sql(),
 		)
-		self.assertIn("IFNULL", frappe.get_all("User", {"last_active": ("<", "2022-01-01")}, run=0))
+		self.assertIn("IFNULL", frappe.get_all("User", {"last_active": ("<", "2022-01-01")}, run=0).get_sql())
 
 	def test_ambiguous_linked_tables(self):
 		from frappe.desk.reportview import get
@@ -1149,16 +1149,16 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertEqual(count[1], frappe.db.count("Language"))
 
 	def test_ifnull_none(self):
-		query = frappe.get_all("DocField", {"fieldname": None}, run=0)
+		query = frappe.get_all("DocField", {"fieldname": None}, run=0).get_sql()
 		self.assertIn("IS NULL", query)
 		self.assertNotIn("\\'", query)
 		self.assertNotIn("ifnull", query)
 		self.assertFalse(frappe.get_all("DocField", {"name": None}))
 		self.assertFalse(frappe.get_all("DocField", {"parent": None}))
-		self.assertNotIn("0", frappe.get_all("DocField", {"parent": None}, run=0))
+		self.assertNotIn("0", frappe.get_all("DocField", {"parent": None}, run=0).get_sql())
 
 	def test_ifnull_fallback_types(self):
-		query = frappe.get_all("DocField", {"fieldname": ("!=", None)}, run=0)
+		query = frappe.get_all("DocField", {"fieldname": ("!=", None)}, run=0).get_sql()
 		# Fallbacks should always be of correct type
 		self.assertIn("''", query)
 		self.assertNotIn("0", query)

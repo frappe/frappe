@@ -403,8 +403,8 @@ class TestDB(IntegrationTestCase):
 			random_field,
 		)
 		self.assertEqual(
-			next(iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1)[0])),
-			"COUNT" if frappe.conf.db_type == "postgres" else f"COUNT(`{random_field}`)",
+			next(iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1, order_by=None)[0])),
+			"count" if frappe.conf.db_type == "postgres" else f"COUNT(`{random_field}`)",
 		)
 
 		# Testing update

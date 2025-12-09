@@ -55,6 +55,7 @@ class DatabaseQuery:
 		ignore_ddl: bool = False,
 		*,
 		parent_doctype: str | None = None,
+		ignore_user_permissions: bool = False,
 	) -> list:
 		"""Execute a database query using the Query Builder engine.
 
@@ -89,6 +90,8 @@ class DatabaseQuery:
 			pluck: Extract single field values as a simple list.
 			ignore_ddl: Ignore DDL operations during query execution (legacy compatibility).
 			parent_doctype: Parent doctype for child table queries.
+			ignore_user_permissions: Ignore user permissions for the query.
+				Useful for link search queries when the link field has `ignore_user_permissions` set.
 
 		Returns:
 			Query results as list of dicts (default) or list of lists (as_list=True).
@@ -110,9 +113,14 @@ class DatabaseQuery:
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
+		# Set fields to the requested field or `name` if none specified
+		if not fields:
+			fields = [pluck or "name"]
+
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
 			return self._handle_virtual_doctype(
+				fields,
 				filters,
 				or_filters,
 				start,
@@ -159,10 +167,6 @@ class DatabaseQuery:
 			if limit is None:
 				limit = page_length
 
-		# Set fields to the requested field or `name` if none specified
-		if not fields:
-			fields = [pluck or "name"]
-
 		# Check if table exists before running query
 		from frappe.model.meta import get_table_columns
 
@@ -186,6 +190,7 @@ class DatabaseQuery:
 			"offset": frappe.cint(offset),
 			"distinct": distinct,
 			"ignore_permissions": ignore_permissions,
+			"ignore_user_permissions": ignore_user_permissions,
 			"user": user,
 			"parent_doctype": parent_doctype,
 			"reference_doctype": reference_doctype,
@@ -195,8 +200,7 @@ class DatabaseQuery:
 		query = frappe.qb.get_query(**kwargs)
 
 		if not run:
-			# Return the SQL query string instead of executing
-			return str(query.get_sql())
+			return query
 
 		# Run the query
 		if pluck:
@@ -281,6 +285,7 @@ class DatabaseQuery:
 
 	def _handle_virtual_doctype(
 		self,
+		fields: list[str] | tuple[str, ...] | str | None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None,
 		or_filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None,
 		start: int | None,
@@ -327,6 +332,7 @@ class DatabaseQuery:
 
 		_page_length = page_length or limit or limit_page_length or 20
 		kwargs = {
+			"fields": fields,
 			"filters": filters,
 			"or_filters": or_filters,
 			"start": start or offset or limit_start or 0,

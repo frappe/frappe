@@ -528,19 +528,29 @@ def get_sentry_dsn():
 
 
 def get_sidebar_items():
+	from frappe.utils.install import auto_generate_sidebar_from_module
+
 	sidebars = frappe.get_all(
 		"Workspace Sidebar", fields=["name", "header_icon"], filters={"name": ["not like", "%My Workspaces%"]}
 	)
+	module_sidebars = auto_generate_sidebar_from_module()
+	sidebars.extend(module_sidebars)
 	add_user_specific_sidebar(sidebars)
 	sidebar_items = {}
 
 	for s in sidebars:
-		w = frappe.get_doc("Workspace Sidebar", s["name"])
-		sidebar_items[s["name"].lower()] = {
-			"label": s["name"],
+		sidebar_title = s.get("name")
+		if sidebar_title:
+			w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+		else:
+			sidebar_title = s.title
+			w = s
+		sidebar_items[sidebar_title.lower()] = {
+			"label": sidebar_title,
 			"items": [],
-			"header_icon": s["header_icon"],
+			"header_icon": s.get("header_icon"),
 			"module": w.module,
+			"app": w.app,
 		}
 		for si in w.items:
 			workspace_sidebar = {
@@ -559,7 +569,7 @@ def get_sidebar_items():
 				"filters": si.filters,
 				"route_options": si.route_options,
 			}
-			if si.link_type == "Report" and si.link_to:
+			if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", si.link_to, ["report_type", "ref_doctype"]
 				)
@@ -567,13 +577,12 @@ def get_sidebar_items():
 					"report_type": report_type,
 					"ref_doctype": ref_doctype,
 				}
-
 			if (
-				"My Workspaces" in s["name"]
+				"My Workspaces" in sidebar_title
 				or si.type == "Section Break"
 				or w.is_item_allowed(si.link_to, si.link_type)
 			):
-				sidebar_items[s["name"].lower()]["items"].append(workspace_sidebar)
+				sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
 
 	old_name = f"my workspaces-{frappe.session.user.lower()}"
 	if old_name in sidebar_items.keys():
