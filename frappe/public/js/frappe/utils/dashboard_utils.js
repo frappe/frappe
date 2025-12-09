@@ -235,9 +235,14 @@ frappe.dashboard_utils = {
 		return this.cleanup_filters(filters);
 	},
 	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
+		if (filters && filters.length) {
+			filters = filters.map(filter => {
+				if (Array.isArray(filter) && filter.length == 5) {
+					// Remove the 5th element if present
+					return filter.slice(0, 4);
+				}
+				return filter;
+			});
 		}
 		return filters;
 	},
