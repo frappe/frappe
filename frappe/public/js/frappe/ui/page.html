@@ -1,28 +1,12 @@
-<div class="page-head flex">
+<div class="page-head flex {% if frappe.boot.read_only || frappe.boot.user.impersonated_by %}show-navbar{% endif %}">
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
-			<div class="col-md-4 col-sm-6 col-xs-7 page-title">
-				<!-- <div class="title-image hide hidden-md hidden-lg"></div> -->
-				<!-- title -->
-				<button class="btn-reset sidebar-toggle-btn">
-					<svg class="es-icon icon-md sidebar-toggle-placeholder">
-						<use href="#es-line-align-justify"></use>
-					</svg>
-					<span class="sidebar-toggle-icon">
-						<svg class="es-icon icon-md">
-							<use href="#es-line-sidebar-collapse">
-							</use>
-						</svg>
-					</span>
-				</button>
+			<div class="col-md-5 col-sm-6 col-xs-7 page-title">
 				<div class="flex fill-width title-area">
-					<div>
-						<div class="flex">
-							<h3 class="ellipsis title-text"></h3>
-							<span class="indicator-pill whitespace-nowrap"></span>
-						</div>
-						<div class="ellipsis sub-heading hide text-muted"></div>
-					</div>
+					{% if (!frappe.is_mobile()) { %}
+						<ul class="nav d-sm-flex navbar-breadcrumbs"></ul>
+					{% endif %}
+					<span class="indicator-pill whitespace-nowrap"></span>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-dot-horizontal">

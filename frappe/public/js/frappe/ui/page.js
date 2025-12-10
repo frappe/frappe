@@ -53,9 +53,13 @@ frappe.ui.Page = class Page {
 			frappe.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
-				if (current_scroll > 0 && last_scroll <= current_scroll) {
+				if (
+					current_scroll > 0 &&
+					last_scroll <= current_scroll &&
+					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
+				) {
 					$(".page-head").css("top", "-15px");
-				} else {
+				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
 					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
