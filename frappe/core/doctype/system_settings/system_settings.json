@@ -29,7 +29,6 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_older_web_view_links",
   "show_external_link_warning",
   "security_tab",
   "security",
@@ -494,12 +493,6 @@
    "label": "Document Share Key Expiry (in Days)"
   },
   {
-   "default": "0",
-   "fieldname": "allow_older_web_view_links",
-   "fieldtype": "Check",
-   "label": "Allow Older Web View Links (Insecure)"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -787,7 +780,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-01 00:12:17.823242",
+ "modified": "2025-12-10 05:27:21.774897",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
