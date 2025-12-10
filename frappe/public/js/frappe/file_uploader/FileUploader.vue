@@ -420,7 +420,7 @@ function add_files(file_array) {
 				request_succeeded: false,
 				error_message: null,
 				uploading: false,
-				private: !props.make_attachments_public,
+				private: !props.make_attachments_public || !frappe.utils.can_upload_public_files(),
 			};
 		});
 

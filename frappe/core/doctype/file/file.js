@@ -37,6 +37,10 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name && frm.doc.file_name.split(".").splice(-1)[0] === "zip") {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
+
+		if (!frappe.utils.can_upload_public_files() && frm.doc.is_private) {
+			frm.set_df_property("is_private", "read_only", 1);
+		}
 	},
 
 	preview_file: function (frm) {

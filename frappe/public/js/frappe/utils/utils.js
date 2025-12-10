@@ -1808,4 +1808,46 @@ Object.assign(frappe.utils, {
 			}
 		}
 	},
+<<<<<<< HEAD
+=======
+
+	/**
+	 * Adds syntax highlighting to all <pre> tags in the given jQuery wrapper.
+	 * Example wrapper:
+	 *
+	 * ```html
+	 * <pre><code class="language-python">
+	 * def add(a, b):
+	 *     return a + b
+	 *
+	 * print(add(1, 2))
+	 *
+	 * # Output: 3
+	 * </code></pre>
+	 * ```
+	 *
+	 * @param {jQuery} $wrapper - The jQuery wrapper to add syntax highlighting to.
+	 */
+	highlight_pre($wrapper) {
+		frappe.require("syntax_highlighting.bundle.js").then(() => {
+			$wrapper.find("pre").each(function () {
+				hljs.highlightElement(this);
+			});
+		});
+	},
+
+	/**
+	 * Check if current user can upload public files.
+	 * @returns {boolean}
+	 */
+	can_upload_public_files() {
+		if (
+			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
+			1
+		) {
+			return true;
+		}
+		return frappe.user.has_role(["System Manager", "Administrator"]);
+	},
+>>>>>>> dbad0ce1fe (feat: allow restricting public file uploads to System Managers (#34879))
 });
