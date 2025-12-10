@@ -64,9 +64,10 @@ body {
 		}
 	}
 
-	#navbar-breadcrumbs {
+	.navbar-breadcrumbs {
 		display: inline-block;
-		max-width: 150px;
+		max-width: 200px;
+		width: 100%;
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
@@ -78,18 +79,18 @@ body {
 		}
 	}
 
-	#navbar-breadcrumbs > li,
-	#navbar-breadcrumbs > li > a {
+	.navbar-breadcrumbs > li,
+	.navbar-breadcrumbs > li > a {
 		display: inline-block;
 		vertical-align: middle;
 	}
 
-	#navbar-breadcrumbs > li > a:before {
+	.navbar-breadcrumbs > li > a:before {
 		// .breadcrumb-divider-left();
 	}
 
 	// select all except last 2
-	#navbar-breadcrumbs li:not(:nth-last-child(-n + 1)) {
+	.navbar-breadcrumbs li:not(:nth-last-child(-n + 1)) {
 		display: none;
 	}
 

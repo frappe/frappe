@@ -549,7 +549,9 @@ frappe.ui.form.Layout = class Layout {
 			if (tabs_content.getBoundingClientRect().top < 100) {
 				tabs_content.scrollIntoView();
 				setTimeout(() => {
-					$(".page-head").css("top", "-15px");
+					if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
+						$(".page-head").css("top", "-15px");
+					}
 					$(".form-tabs-list").removeClass("form-tabs-sticky-down");
 					$(".form-tabs-list").addClass("form-tabs-sticky-up");
 				}, 3);
