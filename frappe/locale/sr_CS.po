@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-07 09:35+0000\n"
-"PO-Revision-Date: 2025-12-09 17:12\n"
+"PO-Revision-Date: 2025-12-10 17:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -29905,7 +29905,7 @@ msgstr "ID uređivača radnog toka"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr "Uređivač radnog toka Vam omogućava da vizuelno pravite radne tokove. Možete prevlačiti o otpustiti stanja i povezivati ih da biste kreirali tranzicije. Takođe možete ažurirati njihova svojstva iz bočne trake."
+msgstr "Uređivač radnog toka Vam omogućava da vizuelno pravite radne tokove. Možete prevlačiti i otpustiti stanja i povezivati ih da biste kreirali tranzicije. Takođe možete ažurirati njihova svojstva iz bočne trake."
 
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
