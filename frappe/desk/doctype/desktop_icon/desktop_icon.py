@@ -697,6 +697,7 @@ def create_desktop_icons_from_workspace():
 		if w.module:
 			app_name = w.app or frappe.db.get_value("Module Def", w.module, "app_name")
 			if app_name in frappe.get_installed_apps():
+				icon.app_name = app_name
 				app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
 				app_icon = frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
 				if app_icon:
@@ -744,6 +745,7 @@ def create_desktop_icons_from_installed_apps():
 				icon.standard = 1
 				icon.idx = index
 				icon.icon_type = "App"
+				icon.app = a
 				icon.link = app_details[0]["route"]
 				icon.logo_url = app_details[0]["logo"]
 				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):

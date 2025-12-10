@@ -512,7 +512,10 @@
 	top: calc(var(--navbar-height) - 1px);
 }
 .form-tabs-sticky-down {
-	top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	top: calc(var(--navbar-height) - 2px);
+	&.show-navbar {
+		top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	}
 }
 
 .progress-area {

@@ -24,7 +24,6 @@ class SystemSettings(Document):
 		allow_login_after_fail: DF.Int
 		allow_login_using_mobile_number: DF.Check
 		allow_login_using_user_name: DF.Check
-		allow_older_web_view_links: DF.Check
 		allowed_file_extensions: DF.SmallText | None
 		app_name: DF.Data | None
 		apply_strict_user_permissions: DF.Check
