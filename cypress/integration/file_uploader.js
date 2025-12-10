@@ -103,10 +103,15 @@ context("FileUploader", () => {
 				.selectFile("cypress/fixtures/example.json", {
 					action: "drag-drop",
 				});
-			cy.wait(500);
 
-			// Checkbox should be visible
-			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+			// Wait for file preview to render
+			cy.get_open_dialog().find(".file-preview").should("exist");
+
+			// Checkbox should be visible and enabled
+			cy.get_open_dialog().find("#uploader-private-checkbox").should("be.visible");
+			cy.get_open_dialog()
+				.find("#uploader-private-checkbox input")
+				.should("not.be.disabled");
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
@@ -148,10 +153,15 @@ context("FileUploader", () => {
 				.selectFile("cypress/fixtures/example.json", {
 					action: "drag-drop",
 				});
-			cy.wait(500);
 
-			// Checkbox should be visible
-			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+			// Wait for file preview to render
+			cy.get_open_dialog().find(".file-preview").should("exist");
+
+			// Checkbox should be visible and enabled
+			cy.get_open_dialog().find("#uploader-private-checkbox").should("be.visible");
+			cy.get_open_dialog()
+				.find("#uploader-private-checkbox input")
+				.should("not.be.disabled");
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
@@ -188,10 +198,15 @@ context("FileUploader", () => {
 				.selectFile("cypress/fixtures/example.json", {
 					action: "drag-drop",
 				});
-			cy.wait(500);
 
-			// Checkbox should be visible
-			cy.get_open_dialog().find(".frappe-checkbox").contains("Private").should("be.visible");
+			// Wait for file preview to render
+			cy.get_open_dialog().find(".file-preview").should("exist");
+
+			// Checkbox should be visible and enabled
+			cy.get_open_dialog().find("#uploader-private-checkbox").should("be.visible");
+			cy.get_open_dialog()
+				.find("#uploader-private-checkbox input")
+				.should("not.be.disabled");
 
 			// Toggle button should be visible (secondary action button)
 			cy.get_open_dialog()
@@ -202,7 +217,7 @@ context("FileUploader", () => {
 			cy.hide_dialog();
 		});
 
-		it("should hide checkbox and toggle when setting is enabled for non-System Manager", () => {
+		it("should show disabled checkbox and hide toggle when setting is enabled for non-System Manager", () => {
 			cy.login("Administrator", Cypress.env("adminPassword") || "admin");
 			cy.visit("/desk");
 			cy.wait(1000);
@@ -233,10 +248,13 @@ context("FileUploader", () => {
 				.selectFile("cypress/fixtures/example.json", {
 					action: "drag-drop",
 				});
-			cy.wait(500);
 
-			// Checkbox should not be visible in file preview
-			cy.get_open_dialog().find(".file-preview-outline").should("not.contain", "Private");
+			// Wait for file preview to render
+			cy.get_open_dialog().find(".file-preview").should("exist");
+
+			// Checkbox should be visible but disabled
+			cy.get_open_dialog().find("#uploader-private-checkbox").should("be.visible");
+			cy.get_open_dialog().find("#uploader-private-checkbox input").should("be.disabled");
 
 			// Toggle button should not be visible (secondary action button should be hidden)
 			cy.get_open_dialog().find(".modal-footer .btn-secondary").should("not.be.visible");
