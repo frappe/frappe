@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-07 09:35+0000\n"
-"PO-Revision-Date: 2025-12-09 17:11\n"
+"PO-Revision-Date: 2025-12-10 17:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -68,7 +68,7 @@ msgstr "&lt;head&gt; HTML"
 
 #: frappe/database/query.py:1987
 msgid "'*' is only allowed in {0} SQL function(s)"
-msgstr ""
+msgstr "'*' је дозвољен само у {0} SQL функцијама"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
@@ -9289,7 +9289,7 @@ msgstr "Унесите шифру приказану у апликацији з�
 
 #: frappe/public/js/frappe/views/communication.js:768
 msgid "Enter Email Recipient(s) in the To, CC, or BCC fields"
-msgstr ""
+msgstr "Унесите имејл примаоца у поље ка, CC или BCC"
 
 #. Label of the doc_type (Link) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -9445,7 +9445,7 @@ msgstr "Грешка при обради угњеждених филтера: {0
 
 #: frappe/desk/search.py:246
 msgid "Error validating \"Ignore User Permissions\""
-msgstr ""
+msgstr "Грешка при валидацији поља \"Игнориши корисничке дозволе\""
 
 #: frappe/email/doctype/email_account/email_account.py:670
 msgid "Error while connecting to email account {0}"
@@ -10091,7 +10091,7 @@ msgstr "Поље \"вредност\" је обавезно. Молимо Вас
 
 #: frappe/desk/search.py:253
 msgid "Field <code>{0}</code> not found in {1}"
-msgstr ""
+msgstr "Поље <code>{0}</code> није пронађено у {1}"
 
 #. Label of the description (Text) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -12844,7 +12844,7 @@ msgstr "Шаблон за увоз треба да садржи заглавље
 
 #: frappe/core/doctype/data_import/importer.py:494
 msgid "Import template should contain a Header row."
-msgstr ""
+msgstr "Шаблон за увоз треба да садржи ред заглавља."
 
 #: frappe/core/doctype/data_import/data_import.js:171
 msgid "Import timed out, please re-try."
@@ -13393,7 +13393,7 @@ msgstr "Неважећи креденцијали"
 
 #: frappe/email/smtp.py:138
 msgid "Invalid Credentials for Email Account: {0}"
-msgstr ""
+msgstr "Неважећи креденцијали за имејл налог: {0}"
 
 #: frappe/utils/data.py:146 frappe/utils/data.py:309
 msgid "Invalid Date"
@@ -15629,7 +15629,7 @@ msgstr "Недостају обавезни подаци:"
 
 #: frappe/core/doctype/data_import/importer.py:499
 msgid "Mandatory field {0} is missing in the import template for {1}. Please correct the template and try again."
-msgstr ""
+msgstr "Обавезно поље {0} недостаје у шаблону за увоз за {1}. Исправите шаблон и покушајте поново."
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:120
 msgid "Mandatory field: set role for"
@@ -18397,7 +18397,7 @@ msgstr "Отвори у новој картици"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:241
 msgid "Open in new tab"
-msgstr ""
+msgstr "Отвори у новој картици"
 
 #: frappe/public/js/frappe/list/list_view.js:1440
 msgctxt "Description of a list view shortcut"
@@ -22694,7 +22694,7 @@ msgstr "SQL упити"
 
 #: frappe/database/query.py:1764
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
-msgstr ""
+msgstr "SQL функције нису дозвољене као текст у SELECT упиту: {0}. Уместо тога користите dict синтаксу као {{'COUNT': '*'}}."
 
 #. Label of the ssl_tls_mode (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -26179,7 +26179,7 @@ msgstr "Вишеструки одабир у табели"
 
 #: frappe/desk/search.py:269
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
-msgstr ""
+msgstr "Вишеструки одабир у табели захтева табелу са најмање једним пољем са линком, али ниједно није пронађено у {0}"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
@@ -26504,11 +26504,11 @@ msgstr "Изабрана врста документа је зависна та�
 
 #: frappe/desk/search.py:282
 msgid "The field {0} in {1} does not allow ignoring user permissions"
-msgstr ""
+msgstr "Поље {0} у {1} не дозвољава игнорисање корисничких дозвола"
 
 #: frappe/desk/search.py:292
 msgid "The field {0} in {1} links to {2} and not {3}"
-msgstr ""
+msgstr "Поље {0} у {1} води ка {2}, а не ка {3}"
 
 #: frappe/core/doctype/user_type/user_type.py:110
 msgid "The field {0} is mandatory"
@@ -29905,7 +29905,7 @@ msgstr "ИД уређивача радног тока"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr ""
+msgstr "Уређивач радног тока Вам омогућава да визуелно правите радне токове. Можете превлачити и отпустити стања и повезивати их да бисте креирали транзиције. Такође можете ажурирати њихова својства из бочне траке."
 
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
