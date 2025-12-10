@@ -20,14 +20,20 @@
 				</div>
 
 				<div class="flex config-area">
-					<label v-if="allow_toggle_optimize" class="frappe-checkbox"
+					<label
+						v-if="allow_toggle_optimize"
+						class="frappe-checkbox"
+						id="uploader-optimize-checkbox"
 						><input
 							type="checkbox"
 							:checked="optimize"
 							@change="emit('toggle_optimize')"
 						/>{{ __("Optimize") }}</label
 					>
-					<label v-if="show_private_checkbox" class="frappe-checkbox"
+					<label
+						v-if="show_private_checkbox"
+						class="frappe-checkbox"
+						id="uploader-private-checkbox"
 						><input
 							type="checkbox"
 							:checked="file.private"
