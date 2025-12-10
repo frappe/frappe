@@ -129,10 +129,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{{ print_value(df, doc) }}
 {% endmacro %}
 
-{%- macro render_signature(df, doc) -%}
-	{{ print_value(df, doc) }}
-{% endmacro %}
-
 {%- macro render_geolocation(df, doc) -%}
 	{{ "" }}
 {%- endmacro -%}
