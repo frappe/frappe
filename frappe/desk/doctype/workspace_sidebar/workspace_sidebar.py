@@ -327,12 +327,14 @@ def create_sidebar_items(module_info):
 		entity_lower = entity.lower()
 
 		if entity_lower in section_entities:
+			section_break = []
 			if entity_lower == "report":
 				section_break = add_section_breaks("Reports", idx)
 			elif entity_lower in ("dashboard", "page") and len(items) > 1:
 				section_break = add_section_breaks(section_entities[entity_lower], idx)
 				section_break_added = True
-			sidebar_items.append(section_break)
+			if section_break:
+				sidebar_items.append(section_break)
 			idx += 1
 
 		for item in items:
