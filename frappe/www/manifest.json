@@ -3,6 +3,7 @@
 	"name": "{{ app_name }}",
 	"scope": "/desk/",
 	"start_url": "/desk",
+	"display": "minimal-ui",
 	"icons": [
 		{
 			"src": "{{ app_logo }}"
