@@ -3,6 +3,7 @@
 import datetime
 import re
 from io import BytesIO
+from typing import Any
 
 import openpyxl
 import xlrd
@@ -31,7 +32,28 @@ def get_excel_date_format():
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None, header_index=0, has_filters=False):
+def make_xlsx(
+	data: list[list[Any]],
+	sheet_name: str,
+	wb: openpyxl.Workbook | None = None,
+	column_widths: list[int] | None = None,
+	header_index: int = 0,
+	has_filters: bool = False,
+) -> BytesIO:
+	"""
+	Create an Excel file with the given data and formatting options.
+
+	Args:
+		data: List of rows, where each row is a list of cell values
+		sheet_name: Name of the Excel sheet
+		wb: Existing workbook to add sheet to. If None, creates new workbook
+		column_widths: List of column widths in Excel units. If None, auto-sized
+		header_index: Row index (0-based) that should be formatted as header making it bold
+		has_filters: If True, applies bold formatting to the first column of filter rows
+
+	Returns:
+		BytesIO: object containing the Excel file data
+	"""
 	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)

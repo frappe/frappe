@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 from datetime import timedelta
+from typing import Any
 
 import frappe
 import frappe.desk.reportview
@@ -446,13 +447,30 @@ def format_fields(data: frappe._dict) -> None:
 
 
 def build_xlsx_data(
-	data,
-	visible_idx,
-	include_indentation,
-	include_filters=False,
-	ignore_visible_idx=False,
-	include_hidden_columns=False,
-):
+	data: frappe._dict,
+	visible_idx: list[int],
+	include_indentation: bool,
+	include_filters: bool = False,
+	ignore_visible_idx: bool = False,
+	include_hidden_columns: bool = False,
+) -> tuple[list[list[Any]], list[int], int]:
+	"""
+	Build Excel data structure from report data with proper formatting.
+
+	Args:
+		data: Report data containing columns, result, and filters
+		visible_idx: List of row indices that are visible in the report
+		include_indentation: Whether to include indentation for tree-like data
+		include_filters: Whether to include filter rows at the top of the Excel sheet
+		ignore_visible_idx: Whether to ignore the visible_idx parameter
+		include_hidden_columns: Whether to include columns marked as hidden
+
+	Returns:
+		tuple: A tuple containing:
+			- result: List of rows for the Excel sheet
+			- column_widths: List of column widths for the Excel sheet
+			- header_index: Index of the header row in the result
+	"""
 	EXCEL_TYPES = (
 		str,
 		bool,
