@@ -14,7 +14,7 @@
 	{%- elif df.fieldtype=="Geolocation" -%}
 		{{ render_geolocation(df, doc) }}
 	{%- elif df.fieldtype=="Signature" -%}
-		{{ render_signature(df, doc) }}
+    	{{ render_field_with_label(df, doc, no_of_cols) }}
 	{%- elif df.fieldtype=="Currency" -%}
 		{%- if doc.print_templates and
 				doc.print_templates.get(df.fieldname) -%}
@@ -126,10 +126,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro -%}
 
 {%- macro render_image(df, doc) -%}
-	{{ print_value(df, doc) }}
-{% endmacro %}
-
-{%- macro render_signature(df, doc) -%}
 	{{ print_value(df, doc) }}
 {% endmacro %}
 

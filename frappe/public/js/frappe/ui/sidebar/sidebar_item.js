@@ -4,7 +4,10 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.item = opts.item;
 		this.container = opts.container;
 		this.nested_items = opts.item.nested_items || [];
-		this.workspace_title = $(".body-sidebar").attr("data-title").toLowerCase();
+		this.workspace_title =
+			($(".body-sidebar").attr("data-title") &&
+				$(".body-sidebar").attr("data-title").toLowerCase()) ||
+			frappe.app.sidebar.sidebar_title;
 		this.prepare(opts);
 		this.make();
 	}
@@ -51,13 +54,16 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				});
 			}
 		}
-		return path;
+		if (path) {
+			return encodeURI(path);
+		}
 	}
 	prepare() {}
 	make() {
 		this.path = this.get_path();
+		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
-			this.item.icon = "list-alt";
+			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {
@@ -68,6 +74,19 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		);
 		$(this.container).append(this.wrapper);
 		this.setup_editing_controls();
+	}
+	set_suffix() {
+		if (this.item.suffix) {
+			if (this.item.suffix.keyboard_shortcut) {
+				this.item.suffix = this.get_shortcut_html(this.item.suffix.keyboard_shortcut);
+			}
+		}
+	}
+	get_shortcut_html(shortcut) {
+		if (frappe.utils.is_mac()) {
+			shortcut = shortcut.replace("Ctrl", "⌘");
+		}
+		return `<span class="sidebar-item-suffix keyboard-shortcut">${shortcut}</span>`;
 	}
 	setup_editing_controls() {
 		this.menu_items = this.get_menu_items();
@@ -360,5 +379,25 @@ frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
 				},
 			});
 		});
+	}
+};
+
+frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
+	constructor(item) {
+		super(item);
+		this.title = frappe.app.sidebar.workspace_title;
+		this.item.id && this.wrapper.attr("id", this.item.id);
+		this.item.class && this.wrapper.attr("class", this.item.class);
+		this.wrapper.attr("title", this.item.label);
+		this.setup_click();
+	}
+
+	setup_click() {
+		const me = this;
+		if (this.item.onClick) {
+			this.wrapper.on("click", function () {
+				me.item.onClick && me.item.onClick();
+			});
+		}
 	}
 };

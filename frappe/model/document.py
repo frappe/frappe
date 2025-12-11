@@ -59,7 +59,9 @@ def get_doc(doctype: str, /) -> _SingleDocument:
 
 
 @overload
-def get_doc(doctype: str, name: str, /, *, for_update: bool | None = None) -> "Document":
+def get_doc(
+	doctype: str, name: str, /, *, for_update: bool | None = None, check_permission: str | bool | None = None
+) -> "Document":
 	"""Retrieve DocType from DB, doctype and name must be positional argument."""
 	pass
 
@@ -120,9 +122,9 @@ def _basedoc(doc: BaseDocument, *args, **kwargs) -> "Document":
 @get_doc.register(str)
 def get_doc_str(doctype: str, name: str | None = None, **kwargs) -> "Document":
 	# if no name: it's a single
-	controller = get_controller(doctype)
-	if controller:
-		return controller(doctype, name, **kwargs)
+	if controller := get_controller(doctype):
+		doc = controller(doctype, name, **kwargs)
+		return get_doc_permission_check(doc, kwargs.get("check_permission"))
 
 	raise ImportError(doctype)
 
@@ -136,21 +138,39 @@ def get_doc_from_mapping_proxy(data: MappingProxyType, **kwargs) -> "Document":
 def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	if "doctype" not in data:
 		raise ValueError('"doctype" is a required key')
-	controller = get_controller(data["doctype"])
-	if controller:
-		return controller(**data)
+	if controller := get_controller(data["doctype"]):
+		doc = controller(**data)
+		return get_doc_permission_check(doc, kwargs.get("check_permission"))
 	raise ImportError(data["doctype"])
 
 
-def get_lazy_doc(doctype: str, name: str, *, for_update=None) -> "Document":
+def get_lazy_doc(
+	doctype: str, name: str, *, for_update=None, check_permission: str | bool | None = None
+) -> "Document":
 	if doctype == "DocType":
 		warnings.warn("DocType doesn't support lazy loading", stacklevel=1)
-		return get_doc(doctype, name)
+		return get_doc(doctype, name, check_permission=check_permission)
 
-	controller = get_lazy_controller(doctype)
-	if controller:
-		return controller(doctype, name, for_update=for_update)
+	if controller := get_lazy_controller(doctype):
+		doc = controller(doctype, name, for_update=for_update)
+		return get_doc_permission_check(doc, check_permission)
 	raise ImportError(doctype)
+
+
+def get_doc_permission_check(doc: "Document", check_permission: str | bool | None = None) -> "Document":
+	"""
+	Checks permissions for the given document, if specified.
+
+	:param doc: The document to check permissions for.
+	:param check_permission: The permission to check for, default is "read" if truthy.
+	:return: The document with permissions checked.
+	"""
+	if check_permission:
+		if isinstance(check_permission, str):
+			doc.check_permission(check_permission)
+		else:
+			doc.check_permission("read")
+	return doc
 
 
 class Document(BaseDocument):

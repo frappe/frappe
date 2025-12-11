@@ -305,7 +305,12 @@ def get_references_across_doctypes_by_dynamic_link_field(
 	for doctype, fieldname, doctype_fieldname in links:
 		try:
 			filters = [[doctype_fieldname, "in", to_doctypes]] if to_doctypes else []
-			for linked_to in frappe.get_all(doctype, pluck=doctype_fieldname, filters=filters, distinct=1):
+			for linked_to in frappe.get_all(
+				doctype,
+				pluck=doctype_fieldname,
+				filters=filters,
+				distinct=1,
+			):
 				if linked_to:
 					links_by_doctype[linked_to].append(
 						{"doctype": doctype, "fieldname": fieldname, "doctype_fieldname": doctype_fieldname}

@@ -18,7 +18,7 @@ from collections.abc import (
 	Sequence,
 )
 from email.header import decode_header, make_header
-from email.utils import formataddr, parseaddr
+from email.utils import formataddr, getaddresses, parseaddr
 from typing import Any, Generic, TypeAlias, TypedDict
 
 import orjson
@@ -180,45 +180,42 @@ def validate_name(name, throw=False):
 
 def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
-	email = email_str = (email_str or "").strip()
 
-	def _check(e):
-		_valid = True
-		if not e:
-			_valid = False
+	email_str = (email_str or "").strip()
+	out = []
 
-		if "undisclosed-recipient" in e:
-			return False
+	# Replace newlines with commas so getaddresses can handle them
+	# getaddresses expects comma-separated values
+	email_str = email_str.replace("\n", ",").replace("\r", ",")
 
-		elif " " in e and "<" not in e:
-			# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
-			_valid = False
+	# Parse using stdlib (handles commas in display names correctly)
+	addresses = getaddresses([email_str])
 
-		else:
-			email_id = extract_email_id(e)
-			match = EMAIL_MATCH_PATTERN.match(email_id) if email_id else None
-
-			if not match:
-				_valid = False
-
-		if not _valid:
+	for name, addr in addresses:
+		if not addr:
 			if throw:
-				invalid_email = frappe.utils.escape_html(e)
 				frappe.throw(
-					frappe._("{0} is not a valid Email Address").format(invalid_email),
+					frappe._("{0} is not a valid Email Address").format(
+						frappe.utils.escape_html(name or email_str)
+					),
 					frappe.InvalidEmailAddressError,
 				)
-			return None
-		else:
-			return email_id
-
-	out = []
-	for e in email_str.split(","):
-		if not e:
 			continue
-		email = _check(e.strip())
-		if email:
-			out.append(email)
+
+		# Skip undisclosed recipients
+		if "undisclosed-recipient" in addr:
+			continue
+
+		match = EMAIL_MATCH_PATTERN.match(addr)
+		if not match:
+			if throw:
+				frappe.throw(
+					frappe._("{0} is not a valid Email Address").format(frappe.utils.escape_html(addr)),
+					frappe.InvalidEmailAddressError,
+				)
+			continue
+
+		out.append(addr)
 
 	return ", ".join(out)
 

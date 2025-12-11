@@ -6,6 +6,7 @@ perms will get synced only if none exist
 """
 
 import os
+import re
 
 import frappe
 from frappe.cache_manager import clear_controller_cache
@@ -197,3 +198,94 @@ def remove_orphan_doctypes():
 		update_progress_bar("Deleting orphaned DocTypes", i, len(orphan_doctypes))
 	frappe.db.commit()
 	print()
+
+
+def remove_orphan_entities():
+	entites = ["Workspace", "Dashboard", "Page", "Report"]
+	entity_filter_map = {
+		"Workspace": {"public": 1},
+		"Page": {"standard": "Yes"},
+		"Report": {"is_standard": "Yes"},
+		"Dashboard": {"is_standard": True},
+	}
+	entity_file_map = create_entity_file_map(entites)
+	for entity in entites:
+		print(f"Removing orphan {entity}s")
+		all_enitities = frappe.get_all(
+			entity, filters=entity_filter_map.get(entity), fields=["name", "module"]
+		)
+		for i, w in enumerate(all_enitities):
+			try:
+				entity_file_map[entity][w.name]
+			except KeyError:
+				try:
+					print(f"Deleting entity {entity} {w.name}")
+					frappe.delete_doc(entity, w.name, force=True, ignore_missing=True)
+					update_progress_bar(f"Deleting orphaned {entity}", i, len(all_enitities))
+					print()
+
+				except Exception as e:
+					print(f"Error occurred while deleting entity: {entity} {w.name}")
+					print(e)
+		# save the deleted icons
+		frappe.db.commit()  # nosemgrep
+
+
+def create_entity_file_map(entities):
+	import glob
+
+	from frappe.modules.import_file import read_doc_from_file
+
+	entity_file_map = {}
+	for entity in entities:
+		entity_file_map[entity] = {}
+	for app in frappe.get_installed_apps():
+		app_path = frappe.get_app_path(app)
+		for entity in entities:
+			entity_folder = entity.lower()
+			if entity.lower() == "dashboard":
+				entity_folder = f"*_{entity_folder}"
+			entity_files = list(glob.glob(f"{app_path}/**/{entity_folder}/**/*.json", recursive=True))
+			for file in entity_files:
+				entity_json = read_doc_from_file(file)
+				if isinstance(entity_json, dict):
+					entity_file_map[entity][entity_json.get("name")] = file
+				elif isinstance(entity_json, list):
+					if len(entity_json) > 0:
+						entity_file_map[entity][entity_json[0].get("name")] = file
+
+	return entity_file_map
+
+
+def check_if_record_exists(type=None, path=None, entity_type=None, name=None, module_name=None):
+	scrubbed_name = frappe.scrub(name.lower())
+	scrubbed_entity_type = frappe.scrub(entity_type.lower())
+	if scrubbed_entity_type == "dashboard" and module_name:
+		scrubbed_entity_type = f"{frappe.scrub(module_name.lower())}_dashboard"
+
+	def build_path(entity_name):
+		if type == "app":
+			return os.path.join(path, scrubbed_entity_type, f"{entity_name}.json")
+		return os.path.join(path, scrubbed_entity_type, entity_name, f"{entity_name}.json")
+
+	entity_path = build_path(scrubbed_name)
+	if os.path.exists(entity_path):
+		return True
+
+	return False
+
+
+def delete_duplicate_icons():
+	# This handles app icons which are renamed. Removes the old entry from db.
+	for app in frappe.get_installed_apps():
+		icons = frappe.get_all("Desktop Icon", filters=[{"icon_type": "App"}, {"app": app}], pluck="name")
+
+		if len(icons) > 1:
+			for i in icons:
+				app_path = frappe.get_app_path(app)
+				if not check_if_record_exists(type="app", path=app_path, entity_type="Desktop Icon", name=i):
+					print(f"Deleting icon {i}")
+					frappe.delete_doc("Desktop Icon", i)
+
+	# save the deleted icons
+	frappe.db.commit()  # nosemgrep

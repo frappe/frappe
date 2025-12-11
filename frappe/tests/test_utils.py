@@ -577,6 +577,39 @@ class TestValidationUtils(IntegrationTestCase):
 			"erp+Job%20Applicant=JA00004@frappe.com",
 		)
 
+		# RFC 5322 format - Display name with comma (main bug fix)
+		self.assertEqual(
+			validate_email_address('"Lastname, Firstname" <test@example.com>'), "test@example.com"
+		)
+		self.assertEqual(validate_email_address('"Doe, John" <john.doe@example.com>'), "john.doe@example.com")
+
+		# RFC 5322 format - Display name without comma
+		self.assertEqual(validate_email_address("Test User <test@example.com>"), "test@example.com")
+
+		# RFC 5322 format - Multiple emails
+		self.assertEqual(
+			validate_email_address('"Last, First" <test1@example.com>, "Another, Name" <test2@example.com>'),
+			"test1@example.com, test2@example.com",
+		)
+
+		# RFC 5322 format - Mixed with plain emails
+		self.assertEqual(
+			validate_email_address("Test User <test@example.com>, plain@example.com"),
+			"test@example.com, plain@example.com",
+		)
+
+		# Emails with newlines
+		self.assertEqual(
+			validate_email_address("test1@example.com\ntest2@example.com"),
+			"test1@example.com, test2@example.com",
+		)
+
+		# Undisclosed recipients should be filtered
+		self.assertEqual(validate_email_address("undisclosed-recipients:;"), "")
+		self.assertEqual(
+			validate_email_address("test@example.com, undisclosed-recipients:;"), "test@example.com"
+		)
+
 	def test_valid_phone(self):
 		valid_phones = ["+91 1234567890", ""]
 
