@@ -73,11 +73,8 @@
 	}
 
 	.body-sidebar-bottom {
-		overflow: hidden;
 		padding: 7px;
 		width: 100%;
-		// position: relative;
-		// top:10px;
 	}
 
 	.divider {
@@ -141,7 +138,7 @@
 			flex: 0 0 auto;
 		}
 		span {
-			margin-left: 8px;
+			margin-left: 10px;
 			@include truncate();
 		}
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
@@ -155,6 +152,15 @@
 			}
 		}
 	}
+
+	.standard-items-sections {
+		margin-top: 14px;
+		.dropdown-notifications {
+			.notifications-list {
+				left: 3.4%;
+			}
+		}
+	}
 }
 
 @mixin body-sidebar-expanded {
@@ -162,6 +168,11 @@
 		// make it an overlay on hover
 		position: absolute;
 		width: var(--sidebar-width);
+		.dropdown-notifications {
+			.notifications-list {
+				left: 100%;
+			}
+		}
 	}
 
 	// show placeholder so that main section remains static
@@ -182,6 +193,13 @@
 			padding: 0px;
 			width: 0px;
 			overflow: hidden;
+			.standard-items-sections {
+				.dropdown-notifications {
+					.notifications-list {
+						left: 0;
+					}
+				}
+			}
 		}
 	}
 
@@ -279,4 +297,14 @@
 }
 .indent + .nested-container {
 	margin-left: 16px;
+}
+.sidebar-item-suffix {
+	margin-left: auto;
+	.keyboard-shortcut {
+		color: var(--ink-gray-4, #999999);
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		letter-spacing: 0.02em;
+		font-weight: 420;
+	}
 }

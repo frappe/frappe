@@ -883,19 +883,40 @@ Object.assign(frappe.utils, {
 		};
 	},
 	debounce: function (func, wait, immediate) {
-		var timeout;
-		return function () {
-			var context = this,
-				args = arguments;
-			var later = function () {
-				timeout = null;
-				if (!immediate) func.apply(context, args);
-			};
+		var timeout, context, args;
+
+		var later = function () {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+
+		var debounced = function () {
+			context = this;
+			args = arguments;
 			var callNow = immediate && !timeout;
 			clearTimeout(timeout);
 			timeout = setTimeout(later, wait);
 			if (callNow) func.apply(context, args);
 		};
+
+		debounced.cancel = function () {
+			if (!timeout) return false;
+
+			clearTimeout(timeout);
+			timeout = null;
+			return true;
+		};
+
+		debounced.flush = function () {
+			if (!timeout) return false;
+
+			clearTimeout(timeout);
+			timeout = null;
+			func.apply(context, args);
+			return true;
+		};
+
+		return debounced;
 	},
 	get_form_link: function (
 		doctype,
@@ -1733,10 +1754,19 @@ Object.assign(frappe.utils, {
 				// don't remove unless patch is created to convert all existing filters from object to array
 				// backward compatibility
 				if (Array.isArray(filters_json)) {
-					let filter = {};
-					filters_json.forEach((arr) => {
-						filter[arr[1]] = [arr[2], arr[3]];
-					});
+					let filter = filters_json.reduce((acc, filter) => {
+						const field = filter[1];
+						const value = [filter[2], filter[3]];
+
+						// if we have multiple filters for the same field,
+						// we convert it into an array
+						if (acc[field]) {
+							acc[field].push(value);
+						} else {
+							acc[field] = [value];
+						}
+						return acc;
+					}, {});
 					return filter || [];
 				}
 				return filters_json || [];
@@ -1929,5 +1959,19 @@ Object.assign(frappe.utils, {
 				hljs.highlightElement(this);
 			});
 		});
+	},
+
+	/**
+	 * Check if current user can upload public files.
+	 * @returns {boolean}
+	 */
+	can_upload_public_files() {
+		if (
+			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
+			1
+		) {
+			return true;
+		}
+		return frappe.user.has_role(["System Manager", "Administrator"]);
 	},
 });

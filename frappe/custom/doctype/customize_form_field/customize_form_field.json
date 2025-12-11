@@ -54,6 +54,7 @@
   "column_break_33",
   "read_only_depends_on",
   "display",
+  "button_color",
   "in_filter",
   "hide_seconds",
   "hide_days",
@@ -485,6 +486,13 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
   }
  ],
  "grid_page_length": 50,
@@ -492,7 +500,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-14 13:56:58.033573",
+ "modified": "2025-11-12 01:13:53.053888",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

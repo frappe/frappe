@@ -19,6 +19,7 @@
   "link_filters",
   "column_break_6",
   "fieldtype",
+  "button_color",
   "precision",
   "hide_seconds",
   "hide_days",
@@ -467,6 +468,13 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
   }
  ],
  "grid_page_length": 50,
@@ -474,7 +482,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-10 11:10:23.862393",
+ "modified": "2025-11-12 01:14:24.753774",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

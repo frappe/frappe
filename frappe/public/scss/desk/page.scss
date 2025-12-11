@@ -35,15 +35,9 @@
 	.title-area {
 		display: inline-flex;
 		align-items: center;
-		.title-text {
-			@include get_textstyle("xl", "semibold");
-			cursor: pointer;
-			margin-bottom: 0px;
-			margin-right: var(--margin-sm);
-			max-width: 25vw;
-		}
 		.indicator-pill {
 			margin-top: 2px;
+			margin-left: var(--margin-sm);
 		}
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
@@ -107,10 +101,13 @@
 .page-head {
 	z-index: 6;
 	position: sticky;
-	top: var(--navbar-height);
 	background: var(--bg-color);
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
+	top: 0;
+	&.show-navbar {
+		top: var(--navbar-height);
+	}
 
 	.page-head-content {
 		height: var(--page-head-height);

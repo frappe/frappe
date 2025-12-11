@@ -53,7 +53,7 @@ context("Data Control", () => {
 			"contains",
 			"/desk/test-data-control/new-test-data-control"
 		);
-		cy.get(".title-text").should("have.text", "New Test Data Control");
+		cy.get(".title-text-form").should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
 			.should("have.class", "reqd");
