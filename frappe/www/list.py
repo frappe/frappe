@@ -5,14 +5,14 @@ import json
 
 import frappe
 from frappe import _
-from frappe.model.document import Document, get_controller
-from frappe.utils import cint, quoted
+from frappe.model.document import get_controller
+from frappe.utils import cint
 from frappe.website.path_resolver import resolve_path
 
 no_cache = 1
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_list_data(
 	doctype: str,
 	txt: str | None = None,
@@ -66,16 +66,6 @@ def get_list_data(
 	frappe.flags.list_context = list_context
 
 	return raw_result
-
-
-def set_route(context):
-	"""Set link for the list item"""
-	if context.web_form_name:
-		context.route = f"{context.pathname}?name={quoted(context.doc.name)}"
-	elif context.doc and getattr(context.doc, "route", None):
-		context.route = context.doc.route
-	else:
-		context.route = f"{context.pathname or quoted(context.doc.doctype)}/{quoted(context.doc.name)}"
 
 
 def prepare_filters(doctype, controller, kwargs):
