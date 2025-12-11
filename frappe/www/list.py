@@ -12,75 +12,6 @@ from frappe.website.path_resolver import resolve_path
 no_cache = 1
 
 
-def get_context(context, **dict_params):
-	"""Return context for a list standard list page.
-
-	Also update `get_list_context` from the doctype module file."""
-	frappe.local.form_dict.update(dict_params)
-	doctype = frappe.local.form_dict.doctype
-	context.parents = [{"route": "me", "title": _("My Account")}]
-	context.meta = frappe.get_meta(doctype)
-	context.update(get_list_context(context, doctype) or {})
-	context.doctype = doctype
-	context.txt = frappe.local.form_dict.txt
-	context.update(get(**frappe.local.form_dict))
-
-
-@frappe.whitelist(allow_guest=True)
-def get(
-	doctype: str,
-	txt: str | None = None,
-	limit_start: int = 0,
-	limit: int = 20,
-	pathname: str | None = None,
-	**kwargs,
-):
-	"""Return processed HTML page for a standard listing."""
-	limit_start = cint(limit_start)
-	raw_result = get_list_data(doctype, txt, limit_start, limit=limit + 1, **kwargs)
-	show_more = len(raw_result) > limit
-	if show_more:
-		raw_result = raw_result[:-1]
-
-	meta = frappe.get_meta(doctype)
-	list_context = frappe.flags.list_context
-
-	if not raw_result:
-		return {"result": []}
-
-	if txt:
-		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
-
-	result = []
-	row_template = list_context.row_template or "templates/includes/list/row_template.html"
-	list_view_fields = [df for df in meta.fields if df.in_list_view][:4]
-
-	for doc in raw_result:
-		doc.doctype = doctype
-		new_context = frappe._dict(doc=doc, meta=meta, list_view_fields=list_view_fields)
-
-		if not list_context.get_list and not isinstance(new_context.doc, Document):
-			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
-			new_context.update(new_context.doc.as_dict())
-
-		if not frappe.in_test:
-			pathname = pathname or frappe.local.request.path
-			new_context["pathname"] = pathname.strip("/ ")
-		new_context.update(list_context)
-		set_route(new_context)
-		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
-		result.append(rendered_row)
-
-	from frappe.utils.response import json_handler
-
-	return {
-		"raw_result": json.dumps(raw_result, default=json_handler),
-		"result": result,
-		"show_more": show_more,
-		"next_start": limit_start + limit,
-	}
-
-
 @frappe.whitelist(allow_guest=True)
 def get_list_data(
 	doctype: str,
@@ -219,7 +150,7 @@ def get_list_context(context, doctype, web_form_name=None):
 		list_context.row_template = meta.get_row_template()
 
 	if not meta.custom and not list_context.list_template:
-		list_context.template = meta.get_list_template() or "www/list.html"
+		list_context.template = meta.get_list_template()
 
 	return list_context
 
