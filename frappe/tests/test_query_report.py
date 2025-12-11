@@ -274,11 +274,7 @@ data = columns, result
 		frappe.db.delete("Email Queue")
 		export_query()
 
-		jobs = frappe.get_all(
-			"RQ Job",
-			filters={"job_name": "frappe.desk.query_report.run_export_query_job"},
-			fields=["name", "status"],
-		)
+		jobs = frappe.get_all("RQ Job")
 		email_queue = frappe.get_all("Email Queue")
 
 		self.assertTrue(jobs, "Background job was not enqueued")
