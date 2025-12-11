@@ -54,14 +54,16 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				});
 			}
 		}
-		return path;
+		if (path) {
+			return encodeURI(path);
+		}
 	}
 	prepare() {}
 	make() {
 		this.path = this.get_path();
 		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
-			this.item.icon = "list-alt";
+			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {

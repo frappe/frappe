@@ -32,6 +32,7 @@
   "fetch_from",
   "fetch_if_empty",
   "visibility_section",
+  "button_color",
   "hidden",
   "show_on_timeline",
   "bold",
@@ -617,6 +618,13 @@
    "fieldname": "mask",
    "fieldtype": "Check",
    "label": "Mask"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
   }
  ],
  "grid_page_length": 50,

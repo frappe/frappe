@@ -79,6 +79,44 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 	return value
 
 
+def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctype: str, field) -> tuple:
+	"""Apply date to datetime conversion for Datetime fields with 'between' operator.
+
+	Args:
+		between_values: Tuple/list of two values [from, to] for between filter
+		doctype: DocType name
+		field: Field name or pypika Field object
+
+	Returns:
+		Tuple with dates expanded to datetime ranges for Datetime fields
+	"""
+	from frappe.model.db_query import _convert_type_for_between_filters
+
+	# Extract field name
+	field_name = field
+	if "." in str(field):
+		field_name = field.split(".")[-1]
+
+	# Skip querying meta for core doctypes to avoid recursion
+	if doctype in CORE_DOCTYPES:
+		df = None
+	else:
+		meta = frappe.get_meta(doctype)
+		df = meta.get_field(field_name) if meta else None
+
+	# Standard datetime fields or Datetime fieldtype
+	if not (field_name in ("creation", "modified") or (df and df.fieldtype == "Datetime")):
+		return between_values
+
+	from_val, to_val = between_values
+
+	# Convert to datetime using db_query helper (handles strings, dates, datetimes)
+	from_val = _convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = _convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+
+	return (from_val, to_val)
+
+
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
 
@@ -487,11 +525,21 @@ class Engine:
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
+		if _operator.lower() in ("timespan", "previous", "next"):
+			from frappe.model.db_query import get_date_range
+
+			_value = get_date_range(_operator.lower(), _value)
+			_operator = "between"
+
 		# For Date fields with datetime values, convert to date to match db_query behavior
 		if isinstance(_value, datetime.datetime) or (
 			isinstance(_value, list | tuple) and any(isinstance(v, datetime.datetime) for v in _value)
 		):
 			_value = _apply_date_field_filter_conversion(_value, _operator, doctype or self.doctype, field)
+
+		# For Datetime fields with date values and 'between' operator, convert to datetime range to match db_query
+		if _operator.lower() == "between" and isinstance(_value, list | tuple) and len(_value) == 2:
+			_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 
 		if not _value and isinstance(_value, list | tuple | set):
 			_value = ("",)

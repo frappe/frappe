@@ -251,11 +251,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	doc = frappe.get_doc(document)
+	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
-
-	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, "__func__", method_obj)

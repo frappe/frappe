@@ -30,6 +30,8 @@ class FileUploader {
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
+		this.can_toggle_private = frappe.utils.can_upload_public_files();
+
 		if (!wrapper) {
 			this.make_dialog(dialog_title);
 		} else {
@@ -89,7 +91,7 @@ class FileUploader {
 			() => this.uploader.files,
 			(files) => {
 				let all_private = files.every((file) => file.private);
-				if (this.dialog) {
+				if (this.dialog && this.can_toggle_private) {
 					this.dialog.set_secondary_action_label(
 						all_private ? __("Set all public") : __("Set all private")
 					);
@@ -139,18 +141,24 @@ class FileUploader {
 	}
 
 	make_dialog(title) {
-		this.dialog = new frappe.ui.Dialog({
+		const dialog_opts = {
 			title: title || __("Upload"),
 			primary_action_label: __("Upload"),
 			primary_action: () => this.upload_files(),
-			secondary_action_label: __("Set all private"),
-			secondary_action: () => {
-				this.uploader.toggle_all_private();
-			},
 			on_page_show: () => {
 				this.uploader.wrapper_ready = true;
 			},
-		});
+		};
+
+		// Only add secondary action if user is allowed to toggle privacy
+		if (this.can_toggle_private) {
+			dialog_opts.secondary_action_label = __("Set all private");
+			dialog_opts.secondary_action = () => {
+				this.uploader.toggle_all_private();
+			};
+		}
+
+		this.dialog = new frappe.ui.Dialog(dialog_opts);
 
 		this.wrapper = this.dialog.body;
 		this.dialog.show();

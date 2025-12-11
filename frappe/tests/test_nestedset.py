@@ -285,10 +285,10 @@ class TestNestedSet(IntegrationTestCase):
 		inclusive_link = {"link_field": ("descendants of (inclusive)", record)}
 
 		# db_query
-		self.assertNotIn(record, frappe.get_all(TEST_DOCTYPE, exclusive_filter, run=0))
-		self.assertIn(record, frappe.get_all(TEST_DOCTYPE, inclusive_filter, run=0))
-		self.assertNotIn(record, frappe.get_all(linked_doctype, exclusive_link, run=0))
-		self.assertIn(record, frappe.get_all(linked_doctype, inclusive_link, run=0))
+		self.assertNotIn(record, frappe.get_all(TEST_DOCTYPE, exclusive_filter, run=0).get_sql())
+		self.assertIn(record, frappe.get_all(TEST_DOCTYPE, inclusive_filter, run=0).get_sql())
+		self.assertNotIn(record, frappe.get_all(linked_doctype, exclusive_link, run=0).get_sql())
+		self.assertIn(record, frappe.get_all(linked_doctype, inclusive_link, run=0).get_sql())
 
 		# QB
 		self.assertNotIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=exclusive_filter)))

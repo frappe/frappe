@@ -200,8 +200,7 @@ class DatabaseQuery:
 		query = frappe.qb.get_query(**kwargs)
 
 		if not run:
-			# Return the SQL query string instead of executing
-			return str(query.get_sql())
+			return query
 
 		# Run the query
 		if pluck:

@@ -94,8 +94,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
-		doc = frappe.get_lazy_doc(doctype, name)
-		doc.check_permission("read")
+		doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -204,8 +203,7 @@ def get_versions(doc: "Document") -> list[dict]:
 def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
-	doc = frappe.get_lazy_doc(doctype, name)
-	doc.check_permission("read")
+	frappe.get_lazy_doc(doctype, name).check_permission()
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 

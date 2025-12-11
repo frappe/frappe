@@ -157,7 +157,7 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
 
 	def test_permission_query(self):
-		sql = frappe.db.get_list("ToDo", run=False)
+		sql = frappe.db.get_list("ToDo", run=False).get_sql()
 		self.assertTrue("where (1 = 1)" in sql.lower())
 		self.assertTrue(isinstance(frappe.db.get_list("ToDo"), list))
 

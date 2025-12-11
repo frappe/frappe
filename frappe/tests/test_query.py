@@ -1902,6 +1902,30 @@ class TestQuery(IntegrationTestCase):
 		# If we get here without PermissionError, the test passes
 		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
 
+	def test_between_datetime_expansion(self):
+		"""Test that date strings are expanded to datetime ranges for Datetime fields with 'between' operator"""
+		# Test with creation field (standard datetime field)
+		query = frappe.qb.get_query(
+			"User",
+			filters={"creation": ["between", ["2025-12-01", "2025-12-01"]]},
+		)
+		sql = query.get_sql()
+		# Date strings should be expanded to datetime ranges
+		self.assertIn("2025-12-01 00:00:00", sql)
+		self.assertIn("2025-12-01 23:59:59", sql)
+
+	def test_timespan_datetime_expansion(self):
+		"""Test that timespan operator expands dates to datetime ranges for Datetime fields"""
+		query = frappe.qb.get_query(
+			"User",
+			filters={"creation": ["timespan", "last 7 days"]},
+		)
+		sql = query.get_sql()
+		# Timespan should expand dates to datetime ranges (start of first day, end of last day)
+		# Should have times like 00:00:00 and 23:59:59
+		self.assertIn("00:00:00", sql)
+		self.assertIn("23:59:59", sql)
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):

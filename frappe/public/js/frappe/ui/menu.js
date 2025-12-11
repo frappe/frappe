@@ -95,13 +95,15 @@ frappe.ui.menu = class ContextMenu {
 		this.left_offset = 0;
 		this.gap = 4;
 		if (this.opts.nested && this.opts.parent_menu) {
+			let top =
+				parent.getBoundingClientRect().bottom - parent.getBoundingClientRect().height;
 			let dropdown = frappe.menu_map[this.opts.parent_menu].template;
 			let width = dropdown.outerWidth();
 			let offset = $(dropdown).offset();
 			this.template.css({
 				display: "block",
 				position: "absolute",
-				top: offset.top + "px",
+				top: top + "px",
 				left: offset.left + width + this.gap + "px",
 			});
 		} else {

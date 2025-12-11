@@ -73,11 +73,8 @@
 	}
 
 	.body-sidebar-bottom {
-		overflow: hidden;
 		padding: 7px;
 		width: 100%;
-		// position: relative;
-		// top:10px;
 	}
 
 	.divider {
@@ -141,7 +138,7 @@
 			flex: 0 0 auto;
 		}
 		span {
-			margin-left: 8px;
+			margin-left: 10px;
 			@include truncate();
 		}
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
@@ -158,15 +155,6 @@
 
 	.standard-items-sections {
 		margin-top: 14px;
-		.navbar-search-bar {
-			background-color: var(--control-bg-on-gray);
-			border-radius: var(--border-radius);
-			padding-right: 7px;
-			.standard-sidebar-item a:hover {
-				background-color: var(--control-bg-on-gray);
-				border-radius: var(--border-radius);
-			}
-		}
 		.dropdown-notifications {
 			.notifications-list {
 				left: 3.4%;
