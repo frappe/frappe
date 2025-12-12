@@ -531,31 +531,98 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return filter;
 		});
 
+		// Helper function to get human-readable operator
+		function get_operator_label(operator, fieldtype, value) {
+			const operator_map = {
+				"=": __("equals"),
+				"!=": __("is not equal to"),
+				">": __("greater than"),
+				"<": __("less than"),
+				">=": __("greater than or equals"),
+				"<=": __("less than or equals"),
+				in: __("is one of"),
+				"not in": __("is not one of"),
+				like: __("contains"),
+				"not like": __("does not contain"),
+				between: __("is between"),
+				is: __("is"),
+				"descendants of": __("descendants of"),
+				"ancestors of": __("ancestors of"),
+				"not descendants of": __("not descendants of"),
+				"not ancestors of": __("not ancestors of"),
+				timespan: __("is within"),
+			};
+
+			// Special handling for Check fields
+			if (fieldtype === "Check") {
+				if (operator === "=" && value == 1) {
+					return __("is enabled");
+				} else if (operator === "=" && value == 0) {
+					return __("is disabled");
+				} else if (operator === "!=") {
+					return value == 1 ? __("is disabled") : __("is enabled");
+				}
+			}
+
+			return operator_map[operator] || operator;
+		}
+
 		function get_filter_description(filter) {
-			let doctype = filter[0];
+			let filter_doctype = filter[0];
 			let fieldname = filter[1];
-			let docfield = frappe.meta.get_docfield(doctype, fieldname);
+			let operator = filter[2];
+			let value = filter[3];
+
+			// Get docfield metadata (should be cached by now)
+			let docfield = frappe.meta.get_docfield(filter_doctype, fieldname);
 			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
+			let fieldtype = docfield ? docfield.fieldtype : null;
 
-			if (docfield && docfield.fieldtype === "Check") {
-				filter[3] = filter[3] ? __("Yes") : __("No");
+			// Detect Check field: primary check is metadata, fallback to value pattern (1/0 with =/!=)
+			let is_check_field =
+				fieldtype === "Check" ||
+				((operator === "=" || operator === "!=") && (value == 1 || value == 0));
+
+			// For Check fields with = or !=, show "is enabled"/"is disabled" without value
+			if (is_check_field && (operator === "=" || operator === "!=")) {
+				let operator_label = get_operator_label(operator, "Check", value);
+				return [__(label).bold(), operator_label].join(" ");
 			}
 
-			if (filter[3] && Array.isArray(filter[3]) && filter[3].length > 5) {
-				filter[3] = filter[3].slice(0, 5);
-				filter[3].push("...");
+			// Get operator label for non-Check fields or Check fields with other operators
+			let operator_label = get_operator_label(operator, fieldtype, value);
+
+			// For other Check field operators, show Yes/No
+			if (fieldtype === "Check") {
+				value = value ? __("Yes") : __("No");
 			}
 
-			let value;
-			if (filter[3] && Array.isArray(filter[3])) {
-				value = filter[3].map((v) => String(__(v)).bold()).join(", ");
-			} else if (filter[3] == null || filter[3] === "") {
-				value = __("empty").bold();
+			// Handle array values and truncate if needed
+			if (value && Array.isArray(value)) {
+				// Filter out null/undefined/empty values from array
+				value = value.filter((v) => v != null && v !== "");
+
+				if (value.length > 5) {
+					value = value.slice(0, 5);
+					value.push("...");
+				}
+			}
+
+			// Format value for display
+			let formatted_value;
+			if (value && Array.isArray(value)) {
+				if (value.length === 0) {
+					formatted_value = __("empty").bold();
+				} else {
+					formatted_value = value.map((v) => String(__(v)).bold()).join(", ");
+				}
+			} else if (value == null || value === "") {
+				formatted_value = __("empty").bold();
 			} else {
-				value = String(__(filter[3])).bold();
+				formatted_value = String(__(value)).bold();
 			}
 
-			return [__(label).bold(), __(filter[2]), value].join(" ");
+			return [__(label).bold(), operator_label, formatted_value].join(" ");
 		}
 
 		let filter_string = filter_array.map(get_filter_description).join(", ");
