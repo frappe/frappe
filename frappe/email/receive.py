@@ -702,11 +702,20 @@ class InboundMail(Email):
 		return communication
 
 	def replace_inline_images(self, attachments):
-		# replace inline images
 		content = self.content
-		for file in attachments:
-			if self.cid_map.get(file.name):
-				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
+
+		# Find all <img> tags
+		img_tags = re.findall(r"<img\b[^>]*>", content, re.IGNORECASE)
+
+		for img_html in img_tags:
+			for file in attachments:
+				cid = self.cid_map.get(file.name)
+				if cid and f"cid:{cid}" in img_html:
+					# Replace cid reference in this <img> tag with the actual URL
+					new_img_html = img_html.replace(f"cid:{cid}", file.unique_url)
+					# Update content
+					content = content.replace(img_html, new_img_html)
+
 		return content
 
 	def is_notification(self):
