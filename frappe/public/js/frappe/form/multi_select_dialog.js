@@ -111,6 +111,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 		this.setup_results();
 		this.bind_events();
+
+		this.bind_setters_queries();
+
 		this.get_results();
 		this.dialog.show();
 	}
@@ -262,6 +265,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 					read_only:
 						(this?.read_only_setters && this.read_only_setters.includes(setter)) || 0,
 					default: this.setters[setter],
+					onchange: () => this.get_results()
 				});
 			});
 		}
@@ -661,5 +665,15 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				order_by: "parent",
 			},
 		});
+	}
+
+	bind_setters_queries() {
+		if (this.setters_queries) {
+			for (let [fieldname, query_fn] of Object.entries(this.setters_queries)) {
+				if (this.dialog.fields_dict[fieldname]) {
+					this.dialog.fields_dict[fieldname].get_query = query_fn;
+				}
+			}
+		}
 	}
 };
