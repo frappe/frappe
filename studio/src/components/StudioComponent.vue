@@ -107,7 +107,6 @@ import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isHTML } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
@@ -131,7 +130,6 @@ defineOptions({
 	inheritAttrs: false,
 })
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
