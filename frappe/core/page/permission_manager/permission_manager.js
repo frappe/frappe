@@ -351,30 +351,61 @@ frappe.PermissionEngine = class PermissionEngine {
 					method: "get_users_with_role",
 					args: { role },
 					callback: function (r) {
+						let message_html = "";
+
+						const role_label = __(role);
 						const users = (r.message || []).filter(Boolean);
-						const count = users.length;
-						const roleLabel = __(role);
+						const user_count = users.length;
+						const display_count = Math.min(user_count, 5);
 
-						const renderList = (users) => {
-							const li = users
-								.map((user) => `<li><a href="/app/user/${user}">${user}</a></li>`)
+						if (user_count === 0) {
+							message_html = __("No user has the role <strong>{0}</strong>", [
+								role_label,
+							]);
+						} else {
+							const user_text = user_count === 1 ? __("User") : __("Users");
+							const display_users = users.slice(0, display_count);
+
+							const user_list = display_users
+								.map(
+									(user) =>
+										`<li class="d-flex align-items-center py-1">
+                        					<span class="indicator-pill gray mr-2"></span>
+                        					${frappe.utils.get_form_link("User", user, true)}
+                    					</li>`
+								)
 								.join("");
-							return `<ul>${li}</ul>`;
-						};
 
-						const messageHtml =
-							count === 0
-								? `<div class="text-muted">${__("No users have the role {0}.", [
-										roleLabel,
-								  ])}</div>`
-								: `
-									<div class="mb-2 text-muted">${__("{0} user(s) with role {1}", [count, roleLabel])}</div>
-									${renderList(users)}`;
+							message_html = __("{0} with the role <strong>{1}</strong>", [
+								user_text,
+								role_label,
+							]);
+
+							message_html += `<ul class="border rounded p-3 mb-3 mt-3">${user_list}</ul>`;
+
+							// show compact "View All" link if more users
+							if (user_count > display_count) {
+								const route = frappe.utils.generate_route({
+									type: "Doctype",
+									doctype: "User",
+									name: "User",
+									doc_view: "List",
+									route_options: { name: JSON.stringify(["in", users]) },
+								});
+
+								message_html += `<div class="text-center">
+                    								<a href="${route}" class="text-muted">
+														${frappe.utils.icon("external-link", "sm", "mr-1")}
+														${__("View all {0} users", [user_count])}
+                    								</a>
+                								</div>`;
+							}
+						}
 
 						frappe.msgprint({
-							title: __("Users with Role: {0}", [roleLabel]),
-							message: messageHtml,
-							indicator: count === 0 ? "orange" : "blue",
+							title: __("Users"),
+							message: message_html,
+							indicator: user_count === 0 ? "orange" : "blue",
 						});
 					},
 				});
