@@ -265,7 +265,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 					read_only:
 						(this?.read_only_setters && this.read_only_setters.includes(setter)) || 0,
 					default: this.setters[setter],
-					onchange: () => this.get_results()
+					onchange: () => this.get_results(),
 				});
 			});
 		}
