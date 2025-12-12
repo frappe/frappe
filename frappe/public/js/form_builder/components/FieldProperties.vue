@@ -36,6 +36,10 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (df.fieldname === "is_virtual" && store.form.selected_field.fieldtype === "Link") {
+			return false;
+		}
+
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";
