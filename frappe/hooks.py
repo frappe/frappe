@@ -149,7 +149,7 @@ jinja = {
 }
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
-
+automation_rule_config = {"allowed_doctypes": ["ToDo"]}
 doc_events = {
 	"*": {
 		"on_update": [
@@ -161,6 +161,7 @@ doc_events = {
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 			"frappe.core.doctype.permission_log.permission_log.make_perm_log",
 			"frappe.search.sqlite_search.update_doc_index",
+			"frappe.automation.doctype.automation_rule.automation_rule.apply_automations",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -183,6 +184,9 @@ doc_events = {
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 		],
 		"after_delete": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
+		"before_save": [
+			"frappe.automation.doctype.automation_rule.automation_rule.apply_automations",
+		],
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
