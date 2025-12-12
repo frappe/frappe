@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-07 09:35+0000\n"
-"PO-Revision-Date: 2025-12-09 17:11\n"
+"PO-Revision-Date: 2025-12-12 18:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -5120,7 +5120,7 @@ msgstr ""
 #. Description of the 'Timeline Field' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Comments and Communications will be associated with this linked document"
-msgstr ""
+msgstr "A megjegyzések és közlemények ehhez a csatolt dokumentumhoz lesznek társítva"
 
 #: frappe/templates/includes/comments/comments.py:52
 msgid "Comments cannot have links or email addresses"
@@ -5134,12 +5134,12 @@ msgstr "Kereskedelmi Kerekítés"
 #. Label of the commit (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "Commit"
-msgstr ""
+msgstr "Végrahajt"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
 msgid "Committed"
-msgstr ""
+msgstr "Végrehajtva"
 
 #: frappe/utils/password_strength.py:176
 msgid "Common names and surnames are easy to guess."
@@ -5397,7 +5397,7 @@ msgstr ""
 #. Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Confirmation Email Template"
-msgstr ""
+msgstr "Megerősítő E-mail Sablon"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:397
 msgid "Confirmed"
@@ -5423,7 +5423,7 @@ msgstr ""
 #. Label of the connected_user (Link) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Connected User"
-msgstr ""
+msgstr "Csatlakozott Felhasználó"
 
 #: frappe/public/js/frappe/form/print_utils.js:125
 #: frappe/public/js/frappe/form/print_utils.js:149
@@ -5484,7 +5484,7 @@ msgstr ""
 #. Label of the sb_01 (Section Break) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Contact Details"
-msgstr ""
+msgstr "Névjegy Részletei"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/contact_email/contact_email.json
@@ -5494,7 +5494,7 @@ msgstr ""
 #. Label of the phone_nos (Table) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Contact Numbers"
-msgstr ""
+msgstr "Névjegy Telefonszámok"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -7026,7 +7026,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Deleted"
-msgstr ""
+msgstr "Törölt"
 
 #. Label of the deleted_doctype (Data) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -7177,7 +7177,7 @@ msgstr ""
 #. 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Description to inform the user about any action that is going to be performed"
-msgstr ""
+msgstr "Leírás, amely tájékoztatja a felhasználót a végrehajtandó műveletekről"
 
 #. Label of the designation (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -7310,7 +7310,7 @@ msgstr ""
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Auto Refresh"
-msgstr ""
+msgstr "Automatikus Frissítés Letiltása"
 
 #. Label of the disable_automatic_recency_filters (Check) field in DocType
 #. 'List View Settings'
@@ -7322,24 +7322,24 @@ msgstr "Automatikus újbóli szűrők kikapcsolása"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr ""
+msgstr "Változás Napló Értesítések Letiltása"
 
 #. Label of the disable_comment_count (Check) field in DocType 'List View
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Comment Count"
-msgstr ""
+msgstr "Megyjegyzés Számláló Letiltása"
 
 #. Label of the disable_count (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Count"
-msgstr ""
+msgstr "Számlálás Letiltása"
 
 #. Label of the disable_document_sharing (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Document Sharing"
-msgstr ""
+msgstr "Dokumentum Megosztás Letiltása"
 
 #. Label of the disable_product_suggestion (Check) field in DocType 'System
 #. Settings'
@@ -7354,7 +7354,7 @@ msgstr ""
 #. Label of the no_smtp_authentication (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Disable SMTP server authentication"
-msgstr ""
+msgstr "Az SMTP-kiszolgáló hitelesítésének letiltása"
 
 #. Label of the disable_scrolling (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -7365,7 +7365,7 @@ msgstr ""
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Sidebar Stats"
-msgstr ""
+msgstr "Oldalsáv Statisztikák Letiltása"
 
 #: frappe/website/doctype/website_settings/website_settings.js:146
 msgid "Disable Signup for your site"
@@ -7375,7 +7375,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr ""
+msgstr "Szabvány E-mail Lábléc Letiltása"
 
 #. Label of the disable_system_update_notification (Check) field in DocType
 #. 'System Settings'
@@ -7875,7 +7875,7 @@ msgstr ""
 #. Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Document Share"
-msgstr ""
+msgstr "Dokumentum Megosztása"
 
 #. Name of a DocType
 #: frappe/core/doctype/document_share_key/document_share_key.json
@@ -7886,7 +7886,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Document Share Key Expiry (in Days)"
-msgstr ""
+msgstr "Dokumentum Megosztási Kulcs Lejárata (napokban)"
 
 #. Name of a report
 #. Label of a Link in the Users Workspace
@@ -7903,7 +7903,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Document States"
-msgstr ""
+msgstr "Dokumentum Állapotai"
 
 #: frappe/model/meta.py:54 frappe/public/js/frappe/model/meta.js:210
 #: frappe/public/js/frappe/model/model.js:137
@@ -7913,12 +7913,12 @@ msgstr ""
 #. Label of the tag (Link) field in DocType 'Tag Link'
 #: frappe/desk/doctype/tag_link/tag_link.json
 msgid "Document Tag"
-msgstr ""
+msgstr "Dokumentum Címke"
 
 #. Label of the title (Data) field in DocType 'Tag Link'
 #: frappe/desk/doctype/tag_link/tag_link.json
 msgid "Document Title"
-msgstr ""
+msgstr "Dokumentum Címe"
 
 #. Label of the document_type (Link) field in DocType 'Assignment Rule'
 #. Label of the reference_type (Link) field in DocType 'Milestone'
@@ -7987,7 +7987,7 @@ msgstr ""
 #. Label of the document_type (Link) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Document Type to Track"
-msgstr ""
+msgstr "Nyomon Követendő Dokumentum Típus"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:40
 msgid "Document Type {0} has been repeated."
@@ -7996,17 +7996,17 @@ msgstr ""
 #. Label of the user_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types"
-msgstr ""
+msgstr "Dokumentum Típusok"
 
 #. Label of the select_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types (Select Permissions Only)"
-msgstr ""
+msgstr "Dokumentum Típusok (Csak engedélyek kiválasztása)"
 
 #. Label of the section_break_2 (Section Break) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types and Permissions"
-msgstr ""
+msgstr "Dokumentum Típusok és Engedélyek"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
 #: frappe/model/document.py:1992
@@ -8273,7 +8273,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Dropdowns"
-msgstr ""
+msgstr "Legördülő menük"
 
 #. Label of the date (Date) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -8283,7 +8283,7 @@ msgstr ""
 #. Label of the due_date_based_on (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Due Date Based On"
-msgstr ""
+msgstr "Határidő dátuma ez alapján"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 #: frappe/public/js/frappe/form/toolbar.js:455
@@ -8340,20 +8340,20 @@ msgstr ""
 #. 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Dynamic Filters"
-msgstr ""
+msgstr "Dinamikus Szűrők"
 
 #. Label of the dynamic_filters_json (Code) field in DocType 'Dashboard Chart'
 #. Label of the dynamic_filters_json (Code) field in DocType 'Number Card'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Dynamic Filters JSON"
-msgstr ""
+msgstr "Dinamikus Szűrők JSON"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Dynamic Filters Section"
-msgstr ""
+msgstr "Dinamikus Szűrők Szakasz"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Name of a DocType
@@ -8374,17 +8374,17 @@ msgstr ""
 #. 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Dynamic Report Filters"
-msgstr ""
+msgstr "Dinamikus Jelentés Szűrők"
 
 #. Label of the dynamic_route (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Dynamic Route"
-msgstr ""
+msgstr "Dinamikus Útvonal"
 
 #. Label of the dynamic_template (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Dynamic Template"
-msgstr ""
+msgstr "Dinamikus Sablon"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "ESC"
@@ -9083,13 +9083,14 @@ msgstr ""
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Enable if on click\n"
 "opens modal."
-msgstr ""
+msgstr "Engedélyezés, ha a\n"
+"kattintásra megnyílik a modális ablak."
 
 #. Label of the enable_view_tracking (Check) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Enable in-app website tracking"
-msgstr ""
+msgstr "Alkalmazáson belüli webhelykövetés engedélyezése"
 
 #. Label of the enabled (Check) field in DocType 'Language'
 #. Label of the enabled (Check) field in DocType 'User'
@@ -9133,7 +9134,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Enables Calendar and Gantt views."
-msgstr ""
+msgstr "Engedélyezi a Naptár és Gantt nézeteket."
 
 #: frappe/email/doctype/email_account/email_account.js:295
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
@@ -9153,12 +9154,12 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Enabling this will submit documents in background"
-msgstr ""
+msgstr "Ennek engedélyezése a dokumentumok háttérben történő benyújtását eredményezi"
 
 #. Label of the encrypt_backup (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Encrypt Backups"
-msgstr ""
+msgstr "Biztonsági Mentések Titkosítása"
 
 #: frappe/utils/password.py:196
 msgid "Encryption key is in invalid format!"
@@ -9437,12 +9438,12 @@ msgstr ""
 #. Label of the event_category (Select) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Event Category"
-msgstr ""
+msgstr "Esemény Kategória"
 
 #. Label of the event_frequency (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Event Frequency"
-msgstr ""
+msgstr "Esemény Gyakorisága"
 
 #. Label of the event_participants (Table) field in DocType 'Event'
 #. Name of a DocType
@@ -9455,7 +9456,7 @@ msgstr ""
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Event Reminders"
-msgstr ""
+msgstr "Esemény Emlékeztetők"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:493
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:577
@@ -9467,7 +9468,7 @@ msgstr ""
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/desk/doctype/event/event.json
 msgid "Event Type"
-msgstr ""
+msgstr "Esemény Típusa"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:67
 msgid "Events"
@@ -9621,7 +9622,7 @@ msgstr "Időkorlát"
 #. Label of the expire_notification_on (Datetime) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Expire Notification On"
-msgstr ""
+msgstr "Lejárati Figyelmeztetés Ekkor"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
@@ -9635,7 +9636,7 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Expires In"
-msgstr ""
+msgstr "Lejár Ekkor"
 
 #. Label of the expires_on (Date) field in DocType 'Document Share Key'
 #: frappe/core/doctype/document_share_key/document_share_key.json
@@ -9645,7 +9646,7 @@ msgstr ""
 #. Label of the lifespan_qrcode_image (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Expiry time of QR Code Image Page"
-msgstr ""
+msgstr "A QR kód képoldal lejárati ideje"
 
 #. Label of the export (Check) field in DocType 'Custom DocPerm'
 #. Label of the export (Check) field in DocType 'DocPerm'
@@ -9754,20 +9755,20 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Expression"
-msgstr ""
+msgstr "Kifejezés"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Expression (old style)"
-msgstr ""
+msgstr "Kifejezés (régi stílusú)"
 
 #. Description of the 'Condition' (Data) field in DocType 'Notification
 #. Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Expression, Optional"
-msgstr ""
+msgstr "Kifejezés, Opcionális"
 
 #. Option for the 'Link Type' (Select) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -9784,13 +9785,13 @@ msgstr ""
 #. App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Extra Parameters"
-msgstr ""
+msgstr "Extra Paraméterek"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #. Option for the 'SocketIO Ping Check' (Select) field in DocType 'System
 #. Health Report'
@@ -10093,7 +10094,7 @@ msgstr "A tranzakció munkafolyamat állapotát jelző mező (ha a mező nincs j
 #. Label of the track_field (Select) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Field to Track"
-msgstr ""
+msgstr "Mező nyomon követése"
 
 #: frappe/custom/doctype/property_setter/property_setter.py:52
 msgid "Field type cannot be changed for {0}"
@@ -10221,7 +10222,7 @@ msgstr ""
 #. Description of the 'Search Fields' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box"
-msgstr ""
+msgstr "A vesszővel (,) elválasztott mezők bekerülnek a Keresés párbeszédpanel \"Keresés\" listájába"
 
 #. Label of the fieldtype (Select) field in DocType 'Report Column'
 #. Label of the fieldtype (Select) field in DocType 'Report Filter'
@@ -10236,7 +10237,7 @@ msgstr ""
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Fieldtype"
-msgstr ""
+msgstr "Mezőtípus"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:193
 msgid "Fieldtype cannot be changed from {0} to {1}"
@@ -10265,7 +10266,7 @@ msgstr ""
 #. Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "File Information"
-msgstr ""
+msgstr "Fájl Információk"
 
 #: frappe/public/js/frappe/views/file/file_view.js:74
 msgid "File Manager"
@@ -10274,12 +10275,12 @@ msgstr ""
 #. Label of the file_name (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File Name"
-msgstr ""
+msgstr "Fájl Neve"
 
 #. Label of the file_size (Int) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File Size"
-msgstr ""
+msgstr "Fájl Mérete"
 
 #. Label of the section_break_ryki (Section Break) field in DocType 'System
 #. Health Report'
@@ -10300,7 +10301,7 @@ msgstr ""
 #. Label of the file_url (Code) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "File URL"
-msgstr ""
+msgstr "Fájl URL"
 
 #: frappe/desk/page/backups/backups.py:107
 msgid "File backup is ready"
@@ -10918,7 +10919,7 @@ msgstr ""
 #. Label of the form_dict (Code) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Form Dict"
-msgstr ""
+msgstr "Űrlap Tartalma"
 
 #. Label of the form_settings_section (Section Break) field in DocType
 #. 'DocType'
@@ -10931,7 +10932,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Form Settings"
-msgstr ""
+msgstr "Űrlap Beállítások"
 
 #. Name of a DocType
 #. Label of the form_tour (Link) field in DocType 'Onboarding Step'
@@ -10948,7 +10949,7 @@ msgstr ""
 #. Option for the 'Request Structure' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Form URL-Encoded"
-msgstr ""
+msgstr "Űrlap URL-kódolva"
 
 #. Label of the format (Data) field in DocType 'Workspace Shortcut'
 #. Label of the format (Select) field in DocType 'Auto Email Report'
@@ -10961,7 +10962,7 @@ msgstr ""
 #. Label of the format_data (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Format Data"
-msgstr ""
+msgstr "Adat Formátum"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -10981,7 +10982,7 @@ msgstr ""
 #. Label of the forward_to_email (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Forward To Email Address"
-msgstr ""
+msgstr "Továbbítás E-mail Címekre"
 
 #. Label of the fraction (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -11363,7 +11364,7 @@ msgstr ""
 #. Label of the global_unsubscribe (Check) field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 msgid "Global Unsubscribe"
-msgstr ""
+msgstr "Globális Leiratkozás"
 
 #: frappe/public/js/frappe/form/toolbar.js:876
 msgid "Go"
@@ -11640,12 +11641,12 @@ msgstr ""
 #. Label of the group_by_based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Group By Based On"
-msgstr ""
+msgstr "Csoportosítás az alábbiak alapján"
 
 #. Label of the group_by_type (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Group By Type"
-msgstr ""
+msgstr "Csoportosítás Típus Szerint"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:408
 msgid "Group By field is required to create a dashboard chart"
@@ -11672,7 +11673,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "HEAD"
-msgstr ""
+msgstr "FEJ"
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -11684,14 +11685,14 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr ""
+msgstr "HH:mm (óra:perc)"
 
 #. Option for the 'Time Format' (Select) field in DocType 'Language'
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr ""
+msgstr "HH:mm:ss (óra:perc:másodperc)"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11729,17 +11730,17 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "HTML Editor"
-msgstr ""
+msgstr "HTML Szerkesztő"
 
 #. Label of the page (HTML Editor) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "HTML Page"
-msgstr ""
+msgstr "HTML Oldal"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "HTML for header section. Optional"
-msgstr ""
+msgstr "HTML a fejléc szakaszhoz. Opcionális"
 
 #: frappe/website/doctype/web_page/web_page.js:92
 msgid "HTML with jinja support"
@@ -11748,7 +11749,7 @@ msgstr ""
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgid "Half"
-msgstr ""
+msgstr "Fél"
 
 #. Option for the 'Repeat On' (Select) field in DocType 'Event'
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
@@ -11771,7 +11772,7 @@ msgstr ""
 #. Label of the has_attachment (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Has  Attachment"
-msgstr ""
+msgstr "Melléklettel Rendelkezik"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_domain/has_domain.json
@@ -11781,7 +11782,7 @@ msgstr ""
 #. Label of the has_next_condition (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Has Next Condition"
-msgstr ""
+msgstr "Következő Feltétellel Rendelkezik"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_role/has_role.json
@@ -11797,7 +11798,7 @@ msgstr ""
 #. Label of the has_web_view (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Has Web View"
-msgstr ""
+msgstr "Web Nézettel Rendelkezik"
 
 #: frappe/templates/signup.html:19
 msgid "Have an account? Login"
@@ -11812,12 +11813,12 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 msgid "Header"
-msgstr ""
+msgstr "Fejléc"
 
 #. Label of the content (HTML Editor) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Header HTML"
-msgstr ""
+msgstr "Fejléc HTML"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:69
 msgid "Header HTML set from attachment {0}"
@@ -11831,18 +11832,18 @@ msgstr ""
 #. Label of the header_script (Code) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Header Script"
-msgstr ""
+msgstr "Fejléc Szkript"
 
 #. Label of the sb2 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Header and Breadcrumbs"
-msgstr ""
+msgstr "Fejléc és Navigációs Útvonal"
 
 #. Label of the section_break_38 (Tab Break) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Header, Robots"
-msgstr ""
+msgstr "Fejléc, Robotok"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
@@ -11876,7 +11877,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Heatmap"
-msgstr ""
+msgstr "Hőtérkép"
 
 #: frappe/templates/emails/new_user.html:2
 msgid "Hello"
@@ -11935,7 +11936,7 @@ msgstr "Segítség: A rendszer egy másik rekordjára való hivatkozáshoz haszn
 #. Label of the helpful (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Helpful"
-msgstr ""
+msgstr "Hasznos"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -12282,7 +12283,7 @@ msgstr ""
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "IMAP Details"
-msgstr ""
+msgstr "IMAP Adatok"
 
 #. Label of the imap_folder (Data) field in DocType 'Communication'
 #. Label of the imap_folder (Table) field in DocType 'Email Account'
@@ -12300,7 +12301,7 @@ msgstr ""
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "IP Address"
-msgstr ""
+msgstr "IP Cím"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the icon (Data) field in DocType 'DocType'
@@ -12341,18 +12342,18 @@ msgstr ""
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon will appear on the button"
-msgstr ""
+msgstr "Ikon fog megjelenni a gombon"
 
 #. Label of the sb_identity_details (Section Break) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Identity Details"
-msgstr ""
+msgstr "Azonosító Adatok"
 
 #. Label of the idx (Int) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Idx"
-msgstr ""
+msgstr "Idx"
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
@@ -12367,7 +12368,7 @@ msgstr "Ha a Szigorú felhasználói engedély be van jelölve, és a felhaszná
 #: frappe/workflow/doctype/workflow/workflow.json
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
+msgstr "Ha be van jelölve, a munkafolyamat állapota nem fogja felülírni az állapotát, listanézetben"
 
 #: frappe/core/doctype/doctype/doctype.py:1784
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
@@ -12735,13 +12736,13 @@ msgstr ""
 #. Label of the import_file (Attach) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import File"
-msgstr ""
+msgstr "Fájl Importálása"
 
 #. Label of the import_warnings_section (Section Break) field in DocType 'Data
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import File Errors and Warnings"
-msgstr ""
+msgstr "Fájlhibák és Figyelmeztetések Importálása"
 
 #. Label of the import_log_section (Section Break) field in DocType 'Data
 #. Import'
@@ -12752,12 +12753,12 @@ msgstr ""
 #. Label of the import_log_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Log Preview"
-msgstr ""
+msgstr "Import Napló Előnézet"
 
 #. Label of the import_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Preview"
-msgstr ""
+msgstr "Import Előnézet"
 
 #: frappe/core/doctype/data_import/data_import.js:41
 msgid "Import Progress"
@@ -12771,12 +12772,12 @@ msgstr ""
 #. Label of the import_type (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Type"
-msgstr ""
+msgstr "Import Típusa"
 
 #. Label of the import_warnings (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Warnings"
-msgstr ""
+msgstr "Import Figyelmeztetések"
 
 #: frappe/public/js/frappe/views/file/file_view.js:117
 msgid "Import Zip"
@@ -12785,7 +12786,7 @@ msgstr ""
 #. Label of the google_sheets_url (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import from Google Sheets"
-msgstr ""
+msgstr "Importálás a Google Táblázatokból"
 
 #: frappe/core/doctype/data_import/importer.py:641
 msgid "Import template should be of type .csv, .xlsx or .xls"
@@ -12823,14 +12824,14 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In Days"
-msgstr ""
+msgstr "Napokban"
 
 #. Label of the in_filter (Check) field in DocType 'DocField'
 #. Label of the in_filter (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Filter"
-msgstr ""
+msgstr "Szűrőben"
 
 #. Label of the in_global_search (Check) field in DocType 'DocField'
 #. Label of the in_global_search (Check) field in DocType 'Custom Field'
@@ -12840,7 +12841,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Global Search"
-msgstr ""
+msgstr "Globális Keresésben"
 
 #: frappe/core/doctype/doctype/doctype.js:88
 msgid "In Grid View"
@@ -12872,7 +12873,7 @@ msgstr "Percben"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Preview"
-msgstr ""
+msgstr "Előnézetben"
 
 #: frappe/core/doctype/data_import/data_import.js:42
 msgid "In Progress"
@@ -12885,7 +12886,7 @@ msgstr ""
 #. Label of the in_reply_to (Link) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "In Reply To"
-msgstr ""
+msgstr "A Válaszban"
 
 #. Label of the in_standard_filter (Check) field in DocType 'Custom Field'
 #. Label of the in_standard_filter (Check) field in DocType 'Customize Form
@@ -12893,18 +12894,18 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Standard Filter"
-msgstr ""
+msgstr "Alapértelmezett Szűrőben"
 
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "In points. Default is 9."
-msgstr ""
+msgstr "Pontokban. Alapértelmezett 9."
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In seconds"
-msgstr ""
+msgstr "Másodpercben"
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
@@ -12933,12 +12934,12 @@ msgstr ""
 #. Label of the include_name_field (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
-msgstr ""
+msgstr "Tartalmazza Név Mezőt"
 
 #. Label of the navbar_search (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr ""
+msgstr "Keresés Hozzáadása a Felső Sávba"
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
@@ -12947,7 +12948,7 @@ msgstr ""
 #. Label of the attach_view_link (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Include Web View Link in Email"
-msgstr ""
+msgstr "Webes nézet link beillesztése E-mail-be"
 
 #: frappe/public/js/frappe/form/print_utils.js:59
 #: frappe/public/js/frappe/views/reports/query_report.js:1645
@@ -13274,13 +13275,13 @@ msgstr ""
 #. Label of the intro_video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Intro Video URL"
-msgstr ""
+msgstr "Bevezető Videó URL címe"
 
 #. Description of the 'Company Introduction' (Text Editor) field in DocType
 #. 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr ""
+msgstr "Mutassa be a cégét a honlap látogatóinak."
 
 #. Label of the introduction_section (Section Break) field in DocType 'Contact
 #. Us Settings'
@@ -13296,7 +13297,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Introductory information for the Contact Us Page"
-msgstr ""
+msgstr "Bevezető információk a Kapcsolat oldalhoz"
 
 #. Label of the introspection_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -13669,7 +13670,7 @@ msgstr ""
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Inverse"
-msgstr ""
+msgstr "Fordított"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "Invitation already accepted"
@@ -13724,7 +13725,7 @@ msgstr ""
 #. Label of the is_attachments_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Attachments Folder"
-msgstr ""
+msgstr "Mellékletek Mappája"
 
 #. Label of the is_calendar_and_gantt (Check) field in DocType 'DocType'
 #. Label of the is_calendar_and_gantt (Check) field in DocType 'Customize Form'
@@ -13746,7 +13747,7 @@ msgstr ""
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Complete"
-msgstr ""
+msgstr "Teljes"
 
 #. Label of the is_completed (Check) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
@@ -14239,12 +14240,12 @@ msgstr "LDAP Egyéni Beállítások"
 #. Label of the ldap_email_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Email Field"
-msgstr ""
+msgstr "LDAP E-mail Mező"
 
 #. Label of the ldap_first_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP First Name Field"
-msgstr ""
+msgstr "LDAP Keresztnév Mező"
 
 #. Label of the ldap_group (Data) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
@@ -14422,13 +14423,13 @@ msgstr ""
 #. Label of the label_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Label Help"
-msgstr ""
+msgstr "Felirat Súgó"
 
 #. Label of the label_and_type (Section Break) field in DocType 'Customize Form
 #. Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Label and Type"
-msgstr ""
+msgstr "Felirat és Típus"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:145
 msgid "Label is mandatory"
@@ -14437,7 +14438,7 @@ msgstr ""
 #. Label of the sb0 (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Landing Page"
-msgstr ""
+msgstr "Nyitóoldal"
 
 #: frappe/public/js/frappe/form/print_utils.js:23
 msgid "Landscape"
@@ -14461,12 +14462,12 @@ msgstr ""
 #. Label of the language_code (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Language Code"
-msgstr ""
+msgstr "Nyelv Kód"
 
 #. Label of the language_name (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Language Name"
-msgstr ""
+msgstr "Nyelv Neve"
 
 #. Label of the last_10_active_users (Code) field in DocType 'System Health
 #. Report'
@@ -14497,12 +14498,12 @@ msgstr ""
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Active"
-msgstr ""
+msgstr "Utoljára Aktív"
 
 #. Label of the last_execution (Datetime) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr ""
+msgstr "Utolsó Végrehajtás"
 
 #. Label of the last_heartbeat (Datetime) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -14512,17 +14513,17 @@ msgstr "Utolsó Szívverés"
 #. Label of the last_ip (Read Only) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last IP"
-msgstr ""
+msgstr "Utolsó IP"
 
 #. Label of the last_known_versions (Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Known Versions"
-msgstr ""
+msgstr "Utolsó Ismert Verziók"
 
 #. Label of the last_login (Read Only) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Login"
-msgstr ""
+msgstr "Utolsó Bejelentkezés"
 
 #: frappe/email/doctype/notification/notification.js:32
 msgid "Last Modified Date"
@@ -14537,7 +14538,7 @@ msgstr ""
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:644
 msgid "Last Month"
-msgstr ""
+msgstr "Múlt Hónap"
 
 #. Label of the last_name (Data) field in DocType 'Contact'
 #. Label of the last_name (Data) field in DocType 'User'
@@ -14553,13 +14554,13 @@ msgstr ""
 #. Label of the last_password_reset_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Password Reset Date"
-msgstr ""
+msgstr "Utolsó Jelszó Visszaállítási Dátuma"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:648
 msgid "Last Quarter"
-msgstr ""
+msgstr "Utolsó Negyedév"
 
 #. Label of the last_received_at (Datetime) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -14580,12 +14581,12 @@ msgstr ""
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Last Sync On"
-msgstr ""
+msgstr "Utolsó Szinkronizálás Ekkor"
 
 #. Label of the last_synced_on (Datetime) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Last Synced On"
-msgstr ""
+msgstr "Utoljára Szinkronizálva"
 
 #. Label of the last_updated (Datetime) field in DocType 'User Session Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
@@ -14605,19 +14606,19 @@ msgstr ""
 #. Label of the last_user (Link) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Last User"
-msgstr ""
+msgstr "Utolsó Felhasználó"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:640
 msgid "Last Week"
-msgstr ""
+msgstr "Múlt Hét"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:656
 msgid "Last Year"
-msgstr ""
+msgstr "Tavaly"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:753
 msgid "Last synced {0}"
@@ -14638,7 +14639,7 @@ msgstr ""
 #. Description of the 'Repeat Till' (Date) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Leave blank to repeat always"
-msgstr ""
+msgstr "Üresen hagyva örökké ismétlődik"
 
 #: frappe/core/doctype/communication/mixins.py:207
 #: frappe/email/doctype/email_account/email_account.py:720
@@ -14682,7 +14683,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Legal"
-msgstr ""
+msgstr "Jogi"
 
 #. Label of the length (Int) field in DocType 'DocField'
 #. Label of the length (Int) field in DocType 'Custom Field'
@@ -14740,7 +14741,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Letter"
-msgstr ""
+msgstr "Levél"
 
 #. Label of the letter_head (Link) field in DocType 'Report'
 #. Name of a DocType
@@ -14757,19 +14758,19 @@ msgstr ""
 #. Label of the source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Based On"
-msgstr ""
+msgstr "Levélfej Alapján"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Image"
-msgstr ""
+msgstr "Levélfej Kép"
 
 #. Label of the letter_head_name (Data) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:198
 msgid "Letter Head Name"
-msgstr ""
+msgstr "Levélfejléc Neve"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
@@ -14783,7 +14784,7 @@ msgstr ""
 #. Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head in HTML"
-msgstr ""
+msgstr "Levélfejléc HTML-ben"
 
 #. Label of the permlevel (Int) field in DocType 'Custom DocPerm'
 #. Label of the permlevel (Int) field in DocType 'DocPerm'
@@ -14830,7 +14831,7 @@ msgstr "Világoskék"
 #. Label of the light_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Light Color"
-msgstr ""
+msgstr "Világos Szín"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
@@ -14859,7 +14860,7 @@ msgstr ""
 #. Label of the limit (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Limit"
-msgstr ""
+msgstr "Korlát"
 
 #: frappe/database/query.py:248
 msgid "Limit must be a non-negative integer"
@@ -14868,7 +14869,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Line"
-msgstr ""
+msgstr "Vonal"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -14906,7 +14907,7 @@ msgstr ""
 #. Label of the tab_break_18 (Tab Break) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Link Cards"
-msgstr ""
+msgstr "Hivatkozás Kártyák"
 
 #. Label of the link_count (Int) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -14931,7 +14932,7 @@ msgstr "Elérési Link DocType"
 #. Label of the link_doctype (Link) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Document Type"
-msgstr ""
+msgstr "Hivatkozás Dokumentum Típus"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:406
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:202
@@ -14947,7 +14948,7 @@ msgstr "Hivatkozásmező Találati Korlátja"
 #. Label of the link_fieldname (Data) field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Link Fieldname"
-msgstr ""
+msgstr "Hivatkozás Mezőnév"
 
 #. Label of the link_filters (JSON) field in DocType 'DocField'
 #. Label of the link_filters (JSON) field in DocType 'Custom Field'
@@ -14967,14 +14968,14 @@ msgstr ""
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Name"
-msgstr ""
+msgstr "Hivatkozás Neve"
 
 #. Label of the link_title (Read Only) field in DocType 'Communication Link'
 #. Label of the link_title (Read Only) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Title"
-msgstr ""
+msgstr "Hivatkozás Címe"
 
 #. Label of the link_to (Dynamic Link) field in DocType 'Desktop Icon'
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace'
@@ -14991,7 +14992,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:281
 #: frappe/public/js/frappe/widgets/widget_dialog.js:427
 msgid "Link To"
-msgstr ""
+msgstr "Hivatkozás Ide"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:363
 msgid "Link To in Row"
@@ -15026,14 +15027,14 @@ msgstr "A weboldal kezdőlapjára mutató hivatkozás. Szabványos hivatkozások
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Link to the page you want to open. Leave blank if you want to make it a group parent."
-msgstr ""
+msgstr "Hivatkozás a megnyitni kívánt oldalra. Hagyja üresen, ha azt szeretné, hogy ez egy szülő csoport legyen."
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/communication/communication.json
 msgid "Linked"
-msgstr ""
+msgstr "Kapcsolódó"
 
 #: frappe/public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
@@ -15072,7 +15073,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:92
 #: frappe/public/js/frappe/utils/utils.js:953
 msgid "List"
-msgstr ""
+msgstr "Lista"
 
 #. Label of the list__search_settings_section (Section Break) field in DocType
 #. 'DocField'
@@ -15148,7 +15149,7 @@ msgstr ""
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Load Balancing"
-msgstr ""
+msgstr "Terheléselosztás"
 
 #: frappe/public/js/frappe/list/base_list.js:399
 #: frappe/public/js/frappe/web_form/web_form_list.js:306
@@ -15206,7 +15207,7 @@ msgstr ""
 #. Label of the log (Code) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
 msgid "Log"
-msgstr ""
+msgstr "Napló"
 
 #. Label of the log_api_requests (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -15216,7 +15217,7 @@ msgstr ""
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Log Data"
-msgstr ""
+msgstr "Napló Adatok"
 
 #. Label of the ref_doctype (Link) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -15275,12 +15276,12 @@ msgstr ""
 #. Label of the login_after (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login After"
-msgstr ""
+msgstr "Bejelentkezés Után"
 
 #. Label of the login_before (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login Before"
-msgstr ""
+msgstr "Bejelentkezés Előtt"
 
 #: frappe/public/js/frappe/desk.js:256
 msgid "Login Failed please try again"
@@ -15396,7 +15397,7 @@ msgstr ""
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/me.html:84
 msgid "Logout"
-msgstr ""
+msgstr "Kijelentkezés"
 
 #: frappe/core/doctype/user/user.js:195
 msgid "Logout All Sessions"
@@ -15406,12 +15407,12 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr ""
+msgstr "Kijelentkezés az összes munkamenetből jelszó visszaállításakor"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Logout From All Devices After Changing Password"
-msgstr ""
+msgstr "Kijelentkezés az összes eszközről a jelszó megváltoztatása után"
 
 #. Group in User's connections
 #. Label of a Card Break in the Users Workspace
@@ -15436,7 +15437,7 @@ msgstr "Törlendő Naplók"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Long Text"
-msgstr ""
+msgstr "Hosszú Szöveg"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:317
 msgid "Looks like you didn't change the value"
@@ -15468,22 +15469,22 @@ msgstr "MIT Licensz"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:48
 msgid "Madam"
-msgstr ""
+msgstr "Hölgy"
 
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Fő Szakasz"
 
 #. Label of the main_section_html (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Fő Szakasz (HTML)"
 
 #. Label of the main_section_md (Markdown Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Fő Szakasz (Markdown)"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
@@ -15507,7 +15508,7 @@ msgstr "Major"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr ""
+msgstr "A \"név\" kereshetővé tétele a globális keresőben"
 
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -15542,7 +15543,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:28
 msgid "Male"
-msgstr ""
+msgstr "Férfi"
 
 #: frappe/www/me.html:56
 msgid "Manage 3rd party apps"
@@ -15569,7 +15570,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Mandatory Depends On"
-msgstr ""
+msgstr "Kötelezően Függ"
 
 #. Label of the mandatory_depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -15630,7 +15631,7 @@ msgstr ""
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
-msgstr ""
+msgstr "Útvonalparaméterek űrlapváltozókba való leképezése. Példa <code>/project/&lt;name&gt;</code>"
 
 #: frappe/core/doctype/data_import/importer.py:954
 msgid "Mapping column {0} to field {1}"
@@ -15976,7 +15977,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_route_meta/website_route_meta.json
 msgid "Meta Tags"
-msgstr ""
+msgstr "Meta Címkék"
 
 #: frappe/website/doctype/web_page/web_page.js:117
 msgid "Meta Title"
@@ -16026,7 +16027,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Method"
-msgstr ""
+msgstr "Módszer"
 
 #: frappe/__init__.py:468
 msgid "Method Not Allowed"
@@ -16046,7 +16047,7 @@ msgstr "Középső középpont"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/user/user.json
 msgid "Middle Name"
-msgstr ""
+msgstr "Középső Név"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -16068,13 +16069,13 @@ msgstr ""
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Minimum"
-msgstr ""
+msgstr "Minimális"
 
 #. Label of the minimum_password_score (Select) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Minimum Password Score"
-msgstr ""
+msgstr "Minimum Jelszó Pontszám"
 
 #. Label of the minor (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -16111,7 +16112,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:49
 msgid "Miss"
-msgstr ""
+msgstr "Asszony"
 
 #: frappe/desk/form/meta.py:197
 msgid "Missing DocType"
@@ -16238,7 +16239,7 @@ msgstr "HTML Modul"
 #. Label of the module_name (Data) field in DocType 'Module Def'
 #: frappe/core/doctype/module_def/module_def.json
 msgid "Module Name"
-msgstr ""
+msgstr "Modul Neve"
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -16282,7 +16283,7 @@ msgstr ""
 #. Label of the modules_html (HTML) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Modules HTML"
-msgstr ""
+msgstr "Modulok HTML"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -16344,7 +16345,7 @@ msgstr ""
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Monthly Long"
-msgstr ""
+msgstr "Havi Hosszú"
 
 #: frappe/public/js/frappe/form/link_selector.js:39
 #: frappe/public/js/frappe/form/multi_select_dialog.js:45
@@ -16375,7 +16376,7 @@ msgstr ""
 #: frappe/core/doctype/user/user.json
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "More Information"
-msgstr ""
+msgstr "Több Információ"
 
 #: frappe/website/doctype/help_article/templates/help_article.html:19
 #: frappe/website/doctype/help_article/templates/help_article.html:33
@@ -16386,7 +16387,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "More content for the bottom of the page."
-msgstr ""
+msgstr "További tartalom az oldal aljára."
 
 #: frappe/public/js/frappe/ui/sort_selector.js:193
 msgid "Most Used"
@@ -16456,15 +16457,15 @@ msgstr "A Mozilla nem támogatja a :has() funkciót, így a szülői szelektor �
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:43
 msgid "Mr"
-msgstr ""
+msgstr "Úr"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Mrs"
-msgstr ""
+msgstr "Asszony"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:44
 msgid "Ms"
-msgstr ""
+msgstr "Hölgy"
 
 #: frappe/utils/nestedset.py:344
 msgid "Multiple root nodes not allowed."
@@ -16474,7 +16475,7 @@ msgstr ""
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Must be a publicly accessible Google Sheets URL"
-msgstr ""
+msgstr "Nyilvánosan elérhető Google Táblázatok URL-címének kell lennie"
 
 #. Description of the 'LDAP Search String' (Data) field in DocType 'LDAP
 #. Settings'
@@ -16487,7 +16488,7 @@ msgstr "A '()'-ba kell zárni, és tartalmaznia kell a '{0}'-t, amely a felhaszn
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Must be of type \"Attach Image\""
-msgstr ""
+msgstr "\"Kép csatolása\" típusúnak kell lennie"
 
 #: frappe/desk/query_report.py:210
 msgid "Must have report permission to access this report."
@@ -16500,11 +16501,11 @@ msgstr ""
 #. Label of the mute_sounds (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Mute Sounds"
-msgstr ""
+msgstr "Hangok Némítása"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:45
 msgid "Mx"
-msgstr ""
+msgstr "Mx"
 
 #: frappe/templates/includes/web_sidebar.html:41
 #: frappe/website/doctype/web_form/web_form.py:525
@@ -16586,7 +16587,7 @@ msgstr ""
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Naming"
-msgstr ""
+msgstr "Elnevezés"
 
 #. Description of the 'Auto Name' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -16644,13 +16645,13 @@ msgstr ""
 #. 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template"
-msgstr ""
+msgstr "Navigációs Sáv Sablon"
 
 #. Label of the navbar_template_values (Code) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template Values"
-msgstr ""
+msgstr "Navigációs Sáv Sablon Értékek"
 
 #: frappe/public/js/frappe/list/list_view.js:1387
 msgctxt "Description of a list view shortcut"
@@ -16889,7 +16890,7 @@ msgstr "Az új felhasználókat a rendszergazdáknak manuálisan kell regisztrá
 #. Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "New value to be set"
-msgstr ""
+msgstr "Új érték kerül beállításra"
 
 #: frappe/public/js/frappe/form/quick_entry.js:179
 #: frappe/public/js/frappe/form/toolbar.js:48
@@ -16973,12 +16974,12 @@ msgstr ""
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Next Action Email Template"
-msgstr ""
+msgstr "Következő Művelet E-mail Sablon"
 
 #. Label of the next_actions_html (HTML) field in DocType 'Success Action'
 #: frappe/core/doctype/success_action/success_action.json
 msgid "Next Actions HTML"
-msgstr ""
+msgstr "Következő Műveletek HTML"
 
 #: frappe/public/js/frappe/form/toolbar.js:336
 msgid "Next Document"
@@ -17005,7 +17006,7 @@ msgstr ""
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
-msgstr ""
+msgstr "Következő Ütemezés Dátuma"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:6
 msgid "Next Scheduled Date"
@@ -17014,7 +17015,7 @@ msgstr ""
 #. Label of the next_state (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Next State"
-msgstr ""
+msgstr "Következő Állapot"
 
 #. Label of the next_step_condition (Code) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -17026,7 +17027,7 @@ msgstr "Következő Lépés Feltétele"
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Next Sync Token"
-msgstr ""
+msgstr "Következő Szinkronizálási Token"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:692
 msgid "Next Week"
@@ -17442,17 +17443,17 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Non Negative"
-msgstr ""
+msgstr "Nem Negatív"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:33
 msgid "Non-Conforming"
-msgstr ""
+msgstr "Nem megfelelő"
 
 #. Option for the 'Token Endpoint Auth Method' (Select) field in DocType 'OAuth
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "None"
-msgstr ""
+msgstr "Semelyik"
 
 #: frappe/public/js/frappe/form/workflow.js:36
 msgid "None: End of Workflow"
@@ -17664,13 +17665,13 @@ msgstr ""
 #. Slideshow'
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 msgid "Note: For best results,  images must be of the same size and width must be greater than height."
-msgstr ""
+msgstr "Megjegyzés: A legjobb eredmény elérése érdekében a képeknek azonos méretűnek és szélességűnek kell lenniük, mint a magasságnak."
 
 #. Description of the 'Allow only one session per user' (Check) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
-msgstr ""
+msgstr "Megjegyzés: Mobileszköz esetén több munkamenet is engedélyezett"
 
 #: frappe/core/doctype/user/user.js:394
 msgid "Note: This will be shared with user."
@@ -18198,7 +18199,7 @@ msgstr ""
 #. Label of the allow_edit (Link) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Only Allow Edit For"
-msgstr ""
+msgstr "Csak ő szerkesztheti"
 
 #: frappe/core/doctype/doctype/doctype.py:1621
 msgid "Only Options allowed for Data field are:"
@@ -18207,7 +18208,7 @@ msgstr ""
 #. Label of the data_modified_till (Int) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Only Send Records Updated in Last X Hours"
-msgstr ""
+msgstr "Csak az elmúlt X órában frissített rekordok küldése"
 
 #: frappe/desk/doctype/workspace/workspace.js:32
 msgid "Only Workspace Manager can edit public workspaces"
@@ -18304,7 +18305,7 @@ msgstr ""
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Open Documents"
-msgstr ""
+msgstr "Dokumentumok Megnyitása"
 
 #: frappe/public/js/frappe/ui/keyboard.js:243
 msgid "Open Help"
@@ -18314,7 +18315,7 @@ msgstr ""
 #. Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Open Reference Document"
-msgstr ""
+msgstr "Referencia Dokumentum Megnyitása"
 
 #: frappe/public/js/frappe/ui/keyboard.js:226
 msgid "Open Settings"
@@ -18327,7 +18328,7 @@ msgstr ""
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Open URL in a New Tab"
-msgstr ""
+msgstr "URL megnyitása új lapon"
 
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -18395,7 +18396,7 @@ msgstr "OpenLDAP"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Opened"
-msgstr ""
+msgstr "Megnyitotta"
 
 #. Label of the operation (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -18439,12 +18440,12 @@ msgstr ""
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Optional: Always send to these ids. Each Email Address on a new row"
-msgstr ""
+msgstr "Opcionális: Mindig ezekre az azonosítókra küldje. Minden e-mail cím új sorban"
 
 #. Description of the 'Condition' (Code) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional: The alert will be sent if this expression is true"
-msgstr ""
+msgstr "Opcionális: A riasztás akkor kerül elküldésre, ha ez a kifejezés igaz"
 
 #. Label of the options (Small Text) field in DocType 'DocField'
 #. Label of the options (Data) field in DocType 'Report Column'
@@ -18473,7 +18474,7 @@ msgstr ""
 #. Label of the options_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Options Help"
-msgstr ""
+msgstr "Opciók Súgó"
 
 #: frappe/core/doctype/doctype/doctype.py:1668
 msgid "Options for Rating field can range from 3 to 10"
@@ -18505,7 +18506,7 @@ msgstr "Narancssárga"
 #. Label of the order (Code) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Order"
-msgstr ""
+msgstr "Sorrend"
 
 #: frappe/database/query.py:1145
 msgid "Order By must be a string"
@@ -18515,13 +18516,13 @@ msgstr ""
 #. Label of the company_history (Table) field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History"
-msgstr ""
+msgstr "Vállalkozás Története"
 
 #. Label of the company_history_heading (Data) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History Heading"
-msgstr ""
+msgstr "Vállalkozás Története Címsor"
 
 #: frappe/public/js/frappe/form/print_utils.js:21
 msgid "Orientation"
@@ -18542,7 +18543,7 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/page/setup_wizard/install_fixtures.py:30
 msgid "Other"
-msgstr ""
+msgstr "Egyéb"
 
 #. Label of the outgoing_tab (Tab Break) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -18590,7 +18591,7 @@ msgstr "Outlook.com"
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
-msgstr ""
+msgstr "Kimenet"
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
@@ -18626,7 +18627,7 @@ msgstr "PDF Oldalmagasság (mm-ben)"
 #. Label of the pdf_page_size (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Page Size"
-msgstr ""
+msgstr "PDF Oldalméret"
 
 #. Label of the pdf_page_width (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -18636,7 +18637,7 @@ msgstr "PDF Oldalszélesség (mm-ben)"
 #. Label of the pdf_settings (Section Break) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "PDF Settings"
-msgstr ""
+msgstr "PDF Beállítások"
 
 #: frappe/utils/print_format.py:292
 msgid "PDF generation failed"
@@ -18751,12 +18752,12 @@ msgstr ""
 #. Label of the page_blocks (Table) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Page Building Blocks"
-msgstr ""
+msgstr "Oldalépítő Elemek"
 
 #. Label of the page_html (Section Break) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page HTML"
-msgstr ""
+msgstr "HTML Oldal"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
@@ -18769,7 +18770,7 @@ msgstr ""
 #. Label of the page_name (Data) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page Name"
-msgstr ""
+msgstr "Oldal Neve"
 
 #. Label of the page_number (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -18786,7 +18787,7 @@ msgstr "Oldal Útvonal"
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Page Settings"
-msgstr ""
+msgstr "Oldal Beállítások"
 
 #: frappe/public/js/frappe/ui/keyboard.js:125
 msgid "Page Shortcuts"
@@ -18885,7 +18886,7 @@ msgstr ""
 #. Label of the parent_label (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Parent Label"
-msgstr ""
+msgstr "Szülő Felirat"
 
 #: frappe/core/doctype/doctype/doctype.py:1198
 msgid "Parent Missing"
@@ -18949,7 +18950,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Passive"
-msgstr ""
+msgstr "Passzív"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the password_settings (Section Break) field in DocType 'System
@@ -18983,7 +18984,7 @@ msgstr ""
 #. Label of the password_reset_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Password Reset Link Generation Limit"
-msgstr ""
+msgstr "Jelszó-visszaállítási link generálásának korlátja"
 
 #: frappe/public/js/frappe/form/grid_row.js:896
 msgid "Password cannot be filtered"
@@ -18996,7 +18997,7 @@ msgstr ""
 #. Label of the password (Password) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Password for Base DN"
-msgstr ""
+msgstr "Jelszó a Base DN-hez"
 
 #: frappe/email/doctype/email_account/email_account.py:189
 msgid "Password is required or select Awaiting Password"
@@ -19047,7 +19048,7 @@ msgstr ""
 #: frappe/core/doctype/package_release/package_release.json
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Patch"
-msgstr ""
+msgstr "Frissítés"
 
 #. Name of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
@@ -19075,18 +19076,18 @@ msgstr ""
 #. Label of the local_ca_certs_file (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to CA Certs File"
-msgstr ""
+msgstr "CA tanúsítványfájl elérési útja"
 
 #. Label of the local_server_certificate_file (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to Server Certificate"
-msgstr ""
+msgstr "Szervertanúsítvány elérési útja"
 
 #. Label of the local_private_key_file (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to private Key File"
-msgstr ""
+msgstr "Privát kulcsfájl elérési útja"
 
 #: frappe/modules/utils.py:209
 msgid "Path {0} is not within module {1}"
@@ -19122,7 +19123,7 @@ msgstr ""
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Approval"
-msgstr ""
+msgstr "Elbírálás alatt"
 
 #. Label of the pending_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -19139,7 +19140,7 @@ msgstr ""
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr ""
+msgstr "Hitelesítés Függőben"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -19153,7 +19154,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr ""
+msgstr "Százalék"
 
 #. Label of the dynamic_date_period (Select) field in DocType 'Auto Email
 #. Report'
@@ -19166,7 +19167,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Perm Level"
-msgstr ""
+msgstr "Jog Szint"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -19226,7 +19227,7 @@ msgstr "Jogosultság Lekérdzés"
 #. Label of the permission_rules (Section Break) field in DocType 'Custom Role'
 #: frappe/core/doctype/custom_role/custom_role.json
 msgid "Permission Rules"
-msgstr ""
+msgstr "Jogosultsági Szabályok"
 
 #. Label of the permission_type (Select) field in DocType 'Permission
 #. Inspector'
@@ -19305,7 +19306,7 @@ msgstr "Engedélyezett Szerepkörök"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr ""
+msgstr "Személyes"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -19349,7 +19350,7 @@ msgstr ""
 #. Label of the phone_no (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Phone No."
-msgstr ""
+msgstr "Telefonsz."
 
 #: frappe/utils/__init__.py:124
 msgid "Phone Number {0} set in field {1} is not valid."
@@ -19364,12 +19365,12 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Pie"
-msgstr ""
+msgstr "Kör"
 
 #. Label of the pincode (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Pincode"
-msgstr ""
+msgstr "Irányítószám"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -19397,7 +19398,7 @@ msgstr "Egyszerű Szöveg"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Plant"
-msgstr ""
+msgstr "Üzem"
 
 #: frappe/email/doctype/email_account/email_account.py:544
 msgid "Please Authorize OAuth for Email Account {0}"
@@ -19842,7 +19843,7 @@ msgstr "Port"
 #. Label of the menu (Table) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Portal Menu"
-msgstr ""
+msgstr "Portál Menü"
 
 #. Name of a DocType
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
@@ -19861,7 +19862,7 @@ msgstr ""
 #. Label of the position (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Position"
-msgstr ""
+msgstr "Pozíció"
 
 #: frappe/templates/discussions/comment_box.html:29
 #: frappe/templates/discussions/reply_card.html:15
@@ -19878,7 +19879,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Postal"
-msgstr ""
+msgstr "Postai"
 
 #. Label of the pincode (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -19900,7 +19901,7 @@ msgstr "Közzététel Időbélyeg"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Precision"
-msgstr ""
+msgstr "Pontosság"
 
 #: frappe/core/doctype/doctype/doctype.py:1677
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
@@ -19995,12 +19996,12 @@ msgstr ""
 #. Label of the preview_html (HTML) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Preview HTML"
-msgstr ""
+msgstr "Előnézet HTML"
 
 #. Label of the preview_message (Button) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Preview Message"
-msgstr ""
+msgstr "Üzenet Előnézete"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:83
 msgid "Preview Mode"
@@ -20048,7 +20049,7 @@ msgstr ""
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Primary"
-msgstr ""
+msgstr "Elsődleges"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:27
 msgid "Primary Address"
@@ -20057,7 +20058,7 @@ msgstr ""
 #. Label of the primary_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Primary Color"
-msgstr ""
+msgstr "Elsődleges Szín"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:23
 msgid "Primary Contact"
@@ -20155,12 +20156,12 @@ msgstr ""
 #. Label of the print_format_help (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Help"
-msgstr ""
+msgstr "Nyomtatási Sablon Súgó"
 
 #. Label of the print_format_type (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Type"
-msgstr ""
+msgstr "Nyomtatási Sablon típusa"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1603
 msgid "Print Format not found"
@@ -20183,7 +20184,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide"
-msgstr ""
+msgstr "Nyomtatás Elrejtése"
 
 #. Label of the print_hide_if_no_value (Check) field in DocType 'DocField'
 #. Label of the print_hide_if_no_value (Check) field in DocType 'Custom Field'
@@ -20193,7 +20194,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide If No Value"
-msgstr ""
+msgstr "Nyomtatás elrejtése, ha nincs érték"
 
 #: frappe/public/js/frappe/views/communication.js:159
 msgid "Print Language"
@@ -20207,7 +20208,7 @@ msgstr ""
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print Server"
-msgstr ""
+msgstr "Nyomtatási Kiszolgáló"
 
 #. Name of a DocType
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -20230,12 +20231,12 @@ msgstr ""
 #. Label of the print_style_name (Data) field in DocType 'Print Style'
 #: frappe/printing/doctype/print_style/print_style.json
 msgid "Print Style Name"
-msgstr ""
+msgstr "Nyomtatási Stílus Neve"
 
 #. Label of the print_style_preview (HTML) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print Style Preview"
-msgstr ""
+msgstr "Nyomtatási Stílus Előnézet"
 
 #. Label of the print_width (Data) field in DocType 'DocField'
 #. Label of the print_width (Data) field in DocType 'Custom Field'
@@ -20244,13 +20245,13 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Width"
-msgstr ""
+msgstr "Nyomtatási Szélesség"
 
 #. Description of the 'Print Width' (Data) field in DocType 'Customize Form
 #. Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Width of the field, if the field is a column in a table"
-msgstr ""
+msgstr "A mező nyomtatási szélessége, ha a mező egy táblázat oszlopa"
 
 #: frappe/public/js/frappe/form/form.js:171
 msgid "Print document"
@@ -20259,7 +20260,7 @@ msgstr ""
 #. Label of the with_letterhead (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print with letterhead"
-msgstr ""
+msgstr "Nyomtatás fejléccel"
 
 #: frappe/printing/page/print/print.js:894
 msgid "Printer"
@@ -20273,7 +20274,7 @@ msgstr ""
 #. Settings'
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Printer Name"
-msgstr ""
+msgstr "Nyomtató Neve"
 
 #: frappe/printing/page/print/print.js:863
 msgid "Printer Settings"
@@ -20401,7 +20402,7 @@ msgstr ""
 #. Label of the property_type (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Property Type"
-msgstr ""
+msgstr "Tulajdonság Típusa"
 
 #. Label of the protect_attached_files (Check) field in DocType 'DocType'
 #. Label of the protect_attached_files (Check) field in DocType 'Customize
@@ -20426,7 +20427,7 @@ msgstr "Adja meg a fájlfeltöltéshez engedélyezett fájlkiterjesztések list�
 #: frappe/core/doctype/user_social_login/user_social_login.json
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Provider"
-msgstr ""
+msgstr "Szolgáltató"
 
 #. Label of the provider_name (Data) field in DocType 'Connected App'
 #. Label of the provider_name (Data) field in DocType 'Social Login Key'
@@ -20435,7 +20436,7 @@ msgstr ""
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Provider Name"
-msgstr ""
+msgstr "Szolgáltató Neve"
 
 #. Option for the 'Event Type' (Select) field in DocType 'Event'
 #. Label of the public (Check) field in DocType 'Note'
@@ -20615,18 +20616,18 @@ msgstr ""
 #: frappe/core/doctype/recorder_query/recorder_query.json
 #: frappe/core/doctype/report/report.json
 msgid "Query"
-msgstr ""
+msgstr "Lekérdezés"
 
 #. Label of the section_break_6 (Section Break) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Query / Script"
-msgstr ""
+msgstr "Lekérdezés / Szkript"
 
 #. Label of the query_options (Small Text) field in DocType 'Contact Us
 #. Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Query Options"
-msgstr ""
+msgstr "Lekérdezés Beállítások"
 
 #. Label of the query_parameters (Table) field in DocType 'Connected App'
 #. Name of a DocType
@@ -20753,7 +20754,7 @@ msgstr ""
 #. 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "RAW Information Log"
-msgstr ""
+msgstr "RAW Információs Napló"
 
 #. Name of a DocType
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -20808,7 +20809,7 @@ msgstr ""
 #. Label of the raw (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Raw Email"
-msgstr ""
+msgstr "Nyers E-mail"
 
 #. Label of the raw_printing (Check) field in DocType 'Print Format'
 #. Label of the raw_printing_section (Section Break) field in DocType 'Print
@@ -20816,7 +20817,7 @@ msgstr ""
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Raw Printing"
-msgstr ""
+msgstr "Nyers Nyomtatás"
 
 #: frappe/printing/page/print/print.js:178
 msgid "Raw Printing Setting"
@@ -20881,7 +20882,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Read Only Depends On"
-msgstr ""
+msgstr "Csak olvasható, a következőtől függ"
 
 #. Label of the read_only_depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -20895,13 +20896,13 @@ msgstr ""
 #. Label of the read_by_recipient (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient"
-msgstr ""
+msgstr "Címzett által olvasva"
 
 #. Label of the read_by_recipient_on (Datetime) field in DocType
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient On"
-msgstr ""
+msgstr "Címzett által olvasva ekkor"
 
 #: frappe/desk/doctype/note/note.js:10
 msgid "Read mode"
@@ -20978,7 +20979,7 @@ msgstr ""
 #: frappe/email/doctype/email_queue/email_queue.json
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json
 msgid "Recipient"
-msgstr ""
+msgstr "Címzett"
 
 #. Label of the recipient_account_field (Data) field in DocType 'DocType'
 #. Label of the recipient_account_field (Data) field in DocType 'Customize
@@ -20991,7 +20992,7 @@ msgstr ""
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Recipient Unsubscribed"
-msgstr ""
+msgstr "Címzett Leiratkozott"
 
 #. Label of the recipients (Small Text) field in DocType 'Auto Repeat'
 #. Label of the column_break_5 (Section Break) field in DocType 'Notification'
@@ -20999,7 +21000,7 @@ msgstr ""
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Recipients"
-msgstr ""
+msgstr "Címzettek"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder/recorder.json
@@ -21029,7 +21030,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Red"
-msgstr ""
+msgstr "Piros"
 
 #. Label of the redirect_http_status (Select) field in DocType 'Website Route
 #. Redirect'
@@ -21056,14 +21057,14 @@ msgstr "Auth kódhoz kötött URI átirányítása"
 #. Label of the redirect_uris (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Redirect URIs"
-msgstr ""
+msgstr "Átirányítás URI-k"
 
 #. Label of the redirect_url (Small Text) field in DocType 'User'
 #. Label of the redirect_url (Data) field in DocType 'Social Login Key'
 #: frappe/core/doctype/user/user.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Redirect URL"
-msgstr ""
+msgstr "Átirányítás URL"
 
 #. Description of the 'Default App' (Select) field in DocType 'System Settings'
 #. Description of the 'Default App' (Select) field in DocType 'User'
@@ -21144,7 +21145,7 @@ msgstr ""
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Reference DocName"
-msgstr ""
+msgstr "Hivatkozás DocNév"
 
 #. Label of the reference_doctype (Link) field in DocType 'Error Log'
 #. Label of the ref_doctype (Link) field in DocType 'Submission Queue'
@@ -21163,7 +21164,7 @@ msgstr ""
 #: frappe/core/doctype/submission_queue/submission_queue.json
 #: frappe/website/doctype/discussion_topic/discussion_topic.json
 msgid "Reference Docname"
-msgstr ""
+msgstr "Hivatkozás Docnév"
 
 #. Label of the reference_doctype (Data) field in DocType 'Webhook Request Log'
 #. Label of the reference_doctype (Link) field in DocType 'Discussion Topic'
@@ -21274,7 +21275,7 @@ msgstr ""
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.json
 msgid "Reference Owner"
-msgstr ""
+msgstr "Hivatkozás Tulajdonos"
 
 #. Label of the reference_report (Data) field in DocType 'Report'
 #. Label of the reference_report (Link) field in DocType 'Onboarding Step'
@@ -21283,19 +21284,19 @@ msgstr ""
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Reference Report"
-msgstr ""
+msgstr "Hivatkozás Jelentés"
 
 #. Label of the reference_type (Link) field in DocType 'Permission Log'
 #. Label of the reference_type (Link) field in DocType 'ToDo'
 #: frappe/core/doctype/permission_log/permission_log.json
 #: frappe/desk/doctype/todo/todo.json
 msgid "Reference Type"
-msgstr ""
+msgstr "Hivatkozás Típusa"
 
 #. Label of the reference_name (Dynamic Link) field in DocType 'View Log'
 #: frappe/core/doctype/view_log/view_log.json
 msgid "Reference name"
-msgstr ""
+msgstr "Hivatkozás név"
 
 #: frappe/templates/emails/auto_reply.html:3
 msgid "Reference: {0} {1}"
@@ -21327,7 +21328,7 @@ msgstr ""
 #. Label of the refresh_google_sheet (Button) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Refresh Google Sheet"
-msgstr ""
+msgstr "Google Táblázatok Frissítése"
 
 #: frappe/printing/page/print/print.js:389
 msgid "Refresh Print Preview"
@@ -21342,7 +21343,7 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Refresh Token"
-msgstr ""
+msgstr "Token Frissítése"
 
 #: frappe/public/js/frappe/list/list_view.js:536
 msgctxt "Document count in list view"
@@ -21427,7 +21428,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Remember Last Selected Value"
-msgstr ""
+msgstr "Utolsó Kiválasztott Érték Megjegyzése"
 
 #. Label of the remind_at (Datetime) field in DocType 'Reminder'
 #: frappe/automation/doctype/reminder/reminder.json
@@ -21557,17 +21558,17 @@ msgstr "Fejléc és Lábléc Ismétlése"
 #. Label of the repeat_on (Select) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Repeat On"
-msgstr ""
+msgstr "Ismétlés ekkor"
 
 #. Label of the repeat_till (Date) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Repeat Till"
-msgstr ""
+msgstr "Ismétlés eddig"
 
 #. Label of the repeat_on_day (Int) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Day"
-msgstr ""
+msgstr "Ismételje meg a napon"
 
 #. Label of the repeat_on_days (Table) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -21577,12 +21578,12 @@ msgstr "Ismétlés a Napokon"
 #. Label of the repeat_on_last_day (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Last Day of the Month"
-msgstr ""
+msgstr "Ismételje meg a hónap utolsó napján"
 
 #. Label of the repeat_this_event (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Repeat this Event"
-msgstr ""
+msgstr "Ismételje meg ezt az eseményt"
 
 #: frappe/utils/password_strength.py:110
 msgid "Repeats like \"aaa\" are easy to guess"
@@ -21692,7 +21693,7 @@ msgstr ""
 #. Label of the report_description (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Report Description"
-msgstr ""
+msgstr "Jelentés Leírása"
 
 #: frappe/core/doctype/report/report.py:156
 msgid "Report Document Error"
@@ -21707,7 +21708,7 @@ msgstr ""
 #. Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Report Filters"
-msgstr ""
+msgstr "Jelentés Szűrők"
 
 #. Label of the report_hide (Check) field in DocType 'DocField'
 #. Label of the report_hide (Check) field in DocType 'Custom Field'
@@ -21716,13 +21717,13 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Report Hide"
-msgstr ""
+msgstr "Jelentés Elrejtése"
 
 #. Label of the report_information_section (Section Break) field in DocType
 #. 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Report Information"
-msgstr ""
+msgstr "Jelentés Információk"
 
 #. Name of a role
 #: frappe/core/doctype/report/report.json
@@ -22076,12 +22077,12 @@ msgstr ""
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json
 msgid "Response"
-msgstr ""
+msgstr "Válasz"
 
 #. Label of the response_type (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Response Type"
-msgstr ""
+msgstr "Válasz Típusa"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:445
 msgid "Rest of the day"
@@ -22103,7 +22104,7 @@ msgstr ""
 #. Label of the restored (Check) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Restored"
-msgstr ""
+msgstr "Helyreállított"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
@@ -22112,7 +22113,7 @@ msgstr ""
 #. Label of the restrict_ip (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Restrict IP"
-msgstr ""
+msgstr "IP Korlátozása"
 
 #. Label of the restrict_to_domain (Link) field in DocType 'DocType'
 #. Label of the restrict_to_domain (Link) field in DocType 'Module Def'
@@ -22122,14 +22123,14 @@ msgstr ""
 #: frappe/core/doctype/module_def/module_def.json
 #: frappe/core/doctype/page/page.json frappe/core/doctype/role/role.json
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Tartomány Korlátozása"
 
 #. Label of the restrict_to_domain (Link) field in DocType 'Workspace'
 #. Label of the restrict_to_domain (Link) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Restrict to Domain"
-msgstr ""
+msgstr "Tartomány Korlátozása"
 
 #. Description of the 'Restrict IP' (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -22181,7 +22182,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'OAuth Bearer Token'
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Revoked"
-msgstr ""
+msgstr "Visszavont"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:92
@@ -22217,7 +22218,7 @@ msgstr "Jobb Közép"
 #. Label of the robots_txt (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Robots.txt"
-msgstr ""
+msgstr "Robots.txt"
 
 #. Label of the role (Link) field in DocType 'Custom DocPerm'
 #. Label of the roles (Table) field in DocType 'Custom Role'
@@ -22265,7 +22266,7 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_profile/role_profile.json
 msgid "Role Name"
-msgstr ""
+msgstr "Szerepkör Neve"
 
 #. Name of a DocType
 #. Label of a Link in the Users Workspace
@@ -22319,7 +22320,7 @@ msgstr ""
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 msgid "Role and Level"
-msgstr ""
+msgstr "Szerepkör és Szint"
 
 #: frappe/core/doctype/user/user.py:403
 msgid "Role has been set as per the user type {0}"
@@ -22361,7 +22362,7 @@ msgstr "Szerepkörök és Jogosultságok"
 #: frappe/core/doctype/role_profile/role_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Roles Assigned"
-msgstr ""
+msgstr "Hozzárendelt Szerepkörök"
 
 #. Label of the roles_html (HTML) field in DocType 'Role Profile'
 #. Label of the roles_html (HTML) field in DocType 'User'
@@ -22387,7 +22388,7 @@ msgstr ""
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Round Robin"
-msgstr ""
+msgstr "Round Robin"
 
 #. Label of the rounding_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -22433,7 +22434,7 @@ msgstr ""
 #. Label of the route_redirects (Table) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Route Redirects"
-msgstr ""
+msgstr "Útvonalak Átirányítások"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -22521,13 +22522,13 @@ msgstr ""
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Rule"
-msgstr ""
+msgstr "Szabály"
 
 #. Label of the section_break_3 (Section Break) field in DocType 'Document
 #. Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Rule Conditions"
-msgstr ""
+msgstr "Szabály Feltételek"
 
 #: frappe/permissions.py:681
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
@@ -22586,7 +22587,7 @@ msgstr "SMS"
 #. Label of the sms_gateway_url (Small Text) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "SMS Gateway URL"
-msgstr ""
+msgstr "SMS Gateway URL"
 
 #. Name of a DocType
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -22625,7 +22626,7 @@ msgstr "SQL"
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "SQL Conditions. Example: status=\"Open\""
-msgstr ""
+msgstr "SQL Feltételek. Példa: status = \"Open\""
 
 #. Label of the sql_explain_html (HTML) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder/recorder.js:85
@@ -22650,7 +22651,7 @@ msgstr ""
 #. Label of the ssl_tls_mode (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "SSL/TLS Mode"
-msgstr ""
+msgstr "SSL/TLS Mód"
 
 #: frappe/public/js/frappe/color_picker/color_picker.js:20
 msgid "SWATCHES"
@@ -22677,7 +22678,7 @@ msgstr ""
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Salesforce"
-msgstr ""
+msgstr "Salesforce"
 
 #. Label of the salutation (Link) field in DocType 'Contact'
 #. Name of a DocType
@@ -22694,7 +22695,7 @@ msgstr ""
 #. Label of the sample (HTML) field in DocType 'Client Script'
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Sample"
-msgstr ""
+msgstr "Minta"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -22884,7 +22885,7 @@ msgstr ""
 #: frappe/core/doctype/scheduler_event/scheduler_event.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Scheduler Event"
-msgstr ""
+msgstr "Ütemező Esemény"
 
 #: frappe/core/doctype/data_import/data_import.py:125
 msgid "Scheduler Inactive"
@@ -22949,7 +22950,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Script"
-msgstr ""
+msgstr "Szkript"
 
 #. Name of a role
 #: frappe/core/doctype/server_script/server_script.json
@@ -22959,7 +22960,7 @@ msgstr ""
 #. Option for the 'Report Type' (Select) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Script Report"
-msgstr ""
+msgstr "Szkript Jelentés"
 
 #. Label of the script_type (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -23085,7 +23086,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Section.vue:263
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Section"
-msgstr ""
+msgstr "Szakasz"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -23100,7 +23101,7 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Section Break"
-msgstr ""
+msgstr "Szakasztörés"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:421
 msgid "Section Heading"
@@ -23124,7 +23125,7 @@ msgstr ""
 #. Label of the sb3 (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Security Settings"
-msgstr ""
+msgstr "Biztonsági Beállítások"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:340
 msgid "See all Activity"
@@ -23163,7 +23164,7 @@ msgstr ""
 #. Label of the seen_by_section (Section Break) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Seen By"
-msgstr ""
+msgstr "Látta"
 
 #. Label of the seen_by (Table) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -23502,7 +23503,7 @@ msgstr ""
 #. Label of the send_email_alert (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Send Email Alert"
-msgstr ""
+msgstr "E-mail Figyelmeztetés Küldése"
 
 #. Label of the send_email (Check) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -23726,7 +23727,7 @@ msgstr ""
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Separator"
-msgstr ""
+msgstr "Szétválasztó"
 
 #. Label of the sequence_id (Float) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -23755,7 +23756,7 @@ msgstr ""
 #. Option for the 'Action Type' (Select) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Server Action"
-msgstr ""
+msgstr "Szerver Művelet"
 
 #: frappe/app.py:399 frappe/public/js/frappe/request.js:611
 #: frappe/www/error.html:36 frappe/www/error.py:15
@@ -23765,7 +23766,7 @@ msgstr ""
 #. Label of the server_ip (Data) field in DocType 'Network Printer Settings'
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Server IP"
-msgstr ""
+msgstr "Szerver IP"
 
 #. Label of the server_script (Link) field in DocType 'Scheduled Job Type'
 #. Name of a DocType
@@ -24180,7 +24181,7 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Shared"
-msgstr ""
+msgstr "Megosztott"
 
 #: frappe/desk/form/assign_to.py:132
 msgid "Shared with the following Users with Read access:{0}"
@@ -24189,7 +24190,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Shipping"
-msgstr ""
+msgstr "Szállítás"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:31
 msgid "Shipping Address"
@@ -24198,7 +24199,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Shop"
-msgstr ""
+msgstr "Bolt"
 
 #: frappe/utils/password_strength.py:91
 msgid "Short keyboard patterns are easy to guess"
@@ -24307,12 +24308,12 @@ msgstr "Űrlap Túra Megjelenítése"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show Full Error and Allow Reporting of Issues to the Developer"
-msgstr ""
+msgstr "Teljes hiba megjelenítése és a problémák fejlesztőnek történő jelentésének lehetővé tétele"
 
 #. Label of the show_full_form (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Show Full Form?"
-msgstr ""
+msgstr "Teljes Űrlap Megjelenítése?"
 
 #. Label of the show_full_number (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -24338,7 +24339,7 @@ msgstr "Nyelvválasztó Megjelenítése"
 #. Label of the line_breaks (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Line Breaks after Sections"
-msgstr ""
+msgstr "Sortörések Megjelenítése Szakaszok után"
 
 #: frappe/public/js/frappe/form/toolbar.js:443
 msgid "Show Links"
@@ -24352,7 +24353,7 @@ msgstr "Csak a sikertelen naplók megjelenítése"
 #. Label of the show_percentage_stats (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Show Percentage Stats"
-msgstr ""
+msgstr "Százalékos Statisztikák Megjelenítése"
 
 #: frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js:30
 msgid "Show Permissions"
@@ -24370,7 +24371,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Preview Popup"
-msgstr ""
+msgstr "Felugró Ablak Megjelenítése"
 
 #. Label of the show_processlist (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -24402,12 +24403,12 @@ msgstr ""
 #. Label of the show_section_headings (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Section Headings"
-msgstr ""
+msgstr "Szakaszcímek Megjelenítése"
 
 #. Label of the show_sidebar (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Sidebar"
-msgstr ""
+msgstr "Oldalsáv Megjelenítése"
 
 #. Label of the show_social_login_key_as_authorization_server (Check) field in
 #. DocType 'OAuth Settings'
@@ -24423,7 +24424,7 @@ msgstr ""
 #. Label of the show_title (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Title"
-msgstr ""
+msgstr "Cím Megjelenítése"
 
 #. Label of the show_title_field_in_link (Check) field in DocType 'DocType'
 #. Label of the show_title_field_in_link (Check) field in DocType 'Customize
@@ -24476,7 +24477,7 @@ msgstr ""
 #. Label of the show_as_cc (Small Text) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Show as cc"
-msgstr ""
+msgstr "Megjelenítés cc-ként"
 
 #. Label of the show_attachments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -24634,7 +24635,7 @@ msgstr "Feliratkozások"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Signature"
-msgstr ""
+msgstr "Aláírás"
 
 #: frappe/www/login.html:168
 msgid "Signup Disabled"
@@ -24746,12 +24747,12 @@ msgstr "Skype"
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Slack"
-msgstr ""
+msgstr "Slack"
 
 #. Label of the slack_webhook_url (Link) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Slack Channel"
-msgstr ""
+msgstr "Slack Csatorna"
 
 #: frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:65
 msgid "Slack Webhook Error"
@@ -24768,17 +24769,17 @@ msgstr ""
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Slideshow"
-msgstr ""
+msgstr "Diavetítés"
 
 #. Label of the slideshow_items (Table) field in DocType 'Website Slideshow'
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 msgid "Slideshow Items"
-msgstr ""
+msgstr "Diavetítés Elemek"
 
 #. Label of the slideshow_name (Data) field in DocType 'Website Slideshow'
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 msgid "Slideshow Name"
-msgstr ""
+msgstr "Diavetítés Neve"
 
 #. Description of a DocType
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
@@ -24805,19 +24806,19 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Small Text"
-msgstr ""
+msgstr "Kis Szöveg"
 
 #. Label of the smallest_currency_fraction_value (Currency) field in DocType
 #. 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Smallest Currency Fraction Value"
-msgstr ""
+msgstr "Legkisebb Pénznem Tört Értéke"
 
 #. Description of the 'Smallest Currency Fraction Value' (Currency) field in
 #. DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
-msgstr ""
+msgstr "A legkisebb forgalomban lévő törtegység (érme). Például 1 cent USD esetén 0,01-ként kell megadni"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:32
 msgid "Snippet and more variables:  {0}"
@@ -24977,7 +24978,7 @@ msgstr ""
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Spam"
-msgstr ""
+msgstr "Levélszemét"
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -25199,7 +25200,7 @@ msgstr ""
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "State/Province"
-msgstr ""
+msgstr "Állam / Megye"
 
 #. Label of the document_states_section (Tab Break) field in DocType 'DocType'
 #. Label of the states (Table) field in DocType 'Customize Form'
@@ -25208,12 +25209,12 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "States"
-msgstr ""
+msgstr "Állapotok"
 
 #. Label of the parameters (Table) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Static Parameters"
-msgstr ""
+msgstr "Statikus Paraméterek"
 
 #. Label of the statistics_section (Section Break) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -25230,7 +25231,7 @@ msgstr ""
 #. Label of the stats_time_interval (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Stats Time Interval"
-msgstr ""
+msgstr "Statisztikák Időintervallum"
 
 #. Label of the status (Select) field in DocType 'Auto Repeat'
 #. Label of the status (Select) field in DocType 'Contact'
@@ -25303,14 +25304,14 @@ msgstr ""
 #. Label of the step (Link) field in DocType 'Onboarding Step Map'
 #: frappe/desk/doctype/onboarding_step_map/onboarding_step_map.json
 msgid "Step"
-msgstr ""
+msgstr "Lépés"
 
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Steps"
-msgstr ""
+msgstr "Lépések"
 
 #: frappe/www/qrcode.html:11
 msgid "Steps to verify your login"
@@ -25382,22 +25383,22 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Style"
-msgstr ""
+msgstr "Stílus"
 
 #. Label of the section_break_9 (Section Break) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Style Settings"
-msgstr ""
+msgstr "Stílus Beállítások"
 
 #. Description of the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
-msgstr ""
+msgstr "A stílus a gomb színét jelöli: Siker - Zöld, Veszély - Piros, Fordított - Fekete, Elsődleges - Sötétkék, Info - Világoskék, Figyelmeztetés - Narancssárga"
 
 #. Label of the stylesheet_section (Tab Break) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Stylesheet"
-msgstr ""
+msgstr "Stíluslap"
 
 #. Description of the 'Fraction' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -25444,7 +25445,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/desk/doctype/calendar_view/calendar_view.json
 msgid "Subject Field"
-msgstr ""
+msgstr "Tárgy Mező"
 
 #: frappe/core/doctype/doctype/doctype.py:1956
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
@@ -25565,12 +25566,12 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Subsidiary"
-msgstr ""
+msgstr "Leányvállalat"
 
 #. Label of the subtitle (Data) field in DocType 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Subtitle"
-msgstr ""
+msgstr "Felirat"
 
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
@@ -25617,7 +25618,7 @@ msgstr ""
 #. Label of the success_message (Data) field in DocType 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Success Message"
-msgstr ""
+msgstr "Sikerüzenet"
 
 #. Label of the success_uri (Data) field in DocType 'Token Cache'
 #: frappe/integrations/doctype/token_cache/token_cache.json
@@ -25759,14 +25760,14 @@ msgstr ""
 #. Label of the symbol (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Symbol"
-msgstr ""
+msgstr "Szimbólum"
 
 #. Label of the sb_01 (Section Break) field in DocType 'Google Calendar'
 #. Label of the sync (Section Break) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Sync"
-msgstr ""
+msgstr "Szinkronizalás"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.js:28
 msgid "Sync Calendar"
@@ -25792,12 +25793,12 @@ msgstr ""
 #. Label of the sync_with_google_calendar (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Sync with Google Calendar"
-msgstr ""
+msgstr "Szinkronizálás a Google Naptárral"
 
 #. Label of the sync_with_google_contacts (Check) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Sync with Google Contacts"
-msgstr ""
+msgstr "Szinkronizálás a Google Névjegyekkel"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
@@ -25825,7 +25826,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/workspace/system/system.json
 msgid "System"
-msgstr ""
+msgstr "Rendszer"
 
 #. Name of a DocType
 #: frappe/desk/doctype/system_console/system_console.json
@@ -26038,12 +26039,12 @@ msgstr ""
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "System Notification"
-msgstr ""
+msgstr "Rendszer Értesítés"
 
 #. Label of the system_page (Check) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "System Page"
-msgstr ""
+msgstr "Rendszer Oldal"
 
 #. Name of a DocType
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -26054,7 +26055,7 @@ msgstr ""
 #. 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "System managers are allowed by default"
-msgstr ""
+msgstr "A Rendszergazdák alapértelmezés szerint engedélyezettek"
 
 #: frappe/public/js/frappe/utils/number_systems.js:5
 msgctxt "Number system"
@@ -26099,7 +26100,7 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Table Break"
-msgstr ""
+msgstr "Táblázat Törés"
 
 #: frappe/core/doctype/version/version_view.html:73
 msgid "Table Field"
@@ -26117,7 +26118,7 @@ msgstr ""
 #. Label of the table_html (HTML) field in DocType 'Version'
 #: frappe/core/doctype/version/version.json
 msgid "Table HTML"
-msgstr ""
+msgstr "Táblázat HTML"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -26126,7 +26127,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Table MultiSelect"
-msgstr ""
+msgstr "MultiSelect Táblázat"
 
 #: frappe/desk/search.py:269
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
@@ -26205,7 +26206,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Heading"
-msgstr ""
+msgstr "Csoport Tagok Fejléc"
 
 #. Label of the team_members_subtitle (Small Text) field in DocType 'About Us
 #. Settings'
@@ -26246,12 +26247,12 @@ msgstr "Sablon Fájl"
 #. Label of the template_options (Code) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Template Options"
-msgstr ""
+msgstr "Sablon Opciók"
 
 #. Label of the template_warnings (Code) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Template Warnings"
-msgstr ""
+msgstr "Sablon Figyelmeztetések"
 
 #: frappe/public/js/frappe/views/workspace/blocks/paragraph.js:78
 msgid "Templates"
@@ -26291,22 +26292,22 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Text"
-msgstr ""
+msgstr "Szöveg"
 
 #. Label of the text_align (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Text Align"
-msgstr ""
+msgstr "Szöveg Igazítása"
 
 #. Label of the text_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Text Color"
-msgstr ""
+msgstr "Szöveg Színe"
 
 #. Label of the text_content (Code) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Text Content"
-msgstr ""
+msgstr "Szöveges Tartalom"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -26317,7 +26318,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Text Editor"
-msgstr ""
+msgstr "Szövegszerkesztő"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
@@ -26504,7 +26505,7 @@ msgstr ""
 #. Description of the 'Calendar Name' (Data) field in DocType 'Google Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "The name that will appear in Google Calendar"
-msgstr ""
+msgstr "A Google Naptárban megjelenő név"
 
 #. Description of the 'Track Steps' (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -26576,7 +26577,7 @@ msgstr ""
 #. Description of the 'Condition' (Small Text) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "The webhook will be triggered if this expression is true"
-msgstr ""
+msgstr "A webhook aktiválódik, ha ez a kifejezés igaz"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:183
 msgid "The {0} is already on auto repeat {1}"
@@ -26589,7 +26590,7 @@ msgstr ""
 #: frappe/website/doctype/website_settings/website_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Theme"
-msgstr ""
+msgstr "Téma"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:130
 msgid "Theme Changed"
@@ -26599,12 +26600,12 @@ msgstr ""
 #. Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Theme Configuration"
-msgstr ""
+msgstr "Téma Konfigurálása"
 
 #. Label of the theme_url (Data) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Theme URL"
-msgstr ""
+msgstr "Téma URL"
 
 #: frappe/workflow/doctype/workflow/workflow.js:125
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
@@ -26714,7 +26715,7 @@ msgstr ""
 #. 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Third Party Authentication"
-msgstr ""
+msgstr "Harmadik Féltől Származó Hitelesítés"
 
 #: frappe/geo/doctype/currency/currency.js:8
 msgid "This Currency is disabled. Enable to use in transactions"
@@ -26965,13 +26966,13 @@ msgstr ""
 #. 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown in a modal after routing"
-msgstr ""
+msgstr "Ez egy modális ablakban jelenik meg az útválasztás után"
 
 #. Description of the 'Report Description' (Data) field in DocType 'Onboarding
 #. Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown to the user in a dialog after routing to the report"
-msgstr ""
+msgstr "Ez egy párbeszédpanelen jelenik meg a felhasználónak a jelentésre való átirányítás után"
 
 #: frappe/www/third_party_apps.html:23
 msgid "This will log out {0} from all other devices"
@@ -26998,7 +26999,7 @@ msgstr ""
 #. Label of the thumbnail_url (Small Text) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Thumbnail URL"
-msgstr ""
+msgstr "Bélyegkép URL"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -27038,7 +27039,7 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Time Format"
-msgstr ""
+msgstr "Idő Formátum"
 
 #. Label of the time_interval (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27048,12 +27049,12 @@ msgstr ""
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series"
-msgstr ""
+msgstr "Idősorok"
 
 #. Label of the based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series Based On"
-msgstr ""
+msgstr "Idősorok Alapján"
 
 #. Label of the time_taken (Duration) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -27080,12 +27081,12 @@ msgstr ""
 #. Label of the time_zones (Text) field in DocType 'Country'
 #: frappe/geo/doctype/country/country.json
 msgid "Time Zones"
-msgstr ""
+msgstr "Időzónák"
 
 #. Label of the time_format (Data) field in DocType 'Country'
 #: frappe/geo/doctype/country/country.json
 msgid "Time format"
-msgstr ""
+msgstr "Idő Formátum"
 
 #. Label of the time_in_queries (Float) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -27096,7 +27097,7 @@ msgstr "Lekérdezésekben Eltöltött Idő"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Time in seconds to retain QR code image on server. Min:<strong>240</strong>"
-msgstr ""
+msgstr "A QR-kód képének a kiszolgálón való megőrzésének ideje másodpercben. Min:<strong>240</strong>"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:413
 msgid "Time series based on is required to create a dashboard chart"
@@ -27133,19 +27134,19 @@ msgstr "Idővonal DocType"
 #. Label of the timeline_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Timeline Field"
-msgstr ""
+msgstr "Idővonal Mező"
 
 #. Label of the timeline_links_sections (Section Break) field in DocType
 #. 'Communication'
 #. Label of the timeline_links (Table) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Timeline Links"
-msgstr ""
+msgstr "Idővonal Hivatkozások"
 
 #. Label of the timeline_name (Dynamic Link) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Timeline Name"
-msgstr ""
+msgstr "Idővonal Neve"
 
 #: frappe/core/doctype/doctype/doctype.py:1539
 msgid "Timeline field must be a Link or Dynamic Link"
@@ -27168,7 +27169,7 @@ msgstr ""
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Timeseries"
-msgstr ""
+msgstr "Idősorok"
 
 #. Label of the timespan (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27238,12 +27239,12 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Title Field"
-msgstr ""
+msgstr "Cím Mező"
 
 #. Label of the title_prefix (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Title Prefix"
-msgstr ""
+msgstr "Cím Előtag"
 
 #: frappe/core/doctype/doctype/doctype.py:1476
 msgid "Title field must be a valid fieldname"
@@ -27278,7 +27279,7 @@ msgstr ""
 
 #: frappe/desk/doctype/todo/todo_list.js:6
 msgid "To Do"
-msgstr ""
+msgstr "Tennivaló"
 
 #. Description of the 'Subject' (Data) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -27308,7 +27309,7 @@ msgstr ""
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "To and CC"
-msgstr ""
+msgstr "Címzett és Másolat"
 
 #. Description of the 'Use First Day of Period' (Check) field in DocType 'Auto
 #. Email Report'
@@ -27525,7 +27526,7 @@ msgstr "Jobb felül"
 #. Label of the topic (Link) field in DocType 'Discussion Reply'
 #: frappe/website/doctype/discussion_reply/discussion_reply.json
 msgid "Topic"
-msgstr ""
+msgstr "Téma"
 
 #: frappe/desk/query_report.py:594
 #: frappe/public/js/frappe/views/reports/print_grid.html:45
@@ -27558,7 +27559,7 @@ msgstr ""
 #. Label of the total_subscribers (Int) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Total Subscribers"
-msgstr ""
+msgstr "Összes Feliratkozó"
 
 #. Label of the total_users (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -27596,7 +27597,7 @@ msgstr "Nyomkövetési ID"
 #. Label of the traceback (Code) field in DocType 'Patch Log'
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Traceback"
-msgstr ""
+msgstr "Visszakövetés"
 
 #. Label of the track_changes (Check) field in DocType 'DocType'
 #. Label of the track_changes (Check) field in DocType 'Customize Form'
@@ -27653,7 +27654,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:31
 msgid "Transgender"
-msgstr ""
+msgstr "Transznemű"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
@@ -27681,7 +27682,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Translatable"
-msgstr ""
+msgstr "Lefordítható"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2269
 msgid "Translate Data"
@@ -27705,7 +27706,7 @@ msgstr ""
 #. Label of the translated_text (Code) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "Translated Text"
-msgstr ""
+msgstr "Lefordított Szöveg"
 
 #. Name of a DocType
 #: frappe/core/doctype/translation/translation.json
@@ -27724,7 +27725,7 @@ msgstr ""
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Trash"
-msgstr ""
+msgstr "Szemét"
 
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
@@ -27732,7 +27733,7 @@ msgstr ""
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
 msgid "Tree"
-msgstr ""
+msgstr "Fa"
 
 #: frappe/public/js/frappe/list/base_list.js:210
 msgid "Tree View"
@@ -27741,7 +27742,7 @@ msgstr ""
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
-msgstr ""
+msgstr "Fa struktúrák a Beágyazott Halmazok használatával valósulnak meg"
 
 #: frappe/public/js/frappe/views/treeview.js:19
 msgid "Tree view is not available for {0}"
@@ -27750,7 +27751,7 @@ msgstr ""
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Trigger Method"
-msgstr ""
+msgstr "Kiváltó Módszer"
 
 #: frappe/public/js/frappe/ui/keyboard.js:196
 msgid "Trigger Primary Action"
@@ -27814,12 +27815,12 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication"
-msgstr ""
+msgstr "Kétfaktoros Hitelesítés"
 
 #. Label of the two_factor_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication method"
-msgstr ""
+msgstr "Kétfaktoros Hitelesítési Módszer"
 
 #. Label of the communication_medium (Select) field in DocType 'Communication'
 #. Label of the fieldtype (Select) field in DocType 'DocField'
@@ -27904,12 +27905,12 @@ msgstr "UIDNEXT"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/imap_folder/imap_folder.json
 msgid "UIDVALIDITY"
-msgstr ""
+msgstr "UIDVALIDITY"
 
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "UNSEEN"
-msgstr ""
+msgstr "OLVASATLAN"
 
 #. Description of the 'Redirect URIs' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -27942,7 +27943,7 @@ msgstr "URL"
 #. Description of the 'Documentation Link' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "URL for documentation or help"
-msgstr ""
+msgstr "Dokumentáció vagy segítség URL-címe"
 
 #: frappe/core/doctype/file/file.py:231
 msgid "URL must start with http:// or https://"
@@ -27993,7 +27994,7 @@ msgstr ""
 #. Description of the 'URL' (Data) field in DocType 'Website Slideshow Item'
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "URL to go to on clicking the slideshow image"
-msgstr ""
+msgstr "URL, amelyre a diavetítés képére kattintva juthat"
 
 #. Name of a DocType
 #: frappe/website/doctype/utm_campaign/utm_campaign.json
@@ -28054,7 +28055,7 @@ msgstr ""
 #. Label of the unassign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Unassign Condition"
-msgstr ""
+msgstr "Hozzárendelés Feloldása Feltétel"
 
 #: frappe/app.py:399
 msgid "Uncaught Exception"
@@ -28094,7 +28095,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Unique"
-msgstr ""
+msgstr "Egyedi"
 
 #. Description of the 'Software ID' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -28105,7 +28106,7 @@ msgstr ""
 
 #: frappe/website/report/website_analytics/website_analytics.js:60
 msgid "Unknown"
-msgstr ""
+msgstr "Ismeretlen"
 
 #: frappe/public/js/frappe/model/model.js:209
 msgid "Unknown Column: {0}"
@@ -28135,13 +28136,13 @@ msgstr ""
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 msgid "Unread"
-msgstr ""
+msgstr "Olvasatlan"
 
 #. Label of the unread_notification_sent (Check) field in DocType
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Unread Notification Sent"
-msgstr ""
+msgstr "Olvasatlan Értesítés Elküldve"
 
 #: frappe/utils/safe_exec.py:498
 msgid "Unsafe SQL query"
@@ -28156,7 +28157,7 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Unshared"
-msgstr ""
+msgstr "Meg nem osztott"
 
 #: frappe/email/queue.py:67
 msgid "Unsubscribe"
@@ -28165,7 +28166,7 @@ msgstr ""
 #. Label of the unsubscribe_method (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Unsubscribe Method"
-msgstr ""
+msgstr "Leiratkozási Módszer"
 
 #. Label of the unsubscribe_params (Code) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -28233,13 +28234,13 @@ msgstr "Helyesbítés Elnevezésének Frissítése"
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Update Existing Records"
-msgstr ""
+msgstr "Meglévő Rekordok Frissítése"
 
 #. Label of the update_field (Select) field in DocType 'Workflow Document
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Update Field"
-msgstr ""
+msgstr "Mező Frissítése"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
@@ -28269,12 +28270,12 @@ msgstr "Széria Szám Frissítése"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Update Series Number"
-msgstr ""
+msgstr "Sorozatszám Frissítése"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Update Settings"
-msgstr ""
+msgstr "Beállítások Frissítése"
 
 #: frappe/public/js/frappe/views/translation_manager.js:13
 msgid "Update Translations"
@@ -28285,7 +28286,7 @@ msgstr ""
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Update Value"
-msgstr ""
+msgstr "Érték Frissítése"
 
 #: frappe/utils/change_log.py:381
 msgid "Update from Frappe Cloud"
@@ -28385,12 +28386,12 @@ msgstr ""
 #. Label of the uploaded_to_dropbox (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Uploaded To Dropbox"
-msgstr ""
+msgstr "Feltöltve Dropbox-ra"
 
 #. Label of the uploaded_to_google_drive (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Uploaded To Google Drive"
-msgstr ""
+msgstr "Feltöltve Google Drive-ra"
 
 #. Description of the 'Value to Validate' (Data) field in DocType 'Onboarding
 #. Step'
@@ -28402,7 +28403,7 @@ msgstr "Használjon % jelet minden nem üres értékhez."
 #. Label of the ascii_encode_password (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Use ASCII encoding for password"
-msgstr ""
+msgstr "ASCII kódolás használata a jelszóhoz"
 
 #. Label of the use_first_day_of_period (Check) field in DocType 'Auto Email
 #. Report'
@@ -28420,7 +28421,7 @@ msgstr "HTML használata"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Use IMAP"
-msgstr ""
+msgstr "IMAP Használata"
 
 #. Label of the use_number_format_from_currency (Check) field in DocType
 #. 'System Settings'
@@ -28445,7 +28446,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Use SSL"
-msgstr ""
+msgstr "SSL használata"
 
 #. Label of the use_starttls (Check) field in DocType 'Email Account'
 #. Label of the use_starttls (Check) field in DocType 'Email Domain'
@@ -28459,7 +28460,7 @@ msgstr "STARTTLS használata"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Use TLS"
-msgstr ""
+msgstr "TLS használata"
 
 #: frappe/utils/password_strength.py:44
 msgid "Use a few words, avoid common phrases."
@@ -28997,7 +28998,7 @@ msgstr ""
 #. Label of the value_based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Value Based On"
-msgstr ""
+msgstr "Érték alapján"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -29057,7 +29058,7 @@ msgstr ""
 #. Label of the value_to_validate (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Value to Validate"
-msgstr ""
+msgstr "Érvényesítendő érték"
 
 #: frappe/model/base_document.py:1229
 msgid "Value too big"
@@ -29108,7 +29109,7 @@ msgstr ""
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "Verified"
-msgstr ""
+msgstr "Ellenőrzött"
 
 #: frappe/public/js/frappe/ui/messages.js:359
 #: frappe/templates/includes/login/login.js:337
@@ -29135,12 +29136,12 @@ msgstr ""
 #. Label of the video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Video URL"
-msgstr ""
+msgstr "Videó URL-je"
 
 #. Label of the view_name (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
-msgstr ""
+msgstr "Nézet"
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
@@ -29276,7 +29277,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Visit"
-msgstr ""
+msgstr "Látogatás"
 
 #: frappe/desk/doctype/desktop_settings/desktop_settings.js:6
 msgid "Visit Desktop"
@@ -29373,7 +29374,7 @@ msgstr ""
 #. Label of the web_form_fields (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Web Form Fields"
-msgstr ""
+msgstr "Web Űrlap Mezők"
 
 #. Name of a DocType
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
@@ -29414,7 +29415,7 @@ msgstr ""
 #. Label of the web_template_values (Code) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Web Template Values"
-msgstr ""
+msgstr "Web Sablon Értékek"
 
 #: frappe/utils/jinja_globals.py:48
 msgid "Web Template is not specified"
@@ -29423,7 +29424,7 @@ msgstr ""
 #. Label of the web_view (Tab Break) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Web View"
-msgstr ""
+msgstr "Web Nézet"
 
 #. Name of a DocType
 #. Label of the webhook (Link) field in DocType 'Webhook Request Log'
@@ -29670,7 +29671,7 @@ msgstr ""
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Weekly Long"
-msgstr ""
+msgstr "Heti Hosszú"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:384
 msgid "Welcome"
@@ -29682,7 +29683,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome Email Template"
-msgstr ""
+msgstr "Üdvözlő E-mail Sablon"
 
 #. Label of the welcome_url (Data) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -29757,7 +29758,7 @@ msgstr ""
 #. Label of the wildcard_filter (Check) field in DocType 'Report Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Wildcard Filter"
-msgstr ""
+msgstr "Helyettesítő karakter szűrő"
 
 #. Description of the 'Wildcard Filter' (Check) field in DocType 'Report
 #. Filter'
@@ -29820,7 +29821,7 @@ msgstr ""
 #. Master'
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Name"
-msgstr ""
+msgstr "Munkafolyamat Művelet Neve"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
@@ -29831,7 +29832,7 @@ msgstr ""
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Action is not created for optional states"
-msgstr ""
+msgstr "Munkafolyamat Művelet nem jön létre opcionális állapotokhoz"
 
 #: frappe/public/js/workflow_builder/store.js:129
 #: frappe/workflow/doctype/workflow/workflow.js:25
@@ -29869,7 +29870,7 @@ msgstr ""
 #. Label of the workflow_name (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Name"
-msgstr ""
+msgstr "Munkafolyamat Neve"
 
 #. Label of the workflow_state (Data) field in DocType 'Workflow Action'
 #. Name of a DocType
@@ -29881,7 +29882,7 @@ msgstr ""
 #. Label of the workflow_state_field (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow State Field"
-msgstr ""
+msgstr "Munkafolyamat Állapot Mező"
 
 #: frappe/model/workflow.py:64
 msgid "Workflow State not set"
@@ -30062,7 +30063,7 @@ msgstr ""
 #. Label of the x_field (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "X Field"
-msgstr ""
+msgstr "X Mező"
 
 #. Option for the 'Format' (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -30076,7 +30077,7 @@ msgstr ""
 #. Label of the y_axis (Table) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Y Axis"
-msgstr ""
+msgstr "Y Tengely"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:502
 msgid "Y Axis Fields"
@@ -30765,7 +30766,7 @@ msgstr ""
 #. in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Zero means send records updated at anytime"
-msgstr ""
+msgstr "Nulla jelenti a beküldött bejegyzések bármikor frissülhettek"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:363
 msgid "[Action taken by {0}]"
@@ -30802,7 +30803,7 @@ msgstr ""
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "blue"
-msgstr ""
+msgstr "kék"
 
 #: frappe/public/js/frappe/form/workflow.js:35
 msgid "by Role"
@@ -30861,7 +30862,7 @@ msgstr ""
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "darkgrey"
-msgstr ""
+msgstr "sötétszürke"
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:65
 msgid "dashboard"
@@ -30872,21 +30873,21 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd-mm-yyyy"
-msgstr ""
+msgstr "dd-mm-yyyy (nap-hónap-év)"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd.mm.yyyy"
-msgstr ""
+msgstr "dd.mm.yyyy (nap.hónap.év)"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd/mm/yyyy"
-msgstr ""
+msgstr "dd/mm/yyyy (nap/hónap/év)"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
@@ -30919,7 +30920,7 @@ msgstr ""
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
-msgstr ""
+msgstr "pl. \"Támogatás\", \"Értékesítés\", \"Gipsz Jakab\""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:248
 msgid "e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)..."
@@ -30930,20 +30931,20 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "e.g. pop.gmail.com / imap.gmail.com"
-msgstr ""
+msgstr "pl. pop.gmail.com / imap.gmail.com"
 
 #. Description of the 'Default Incoming' (Check) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "e.g. replies@yourcomany.com. All replies will come to this inbox."
-msgstr ""
+msgstr "pl. valaszok@cegem.hu. Minden válasz ebbe a postafiókba fog jönni."
 
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Account'
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "e.g. smtp.gmail.com"
-msgstr ""
+msgstr "pl. smtp.gmail.com"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:98
 msgid "e.g.:"
@@ -30986,7 +30987,7 @@ msgstr "exportálás"
 #. Settings'
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 msgid "facebook"
-msgstr ""
+msgstr "facebook"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -31012,7 +31013,7 @@ msgstr "szürke"
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "green"
-msgstr ""
+msgstr "zöld"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -31036,7 +31037,7 @@ msgstr ""
 #. Label of the icon (Data) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "icon"
-msgstr ""
+msgstr "ikon"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31102,14 +31103,14 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm-dd-yyyy"
-msgstr ""
+msgstr "mm-dd-yyyy (hónap-nap-év)"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm/dd/yyyy"
-msgstr ""
+msgstr "mm/dd/yyyy (hónap/nap/év)"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:238
 msgid "module name..."
@@ -31247,7 +31248,7 @@ msgstr "jelentés"
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: frappe/core/doctype/custom_role/custom_role.json
 msgid "response"
-msgstr ""
+msgstr "válasz"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:61
 msgid "restored {0} as {1}"
@@ -31280,7 +31281,7 @@ msgstr "választás"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "share"
-msgstr ""
+msgstr "megosztás"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
@@ -31462,7 +31463,7 @@ msgstr "ír"
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "yellow"
-msgstr ""
+msgstr "sárga"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:58
 msgid "yesterday"
@@ -31473,7 +31474,7 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "yyyy-mm-dd"
-msgstr ""
+msgstr "éééé-hh-nn"
 
 #: frappe/desk/doctype/event/event.js:87
 #: frappe/public/js/frappe/form/footer/form_timeline.js:547
