@@ -528,30 +528,30 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		// operator templates (use {0} = label, {1} = value) -> good for i18n extraction
 		const operatorTemplates = {
-			"=": "{0} equals {1}",
-			"!=": "{0} is not equal to {1}",
-			in: "{0} is one of {1}",
-			"not in": "{0} is not one of {1}",
-			like: "{0} contains {1}",
-			"not like": "{0} does not contain {1}",
-			">": "{0} is greater than {1}",
-			"<": "{0} is less than {1}",
-			">=": "{0} is greater than or equal to {1}",
-			"<=": "{0} is less than or equal to {1}",
-			is: "{0} is {1}",
-			between: "{0} is between {1}",
-			"descendants of": "{0} is a descendant of {1}",
-			"ancestors of": "{0} is an ancestor of {1}",
-			"not descendants of": "{0} is not a descendant of {1}",
-			"not ancestors of": "{0} is not an ancestor of {1}",
-			timespan: "{0} is within {1}",
+			"=": __("{0} equals {1}"),
+			"!=": __("{0} is not equal to {1}"),
+			["in"]: __("{0} is one of {1}"),
+			"not in": __("{0} is not one of {1}"),
+			["like"]: __("{0} contains {1}"),
+			"not like": __("{0} does not contain {1}"),
+			">": __("{0} is greater than {1}"),
+			"<": __("{0} is less than {1}"),
+			">=": __("{0} is greater than or equal to {1}"),
+			"<=": __("{0} is less than or equal to {1}"),
+			["is"]: __("{0} is {1}"),
+			["between"]: __("{0} is between {1}"),
+			"descendants of": __("{0} is a descendant of {1}"),
+			"ancestors of": __("{0} is an ancestor of {1}"),
+			"not descendants of": __("{0} is not a descendant of {1}"),
+			"not ancestors of": __("{0} is not an ancestor of {1}"),
+			["timespan"]: __("{0} is within {1}"),
 		};
 
 		function formatValueForDisplay(docfield, val) {
 			// Check boolean fields -> show Yes/No (localized)
 			// Handles 0/1, true/false values
 			if (docfield && docfield.fieldtype === "Check") {
-				return String(__(val == 1 || val === true ? "Yes" : "No")).bold();
+				return (val == 1 || val === true ? __("Yes") : __("No")).bold();
 			}
 
 			// Array values -> truncate to first 5, append "..."
@@ -575,13 +575,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			// Special handling for Check fields
 			if (fieldtype === "Check") {
 				if (operator === "=" && value == 1) {
-					return "{0} is enabled";
+					return __("{0} is enabled");
 				} else if (operator === "=" && value == 0) {
-					return "{0} is disabled";
+					return __("{0} is disabled");
 				} else if (operator === "!=") {
-					return value == 1 ? "{0} is disabled" : "{0} is enabled";
+					return value == 1 ? __("{0} is disabled") : __("{0} is enabled");
 				}
 			}
+			// Return raw placeholder pattern for unknown operators (not translatable)
 			return operatorTemplates[operator] || "{0} {1} {2}";
 		}
 
@@ -614,7 +615,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const template = get_operator_template(operator, fieldtype, value);
 
 			// fallback pattern expects 3 placeholders: label, operator (raw), value
-			if (template === "{0} {1} {2}") {
+			// Check if operator is not in templates (fallback case)
+			if (!operatorTemplates[operator]) {
 				return __(template, [labelDisplay, operator, valueDisplay]);
 			}
 
