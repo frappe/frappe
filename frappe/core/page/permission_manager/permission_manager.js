@@ -390,7 +390,7 @@ frappe.PermissionEngine = class PermissionEngine {
 									doctype: "User",
 									name: "User",
 									doc_view: "List",
-									route_options: { name: JSON.stringify(["in", users]) },
+									route_options: { role },
 								});
 
 								message_html += `<div class="text-center">
