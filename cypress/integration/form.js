@@ -3,7 +3,7 @@ const jump_to_field = (field_label) => {
 		.type("{esc}") // lose focus if any
 		.type("{ctrl+j}") // jump to field
 		.type(field_label)
-		.wait(1000)
+		.wait(500)
 		.type("{enter}")
 		.wait(200)
 		.type("{enter}")
