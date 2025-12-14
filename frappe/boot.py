@@ -123,6 +123,8 @@ def get_bootinfo():
 		bootinfo.sentry_dsn = sentry_dsn
 
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
+	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
+	bootinfo.desktop_icon_style = frappe.db.get_single_value("Desktop Settings", "icon_style") or "Subtle"
 	return bootinfo
 
 
@@ -528,18 +530,27 @@ def get_sentry_dsn():
 
 
 def get_sidebar_items():
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
+
 	sidebars = frappe.get_all(
 		"Workspace Sidebar", fields=["name", "header_icon"], filters={"name": ["not like", "%My Workspaces%"]}
 	)
+	module_sidebars = auto_generate_sidebar_from_module()
+	sidebars.extend(module_sidebars)
 	add_user_specific_sidebar(sidebars)
 	sidebar_items = {}
 
 	for s in sidebars:
-		w = frappe.get_doc("Workspace Sidebar", s["name"])
-		sidebar_items[s["name"].lower()] = {
-			"label": s["name"],
+		sidebar_title = s.get("name")
+		if sidebar_title:
+			w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+		else:
+			sidebar_title = s.title
+			w = s
+		sidebar_items[sidebar_title.lower()] = {
+			"label": sidebar_title,
 			"items": [],
-			"header_icon": s["header_icon"],
+			"header_icon": s.get("header_icon"),
 			"module": w.module,
 			"app": w.app,
 		}
@@ -568,13 +579,12 @@ def get_sidebar_items():
 					"report_type": report_type,
 					"ref_doctype": ref_doctype,
 				}
-
 			if (
-				"My Workspaces" in s["name"]
+				"My Workspaces" in sidebar_title
 				or si.type == "Section Break"
 				or w.is_item_allowed(si.link_to, si.link_type)
 			):
-				sidebar_items[s["name"].lower()]["items"].append(workspace_sidebar)
+				sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
 
 	old_name = f"my workspaces-{frappe.session.user.lower()}"
 	if old_name in sidebar_items.keys():
@@ -591,3 +601,30 @@ def add_user_specific_sidebar(sidebars):
 	except frappe.DoesNotExistError:
 		my_workspace = frappe.get_doc("Workspace Sidebar", "My Workspaces")
 		sidebars.append({"name": my_workspace.name, "header_icon": my_workspace.header_icon})
+
+
+def get_desktop_icon_urls():
+	icons_map = {}
+
+	for app in frappe.get_installed_apps():
+		app_path = frappe.get_app_path(app)
+		icons_dir = os.path.join(app_path, "public", "icons", "desktop_icons")
+
+		if not os.path.exists(icons_dir):
+			continue
+
+		icons_map[app] = {"subtle": [], "solid": []}
+
+		for variant in ["subtle", "solid"]:
+			variant_path = os.path.join(icons_dir, variant)
+
+			if os.path.exists(variant_path):
+				for fname in os.listdir(variant_path):
+					if fname.endswith(".svg"):
+						abs_path = os.path.join(variant_path, fname)
+						assets_path = abs_path.replace(
+							os.path.join(app_path, "public"), os.path.join("assets", app)
+						)
+						icons_map[app][variant].append(assets_path)
+
+	return icons_map

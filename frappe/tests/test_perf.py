@@ -179,7 +179,7 @@ class TestPerformance(IntegrationTestCase):
 			frappe.get_list("User")
 
 	def test_no_ifnull_checks(self):
-		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
+		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).get_sql().lower()
 		self.assertNotIn("coalesce", query)
 		self.assertNotIn("ifnull", query)
 

@@ -78,7 +78,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("new web page");
 		cy.wait(150); // Wait a bit before hitting enter
 		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text:visible").should("have.text", "New Web Page");
+		cy.get(".title-text-form:visible").should("have.text", "New Web Page");
 	});
 
 	it("calculates math expressions", () => {

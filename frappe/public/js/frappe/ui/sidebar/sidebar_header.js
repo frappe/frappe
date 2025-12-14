@@ -12,7 +12,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				label: "Workspaces",
 				icon: "wallpaper",
 				condition: function () {
-					return me.sibling_workspaces.length > 0;
+					return me.sibling_workspaces && me.sibling_workspaces.length > 0;
 				},
 				items: this.sibling_workspaces,
 			},
@@ -42,6 +42,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				},
 			},
 		];
+		if (frappe.boot.desk_settings.notifications) {
+			this.dropdown_items.push({
+				name: "help",
+				label: "Help",
+				icon: "info",
+				items: this.get_help_siblings(),
+			});
+		}
 		this.make();
 		this.setup_app_switcher();
 		this.populate_dropdown_menu();
@@ -59,7 +67,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					icon: "wallpaper",
 					url: frappe.utils.generate_route({
 						type: "Workspace",
-						route: w.toLowerCase(),
+						route: frappe.router.slug(w),
 					}),
 				};
 				sibling_workspaces.push(item);
@@ -67,6 +75,51 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			return sibling_workspaces;
 		}
 	}
+
+	get_help_siblings() {
+		const navbar_settings = frappe.boot.navbar_settings;
+		let help_dropdown_items = [];
+
+		let custom_help_links = this.get_custom_help_links();
+
+		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
+
+		navbar_settings.help_dropdown.forEach((element) => {
+			let dropdown_children = {
+				name: element.name,
+				label: element.item_label,
+			};
+			if (element.item_type === "Route") {
+				dropdown_children.url = element.route;
+			}
+			if (element.item_type === "Action") {
+				dropdown_children.onClick = function () {
+					frappe.utils.eval(element.action);
+				};
+			}
+			help_dropdown_items.push(dropdown_children);
+		});
+
+		return help_dropdown_items;
+	}
+
+	get_custom_help_links() {
+		let route = frappe.get_route_str();
+		let breadcrumbs = route.split("/");
+
+		let links = [];
+		for (let i = 0; i < breadcrumbs.length; i++) {
+			let r = route.split("/", i + 1);
+			let key = r.join("/");
+			let help_links = frappe.help.help_links[key] || [];
+			links = $.merge(links, help_links);
+		}
+		if (links.length) {
+			links.push({ is_divider: true });
+		}
+		return links;
+	}
+
 	make() {
 		$(".sidebar-header").remove();
 		$(".sidebar-header-menu").remove();
@@ -85,8 +138,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	set_header_icon() {
 		let desktop_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title);
-		if (desktop_icon && desktop_icon.logo_url) {
-			this.header_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title).logo_url;
+		let desktop_icon_url = frappe.utils.get_desktop_icon(desktop_icon.label, "solid");
+		if (desktop_icon_url) {
+			this.header_icon = desktop_icon_url;
+			this.header_icon = `<img src=${this.header_icon}></img>`;
+		} else if (desktop_icon && desktop_icon.logo_url) {
+			this.header_icon = desktop_icon.logo_url;
 			this.header_icon = `<img src=${this.header_icon}></img>`;
 		} else if (this.sidebar.sidebar_data) {
 			this.header_icon = this.sidebar.sidebar_data.header_icon;
@@ -99,7 +156,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				false,
 				`var(${this.header_bg_color})`
 			);
+		} else {
+			this.header_icon = this.get_default_icon();
+			this.header_icon = `<img src=${this.header_icon}></img>`;
 		}
+	}
+	get_default_icon() {
+		return frappe.boot.app_data[0].app_logo_url;
 	}
 	get_desktop_icon_by_label(title, filters) {
 		if (!filters) {

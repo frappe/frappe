@@ -48,10 +48,7 @@
 }
 
 .search-bar {
-	flex: 1;
 	max-width: 300px;
-	margin: 0 var(--margin-md);
-
 	svg {
 		stroke: var(--text-light);
 		margin-bottom: 2px;
@@ -81,13 +78,10 @@
 			color: var(--text-light);
 		}
 	}
-	.navbar-modal-search-mobile {
+	.search-icon {
 		background-color: var(--control-bg);
-		border-radius: var(--border-radius-sm);
-		padding: 6px 10px;
-		width: 100%;
-		display: flex;
-		justify-content: space-between;
+		border-radius: 16px;
+		padding: 6px;
 	}
 }
 

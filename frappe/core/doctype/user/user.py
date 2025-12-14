@@ -83,7 +83,7 @@ class User(Document):
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
-		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
+		desk_theme: DF.Literal["Automatic", "Light", "Dark"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
@@ -1018,7 +1018,10 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
+		"User Email",
+		filters={"awaiting_password": 1, "used_oauth": 0},
+		pluck="parent",
+		distinct=True,
 	)
 	set_default("email_user_password", ",".join(password_list))
 

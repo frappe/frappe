@@ -26,6 +26,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	prepare() {
 		try {
+			this.add_standard_items();
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
 			if (this.edit_mode) {
@@ -135,6 +136,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper = $(
 			frappe.render_template("sidebar", {
 				expanded: this.sidebar_expanded,
+				avatar: frappe.avatar(frappe.session.user, "avatar-medium"),
+				navbar_settings: frappe.boot.navbar_settings,
 			})
 		).prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
@@ -158,11 +161,11 @@ frappe.ui.Sidebar = class Sidebar {
 		let match = false;
 		const that = this;
 		$(".item-anchor").each(function () {
-			let href = $(this).attr("href")?.split("?")[0];
+			let href = decodeURIComponent($(this).attr("href")?.split("?")[0]);
 			const path = decodeURIComponent(window.location.pathname);
 
 			// Match only if path equals href or starts with it followed by "/" or end of string
-			const isActive = new RegExp(`^${href}(?:/|$)`).test(path);
+			const isActive = href === path;
 			if (href && isActive) {
 				match = true;
 				if (that.active_item) that.active_item.removeClass("active-sidebar");
@@ -200,7 +203,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		this.create_sidebar(this.workspace_sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -213,7 +215,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	create_sidebar(items) {
 		this.empty();
-		this.add_standard_items(items);
 		if (items && items.length > 0) {
 			items.forEach((w) => {
 				if (!w.display_depends_on || frappe.utils.eval(w.display_depends_on)) {
@@ -238,7 +239,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.standard_items = [];
 		if (!frappe.is_mobile()) {
 			this.standard_items.push({
-				label: "Search",
+				label: __("Search"),
 				icon: "search",
 				type: "Button",
 				id: "navbar-modal-search",
@@ -248,10 +249,23 @@ frappe.ui.Sidebar = class Sidebar {
 				class: "navbar-search-bar hidden",
 			});
 		}
+		this.standard_items.push({
+			label: __("Notification"),
+			icon: "bell",
+			type: "Button",
+			class: "sidebar-notification hidden",
+			onClick: () => {
+				this.wrapper.find(".dropdown-notifications").toggleClass("hidden");
+				if (frappe.is_mobile()) {
+					this.wrapper.removeClass("expanded");
+				}
+			},
+		});
 		this.standard_items.forEach((w) => {
 			this.add_item(this.$standard_items_sections, w);
 		});
 		this.setup_awesomebar();
+		this.setup_notifications();
 		this.standard_items_setup = true;
 	}
 	setup_awesomebar() {
@@ -268,6 +282,11 @@ frappe.ui.Sidebar = class Sidebar {
 					frappe.set_route("List", "RQ Job");
 				}, __("Background Jobs"));
 			}
+		}
+	}
+	setup_notifications() {
+		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
+			this.notifications = new frappe.ui.Notifications();
 		}
 	}
 	add_item(container, item) {
@@ -300,24 +319,26 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
 			// this.sidebar_expanded = false
-			direction = "left";
+			direction = "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
+			this.wrapper.find(".avatar-name-email").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			// this.sidebar_expanded = true
-			direction = "right";
+			direction = "left";
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
 				trigger: "hover",
 			});
+			this.wrapper.find(".avatar-name-email").hide();
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
 		this.wrapper
 			.find(".body-sidebar .collapse-sidebar-link")
 			.find("use")
-			.attr("href", `#icon-arrow-${direction}-to-line`);
+			.attr("href", `#icon-panel-${direction}-open`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
@@ -385,9 +406,11 @@ frappe.ui.Sidebar = class Sidebar {
 				if (sidebars.length == 0) {
 					let module_name = router.meta?.module;
 					if (module_name) {
-						frappe.app.sidebar.setup(
-							this.sidebar_module_map[module_name][0] || module_name
-						);
+						let sidebar_title =
+							(this.sidebar_module_map[module_name] &&
+								this.sidebar_module_map[module_name][0]) ||
+							module_name;
+						frappe.app.sidebar.setup(sidebar_title);
 					}
 				} else {
 					if (this.sidebar_title && sidebars.includes(this.workspace_title)) {
@@ -421,7 +444,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (route.length == 2) {
 			workspace_title = this.get_correct_workspace_sidebars(route[1]);
 		} else {
-			workspace_title = this.get_correct_workspace_sidebars(route);
+			workspace_title = this.get_correct_workspace_sidebars(route[0]);
 		}
 		let module_name = workspace_title[0];
 		if (module_name) {
@@ -459,6 +482,7 @@ frappe.ui.Sidebar = class Sidebar {
 				me.show_new_dialog();
 			});
 		} else {
+			this.wrapper.removeAttr("data-mode");
 			$(this.active_item).addClass("active-sidebar");
 			$(".collapse-sidebar-link").removeClass("hidden");
 			this.wrapper.find(".edit-mode").addClass("hidden");
@@ -790,7 +814,7 @@ frappe.ui.Sidebar = class Sidebar {
 		const me = this;
 		this.save_sidebar_button = this.wrapper.find(".save-sidebar");
 		this.discard_button = this.wrapper.find(".discard-button");
-		this.save_sidebar_button.on("click", async function (event) {
+		this.save_sidebar_button.off("click").on("click", async function (event) {
 			frappe.show_alert({
 				message: __("Saving Sidebar"),
 				indicator: "success",

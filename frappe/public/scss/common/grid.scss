@@ -528,6 +528,63 @@
 		max-height: 80vh;
 		overflow: auto;
 	}
+
+	// Tabs styling for child table grid row forms
+	.form-tabs-list {
+		position: relative;
+		margin-bottom: var(--margin-sm);
+		background-color: var(--card-bg);
+		border-bottom: 1px solid var(--border-color);
+
+		.form-tabs {
+			display: flex;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding: 0 var(--padding-sm);
+			margin: 0;
+			list-style: none;
+
+			.nav-item {
+				flex-shrink: 0;
+
+				&.hide {
+					display: none !important;
+				}
+
+				.nav-link {
+					padding: var(--padding-sm) var(--padding-md);
+					color: var(--text-muted);
+					border: none;
+					background: none;
+					white-space: nowrap;
+					cursor: pointer;
+					border-bottom: 2px solid transparent;
+
+					&:hover {
+						color: var(--text-color);
+					}
+
+					&.active {
+						color: var(--primary);
+						font-weight: 600;
+						border-bottom-color: var(--primary);
+					}
+				}
+			}
+		}
+	}
+
+	.form-tab-content {
+		margin-top: 0;
+
+		> .tab-pane {
+			display: none;
+
+			&.show.active {
+				display: block;
+			}
+		}
+	}
 }
 
 .grid-form-heading {

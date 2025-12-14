@@ -691,6 +691,14 @@ class BaseDocument:
 			None,
 		)
 
+	def _handle_hash_conflict(self):
+		"""Regenerate hash name in case of collisions"""
+		self.flags.retry_count = (self.flags.retry_count or 0) + 1
+		if self.flags.retry_count >= 5:
+			raise
+		self.name = None
+		return self.db_insert()
+
 	def db_insert(self, ignore_if_duplicate=False):
 		"""INSERT the document (with valid columns) in the database.
 
@@ -704,10 +712,17 @@ class BaseDocument:
 			set_new_name(self)
 
 		conflict_handler = ""
+		returning = ""
 		# On postgres we can't implcitly ignore PK collision
 		# So instruct pg to ignore `name` field conflicts
-		if ignore_if_duplicate and frappe.db.db_type == "postgres":
+		if (
+			(ignore_if_duplicate or self.meta.autoname == "hash")
+			and frappe.db.db_type == "postgres"
+			and (self.flags.retry_count or 0) < 5
+		):
 			conflict_handler = "on conflict (name) do nothing"
+			if self.meta.autoname == "hash":
+				returning = "RETURNING name"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -722,26 +737,26 @@ class BaseDocument:
 
 		columns = list(d)
 		try:
-			frappe.db.sql(
+			name = frappe.db.sql(
 				"""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values}) {conflict_handler}""".format(
+					VALUES ({values}) {conflict_handler} {returning}""".format(
 					doctype=self.doctype,
 					columns=", ".join("`" + c + "`" for c in columns),
 					values=", ".join(["%s"] * len(columns)),
 					conflict_handler=conflict_handler,
+					returning=returning,
 				),
 				list(d.values()),
 			)
+			if (
+				frappe.db.db_type == "postgres" and self.meta.autoname == "hash" and not name
+			):  # To avoid a transaction block, we regen in try (pg specific)
+				return self._handle_hash_conflict()
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
-					self.flags.retry_count = (self.flags.retry_count or 0) + 1
-					if self.flags.retry_count > 5:
-						raise
-					self.name = None
-					self.db_insert()
-					return
+					return self._handle_hash_conflict()
 
 				if not ignore_if_duplicate:
 					frappe.msgprint(

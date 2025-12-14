@@ -9,7 +9,7 @@ frappe.ui.form.on("Workflow", {
 		let title, note;
 		let workflow_builder_url = "/app/workflow-builder";
 		let msg = __(
-			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
+			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
 		);
 
 		if (frm.is_new()) {

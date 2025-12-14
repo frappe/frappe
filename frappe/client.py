@@ -365,8 +365,7 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_lazy_doc(doctype, docname)
-	doc.check_permission()
+	doc = frappe.get_lazy_doc(doctype, docname, check_permission=True)
 
 	file = frappe.get_doc(
 		{
