@@ -17,6 +17,7 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
@@ -37,9 +38,9 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
+	"/assets/frappe/icons/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
-	"/assets/frappe/icons/icons.svg",
 ]
 
 doctype_js = {
@@ -63,7 +64,9 @@ website_route_rules = [
 ]
 
 website_redirects = [
-	{"source": r"/app(.*)", "target": r"/desk\1"},
+	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
+	{"source": "/apps", "target": "/desk"},
+	{"source": "/app", "target": "/desk"},
 ]
 
 base_template = "templates/base.html"
@@ -567,6 +570,7 @@ default_log_clearing_doctypes = {
 	"Route History": 90,
 	"OAuth Bearer Token": 30,
 	"API Request Log": 90,
+	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 }
 
 # These keys will not be erased when doing frappe.clear_cache()

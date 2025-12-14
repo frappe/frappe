@@ -19,7 +19,7 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 200
       - uses: actions/setup-node@v6
@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.14'
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Validate Docs
         env:
@@ -57,7 +57,7 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.14'
@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: '3.14'
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -103,7 +103,7 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.14'

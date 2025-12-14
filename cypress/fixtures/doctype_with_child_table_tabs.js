@@ -1,0 +1,43 @@
+export default {
+	name: "Doctype With Child Table Tabs",
+	actions: [],
+	custom: 1,
+	autoname: "format: Test-Child-Tabs-{####}",
+	doctype: "DocType",
+	editable_grid: 1,
+	engine: "InnoDB",
+	fields: [
+		{
+			fieldname: "title",
+			fieldtype: "Data",
+			label: "Title",
+			reqd: 1,
+		},
+		{
+			fieldname: "items",
+			fieldtype: "Table",
+			label: "Items",
+			options: "Child Table With Tabs",
+			reqd: 1,
+		},
+	],
+	links: [],
+	modified_by: "Administrator",
+	module: "Custom",
+	owner: "Administrator",
+	permissions: [
+		{
+			create: 1,
+			delete: 1,
+			email: 1,
+			print: 1,
+			read: 1,
+			role: "System Manager",
+			share: 1,
+			write: 1,
+		},
+	],
+	sort_field: "creation",
+	sort_order: "ASC",
+	track_changes: 1,
+};

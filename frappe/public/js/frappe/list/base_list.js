@@ -176,9 +176,9 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_page_head() {
+		this.set_breadcrumbs();
 		this.set_title();
 		this.set_menu_items();
-		this.set_breadcrumbs();
 	}
 
 	set_title() {
@@ -449,6 +449,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_result_height() {
+		if (this.view !== "List") return;
 		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
 
@@ -794,7 +795,13 @@ class FilterArea {
 						fields_dict[fieldname]?.df?.fieldtype == "Link"))
 			) {
 				// standard filter
-				out.promise = out.promise.then(() => fields_dict[fieldname].set_value(value));
+				out.promise = out.promise.then(() => {
+					// Set match type for fields that support it
+					if (fields_dict[fieldname].df) {
+						fields_dict[fieldname].df.match_type = condition;
+					}
+					return fields_dict[fieldname].set_value(value);
+				});
 			} else {
 				// filter out non standard filters
 				out.non_standard_filters.push(filter);
@@ -882,13 +889,17 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
+		const user_setting_fields =
+			frappe.get_user_settings(this.list_view.doctype)?.group_by_fields || [];
 
 		fields = fields.concat(
 			doctype_fields
 				.filter(
 					(df) =>
 						(df.fieldname === title_field ||
-							(df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))) &&
+							((df.in_standard_filter ||
+								user_setting_fields.includes(df.fieldname)) &&
+								frappe.model.is_value_type(df.fieldtype))) &&
 						frappe.perm.has_perm(this.list_view.doctype, df.permlevel)
 				)
 				.map((df) => {
@@ -941,23 +952,109 @@ class FilterArea {
 
 		fields.map((df) => {
 			this.list_view.page.add_field(df, this.standard_filters_wrapper);
+
+			const input_fieldtypes = [
+				"Data",
+				"Text",
+				"Small Text",
+				"Long Text",
+				"Code",
+				"Phone",
+				"Read Only",
+				"Barcode",
+			];
+
+			if (input_fieldtypes.includes(df.fieldtype)) {
+				df.match_type = df.condition || "=";
+				this.filter_field_with_match_type(df);
+			}
 		});
 	}
 
+	filter_field_with_match_type(df) {
+		setTimeout(() => {
+			const field = this.list_view.page.fields_dict[df.fieldname];
+			if (!field || !field.$wrapper) return;
+
+			const $input = field.$wrapper.find("input").first();
+			if (!$input.length || $input.closest(".input-group").length) return;
+
+			const getSymbol = (match_type) => (match_type === "=" ? "=" : "≈");
+
+			$input.wrap('<div class="input-group"></div>');
+			const $inputGroup = $input.parent();
+
+			const $dropdown = $(`
+			<div class="input-group-btn">
+				<button type="button"
+					class="btn btn-default  match-type-dropdown-btn"
+					data-toggle="dropdown"
+					aria-haspopup="true"
+					aria-expanded="false">
+					${getSymbol(df.match_type || "≈")}
+
+				</button>
+				<ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-right">
+					<li class="dropdown-item" data-match-type="=">${__("Equals")}</li>
+					<li class="dropdown-item" data-match-type="like">${__("Like")}</li>
+				</ul>
+			</div>
+		`);
+
+			$inputGroup.append($dropdown);
+
+			$dropdown.find(".dropdown-item").on("click", (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				$dropdown.find("button").dropdown("toggle");
+
+				const new_type = $(e.currentTarget).data("match-type");
+				const current_type = field.df.match_type || "≈";
+
+				if (new_type === current_type) return;
+
+				field.df.match_type = new_type;
+				$dropdown.find("button").html(`${getSymbol(new_type)}`);
+
+				let value = field.get_value?.();
+				if (new_type === "=" && value) {
+					field.set_value(value.replace(/^%+|%+$/g, ""));
+				}
+
+				this.debounced_refresh_list_view();
+			});
+		}, 100);
+	}
 	get_standard_filters() {
 		const filters = [];
 		const fields_dict = this.list_view.page.fields_dict;
+
 		for (let key in fields_dict) {
 			let field = fields_dict[key];
 			let value = field.get_value();
 			if (value) {
-				if (field.df.condition === "like" && !value.includes("%")) {
-					value = "%" + value + "%";
+				let match_type = field.df.match_type || "=";
+				let condition;
+
+				if (match_type === "like") {
+					condition = "like";
+					if (typeof value === "string" && !value.includes("%")) {
+						value = "%" + value + "%";
+					}
+				} else if (match_type === "=") {
+					condition = "=";
+					if (typeof value === "string") {
+						value = value.replace(/^%+|%+$/g, "");
+					}
+				} else {
+					// For special conditions like "descendants of (inclusive)"
+					condition = field.df.condition || match_type;
 				}
+
 				filters.push([
 					field.df.doctype || this.list_view.doctype,
 					field.df.fieldname,
-					field.df.condition || "=",
+					condition,
 					value,
 				]);
 			}

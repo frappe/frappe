@@ -30,7 +30,7 @@ jobs:
       build: ${{ steps.check-build.outputs.build }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -69,7 +69,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download artifacts
         uses: actions/download-artifact@v6.0.0
       - name: Upload coverage data

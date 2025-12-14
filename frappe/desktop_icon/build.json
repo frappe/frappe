@@ -10,11 +10,11 @@
  "label": "Build",
  "link_to": "DocType",
  "link_type": "DocType",
- "modified": "2025-11-13 16:00:56.980768",
+ "modified": "2025-11-25 13:26:22.147009",
  "modified_by": "Administrator",
  "name": "Build",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }

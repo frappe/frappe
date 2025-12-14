@@ -99,9 +99,8 @@
 }
 
 .avatar-medium {
-	width: 28px;
-	height: 28px;
-
+	width: 22px;
+	height: 22px;
 	.standard-image {
 		@include get_textstyle("base", "regular");
 	}

@@ -340,11 +340,9 @@ def get_html_and_style(
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
 	if isinstance(name, str):
-		document = frappe.get_lazy_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		document = frappe.get_doc(json.loads(doc))
-
-	document.check_permission()
+		document = frappe.get_doc(json.loads(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
@@ -371,11 +369,9 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
 	if isinstance(name, str):
-		document = frappe.get_lazy_doc(doc, name)
+		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		document = frappe.get_doc(json.loads(doc))
-
-	document.check_permission()
+		document = frappe.get_doc(json.loads(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
@@ -414,10 +410,6 @@ def validate_key(key: str, doc: "Document") -> None:
 			raise frappe.exceptions.LinkExpired
 		else:
 			return
-
-	# TODO: Deprecate this! kept it for backward compatibility
-	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
-		return
 
 	return False
 

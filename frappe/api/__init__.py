@@ -9,6 +9,8 @@ from werkzeug.wrappers import Request, Response
 
 import frappe
 from frappe import _
+from frappe.modules.utils import get_doctype_app_map
+from frappe.monitor import add_data_to_monitor
 from frappe.pulse.app_heartbeat_event import capture_app_heartbeat
 from frappe.utils.response import build_response
 
@@ -67,7 +69,17 @@ def handle(request: Request):
 	data = build_response("json")
 
 	with suppress(Exception):
-		capture_app_heartbeat(arguments)
+		method = arguments.get("method") or frappe.form_dict.get("method")
+		doctype = arguments.get("doctype") or frappe.form_dict.get("doctype")
+		if method or doctype:
+			app_name = None
+			if doctype:
+				app_name = get_doctype_app_map().get(doctype)
+			elif method and "." in method:
+				app_name = method.split(".", 1)[0]
+			if app_name:
+				add_data_to_monitor(app=app_name)
+				capture_app_heartbeat(app_name)
 
 	return data
 

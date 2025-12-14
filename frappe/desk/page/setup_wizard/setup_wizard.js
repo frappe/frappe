@@ -672,6 +672,7 @@ frappe.setup.utils = {
 		slide.get_input("country").on("change", function () {
 			let data = frappe.setup.data.regional_data;
 			let country = slide.get_input("country").val();
+			country = country.replace(/\s*\([^)]*\)/, "");
 			if (!(country in data.country_info)) return;
 
 			let $timezone = slide.get_input("timezone");

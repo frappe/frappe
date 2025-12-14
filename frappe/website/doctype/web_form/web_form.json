@@ -139,6 +139,7 @@
   },
   {
    "default": "0",
+   "depends_on": "login_required",
    "fieldname": "allow_print",
    "fieldtype": "Check",
    "label": "Allow print"
@@ -429,7 +430,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2024-12-30 17:00:05.944646",
+ "modified": "2025-12-11 16:29:35.806107",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
@@ -445,6 +446,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

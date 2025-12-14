@@ -46,7 +46,7 @@ def deferred_insert(routes):
 def frequently_visited_links():
 	return frappe.get_all(
 		"Route History",
-		fields=["route", "count(name) as count"],
+		fields=["route", {"COUNT": "name", "as": "count"}],
 		filters={"user": frappe.session.user},
 		group_by="route",
 		order_by="count desc",

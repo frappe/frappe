@@ -806,6 +806,7 @@ docfield_properties = {
 	"is_virtual": "Check",
 	"link_filters": "JSON",
 	"placeholder": "Data",
+	"button_color": "Select",
 }
 
 doctype_link_properties = {

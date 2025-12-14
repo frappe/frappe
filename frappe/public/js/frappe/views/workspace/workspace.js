@@ -799,7 +799,7 @@ frappe.views.Workspace = class Workspace {
 		"abcdefghijklmnopqrstuvwxyz".split("").forEach((letter) => {
 			const default_shortcut = {
 				action: (e) => {
-					$("#navbar-search").focus();
+					$("#navbar-modal-search").click();
 					return false; // don't prevent default = type the letter in awesomebar
 				},
 				page: this.page,

@@ -6,7 +6,7 @@ import requests
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
-from frappe.tests.utils import toggle_test_mode
+from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
 
 authorization_token = None
 
@@ -317,7 +317,7 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:

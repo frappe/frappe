@@ -10,11 +10,11 @@
  "label": "Email",
  "link_to": "Email Account",
  "link_type": "DocType",
- "modified": "2025-11-13 16:00:56.976167",
+ "modified": "2025-11-25 13:25:50.374006",
  "modified_by": "Administrator",
  "name": "Email",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }
