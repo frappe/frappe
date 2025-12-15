@@ -57,3 +57,6 @@ export const STUDIO_COMPONENTS = [
 
 // Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
 export const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/
+
+// Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
+export const DYNAMIC_EXPRESSION_REGEX = /^\{\{[\s\S]*\}\}$/

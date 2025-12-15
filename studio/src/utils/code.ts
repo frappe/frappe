@@ -1,4 +1,4 @@
-import { FUNCTION_STRING_REGEX } from "@/utils/constants"
+import { FUNCTION_STRING_REGEX, DYNAMIC_EXPRESSION_REGEX } from "@/utils/constants"
 
 export function isDynamicValue(value: string) {
 	// Check if the prop value is a string and contains a dynamic expression
@@ -14,6 +14,11 @@ export function normalizeDynamicValue(value: any) {
 		return value === "true"
 	}
 	return value
+}
+
+export function normalizeCode(json5String: string) {
+	/* Normalize code by unquoting dynamic expressions & functions making it more readable */
+	return unquoteDynamicExpressions(unquoteFunctions(json5String))
 }
 
 export function unquoteFunctions(json5String: string) {
@@ -43,8 +48,7 @@ export function unquoteDynamicExpressions(json5String: string) {
 			.replace(/\\\\/g, '\\')
 			.trim()
 
-		// match exactly {{ ... }} (allow whitespace inside)
-		if (/^\{\{[\s\S]*\}\}$/.test(unescaped)) {
+		if (DYNAMIC_EXPRESSION_REGEX.test(unescaped)) {
 			return unescaped
 		}
 		return match
