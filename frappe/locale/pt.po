@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-14 09:35+0000\n"
-"PO-Revision-Date: 2025-12-14 18:48\n"
+"PO-Revision-Date: 2025-12-15 18:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -812,7 +812,7 @@ msgstr "Aceitar Convite"
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "Aceitado"
 
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
