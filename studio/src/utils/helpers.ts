@@ -27,23 +27,6 @@ function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
 	return clonedObj
 }
 
-function unquoteFunctions(json5String: string) {
-	json5String = json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
-		const unescaped = content
-			.replace(/\\n/g, '\n')
-			.replace(/\\t/g, '\t')
-			.replace(/\\"/g, '"')
-			.replace(/\\\\/g, '\\')
-			.trim()
-
-		if (FUNCTION_STRING_REGEX.test(unescaped)) {
-			return unescaped
-		}
-		return match
-	})
-	return json5String
-}
-
 type BlockInfo = {
 	blockId: string
 	breakpoint: string
@@ -458,7 +441,6 @@ function scrub(txt: string | null | undefined) {
 
 export {
 	deepCloneObject,
-	unquoteFunctions,
 	getBlockInfo,
 	getComponentRoot,
 	numberToPx,

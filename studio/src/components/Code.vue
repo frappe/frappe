@@ -34,7 +34,8 @@ import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import JSON5 from "json5"
-import { isPrivateKey, unquoteFunctions } from "@/utils/helpers"
+import { isPrivateKey } from "@/utils/helpers"
+import { unquoteFunctions, unquoteDynamicExpressions } from "@/utils/code"
 import { useSerializer } from "@/utils/useSerializer"
 
 import InputLabel from "@/components/InputLabel.vue"
@@ -76,6 +77,7 @@ const setEditorValue = () => {
 		if (props.language === "json" || typeof value === "object") {
 			value = JSON5.stringify(value, { replacer: jsonReplacer, space: 2, quote: '"' })
 			value = unquoteFunctions(value)
+			value = unquoteDynamicExpressions(value)
 		}
 		code.value = value
 	} catch (e) {
