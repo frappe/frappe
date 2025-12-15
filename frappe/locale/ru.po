@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-14 09:35+0000\n"
-"PO-Revision-Date: 2025-12-14 18:48\n"
+"PO-Revision-Date: 2025-12-15 18:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -999,7 +999,7 @@ msgstr "Принять приглашение"
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr "Принял"
+msgstr "Принято"
 
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -3860,7 +3860,7 @@ msgstr "Кнопка"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Button Color"
-msgstr ""
+msgstr "Цвет кнопки"
 
 #. Label of the button_gradients (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -9481,7 +9481,7 @@ msgstr "Ошибка при оценке уведомления {0}. Пожал�
 
 #: frappe/email/frappemail.py:173
 msgid "Error {0}: {1}"
-msgstr ""
+msgstr "Ошибка {0}: {1}"
 
 #: frappe/model/base_document.py:904
 msgid "Error: Data missing in table {0}"
@@ -12509,7 +12509,7 @@ msgstr "Если включено, то отслеживаются просмо�
 #. (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog."
-msgstr ""
+msgstr "Если эта функция включена, загружать общедоступные файлы могут только системные администраторы. Другие пользователи не увидят флажок <i>\"Частный\"</i> в диалоговом окне загрузки."
 
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -18298,7 +18298,7 @@ msgstr "Отправлять только записи, обновленные �
 
 #: frappe/core/doctype/file/file.py:167
 msgid "Only System Managers can make this file public."
-msgstr ""
+msgstr "Только системные администраторы могут сделать этот файл общедоступным."
 
 #: frappe/desk/doctype/workspace/workspace.js:32
 msgid "Only Workspace Manager can edit public workspaces"
@@ -18308,7 +18308,7 @@ msgstr "Только менеджер рабочего пространства 
 #. in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Only allow System Managers to upload public files"
-msgstr ""
+msgstr "Разрешить системным администраторам загружать только общедоступные файлы"
 
 #: frappe/modules/utils.py:68
 msgid "Only allowed to export customizations in developer mode"
@@ -22186,7 +22186,7 @@ msgstr "Ответ"
 #. Label of the response_headers (Code) field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Response Headers"
-msgstr ""
+msgstr "Заголовки ответа"
 
 #. Label of the response_type (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -22903,7 +22903,7 @@ msgstr "Сохранение"
 
 #: frappe/public/js/frappe/list/list_view.js:2027
 msgid "Saving Changes..."
-msgstr ""
+msgstr "Сохранение изменений..."
 
 #: frappe/custom/doctype/customize_form/customize_form.js:411
 msgid "Saving Customization..."
@@ -24997,7 +24997,7 @@ msgstr "Версия По"
 #. Option for the 'Icon Style' (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Solid"
-msgstr ""
+msgstr "Твердый"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
