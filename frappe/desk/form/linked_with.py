@@ -234,7 +234,7 @@ def get_references_across_doctypes_by_link_field(
 	:param to_doctypes: Get links to these doctypes.
 	:param limit_link_doctypes: limit links to these doctypes.
 	"""
-	filters = [["fieldtype", "=", "Link"]]
+	filters = [["fieldtype", "=", "Link"], ["is_virtual", "!=", 1]]
 
 	if to_doctypes:
 		filters += [["options", "in", tuple(to_doctypes)]]

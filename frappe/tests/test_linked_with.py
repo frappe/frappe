@@ -185,3 +185,59 @@ class TestLinkedWith(FrappeTestCase):
 
 		second_doc.cancel()
 		linked_doc.reload().cancel()
+
+	def test_virtual_link_fields_excluded_from_references(self):
+		"""Virtual Link fields should not be included in references.
+
+		Virtual fields do not have database columns, so including them in
+		reference queries would cause database errors when the system tries
+		to filter by these non-existent columns.
+		"""
+		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+		target_dt_name = "Test Target " + "".join(random.sample(string.ascii_lowercase, 10))
+
+		# Create a target DocType that the Link fields will reference
+		target_doctype = new_doctype(target_dt_name)
+		target_doctype.insert()
+
+		# Create a DocType with both regular and virtual Link fields
+		doctype_with_virtual = new_doctype(
+			dt_name,
+			fields=[
+				{
+					"label": "Regular Link",
+					"fieldname": "regular_link",
+					"fieldtype": "Link",
+					"options": target_dt_name,
+					"is_virtual": 0,
+				},
+				{
+					"label": "Virtual Link",
+					"fieldname": "virtual_link",
+					"fieldtype": "Link",
+					"options": target_dt_name,
+					"is_virtual": 1,
+				},
+			],
+		)
+		doctype_with_virtual.insert()
+
+		try:
+			references = linked_with.get_references_across_doctypes_by_link_field(
+				to_doctypes=[target_dt_name]
+			)
+
+			# Should only contain the regular link, not the virtual one
+			self.assertIn(target_dt_name, references)
+			fieldnames = [ref["fieldname"] for ref in references[target_dt_name]]
+
+			self.assertIn("regular_link", fieldnames)
+			self.assertNotIn(
+				"virtual_link",
+				fieldnames,
+				"Virtual Link fields should not be included in references",
+			)
+		finally:
+			frappe.delete_doc("DocType", dt_name)
+			frappe.delete_doc("DocType", target_dt_name)
+			frappe.db.commit()
