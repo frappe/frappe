@@ -29,7 +29,6 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_older_web_view_links",
   "show_external_link_warning",
   "security_tab",
   "security",
@@ -86,6 +85,7 @@
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
+  "only_allow_system_managers_to_upload_public_files",
   "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
@@ -494,12 +494,6 @@
    "label": "Document Share Key Expiry (in Days)"
   },
   {
-   "default": "0",
-   "fieldname": "allow_older_web_view_links",
-   "fieldtype": "Check",
-   "label": "Allow Older Web View Links (Insecure)"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -782,12 +776,19 @@
   {
    "fieldname": "column_break_ewhs",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog.",
+   "fieldname": "only_allow_system_managers_to_upload_public_files",
+   "fieldtype": "Check",
+   "label": "Only allow System Managers to upload public files"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-01 00:12:17.823242",
+ "modified": "2025-12-10 20:43:50.675887",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

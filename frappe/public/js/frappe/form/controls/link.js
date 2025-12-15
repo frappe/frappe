@@ -97,7 +97,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 	set_formatted_input(value) {
-		super.set_formatted_input();
+		super.set_formatted_input(value);
 		if (!value) return;
 
 		if (!this.title_value_map) {
@@ -359,7 +359,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			ignore_user_permissions: this.df.ignore_user_permissions,
 			reference_doctype: this.get_reference_doctype() || "",
 			page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
-			form_doctype: this.doctype,
 			link_fieldname: this.df.fieldname,
 		};
 
@@ -679,7 +678,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (
 			nothing_to_fetch &&
 			value &&
-			this.awesomplete._list?.find((item) => item.value === value && !item.action)
+			this.awesomplete?._list?.find((item) => item.value === value && !item.action)
 		) {
 			// if value is in the suggestion list, must be correct
 			return value;

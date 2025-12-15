@@ -38,9 +38,9 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
+	"/assets/frappe/icons/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
-	"/assets/frappe/icons/icons.svg",
 ]
 
 doctype_js = {
@@ -64,7 +64,7 @@ website_route_rules = [
 ]
 
 website_redirects = [
-	{"source": r"/app/(.*)", "target": r"/desk/\1"},
+	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
 	{"source": "/apps", "target": "/desk"},
 	{"source": "/app", "target": "/desk"},
 ]

@@ -48,20 +48,10 @@
 }
 
 .search-bar {
-	flex: 1;
 	max-width: 300px;
-	margin: 0 var(--margin-md);
-
 	svg {
 		stroke: var(--text-light);
-	}
-
-	.search-icon {
-		position: absolute;
-		margin-left: 12px;
-		display: flex;
-		align-items: center;
-		height: 100%;
+		margin-bottom: 2px;
 	}
 	.awesomplete {
 		width: 100%;
@@ -87,6 +77,11 @@
 		input::placeholder {
 			color: var(--text-light);
 		}
+	}
+	.search-icon {
+		background-color: var(--control-bg);
+		border-radius: 16px;
+		padding: 6px;
 	}
 }
 

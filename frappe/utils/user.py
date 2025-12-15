@@ -176,7 +176,10 @@ class UserPermissions:
 		self.can_read += self.can_write
 
 		self.shared = frappe.get_all(
-			"DocShare", {"user": self.name, "read": 1}, distinct=True, pluck="share_doctype"
+			"DocShare",
+			{"user": self.name, "read": 1},
+			distinct=True,
+			pluck="share_doctype",
 		)
 		self.can_read = list(set(self.can_read + self.shared))
 		self.all_read += self.can_read

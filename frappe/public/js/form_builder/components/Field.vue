@@ -88,9 +88,6 @@ function make_dialog(frm) {
 			let fieldname = props.field.df.fieldname;
 			let field_option = props.field.df.options;
 			let filters = frm.filter_group.get_filters().map((filter) => {
-				// last element is a boolean which hides the filter hence not required to store in meta
-				filter.pop();
-
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
 				filter[0] = field_option;
 				return filter;

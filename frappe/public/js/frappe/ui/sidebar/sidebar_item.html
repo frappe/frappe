@@ -21,8 +21,10 @@
 			</div>
 		{% } else  { %}
             <a
-                href="{{ path }}"
-                target="{%= item.link_type === "URL" ? "_blank" : "" %}"
+                {% if (path) { %}
+                    href="{{ path }}"
+                    target="{%= item.link_type === "URL" ? "_blank" : "" %}"
+                {% } %}
                 class="item-anchor"
             >
                 {% let icon = item.icon %}
@@ -35,6 +37,9 @@
                     {% } %}
                 </span>
                 <span class="sidebar-item-label">{{ item.label }}</span>
+                {% if (item.suffix) { %}
+                     <span class="sidebar-item-suffix">{{ item.suffix }}</span>
+                {% } %}
                 {% if (!item.show_arrow) { %}
                 <div class="sidebar-item-control"></div>
                 {% } %}

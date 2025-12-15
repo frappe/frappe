@@ -333,7 +333,6 @@ frappe.ui.Filter = class {
 			this.field.df.fieldname,
 			this.get_condition(),
 			this.get_selected_value(),
-			this.hidden,
 		];
 	}
 

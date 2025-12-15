@@ -1,5 +1,9 @@
 <a class="desktop-icon" data-id="{{ icon.label}}"  data-logo="{{ icon.logo_url }}" data-icon="{{ icon.icon }}" data-type="{{ icon.type }}" style="text-decoration:none">
-    {% if (icon.logo_url) { %}
+    {% if(frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style )) %}
+        <div class="icon-container">
+            <img class="app-icon" src="{{ frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style) }}" alt="{{ icon.label }}" />
+        </div>
+    {% else if (icon.logo_url) { %}
         <div class="icon-container">
             <img class="app-icon" src="{{ icon.logo_url }}" alt="{{ icon.label }}" />
         </div>

@@ -421,7 +421,8 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		const visible_tabs = this.tabs.filter((tab) => !tab.hidden);
-		if (visible_tabs && visible_tabs.length == 1) {
+		// Hide single tab only for regular forms, not for child tables
+		if (visible_tabs && visible_tabs.length == 1 && !this.is_child_table) {
 			visible_tabs[0].tab_link.toggleClass("hide show");
 		}
 		this.set_tab_as_active();
@@ -440,7 +441,18 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
-		// Set active tab based on hash
+		// For child tables (grid row forms), always activate first visible tab
+		if (this.is_child_table) {
+			if (this.tabs.length) {
+				let first_visible_tab = this.tabs.find((tab) => !tab.is_hidden());
+				if (first_visible_tab && !first_visible_tab.is_active()) {
+					first_visible_tab.set_active();
+				}
+			}
+			return;
+		}
+
+		// Set active tab based on hash (for regular forms only)
 		const tab_from_hash = window.location.hash.replace("#", "");
 		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
 		if (tab) {
@@ -549,7 +561,9 @@ frappe.ui.form.Layout = class Layout {
 			if (tabs_content.getBoundingClientRect().top < 100) {
 				tabs_content.scrollIntoView();
 				setTimeout(() => {
-					$(".page-head").css("top", "-15px");
+					if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
+						$(".page-head").css("top", "-15px");
+					}
 					$(".form-tabs-list").removeClass("form-tabs-sticky-down");
 					$(".form-tabs-list").addClass("form-tabs-sticky-up");
 				}, 3);
