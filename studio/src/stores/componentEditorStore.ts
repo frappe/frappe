@@ -72,8 +72,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	}
 
 	async function editComponent(componentId: string) {
-		const componentDoc = componentStore.getComponentDoc(componentId)
 		const componentBlock = await componentStore.getComponent(componentId)
+		const componentDoc = componentStore.getComponentDoc(componentId)
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
