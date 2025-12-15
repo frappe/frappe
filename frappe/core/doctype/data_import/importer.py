@@ -38,7 +38,9 @@ class Importer:
 			self.data_import = frappe.get_doc(doctype="Data Import")
 			if import_type:
 				self.data_import.import_type = import_type
-
+		# set user lang for translations
+		frappe.cache.hdel("lang", frappe.session.user)
+		frappe.set_user_lang(frappe.session.user)
 		self.template_options = frappe.parse_json(self.data_import.template_options or "{}")
 		self.import_type = self.data_import.import_type
 
