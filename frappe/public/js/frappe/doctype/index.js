@@ -75,8 +75,8 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				"Set by user": "prompt",
 				"By fieldname": "field:",
 				'By "Naming Series" field': "naming_series:",
-				Expression: "format:",
-				"Expression (sld style)": "",
+				Expression: "",
+				"Expression (old style)": "format:",
 				Random: "hash",
 				"By script": "",
 			};
@@ -98,9 +98,9 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			"By fieldname": "Format: <code>field:[fieldname]</code>. Valid fieldname must exist",
 			'By "Naming Series" field':
 				"Format: <code>naming_series:[fieldname]</code>. Default fieldname is <code>naming_series</code>",
-			Expression:
-				"Format: <code>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</code> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.",
 			"Expression (old style)":
+				"Format: <code>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</code> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.",
+			Expression:
 				"Format: <code>EXAMPLE-.#####</code> Series by prefix (separated by a dot)",
 			Random: "",
 			"By script": "",
@@ -128,9 +128,9 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			else if (autoname.startsWith("naming_series:"))
 				this.frm.set_value("naming_rule", 'By "Naming Series" field');
 			else if (autoname.startsWith("format:"))
-				this.frm.set_value("naming_rule", "Expression");
+				this.frm.set_value("naming_rule", "Expression (old style)");
 			else if (autoname === "hash") this.frm.set_value("naming_rule", "Random");
-			else this.frm.set_value("naming_rule", "Expression (old style)");
+			else this.frm.set_value("naming_rule", "Expression");
 
 			setTimeout(() => (this.frm.__from_autoname = false), 500);
 		}
