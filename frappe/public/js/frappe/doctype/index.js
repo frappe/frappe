@@ -24,6 +24,7 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 
 	refresh() {
 		this.show_db_utilization();
+		this.remove_old_style_naming_option();
 	}
 
 	show_db_utilization() {
@@ -43,6 +44,12 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 					)
 				);
 			});
+	}
+
+	remove_old_style_naming_option() {
+		let df = this.frm.get_docfield("naming_rule");
+		df.options = df.options.replace("Expression (old style)\n", "");
+		this.frm.refresh_field("naming_rule");
 	}
 
 	max_attachments() {
