@@ -25,7 +25,16 @@ from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
-	("Custom Field", "Property Setter", "Module Def", "__Auth", "__global_search", "Singles")
+	(
+		"Custom Field",
+		"Property Setter",
+		"Module Def",
+		"__Auth",
+		"__global_search",
+		"Singles",
+		"Sessions",
+		"Series",
+	)
 )
 
 
