@@ -60,3 +60,8 @@ export const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z
 
 // Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
 export const DYNAMIC_EXPRESSION_REGEX = /^\{\{[\s\S]*\}\}$/
+
+// Match a double-quoted string and capture its inner content, including escaped chars.
+// This pattern safely captures the contents of a JSON-style double-quoted string,
+// preserving escaped sequences (e.g. \" or \\n) in the captured group.
+export const QUOTED_STRING_CONTENT_REGEX = /"((?:[^"\\]|\\.)*)"/g

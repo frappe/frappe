@@ -1,4 +1,4 @@
-import { FUNCTION_STRING_REGEX, DYNAMIC_EXPRESSION_REGEX } from "@/utils/constants"
+import { FUNCTION_STRING_REGEX, DYNAMIC_EXPRESSION_REGEX, QUOTED_STRING_CONTENT_REGEX } from "@/utils/constants"
 
 export function isDynamicValue(value: string) {
 	// Check if the prop value is a string and contains a dynamic expression
@@ -22,35 +22,31 @@ export function normalizeCode(json5String: string) {
 }
 
 export function unquoteFunctions(json5String: string) {
-	json5String = json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
-		const unescaped = content
-			.replace(/\\n/g, '\n')
-			.replace(/\\t/g, '\t')
-			.replace(/\\"/g, '"')
-			.replace(/\\\\/g, '\\')
-			.trim()
-
+	return json5String.replace(QUOTED_STRING_CONTENT_REGEX, (match, content) => {
+		const unescaped = unescape(content)
 		if (FUNCTION_STRING_REGEX.test(unescaped)) {
 			return unescaped
 		}
 		return match
 	})
-	return json5String
 }
 
 export function unquoteDynamicExpressions(json5String: string) {
 	/* Unquote quoted strings that are exactly a single dynamic expression: "{{ ... }}" */
-	return json5String.replace(/"((?:[^"\\]|\\.)*)"/g, (match, content) => {
-		const unescaped = content
-			.replace(/\\n/g, '\n')
-			.replace(/\\t/g, '\t')
-			.replace(/\\"/g, '"')
-			.replace(/\\\\/g, '\\')
-			.trim()
-
+	return json5String.replace(QUOTED_STRING_CONTENT_REGEX, (match, content) => {
+		const unescaped = unescape(content)
 		if (DYNAMIC_EXPRESSION_REGEX.test(unescaped)) {
 			return unescaped
 		}
 		return match
 	})
+}
+
+function unescape(str: string) {
+	return str
+		.replace(/\\n/g, '\n')
+		.replace(/\\t/g, '\t')
+		.replace(/\\"/g, '"')
+		.replace(/\\\\/g, '\\')
+		.trim()
 }
