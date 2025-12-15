@@ -15,7 +15,6 @@ import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
-const { copyObject, getBlockCopy, getComponentBlock } = useSerializer()
 class Block implements BlockOptions {
 	componentId: string
 	componentName: string
@@ -71,6 +70,7 @@ class Block implements BlockOptions {
 
 		// get component props
 		if (!options.componentProps) {
+			const { copyObject } = useSerializer()
 			this.componentProps = copyObject(Block.components?.[options.componentName]?.initialState)
 		} else {
 			this.componentProps = options.componentProps
@@ -519,6 +519,7 @@ class Block implements BlockOptions {
 		if (this.isRoot()) return
 
 		const canvasStore = useCanvasStore()
+		const { getBlockCopy } = useSerializer()
 		const blockCopy = getBlockCopy(this)
 		const parentBlock = this.getParentBlock()
 
@@ -730,6 +731,7 @@ class Block implements BlockOptions {
 
 	// studio components
 	extendFromComponent(componentName: string) {
+		const { getComponentBlock } = useSerializer()
 		let parentBlock = this.getParentBlock()
 		const newBlock = getComponentBlock(componentName, true)
 
