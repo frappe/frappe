@@ -171,6 +171,30 @@ const evaluationContext = computed(() => {
 	}
 })
 
+const evaluateDynamicValues = (value: any): any => {
+	if (typeof value === "string") {
+		if (isDynamicValue(value)) {
+			const evaluated = codeStore.getDynamicValue(value, evaluationContext.value)
+			return evaluated
+		}
+		return value
+	}
+
+	if (Array.isArray(value)) {
+		return value.map((item) => evaluateDynamicValues(item))
+	}
+
+	if (value !== null && typeof value === "object") {
+		const result: Record<string, any> = {}
+		for (const [key, val] of Object.entries(value)) {
+			result[key] = evaluateDynamicValues(val)
+		}
+		return result
+	}
+
+	return value
+}
+
 const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
@@ -178,9 +202,7 @@ const getComponentProps = () => {
 	delete propValues.modelValue
 
 	Object.entries(propValues).forEach(([propName, config]) => {
-		if (isDynamicValue(config)) {
-			propValues[propName] = codeStore.getDynamicValue(config, evaluationContext.value)
-		}
+		propValues[propName] = evaluateDynamicValues(config)
 	})
 	return propValues
 }
@@ -199,17 +221,7 @@ const componentRef = ref<ComponentPublicInstance | null>(null)
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
 		const value = codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
-		// Handle different return types:
-		// - Boolean: return as-is
-		// - String "true"/"false": convert to boolean
-		// - Other values: check truthiness
-		if (typeof value === "boolean") {
-			return value
-		} else if (typeof value === "string" && (value === "true" || value === "false")) {
-			return value === "true"
-		} else {
-			return value
-		}
+		return value
 	}
 	return true
 })

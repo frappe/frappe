@@ -76,16 +76,24 @@ export const useSerializer = () => {
 		const codeStore = useCodeStore()
 		const registeredComponents = window.__APP_COMPONENTS__ || {}
 		try {
+			// Quote dynamic values before parsing
+			const processedString = quoteDynamicValues(jsString)
 			const fn = new Function(
 				"h",
 				...Object.keys(registeredComponents),
 				...Object.keys(codeStore.globalExecutionContext),
-				`return (${jsString})`
+				`return (${processedString})`
 			)
 			return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
 		} catch (e) {
 			throw e
 		}
+	}
+
+	function quoteDynamicValues(str: string): string {
+		// Match {{ ... }} that is not already quoted (not preceded by " or ')
+		// This regex looks for {{ ... }} patterns that are not surrounded by quotes
+		return str.replace(/:\s*({{[^}]+}})\s*([,}\n\r])/g, ': "$1"$2')
 	}
 
 	function getBlockString(block: BlockOptions | Block): string {
@@ -170,6 +178,7 @@ export const useSerializer = () => {
 		jsonReviver,
 		copyObject,
 		parseObjectString,
+		quoteDynamicValues,
 		// block serialization/deserialization
 		getBlockString,
 		getBlockObjectCopy,

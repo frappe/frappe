@@ -5,7 +5,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
-import { isDynamicValue } from "@/utils/code"
+import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -136,6 +136,12 @@ const useCodeStore = defineStore("codeStore", () => {
 				// for proptype as object, return the evaluated object as is
 				// TODO: handle this more explicitly by checking the actual prop type
 				return dynamicValue || undefined
+			}
+
+			// If the whole value is a single dynamic expression, return the normalized evaluated value
+			// e.g. value === "{{ showTooltip }}" should return boolean true/false if appropriate
+			if (value.trim().match(/^\{\{.*\}\}$/)) {
+				return normalizeDynamicValue(dynamicValue)
 			}
 
 			// Append the static part of the string
