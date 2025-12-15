@@ -157,6 +157,30 @@ const useCodeStore = defineStore("codeStore", () => {
 		return result || undefined
 	}
 
+	function evaluateDynamicValues(value: string | object | number, localContext: ExpressionEvaluationContext = {}): any {
+		/* recurse into arrays/objects and evaluate dynamic expressions */
+		if (typeof value === "string") {
+			if (isDynamicValue(value)) {
+				return getDynamicValue(value, localContext)
+			}
+			return value
+		}
+
+		if (Array.isArray(value)) {
+			return value.map((item) => evaluateDynamicValues(item, localContext))
+		}
+
+		if (value !== null && typeof value === "object") {
+			const result: Record<string, any> = {}
+			for (const [key, val] of Object.entries(value)) {
+				result[key] = evaluateDynamicValues(val, localContext)
+			}
+			return result
+		}
+
+		return value
+	}
+
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
 			const context = { ...globalContext.value, ...localContext }
@@ -416,6 +440,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		globalContext,
 		globalExecutionContext,
 		getDynamicValue,
+		evaluateDynamicValues,
 		executeUserScript,
 		handleSuccess,
 		handleError,

@@ -9,7 +9,6 @@ import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
 
 import useCodeStore from "@/stores/codeStore"
-import { isDynamicValue } from "@/utils/code"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -28,9 +27,7 @@ const componentContext = computed(() => {
 			}
 
 			Object.entries(context).forEach(([inputName, value]) => {
-				if (isDynamicValue(value)) {
-					context[inputName] = codeStore.getDynamicValue(value, props.evaluationContext)
-				}
+				context[inputName] = codeStore.evaluateDynamicValues(value, props.evaluationContext)
 			})
 		})
 	}
