@@ -537,6 +537,8 @@ def msgprint(
 	if sys.stdin and sys.stdin.isatty():
 		if out.as_list:
 			msg = [_strip_html_tags(msg) for msg in out.message]
+		elif out.as_table:
+			msg = [[_strip_html_tags(cell) for cell in row] for row in out.message]
 		else:
 			msg = _strip_html_tags(out.message)
 
