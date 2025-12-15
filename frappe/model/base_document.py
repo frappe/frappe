@@ -322,6 +322,9 @@ class BaseDocument:
 
 		value = self.__dict__.get(key, default)
 
+		if value == default and key and (prop := getattr(type(self), key, None)) and is_a_property(prop):
+			value = getattr(self, key)
+
 		if limit and isinstance(value, list | tuple) and len(value) > limit:
 			value = value[:limit]
 
