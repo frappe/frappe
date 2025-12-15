@@ -414,7 +414,27 @@ class SendMailContext:
 				print_format_file.update({"parent": message_obj})
 				add_attachment(**print_format_file)
 
-		return safe_encode(message_obj.as_string())
+		message_str = self.handle_in_reply_to(message_obj)
+		return safe_encode(message_str)
+
+	def handle_in_reply_to(self, message_obj):
+		"""Handle In-Reply-To header to avoid issues in Header Folding."""
+		in_reply_to = ""
+		if "In-Reply-To" in message_obj:
+			try:
+				current_value = message_obj["In-Reply-To"]
+				if current_value:
+					clean_id = str(current_value).strip().replace("\n", "").replace("\r", "").strip("<>")
+					in_reply_to = f"<{clean_id}>"
+					message_obj.replace_header("In-Reply-To", "{IN_REPLY_TO_PLACEHOLDER}")
+			except Exception as e:
+				frappe.log_error(title="In-Reply-To Header Patch Error", message=str(e))
+
+		msg_str = message_obj.as_string()
+		if in_reply_to:
+			msg_str = msg_str.replace("{IN_REPLY_TO_PLACEHOLDER}", in_reply_to)
+
+		return msg_str
 
 	def _store_file(self, file_name, content):
 		if not frappe.get_system_settings("store_attached_pdf_document"):
