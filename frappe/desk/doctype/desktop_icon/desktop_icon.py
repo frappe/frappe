@@ -138,6 +138,7 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"label",
 			"link",
 			"link_type",
+			"app",
 			"icon_type",
 			"parent_icon",
 			"icon",

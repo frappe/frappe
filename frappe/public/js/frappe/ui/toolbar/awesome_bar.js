@@ -21,8 +21,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		let search_modal = new frappe.get_modal("Search", "");
 
+		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
-			search_modal.find("#navbar-search").get(0).focus();
+			const input = search_modal.find("#navbar-search").get(0);
+			setTimeout(() => input.focus(), 10);
 		});
 
 		let search_modal_body = `<div class="align-baseline flex py-2 px-1 relative navbar-modal-wrapper">

@@ -678,7 +678,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (
 			nothing_to_fetch &&
 			value &&
-			this.awesomplete._list?.find((item) => item.value === value && !item.action)
+			this.awesomplete?._list?.find((item) => item.value === value && !item.action)
 		) {
 			// if value is in the suggestion list, must be correct
 			return value;

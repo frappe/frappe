@@ -507,7 +507,7 @@ class ImportFile:
 		mandatory_fields = []
 
 		for df in meta.fields:
-			if df.reqd and df.fieldtype not in no_value_fields:
+			if df.reqd and df.fieldtype not in no_value_fields and not df.default:
 				mandatory_fields.append(df.label)
 
 		return mandatory_fields

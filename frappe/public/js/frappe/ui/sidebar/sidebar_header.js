@@ -67,7 +67,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					icon: "wallpaper",
 					url: frappe.utils.generate_route({
 						type: "Workspace",
-						route: w.toLowerCase(),
+						route: frappe.router.slug(w),
 					}),
 				};
 				sibling_workspaces.push(item);
@@ -138,8 +138,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	set_header_icon() {
 		let desktop_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title);
-		if (desktop_icon && desktop_icon.logo_url) {
-			this.header_icon = this.get_desktop_icon_by_label(this.sidebar.sidebar_title).logo_url;
+		let desktop_icon_url = frappe.utils.get_desktop_icon(desktop_icon.label, "solid");
+		if (desktop_icon_url) {
+			this.header_icon = desktop_icon_url;
+			this.header_icon = `<img src=${this.header_icon}></img>`;
+		} else if (desktop_icon && desktop_icon.logo_url) {
+			this.header_icon = desktop_icon.logo_url;
 			this.header_icon = `<img src=${this.header_icon}></img>`;
 		} else if (this.sidebar.sidebar_data) {
 			this.header_icon = this.sidebar.sidebar_data.header_icon;

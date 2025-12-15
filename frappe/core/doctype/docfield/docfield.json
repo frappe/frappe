@@ -556,6 +556,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.fieldtype !== 'Link'",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Virtual"

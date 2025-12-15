@@ -123,6 +123,8 @@ def get_bootinfo():
 		bootinfo.sentry_dsn = sentry_dsn
 
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
+	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
+	bootinfo.desktop_icon_style = frappe.db.get_single_value("Desktop Settings", "icon_style") or "Subtle"
 	return bootinfo
 
 
@@ -599,3 +601,30 @@ def add_user_specific_sidebar(sidebars):
 	except frappe.DoesNotExistError:
 		my_workspace = frappe.get_doc("Workspace Sidebar", "My Workspaces")
 		sidebars.append({"name": my_workspace.name, "header_icon": my_workspace.header_icon})
+
+
+def get_desktop_icon_urls():
+	icons_map = {}
+
+	for app in frappe.get_installed_apps():
+		app_path = frappe.get_app_path(app)
+		icons_dir = os.path.join(app_path, "public", "icons", "desktop_icons")
+
+		if not os.path.exists(icons_dir):
+			continue
+
+		icons_map[app] = {"subtle": [], "solid": []}
+
+		for variant in ["subtle", "solid"]:
+			variant_path = os.path.join(icons_dir, variant)
+
+			if os.path.exists(variant_path):
+				for fname in os.listdir(variant_path):
+					if fname.endswith(".svg"):
+						abs_path = os.path.join(variant_path, fname)
+						assets_path = abs_path.replace(
+							os.path.join(app_path, "public"), os.path.join("assets", app)
+						)
+						icons_map[app][variant].append(assets_path)
+
+	return icons_map

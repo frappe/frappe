@@ -203,7 +203,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		this.create_sidebar(this.workspace_sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
@@ -483,6 +482,7 @@ frappe.ui.Sidebar = class Sidebar {
 				me.show_new_dialog();
 			});
 		} else {
+			this.wrapper.removeAttr("data-mode");
 			$(this.active_item).addClass("active-sidebar");
 			$(".collapse-sidebar-link").removeClass("hidden");
 			this.wrapper.find(".edit-mode").addClass("hidden");
@@ -814,7 +814,7 @@ frappe.ui.Sidebar = class Sidebar {
 		const me = this;
 		this.save_sidebar_button = this.wrapper.find(".save-sidebar");
 		this.discard_button = this.wrapper.find(".discard-button");
-		this.save_sidebar_button.on("click", async function (event) {
+		this.save_sidebar_button.off("click").on("click", async function (event) {
 			frappe.show_alert({
 				message: __("Saving Sidebar"),
 				indicator: "success",
