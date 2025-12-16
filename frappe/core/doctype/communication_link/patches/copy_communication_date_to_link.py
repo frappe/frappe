@@ -1,56 +1,33 @@
 import frappe
+from frappe.query_builder import DocType
 
-
-  # copy communication_date from Communication to Communication Link
-  def execute():
-      batch_size = 10_000
-
-      while True:
-          # Update communication_date in batches
-          frappe.db.multisql(
-              {
-                  "postgres": """
-                      UPDATE "tabCommunication Link" cl
-                      SET communication_date = c.communication_date
-                      FROM "tabCommunication" c
-                      WHERE cl.parent = c.name
-                      AND cl.communication_date IS NULL
-                      AND c.communication_date IS NOT NULL
-                      LIMIT %s
-                  """,
-                  "mariadb": """
-                      UPDATE `tabCommunication Link` cl
-                      INNER JOIN `tabCommunication` c ON cl.parent = c.name
-                      SET cl.communication_date = c.communication_date
-                      WHERE cl.communication_date IS NULL
-                      AND c.communication_date IS NOT NULL
-                      LIMIT %s
-                  """,
-              },
-              values=(batch_size,),
-          )
-
-          frappe.db.commit()
-
-          # Check if more rows need updating
-          check = frappe.db.multisql(
-              {
-                  "postgres": """
-                      SELECT 1 FROM "tabCommunication Link" cl
-                      INNER JOIN "tabCommunication" c ON cl.parent = c.name
-                      WHERE cl.communication_date IS NULL
-                      AND c.communication_date IS NOT NULL
-                      LIMIT 1
-                  """,
-                  "mariadb": """
-                      SELECT 1 FROM `tabCommunication Link` cl
-                      INNER JOIN `tabCommunication` c ON cl.parent = c.name
-                      WHERE cl.communication_date IS NULL
-                      AND c.communication_date IS NOT NULL
-                      LIMIT 1
-                  """,
-              }
-          )
-
-          if not check:
-              break
+# copy communication_date from Communication to Communication Link
+def execute():
+	batch_size = 10_000
+	
+	CommunicationLink = DocType("Communication Link")
+	Communication = DocType("Communication")
+	while True:
+		# Fetch records that need updating with their communication_date
+		records = (
+			frappe.qb.from_(CommunicationLink)
+			.join(Communication)
+			.on(CommunicationLink.parent == Communication.name)
+			.select(CommunicationLink.name, Communication.communication_date)
+			.where(CommunicationLink.communication_date.isnull())
+			.where(Communication.communication_date.isnotnull())
+			.limit(batch_size)
+		).run(as_dict=True)
+		
+		if not records:
+			break
+			
+		# Update records in batch
+		for record in records:
+			(
+				frappe.qb.update(CommunicationLink)
+				.set(CommunicationLink.communication_date, record.communication_date)
+				.where(CommunicationLink.name == record.name)
+			).run()
+		
+		frappe.db.commit()
