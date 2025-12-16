@@ -239,7 +239,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.user = None
 	local.user_perms = None
-	local.session = None
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
@@ -250,8 +249,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": [], "icons": []}
+<<<<<<< HEAD
 	local.session = _dict()
 	local.dev_server = _dev_server
+=======
+	local.session = _dict(user="Guest")
+	local.dev_server = _dev_server  # only for backwards compatibility
+>>>>>>> 22899d08de (fix: set default `session.user` (#35274))
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
