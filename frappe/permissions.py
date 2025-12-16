@@ -214,7 +214,8 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 		return {ptype: 0}
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner(), debug=debug))
-
+	if ptype not in permissions:
+		permissions[ptype] = 1
 	debug and _debug_log(
 		"User has following permissions using role permission system: "
 		+ frappe.as_json(permissions, indent=8)

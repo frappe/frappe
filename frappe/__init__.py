@@ -405,6 +405,7 @@ whitelisted: set[Callable] = set()
 guest_methods: set[Callable] = set()
 xss_safe_methods: set[Callable] = set()
 allowed_http_methods_for_whitelisted_func: dict[Callable, list[str]] = {}
+allowed_permissions_for_whitelisted_func: dict[Callable, list[str]] = {}
 
 
 def _in_request_or_test():
@@ -417,7 +418,7 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, permissions=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -445,6 +446,8 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 
 		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
+		if permissions:
+			allowed_permissions_for_whitelisted_func[fn] = permissions
 
 		if allow_guest:
 			guest_methods.add(fn)
@@ -473,6 +476,7 @@ def is_whitelisted(method):
 		for key, value in form_dict.items():
 			if isinstance(value, str):
 				form_dict[key] = sanitize_html(value)
+	return allowed_permissions_for_whitelisted_func.get(method, None)
 
 
 def read_only():

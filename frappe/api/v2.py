@@ -227,9 +227,12 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	"""
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
-	doc.is_whitelisted(method)
-
-	doc.check_permission(PERMISSION_MAP[frappe.request.method])
+	perms = doc.is_whitelisted(method)
+	if perms:
+		for permtype in perms:
+			doc.check_permission(permtype)
+	else:
+		doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
 	if frappe.response.docs: 
 		frappe.response.docs.append(doc.as_dict())

@@ -1565,7 +1565,7 @@ class Document(BaseDocument):
 		if not method:
 			raise NotFound(f"Method {method_name} not found")
 
-		is_whitelisted(getattr(method, "__func__", method))
+		return is_whitelisted(getattr(method, "__func__", method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""Check that value of fieldname should be 'condition' val2
