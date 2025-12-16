@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-14 09:35+0000\n"
-"PO-Revision-Date: 2025-12-14 18:48\n"
+"PO-Revision-Date: 2025-12-16 18:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -68,7 +68,7 @@ msgstr "&lt;head&gt; HTML"
 
 #: frappe/database/query.py:2035
 msgid "'*' is only allowed in {0} SQL function(s)"
-msgstr ""
+msgstr "'*' je dovoljen samo v funkcijah {0} SQL"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
