@@ -107,7 +107,6 @@ import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
-import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getComponentRoot, isHTML } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
@@ -131,7 +130,6 @@ defineOptions({
 	inheritAttrs: false,
 })
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
@@ -180,9 +178,7 @@ const getComponentProps = () => {
 	delete propValues.modelValue
 
 	Object.entries(propValues).forEach(([propName, config]) => {
-		if (isDynamicValue(config)) {
-			propValues[propName] = codeStore.getDynamicValue(config, evaluationContext.value)
-		}
+		propValues[propName] = codeStore.evaluateDynamicValues(config, evaluationContext.value)
 	})
 	return propValues
 }
@@ -200,18 +196,7 @@ const componentRef = ref<ComponentPublicInstance | null>(null)
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
-		// Handle different return types:
-		// - Boolean: return as-is
-		// - String "true"/"false": convert to boolean
-		// - Other values: check truthiness
-		if (typeof value === "boolean") {
-			return value
-		} else if (typeof value === "string" && (value === "true" || value === "false")) {
-			return value === "true"
-		} else {
-			return value
-		}
+		return codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 	}
 	return true
 })

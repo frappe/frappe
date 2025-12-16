@@ -92,9 +92,9 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
-import { getRootBlock } from "@/utils/helpers"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
+import { useSerializer } from "@/utils/useSerializer"
 
 const route = useRoute()
 const router = useRouter()
@@ -146,6 +146,7 @@ watch(
 	{ deep: true },
 )
 
+const { getRootBlock } = useSerializer()
 async function setPage() {
 	if (route.params.pageID === store.selectedPage) return
 

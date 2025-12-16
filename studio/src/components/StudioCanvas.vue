@@ -95,7 +95,7 @@ import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { getBlockCopy, getBlockInfo } from "@/utils/helpers"
+import { getBlockInfo } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
@@ -103,6 +103,7 @@ import { useCanvasUtils } from "@/utils/useCanvasUtils"
 import type { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
 import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
+import { useSerializer } from "@/utils/useSerializer"
 
 const props = defineProps({
 	componentTree: {
@@ -169,6 +170,8 @@ watch(
 		setScaleAndTranslate()
 	},
 )
+
+const { getBlockCopy } = useSerializer()
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))

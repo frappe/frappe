@@ -1,8 +1,9 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import { studioComponents } from "@/data/studioComponents"
-import { getBlockObject, getBlockInstance, confirm, getComponentBlock } from "@/utils/helpers"
+import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
+import { useSerializer } from "@/utils/useSerializer"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "vue-sonner"
@@ -15,11 +16,12 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
 	const componentStore = useComponentStore()
+	const { getBlockObjectCopy, getBlockInstance, getComponentBlock } = useSerializer()
 
 	async function createComponent(componentName: string, block?: Block | null) {
 		const component: any = { component_name: componentName }
 		if (block) {
-			component.block = getBlockObject(block)
+			component.block = getBlockObjectCopy(block)
 			if (component.block?.parentSlotName) {
 				// remove parentSlotName from the top-level block of the component
 				delete component.block.parentSlotName
@@ -43,7 +45,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	function saveComponent(block: Block, componentName: string) {
 		const payload: any = {
 			name: componentName,
-			block: getBlockObject(block),
+			block: getBlockObjectCopy(block),
 		}
 
 		payload.inputs = componentInputs.value.map((input) => ({
@@ -70,8 +72,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	}
 
 	async function editComponent(componentId: string) {
-		const componentDoc = componentStore.getComponentDoc(componentId)
 		const componentBlock = await componentStore.getComponent(componentId)
+		const componentDoc = componentStore.getComponentDoc(componentId)
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 

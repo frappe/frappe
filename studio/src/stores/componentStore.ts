@@ -3,13 +3,15 @@ import { markRaw, reactive } from "vue"
 import { createDocumentResource } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import { getBlockInstance, getBlockObject, isObjectEmpty } from "@/utils/helpers"
+import { isObjectEmpty } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())
+	const { getBlockInstance, getBlockObjectCopy } = useSerializer()
 
 	async function fetchComponent(componentName: string) {
 		const componentDoc = await createDocumentResource({
@@ -78,7 +80,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		if (!component) {
 			return
 		}
-		const blockOptions = getBlockObject(component)
+		const blockOptions = getBlockObjectCopy(component)
 		const { baseStyles, mobileStyles, tabletStyles, rawStyles, visibilityCondition, classes, componentEvents } =
 			studioComponent
 

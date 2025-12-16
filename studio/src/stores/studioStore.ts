@@ -3,16 +3,12 @@ import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
 import {
-	getBlockInstance,
-	getRootBlock,
-	jsToJson,
-	getBlockCopyWithoutParent,
-	jsonToJs,
 	fetchApp,
 	fetchPage,
 	confirm,
 	getInitialVariableValue,
 } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
 import { studioVariables } from "@/data/studioVariables"
@@ -151,10 +147,13 @@ const useStudioStore = defineStore("store", () => {
 	const savingPage = ref(false)
 	const settingPage = ref(false)
 
+	const { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson, jsonToJs } = useSerializer()
+
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
 		activePage.value = page
+		await setPageData(page)
 
 		const blocks = jsonToJs(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -163,7 +162,6 @@ const useStudioStore = defineStore("store", () => {
 			pageBlocks.value = [getBlockInstance(blocks[0])]
 		}
 		selectedPage.value = page.name
-		await setPageData(page)
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editingMode = "page"

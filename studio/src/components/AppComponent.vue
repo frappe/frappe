@@ -95,9 +95,7 @@ const getComponentProps = () => {
 	delete propValues.modelValue
 
 	Object.entries(propValues).forEach(([propName, config]) => {
-		if (isDynamicValue(config)) {
-			propValues[propName] = codeStore.getDynamicValue(config, evaluationContext.value)
-		}
+		propValues[propName] = codeStore.evaluateDynamicValues(config, evaluationContext.value)
 	})
 	return propValues
 }
@@ -113,18 +111,7 @@ const componentProps = computed(() => {
 // visibility
 const showComponent = computed(() => {
 	if (props.block.visibilityCondition) {
-		const value = codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
-		// Handle different return types:
-		// - Boolean: return as-is
-		// - String "true"/"false": convert to boolean
-		// - Other values: check truthiness
-		if (typeof value === "boolean") {
-			return value
-		} else if (typeof value === "string" && (value === "true" || value === "false")) {
-			return value === "true"
-		} else {
-			return value
-		}
+		return codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 	}
 	return true
 })

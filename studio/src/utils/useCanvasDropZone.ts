@@ -1,6 +1,6 @@
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
-import { getComponentBlock } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
@@ -12,6 +12,7 @@ export function useCanvasDropZone(
 	block: Ref<Block | null>,
 	findBlock: (id: string) => Block | null,
 ) {
+	const { getComponentBlock } = useSerializer()
 	const { isOverDropZone } = useDropZone(canvasContainer, {
 		onDrop: async (_files, ev) => {
 			const { parentComponent, index, slotName } = canvasStore.dropTarget

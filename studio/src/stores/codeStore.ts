@@ -5,7 +5,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
-import { isDynamicValue } from "@/utils/code"
+import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -138,6 +138,12 @@ const useCodeStore = defineStore("codeStore", () => {
 				return dynamicValue || undefined
 			}
 
+			// If the whole value is a single dynamic expression, return the normalized evaluated value
+			// e.g. value === "{{ showTooltip }}" should return boolean true/false if appropriate
+			if (value.trim().match(/^\{\{.*\}\}$/)) {
+				return normalizeDynamicValue(dynamicValue)
+			}
+
 			// Append the static part of the string
 			result += value.slice(lastIndex, match.index)
 			// Append the evaluated dynamic value
@@ -149,6 +155,30 @@ const useCodeStore = defineStore("codeStore", () => {
 		// Append the final static part of the string
 		result += value.slice(lastIndex)
 		return result || undefined
+	}
+
+	function evaluateDynamicValues(value: string | object | number, localContext: ExpressionEvaluationContext = {}): any {
+		/* recurse into arrays/objects and evaluate dynamic expressions */
+		if (typeof value === "string") {
+			if (isDynamicValue(value)) {
+				return getDynamicValue(value, localContext)
+			}
+			return value
+		}
+
+		if (Array.isArray(value)) {
+			return value.map((item) => evaluateDynamicValues(item, localContext))
+		}
+
+		if (value !== null && typeof value === "object") {
+			const result: Record<string, any> = {}
+			for (const [key, val] of Object.entries(value)) {
+				result[key] = evaluateDynamicValues(val, localContext)
+			}
+			return result
+		}
+
+		return value
 	}
 
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
@@ -407,7 +437,10 @@ const useCodeStore = defineStore("codeStore", () => {
 		// watchers
 		setPageWatchers,
 		// code execution
+		globalContext,
+		globalExecutionContext,
 		getDynamicValue,
+		evaluateDynamicValues,
 		executeUserScript,
 		handleSuccess,
 		handleError,

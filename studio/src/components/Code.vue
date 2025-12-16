@@ -29,11 +29,14 @@ import {
 	type CompletionContext,
 	type Completion,
 } from "@codemirror/autocomplete"
-import { LanguageSupport } from "@codemirror/language"
+import { LanguageSupport, indentService } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
-import { jsToJson, jsonToJs, isPrivateKey } from "@/utils/helpers"
+import JSON5 from "json5"
+import { isPrivateKey } from "@/utils/helpers"
+import { normalizeCode } from "@/utils/code"
+import { useSerializer } from "@/utils/useSerializer"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -65,19 +68,21 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
+const { jsonReplacer, jsToJson, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const setEditorValue = () => {
 	let value = props.modelValue ?? ""
 	try {
 		if (props.language === "json" || typeof value === "object") {
-			value = jsToJson(value)
+			value = JSON5.stringify(value, { replacer: jsonReplacer, space: 2, quote: '"' })
+			value = normalizeCode(value)
 		}
+		code.value = value
 	} catch (e) {
 		console.log("Error while converting value to JSON", e)
 		// do nothing
 	}
-	code.value = value
 }
 
 const isValidObjectString = (text: string) => {
@@ -91,13 +96,6 @@ const isValidObjectString = (text: string) => {
 	return false
 }
 
-const parseObjectString = (text: string) => {
-	if (!isValidObjectString(text)) {
-		throw new Error("Invalid object")
-	}
-	return new Function("return " + text)()
-}
-
 const errorMessage = ref("")
 const emitEditorValue = () => {
 	try {
@@ -107,20 +105,14 @@ const emitEditorValue = () => {
 			if (props.language === "json") {
 				value = jsonToJs(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
-				try {
-					// forgiving single-quoted/unquoted keys; trailing commas
-					value = parseObjectString(value)
-				} catch (e) {
-					// fallback to JSON parsing
-					value = jsonToJs(value)
-				}
+				value = parseObjectString(value)
 			}
 		}
 
 		if (!props.showSaveButton && !props.readonly) {
 			emit("update:modelValue", value)
 		}
-	} catch (e) {
+	} catch (e: any) {
 		console.error("Error while parsing JSON for editor", e)
 		errorMessage.value = `Invalid object/JSON: ${e.message}`
 	}
@@ -188,6 +180,33 @@ watch(code, () => {
 	}
 })
 
+const customIndent = indentService.of((context: any, pos: number) => {
+	/* helper to indent correctly inside objects because codemirror fails to do it for a bare object literal */
+	let node = context.state.tree.resolveInner(pos, -1)
+	const parentBlock = node.parent
+	const getIndent = () => context.lineIndent(node.from, -1) + context.unit
+
+	if (node.name === "{") {
+		if (
+			// Top-level ambiguous Block Statement
+			parentBlock?.name === "Block" ||
+			// Object Literal immediately inside an array or argument list
+			(parentBlock?.name === "ObjectExpression" &&
+				["ArrayExpression", "ArgList"].includes(parentBlock.parent?.name))
+		) {
+			// Treat it as a bare object literal at the top level
+			return getIndent()
+		}
+	} else if (node.name === "[") {
+		// indent inside an array
+		if (parentBlock?.name === "ArrayExpression") {
+			return getIndent()
+		}
+	}
+	// Fall back to the default indentation logic
+	return null
+})
+
 const extensions = computed(() => {
 	const baseExtensions = [
 		closeBrackets(),
@@ -243,6 +262,9 @@ const extensions = computed(() => {
 	if (customCompletionsExtension.value) {
 		baseExtensions.push(customCompletionsExtension.value)
 	}
+	if (isObjectLiteral.value) {
+		baseExtensions.push(customIndent)
+	}
 	const autocompletionOptions = {
 		activateOnTyping: true,
 		maxRenderedOptions: 10,
@@ -253,6 +275,10 @@ const extensions = computed(() => {
 	baseExtensions.push(autocompletion(autocompletionOptions))
 	return baseExtensions
 })
+
+const isObjectLiteral = computed(
+	() => props.language === "javascript" && typeof props.modelValue === "object",
+)
 
 defineExpose({
 	errorMessage,

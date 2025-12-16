@@ -7,7 +7,8 @@ import { watch, ref } from "vue"
 import { useRoute } from "vue-router"
 import { usePageMeta } from "frappe-ui"
 
-import { getBlockInstance, jsonToJs, findPageWithRoute } from "@/utils/helpers"
+import { findPageWithRoute } from "@/utils/helpers"
+import { useSerializer } from "@/utils/useSerializer"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
@@ -22,6 +23,8 @@ const codeStore = useCodeStore()
 const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
+
+const { jsonToJs, getBlockInstance } = useSerializer()
 
 watch(
 	() => route.path,
