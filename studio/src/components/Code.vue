@@ -29,7 +29,7 @@ import {
 	type CompletionContext,
 	type Completion,
 } from "@codemirror/autocomplete"
-import { LanguageSupport } from "@codemirror/language"
+import { LanguageSupport, indentService } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
@@ -68,7 +68,7 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
-const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
+const { jsonReplacer, jsToJson, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const setEditorValue = () => {
@@ -180,6 +180,33 @@ watch(code, () => {
 	}
 })
 
+const customIndent = indentService.of((context: any, pos: number) => {
+	/* helper to indent correctly inside objects because codemirror fails to do it for a bare object literal */
+	let node = context.state.tree.resolveInner(pos, -1)
+	const parentBlock = node.parent
+	const getIndent = () => context.lineIndent(node.from, -1) + context.unit
+
+	if (node.name === "{") {
+		if (
+			// Top-level ambiguous Block Statement
+			parentBlock?.name === "Block" ||
+			// Object Literal immediately inside an array or argument list
+			(parentBlock?.name === "ObjectExpression" &&
+				["ArrayExpression", "ArgList"].includes(parentBlock.parent?.name))
+		) {
+			// Treat it as a bare object literal at the top level
+			return getIndent()
+		}
+	} else if (node.name === "[") {
+		// indent inside an array
+		if (parentBlock?.name === "ArrayExpression") {
+			return getIndent()
+		}
+	}
+	// Fall back to the default indentation logic
+	return null
+})
+
 const extensions = computed(() => {
 	const baseExtensions = [
 		closeBrackets(),
@@ -235,6 +262,9 @@ const extensions = computed(() => {
 	if (customCompletionsExtension.value) {
 		baseExtensions.push(customCompletionsExtension.value)
 	}
+	if (isObjectLiteral.value) {
+		baseExtensions.push(customIndent)
+	}
 	const autocompletionOptions = {
 		activateOnTyping: true,
 		maxRenderedOptions: 10,
@@ -245,6 +275,10 @@ const extensions = computed(() => {
 	baseExtensions.push(autocompletion(autocompletionOptions))
 	return baseExtensions
 })
+
+const isObjectLiteral = computed(
+	() => props.language === "javascript" && typeof props.modelValue === "object",
+)
 
 defineExpose({
 	errorMessage,
