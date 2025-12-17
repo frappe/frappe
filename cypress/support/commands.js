@@ -172,12 +172,13 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	}
 
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.get("@input").clear().focus();
-		// Wait for dropdown to appear (request might be cached, so don't wait for network)
+		cy.wait("@search_link");
 		cy.get("@input").parent().findByRole("listbox").as("dropdown");
 		cy.get("@dropdown").should("be.visible");
 		cy.get("@input").type(value, { delay: 100 });
-		// Wait for dropdown to update with search results
+		cy.wait("@search_link");
 		cy.get("@dropdown")
 			.should("be.visible")
 			.find("div[role='option']")

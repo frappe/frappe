@@ -58,12 +58,13 @@ context("Control Link", () => {
 			true
 		);
 
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		// Wait for dropdown to appear (request might be cached)
-		cy.get("@input").parent().findByRole("listbox").should("be.visible");
-		cy.wait(200);
+		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("todo for link", { delay: 100 });
-		// Wait for dropdown to update with search results
+		cy.wait("@search_link");
 		cy.wait(500);
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.get("@input").type("{enter}");
@@ -80,10 +81,10 @@ context("Control Link", () => {
 		get_dialog_with_link().as("dialog");
 
 		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		// Wait for dropdown to appear (request might be cached)
-		cy.get("@input").parent().findByRole("listbox").should("be.visible");
-		cy.wait(200);
+		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("invalid value", { delay: 100 }).blur();
 		cy.wait("@validate_link");
 		cy.get("@input").should("have.value", "");
@@ -93,11 +94,11 @@ context("Control Link", () => {
 		get_dialog_with_link().as("dialog");
 
 		cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		// Wait for dropdown to appear (request might be cached)
-		cy.get("@input").parent().findByRole("listbox").should("be.visible");
-		cy.wait(200);
+		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("  ", { delay: 100 }).blur();
 		cy.wait("@validate_link");
 		cy.get("@input").should("have.value", "");
@@ -111,11 +112,12 @@ context("Control Link", () => {
 	it("should show open link button", () => {
 		get_dialog_with_link().as("dialog");
 
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+
 		cy.get("@todos").then((todos) => {
 			cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-			// Wait for dropdown to appear (request might be cached)
-			cy.get("@input").parent().findByRole("listbox").should("be.visible");
-			cy.wait(200);
+			cy.wait("@search_link");
+			cy.wait(500);
 			cy.get("@input").type(todos[0], { delay: 100 }).blur();
 			// not waiting for validate_link because it will not get called
 			cy.get("@input").trigger("mouseover");
@@ -154,12 +156,13 @@ context("Control Link", () => {
 				}
 			});
 
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		// Wait for dropdown to appear (request might be cached)
-		cy.get("@input").parent().findByRole("listbox").should("be.visible");
-		cy.wait(200);
+		cy.wait("@search_link");
+		cy.wait(500);
 		cy.get("@input").type("todo for link", { delay: 100 });
-		// Wait for dropdown to update with search results
+		cy.wait("@search_link");
 		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get("@input").type("{enter}");
@@ -179,6 +182,7 @@ context("Control Link", () => {
 	it("should update dependant fields (via fetch_from)", () => {
 		cy.get("@todos").then((todos) => {
 			cy.visit(`/desk/todo/${todos[0]}`);
+			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 			cy.intercept("/api/method/frappe.client.validate_link*").as("validate_link");
 
 			cy.fill_field("assigned_by", cy.config("testUser"), "Link");
@@ -207,9 +211,7 @@ context("Control Link", () => {
 
 			// set valid value again
 			cy.get("@input").clear().focus();
-			// Wait for dropdown to appear (request might be cached)
-			cy.get("@input").parent().findByRole("listbox").should("be.visible");
-			cy.wait(200);
+			cy.wait("@search_link");
 			cy.get("@input").type(cy.config("testUser"), { delay: 100 }).blur();
 			cy.wait("@validate_link");
 
@@ -278,13 +280,12 @@ context("Control Link", () => {
 			cy.wait(500);
 
 			get_dialog_with_gender_link().as("dialog");
+			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 			cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-			// Wait for dropdown to appear (request might be cached)
-			cy.get("@input").parent().findByRole("listbox").should("be.visible");
-			cy.wait(200);
+			cy.wait("@search_link");
 			cy.get("@input").type("Sonstiges", { delay: 100 });
-			// Wait for dropdown to update with search results
+			cy.wait("@search_link");
 			cy.wait(500);
 			cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 			cy.get(".frappe-control[data-fieldname=link] input").type("{enter}");
@@ -311,13 +312,12 @@ context("Control Link", () => {
 		cy.wait(1000);
 
 		get_dialog_with_gender_link().as("dialog");
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		// Wait for dropdown to appear (request might be cached)
-		cy.get("@input").parent().findByRole("listbox").should("be.visible");
-		cy.wait(200);
+		cy.wait("@search_link");
 		cy.get("@input").type("Non-Conforming", { delay: 100 });
-		// Wait for dropdown to update with search results
+		cy.wait("@search_link");
 		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}");

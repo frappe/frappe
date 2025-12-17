@@ -15,7 +15,6 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, unique
-from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
 
 
@@ -35,7 +34,6 @@ class LinkSearchResults(TypedDict):
 
 # this is called by the Link Field
 @frappe.whitelist()
-@http_cache(max_age=60 * 5, stale_while_revalidate=60 * 5)
 def search_link(
 	doctype: str,
 	txt: str,
