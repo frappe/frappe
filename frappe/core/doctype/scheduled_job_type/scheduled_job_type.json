@@ -40,7 +40,11 @@
   },
   {
    "default": "0",
+<<<<<<< HEAD
    "depends_on": "eval:doc.frequency==='All'",
+=======
+   "depends_on": "eval:([\"All\", \"Cron\"].includes(doc.frequency) || doc.server_script)",
+>>>>>>> 48b6663a6d (fix(ux): enable create log for server scripts by default (#35291))
    "fieldname": "create_log",
    "fieldtype": "Check",
    "label": "Create Log"
@@ -109,7 +113,11 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
+<<<<<<< HEAD
  "modified": "2025-05-05 18:24:38.816989",
+=======
+ "modified": "2025-12-17 12:02:56.228336",
+>>>>>>> 48b6663a6d (fix(ux): enable create log for server scripts by default (#35291))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
