@@ -48,16 +48,19 @@ export const useSerializer = () => {
 			const trimmed = value.trim()
 			const isFunctionString = FUNCTION_STRING_REGEX.test(trimmed)
 
-
 			if (isFunctionString) {
-				// provide access to render function & frappeUI lib for editing props
-				const fn = new Function(
-					"h",
-					...Object.keys(registeredComponents),
-					...Object.keys(codeStore.globalExecutionContext),
-					`return (${value})`
-				)
-				return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
+				try {
+					// provide access to render function & frappeUI lib for editing props
+					const fn = new Function(
+						"h",
+						...Object.keys(registeredComponents),
+						...Object.keys(codeStore.globalExecutionContext),
+						`return (${value})`
+					)
+					return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
+				} catch (e) {
+					return value
+				}
 			}
 		}
 		return value
