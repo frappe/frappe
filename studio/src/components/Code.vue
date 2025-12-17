@@ -31,6 +31,7 @@ import {
 } from "@codemirror/autocomplete"
 import { LanguageSupport, indentService } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
+import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import JSON5 from "json5"
@@ -242,20 +243,8 @@ const extensions = computed(() => {
 		keymap.of([
 			{
 				key: "Tab",
-				run: (view) => {
-					const tabs = "	"
-					view.dispatch({
-						changes: {
-							from: view.state.selection.main.from,
-							to: view.state.selection.main.to,
-							insert: tabs,
-						},
-						selection: {
-							anchor: view.state.selection.main.from + tabs.length,
-						},
-					})
-					return true
-				},
+				run: indentMore,
+				shift: indentLess,
 			},
 		]),
 	]
