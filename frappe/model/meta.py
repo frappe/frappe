@@ -420,11 +420,6 @@ class Meta(Document):
 		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
-		"""
-		Property Setters are set via Customize Form. They override standard properties
-		of the doctype or its child properties like fields, links etc. This method
-		applies the customized properties over the standard meta object
-		"""
 		if not frappe.db.table_exists("Property Setter"):
 			return
 
@@ -503,8 +498,11 @@ class Meta(Document):
 			return
 
 		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
-			recent_change = frappe.db.get_value(self.name, {}, "creation", order_by="creation desc")
-			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+			# Raw SQL to prevent querying meta when already in meta
+			recent_change = frappe.db.sql(
+				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
+			)  # nosemgrep
+			if get_datetime(recent_change[0][0]) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
 				self.is_large_table = True
 
 	@cached_property
@@ -897,20 +895,30 @@ def get_field_currency(df, doc=None):
 
 def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
-	from frappe.locale import get_number_format
-
 	if df.precision:
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
 		precision = cint(frappe.db.get_default("currency_precision"))
 		if not precision:
-			number_format = get_number_format()
-			precision = number_format.precision
+			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
 	return precision
+
+
+def get_precision_from_currency_format(currency: str) -> int:
+	"""Get precision from currency format string if applicable."""
+	from frappe.locale import get_number_format
+	from frappe.utils.number_format import NumberFormat
+
+	use_format_from_currency = frappe.get_system_settings("use_number_format_from_currency")
+	number_format = get_number_format()
+	if use_format_from_currency:
+		currency_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
+		number_format = NumberFormat.from_string(currency_format) if currency_format else number_format
+	return number_format.precision
 
 
 def get_default_df(fieldname):

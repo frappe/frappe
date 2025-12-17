@@ -8,7 +8,7 @@ import random
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.modules.export_file import write_document_file
+from frappe.modules.export_file import strip_default_fields
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.utils import create_directory_on_app_path, get_app_level_directory_path
 
@@ -44,19 +44,21 @@ class DesktopIcon(Document):
 
 	def on_trash(self):
 		clear_desktop_icons_cache()
-		if frappe.conf.developer_mode:
-			if self.standard == 1 and self.app:
-				self.delete_desktop_icon_file()
+		if frappe.conf.developer_mode and self.standard and self.app:
+			self.delete_desktop_icon_file()
 
 	def on_update(self):
-		if frappe.conf.developer_mode:
-			if self.standard == 1 and self.app:
-				self.export_desktop_icon()
+		allow_export = (
+			self.standard and self.app and not frappe.flags.in_import and frappe.conf.developer_mode
+		)
+		if allow_export:
+			self.export_desktop_icon()
 
 	def export_desktop_icon(self):
 		folder_path = create_directory_on_app_path("desktop_icon", self.app)
 		file_path = os.path.join(folder_path, f"{frappe.scrub(self.label)}.json")
 		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+		strip_default_fields(self, doc_export)
 		# if self.parent_icon:
 		# 	print(self.parent_icon)
 		# 	doc_export["parent_icon"] = frappe.db.get_value("Desktop Icon", self.parent_icon, "label")
@@ -69,19 +71,42 @@ class DesktopIcon(Document):
 		if os.path.exists(file_path):
 			os.remove(file_path)
 
-	def is_permitted(self):
-		"""Return True if `Has Role` is not set or the user is allowed."""
-		from frappe.utils import has_common
-
-		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
-
-		if not allowed:
+	def is_permitted(self, bootinfo):
+		if frappe.session.user == "Administrator":
 			return True
+		workspaces = get_workspace_names(bootinfo.workspaces)
+		if self.icon_type == "Link":
+			if self.link_type == "DocType":
+				return self.link_to in bootinfo.user.can_read
+			elif self.link_type == "Workspace":
+				return self.link_to in workspaces
+		elif self.icon_type == "App":
+			return self.get_app_from_title(self.label)
 
-		roles = frappe.get_roles()
+	def get_app_from_title(self, title):
+		for a in frappe.get_installed_apps():
+			if frappe.get_hooks(app_name=a)["app_title"][0] == title:
+				permission_method = frappe.get_hooks(app_name=a)["add_to_apps_screen"][0].get(
+					"has_permission", None
+				)
+				if permission_method:
+					return frappe.call(permission_method)
+				else:
+					return False
 
-		if has_common(roles, allowed):
-			return True
+	# def is_permitted(self):
+	# 	"""Return True if `Has Role` is not set or the user is allowed."""
+	# 	from frappe.utils import has_common
+
+	# 	allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
+
+	# 	if not allowed:
+	# 		return True
+
+	# 	roles = frappe.get_roles()
+
+	# 	if has_common(roles, allowed):
+	# 		return True
 
 	def after_insert(self):
 		clear_desktop_icons_cache()
@@ -94,7 +119,14 @@ def after_doctype_insert():
 # frappe.db.add_unique("Desktop Icon", ("owner", "standard"))
 
 
-def get_desktop_icons(user=None):
+def get_workspace_names(workspaces):
+	workspace_list = []
+	for w in workspaces["pages"]:
+		workspace_list.append(w["name"])
+	return workspace_list
+
+
+def get_desktop_icons(user=None, bootinfo=None):
 	"""Return desktop icons for user"""
 	if not user:
 		user = frappe.session.user
@@ -106,6 +138,7 @@ def get_desktop_icons(user=None):
 			"label",
 			"link",
 			"link_type",
+			"app",
 			"icon_type",
 			"parent_icon",
 			"icon",
@@ -120,13 +153,19 @@ def get_desktop_icons(user=None):
 
 		active_domains = frappe.get_active_domains()
 
-		blocked_doctypes = frappe.get_all(
-			"DocType",
-			filters={"ifnull(restrict_to_domain, '')": ("not in", ",".join(active_domains))},
-			fields=["name"],
-		)
-
-		blocked_doctypes = [d.get("name") for d in blocked_doctypes]
+		DocType = frappe.qb.DocType("DocType")
+		if active_domains:
+			blocked_condition = (
+				(DocType.restrict_to_domain.isnull())
+				| (DocType.restrict_to_domain == "")
+				| (DocType.restrict_to_domain.notin(active_domains))
+			)
+		else:
+			blocked_condition = (DocType.restrict_to_domain.isnull()) | (DocType.restrict_to_domain == "")
+		blocked_doctypes = [
+			d.get("name")
+			for d in frappe.qb.from_(DocType).select(DocType.name).where(blocked_condition).run(as_dict=True)
+		]
 
 		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
 
@@ -188,10 +227,11 @@ def get_desktop_icons(user=None):
 		permitted_icons = []
 		permitted_parent_labels = set()
 
-		for s in user_icons:
-			icon = frappe.get_doc("Desktop Icon", s)
-			if icon.is_permitted():
-				permitted_icons.append(s)
+		if bootinfo:
+			for s in user_icons:
+				icon = frappe.get_doc("Desktop Icon", s)
+				if icon.is_permitted(bootinfo):
+					permitted_icons.append(s)
 
 				if not s.parent_icon:
 					permitted_parent_labels.add(s.label)
@@ -199,6 +239,7 @@ def get_desktop_icons(user=None):
 		user_icons = [
 			s for s in permitted_icons if not s.parent_icon or s.parent_icon in permitted_parent_labels
 		]
+
 		frappe.cache.hset("desktop_icons", user, user_icons)
 	return user_icons
 
@@ -655,8 +696,9 @@ def create_desktop_icons_from_workspace():
 		icon.link_to = w.name
 		icon.icon = w.icon
 		if w.module:
-			app_name = frappe.db.get_value("Module Def", w.module, "app_name")
+			app_name = w.app or frappe.db.get_value("Module Def", w.module, "app_name")
 			if app_name in frappe.get_installed_apps():
+				icon.app_name = app_name
 				app_title = frappe.get_hooks("app_title", app_name=app_name)[0]
 				app_icon = frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
 				if app_icon:
@@ -696,18 +738,20 @@ def create_desktop_icons_from_installed_apps():
 	for a in apps:
 		app_title = frappe.get_hooks("app_title", app_name=a)[0]
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
-		if len(app_details) != 0:
-			icon = frappe.new_doc("Desktop Icon")
-			icon.label = app_title
-			icon.link_type = "External"
-			icon.standard = 1
-			icon.idx = index
-			icon.icon_type = "App"
-			icon.link = app_details[0]["route"]
-			icon.logo_url = app_details[0]["logo"]
-			if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
-				icon.save()
-			index += 1
+		if not frappe.db.exists("Desktop Icon", [{"icon_type": "App"}, {"app": a}]):
+			if len(app_details) != 0:
+				icon = frappe.new_doc("Desktop Icon")
+				icon.label = app_title
+				icon.link_type = "External"
+				icon.standard = 1
+				icon.idx = index
+				icon.icon_type = "App"
+				icon.app = a
+				icon.link = app_details[0]["route"]
+				icon.logo_url = app_details[0]["logo"]
+				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
+					icon.save()
+				index += 1
 
 
 @frappe.whitelist()

@@ -78,7 +78,10 @@ def get_active_domains():
 
 	def _get_active_domains():
 		domains = frappe.get_all(
-			"Has Domain", filters={"parent": "Domain Settings"}, fields=["domain"], distinct=True
+			"Has Domain",
+			filters={"parent": "Domain Settings"},
+			fields=["domain"],
+			distinct=True,
 		)
 
 		active_domains = [row.get("domain") for row in domains]

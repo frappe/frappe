@@ -49,23 +49,34 @@ context("Form Builder", () => {
 		cy.get(".modal-body .clear-filters").click();
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
 		cy.wait(100);
-		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input").type(
-			"Male"
-		);
+
+		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input")
+			.focus()
+			.as("input");
+		// Wait for dropdown to appear (request might be cached)
+		cy.get("@input").parent().findByRole("listbox").should("be.visible");
+		cy.wait(200);
+		cy.get("@input").type("Male", { delay: 100 });
+		// Wait for dropdown to update with search results
+		cy.wait(500);
+		cy.get("@input").type("{enter}", { delay: 100 });
+		cy.get("@input").blur();
+
 		cy.get(".btn-modal-primary").click();
+		cy.wait(500);
 
 		// Save the document
 		cy.click_doc_primary_button("Save");
+		cy.wait(1000);
 
-		// Open a new Form
-		cy.new_form(doctype_name);
-		// Click on the "salutation" field
-		cy.get_field("gender").clear().click();
-
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-		cy.wait("@search_link").then((data) => {
-			expect(data.response.body.message.length).to.eq(1);
-			expect(data.response.body.message[0].value).to.eq("Male");
+		cy.compare_document({
+			fields: [
+				{},
+				{
+					fieldname: "gender",
+					link_filters: '[["Gender","name","=","Male"]]',
+				},
+			],
 		});
 	});
 
@@ -86,8 +97,6 @@ context("Form Builder", () => {
 	});
 
 	it("Add Table field and check if columns are rendered", () => {
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-
 		cy.visit(`/app/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
@@ -116,7 +125,8 @@ context("Form Builder", () => {
 			.click()
 			.as("input");
 		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
-		cy.wait("@search_link");
+		// Wait for dropdown to appear and selection to complete
+		cy.wait(500);
 
 		cy.get(last_field).click({ force: true });
 

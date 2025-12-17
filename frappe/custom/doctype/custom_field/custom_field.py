@@ -9,7 +9,7 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
-from frappe.query_builder.functions import IfNull
+from frappe.query_builder import Field, functions
 from frappe.utils import cstr, random_string
 
 
@@ -25,6 +25,7 @@ class CustomField(Document):
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
+		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
 		collapsible_depends_on: DF.Code | None
 		columns: DF.Int
@@ -285,7 +286,7 @@ def get_fields_label(doctype=None):
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and frappe.db.count(
-		dt=doctype, filters=IfNull(df.fieldname, "") != ""
+		dt=doctype, filters=functions.IfNull(Field(df.fieldname), "") != ""
 	):
 		create_custom_field(doctype, df)
 

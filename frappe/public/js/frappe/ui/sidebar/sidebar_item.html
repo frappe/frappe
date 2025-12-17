@@ -2,11 +2,16 @@
     class="sidebar-item-container {%= item.is_editable ? 'is-draggable' : '' %} {% if (item.type == 'Section Break') { %}section-item{% } %}"
     item-name="{{ item.label }}"
     data-id="{{ item.label }}"
+    title="{{ item.label }}"
+    data-toggle="tooltip"
+    data-placement="right"
 >
-    <div class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
+    <div
+        class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
+
         {% if (item.type == "Section Break" && item.indent != 1) { %}
             <div class="divider hidden"></div>
-            <div class="item-anchor section-break" title="{{ item.label }}">
+            <div class="item-anchor section-break">
                 <span class="sidebar-item-label">{{ item.label }}</span>
                 <div class="sidebar-item-control"></div>
             </div>
@@ -16,10 +21,11 @@
 			</div>
 		{% } else  { %}
             <a
-                href="{{ path }}"
-                target="{%= item.link_type === "URL" ? "_blank" : "" %}"
+                {% if (path) { %}
+                    href="{{ path }}"
+                    target="{%= item.link_type === "URL" ? "_blank" : "" %}"
+                {% } %}
                 class="item-anchor"
-                title="{{ item.label }}"
             >
                 {% let icon = item.icon %}
                 {% if (item.show_arrow) { %}
@@ -31,12 +37,15 @@
                     {% } %}
                 </span>
                 <span class="sidebar-item-label">{{ item.label }}</span>
+                {% if (item.suffix) { %}
+                     <span class="sidebar-item-suffix">{{ item.suffix }}</span>
+                {% } %}
                 {% if (!item.show_arrow) { %}
                 <div class="sidebar-item-control"></div>
                 {% } %}
             </a>
         {% } %}
-
+        {% if(!item.standard) { %}
         <div class="sidebar-item-edit-controls edit-mode {%= edit_mode ? '' : 'hidden' %}">
             <button class="btn btn-secondary btn-sm drag-handle">
                 <svg class="es-icon es-line icon-xs" aria-hidden="true">
@@ -47,6 +56,7 @@
                 {%= frappe.utils.icon("dot-horizontal", "xs") %}
             </button>
         </div>
+        {% } %}
     </div>
     <div class="sidebar-child-item nested-container"></div>
 </div>

@@ -617,7 +617,6 @@ class ImportFile:
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
-
 		return data
 
 

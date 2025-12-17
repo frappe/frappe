@@ -27,7 +27,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 
 		frappe.provide("frappe.views.list_view." + doctype);
 
-		const hide_sidebar = view_class.no_sidebar || !frappe.boot.desk_settings.list_sidebar;
+		const hide_sidebar = true;
 
 		frappe.views.list_view[me.page_name] = new view_class({
 			doctype: doctype,

@@ -9,7 +9,6 @@ import frappe.model
 import frappe.utils
 from frappe import _
 from frappe.desk.reportview import validate_args
-from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import attach_expanded_links, get_safe_filters
 from frappe.utils.caching import http_cache
@@ -47,8 +46,6 @@ def get_list(
 	:param order_by: Order by this fieldname
 	:param limit_start: Start at this index
 	:param limit_page_length: Number of records to be returned (default 20)"""
-	if frappe.is_table(doctype):
-		check_parent_permission(parent, doctype)
 
 	args = frappe._dict(
 		doctype=doctype,
@@ -90,8 +87,6 @@ def get(doctype, name=None, filters=None, parent=None):
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
 	:param filters: If name is not set, filter by these values and return the first match"""
-	if frappe.is_table(doctype):
-		check_parent_permission(parent, doctype)
 
 	if name:
 		doc = frappe.get_doc(doctype, name)
@@ -113,8 +108,6 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
 	:param filters: dict or string for identifying the record"""
-	if frappe.is_table(doctype):
-		check_parent_permission(parent, doctype)
 
 	if not frappe.has_permission(doctype, parent_doctype=parent):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
@@ -372,8 +365,7 @@ def attach_file(
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)"""
 
-	doc = frappe.get_lazy_doc(doctype, docname)
-	doc.check_permission()
+	doc = frappe.get_lazy_doc(doctype, docname, check_permission=True)
 
 	file = frappe.get_doc(
 		{
@@ -416,8 +408,8 @@ def validate_link(doctype: str, docname: str, fields=None):
 	if not isinstance(docname, str):
 		frappe.throw(_("Document Name must be a string"))
 
+	parent_doctype = None
 	if doctype != "DocType":
-		parent_doctype = None
 		if frappe.get_meta(doctype).istable:  # needed for links to child rows
 			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
 		if not (
@@ -453,7 +445,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 		return values
 
 	try:
-		values.update(get_value(doctype, fields, docname))
+		values.update(get_value(doctype, fields, docname, parent=parent_doctype))
 	except frappe.PermissionError:
 		frappe.clear_last_message()
 		frappe.msgprint(

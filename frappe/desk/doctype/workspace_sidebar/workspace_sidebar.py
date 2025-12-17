@@ -10,7 +10,9 @@ import frappe
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
+from frappe.utils.caching import site_cache
 
 
 class WorkspaceSidebar(Document):
@@ -46,15 +48,16 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 	def before_save(self):
-		if frappe.conf.developer_mode:
-			if self.app:
-				self.export_sidebar()
+		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
+		if allow_export:
+			self.export_sidebar()
 		self.set_module()
 
 	def export_sidebar(self):
 		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
 		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
 		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+		doc_export = strip_default_fields(self, doc_export)
 		with open(file_path, "w+") as doc_file:
 			doc_file.write(frappe.as_json(doc_export) + "\n")
 
@@ -176,13 +179,21 @@ def create_workspace_sidebar_for_workspaces():
 @frappe.whitelist()
 def add_sidebar_items(sidebar_title, sidebar_items):
 	sidebar_items = loads(sidebar_items)
+	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+	if not frappe.conf.developer_mode:
+		try:
+			w = frappe.get_doc("Workspace Sidebar", title)
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			w = frappe.copy_doc(w, ignore_no_copy=False)
+			w.title = title
+			w.for_user = frappe.session.user
 	items = []
 	current_idx = 1
 	for item in sidebar_items:
 		si = frappe.new_doc("Workspace Sidebar Item")
 		si.update(item)
-		items.append(si)
 		si.idx = current_idx
 		items.append(si)
 		current_idx += 1
@@ -238,3 +249,139 @@ def add_to_my_workspace(workspace):
 
 	except Exception as e:
 		frappe.log_error(title="Error in Adding Private Workspaces", message=e)
+
+
+@site_cache()
+def auto_generate_sidebar_from_module():
+	"""Auto generate sidebar from module"""
+	sidebars = []
+	for module in frappe.get_all("Module Def", pluck="name"):
+		if not (
+			frappe.db.exists("Workspace Sidebar", {"module": module})
+			or frappe.db.exists("Workspace Sidebar", {"name": module})
+		):
+			module_info = get_module_info(module)
+			sidebar_items = create_sidebar_items(module_info)
+			sidebar = frappe.new_doc("Workspace Sidebar")
+			sidebar.title = module
+			sidebar.items = sidebar_items
+			sidebar.module = module
+			sidebar.header_icon = "hammer"
+			sidebar.app = frappe.local.module_app.get(frappe.scrub(module), None)
+			sidebars.append(sidebar)
+	return sidebars
+
+
+def get_module_info(module_name):
+	entities = ["Workspace", "Dashboard", "DocType", "Report", "Page"]
+	module_info = {}
+
+	for entity in entities:
+		module_info[entity] = {}
+		filters = [{"module": module_name}]
+		pluck = "name"
+		fieldnames = ["name"]
+		if entity.lower() == "doctype":
+			filters.append({"istable": 0})
+		if entity.lower() == "page":
+			fieldnames.append("title")
+			pluck = None
+		module_info[entity] = frappe.get_all(
+			entity, filters=filters, fields=fieldnames, pluck=pluck, order_by="creation asc"
+		)
+
+	# if module info has no workspaces, then move doctypes to the front
+	if not module_info.get("Workspace"):
+		module_info = {
+			"DocType": module_info.get("DocType"),
+			"Workspace": module_info.get("Workspace"),
+			"Report": module_info.get("Report"),
+			"Dashboard": module_info.get("Dashboard"),
+			"Page": module_info.get("Page"),
+		}
+	top_doctypes = choose_top_doctypes(module_info.get("DocType"))
+	if top_doctypes:
+		module_info["DocType"] = choose_top_doctypes(module_info.get("DocType"))
+	return module_info
+
+
+def choose_top_doctypes(doctype_names):
+	from frappe.model.utils import is_single_doctype
+
+	doctype_limit = 3
+	if len(doctype_names) > doctype_limit:
+		try:
+			doctype_count_map = {}
+			for doctype in doctype_names:
+				if not is_single_doctype(doctype):
+					doctype_count_map[doctype] = frappe.db.count(doctype)
+			top_doctypes = [
+				name
+				for name, count in sorted(doctype_count_map.items(), key=lambda x: x[1], reverse=True)[
+					:doctype_limit
+				]
+			]
+			return top_doctypes
+		except frappe.db.ProgrammingError:
+			# catches table not found errors
+			return None
+
+
+def create_sidebar_items(module_info):
+	sidebar_items = []
+	idx = 1
+
+	section_entities = {"report": "Reports", "dashboard": "Dashboards", "page": "Pages"}
+
+	for entity, items in module_info.items():
+		section_break_added = False
+		entity_lower = entity.lower()
+
+		if entity_lower in section_entities:
+			section_break = []
+			if entity_lower == "report":
+				section_break = add_section_breaks("Reports", idx)
+			elif entity_lower in ("dashboard", "page") and len(items) > 1:
+				section_break = add_section_breaks(section_entities[entity_lower], idx)
+				section_break_added = True
+			if section_break:
+				sidebar_items.append(section_break)
+			idx += 1
+
+		for item in items:
+			item_info = {"label": item, "type": "Link", "link_type": entity, "link_to": item, "idx": idx}
+
+			if entity_lower == "report":
+				item_info["child"] = 1
+				item_info["icon"] = "table"
+
+			if entity_lower == "page":
+				item_info["label"] = item.get("title")
+				item_info["link_to"] = item.get("name")
+
+			if entity_lower == "workspace":
+				item_info["icon"] = "home"
+				item_info["icon"] = "wallpaper"
+
+			if entity_lower == "page":
+				item_info["icon"] = "panel-top"
+
+			if entity_lower == "doctype" and "settings" in item.lower():
+				item_info["icon"] = "settings"
+
+			if section_break_added:
+				item_info["child"] = 1
+
+			sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+			sidebar_item.update(item_info)
+			sidebar_items.append(sidebar_item)
+
+			idx += 1
+
+	return sidebar_items
+
+
+def add_section_breaks(label, idx):
+	section_break = frappe.new_doc("Workspace Sidebar Item")
+	section_break.update({"label": label, "type": "Section Break", "idx": idx})
+	return section_break

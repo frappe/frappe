@@ -416,7 +416,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.then((doc) => {
 				this.report_doc = doc;
 			})
-			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype));
+			.then(() => frappe.model.with_doctype(this.report_doc?.ref_doctype))
+			.then(
+				() =>
+					this.report_doc.module &&
+					frappe.app.sidebar.show_sidebar_for_module(this.report_doc.module)
+			);
 	}
 
 	get_report_settings() {
@@ -430,7 +435,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script || "");
+						frappe.dom.eval(settings.script);
 						frappe.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name

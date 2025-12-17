@@ -5,7 +5,15 @@ from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
 
 import frappe
-from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
+from frappe.query_builder.custom import (
+	GROUP_CONCAT,
+	MATCH,
+	STRING_AGG,
+	TO_TSVECTOR,
+	Month,
+	MonthName,
+	Quarter,
+)
 from frappe.query_builder.utils import ImportMapper, db_type_is
 
 from .utils import PseudoColumn
@@ -18,19 +26,11 @@ class Concat_ws(Function):
 
 class Locate(Function):
 	def __init__(self, *terms, **kwargs):
-		terms = list(terms)
-		if not isinstance(terms[0], str):
-			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
 
 
-class Ifnull(IfNull):
-	def __init__(self, condition, term, **kwargs):
-		if not isinstance(condition, str):
-			condition = condition.get_sql()
-		if not isinstance(term, str):
-			term = term.get_sql()
-		super().__init__(condition, term, **kwargs)
+# for backward compatibility
+Ifnull = IfNull
 
 
 class Timestamp(Function):

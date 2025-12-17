@@ -64,10 +64,10 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					if (frappe.get_route().length > 3) {
 						default_action = {
 							label: __("Report Builder"),
-							action: () => this.set_route("report"),
+							action: () => frappe.set_route("report"),
 						};
 					}
-					this.setup_dropdown_in_sidebar("Report", reports, default_action);
+					this.setup_dropdown_in_navbar("Report", reports, default_action);
 				},
 			},
 			Dashboard: {
@@ -79,7 +79,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("calendar", "default"),
 				current_view_handler: () => {
 					this.get_calendars().then((calendars) => {
-						this.setup_dropdown_in_sidebar("Calendar", calendars);
+						this.setup_dropdown_in_navbar("Calendar", calendars);
 					});
 				},
 			},
@@ -99,7 +99,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 							action: () => frappe.new_doc("Email Account"),
 						};
 					}
-					this.setup_dropdown_in_sidebar("Inbox", accounts, default_action);
+					this.setup_dropdown_in_navbar("Inbox", accounts, default_action);
 				},
 			},
 			Image: {
@@ -144,40 +144,22 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		});
 	}
 
-	setup_dropdown_in_sidebar(view, items, default_action) {
-		if (!this.sidebar) return;
-		const views_wrapper = this.sidebar.sidebar.find(".views-section");
-		views_wrapper.find(".sidebar-label").html(__(view));
-		const $dropdown = views_wrapper.find(".views-dropdown");
-
+	setup_dropdown_in_navbar(view, items, default_action) {
 		let placeholder = __("Select {0}", [__(view)]);
-		let html = ``;
 
-		if (!items || !items.length) {
-			html = `<div class="empty-state">
-						${__("No {0} Found", [__(view)])}
-				</div>`;
-		} else {
-			const page_name = this.get_page_name();
+		if (items && items.length) {
 			items.map((item) => {
-				if (item.name.toLowerCase() == page_name.toLowerCase()) {
-					placeholder = item.name;
-				} else {
-					html += `<li><a class="dropdown-item" href="${item.route}">${item.name}</a></li>`;
-				}
+				this.page.add_inner_button(
+					item.name,
+					() => location.replace(item.route),
+					placeholder
+				);
 			});
 		}
 
-		views_wrapper.find(".selected-view").html(placeholder);
-
-		if (default_action) {
-			views_wrapper.find(".sidebar-action a").html(default_action.label);
-			views_wrapper.find(".sidebar-action a").click(() => default_action.action());
+		if (default_action && Object.keys(default_action).length) {
+			this.page.add_inner_button(default_action.label, default_action.action, placeholder);
 		}
-
-		$dropdown.html(html);
-
-		views_wrapper.removeClass("hide");
 	}
 
 	setup_kanban_switcher(kanbans) {

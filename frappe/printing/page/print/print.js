@@ -15,6 +15,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				frm.doc = frappe.get_doc(doctype, docname);
 				frappe.model.with_doctype(doctype, () => {
 					frm.meta = frappe.get_meta(route[1]);
+					frm.meta.module && frappe.app.sidebar.show_sidebar_for_module(frm.meta.module);
 					print_view.show(frm);
 				});
 			});
@@ -198,18 +199,20 @@ frappe.ui.form.PrintView = class {
 		this.setup_customize_dialog();
 
 		// print designer link
-		if (Object.keys(frappe.boot.versions).includes("print_designer")) {
-			this.page.add_inner_message(`
-			<a style="line-height: 2.4" href="/app/print-designer?doctype=${this.frm.doctype}">
-				${__("Try the new Print Designer")}
-			</a>
-			`);
-		} else {
-			this.page.add_inner_message(`
-			<a style="line-height: 2.4" href="https://frappecloud.com/marketplace/apps/print_designer?utm_source=framework-desk&utm_medium=print-view&utm_campaign=try-link">
-				${__("Try the new Print Designer")}
-			</a>
-			`);
+		if (!cint(frappe.boot.sysdefaults.disable_product_suggestion)) {
+			if (Object.keys(frappe.boot.versions).includes("print_designer")) {
+				this.page.add_inner_message(`
+				<a style="line-height: 2.4" href="/app/print-designer?doctype=${this.frm.doctype}">
+					${__("Try the new Print Designer")}
+				</a>
+				`);
+			} else {
+				this.page.add_inner_message(`
+				<a style="line-height: 2.4" href="https://frappecloud.com/marketplace/apps/print_designer?utm_source=framework-desk&utm_medium=print-view&utm_campaign=try-link">
+					${__("Try the new Print Designer")}
+				</a>
+				`);
+			}
 		}
 		let tasks = [
 			this.set_default_print_format,

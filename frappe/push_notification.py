@@ -203,16 +203,16 @@ class PushNotification:
 
 		# Generate new credentials
 		token = frappe.generate_hash(length=48)
+		secret = frappe.generate_hash(length=32)
+
 		# store the token in the redis cache
-		frappe.cache().set_value(
-			f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600
-		)
+		frappe.cache.set_value(f"push_relay_registration_token:{secret}", token, expires_in_sec=600)
 		body = {
 			"endpoint": self._site_name,
 			"protocol": self._site_protocol,
 			"port": self._site_port,
 			"token": token,
-			"webhook_route": "/api/method/frappe.push_notification.auth_webhook",
+			"webhook_route": f"/api/method/frappe.push_notification.auth_webhook?secret={secret}",
 		}
 		response = self._send_post_request("notification_relay.api.auth.get_credential", body, False)
 		success = response["success"]
@@ -268,19 +268,14 @@ class PushNotification:
 
 # Webhook which will be called by the central relay server for authentication
 @frappe.whitelist(allow_guest=True, methods=["GET"])
-def auth_webhook():
-	url = urlparse(frappe.utils.get_url()).hostname
-	token = frappe.cache().get_value(f"{url}:push_relay_registration_token")
+def auth_webhook(secret: str):
 	response = Response()
 	response.mimetype = "text/plain; charset=UTF-8"
+	response.status_code = 401
 
-	if token is None or token == "":
-		response.data = ""
-		response.status_code = 401
-		return response
-
-	response.data = token
-	response.status_code = 200
+	if token := frappe.cache.get_value(f"push_relay_registration_token:{secret}"):
+		response.data = token
+		response.status_code = 200
 	return response
 
 

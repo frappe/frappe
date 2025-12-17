@@ -83,7 +83,7 @@ class User(Document):
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
-		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
+		desk_theme: DF.Literal["Automatic", "Light", "Dark"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
@@ -876,14 +876,20 @@ def get_all_roles():
 	"""return all roles"""
 	active_domains = frappe.get_active_domains()
 
-	roles = frappe.get_all(
-		"Role",
-		filters={
-			"name": ("not in", frappe.permissions.AUTOMATIC_ROLES),
-			"disabled": 0,
-		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		order_by="name",
+	Role = frappe.qb.DocType("Role")
+
+	domain_condition = (Role.restrict_to_domain.isnull()) | (Role.restrict_to_domain == "")
+	if active_domains:
+		domain_condition = domain_condition | Role.restrict_to_domain.isin(active_domains)
+
+	roles = (
+		frappe.qb.from_(Role)
+		.select(Role.name)
+		.where(
+			(Role.name.notin(frappe.permissions.AUTOMATIC_ROLES)) & (Role.disabled == 0) & domain_condition
+		)
+		.orderby(Role.name)
+		.run(as_dict=True)
 	)
 
 	return sorted([role.get("name") for role in roles])
@@ -1012,7 +1018,10 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
+		"User Email",
+		filters={"awaiting_password": 1, "used_oauth": 0},
+		pluck="parent",
+		distinct=True,
 	)
 	set_default("email_user_password", ",".join(password_list))
 
