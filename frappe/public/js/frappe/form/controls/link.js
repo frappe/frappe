@@ -625,8 +625,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				case "timespan":
 					return __("{0} is within {1}", [labelDisplay, valueDisplay]);
 				default:
-					// Fallback for unknown operators
-					return __("{0} {1} {2}", [labelDisplay, operator, valueDisplay]);
+					// Fallback for unknown operators (no translatable text here)
+					return [labelDisplay, operator, valueDisplay].join(" ");
 			}
 		}
 
