@@ -55,8 +55,11 @@ export const STUDIO_COMPONENTS = [
 	"MarkdownEditor",
 ]
 
-// Matches: "function", "async function", "() =>", "(x) =>", "x =>", "({ x }) =>", "async () =>", etc.
-export const FUNCTION_STRING_REGEX = /^(async\s+)?(function\b|(\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>)/
+// Matches a single complete function (function declaration or arrow function), nothing before or after
+// - Function declaration: (async)? function name?(...) {...}
+// - Arrow function: (async)? (...) => expr or (...) => {...}
+export const FUNCTION_STRING_REGEX =
+	/^\s*(?:async\s+)?(?:(?:function\s*[a-zA-Z_$][a-zA-Z0-9_$]*\s*\([^)]*\)\s*\{(?:[^{}]|\{[^{}]*\})*\})|(?:(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>\s*(?:\{(?:[^{}]|\{[^{}]*\})*\}|[^,;{}]+)))\s*$/
 
 // Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
 export const DYNAMIC_EXPRESSION_REGEX = /^\{\{[\s\S]*\}\}$/
