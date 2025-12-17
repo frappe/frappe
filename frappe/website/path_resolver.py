@@ -6,7 +6,7 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe.website.page_renderers.document_page import DocumentPage
-from frappe.website.page_renderers.list_page import ListPage
+from frappe.website.page_renderers.list_renderer import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.print_page import PrintPage
 from frappe.website.page_renderers.redirect_page import RedirectPage
@@ -14,7 +14,7 @@ from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
 from frappe.website.router import evaluate_dynamic_routes
-from frappe.website.utils import can_cache, get_home_page
+from frappe.website.utils import can_cache, check_if_webform_exists, get_home_page
 
 
 class PathResolver:
@@ -31,8 +31,8 @@ class PathResolver:
 			request = frappe.local.request or request
 
 		# WARN: Hardcoded for better performance
-		if self.path == "app" or self.path.startswith("app/"):
-			return "app", TemplatePage("app", self.http_status_code)
+		if self.path == "desk" or self.path.startswith("desk/"):
+			return "desk", TemplatePage("desk", self.http_status_code)
 
 		# check if the request url is in 404 list
 		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
@@ -60,8 +60,8 @@ class PathResolver:
 			WebFormPage,
 			DocumentPage,
 			TemplatePage,
-			ListPage,
 			PrintPage,
+			ListPage,
 		]
 
 		for renderer in renderers:

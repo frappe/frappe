@@ -16,6 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import cint, get_test_client, get_url
 
 try:
@@ -230,8 +231,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_debug(self):
 		# test 5: fetch response with debug
-		with suppress_stdout():
-			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "debug": True})
+		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "debug": True})
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("_debug_messages", response.json)
 		self.assertIsInstance(response.json["_debug_messages"], str)
@@ -504,9 +504,9 @@ class TestResponse(FrappeAPITestCase):
 		expected_redirects = {
 			"/app/user": "http://localhost/app/user",
 			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
-			"http://example.com": "http://localhost/app",  # No external redirect
-			"https://google.com": "http://localhost/app",
-			"http://localhost:8000": "http://localhost/app",
+			"http://example.com": "http://localhost/desk",  # No external redirect
+			"https://google.com": "http://localhost/desk",
+			"http://localhost:8000": "http://localhost/desk",
 			"http://localhost/app": "http://localhost/app",
 			"////example.com": "http://localhost//example.com",  # malicious redirect attempt
 		}
@@ -523,7 +523,7 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:
@@ -534,6 +534,6 @@ def test(*, fail=False, handled=True, message="Failed"):
 		frappe.msgprint(message)
 
 
-@frappe.whitelist(allow_guest=True)
+@whitelist_for_tests(allow_guest=True)
 def test_array(data):
 	return data

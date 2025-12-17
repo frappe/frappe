@@ -4,7 +4,7 @@ const doctype_name = data_field_validation_doctype.name;
 context("Data Field Input Validation in New Form", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy.insert_doc("DocType", data_field_validation_doctype, true);
 	});
 

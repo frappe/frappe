@@ -251,11 +251,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	doc = frappe.get_doc(document)
+	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
-
-	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, "__func__", method_obj)
@@ -271,9 +269,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 url_rules = [
 	# RPC calls
 	Rule("/method/login", endpoint=login),
-	Rule("/method/logout", endpoint=logout),
+	Rule("/method/logout", endpoint=logout, methods=["POST"]),
 	Rule("/method/ping", endpoint=frappe.ping),
-	Rule("/method/upload_file", endpoint=upload_file),
+	Rule("/method/upload_file", endpoint=upload_file, methods=["POST"]),
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",

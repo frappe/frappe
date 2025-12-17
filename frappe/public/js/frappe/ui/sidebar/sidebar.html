@@ -1,0 +1,81 @@
+<div class="body-sidebar-container {%= expanded ? 'expanded' : ''%}">
+	<div class="body-sidebar-placeholder"></div>
+		<div class="body-sidebar">
+			<div class="standard-items-sections">
+				<div class="dropdown-notifications hidden">
+					<div class="notifications-list" role="menu">
+						<div class="notification-list-header">
+							<div class="header-items"></div>
+							<div class="header-actions"></div>
+						</div>
+						<div class="notification-list-body">
+							<div class="panel-notifications"></div>
+							<div class="panel-events"></div>
+							<div class="panel-changelog-feed"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="body-sidebar-top">
+				<div class="sidebar-items">
+				</div>
+				<div class="edit-mode standard-sidebar-item hidden" data-name="add-sidebar-item" >
+					<a
+						class="item-anchor"
+					>
+						<span class="sidebar-item-icon text-ink-gray-7">
+							{%= frappe.utils.icon("add" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+						</span>
+						<span class="sidebar-item-label">Add Sidebar Item<span>
+					</a>
+				</div>
+			</div>
+			<div class="body-sidebar-bottom">
+				<div class="edit-mode bottom-edit-controls hidden">
+					<button class="btn-outline btn-sm discard-button">
+						Discard
+					</button>
+					<button class="btn btn-primary btn-sm save-sidebar">
+						Save
+					</button>
+				</div>
+				<a class="collapse-sidebar-link">
+					{%= frappe.utils.icon("panel-right-open" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+		 			<span> {%= __("Collapse") %} </span>
+				</a>
+				<div class="nav-item dropdown dropdown-navbar-user dropdown-mobile mt-3">
+					<button
+						class="align-center btn-reset flex nav-link"
+						data-toggle="dropdown"
+						aria-label="{{ __("User Menu") }}"
+					>
+						<div> {{ avatar }} </div>
+						<div class="avatar-name-email ml-2 text-small">
+							<span>{{frappe.session.user_fullname}}</span>
+							<span class="text-secondary">{{frappe.session.user_email}}</span>
+						</div>
+					</button>
+					<div class="dropdown-menu dropdown-menu-left" id="toolbar-user" role="menu">
+						{% for item in navbar_settings.settings_dropdown %}
+							{% var condition = item.condition ? eval(item.condition) : true %}
+							{% if (condition && !item.hidden) { %}
+								{% if (item.route) { %}
+									<a class="dropdown-item" href="{{ item.route }}">
+										{%= __(item.item_label) %}
+									</a>
+								{% } else if (item.action) { %}
+									<button class="btn-reset dropdown-item" onclick="return {{ item.action }}">
+										{%= __(item.item_label) %}
+									</button>
+								{% } else { %}
+									<div class="dropdown-divider"></div>
+								{% } %}
+							{% } %}
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="overlay" style="z-index: 1021;"></div>
+	</div>
+</div>

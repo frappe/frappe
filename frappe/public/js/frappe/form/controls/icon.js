@@ -21,6 +21,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 			parent: picker_wrapper,
 			icon: this.get_icon(),
 			icons: frappe.symbols,
+			include_emoji: this.df.options == "Emojis",
 		});
 
 		this.$wrapper

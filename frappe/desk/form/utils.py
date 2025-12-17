@@ -27,8 +27,7 @@ def add_comment(
 	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
-	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name)
-	reference_doc.check_permission()
+	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
 	comment = frappe.new_doc("Comment")
 	comment.update(
@@ -58,8 +57,7 @@ def update_comment(name, content):
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
 
 	if doc.reference_doctype and doc.reference_name:
-		reference_doc = frappe.get_lazy_doc(doc.reference_doctype, doc.reference_name)
-		reference_doc.check_permission()
+		reference_doc = frappe.get_lazy_doc(doc.reference_doctype, doc.reference_name, check_permission=True)
 
 		doc.content = extract_images_from_html(reference_doc, content, is_private=True)
 	else:
@@ -101,7 +99,7 @@ def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="
 		doctype,
 		fields=["name"],
 		filters=filters,
-		order_by=f"`tab{doctype}`.{sort_field}" + " " + sort_order,
+		order_by=f"{sort_field} {sort_order}",
 		limit_start=0,
 		limit_page_length=1,
 		as_list=True,

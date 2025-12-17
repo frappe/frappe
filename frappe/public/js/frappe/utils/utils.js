@@ -3,7 +3,6 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-import cloneDeepWith from "lodash/cloneDeepWith";
 
 frappe.provide("frappe.utils");
 
@@ -884,19 +883,40 @@ Object.assign(frappe.utils, {
 		};
 	},
 	debounce: function (func, wait, immediate) {
-		var timeout;
-		return function () {
-			var context = this,
-				args = arguments;
-			var later = function () {
-				timeout = null;
-				if (!immediate) func.apply(context, args);
-			};
+		var timeout, context, args;
+
+		var later = function () {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+
+		var debounced = function () {
+			context = this;
+			args = arguments;
 			var callNow = immediate && !timeout;
 			clearTimeout(timeout);
 			timeout = setTimeout(later, wait);
 			if (callNow) func.apply(context, args);
 		};
+
+		debounced.cancel = function () {
+			if (!timeout) return false;
+
+			clearTimeout(timeout);
+			timeout = null;
+			return true;
+		};
+
+		debounced.flush = function () {
+			if (!timeout) return false;
+
+			clearTimeout(timeout);
+			timeout = null;
+			func.apply(context, args);
+			return true;
+		};
+
+		return debounced;
 	},
 	get_form_link: function (
 		doctype,
@@ -907,7 +927,9 @@ Object.assign(frappe.utils, {
 	) {
 		display_text = display_text || name;
 		name = encodeURIComponent(name);
-		let route = `/app/${encodeURIComponent(doctype.toLowerCase().replace(/ /g, "-"))}/${name}`;
+		let route = `/desk/${encodeURIComponent(
+			doctype.toLowerCase().replace(/ /g, "-")
+		)}/${name}`;
 		if (query_params_obj) {
 			route += frappe.utils.make_query_string(query_params_obj);
 		}
@@ -920,21 +942,44 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
+			return (
+				frappe.search.utils.make_icon("table") +
+				(__(route[3]) || __(route[1])).bold() +
+				" " +
+				__("Report")
+			);
 		}
 		if (route[0] === "List") {
-			return __(route[1]).bold() + " " + __("List");
+			return frappe.search.utils.make_icon("list") + __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return __(route[1]).bold() + " " + __("Module");
+			return (
+				frappe.search.utils.make_icon("component") +
+				__(route[1]).bold() +
+				" " +
+				__("Module")
+			);
 		}
 		if (route[0] === "Workspaces") {
-			return __(route[1]).bold() + " " + __("Workspace");
+			return (
+				frappe.search.utils.make_icon("wallpaper") +
+				__(route[1]).bold() +
+				" " +
+				__("Workspace")
+			);
 		}
 		if (route[0] === "dashboard") {
-			return __(route[1]).bold() + " " + __("Dashboard");
+			return (
+				frappe.search.utils.make_icon("dashboard") +
+				__(route[1]).bold() +
+				" " +
+				__("Dashboard")
+			);
 		}
-		return __(frappe.utils.to_title_case(__(route[0]), true));
+		return (
+			frappe.search.utils.make_icon("file-text") +
+			__(frappe.utils.to_title_case(__(route[0]), true))
+		);
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -997,10 +1042,6 @@ Object.assign(frappe.utils, {
 		return deep_equal(a, b);
 	},
 
-	deep_clone(obj, customizer) {
-		return cloneDeepWith(obj, customizer);
-	},
-
 	file_name_ellipsis(filename, length) {
 		let first_part_length = (length * 2) / 3;
 		let last_part_length = length - first_part_length;
@@ -1029,11 +1070,11 @@ Object.assign(frappe.utils, {
 		}
 		return decoded;
 	},
-	copy_to_clipboard(string) {
+	copy_to_clipboard(string, message) {
 		const show_success_alert = () => {
 			frappe.show_alert({
 				indicator: "green",
-				message: __("Copied to clipboard."),
+				message: message || __("Copied to clipboard."),
 			});
 		};
 		if (navigator.clipboard && window.isSecureContext) {
@@ -1066,6 +1107,9 @@ Object.assign(frappe.utils, {
 	},
 
 	eval(code, context = {}) {
+		if (code.substr(0, 5) == "eval:") {
+			code = code.substr(5);
+		}
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
 		code = `let out = ${code}; return out`;
@@ -1233,7 +1277,18 @@ Object.assign(frappe.utils, {
 		image_path: "/assets/frappe/images/leaflet/",
 	},
 
-	icon(icon_name, size = "sm", icon_class = "", icon_style = "", svg_class = "") {
+	icon(
+		icon_name,
+		size = "sm",
+		icon_class = "",
+		icon_style = "",
+		svg_class = "",
+		current_color = false,
+		stroke_color = null
+	) {
+		if (frappe.utils.is_emoji(icon_name)) {
+			return `<span>${icon_name}</span>`;
+		}
 		let size_class = "";
 		let is_espresso = icon_name.startsWith("es-");
 
@@ -1243,19 +1298,70 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="${
+		let $svg = `<svg class="${
 			is_espresso
 				? icon_name.startsWith("es-solid")
 					? "es-icon es-solid"
 					: "es-icon es-line"
 				: "icon"
-		} ${svg_class} ${size_class}" style="${icon_style}" aria-hidden="true">
-			<use class="${icon_class}" href="${icon_name}"></use>
+		} ${svg_class} ${size_class}"
+			${current_color ? 'stroke="currentColor"' : ""}
+			${stroke_color ? `stroke="${stroke_color}"` : ""}
+			style="${icon_style}" aria-hidden="true">
+			<use class="${icon_class}" href="${icon_name}"
+				${stroke_color ? `stroke="${stroke_color}"` : ""}
+			>
+			</use>
 		</svg>`;
+
+		return $svg;
 	},
 
 	flag(country_code) {
 		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
+	},
+
+	is_emoji(emoji_name) {
+		let emojiList = gemoji.map((emoji) => emoji.emoji);
+		return emojiList.includes(emoji_name);
+	},
+
+	get_desktop_icon(icon_name, variant) {
+		let exists = false;
+		let icon_data = this.get_desktop_icon_by_label(icon_name);
+		variant = variant.toLowerCase();
+		if (!icon_data?.app) return exists;
+		let app_name = icon_data.app;
+		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
+			icon_name
+		)}.svg`;
+
+		if (
+			frappe.boot.desktop_icon_urls[app_name] &&
+			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
+		) {
+			return `/${icon_url}`;
+		}
+		return exists;
+	},
+
+	desktop_icon_exists(app_name, url) {
+		let exists = false;
+		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
+		return exists;
+	},
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key]) &&
+					f.hidden != 1
+				);
+			});
+		}
 	},
 
 	make_chart(wrapper, custom_options = {}) {
@@ -1370,7 +1476,7 @@ Object.assign(frappe.utils, {
 		// (item.doctype && frappe.model.can_read(item.doctype))) {
 		//     item.shown = true;
 		// }
-		return `/app/${route}`;
+		return `/desk/${route}`;
 	},
 
 	shorten_number: function (number, country, min_length = 4, max_no_of_decimals = 2) {
@@ -1687,10 +1793,19 @@ Object.assign(frappe.utils, {
 				// don't remove unless patch is created to convert all existing filters from object to array
 				// backward compatibility
 				if (Array.isArray(filters_json)) {
-					let filter = {};
-					filters_json.forEach((arr) => {
-						filter[arr[1]] = [arr[2], arr[3]];
-					});
+					let filter = filters_json.reduce((acc, filter) => {
+						const field = filter[1];
+						const value = [filter[2], filter[3]];
+
+						// if we have multiple filters for the same field,
+						// we convert it into an array
+						if (acc[field]) {
+							acc[field].push(value);
+						} else {
+							acc[field] = [value];
+						}
+						return acc;
+					}, {});
 					return filter || [];
 				}
 				return filters_json || [];
@@ -1883,5 +1998,19 @@ Object.assign(frappe.utils, {
 				hljs.highlightElement(this);
 			});
 		});
+	},
+
+	/**
+	 * Check if current user can upload public files.
+	 * @returns {boolean}
+	 */
+	can_upload_public_files() {
+		if (
+			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
+			1
+		) {
+			return true;
+		}
+		return frappe.user.has_role(["System Manager", "Administrator"]);
 	},
 });

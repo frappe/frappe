@@ -36,6 +36,7 @@ frappe.ui.Page = class Page {
 		this.views = {};
 
 		this.make();
+		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
@@ -52,9 +53,13 @@ frappe.ui.Page = class Page {
 			frappe.utils.throttle(() => {
 				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
 				let current_scroll = document.documentElement.scrollTop;
-				if (current_scroll > 0 && last_scroll <= current_scroll) {
+				if (
+					current_scroll > 0 &&
+					last_scroll <= current_scroll &&
+					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
+				) {
 					$(".page-head").css("top", "-15px");
-				} else {
+				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
 					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
@@ -136,7 +141,7 @@ frappe.ui.Page = class Page {
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
-
+		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
 

@@ -131,6 +131,15 @@ frappe.ui.form.check_mandatory = function (frm) {
 			if (docfield.fieldname) {
 				const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
 
+				// skip fields that don't hold data
+				if (
+					["Section Break", "Column Break", "Tab Break", "HTML", "Heading"].includes(
+						df.fieldtype
+					)
+				) {
+					return;
+				}
+
 				if (df.fieldtype === "Fold") {
 					folded = frm.layout.folded;
 				}
@@ -222,8 +231,9 @@ frappe.ui.form.check_mandatory = function (frm) {
 	}
 
 	function scroll_to(fieldname) {
-		frm.scroll_to_field(fieldname);
-		frm.scroll_set = true;
+		if (frm.scroll_to_field(fieldname)) {
+			frm.scroll_set = true;
+		}
 	}
 };
 
@@ -234,68 +244,62 @@ frappe.ui.form.remove_old_form_route = () => {
 	);
 };
 
-frappe.ui.form.update_calling_link = (newdoc) => {
+frappe.ui.form.update_calling_link = async (newdoc) => {
 	if (!frappe._from_link) return;
-	var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
 
-	let is_valid_doctype = () => {
-		if (frappe._from_link.df.fieldtype === "Link") {
-			return newdoc.doctype === frappe._from_link.df.options;
-		} else {
-			// dynamic link, type is dynamic
-			return newdoc.doctype === doc[frappe._from_link.df.options];
+	const { field_obj, from_doctype, from_docname, scrollY } = frappe._from_link;
+	const df = field_obj.df;
+
+	if (!["Link", "Dynamic Link", "Table MultiSelect"].includes(df.fieldtype)) return;
+
+	const doc = frappe.get_doc(from_doctype, from_docname);
+
+	const is_valid_doctype = () => {
+		switch (df.fieldtype) {
+			case "Link":
+				return newdoc.doctype === df.options;
+			case "Dynamic Link":
+				return newdoc.doctype === doc[df.options];
+			case "Table MultiSelect":
+				return newdoc.doctype === field_obj.get_options();
 		}
 	};
 
-	if (is_valid_doctype()) {
-		frappe.model.with_doctype(newdoc.doctype, () => {
-			let meta = frappe.get_meta(newdoc.doctype);
-			// set value
-			if (doc && doc.parentfield) {
-				//update values for child table
-				$.each(
-					frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows,
-					function (index, field) {
-						if (field.doc && field.doc.name === frappe._from_link.docname) {
-							if (meta.title_field && meta.show_title_field_in_link) {
-								frappe.utils.add_link_title(
-									newdoc.doctype,
-									newdoc.name,
-									newdoc[meta.title_field]
-								);
-							}
-							frappe._from_link.set_value(newdoc.name);
-						}
-					}
-				);
-			} else {
-				if (meta.title_field && meta.show_title_field_in_link) {
-					frappe.utils.add_link_title(
-						newdoc.doctype,
-						newdoc.name,
-						newdoc[meta.title_field]
-					);
-				}
-				frappe._from_link.set_value(newdoc.name);
-			}
+	if (!is_valid_doctype()) return;
 
-			// refresh field
-			frappe._from_link.refresh();
-
-			// if from form, switch
-			if (frappe._from_link.frm) {
-				frappe
-					.set_route(
-						"Form",
-						frappe._from_link.frm.doctype,
-						frappe._from_link.frm.docname
-					)
-					.then(() => {
-						frappe.utils.scroll_to(frappe._from_link_scrollY);
-					});
-			}
-
-			frappe._from_link = null;
-		});
+	// switch back to the original doc first,
+	// this is necessary in case from_link.doctype === newdoc.doctype
+	if (field_obj.frm) {
+		await frappe.set_route("Form", from_doctype, from_docname);
+		frappe.utils.scroll_to(scrollY);
 	}
+
+	delete frappe._from_link;
+
+	await frappe.model.with_doctype(newdoc.doctype);
+	const meta = frappe.get_meta(newdoc.doctype);
+
+	// update link title cache
+	if (meta.title_field && meta.show_title_field_in_link) {
+		frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
+	}
+
+	// set value
+	if (doc && doc.parentfield) {
+		//update values for child table
+		$.each(
+			field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows,
+			function (_index, field) {
+				if (field.doc && field.doc.name === from_docname) {
+					field_obj.set_value(newdoc.name);
+				}
+			}
+		);
+	} else {
+		// parsing is needed for table multiselect to convert string to array
+		field_obj.parse_validate_and_set_in_model(newdoc.name);
+	}
+
+	// refresh field
+	field_obj.refresh();
 };

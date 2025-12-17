@@ -129,7 +129,7 @@ frappe.report_utils = {
 				report_name: report_name,
 			})
 			.then((r) => {
-				frappe.dom.eval(r.script || "");
+				frappe.dom.eval(r.script);
 				return frappe.after_ajax(() => {
 					if (
 						frappe.query_reports[report_name] &&

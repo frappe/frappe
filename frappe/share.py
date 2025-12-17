@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
 	get_title,
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
+def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0, **kwargs):
 	"""Expose function without flags to the client-side"""
 	return add_docshare(
 		doctype,
@@ -30,11 +31,12 @@ def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0
 		share=share,
 		everyone=everyone,
 		notify=notify,
+		**kwargs,
 	)
 
 
 def add_docshare(
-	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
+	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0, **kwargs
 ):
 	"""Share the given document with a user."""
 	if not user:
@@ -54,16 +56,20 @@ def add_docshare(
 	if flags:
 		doc.flags.update(flags)
 
-	doc.update(
-		{
-			# always add read, since you are adding!
-			"read": 1,
-			"write": cint(write),
-			"submit": cint(submit),
-			"share": cint(share),
-		}
-	)
+	share_perms = {
+		# always add read, since you are adding!
+		"read": 1,
+		"write": cint(write),
+		"submit": cint(submit),
+		"share": cint(share),
+	}
+	custom_perms = get_doctype_ptype_map().get(doctype, [])
+	if kwargs and custom_perms:
+		for ptype in custom_perms:
+			if ptype in kwargs:
+				share_perms[ptype] = cint(kwargs.get(ptype))
 
+	doc.update(share_perms)
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, everyone, notify=notify)
 
@@ -137,17 +143,7 @@ def _get_users(doc: "Document") -> list:
 
 	return frappe.get_all(
 		"DocShare",
-		fields=[
-			"name",
-			"user",
-			"read",
-			"write",
-			"submit",
-			"share",
-			"everyone",
-			"owner",
-			"creation",
-		],
+		fields=["*"],
 		filters=dict(share_doctype=doc.doctype, share_name=str(doc.name)),
 	)
 

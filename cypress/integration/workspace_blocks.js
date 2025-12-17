@@ -1,7 +1,7 @@
 context("Workspace Blocks", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		return cy
 			.window()
 			.its("frappe")
@@ -11,12 +11,13 @@ context("Workspace Blocks", () => {
 	});
 
 	it("Create Test Page", () => {
+		cy.remove_doc("Workspace", `Test Block Page-${Cypress.config("testUser")}`, true);
 		cy.intercept({
 			method: "POST",
 			url: "api/method/frappe.desk.doctype.workspace.workspace.new_page",
 		}).as("new_page");
 
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-new-workspace").click();
 		cy.fill_field("title", "Test Block Page", "Data");
@@ -25,19 +26,11 @@ context("Workspace Blocks", () => {
 		cy.get_open_dialog().find(".btn-primary").click();
 
 		// check if sidebar item is added in private section
-		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
+		cy.get('.sidebar-item-container[item-name="Test Block Page"]');
 		cy.wait(300);
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 		cy.wait(300);
-		cy.get('.sidebar-item-container[item-title="Test Block Page"]').should(
-			"have.attr",
-			"item-public",
-			"0"
-		);
+		cy.get('.sidebar-item-container[item-name="Test Block Page"]');
 
 		cy.wait("@new_page");
 	});
@@ -79,7 +72,7 @@ context("Workspace Blocks", () => {
 		cy.get(".block-list-container .block-list-item").contains("Quick List").click();
 
 		cy.fill_field("label", "ToDo", "Data");
-		cy.fill_field("document_type", "ToDo", "Link").blur();
+		cy.fill_field("document_type", "ToDo", "Link");
 		cy.wait("@get_doctype");
 
 		cy.get_open_dialog().find(".filter-edit-area").should("contain", "No filters selected");
@@ -150,6 +143,7 @@ context("Workspace Blocks", () => {
 	});
 
 	it("Number Card Block", () => {
+		cy.visit("/app/private/test-block-page");
 		cy.create_records([
 			{
 				doctype: "Number Card",
@@ -162,12 +156,16 @@ context("Workspace Blocks", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".btn-edit-workspace").click();
 
-		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
+		cy.get(".ce-block")
+			.first()
+			.realHover()
+			.find(".new-block-button")
+			.should("be.visible")
+			.click();
 		cy.get(".block-list-container .block-list-item").contains("Number Card").click();
 
 		// add number card
 		cy.fill_field("number_card_name", "Test Number Card", "Link");
-		cy.get('[data-fieldname="number_card_name"] ul div').contains("Test Number Card").click();
 		cy.click_modal_primary_button("Add");
 		cy.get(".ce-block .number-widget-box").first().as("number_card");
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");

@@ -430,7 +430,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						frappe.dom.eval(settings.script || "");
+						frappe.dom.eval(settings.script);
 						frappe.after_ajax(() => {
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
@@ -725,8 +725,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					(filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== ""
 				)
 				.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
-
-			console.log(js_filters, "js_filters");
 
 			this.last_ajax = frappe.call({
 				method: "frappe.desk.query_report.run",

@@ -77,12 +77,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_page();
 	}
 
-	toggle_side_bar() {
-		super.toggle_side_bar();
-		// refresh datatable when sidebar is toggled to accomodate extra space
-		this.render(true);
-	}
-
 	setup_result_area() {
 		super.setup_result_area();
 		this.setup_charts_area();
@@ -1571,11 +1565,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			{
 				label: __("Toggle Chart"),
 				action: () => this.toggle_charts(),
-			},
-			{
-				label: __("Toggle Sidebar"),
-				action: () => this.toggle_side_bar(),
-				shortcut: "Ctrl+K",
 			},
 			{
 				label: __("Pick Columns"),

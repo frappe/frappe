@@ -105,3 +105,23 @@
 		}
 	}
 }
+
+.input-group > .form-control:not(:last-child) {
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	margin-right: 0px !important;
+}
+
+.match-type-dropdown-btn {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	height: var(--btn-height);
+	border-left: 1px solid var(--btn-group-border-color);
+
+	&:focus {
+		box-shadow: none !important;
+	}
+}
+.match-type-dropdown-menu {
+	min-width: 100px;
+}

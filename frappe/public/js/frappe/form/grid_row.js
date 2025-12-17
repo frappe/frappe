@@ -384,7 +384,6 @@ export default class GridRow {
 
 	add_column_configure_button() {
 		if (this.grid.df.in_place_edit && !this.frm) return;
-
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
 				<div class="col grid-static-col pointer">
@@ -1121,14 +1120,14 @@ export default class GridRow {
 
 		this.columns[df.fieldname] = $col;
 		this.columns_list.push($col);
-		if (ci == 0 && !this.header_row) {
+		if (ci == 0 && this.header_row) {
 			$col.attr("tabIndex", 0);
 			$col.on("focus", function () {
 				if (me.grid.grid_rows.length == 0) {
 					me.grid.add_new_row();
 				}
 				me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row(true);
-				me.grid.set_focus_on_row();
+				me.grid.set_focus_on_row(0);
 				$col.attr("tabIndex", "");
 			});
 		}
@@ -1212,11 +1211,18 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		// df.onchange is common for all rows in grid
-		let field_on_change_function = df.onchange;
+		let field_onchange_function = df.onchange;
+		let field_change_function = df.change;
+
 		field.df.change = (e) => {
 			this.refresh_dependency();
 			// trigger onchange with current grid row field as "this"
-			field_on_change_function && field_on_change_function.apply(field, [e]);
+			if (field_onchange_function) {
+				field_onchange_function.apply(field, [e]);
+			} else if (field_change_function) {
+				field_change_function.apply(field, [e]);
+			}
+
 			me.refresh_field(field.df.fieldname);
 		};
 
@@ -1296,9 +1302,13 @@ export default class GridRow {
 					if (is_last_column) {
 						// last row
 						if (me.doc.idx === values.length) {
-							me.grid.add_new_row(null, null, true);
-							me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
-							me.grid.set_focus_on_row();
+							setTimeout(function () {
+								me.grid.add_new_row(null, null, true);
+								me.grid.grid_rows[
+									me.grid.grid_rows.length - 1
+								].toggle_editable_row();
+								me.grid.set_focus_on_row();
+							}, 100);
 						} else {
 							// last column before last row
 							me.grid.grid_rows[me.doc.idx].toggle_editable_row();

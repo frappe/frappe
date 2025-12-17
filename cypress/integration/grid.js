@@ -1,11 +1,11 @@
 context("Grid", () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
@@ -16,7 +16,7 @@ context("Grid", () => {
 			});
 	});
 	it("update docfield property using update_docfield_property", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -40,7 +40,7 @@ context("Grid", () => {
 			});
 	});
 	it("update docfield property using toggle_display", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -64,7 +64,7 @@ context("Grid", () => {
 			});
 	});
 	it("update docfield property using toggle_enable", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -88,7 +88,7 @@ context("Grid", () => {
 			});
 	});
 	it("update docfield property using toggle_reqd", () => {
-		cy.visit("/app/contact/Test Contact");
+		cy.visit("/desk/contact/Test Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {

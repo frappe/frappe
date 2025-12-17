@@ -1,7 +1,7 @@
 context("Dynamic Link", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		return cy
 			.window()
 			.its("frappe")
@@ -93,6 +93,7 @@ context("Dynamic Link", () => {
 
 	it("Creating a dynamic link and verifying it in a dialog", () => {
 		get_dialog_with_dynamic_link().as("dialog");
+		cy.wait(500);
 		cy.get_field("doc_type").clear();
 		cy.fill_field("doc_type", "User", "Link");
 		cy.get_field("doc_id").click();
@@ -106,8 +107,8 @@ context("Dynamic Link", () => {
 		cy.get(".btn-modal-close").click({ force: true, multiple: true });
 	});
 
-	it("Creating a dynamic link and verifying it", () => {
-		cy.visit("/app/test-dynamic-link");
+	it("Shows dynamic link options in list filters", () => {
+		cy.visit("/desk/test-dynamic-link");
 
 		//Clicking on the Document ID field
 		cy.get_field("doc_type").clear();
@@ -122,7 +123,9 @@ context("Dynamic Link", () => {
 			.find("div")
 			.its("length")
 			.should("be.gte", 0);
+	});
 
+	it("Shows dynamic link options in new form", () => {
 		//Opening a new form for dynamic link doctype
 		cy.new_form("Test Dynamic Link");
 		cy.get_field("doc_type").clear();
@@ -138,14 +141,14 @@ context("Dynamic Link", () => {
 			.its("length")
 			.should("be.gte", 0);
 		cy.get_field("doc_type").clear();
+	});
+
+	it("Shows error when invalid DocType is passed", () => {
+		cy.new_form("Test Dynamic Link");
+		cy.get_field("doc_type").clear();
 
 		//Entering System Settings in the Doctype field
-		cy.intercept("/api/method/frappe.desk.search.search_link").as("search_query");
 		cy.fill_field("doc_type", "System Settings", "Link", { delay: 500 });
-		cy.wait("@search_query");
-		cy.get(`[data-fieldname="doc_type"] ul:visible div:first-child`).click({
-			scrollBehavior: false,
-		});
 
 		cy.get_field("doc_id").click();
 

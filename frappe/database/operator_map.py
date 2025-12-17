@@ -24,6 +24,17 @@ def like(key: Field, value: str) -> frappe.qb:
 	return key.like(value)
 
 
+def ilike(key: Field, value: str) -> frappe.qb:
+	"""Wrapper method for `ILIKE`
+	Args:
+	        key (str): field
+	        value (str): criterion
+	Return:
+	        frappe.qb: `frappe.qb` object with `ILIKE`
+	"""
+	return key.ilike(value)
+
+
 def func_in(key: Field, value: list | tuple) -> frappe.qb:
 	"""Wrapper method for `IN`.
 
@@ -136,6 +147,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"in": func_in,
 	"not in": func_not_in,
 	"like": like,
+	"ilike": ilike,
 	"not like": not_like,
 	"regex": func_regex,
 	"between": func_between,

@@ -42,7 +42,6 @@ frappe.breadcrumbs = {
 		}
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
-		frappe.app.sidebar.set_active_workspace_item();
 	},
 
 	current_page() {
@@ -68,19 +67,11 @@ frappe.breadcrumbs = {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
 			} else if (breadcrumbs.doctype && view === "list") {
-				// pass
+				this.set_list_breadcrumb(breadcrumbs);
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
+				this.set_dashboard_breadcrumb(breadcrumbs);
 			}
-		}
-
-		if (
-			breadcrumbs.workspace &&
-			frappe.workspace_map[breadcrumbs.workspace]?.app &&
-			frappe.workspace_map[breadcrumbs.workspace]?.app != frappe.current_app
-		) {
-			let app = frappe.workspace_map[breadcrumbs.workspace].app;
-			frappe.app.sidebar.apps_switcher.set_current_app(app);
 		}
 
 		this.toggle(true);
@@ -90,10 +81,13 @@ frappe.breadcrumbs = {
 		this.append_breadcrumb_element(breadcrumbs.route, breadcrumbs.label);
 	},
 
-	append_breadcrumb_element(route, label) {
+	append_breadcrumb_element(route, label, css_classes) {
 		const el = document.createElement("li");
 		const a = document.createElement("a");
 		a.href = route;
+		if (css_classes) {
+			a.classList.add(css_classes);
+		}
 		a.innerText = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
@@ -123,7 +117,7 @@ frappe.breadcrumbs = {
 		}
 
 		this.append_breadcrumb_element(
-			`/app/${frappe.router.slug(breadcrumbs.workspace)}`,
+			`/desk/${frappe.router.slug(breadcrumbs.workspace)}`,
 			__(breadcrumbs.workspace)
 		);
 	},
@@ -195,7 +189,7 @@ frappe.breadcrumbs = {
 			} else {
 				route = doctype_route;
 			}
-			this.append_breadcrumb_element(`/app/${route}`, __(doctype));
+			this.append_breadcrumb_element(`/desk/${route}`, __(doctype), "title-text");
 		}
 	},
 
@@ -203,19 +197,20 @@ frappe.breadcrumbs = {
 		const doctype = breadcrumbs.doctype;
 		let docname = frappe.get_route().slice(2).join("/");
 		let doc = frappe.get_doc(doctype, docname);
+		let form_route = `/desk/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
 
-		if (doc.__islocal) return; // new doc, no breadcrumb required
-
-		let title = frappe.model.get_doc_title(doc);
-
-		if (title == doc.name) return; // title and name are same, don't add breadcrumb
-
-		let form_route = `/app/${frappe.router.slug(doctype)}/${encodeURIComponent(docname)}`;
-		this.append_breadcrumb_element(form_route, doc.name);
+		let docname_title;
+		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
+			docname_title = __("New {0}", [__(doctype)]);
+		} else {
+			docname_title = doc.name;
+		}
+		this.append_breadcrumb_element(form_route, docname_title, "title-text-form");
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
+			last_crumb.addClass("ellipsis");
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();
@@ -227,7 +222,7 @@ frappe.breadcrumbs = {
 	set_dashboard_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route()[1];
-		let dashboard_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
+		let dashboard_route = `/desk/${frappe.router.slug(doctype)}/${docname}`;
 		$(`<li><a href="${dashboard_route}">${__(docname)}</a></li>`).appendTo(this.$breadcrumbs);
 	},
 
@@ -248,7 +243,7 @@ frappe.breadcrumbs = {
 	},
 
 	clear() {
-		this.$breadcrumbs = $("#navbar-breadcrumbs").empty();
+		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
 	},
 
 	toggle(show) {
