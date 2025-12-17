@@ -1295,7 +1295,11 @@ def handle_password_test_fail(feedback: dict):
 		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
 
 	if suggestions:
-		suggestions_html = "<ul>" + "".join(f"<li>{suggestion}</li>" for suggestion in suggestions) + "</ul>"
+		suggestions_html = (
+			'<ul style="margin: 0; padding-left: 1em;">'
+			+ "".join(f"<li>{suggestion}</li>" for suggestion in suggestions)
+			+ "</ul>"
+		)
 		message_parts.append(suggestions_html)
 
 	frappe.throw(
