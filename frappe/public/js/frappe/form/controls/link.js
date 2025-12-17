@@ -399,7 +399,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			no_spinner: true,
 			cache: use_get,
 			args: args,
-			callback: (r) => {
+			callback: async (r) => {
 				if (!window.Cypress && !this.$input.is(":focus")) {
 					return;
 				}
@@ -409,7 +409,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				let filter_string = this.df.filter_description
 					? this.df.filter_description
 					: args.filters
-					? this.get_filter_description(args.filters)
+					? await this.get_filter_description(args.filters)
 					: null;
 				if (filter_string) {
 					r.message.push({
@@ -501,14 +501,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 
-	get_filter_description(filters) {
+	async get_filter_description(filters) {
 		const doctype = this.get_options();
 		let filter_array = [];
-
-		// ensure meta is loaded (keeps existing behaviour)
-		frappe.model.with_doctype(doctype, () => {
-			frappe.get_meta(doctype);
-		});
 
 		// convert object style to array
 		if (!Array.isArray(filters)) {
@@ -526,104 +521,119 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		// add doctype if missing: [doctype, fieldname, operator, value]
 		filter_array = filter_array.map((f) => (f.length === 3 ? [doctype, ...f] : f));
 
-		// operator templates (use {0} = label, {1} = value) -> good for i18n extraction
-		const operatorTemplates = {
-			"=": __("{0} equals {1}"),
-			"!=": __("{0} is not equal to {1}"),
-			["in"]: __("{0} is one of {1}"),
-			"not in": __("{0} is not one of {1}"),
-			["like"]: __("{0} contains {1}"),
-			"not like": __("{0} does not contain {1}"),
-			">": __("{0} is greater than {1}"),
-			"<": __("{0} is less than {1}"),
-			">=": __("{0} is greater than or equal to {1}"),
-			"<=": __("{0} is less than or equal to {1}"),
-			["is"]: __("{0} is {1}"),
-			["between"]: __("{0} is between {1}"),
-			"descendants of": __("{0} is a descendant of {1}"),
-			"ancestors of": __("{0} is an ancestor of {1}"),
-			"not descendants of": __("{0} is not a descendant of {1}"),
-			"not ancestors of": __("{0} is not an ancestor of {1}"),
-			["timespan"]: __("{0} is within {1}"),
-		};
-
 		function formatValueForDisplay(docfield, val) {
 			// Check boolean fields -> show Yes/No (localized)
 			// Handles 0/1, true/false values
 			if (docfield && docfield.fieldtype === "Check") {
-				return (val == 1 || val === true ? __("Yes") : __("No")).bold();
+				return val == 1 || val === true ? __("Yes") : __("No");
 			}
 
 			// Array values -> truncate to first 5, append "..."
 			if (Array.isArray(val)) {
 				const filtered = val.filter((v) => v != null && v !== "");
-				const arr = filtered.slice(0, 5).map((v) => String(__(v)).bold());
+				const arr = filtered.slice(0, 5).map((v) => {
+					// Strings in quotes, numbers/dates not quoted
+					if (typeof v === "string") {
+						return `"${String(__(v))}"`;
+					}
+					// Numbers, dates, etc. - not translated, not quoted
+					return String(v);
+				});
 				if (filtered.length > 5) arr.push("...");
 				return arr.join(", ");
 			}
 
 			// Null / empty
 			if (val == null || val === "") {
-				return String(__("empty")).bold();
+				return __("empty");
 			}
 
-			// Default scalar
-			return String(__(val)).bold();
-		}
-
-		function get_operator_template(operator, fieldtype, value) {
-			// Special handling for Check fields
-			if (fieldtype === "Check") {
-				if (operator === "=" && value == 1) {
-					return __("{0} is enabled");
-				} else if (operator === "=" && value == 0) {
-					return __("{0} is disabled");
-				} else if (operator === "!=") {
-					return value == 1 ? __("{0} is disabled") : __("{0} is enabled");
-				}
+			// Format based on type: strings in quotes, numbers/dates not quoted
+			if (typeof val === "string") {
+				return `"${String(__(val))}"`;
 			}
-			// Return raw placeholder pattern for unknown operators (not translatable)
-			return operatorTemplates[operator] || "{0} {1} {2}";
+
+			// Numbers, dates, etc. - not translated, not quoted
+			return String(val);
 		}
 
-		function get_filter_description(filter) {
+		async function describe_filter(filter) {
 			// expect [doctype, fieldname, operator, value]
 			const _doctype = filter[0];
 			const fieldname = filter[1];
 			const operator = filter[2];
 			let value = filter[3];
 
+			// Ensure metadata is loaded for this doctype before accessing docfield
+			await frappe.model.with_doctype(_doctype, () => {});
+
 			const docfield = frappe.meta.get_docfield(_doctype, fieldname);
 			const label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 			const fieldtype = docfield ? docfield.fieldtype : null;
 
-			// heuristics: detect a Check field if metadata absent but value looks boolean-ish
-			const looks_like_check =
-				(operator === "=" || operator === "!=") &&
-				(value == 1 || value == 0 || value === true || value === false);
-			const is_check_field = fieldtype === "Check" || looks_like_check;
-
-			// For Check fields with =/!= prefer human phrase without showing raw value
-			if (is_check_field && (operator === "=" || operator === "!=")) {
-				const template = get_operator_template(operator, "Check", value);
-				return __(template, [String(__(label)).bold()]);
-			}
-
-			const labelDisplay = String(__(label)).bold();
+			const labelDisplay = `<i>${String(__(label))}</i>`;
 			const valueDisplay = formatValueForDisplay(docfield, value);
 
-			const template = get_operator_template(operator, fieldtype, value);
-
-			// fallback pattern expects 3 placeholders: label, operator (raw), value
-			// Check if operator is not in templates (fallback case)
-			if (!operatorTemplates[operator]) {
-				return __(template, [labelDisplay, operator, valueDisplay]);
+			// Special handling for Check fields with =/!= - show human phrase without value
+			if (fieldtype === "Check" && (operator === "=" || operator === "!=")) {
+				if (operator === "=") {
+					return value == 1
+						? __("{0} is enabled", [labelDisplay])
+						: __("{0} is disabled", [labelDisplay]);
+				} else {
+					// operator === "!="
+					return value == 1
+						? __("{0} is disabled", [labelDisplay])
+						: __("{0} is enabled", [labelDisplay]);
+				}
 			}
 
-			return __(template, [labelDisplay, valueDisplay]);
+			// Handle all operators with translation and interpolation in one call
+			switch (operator) {
+				case "=":
+					return __("{0} equals {1}", [labelDisplay, valueDisplay]);
+				case "!=":
+					return __("{0} is not equal to {1}", [labelDisplay, valueDisplay]);
+				case "in":
+					return __("{0} is one of {1}", [labelDisplay, valueDisplay]);
+				case "not in":
+					return __("{0} is not one of {1}", [labelDisplay, valueDisplay]);
+				case "like":
+					return __("{0} contains {1}", [labelDisplay, valueDisplay]);
+				case "not like":
+					return __("{0} does not contain {1}", [labelDisplay, valueDisplay]);
+				case ">":
+					return __("{0} is greater than {1}", [labelDisplay, valueDisplay]);
+				case "<":
+					return __("{0} is less than {1}", [labelDisplay, valueDisplay]);
+				case ">=":
+					return __("{0} is greater than or equal to {1}", [labelDisplay, valueDisplay]);
+				case "<=":
+					return __("{0} is less than or equal to {1}", [labelDisplay, valueDisplay]);
+				case "is":
+					return __("{0} is {1}", [labelDisplay, valueDisplay]);
+				case "between":
+					return __("{0} is between {1}", [labelDisplay, valueDisplay]);
+				case "descendants of":
+					return __("{0} is a descendant of {1}", [labelDisplay, valueDisplay]);
+				case "ancestors of":
+					return __("{0} is an ancestor of {1}", [labelDisplay, valueDisplay]);
+				case "not descendants of":
+					return __("{0} is not a descendant of {1}", [labelDisplay, valueDisplay]);
+				case "not ancestors of":
+					return __("{0} is not an ancestor of {1}", [labelDisplay, valueDisplay]);
+				case "timespan":
+					return __("{0} is within {1}", [labelDisplay, valueDisplay]);
+				default:
+					// Fallback for unknown operators
+					return __("{0} {1} {2}", [labelDisplay, operator, valueDisplay]);
+			}
 		}
 
-		const filter_string = filter_array.map(get_filter_description).join(", ");
+		const descriptions = await Promise.all(
+			filter_array.map((filter) => describe_filter(filter))
+		);
+		const filter_string = frappe.utils.comma_and(descriptions);
 		return __("Filters applied for {0}", [filter_string]);
 	}
 
