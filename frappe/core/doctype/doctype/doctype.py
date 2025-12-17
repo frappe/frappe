@@ -884,6 +884,7 @@ class DocType(Document):
 			if not os.path.exists(templates_path):
 				os.makedirs(templates_path)
 			make_boilerplate("templates/controller.html", self.as_dict())
+			make_boilerplate("templates/controller_list.html", self.as_dict())
 			make_boilerplate("templates/controller_row.html", self.as_dict())
 
 	def export_types_to_controller(self):
