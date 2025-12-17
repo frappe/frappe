@@ -232,6 +232,12 @@ const extensions = computed(() => {
 			cut: (event, _view) => {
 				event.stopPropagation()
 			},
+			copy: (event, _view) => {
+				event.stopPropagation()
+			},
+			paste: (event, _view) => {
+				event.stopPropagation()
+			},
 		}),
 		keymap.of([
 			{
