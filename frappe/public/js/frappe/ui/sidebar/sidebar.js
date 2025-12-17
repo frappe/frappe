@@ -104,7 +104,7 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function (router) {
-			frappe.app.sidebar.set_workspace_sidebar(router);
+			frappe?.app?.sidebar?.set_workspace_sidebar(router);
 		});
 		$(document).on("page-change", function () {
 			frappe.app.sidebar.toggle();
@@ -238,9 +238,9 @@ frappe.ui.Sidebar = class Sidebar {
 
 		return new frappe.ui.sidebar_item[class_name](opts);
 	}
-	update_item(item, index) {}
+	update_item(item, index) { }
 
-	remove_item(item, index) {}
+	remove_item(item, index) { }
 
 	toggle_width() {
 		if (!this.sidebar_expanded) {
@@ -325,17 +325,30 @@ frappe.ui.Sidebar = class Sidebar {
 		} else if (route[0] == "List" || route[0] == "Form") {
 			let doctype = route[1];
 			let sidebars = this.get_correct_workspace_sidebars(doctype);
-			// prevents switching of the sidebar if one item is linked in two sidebars
+
 			if (sidebars.includes(this.workspace_title)) {
 				frappe.app.sidebar.setup(this.workspace_title);
 				return;
 			}
+
 			if (sidebars.length == 0) {
 				let module_name = router.meta?.module;
+
+				if (!module_name && frappe.get_meta) {
+					let meta = frappe.get_meta(doctype);
+					module_name = meta?.module;
+				}
+
 				if (module_name) {
-					frappe.app.sidebar.setup(
-						this.sidebar_module_map[module_name][0] || module_name
-					);
+					let sidebar_name = this?.sidebar_module_map[module_name]?.[0] || module_name;
+
+					if (frappe.boot.workspace_sidebar_item[sidebar_name.toLowerCase()]) {
+						frappe.app.sidebar.setup(sidebar_name);
+					} else {
+						this.show_empty_sidebar();
+					}
+				} else {
+					this.show_empty_sidebar();
 				}
 			} else {
 				if (
@@ -388,6 +401,18 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		});
 		return sidebars;
+	}
+
+	show_empty_sidebar() {
+		this.wrapper.show();
+		this.empty();
+		this.wrapper.find('.sidebar-header').hide();
+
+		if (this.sidebar_header && this.sidebar_header.wrapper) {
+			this.sidebar_header.wrapper.hide();
+		}
+		this.sidebar_expanded = true;
+		this.expand_sidebar();
 	}
 
 	toggle_editing_mode() {
@@ -719,7 +744,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: d.get_field("filter_area").$wrapper,
 			doctype: doctype,
-			on_change: () => {},
+			on_change: () => { },
 		});
 
 		frappe.model.with_doctype(doctype, () => {
