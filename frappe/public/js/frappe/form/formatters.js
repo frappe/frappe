@@ -35,9 +35,16 @@ frappe.form.formatters = {
 	},
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
-			if (!value) return;
+			if (!value) return "";
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
+<<<<<<< HEAD
+=======
+		if (df && df.options == "IBAN") {
+			if (!value) return "";
+			return frappe.utils.get_formatted_iban(value);
+		}
+>>>>>>> 61cd779872 (fix: return empty string instead of undefined for URL and IBAN options (#34939))
 		value = value == null ? "" : value;
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);
