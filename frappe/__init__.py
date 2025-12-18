@@ -188,7 +188,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 
 	local.user = None
 	local.user_perms = None
-	local.session = None
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
@@ -199,7 +198,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": [], "icons": []}
-	local.session = _dict()
+	local.session = _dict(user="Guest")
 	local.dev_server = _dev_server  # only for backwards compatibility
 	local.qb = get_query_builder(local.conf.db_type)
 	if not cache or not client_cache:

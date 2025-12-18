@@ -5,6 +5,7 @@
 }
 /*! This comment will be included even in compressed mode. */
 .navbar-breadcrumbs {
+	flex-wrap: nowrap;
 	a {
 		text-decoration: none;
 		color: var(--ink-gray-5);

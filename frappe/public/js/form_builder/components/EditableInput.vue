@@ -43,7 +43,7 @@ defineExpose({ focus_on_label });
 	<div @dblclick="focus_on_label" :title="__('Double click to edit label')">
 		<input
 			v-if="editing"
-			class="input-text"
+			class="input-text bg-transparent"
 			ref="input_text"
 			:disabled="store.read_only"
 			type="text"

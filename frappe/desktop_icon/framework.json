@@ -10,25 +10,10 @@
  "link": "/app/build",
  "link_type": "External",
  "logo_url": "/assets/frappe/images/frappe-framework-logo.svg",
- "modified": "2025-11-20 13:36:37.227388",
+ "modified": "2025-12-12 07:36:09.059666",
  "modified_by": "Administrator",
  "name": "Framework",
  "owner": "Administrator",
- "roles": [
-  {
-   "creation": "2025-11-20 13:36:37.227388",
-   "docstatus": 0,
-   "doctype": "Has Role",
-   "idx": 1,
-   "modified": "2025-11-20 13:36:37.227388",
-   "modified_by": "Administrator",
-   "name": "u44vqe0q4q",
-   "owner": "Administrator",
-   "parent": "Framework",
-   "parentfield": "roles",
-   "parenttype": "Desktop Icon",
-   "role": "System Manager"
-  }
- ],
+ "roles": [],
  "standard": 1
 }

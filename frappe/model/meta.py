@@ -498,8 +498,11 @@ class Meta(Document):
 			return
 
 		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
-			recent_change = frappe.db.get_value(self.name, {}, "creation", order_by="creation desc")
-			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+			# Raw SQL to prevent querying meta when already in meta
+			recent_change = frappe.db.sql(
+				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
+			)  # nosemgrep
+			if get_datetime(recent_change[0][0]) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
 				self.is_large_table = True
 
 	@cached_property

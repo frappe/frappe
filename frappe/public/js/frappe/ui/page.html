@@ -2,17 +2,17 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="col-md-5 col-sm-6 col-xs-7 page-title">
-				<div class="flex fill-width title-area">
+				<div class="flex fill-width title-area ellipsis">
 					{% if (!frappe.is_mobile()) { %}
-						<ul class="nav d-sm-flex navbar-breadcrumbs"></ul>
+						<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis"></ul>
 					{% endif %}
-					<span class="indicator-pill whitespace-nowrap"></span>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-dot-horizontal">
 							</use>
 						</svg>
 					</button>
+					<span class="indicator-pill whitespace-nowrap"></span>
 				</div>
 			</div>
 			<div class="flex col page-actions justify-content-end">

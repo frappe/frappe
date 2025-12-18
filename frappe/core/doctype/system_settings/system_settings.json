@@ -85,6 +85,7 @@
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
   "strip_exif_metadata_from_uploaded_images",
+  "only_allow_system_managers_to_upload_public_files",
   "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
@@ -297,6 +298,7 @@
   {
    "default": "2",
    "depends_on": "eval:doc.enable_password_policy==1",
+   "description": "0 - too guessable: risky password.\n<br>\n1 - very guessable: protection from throttled online attacks. \n<br>\n2 - somewhat guessable: protection from unthrottled online attacks.\n<br>\n3 - safely unguessable: moderate protection from offline slow-hash scenario.\n<br>\n4 - very unguessable: strong protection from offline slow-hash scenario.",
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
@@ -775,12 +777,19 @@
   {
    "fieldname": "column_break_ewhs",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog.",
+   "fieldname": "only_allow_system_managers_to_upload_public_files",
+   "fieldtype": "Check",
+   "label": "Only allow System Managers to upload public files"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-10 05:27:21.774897",
+ "modified": "2025-12-17 15:01:24.823184",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

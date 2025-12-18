@@ -125,6 +125,8 @@ def get_home_page():
 
 		home_page = home_page.strip("/")
 
+		if home_page == "me" and frappe.session.data.user_type == "System User":
+			home_page = "desk"
 		return home_page
 
 	if frappe._dev_server:
@@ -605,3 +607,9 @@ def is_binary_file(path):
 	with open(path, "rb") as f:
 		content = f.read(1024)
 		return bool(content.translate(None, textchars))
+
+
+def check_if_webform_exists(route):
+	return frappe.db.exists("Web Form", {"name": route.strip("/")}) or frappe.db.exists(
+		"Web Form", {"route": route.strip("/")}
+	)

@@ -1,167 +1,154 @@
 frappe.provide("frappe.ui");
 
 export default class ListFilter {
-	constructor({ wrapper, doctype }) {
+	constructor(list_view) {
+		this.list_view = list_view;
+
 		Object.assign(this, arguments[0]);
 		this.can_add_global = frappe.user.has_role(["System Manager", "Administrator"]);
 		this.filters = [];
-		this.make();
-		this.bind();
-		this.refresh();
+		this.refresh_list_filter();
 	}
 
-	make() {
-		// init dom
-		this.wrapper.html(`
-			<div class="input-area"></div>
-			<div class="sidebar-action">
-				<a class="saved-filters-preview">${__("Show Saved")}</a>
-			</div>
-			<div class="saved-filters"></div>
-		`);
-
-		this.$input_area = this.wrapper.find(".input-area");
-		this.$list_filters = this.wrapper.find(".list-filters");
-		this.$saved_filters = this.wrapper.find(".saved-filters").hide();
-		this.$saved_filters_preview = this.wrapper.find(".saved-filters-preview");
-		this.saved_filters_hidden = true;
-		this.toggle_saved_filters(true);
-
-		this.filter_input = frappe.ui.form.make_control({
-			df: {
-				fieldtype: "Data",
-				placeholder: __("Filter Name"),
-				input_class: "input-xs",
-			},
-			parent: this.$input_area,
-			render_input: 1,
-		});
-
-		this.is_global_input = frappe.ui.form.make_control({
-			df: {
-				fieldtype: "Check",
-				label: __("Is Global"),
-			},
-			parent: this.$input_area,
-			render_input: 1,
-		});
-	}
-
-	bind() {
-		this.bind_save_filter();
-		this.bind_toggle_saved_filters();
-		this.bind_click_filter();
-		this.bind_remove_filter();
-	}
-
-	refresh() {
+	refresh_list_filter() {
 		this.get_list_filters().then(() => {
-			if (this.filters.length) {
-				// expand collapsible sections
-				this.wrapper.hasClass("hide") && this.section_title.trigger("click");
-				this.$saved_filters_preview.show();
-			} else {
-				// hide collapsible sections
-				!this.wrapper.hasClass("hide") && this.section_title.trigger("click");
-				this.$saved_filters_preview.hide();
-			}
-
-			const html = this.filters.map((filter) => this.filter_template(filter));
-			this.wrapper.find(".filter-pill").remove();
-			this.$saved_filters.append(html);
+			this.render_saved_filters();
 		});
-		this.is_global_input.toggle(false);
-		this.filter_input.set_description("");
-	}
-
-	filter_template(filter) {
-		return `<div class="list-link filter-pill list-sidebar-button btn btn-default" data-name="${
-			filter.name
-		}">
-			<a class="ellipsis filter-name">${filter.filter_name}</a>
-			<a class="remove">${frappe.utils.icon("close")}</a>
-		</div>`;
-	}
-
-	bind_toggle_saved_filters() {
-		this.wrapper.find(".saved-filters-preview").click(() => {
-			this.toggle_saved_filters(this.saved_filters_hidden);
-		});
-	}
-
-	toggle_saved_filters(show) {
-		this.$saved_filters.toggle(show);
-		const label = show ? __("Hide Saved") : __("Show Saved");
-		this.wrapper.find(".saved-filters-preview").text(label);
-		this.saved_filters_hidden = !this.saved_filters_hidden;
-	}
-
-	bind_click_filter() {
-		this.wrapper.on("click", ".filter-pill .filter-name", (e) => {
-			let $filter = $(e.currentTarget).parent(".filter-pill");
-			this.set_applied_filter($filter);
-			const name = $filter.attr("data-name");
-			this.list_view.filter_area.clear().then(() => {
-				this.list_view.filter_area.add(this.get_filters_values(name));
-			});
-		});
-	}
-
-	bind_remove_filter() {
-		this.wrapper.on("click", ".filter-pill .remove", (e) => {
-			const $li = $(e.currentTarget).closest(".filter-pill");
-			const filter_label = $li.text().trim();
-
-			frappe.confirm(
-				__("Are you sure you want to remove the {0} filter?", [filter_label.bold()]),
-				() => {
-					const name = $li.attr("data-name");
-					const applied_filters = this.get_filters_values(name);
-					$li.remove();
-					this.remove_filter(name).then(() => this.refresh());
-					this.list_view.filter_area.remove_filters(applied_filters);
-				}
-			);
-		});
-	}
-
-	bind_save_filter() {
-		this.filter_input.$input.keydown(
-			frappe.utils.debounce((e) => {
-				const value = this.filter_input.get_value();
-				const has_value = Boolean(value);
-
-				if (e.which === frappe.ui.keyCode["ENTER"]) {
-					if (!has_value || this.filter_name_exists(value)) return;
-
-					this.filter_input.set_value("");
-					this.save_filter(value).then(() => this.refresh());
-					this.toggle_saved_filters(true);
-				} else {
-					let help_text = __("Press Enter to save");
-
-					if (this.filter_name_exists(value)) {
-						help_text = __("Duplicate Filter Name");
-					}
-
-					this.filter_input.set_description(has_value ? help_text : "");
-
-					if (this.can_add_global) {
-						this.is_global_input.toggle(has_value);
-					}
-				}
-			}, 300)
+		this.saved_filters_btn = this.list_view.page.add_inner_button(
+			__("Filters"),
+			[],
+			__("Saved Filters")
 		);
 	}
 
-	save_filter(filter_name) {
+	render_saved_filters() {
+		const $menu = this.saved_filters_btn.parent();
+		$menu.empty();
+
+		this.filters.forEach((filter) => {
+			const $item = this.filter_template(filter);
+
+			// Apply filter
+			$item.find(".filter-label").on("click", () => {
+				this.apply_saved_filter(filter.name);
+			});
+
+			// Remove filter
+			$item.find(".remove-filter").on("click", (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				this.bind_remove_filter(filter);
+			});
+
+			$menu.append($item);
+		});
+
+		this.append_create_new_item($menu);
+	}
+
+	apply_saved_filter(filter_name) {
+		this.list_view.filter_area.clear().then(() => {
+			this.list_view.filter_area.add(this.get_filters_values(filter_name));
+		});
+	}
+
+	bind_remove_filter(filter) {
+		frappe.confirm(
+			__("Are you sure you want to remove the {0} filter?", [filter.filter_name.bold()]),
+			() => {
+				const name = filter.name;
+				const applied_filters = this.get_filters_values(name);
+				this.remove_filter(name).then(() => this.refresh_list_filter());
+				this.list_view.filter_area.remove_filters(applied_filters);
+			}
+		);
+	}
+
+	append_create_new_item($menu) {
+		const new_filter = {
+			name: "create_new",
+			filter_name: "Create New",
+		};
+
+		const $create_item = this.filter_template(new_filter, true);
+		$create_item.find(".filter-label").on("click", (e) => {
+			this.show_create_filter_dialog();
+		});
+		$menu.append($create_item);
+	}
+
+	show_create_filter_dialog() {
+		const fields = [
+			{
+				fieldname: "filter_name",
+				label: __("Filter Name"),
+				fieldtype: "Data",
+				reqd: 1,
+				description: __("Press Enter to save"),
+			},
+		];
+
+		// Conditionally add "Is Global" checkbox
+		if (this.can_add_global) {
+			fields.push({
+				fieldname: "is_global",
+				label: __("Is Global"),
+				fieldtype: "Check",
+				default: 0,
+			});
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Create Saved Filter"),
+			fields: fields,
+			primary_action_label: __("Create"),
+			primary_action: (values) => {
+				this.bind_save_filter(dialog, values.filter_name, values?.is_global);
+			},
+		});
+		dialog.show();
+	}
+
+	bind_save_filter(dialog, filter_name, is_global) {
+		const value = filter_name;
+		const has_value = Boolean(value);
+		if (!has_value) {
+			return;
+		}
+
+		if (this.filter_name_exists(value)) {
+			$(dialog.fields_dict.filter_name.wrapper).addClass("has-error");
+			dialog.fields_dict.filter_name.set_description(__("Duplicate Filter Name"));
+			return;
+		}
+		this.save_filter(value, is_global).then(() => {
+			this.refresh_list_filter();
+			dialog.hide();
+		});
+	}
+
+	save_filter(filter_name, is_global) {
 		return frappe.db.insert({
 			doctype: "List Filter",
 			reference_doctype: this.list_view.doctype,
 			filter_name,
-			for_user: this.is_global_input.get_value() ? "" : frappe.session.user,
+			for_user: is_global ? "" : frappe.session.user,
 			filters: JSON.stringify(this.get_current_filters()),
 		});
+	}
+
+	filter_template(filter, add_new = false) {
+		return $(`
+			<li class="saved-filter-item" data-name="${filter.name}">
+				<a class="dropdown-item d-flex justify-content-between align-items-center">
+					<span class="filter-label">
+						${frappe.utils.escape_html(__(filter.filter_name))}
+					</span>
+					<span class="remove-filter ${add_new ? "d-none" : ""} ">
+						${frappe.utils.icon("x", "sm")}
+					</span>
+				</a>
+			</li>
+		`);
 	}
 
 	remove_filter(name) {
@@ -197,12 +184,5 @@ export default class ListFilter {
 			.then((filters) => {
 				this.filters = filters || [];
 			});
-	}
-
-	set_applied_filter($filter) {
-		this.$saved_filters
-			.find(".btn-primary-light")
-			.toggleClass("btn-primary-light btn-default");
-		$filter.toggleClass("btn-default btn-primary-light");
 	}
 }

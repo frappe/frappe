@@ -88,7 +88,7 @@ frappe.breadcrumbs = {
 		if (css_classes) {
 			a.classList.add(css_classes);
 		}
-		a.innerText = label;
+		a.innerHTML = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
 	},
@@ -210,6 +210,7 @@ frappe.breadcrumbs = {
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
+			last_crumb.addClass("ellipsis");
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();
@@ -243,6 +244,7 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
+		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
 	},
 
 	toggle(show) {

@@ -123,7 +123,14 @@ class ServerScript(Document):
 			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
 				return frappe.get_doc("Scheduled Job Type", scheduled_script)
 			else:
-				return frappe.get_doc({"doctype": "Scheduled Job Type", "server_script": self.name})
+				should_create_log = self.event_frequency not in ("All", "Cron")
+				return frappe.get_doc(
+					{
+						"doctype": "Scheduled Job Type",
+						"server_script": self.name,
+						"create_log": should_create_log,
+					}
+				)
 
 		previous_script_type = self.get_value_before_save("script_type")
 		if previous_script_type != self.script_type and previous_script_type == "Scheduler Event":
