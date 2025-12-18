@@ -1544,10 +1544,6 @@ export default class GridRow {
 			txt = frappe.format(this.doc[fieldname], df, null, this.doc);
 		}
 
-		if (!txt && this.frm) {
-			txt = frappe.format(this.doc[fieldname], df, null, this.frm.doc);
-		}
-
 		// reset static value
 		let column = this.columns[fieldname];
 		if (column) {
