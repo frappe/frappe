@@ -5,61 +5,52 @@ import frappe
   def execute():
       batch_size = 10_000
 
-      # Check if using PostgreSQL
-      is_postgres = frappe.db.db_type == "postgres"
-
       while True:
-          if is_postgres:
-              # PostgreSQL syntax
-              frappe.db.sql(
-                  """
-                  update "tabCommunication Link" cl
-                  set communication_date = c.communication_date
-                  from "tabCommunication" c
-                  where cl.parent = c.name
-                  and cl.communication_date is null
-                  and c.communication_date is not null
-                  limit %s
+          # Update communication_date in batches
+          frappe.db.multisql(
+              {
+                  "postgres": """
+                      UPDATE "tabCommunication Link" cl
+                      SET communication_date = c.communication_date
+                      FROM "tabCommunication" c
+                      WHERE cl.parent = c.name
+                      AND cl.communication_date IS NULL
+                      AND c.communication_date IS NOT NULL
+                      LIMIT %s
                   """,
-                  (batch_size,),
-              )
-          else:
-              # MySQL/MariaDB syntax
-              frappe.db.sql(
-                  """
-                  update `tabCommunication Link` cl
-                  inner join `tabCommunication` c on cl.parent = c.name
-                  set cl.communication_date = c.communication_date
-                  where cl.communication_date is null
-                  and c.communication_date is not null
-                  limit %s
+                  "mariadb": """
+                      UPDATE `tabCommunication Link` cl
+                      INNER JOIN `tabCommunication` c ON cl.parent = c.name
+                      SET cl.communication_date = c.communication_date
+                      WHERE cl.communication_date IS NULL
+                      AND c.communication_date IS NOT NULL
+                      LIMIT %s
                   """,
-                  (batch_size,),
-              )
+              },
+              values=(batch_size,),
+          )
 
           frappe.db.commit()
 
           # Check if more rows need updating
-          if is_postgres:
-              check = frappe.db.sql(
-                  """
-                  select 1 from "tabCommunication Link" cl
-                  inner join "tabCommunication" c on cl.parent = c.name
-                  where cl.communication_date is null
-                  and c.communication_date is not null
-                  limit 1
-                  """
-              )
-          else:
-              check = frappe.db.sql(
-                  """
-                  select 1 from `tabCommunication Link` cl
-                  inner join `tabCommunication` c on cl.parent = c.name
-                  where cl.communication_date is null
-                  and c.communication_date is not null
-                  limit 1
-                  """
-              )
+          check = frappe.db.multisql(
+              {
+                  "postgres": """
+                      SELECT 1 FROM "tabCommunication Link" cl
+                      INNER JOIN "tabCommunication" c ON cl.parent = c.name
+                      WHERE cl.communication_date IS NULL
+                      AND c.communication_date IS NOT NULL
+                      LIMIT 1
+                  """,
+                  "mariadb": """
+                      SELECT 1 FROM `tabCommunication Link` cl
+                      INNER JOIN `tabCommunication` c ON cl.parent = c.name
+                      WHERE cl.communication_date IS NULL
+                      AND c.communication_date IS NOT NULL
+                      LIMIT 1
+                  """,
+              }
+          )
 
           if not check:
               break
