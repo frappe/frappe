@@ -685,6 +685,9 @@ class TestDocType(IntegrationTestCase):
 		self.assertIn(fieldname, new_field_code)
 		self.assertIn("Int", new_field_code)
 
+		# Verify that the "name" field is exported (fix for #35315)
+		self.assertIn("name: DF.Data", new_field_code)
+
 		doctype.delete()
 		frappe.db.commit()
 

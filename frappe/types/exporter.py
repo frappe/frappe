@@ -110,6 +110,8 @@ class TypeExporter:
 
 		if self.doc.autoname == "autoincrement":
 			self.field_types["name"] = "DF.Int | None"
+		else:
+			self.field_types["name"] = "DF.Data | None"
 
 		fields_code_block = self._create_fields_code_block()
 		imports = self._create_imports_block()
