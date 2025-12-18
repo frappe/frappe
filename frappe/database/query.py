@@ -25,7 +25,16 @@ from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
-	("Custom Field", "Property Setter", "Module Def", "__Auth", "__global_search", "Singles")
+	(
+		"Custom Field",
+		"Property Setter",
+		"Module Def",
+		"__Auth",
+		"__global_search",
+		"Singles",
+		"Sessions",
+		"Series",
+	)
 )
 
 
@@ -265,6 +274,10 @@ class Engine:
 
 		if self.apply_permissions:
 			self.check_read_permission()
+			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_table = (
+				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
+			)
 
 		is_select = False
 		if update:
@@ -315,8 +328,11 @@ class Engine:
 					stacklevel=2,
 				)
 
-		if self.apply_permissions:
-			self.add_permission_conditions()
+		self.add_permission_conditions()
+
+		# Store metadata for masked field processing during execution
+		self.query._doctype = self.doctype
+		self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
@@ -632,6 +648,13 @@ class Engine:
 						fallback_value = int(fallback_sql)
 					except (ValueError, TypeError):
 						fallback_value = fallback_sql
+
+				if fallback_value == _value:
+					if _operator == "=":
+						return _field.isnull() | _field.eq(_value)
+					elif _operator == "!=":
+						return operator_fn(_field, _value)
+
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
 
 			return operator_fn(_field, _value)
@@ -1236,10 +1259,13 @@ class Engine:
 			)
 
 		if not has_permission("select") and not has_permission("read"):
-			frappe.throw(
-				_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
-				frappe.PermissionError,
-			)
+			self._raise_permission_error()
+
+	def _raise_permission_error(self):
+		frappe.throw(
+			_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
+			frappe.PermissionError,
+		)
 
 	def apply_field_permissions(self):
 		"""Filter the list of fields based on permlevel."""
@@ -1308,20 +1334,17 @@ class Engine:
 
 		return allowed_fields
 
-	def get_user_permission_conditions(self, role_permissions):
-		"""Build conditions for user permissions and return tuple of (conditions, fetch_shared_docs)"""
+	def get_user_permission_conditions(self) -> list[Criterion]:
+		"""Build conditions for user permissions."""
 		conditions = []
-		fetch_shared_docs = False
 
 		if self.ignore_user_permissions:
-			return conditions, fetch_shared_docs
+			return conditions
 
 		user_permissions = frappe.permissions.get_user_permissions(self.user)
 
 		if not user_permissions:
-			return conditions, fetch_shared_docs
-
-		fetch_shared_docs = True
+			return conditions
 
 		doctype_link_fields = self.get_doctype_link_fields()
 		for df in doctype_link_fields:
@@ -1341,76 +1364,117 @@ class Engine:
 					elif df.get("fieldname") == "name" and self.reference_doctype:
 						if permission.get("applicable_for") == self.reference_doctype:
 							docs.append(permission.get("doc"))
-					elif permission.get("applicable_for") == self.doctype:
+					elif permission.get("applicable_for") == self.permission_doctype:
 						docs.append(permission.get("doc"))
 
 				if docs:
 					field_name = df.get("fieldname")
 					strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 					if strict_user_permissions:
-						conditions.append(self.table[field_name].isin(docs))
+						conditions.append(self.permission_table[field_name].isin(docs))
 					else:
-						empty_value_condition = functions.IfNull(self.table[field_name], "") == ""
-						value_condition = self.table[field_name].isin(docs)
+						empty_value_condition = functions.IfNull(self.permission_table[field_name], "") == ""
+						value_condition = self.permission_table[field_name].isin(docs)
 						conditions.append(empty_value_condition | value_condition)
 
-		return conditions, fetch_shared_docs
+		return conditions
 
 	def get_doctype_link_fields(self):
-		meta = frappe.get_meta(self.doctype)
+		meta = frappe.get_meta(self.permission_doctype)
 		# append current doctype with fieldname as 'name' as first link field
-		doctype_link_fields = [{"options": self.doctype, "fieldname": "name"}]
+		doctype_link_fields = [{"options": self.permission_doctype, "fieldname": "name"}]
 		# append other link fields
 		doctype_link_fields.extend(meta.get_link_fields())
 		return doctype_link_fields
 
 	def add_permission_conditions(self):
-		conditions = []
-		role_permissions = frappe.permissions.get_role_permissions(self.doctype, user=self.user)
+		"""
+		Logic for adding permission conditions is as follows:
 
-		# False only when role permissions without if owner exist and no user perms are applied
-		fetch_shared_docs = True
+		If no role permissions with read/select exist:
+			- apply only share permissions
+
+		If role permissions with read/select exist:
+			- apply (if_owner constraints OR user permissions), AND
+			- apply permission query conditions
+
+			If if_owner / user permission / permission query constraints are applied,
+			final condition = (existing conditions) OR (share condtion)
+			(rationale: shared documents trump all other restrictions)
+
+			Else, all documents are accessible based on role permissions.
+
+		For child tables (when parent_doctype is specified):
+			- permissions are checked against the parent doctype
+			- a join to the parent table is added
+			- conditions reference the parent table's fields
+		"""
+
+		if not self.apply_permissions:
+			return
+
+		# For child tables, join to parent table so permission conditions can reference it
+		if self.permission_doctype != self.doctype:
+			self.query = self.query.inner_join(self.permission_table).on(
+				self.table.parent == self.permission_table.name
+			)
+
+		role_permissions = frappe.permissions.get_role_permissions(self.permission_doctype, user=self.user)
+		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
+
+		if not has_role_permission:
+			# no role permissions, apply only share permissions
+			shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
+			if not shared_docs:
+				# this should NEVER happen, but being defensive
+				self._raise_permission_error()
+
+			self.query = self.query.where(self.permission_table.name.isin(shared_docs))
+			return
+
+		# build conditions from: if_owner constraint OR user permissions
+		conditions = []
 
 		if self.requires_owner_constraint(role_permissions):
-			conditions.append(self.table.owner == self.user)
-		# skip user perm check if owner constraint is required
-		elif role_permissions.get("read") or role_permissions.get("select"):
-			user_perm_conditions, fetch_shared_docs = self.get_user_permission_conditions(role_permissions)
+			# skip user perm check if owner constraint is required
+			conditions.append(self.permission_table.owner == self.user)
+		elif user_perm_conditions := self.get_user_permission_conditions():
 			conditions.extend(user_perm_conditions)
 
-		permission_query_conditions = self.get_permission_query_conditions()
-		if permission_query_conditions:
-			conditions.extend(permission_query_conditions)
+		conditions.extend(self.get_permission_query_conditions())
 
-		shared_docs = []
-		if fetch_shared_docs:
-			shared_docs = frappe.share.get_shared(self.doctype, self.user)
+		if not conditions:
+			# no conditions to apply, all documents are accessible
+			return
 
+		where_condition = Criterion.all(conditions)
+
+		# since some conditions apply, we need to consider shared docs as well
+		shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
 		if shared_docs:
-			shared_condition = self.table.name.isin(shared_docs)
-			if conditions:
-				# (permission conditions) OR (shared condition)
-				self.query = self.query.where(Criterion.all(conditions) | shared_condition)
-			else:
-				self.query = self.query.where(shared_condition)
-		elif conditions:
-			# AND all permission conditions
-			self.query = self.query.where(Criterion.all(conditions))
+			# shared docs trump all other restrictions
+			where_condition |= self.permission_table.name.isin(shared_docs)
 
-	def get_permission_query_conditions(self):
+		self.query = self.query.where(where_condition)
+
+	def get_permission_query_conditions(self) -> list["RawCriterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 		conditions = []
 		hooks = frappe.get_hooks("permission_query_conditions", {})
-		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
+		condition_methods = hooks.get(self.permission_doctype, []) + hooks.get("*", [])
 
 		for method in condition_methods:
-			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.permission_doctype):
 				conditions.append(RawCriterion(f"({c})"))
 
 		# Get conditions from server scripts
-		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
+		if (
+			permission_script_name := get_server_script_map()
+			.get("permission_query", {})
+			.get(self.permission_doctype)
+		):
 			script = frappe.get_doc("Server Script", permission_script_name)
 			if condition := script.get_permission_query_conditions(self.user):
 				conditions.append(RawCriterion(f"({condition})"))
@@ -1499,7 +1563,7 @@ class Engine:
 		try:
 			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
 			if db_type_info:
-				db_type = db_type_info[0] if isinstance(db_type_info, (tuple, list)) else db_type_info
+				db_type = db_type_info[0] if isinstance(db_type_info, tuple | list) else db_type_info
 				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
 					return "''"
 		except Exception:
@@ -1555,7 +1619,7 @@ class Engine:
 				return False
 
 		if operator.lower() == "in":
-			if isinstance(value, (list, tuple)):
+			if isinstance(value, list | tuple):
 				# if values contain '' or falsy values then only coalesce column
 				# for `in` query this is only required if values contain '' or values are empty.
 				has_null_or_empty = any(v is None or v == "" for v in value)
@@ -1860,7 +1924,8 @@ class CombinedRawCriterion(RawCriterion):
 	def get_sql(self, **kwargs: Any) -> str:
 		left_sql = self.left.get_sql(**kwargs) if hasattr(self.left, "get_sql") else str(self.left)
 		right_sql = self.right.get_sql(**kwargs) if hasattr(self.right, "get_sql") else str(self.right)
-		return f"({left_sql}) {self.operator} ({right_sql})"
+		# Wrap entire expression in parentheses to ensure correct operator precedence
+		return f"(({left_sql}) {self.operator} ({right_sql}))"
 
 
 class SQLFunctionParser:

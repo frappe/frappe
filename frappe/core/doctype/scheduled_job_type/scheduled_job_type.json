@@ -47,7 +47,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:[\"All\", \"Cron\"].includes(doc.frequency)",
+   "depends_on": "eval:([\"All\", \"Cron\"].includes(doc.frequency) || doc.server_script)",
    "fieldname": "create_log",
    "fieldtype": "Check",
    "label": "Create Log"
@@ -117,7 +117,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2025-06-03 09:26:47.961601",
+ "modified": "2025-12-17 12:02:56.228336",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

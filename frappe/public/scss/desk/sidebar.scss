@@ -144,15 +144,6 @@
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
-	.sidebar-item-container {
-		/* nested container */
-		.sidebar-item-container {
-			.standard-sidebar-item {
-				justify-content: start;
-			}
-		}
-	}
-
 	.standard-items-sections {
 		margin-top: 14px;
 		.dropdown-notifications {
@@ -273,7 +264,10 @@
 		}
 	}
 	.collapse-sidebar-link {
-		display: flex;
+		display: none;
+	}
+	.dropdown-navbar-user {
+		display: none;
 	}
 }
 .sidebar-item-edit-controls {

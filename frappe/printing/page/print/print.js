@@ -15,6 +15,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				frm.doc = frappe.get_doc(doctype, docname);
 				frappe.model.with_doctype(doctype, () => {
 					frm.meta = frappe.get_meta(route[1]);
+					frm.meta.module && frappe.app.sidebar.show_sidebar_for_module(frm.meta.module);
 					print_view.show(frm);
 				});
 			});

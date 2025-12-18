@@ -124,7 +124,7 @@ jobs:
           ( tail -f ${GITHUB_WORKSPACE}/sites/*-coverage*.xml & ) | grep -q "\/coverage"
 
       - name: Upload JS coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: inputs.enable-coverage
         with:
           name: coverage-js-${{ matrix.index }}
@@ -137,7 +137,7 @@ jobs:
             fi
       - name: Upload Cypress Videos
         if: always() && steps.ui-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Cypress CI Video Recordings
           path: ./cypress_recordings.zip
@@ -145,7 +145,7 @@ jobs:
         
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: inputs.enable-coverage
         with:
           name: coverage-py-${{ matrix.index }}

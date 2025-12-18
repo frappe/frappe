@@ -329,6 +329,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	refresh_columns(meta, list_view_settings) {
 		this.meta = meta;
+		this.tags_shown = list_view_settings?.show_tags;
 		this.list_view_settings = list_view_settings;
 
 		this.setup_columns();
@@ -727,7 +728,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				let classes = [
 					"list-row-col ellipsis",
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
-					col.type == "Tag" ? "tag-col hide" : "",
+					col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
 					col.df?.fieldname,
 				].join(" ");
@@ -1338,7 +1339,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_sort_by();
 		this.setup_list_click();
 		this.setup_drag_click();
-		this.setup_tag_event();
+		this.setup_tag_visibility();
 		this.setup_new_doc_event();
 		this.setup_check_events();
 		this.setup_like();
@@ -1679,13 +1680,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	setup_tag_event() {
-		this.tags_shown = false;
-		this.list_sidebar &&
-			this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
-				this.tags_shown = !this.tags_shown;
-				this.toggle_tags();
-			});
+	setup_tag_visibility() {
+		this.tags_shown = this.list_view_settings?.show_tags;
 	}
 
 	setup_realtime_updates() {
@@ -1853,12 +1849,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
 
-	toggle_tags() {
-		this.$result.find(".tag-col").toggleClass("hide");
-		const preview_label = this.tags_shown ? __("Hide Tags") : __("Show Tags");
-		this.list_sidebar.parent.find(".list-tag-preview").text(preview_label);
-	}
-
 	get_checked_items(only_docnames) {
 		const docnames = Array.from(this.$checks || []).map((check) =>
 			cstr(unescape($(check).data().name))
@@ -1973,14 +1963,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		items.push({
-			label: __("Toggle Sidebar", null, "Button in list view menu"),
-			action: () => this.toggle_side_bar(),
-			condition: () => !this.page.disable_sidebar_toggle,
-			standard: true,
-			shortcut: "Ctrl+G",
-		});
-
 		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode) {
 			// edit doctype
 			items.push({
@@ -2044,13 +2026,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_group_by_dropdown_fields() {
 		let group_by_fields = [];
-		let default_fields = ["assigned_to", "owner"];
-		default_fields = default_fields.concat(
-			frappe.get_user_settings(this.doctype)?.group_by_fields || []
-		);
+		let default_fields = frappe.get_user_settings(this.doctype)?.group_by_fields || [];
+
 		let fields = this.meta.fields.filter((f) =>
 			["Select", "Link", "Data", "Int", "Check"].includes(f.fieldtype)
 		);
+
+		let default_fields_dict = [
+			{
+				label: "Assigned To",
+				fieldname: "assigned_to",
+			},
+			{
+				label: "Created By",
+				fieldname: "owner",
+			},
+			{
+				label: "Tags",
+				fieldname: "tags",
+			},
+		];
+		fields = fields.concat(default_fields_dict);
 
 		group_by_fields.push({
 			label: __(this.doctype),
