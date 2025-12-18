@@ -369,8 +369,7 @@ frappe.PermissionEngine = class PermissionEngine {
 							const user_list = display_users
 								.map(
 									(user) =>
-										`<li class="d-flex align-items-center py-1">
-                        					<span class="indicator-pill gray mr-2"></span>
+										`<li class="py-1">
                         					${frappe.utils.get_form_link("User", user, true)}
                     					</li>`
 								)
@@ -381,7 +380,7 @@ frappe.PermissionEngine = class PermissionEngine {
 								role_label,
 							]);
 
-							message_html += `<ul class="border rounded p-3 mb-3 mt-3">${user_list}</ul>`;
+							message_html += `<ul class="border rounded pl-4 pb-2 pt-2 mb-3 mt-3">${user_list}</ul>`;
 
 							// show compact "View All" link if more users
 							if (user_count > display_count) {
