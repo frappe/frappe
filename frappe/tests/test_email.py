@@ -132,7 +132,6 @@ class TestEmail(IntegrationTestCase):
 			expose_recipients="footer",
 			now=True,
 		)
-		frappe.db.commit()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
@@ -166,7 +165,6 @@ class TestEmail(IntegrationTestCase):
 			unsubscribe_message="Unsubscribe",
 			now=True,
 		)
-		frappe.db.commit()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
@@ -212,7 +210,6 @@ class TestEmail(IntegrationTestCase):
 					message="This mail is queued!",
 					now=True,
 				)
-				frappe.db.commit()
 				email_queue_sender = frappe.db.get_value("Email Queue", {"status": "Sent"}, "sender")
 				self.assertEqual(email_queue_sender, assertion)
 
@@ -361,7 +358,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 		email = frappe.sendmail(
 			sender=sender, recipients=recipients, subject=subject, content=content, now=True
 		)
-		frappe.db.commit()
 		email.reload()
 		self.assertEqual(email.sender, sender)
 		self.assertEqual(len(email.recipients), 2)
@@ -391,7 +387,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 			send_email=True,
 			now=True,
 		).get("name")
-		frappe.db.commit()
 
 		communication = frappe.get_doc("Communication", name)
 
