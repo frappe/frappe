@@ -4,8 +4,11 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils.data import now
 from frappe.utils.safe_exec import read_sql, safe_exec
+from frappe.utils.xlsxutils import make_xlsx
 
 
 class SystemConsole(Document):
@@ -60,6 +63,28 @@ def execute_code(doc):
 def show_processlist():
 	frappe.only_for("System Manager")
 	return _show_processlist()
+
+
+@frappe.whitelist()
+def export_output(query):
+	result = read_sql(query, as_dict=1)
+
+	if not result:
+		frappe.throw(_("No data to export"))
+
+	headers = list(result[0].keys())
+	rows = [headers]
+
+	for row in result:
+		rows.append([row.get(h) for h in headers])
+
+	xlsx_file = make_xlsx(rows, "System Console")
+
+	timestamp = now()[:19]  # remove milliseconds
+
+	frappe.response["filename"] = f"system_console_{timestamp}.xlsx"
+	frappe.response["filecontent"] = xlsx_file.getvalue()
+	frappe.response["type"] = "binary"
 
 
 def _show_processlist():

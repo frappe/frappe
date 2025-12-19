@@ -40,6 +40,29 @@ frappe.ui.form.on("System Console", {
 		frm.page.add_inner_message(
 			`${__("Tip: Try the new dropdown console using")} <kbd>⇧+T</kbd>`
 		);
+
+		if (
+			frm.doc.type == "SQL" &&
+			frm.doc.output &&
+			!frm.doc.output.startsWith("Traceback") &&
+			!frm.doc.output.includes("0 rows")
+		) {
+			frm.add_custom_button(__("Export Output"), () => {
+				let query = frm.doc.console;
+
+				if (!query) {
+					frappe.msgprint(__("Please set the query"));
+					return;
+				}
+
+				open_url_post(
+					"/api/method/frappe.desk.doctype.system_console.system_console.export_output",
+					{
+						query: query,
+					}
+				);
+			});
+		}
 	},
 
 	type: function (frm) {
