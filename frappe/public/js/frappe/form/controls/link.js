@@ -607,6 +607,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				case "<=":
 					return __("{0} is less than or equal to {1}", [labelDisplay, valueDisplay]);
 				case "is":
+					if (value == "set") {
+						return __("{0} is set", [labelDisplay]);
+					}
+					if (value == "not set") {
+						return __("{0} is not set", [labelDisplay]);
+					}
 					return __("{0} is {1}", [labelDisplay, valueDisplay]);
 				case "between":
 					return __("{0} is between {1}", [labelDisplay, valueDisplay]);
