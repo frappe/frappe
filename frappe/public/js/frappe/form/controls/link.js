@@ -615,6 +615,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					}
 					return __("{0} is {1}", [labelDisplay, valueDisplay]);
 				case "between":
+					if (Array.isArray(value) && value.length === 2) {
+						return __("{0} is between {1} and {2}", [
+							labelDisplay,
+							formatValueForDisplay(docfield, value[0]),
+							formatValueForDisplay(docfield, value[1]),
+						]);
+					}
 					return __("{0} is between {1}", [labelDisplay, valueDisplay]);
 				case "descendants of":
 					return __("{0} is a descendant of {1}", [labelDisplay, valueDisplay]);
