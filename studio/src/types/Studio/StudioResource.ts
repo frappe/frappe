@@ -7,7 +7,7 @@ interface BaseResource {
 	resource_id: string
 	resource_name: string
 	resource_type: ResourceType
-	transform?: string
+	transform?: string | null
 	on_success?: string
 	on_error?: string
 	/** for Whitelisted methods */

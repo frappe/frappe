@@ -42,6 +42,7 @@ watch(
 		if (currentPath) {
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
+			// codeStore.cleanupWatchers()
 			await store.setPageData(page.value)
 			await codeStore.setPageWatchers(page.value)
 

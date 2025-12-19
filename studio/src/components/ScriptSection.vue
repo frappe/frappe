@@ -33,7 +33,7 @@ import { Button } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
-const modelValue = defineModel<string>({ default: "" })
+const modelValue = defineModel<string | null>({ default: null })
 
 const props = withDefaults(
 	defineProps<{
@@ -46,5 +46,5 @@ const props = withDefaults(
 )
 
 const handleAdd = () => (modelValue.value = props.boilerplate || "")
-const handleRemove = () => (modelValue.value = "")
+const handleRemove = () => (modelValue.value = null)
 </script>

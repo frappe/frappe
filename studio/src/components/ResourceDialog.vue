@@ -226,7 +226,7 @@ const emptyResource: Resource = {
 	sort_field: "",
 	sort_order: "",
 	whitelisted_methods: [],
-	transform: "",
+	transform: null,
 	on_success: "",
 	on_error: "",
 }
@@ -344,9 +344,13 @@ watch(
 
 watch(
 	() => newResource.value?.resource_type,
-	(resource_type) => {
-		if (!resource_type || newResource.value.transform) return
-		if (typeof resource_type === "string") {
+	(resource_type, oldResourceType) => {
+		if (!resource_type) return
+		const currentValue = newResource.value.transform
+		if (currentValue == null || currentValue == undefined) return
+
+		const oldBoilerplate = oldResourceType ? getTransformFnBoilerplate(oldResourceType as ResourceType) : null
+		if (!currentValue || currentValue === oldBoilerplate) {
 			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
 		}
 	},
