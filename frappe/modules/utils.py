@@ -154,7 +154,12 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 				case "DocType Link":
 					for d in data[key]:
 						link = frappe.db.get_value(
-							"DocType Link", {"parent": doc_type, "link_doctype": d.get("link_doctype")}
+							"DocType Link",
+							{
+								"parent": doc_type,
+								"link_doctype": d.get("link_doctype"),
+								"link_fieldname": d.get("link_fieldname"),
+							},
 						)
 						if not link:
 							d["owner"] = "Administrator"
