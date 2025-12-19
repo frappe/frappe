@@ -35,14 +35,25 @@ class AutomationRule(Document):
 
 	def apply(self, doc) -> None:
 		rule = json.loads(self.rule)
-		if not self.apply_presets(doc, rule):
+		if not self.should_apply(doc, rule):
 			return
 
 		rule = rule.get("rule") or []
 		self.handle_rule(doc, rule)
 
-	def handle_rule(self, doc, rule) -> None:
+	def should_apply(self, doc, rule) -> bool:
+		filter_expression: str = rule.get("presets", "")
+		if not filter_expression:
+			return True
+
 		context = get_context(doc)
+		if not frappe.safe_eval(filter_expression, None, context):
+			return False
+
+		return True
+
+	def handle_rule(self, doc, rule) -> None:
+		context = get_context(doc.as_dict())
 		matched = False
 
 		for r in rule:
@@ -77,17 +88,6 @@ class AutomationRule(Document):
 		if not field:
 			return
 		doc.set(field, value)
-
-	def apply_presets(self, doc, rule) -> bool:
-		filter_expression: str = rule.get("presets", "")
-		if not filter_expression:
-			return True
-
-		context = get_context(doc)
-		if not frappe.safe_eval(filter_expression, None, context):
-			return False
-
-		return True
 
 
 def apply_automations(doc, hook) -> None:
