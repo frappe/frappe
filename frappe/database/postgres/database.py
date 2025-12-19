@@ -541,5 +541,6 @@ def modify_values(values):
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
 	if LOCATE_QUERY_PATTERN.search(query):
+		# need some kind of typecast here to resolve issue
 		query = LOCATE_SUB_PATTERN.sub(r"strpos(\2\3, \1)", query)
 	return query
