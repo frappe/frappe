@@ -187,15 +187,17 @@ def note_customizations():
 			"Note", fieldname="content", property="bold", value="1", property_type="Check"
 		)
 
-		doctype_link = frappe.get_doc({
-			"doctype": "DocType Link",
-			"parent": "Note",
-			"parenttype": "DocType",
-			"parentfield": "links",
-			"link_doctype": "User",
-			"link_fieldname": "owner",
-			"group": "Test Group"
-		}).insert()
+		doctype_link = frappe.get_doc(
+			{
+				"doctype": "DocType Link",
+				"parent": "Note",
+				"parenttype": "DocType",
+				"parentfield": "links",
+				"link_doctype": "User",
+				"link_fieldname": "owner",
+				"group": "Test Group"
+			}
+		).insert()
 
 		yield custom_field, property_setter, doctype_link
 	finally:
