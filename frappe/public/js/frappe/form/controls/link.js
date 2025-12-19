@@ -574,25 +574,21 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const labelDisplay = `<i>${String(__(label))}</i>`;
 			const valueDisplay = formatValueForDisplay(docfield, value);
 
-			// Special handling for Check fields with =/!= - show human phrase without value
-			if (fieldtype === "Check" && (operator === "=" || operator === "!=")) {
-				if (operator === "=") {
-					return value == 1
-						? __("{0} is enabled", [labelDisplay])
-						: __("{0} is disabled", [labelDisplay]);
-				} else {
-					// operator === "!="
-					return value == 1
-						? __("{0} is disabled", [labelDisplay])
-						: __("{0} is enabled", [labelDisplay]);
-				}
-			}
-
 			// Handle all operators with translation and interpolation in one call
 			switch (operator) {
 				case "=":
+					if (fieldtype === "Check") {
+						return value == 1
+							? __("{0} is enabled", [labelDisplay])
+							: __("{0} is disabled", [labelDisplay]);
+					}
 					return __("{0} equals {1}", [labelDisplay, valueDisplay]);
 				case "!=":
+					if (fieldtype === "Check") {
+						return value == 1
+							? __("{0} is disabled", [labelDisplay])
+							: __("{0} is enabled", [labelDisplay]);
+					}
 					return __("{0} is not equal to {1}", [labelDisplay, valueDisplay]);
 				case "in":
 					return __("{0} is one of {1}", [labelDisplay, valueDisplay]);
