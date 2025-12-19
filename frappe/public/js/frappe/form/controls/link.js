@@ -634,7 +634,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			filter_array.map((filter) => describe_filter(filter))
 		);
 		const filter_string = frappe.utils.comma_and(descriptions);
-		return __("Filters applied for {0}", [filter_string]);
+		return __("Filtered by: {0}.", [filter_string]);
 	}
 
 	set_custom_query(args) {
