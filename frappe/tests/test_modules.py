@@ -195,7 +195,7 @@ def note_customizations():
 				"parentfield": "links",
 				"link_doctype": "User",
 				"link_fieldname": "owner",
-				"group": "Test Group"
+				"group": "Test Group",
 			}
 		).insert()
 
