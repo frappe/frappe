@@ -67,11 +67,13 @@ def report_error(status_code):
 def is_traceback_allowed():
 	from frappe.permissions import is_system_user
 
-	return (
-		frappe.db
-		and frappe.get_system_settings("allow_error_traceback")
-		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
-		and is_system_user()
+	return frappe.db and (
+		frappe._dev_server
+		or (
+			frappe.get_system_settings("allow_error_traceback")
+			and not frappe.local.flags.disable_traceback
+			and is_system_user()
+		)
 	)
 
 

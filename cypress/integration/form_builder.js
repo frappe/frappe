@@ -20,7 +20,7 @@ context("Form Builder", () => {
 	});
 
 	it("Save without change, check form dirty", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		// Save without change
@@ -37,7 +37,7 @@ context("Form Builder", () => {
 
 	it("Check if Filters are applied to the link field", () => {
 		// Visit the Form Builder
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		cy.get("[data-fieldname='gender']").click();
@@ -50,14 +50,14 @@ context("Form Builder", () => {
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
 		cy.wait(100);
 
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input")
 			.focus()
 			.as("input");
-		cy.wait("@search_link");
-		cy.wait(500);
+		// Wait for dropdown to appear (request might be cached)
+		cy.get("@input").parent().findByRole("listbox").should("be.visible");
+		cy.wait(200);
 		cy.get("@input").type("Male", { delay: 100 });
-		cy.wait("@search_link");
+		// Wait for dropdown to update with search results
 		cy.wait(500);
 		cy.get("@input").type("{enter}", { delay: 100 });
 		cy.get("@input").blur();
@@ -81,7 +81,7 @@ context("Form Builder", () => {
 	});
 
 	it("Add empty section and save", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_section = ".tab-content.active .form-section-container:first";
@@ -99,7 +99,7 @@ context("Form Builder", () => {
 	it("Add Table field and check if columns are rendered", () => {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -127,7 +127,8 @@ context("Form Builder", () => {
 			.click()
 			.as("input");
 		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
-		cy.wait("@search_link");
+		// Wait for dropdown to appear and selection to complete
+		cy.wait(500);
 
 		cy.get(last_field).click({ force: true });
 
@@ -158,7 +159,7 @@ context("Form Builder", () => {
 	});
 	// not important and was flaky on CI
 	it.skip("Drag Field/Column/Section & Tab", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -219,7 +220,7 @@ context("Form Builder", () => {
 	});
 
 	it("Add New Tab/Section/Column to Form", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_section = ".tab-content.active .form-section-container:first";
@@ -262,7 +263,7 @@ context("Form Builder", () => {
 	});
 
 	it("Update Title field Label to New Title through Customize Form", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_field =
@@ -280,7 +281,7 @@ context("Form Builder", () => {
 	});
 
 	it("Validate Duplicate Name & reqd + hidden without default logic", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -326,7 +327,7 @@ context("Form Builder", () => {
 	});
 
 	it.skip("Undo/Redo", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		// click on second tab

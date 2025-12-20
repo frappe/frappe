@@ -79,13 +79,63 @@ def Table(*args, **kwargs):
 	return frappe.qb.Table(*args, **kwargs)
 
 
+def mask_fields(
+	doctype: str,
+	fields: list[Any],
+	result: list[dict] | list[tuple],
+	as_dict: bool = True,
+) -> list[dict] | list[tuple]:
+	"""Mask fields in the result based on the doctype's masked fields.
+
+	Args:
+		doctype: Name of the DocType being queried
+		fields: List of field objects from the query
+		result: Query results as list of dicts or tuples
+		as_dict: Whether results are dictionaries (True) or tuples (False)
+
+	Returns:
+		Result with masked field values applied based on user permissions
+	"""
+	from frappe.database.query import CORE_DOCTYPES
+	from frappe.model.utils.mask import mask_dict_results, mask_list_results
+
+	# We can't query meta for core doctypes here
+	if doctype in CORE_DOCTYPES:
+		return result
+
+	masked_fields = frappe.get_meta(doctype).get_masked_fields()
+
+	if not masked_fields:
+		return result
+
+	if not as_dict:
+		field_index_map = {}
+		for idx, field in enumerate(fields):
+			# Handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
+			if alias := getattr(field, "alias", None):
+				field_index_map[alias] = idx
+			elif name := getattr(field, "name", None):
+				field_index_map[name] = idx
+
+		return mask_list_results(result, masked_fields, field_index_map)
+
+	# Handle as_dict format
+	return mask_dict_results(result, masked_fields)
+
+
 def execute_query(query, *args, **kwargs):
+	dt = query.__dict__.get("_doctype")
+	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	query, params = prepare_query(query)
 	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)
+
+	if result and dt and fields:
+		as_dict = kwargs.get("as_dict", not kwargs.get("as_list", False))
+		result = mask_fields(dt, fields, result, as_dict=as_dict)
 
 	return result
 

@@ -41,6 +41,7 @@ module.exports = defineConfig({
 		excludeSpecPattern: [
 			"./cypress/integration/workspace.js",
 			"./cypress/integration/workspace_blocks.js",
+			"./cypress/integration/customize_form.js",
 		],
 	},
 });

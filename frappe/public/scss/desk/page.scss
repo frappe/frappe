@@ -91,6 +91,13 @@
 	width: 80%;
 }
 
+body[data-route^="Form"] {
+	.layout-main-section-wrapper {
+		width: calc(100% - var(--form-sidebar-width));
+		flex: calc(100% - var(--form-sidebar-width));
+	}
+}
+
 .layout-main-section.frappe-card {
 	overflow: hidden;
 	@include card($padding: 0px);

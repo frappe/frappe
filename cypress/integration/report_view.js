@@ -21,7 +21,7 @@ context("Report View", () => {
 
 	it("Field with enabled allow_on_submit should be editable.", () => {
 		cy.intercept("POST", "api/method/frappe.client.set_value").as("value-update");
-		cy.visit(`/app/List/${doctype_name}/Report`);
+		cy.visit(`/desk/List/${doctype_name}/Report`);
 
 		// check status column added from docstatus
 		cy.get(".dt-row-0 > .dt-cell--col-3").should("contain", "Submitted");

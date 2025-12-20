@@ -22,6 +22,7 @@ class ListViewSettings(Document):
 		disable_scrolling: DF.Check
 		disable_sidebar_stats: DF.Check
 		fields: DF.Code | None
+		show_tags: DF.Check
 	# end: auto-generated types
 
 	pass

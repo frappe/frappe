@@ -312,8 +312,8 @@ frappe.get_data_pill = (
 		style = "";
 	if (colored) {
 		color = frappe.get_palette(label);
+		style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	}
-	style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	let data_pill_wrapper = $(`
 		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">

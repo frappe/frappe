@@ -2,6 +2,7 @@ frappe.provide("frappe.views");
 
 frappe.views.ListGroupBy = class ListGroupBy {
 	constructor(opts) {
+		// TODO: move assigned to and owner logic in this file, currently this file is not use
 		$.extend(this, opts);
 		this.make_wrapper();
 

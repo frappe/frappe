@@ -16,6 +16,7 @@ frappe.ui.form.Sidebar = class {
 			doctype: this.frm.doctype,
 			frm: this.frm,
 			can_write: frappe.model.can_write(this.frm.doctype, this.frm.docname),
+			image_field: this.frm.meta.image_field ?? false,
 		});
 
 		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
@@ -34,8 +35,25 @@ frappe.ui.form.Sidebar = class {
 		this.setup_keyboard_shortcuts();
 		this.show_auto_repeat_status();
 		frappe.ui.form.setup_user_image_event(this.frm);
-
+		this.indicator = $(this.sidebar).find(".sidebar-meta-details .indicator-pill");
+		this.set_form_indicator();
+		this.setup_copy_event();
+		this.make_like();
 		this.refresh();
+	}
+
+	set_form_indicator() {
+		let indicator = frappe.get_indicator(this.frm.doc);
+		if (indicator) {
+			this.set_indicator(indicator[0], indicator[1]);
+		}
+	}
+	set_indicator(label, color) {
+		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
+	}
+
+	clear_indicator() {
+		return this.indicator.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
 	}
 
 	setup_keyboard_shortcuts() {
@@ -61,6 +79,45 @@ frappe.ui.form.Sidebar = class {
 			this.refresh_creation_modified();
 			frappe.ui.form.set_user_image(this.frm);
 		}
+		this.refresh_like();
+	}
+
+	setup_copy_event() {
+		$(this.sidebar)
+			.find(".sidebar-meta-details .form-name-copy")
+			.on("click", (e) => {
+				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
+			});
+	}
+
+	make_like() {
+		this.like_wrapper = this.sidebar.find(".liked-by");
+		this.like_icon = this.sidebar.find(".liked-by .like-icon");
+		this.like_count = this.sidebar.find(".liked-by .like-count");
+		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
+
+		this.like_icon.on("click", () => {
+			frappe.ui.toggle_like(this.like_wrapper, this.frm.doctype, this.frm.doc.name, () => {
+				this.refresh_like();
+			});
+		});
+	}
+
+	refresh_like() {
+		if (!this.like_icon) {
+			return;
+		}
+
+		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
+		const liked = frappe.ui.is_liked(this.frm.doc);
+
+		this.like_wrapper
+			.toggleClass("not-liked", !liked)
+			.toggleClass("liked", liked)
+			.attr("data-doctype", this.frm.doctype)
+			.attr("data-name", this.frm.doc.name);
+
+		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
 	}
 
 	refresh_web_view_count() {
@@ -76,62 +133,28 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	refresh_creation_modified() {
-		let user_list = [this.frm.doc.owner, this.frm.doc.modified_by];
-		if (this.frm.doc.owner === this.frm.doc.modified_by) {
-			user_list = [this.frm.doc.owner];
-		}
-
-		let avatar_group = frappe.avatar_group(user_list, 5, {
-			align: "left",
-			overlap: true,
-		});
-
-		this.sidebar.find(".created-modified-section").append(avatar_group);
-
-		let creation_message =
-			get_user_message(
-				this.frm.doc.owner,
-				__("You created this", null),
-				__("{0} created this", [get_user_link(this.frm.doc.owner)])
-			) +
-				" · " +
-				cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-			cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
-				? frappe.datetime.str_to_user(this.frm.doc.creation)
-				: comment_when(this.frm.doc.creation);
-		let modified_message =
-			get_user_message(
-				this.frm.doc.modified_by,
-				__("You last edited this", null),
-				__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
-			) +
-				" · " +
-				cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-			cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
-				? frappe.datetime.str_to_user(this.frm.doc.modified)
-				: comment_when(this.frm.doc.modified);
-
-		if (user_list.length === 1) {
-			// same user created and edited
-
-			avatar_group.find(".avatar").popover({
-				trigger: "hover",
-				html: true,
-				content: creation_message + "<br>" + modified_message,
-			});
-		} else {
-			avatar_group.find(".avatar:first-child").popover({
-				trigger: "hover",
-				html: true,
-				content: creation_message,
-			});
-
-			avatar_group.find(".avatar:last-child").popover({
-				trigger: "hover",
-				html: true,
-				content: modified_message,
-			});
-		}
+		this.sidebar
+			.find(".modified-by")
+			.html(
+				get_user_message(
+					this.frm.doc.modified_by,
+					__("You last edited this", null),
+					__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
+				) +
+					" · " +
+					comment_when(this.frm.doc.modified)
+			);
+		this.sidebar
+			.find(".created-by")
+			.html(
+				get_user_message(
+					this.frm.doc.owner,
+					__("You created this", null),
+					__("{0} created this", [get_user_link(this.frm.doc.owner)])
+				) +
+					" · " +
+					comment_when(this.frm.doc.creation)
+			);
 	}
 
 	show_auto_repeat_status() {

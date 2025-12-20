@@ -24,6 +24,7 @@ from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSet
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
+from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.types import Filters, FilterSignature, FilterTuple
@@ -246,13 +247,14 @@ class DatabaseQuery:
 
 	def mask_fields(self, result):
 		"""Mask fields in the result based on the doctype's masked fields"""
+		from frappe.model.utils.mask import mask_dict_results, mask_list_results
+
 		masked_fields = self.get_masked_fields()
 
 		if not masked_fields:
 			return result
 
 		if self.as_list:
-			masked_result = []
 			field_index_map = {}
 			for idx, field in enumerate(self.fields):
 				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
@@ -263,25 +265,10 @@ class DatabaseQuery:
 					# extract last part after `.`
 					col = field.split(".")[-1].strip("`")
 					field_index_map[col] = idx
-			# if as_list then we don't have field names in the result so we need to mask by position
-			for row in result:
-				row = list(row)  # convert tuple to list mutable
-				for field in masked_fields:
-					if field.fieldname in field_index_map:
-						idx = field_index_map[field.fieldname]
-						val = row[idx]
-						row[idx] = mask_field_value(field, val)
 
-				masked_result.append(tuple(row))  # convert back to tuple
-			result = masked_result
+			return mask_list_results(result, masked_fields, field_index_map)
 		else:
-			for row in result:
-				for field in masked_fields:
-					if field.fieldname in row:
-						val = row[field.fieldname]
-						row[field.fieldname] = mask_field_value(field, val)
-
-		return result
+			return mask_dict_results(result, masked_fields)
 
 	def get_masked_fields(self):
 		"""Get masked fields for the doctype"""
@@ -1297,26 +1284,6 @@ from {tables}
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
-
-
-def mask_field_value(field, val):
-	if not val:
-		return val
-
-	if field.fieldtype == "Data" and field.options == "Phone":
-		if len(val) > 3:
-			return val[:3] + "XXXXXX"
-		else:
-			return "X" * len(val)
-	elif field.fieldtype == "Data" and field.options == "Email":
-		email = val.split("@")
-		return "XXXXXX@" + email[1] if len(email) > 1 else "XXXXXX"
-	elif field.fieldtype == "Date":
-		return "XX-XX-XXXX"
-	elif field.fieldtype == "Time":
-		return "XX:XX"
-	else:
-		return "XXXXXXXX"
 
 
 def cast_name(column: str) -> str:

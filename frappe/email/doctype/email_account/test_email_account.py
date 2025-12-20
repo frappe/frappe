@@ -183,8 +183,9 @@ class TestEmailAccount(IntegrationTestCase):
 			recipients="test_recipient@example.com",
 			content="test mail 001",
 			subject="test-mail-001",
-			delayed=False,
+			now=True,
 		)
+		frappe.db.commit()  # now=True requires commit
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))

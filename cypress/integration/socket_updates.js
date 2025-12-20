@@ -13,7 +13,7 @@ context("Realtime updates", () => {
 
 	it("Shows version conflict warning", { scrollBehavior: false }, () => {
 		cy.insert_doc("ToDo", { description: "old" }).then((doc) => {
-			cy.visit(`/app/todo/${doc.name}`);
+			cy.visit(`/desk/todo/${doc.name}`);
 			// make form dirty
 			cy.fill_field("status", "Cancelled", "Select");
 

@@ -88,7 +88,7 @@ frappe.breadcrumbs = {
 		if (css_classes) {
 			a.classList.add(css_classes);
 		}
-		a.innerText = label;
+		a.innerHTML = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
 	},
@@ -244,6 +244,7 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
+		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
 	},
 
 	toggle(show) {

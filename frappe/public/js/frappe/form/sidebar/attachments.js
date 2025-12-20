@@ -113,47 +113,68 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	add_attachment(attachment) {
-		var file_name = attachment.file_name;
-		var file_url = this.get_file_url(attachment);
-		var fileid = attachment.name;
-		if (!file_name) {
-			file_name = file_url;
-		}
+		let file_name = attachment.file_name || this.get_file_url(attachment);
+		let file_url = this.get_file_url(attachment);
+		let fileid = attachment.name;
+		let me = this;
 
-		var me = this;
+		let $attachment_action = $(`<div></div>`);
 
-		let file_label = `
-			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
-				class="ellipsis attachment-file-label"
-			>
+		let $file_label = $(`
+			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(
+			file_name
+		)}" class="ellipsis attachment-file-label">
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
-			</a>`;
+			</a>
+		`);
 
-		let remove_action = null;
+		$attachment_action.append($file_label);
+
 		if (this.can_delete_attachment()) {
-			remove_action = function (target_id) {
-				frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
-					let target_attachment = me
-						.get_attachments()
-						.find((attachment) => attachment.name === target_id);
-					let to_be_removed = me
-						.get_attachments()
-						.filter(
-							(attachment) => attachment.file_name === target_attachment.file_name
-						);
-					to_be_removed.forEach((attachment) => me.remove_attachment(attachment.name));
-				});
-				return false;
-			};
+			let $delete_attachment = $(`
+				<button class="btn btn-link attachment-remove-btn float-right">
+					${frappe.utils.icon("x")}
+				</button>
+			`);
+
+			$delete_attachment.on("click", () => {
+				me.delete_attachment(fileid);
+			});
+
+			$attachment_action.append($delete_attachment);
 		}
 
-		const icon = `<a href="/app/file/${fileid}" class="attachment-icon">
-				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
-			</a>`;
+		const $attachment_meta = $(`
+			<div class="mt-1">
+				<a href="/desk/file/${fileid}" class="attachment-icon">
+					${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
+				</a>
+				<span class="file-type">${attachment.file_type}</span>
+				<span class="file-size">
+					${frappe.form.formatters.FileSize(attachment.file_size)}
+				</span>
+			</div>
+		`);
 
-		$(`<div class="attachment-row"></div>`)
-			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
-			.insertAfter(this.add_attachment_wrapper);
+		// Final row
+		let $row = $('<div class="attachment-row"></div>');
+		$row.append($attachment_action);
+		$row.append($attachment_meta);
+
+		$row.insertAfter(this.add_attachment_wrapper);
+	}
+
+	delete_attachment(target_id) {
+		let me = this;
+		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
+			let target_attachment = me
+				.get_attachments()
+				.find((attachment) => attachment.name === target_id);
+			let to_be_removed = me
+				.get_attachments()
+				.filter((attachment) => attachment.file_name === target_attachment.file_name);
+			to_be_removed.forEach((attachment) => me.remove_attachment(attachment.name));
+		});
 	}
 
 	can_delete_attachment() {
