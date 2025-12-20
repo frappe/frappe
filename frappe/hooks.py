@@ -544,7 +544,7 @@ standard_help_items = [
 	{
 		"item_label": "System Health",
 		"item_type": "Route",
-		"route": "/app/system-health-report",
+		"route": "/desk/system-health-report",
 		"is_standard": 1,
 	},
 	{

@@ -63,8 +63,8 @@ export default class Section {
 	make_head() {
 		this.head = $(`
 			<div class="section-head">
+				<span class="collapse-indicator mb-1"></span>
 				${__(this.df.label, null, this.df.parent)}
-				<span class="ml-2 collapse-indicator mb-1"></span>
 			</div>
 		`);
 
@@ -135,7 +135,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "es-line-down" : "es-line-up";
+		let indicator_icon = hide ? "chevron-right" : "es-line-down";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 

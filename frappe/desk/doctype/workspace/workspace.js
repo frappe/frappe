@@ -9,7 +9,7 @@ frappe.ui.form.on("Workspace", {
 	refresh: function (frm) {
 		frm.enable_save();
 
-		let url = `/app/${
+		let url = `/desk/${
 			frm.doc.public
 				? frappe.router.slug(frm.doc.title)
 				: "private/" + frappe.router.slug(frm.doc.title)

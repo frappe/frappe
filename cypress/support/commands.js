@@ -172,13 +172,12 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	}
 
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.get("@input").clear().focus();
-		cy.wait("@search_link");
+		// Wait for dropdown to appear (request might be cached, so don't wait for network)
 		cy.get("@input").parent().findByRole("listbox").as("dropdown");
 		cy.get("@dropdown").should("be.visible");
 		cy.get("@input").type(value, { delay: 100 });
-		cy.wait("@search_link");
+		// Wait for dropdown to update with search results
 		cy.get("@dropdown")
 			.should("be.visible")
 			.find("div[role='option']")
@@ -264,7 +263,7 @@ Cypress.Commands.add("awesomebar", (text) => {
 
 Cypress.Commands.add("new_form", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-	cy.visit(`/app/${dt_in_route}/new`);
+	cy.visit(`/desk/${dt_in_route}/new`);
 	cy.get("body").should(($body) => {
 		const dataRoute = $body.attr("data-route");
 		expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
@@ -278,7 +277,7 @@ Cypress.Commands.add("select_form_tab", (label) => {
 
 Cypress.Commands.add("go_to_list", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-	cy.visit(`/app/${dt_in_route}`);
+	cy.visit(`/desk/${dt_in_route}`);
 });
 
 Cypress.Commands.add("clear_cache", () => {

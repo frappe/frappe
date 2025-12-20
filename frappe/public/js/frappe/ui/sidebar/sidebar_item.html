@@ -45,7 +45,7 @@
                 {% } %}
             </a>
         {% } %}
-
+        {% if(!item.standard) { %}
         <div class="sidebar-item-edit-controls edit-mode {%= edit_mode ? '' : 'hidden' %}">
             <button class="btn btn-secondary btn-sm drag-handle">
                 <svg class="es-icon es-line icon-xs" aria-hidden="true">
@@ -56,6 +56,7 @@
                 {%= frappe.utils.icon("dot-horizontal", "xs") %}
             </button>
         </div>
+        {% } %}
     </div>
     <div class="sidebar-child-item nested-container"></div>
 </div>

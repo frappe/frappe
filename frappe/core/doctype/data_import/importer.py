@@ -483,35 +483,6 @@ class ImportFile:
 				title=_("Template Error"),
 			)
 
-	def validate_columns_of_import_file(self, data):
-		mandatory_fields = self.get_mandatory_fields()
-		headers = data[0] if data else []
-
-		if len(headers) == 1 and ";" in headers[0]:
-			return
-
-		if not len(headers):
-			frappe.throw(_("Import template should contain a Header row."), title=_("Template Error"))
-
-		for field in mandatory_fields:
-			if field not in headers and _(field) not in headers:
-				frappe.throw(
-					_(
-						"Mandatory field {0} is missing in the import template for {1}. Please correct the template and try again."
-					).format(frappe.bold(field), frappe.bold(self.doctype)),
-					title=_("Template Error"),
-				)
-
-	def get_mandatory_fields(self):
-		meta = frappe.get_meta(self.doctype)
-		mandatory_fields = []
-
-		for df in meta.fields:
-			if df.reqd and df.fieldtype not in no_value_fields and not df.default:
-				mandatory_fields.append(df.label)
-
-		return mandatory_fields
-
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
 
@@ -646,9 +617,6 @@ class ImportFile:
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
-
-		if self.import_type == INSERT:
-			self.validate_columns_of_import_file(data)
 		return data
 
 

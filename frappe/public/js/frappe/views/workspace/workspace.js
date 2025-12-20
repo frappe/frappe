@@ -237,6 +237,7 @@ frappe.views.Workspace = class Workspace {
 				if (!app && this._page.module) {
 					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
 				}
+				this._page.module && this.sidebar.show_sidebar_for_module(this._page.module);
 				if (!app) app = "frappe";
 			}
 
@@ -517,7 +518,7 @@ frappe.views.Workspace = class Workspace {
 					parent_page: values.parent || "",
 					is_editable: true,
 					selected: true,
-					app: frappe.current_app,
+					app: frappe.current_app?.app_name,
 					type: values.type,
 					link_type: values.link_type,
 					link_to: values.link_to,

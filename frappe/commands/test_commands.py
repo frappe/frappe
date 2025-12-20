@@ -1086,7 +1086,8 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.addCleanup(self.kill_gunicorn)
 
 	def kill_gunicorn(self):
-		self.handle.send_signal(signal.SIGINT)
+		time.sleep(1)
+		self.handle.send_signal(signal.SIGTERM)
 		try:
 			self.handle.communicate(timeout=1)
 		except subprocess.TimeoutExpired:

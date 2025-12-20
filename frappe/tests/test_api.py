@@ -502,8 +502,8 @@ class TestResponse(FrappeAPITestCase):
 
 	def test_login_redirects(self):
 		expected_redirects = {
-			"/app/user": "http://localhost/app/user",
-			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
+			"/desk/user": "http://localhost/desk/user",
+			"/desk/user?enabled=1": "http://localhost/desk/user?enabled=1",
 			"http://example.com": "http://localhost/desk",  # No external redirect
 			"https://google.com": "http://localhost/desk",
 			"http://localhost:8000": "http://localhost/desk",

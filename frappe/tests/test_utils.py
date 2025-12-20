@@ -1252,8 +1252,8 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_get_url_to_form(self):
-		self.assertTrue(get_url_to_form("System Settings").endswith("/app/system-settings"))
-		self.assertTrue(get_url_to_form("User", "Test User").endswith("/app/user/Test%20User"))
+		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})

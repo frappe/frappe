@@ -61,7 +61,7 @@
   },
   {
    "bold": 1,
-   "description": "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")",
+   "description": "Help: To link to another record in the system, use \"/desk/note/[Note Name]\" as the Link URL. (don't use \"http://\")",
    "fieldname": "content",
    "fieldtype": "Text Editor",
    "in_global_search": 1,

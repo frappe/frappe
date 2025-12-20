@@ -65,7 +65,7 @@ context("Data Control", () => {
 			.should("have.class", "reqd");
 
 		//Checking if the status is "Not Saved" initially
-		cy.get(".indicator-pill").should("have.text", "Not Saved");
+		cy.get(".page-head-content .indicator-pill").should("have.text", "Not Saved");
 
 		//Inputting data in the field
 		cy.fill_field("name1", "@@###", "Data");

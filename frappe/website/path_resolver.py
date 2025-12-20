@@ -6,7 +6,7 @@ from werkzeug.routing import Rule
 
 import frappe
 from frappe.website.page_renderers.document_page import DocumentPage
-from frappe.website.page_renderers.list_page import ListPage
+from frappe.website.page_renderers.list_renderer import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.print_page import PrintPage
 from frappe.website.page_renderers.redirect_page import RedirectPage
@@ -14,7 +14,7 @@ from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
 from frappe.website.router import evaluate_dynamic_routes
-from frappe.website.utils import can_cache, get_home_page
+from frappe.website.utils import can_cache, check_if_webform_exists, get_home_page
 
 
 class PathResolver:
@@ -60,8 +60,8 @@ class PathResolver:
 			WebFormPage,
 			DocumentPage,
 			TemplatePage,
-			ListPage,
 			PrintPage,
+			ListPage,
 		]
 
 		for renderer in renderers:

@@ -10,7 +10,6 @@ import re
 
 import frappe
 from frappe.cache_manager import clear_controller_cache
-from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 from frappe.model.base_document import get_controller
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode

@@ -29,6 +29,7 @@
 
 .form-section,
 .form-dashboard-section {
+	padding: var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
 		margin: auto;
@@ -39,15 +40,14 @@
 
 	.section-head {
 		@extend .head-title;
-		@include get_textstyle("lg", "semibold");
+		@include get_textstyle("md", "medium");
 		color: var(--text-color);
 		width: 100%;
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-md);
 		cursor: default;
 
 		.collapse-indicator {
 			color: var(--text-muted);
-			margin-left: 10px;
 			position: relative;
 			padding: 0px;
 			&:focus-visible {
@@ -78,7 +78,17 @@
 		}
 	}
 }
+.section-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
 
+.section-head::after {
+	content: "";
+	flex: 1;
+	border-bottom: 1px solid var(--border-color);
+}
 .section-head,
 .section-body {
 	margin: auto !important;
@@ -116,7 +126,6 @@
 	border: 0 !important;
 }
 
-.form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
 	padding: var(--padding-md) 0;
@@ -485,15 +494,18 @@
 			white-space: nowrap;
 			@include get_textstyle("base", "regular");
 			.nav-link {
-				color: var(--text-muted);
+				color: var(--text-light);
 				padding: 10px 0;
 				margin: 0 var(--margin-md);
 				background-color: var(--card-bg);
 				border: 0;
+				display: flex;
+				align-items: center;
+				gap: 6px;
 				&.active {
-					font-weight: 600;
+					font-weight: 400;
 					border-bottom: 1px solid var(--text-color);
-					color: var(--text-color);
+					color: var(--text-neutral);
 					padding-bottom: 9px;
 				}
 				&:focus-visible {

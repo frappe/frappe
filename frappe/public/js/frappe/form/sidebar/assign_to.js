@@ -30,14 +30,17 @@ frappe.ui.form.AssignTo = class AssignTo {
 			return;
 		}
 
-		let avatar_group = frappe.avatar_group(assigned_users, 5, {
-			align: "left",
-			overlap: true,
+		let assignment_group = new frappe.ui.form.AssignmentClass({
+			assignments: assigned_users,
+			assignment_details: assignments,
+			frm: this.frm,
 		});
 
+		assignment_group = assignment_group.make_assignment_section();
+
 		assignments_wrapper.show();
-		assignments_wrapper.append(avatar_group);
-		avatar_group.click(() => {
+		assignments_wrapper.append(assignment_group);
+		assignment_group.find(".view-all-assignment").click(() => {
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
 				assignment_details: assignments,
@@ -242,11 +245,115 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 	}
 };
 
-frappe.ui.form.AssignmentDialog = class {
+frappe.ui.form.AssignmentClass = class AssignmentClass {
 	constructor(opts) {
 		this.frm = opts.frm;
 		this.assignments = opts.assignments;
 		this.assignment_details = opts.assignment_details;
+	}
+
+	make_assignment_section() {
+		let $assignment_html = $("<div></div>");
+		let count = 0;
+
+		for (const assignment of this.assignments) {
+			if (count === 3) {
+				$assignment_html.append(
+					$(
+						'<a href="javascript:void(0)" class="text-muted view-all-assignment">View All</div>'
+					)
+				);
+				break;
+			}
+
+			$assignment_html.append(this.get_assignment_row(assignment));
+			count++;
+		}
+
+		return $assignment_html;
+	}
+
+	get_assignment_row(assignment, in_dialogue = false) {
+		const row = $(`
+			<div class="dialog-assignment-row" data-user="${assignment}">
+				<div class="assignee">
+					${frappe.avatar(assignment)}
+					${frappe.user.full_name(assignment)}
+				</div>
+				<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+				</div>
+			</div>
+		`);
+
+		const btn_group = row.find(".btn-group");
+
+		if (assignment === frappe.session.user) {
+			btn_group.append(`
+				<button type="button" class="btn complete-btn" title="${__("Done")}">
+					${frappe.utils.icon("tick", "xs")}
+				</button>
+			`);
+			btn_group.find(".complete-btn").click(() => {
+				this.close_assignment(assignment).then((assignments) => {
+					row.remove();
+					this.render(assignments);
+				});
+			});
+
+			if (in_dialogue) {
+				const html = this.assignment_details
+					.filter((x) => x.owner === assignment && strip_html(x.description))
+					.map((x) => x.description)
+					.join("<hr>");
+				if (html) {
+					let description = $(
+						"<div class='small text-muted' style='margin-left: 45px;max-height: 100px;'></div>"
+					).html(html);
+					row.find(".assignee").append(description);
+				}
+			}
+		}
+
+		if (assignment === frappe.session.user || this.frm.perm[0].write) {
+			btn_group.append(`
+				<button type="button" class="btn remove-btn" title="${__("Cancel")}">
+				${frappe.utils.icon("x")}
+				</button>
+			`);
+			btn_group.find(".remove-btn").click(() => {
+				this.remove_assignment(assignment).then((assignments) => {
+					row.remove();
+					this.render(assignments);
+				});
+			});
+		}
+		return row;
+	}
+
+	remove_assignment(assignment) {
+		return frappe.xcall("frappe.desk.form.assign_to.remove", {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: assignment,
+		});
+	}
+
+	close_assignment(assignment) {
+		return frappe.xcall("frappe.desk.form.assign_to.close", {
+			doctype: this.frm.doctype,
+			name: this.frm.docname,
+			assign_to: assignment,
+		});
+	}
+
+	render(assignments) {
+		this.frm && this.frm.assign_to.render(assignments);
+	}
+};
+
+frappe.ui.form.AssignmentDialog = class extends frappe.ui.form.AssignmentClass {
+	constructor(opts) {
+		super(opts);
 		this.make();
 	}
 
@@ -294,9 +401,6 @@ frappe.ui.form.AssignmentDialog = class {
 		});
 		this.dialog.show();
 	}
-	render(assignments) {
-		this.frm && this.frm.assign_to.render(assignments);
-	}
 	add_assignment(assignment) {
 		return frappe
 			.xcall("frappe.desk.form.assign_to.add", {
@@ -309,79 +413,10 @@ frappe.ui.form.AssignmentDialog = class {
 				this.render(assignments);
 			});
 	}
-	remove_assignment(assignment) {
-		return frappe.xcall("frappe.desk.form.assign_to.remove", {
-			doctype: this.frm.doctype,
-			name: this.frm.docname,
-			assign_to: assignment,
-		});
-	}
-	close_assignment(assignment) {
-		return frappe.xcall("frappe.desk.form.assign_to.close", {
-			doctype: this.frm.doctype,
-			name: this.frm.docname,
-			assign_to: assignment,
-		});
-	}
 	update_assignment(assignment) {
 		const in_the_list = this.assignment_list.find(`[data-user="${assignment}"]`).length;
 		if (!in_the_list) {
-			this.assignment_list.append(this.get_assignment_row(assignment));
+			this.assignment_list.append(this.get_assignment_row(assignment, true));
 		}
-	}
-	get_assignment_row(assignment) {
-		const row = $(`
-			<div class="dialog-assignment-row" data-user="${assignment}">
-				<div class="assignee">
-					${frappe.avatar(assignment)}
-					${frappe.user.full_name(assignment)}
-				</div>
-				<div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-				</div>
-			</div>
-		`);
-
-		const btn_group = row.find(".btn-group");
-
-		if (assignment === frappe.session.user) {
-			btn_group.append(`
-				<button type="button" class="btn btn-default complete-btn" title="${__("Done")}">
-					${frappe.utils.icon("tick", "xs")}
-				</button>
-			`);
-			btn_group.find(".complete-btn").click(() => {
-				this.close_assignment(assignment).then((assignments) => {
-					row.remove();
-					this.render(assignments);
-				});
-			});
-
-			const html = this.assignment_details
-				.filter((x) => x.owner === assignment && strip_html(x.description))
-				.map((x) => x.description)
-				.join("<hr>");
-			if (html) {
-				$(
-					"<div class='small overflow-auto m-1 p-1 flex-grow-1' style='max-height: 100px;'>"
-				)
-					.html(html)
-					.appendTo(row);
-			}
-		}
-
-		if (assignment === frappe.session.user || this.frm.perm[0].write) {
-			btn_group.append(`
-				<button type="button" class="btn btn-default remove-btn" title="${__("Cancel")}">
-				${frappe.utils.icon("close")}
-				</button>
-			`);
-			btn_group.find(".remove-btn").click(() => {
-				this.remove_assignment(assignment).then((assignments) => {
-					row.remove();
-					this.render(assignments);
-				});
-			});
-		}
-		return row;
 	}
 };
