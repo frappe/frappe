@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-14 09:35+0000\n"
-"PO-Revision-Date: 2025-12-14 18:48\n"
+"PO-Revision-Date: 2025-12-21 19:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5486,7 +5486,7 @@ msgstr "{0} {1} در کلیپ‌بورد کپی شد"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
-msgstr "لینک را کپی کنید"
+msgstr "کپی کردن لینک"
 
 #: frappe/website/doctype/web_form/web_form.js:29
 msgid "Copy embed code"
