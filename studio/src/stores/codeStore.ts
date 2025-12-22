@@ -90,8 +90,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		activeWatchers.value[watcher.name || watcher.source] = watcherFn
 	}
 
-	function cleanupWatchers() {
-		Object.values(activeWatchers.value).forEach(stop => stop())
+	async function cleanupWatchers() {
+		await Promise.all(Object.values(activeWatchers.value).map(stop => stop()))
 		activeWatchers.value = {}
 	}
 
@@ -436,6 +436,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		setValueInVariable,
 		// watchers
 		setPageWatchers,
+		cleanupWatchers,
 		// code execution
 		globalContext,
 		globalExecutionContext,
