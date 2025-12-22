@@ -113,51 +113,17 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	add_attachment(attachment) {
-<<<<<<< HEAD
 		var file_name = attachment.file_name;
 		var file_url = this.get_file_url(attachment);
 		var fileid = attachment.name;
 		if (!file_name) {
 			file_name = file_url;
-=======
-		let file_name = attachment.file_name || this.get_file_url(attachment);
-		let file_url = this.get_file_url(attachment);
-		let fileid = attachment.name;
-		let me = this;
-
-		let $attachment_action = $(`<div></div>`);
-
-		let $file_label = $(`
-			<a href="${frappe.utils.escape_html(file_url)}" target="_blank" title="${frappe.utils.escape_html(
-			file_name
-		)}"
-				class="ellipsis attachment-file-label"
-			>
-				<span>${frappe.utils.xss_sanitise(file_name)}</span>
-			</a>
-		`);
-
-		$attachment_action.append($file_label);
-
-		if (this.can_delete_attachment()) {
-			let $delete_attachment = $(`
-				<button class="btn btn-link attachment-remove-btn float-right">
-					${frappe.utils.icon("x")}
-				</button>
-			`);
-
-			$delete_attachment.on("click", () => {
-				me.delete_attachment(fileid);
-			});
-
-			$attachment_action.append($delete_attachment);
->>>>>>> 5de7ed8220 (fix(attachments): escape file_url (#35206))
 		}
 
 		var me = this;
 
 		let file_label = `
-			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
+			<a href="${frappe.utils.escape_html(file_url)}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
 				class="ellipsis" style="max-width: calc(100% - 43px);"
 			>
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
