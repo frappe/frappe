@@ -441,3 +441,21 @@ def get_users_with_role(role: str) -> list[str]:
 		.distinct()
 		.run(pluck=True)
 	)
+
+
+def is_portal_user():
+	from frappe.utils import has_common
+
+	roles = get_portal_roles()
+	user_type = frappe.session.data.user_type
+	if user_type == "Website User" and has_common(frappe.get_roles(), roles):
+		return True
+
+
+def get_portal_roles():
+	roles = []
+	for menu_item in frappe.get_single("Portal Settings").menu:
+		if menu_item.role and menu_item.role not in roles:
+			roles.append(menu_item.role)
+
+	return roles

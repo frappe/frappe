@@ -179,13 +179,21 @@ def create_workspace_sidebar_for_workspaces():
 @frappe.whitelist()
 def add_sidebar_items(sidebar_title, sidebar_items):
 	sidebar_items = loads(sidebar_items)
+	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+	if not frappe.conf.developer_mode:
+		try:
+			w = frappe.get_doc("Workspace Sidebar", title)
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			w = frappe.copy_doc(w, ignore_no_copy=False)
+			w.title = title
+			w.for_user = frappe.session.user
 	items = []
 	current_idx = 1
 	for item in sidebar_items:
 		si = frappe.new_doc("Workspace Sidebar Item")
 		si.update(item)
-		items.append(si)
 		si.idx = current_idx
 		items.append(si)
 		current_idx += 1
@@ -298,12 +306,15 @@ def get_module_info(module_name):
 
 
 def choose_top_doctypes(doctype_names):
+	from frappe.model.utils import is_single_doctype
+
 	doctype_limit = 3
 	if len(doctype_names) > doctype_limit:
 		try:
 			doctype_count_map = {}
 			for doctype in doctype_names:
-				doctype_count_map[doctype] = frappe.db.count(doctype)
+				if not is_single_doctype(doctype):
+					doctype_count_map[doctype] = frappe.db.count(doctype)
 			top_doctypes = [
 				name
 				for name, count in sorted(doctype_count_map.items(), key=lambda x: x[1], reverse=True)[

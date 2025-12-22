@@ -182,7 +182,7 @@ def get_milestones(doctype, name):
 def get_attachments(dt, dn):
 	return frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private"],
+		fields=["name", "file_name", "file_url", "is_private", "file_type", "file_size"],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
 

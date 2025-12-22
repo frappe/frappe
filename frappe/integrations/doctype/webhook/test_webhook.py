@@ -112,6 +112,7 @@ class TestWebhook(IntegrationTestCase):
 		self.test_user.email = "user1@integration.webhooks.test.com"
 		self.test_user.first_name = "user1"
 		self.test_user.send_welcome_email = False
+		frappe.db.commit()
 
 	def tearDown(self) -> None:
 		self.user.delete()

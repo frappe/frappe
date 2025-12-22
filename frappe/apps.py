@@ -11,8 +11,8 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_not_required_apps,
 )
 
-# check if route is /app or /app/* and not /app1 or /app1/*
-DESK_APP_PATTERN = re.compile(r"^/app(/.*)?$")
+# check if route is /desk or /desk/* and not /app1 or /app1/*
+DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
 @frappe.whitelist()

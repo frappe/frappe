@@ -166,13 +166,13 @@ class TestPerformance(IntegrationTestCase):
 		self.assertEqual(get_build_version(), get_build_version())
 
 	def test_get_list_single_query(self):
-		"""get_list should only perform single query."""
+		"""
+		get_list should only perform single query.
 
-		user = frappe.get_doc("User", TEST_USER)
-
-		frappe.set_user(TEST_USER)
-		# Give full read access, no share/user perm check should be done.
-		user.add_roles("System Manager")
+		Note:
+		this test will work only as Admistrator.
+		other users will have permission queries - so share conditions will be added.
+		"""
 
 		frappe.get_list("User")
 		with self.assertQueryCount(1):

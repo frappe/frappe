@@ -15,6 +15,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				frm.doc = frappe.get_doc(doctype, docname);
 				frappe.model.with_doctype(doctype, () => {
 					frm.meta = frappe.get_meta(route[1]);
+					frm.meta.module && frappe.app.sidebar.show_sidebar_for_module(frm.meta.module);
 					print_view.show(frm);
 				});
 			});
@@ -127,7 +128,7 @@ frappe.ui.form.PrintView = class {
 			description =
 				"<div class='form-message yellow p-3 mt-3'>" +
 				__("Footer might not be visible as {0} option is disabled</div>", [
-					`<a href="/app/print-settings/Print Settings">${__(
+					`<a href="/desk/print-settings/Print Settings">${__(
 						"Repeat Header and Footer"
 					)}</a>`,
 				]);
@@ -201,7 +202,7 @@ frappe.ui.form.PrintView = class {
 		if (!cint(frappe.boot.sysdefaults.disable_product_suggestion)) {
 			if (Object.keys(frappe.boot.versions).includes("print_designer")) {
 				this.page.add_inner_message(`
-				<a style="line-height: 2.4" href="/app/print-designer?doctype=${this.frm.doctype}">
+				<a style="line-height: 2.4" href="/desk/print-designer?doctype=${this.frm.doctype}">
 					${__("Try the new Print Designer")}
 				</a>
 				`);

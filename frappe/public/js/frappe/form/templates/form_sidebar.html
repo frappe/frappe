@@ -1,5 +1,5 @@
 <div class="sidebar-section user-actions hidden"></div>
-<div class="sidebar-section sidebar-image-section hide">
+<div class="flex justify-between sidebar-image-section sidebar-section hide">
 	<div class="sidebar-image-wrapper">
 		<img class="sidebar-image">
 		<div class="sidebar-standard-image">
@@ -17,9 +17,27 @@
 		</div>
 		{% endif %}
 	</div>
+	<div class="form-stats-likes">
+		<span class="liked-by like-action d-flex align-items-center">
+			<svg class="icon icon-sm like-icon pointer">
+				<use href="#icon-heart"></use>
+			</svg>
+			<span class="like-count ml-2"></span>
+		</span>
+	</div>
+</div>
+<div class="sidebar-section sidebar-meta-details border-bottom">
+	<div class="form-details flex {{image_field ? "justify-center" : "justify-between"}}">
+		<span class="ellipsis mr-3 bold">{%= frm.get_title() %}</span>
+		<span class="form-name-copy" data-copy="{{frm.get_title()}}">{%= frappe.utils.icon("copy")%}</span>
+	</div>
+	<div class="form-name-container mt-2 flex {{image_field ? "justify-center" : "justify-between"}}">
+		<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+		<span class="indicator-pill whitespace-nowrap"></span>
+	</div>
 </div>
 {% if frm.meta.beta %}
-<div class="sidebar-section">
+<div class="sidebar-section border-bottom">
 	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
 	<div><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
 			target="_blank">
@@ -27,7 +45,7 @@
 
 </div>
 {% endif %}
-<div class="sidebar-section sidebar-rating hide">
+<div class="sidebar-section sidebar-rating hide border-bottom">
 	<div style="position: relative;">
 		<a class="strong badge-hover">
 			<span>{%= __("Feedback") %}</span>
@@ -35,18 +53,19 @@
 	</div>
 	<div class="rating-icons"></div>
 </div>
-<div class="sidebar-section hidden">
+<div class="sidebar-section hidden border-bottom">
 	{% if (frappe.help.has_help(doctype)) { %}
 	<div>
 		<a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a>
 	</div>
 	{% } %}
 </div>
-<div class="sidebar-section form-assignments">
+<div class="sidebar-section form-assignments border-bottom">
 	<div>
 		<span class="form-sidebar-items">
-			<span class="add-assignment-label">
-				<span class="ellipsis">{%= __("Assigned To") %}</span>
+			<span class="add-assignment-label form-sidebar-label">
+				{%= frappe.utils.icon("users") %}
+				<span class="ellipsis">{%= __("Assign") %}</span>
 			</span>
 			<button class="add-assignment-btn btn btn-link icon-btn">
 				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
@@ -55,11 +74,12 @@
 		<div class="assignments"></div>
 	</div>
 </div>
-<div class="sidebar-section form-attachments">
+<div class="sidebar-section form-attachments border-bottom">
 	<div class="attachments-actions">
 		<span class="form-sidebar-items">
 			<span>
-				<a class="pill-label ellipsis explore-link">
+				<a class="pill-label ellipsis form-sidebar-label explore-link">
+					{%= frappe.utils.icon("paperclip") %}
 					{%= __("Attachments") %}
 				</a>
 			</span>
@@ -74,10 +94,11 @@
 		</span>
 	</a>
 </div>
-<div class="sidebar-section form-tags">
+<div class="sidebar-section form-tags border-bottom">
 	<div>
 		<span class="form-sidebar-items">
-			<div>
+			<div class="form-sidebar-label">
+				{%= frappe.utils.icon("tag") %}
 				<span class="tags-label ellipsis">{%= __("Tags") %}</span>
 			</div>
 		</span>
@@ -86,7 +107,8 @@
 <div class="sidebar-section form-shared">
 	<div>
 		<span class="form-sidebar-items">
-			<span class="share-label">
+			<span class="share-label form-sidebar-label">
+				{%= frappe.utils.icon("share-2") %}
 				<span class="ellipsis">{%= __("Share") %}</span>
 			</span>
 			<button class="share-doc-btn btn btn-link icon-btn">
@@ -113,11 +135,14 @@
 <div class="sidebar-section hidden">
 	<a><li class="indicator blue auto-repeat-status" style="display: none;"></li></a>
 </div>
-<div class="sidebar-section text-muted border-top mt-3 pt-3">
-	<div class="pageview-count hidden"></div>
-	<div class="created-modified-section">
-	</div>
+<div class="sidebar-section text-muted border-top pt-3">
+	<ul class="list-unstyled sidebar-menu text-muted">
+		<li class="pageview-count"></li>
+		<li class="modified-by"></li>
+		<li class="created-by"></li>
+	</ul>
 </div>
+
 {% if(frappe.get_form_sidebar_extension) { %}
 	{{ frappe.get_form_sidebar_extension() }}
 {% } %}

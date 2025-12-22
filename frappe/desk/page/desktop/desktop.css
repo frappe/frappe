@@ -1,10 +1,12 @@
 :root{
     --desktop-blur: blur(10.2px);
-    --desktop-modal-width: 508px;
-    --desktop-modal-height: 448px;
+    --desktop-modal-width: 590px;
+    --desktop-modal-height: 450px;
     --folder-thumbnail-icon-height: 12px;
     --desktop-icon-dimension: 54px;
     --folder-icon-background-color: var(--surface-gray-1);
+    --desktop-modal-radius: 30px;
+    --desktop-icon-line-height: 115%;
 }
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
@@ -58,27 +60,37 @@
     align-items: center;
     justify-content: center;
     flex-direction: row;
-    margin-top: 20px;
 }
 
 .icon-stroke{
     stroke-width: 1.5px;
 }
+.icons-container{
+    margin-top: 60px;
+    padding: 20px;
+}
+.modal
+.modal-body .icons-container,.folder-icon .icons-container {
+    padding:0px;
+    margin: 0px;
+    height: 100%;
+    overflow: auto;
+}
 .icons{
-	gap: 30px;
+	gap: 16px;
 	display: grid;
 	justify-items: center;
-    margin-top: 50px;
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(3, 1fr);
 }
 .desktop-icon{
     display: flex;
-    height: 100px;
-    width: 100px;
+    height: 126px;
+    width: 127px;
     flex-direction: column;
     align-items: center;
     gap: 12px;
+    padding: 13px 16px 12px 16px;
 }
 .icon-container:has(.app-logo) {
     padding: 0;
@@ -112,16 +124,25 @@
     text-align: center;
     text-wrap: nowrap;
     display: flex;
+    justify-content: space-between;
+    width: 95px;
+    height: 35px;
     flex-direction: column;
 }
 .icon-title{
     font-weight: var(--weight-semibold);
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
+    max-width: 95px;
+    overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+    line-height: var(--desktop-icon-line-height);
 }
 .icon-subtitle{
     font-weight: var(--weight-regular);
     font-size: var(--text-xs);
     color: var(--ink-gray-5);
+    line-height: var(--desktop-icon-line-height);
 }
 .timeless-style{
     width: 100vw;
@@ -144,7 +165,7 @@
     & .modal-dialog{
         & .modal-content {
             top: 120px;
-            border-radius: var(--border-radius-2xl);
+            border-radius: var(--desktop-modal-radius);
         }
     }
 }
@@ -156,7 +177,9 @@
 
 .desktop-modal-body {
     width: var(--desktop-modal-width);
-    padding: 23px 0px 23px 0px !important;
+    height: var(--desktop-modal-height);
+    padding: 24px 23px !important;
+    width: fit-content;
     & .icons{
         gap: 0px 0px;
     }
@@ -223,6 +246,7 @@
             width: fit-content;
             height: fit-content;
             pointer-events: none;
+            padding: 0px;
             & .icon-container{
                 height: var(--folder-thumbnail-icon-height);
                 width: var(--folder-thumbnail-icon-height);

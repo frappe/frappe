@@ -106,7 +106,7 @@ frappe.ui.toolbar.Toolbar = class {
 		if (!frappe.is_mobile()) return;
 		this.navbar = $(".navbar-brand");
 		let doctype = frappe.get_route()[1];
-		let list_view_route = `/app/${frappe.router.convert_from_standard_route([
+		let list_view_route = `/desk/${frappe.router.convert_from_standard_route([
 			"list",
 			doctype,
 		])}`;

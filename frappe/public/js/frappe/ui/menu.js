@@ -7,6 +7,7 @@ frappe.ui.menu = class ContextMenu {
 		this.menu_items = opts.menu_items;
 		this.name = frappe.utils.get_random(5);
 		this.open_on_left = opts.open_on_left;
+		this.size = opts.size;
 		this.opts = opts;
 	}
 
@@ -28,6 +29,14 @@ frappe.ui.menu = class ContextMenu {
 		// 	$(document.body).append(this.template);
 		// }
 		$(document.body).append(this.template);
+		this.set_styles();
+	}
+	set_styles() {
+		if (this.size) {
+			this.template.css({
+				width: this.size,
+			});
+		}
 	}
 	add_menu_item(item) {
 		const me = this;
@@ -51,7 +60,7 @@ frappe.ui.menu = class ContextMenu {
 							>`
 						}
 					</div>
-					<span class="menu-item-title">${item.label}</span>
+					<span class="menu-item-title">${__(item.label)}</span>
 					<div class="menu-item-icon" style="margin-left:auto">
 						${item.items && item.items.length ? frappe.utils.icon("chevron-right") : ""}
 					</div>

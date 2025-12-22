@@ -45,6 +45,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "list",
    "indent": 0,
    "keep_closed": 0,
    "label": "Google",
@@ -91,9 +92,10 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "list",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Authetication",
+   "label": "Authentication",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Section Break"
@@ -101,6 +103,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "list",
    "indent": 0,
    "keep_closed": 0,
    "label": "Social Login Key",
@@ -124,6 +127,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "list",
    "indent": 0,
    "keep_closed": 0,
    "label": "OAuth Client",
@@ -135,6 +139,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "list",
    "indent": 0,
    "keep_closed": 0,
    "label": "OAuth Provider",
@@ -144,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-11-25 10:46:09.215894",
+ "modified": "2025-12-18 17:22:26.558605",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",

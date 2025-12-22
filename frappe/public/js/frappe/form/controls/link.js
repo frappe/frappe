@@ -307,11 +307,29 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			me.autocomplete_open = false;
 
-			// prevent selection on tab
-			let TABKEY = 9;
-			if (e.keyCode === TABKEY) {
+			// prevent selection on tab/enter if input doesn't match
+			const TABKEY = 9;
+			const ENTERKEY = 13;
+			const event = o.originalEvent;
+			if (event && [TABKEY, ENTERKEY].includes(event.keyCode)) {
+				const input = me.get_label_value().toLowerCase();
+				if (!input && event.keyCode === TABKEY) {
+					e.preventDefault();
+					me.awesomplete.close();
+					return false;
+				} else if (input && !me.input_matches_item(input, item)) {
+					e.preventDefault();
+
+					// prevent browser default tab behavior (focus change)
+					if (event.preventDefault) {
+						event.preventDefault();
+					}
+					return false;
+				}
+			}
+
+			if (item.value === "filter_description__link_option") {
 				e.preventDefault();
-				me.awesomplete.close();
 				return false;
 			}
 
@@ -340,6 +358,48 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		});
 	}
 
+	/**
+	 * Checks if the current input matches any property (label, value, or description)
+	 * of the provided autocomplete item (case-insensitive).
+	 *
+	 * @param {string} input - The current input value.
+	 * @param {Object} item - The autocomplete item to check against.
+	 * @returns {boolean} - True if input matches the label, value, or description.
+	 */
+	input_matches_item(input, item) {
+		const item_label = (this.get_translated(item.label || item.value) || "").toLowerCase();
+		const item_description = (item.description || "").toLowerCase();
+		return input && (item_label.includes(input) || item_description.includes(input));
+	}
+
+	/**
+	 * Determine if we should use GET (enables HTTP caching) or POST.
+	 * Use GET for empty searches with filters that fit in URL.
+	 * Use POST for searches with text or large filters.
+	 */
+	should_use_post_for_search(txt, filters, max_get_size = 2000) {
+		// Always use POST if there's search text
+		if (txt) return true;
+
+		// If no filters, use GET
+		if (!filters) return false;
+
+		// Check size of filters when stringified
+		let filters_str = filters;
+		if (typeof filters !== "string") {
+			try {
+				filters_str = JSON.stringify(filters);
+			} catch (e) {
+				// If stringification fails, use POST
+				return true;
+			}
+		}
+
+		// URL-encoded params add ~30% overhead on average
+		const estimated_size = filters_str.length * 1.3;
+		return estimated_size > max_get_size;
+	}
+
 	on_input(e) {
 		var doctype = this.get_options();
 		if (!doctype) return;
@@ -364,10 +424,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.set_custom_query(args);
 
+		const use_get = !this.should_use_post_for_search(term, args.filters);
 		frappe.call({
-			type: "POST",
+			type: use_get ? "GET" : "POST",
 			method: "frappe.desk.search.search_link",
 			no_spinner: true,
+			cache: use_get,
 			args: args,
 			callback: (r) => {
 				if (!window.Cypress && !this.$input.is(":focus")) {
@@ -384,7 +446,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				if (filter_string) {
 					r.message.push({
 						html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
-						value: "",
+						value: "filter_description__link_option",
 						action: () => {},
 					});
 				}
@@ -678,7 +740,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (
 			nothing_to_fetch &&
 			value &&
-			this.awesomplete._list?.find((item) => item.value === value && !item.action)
+			this.awesomplete?._list?.find((item) => item.value === value && !item.action)
 		) {
 			// if value is in the suggestion list, must be correct
 			return value;

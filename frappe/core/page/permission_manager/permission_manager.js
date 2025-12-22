@@ -344,23 +344,68 @@ frappe.PermissionEngine = class PermissionEngine {
 			.find("a")
 			.attr("data-role", role)
 			.click(function () {
-				let role = $(this).attr("data-role");
+				const role = $(this).attr("data-role");
 				frappe.call({
 					module: "frappe.core",
 					page: "permission_manager",
 					method: "get_users_with_role",
-					args: {
-						role: role,
-					},
+					args: { role },
 					callback: function (r) {
-						r.message = $.map(r.message, function (p) {
-							return $.format('<a href="/app/user/{0}">{1}</a>', [p, p]);
+						let message_html = "";
+
+						const role_label = __(role);
+						const users = (r.message || []).filter(Boolean);
+						const user_count = users.length;
+						const display_count = Math.min(user_count, 5);
+
+						if (user_count === 0) {
+							message_html = __("No user has the role <strong>{0}</strong>", [
+								role_label,
+							]);
+						} else {
+							const user_text = user_count === 1 ? __("User") : __("Users");
+							const display_users = users.slice(0, display_count);
+
+							const user_list = display_users
+								.map(
+									(user) =>
+										`<li class="py-1">
+                        					${frappe.utils.get_form_link("User", user, true)}
+                    					</li>`
+								)
+								.join("");
+
+							message_html = __("{0} with the role <strong>{1}</strong>", [
+								user_text,
+								role_label,
+							]);
+
+							message_html += `<ul class="border rounded pl-4 pb-2 pt-2 mb-3 mt-3">${user_list}</ul>`;
+
+							// show compact "View All" link if more users
+							if (user_count > display_count) {
+								const route = frappe.utils.generate_route({
+									type: "Doctype",
+									doctype: "User",
+									name: "User",
+									doc_view: "List",
+									route_options: { role },
+								});
+
+								message_html += `<div class="text-center">
+                    								<a href="${route}" class="text-muted">
+														${frappe.utils.icon("external-link", "sm", "mr-1")}
+														${__("View all {0} users", [user_count])}
+                    								</a>
+                								</div>`;
+							}
+						}
+
+						frappe.msgprint({
+							title: __("Users"),
+							message: message_html,
+							indicator: user_count === 0 ? "orange" : "blue",
 						});
-						frappe.msgprint(
-							__("Users with role {0}:", [__(role)]) +
-								"<br>" +
-								r.message.join("<br>")
-						);
 					},
 				});
 				return false;

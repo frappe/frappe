@@ -226,6 +226,6 @@ context("View", () => {
 
 	it("Route to Website Workspace", () => {
 		cy.visit("/desk/website");
-		cy.get(".workspace-title").should("contain", "Website");
+		cy.get(".navbar-breadcrumbs:visible").get("li > a").should("contain", "Website");
 	});
 });

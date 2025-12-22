@@ -1,3 +1,9 @@
+const ICON_MAP = {
+	"More Info": "info",
+	Dashboard: "layout-dashboard",
+	Details: "notepad-text",
+	Connections: "waypoints",
+};
 export default class Tab {
 	constructor(layout, df, frm, tab_link_container, tabs_content) {
 		this.layout = layout;
@@ -29,6 +35,7 @@ export default class Tab {
 					type="button"
 					role="tab"
 					aria-controls="${id}">
+						${frappe.utils.icon(this.df.icon || ICON_MAP[this.label] || "list")}
 						${__(this.label, null, this.doctype)}
 				</button>
 			</li>

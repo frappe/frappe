@@ -10,7 +10,7 @@
 				</span>
 			</a>
 			{% if (frappe.is_mobile()) { %}
-				<ul class="nav d-sm-flex navbar-breadcrumbs mobile-no-divider"></ul>
+				<ul class="nav d-sm-flex navbar-breadcrumbs mobile-no-divider ellipsis"></ul>
 			{% endif %}
 			<div class="collapse navbar-collapse justify-content-end">
 				{% if (frappe.boot.read_only) { %}

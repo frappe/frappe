@@ -469,7 +469,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 								result[column] || ""
 						  )}">${__(result[column] || "")}</span>`
 						: `<a href="${
-								"/app/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
+								"/desk/" + frappe.router.slug(me.doctype) + "/" + result[column] ||
 								""
 						  }" class="list-id ellipsis" title="${__(result[column] || "")}">
 							${__(result[column] || "")}</a>`

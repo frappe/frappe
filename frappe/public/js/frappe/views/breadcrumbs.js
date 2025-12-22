@@ -53,9 +53,22 @@ frappe.breadcrumbs = {
 
 		this.clear();
 		if (!breadcrumbs) return this.toggle(false);
-
 		if (breadcrumbs.type === "Custom") {
 			this.set_custom_breadcrumbs(breadcrumbs);
+			if (breadcrumbs.menu_items && breadcrumbs.menu_items.length) {
+				let breadcrumbs_container = $(".navbar-breadcrumbs");
+				breadcrumbs_container.each((index, container) => {
+					let last_element = $(container)
+						.find("li")
+						.get($(container).find("li").length - 1);
+					$(last_element).find("a").attr("href", "");
+					frappe.ui.create_menu({
+						parent: $(last_element),
+						menu_items: breadcrumbs.menu_items,
+						size: "fit-content",
+					});
+				});
+			}
 		} else {
 			// workspace
 			this.set_workspace_breadcrumb(breadcrumbs);
@@ -88,7 +101,7 @@ frappe.breadcrumbs = {
 		if (css_classes) {
 			a.classList.add(css_classes);
 		}
-		a.innerText = label;
+		a.innerHTML = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
 	},
@@ -210,6 +223,7 @@ frappe.breadcrumbs = {
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
+			last_crumb.addClass("ellipsis");
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();
@@ -243,6 +257,7 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
+		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
 	},
 
 	toggle(show) {

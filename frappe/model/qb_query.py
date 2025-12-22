@@ -12,6 +12,7 @@ from frappe.deprecation_dumpster import deprecation_warning
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
+from frappe.utils import sbool
 
 
 class DatabaseQuery:
@@ -117,6 +118,8 @@ class DatabaseQuery:
 		if not fields:
 			fields = [pluck or "name"]
 
+		self.fields = fields
+
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
 			return self._handle_virtual_doctype(
@@ -209,7 +212,7 @@ class DatabaseQuery:
 			result = query.run(debug=debug, as_dict=not as_list, update=update)
 
 		# Add comment count if requested and not as_list
-		if with_comment_count and not as_list and self.doctype:
+		if sbool(with_comment_count) and not as_list and self.doctype:
 			self._add_comment_count(result)
 
 		# Save user settings if requested

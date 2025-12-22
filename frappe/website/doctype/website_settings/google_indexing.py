@@ -24,7 +24,7 @@ def authorize_access(reauthorize=False, code=None):
 	if not oauth_code or reauthorize:
 		return oauth_obj.get_authentication_url(
 			{
-				"redirect": f"/app/Form/{quote('Website Settings')}",
+				"redirect": f"/desk/Form/{quote('Website Settings')}",
 			},
 		)
 

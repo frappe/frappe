@@ -4,13 +4,13 @@
 // context('Relative Timeframe', () => {
 // 	before(() => {
 // 		cy.login();
-// 		cy.visit('/app/website');
+// 		cy.visit('/desk/website');
 // 		cy.window().its('frappe').then(frappe => {
 // 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
 // 		});
 // 	});
 // 	it('sets relative timespan filter for last week and filters list', () => {
-// 		cy.visit('/app/List/ToDo/List');
+// 		cy.visit('/desk/List/ToDo/List');
 // 		cy.clear_filters();
 // 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 // 		cy.add_filter();
@@ -29,7 +29,7 @@
 // 		cy.wait('@save_user_settings');
 // 	});
 // 	it('sets relative timespan filter for next week and filters list', () => {
-// 		cy.visit('/app/List/ToDo/List');
+// 		cy.visit('/desk/List/ToDo/List');
 // 		cy.clear_filters();
 // 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 // 		cy.add_filter();

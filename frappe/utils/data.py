@@ -1904,7 +1904,7 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 	"""Return the HTML link to the given document's form view.
 
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
-	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
+	    '<a href="https://frappe.io/desk/sales-invoice/INV-0001">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1924,7 +1924,7 @@ def get_link_to_report(
 	"""Return the HTML link to the given report.
 
 	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
-	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
+	        '<a href="https://frappe.io/desk/query-report/Revenue%20Report">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1967,21 +1967,21 @@ def get_link_to_report(
 def get_absolute_url(doctype: str, name: str) -> str:
 	"""Return the absolute route for the form view of the given document in the desk.
 
-	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
+	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
+	         returns 'https://frappe.io/desk/sales-invoice/INV-00001'
 	"""
 	if not name:
-		uri = f"/app/{quoted(slug(doctype))}"
+		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 	return get_url(uri=uri)
 
@@ -1990,33 +1990,33 @@ def get_url_to_list(doctype: str) -> str:
 	"""Return the absolute URL for the list view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice'
+	         returns 'https://frappe.io/desk/sales-invoice'
 	"""
-	return get_url(uri=f"/app/{quoted(slug(doctype))}")
+	return get_url(uri=f"/desk/{quoted(slug(doctype))}")
 
 
 def get_url_to_report(name, report_type: str | None = None, doctype: str | None = None) -> str:
 	"""Return the absolute URL for the report in the desk.
 
 	e.g. when name="Sales Register" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/query-report/Sales%20Register'
+	         returns 'https://frappe.io/desk/query-report/Sales%20Register'
 
 	You can optionally pass `report_type` and `doctype` to get the URL for a Report Builder report.
 
-	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/app/sales-invoice/view/report/Revenue'
+	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
 	else:
-		return get_url(uri=f"/app/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quoted(name)}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	"""Return the absolute URL for the report in the desk with filters."""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
 
 
 def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:

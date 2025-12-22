@@ -69,7 +69,6 @@ context("Form", () => {
 		// test email validations for set_invalid controller
 		let website_input = "website.in";
 		let valid_email = "user@email.com";
-		let expectBackgroundColor = "rgb(255, 245, 245)";
 
 		cy.visit("/desk/contact/new");
 		cy.fill_field("company_name", "Test Company");
