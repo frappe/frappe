@@ -1089,14 +1089,14 @@ export default class GridRow {
 
 		this.columns[df.fieldname] = $col;
 		this.columns_list.push($col);
-		if (ci == 0 && !this.header_row) {
+		if (ci == 0 && this.header_row) {
 			$col.attr("tabIndex", 0);
 			$col.on("focus", function () {
 				if (me.grid.grid_rows.length == 0) {
 					me.grid.add_new_row();
 				}
 				me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row(true);
-				me.grid.set_focus_on_row();
+				me.grid.set_focus_on_row(0);
 				$col.attr("tabIndex", "");
 			});
 		}
