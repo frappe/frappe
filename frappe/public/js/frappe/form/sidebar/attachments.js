@@ -4,7 +4,7 @@ frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
 
-		this.attachments_page_length = 10; // show n attachments initially
+		this.attachments_page_length = 5; // show n attachments initially
 		this.show_all_attachments = false;
 
 		this.make();
