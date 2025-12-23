@@ -61,11 +61,11 @@ def msgprint(
 		_raise_exception()
 		return
 
-	if as_table and type(msg) in (list, tuple):
-		out.as_table = 1
-
-	if as_list and type(msg) in (list, tuple):
-		out.as_list = 1
+	if isinstance(msg, Sequence):
+		if as_list:
+			out.as_list = as_list
+		else:
+			out.as_table = as_table
 
 	if sys.stdin and sys.stdin.isatty():
 		if out.as_list:
