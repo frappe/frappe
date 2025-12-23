@@ -21,7 +21,6 @@ import {
 	FileUploader,
 	FormControl,
 	FormLabel,
-	GreenCheckIcon,
 	Input,
 	ListItem,
 	ListView,
@@ -87,7 +86,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("FileUploader", FileUploader)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
-	app.component("GreenCheckIcon", GreenCheckIcon)
 	app.component("Input", Input)
 	app.component("Link", Link)
 	app.component("ListItem", ListItem)

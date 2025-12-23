@@ -27,6 +27,7 @@
 		"scripthost"
 	  ]
 	},
+	"extends":"frappe-ui/tsconfig.base.json",
 	"include": [
 	  "src/**/*.ts",
 	  "src/**/*.tsx",
