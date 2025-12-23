@@ -40,11 +40,7 @@
   },
   {
    "default": "0",
-<<<<<<< HEAD
-   "depends_on": "eval:doc.frequency==='All'",
-=======
    "depends_on": "eval:([\"All\", \"Cron\"].includes(doc.frequency) || doc.server_script)",
->>>>>>> 48b6663a6d (fix(ux): enable create log for server scripts by default (#35291))
    "fieldname": "create_log",
    "fieldtype": "Check",
    "label": "Create Log"
