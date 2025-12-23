@@ -16,6 +16,7 @@ import LucideClock from "~icons/lucide/clock"
 import LucideCalendarCheck from "~icons/lucide/calendar-check"
 import LucideCalendarClock from "~icons/lucide/calendar-clock"
 import LucideCalendarSearch from "~icons/lucide/calendar-search"
+import LucideCalendarDays from "~icons/lucide/calendar-days"
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
 import LucideMinus from "~icons/lucide/minus"
 import LucideChevronDown from "~icons/lucide/chevron-down"
@@ -48,6 +49,7 @@ import LucideFilePenLine from "~icons/lucide/file-pen-line"
 import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
+import LucideListFilter from "~icons/lucide/list-filter"
 
 export const COMPONENTS: FrappeUIComponents = {
 	TextBlock: {
@@ -340,6 +342,14 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "Select Date Range",
 		},
 	},
+	MonthPicker: {
+		name: "MonthPicker",
+		title: "Month Picker",
+		icon: LucideCalendarDays,
+		initialState: {
+			placeholder: "Select Month",
+		},
+	},
 	Dialog: {
 		name: "Dialog",
 		title: "Dialog",
@@ -417,6 +427,17 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			label: "Upload File",
 			fileTypes: "['image/*']",
+		},
+	},
+	Filter: {
+		name: "Filter",
+		title: "Filter",
+		icon: LucideListFilter,
+		initialState: {
+			doctype: "User",
+			filters: {
+				enabled: 1,
+			}
 		},
 	},
 	FormControl: {
@@ -515,6 +536,32 @@ export const COMPONENTS: FrappeUIComponents = {
 			filters: {
 				enabled: 1,
 			}
+		},
+	},
+	MultiSelect: {
+		name: "MultiSelect",
+		title: "Multi Select",
+		icon: LucideListCheck,
+		initialState: {
+			placeholder: "Select Fruits",
+			options: [
+				{
+					label: "Apple",
+					value: "apple",
+				},
+				{
+					label: "Banana",
+					value: "banana",
+				},
+				{
+					label: "Orange",
+					value: "orange",
+				},
+				{
+					label: "Grape",
+					value: "grape",
+				},
+			],
 		},
 	},
 	Progress: {

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/FilterProps",
+  "definitions": {
+    "FilterProps": {
+      "type": "object",
+      "properties": {
+        "doctype": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "doctype"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
