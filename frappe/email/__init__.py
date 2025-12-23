@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Literal, Optional
 
 import frappe
@@ -148,7 +150,7 @@ def sendmail(
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
-) -> "EmailQueue" | None:
+) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
