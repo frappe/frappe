@@ -182,4 +182,8 @@ def get_dictionary_match_feedback(match, is_sole_match):
 	if match.get("l33t_entropy"):
 		suggestions.append(_("Predictable substitutions like '@' instead of 'a' don't help very much."))
 
+	if not (warning or suggestions):
+		warning = _("Common words are easy to guess.")
+		suggestions.extend([_("Use a few uncommon words together."), _("Add numbers or special characters.")])
+
 	return {"warning": warning, "suggestions": suggestions}

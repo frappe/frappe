@@ -1811,12 +1811,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldtype: df.fieldtype,
 								label: df.label,
 								insert_after_index: insert_after_index,
-								link_field: this.doctype_field_map[values.doctype],
+								link_field: {
+									fieldname: values.fieldname,
+									names: this.doctype_field_map[values.doctype][values.fieldname]
+										.names,
+								},
 								doctype: values.doctype,
 								options: df.options,
 								width: 100,
 							});
-
 							this.custom_columns = this.custom_columns.concat(custom_columns);
 							frappe.call({
 								method: "frappe.desk.query_report.get_data_for_custom_field",
@@ -1824,7 +1827,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									field: values.field,
 									doctype: values.doctype,
 									names: Array.from(
-										this.doctype_field_map[values.doctype].names
+										this.doctype_field_map[values.doctype][values.fieldname]
+											.names
 									),
 								},
 								callback: (r) => {
@@ -1970,12 +1974,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		);
 
 		doctypes.forEach((doc) => {
-			this.doctype_field_map[doc.doctype] = { fieldname: doc.fieldname, names: new Set() };
+			if (!this.doctype_field_map[doc.doctype]) {
+				this.doctype_field_map[doc.doctype] = {};
+			}
+			this.doctype_field_map[doc.doctype][doc.fieldname] = {};
+			this.doctype_field_map[doc.doctype][doc.fieldname] = { names: new Set() };
 		});
-
 		this.data.forEach((row) => {
 			doctypes.forEach((doc) => {
-				this.doctype_field_map[doc.doctype].names.add(row[doc.fieldname]);
+				this.doctype_field_map[doc.doctype][doc.fieldname].names.add(row[doc.fieldname]);
 			});
 		});
 

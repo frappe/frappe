@@ -123,7 +123,9 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 
 		let file_label = `
-			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
+			<a href="${frappe.utils.escape_html(file_url)}" target="_blank" title="${frappe.utils.escape_html(
+			file_name
+		)}"
 				class="ellipsis" style="max-width: calc(100% - 43px);"
 			>
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
