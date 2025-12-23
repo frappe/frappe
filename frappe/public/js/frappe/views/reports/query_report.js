@@ -1530,13 +1530,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
-		if (this.export_dialog) {
-			this.export_dialog.clear();
-			this.export_dialog.show();
-			return;
-		}
-
-		let extra_fields = [];
+		const extra_fields = [];
+		const applied_filters = this.get_applied_filters(this.get_filter_values());
 
 		if (this.tree_report) {
 			extra_fields.push({
@@ -1546,7 +1541,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-		if (this.filters.length > 0) {
+		if (applied_filters && Object.keys(applied_filters).length > 0) {
 			extra_fields.push({
 				label: __("Include filters"),
 				fieldname: "include_filters",
@@ -1568,17 +1563,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}) => {
 				this.make_access_log("Export", file_format);
 
-				let filters = this.get_filter_values(true);
-				let boolean_labels = { 1: __("Yes"), 0: __("No") };
-				let applied_filters = {};
-
-				for (const [key, value] of Object.entries(filters)) {
-					const df = frappe.query_report.get_filter(key).df;
-					if (!df.hidden_due_to_dependency) {
-						applied_filters[df.label] =
-							df.fieldtype === "Check" ? boolean_labels[value] : value;
-					}
-				}
+				const filters = this.get_filter_values(true);
+				const applied_filters = this.get_applied_filters(filters);
 
 				if (this.prepared_report_name) {
 					filters.prepared_report_name = this.prepared_report_name;
@@ -1616,6 +1602,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		);
 
 		this.export_dialog.show();
+	}
+
+	get_applied_filters(filters) {
+		const boolean_labels = { 1: __("Yes"), 0: __("No") };
+		const applied_filters = {};
+
+		for (const [key, value] of Object.entries(filters)) {
+			const df = frappe.query_report.get_filter(key).df;
+			if (!df.hidden_due_to_dependency) {
+				applied_filters[df.label] =
+					df.fieldtype === "Check" ? boolean_labels[value] : value;
+			}
+		}
+
+		return applied_filters;
 	}
 
 	get_data_for_csv(include_indentation) {

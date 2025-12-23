@@ -456,10 +456,9 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 	result = []
 	column_widths = []
 
-	if cint(include_filters):
+	if cint(include_filters) and data.filters:
 		filter_data = []
-		filters = data.filters
-		for filter_name, filter_value in filters.items():
+		for filter_name, filter_value in data.filters.items():
 			if not filter_value:
 				continue
 			filter_value = (
