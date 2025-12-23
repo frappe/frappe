@@ -3,10 +3,11 @@ const jump_to_field = (field_label) => {
 		.type("{esc}") // lose focus if any
 		.type("{ctrl+j}") // jump to field
 		.type(field_label)
-		.wait(500)
+		.wait(1000)
 		.type("{enter}")
 		.wait(200)
-		.type("{enter}")
+		.findByRole("button", { name: "Go" })
+		.click()
 		.wait(1000);
 };
 
@@ -68,7 +69,6 @@ context("Form", () => {
 		// test email validations for set_invalid controller
 		let website_input = "website.in";
 		let valid_email = "user@email.com";
-		let expectBackgroundColor = "rgb(255, 245, 245)";
 
 		cy.visit("/desk/contact/new");
 		cy.fill_field("company_name", "Test Company");

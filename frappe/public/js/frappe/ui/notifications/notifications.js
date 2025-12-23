@@ -8,7 +8,8 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	make() {
-		this.dropdown = $(".navbar").find(".dropdown-notifications").removeClass("hidden");
+		$(".standard-items-sections").find(".sidebar-notification").removeClass("hidden");
+		this.dropdown = $(".standard-items-sections").find(".dropdown-notifications");
 		this.dropdown_list = this.dropdown.find(".notifications-list");
 		this.header_items = this.dropdown_list.find(".header-items");
 		this.header_actions = this.dropdown_list.find(".header-actions");
@@ -25,24 +26,34 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_headers() {
 		// Add header actions
-		$(`<span class="notification-settings pull-right" data-action="go_to_settings">
+		$(`<span class="notification-settings" data-action="go_to_settings">
 			${frappe.utils.icon("setting-gear")}
 		</span>`)
 			.on("click", (e) => {
 				e.stopImmediatePropagation();
-				this.dropdown.dropdown("hide");
+				console.log("what");
 				frappe.set_route("Form", "Notification Settings", frappe.session.user);
 			})
 			.appendTo(this.header_actions)
 			.attr("title", __("Notification Settings"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
-		$(`<span class="mark-all-read pull-right" data-action="mark_all_as_read">
+		$(`<span class="mark-all-read" data-action="mark_all_as_read">
 			${frappe.utils.icon("mark-as-read")}
 		</span>`)
 			.on("click", (e) => this.mark_all_as_read(e))
 			.appendTo(this.header_actions)
 			.attr("title", __("Mark all as read"))
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+
+		$(`<span class="close-notification-dialogue pull-right">
+			${frappe.utils.icon("x")}
+		</span>`)
+			.on("click", (e) => {
+				this.dropdown.addClass("hidden");
+			})
+			.appendTo(this.header_actions)
+			.attr("title", __("Close"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		this.categories = [
@@ -118,6 +129,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_dropdown_events() {
+		const dropdown = this.dropdown;
 		this.dropdown.on("hide.bs.dropdown", (e) => {
 			let hide = $(e.currentTarget).data("closable");
 			$(e.currentTarget).data("closable", true);
@@ -126,6 +138,25 @@ frappe.ui.Notifications = class Notifications {
 
 		this.dropdown.on("click", (e) => {
 			$(e.currentTarget).data("closable", true);
+		});
+
+		$(document).on("click", function (e) {
+			const isInsideNotificationBtn =
+				$(e.target).closest(".standard-items-sections .sidebar-notification").length > 0;
+			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
+
+			if (!isInsideNotificationBtn && !isInsideDropdown) {
+				dropdown.addClass("hidden");
+			}
+		});
+
+		dropdown.find(".notification-item").on("click", (e) => {
+			dropdown.addClass("hidden");
+		});
+		$(document).on("page-change", function () {
+			if (dropdown && dropdown.length) {
+				dropdown.addClass("hidden");
+			}
 		});
 	}
 };
@@ -218,7 +249,7 @@ class NotificationsView extends BaseNotificationsView {
 		if (this.container.find(".activity-status")) {
 			this.container.find(".activity-status").replaceWith(
 				`<a class="recent-item text-center text-muted"
-					href="/app/List/Notification Log">
+					href="/desk/List/Notification Log">
 					<div class="full-log-btn">${__("View Full Log")}</div>
 				</a>`
 			);
@@ -307,7 +338,7 @@ class NotificationsView extends BaseNotificationsView {
 					this.container.append(this.get_dropdown_item_html(notification_log));
 				});
 				this.container.append(`<a class="list-footer"
-					href="/app/List/Notification Log">
+					href="/desk/List/Notification Log">
 						<div class="full-log-btn">${__("See all Activity")}</div>
 					</a>`);
 			} else {
@@ -428,7 +459,7 @@ class EventsView extends BaseNotificationsView {
 					location = `, ${event.location}`;
 				}
 
-				return `<a class="recent-item event" href="/app/event/${event.name}">
+				return `<a class="recent-item event" href="/desk/event/${event.name}">
 					<div class="event-border" style="border-color: ${event.color}"></div>
 					<div class="event-item">
 						<div class="event-subject">${event.subject}</div>

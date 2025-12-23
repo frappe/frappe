@@ -75,10 +75,17 @@
 		<svg class="right-icon icon icon-md"><use href="#icon-home"></use></svg>
 		{{ _("Home") }}
 	</a>
-	<a href="/desk">
+	{% if is_portal_user %}
+	<a href="/portal">
+		<svg class="right-icon icon icon-md"><use href="#icon-website"></use></svg>
+		{{ _("Portal") }}
+	</a>
+	{% else %}
+		<a href="/desk">
 		<svg class="right-icon icon icon-md"><use href="#icon-grid"></use></svg>
 		{{ _("Desktop") }}
 	</a>
+	{% endif %}
 	<a href="/logout">
 		<svg class="right-icon icon icon-md"><use href="#icon-logout"></use></svg>
 		{{ _("Logout") }}

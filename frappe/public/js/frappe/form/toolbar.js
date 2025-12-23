@@ -9,7 +9,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		$.extend(this, opts);
 		this.refresh();
 		this.add_update_button_on_dirty();
-		this.setup_editable_title();
 	}
 	refresh() {
 		this.make_menu();
@@ -26,7 +25,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.page.hide_menu();
 				this.print_icon && this.print_icon.addClass("hide");
 			} else {
-				if (this.page.menu.children().length > 0) {
+				const is_children_visible =
+					this.page.menu.children().filter(function () {
+						return (
+							$(this).css("display") !== "none" &&
+							!$(this).hasClass("dropdown-divider")
+						);
+					}).length > 0;
+				if (is_children_visible) {
 					this.page.show_menu();
 				} else {
 					this.page.hide_menu();
@@ -194,10 +200,15 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		});
 	}
-	setup_editable_title() {
+	setup_editable_title(element) {
 		let me = this;
 
-		this.page.$title_area.find(".title-text").on("click", () => {
+		$(element).tooltip({
+			delay: { show: 100, hide: 100 },
+			trigger: "hover",
+		});
+
+		element.on("click", () => {
 			let fields = [];
 			let docname = me.frm.doc.name;
 			let title_field = me.frm.meta.title_field || "";

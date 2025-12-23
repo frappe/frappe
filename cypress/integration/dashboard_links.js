@@ -27,7 +27,7 @@ context("Dashboard links", () => {
 		cy.visit("/desk/contact");
 		cy.clear_filters();
 
-		cy.visit(`/app/user/${cy.config("testUser")}`);
+		cy.visit(`/desk/user/${cy.config("testUser")}`);
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.select_form_tab("Connections");
@@ -40,7 +40,7 @@ context("Dashboard links", () => {
 		cy.findByRole("button", { name: "Add Contact" }).click();
 		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type("Admin");
 		cy.findByRole("button", { name: "Save" }).click();
-		cy.visit(`/app/user/${cy.config("testUser")}`);
+		cy.visit(`/desk/user/${cy.config("testUser")}`);
 
 		//To check if the counter for contact doc is "2" after adding additional contact
 		cy.select_form_tab("Connections");
@@ -62,7 +62,7 @@ context("Dashboard links", () => {
 	});
 
 	it("Report link in dashboard", () => {
-		cy.visit(`/app/user/${cy.config("testUser")}`);
+		cy.visit(`/desk/user/${cy.config("testUser")}`);
 		cy.select_form_tab("Connections");
 		cy.get('.document-link[data-doctype="Contact"]').contains("Contact");
 		cy.window()

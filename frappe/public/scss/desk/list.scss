@@ -481,6 +481,12 @@ input.list-header-checkbox {
 		.form-group {
 			min-width: 150px;
 		}
+
+		.group-by-field {
+			.group-by-dropdown {
+				max-width: 220px;
+			}
+		}
 	}
 
 	.filter-section {

@@ -34,7 +34,7 @@
 </div>
 <script>
 	frappe.ready(function() {
-		if (window.location.hash || window.location.href.includes('/app')) {
+		if (window.location.hash || window.location.href.includes('/desk')) {
 			localStorage.setItem('session_last_route', window.location.pathname);
 		}
 

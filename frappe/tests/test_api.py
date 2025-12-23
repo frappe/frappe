@@ -16,6 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import cint, get_test_client, get_url
 
 try:
@@ -431,7 +432,7 @@ def after_request(*args, **kwargs):
 	_test_REQ_HOOK["after_request"] = time()
 
 
-class TestResponse(FrappeAPITestCase):
+class TestAPIResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
 			"/api/method/frappe.utils.print_format.download_pdf",
@@ -501,8 +502,8 @@ class TestResponse(FrappeAPITestCase):
 
 	def test_login_redirects(self):
 		expected_redirects = {
-			"/app/user": "http://localhost/app/user",
-			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
+			"/desk/user": "http://localhost/desk/user",
+			"/desk/user?enabled=1": "http://localhost/desk/user?enabled=1",
 			"http://example.com": "http://localhost/desk",  # No external redirect
 			"https://google.com": "http://localhost/desk",
 			"http://localhost:8000": "http://localhost/desk",
@@ -522,7 +523,7 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-@frappe.whitelist()
+@whitelist_for_tests()
 def test(*, fail=False, handled=True, message="Failed"):
 	if fail:
 		if handled:
@@ -533,6 +534,6 @@ def test(*, fail=False, handled=True, message="Failed"):
 		frappe.msgprint(message)
 
 
-@frappe.whitelist(allow_guest=True)
+@whitelist_for_tests(allow_guest=True)
 def test_array(data):
 	return data

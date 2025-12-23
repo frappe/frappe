@@ -18,7 +18,8 @@ class TestSMTP(IntegrationTestCase):
 
 	def test_get_email_account(self):
 		existing_email_accounts = frappe.get_all(
-			"Email Account", fields=["name", "enable_outgoing", "default_outgoing", "append_to", "use_imap"]
+			"Email Account",
+			fields=["name", "enable_outgoing", "default_outgoing", "append_to", "use_imap"],
 		)
 		unset_details = {"enable_outgoing": 0, "default_outgoing": 0, "append_to": None, "use_imap": 0}
 		for email_account in existing_email_accounts:

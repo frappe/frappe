@@ -4,15 +4,14 @@ context("Customize Form", () => {
 		cy.visit("/desk/customize-form");
 	});
 	it("Changing to naming rule should update autoname", () => {
-		cy.fill_field("doc_type", "ToDo", "Link").blur();
-		cy.wait(2000);
+		cy.fill_field("doc_type", "ToDo", "Link");
 		cy.findByRole("tab", { name: "Details" }).click();
 		cy.click_form_section("Naming");
 		const naming_rule_default_autoname_map = {
 			"Set by user": "prompt",
 			"By fieldname": "field:",
-			Expression: "format:",
-			"Expression (old style)": "",
+			Expression: "",
+			"Expression (old style)": "format:",
 			Random: "hash",
 			"By script": "",
 		};

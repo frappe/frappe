@@ -57,8 +57,9 @@ def sync_user_settings():
 				"postgres": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
 				VALUES (%s, %s, %s)
 				ON CONFLICT ("user", "doctype") DO UPDATE SET `data`=%s""",
-				"sqlite": """INSERT OR REPLACE INTO `__UserSettings` (`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)""",
+				"sqlite": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
+				VALUES (%s, %s, %s)
+				ON CONFLICT (`user`, `doctype`) DO UPDATE SET `data`=%s""",
 			},
 			(user, doctype, data, data),
 			as_dict=1,

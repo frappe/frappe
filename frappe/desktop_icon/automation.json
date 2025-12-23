@@ -10,11 +10,11 @@
  "label": "Automation",
  "link_to": "Assignment Rule",
  "link_type": "DocType",
- "modified": "2025-11-13 16:00:56.971828",
+ "modified": "2025-11-25 13:25:38.018090",
  "modified_by": "Administrator",
  "name": "Automation",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }

@@ -64,7 +64,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 		return oauth_obj.get_authentication_url(
 			{
 				"g_contact": g_contact,
-				"redirect": f"/app/Form/{quote('Google Contacts')}/{quote(g_contact)}",
+				"redirect": f"/desk/Form/{quote('Google Contacts')}/{quote(g_contact)}",
 			},
 		)
 

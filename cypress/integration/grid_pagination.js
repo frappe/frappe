@@ -70,7 +70,7 @@ context("Grid Pagination", () => {
 		cy.get("@table").find(".current-page-number").should("have.value", "1");
 	});
 	// it('deletes all rows', ()=> {
-	// 	cy.visit('/app/contact/Test Contact');
+	// 	cy.visit('/desk/contact/Test Contact');
 	// 	cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 	// 	cy.get('@table').find('.grid-heading-row .grid-row-check').click({force: true});
 	// 	cy.get('@table').find('button.grid-remove-all-rows').click();

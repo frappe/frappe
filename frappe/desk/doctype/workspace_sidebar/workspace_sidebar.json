@@ -24,6 +24,7 @@
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
+   "no_copy": 1,
    "options": "Workspace Sidebar Item"
   },
   {
@@ -53,7 +54,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-17 01:17:20.583501",
+ "modified": "2025-12-10 20:20:26.518699",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar",

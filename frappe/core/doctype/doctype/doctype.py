@@ -216,6 +216,7 @@ class DocType(Document):
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
+		self.patch_old_naming_expressions()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -446,6 +447,18 @@ class DocType(Document):
 				title=_("Insufficient attachment limit"),
 				alert=True,
 			)
+
+	def patch_old_naming_expressions(self):
+		if not self.autoname:
+			return
+
+		# We swapped naming_rule field old/new to discourage use of "format:"
+		if self.autoname and self.autoname.startswith("format:"):
+			self.naming_rule = "Expression (old style)"
+			frappe.toast(_("Warning: Usage of 'format:' is discouraged."), indicator="yellow")
+
+		if self.naming_rule == "Expression (old style)" and not self.autoname.startswith("format:"):
+			self.naming_rule = "Expression"
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -871,6 +884,7 @@ class DocType(Document):
 			if not os.path.exists(templates_path):
 				os.makedirs(templates_path)
 			make_boilerplate("templates/controller.html", self.as_dict())
+			make_boilerplate("templates/controller_list.html", self.as_dict())
 			make_boilerplate("templates/controller_row.html", self.as_dict())
 
 	def export_types_to_controller(self):
@@ -1126,10 +1140,10 @@ def validate_empty_name(dt, autoname):
 			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
 
 
-def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
+def validate_autoincrement_autoname(dt: DocType | "CustomizeForm") -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+	def get_autoname_before_save(dt: DocType | "CustomizeForm") -> str:
 		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"

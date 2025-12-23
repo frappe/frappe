@@ -6,7 +6,7 @@ frappe.ui.form.on("Google Contacts", {
 		if (!frm.doc.enable) {
 			frm.dashboard.set_headline(
 				__("To use Google Contacts, enable {0}.", [
-					`<a href='/app/google-settings'>${__("Google Settings")}</a>`,
+					`<a href='/desk/google-settings'>${__("Google Settings")}</a>`,
 				])
 			);
 		}

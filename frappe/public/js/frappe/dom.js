@@ -27,10 +27,7 @@ frappe.dom = {
 	},
 	eval: function (txt) {
 		if (!txt) return;
-		var el = document.createElement("script");
-		el.appendChild(document.createTextNode(txt));
-		// execute the script globally
-		document.getElementsByTagName("head")[0].appendChild(el);
+		new Function(txt)();
 	},
 
 	remove_script_and_style: function (txt) {
@@ -315,8 +312,8 @@ frappe.get_data_pill = (
 		style = "";
 	if (colored) {
 		color = frappe.get_palette(label);
+		style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	}
-	style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	let data_pill_wrapper = $(`
 		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">

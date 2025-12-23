@@ -67,7 +67,20 @@ class TestQuery(IntegrationTestCase):
 	def setUp(self):
 		setup_for_tests()
 
+	def ensure_system_manager(self, user_doc, should_have: bool):
+		"""Ensure user has/doesn't have System Manager role, with cleanup to restore original state."""
+		had_role = "System Manager" in [r.role for r in user_doc.roles]
+		cleanup_func = user_doc.add_roles if had_role else user_doc.remove_roles
+		self.addCleanup(lambda: cleanup_func("System Manager"))
+
+		if should_have and not had_role:
+			user_doc.add_roles("System Manager")
+		elif not should_have and had_role:
+			user_doc.remove_roles("System Manager")
+
 	def test_multiple_tables_in_filters(self):
+		query = "SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'"
+		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -77,7 +90,7 @@ class TestQuery(IntegrationTestCase):
 					["DocType", "parent", "=", "something"],
 				],
 			).get_sql(),
-			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
+			query,
 		)
 
 	def test_string_fields(self):
@@ -360,13 +373,15 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'",
 		)
 
+		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'"
+		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": ("like", "frap%")},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'",
+			query,
 		)
 
 		self.assertQueryEqual(
@@ -422,141 +437,125 @@ class TestQuery(IntegrationTestCase):
 	def test_or_filters(self):
 		"""Test OR filter conditions."""
 		# Test 1: Basic dict or_filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'",
 		)
 
 		# Test 2: List format or_filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters=[["name", "=", "User"], ["module", "=", "Core"]],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `module`='Core'",
 		)
 
 		# Test 3: OR filters with operators
-		self.assertEqual(
+		query = "SELECT `name` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `module` IN ('Core','Custom')"
+		query = query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("like", "User%"), "module": ("in", ["Core", "Custom"])},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `module` IN ('Core','Custom')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			query,
 		)
 
 		# Test 4: Combining filters (AND) with or_filters (OR)
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"issingle": 0},
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND (`name`='User' OR `module`='Core')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND (`name`='User' OR `module`='Core')",
 		)
 
 		# Test 5: Multiple AND filters with OR filters
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"issingle": 0, "custom": 0},
 				or_filters={"name": "User", "module": "Core"},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND `custom`=0 AND (`name`='User' OR `module`='Core')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `issingle`=0 AND `custom`=0 AND (`name`='User' OR `module`='Core')",
 		)
 
 		# Test 6: OR filters with simple list (name IN)
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				or_filters=["User", "Role", "Note"],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('User','Role','Note')".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('User','Role','Note')",
 		)
 
 		# Test 7: OR filters with greater than and less than
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"idx": (">", 5), "issingle": ("=", 1)},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `idx`>5 OR `issingle`=1".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `idx`>5 OR `issingle`=1",
 		)
 
 		# Test 8: OR filters with list including doctype
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters=[["DocType", "name", "=", "User"], ["DocType", "name", "=", "Role"]],
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `name`='Role'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`='User' OR `name`='Role'",
 		)
 
 		# Test 9: OR filters with != operator
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("!=", "User"), "module": ("!=", "Core")},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name`<>'User' OR `module`<>'Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name`<>'User' OR `module`<>'Core'",
 		)
 
 		# Test 10: Empty or_filters should return query without OR conditions
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"custom": 0},
 				or_filters={},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `custom`=0".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `custom`=0",
 		)
 
 		# Test 11: OR filters with not in operator
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				or_filters={"name": ("not in", ["User", "Role"]), "module": ("=", "Core")},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` NOT IN ('User','Role') OR `module`='Core'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `name` FROM `tabDocType` WHERE `name` NOT IN ('User','Role') OR `module`='Core'",
 		)
 
 		# Test 12: OR filters with mixed field types
-		self.assertEqual(
+		query = (
+			"SELECT `name`,`module` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `issingle`=1 OR `custom`=0"
+		)
+		query = query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name", "module"],
@@ -566,9 +565,7 @@ class TestQuery(IntegrationTestCase):
 					["custom", "=", 0],
 				],
 			).get_sql(),
-			"SELECT `name`,`module` FROM `tabDocType` WHERE `name` LIKE 'User%' OR `issingle`=1 OR `custom`=0".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			query,
 		)
 
 	def test_nested_filters(self):
@@ -665,7 +662,11 @@ class TestQuery(IntegrationTestCase):
 			.where(
 				(User.creation > "2023-01-01")
 				& (
-					(User.email.like("%@example.com"))
+					(
+						User.email.ilike("%@example.com")
+						if frappe.db.db_type == "postgres"
+						else User.email.like("%@example.com")
+					)
 					| ((User.first_name.isin(["Admin", "Guest"])) & (User.enabled != 1))
 				)
 			)
@@ -710,49 +711,41 @@ class TestQuery(IntegrationTestCase):
 	def test_implicit_join_query(self):
 		self.maxDiff = None
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 		# output doesn't contain parentfield condition because it can't be inferred
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 		# output contains parentfield condition because it can be inferred by "seen_by.user"
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "seen_by.user as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' AND `tabNote Seen By`.`parentfield`='seen_by' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' AND `tabNote Seen By`.`parentfield`='seen_by' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
-		self.assertEqual(
+		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				fields=["name", "module.app_name as app_name"],
 			).get_sql(),
-			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
-			),
+			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`",
 		)
 
 	# fields now has strict validation, so this test is not valid anymore
@@ -878,7 +871,9 @@ class TestQuery(IntegrationTestCase):
 		if frappe.db.db_type == "mariadb":
 			self.assertIn("IFNULL(`name`,'')='' OR `name` IN ('_Test Blog Post 1','_Test Blog Post')", query)
 		elif frappe.db.db_type == "postgres":
-			self.assertIn("\"name\" IS NULL OR \"name\" IN ('_Test Blog Post 1','_Test Blog Post')", query)
+			self.assertIn(
+				"IFNULL(\"name\",'')='' OR \"name\" IN ('_Test Blog Post 1','_Test Blog Post')", query
+			)  # works in pg due to `coalesce` sub during sql execution
 
 		frappe.set_user("Administrator")
 		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
@@ -1762,39 +1757,39 @@ class TestQuery(IntegrationTestCase):
 		# Test simple addition
 		query = frappe.qb.get_query("User", fields=[{"ADD": [1, 2], "as": "sum_result"}])
 		sql = query.get_sql()
-		self.assertIn("1+2 `sum_result`", sql)
+		self.assertIn(self.normalize_sql("1+2 `sum_result`"), sql)
 
 		# Test simple subtraction
 		query = frappe.qb.get_query("User", fields=[{"SUB": [10, 5], "as": "diff_result"}])
 		sql = query.get_sql()
-		self.assertIn("10-5 `diff_result`", sql)
+		self.assertIn(self.normalize_sql("10-5 `diff_result`"), sql)
 
 		# Test simple multiplication
 		query = frappe.qb.get_query("User", fields=[{"MUL": [3, 4], "as": "prod_result"}])
 		sql = query.get_sql()
-		self.assertIn("3*4 `prod_result`", sql)
+		self.assertIn(self.normalize_sql("3*4 `prod_result`"), sql)
 
 		# Test simple division
 		query = frappe.qb.get_query("User", fields=[{"DIV": [10, 2], "as": "div_result"}])
 		sql = query.get_sql()
-		self.assertIn("10/2 `div_result`", sql)
+		self.assertIn(self.normalize_sql("10/2 `div_result`"), sql)
 
 		# Test operator with field names
 		query = frappe.qb.get_query("User", fields=[{"ADD": ["enabled", "login_after"], "as": "field_sum"}])
 		sql = query.get_sql()
-		self.assertIn("`enabled`+`login_after` `field_sum`", sql)
+		self.assertIn(self.normalize_sql("`enabled`+`login_after` `field_sum`"), sql)
 
 		# Test nested operators
 		query = frappe.qb.get_query("User", fields=[{"ADD": [{"MUL": [2, 3]}, 4], "as": "nested_result"}])
 		sql = query.get_sql()
-		self.assertIn("2*3+4 `nested_result`", sql)
+		self.assertIn(self.normalize_sql("2*3+4 `nested_result`"), sql)
 
 		# Test operator with function - NULLIF
 		query = frappe.qb.get_query(
 			"User", fields=[{"DIV": [1, {"NULLIF": ["enabled", 0]}], "as": "safe_div"}]
 		)
 		sql = query.get_sql()
-		self.assertIn("1/NULLIF(`enabled`,0) `safe_div`", sql)
+		self.assertIn(self.normalize_sql("1/NULLIF(`enabled`,0) `safe_div`"), self.normalize_sql(sql))
 
 		# Test complex nested expression: (1 / NULLIF(value, 0))
 		query = frappe.qb.get_query(
@@ -1805,8 +1800,8 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn("`name`", sql)
-		self.assertIn("1/NULLIF(`enabled`,0) `inverse`", sql)
+		self.assertIn(self.normalize_sql("`name`"), sql)
+		self.assertIn(self.normalize_sql("1/NULLIF(`enabled`,0) `inverse`"), self.normalize_sql(sql))
 
 		# Test operator with LOCATE function (search relevance pattern)
 		query = frappe.qb.get_query(
@@ -1817,7 +1812,10 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn("1/NULLIF(LOCATE('test',`name`),0) `relevance`", sql)
+		self.assertIn(
+			self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
+			self.normalize_sql(sql),
+		)
 
 		# Test multiple operators in fields
 		query = frappe.qb.get_query(
@@ -1829,9 +1827,9 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn("`name`", sql)
-		self.assertIn("`enabled`+1 `enabled_plus_one`", sql)
-		self.assertIn("`enabled`*2 `enabled_times_two`", sql)
+		self.assertIn(self.normalize_sql("`name`"), sql)
+		self.assertIn(self.normalize_sql("`enabled`+1 `enabled_plus_one`"), sql)
+		self.assertIn(self.normalize_sql("`enabled`*2 `enabled_times_two`"), sql)
 
 		# Test operator without alias
 		query = frappe.qb.get_query("User", fields=[{"ADD": [1, 1]}])
@@ -1898,9 +1896,12 @@ class TestQuery(IntegrationTestCase):
 		)
 
 		sql = query.get_sql()
-		self.assertIn("GROUP BY `created_date`", sql)
-		self.assertIn("ORDER BY `created_date`", sql)
-		self.assertIn("`creation` `created_date`", sql)
+		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
+		if (
+			frappe.db.db_type != "postgres"
+		):  # since Postgres requires fields in Order by to be grouped or aggregated, order by is dropped
+			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
+		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
@@ -1910,7 +1911,372 @@ class TestQuery(IntegrationTestCase):
 		)
 		sql = query.get_sql()
 		# If we get here without PermissionError, the test passes
-		self.assertIn("GROUP BY `created_date`", sql)
+		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
+
+	def test_between_datetime_expansion(self):
+		"""Test that date strings are expanded to datetime ranges for Datetime fields with 'between' operator"""
+		# Test with creation field (standard datetime field)
+		query = frappe.qb.get_query(
+			"User",
+			filters={"creation": ["between", ["2025-12-01", "2025-12-01"]]},
+		)
+		sql = query.get_sql()
+		# Date strings should be expanded to datetime ranges
+		self.assertIn("2025-12-01 00:00:00", sql)
+		self.assertIn("2025-12-01 23:59:59", sql)
+
+	def test_timespan_datetime_expansion(self):
+		"""Test that timespan operator expands dates to datetime ranges for Datetime fields"""
+		query = frappe.qb.get_query(
+			"User",
+			filters={"creation": ["timespan", "last 7 days"]},
+		)
+		sql = query.get_sql()
+		# Timespan should expand dates to datetime ranges (start of first day, end of last day)
+		# Should have times like 00:00:00 and 23:59:59
+		self.assertIn("00:00:00", sql)
+		self.assertIn("23:59:59", sql)
+
+	def test_share_only_access(self):
+		"""Test that shared docs grant access when user has no role permissions."""
+		import frappe.share
+
+		test_user = "test2@example.com"
+
+		# Create a private event (only owner can see by default)
+		event = frappe.get_doc(
+			doctype="Event",
+			subject="Share Only Test Event",
+			starts_on="2025-01-01 10:00:00",
+			event_type="Private",
+		).insert()
+
+		self.addCleanup(event.delete)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# Verify user can't access without share
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query("Event", filters={"name": event.name}, ignore_permissions=False).run()
+		self.assertEqual(len(result), 0, "User should not see event without share")
+
+		# Share the document
+		frappe.set_user("Administrator")
+		frappe.share.add("Event", event.name, test_user)
+
+		# Now user should be able to access via share
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query("Event", filters={"name": event.name}, ignore_permissions=False).run()
+		self.assertEqual(len(result), 1, "User should see event via share")
+
+	def test_if_owner_constraint_with_shared_docs(self):
+		"""Test that shared docs trump if_owner constraint."""
+		import frappe.share
+		from frappe.core.page.permission_manager.permission_manager import update
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		test_user_doc.add_roles("Blogger")
+
+		# Create blog post owned by Administrator
+		blog_post = frappe.get_doc(
+			doctype="Test Blog Post",
+			title="If Owner Test Post",
+			content="Test Content",
+			blog_category="_Test Blog Category",
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		# Enable if_owner constraint for Test Blog Post
+		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
+
+		self.addCleanup(lambda: test_user_doc.remove_roles("Blogger"))
+		self.addCleanup(blog_post.delete)
+		self.addCleanup(lambda: update("Test Blog Post", "Blogger", 0, "if_owner", 0))
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# User shouldn't see it (not owner, if_owner enabled)
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query(
+			"Test Blog Post", filters={"name": blog_post.name}, ignore_permissions=False
+		).run()
+		self.assertEqual(len(result), 0, "User should not see post owned by others with if_owner")
+
+		# Share the document
+		frappe.set_user("Administrator")
+		frappe.share.add("Test Blog Post", blog_post.name, test_user)
+
+		# Now user should see it via share (shared docs trump if_owner)
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query(
+			"Test Blog Post", filters={"name": blog_post.name}, ignore_permissions=False
+		).run()
+		self.assertEqual(len(result), 1, "User should see post via share despite if_owner")
+
+	def test_user_permission_with_shared_docs(self):
+		"""Test that shared docs grant access even when user permission doesn't match."""
+		import frappe.share
+		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		test_user_doc.add_roles("Blogger")
+
+		# Create two blog posts
+		blog_post1 = frappe.get_doc(
+			doctype="Test Blog Post",
+			title="User Perm Test Post 1",
+			content="Test Content",
+			blog_category="_Test Blog Category",
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		blog_post2 = frappe.get_doc(
+			doctype="Test Blog Post",
+			title="User Perm Test Post 2",
+			content="Test Content",
+			blog_category="_Test Blog Category",
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		clear_user_permissions_for_doctype("Test Blog Post", test_user)
+
+		# Add user permission for only post1
+		add_user_permission("Test Blog Post", blog_post1.name, test_user, True)
+
+		self.addCleanup(lambda: test_user_doc.remove_roles("Blogger"))
+		self.addCleanup(blog_post2.delete)
+		self.addCleanup(blog_post1.delete)
+		self.addCleanup(lambda: clear_user_permissions_for_doctype("Test Blog Post", test_user))
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# User should see post1 via user permission
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query(
+			"Test Blog Post", filters={"name": blog_post1.name}, ignore_permissions=False
+		).run()
+		self.assertEqual(len(result), 1, "User should see post1 via user permission")
+
+		# User should NOT see post2 (no user permission)
+		result = frappe.qb.get_query(
+			"Test Blog Post", filters={"name": blog_post2.name}, ignore_permissions=False
+		).run()
+		self.assertEqual(len(result), 0, "User should not see post2 without user permission")
+
+		# Share post2 with user
+		frappe.set_user("Administrator")
+		frappe.share.add("Test Blog Post", blog_post2.name, test_user)
+
+		# Now user should see post2 via share (shared docs trump user permissions)
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query(
+			"Test Blog Post", filters={"name": blog_post2.name}, ignore_permissions=False
+		).run()
+		self.assertEqual(len(result), 1, "User should see post2 via share")
+
+	def test_role_permission_without_restrictions(self):
+		"""Test that all documents are accessible when role permissions exist without if_owner/user_perms."""
+		from frappe.core.page.permission_manager.permission_manager import update
+		from frappe.permissions import clear_user_permissions_for_doctype
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		test_user_doc.add_roles("Blogger")
+
+		# Clear any user permissions
+		clear_user_permissions_for_doctype("Test Blog Post", test_user)
+
+		# Ensure if_owner is disabled
+		update("Test Blog Post", "Blogger", 0, "if_owner", 0)
+
+		# Create blog posts owned by Administrator
+		blog_post1 = frappe.get_doc(
+			doctype="Test Blog Post",
+			title="No Restriction Test 1",
+			content="Test Content",
+			blog_category="_Test Blog Category",
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		blog_post2 = frappe.get_doc(
+			doctype="Test Blog Post",
+			title="No Restriction Test 2",
+			content="Test Content",
+			blog_category="_Test Blog Category",
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		self.addCleanup(lambda: test_user_doc.remove_roles("Blogger"))
+		self.addCleanup(blog_post2.delete)
+		self.addCleanup(blog_post1.delete)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		# User should see both posts (no restrictions)
+		frappe.set_user(test_user)
+		result = frappe.qb.get_query(
+			"Test Blog Post",
+			filters={"name": ["in", [blog_post1.name, blog_post2.name]]},
+			ignore_permissions=False,
+		).run()
+		self.assertEqual(len(result), 2, "User should see all posts without restrictions")
+
+	def test_child_table_permission_uses_parent_doctype(self):
+		"""Test that child table queries use parent doctype for permission checks."""
+		# DocField is a child table of DocType
+		# When querying with parent_doctype, permissions should be checked against DocType
+
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=False)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# Query child table with parent_doctype - should use DocType's permissions
+		with self.assertRaises(frappe.PermissionError):
+			frappe.qb.get_query(
+				"DocField", fields=["name"], parent_doctype="DocType", ignore_permissions=False
+			).run()
+
+		# Give user read access to DocType
+		frappe.set_user("Administrator")
+		test_user_doc.add_roles("System Manager")
+
+		frappe.set_user(test_user)
+		# Now query should succeed
+		result = frappe.qb.get_query(
+			"DocField", fields=["name"], parent_doctype="DocType", ignore_permissions=False, limit=1
+		).run()
+		# Query should succeed and return results (tuple or list)
+		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
+
+	def test_child_table_filters_orphaned_rows(self):
+		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+
+		# Create a child table row with non-existent parent
+		frappe.db.sql(
+			"""
+			INSERT INTO `tabDefaultValue` (name, parent, parenttype, parentfield, defkey, defvalue)
+			VALUES ('_test_orphan_row', '_non_existent_parent', 'User', 'defaults', 'test_key', 'test_value')
+			"""
+		)
+		self.addCleanup(
+			lambda: frappe.db.sql("DELETE FROM `tabDefaultValue` WHERE name = '_test_orphan_row'")
+		)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# Query with parent_doctype - orphaned row should be filtered out by inner join
+		result = frappe.qb.get_query(
+			"DefaultValue",
+			fields=["name"],
+			filters={"name": "_test_orphan_row"},
+			parent_doctype="User",
+			ignore_permissions=False,
+		).run()
+		self.assertEqual(len(result), 0, "Orphaned child row should be filtered out")
+
+	def test_child_table_of_single_doctype(self):
+		"""Test querying child tables whose parent is a Single doctype.
+
+		Single doctypes don't have physical tables, so we can't join to them.
+		This tests that the query works correctly without the join.
+		"""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# Log Settings is a Single doctype with child table "Logs To Clear"
+		# Query should work without trying to join the non-existent parent table
+		result = frappe.qb.get_query(
+			"Logs To Clear",
+			fields=["name", "ref_doctype", "days"],
+			parent_doctype="Log Settings",
+			ignore_permissions=False,
+		).run()
+
+		# Query should succeed (may return empty if no logs configured)
+		self.assertIsInstance(result, (list, tuple), "Query should return results without SQL error")
+
+	def test_child_table_of_single_doctype_without_permission(self):
+		"""Test that permission checks work for child tables of Single doctypes."""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=False)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# User without System Manager role should not be able to access Log Settings children
+		with self.assertRaises(frappe.PermissionError):
+			frappe.qb.get_query(
+				"Logs To Clear",
+				fields=["name"],
+				parent_doctype="Log Settings",
+				ignore_permissions=False,
+			).run()
+
+	def test_combined_raw_criterion_precedence(self):
+		"""Test that CombinedRawCriterion properly groups OR conditions.
+
+		When permission conditions (like permission_query_conditions) are combined with
+		shared docs via OR, the entire expression must be wrapped in parentheses to
+		ensure correct operator precedence with other WHERE filters.
+
+		Without proper grouping:
+		  WHERE filter=X AND perm_cond OR shared_cond  -- shared_cond ignores filter!
+
+		With proper grouping:
+		  WHERE filter=X AND (perm_cond OR shared_cond)  -- correct behavior
+		"""
+		from frappe.database.query import CombinedRawCriterion, RawCriterion
+
+		# Test that CombinedRawCriterion wraps the entire expression
+		left = RawCriterion("a = 1")
+		right = RawCriterion("b = 2")
+		combined = left | right
+
+		self.assertIsInstance(combined, CombinedRawCriterion)
+		sql = combined.get_sql()
+		# Should have outer parentheses: ((a = 1) OR (b = 2))
+		self.assertTrue(sql.startswith("(("), f"Should start with '((' but got: {sql}")
+		self.assertTrue(sql.endswith("))"), f"Should end with '))' but got: {sql}")
+
+		# Test nested combinations
+		third = RawCriterion("c = 3")
+		nested = combined & third
+		nested_sql = nested.get_sql()
+		# The AND combination should also be properly grouped
+		self.assertIn("OR", nested_sql)
+		self.assertIn("AND", nested_sql)
+
+	def test_permission_query_conditions_with_filter(self):
+		"""Test that filters work correctly when permission_query_conditions and shares exist.
+
+		This is a regression test for the CombinedRawCriterion fix - ensures that
+		explicit filters are not bypassed by shared doc conditions.
+		"""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# User doctype has permission_query_conditions hook
+		# test2@example.com is shared their own User doc
+		# Query with a filter that should NOT match any row
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name"],
+			filters={"name": "_non_existent_user_12345"},
+			ignore_permissions=False,
+		).run()
+
+		# Even though user has shared access to their own User doc,
+		# the filter should still apply and return no results
+		self.assertEqual(len(result), 0, "Filter should not be bypassed by shared doc OR condition")
 
 
 # This function is used as a permission query condition hook

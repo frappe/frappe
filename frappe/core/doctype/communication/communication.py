@@ -230,7 +230,7 @@ class Communication(Document, CommunicationEmailMixin):
 		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
 		_signature = None
 		if html_signature:
-			_signature = html_signature.renderContents()
+			_signature = html_signature.encode_contents()
 
 		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
@@ -447,7 +447,14 @@ class Communication(Document, CommunicationEmailMixin):
 			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
-		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
+		self.append(
+			"timeline_links",
+			{
+				"link_doctype": link_doctype,
+				"link_name": link_name,
+				"communication_date": self.communication_date,
+			},
+		)
 
 		if autosave:
 			self.save(ignore_permissions=True)
@@ -466,9 +473,13 @@ class Communication(Document, CommunicationEmailMixin):
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
-	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 	frappe.db.add_index("Communication", ["message_id(140)"])
+	frappe.db.add_index(
+		"Communication",
+		["reference_doctype", "reference_name", "communication_date", "communication_type"],
+		index_name="comm_ref_type_date_idx",
+	)
 
 
 def has_permission(doc, ptype, user=None, debug=False):
@@ -494,7 +505,10 @@ def get_permission_query_conditions_for_communication(user):
 		return None
 	else:
 		accounts = frappe.get_all(
-			"User Email", filters={"parent": user}, fields=["email_account"], distinct=True, order_by="idx"
+			"User Email",
+			filters={"parent": user},
+			fields=["email_account"],
+			distinct=True,
 		)
 
 		if not accounts:

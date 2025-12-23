@@ -1,12 +1,12 @@
 import datetime
 import re
+import warnings
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
-import sqlparse
 from pypika.enums import Arithmetic
-from pypika.queries import Column, QueryBuilder, Table
-from pypika.terms import AggregateFunction, ArithmeticExpression, Term, ValueWrapper
+from pypika.queries import QueryBuilder, Table
+from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, ValueWrapper
 
 import frappe
 from frappe import _
@@ -18,15 +18,23 @@ from frappe.database.utils import (
 	get_doctype_name,
 	get_doctype_sort_info,
 )
-from frappe.model import get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter
-from frappe.query_builder.utils import PseudoColumnMapper
-from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
-	("Custom Field", "Property Setter", "Module Def", "__Auth", "__global_search", "Singles")
+	(
+		"Custom Field",
+		"Property Setter",
+		"Module Def",
+		"__Auth",
+		"__global_search",
+		"Singles",
+		"Sessions",
+		"Series",
+	)
 )
 
 
@@ -80,7 +88,43 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 	return value
 
 
-OPTIONAL_COLUMNS = frozenset(["_user_tags", "_comments", "_assign", "_liked_by", "_seen"])
+def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctype: str, field) -> tuple:
+	"""Apply date to datetime conversion for Datetime fields with 'between' operator.
+
+	Args:
+		between_values: Tuple/list of two values [from, to] for between filter
+		doctype: DocType name
+		field: Field name or pypika Field object
+
+	Returns:
+		Tuple with dates expanded to datetime ranges for Datetime fields
+	"""
+	from frappe.model.db_query import _convert_type_for_between_filters
+
+	# Extract field name
+	field_name = field
+	if "." in str(field):
+		field_name = field.split(".")[-1]
+
+	# Skip querying meta for core doctypes to avoid recursion
+	if doctype in CORE_DOCTYPES:
+		df = None
+	else:
+		meta = frappe.get_meta(doctype)
+		df = meta.get_field(field_name) if meta else None
+
+	# Standard datetime fields or Datetime fieldtype
+	if not (field_name in ("creation", "modified") or (df and df.fieldtype == "Datetime")):
+		return between_values
+
+	from_val, to_val = between_values
+
+	# Convert to datetime using db_query helper (handles strings, dates, datetimes)
+	from_val = _convert_type_for_between_filters(from_val, set_time=datetime.time())
+	to_val = _convert_type_for_between_filters(to_val, set_time=datetime.time(23, 59, 59, 999999))
+
+	return (from_val, to_val)
+
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -93,14 +137,15 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 # to allow table names like __Auth
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
+# Pattern for validating simple field names (alphanumeric + underscore)
+SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$", flags=re.ASCII)
 
-def _is_function_call(field_str: str) -> bool:
-	"""Check if a string is a SQL function call using sqlparse."""
-	parsed = sqlparse.parse(field_str.strip())
-	if not parsed:
-		return False
+# Pattern for validating SQL identifiers (aliases, field names in functions)
+# More restrictive: must start with letter or underscore
+IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$", flags=re.ASCII)
 
-	return any(isinstance(token, sqlparse.sql.Function) for token in parsed[0].tokens)
+# Pattern for detecting SQL function calls: identifier followed by opening parenthesis
+FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.ASCII)
 
 
 # Pattern to validate field names in SELECT:
@@ -111,7 +156,7 @@ def _is_function_call(field_str: str) -> bool:
 #   - `tabTable-Field`.`field` (hyphens in table name)
 #   - Any of above with aliases: ... as alias
 ALLOWED_FIELD_PATTERN = re.compile(
-	r"^(?:(`[\w\s-]+`|\w+)\.)?(`[\w\s-]+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|\w+))?$",
+	r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|\w+))?$",
 	flags=re.ASCII | re.IGNORECASE,
 )
 
@@ -120,7 +165,16 @@ ALLOWED_FIELD_PATTERN = re.compile(
 # Group 2: Optional table name (e.g., `tabDocType` or tabDocType or `tabNote Seen By`)
 # Group 3: Optional quote for field name
 # Group 4: Field name (e.g., `field` or field)
-FIELD_PARSE_REGEX = re.compile(r"^(?:([`\"]?)(tab[\w\s-]+)\1\.)?([`\"]?)(\w+)\3$")
+FIELD_PARSE_REGEX = re.compile(r"^(?:(`?)(tab[\w\s-]+)\1\.)?(`?)(\w+)\3$")
+
+# Like FIELD_PARSE_REGEX but compulsary table name with backticks
+BACKTICK_FIELD_PARSE_REGEX = re.compile(r"^`tab([\w\s-]+)`\.(`?)(\w+)\2$")
+
+# Pattern to match child table field notation: tabChildDoc.field or `tabChild Doc`.field
+# Group 1: Child doctype name (without 'tab' prefix)
+# Group 2: Optional quote for fieldname
+# Group 3: Fieldname
+CHILD_TABLE_FIELD_PATTERN = re.compile(r'^[`"]?tab([\w\s]+)[`"]?\.([`"]?)(\w+)\2$')
 
 # Direct mapping from uppercase function names to pypika function classes
 FUNCTION_MAPPING = {
@@ -142,6 +196,9 @@ FUNCTION_MAPPING = {
 	"MONTH": Month,
 }
 
+# Functions that accept '*' as an argument (e.g., COUNT(*))
+STAR_ALLOWED_FUNCTIONS = frozenset(("COUNT",))
+
 # Mapping from operator names to pypika Arithmetic enum values
 # Operators use dict format: {"ADD": [left, right], "as": "alias"}
 # Supported: ADD (+), SUB (-), MUL (*), DIV (/)
@@ -158,7 +215,7 @@ class Engine:
 	def get_query(
 		self,
 		table: str | Table,
-		fields: str | list | tuple | None = None,
+		fields: str | list | tuple | set | None = None,
 		filters: dict[str, FilterValue] | FilterValue | list[list | FilterValue] | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
@@ -174,6 +231,7 @@ class Engine:
 		skip_locked: bool = False,
 		wait: bool = True,
 		ignore_permissions: bool = True,
+		ignore_user_permissions: bool = False,
 		user: str | None = None,
 		parent_doctype: str | None = None,
 		reference_doctype: str | None = None,
@@ -185,6 +243,8 @@ class Engine:
 		Args:
 			db_query_compat: When True, uses legacy db_query behavior for sorting and filtering.
 			This is kept optional to not break existing code that relies on the original query builder behaviour.
+			ignore_user_permissions: Ignore user permissions for the query.
+				Useful for link search queries when the link field has `ignore_user_permissions` set.
 		"""
 
 		qb = frappe.local.qb
@@ -198,9 +258,11 @@ class Engine:
 		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
+		self.ignore_user_permissions = ignore_user_permissions
 		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
+		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
 
 		if isinstance(table, Table):
 			self.table = table
@@ -212,7 +274,12 @@ class Engine:
 
 		if self.apply_permissions:
 			self.check_read_permission()
+			self.permission_doctype = parent_doctype or self.doctype
+			self.permission_table = (
+				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
+			)
 
+		is_select = False
 		if update:
 			self.query = qb.update(self.table, immutable=False)
 		elif into:
@@ -222,6 +289,7 @@ class Engine:
 		else:
 			self.query = qb.from_(self.table, immutable=False)
 			self.apply_fields(fields)
+			is_select = True
 
 		self.apply_filters(filters)
 		self.apply_or_filters(or_filters)
@@ -246,10 +314,25 @@ class Engine:
 			self.apply_group_by(group_by)
 
 		if order_by:
-			self.apply_order_by(order_by)
+			if not (
+				self.is_postgres and is_select and (distinct or group_by)
+			):  # ignore in Postgres since order by fields need to appear in select distinct
+				self.apply_order_by(order_by)
+			else:
+				warnings.warn(
+					(
+						"ORDER BY fields have been ignored because PostgreSQL requires them to "
+						"appear in the SELECT list when using DISTINCT or GROUP BY."
+					),
+					UserWarning,
+					stacklevel=2,
+				)
 
-		if self.apply_permissions:
-			self.add_permission_conditions()
+		self.add_permission_conditions()
+
+		# Store metadata for masked field processing during execution
+		self.query._doctype = self.doctype
+		self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
@@ -263,7 +346,7 @@ class Engine:
 
 		# Track field aliases for use in group_by/order_by
 		for field in self.fields:
-			if isinstance(field, Field) and field.alias:
+			if isinstance(field, Field | DynamicTableField) and field.alias:
 				self.field_aliases.add(field.alias)
 
 		if self.apply_permissions:
@@ -351,8 +434,7 @@ class Engine:
 						self.query = self.query.where(combined_criterion)
 				except Exception as e:
 					# Log the original filters list for better debugging context
-					frappe.log_error(f"Filter parsing error: {filters}", "Query Engine Error")
-					frappe.throw(_("Error parsing nested filters: {0}").format(e), exc=e)
+					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, e), exc=e)
 
 			else:  # Not a nested structure, assume it's a list of simple filters (implicitly ANDed)
 				for filter_item in filters:
@@ -440,7 +522,7 @@ class Engine:
 	def _build_criterion_for_simple_filter(
 		self,
 		field: str | Field,
-		value: FilterValue | Column | list | set | None,
+		value: FilterValue | Field | list | set | None,
 		operator: str = "=",
 		doctype: str | None = None,
 	) -> "Criterion | None":
@@ -449,18 +531,31 @@ class Engine:
 
 		_field = self._validate_and_prepare_filter_field(field, doctype)
 
-		if isinstance(value, Column):
-			_value = self._validate_and_prepare_filter_field(value.name, doctype)
+		if isinstance(value, Field):
+			_value = value
 		else:
 			# Regular value processing for literal comparisons like: table.field = 'value'
 			_value = convert_to_value(value)
+
+		if isinstance(value, Document):
+			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
+
+		if _operator.lower() in ("timespan", "previous", "next"):
+			from frappe.model.db_query import get_date_range
+
+			_value = get_date_range(_operator.lower(), _value)
+			_operator = "between"
 
 		# For Date fields with datetime values, convert to date to match db_query behavior
 		if isinstance(_value, datetime.datetime) or (
 			isinstance(_value, list | tuple) and any(isinstance(v, datetime.datetime) for v in _value)
 		):
 			_value = _apply_date_field_filter_conversion(_value, _operator, doctype or self.doctype, field)
+
+		# For Datetime fields with date values and 'between' operator, convert to datetime range to match db_query
+		if _operator.lower() == "between" and isinstance(_value, list | tuple) and len(_value) == 2:
+			_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 
 		if not _value and isinstance(_value, list | tuple | set):
 			_value = ("",)
@@ -496,7 +591,12 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		operator_fn = OPERATOR_MAP[_operator.casefold()]
+		if (
+			self.is_postgres and _operator.casefold() == "like"
+		):  # use `ILIKE` to support case insensitive search in postgres
+			operator_fn = OPERATOR_MAP["ilike"]
+		else:
+			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
 				filter_field_name = (
@@ -548,6 +648,13 @@ class Engine:
 						fallback_value = int(fallback_sql)
 					except (ValueError, TypeError):
 						fallback_value = fallback_sql
+
+				if fallback_value == _value:
+					if _operator == "=":
+						return _field.isnull() | _field.eq(_value)
+					elif _operator == "!=":
+						return operator_fn(_field, _value)
+
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
 
 			return operator_fn(_field, _value)
@@ -689,7 +796,7 @@ class Engine:
 				)
 		else:
 			# No '.' and no '`'. Check if it's a simple field name (alphanumeric + underscore).
-			if not re.fullmatch(r"\w+", field):
+			if not SIMPLE_FIELD_PATTERN.match(field):
 				frappe.throw(
 					_(
 						"Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
@@ -787,22 +894,16 @@ class Engine:
 		if not self.apply_permissions:
 			return
 
+		if fieldname in OPTIONAL_FIELDS:
+			return
+
 		# Skip field permission check if doctype has no permissions defined
 		meta = frappe.get_meta(doctype)
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
 		permission_type = self.get_permission_type(doctype)
-		permitted_fields = get_permitted_fields(
-			doctype=doctype,
-			parenttype=parent_doctype,
-			permission_type=permission_type,
-			ignore_virtual=True,
-			user=self.user,
-		)
-
-		if fieldname in OPTIONAL_COLUMNS:
-			return
+		permitted_fields = self._get_cached_permitted_fields(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
 			frappe.throw(
@@ -812,6 +913,21 @@ class Engine:
 				frappe.PermissionError,
 				title=_("Permission Error"),
 			)
+
+	def _get_cached_permitted_fields(self, doctype: str, parenttype: str | None, permission_type: str) -> set:
+		"""Get permitted fields with caching to avoid redundant lookups."""
+		cache_key = (doctype, parenttype, permission_type)
+		if cache_key not in self.permitted_fields_cache:
+			self.permitted_fields_cache[cache_key] = set(
+				get_permitted_fields(
+					doctype=doctype,
+					parenttype=parenttype,
+					permission_type=permission_type,
+					ignore_virtual=True,
+					user=self.user,
+				)
+			)
+		return self.permitted_fields_cache[cache_key]
 
 	def parse_string_field(self, field: str):
 		"""
@@ -867,7 +983,7 @@ class Engine:
 			return pypika_field
 
 	def parse_fields(
-		self, fields: str | list | tuple | Field | AggregateFunction | None
+		self, fields: str | list | tuple | set | Field | AggregateFunction | None
 	) -> "list[Field | AggregateFunction | Criterion | DynamicTableField | ChildQuery]":
 		if not fields:
 			return []
@@ -880,7 +996,7 @@ class Engine:
 		if isinstance(fields, str):
 			# Split comma-separated fields passed as a single string
 			initial_field_list.extend(f.strip() for f in COMMA_PATTERN.split(fields) if f.strip())
-		elif isinstance(fields, list | tuple):
+		elif isinstance(fields, list | tuple | set):
 			for item in fields:
 				if item is None:
 					continue
@@ -899,7 +1015,7 @@ class Engine:
 		for item in initial_field_list:
 			if isinstance(item, str):
 				# Sanitize and split potentially comma-separated strings within the list
-				if sanitized_item := _sanitize_field(item.strip(), self.is_mariadb).strip():
+				if sanitized_item := _validate_select_field(item.strip()):
 					parsed = self._parse_single_field_item(sanitized_item)
 					if isinstance(parsed, list):  # Result from parsing a child query dict
 						_fields.extend(parsed)
@@ -941,7 +1057,7 @@ class Engine:
 						)
 
 					# Ensure child_fields_list is a list or tuple
-					if not isinstance(child_fields_list, list | tuple):
+					if not isinstance(child_fields_list, list | tuple | set):
 						frappe.throw(
 							_("Child query fields for '{0}' must be a list or tuple.").format(child_field)
 						)
@@ -1002,73 +1118,15 @@ class Engine:
 
 	def _parse_backtick_field_notation(self, field_name: str) -> tuple[str, str] | None:
 		"""
-		Parse backtick field notation like `tabDocType`.`fieldname` or `tabDocType`.fieldname and return (table_name, field_name).
-		Uses sqlparse for robust SQL parsing with Identifier support.
+		Parse backtick field notation like `tabDocType`.`fieldname` or `tabDocType`.fieldname and return (doctype_name, field_name).
+		Uses BACKTICK_FIELD_PARSE_REGEX for fast parsing.
 		Returns None if the notation is invalid.
 		"""
-		import sqlparse
-		from sqlparse.sql import Identifier
-
-		# Parse the field name as SQL
-		parsed = sqlparse.parse(field_name.strip())
-		if not parsed or not parsed[0].tokens:
+		match = BACKTICK_FIELD_PARSE_REGEX.match(field_name.strip())
+		if not match:
 			return None
 
-		tokens = parsed[0].tokens
-
-		# Filter out whitespace tokens
-		non_ws_tokens = [t for t in tokens if not t.is_whitespace]
-
-		if len(non_ws_tokens) != 1:
-			return None
-
-		# Check if it's an Identifier (which handles table.field notation)
-		first_token = non_ws_tokens[0]
-		if not isinstance(first_token, Identifier):
-			return None
-
-		# Get the sub-tokens within the identifier
-		# Should have: `tabTable` (Name), `.` (Punctuation), `fieldname` (Name)
-		identifier_tokens = [t for t in first_token.tokens if not t.is_whitespace]
-
-		if len(identifier_tokens) != 3:
-			return None
-
-		table_token = identifier_tokens[0]
-		dot_token = identifier_tokens[1]
-		field_token = identifier_tokens[2]
-
-		# Verify the dot
-		if str(dot_token).strip() != ".":
-			return None
-
-		# Extract and validate table name (should be backtick-quoted)
-		table_str = str(table_token).strip()
-		if not (table_str.startswith("`") and table_str.endswith("`")):
-			return None
-
-		# Extract field name (can be backtick-quoted or unquoted)
-		field_str = str(field_token).strip()
-		# Remove backticks if present
-		if field_str.startswith("`") and field_str.endswith("`"):
-			field_str = field_str[1:-1]
-
-		# Remove backticks from table name
-		table_name = table_str[1:-1]
-		field_name = field_str
-
-		# Validate table name starts with "tab"
-		if not table_name.startswith("tab"):
-			return None
-
-		# Extract doctype name by stripping "tab" prefix
-		doctype_name = table_name[3:]
-
-		# Validate doctype name is not empty and table actually exists
-		if not doctype_name or not frappe.db.table_exists(doctype_name):
-			return None
-
-		return (doctype_name, field_name)
+		return (match.group(1), match.group(3))
 
 	def _validate_and_parse_field_for_clause(self, field_name: str, clause_name: str) -> Field:
 		"""
@@ -1121,7 +1179,7 @@ class Engine:
 			return dynamic_field.field
 		else:
 			# Validate as simple field name (alphanumeric + underscore only)
-			if not re.fullmatch(r"\w+", field_name):
+			if not SIMPLE_FIELD_PATTERN.match(field_name):
 				frappe.throw(
 					_(
 						"Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
@@ -1142,18 +1200,13 @@ class Engine:
 			frappe.throw(_("Group By must be a string"), TypeError)
 
 		parsed_fields = []
-		parts = COMMA_PATTERN.split(group_by)
-		for part in parts:
+		for part in group_by.split(","):
 			field_name = part.strip()
 			if not field_name:
 				continue
 
-			# Skip permission check for optional system columns in group_by
-			if field_name in OPTIONAL_COLUMNS:
-				parsed_fields.append(self.table[field_name])
-			else:
-				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
-				parsed_fields.append(parsed_field)
+			parsed_field = self._validate_and_parse_field_for_clause(field_name, "Group By")
+			parsed_fields.append(parsed_field)
 
 		return parsed_fields
 
@@ -1206,33 +1259,20 @@ class Engine:
 			)
 
 		if not has_permission("select") and not has_permission("read"):
-			# Check for shared documents
-			if not frappe.share.get_shared(self.doctype, self.user):
-				frappe.throw(
-					_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
-					frappe.PermissionError,
-				)
+			self._raise_permission_error()
+
+	def _raise_permission_error(self):
+		frappe.throw(
+			_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
+			frappe.PermissionError,
+		)
 
 	def apply_field_permissions(self):
 		"""Filter the list of fields based on permlevel."""
 		allowed_fields = []
 		parent_permission_type = self.get_permission_type(self.doctype)
-		permitted_fields_cache = {}
 
-		def get_cached_permitted_fields(doctype, parenttype, permission_type):
-			cache_key = (doctype, parenttype, permission_type)
-			if cache_key not in permitted_fields_cache:
-				permitted_fields_cache[cache_key] = set(
-					get_permitted_fields(
-						doctype=doctype,
-						parenttype=parenttype,
-						permission_type=permission_type,
-						ignore_virtual=True,
-					)
-				)
-			return permitted_fields_cache[cache_key]
-
-		permitted_fields_set = get_cached_permitted_fields(
+		permitted_fields_set = self._get_cached_permitted_fields(
 			self.doctype, self.parent_doctype, parent_permission_type
 		)
 
@@ -1243,7 +1283,7 @@ class Engine:
 					continue
 
 				# Cache permitted fields for child doctypes if accessed multiple times
-				permitted_child_fields_set = get_cached_permitted_fields(
+				permitted_child_fields_set = self._get_cached_permitted_fields(
 					field.doctype, field.parent_doctype, self.get_permission_type(field.doctype)
 				)
 				# Check permission for the specific field in the child table
@@ -1260,7 +1300,7 @@ class Engine:
 
 					if has_target_perm:
 						# Finally, check if the specific field *in the target doctype* is permitted
-						permitted_target_fields_set = get_cached_permitted_fields(
+						permitted_target_fields_set = self._get_cached_permitted_fields(
 							target_doctype, None, self.get_permission_type(target_doctype)
 						)
 						if field.fieldname in permitted_target_fields_set:
@@ -1271,7 +1311,7 @@ class Engine:
 					continue
 
 				# Cache permitted fields for the child doctype of the query
-				permitted_child_fields_set = get_cached_permitted_fields(
+				permitted_child_fields_set = self._get_cached_permitted_fields(
 					field.doctype, field.parent_doctype, self.get_permission_type(field.doctype)
 				)
 				# Filter the fields *within* the ChildQuery object based on permissions
@@ -1284,11 +1324,8 @@ class Engine:
 					# Expand '*' to include all permitted fields
 					# Avoid reparsing '*' recursively by passing the actual list
 					allowed_fields.extend(self.parse_fields(list(permitted_fields_set)))
-				# Check if the field name (without alias) is permitted
-				elif field.name in permitted_fields_set:
-					allowed_fields.append(field)
-				# Handle cases where the field might be aliased but the base name is permitted
-				elif hasattr(field, "alias") and field.alias and field.name in permitted_fields_set:
+				# Check if the field name is an optional field (like _user_tags) or in permitted fields
+				elif field.name in OPTIONAL_FIELDS or field.name in permitted_fields_set:
 					allowed_fields.append(field)
 
 			elif isinstance(field, Term):
@@ -1297,21 +1334,17 @@ class Engine:
 
 		return allowed_fields
 
-	def get_user_permission_conditions(self, role_permissions):
-		"""Build conditions for user permissions and return tuple of (conditions, fetch_shared_docs)"""
+	def get_user_permission_conditions(self) -> list[Criterion]:
+		"""Build conditions for user permissions."""
 		conditions = []
-		fetch_shared_docs = False
 
-		# add user permission only if role has read perm
-		if not (role_permissions.get("read") or role_permissions.get("select")):
-			return conditions, fetch_shared_docs
+		if self.ignore_user_permissions:
+			return conditions
 
 		user_permissions = frappe.permissions.get_user_permissions(self.user)
 
 		if not user_permissions:
-			return conditions, fetch_shared_docs
-
-		fetch_shared_docs = True
+			return conditions
 
 		doctype_link_fields = self.get_doctype_link_fields()
 		for df in doctype_link_fields:
@@ -1331,87 +1364,124 @@ class Engine:
 					elif df.get("fieldname") == "name" and self.reference_doctype:
 						if permission.get("applicable_for") == self.reference_doctype:
 							docs.append(permission.get("doc"))
-					elif permission.get("applicable_for") == self.doctype:
+					elif permission.get("applicable_for") == self.permission_doctype:
 						docs.append(permission.get("doc"))
 
 				if docs:
 					field_name = df.get("fieldname")
 					strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 					if strict_user_permissions:
-						conditions.append(self.table[field_name].isin(docs))
+						conditions.append(self.permission_table[field_name].isin(docs))
 					else:
-						empty_value_condition = functions.IfNull(self.table[field_name], "") == ""
-						value_condition = self.table[field_name].isin(docs)
+						empty_value_condition = functions.IfNull(self.permission_table[field_name], "") == ""
+						value_condition = self.permission_table[field_name].isin(docs)
 						conditions.append(empty_value_condition | value_condition)
 
-		return conditions, fetch_shared_docs
+		return conditions
 
 	def get_doctype_link_fields(self):
-		meta = frappe.get_meta(self.doctype)
+		meta = frappe.get_meta(self.permission_doctype)
 		# append current doctype with fieldname as 'name' as first link field
-		doctype_link_fields = [{"options": self.doctype, "fieldname": "name"}]
+		doctype_link_fields = [{"options": self.permission_doctype, "fieldname": "name"}]
 		# append other link fields
 		doctype_link_fields.extend(meta.get_link_fields())
 		return doctype_link_fields
 
 	def add_permission_conditions(self):
+		"""
+		Logic for adding permission conditions is as follows:
+
+		If no role permissions with read/select exist:
+			- apply only share permissions
+
+		If role permissions with read/select exist:
+			- apply (if_owner constraints OR user permissions), AND
+			- apply permission query conditions
+
+			If if_owner / user permission / permission query constraints are applied,
+			final condition = (existing conditions) OR (share condtion)
+			(rationale: shared documents trump all other restrictions)
+
+			Else, all documents are accessible based on role permissions.
+
+		For child tables (when parent_doctype is specified):
+			- permissions are checked against the parent doctype
+			- for non-single parent doctypes: a join to the parent table is added,
+		                conditions reference parent fields
+			- for single parent doctypes: all permissions are already checked by has_permission,
+		                we exit early without adding any conditions
+		"""
+
+		if not self.apply_permissions:
+			return
+
+		if self.permission_doctype != self.doctype:
+			parent_meta = frappe.get_meta(self.permission_doctype)
+			if parent_meta.issingle:
+				# Child table of single doctype
+				# permissions are already checked by has_permission
+				return
+
+			self.query = self.query.inner_join(self.permission_table).on(
+				self.table.parent == self.permission_table.name
+			)
+
+		role_permissions = frappe.permissions.get_role_permissions(self.permission_doctype, user=self.user)
+		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
+
+		if not has_role_permission:
+			# no role permissions, apply only share permissions
+			shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
+			if not shared_docs:
+				# this should NEVER happen, but being defensive
+				self._raise_permission_error()
+
+			self.query = self.query.where(self.permission_table.name.isin(shared_docs))
+			return
+
+		# build conditions from: if_owner constraint OR user permissions
 		conditions = []
-		role_permissions = frappe.permissions.get_role_permissions(self.doctype, user=self.user)
-		fetch_shared_docs = False
 
 		if self.requires_owner_constraint(role_permissions):
-			fetch_shared_docs = True
-			conditions.append(self.table.owner == self.user)
-		# skip user perm check if owner constraint is required
-		elif role_permissions.get("read") or role_permissions.get("select"):
-			user_perm_conditions, fetch_shared = self.get_user_permission_conditions(role_permissions)
+			# skip user perm check if owner constraint is required
+			conditions.append(self.permission_table.owner == self.user)
+		elif user_perm_conditions := self.get_user_permission_conditions():
 			conditions.extend(user_perm_conditions)
-			fetch_shared_docs = fetch_shared_docs or fetch_shared
-		else:
-			# No role permissions - check if user has any user permissions
-			# If not, must check for shared documents (like db_query does)
-			user_permissions = frappe.permissions.get_user_permissions(self.user)
-			doctype_user_permissions = user_permissions.get(self.doctype, [])
-			has_user_perm = any(
-				not perm.get("applicable_for") or perm.get("applicable_for") == self.reference_doctype
-				for perm in doctype_user_permissions
-			)
-			if not has_user_perm:
-				fetch_shared_docs = True
 
-		permission_query_conditions = self.get_permission_query_conditions()
-		if permission_query_conditions:
-			conditions.extend(permission_query_conditions)
+		conditions.extend(self.get_permission_query_conditions())
 
-		shared_docs = []
-		if fetch_shared_docs:
-			shared_docs = frappe.share.get_shared(self.doctype, self.user)
+		if not conditions:
+			# no conditions to apply, all documents are accessible
+			return
 
+		where_condition = Criterion.all(conditions)
+
+		# since some conditions apply, we need to consider shared docs as well
+		shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
 		if shared_docs:
-			shared_condition = self.table.name.isin(shared_docs)
-			if conditions:
-				# (permission conditions) OR (shared condition)
-				self.query = self.query.where(Criterion.all(conditions) | shared_condition)
-			else:
-				self.query = self.query.where(shared_condition)
-		elif conditions:
-			# AND all permission conditions
-			self.query = self.query.where(Criterion.all(conditions))
+			# shared docs trump all other restrictions
+			where_condition |= self.permission_table.name.isin(shared_docs)
 
-	def get_permission_query_conditions(self):
+		self.query = self.query.where(where_condition)
+
+	def get_permission_query_conditions(self) -> list["RawCriterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 		conditions = []
 		hooks = frappe.get_hooks("permission_query_conditions", {})
-		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
+		condition_methods = hooks.get(self.permission_doctype, []) + hooks.get("*", [])
 
 		for method in condition_methods:
-			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.permission_doctype):
 				conditions.append(RawCriterion(f"({c})"))
 
 		# Get conditions from server scripts
-		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
+		if (
+			permission_script_name := get_server_script_map()
+			.get("permission_query", {})
+			.get(self.permission_doctype)
+		):
 			script = frappe.get_doc("Server Script", permission_script_name)
 			if condition := script.get_permission_query_conditions(self.user):
 				conditions.append(RawCriterion(f"({condition})"))
@@ -1476,7 +1546,12 @@ class Engine:
 			return "''"
 
 		if df is None:
-			return "''"
+			# Try to get standard field definition
+			from frappe.model.meta import get_default_df
+
+			df = get_default_df(fieldname)
+			if df is None:
+				return "''"
 
 		fieldtype = df.fieldtype
 
@@ -1489,13 +1564,13 @@ class Engine:
 		if fieldtype == "Time":
 			return "'00:00:00'"
 
-		if fieldtype in ("Float", "Int", "Currency", "Percent"):
+		if fieldtype in ("Float", "Int", "Currency", "Percent", "Check"):
 			return "0"
 
 		try:
 			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
 			if db_type_info:
-				db_type = db_type_info[0] if isinstance(db_type_info, (tuple, list)) else db_type_info
+				db_type = db_type_info[0] if isinstance(db_type_info, tuple | list) else db_type_info
 				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
 					return "''"
 		except Exception:
@@ -1551,7 +1626,7 @@ class Engine:
 				return False
 
 		if operator.lower() == "in":
-			if isinstance(value, (list, tuple)):
+			if isinstance(value, list | tuple):
 				# if values contain '' or falsy values then only coalesce column
 				# for `in` query this is only required if values contain '' or values are empty.
 				has_null_or_empty = any(v is None or v == "" for v in value)
@@ -1567,38 +1642,6 @@ class Engine:
 				return True
 
 		return True
-
-
-class Permission:
-	@classmethod
-	def check_permissions(cls, query, **kwargs):
-		if not isinstance(query, str):
-			query = query.get_sql()
-
-		doctype = cls.get_tables_from_query(query)
-		if isinstance(doctype, str):
-			doctype = [doctype]
-
-		for dt in doctype:
-			dt = TAB_PATTERN.sub("", dt)
-			if not frappe.has_permission(
-				dt,
-				"select",
-				user=kwargs.get("user"),
-				parent_doctype=kwargs.get("parent_doctype"),
-			) and not frappe.has_permission(
-				dt,
-				"read",
-				user=kwargs.get("user"),
-				parent_doctype=kwargs.get("parent_doctype"),
-			):
-				frappe.throw(
-					_("Insufficient Permission for {0}").format(frappe.bold(dt)), frappe.PermissionError
-				)
-
-	@staticmethod
-	def get_tables_from_query(query: str):
-		return [table for table in WORDS_PATTERN.findall(query) if table.startswith("tab")]
 
 
 class DynamicTableField:
@@ -1637,14 +1680,7 @@ class DynamicTableField:
 
 			child_match = None
 			if allow_tab_notation:
-				# Regex to match `tabDoc`.`field`, "tabDoc"."field", tabDoc.field
-				# Group 1: Doctype name (without 'tab')
-				# Group 2: Optional quote for fieldname
-				# Group 3: Fieldname
-				# Ensures quotes are consistent or absent on fieldname using backreference \2
-				# Uses re.match to ensure the pattern matches the *entire* field string
-				# Allow spaces in doctype name (Group 1) and field name (Group 3)
-				child_match = re.match(r'[`"]?tab([\w\s]+)[`"]?\.([`"]?)([\w\s]+)\2$', field)
+				child_match = CHILD_TABLE_FIELD_PATTERN.match(field)
 
 			if child_match:
 				child_doctype_name = child_match.group(1)
@@ -1684,8 +1720,6 @@ class DynamicTableField:
 
 					linked_field = meta.get_field(potential_parent_fieldname)
 				except Exception:
-					# Handle cases where doctype doesn't exist, etc.
-					print(f"Error getting metadata for {doctype} while parsing field {field}")
 					return None
 
 				if linked_field:
@@ -1829,26 +1863,31 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 	return result
 
 
+def _is_function_call(field_str: str) -> bool:
+	"""Check if a string is a SQL function call."""
+	return bool(FUNCTION_CALL_PATTERN.match(field_str))
+
+
 @lru_cache(maxsize=1024)
 def _validate_select_field(field: str):
 	"""Validate a field string intended for use in a SELECT clause."""
 	if field == "*":
-		return
+		return field
 
 	if field.isdigit():
-		return
+		return field
 
-	# Reject SQL functions
+	# Reject SQL functions in string format - use dict syntax instead
 	if _is_function_call(field):
 		frappe.throw(
 			_(
-				"SQL functions are not allowed in SELECT fields: {0}. Use the query builder API with functions instead."
+				"SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 			).format(field),
 			frappe.ValidationError,
 		)
 
 	if ALLOWED_FIELD_PATTERN.match(field):
-		return
+		return field
 
 	frappe.throw(
 		_(
@@ -1856,19 +1895,6 @@ def _validate_select_field(field: str):
 		).format(field),
 		frappe.PermissionError,
 	)
-
-
-@lru_cache(maxsize=1024)
-def _sanitize_field(field: str, is_mariadb):
-	"""Validate and sanitize a field string for SELECT clause by stripping comments."""
-	_validate_select_field(field)
-
-	stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
-
-	if is_mariadb:
-		stripped_field = MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
-
-	return stripped_field.strip()
 
 
 class RawCriterion(Term):
@@ -1905,7 +1931,8 @@ class CombinedRawCriterion(RawCriterion):
 	def get_sql(self, **kwargs: Any) -> str:
 		left_sql = self.left.get_sql(**kwargs) if hasattr(self.left, "get_sql") else str(self.left)
 		right_sql = self.right.get_sql(**kwargs) if hasattr(self.right, "get_sql") else str(self.right)
-		return f"({left_sql}) {self.operator} ({right_sql})"
+		# Wrap entire expression in parentheses to ensure correct operator precedence
+		return f"(({left_sql}) {self.operator} ({right_sql}))"
 
 
 class SQLFunctionParser:
@@ -1960,12 +1987,12 @@ class SQLFunctionParser:
 		func_class = FUNCTION_MAPPING[function_name]
 
 		if isinstance(function_args, str):
-			parsed_arg = self._parse_and_validate_argument(function_args)
+			parsed_arg = self._parse_and_validate_argument(function_args, function_name=function_name)
 			function_call = func_class(parsed_arg)
 		elif isinstance(function_args, list):
 			parsed_args = []
 			for arg in function_args:
-				parsed_arg = self._parse_and_validate_argument(arg)
+				parsed_arg = self._parse_and_validate_argument(arg, function_name=function_name)
 				parsed_args.append(parsed_arg)
 			function_call = func_class(*parsed_args)
 		elif isinstance(function_args, (int | float)):
@@ -2032,7 +2059,7 @@ class SQLFunctionParser:
 		else:
 			return expression
 
-	def _parse_and_validate_argument(self, arg):
+	def _parse_and_validate_argument(self, arg, *, function_name: str | None = None):
 		"""Parse and validate a single function/operator argument against SQL injection.
 
 		Supports:
@@ -2043,7 +2070,7 @@ class SQLFunctionParser:
 		if isinstance(arg, (int | float)):
 			return arg
 		elif isinstance(arg, str):
-			return self._validate_string_argument(arg)
+			return self._validate_string_argument(arg, function_name=function_name)
 		elif isinstance(arg, dict):
 			# Recursively handle nested functions and operators
 			if self.is_function_dict(arg):
@@ -2066,22 +2093,26 @@ class SQLFunctionParser:
 				frappe.ValidationError,
 			)
 
-	def _validate_string_argument(self, arg: str):
+	def _validate_string_argument(self, arg: str, *, function_name: str | None = None):
 		"""Validate string arguments to prevent SQL injection."""
 		arg = arg.strip()
 
 		if not arg:
 			frappe.throw(_("Empty string arguments are not allowed"), frappe.ValidationError)
 
-		# Special case: allow '*' for COUNT(*) and similar aggregate functions
+		# Special case: allow '*' only for specific functions like COUNT(*)
 		if arg == "*":
-			# Return as-is for SQL star expansion (COUNT(*), etc.)
-			# pypika will handle this correctly when used with aggregate functions
-			return Column("*")
+			if function_name not in STAR_ALLOWED_FUNCTIONS:
+				frappe.throw(
+					_("'*' is only allowed in {0} SQL function(s)").format(", ".join(STAR_ALLOWED_FUNCTIONS)),
+					frappe.ValidationError,
+				)
+			return Star()
 
 		# Check for string literals (quoted strings)
-		if self._is_string_literal(arg):
-			return self._validate_string_literal(arg)
+		if len(arg) >= 2 and arg[0] in ("'", '"') and arg[-1] == arg[0]:
+			# note: pypika handles proper escaping with wrap_constant
+			return arg[1:-1]
 
 		# Check for backtick notation: `tabDocType`.`fieldname`
 		# Parse and return as Field object to preserve field reference in operators
@@ -2096,10 +2127,8 @@ class SQLFunctionParser:
 					).format(arg),
 					frappe.ValidationError,
 				)
-
 		elif self._is_valid_field_name(arg):
-			# Validate field name and check permissions
-			self._validate_function_field_arg(arg)
+			self._check_function_field_permission(arg)
 			return self.engine.table[arg]
 
 		# Check if it's a numeric string like "1" (for COUNT(1), etc.)
@@ -2114,61 +2143,10 @@ class SQLFunctionParser:
 				frappe.ValidationError,
 			)
 
-	def _is_string_literal(self, arg: str) -> bool:
-		"""Check if argument is a properly quoted string literal."""
-		return (arg.startswith("'") and arg.endswith("'") and len(arg) >= 2) or (
-			arg.startswith('"') and arg.endswith('"') and len(arg) >= 2
-		)
-
-	def _validate_string_literal(self, literal: str):
-		"""Validate a string literal for SQL injection attacks."""
-		if literal.startswith("'") and literal.endswith("'"):
-			quote_char = "'"
-			content = literal[1:-1]
-		elif literal.startswith('"') and literal.endswith('"'):
-			quote_char = '"'
-			content = literal[1:-1]
-		else:
-			frappe.throw(_("Invalid string literal format: {0}").format(literal), frappe.ValidationError)
-
-		if quote_char in content:
-			escaped_content = content.replace(quote_char + quote_char, "")
-			if quote_char in escaped_content:
-				frappe.throw(
-					_("Unescaped quotes in string literal: {0}").format(literal),
-					frappe.ValidationError,
-				)
-
-		# Reject dangerous SQL keywords and patterns
-		dangerous_patterns = [
-			# SQL injection keywords
-			r"\b(?:union|select|insert|update|delete|drop|create|alter|exec|execute)\b",
-			# Comment patterns
-			r"--",
-			r"/\*",
-			r"\*/",
-			# Semicolon (statement terminator)
-			r";",
-			# Backslash escape sequences that could be dangerous
-			r"\\x[0-9a-fA-F]{2}",  # Hex escape sequences
-			r"\\[0-7]{1,3}",  # Octal escape sequences
-		]
-
-		content_lower = content.lower()
-		for pattern in dangerous_patterns:
-			if re.search(pattern, content_lower, re.IGNORECASE):
-				frappe.throw(
-					_("Potentially dangerous content in string literal: {0}").format(literal),
-					frappe.ValidationError,
-				)
-
-		# Return just the content without quotes - pypika will handle proper escaping
-		return content
-
 	def _is_valid_field_name(self, name: str) -> bool:
 		"""Check if a string is a valid field name."""
 		# Field names should only contain alphanumeric characters and underscores
-		return re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", name) is not None
+		return IDENTIFIER_PATTERN.match(name) is not None
 
 	def _validate_alias(self, alias: str):
 		"""Validate alias name for SQL injection."""
@@ -2180,92 +2158,13 @@ class SQLFunctionParser:
 			frappe.throw(_("Empty alias is not allowed"), frappe.ValidationError)
 
 		# Alias should be a simple identifier
-		if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", alias):
+		# Note: pypika wraps aliases in backticks, so anything without backticks is safe
+		if not IDENTIFIER_PATTERN.match(alias):
 			frappe.throw(
 				_("Invalid alias format: {0}. Alias must be a simple identifier.").format(alias),
 				frappe.ValidationError,
 			)
 
-		# Check for SQL keywords that shouldn't be used as aliases
-		sql_keywords = {
-			"select",
-			"from",
-			"where",
-			"join",
-			"inner",
-			"left",
-			"right",
-			"outer",
-			"union",
-			"group",
-			"order",
-			"by",
-			"having",
-			"limit",
-			"offset",
-			"insert",
-			"update",
-			"delete",
-			"create",
-			"drop",
-			"alter",
-			"table",
-			"index",
-			"view",
-			"database",
-			"schema",
-			"grant",
-			"revoke",
-			"commit",
-			"rollback",
-			"transaction",
-			"begin",
-			"end",
-			"if",
-			"else",
-			"case",
-			"when",
-			"then",
-			"null",
-			"not",
-			"and",
-			"or",
-			"in",
-			"exists",
-			"between",
-			"like",
-			"is",
-			"as",
-			"on",
-			"using",
-			"distinct",
-			"all",
-			"any",
-			"some",
-			"true",
-			"false",
-		}
-
-		if alias.lower() in sql_keywords:
-			frappe.throw(
-				_("Alias cannot be a SQL keyword: {0}").format(alias),
-				frappe.ValidationError,
-			)
-
-	def _validate_function_field_arg(self, field_name: str):
-		"""Validate a field name used as a function argument."""
-		if not isinstance(field_name, str):
-			return  # Non-string arguments are allowed (literals)
-
-		# Basic validation - should be a simple field name
-		if not self._is_valid_field_name(field_name):
-			frappe.throw(
-				_("Invalid field name in function: {0}. Only simple field names are allowed.").format(
-					field_name
-				),
-				frappe.ValidationError,
-			)
-
-		# Check field permission if permissions are being applied
+	def _check_function_field_permission(self, field_name: str):
 		if self.engine.apply_permissions and self.engine.doctype:
 			self.engine._check_field_permission(self.engine.doctype, field_name)

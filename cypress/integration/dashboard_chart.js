@@ -8,13 +8,13 @@ context("Dashboard Chart", () => {
 		cy.new_form("Dashboard Chart");
 		cy.get('[data-fieldname="parent_document_type"]').should("have.css", "display", "none");
 
-		cy.get_field("document_type", "Link");
-		cy.fill_field("document_type", "Workspace Link", "Link").focus().blur();
-		cy.get_field("document_type", "Link").should("have.value", "Workspace Link");
-
+		cy.get_field("chart_name", "Data").should("be.visible");
 		cy.fill_field("chart_name", "Test Chart", "Data");
+		cy.fill_field("document_type", "Workspace Link", "Link");
 
-		cy.get('[data-fieldname="filters_json"]').click().wait(200);
+		cy.get('[data-fieldname="filters_json"]').click();
+		cy.get(".modal-dialog", { timeout: 500 }).should("be.visible");
+
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
 		cy.get(".modal-body .fieldname-select-area").click();
 		cy.get(".modal-actions .btn-modal-close").click();

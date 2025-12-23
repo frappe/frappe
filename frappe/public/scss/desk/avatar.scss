@@ -94,14 +94,13 @@
 	text-align: center;
 
 	.standard-image {
-		font-size: var(--text-xs);
+		@include get_textstyle("xs", "regular");
 	}
 }
 
 .avatar-medium {
 	width: 28px;
 	height: 28px;
-
 	.standard-image {
 		@include get_textstyle("base", "regular");
 	}

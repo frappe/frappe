@@ -77,7 +77,7 @@
    "options": "System Health Report Workers"
   },
   {
-   "documentation_url": "/app/rq-worker",
+   "documentation_url": "/desk/rq-worker",
    "fieldname": "total_background_workers",
    "fieldtype": "Int",
    "label": "Total Background Workers"
@@ -89,7 +89,7 @@
    "label": "Background Jobs"
   },
   {
-   "documentation_url": "/app/rq-job",
+   "documentation_url": "/desk/rq-job",
    "fieldname": "scheduler_status",
    "fieldtype": "Data",
    "label": "Scheduler Status"
@@ -140,7 +140,7 @@
    "label": "Outgoing Emails (Last 7 days)"
   },
   {
-   "documentation_url": "/app/email-queue?status=Error",
+   "documentation_url": "/desk/email-queue?status=Error",
    "fieldname": "failed_emails",
    "fieldtype": "Int",
    "label": "Failed Emails"
@@ -151,7 +151,7 @@
    "label": "Total Outgoing Emails"
   },
   {
-   "documentation_url": "/app/email-queue?status=Not+Sent",
+   "documentation_url": "/desk/email-queue?status=Not+Sent",
    "fieldname": "pending_emails",
    "fieldtype": "Int",
    "label": "Pending Emails"
@@ -162,13 +162,13 @@
    "label": "Incoming Emails (Last 7 days)"
   },
   {
-   "documentation_url": "/app/unhandled-email",
+   "documentation_url": "/desk/unhandled-email",
    "fieldname": "unhandled_emails",
    "fieldtype": "Int",
    "label": "Unhandled Emails"
   },
   {
-   "documentation_url": "/app/communication?communication_type=Communication&sent_or_received=Received",
+   "documentation_url": "/desk/communication?communication_type=Communication&sent_or_received=Received",
    "fieldname": "handled_emails",
    "fieldtype": "Int",
    "label": "Handled Emails"
@@ -179,7 +179,7 @@
    "label": "Errors"
   },
   {
-   "documentation_url": "/app/error-log",
+   "documentation_url": "/desk/error-log",
    "fieldname": "total_errors",
    "fieldtype": "Int",
    "label": "Total Errors (last 1 day)"
@@ -205,7 +205,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "documentation_url": "/app/query-report/Database Storage Usage By Tables",
+   "documentation_url": "/desk/query-report/Database Storage Usage By Tables",
    "fieldname": "top_db_tables",
    "fieldtype": "Table",
    "label": "Storage Usage By Table",
@@ -265,13 +265,13 @@
    "fieldtype": "Column Break"
   },
   {
-   "documentation_url": "/app/backups",
+   "documentation_url": "/desk/backups",
    "fieldname": "onsite_backups",
    "fieldtype": "Int",
    "label": "Number of onsite backups"
   },
   {
-   "documentation_url": "/app/user",
+   "documentation_url": "/desk/user",
    "fieldname": "total_users",
    "fieldtype": "Int",
    "label": "Total Users"
@@ -286,7 +286,7 @@
    "label": "New Users (Last 30 days)"
   },
   {
-   "documentation_url": "/app/activity-log?status=Failed&operation=Login",
+   "documentation_url": "/desk/activity-log?status=Failed&operation=Login",
    "fieldname": "failed_logins",
    "fieldtype": "Int",
    "label": "Failed Logins (Last 30 days)"
@@ -353,7 +353,7 @@
    "label": "Realtime (SocketIO)"
   },
   {
-   "documentation_url": "/app/rq-job",
+   "documentation_url": "/desk/rq-job",
    "fieldname": "background_jobs_check",
    "fieldtype": "Data",
    "label": "Background Jobs Check"

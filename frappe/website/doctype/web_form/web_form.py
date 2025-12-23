@@ -70,6 +70,7 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
+
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):

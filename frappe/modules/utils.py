@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Union
 import frappe
 from frappe import _, get_module_path, scrub
 from frappe.utils import cint, cstr, now_datetime
+from frappe.utils.caching import site_cache
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -280,6 +281,19 @@ def get_module_app(module: str) -> str:
 	return app
 
 
+@site_cache
+def get_doctype_app_map():
+	DocType = frappe.qb.DocType("DocType")
+	Module = frappe.qb.DocType("Module Def")
+	return dict(
+		frappe.qb.from_(DocType)
+		.left_join(Module)
+		.on(DocType.module == Module.name)
+		.select(DocType.name, Module.app_name)
+		.run()
+	)
+
+
 def get_app_publisher(module: str) -> str:
 	app = get_module_app(module)
 	if not app:
@@ -287,9 +301,7 @@ def get_app_publisher(module: str) -> str:
 	return frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
 
-def make_boilerplate(
-	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
-):
+def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict | "frappe._dict" = None):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
 	if template_name.endswith("._py"):

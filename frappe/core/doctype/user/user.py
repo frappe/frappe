@@ -83,7 +83,7 @@ class User(Document):
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
-		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
+		desk_theme: DF.Literal["Automatic", "Light", "Dark"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
@@ -1018,7 +1018,10 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
+		"User Email",
+		filters={"awaiting_password": 1, "used_oauth": 0},
+		pluck="parent",
+		distinct=True,
 	)
 	set_default("email_user_password", ",".join(password_list))
 
@@ -1282,7 +1285,27 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
+	# Add fallback suggestion if nothing provided
+	if not (suggestions or warning):
+		suggestions = [_("Better add a few more letters or another word")]
+
+	message_parts = []
+
+	if warning:
+		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+
+	if suggestions:
+		suggestions_html = (
+			'<ul style="margin: 0; padding-left: 1em;">'
+			+ "".join(f"<li>{suggestion}</li>" for suggestion in suggestions)
+			+ "</ul>"
+		)
+		message_parts.append(suggestions_html)
+
+	frappe.throw(
+		msg="".join(message_parts),
+		title=_("Password requirements not met"),
+	)
 
 
 def update_gravatar(name):

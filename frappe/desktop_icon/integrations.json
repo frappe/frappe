@@ -10,11 +10,11 @@
  "label": "Integrations",
  "link_to": "Connected App",
  "link_type": "DocType",
- "modified": "2025-11-13 16:00:56.967719",
+ "modified": "2025-11-25 13:26:12.851783",
  "modified_by": "Administrator",
  "name": "Integrations",
  "owner": "Administrator",
- "parent_icon": "Frappe Framework",
+ "parent_icon": "Framework",
  "roles": [],
  "standard": 1
 }
