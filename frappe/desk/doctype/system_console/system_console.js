@@ -41,6 +41,14 @@ frappe.ui.form.on("System Console", {
 				frm.get_field("sql_output").html("");
 			}
 		}
+<<<<<<< HEAD
+=======
+
+		frm.trigger("load_completions");
+		const field = frm.get_field("console");
+		field.df.options = frm.doc.type;
+		field.set_language();
+>>>>>>> 9db33f6f24 (fix: system console autocompletion (#35320))
 	},
 
 	render_sql_output: function (frm) {
@@ -112,4 +120,26 @@ frappe.ui.form.on("System Console", {
 				<tbody>${rows}</thead>`);
 			});
 	},
+<<<<<<< HEAD
+=======
+
+	load_completions(frm) {
+		if (frm.doc.type != "Python") {
+			frm.set_df_property("console", "autocompletions", []);
+			return;
+		}
+		setTimeout(() => {
+			frappe
+				.call({
+					method: "frappe.core.doctype.server_script.server_script.get_autocompletion_items",
+					type: "GET",
+					cache: true,
+				})
+				.then((r) => r.message)
+				.then((items) => {
+					frm.set_df_property("console", "autocompletions", items);
+				});
+		}, 100); // ace is just like this, can't do anything :shrug:
+	},
+>>>>>>> 9db33f6f24 (fix: system console autocompletion (#35320))
 });
