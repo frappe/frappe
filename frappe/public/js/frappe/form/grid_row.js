@@ -1183,17 +1183,19 @@ export default class GridRow {
 		let field_onchange_function = df.onchange;
 		let field_change_function = df.change;
 
-		field.df.change = (e) => {
-			this.refresh_dependency();
-			// trigger onchange with current grid row field as "this"
-			if (field_onchange_function) {
-				field_onchange_function.apply(field, [e]);
-			} else if (field_change_function) {
-				field_change_function.apply(field, [e]);
-			}
+		if (!field.df.change) {
+			field.df.change = (e) => {
+				this.refresh_dependency();
+				// trigger onchange with current grid row field as "this"
+				if (field_onchange_function) {
+					field_onchange_function.apply(field, [e]);
+				} else if (field_change_function) {
+					field_change_function.apply(field, [e]);
+				}
 
-			me.refresh_field(field.df.fieldname);
-		};
+				me.refresh_field(field.df.fieldname);
+			};
+		}
 
 		field.refresh();
 		if (field.$input) {

@@ -65,7 +65,7 @@ class Report(Document):
 
 		if self.is_standard == "No":
 			# allow only script manager to edit scripts
-			if self.report_type != "Report Builder":
+			if self.report_type not in ("Report Builder", "Custom Report"):
 				frappe.only_for("Script Manager", True)
 
 			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
