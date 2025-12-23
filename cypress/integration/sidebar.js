@@ -66,19 +66,19 @@ context("Sidebar", () => {
 			cy.get(".explore-link").should("be.visible");
 			cy.get(".show-all-btn").should("be.hidden");
 
-			// attach 6 images
-			attach_file(null, 5);
+			// attach 10 images
+			attach_file(null, 10);
 			cy.get(".show-all-btn").should("be.visible");
 
 			// attach 1 more image to reach attachment limit
-			attach_file("cypress/fixtures/sample_attachments/attachment-6.txt");
+			attach_file("cypress/fixtures/sample_attachments/attachment-11.txt");
 			cy.get(".add-attachment-btn").should("be.hidden");
 			cy.get(".explore-link").should("be.visible");
 
 			// test "Show All" button
-			cy.get(".attachment-row").should("have.length", 5);
+			cy.get(".attachment-row").should("have.length", 10);
 			cy.get(".show-all-btn").click({ force: true });
-			cy.get(".attachment-row").should("have.length", 7);
+			cy.get(".attachment-row").should("have.length", 12);
 		});
 	});
 
