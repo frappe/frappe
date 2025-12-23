@@ -62,6 +62,8 @@ context("Sidebar", () => {
 		}).then((todo) => {
 			cy.visit(`/desk/todo/${todo.message.name}`);
 
+			cy.window().its("frappe.csrf_token").should("be.a", "string");
+
 			attach_file("cypress/fixtures/sample_image.jpg");
 			cy.get(".explore-link").should("be.visible");
 			cy.get(".show-all-btn").should("be.hidden");
