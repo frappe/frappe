@@ -752,16 +752,23 @@ frappe.views.CommunicationComposer = class {
 		if (this.dialog && this.frm) {
 			let message = this.get_email_content();
 			message = message.split(separator_element)[0];
-			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch((e) => {
-				if (e) {
-					// silently fail
-					console.log(e);
-					console.warn(
-						"[Communication] IndexedDB is full. Cannot save message as draft"
-					); // eslint-disable-line
-				}
-			});
+
+			this.save_item_in_local_forage(this.frm.doctype + this.frm.docname, message);
+			this.save_item_in_local_forage(
+				this.frm.doctype + this.frm.docname + "_use_html",
+				this.dialog.get_value("use_html")
+			);
 		}
+	}
+
+	save_item_in_local_forage(key, value) {
+		localforage.setItem(key, value).catch((e) => {
+			if (e) {
+				// silently fail
+				console.log(e);
+				console.warn("[Communication] IndexedDB is full. Cannot save communication draft"); // eslint-disable-line
+			}
+		});
 	}
 
 	clear_cache() {
@@ -889,6 +896,10 @@ frappe.views.CommunicationComposer = class {
 		if (!message && this.frm) {
 			const { doctype, docname } = this.frm;
 			message = (await localforage.getItem(doctype + docname)) || "";
+
+			const use_html = (await localforage.getItem(doctype + docname + "_use_html")) || 0;
+			this.dialog.set_value("use_html", use_html);
+			this.on_use_html_toggle();
 		}
 
 		if (message) {
@@ -1015,6 +1026,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	on_use_html_toggle() {
+		this.save_as_draft();
 		const use_html = this.dialog.get_value("use_html");
 
 		this.dialog.set_df_property("content", "hidden", use_html);
