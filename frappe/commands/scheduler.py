@@ -198,13 +198,7 @@ def start_scheduler():
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-<<<<<<< HEAD
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
-=======
-def start_worker(
-	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None
-):
->>>>>>> d67a6d168e (fix(commands/scheduler): typo (#23441))
 	"""Start a background worker"""
 	from frappe.utils.background_jobs import start_worker
 
