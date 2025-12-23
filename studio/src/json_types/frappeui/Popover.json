@@ -31,7 +31,11 @@
             "right-start",
             "right-end",
             "left-start",
-            "left-end"
+            "left-end",
+            "top",
+            "bottom",
+            "right",
+            "left"
           ]
         },
         "popoverClass": {

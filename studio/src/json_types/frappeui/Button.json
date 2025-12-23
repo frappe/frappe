@@ -43,7 +43,7 @@
           "type": "string"
         },
         "iconRight": {
-         "type": "string"
+          "type": "string"
         },
         "tooltip": {
           "type": "string"
@@ -65,10 +65,19 @@
             {
               "type": "object"
             }
-          ]
+          ],
+          "description": "Route Location the link should navigate to when clicked on."
         },
         "link": {
           "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "button",
+            "submit",
+            "reset"
+          ]
         }
       },
       "additionalProperties": false

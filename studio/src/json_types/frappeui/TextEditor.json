@@ -44,21 +44,46 @@
           "type": "boolean"
         },
         "bubbleMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "bubbleMenuOptions": {
           "type": "object"
         },
         "fixedMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "floatingMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "extensions": {
           "type": "array",
           "items": {}
         },
+        "starterkitOptions": {},
         "mentions": {
           "anyOf": [
             {

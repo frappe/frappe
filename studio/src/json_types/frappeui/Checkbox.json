@@ -15,9 +15,6 @@
         "label": {
           "type": "string"
         },
-        "checked": {
-          "type": "boolean"
-        },
         "disabled": {
           "type": "boolean"
         },
