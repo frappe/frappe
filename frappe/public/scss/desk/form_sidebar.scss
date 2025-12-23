@@ -139,7 +139,7 @@ body[data-route^="Form"] {
 	.layout-side-section {
 		overflow-y: auto;
 		overflow-x: hidden;
-		max-height: calc(100svh - var(--page-head-height));
+		height: calc(100vh - var(--page-head-height));
 		position: sticky;
 		top: var(--page-head-height);
 		.form-sidebar {
