@@ -136,8 +136,15 @@
 	gap: 8px;
 }
 body[data-route^="Form"] {
-	.layout-side-section .form-sidebar {
-		width: var(--form-sidebar-width);
+	.layout-side-section {
+		overflow-y: auto;
+		overflow-x: hidden;
+		height: calc(100vh - 45px);
+		position: sticky;
+		top: 45px;
+		.form-sidebar {
+			width: var(--form-sidebar-width);
+		}
 	}
 }
 
@@ -146,11 +153,6 @@ body[data-route^="Form"] {
 	// padding-right: 30px;
 	min-width: var(--form-sidebar-width);
 	border-left: 1px solid var(--border-color);
-	overflow-y: auto;
-	overflow-x: hidden;
-	height: calc(100vh - var(--page-head-height));
-	position: sticky;
-	top: var(--page-head-height);
 
 	@media (max-width: map-get($grid-breakpoints, "xl")) {
 		min-width: calc(38vw - var(--sidebar-width));
