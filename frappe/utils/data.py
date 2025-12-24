@@ -108,10 +108,10 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: Optional["DateTimeLikeObject"] = None,
+	datetime_str: Optional["DateTimeLikeObject"] = None, user_time=False
 ) -> datetime.datetime | None:
 	if datetime_str is None:
-		return now_datetime()
+		return now_datetime(user_time)
 
 	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
 		return datetime_str
@@ -236,11 +236,12 @@ def add_to_date(
 	seconds=0,
 	as_string=False,
 	as_datetime=False,
+	user_time=False,
 ) -> DateTimeLikeObject:
 	"""Adds `days` to the given date"""
 
 	if date is None:
-		date = now_datetime()
+		date = now_datetime(user_time)
 
 	if hours:
 		as_datetime = True
@@ -307,8 +308,8 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 
-def now_datetime():
-	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
+def now_datetime(user_time=False):
+	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC), user_time)
 	return dt.replace(tzinfo=None)
 
 
@@ -316,8 +317,8 @@ def get_timestamp(date):
 	return time.mktime(getdate(date).timetuple())
 
 
-def get_eta(from_time, percent_complete):
-	diff = time_diff(now_datetime(), from_time).total_seconds()
+def get_eta(from_time, percent_complete, user_time=False):
+	diff = time_diff(now_datetime(user_time), from_time).total_seconds()
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
@@ -342,26 +343,34 @@ def get_datetime_in_timezone(time_zone):
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def convert_utc_to_system_timezone(utc_timestamp):
+def convert_utc_to_system_timezone(utc_timestamp, user_time=False):
 	time_zone = get_system_timezone()
+
+	if user_time:
+		time_zone = get_user_timezone() or time_zone
+
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def now() -> str:
+def get_user_timezone():
+	return frappe.get_cached_value("User", frappe.session.user, "time_zone")
+
+
+def now(user_time=False) -> str:
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
 	if frappe.flags.current_date:
 		return (
 			getdate(frappe.flags.current_date).strftime(DATE_FORMAT)
 			+ " "
-			+ now_datetime().strftime(TIME_FORMAT)
+			+ now_datetime(user_time).strftime(TIME_FORMAT)
 		)
 	else:
-		return now_datetime().strftime(DATETIME_FORMAT)
+		return now_datetime(user_time).strftime(DATETIME_FORMAT)
 
 
-def nowdate() -> str:
+def nowdate(user_time=False) -> str:
 	"""return current date as yyyy-mm-dd"""
-	return now_datetime().strftime(DATE_FORMAT)
+	return now_datetime(user_time).strftime(DATE_FORMAT)
 
 
 def today() -> str:
@@ -377,9 +386,9 @@ def get_abbr(string: str, max_len: int = 2) -> str:
 	return abbr or "?"
 
 
-def nowtime() -> str:
+def nowtime(user_time=False) -> str:
 	"""return current time in hh:mm"""
-	return now_datetime().strftime(TIME_FORMAT)
+	return now_datetime(user_time).strftime(TIME_FORMAT)
 
 
 @typing.overload
@@ -711,19 +720,19 @@ def get_weekdays():
 	return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-def get_weekday(datetime: datetime.datetime | None = None) -> str:
+def get_weekday(datetime: datetime.datetime | None = None, user_time=False) -> str:
 	if not datetime:
-		datetime = now_datetime()
+		datetime = now_datetime(user_time)
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
 
 
-def get_month(datetime: DateTimeLikeObject | None = None) -> str:
+def get_month(datetime: DateTimeLikeObject | None = None, user_time=False) -> str:
 	"""Return the month name (e.g. 'January') for the given datetime like object (datetime.date, datetime.datetime, string).
 	If `datetime` argument is not provided, the current month name is returned.
 	"""
 	if not datetime:
-		datetime = now_datetime()
+		datetime = now_datetime(user_time)
 
 	if isinstance(datetime, str):
 		datetime = get_datetime(datetime)

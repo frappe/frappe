@@ -103,7 +103,7 @@ def get_static_default_value(df, doctype_user_permissions, allowed_records):
 			return frappe.session.user
 
 		elif df.default == "Today":
-			return nowdate()
+			return nowdate(user_time=True)
 
 		elif not cstr(df.default).startswith(":"):
 			# a simple default value
@@ -144,10 +144,10 @@ def set_dynamic_default_values(doc, parent_doc, parentfield):
 					doc[df.fieldname] = default_value
 
 			elif df.fieldtype == "Datetime" and df.default.lower() == "now":
-				doc[df.fieldname] = now_datetime()
+				doc[df.fieldname] = now_datetime(user_time=True)
 
 		if df.fieldtype == "Time":
-			doc[df.fieldname] = nowtime()
+			doc[df.fieldname] = nowtime(user_time=True)
 
 	if parent_doc:
 		doc["parent"] = parent_doc.name
