@@ -257,7 +257,10 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
-		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
+		this.append_breadcrumb_element(
+			"/desk",
+			frappe.utils.icon("monitor", { width: "18px", height: "18px" })
+		);
 	},
 
 	toggle(show) {

@@ -118,7 +118,7 @@ def get_context(context) -> PrintContext:
 	}
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> Optional["PrintFormat"]:
+def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
 	if not print_format_name:
 		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
@@ -135,7 +135,7 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> Optional["Prin
 
 def get_rendered_template(
 	doc: "Document",
-	print_format: Optional["PrintFormat"] = None,
+	print_format: "PrintFormat" | None = None,
 	meta: "Meta" = None,
 	no_letterhead: bool | None = None,
 	letterhead: str | None = None,
@@ -281,7 +281,7 @@ def set_link_titles(doc: "Document") -> None:
 
 
 def set_title_values_for_link_and_dynamic_link_fields(
-	meta: "Meta", doc: "Document", parent_doc: Optional["Document"] = None
+	meta: "Meta", doc: "Document", parent_doc: "Document" | None = None
 ) -> None:
 	if parent_doc and not parent_doc.get("__link_titles"):
 		setattr(parent_doc, "__link_titles", {})
@@ -586,7 +586,7 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 
 
 def get_print_style(
-	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
+	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
 ) -> str:
 	print_settings = frappe.get_doc("Print Settings")
 
@@ -618,7 +618,7 @@ def get_print_style(
 
 
 def get_font(
-	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
+	print_settings: "PrintSettings", print_format: "PrintFormat" | None = None, for_legacy=False
 ) -> str:
 	default = """
 	"InterVariable", "Inter", -apple-system", "BlinkMacSystemFont",

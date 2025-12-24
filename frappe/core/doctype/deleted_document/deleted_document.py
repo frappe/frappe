@@ -45,7 +45,7 @@ def restore(name, alert=True):
 		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)
 
 	doc = frappe.get_doc(json.loads(deleted.data))
-
+	doc.flags.from_restore = True
 	try:
 		doc.insert()
 	except frappe.DocstatusTransitionError:

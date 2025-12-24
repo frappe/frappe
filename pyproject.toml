@@ -4,85 +4,83 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.14,<3.15"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.16.0",
-    "Click~=8.2.0",
+    "Click~=8.3.1",
     "filelock~=3.20.1",
     "filetype~=1.2.0",
-    "GitPython~=3.1.44",
+    "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=11.3.0",
+    "Pillow~=12.0.0",
     "PyJWT~=2.10.1",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
-    "PyMySQL==1.1.1",
-    "pypdf==6.4.0",
+    "PyMySQL==1.1.2",
+    "pypdf==6.5.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
-    "PyYAML~=6.0.2",
+    "PyYAML~=6.0.3",
     "RestrictedPython~=8.1",
     "WeasyPrint==66.0",
-    "pydyf==0.11.0",
+    "pydyf==0.12.1",
     "Werkzeug==3.1.4",
     "Whoosh~=2.7.4",
-    "beautifulsoup4~=4.13.4",
+    "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
-    "bleach[css]~=6.2.0",
+    "bleach[css]~=6.3.0",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
-    "cryptography~=46.0.2",
+    "cryptography~=46.0.3",
     "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
     "ipython~=8.37.0",
-    "ldap3~=2.9",
-    "markdown2~=2.5.3",
-    "MarkupSafe~=3.0.2",
+    "ldap3~=2.9.1",
+    "markdown2~=2.5.4",
+    "MarkupSafe~=3.0.3",
     "num2words~=0.5.14",
     "oauthlib~=3.2.2",
     "openpyxl~=3.1.5",
-    "orjson~=3.11.3",
+    "orjson~=3.11.5",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
-    "phonenumbers~=9.0.7",
+    "phonenumbers~=9.0.21",
     "premailer~=3.10.0",
     "psutil~=7.0.0",
-    "psycopg2-binary~=2.9.1",
+    "psycopg2-binary~=2.9.11",
     "pyOpenSSL~=25.3.0",
-    "pydantic~=2.12.0",
+    "pydantic~=2.12.5",
     "pyotp~=2.9.0",
-    "python-dateutil~=2.9.0",
+    "python-dateutil~=2.9.0.post0",
     "pytz==2025.2",
     "rauth~=0.7.3",
-    "redis~=6.2.0",
-    "hiredis~=3.2.1",
+    "redis~=7.1.0",
+    "hiredis~=3.3.0",
     "requests-oauthlib~=2.0.0",
-    "requests~=2.32.4",
+    "requests~=2.32.5",
     # We depend on internal attributes of RQ.
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
-    "rq==2.4.0",
-    "rsa~=4.9",
+    "rq==2.6.1",
+    "rsa~=4.9.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=1.45.1",
-    "sqlparse~=0.5.0",
-    "sql_metadata~=2.17.0",
+    "sqlparse~=0.5.5",
+    "sql_metadata~=2.19.0",
     "tenacity~=9.1.2",
     "terminaltables~=3.1.10",
-    "traceback-with-variables~=2.2.0",
-    "typing_extensions>=4.6.1,<5",
-    "tomli~=2.2.1",
-    "uuid-utils~=0.11.0",
+    "traceback-with-variables~=2.2.1",
+    "typing_extensions>=4.15.0,<5",
+    "uuid-utils~=0.12.0",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
-    "markdownify~=1.1.0",
-
+    "markdownify~=1.2.2",
     # integration dependencies
     "google-api-python-client~=2.172.0",
     "google-auth-oauthlib~=1.2.2",
@@ -90,8 +88,7 @@ dependencies = [
     "posthog~=5.0.0",
     "vobject~=0.9.9",
     "pycountry~=24.6.1",
-
-    "websockets"
+    "websockets~=15.0.1",
 ]
 
 [project.urls]
@@ -102,7 +99,7 @@ Repository = "https://github.com/frappe/frappe.git"
 [project.optional-dependencies]
 dev = [
     "pyngrok~=6.0.0",
-    "watchdog~=3.0.0",
+    "watchdog~=6.0.0",
     "responses==0.23.1",
     # typechecking
     "basedmypy",
@@ -153,14 +150,14 @@ coverage = "~=7.10.0"
 Faker = "~=18.10.1"
 pyngrok = "~=6.0.0"
 unittest-xml-reporting = "~=3.2.0"
-watchdog = "~=3.0.0"
+watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.2.2"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py314"
 exclude = [
     "**/doctype/*/boilerplate/*.py" # boilerplate are template strings, not valid python
 ]
@@ -192,6 +189,8 @@ ignore = [
     "UP030", # Use implicit references for positional format fields (translations)
     "UP031", # Use format specifiers instead of percent format
     "UP032", # Use f-string instead of `format` call (translations)
+    "UP037", # quoted annotations
+    "UP040", # Use type aliases instead of type annotations
 ]
 typing-modules = ["frappe.types.DF"]
 

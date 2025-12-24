@@ -9,9 +9,8 @@ from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from functools import wraps
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
+from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, Union, overload, override
 
-from typing_extensions import Self, override
 from werkzeug.exceptions import NotFound
 
 import frappe
@@ -34,7 +33,7 @@ from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, get
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
-	from typing_extensions import Self
+	from typing import Self
 
 	from frappe.core.doctype.docfield.docfield import DocField
 
@@ -43,8 +42,8 @@ DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
 
 
-_SingleDocument: TypeAlias = "Document"
-_NewDocument: TypeAlias = "Document"
+type _SingleDocument = "Document"
+type _NewDocument = "Document"
 
 
 @overload
@@ -614,7 +613,7 @@ class Document(BaseDocument):
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
-	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
+	def update_child_table(self, fieldname: str, df: "DocField" | None = None):
 		"""sync child table for given fieldname"""
 		df: DocField = df or self.meta.get_field(fieldname)
 		if df.is_virtual:
@@ -1994,7 +1993,7 @@ def bulk_insert(
 def _document_values_generator(
 	documents: Iterable["Document"],
 	columns: list[str],
-) -> Generator[tuple[Any], None, None]:
+) -> Generator[tuple[Any]]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
 		doc.owner = doc.modified_by = frappe.session.user
@@ -2140,7 +2139,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 def new_doc(
 	doctype: str,
 	*,
-	parent_doc: Optional["Document"] = None,
+	parent_doc: "Document" | None = None,
 	parentfield: str | None = None,
 	as_dict: bool = False,
 	**kwargs,

@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import tomllib
 from collections import defaultdict
 from collections.abc import Generator
 from functools import cache
@@ -9,8 +10,6 @@ from importlib import reload
 from pathlib import Path
 from types import MappingProxyType, ModuleType
 from typing import TYPE_CHECKING, Any
-
-import tomli
 
 import frappe
 from frappe.model.naming import revert_series_if_last
@@ -129,7 +128,7 @@ def load_test_records_for(index_doctype) -> dict[str, Any]:
 	toml_path = os.path.join(module_path, "test_records.toml")
 	if os.path.exists(toml_path):
 		with open(toml_path, "rb") as f:
-			return tomli.load(f)
+			return tomllib.load(f)
 
 	else:
 		return {}
@@ -138,9 +137,7 @@ def load_test_records_for(index_doctype) -> dict[str, Any]:
 # Test record generation
 
 
-def _generate_all_records_towards(
-	index_doctype, reset=False, commit=False
-) -> Generator[tuple[str, int], None, None]:
+def _generate_all_records_towards(index_doctype, reset=False, commit=False) -> Generator[tuple[str, int]]:
 	"""Generate test records for the given doctype and its dependencies."""
 
 	# NOTE: visited excludes dependency discovery of any index doctype which
@@ -156,7 +153,7 @@ def _generate_all_records_towards(
 
 def _generate_records_for(
 	index_doctype: str, reset: bool = False, commit: bool = False, initial_doctype: str | None = None
-) -> Generator[tuple[str, "Document"], None, None]:
+) -> Generator[tuple[str, "Document"]]:
 	"""Create and yield test records for a specific doctype."""
 	test_module: ModuleType
 
@@ -205,7 +202,7 @@ test_record_manager_instance = None
 
 def _sync_records(
 	index_doctype: str, test_records: dict[str, list], reset: bool = False, commit: bool = False
-) -> Generator[tuple[str, "Document"], None, None]:
+) -> Generator[tuple[str, "Document"]]:
 	"""Generate test objects for a register doctype from provided records, with caching and persistence."""
 	# NOTE: This method is called in roughly these situations:
 	# 1. First sync of a index doctype's records

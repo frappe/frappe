@@ -72,6 +72,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 	if data:
 		data = frappe.parse_json(data)
 
+	child_table_updates = data.get("child_table_updates") if data else None
 	failed = []
 	num_documents = len(docnames)
 
@@ -90,7 +91,28 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)
 			elif action == "update" and not doc.docstatus.is_cancelled():
-				doc.update(data)
+				# Handle child table updates
+				if child_table_updates:
+					table_fields = doc.meta.get_table_fields()
+					for child_doctype, field_updates in child_table_updates.items():
+						# Find the table field that contains this child doctype
+						table_fieldname = next(
+							(field.fieldname for field in table_fields if field.options == child_doctype),
+							None,
+						)
+
+						if table_fieldname and hasattr(doc, table_fieldname):
+							child_meta = frappe.get_meta(child_doctype)
+							child_docs = getattr(doc, table_fieldname)
+							for child_doc in child_docs:
+								for fieldname, value in field_updates.items():
+									if child_meta.has_field(fieldname):
+										setattr(child_doc, fieldname, value)
+
+				# Handle regular field updates
+				if data:
+					doc.update(data)
+
 				doc.save()
 				message = _("Updating {0}").format(doctype)
 			else:

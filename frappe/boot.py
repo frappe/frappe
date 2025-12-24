@@ -537,6 +537,7 @@ def get_sentry_dsn():
 
 
 def get_sidebar_items():
+	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
 	sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
@@ -560,7 +561,7 @@ def get_sidebar_items():
 		}
 		for si in w.items:
 			workspace_sidebar = {
-				"label": si.label,
+				"label": _(si.label),
 				"link_to": si.link_to,
 				"link_type": si.link_type,
 				"type": si.type,

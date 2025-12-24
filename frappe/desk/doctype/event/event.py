@@ -335,7 +335,7 @@ def get_events(
 	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
 ) -> list[frappe._dict]:
 	user = user or frappe.session.user
-	EventLikeDict: TypeAlias = Event | frappe._dict
+	type EventLikeDict = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
 	if isinstance(filters, str):

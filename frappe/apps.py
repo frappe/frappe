@@ -10,12 +10,14 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.utils.caching import request_cache
 
 # check if route is /desk or /desk/* and not /app1 or /app1/*
 DESK_APP_PATTERN = re.compile(r"^/desk(/.*)?$")
 
 
 @frappe.whitelist()
+@request_cache
 def get_apps():
 	apps = frappe.get_installed_apps()
 	app_list = []

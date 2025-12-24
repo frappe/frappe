@@ -1276,7 +1276,29 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
-
+	desktop_icon(letter, color) {
+		let opacity_hex = "1A";
+		let icon_html = $(`
+			<div class="icon-container">
+				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-lg" stroke=none style="" aria-hidden="true">
+				<use class="" href="#${letter}"></use>
+				</svg>
+			</div>
+		`);
+		let color_value = this.desktop_pallete[color || "blue"];
+		let bg_color = color_value + opacity_hex;
+		icon_html.css("backgroundColor", bg_color);
+		icon_html.find("svg").css("color", color_value);
+		return icon_html.get(0).outerHTML;
+	},
+	desktop_pallete: {
+		blue: "#0981E3",
+		gray: "#7B808A",
+	},
+	desktop_bg_color(color_name) {
+		let color_value = this.desktop_pallete[color_name];
+		color_value + "";
+	},
 	icon(
 		icon_name,
 		size = "sm",

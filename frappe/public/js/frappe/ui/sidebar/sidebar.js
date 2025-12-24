@@ -222,7 +222,6 @@ frappe.ui.Sidebar = class Sidebar {
 		if (items && items.length > 0) {
 			items.forEach((w) => {
 				if (!w.display_depends_on || frappe.utils.eval(w.display_depends_on)) {
-					w.label = __(w.label);
 					this.add_item(this.$items_container, w);
 				}
 			});
