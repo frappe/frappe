@@ -228,6 +228,11 @@ const boundValue = computed({
 const isHovered = ref(false)
 const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.has(props.block.componentId))
 
+const target = computed<HTMLElement | null>(() => {
+	if (!componentRef.value) return null
+	return getComponentRoot(componentRef)
+})
+
 const loadEditor = computed(() => {
 	return (
 		!props.block.isChildOfComponent &&
@@ -307,11 +312,6 @@ watch(
 	},
 	{ immediate: true },
 )
-
-const target = computed<HTMLElement | null>(() => {
-	if (!componentRef.value) return null
-	return getComponentRoot(componentRef)
-})
 
 watch(
 	() => componentContext?.value,
