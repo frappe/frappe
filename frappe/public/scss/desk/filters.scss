@@ -117,6 +117,8 @@
 	border-bottom-left-radius: 0 !important;
 	height: var(--btn-height);
 	border-left: 1px solid var(--btn-group-border-color);
+	display: flex;
+	align-items: center;
 
 	&:focus {
 		box-shadow: none !important;

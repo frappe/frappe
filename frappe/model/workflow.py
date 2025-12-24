@@ -1,8 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+
+from __future__ import annotations
+
 import json
 from collections import defaultdict
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
@@ -40,7 +43,7 @@ def get_workflow_name(doctype):
 
 @frappe.whitelist()
 def get_transitions(
-	doc: Union["Document", str, dict], workflow: "Workflow" = None, raise_exception: bool = False
+	doc: Document | str | dict, workflow: Workflow = None, raise_exception: bool = False
 ) -> list[dict]:
 	"""Return list of possible transitions for the given doc"""
 	from frappe.model.document import Document

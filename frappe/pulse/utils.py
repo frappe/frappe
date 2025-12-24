@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import frappe
 
@@ -83,7 +83,7 @@ def get_frappe_version() -> str:
 
 
 def utc_iso() -> str:
-	return datetime.now(timezone.utc).isoformat()
+	return datetime.now(UTC).isoformat()
 
 
 def get_app_version(app_name: str) -> str:

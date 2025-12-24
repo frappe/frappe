@@ -73,8 +73,8 @@ if TYPE_CHECKING:  # pragma: no cover
 controllers: dict[str, type] = {}
 lazy_controllers: dict[str, type] = {}
 local = Local()
-cache: Optional["RedisWrapper"] = None
-client_cache: Optional["ClientCache"] = None
+cache: "RedisWrapper" | None = None
+client_cache: "ClientCache" | None = None
 STANDARD_USERS = ("Guest", "Administrator")
 
 # this global may be subsequently changed by frappe.tests.utils.toggle_test_mode()
@@ -88,22 +88,20 @@ if _dev_server:
 
 
 # local-globals
-ConfType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type ConfType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: make session a dataclass instead of undtyped _dict
-SessionType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type SessionType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: implement dataclass
-LogMessageType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type LogMessageType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: implement dataclass
 # holds job metadata if the code is run in a background job context
-JobMetaType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-ResponseDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-FlagsDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-FormDict: TypeAlias = _dict[str, str]
+type JobMetaType = _dict[str, Any]  # type: ignore[no-any-explicit]
+type ResponseDict = _dict[str, Any]  # type: ignore[no-any-explicit]
+type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
+type FormDict = _dict[str, str]
 
-db: LocalProxy[Union["PyMariaDBDatabase", "MariaDBDatabase", "PostgresDatabase", "SQLiteDatabase"]] = local(
-	"db"
-)
-qb: LocalProxy[Union["MariaDB", "Postgres", "SQLite"]] = local("qb")
+db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
 form = form_dict
@@ -675,7 +673,7 @@ def is_table(doctype: str) -> bool:
 
 
 def get_precision(
-	doctype: str, fieldname: str, currency: str | None = None, doc: Optional["Document"] = None
+	doctype: str, fieldname: str, currency: str | None = None, doc: "Document" | None = None
 ) -> int:
 	"""Get precision for a given field"""
 	from frappe.model.meta import get_field_precision

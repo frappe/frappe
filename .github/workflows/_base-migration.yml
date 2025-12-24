@@ -12,11 +12,11 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.10'
+        default: '3.14'
       node-version:
         required: false
         type: number
-        default: 22
+        default: 24
       db-artifact-url:
         required: false
         type: string
@@ -49,6 +49,15 @@ jobs:
         disable-socketio: true
         disable-web: true
         db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: |
+          3.11
+          3.13
+          ${{ inputs.python-version }}
+          
 
     - name: Execute pre-migration tasks
       if: inputs.pre
@@ -108,7 +117,7 @@ jobs:
             fi
 
             echo "Setting up environment..."
-            if rm -rf ${GITHUB_WORKSPACE}/env && python -m venv ${GITHUB_WORKSPACE}/env; then
+            if rm -rf ${GITHUB_WORKSPACE}/env && python"$2" -m venv ${GITHUB_WORKSPACE}/env; then
                 source ${GITHUB_WORKSPACE}/env/bin/activate
                 pip install --quiet --upgrade pip
                 pip install --quiet frappe-bench
@@ -148,13 +157,13 @@ jobs:
     - name: Update to v14
       run: |
         source $RUNNER_TEMP/migrate
-        update_to_version 14
+        update_to_version 14 3.11
         exit $?
 
     - name: Update to v15
       run: |
         source $RUNNER_TEMP/migrate
-        update_to_version 15
+        update_to_version 15 3.13
         exit $?
 
     - name: Update to last commit

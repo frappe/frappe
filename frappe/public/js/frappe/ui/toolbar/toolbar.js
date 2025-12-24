@@ -105,6 +105,7 @@ frappe.ui.toolbar.Toolbar = class {
 	add_back_button() {
 		if (!frappe.is_mobile()) return;
 		this.navbar = $(".navbar-brand");
+		this.menu = this.navbar.html();
 		let doctype = frappe.get_route()[1];
 		let list_view_route = `/desk/${frappe.router.convert_from_standard_route([
 			"list",
@@ -118,6 +119,8 @@ frappe.ui.toolbar.Toolbar = class {
 		let route = frappe.get_route();
 		if (route[0] == "Form") {
 			this.add_back_button();
+		} else {
+			this.navbar.html(this.menu);
 		}
 	}
 };

@@ -432,7 +432,7 @@ def after_request(*args, **kwargs):
 	_test_REQ_HOOK["after_request"] = time()
 
 
-class TestResponse(FrappeAPITestCase):
+class TestAPIResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
 			"/api/method/frappe.utils.print_format.download_pdf",

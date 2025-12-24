@@ -22,6 +22,7 @@
 .navbar-container{
     display: flex;
     align-items: center;
+    gap: 10px;
     justify-content: space-between;
     width: 100%;
     padding: 10px 20px 10px 20px;
@@ -41,11 +42,15 @@
     color: var(--text-light);
 }
 
-.desktop-navbar-modal-search{
+.desktop-navbar-modal-search {
     background-color: var(--control-bg);
     border-radius: var(--border-radius-sm);
-    padding: 6px 10px;
+    height: 32px;
+    padding: 0px 10px;
+    display: flex;
+    align-items: center;
     width: 100%;
+    margin-right: 0px;
 }
 #brand-logo{
     width: auto;
@@ -60,6 +65,11 @@
     align-items: center;
     justify-content: center;
     flex-direction: row;
+    .icons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 .icon-stroke{
@@ -91,6 +101,10 @@
     align-items: center;
     gap: 12px;
     padding: 13px 16px 12px 16px;
+    position: relative;
+}
+.desktop-icon.edit-mode .hide-button {
+    display: flex;
 }
 .icon-container:has(.app-logo) {
     padding: 0;
@@ -99,10 +113,16 @@
 .icon-container img{
     width: var(--desktop-icon-dimension);
     height: var(--desktop-icon-dimension);
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 .icon-container{
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -234,6 +254,7 @@
 }
 
 .folder-icon{
+    border-radius: 10px;
    background-color: var(--folder-icon-background-color) !important;
     box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
     padding: 7px;
@@ -286,4 +307,54 @@
 }
 .right-page-arrow, .left-page-arrow{
     margin: 0px;
+}
+
+.bounce {
+  animation: bounceIn 2s infinite 2s;
+}
+
+@keyframes bounceIn {
+	0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+	20% {
+    transform: translateY(-30px);
+  }
+	60% {
+    transform: translateY(-15px);
+  }
+}
+
+.hide-button{
+    display: none;
+    background-color: var(--surface-gray-2);
+    position: absolute;
+    border-radius: 67px;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    text-align: center;
+    vertical-align: center;
+    align-items: center;
+    top: -5px;
+    left: 108px;
+}
+
+.edit-mode{
+    border: 1px dashed var(--outline-gray-2);
+    border-radius: 20px;
+}
+.edit-mode-buttons{
+    display: none;
+    gap: 4px;
+}
+.desktop-wrapper[data-mode="Edit"]{
+    .edit-mode-buttons{
+        display: flex;
+        justify-content: flex-end;
+        position: absolute;
+        bottom: 5%;
+        right: 5%;
+    }
 }

@@ -6,10 +6,13 @@
 /*! This comment will be included even in compressed mode. */
 .navbar-breadcrumbs {
 	flex-wrap: nowrap;
+	align-items: center;
+	line-height: 1;
 	a {
 		text-decoration: none;
 		color: var(--ink-gray-5);
 		font-weight: var(--weight-medium);
+		font-size: var(--text-lg);
 		letter-spacing: get_letterspacing("sm", "regular");
 		&:hover {
 			color: var(--ink-gray-7);
@@ -18,8 +21,8 @@
 			// content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
 			content: "/";
 			display: inline-block;
-			margin-left: 4px;
-			margin-right: 4px;
+			margin-left: 6px;
+			margin-right: 6px;
 			color: var(--ink-gray-4);
 			font-size: 14px;
 			line-height: 1.15;

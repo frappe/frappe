@@ -130,6 +130,10 @@ def has_permission(
 
 	meta = frappe.get_meta(doctype)
 
+	# docname == doctype for single doctypes
+	if not doc and meta.issingle:
+		doc = meta.name
+
 	if doc:
 		if isinstance(doc, str | int):
 			# perf: Avoid loading child tables for perm checks
@@ -140,7 +144,9 @@ def has_permission(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
 			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
-			if frappe.has_permission(doc.doctype):
+			if meta.issingle:
+				msg += f": {_(doc.doctype)}"
+			elif has_permission(doc.doctype):
 				msg += f": {_(doc.doctype)} - {doc.name}"
 			push_perm_check_log(msg, debug=debug)
 	else:

@@ -28,7 +28,7 @@
 </div>
 <div class="sidebar-section sidebar-meta-details border-bottom">
 	<div class="form-details flex {{image_field ? "justify-center" : "justify-between"}}">
-		<span class="ellipsis mr-3 bold">{%= frm.get_title() %}</span>
+		<span class="ellipsis mr-3 bold form-title-text pointer" title="{{__("Click to edit")}}">{%= frm.get_title() %}</span>
 		<span class="form-name-copy" data-copy="{{frm.get_title()}}">{%= frappe.utils.icon("copy")%}</span>
 	</div>
 	<div class="form-name-container mt-2 flex {{image_field ? "justify-center" : "justify-between"}}">

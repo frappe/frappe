@@ -40,6 +40,10 @@ frappe.ui.form.Sidebar = class {
 		this.setup_copy_event();
 		this.make_like();
 		this.refresh();
+
+		// setup editable title
+		let form_sidebar_text = $(this.sidebar).find(".sidebar-meta-details .form-title-text");
+		this.toolbar.setup_editable_title(form_sidebar_text);
 	}
 
 	set_form_indicator() {
