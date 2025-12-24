@@ -2030,8 +2030,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					${__("Collapse All")}</button>
 			</div>`);
 			$(this.$report_footer).append(this.$tree_footer);
-			this.$tree_footer.find("[data-action=collapse_all_rows]").show();
-			this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+			if (this.report_settings.initial_depth == 0) {
+				this.$tree_footer.find("[data-action=expand_all_rows]").show();
+				this.$tree_footer.find("[data-action=collapse_all_rows]").hide();
+			} else {
+				this.$tree_footer.find("[data-action=collapse_all_rows]").show();
+				this.$tree_footer.find("[data-action=expand_all_rows]").hide();
+			}
 		}
 
 		const message = __(
