@@ -1557,6 +1557,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			original_data: this.data,
 			columns: columns,
 			report: this,
+			print_settings: print_settings,
 		});
 
 		// Render Report in HTML

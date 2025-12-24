@@ -94,6 +94,9 @@ frappe.ui.get_print_settings = function (
 			if (data.letter_head) {
 				data.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
 			}
+
+			data.show_index_column = true;
+
 			callback(data);
 		},
 		__("Print Settings")
