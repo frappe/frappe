@@ -1219,6 +1219,17 @@ class FilterArea {
 				})
 		);
 
+		// sort fields to move checkboxes at the end
+		fields.sort((a, b) => {
+			if (a.fieldtype === "Check" && b.fieldtype !== "Check") {
+				return 1;
+			} else if (a.fieldtype !== "Check" && b.fieldtype === "Check") {
+				return -1;
+			} else {
+				return 0;
+			}
+		});
+
 		fields.map((df) => {
 			this.list_view.page.add_field(df, this.standard_filters_wrapper);
 
