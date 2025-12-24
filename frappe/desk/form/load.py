@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
-	Requries "doctype", "name" as form variables.
+	Requires "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
 

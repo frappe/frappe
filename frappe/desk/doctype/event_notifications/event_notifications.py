@@ -1,9 +1,11 @@
-# Copyright (c) 2018, Frappe Technologies and contributors
-# License: MIT. See LICENSE
+# Copyright (c) 2025, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+# import frappe
 from frappe.model.document import Document
 
 
-class EventParticipants(Document):
+class EventNotifications(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -12,13 +14,13 @@ class EventParticipants(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		attending: DF.Literal["", "Yes", "No", "Maybe"]
-		email: DF.Data | None
+		before: DF.Int
+		interval: DF.Literal[None]
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		reference_docname: DF.DynamicLink
-		reference_doctype: DF.Link
+		time: DF.Time | None
+		type: DF.Literal["Notification", "Email"]
 	# end: auto-generated types
 
 	pass

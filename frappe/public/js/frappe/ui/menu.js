@@ -3,10 +3,11 @@ frappe.provide("frappe.ui");
 
 frappe.ui.menu = class ContextMenu {
 	constructor(opts) {
-		this.template = $(`<div class="sidebar-header-menu context-menu" role="menu"></div>`);
+		this.template = $(`<div class="frappe-menu context-menu" role="menu"></div>`);
 		this.menu_items = opts.menu_items;
 		this.name = frappe.utils.get_random(5);
 		this.open_on_left = opts.open_on_left;
+		this.size = opts.size;
 		this.opts = opts;
 	}
 
@@ -28,6 +29,14 @@ frappe.ui.menu = class ContextMenu {
 		// 	$(document.body).append(this.template);
 		// }
 		$(document.body).append(this.template);
+		this.set_styles();
+	}
+	set_styles() {
+		if (this.size) {
+			this.template.css({
+				width: this.size,
+			});
+		}
 	}
 	add_menu_item(item) {
 		const me = this;
@@ -51,7 +60,7 @@ frappe.ui.menu = class ContextMenu {
 							>`
 						}
 					</div>
-					<span class="menu-item-title">${item.label}</span>
+					<span class="menu-item-title">${__(item.label)}</span>
 					<div class="menu-item-icon" style="margin-left:auto">
 						${item.items && item.items.length ? frappe.utils.icon("chevron-right") : ""}
 					</div>
@@ -85,7 +94,7 @@ frappe.ui.menu = class ContextMenu {
 			parent_menu: this.name,
 		});
 	}
-	show(parent) {
+	show(parent, event) {
 		// this.close_all_other_menu();
 
 		this.make();
@@ -123,6 +132,13 @@ frappe.ui.menu = class ContextMenu {
 					this.template.get(0).getBoundingClientRect().width +
 					this.left_offset +
 					"px",
+			});
+		}
+
+		if (event) {
+			this.template.css({
+				left: `${event.clientX}px`,
+				top: `${event.clientY}px`,
 			});
 		}
 
@@ -169,7 +185,7 @@ frappe.ui.menu = class ContextMenu {
 frappe.menu_map = {};
 
 frappe.ui.create_menu = function (opts) {
-	$(opts.parent).css("cursor", "pointer");
+	if (!opts.right_click) $(opts.parent).css("cursor", "pointer");
 	let context_menu = new frappe.ui.menu(opts);
 
 	frappe.menu_map[context_menu.name] = context_menu;
@@ -181,7 +197,7 @@ frappe.ui.create_menu = function (opts) {
 				frappe.menu_map[context_menu.name].hide();
 				opts.onHide && opts.onHide(this);
 			} else {
-				frappe.menu_map[context_menu.name].show(this);
+				frappe.menu_map[context_menu.name].show(this, event);
 				opts.onShow && opts.onShow(this);
 			}
 		});

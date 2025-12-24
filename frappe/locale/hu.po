@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-14 09:35+0000\n"
-"PO-Revision-Date: 2025-12-16 18:52\n"
+"PO-Revision-Date: 2025-12-22 20:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -1013,7 +1013,7 @@ msgstr "Hozzáférés Vezérlés"
 #: frappe/core/doctype/access_log/access_log.json
 #: frappe/core/workspace/users/users.json
 msgid "Access Log"
-msgstr "Belépési Napló"
+msgstr "Hozzáférési Napló"
 
 #. Label of the access_token (Data) field in DocType 'OAuth Bearer Token'
 #. Label of the access_token (Password) field in DocType 'Token Cache'
@@ -2943,7 +2943,7 @@ msgstr "A QZ tálca elindítására tett kísérlet..."
 
 #: frappe/www/attribution.html:9
 msgid "Attribution"
-msgstr "Tulajdonság"
+msgstr "Attribúció"
 
 #. Name of a report
 #: frappe/custom/report/audit_system_hooks/audit_system_hooks.json
@@ -3774,7 +3774,7 @@ msgstr "Puffertár Mérete"
 #. Name of a Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build"
-msgstr "Építés"
+msgstr "Build"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3787,7 +3787,7 @@ msgstr "{0} építése"
 
 #: frappe/templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
-msgstr "{0} épült"
+msgstr "{0} alapjaira épült"
 
 #. Label of the bulk_actions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -5215,7 +5215,7 @@ msgstr "Kommunikációs Kapcsolat"
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Communication Logs"
-msgstr "Kommunikációs Kaplók"
+msgstr "Kommunikációs Naplók"
 
 #. Label of the communication_type (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -10633,7 +10633,7 @@ msgstr "Lebegőpontos"
 #. Label of the float_precision (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Float Precision"
-msgstr "Lebegőpontos Pontossága"
+msgstr "Lebegőpontos Szám Pontosság"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -14924,7 +14924,7 @@ msgstr "Világos Téma"
 #: frappe/public/js/frappe/list/base_list.js:987
 #: frappe/public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
-msgstr "Kedvel"
+msgstr "Mint"
 
 #: frappe/desk/like.py:92
 msgid "Liked"
@@ -20862,7 +20862,7 @@ msgstr "RQ Job"
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "RQ Worker"
-msgstr "RQ Munkás"
+msgstr "RQ Worker"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -27968,7 +27968,7 @@ msgstr "Típus"
 
 #: frappe/public/js/frappe/form/controls/comment.js:90
 msgid "Type a reply / comment"
-msgstr "Írja be a választ / megjegyzést"
+msgstr "Írjon választ / megjegyzést"
 
 #: frappe/templates/includes/search_template.html:51
 msgid "Type something in the search box to search"
@@ -30531,7 +30531,7 @@ msgstr "A {0} értéket {1}-re változtattad"
 #: frappe/public/js/frappe/form/footer/form_timeline.js:140
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:94
 msgid "You created this"
-msgstr "Te hoztad létre ezt"
+msgstr "Létrehoztad"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:345
 msgctxt "Form timeline"
@@ -30629,7 +30629,7 @@ msgstr "Túl sok kérés miatt elérted a korlátot. Kérjük, próbáld meg ké
 #: frappe/public/js/frappe/form/footer/form_timeline.js:151
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:105
 msgid "You last edited this"
-msgstr "Utoljára ezt szerkesztetted"
+msgstr "Utoljára szerkesztetted"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:352
 msgid "You must add atleast one link."

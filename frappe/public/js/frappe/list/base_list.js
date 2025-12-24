@@ -189,9 +189,9 @@ frappe.views.BaseList = class BaseList {
 	setup_view_menu() {
 		if (frappe.boot.desk_settings.view_switcher && !this.meta.force_re_route_to_default_view) {
 			const icon_map = {
-				Image: "image-view",
+				Image: "image",
 				List: "list",
-				Report: "small-file",
+				Report: "sheet",
 				Calendar: "calendar",
 				Gantt: "gantt",
 				Kanban: "kanban",
@@ -1248,7 +1248,13 @@ class FilterArea {
 			const $input = field.$wrapper.find("input").first();
 			if (!$input.length || $input.closest(".input-group").length) return;
 
-			const getSymbol = (match_type) => (match_type === "=" ? "=" : "≈");
+			const getIcon = (match_type) => {
+				if (match_type === "=") {
+					return frappe.utils.icon("equal");
+				} else {
+					return frappe.utils.icon("equal-approximately");
+				}
+			};
 
 			$input.wrap('<div class="input-group"></div>');
 			const $inputGroup = $input.parent();
@@ -1260,7 +1266,7 @@ class FilterArea {
 					data-toggle="dropdown"
 					aria-haspopup="true"
 					aria-expanded="false">
-					${getSymbol(df.match_type || "≈")}
+					${getIcon(df.match_type || "≈")}
 
 				</button>
 				<ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-right">
@@ -1283,7 +1289,7 @@ class FilterArea {
 				if (new_type === current_type) return;
 
 				field.df.match_type = new_type;
-				$dropdown.find("button").html(`${getSymbol(new_type)}`);
+				$dropdown.find("button").html(getIcon(new_type));
 
 				let value = field.get_value?.();
 				if (new_type === "=" && value) {

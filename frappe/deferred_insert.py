@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 queue_prefix = "insert_queue_for_"
 
 
-def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
+def deferred_insert(doctype: str, records: list[dict | "Document"] | str):
 	if isinstance(records, dict | list):
 		_records = json.dumps(records)
 	else:
@@ -48,7 +48,7 @@ def save_to_db():
 				frappe.db.commit()
 
 
-def insert_record(record: Union[dict, "Document"], doctype: str):
+def insert_record(record: dict | "Document", doctype: str):
 	try:
 		record.update({"doctype": doctype})
 		frappe.get_doc(record).insert()

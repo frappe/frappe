@@ -121,9 +121,11 @@ frappe.ui.form.Attachments = class Attachments {
 		let $attachment_action = $(`<div></div>`);
 
 		let $file_label = $(`
-			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(
+			<a href="${frappe.utils.escape_html(file_url)}" target="_blank" title="${frappe.utils.escape_html(
 			file_name
-		)}" class="ellipsis attachment-file-label">
+		)}"
+				class="ellipsis attachment-file-label"
+			>
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>
 		`);

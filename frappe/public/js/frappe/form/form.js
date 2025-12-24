@@ -605,6 +605,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.sidebar = new frappe.ui.form.Sidebar({
 					frm: this,
 					page: this.page,
+					toolbar: this.toolbar,
 				});
 				this.sidebar.make();
 			}

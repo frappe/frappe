@@ -1406,15 +1406,22 @@ class Engine:
 
 		For child tables (when parent_doctype is specified):
 			- permissions are checked against the parent doctype
-			- a join to the parent table is added
-			- conditions reference the parent table's fields
+			- for non-single parent doctypes: a join to the parent table is added,
+		                conditions reference parent fields
+			- for single parent doctypes: all permissions are already checked by has_permission,
+		                we exit early without adding any conditions
 		"""
 
 		if not self.apply_permissions:
 			return
 
-		# For child tables, join to parent table so permission conditions can reference it
 		if self.permission_doctype != self.doctype:
+			parent_meta = frappe.get_meta(self.permission_doctype)
+			if parent_meta.issingle:
+				# Child table of single doctype
+				# permissions are already checked by has_permission
+				return
+
 			self.query = self.query.inner_join(self.permission_table).on(
 				self.table.parent == self.permission_table.name
 			)

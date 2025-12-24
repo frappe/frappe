@@ -394,7 +394,7 @@ def show_update_popup():
 
 
 def get_pyproject(app: str) -> dict | None:
-	from tomli import load
+	from tomllib import load
 
 	pyproject_path = frappe.get_app_path(app, "..", "pyproject.toml")
 

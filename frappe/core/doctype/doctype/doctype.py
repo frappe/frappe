@@ -1140,10 +1140,10 @@ def validate_empty_name(dt, autoname):
 			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
 
 
-def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
+def validate_autoincrement_autoname(dt: DocType | "CustomizeForm") -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+	def get_autoname_before_save(dt: DocType | "CustomizeForm") -> str:
 		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"

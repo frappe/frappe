@@ -230,7 +230,7 @@ class Communication(Document, CommunicationEmailMixin):
 		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
 		_signature = None
 		if html_signature:
-			_signature = html_signature.renderContents()
+			_signature = html_signature.encode_contents()
 
 		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
