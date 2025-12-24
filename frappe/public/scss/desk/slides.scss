@@ -71,6 +71,18 @@
 	}
 }
 
+[data-theme="dark"] {
+	.slides-progress {
+		.slide-step {
+			&.step-success:not(.active) {
+				.slide-step-complete .icon use {
+					stroke: var(--text-color);
+				}
+			}
+		}
+	}
+}
+
 .slides-wrapper {
 	max-width: 520px;
 	background: var(--card-bg);
