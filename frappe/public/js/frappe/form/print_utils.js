@@ -52,6 +52,13 @@ frappe.ui.get_print_settings = function (
 			options: "Letter Head",
 			default: letter_head || default_letter_head,
 		},
+		{
+			label: __("Include Index Column"),
+			fieldtype: "Check",
+			fieldname: "include_index_column",
+			default: 1,
+			depends_on: "eval: !doc.report",
+		},
 	];
 
 	if (has_filters) {
@@ -61,14 +68,6 @@ frappe.ui.get_print_settings = function (
 			fieldname: "include_filters",
 		});
 	}
-
-	columns.push({
-		label: __("Include Index Column"),
-		fieldtype: "Check",
-		fieldname: "include_index_column",
-		default: 1,
-		depends_on: "eval: !doc.report",
-	});
 
 	if (pick_columns) {
 		columns.push(
