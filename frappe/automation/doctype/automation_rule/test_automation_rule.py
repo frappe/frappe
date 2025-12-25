@@ -16,18 +16,16 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 emails = ["test_user@example.com", "test_user1@example.com", "test_user2@example.com"]
 AUTOMATION_NAME = "Test Automation Rule"
 AUTOMATION_RULE = {
-	"presets": "doc.status == 'Open'",
+	"presets": [["status", "equals", "Open"]],
 	"rule": [
 		{
 			"type": "if",
-			"condition": "doc.priority == 'Medium' ",
-			"condition_json": [["priority", "==", "Medium"]],
+			"conditions": [["priority", "equals", "Medium"]],
 			"actions": [{"type": "set", "field": "allocated_to", "value": emails[0]}],
 		},
 		{
 			"type": "if",
-			"condition": "doc.priority == 'High' ",
-			"condition_json": [["priority", "==", "High"]],
+			"conditions": [["priority", "equals", "High"]],
 			"actions": [{"type": "set", "field": "allocated_to", "value": emails[1]}],
 		},
 		{

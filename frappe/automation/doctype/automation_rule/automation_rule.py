@@ -4,9 +4,8 @@
 import json
 
 import frappe
-from frappe.email.doctype.notification.notification import get_context
 from frappe.model.document import Document
-from frappe.utils.data import validate_json_string
+from frappe.utils.data import compare, validate_json_string
 
 HOOK_MAP = {
 	"before_save": "On Creation",
@@ -42,18 +41,16 @@ class AutomationRule(Document):
 		self.handle_rule(doc, rule)
 
 	def should_apply(self, doc, rule) -> bool:
-		filter_expression: str = rule.get("presets", "")
-		if not filter_expression:
+		presets: list[list[str] | str] | list = rule.get("presets", [])
+		if not len(presets):
 			return True
 
-		context = get_context(doc)
-		if not frappe.safe_eval(filter_expression, None, context):
+		if not eval_conditions(presets, doc):
 			return False
 
 		return True
 
 	def handle_rule(self, doc, rule) -> None:
-		context = get_context(doc.as_dict())
 		matched = False
 
 		for r in rule:
@@ -61,8 +58,8 @@ class AutomationRule(Document):
 			actions = r.get("actions", [])
 
 			if rule_type == "if":
-				expression = r.get("condition", "")
-				if expression and frappe.safe_eval(expression, None, context):
+				conditions = r.get("conditions", "")
+				if len(conditions) and eval_conditions(conditions, doc):
 					self.run_actions(doc, actions)
 					matched = True
 
@@ -112,3 +109,57 @@ def apply_automations(doc, hook) -> None:
 	for a in automations:
 		automation_doc = frappe.get_doc("Automation Rule", a)
 		automation_doc.apply(doc)
+
+
+operatorMap = {
+	"is": "is",
+	"is not": "is not",
+	"in": "in",
+	"not in": "not in",
+	"equals": "=",
+	"not equals": "!=",
+	"yes": True,
+	"no": False,
+	"like": "LIKE",
+	"not like": "NOT LIKE",
+	">": ">",
+	"<": "<",
+	">=": ">=",
+	"<=": "<=",
+	"between": "between",
+	"timespan": "timespan",
+}
+
+
+def eval_conditions(conditions: list[list[str] | str], context: dict) -> bool:
+	"""
+	Evaluate a list of filter conditions with logical operators ("and"/"or") against a context.
+
+	Args:
+	    conditions: A list containing condition lists and logical operators.
+	        Each condition is a list: [fieldname, operator, value].
+	        Operators ("and"/"or") are strings between conditions.
+	                    example: [["ticket_type", "equals", "Bug"], "or", ["priority", "not equals", "High"]]
+	    context: A dictionary providing values for fieldnames. The doc which you get by frappe.get_doc()
+
+	Returns:
+	    bool: The result of evaluating all conditions with the specified logical operator.
+	"""
+
+	if not len(conditions) or not isinstance(conditions, list):
+		return False
+
+	global_operator: str = ""
+	results: list[bool] = []
+
+	for c in conditions:
+		if not isinstance(c, list):
+			global_operator = c
+			continue
+		result: bool = compare(context.get(c[0], ""), operatorMap[c[1]], c[2])
+		results.append(result)
+
+	if global_operator == "or":
+		return any(results)
+	else:
+		return all(results)
