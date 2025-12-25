@@ -68,6 +68,7 @@ frappe.ui.get_print_settings = function (
 				label: __("Pick Columns"),
 				fieldtype: "Check",
 				fieldname: "pick_columns",
+				depends_on: "eval: !doc.report",
 			},
 			{
 				label: __("Select Columns"),
@@ -86,18 +87,25 @@ frappe.ui.get_print_settings = function (
 
 	return frappe.prompt(
 		columns,
-		function (data) {
-			data = $.extend(print_settings, data);
-			if (!data.with_letter_head) {
-				data.letter_head = null;
-			}
-			if (data.letter_head) {
-				data.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+		function (settings) {
+			settings = $.extend(print_settings, settings);
+
+			if (!settings.with_letter_head) {
+				settings.letter_head = null;
 			}
 
-			data.show_index_column = true;
+			if (settings.letter_head) {
+				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+			}
 
-			callback(data);
+			if (settings.report) {
+				settings.pick_columns = 0;
+				settings.columns = [];
+			}
+
+			settings.show_index_column = true;
+
+			callback(settings);
 		},
 		__("Print Settings")
 	);
