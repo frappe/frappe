@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:23\n"
+"PO-Revision-Date: 2025-12-25 20:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -133,7 +133,15 @@ msgid "0 - too guessable: risky password.\n"
 "3 - safely unguessable: moderate protection from offline slow-hash scenario.\n"
 "<br>\n"
 "4 - very unguessable: strong protection from offline slow-hash scenario."
-msgstr ""
+msgstr "0 - превише лако за наслутити: Ризична лозинка.\n"
+"<br>\n"
+"1 - врло лако за наслутити: Заштита од ограничених онлајн напада. \n"
+"<br>\n"
+"2 - донекле лако за наслутити: Заштита од неуспорених онлајн напада.\n"
+"<br>\n"
+"3 - тешко за погодити: Умерена заштита од сценарија напада ван мреже са спорим хеширањем.\n"
+"<br>\n"
+"4 - веома тешко за погодити. Јака заштита од сценарија напада ван мреже са спорим хеширањем."
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1462,7 +1470,7 @@ msgstr "Додај нову картицу"
 
 #: frappe/utils/password_strength.py:191
 msgid "Add numbers or special characters."
-msgstr ""
+msgstr "Додај бројеве или специјалне карактере."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -5213,7 +5221,7 @@ msgstr "Уобичајена имена и презимена се лако на
 
 #: frappe/utils/password_strength.py:190
 msgid "Common words are easy to guess."
-msgstr ""
+msgstr "Уобичајене рећи се лако наслућују."
 
 #. Name of a DocType
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -5908,7 +5916,7 @@ msgstr "Креирај нову Канбан таблу"
 
 #: frappe/public/js/frappe/list/list_filter.js:101
 msgid "Create Saved Filter"
-msgstr ""
+msgstr "Креирај сачувани филтер"
 
 #: frappe/core/doctype/user/user.js:271
 msgid "Create User Email"
@@ -12021,7 +12029,7 @@ msgstr "HTML помоћ"
 #. Description of the 'Content' (Text Editor) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Help: To link to another record in the system, use \"/desk/note/[Note Name]\" as the Link URL. (don't use \"http://\")"
-msgstr ""
+msgstr "Помоћ: За повезивање са другим записом у систему користите \"/desk/note/[Note Name]\" као URL везе. (немојте користити \"http://\")"
 
 #. Label of the helpful (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -17494,7 +17502,7 @@ msgstr "Није пронађен шаблон на путањи: {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:362
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Ниједан корисник нема улогу <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:276
 msgid "No values to show"
@@ -19120,7 +19128,7 @@ msgstr "Лозинка није пронађена за {0} {1} {2}"
 
 #: frappe/core/doctype/user/user.py:1307
 msgid "Password requirements not met"
-msgstr ""
+msgstr "Захтеви за лозинку нису испуњени"
 
 #: frappe/core/doctype/user/user.py:1140
 msgid "Password reset instructions have been sent to {}'s email"
@@ -28576,7 +28584,7 @@ msgstr "Користите TLS"
 
 #: frappe/utils/password_strength.py:191
 msgid "Use a few uncommon words together."
-msgstr ""
+msgstr "Користите неколико неуобичајених речи заједно."
 
 #: frappe/utils/password_strength.py:44
 msgid "Use a few words, avoid common phrases."
@@ -29330,7 +29338,7 @@ msgstr "Прикажи веб-сајт"
 
 #: frappe/core/page/permission_manager/permission_manager.js:395
 msgid "View all {0} users"
-msgstr ""
+msgstr "Прикажи све {0} кориснике"
 
 #: frappe/www/confirm_workflow_action.html:12
 msgid "View document"
@@ -29452,7 +29460,7 @@ msgstr "Упозорење: Ажурирање бројача може изаз�
 
 #: frappe/core/doctype/doctype/doctype.py:458
 msgid "Warning: Usage of 'format:' is discouraged."
-msgstr ""
+msgstr "Упозорење: Употреба 'format:' се не препоручује."
 
 #: frappe/website/doctype/help_article/templates/help_article.html:24
 msgid "Was this article helpful?"
@@ -30468,7 +30476,7 @@ msgstr "Можете поставити само 3 прилагођене доц
 
 #: frappe/handler.py:184
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
-msgstr ""
+msgstr "Можете отпремити искључиво JPG, PNG, GIF, PDF, TXT, CSV или Мајкрософт документе."
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -32281,7 +32289,7 @@ msgstr "пре {0} недеља"
 
 #: frappe/core/page/permission_manager/permission_manager.js:378
 msgid "{0} with the role <strong>{1}</strong>"
-msgstr ""
+msgstr "{0} са улогом <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
