@@ -1593,8 +1593,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	async get_custom_format(print_settings) {
 		let custom_format = this.report_settings.html_format || null;
 
-		if (print_settings.report) {
-			custom_format = await this.get_report_print_format(print_settings.report);
+		if (print_settings.print_format) {
+			custom_format = await this.get_report_print_format(print_settings.print_format);
 		} else if (
 			!print_settings.columns?.length &&
 			typeof this.report_settings.get_pdf_format === "function"
