@@ -77,6 +77,13 @@
 		width: 100%;
 	}
 
+	.dropdown-navbar-user {
+		.nav-link {
+			min-width: 0;
+			max-width: 100%;
+		}
+	}
+
 	.divider {
 		margin: var(--margin-xs) 0;
 		border-top: 1px solid var(--gray-300);
