@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import keyword
 import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
@@ -1563,5 +1564,6 @@ RESERVED_KEYWORDS = frozenset(
 		"_doc_before_save",
 		"dont_update_if_missing",
 		*CACHED_PROPERTIES,
+		*keyword.kwlist,
 	)
 )
