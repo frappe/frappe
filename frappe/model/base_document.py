@@ -1558,6 +1558,7 @@ UNPICKLABLE_KEYS = frozenset(
 RESERVED_KEYWORDS = frozenset(
 	(
 		"doctype",
+		"autoname",
 		"flags",
 		"_parent_doc",
 		"_doc_before_save",
