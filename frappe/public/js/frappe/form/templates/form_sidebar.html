@@ -31,7 +31,7 @@
 		<span class="ellipsis mr-3 bold form-title-text pointer" title="{{__("Click to edit")}}">{%= frm.get_title() %}</span>
 		<span class="form-name-copy" data-copy="{{frm.get_title()}}">{%= frappe.utils.icon("copy")%}</span>
 	</div>
-	<div class="form-name-container mt-2 flex {{image_field ? "justify-center" : "justify-between"}}">
+	<div class="form-name-container mt-2 flex justify-between">
 		<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
 		<span class="indicator-pill whitespace-nowrap"></span>
 	</div>
