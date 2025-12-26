@@ -2,12 +2,12 @@
 	<img src=".github/framework-logo-new.svg" width="80" height="80"/>
 	<h1>Frappe Framework</h1>
 
- **Low Code Web Framework For Real World Applications, In Python And JavaScript**
+ **Low-Code Web Framework for Real-World Applications in Python and JavaScript**
 </div>
 
 <div align="center">
-	<a target="_blank" href="LICENSE" title="License: MIT"><img src="https://img.shields.io/badge/License-MIT-success.svg"></a>
-	<a href="https://codecov.io/gh/frappe/frappe"><img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg?token=XoTa679hIj"/></a>
+    <a target="_blank" href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-success.svg"></a>
+    <a href="https://codecov.io/gh/frappe/frappe"><img src="https://codecov.io/gh/frappe/frappe/branch/develop/graph/badge.svg"/></a>
 </div>
 <div align="center">
 	<img src=".github/hero-image.png" alt="Hero Image" />
@@ -19,7 +19,7 @@
 </div>
 
 ## Frappe Framework
-Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for ERPNext.
+Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client-side library. Built for ERPNext.
 
 ## Philosophy
 
@@ -29,7 +29,7 @@ Started in 2005, Frappe Framework was inspired by the Semantic Web. The "big ide
 
 By creating a web framework that allowed for easy definition of metadata, it made building complex applications easy. Applications usually designed around how users interact with a system, but not based on semantics of the underlying system. Applications built on semantics end up being much more consistent and extensible. 
 
-The first application built on Framework was ERPNext, a beast with more than 700 object types. Framework is not for the light hearted - it is not the first thing you might want to learn if you are beginning to learn web programming, but if you are ready to do real work, then Framework is the right tool for the job.
+The first application built on the Frappe Framework was ERPNext, with over 700 object types. The framework is not for the light-hearted; it may not be ideal for beginners, but it's perfect for real-world applications.
 
 ### Key Features
 
@@ -80,7 +80,7 @@ Run the following commands:
 ```
 git clone https://github.com/frappe/frappe_docker
 cd frappe_docker
-docker compose -f pwd.yml up -d
+docker compose -f prod.yml up -d
 ```
 
 After a couple of minutes, site should be accessible on your localhost port: 8080. Use below default login credentials to access the site.
