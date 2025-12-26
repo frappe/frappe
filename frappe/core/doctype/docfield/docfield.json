@@ -629,7 +629,7 @@
    "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
   },
   {
-   "depends_on": "eval: doc.type == \"Tab Break\"",
+   "depends_on": "eval: doc.fieldtype == \"Tab Break\"",
    "fieldname": "icon",
    "fieldtype": "Icon",
    "label": "Icon"
