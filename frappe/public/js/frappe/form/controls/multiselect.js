@@ -37,12 +37,20 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 
 	get_value() {
 		let data = super.get_value();
+
+		let options = this.df.options;
+		if (typeof options === "string") {
+			options = options.split("\n").map((option) => {
+				return { label: __(option), value: option };
+			});
+		}
+
 		// find value of label from option list and return actual value string
-		if (this.df.options && this.df.options.length && this.df.options[0].label) {
+		if (options && options.length && options[1].label) {
 			data = data.split(",").map((op) => op.trim());
 			data = data
 				.map((val) => {
-					let option = this.df.options.find((op) => op.label === val);
+					let option = options.find((op) => op.label === val);
 					return option ? option.value : null;
 				})
 				.filter((n) => n != null)
@@ -53,13 +61,21 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 
 	set_formatted_input(value) {
 		if (!value) return;
+
+		let options = this.df.options;
+		if (typeof options === "string") {
+			options = options.split("\n").map((option) => {
+				return { label: __(option), value: option };
+			});
+		}
+
 		// find label of value from option list and set from it as input
-		if (this.df.options && this.df.options.length && this.df.options[0].label) {
+		if (options && options.length && options[1].label) {
 			value = value
 				.split(",")
 				.map((d) => d.trim())
 				.map((val) => {
-					let option = this.df.options.find((op) => op.value === val);
+					let option = options.find((op) => op.value === val);
 					return option ? option.label : val;
 				})
 				.filter((n) => n != null)
