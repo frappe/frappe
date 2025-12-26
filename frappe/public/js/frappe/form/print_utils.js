@@ -52,13 +52,6 @@ frappe.ui.get_print_settings = function (
 			options: "Letter Head",
 			default: letter_head || default_letter_head,
 		},
-		{
-			label: __("Include Index Column"),
-			fieldtype: "Check",
-			fieldname: "include_index_column",
-			default: 1,
-			depends_on: "eval: !doc.print_format",
-		},
 	];
 
 	if (has_filters) {
@@ -71,6 +64,13 @@ frappe.ui.get_print_settings = function (
 
 	if (pick_columns) {
 		columns.push(
+			{
+				label: __("Include Index Column"),
+				fieldtype: "Check",
+				fieldname: "include_index_column",
+				default: 1,
+				depends_on: "eval: !doc.print_format",
+			},
 			{
 				label: __("Pick Columns"),
 				fieldtype: "Check",
