@@ -24,7 +24,7 @@
 				{% if col.minWidth %}
 					style="min-width: {{ col.minWidth }}px"
 				{% endif %}
-				{% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
+				{% if frappe.model.is_numeric_field(col.fieldtype) %}
 					class="text-right"
 				{% endif %}
 			>
