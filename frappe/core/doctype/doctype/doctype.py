@@ -453,7 +453,7 @@ class DocType(Document):
 		# We swapped naming_rule field old/new to discourage use of "format:"
 		if self.autoname and self.autoname.startswith("format:"):
 			self.naming_rule = "Expression (old style)"
-			frappe.toast(_("Warning: Usage of 'format:' is discouraged."), indicator="yellow")
+			frappe.msgprint(_("Warning: Usage of 'format:' is discouraged."), indicator="yellow", alert=True)
 
 		if self.naming_rule == "Expression (old style)" and not self.autoname.startswith("format:"):
 			self.naming_rule = "Expression"
