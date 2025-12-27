@@ -237,3 +237,31 @@ def build_xlsx_response(data, filename):
 	from frappe.desk.utils import provide_binary_file
 
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())
+
+
+@lru_cache(maxsize=128)
+def hex_to_argb(color: str) -> str:
+	"""
+	Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
+
+	Accepted inputs:
+	- "#RGB"       -> expands to "FFRRGGBB"
+	- "#RRGGBB"    -> converts to "FFRRGGBB"
+	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
+
+	"""
+	color = color.strip()
+
+	hex_part = color[1:]
+
+	n = len(hex_part)
+
+	if n == 3:
+		r, g, b = hex_part
+		rgb = (r + r + g + g + b + b).upper()
+		return "FF" + rgb
+	elif n == 6:
+		return "FF" + hex_part.upper()
+	elif n == 8:
+		h = hex_part.upper()
+		return h[6:8] + h[0:6]
