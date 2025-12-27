@@ -35,18 +35,22 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		});
 	}
 
-	get_value() {
-		let data = super.get_value();
-
+	parse_options() {
 		let options = this.df.options;
 		if (typeof options === "string") {
 			options = options.split("\n").map((option) => {
 				return { label: __(option), value: option };
 			});
 		}
+		return options;
+	}
+
+	get_value() {
+		let data = super.get_value();
+		let options = this.parse_options();
 
 		// find value of label from option list and return actual value string
-		if (options && options.length && options[1].label) {
+		if (options && options.length && options[0].label != null) {
 			data = data.split(",").map((op) => op.trim());
 			data = data
 				.map((val) => {
@@ -61,16 +65,10 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 
 	set_formatted_input(value) {
 		if (!value) return;
-
-		let options = this.df.options;
-		if (typeof options === "string") {
-			options = options.split("\n").map((option) => {
-				return { label: __(option), value: option };
-			});
-		}
+		let options = this.parse_options();
 
 		// find label of value from option list and set from it as input
-		if (options && options.length && options[1].label) {
+		if (options && options.length && options[0].label != null) {
 			value = value
 				.split(",")
 				.map((d) => d.trim())
