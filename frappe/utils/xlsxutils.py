@@ -2,8 +2,9 @@
 # License: MIT. See LICENSE
 import datetime
 import re
+from functools import lru_cache
 from io import BytesIO
-from typing import Any
+from typing import Any, Literal
 
 import openpyxl
 import xlrd
@@ -14,6 +15,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -29,6 +31,85 @@ def get_excel_date_format():
 	date_format = date_format.replace("mm", "MM")
 
 	return date_format, time_format
+
+
+def _build_number_format_parts(thousands_sep: str, decimal_sep: str, precision: int = 0) -> tuple[str, str]:
+	integer_part = "#,##0" if thousands_sep else "#0"
+	decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
+
+	return integer_part, decimal_part
+
+
+def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
+	if not currency or frappe.defaults.get_global_default("hide_currency_symbol") == "Yes":
+		return "", False
+
+	currency_symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
+	symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True) or False
+
+	return frappe._(currency_symbol), symbol_on_right
+
+
+def _apply_currency_symbol(
+	format_string: str, currency_symbol: str | None = None, symbol_on_right: bool = False
+) -> str:
+	if not currency_symbol:
+		return format_string
+
+	return (
+		f'{format_string}" {currency_symbol}"' if symbol_on_right else f'"{currency_symbol} "{format_string}'
+	)
+
+
+@lru_cache(maxsize=128)
+def get_excel_number_format(
+	fieldtype: Literal["Currency", "Int", "Float", "Percent"], currency: str | None = None
+) -> str:
+	"""
+	Get Excel number format string based on system settings and field type.
+
+	Args:
+		fieldtype: The field type.
+		currency: Currency code for Currency fields
+
+	Returns:
+		str: Excel number format string compatible with openpyxl
+
+	Examples:
+		- get_excel_number_format("Currency", "USD") >>> '"$"#,##0.00'
+		- get_excel_number_format("Int") >>> '#,##0'
+		- get_excel_number_format("Float") >>> '#,##0.000'
+		- get_excel_number_format("Percent") >>> '0.00%'
+	"""
+	from frappe.locale import get_number_format
+
+	number_format = get_number_format()
+	thousands_sep = number_format.thousands_separator
+	decimal_sep = number_format.decimal_separator
+	precision = number_format.precision
+
+	if fieldtype == "Currency":
+		precision = cint(frappe.db.get_default("currency_precision")) or precision
+		integer_part, decimal_part = _build_number_format_parts(thousands_sep, decimal_sep, precision)
+		format_string = f"{integer_part}{decimal_part}"
+
+		# Apply currency symbol if provided and not hidden
+		currency_symbol, symbol_on_right = _get_currency_symbol_info(currency)
+		return _apply_currency_symbol(format_string, currency_symbol, symbol_on_right)
+
+	elif fieldtype == "Int":
+		return "#,##0" if thousands_sep else "#0"
+
+	elif fieldtype == "Float":
+		precision = cint(frappe.db.get_default("float_precision")) or precision
+		integer_part, decimal_part = _build_number_format_parts(thousands_sep, decimal_sep, precision)
+		return f"{integer_part}{decimal_part}"
+
+	elif fieldtype == "Percent":
+		decimal_part = ("." + "0" * precision) if precision > 0 else ""
+		return f"0{decimal_part}%"
+
+	return "General"
 
 
 # return xlsx file object
