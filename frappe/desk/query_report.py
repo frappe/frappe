@@ -376,6 +376,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
+	data._filters = form_params.filters  # required for cell formatting
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -385,12 +386,14 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths, header_index = build_xlsx_data(
+	xlsx_data, column_widths, header_index, apply_formatting = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
+		report=report_name,
+		for_excel=file_format_type == "Excel",
 	)
 
 	if file_format_type == "CSV":
@@ -407,6 +410,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 			column_widths=column_widths,
 			header_index=header_index,
 			has_filters=bool(include_filters),
+			apply_cell_formatting=apply_formatting,
 		).getvalue()
 
 	if include_filters:
@@ -453,7 +457,9 @@ def build_xlsx_data(
 	include_filters: bool = False,
 	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-) -> tuple[list[list[Any]], list[int], int]:
+	report: str | Any = None,
+	for_excel: bool = False,
+) -> tuple[list[list[Any]], list[int], int, bool]:
 	"""
 	Build Excel data structure from report data with proper formatting.
 
@@ -464,12 +470,15 @@ def build_xlsx_data(
 		include_filters: Whether to include filter rows at the top of the Excel sheet
 		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
+		report: Name of the report or report doc
+		for_excel: Whether the output is intended for Excel format
 
 	Returns:
-		tuple: A tuple containing:
+		tuple:
 			- result: List of rows for the Excel sheet
 			- column_widths: List of column widths for the Excel sheet
 			- header_index: Index of the header row in the result
+			- apply_formatting: Boolean indicating if cell formatting should be applied
 	"""
 	EXCEL_TYPES = (
 		str,
@@ -482,6 +491,27 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
+
+	# hook for cell formatting for standard reports
+	get_xlsx_cell_formatting = None
+	apply_formatting = False
+
+	if for_excel and report and isinstance(report, str):
+		report = frappe.get_doc("Report", report)
+
+	if (
+		for_excel
+		and report
+		and report.is_standard == "Yes"
+		and report.report_type in ("Query Report", "Script Report")
+	):
+		try:
+			get_xlsx_cell_formatting = report.get_module_method("get_xlsx_cell_formatting")
+
+			if get_xlsx_cell_formatting and callable(get_xlsx_cell_formatting):
+				apply_formatting = True
+		except AttributeError:
+			pass
 
 	if len(visible_idx) == len(data.result) or not visible_idx:
 		# It's not possible to have same length and different content.
@@ -525,6 +555,9 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
+	total_row_index = len(data.result) - 1
+	add_total_row = cint(data.get("add_total_row"))
+
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
@@ -532,6 +565,11 @@ def build_xlsx_data(
 			continue
 
 		row_data = []
+		is_total_row = row_idx == total_row_index and add_total_row
+
+		if apply_formatting and isinstance(row, list | tuple):
+			row = {column.get("fieldname"): value for column, value in zip(data.columns, row, strict=True)}
+
 		row_is_dict = isinstance(row, dict)
 
 		for col_idx, column in enumerate(data.columns):
@@ -541,18 +579,30 @@ def build_xlsx_data(
 			label = column.get("label")
 			fieldname = column.get("fieldname")
 			cell_value = row.get(fieldname, row.get(label, "")) if row_is_dict else row[col_idx]
+			cell_format = None
 
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
+			if apply_formatting and get_xlsx_cell_formatting:
+				cell_format = (
+					get_xlsx_cell_formatting(cell_value, column, row, data._filters, is_total_row) or {}
+				)
+
 			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
-				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+				if apply_formatting:
+					cell_format["indent"] = cint(row["indent"]) * 2
+				else:
+					cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
+
+			if apply_formatting:
+				cell_value = {"value": cell_value, "format": cell_format}
 
 			row_data.append(cell_value)
 
 		result.append(row_data)
 
-	return result, column_widths, header_index
+	return result, column_widths, header_index, apply_formatting
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):

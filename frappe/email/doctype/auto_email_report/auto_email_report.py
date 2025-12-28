@@ -176,8 +176,13 @@ class AutoEmailReport(Document):
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-			xlsx_data, column_widths, header_index = build_xlsx_data(
-				report_data, [], 1, ignore_visible_idx=True
+			xlsx_data, column_widths, header_index, apply_formatting = build_xlsx_data(
+				report_data,
+				[],
+				1,
+				ignore_visible_idx=True,
+				report=report,
+				for_excel=self.format == "XLSX",
 			)
 
 			if self.format == "XLSX":
@@ -187,6 +192,7 @@ class AutoEmailReport(Document):
 					column_widths=column_widths,
 					header_index=header_index,
 					has_filters=bool(self.filters),
+					apply_cell_formatting=apply_formatting,
 				)
 
 				return xlsx_file.getvalue()

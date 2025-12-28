@@ -10,7 +10,7 @@ import openpyxl
 import xlrd
 from openpyxl import load_workbook
 from openpyxl.cell import WriteOnlyCell
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
@@ -106,8 +106,9 @@ def get_excel_number_format(
 		return f"{integer_part}{decimal_part}"
 
 	elif fieldtype == "Percent":
-		decimal_part = ("." + "0" * precision) if precision > 0 else ""
-		return f"0{decimal_part}%"
+		precision = cint(frappe.db.get_default("float_precision")) or precision
+		integer_part, decimal_part = _build_number_format_parts(thousands_sep, decimal_sep, precision)
+		return f'{integer_part}{decimal_part}"%"'
 
 	return "General"
 
@@ -120,6 +121,7 @@ def make_xlsx(
 	column_widths: list[int] | None = None,
 	header_index: int = 0,
 	has_filters: bool = False,
+	apply_cell_formatting: bool = False,
 ) -> BytesIO:
 	"""
 	Create an Excel file with the given data and formatting options.
@@ -131,6 +133,7 @@ def make_xlsx(
 		column_widths: List of column widths in Excel units. If None, auto-sized
 		header_index: Row index (0-based) that should be formatted as header making it bold
 		has_filters: If True, applies bold formatting to the first column of filter rows
+		apply_cell_formatting: If True, apply cell formatting based on data types
 
 	Returns:
 		BytesIO: object containing the Excel file data
@@ -155,12 +158,18 @@ def make_xlsx(
 		is_filter_row = has_filters and row_idx < header_index
 
 		for col_idx, item in enumerate(row):
+			format = {}
+
+			if apply_cell_formatting and isinstance(item, dict):
+				format = item.get("format") or {}
+				item = item["value"]
+
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
 				value = item
 
-			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+			if isinstance(value, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
@@ -175,6 +184,36 @@ def make_xlsx(
 			# Apply bold font for header row or first column of filter rows
 			if is_header_row or (is_filter_row and col_idx == 0):
 				cell.font = bold_font
+
+			# Apply cell formatting if specified
+			if format:
+				font_kwargs = {"name": "Calibri"}
+
+				if font := format.get("font"):
+					font_kwargs["name"] = font
+
+				if number_format := format.get("format"):
+					cell.number_format = number_format
+
+				for s in ("bold", "italic", "strike"):
+					font_kwargs[s] = bool(format.get(s))
+
+				if format.get("underline"):
+					font_kwargs["underline"] = "single"
+
+				if color := format.get("color"):
+					font_kwargs["color"] = hex_to_argb(color)
+
+				if background := format.get("background"):
+					cell.fill = PatternFill(
+						fill_type="solid",
+						start_color=hex_to_argb(background),
+					)
+
+				if indent := format.get("indent"):
+					cell.alignment = Alignment(horizontal="left", indent=cint(indent))
+
+				cell.font = Font(**font_kwargs)
 
 			clean_row.append(cell)
 
