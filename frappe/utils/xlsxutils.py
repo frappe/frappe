@@ -56,9 +56,14 @@ def _apply_currency_symbol(
 	if not currency_symbol:
 		return format_string
 
-	return (
-		f'{format_string}" {currency_symbol}"' if symbol_on_right else f'"{currency_symbol} "{format_string}'
-	)
+	if symbol_on_right:
+		positive_format = f'{format_string}" {currency_symbol}"'
+		negative_format = f'-{format_string}" {currency_symbol}"'
+	else:
+		positive_format = f'"{currency_symbol} "{format_string}'
+		negative_format = f'"{currency_symbol} "-{format_string}'
+
+	return f"{positive_format};{negative_format}"
 
 
 @lru_cache(maxsize=128)
