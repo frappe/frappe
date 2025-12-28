@@ -502,7 +502,9 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if get_datetime(recent_change[0][0]) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
+				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			):
 				self.is_large_table = True
 
 	@cached_property
