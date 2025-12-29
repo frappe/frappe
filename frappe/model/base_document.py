@@ -1556,8 +1556,6 @@ UNPICKLABLE_KEYS = frozenset(
 	)
 )
 
-PYTHON_KEYWORDS = frozenset(keyword.kwlist)
-
 RESERVED_KEYWORDS = frozenset(
 	(
 		"doctype",
@@ -1565,7 +1563,6 @@ RESERVED_KEYWORDS = frozenset(
 		"_parent_doc",
 		"_doc_before_save",
 		"dont_update_if_missing",
-		*PYTHON_KEYWORDS,
 		*CACHED_PROPERTIES,
 	)
 )
