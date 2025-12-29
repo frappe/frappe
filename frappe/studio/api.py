@@ -134,7 +134,7 @@ def get_app_components(app_name: str, field: Literal["blocks", "draft_blocks"] =
 	def add_block_components(block: dict):
 		if block.get("isStudioComponent"):
 			add_studio_components(block)
-		if block.get("componentName") not in NON_VUE_COMPONENTS:
+		elif block.get("componentName") not in NON_VUE_COMPONENTS:
 			components.add(block.get("componentName"))
 		for child in block.get("children", []):
 			add_block_components(child)
