@@ -1276,7 +1276,8 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
-	desktop_icon(letter, color, size) {
+	desktop_icon(label, color, size) {
+		let letter = label.charAt(0).toUpperCase();
 		let icon_size = size ? size : "md";
 		let opacity_hex = "1A";
 		let icon_html = $(`
