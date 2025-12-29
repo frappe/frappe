@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DataImportProps",
+  "definitions": {
+    "DataImportProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "doctype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "importName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "doctypeMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "listRoute": {
+                "type": "string"
+              },
+              "pageRoute": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
