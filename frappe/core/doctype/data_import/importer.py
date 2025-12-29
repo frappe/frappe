@@ -108,17 +108,6 @@ class Importer:
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
 
-			# Stop import if there are blocking errors
-			if any(w.get("type") == "error" for w in warnings):
-				return
-
-
-		if warnings:
-			if self.console:
-				self.print_grouped_warnings(warnings)
-			else:
-				self.data_import.db_set("template_warnings", json.dumps(warnings))
-
 			# Only stop import if there is a blocking error
 			if any(w for w in warnings if w.get("type") == "error"):
 				return
@@ -792,6 +781,7 @@ class Row:
 						"link_doctype": df.options,
 						"message": msg,
 						"type": "warning",
+						"is_missing_link": True,
 					}
 				)
 				return
@@ -1081,7 +1071,6 @@ class Column:
 						"col": self.column_number,
 						"message": message.format(self.df.options, missing_values),
 						"type": "warning",
-						"missing_value": not_exists,          # list
 						"link_doctype": self.df.options,
 					}
 				)
