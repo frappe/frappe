@@ -79,6 +79,27 @@ class Importer:
 
 		# dont import if there are non-ignorable warnings
 		warnings = self.import_file.get_warnings()
+
+		# ignore link warnings if skip_rows_with_missing_linked_records is checked
+		# Handle link warnings based on skip checkbox
+		skip_missing_links = getattr(self.data_import, "skip_rows_with_missing_linked_records", False)
+
+		if skip_missing_links:
+			# Filter out link warnings - they'll be skipped during import
+			warnings = [
+				w for w in warnings 
+				if not (
+					w.get("link_doctype") 
+					and "does not exist" in w.get("message", "")
+				)
+			]
+		else:
+			# When skip is disabled, upgrade link warnings to errors to block import
+			for w in warnings:
+				if w.get("link_doctype") and "does not exist" in w.get("message", ""):
+					w["type"] = "error"
+
+		# Always ignore info warnings
 		warnings = [w for w in warnings if w.get("type") != "info"]
 
 		if warnings:
@@ -86,7 +107,21 @@ class Importer:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
-			return
+
+			# Stop import if there are blocking errors
+			if any(w.get("type") == "error" for w in warnings):
+				return
+
+
+		if warnings:
+			if self.console:
+				self.print_grouped_warnings(warnings)
+			else:
+				self.data_import.db_set("template_warnings", json.dumps(warnings))
+
+			# Only stop import if there is a blocking error
+			if any(w for w in warnings if w.get("type") == "error"):
+				return
 
 		# setup import log
 		import_log = (
@@ -185,24 +220,54 @@ class Importer:
 					# commit after every successful import
 					frappe.db.commit()
 
-				except Exception:
+				except Exception as e:
 					messages = frappe.local.message_log
 					frappe.clear_messages()
 
 					# rollback if exception
 					frappe.db.rollback()
 
+					# Check if it's a link validation error
+					traceback_str = frappe.get_traceback()
+					is_link_error = (
+						"LinkValidationError" in traceback_str or
+						any("does not exist" in cstr(m) for m in messages or [])
+					)
+
+					# Skip row if option is enabled and it's a link error
+					if getattr(self.data_import, "skip_rows_with_missing_linked_records", False) and is_link_error:
+						missing_links = [m for m in messages if "does not exist" in cstr(m)]
+						create_import_log(
+							self.data_import.name,
+							log_index,
+							{
+								"success": False,
+								"messages": [
+									{
+										"title": _("Row Skipped"),
+										"message": _("Skipped due to missing linked records: {0}").format(
+											"; ".join(str(m) for m in missing_links[:3])
+										) if missing_links else _("Skipped due to missing or invalid linked record"),
+									}
+								],
+								"row_indexes": row_indexes,
+							},
+						)
+						log_index += 1
+						frappe.db.commit()  # Commit the skip log
+						continue
+
+					# default strict behavior - create error log
 					create_import_log(
 						self.data_import.name,
 						log_index,
 						{
 							"success": False,
-							"exception": frappe.get_traceback(),
+							"exception": traceback_str,
 							"messages": messages,
 							"row_indexes": row_indexes,
 						},
 					)
-
 					log_index += 1
 
 		# Logs are db inserted directly so will have to be fetched again
@@ -716,15 +781,21 @@ class Row:
 		elif df.fieldtype == "Link":
 			exists = self.link_exists(value, df)
 			if not exists:
-				msg = _("Value {0} missing for {1}").format(frappe.bold(value), frappe.bold(df.options))
+				msg = _("Value {0} missing for {1}").format(
+					frappe.bold(value), frappe.bold(df.options)
+				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
 						"field": df_as_json(df),
+						"missing_value": value,
+						"link_doctype": df.options,
 						"message": msg,
+						"type": "warning",
 					}
 				)
 				return
+
 		elif df.fieldtype in ["Date", "Datetime"]:
 			value = self.get_date(value, col)
 			if isinstance(value, str):
@@ -1010,8 +1081,11 @@ class Column:
 						"col": self.column_number,
 						"message": message.format(self.df.options, missing_values),
 						"type": "warning",
+						"missing_value": not_exists,          # list
+						"link_doctype": self.df.options,
 					}
 				)
+
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date/time format
 			self.date_format = self.guess_date_format_for_column()

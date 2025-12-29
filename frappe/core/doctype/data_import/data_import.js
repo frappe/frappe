@@ -358,15 +358,35 @@ frappe.ui.form.on("Data Import", {
 			.map((row_number) => {
 				let message = warnings_by_row[row_number]
 					.map((w) => {
+						let extra_action = "";
+
+						if (
+							w.type === "warning" &&
+							w.link_doctype &&
+							w.missing_value
+						) {
+							extra_action = `
+								<button
+									class="btn btn-xs btn-secondary create-missing-link"
+									data-doctype="${w.link_doctype}"
+									data-name="${w.missing_value}"
+									style="margin-left: 10px;">
+									${__("Create")} ${w.link_doctype}
+								</button>
+								
+							`;
+						}
+
 						if (w.field) {
 							let label =
 								w.field.label +
 								(w.field.parent !== frm.doc.reference_doctype
 									? ` (${w.field.parent})`
 									: "");
-							return `<li>${label}: ${w.message}</li>`;
+							return `<li>${label}: ${w.message} ${extra_action}</li>`;
 						}
-						return `<li>${w.message}</li>`;
+
+						return `<li>${w.message} ${extra_action}</li>`;
 					})
 					.join("");
 				return `
@@ -401,6 +421,15 @@ frappe.ui.form.on("Data Import", {
 				<div class="col-sm-10 warnings">${html}</div>
 			</div>
 		`);
+		frm.get_field("import_warnings").$wrapper
+			.find(".create-missing-link")
+			.on("click", function () {
+				frappe.new_doc(
+					$(this).data("doctype"),
+					{ name: $(this).data("name") }
+				);
+			});
+
 	},
 
 	show_failed_logs(frm) {
