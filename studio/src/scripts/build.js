@@ -5,7 +5,7 @@ import { build } from "vite"
 import vue from "@vitejs/plugin-vue"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import frappeui from "frappe-ui/vite/index.js"
+import frappeui from "frappe-ui/vite"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
