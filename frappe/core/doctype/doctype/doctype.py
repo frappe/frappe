@@ -1278,9 +1278,20 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
+		INVALID_DOCFIELD_NAMES = frozenset(("autoname",))
+
 		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
+					frappe.bold(docname),
+					frappe.bold(fieldname),
+				),
+				title=_("Invalid Fieldname"),
+			)
+
+		if fieldname in INVALID_DOCFIELD_NAMES:
+			frappe.throw(
+				_("{0}: fieldname cannot be set to special DocType attribute {1}").format(
 					frappe.bold(docname),
 					frappe.bold(fieldname),
 				),
