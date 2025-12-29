@@ -10,6 +10,7 @@ from datetime import date, datetime, time
 import frappe
 from frappe import _
 from frappe.core.doctype.version.version import get_diff
+from frappe.exceptions import LinkValidationError
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
@@ -83,14 +84,41 @@ class Importer:
 
 		# dont import if there are non-ignorable warnings
 		warnings = self.import_file.get_warnings()
-		warnings = [w for w in warnings if w.get("type") != "info"]
+
+		processed_warnings = []
+		has_blocking_error = False
+
+		for w in warnings:
+			# Skip info warnings always
+			if w.get("type") == "info":
+				continue
+
+			# Handle missing link warnings
+			if w.get("is_missing_link"):
+				if self.data_import.skip_rows_with_missing_linked_records:
+					# skip this warning completely
+					continue
+				else:
+					# convert missing link to error
+					w["type"] = "error"
+
+			# Track blocking errors
+			if w.get("type") == "error":
+				has_blocking_error = True
+
+			processed_warnings.append(w)
+
+		warnings = processed_warnings
 
 		if warnings:
 			if self.console:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
-			return
+
+			# Only stop import if there is a blocking error
+			if has_blocking_error:
+				return
 
 		# setup import log
 		import_log = (
@@ -189,13 +217,38 @@ class Importer:
 					# commit after every successful import
 					frappe.db.commit()
 
-				except Exception:
-					messages = frappe.local.message_log
+				except Exception as e:
+					messages = frappe.local.message_log or []
 					frappe.clear_messages()
 
 					# rollback if exception
 					frappe.db.rollback()
 
+					# Skip row if option is enabled and it's a link error
+					if self.data_import.skip_rows_with_missing_linked_records and isinstance(
+						e, LinkValidationError
+					):
+						create_import_log(
+							self.data_import.name,
+							log_index,
+							{
+								"success": False,
+								"messages": [
+									{
+										"title": _("Row Skipped"),
+										"message": _(
+											"One or more linked records were missing. Row was skipped."
+										),
+									}
+								],
+								"row_indexes": row_indexes,
+							},
+						)
+						log_index += 1
+						frappe.db.commit()  # Commit the skip log
+						continue
+
+					# default strict behavior - create error log
 					create_import_log(
 						self.data_import.name,
 						log_index,
@@ -206,7 +259,6 @@ class Importer:
 							"row_indexes": row_indexes,
 						},
 					)
-
 					log_index += 1
 
 		# Logs are db inserted directly so will have to be fetched again
@@ -728,7 +780,11 @@ class Row:
 					{
 						"row": self.row_number,
 						"field": df_as_json(df),
+						"missing_value": value,
+						"link_doctype": df.options,
 						"message": msg,
+						"type": "warning",
+						"is_missing_link": True,
 					}
 				)
 				return
@@ -1048,8 +1104,10 @@ class Column:
 						"col": self.column_number,
 						"message": message.format(self.df.options, missing_values),
 						"type": "warning",
+						"link_doctype": self.df.options,
 					}
 				)
+
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date/time format
 			# TODO: add possibility for user, to define the date format explicitly in the Data Import UI

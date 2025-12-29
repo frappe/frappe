@@ -39,6 +39,7 @@ class DataImport(Document):
 		payload_count: DF.Int
 		reference_doctype: DF.Link
 		show_failed_logs: DF.Check
+		skip_rows_with_missing_linked_records: DF.Check
 		status: DF.Literal["Pending", "Success", "Partial Success", "Error", "Timed Out"]
 		submit_after_import: DF.Check
 		template_options: DF.Code | None

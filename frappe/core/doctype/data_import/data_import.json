@@ -22,6 +22,7 @@
   "status",
   "submit_after_import",
   "mute_emails",
+  "skip_rows_with_missing_linked_records",
   "template_options",
   "import_warnings_section",
   "template_warnings",
@@ -170,6 +171,13 @@
    "hidden": 1,
    "label": "Payload Count",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "skip_rows_with_missing_linked_records",
+   "fieldtype": "Check",
+   "label": "Skip rows with missing linked records",
+   "set_only_once": 1
   },
   {
    "default": ",;\\t|",
