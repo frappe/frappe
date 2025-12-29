@@ -249,11 +249,19 @@ class DesktopPage {
 	}
 	setup_avatar() {
 		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
+		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let menu_items = [
 			{
 				icon: "edit",
 				label: "Edit Profile",
 				url: `/update-profile/${frappe.session.user}`,
+			},
+			{
+				icon: is_dark ? "sun" : "moon",
+				label: "Toggle Theme",
+				onClick: function () {
+					new frappe.ui.ThemeSwitcher().show();
+				},
 			},
 			{
 				icon: "lock",

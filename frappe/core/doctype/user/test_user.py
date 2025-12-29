@@ -27,6 +27,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.utils import get_url
+from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
 
@@ -333,7 +334,9 @@ class TestUser(IntegrationTestCase):
 			sign_up(random_user, random_user_name, "/welcome"),
 			(1, "Please check your email for verification"),
 		)
-		self.assertEqual(frappe.cache.hget("redirect_after_login", random_user), "/welcome")
+		self.assertEqual(
+			frappe.cache.hget("redirect_after_login", random_user), sanitize_redirect("/welcome")
+		)
 
 		# re-register
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))

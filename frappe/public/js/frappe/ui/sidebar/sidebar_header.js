@@ -147,14 +147,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.header_icon = `<img src=${this.header_icon}></img>`;
 		} else if (this.sidebar.sidebar_data) {
 			this.header_icon = this.sidebar.sidebar_data.header_icon;
-			this.header_icon = frappe.utils.icon(
-				this.header_icon,
-				"lg",
-				"",
-				"",
-				"",
-				false,
-				`var(${this.header_bg_color})`
+			this.header_icon = frappe.utils.desktop_icon(
+				this.sidebar.sidebar_title.charAt(0),
+				"gray",
+				"sm"
 			);
 		} else {
 			this.header_icon = this.get_default_icon();

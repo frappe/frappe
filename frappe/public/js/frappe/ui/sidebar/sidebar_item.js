@@ -84,7 +84,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	}
 	get_shortcut_html(shortcut) {
 		if (frappe.utils.is_mac()) {
-			shortcut = shortcut.replace("Ctrl", "⌘");
+			shortcut = shortcut.replace("Ctrl+", "⌘");
 		}
 		return `<span class="sidebar-item-suffix keyboard-shortcut">${shortcut}</span>`;
 	}
