@@ -30,8 +30,7 @@
           }
         },
         "vertical": {
-          "type": "object",
-          "additionalProperties": false
+          "type": "boolean"
         }
       },
       "required": [
