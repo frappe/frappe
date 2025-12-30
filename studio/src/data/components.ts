@@ -67,7 +67,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideCircleAlert,
 		initialState: {
 			title: "This user is inactive",
-			type: "warning",
+			description: "Please enable the user to allow login access.",
+			theme: "yellow",
 		},
 	},
 	Autocomplete: {
