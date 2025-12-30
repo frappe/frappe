@@ -209,6 +209,18 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
+	def get_xlsx_styles(self, data: dict) -> dict | None:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if method is not defined
+			return
+
+		return method(data)
+
 	def get_data(
 		self,
 		filters=None,
