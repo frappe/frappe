@@ -51,7 +51,7 @@
    "label": "Update Field"
   },
   {
-   "description": "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or a Expression if \u201cEvaluate as Expression\u201d is enabled.",
+   "description": "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if \u201cEvaluate as Expression\u201d is enabled.",
    "fieldname": "update_value",
    "fieldtype": "Data",
    "in_list_view": 1,
