@@ -8,11 +8,32 @@
         "title": {
           "type": "string"
         },
-        "type": {
+        "theme": {
           "type": "string",
-          "const": "warning"
+          "enum": [
+            "yellow",
+            "blue",
+            "red",
+            "green"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "dismissable": {
+          "type": "boolean"
         }
       },
+      "required": [
+        "title"
+      ],
       "additionalProperties": false
     }
   }

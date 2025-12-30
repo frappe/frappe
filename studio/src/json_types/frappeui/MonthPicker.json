@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/MonthPickerProps",
+  "definitions": {
+    "MonthPickerProps": {
+      "type": "object",
+      "properties": {
+        "placeholder": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

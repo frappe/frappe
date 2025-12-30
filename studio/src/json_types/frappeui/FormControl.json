@@ -31,7 +31,8 @@
             "textarea",
             "select",
             "checkbox",
-            "autocomplete"
+            "autocomplete",
+            "combobox"
           ]
         },
         "size": {

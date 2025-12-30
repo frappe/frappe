@@ -4,12 +4,13 @@
 		<FormControl
 			:class="classes"
 			:type="type"
-			@change="triggerUpdate"
+			:modelValue="data"
+			@change="triggerChange"
+			@update:modelValue="triggerUpdate"
 			@input="($event: Event) => emit('input', ($event.target as HTMLInputElement).value)"
 			autocomplete="off"
 			:autofocus="autofocus"
 			v-bind="attrs"
-			:modelValue="data"
 		>
 			<template #prefix v-if="$slots.prefix">
 				<slot name="prefix" />
@@ -120,11 +121,15 @@ const clearValue = () => {
 	data.value = ""
 }
 
-const triggerUpdate = useDebounceFn(($event: Event) => {
+const triggerChange = useDebounceFn(($event: Event) => {
 	if (props.type === "checkbox") {
 		emit("update:modelValue", ($event.target as HTMLInputElement).checked)
 	} else {
 		emit("update:modelValue", ($event.target as HTMLInputElement).value)
 	}
+}, 100)
+
+const triggerUpdate = useDebounceFn(($event: any) => {
+	emit("update:modelValue", $event)
 }, 100)
 </script>

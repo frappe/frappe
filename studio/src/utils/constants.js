@@ -13,6 +13,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"TimePicker",
 	"DateTimePicker",
 	"DateRangePicker",
+	"MonthPicker",
 	"Dialog",
 	"Divider",
 	"Dropdown",
@@ -22,6 +23,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"FormLabel",
 	"FormControl",
 	"ListView",
+	"MultiSelect",
 	"Progress",
 	"Rating",
 	"Select",
@@ -37,7 +39,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"NumberChart",
 	"DonutChart",
 ]
-export const FRAPPE_COMPONENTS = ["Link"]
+export const FRAPPE_COMPONENTS = ["Filter", "Link"]
 export const STUDIO_COMPONENTS = [
 	"Container",
 	"FitContainer",

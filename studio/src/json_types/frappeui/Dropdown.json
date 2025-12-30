@@ -79,6 +79,14 @@
             },
             "link": {
               "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "button",
+                "submit",
+                "reset"
+              ]
             }
           },
           "additionalProperties": false
@@ -100,6 +108,9 @@
                     ]
                   },
                   "switch": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
                     "type": "boolean"
                   },
                   "switchValue": {
@@ -144,7 +155,7 @@
                     "$comment": "() => boolean"
                   },
                   "submenu": {
-                    "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
+                    "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
                   }
                 },
                 "required": [
@@ -176,6 +187,9 @@
                           ]
                         },
                         "switch": {
+                          "type": "boolean"
+                        },
+                        "disabled": {
                           "type": "boolean"
                         },
                         "switchValue": {
@@ -220,7 +234,7 @@
                           "$comment": "() => boolean"
                         },
                         "submenu": {
-                          "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
+                          "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
                         }
                       },
                       "required": [
@@ -267,7 +281,7 @@
       },
       "additionalProperties": false
     },
-    "alias-1044900505-618-669-1044900505-0-841": {
+    "alias-1044900505-639-690-1044900505-0-862": {
       "type": "array",
       "items": {
         "anyOf": [
@@ -284,6 +298,9 @@
                 ]
               },
               "switch": {
+                "type": "boolean"
+              },
+              "disabled": {
                 "type": "boolean"
               },
               "switchValue": {
@@ -328,7 +345,7 @@
                 "$comment": "() => boolean"
               },
               "submenu": {
-                "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
+                "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
               }
             },
             "required": [
@@ -360,6 +377,9 @@
                       ]
                     },
                     "switch": {
+                      "type": "boolean"
+                    },
+                    "disabled": {
                       "type": "boolean"
                     },
                     "switchValue": {
@@ -404,7 +424,7 @@
                       "$comment": "() => boolean"
                     },
                     "submenu": {
-                      "$ref": "#/definitions/alias-1044900505-618-669-1044900505-0-841"
+                      "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
                     }
                   },
                   "required": [

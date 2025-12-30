@@ -16,17 +16,18 @@ import {
 	Dialog,
 	Divider,
 	Dropdown,
+	MonthPicker,
 	ErrorMessage,
 	FeatherIcon,
 	FileUploader,
 	FormControl,
 	FormLabel,
-	GreenCheckIcon,
 	Input,
 	ListItem,
 	ListView,
 	LoadingIndicator,
 	LoadingText,
+	MultiSelect,
 	Progress,
 	Popover,
 	Rating,
@@ -48,7 +49,7 @@ import {
 	AxisChart,
 	DonutChart,
 } from "frappe-ui"
-import { Link } from "frappe-ui/frappe"
+import { Filter, Link } from "frappe-ui/frappe"
 
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
@@ -79,21 +80,23 @@ export function registerGlobalComponents(app: App) {
 	app.component("TimePicker", TimePicker)
 	app.component("DateTimePicker", DateTimePicker)
 	app.component("DateRangePicker", DateRangePicker)
+	app.component("MonthPicker", MonthPicker)
 	app.component("Dialog", Dialog)
 	app.component("Divider", Divider)
 	app.component("Dropdown", Dropdown)
 	app.component("ErrorMessage", ErrorMessage)
 	app.component("FeatherIcon", FeatherIcon)
 	app.component("FileUploader", FileUploader)
+	app.component("Filter", Filter)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
-	app.component("GreenCheckIcon", GreenCheckIcon)
 	app.component("Input", Input)
 	app.component("Link", Link)
 	app.component("ListItem", ListItem)
 	app.component("ListView", ListView)
 	app.component("LoadingIndicator", LoadingIndicator)
 	app.component("LoadingText", LoadingText)
+	app.component("MultiSelect", MultiSelect)
 	app.component("Progress", Progress)
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)

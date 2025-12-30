@@ -8,6 +8,14 @@
         "doctype": {
           "type": "string"
         },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
         "label": {
           "type": "string"
         },
@@ -28,6 +36,12 @@
                 },
                 "minItems": 2,
                 "maxItems": 2
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
               }
             ]
           }

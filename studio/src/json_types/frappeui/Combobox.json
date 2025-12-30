@@ -5,6 +5,14 @@
     "ComboboxProps": {
       "type": "object",
       "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
         "options": {
           "type": "array",
           "items": {
