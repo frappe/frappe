@@ -13,10 +13,7 @@
 	<!-- heading -->
 	<thead>
 		<tr>
-
-		{% if print_settings.include_index_column %}
 			<th> # </th>
-		{% endif %}
 
 		{% for col in columns %}
 			{% if col.name && col._id !== "_check" %}
@@ -38,11 +35,9 @@
 		{% for row in data %}
 			<tr style="height: 30px">
 
-			{% if print_settings.include_index_column %}
 			<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
 				<span> {{ row._index + 1 }} </span>
 			</td>
-			{% endif %}
 
 			{% for col in columns %}
 				{% if col.name && col._id !== "_check" %}
