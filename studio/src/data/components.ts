@@ -36,6 +36,7 @@ import LucideALargeSmall from "~icons/lucide/a-large-small"
 import LucideEdit from "~icons/lucide/edit"
 import LucideMessageSquare from "~icons/lucide/message-square"
 import LucideListTree from "~icons/lucide/list-tree"
+import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
 import LucideSidebar from "~icons/lucide/sidebar"
@@ -764,6 +765,15 @@ export const COMPONENTS: FrappeUIComponents = {
 		name: "Repeater",
 		title: "Repeater",
 		icon: LucideRepeat,
+	},
+	HTML: {
+		name: "HTML",
+		title: "HTML",
+		icon: LucideCode,
+		initialState: {
+			html: "<p>Your HTML content here</p>",
+		},
+		useOverridenPropTypes: true,
 	},
 	Header: {
 		name: "Header",

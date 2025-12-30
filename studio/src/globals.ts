@@ -57,6 +57,7 @@ import Header from "@/components/AppLayout/Header.vue"
 import Sidebar from "@/components/AppLayout/Sidebar.vue"
 import SplitView from "@/components/AppLayout/SplitView.vue"
 import Repeater from "@/components/AppLayout/Repeater.vue"
+import HTML from "@/components/AppLayout/HTML.vue"
 import CardList from "@/components/AppLayout/CardList.vue"
 import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
 import Audio from "@/components/AppLayout/Audio.vue"
@@ -125,6 +126,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("Sidebar", Sidebar)
 	app.component("SplitView", SplitView)
 	app.component("Repeater", Repeater)
+	app.component("HTML", HTML)
 	app.component("CardList", CardList)
 	app.component("AvatarCard", AvatarCard)
 	app.component("Audio", Audio)

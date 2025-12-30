@@ -9,7 +9,7 @@
 				v-if="propName === 'modelValue'"
 				:block="block"
 				@update:modelValue="(value) => bindVariable(propName, value)"
-				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
 				:formatValuesAsTemplate="false"
 			>
 				<template #target="{ togglePopover }">
@@ -34,12 +34,24 @@
 			<DynamicValueSelector
 				v-else-if="!isTestingComponent"
 				:block="block"
-				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
 				@update:modelValue="(value) => props.block?.setProp(propName, value)"
 			/>
 
 			<Code
-				v-if="config.inputType === 'code'"
+				v-if="config.inputType === 'html'"
+				:label="propName"
+				language="html"
+				:modelValue="config.modelValue"
+				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:required="config.required"
+				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+				:showLineNumbers="false"
+				height="250px"
+				class="overflow-hidden"
+			/>
+			<Code
+				v-else-if="config.inputType === 'code'"
 				:label="propName"
 				language="javascript"
 				:modelValue="config.modelValue"
@@ -173,6 +185,10 @@ function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentPr
 		}
 	})
 	return _props
+}
+
+const isCodeField = (inputType: string) => {
+	return ["code", "html"].includes(inputType)
 }
 
 // variable binding
