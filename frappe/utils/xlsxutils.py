@@ -2,25 +2,106 @@
 # License: MIT. See LICENSE
 import datetime
 import re
+from collections.abc import Callable
 from functools import lru_cache
 from io import BytesIO
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 import openpyxl
 import xlrd
 from openpyxl import load_workbook
 from openpyxl.cell import WriteOnlyCell
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe import _
 from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
 	r"[\000-\010]|[\013-\014]|[\016-\037]|\uFEFF|\uFFFE|\uFFFF|[\uD800-\uDFFF]"
 )
+
+
+# TODO: add docs and examples for XLSXStyleBuilder
+# TODO: when registering make user friendly for Developers (common methods)
+# TODO: give default styles
+# TODO: User can update default styles
+class XLSXStyleBuilder:
+	# Mapping of style property names to their openpyxl classes
+	_STYLE_CLASSES: ClassVar[dict] = {
+		"font": Font,
+		"fill": PatternFill,
+		"alignment": Alignment,
+		"border": Border,
+	}
+
+	def __init__(self):
+		self.config = frappe._dict(
+			column_styles={},
+			row_styles={},
+			cell_styles={},
+			conditional_styles=[],
+		)
+		self.styles = frappe._dict()
+
+	def register_style(self, name: str, **kwargs):
+		"""
+		Register a named style for reuse across multiple cells/rows/columns.
+
+		Args:
+			name: Unique name for this style
+			font: Font configuration (dict or Font object)
+			fill: Fill configuration (dict or PatternFill object)
+			number_format: Excel number format string
+			alignment: Alignment configuration (dict or Alignment object)
+			border: Border configuration (dict or Border object)
+		"""
+		style = frappe._dict()
+
+		# Handle number format
+		if number_format := kwargs.get("number_format"):
+			style.number_format = number_format
+
+		# Handle style objects with automatic instantiation
+		for prop_name, style_class in self._STYLE_CLASSES.items():
+			if config := kwargs.get(prop_name):
+				style[prop_name] = style_class(**config) if isinstance(config, dict) else config
+
+		self.styles[name] = style
+		return self
+
+	def _validate_style_exists(self, style_name: str):
+		if style_name not in self.styles:
+			frappe.throw(
+				_("Style '{0}' not registered. Register it first using register_style().").format(style_name),
+				title=_("Style Not Registered"),
+			)
+
+	def style_column(self, col_idx: int, style_name: str):
+		self._validate_style_exists(style_name)
+		self.config.column_styles[col_idx] = self.styles[style_name]
+		return self
+
+	def style_row(self, row_idx: int, style_name: str):
+		self._validate_style_exists(style_name)
+		self.config.row_styles[row_idx] = self.styles[style_name]
+		return self
+
+	def style_cell(self, row_idx: int, col_idx: int, style_name: str):
+		self._validate_style_exists(style_name)
+		self.config.cell_styles[(row_idx, col_idx)] = self.styles[style_name]
+		return self
+
+	def add_conditional_style(self, condition: Callable[[int, int, Any], bool], style_name: str):
+		self._validate_style_exists(style_name)
+		self.config.conditional_styles.append({"condition": condition, "style": self.styles[style_name]})
+		return self
+
+	def build(self) -> frappe._dict:
+		return self.config
 
 
 ### Excel Formatting Utils ###
@@ -92,9 +173,7 @@ def hex_to_argb(color: str) -> str:
 
 	"""
 	color = color.strip()
-
 	hex_part = color[1:]
-
 	n = len(hex_part)
 
 	if n == 3:
