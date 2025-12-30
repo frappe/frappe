@@ -2,8 +2,9 @@
 # License: MIT. See LICENSE
 import datetime
 import re
+from functools import lru_cache
 from io import BytesIO
-from typing import Any
+from typing import Any, Literal
 
 import openpyxl
 import xlrd
@@ -14,6 +15,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -21,6 +23,7 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 
+### Excel Formatting Utils ###
 def get_excel_date_format():
 	date_format = frappe.get_system_settings("date_format")
 	time_format = frappe.get_system_settings("time_format")
@@ -31,7 +34,81 @@ def get_excel_date_format():
 	return date_format, time_format
 
 
-# return xlsx file object
+@lru_cache(maxsize=128)
+def get_excel_number_format(
+	fieldtype: Literal["Currency", "Int", "Float", "Percent"], currency: str | None = None
+) -> str:
+	"""
+	Get Excel number format string based on system settings and field type.
+
+	Args:
+		fieldtype: The field type.
+		currency: Currency code for Currency fields
+
+	Returns:
+		str: Excel number format string compatible with openpyxl
+
+	Examples:
+		- get_excel_number_format("Currency", "USD") >>> '"$"#,##0.00'
+		- get_excel_number_format("Int") >>> '#,##0'
+		- get_excel_number_format("Float") >>> '#,##0.000'
+		- get_excel_number_format("Percent") >>> '0.00%'
+	"""
+	from frappe.locale import get_number_format
+
+	number_format = get_number_format()
+	thousands_sep = number_format.thousands_separator
+	decimal_sep = number_format.decimal_separator
+	precision = number_format.precision
+
+	if fieldtype == "Int":
+		return "#,##0" if thousands_sep else "#0"
+
+	elif fieldtype == "Currency":
+		precision = cint(frappe.db.get_default("currency_precision")) or precision
+		format = _build_number_format(thousands_sep, decimal_sep, precision)
+
+		currency_symbol, symbol_on_right = _get_currency_symbol_info(currency)
+		return _get_currency_format(format, currency_symbol, symbol_on_right)
+
+	elif fieldtype in ("Float", "Percent"):
+		precision = cint(frappe.db.get_default("float_precision")) or precision
+		format = _build_number_format(thousands_sep, decimal_sep, precision)
+
+		return f'{format}"%" ' if fieldtype == "Percent" else format
+
+	return "General"
+
+
+@lru_cache(maxsize=128)
+def hex_to_argb(color: str) -> str:
+	"""
+	Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
+
+	Accepted inputs:
+	- "#RGB"       -> expands to "FFRRGGBB"
+	- "#RRGGBB"    -> converts to "FFRRGGBB"
+	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
+
+	"""
+	color = color.strip()
+
+	hex_part = color[1:]
+
+	n = len(hex_part)
+
+	if n == 3:
+		r, g, b = hex_part
+		rgb = (r + r + g + g + b + b).upper()
+		return "FF" + rgb
+	elif n == 6:
+		return "FF" + hex_part.upper()
+	elif n == 8:
+		h = hex_part.upper()
+		return h[6:8] + h[0:6]
+
+
+### Excel Creation Utils ###
 def make_xlsx(
 	data: list[list[Any]],
 	sheet_name: str,
@@ -156,3 +233,34 @@ def build_xlsx_response(data, filename):
 	from frappe.desk.utils import provide_binary_file
 
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())
+
+
+### HELPERS ###
+def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
+	integer_part = "#,##0" if thousands_sep else "#0"
+	decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
+
+	return f"{integer_part}{decimal_part}"
+
+
+def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
+	if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
+		return "", False
+
+	symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"], cache=True)
+
+	return frappe._(symbol or currency), bool(on_right)
+
+
+def _get_currency_format(
+	format_string: str,
+	currency_symbol: str | None = None,
+	symbol_on_right: bool = False,
+) -> str:
+	if not currency_symbol:
+		return format_string
+
+	if symbol_on_right:
+		return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
+
+	return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
