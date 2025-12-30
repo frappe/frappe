@@ -405,6 +405,11 @@ frappe.router = {
 			route.shift();
 		}
 
+		// Handle cases where "/" is part of the name
+		if (route[0] === "Form" && route.length > 3) {
+			route = [route[0], route[1], route.slice(2).join("/")];
+		}
+
 		return route;
 	},
 

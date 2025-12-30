@@ -143,7 +143,9 @@
 		}
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 	}
-
+	.nav-item {
+		margin-left: -5px;
+	}
 	.standard-items-sections {
 		margin-top: 14px;
 		.dropdown-notifications {
@@ -163,6 +165,10 @@
 			.notifications-list {
 				left: 100%;
 			}
+		}
+
+		.nav-item {
+			margin-left: 0px;
 		}
 	}
 

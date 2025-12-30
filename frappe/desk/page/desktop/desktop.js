@@ -249,11 +249,19 @@ class DesktopPage {
 	}
 	setup_avatar() {
 		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
+		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let menu_items = [
 			{
 				icon: "edit",
 				label: "Edit Profile",
 				url: `/update-profile/${frappe.session.user}`,
+			},
+			{
+				icon: is_dark ? "sun" : "moon",
+				label: "Toggle Theme",
+				onClick: function () {
+					new frappe.ui.ThemeSwitcher().show();
+				},
 			},
 			{
 				icon: "lock",
@@ -609,7 +617,6 @@ class DesktopIconGrid {
 class DesktopIcon {
 	constructor(icon, in_folder) {
 		this.icon_data = icon;
-		this.icon_data.label = __(this.icon_data.label);
 		this.icon_title = this.icon_data.label;
 		this.icon_subtitle = "";
 		this.icon_type = this.icon_data.icon_type;
@@ -809,7 +816,7 @@ class DesktopModal {
 	}
 	make_modal(icon_title) {
 		if ($(".desktop-modal").length == 0) {
-			this.modal = new frappe.get_modal(icon_title, "");
+			this.modal = new frappe.get_modal(__(icon_title), "");
 			this.modal.find(".modal-header").addClass("desktop-modal-heading");
 			this.modal.addClass("desktop-modal");
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");

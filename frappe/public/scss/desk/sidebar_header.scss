@@ -19,7 +19,15 @@
 .header-logo {
 	width: 32px;
 	height: 32px;
-	padding: 4px;
+
+	& .icon-container {
+		padding: 4px;
+		border-radius: 10px;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+	}
 	& img {
 		width: 100%;
 		height: 100%;
@@ -48,6 +56,4 @@
 	color: var(--ink-gray-6);
 	font-size: var(--text-sm);
 	@include truncate();
-	line-height: 1;
-	margin-top: 4px;
 }

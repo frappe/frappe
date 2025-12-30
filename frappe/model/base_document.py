@@ -962,9 +962,7 @@ class BaseDocument:
 			if not docname:
 				continue
 
-			assert isinstance(docname, str | int) or (
-				isinstance(docname, list | tuple | set) and len(docname) == 1
-			), f"Unexpected value for field {df.fieldname}: {docname}"
+			assert isinstance(docname, str | int), f"Unexpected value for field {df.fieldname}: {docname}"
 
 			if df.fieldtype == "Link":
 				doctype = df.options
