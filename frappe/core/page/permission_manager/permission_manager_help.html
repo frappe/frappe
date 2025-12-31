@@ -30,12 +30,12 @@
 				<tr>
 					<td>{%= __("Read") %}</td>
 					<td>{%= __("Allows the user to view the document.") %}</td>
-					<td>{%= __("The user can view Sales Invoices but cannot change them.") %}</td>
+					<td>{%= __("The user can view Sales Invoices but cannot modify any field values in them.") %}</td>
 				</tr>
 				<tr>
 					<td>{%= __("Write") %}</td>
 					<td>{%= __("Allows the user to edit existing records they have access to.") %}</td>
-					<td>{%= __("The user can update a Customer address but cannot create a new Customer.") %}</td>
+					<td>{%= __("The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order.") %}</td>
 				</tr>
 				<tr>
 					<td>{%= __("Create") %}</td>
@@ -45,7 +45,7 @@
 				<tr>
 					<td>{%= __("Delete") %}</td>
 					<td>{%= __("Allows the user to delete documents.") %}</td>
-					<td>{%= __("The user can delete submitted documents.") %}</td>
+					<td>{%= __("The user can delete Draft / Cancelled documents.") %}</td>
 				</tr>
 				<tr>
 					<td>{%= __("Print") %}</td>
@@ -69,8 +69,8 @@
 				</tr>
 				<tr>
 					<td>{%= __("Import") %}</td>
-					<td>{%= __("Allows the user to import data into the document.") %}</td>
-					<td>{%= __("The user can import data for the document.") %}</td>
+					<td>{%= __("Allows the user to use Data Import tool to create / update records.") %}</td>
+					<td>{%= __("The user can import new records or update existing data for the document.") %}</td>
 				</tr>
 				<tr>
 					<td>{%= __("Share") %}</td>
