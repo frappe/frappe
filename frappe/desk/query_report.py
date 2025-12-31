@@ -386,7 +386,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths, header_index, _metadata = build_xlsx_data(
+	xlsx_data, column_widths, header_index, metadata = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
@@ -396,19 +396,25 @@ def _export_query(form_params, csv_params, populate_response=True):
 	)
 
 	if file_format_type == "CSV":
+		file_extension = "csv"
+
 		content = get_csv_bytes(
 			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
 			csv_params,
 		)
-		file_extension = "csv"
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
+
+		report = frappe.get_doc("Report", report_name)
+		styles = report.get_xlsx_styles(metadata)
+
 		content = make_xlsx(
 			xlsx_data,
 			"Query Report",
 			column_widths=column_widths,
 			header_index=header_index,
 			has_filters=bool(include_filters),
+			styles=styles,
 		).getvalue()
 
 	if include_filters:

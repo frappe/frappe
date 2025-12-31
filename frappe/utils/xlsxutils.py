@@ -29,6 +29,7 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 # TODO: when registering make user friendly for Developers (common methods)
 # TODO: give default styles
 # TODO: User can update default styles
+# TODO: can give range of cells to style
 class XLSXStyleBuilder:
 	# Mapping of style property names to their openpyxl classes
 	_STYLE_CLASSES: ClassVar[dict] = {
@@ -187,6 +188,12 @@ def hex_to_argb(color: str) -> str:
 		return h[6:8] + h[0:6]
 
 
+def get_default_xlsx_styles(data) -> dict:
+	# add default styles here
+	# like indentation, bold headers, filters etc.
+	pass
+
+
 ### Excel Creation Utils ###
 def make_xlsx(
 	data: list[list[Any]],
@@ -195,6 +202,7 @@ def make_xlsx(
 	column_widths: list[int] | None = None,
 	header_index: int = 0,
 	has_filters: bool = False,
+	styles: dict | None = None,
 ) -> BytesIO:
 	"""
 	Create an Excel file with the given data and formatting options.
@@ -206,6 +214,8 @@ def make_xlsx(
 		column_widths: List of column widths in Excel units. If None, auto-sized
 		header_index: Row index (0-based) that should be formatted as header making it bold
 		has_filters: If True, applies bold formatting to the first column of filter rows
+		styles: Configuration for cell/row/column styles
+			- Should contain: column_styles, row_styles, cell_styles, conditional_styles
 
 	Returns:
 		BytesIO: object containing the Excel file data
