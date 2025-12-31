@@ -1278,7 +1278,7 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
-		INVALID_DOCFIELD_NAMES = frozenset(("autoname",))
+		RESERVED_DOCFIELD_NAMES = frozenset(("autoname",))
 
 		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
@@ -1289,9 +1289,9 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Fieldname"),
 			)
 
-		if fieldname in INVALID_DOCFIELD_NAMES:
+		if fieldname in RESERVED_DOCFIELD_NAMES and docname != "DocType":
 			frappe.throw(
-				_("{0}: fieldname cannot be set to special DocType attribute {1}").format(
+				_("{0}: fieldname cannot be set to reserved field {1} in DocType").format(
 					frappe.bold(docname),
 					frappe.bold(fieldname),
 				),
