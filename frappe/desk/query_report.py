@@ -572,9 +572,6 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
-			if row_is_dict and include_indentation and "indent" in row and col_idx == 0:
-				cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
-
 			row_data.append(cell_value)
 
 		if build_metadata:
