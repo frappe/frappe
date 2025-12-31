@@ -306,6 +306,11 @@ body[data-route^="Form"] {
 		padding-left: 0px !important;
 		width: 100%;
 
+		&:active {
+			background-color: transparent !important;
+			box-shadow: none !important;
+		}
+
 		.attachment-file-label {
 			display: block;
 			margin-left: var(--margin-xs);
@@ -336,7 +341,6 @@ body[data-route^="Form"] {
 	background-color: var(--bg-color);
 	text-align: start;
 	margin-top: var(--margin-sm);
-	margin-left: var(--margin-md);
 	margin-bottom: var(--margin-sm);
 	color: var(--text-light);
 }

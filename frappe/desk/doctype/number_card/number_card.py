@@ -206,12 +206,10 @@ def create_number_card(args):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
+	doctype = "Number Card"
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
 	search_conditions = []
-
-	if not frappe.db.exists("DocType", doctype):
-		return
 
 	numberCard = DocType("Number Card")
 
@@ -221,7 +219,6 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	condition_query = frappe.qb.get_query(
 		doctype,
 		filters=filters,
-		validate_filters=True,
 	)
 
 	return (

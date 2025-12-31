@@ -241,7 +241,8 @@ class EMail:
 		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
 
 		if as_attachment:
-			part.add_header("Content-Disposition", "attachment", filename=filename)
+			clean_filename = re.sub("[\r\n]", "", str(filename))
+			part.add_header("Content-Disposition", "attachment", filename=clean_filename)
 
 		self.msg_root.attach(part)
 
@@ -476,7 +477,8 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 	# Set the filename parameter
 	if fname:
 		attachment_type = "inline" if inline else "attachment"
-		part.add_header("Content-Disposition", attachment_type, filename=str(fname))
+		clean_filename = re.sub("[\r\n]", "", str(fname))
+		part.add_header("Content-Disposition", attachment_type, filename=clean_filename)
 	if content_id:
 		part.add_header("Content-ID", f"<{content_id}>")
 

@@ -78,17 +78,6 @@
 		}
 	}
 }
-.section-head {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.section-head::after {
-	content: "";
-	flex: 1;
-	border-bottom: 1px solid var(--border-color);
-}
 .section-head,
 .section-body {
 	margin: auto !important;
@@ -125,10 +114,9 @@
 	display: none !important;
 	border: 0 !important;
 }
-
+.form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
-	padding: var(--padding-md) 0;
 }
 
 .form-section.card-section.hide-border {

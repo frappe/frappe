@@ -3,10 +3,7 @@
 
 import json
 import re
-from typing import (
-	NotRequired,  # not required in 3.11+
-	TypedDict,
-)
+from typing import NotRequired, TypedDict
 
 import frappe
 

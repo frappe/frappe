@@ -126,6 +126,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 			)
 
 		except Exception:
+			frappe.log_error("Bulk action failed")
 			failed.append(docname)
 			frappe.db.rollback()
 

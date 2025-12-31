@@ -444,6 +444,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
 				WHEN 'timestamp without time zone' THEN 'timestamp'
+				WHEN 'integer' THEN 'int'
+				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
 			END AS type,
 			BOOL_OR(b.index) AS index,
@@ -460,7 +462,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;
 		""",
 			as_dict=1,
 		)
@@ -489,7 +491,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		from frappe.utils.data import cint
 
 		table = get_table_name(doctype)
-		count = self.sql("select reltuples from pg_class where relname = %s", table)
+
+		# Scope to current database to avoid cross-site estimates
+		count = self.sql(
+			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
+			(table, self.db_schema),
+		)
 		return cint(count[0][0]) if count else 0
 
 	@contextmanager

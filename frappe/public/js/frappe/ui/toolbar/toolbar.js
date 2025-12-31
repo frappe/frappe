@@ -121,6 +121,7 @@ frappe.ui.toolbar.Toolbar = class {
 			this.add_back_button();
 		} else {
 			this.navbar.html(this.menu);
+			this.bind_click();
 		}
 	}
 };

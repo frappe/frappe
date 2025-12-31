@@ -35,7 +35,11 @@ export default class Tab {
 					type="button"
 					role="tab"
 					aria-controls="${id}">
-						${frappe.utils.icon(this.df.icon || ICON_MAP[this.label] || "list")}
+						${
+							ICON_MAP[this.label] || this.df.icon
+								? frappe.utils.icon(this.df.icon || ICON_MAP[this.label])
+								: ""
+						}
 						${__(this.label, null, this.doctype)}
 				</button>
 			</li>
