@@ -38,13 +38,8 @@ def strip_exif_data(content, content_type):
 	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
 		original_image = original_image.convert("RGB")
 
-	new_image = Image.new(original_image.mode, original_image.size)
-	new_image.putdata(list(original_image.getdata()))
-	new_image.save(output, format=content_type.split("/")[1])
-
-	content = output.getvalue()
-
-	return content
+	original_image.save(output, format=content_type.split("/")[1], exif=b"")
+	return output.getvalue()
 
 
 def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
