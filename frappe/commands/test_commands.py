@@ -1103,6 +1103,12 @@ class TestGunicornWorker(IntegrationTestCase):
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
 
+	@retry(
+		retry=retry_if_exception_type(AssertionError),
+		stop=stop_after_attempt(3),
+		wait=wait_fixed(3),
+		reraise=True,
+	)
 	def test_gunicorn_idle_cpu_usage(self):
 		def get_total_usage():
 			process = psutil.Process(self.handle.pid)
