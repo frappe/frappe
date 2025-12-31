@@ -138,7 +138,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		}
 	)
 
-	update_user_info(docinfo)
+	update_user_info(docinfo, doc)
 
 	frappe.response["docinfo"] = docinfo
 
@@ -480,8 +480,12 @@ def send_link_titles(link_titles):
 	frappe.local.response["_link_titles"].update(link_titles)
 
 
-def update_user_info(docinfo):
+def update_user_info(docinfo, doc=None):
 	users = set()
+
+	if doc:
+		users.add(doc.owner)
+		users.add(doc.modified_by)
 
 	users.update(d.sender for d in docinfo.communications)
 	users.update(d.user for d in docinfo.shared)
@@ -493,6 +497,7 @@ def update_user_info(docinfo):
 	users.update(d.owner for d in docinfo.attachment_logs)
 	users.update(d.owner for d in docinfo.assignment_logs)
 	users.update(d.owner for d in docinfo.comments)
+	users.update(d.owner for d in docinfo.versions)
 
 	frappe.utils.add_user_info(users, docinfo.user_info)
 
