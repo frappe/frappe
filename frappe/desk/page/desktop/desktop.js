@@ -62,7 +62,7 @@ function get_route(desktop_icon) {
 
 function get_desktop_icon_by_label(title, filters) {
 	let icons = frappe.desktop_icons;
-	if (frappe.pages["desktop"].desktop_page.edit_mode) {
+	if (frappe.pages["desktop"]?.desktop_page?.edit_mode) {
 		icons = frappe.new_desktop_icons;
 	}
 	if (!filters) {
@@ -598,40 +598,39 @@ class DesktopIconGrid {
 						// Same grid - just reorder
 						let reordered_icons = me.sortable.toArray();
 						let filters = {
-							parent_icon: me.parent_icon?.icon_data.label || null,
+							parent_icon: me.parent_icon?.icon_data.label ?? null,
 						};
 						me.reorder_icons(reordered_icons, filters);
 						me.parent_icon?.render_folder_thumbnail();
 					} else {
-						// Different grids - update parent and reorder both grids
-						let from_grid = $(evt.from.parentElement);
-						let to_grid = $(evt.to.parentElement);
+						// Different grids - update parent and reorder both source and target
 						
-						// Update the icon's parent
-						selected_icon.parent_icon = me.parent_icon?.icon_data.label || null;
-						selected_icon.idx = evt.newIndex;
+						// Find the source grid instance
+						let source_grid = frappe.desktop_grids.find(grid => 
+							grid.grids.some(g => g.get(0) === evt.from.parentElement)
+						);
 						
-						// Reorder the target grid
-						if (me.sortable) {
-							let to_reordered_icons = me.sortable.toArray();
-							let filters = {
-								parent_icon: me.parent_icon?.icon_data.label || null,
+						// Update the icon's parent (idx will be set by reorder_icons)
+						selected_icon.parent_icon = me.parent_icon?.icon_data.label ?? null;
+						
+						// Reorder the target grid (where icon landed)
+						let to_reordered_icons = me.sortable.toArray();
+						let target_filters = {
+							parent_icon: me.parent_icon?.icon_data.label ?? null,
+						};
+						me.reorder_icons(to_reordered_icons, target_filters);
+						
+						// Reorder the source grid (where icon came from) to fix sequential indices
+						if (source_grid && source_grid.sortable) {
+							let from_reordered_icons = source_grid.sortable.toArray();
+							let source_filters = {
+								parent_icon: source_grid.parent_icon?.icon_data.label ?? null,
 							};
-							me.reorder_icons(to_reordered_icons, filters);
+							source_grid.reorder_icons(from_reordered_icons, source_filters);
+							source_grid.parent_icon?.render_folder_thumbnail();
 						}
 						
-						// Reorder the main desktop grid if moving from folder to main
-						if (frappe.pages["desktop"] && 
-							frappe.pages["desktop"].desktop_page && 
-							frappe.pages["desktop"].desktop_page.icon_grid && 
-							frappe.pages["desktop"].desktop_page.icon_grid.sortable) {
-							let main_reordered = frappe.pages[
-								"desktop"
-							].desktop_page.icon_grid.sortable.toArray();
-							frappe.pages["desktop"].desktop_page.icon_grid.reorder_icons(main_reordered);
-						}
-						
-						// Re-render folder thumbnails
+						// Re-render target folder thumbnail
 						me.parent_icon?.render_folder_thumbnail();
 					}
 				},
@@ -642,9 +641,12 @@ class DesktopIconGrid {
 		if (!reordered_icons || reordered_icons.length === 0) return;
 		
 		// Get the correct icons array based on edit mode
-		let icons_array = frappe.pages["desktop"].desktop_page.edit_mode 
+		let icons_array = frappe.pages["desktop"]?.desktop_page?.edit_mode 
 			? frappe.new_desktop_icons 
 			: frappe.desktop_icons;
+		
+		// Determine the parent context for this reordering operation
+		let parent_context = filters?.parent_icon ?? null;
 		
 		// Update indices for reordered icons
 		reordered_icons.forEach((label, idx) => {
@@ -663,12 +665,31 @@ class DesktopIconGrid {
 			}
 		});
 		
-		// Sort the entire icons array by idx
-		icons_array.sort((a, b) => {
-			if (a.idx === b.idx) {
-				return a.label.localeCompare(b.label);
+		// Sort only icons with the same parent to avoid mixing different grids
+		// Group by parent_icon and sort each group separately
+		let icons_by_parent = {};
+		icons_array.forEach(icon => {
+			let parent_key = icon.parent_icon ?? null;
+			if (!icons_by_parent[parent_key]) {
+				icons_by_parent[parent_key] = [];
 			}
-			return a.idx - b.idx;
+			icons_by_parent[parent_key].push(icon);
+		});
+		
+		// Sort each group by idx
+		Object.keys(icons_by_parent).forEach(parent_key => {
+			icons_by_parent[parent_key].sort((a, b) => {
+				if (a.idx === b.idx) {
+					return a.label.localeCompare(b.label);
+				}
+				return a.idx - b.idx;
+			});
+		});
+		
+		// Reconstruct the icons_array maintaining parent grouping
+		icons_array.length = 0;
+		Object.keys(icons_by_parent).forEach(parent_key => {
+			icons_array.push(...icons_by_parent[parent_key]);
 		});
 	}
 	add_to_main_screen(title) {
@@ -787,7 +808,7 @@ class DesktopIcon {
 	}
 
 	setup_dragging() {
-		if (!frappe.pages["desktop"].desktop_page.edit_mode) return;
+		if (!frappe.pages["desktop"]?.desktop_page?.edit_mode) return;
 		this.icon.on("drag", (event) => {
 			const mouse_x = event.clientX;
 			const mouse_y = event.clientY;
