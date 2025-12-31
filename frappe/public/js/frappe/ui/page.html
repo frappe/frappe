@@ -1,7 +1,7 @@
 <div class="page-head flex {% if frappe.boot.read_only || frappe.boot.user.impersonated_by %}show-navbar{% endif %}">
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
-			<div class="col-md-5 col-sm-6 col-xs-7 page-title">
+			<div class="page-title">
 				<div class="flex fill-width title-area ellipsis">
 					{% if (!frappe.is_mobile()) { %}
 						<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis"></ul>

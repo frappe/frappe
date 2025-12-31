@@ -113,7 +113,6 @@
 .icon-container img{
     width: var(--desktop-icon-dimension);
     height: var(--desktop-icon-dimension);
-    user-drag: none;
     -webkit-user-drag: none;
     user-select: none;
     -moz-user-select: none;
@@ -131,10 +130,6 @@
 }
 .icon-container:has(.icon){
     background-color: var(--surface-gray-3);
-}
-.icon-container .icon{
-    width: 27px;
-    height: 27px;
 }
 .icon-container:hover{
 	transform: scale(1.05);
@@ -182,6 +177,7 @@
 .desktop-modal{
     backdrop-filter: var(--desktop-blur);
     display: flex !important;
+    justify-content: center;
     & .modal-dialog{
         & .modal-content {
             top: 120px;
@@ -357,4 +353,102 @@
         bottom: 5%;
         right: 5%;
     }
+}
+
+@media screen and (max-width: 570px) {
+  :root {
+    --desktop-icon-dimension: 50px;
+    --desktop-icon-container: 117px;
+    --folder-thumbnail-icon-height:17px;
+  }
+
+  .desktop-container {
+    padding: 20px 13px;
+
+    > .icons-container {
+      width: 100%;
+      margin-top: 0;
+      padding: 0;
+
+      > .icons {
+        gap: 8px;
+        row-gap: 12px;
+
+        @media screen and (max-width: 380px) {
+          --desktop-icon-container: 100px;
+          .folder-icon > .icons{
+            grid-template-columns: repeat(2, 1fr) I !important;
+          }
+        }
+
+        > .desktop-icon {
+          width: var(--desktop-icon-container);
+          height: var(--desktop-icon-container);
+          .icon-container {
+                min-width: var(--desktop-icon-dimension);
+                min-height: var(--desktop-icon-dimension);
+          }
+        }
+      }
+
+    }
+  }
+
+    .desktop-modal-body {
+        width: 90vw;
+        > .icons-container {
+            width: 100%;
+            overflow: hidden !important;
+            margin: 0px;
+            margin-top: 0;
+            padding: 0;
+
+            > .icons {
+                position: relative;
+                right: 6%;
+                column-gap: 4px;
+                row-gap: 8px;
+
+                @media screen and (max-width: 380px) {
+                --desktop-icon-container: 100px;
+                .folder-icon > .icons{
+                    grid-template-columns: repeat(2, 1fr) I !important;
+                }
+                }
+
+                > .desktop-icon {
+                width: var(--desktop-icon-container);
+                height: var(--desktop-icon-container);
+                }
+            }
+        }
+    }
+    .folder-icon > .icons-container {
+        overflow: hidden;
+        > .icons {
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+            > .desktop-icon {
+                .icon-container {
+                        min-width: unset;
+                        min-height: unset;
+                }
+            }
+            }
+        }
+}
+
+.desktop-edit{
+    width: 36px;
+    height: 36px;
+    background-color: var(--surface-gray-7);
+    position: absolute;
+    bottom: 4%;
+    right: 4%;
+    z-index: 100;
+    opacity: 0.1;
+}
+.desktop-edit:hover{
+    opacity: 1;
+    transition: opacity 0.3s;
 }

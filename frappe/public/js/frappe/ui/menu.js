@@ -48,17 +48,20 @@ frappe.ui.menu = class ContextMenu {
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
 			);
 		} else {
-			item_wrapper = $(`<div class="dropdown-menu-item">
+			const iconMarkup = item.icon_html
+				? item.icon_html
+				: item.icon
+				? frappe.utils.icon(item.icon)
+				: item.icon_url
+				? `<img class="logo" src="${item.icon_url}">`
+				: "";
+
+			item_wrapper = $(`<div class="dropdown-menu-item" onclick="${
+				item.action ? `return ${item.action}` : ""
+			}">
 				<a>
-					<div class="menu-item-icon" ${!(item.icon || item.icon_url) ? "hidden" : ""}>
-						${
-							item.icon
-								? frappe.utils.icon(item.icon)
-								: `<img
-								class="logo"
-								src="${item.icon_url}"
-							>`
-						}
+					<div class="menu-item-icon" ${!(iconMarkup != "") ? "hidden" : ""}>
+						${iconMarkup}
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
 					<div class="menu-item-icon" style="margin-left:auto">
@@ -143,6 +146,7 @@ frappe.ui.menu = class ContextMenu {
 		}
 
 		this.visible = true;
+		frappe.visible_menus.push(this);
 	}
 	close_all_other_menu() {
 		$(".context-menu").hide();
@@ -183,6 +187,7 @@ frappe.ui.menu = class ContextMenu {
 };
 
 frappe.menu_map = {};
+frappe.visible_menus = [];
 
 frappe.ui.create_menu = function (opts) {
 	if (!opts.right_click) $(opts.parent).css("cursor", "pointer");
@@ -229,3 +234,14 @@ frappe.ui.create_menu = function (opts) {
 		}
 	});
 };
+
+function close_all_open_menus() {
+	frappe.visible_menus.forEach((menu) => {
+		menu.hide();
+	});
+	frappe.visible_menus = [];
+}
+
+frappe.router.on("change", function () {
+	close_all_open_menus();
+});

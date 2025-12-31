@@ -36,7 +36,6 @@ frappe.ui.form.Sidebar = class {
 		this.show_auto_repeat_status();
 		frappe.ui.form.setup_user_image_event(this.frm);
 		this.indicator = $(this.sidebar).find(".sidebar-meta-details .indicator-pill");
-		this.set_form_indicator();
 		this.setup_copy_event();
 		this.make_like();
 		this.refresh();
@@ -44,20 +43,6 @@ frappe.ui.form.Sidebar = class {
 		// setup editable title
 		let form_sidebar_text = $(this.sidebar).find(".sidebar-meta-details .form-title-text");
 		this.toolbar.setup_editable_title(form_sidebar_text);
-	}
-
-	set_form_indicator() {
-		let indicator = frappe.get_indicator(this.frm.doc);
-		if (indicator) {
-			this.set_indicator(indicator[0], indicator[1]);
-		}
-	}
-	set_indicator(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
-	}
-
-	clear_indicator() {
-		return this.indicator.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
 	}
 
 	setup_keyboard_shortcuts() {

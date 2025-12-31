@@ -2,7 +2,7 @@ import datetime
 import re
 import warnings
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from pypika.enums import Arithmetic
 from pypika.queries import QueryBuilder, Table
@@ -245,6 +245,7 @@ class Engine:
 			This is kept optional to not break existing code that relies on the original query builder behaviour.
 			ignore_user_permissions: Ignore user permissions for the query.
 				Useful for link search queries when the link field has `ignore_user_permissions` set.
+			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
 		qb = frappe.local.qb
@@ -253,7 +254,6 @@ class Engine:
 		self.is_mariadb = db_type == "mariadb"
 		self.is_postgres = db_type == "postgres"
 		self.is_sqlite = db_type == "sqlite"
-		self.validate_filters = validate_filters
 		self.user = user or frappe.session.user
 		self.parent_doctype = parent_doctype
 		self.reference_doctype = reference_doctype
@@ -358,7 +358,7 @@ class Engine:
 		self.query._child_queries = []
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
-				self.query = field.apply_select(self.query)
+				self.query = field.apply_select(self.query, engine=self)
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
 			else:
@@ -483,17 +483,17 @@ class Engine:
 			self.query = self.query.where(combined)
 
 	def apply_list_filters(self, filter: list, collect: list | None = None):
-		if len(filter) == 2:
-			field, value = filter
-			self._apply_filter(field, value, collect=collect)
-		elif len(filter) == 3:
-			field, operator, value = filter
-			self._apply_filter(field, value, operator, collect=collect)
-		elif len(filter) == 4:
-			doctype, field, operator, value = filter
-			self._apply_filter(field, value, operator, doctype, collect=collect)
-		else:
-			raise ValueError(f"Unknown filter format: {filter}")
+		match filter:
+			case [field, value]:
+				self._apply_filter(field, value, collect=collect)
+			case [field, operator, value]:
+				self._apply_filter(field, value, operator, collect=collect)
+			case [doctype, field, operator, value]:
+				self._apply_filter(field, value, operator, doctype, collect=collect)
+			case [doctype, field, operator, value, _]:
+				self._apply_filter(field, value, operator, doctype, collect=collect)
+			case _:
+				raise ValueError(f"Unknown filter format: {filter}")
 
 	def apply_dict_filters(self, filters: dict[str, FilterValue | list], collect: list | None = None):
 		for field, value in filters.items():
@@ -758,6 +758,8 @@ class Engine:
 			if parsed := self._parse_backtick_field_notation(field):
 				table_name, field_name = parsed
 
+				self._check_field_permission(table_name, field_name)
+
 				# Return query builder field reference
 				return frappe.qb.DocType(table_name)[field_name]
 
@@ -781,7 +783,7 @@ class Engine:
 				)
 				self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
 
-				self.query = dynamic_field.apply_join(self.query)
+				self.query = dynamic_field.apply_join(self.query, engine=self)
 				# Return the pypika Field object associated with the dynamic field
 				return dynamic_field.field
 			else:
@@ -842,7 +844,7 @@ class Engine:
 				self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
 
 				# Delegate join logic
-				self.query = child_field_handler.apply_join(self.query)
+				self.query = child_field_handler.apply_join(self.query, engine=self)
 				# Return the pypika Field object from the handler
 				return child_field_handler.field
 			else:
@@ -882,7 +884,7 @@ class Engine:
 							self._check_field_permission(
 								df.options, target_fieldname, parent_doctype_for_perm
 							)
-							self.query = child_field_handler.apply_join(self.query)
+							self.query = child_field_handler.apply_join(self.query, engine=self)
 							return child_field_handler.field
 
 				self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
@@ -902,7 +904,16 @@ class Engine:
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
-		permission_type = self.get_permission_type(doctype)
+		# Don't allow querying child table fields if user has only "select" permission
+		permission_type = self.get_permission_type(doctype, parent_doctype)
+		if parent_doctype and permission_type == "select":
+			frappe.throw(
+				_("You do not have permission to access child table field: {0}").format(
+					frappe.bold(f"{doctype}.{fieldname}")
+				),
+				frappe.PermissionError,
+			)
+
 		permitted_fields = self._get_cached_permitted_fields(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
@@ -1151,6 +1162,7 @@ class Engine:
 		if "`" in field_name:
 			if parsed := self._parse_backtick_field_notation(field_name):
 				table_name, field_name = parsed
+				self._check_field_permission(table_name, field_name)
 				return frappe.qb.DocType(table_name)[field_name]
 
 			# If parsing failed, fall through to error handling below
@@ -1163,19 +1175,18 @@ class Engine:
 		dynamic_field = DynamicTableField.parse(field_name, self.doctype, allow_tab_notation=False)
 		if dynamic_field:
 			# Check permissions for dynamic field
-			if self.apply_permissions:
-				if isinstance(dynamic_field, ChildTableField):
-					self._check_field_permission(
-						dynamic_field.doctype, dynamic_field.fieldname, dynamic_field.parent_doctype
-					)
-				elif isinstance(dynamic_field, LinkTableField):
-					# Check permission for the link field in parent doctype
-					self._check_field_permission(self.doctype, dynamic_field.link_fieldname)
-					# Check permission for the target field in linked doctype
-					self._check_field_permission(dynamic_field.doctype, dynamic_field.fieldname)
+			if isinstance(dynamic_field, ChildTableField):
+				self._check_field_permission(
+					dynamic_field.doctype, dynamic_field.fieldname, dynamic_field.parent_doctype
+				)
+			elif isinstance(dynamic_field, LinkTableField):
+				# Check permission for the link field in parent doctype
+				self._check_field_permission(self.doctype, dynamic_field.link_fieldname)
+				# Check permission for the target field in linked doctype
+				self._check_field_permission(dynamic_field.doctype, dynamic_field.fieldname)
 
 			# Apply join for the dynamic field
-			self.query = dynamic_field.apply_join(self.query)
+			self.query = dynamic_field.apply_join(self.query, engine=self)
 			return dynamic_field.field
 		else:
 			# Validate as simple field name (alphanumeric + underscore only)
@@ -1188,8 +1199,7 @@ class Engine:
 				)
 
 			# Check permissions for simple field
-			if self.apply_permissions:
-				self._check_field_permission(self.doctype, field_name)
+			self._check_field_permission(self.doctype, field_name)
 
 			# Create Field object for simple field
 			return self.table[field_name]
@@ -1261,9 +1271,9 @@ class Engine:
 		if not has_permission("select") and not has_permission("read"):
 			self._raise_permission_error()
 
-	def _raise_permission_error(self):
+	def _raise_permission_error(self, doctype=None):
 		frappe.throw(
-			_("Insufficient Permission for {0}").format(frappe.bold(self.doctype)),
+			_("Insufficient Permission for {0}").format(frappe.bold(doctype or self.doctype)),
 			frappe.PermissionError,
 		)
 
@@ -1284,7 +1294,9 @@ class Engine:
 
 				# Cache permitted fields for child doctypes if accessed multiple times
 				permitted_child_fields_set = self._get_cached_permitted_fields(
-					field.doctype, field.parent_doctype, self.get_permission_type(field.doctype)
+					field.doctype,
+					field.parent_doctype,
+					self.get_permission_type(field.doctype, field.parent_doctype),
 				)
 				# Check permission for the specific field in the child table
 				if field.fieldname in permitted_child_fields_set:
@@ -1312,7 +1324,9 @@ class Engine:
 
 				# Cache permitted fields for the child doctype of the query
 				permitted_child_fields_set = self._get_cached_permitted_fields(
-					field.doctype, field.parent_doctype, self.get_permission_type(field.doctype)
+					field.doctype,
+					field.parent_doctype,
+					self.get_permission_type(field.doctype, field.parent_doctype),
 				)
 				# Filter the fields *within* the ChildQuery object based on permissions
 				field.fields = [f for f in field.fields if f in permitted_child_fields_set]
@@ -1334,8 +1348,12 @@ class Engine:
 
 		return allowed_fields
 
-	def get_user_permission_conditions(self) -> list[Criterion]:
+	def get_user_permission_conditions(
+		self, doctype: str | None = None, table: Table | None = None
+	) -> list[Criterion]:
 		"""Build conditions for user permissions."""
+		doctype = doctype or self.permission_doctype
+		table = table or self.permission_table
 		conditions = []
 
 		if self.ignore_user_permissions:
@@ -1346,7 +1364,7 @@ class Engine:
 		if not user_permissions:
 			return conditions
 
-		doctype_link_fields = self.get_doctype_link_fields()
+		doctype_link_fields = self.get_doctype_link_fields(doctype)
 		for df in doctype_link_fields:
 			if df.get("ignore_user_permissions"):
 				continue
@@ -1364,25 +1382,26 @@ class Engine:
 					elif df.get("fieldname") == "name" and self.reference_doctype:
 						if permission.get("applicable_for") == self.reference_doctype:
 							docs.append(permission.get("doc"))
-					elif permission.get("applicable_for") == self.permission_doctype:
+					elif permission.get("applicable_for") == doctype:
 						docs.append(permission.get("doc"))
 
 				if docs:
 					field_name = df.get("fieldname")
 					strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 					if strict_user_permissions:
-						conditions.append(self.permission_table[field_name].isin(docs))
+						conditions.append(table[field_name].isin(docs))
 					else:
-						empty_value_condition = functions.IfNull(self.permission_table[field_name], "") == ""
-						value_condition = self.permission_table[field_name].isin(docs)
+						empty_value_condition = functions.IfNull(table[field_name], "") == ""
+						value_condition = table[field_name].isin(docs)
 						conditions.append(empty_value_condition | value_condition)
 
 		return conditions
 
-	def get_doctype_link_fields(self):
-		meta = frappe.get_meta(self.permission_doctype)
+	def get_doctype_link_fields(self, doctype: str | None = None):
+		doctype = doctype or self.permission_doctype
+		meta = frappe.get_meta(doctype)
 		# append current doctype with fieldname as 'name' as first link field
-		doctype_link_fields = [{"options": self.permission_doctype, "fieldname": "name"}]
+		doctype_link_fields = [{"options": doctype, "fieldname": "name"}]
 		# append other link fields
 		doctype_link_fields.extend(meta.get_link_fields())
 		return doctype_link_fields
@@ -1426,29 +1445,32 @@ class Engine:
 				self.table.parent == self.permission_table.name
 			)
 
-		role_permissions = frappe.permissions.get_role_permissions(self.permission_doctype, user=self.user)
+		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
+			self.query = self.query.where(condition)
+
+	def get_permission_conditions(self, doctype: str, table: Table) -> Criterion | None:
+		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
 		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
 
 		if not has_role_permission:
 			# no role permissions, apply only share permissions
-			shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
+			shared_docs = frappe.share.get_shared(doctype, self.user)
 			if not shared_docs:
-				# this should NEVER happen, but being defensive
-				self._raise_permission_error()
+				# no permissions at all
+				self._raise_permission_error(doctype=doctype)
 
-			self.query = self.query.where(self.permission_table.name.isin(shared_docs))
-			return
+			return table.name.isin(shared_docs)
 
 		# build conditions from: if_owner constraint OR user permissions
 		conditions = []
 
 		if self.requires_owner_constraint(role_permissions):
 			# skip user perm check if owner constraint is required
-			conditions.append(self.permission_table.owner == self.user)
-		elif user_perm_conditions := self.get_user_permission_conditions():
+			conditions.append(table.owner == self.user)
+		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
 			conditions.extend(user_perm_conditions)
 
-		conditions.extend(self.get_permission_query_conditions())
+		conditions.extend(self.get_permission_query_conditions(doctype))
 
 		if not conditions:
 			# no conditions to apply, all documents are accessible
@@ -1457,39 +1479,49 @@ class Engine:
 		where_condition = Criterion.all(conditions)
 
 		# since some conditions apply, we need to consider shared docs as well
-		shared_docs = frappe.share.get_shared(self.permission_doctype, self.user)
+		shared_docs = frappe.share.get_shared(doctype, self.user)
 		if shared_docs:
 			# shared docs trump all other restrictions
-			where_condition |= self.permission_table.name.isin(shared_docs)
+			where_condition |= table.name.isin(shared_docs)
 
-		self.query = self.query.where(where_condition)
+		return where_condition
 
-	def get_permission_query_conditions(self) -> list["RawCriterion"]:
+	def get_permission_query_conditions(self, doctype: str | None = None) -> list["RawCriterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
+		doctype = doctype or self.permission_doctype
 		conditions = []
 		hooks = frappe.get_hooks("permission_query_conditions", {})
-		condition_methods = hooks.get(self.permission_doctype, []) + hooks.get("*", [])
+		condition_methods = hooks.get(doctype, []) + hooks.get("*", [])
 
 		for method in condition_methods:
-			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.permission_doctype):
+			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				conditions.append(RawCriterion(f"({c})"))
 
 		# Get conditions from server scripts
-		if (
-			permission_script_name := get_server_script_map()
-			.get("permission_query", {})
-			.get(self.permission_doctype)
-		):
+		if permission_script_name := get_server_script_map().get("permission_query", {}).get(doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
 			if condition := script.get_permission_query_conditions(self.user):
 				conditions.append(RawCriterion(f"({condition})"))
-
 		return conditions
 
-	def get_permission_type(self, doctype) -> str:
-		"""Get permission type (select/read) based on user permissions"""
+	def get_permission_type(
+		self, doctype: str, parent_doctype: str | None = None
+	) -> Literal["read", "select"]:
+		"""Get permission type (select/read) based on user permissions.
+
+		Args:
+			doctype: The doctype to check permissions for.
+			parent_doctype: The parent of the specified doctype. If passed, we assume that `doctype` is a child table,
+							and fall back to checking permissions from this parent.
+
+		Returns:
+			The allowed permission type (read|select).
+		"""
+		if parent_doctype:
+			return self.get_permission_type(parent_doctype)
+
 		if frappe.only_has_select_perm(doctype, user=self.user):
 			return "select"
 		return "read"
@@ -1737,7 +1769,10 @@ class DynamicTableField:
 
 		return None
 
-	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
+		raise NotImplementedError
+
+	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		raise NotImplementedError
 
 
@@ -1758,12 +1793,12 @@ class ChildTableField(DynamicTableField):
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
-	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		table = frappe.qb.DocType(self.doctype)
-		query = self.apply_join(query)
+		query = self.apply_join(query, engine=engine)
 		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
 
-	def apply_join(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(self.table):
 			join_conditions = (self.table.parent == main_table.name) & (
@@ -1789,16 +1824,22 @@ class LinkTableField(DynamicTableField):
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
-	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		table = frappe.qb.DocType(self.doctype)
-		query = self.apply_join(query)
+		query = self.apply_join(query, engine=engine)
 		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
 
-	def apply_join(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+			clause = table.name == getattr(main_table, self.link_fieldname)
+
+			if engine and engine.apply_permissions:
+				if condition := engine.get_permission_conditions(self.doctype, table):
+					clause &= condition
+
+			query = query.left_join(table).on(clause)
 		return query
 
 
@@ -2119,6 +2160,7 @@ class SQLFunctionParser:
 		elif "`" in arg:
 			if parsed := self.engine._parse_backtick_field_notation(arg):
 				table_name, field_name = parsed
+				self.engine._check_field_permission(table_name, field_name)
 				return Table(f"tab{table_name}")[field_name]
 			else:
 				frappe.throw(

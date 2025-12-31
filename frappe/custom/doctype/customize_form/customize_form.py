@@ -807,6 +807,7 @@ docfield_properties = {
 	"link_filters": "JSON",
 	"placeholder": "Data",
 	"button_color": "Select",
+	"mask": "Check",
 }
 
 doctype_link_properties = {
