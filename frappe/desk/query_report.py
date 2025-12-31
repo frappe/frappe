@@ -376,6 +376,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
+	data._filters = form_params.filters  # for excel metadata
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -385,12 +386,13 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths, header_index = build_xlsx_data(
+	xlsx_data, column_widths, header_index, _metadata = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
+		build_metadata=file_format_type == "Excel",
 	)
 
 	if file_format_type == "CSV":
@@ -453,7 +455,8 @@ def build_xlsx_data(
 	include_filters: bool = False,
 	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-) -> tuple[list[list[Any]], list[int], int]:
+	build_metadata: bool = False,
+) -> tuple[list[list[Any]], list[int], int, dict | None]:
 	"""
 	Build Excel data structure from report data with proper formatting.
 
@@ -464,12 +467,14 @@ def build_xlsx_data(
 		include_filters: Whether to include filter rows at the top of the Excel sheet
 		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
+		build_metadata: Whether to build metadata for the Excel sheet formatting
 
 	Returns:
 		tuple: A tuple containing:
 			- result: List of rows for the Excel sheet
 			- column_widths: List of column widths for the Excel sheet
 			- header_index: Index of the header row in the result
+			- metadata: Metadata for the Excel sheet formatting (if build_metadata is True)
 	"""
 	EXCEL_TYPES = (
 		str,
@@ -496,8 +501,18 @@ def build_xlsx_data(
 
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
+	include_filters = cint(include_filters)
 
-	if cint(include_filters) and data.filters:
+	metadata = (
+		{
+			"columns": [],
+			"row_map": {},  # xlsx row index to report data row
+		}
+		if build_metadata
+		else None
+	)
+
+	if include_filters and data.filters:
 		filter_data = []
 		for filter_name, filter_value in data.filters.items():
 			if not filter_value:
@@ -518,12 +533,18 @@ def build_xlsx_data(
 	for column in data.columns:
 		if column.get("hidden") and not include_hidden_columns:
 			continue
+
+		if build_metadata:
+			metadata["columns"].append(column)
+
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
 		# to convert into scale accepted by openpyxl
 		column_width /= 10
 		column_widths.append(column_width)
 	result.append(column_data)
+
+	excel_row_idx = header_index + 1
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -550,9 +571,26 @@ def build_xlsx_data(
 
 			row_data.append(cell_value)
 
+		if build_metadata:
+			metadata["row_map"][excel_row_idx] = row
+			excel_row_idx += 1
+
 		result.append(row_data)
 
-	return result, column_widths, header_index
+	if build_metadata:
+		metadata.update(
+			{
+				"filters": data._filters or frappe._dict(),
+				"include_indentation": include_indentation,
+				"header_index": header_index,
+				"add_total_row": data.add_total_row,
+				"include_filters": include_filters,
+				"include_hidden_columns": include_hidden_columns,
+				"ignore_visible_idx": ignore_visible_idx,
+			}
+		)
+
+	return result, column_widths, header_index, metadata
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
