@@ -30,6 +30,8 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 # TODO: give default styles
 # TODO: User can update default styles
 # TODO: can give range of cells to style
+# TODO: add static method for number formats
+# TODO: add static method for colors
 class XLSXStyleBuilder:
 	# Mapping of style property names to their openpyxl classes
 	_STYLE_CLASSES: ClassVar[dict] = {
