@@ -240,13 +240,14 @@ def make_xlsx(
 	cell_styles = styles.get("cell_styles", {})
 	conditional_styles = styles.get("conditional_styles", [])
 
-	date_format, time_format = get_excel_date_format()
-	bold_font = Font(name="Calibri", bold=True)
+	# date_format, time_format = get_excel_date_format()
+	# bold_font = Font(name="Calibri", bold=True)
 
 	for row_idx, row in enumerate(data):
 		clean_row = []
-		is_header_row = row_idx == header_index
-		is_filter_row = has_filters and row_idx < header_index
+		# TODO: need to move this to a default style
+		# is_header_row = row_idx == header_index
+		# is_filter_row = has_filters and row_idx < header_index
 
 		row_style = row_styles.get(row_idx) or {}
 
@@ -264,15 +265,16 @@ def make_xlsx(
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			if isinstance(value, datetime.date | datetime.datetime):
-				number_format = date_format
-				if isinstance(value, datetime.datetime):
-					number_format = f"{date_format} {time_format}"
-				cell.number_format = number_format
+			# TODO: need to move this to a default style
+			# if isinstance(value, datetime.date | datetime.datetime):
+			# 	number_format = date_format
+			# 	if isinstance(value, datetime.datetime):
+			# 		number_format = f"{date_format} {time_format}"
+			# 	cell.number_format = number_format
 
 			# Apply bold font for header row or first column of filter rows
-			if is_header_row or (is_filter_row and col_idx == 0):
-				cell.font = bold_font
+			# if is_header_row or (is_filter_row and col_idx == 0):
+			# 	cell.font = bold_font
 
 			# Apply custom styles in order of precedence:
 			# 1. Specific cell style (highest priority)
