@@ -221,15 +221,24 @@ def make_xlsx(
 		BytesIO: object containing the Excel file data
 	"""
 	column_widths = column_widths or []
+	styles = styles or {}
+
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
 
 	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
 	ws = wb.create_sheet(sheet_name_sanitized, 0)
 
+	# TODO: it is also updating filters column width need to fix
 	for i, column_width in enumerate(column_widths):
 		if column_width:
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
+
+	# Get style configurations
+	column_styles = styles.get("column_styles", {})
+	row_styles = styles.get("row_styles", {})
+	cell_styles = styles.get("cell_styles", {})
+	conditional_styles = styles.get("conditional_styles", [])
 
 	date_format, time_format = get_excel_date_format()
 	bold_font = Font(name="Calibri", bold=True)
@@ -239,7 +248,11 @@ def make_xlsx(
 		is_header_row = row_idx == header_index
 		is_filter_row = has_filters and row_idx < header_index
 
+		row_style = row_styles.get(row_idx) or {}
+
 		for col_idx, item in enumerate(row):
+			col_style = column_styles.get(col_idx) or {}
+
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
@@ -260,6 +273,50 @@ def make_xlsx(
 			# Apply bold font for header row or first column of filter rows
 			if is_header_row or (is_filter_row and col_idx == 0):
 				cell.font = bold_font
+
+			# Apply custom styles in order of precedence:
+			# 1. Specific cell style (highest priority)
+			# 2. Conditional styles
+			# 3. Row-wide style
+			# 4. Column-wide style (lowest priority)
+
+			applied_style = None
+
+			# 1. Specific cell style
+			if (row_idx, col_idx) in cell_styles:
+				applied_style = cell_styles[(row_idx, col_idx)]
+
+			# 2. Conditional styles
+			if not applied_style:
+				for cond_style in conditional_styles:
+					try:
+						if cond_style["condition"](row_idx, col_idx, value):
+							applied_style = cond_style["style"]
+							break
+					except Exception:
+						# Silently skip if condition function fails
+						pass
+
+			# 3. Row-wide style
+			if not applied_style and row_style:
+				applied_style = row_style
+
+			# 4. Column-wide style
+			if not applied_style and col_style:
+				applied_style = col_style
+
+			# Apply the determined style to the cell
+			if applied_style:
+				if "font" in applied_style:
+					cell.font = applied_style["font"]
+				if "fill" in applied_style:
+					cell.fill = applied_style["fill"]
+				if "number_format" in applied_style:
+					cell.number_format = applied_style["number_format"]
+				if "alignment" in applied_style:
+					cell.alignment = applied_style["alignment"]
+				if "border" in applied_style:
+					cell.border = applied_style["border"]
 
 			clean_row.append(cell)
 
