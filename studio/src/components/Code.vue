@@ -69,7 +69,7 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
-const { jsonReplacer, jsToJson, jsonToJs, parseObjectString } = useSerializer()
+const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const setEditorValue = () => {
