@@ -587,44 +587,89 @@ class DesktopIconGrid {
 				},
 				onEnd: function (evt) {
 					if (frappe.desktop_utils.in_folder_creation) return;
-					if (evt.oldIndex !== evt.newIndex) {
-						if (evt.to.parentElement == evt.from.parentElement) {
-							let reordered_icons = me.sortable.toArray();
+					
+					let title = $(evt.item).find(".icon-title").text();
+					let selected_icon = get_desktop_icon_by_label(title);
+					
+					if (!selected_icon) return;
+					
+					// Handle icon movement within the same grid or between grids
+					if (evt.to.parentElement == evt.from.parentElement) {
+						// Same grid - just reorder
+						let reordered_icons = me.sortable.toArray();
+						let filters = {
+							parent_icon: me.parent_icon?.icon_data.label || null,
+						};
+						me.reorder_icons(reordered_icons, filters);
+						me.parent_icon?.render_folder_thumbnail();
+					} else {
+						// Different grids - update parent and reorder both grids
+						let from_grid = $(evt.from.parentElement);
+						let to_grid = $(evt.to.parentElement);
+						
+						// Update the icon's parent
+						selected_icon.parent_icon = me.parent_icon?.icon_data.label || null;
+						selected_icon.idx = evt.newIndex;
+						
+						// Reorder the target grid
+						if (me.sortable) {
+							let to_reordered_icons = me.sortable.toArray();
 							let filters = {
-								parent_icon: me.parent_icon?.icon_data.label || "" || null,
+								parent_icon: me.parent_icon?.icon_data.label || null,
 							};
-							me.reorder_icons(reordered_icons, filters);
-							me.parent_icon?.render_folder_thumbnail();
-						} else {
-							let from = $(evt.from.parentElement);
-							let to = $(evt.to.parentElement);
-							let title = $(evt.item).find(".icon-title").text();
-							let selected_icon = get_desktop_icon_by_label(title);
-							if ($(to.get(0).parentElement)) {
-								me.reorder_icons(me.sortable.toArray());
-								me.reorder_icons(
-									frappe.pages[
-										"desktop"
-									].desktop_page.icon_grid.sortable.toArray()
-								);
-								selected_icon.idx = evt.newIndex;
-								selected_icon.parent_icon = null;
-							}
+							me.reorder_icons(to_reordered_icons, filters);
 						}
+						
+						// Reorder the main desktop grid if moving from folder to main
+						if (frappe.pages["desktop"] && 
+							frappe.pages["desktop"].desktop_page && 
+							frappe.pages["desktop"].desktop_page.icon_grid && 
+							frappe.pages["desktop"].desktop_page.icon_grid.sortable) {
+							let main_reordered = frappe.pages[
+								"desktop"
+							].desktop_page.icon_grid.sortable.toArray();
+							frappe.pages["desktop"].desktop_page.icon_grid.reorder_icons(main_reordered);
+						}
+						
+						// Re-render folder thumbnails
+						me.parent_icon?.render_folder_thumbnail();
 					}
-					// save_desktop();
 				},
 			});
 		}
 	}
 	reorder_icons(reordered_icons, filters) {
-		reordered_icons.forEach((d, idx) => {
-			let icon = get_desktop_icon_by_label(d);
+		if (!reordered_icons || reordered_icons.length === 0) return;
+		
+		// Get the correct icons array based on edit mode
+		let icons_array = frappe.pages["desktop"].desktop_page.edit_mode 
+			? frappe.new_desktop_icons 
+			: frappe.desktop_icons;
+		
+		// Update indices for reordered icons
+		reordered_icons.forEach((label, idx) => {
+			let icon = get_desktop_icon_by_label(label);
 			if (icon) {
 				icon.idx = idx;
+				
+				// Apply filters if provided (e.g., parent_icon)
+				if (filters) {
+					Object.keys(filters).forEach(key => {
+						if (filters[key] !== undefined) {
+							icon[key] = filters[key];
+						}
+					});
+				}
 			}
 		});
-		frappe.desktop_icons.sort((a, b) => a.idx - b.idx);
+		
+		// Sort the entire icons array by idx
+		icons_array.sort((a, b) => {
+			if (a.idx === b.idx) {
+				return a.label.localeCompare(b.label);
+			}
+			return a.idx - b.idx;
+		});
 	}
 	add_to_main_screen(title) {
 		let icon = get_desktop_icon_by_label(title);
