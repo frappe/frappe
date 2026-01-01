@@ -359,6 +359,8 @@ def parse_naming_series(
 				digits = len(e)
 				part = number_generator(name, digits)
 				series_set = True
+		elif method := has_custom_parser(e):
+			part = frappe.get_attr(method[0])(doc, e)
 		elif e == "YY":
 			part = today.strftime("%y")
 		elif e == "MM":
@@ -376,8 +378,6 @@ def parse_naming_series(
 		elif doc and (e.startswith("{") or doc.get(e, _sentinel) is not _sentinel):
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
-		elif method := has_custom_parser(e):
-			part = frappe.get_attr(method[0])(doc, e)
 		else:
 			part = e
 
