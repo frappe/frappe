@@ -249,7 +249,7 @@ const extensions = computed(() => {
 		]),
 	]
 	if (languageExtension.value) {
-		baseExtensions.push(languageExtension.value)
+		baseExtensions.unshift(languageExtension.value)
 	}
 	if (autocompleteExtension.value) {
 		baseExtensions.push(autocompleteExtension.value)
