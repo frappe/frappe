@@ -5,29 +5,10 @@
 				<div
 					v-for="(event, name) in block?.componentEvents"
 					:key="name"
-					class="group/event flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
+					class="group/item flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
 				>
 					<div class="gap-1 self-center truncate text-base text-gray-700">{{ name }}</div>
-					<div
-						class="invisible ml-auto flex items-center self-start text-gray-600 group-hover/event:visible has-[.active-item]:visible"
-					>
-						<button
-							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-							@click="openEvent(event)"
-						>
-							<FeatherIcon name="edit" class="size-3" />
-						</button>
-						<Dropdown :options="getEventMenu(event)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions :menuOptions="getEventMenu(event)" @edit="openEvent(event)" />
 				</div>
 			</div>
 
@@ -179,6 +160,7 @@ import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
+import ItemActions from "@/components/ItemActions.vue"
 
 import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
 

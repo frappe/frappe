@@ -5,31 +5,12 @@
 				v-if="studioPageWatchers.data?.length"
 				v-for="watcher in studioPageWatchers.data"
 				:key="watcher.name"
-				class="group/variable flex flex-row justify-between"
+				class="group/item flex flex-row justify-between"
 			>
 				<div class="flex flex-row justify-between">
 					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
 				</div>
-				<div
-					class="invisible -mt-1 flex items-center self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
-				>
-					<button
-						class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-						@click="openWatcher(watcher)"
-					>
-						<FeatherIcon name="edit" class="size-3" />
-					</button>
-					<Dropdown :options="getWatcherMenu(watcher)" trigger="click">
-						<template v-slot="{ open }">
-							<button
-								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-								:class="open ? 'active-item' : ''"
-							>
-								<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-							</button>
-						</template>
-					</Dropdown>
-				</div>
+				<ItemActions :menuOptions="getWatcherMenu(watcher)" @edit="openWatcher(watcher)" />
 			</div>
 			<EmptyState v-else message="No watchers added" />
 		</div>
@@ -120,6 +101,7 @@ import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import ItemActions from "@/components/ItemActions.vue"
 
 const props = defineProps<{
 	page: StudioPage

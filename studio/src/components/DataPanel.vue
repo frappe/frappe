@@ -5,29 +5,13 @@
 				<div
 					v-for="(resource, resource_name) in codeStore.resources"
 					:key="resource_name"
-					class="group/resource flex flex-row justify-between"
+					class="group/item flex flex-row justify-between"
 				>
 					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
-					<div
-						class="invisible -mt-1 ml-auto flex items-center self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
-					>
-						<button
-							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-							@click="openResource(resource)"
-						>
-							<FeatherIcon name="edit" class="size-3" />
-						</button>
-						<Dropdown :options="getResourceMenu(resource, resource_name)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions
+						:menuOptions="getResourceMenu(resource, resource_name)"
+						@edit="openResource(resource)"
+					/>
 				</div>
 			</div>
 
@@ -50,7 +34,7 @@
 				<div
 					v-for="(value, variable_name) in codeStore.variables"
 					:key="variable_name"
-					class="group/variable flex flex-row justify-between"
+					class="group/item flex flex-row justify-between"
 				>
 					<ObjectBrowser
 						v-if="typeof value === 'object'"
@@ -65,26 +49,10 @@
 							<div class="text-violet-700">{{ value }}</div>
 						</template>
 					</div>
-					<div
-						class="invisible -mt-1 ml-auto flex items-center self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
-					>
-						<button
-							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-							@click="openVariable(variable_name)"
-						>
-							<FeatherIcon name="edit" class="size-3" />
-						</button>
-						<Dropdown :options="getVariableMenu(variable_name, value)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions
+						:menuOptions="getVariableMenu(variable_name, value)"
+						@edit="openVariable(variable_name)"
+					/>
 				</div>
 			</div>
 
@@ -182,6 +150,7 @@ import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import Code from "@/components/Code.vue"
+import ItemActions from "@/components/ItemActions.vue"
 
 import { isObjectEmpty, getAutocompleteValues, getParamsObj, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioPageResources } from "@/data/studioResources"
