@@ -1418,12 +1418,11 @@ frappe.ui.form.Form = class FrappeForm {
 		// Remove actions from menu
 		delete this.custom_buttons[label];
 		let menu_item_label = group ? `${group} > ${label}` : label;
-		let $linkBody = this.page
-			.is_in_group_button_dropdown(
-				this.page.menu,
-				"li > a.grey-link > span",
-				menu_item_label
-			);
+		let $linkBody = this.page.is_in_group_button_dropdown(
+			this.page.menu,
+			"li > a.grey-link > span",
+			menu_item_label
+		);
 
 		if ($linkBody && $linkBody.parent()?.parent()) {
 			$linkBody = $linkBody.parent().parent();
