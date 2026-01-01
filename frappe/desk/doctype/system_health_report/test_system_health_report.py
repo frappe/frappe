@@ -2,12 +2,8 @@
 # See license.txt
 
 import frappe
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.desk.form.load import getdoc
-from frappe.tests import IntegrationTestCase
->>>>>>> 2f50f3174f (fix(desk): guard owner/modified_by access in update_user_info (#35581))
+from frappe.tests.utils import FrappeTestCase
 
 
 class TestSystemHealthReport(FrappeTestCase):
