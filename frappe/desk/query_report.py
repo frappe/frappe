@@ -587,6 +587,7 @@ def build_xlsx_data(
 				"include_indentation": include_indentation,
 				"header_index": header_index,
 				"add_total_row": data.add_total_row,
+				"total_row_index": len(result) - 1 if data.add_total_row else None,
 				"include_filters": include_filters,
 				"include_hidden_columns": include_hidden_columns,
 				"ignore_visible_idx": ignore_visible_idx,

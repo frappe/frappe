@@ -43,13 +43,25 @@ class XLSXStyleBuilder:
 	}
 
 	def __init__(self):
-		self.config = frappe._dict(
-			column_styles={},
-			row_styles={},
-			cell_styles={},
-			conditional_styles=[],
-		)
-		self.styles = frappe._dict()
+		self.styles = {}
+
+		self.config = {
+			"column_styles": {},
+			"row_styles": {},
+			"cell_styles": {},
+			"conditional_styles": [],
+		}
+
+		self.default_styles = {
+			"header": {
+				"font": {"bold": True, "size": 12},
+			},
+			"total_row": {
+				"font": {"bold": True},
+			},
+		}
+
+		self._register_default_styles()
 
 	def register_style(self, name: str, **kwargs):
 		"""
@@ -77,8 +89,31 @@ class XLSXStyleBuilder:
 		self.styles[name] = style
 		return self
 
+	def _register_default_styles(self):
+		self.register_style("header", **self.get_default_style("header"))
+		self.register_style("total_row", **self.get_default_style("total_row"))
+
+		self._register_indent_styles()
+		self._register_number_formats()
+
+	def _register_indent_styles(self, max_indent: int = 2, pt: int = 2):
+		for indent in range(max_indent + 1):
+			self.register_style(f"indent_{indent}", **self.get_indent_style(indent, pt=pt))
+
+	def _register_number_formats(self):
+		map = {
+			"int_format": self.get_number_format("Int"),
+			"float_format": self.get_number_format("Float"),
+			"percent_format": self.get_number_format("Percent"),
+			"date_format": self.get_date_format(),
+			"time_format": self.get_time_format(),
+			"datetime_format": self.get_datetime_format(),
+		}
+
+		for style_name, format in map.items():
+			self.register_style(style_name, number_format=format)
+
 	def _validate_style_exists(self, style_name: str):
-		"""Validate that a style has been registered."""
 		if style_name not in self.styles:
 			frappe.throw(
 				_("Style '{0}' not registered. Register it first using register_style().").format(style_name),
@@ -86,36 +121,34 @@ class XLSXStyleBuilder:
 			)
 
 	def style_column(self, col_idx: int, style_name: str):
-		"""Apply a registered style to an entire column."""
 		self._validate_style_exists(style_name)
-		self.config.column_styles[col_idx] = self.styles[style_name]
+		self.config["column_styles"][col_idx] = self.styles[style_name]
 		return self
 
 	def style_row(self, row_idx: int, style_name: str):
-		"""Apply a registered style to an entire row."""
 		self._validate_style_exists(style_name)
-		self.config.row_styles[row_idx] = self.styles[style_name]
+		self.config["row_styles"][row_idx] = self.styles[style_name]
 		return self
 
 	def style_cell(self, row_idx: int, col_idx: int, style_name: str):
-		"""Apply a registered style to a specific cell."""
 		self._validate_style_exists(style_name)
-		self.config.cell_styles[(row_idx, col_idx)] = self.styles[style_name]
+		self.config["cell_styles"][(row_idx, col_idx)] = self.styles[style_name]
 		return self
 
 	def add_conditional_style(self, condition: Callable[[int, int, Any], bool], style_name: str):
-		"""Apply a style conditionally based on a callback function."""
 		self._validate_style_exists(style_name)
-		self.config.conditional_styles.append({"condition": condition, "style": self.styles[style_name]})
+		self.config["conditional_styles"].append({"condition": condition, "style": self.styles[style_name]})
 		return self
 
+	def get_default_style(self, style_name: str) -> dict:
+		return self.default_styles.get(style_name, {})
+
 	def build(self) -> frappe._dict:
-		"""Return the final style configuration."""
 		return self.config
 
 	@staticmethod
 	@lru_cache(maxsize=1)
-	def get_excel_date_format() -> str:
+	def get_date_format() -> str:
 		date_format = frappe.get_system_settings("date_format")
 		return date_format.replace("mm", "MM")
 
@@ -125,9 +158,15 @@ class XLSXStyleBuilder:
 		return frappe.get_system_settings("time_format")
 
 	@staticmethod
+	@lru_cache(maxsize=1)
+	def get_datetime_format() -> str:
+		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
+
+	@staticmethod
 	@lru_cache(maxsize=128)
 	def get_number_format(
-		fieldtype: Literal["Currency", "Int", "Float", "Percent"], currency: str | None = None
+		fieldtype: Literal["Currency", "Int", "Float", "Percent"],
+		currency: str | None = None,
 	) -> str:
 		from frappe.locale import get_number_format
 
@@ -178,6 +217,11 @@ class XLSXStyleBuilder:
 			return h[6:8] + h[0:6]
 
 	@staticmethod
+	@lru_cache(maxsize=64)
+	def get_indent_style(indent_level: int, pt: int = 2) -> dict:
+		return {"alignment": {"indent": indent_level * pt, "horizontal": "left"}}
+
+	@staticmethod
 	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
 		"""Helper to build number format string."""
 		integer_part = "#,##0" if thousands_sep else "#0"
@@ -194,7 +238,9 @@ class XLSXStyleBuilder:
 
 	@staticmethod
 	def _get_currency_format(
-		format_string: str, currency_symbol: str | None = None, symbol_on_right: bool = False
+		format_string: str,
+		currency_symbol: str | None = None,
+		symbol_on_right: bool = False,
 	) -> str:
 		"""Helper to apply currency symbol to format."""
 		if not currency_symbol:
@@ -236,7 +282,7 @@ def make_xlsx(
 			- Should contain: column_styles, row_styles, cell_styles, conditional_styles
 
 	Returns:
-		BytesIO: object containing the Excel file data
+			BytesIO: object containing the Excel file data
 	"""
 	column_widths = column_widths or []
 	styles = styles or {}
