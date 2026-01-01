@@ -41,17 +41,19 @@
 								const event = getEvent(newEvent)
 								if (newEvent.isEditing) {
 									block?.updateEvent(event)
+									toast.success(`${newEvent.oldEvent} event updated successfully`)
 								} else {
 									if (newEvent.page) {
 										newEvent.page = store.getAppPageRoute(newEvent.page)
 									}
 									block?.addEvent(event)
+									showAddEventDialog = false
 								}
-								showAddEventDialog = false
 							},
 						},
 					],
 				}"
+				:disableOutsideClickToClose="true"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
 				<template #body-content>

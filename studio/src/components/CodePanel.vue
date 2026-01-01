@@ -195,7 +195,7 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 		.then(async () => {
 			// setValue didn't update the list, so reloading explicitly
 			await studioPageWatchers.reload()
-			showWatcherDialog.value = false
+			toast.success("Watcher updated successfully")
 		})
 }
 
