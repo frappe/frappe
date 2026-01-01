@@ -482,8 +482,9 @@ def update_user_info(docinfo, doc=None):
 
 	if doc:
 		for field in ("owner", "modified_by"):
-			if getattr(doc, field, None):
-				users.add(getattr(doc, field))
+			get_doc_val = getattr(doc, field, None)
+			if get_doc_val:
+				users.add(get_doc_val)
 
 	users.update(d.sender for d in docinfo.communications)
 	users.update(d.user for d in docinfo.shared)
