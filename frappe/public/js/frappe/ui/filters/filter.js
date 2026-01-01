@@ -93,7 +93,7 @@ frappe.ui.Filter = class {
 		this.filter_edit_area = $(
 			frappe.render_template("edit_filter", {
 				conditions: this.conditions,
-			})
+			}),
 		);
 		this.parent && this.filter_edit_area.appendTo(this.parent.find(".filter-edit-area"));
 		this.make_select();
@@ -365,7 +365,7 @@ frappe.ui.Filter = class {
 	make_tag() {
 		if (!this.field) return;
 		this.$filter_tag = this.get_filter_tag_element().insertAfter(
-			this.parent.find(".active-tag-filters .clear-filters")
+			this.parent.find(".active-tag-filters .clear-filters"),
 		);
 		this.set_filter_button_text();
 		this.bind_tag();
@@ -382,13 +382,15 @@ frappe.ui.Filter = class {
 	}
 
 	set_filter_button_text() {
-		this.$filter_tag.find(".toggle-filter").html(this.get_filter_button_text());
+		let filter_text = this.get_filter_button_text();
+		let $toggle_button = this.$filter_tag.find(".toggle-filter");
+		$toggle_button.html(filter_text).attr("title", frappe.utils.escape_html(filter_text));
 	}
 
 	get_filter_button_text() {
 		let value = this.utils.get_formatted_value(
 			this.field,
-			this.get_selected_label() || this.get_selected_value()
+			this.get_selected_label() || this.get_selected_value(),
 		);
 		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`;
 	}

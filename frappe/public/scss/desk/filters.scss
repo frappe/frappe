@@ -127,3 +127,15 @@
 .match-type-dropdown-menu {
 	min-width: 100px;
 }
+
+.filter-tag {
+	.toggle-filter {
+		max-width: 250px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		display: inline-block;
+		vertical-align: middle;
+		cursor: pointer;
+	}
+}
