@@ -205,16 +205,7 @@ class XLSXStyleBuilder:
 
 
 ### Excel Formatting Utils ###
-def get_excel_date_format():
-	date_format = frappe.get_system_settings("date_format")
-	time_format = frappe.get_system_settings("time_format")
-
-	# Excel-compatible format
-	date_format = date_format.replace("mm", "MM")
-
-	return date_format, time_format
-
-
+# TODO: this should be in query reports utils
 def get_default_xlsx_styles(data) -> dict:
 	# add default styles here
 	# like indentation, bold headers, filters etc.
@@ -267,85 +258,54 @@ def make_xlsx(
 	cell_styles = styles.get("cell_styles", {})
 	conditional_styles = styles.get("conditional_styles", [])
 
-	# date_format, time_format = get_excel_date_format()
-	# bold_font = Font(name="Calibri", bold=True)
-
 	for row_idx, row in enumerate(data):
 		clean_row = []
-		# TODO: need to move this to a default style
-		# is_header_row = row_idx == header_index
-		# is_filter_row = has_filters and row_idx < header_index
-
-		row_style = row_styles.get(row_idx) or {}
 
 		for col_idx, item in enumerate(row):
-			col_style = column_styles.get(col_idx) or {}
-
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
 				value = item
 
-			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+			if isinstance(value, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			# TODO: need to move this to a default style
-			# if isinstance(value, datetime.date | datetime.datetime):
-			# 	number_format = date_format
-			# 	if isinstance(value, datetime.datetime):
-			# 		number_format = f"{date_format} {time_format}"
-			# 	cell.number_format = number_format
+			styles_to_merge = []
 
-			# Apply bold font for header row or first column of filter rows
-			# if is_header_row or (is_filter_row and col_idx == 0):
-			# 	cell.font = bold_font
+			# 1. Column-wide style (lowest priority)
+			if col_style := column_styles.get(col_idx):
+				styles_to_merge.append(col_style)
 
-			# Apply custom styles in order of precedence:
-			# 1. Specific cell style (highest priority)
-			# 2. Conditional styles
-			# 3. Row-wide style
-			# 4. Column-wide style (lowest priority)
+			# 2. Row-wide style
+			if row_style := row_styles.get(row_idx):
+				styles_to_merge.append(row_style)
 
-			applied_style = None
+			# 3. Conditional styles
+			for cond_style in conditional_styles:
+				try:
+					if cond_style["condition"](row_idx, col_idx, value):
+						styles_to_merge.append(cond_style["style"])
+				except Exception:
+					# skip if condition function fails
+					pass
 
-			# 1. Specific cell style
-			if (row_idx, col_idx) in cell_styles:
-				applied_style = cell_styles[(row_idx, col_idx)]
+			# 4. Specific cell style (highest priority)
+			if cell_style := cell_styles.get((row_idx, col_idx)):
+				styles_to_merge.append(cell_style)
 
-			# 2. Conditional styles
-			if not applied_style:
-				for cond_style in conditional_styles:
-					try:
-						if cond_style["condition"](row_idx, col_idx, value):
-							applied_style = cond_style["style"]
-							break
-					except Exception:
-						# Silently skip if condition function fails
-						pass
+			style = {}
 
-			# 3. Row-wide style
-			if not applied_style and row_style:
-				applied_style = row_style
+			for s in styles_to_merge:
+				style.update(s)
 
-			# 4. Column-wide style
-			if not applied_style and col_style:
-				applied_style = col_style
-
-			# Apply the determined style to the cell
-			if applied_style:
-				if "font" in applied_style:
-					cell.font = applied_style["font"]
-				if "fill" in applied_style:
-					cell.fill = applied_style["fill"]
-				if "number_format" in applied_style:
-					cell.number_format = applied_style["number_format"]
-				if "alignment" in applied_style:
-					cell.alignment = applied_style["alignment"]
-				if "border" in applied_style:
-					cell.border = applied_style["border"]
+			# Apply the merged style to the cell
+			if style:
+				for prop in ("font", "fill", "number_format", "alignment", "border"):
+					if value := style.get(prop):
+						setattr(cell, prop, value)
 
 			clean_row.append(cell)
 
