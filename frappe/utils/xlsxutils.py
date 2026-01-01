@@ -30,9 +30,10 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 # TODO: give default styles
 # TODO: User can update default styles
 # TODO: can give range of cells to style
-# TODO: add static method for number formats
-# TODO: add static method for colors
+# TODO: Date and Time formats not working properly need to fix
 class XLSXStyleBuilder:
+	"""Utility class for building Excel styles and formatting."""
+
 	# Mapping of style property names to their openpyxl classes
 	_STYLE_CLASSES: ClassVar[dict] = {
 		"font": Font,
@@ -77,6 +78,7 @@ class XLSXStyleBuilder:
 		return self
 
 	def _validate_style_exists(self, style_name: str):
+		"""Validate that a style has been registered."""
 		if style_name not in self.styles:
 			frappe.throw(
 				_("Style '{0}' not registered. Register it first using register_style().").format(style_name),
@@ -84,27 +86,124 @@ class XLSXStyleBuilder:
 			)
 
 	def style_column(self, col_idx: int, style_name: str):
+		"""Apply a registered style to an entire column."""
 		self._validate_style_exists(style_name)
 		self.config.column_styles[col_idx] = self.styles[style_name]
 		return self
 
 	def style_row(self, row_idx: int, style_name: str):
+		"""Apply a registered style to an entire row."""
 		self._validate_style_exists(style_name)
 		self.config.row_styles[row_idx] = self.styles[style_name]
 		return self
 
 	def style_cell(self, row_idx: int, col_idx: int, style_name: str):
+		"""Apply a registered style to a specific cell."""
 		self._validate_style_exists(style_name)
 		self.config.cell_styles[(row_idx, col_idx)] = self.styles[style_name]
 		return self
 
 	def add_conditional_style(self, condition: Callable[[int, int, Any], bool], style_name: str):
+		"""Apply a style conditionally based on a callback function."""
 		self._validate_style_exists(style_name)
 		self.config.conditional_styles.append({"condition": condition, "style": self.styles[style_name]})
 		return self
 
 	def build(self) -> frappe._dict:
+		"""Return the final style configuration."""
 		return self.config
+
+	@staticmethod
+	@lru_cache(maxsize=1)
+	def get_excel_date_format() -> str:
+		date_format = frappe.get_system_settings("date_format")
+		return date_format.replace("mm", "MM")
+
+	@staticmethod
+	@lru_cache(maxsize=1)
+	def get_time_format() -> str:
+		return frappe.get_system_settings("time_format")
+
+	@staticmethod
+	@lru_cache(maxsize=128)
+	def get_number_format(
+		fieldtype: Literal["Currency", "Int", "Float", "Percent"], currency: str | None = None
+	) -> str:
+		from frappe.locale import get_number_format
+
+		number_format = get_number_format()
+		thousands_sep = number_format.thousands_separator
+		decimal_sep = number_format.decimal_separator
+		precision = number_format.precision
+
+		if fieldtype == "Int":
+			return "#,##0" if thousands_sep else "#0"
+
+		elif fieldtype == "Currency":
+			precision = cint(frappe.db.get_default("currency_precision")) or precision
+			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
+			currency_symbol, symbol_on_right = XLSXStyleBuilder._get_currency_symbol_info(currency)
+			return XLSXStyleBuilder._get_currency_format(format_str, currency_symbol, symbol_on_right)
+
+		elif fieldtype in ("Float", "Percent"):
+			precision = cint(frappe.db.get_default("float_precision")) or precision
+			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
+			return f'{format_str}"%" ' if fieldtype == "Percent" else format_str
+
+		return "General"
+
+	@staticmethod
+	@lru_cache(maxsize=128)
+	def hex_to_argb(color: str) -> str:
+		"""
+		Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
+
+		Accepted inputs:
+		- "#RGB"       -> expands to "FFRRGGBB"
+		- "#RRGGBB"    -> converts to "FFRRGGBB"
+		- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
+		"""
+		color = color.strip()
+		hex_part = color[1:]
+		n = len(hex_part)
+
+		if n == 3:
+			r, g, b = hex_part
+			rgb = (r + r + g + g + b + b).upper()
+			return "FF" + rgb
+		elif n == 6:
+			return "FF" + hex_part.upper()
+		elif n == 8:
+			h = hex_part.upper()
+			return h[6:8] + h[0:6]
+
+	@staticmethod
+	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
+		"""Helper to build number format string."""
+		integer_part = "#,##0" if thousands_sep else "#0"
+		decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
+		return f"{integer_part}{decimal_part}"
+
+	@staticmethod
+	def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
+		"""Helper to get currency symbol and position."""
+		if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
+			return "", False
+		symbol, on_right = frappe.db.get_value(
+			"Currency", currency, ["symbol", "symbol_on_right"], cache=True
+		)
+		return frappe._(symbol or currency), bool(on_right)
+
+	@staticmethod
+	def _get_currency_format(
+		format_string: str, currency_symbol: str | None = None, symbol_on_right: bool = False
+	) -> str:
+		"""Helper to apply currency symbol to format."""
+		if not currency_symbol:
+			return format_string
+		if symbol_on_right:
+			return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
+		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
 
 
 ### Excel Formatting Utils ###
@@ -116,78 +215,6 @@ def get_excel_date_format():
 	date_format = date_format.replace("mm", "MM")
 
 	return date_format, time_format
-
-
-@lru_cache(maxsize=128)
-def get_excel_number_format(
-	fieldtype: Literal["Currency", "Int", "Float", "Percent"], currency: str | None = None
-) -> str:
-	"""
-	Get Excel number format string based on system settings and field type.
-
-	Args:
-		fieldtype: The field type.
-		currency: Currency code for Currency fields
-
-	Returns:
-		str: Excel number format string compatible with openpyxl
-
-	Examples:
-		- get_excel_number_format("Currency", "USD") >>> '"$"#,##0.00'
-		- get_excel_number_format("Int") >>> '#,##0'
-		- get_excel_number_format("Float") >>> '#,##0.000'
-		- get_excel_number_format("Percent") >>> '0.00%'
-	"""
-	from frappe.locale import get_number_format
-
-	number_format = get_number_format()
-	thousands_sep = number_format.thousands_separator
-	decimal_sep = number_format.decimal_separator
-	precision = number_format.precision
-
-	if fieldtype == "Int":
-		return "#,##0" if thousands_sep else "#0"
-
-	elif fieldtype == "Currency":
-		precision = cint(frappe.db.get_default("currency_precision")) or precision
-		format = _build_number_format(thousands_sep, decimal_sep, precision)
-
-		currency_symbol, symbol_on_right = _get_currency_symbol_info(currency)
-		return _get_currency_format(format, currency_symbol, symbol_on_right)
-
-	elif fieldtype in ("Float", "Percent"):
-		precision = cint(frappe.db.get_default("float_precision")) or precision
-		format = _build_number_format(thousands_sep, decimal_sep, precision)
-
-		return f'{format}"%" ' if fieldtype == "Percent" else format
-
-	return "General"
-
-
-@lru_cache(maxsize=128)
-def hex_to_argb(color: str) -> str:
-	"""
-	Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
-
-	Accepted inputs:
-	- "#RGB"       -> expands to "FFRRGGBB"
-	- "#RRGGBB"    -> converts to "FFRRGGBB"
-	- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
-
-	"""
-	color = color.strip()
-	hex_part = color[1:]
-	n = len(hex_part)
-
-	if n == 3:
-		r, g, b = hex_part
-		rgb = (r + r + g + g + b + b).upper()
-		return "FF" + rgb
-	elif n == 6:
-		return "FF" + hex_part.upper()
-	elif n == 8:
-		h = hex_part.upper()
-		return h[6:8] + h[0:6]
 
 
 def get_default_xlsx_styles(data) -> dict:
@@ -383,34 +410,3 @@ def build_xlsx_response(data, filename):
 	from frappe.desk.utils import provide_binary_file
 
 	provide_binary_file(filename, "xlsx", make_xlsx(data, filename).getvalue())
-
-
-### HELPERS ###
-def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
-	integer_part = "#,##0" if thousands_sep else "#0"
-	decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
-
-	return f"{integer_part}{decimal_part}"
-
-
-def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
-	if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
-		return "", False
-
-	symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"], cache=True)
-
-	return frappe._(symbol or currency), bool(on_right)
-
-
-def _get_currency_format(
-	format_string: str,
-	currency_symbol: str | None = None,
-	symbol_on_right: bool = False,
-) -> str:
-	if not currency_symbol:
-		return format_string
-
-	if symbol_on_right:
-		return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
-
-	return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
