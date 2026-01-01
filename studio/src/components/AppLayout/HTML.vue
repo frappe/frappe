@@ -1,6 +1,6 @@
 <template>
-	<component v-if="compiledTemplate" :is="compiledTemplate"></component>
-	<div v-else v-html="props.html"></div>
+	<component ref="component" v-if="compiledTemplate" :is="compiledTemplate"></component>
+	<div ref="component" v-else v-html="props.html"></div>
 </template>
 <script setup lang="ts">
 import { computed, ref, compile } from "vue"
