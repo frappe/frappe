@@ -1423,11 +1423,10 @@ frappe.ui.form.Form = class FrappeForm {
 				this.page.menu,
 				"li > a.grey-link > span",
 				menu_item_label
-			)
-			.parent()
-			.parent();
+			);
 
-		if ($linkBody) {
+		if ($linkBody && $linkBody.parent()?.parent()) {
+			$linkBody = $linkBody.parent().parent();
 			// If last button, remove divider too
 			let $divider = $linkBody.next(".dropdown-divider");
 			if ($divider) $divider.remove();
