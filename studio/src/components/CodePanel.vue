@@ -11,8 +11,14 @@
 					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
 				</div>
 				<div
-					class="invisible -mt-1 self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+					class="invisible -mt-1 flex items-center self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
 				>
+					<button
+						class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+						@click="openWatcher(watcher)"
+					>
+						<FeatherIcon name="edit" class="size-3" />
+					</button>
 					<Dropdown :options="getWatcherMenu(watcher)" trigger="click">
 						<template v-slot="{ open }">
 							<button
@@ -143,19 +149,17 @@ const pageWatcher = ref<StudioPageWatcher>({
 })
 const store = useStudioStore()
 
+const openWatcher = (watcher: StudioPageWatcher) => {
+	pageWatcher.value = { ...watcher }
+	showWatcherDialog.value = true
+}
+
 const getWatcherMenu = (watcher: StudioPageWatcher) => {
 	return [
 		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				pageWatcher.value = { ...watcher }
-				showWatcherDialog.value = true
-			},
-		},
-		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deletePageWatcher(watcher),
 		},
 	]

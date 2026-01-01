@@ -9,8 +9,14 @@
 				>
 					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
 					<div
-						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
+						class="invisible -mt-1 ml-auto flex items-center self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
 					>
+						<button
+							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+							@click="openResource(resource)"
+						>
+							<FeatherIcon name="edit" class="size-3" />
+						</button>
 						<Dropdown :options="getResourceMenu(resource, resource_name)" trigger="click">
 							<template v-slot="{ open }">
 								<button
@@ -60,8 +66,14 @@
 						</template>
 					</div>
 					<div
-						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
+						class="invisible -mt-1 ml-auto flex items-center self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
 					>
+						<button
+							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+							@click="openVariable(variable_name)"
+						>
+							<FeatherIcon name="edit" class="size-3" />
+						</button>
 						<Dropdown :options="getVariableMenu(variable_name, value)" trigger="click">
 							<template v-slot="{ open }">
 								<button
@@ -258,22 +270,19 @@ const getResourceValues = (resource: Resource) => {
 	}
 }
 
+const openResource = async (resource: Resource) => {
+	studioPageResources.filters = {
+		parent: store.activePage?.name,
+		name: resource.resource_id,
+	}
+	await studioPageResources.reload()
+
+	existingResource.value = studioPageResources.data[0]
+	showResourceDialog.value = true
+}
+
 const getResourceMenu = (resource: Resource, resource_name: string) => {
 	return [
-		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				studioPageResources.filters = {
-					parent: store.activePage?.name,
-					name: resource.resource_id,
-				}
-				await studioPageResources.reload()
-
-				existingResource.value = studioPageResources.data[0]
-				showResourceDialog.value = true
-			},
-		},
 		{
 			label: "Delete",
 			icon: "trash",
@@ -389,22 +398,22 @@ const deleteVariable = async (variable: Variable) => {
 	}
 }
 
-const getVariableMenu = (variable_name: string, value: any) => {
+const openVariable = async (variable_name: string) => {
 	const variableConfig = store.variableConfigs[variable_name]
+	variableRef.value = { ...variableConfig }
+	showVariableDialog.value = true
+}
+
+const getVariableMenu = (variable_name: string, value: any) => {
 	return [
-		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				variableRef.value = { ...variableConfig }
-				showVariableDialog.value = true
-			},
-		},
 		{
 			label: "Delete",
 			icon: "trash",
 			theme: "red",
-			onClick: () => deleteVariable(variableConfig),
+			onClick: () => {
+				const variableConfig = store.variableConfigs[variable_name]
+				deleteVariable(variableConfig)
+			},
 		},
 		{
 			label: "Copy Name",

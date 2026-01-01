@@ -9,8 +9,14 @@
 				>
 					<div class="gap-1 self-center truncate text-base text-gray-700">{{ name }}</div>
 					<div
-						class="invisible ml-auto self-start text-gray-600 group-hover/event:visible has-[.active-item]:visible"
+						class="invisible ml-auto flex items-center self-start text-gray-600 group-hover/event:visible has-[.active-item]:visible"
 					>
+						<button
+							class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+							@click="openEvent(event)"
+						>
+							<FeatherIcon name="edit" class="size-3" />
+						</button>
 						<Dropdown :options="getEventMenu(event)" trigger="click">
 							<template v-slot="{ open }">
 								<button
@@ -519,24 +525,22 @@ const deleteEvent = async (event: ComponentEvent) => {
 	}
 }
 
+const openEvent = (event: ComponentEvent) => {
+	newEvent.value = {
+		...event,
+		isEditing: true,
+		oldEvent: event.event,
+		params: getParamsArray(event.params),
+	}
+	showAddEventDialog.value = true
+}
+
 const getEventMenu = (event: ComponentEvent) => {
 	return [
 		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				newEvent.value = {
-					...event,
-					isEditing: true,
-					oldEvent: event.event,
-					params: getParamsArray(event.params),
-				}
-				showAddEventDialog.value = true
-			},
-		},
-		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deleteEvent(event),
 		},
 	]
