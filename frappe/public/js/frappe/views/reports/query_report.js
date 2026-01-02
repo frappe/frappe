@@ -1629,25 +1629,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.export_dialog.show();
 	}
 
-<<<<<<< HEAD
-=======
-	get_applied_filters(filters) {
-		// Return filters which are not hidden_due_to_dependency
-		// Filters with Label as key and Value as value
-		const applied_filters = {};
-
-		for (const [key, value] of Object.entries(filters)) {
-			const df = frappe.query_report.get_filter(key).df;
-			if (!df.hidden_due_to_dependency) {
-				applied_filters[df.label] =
-					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
-			}
-		}
-
-		return applied_filters;
-	}
-
->>>>>>> 676d70dd76 (feat: override custom report print format from report settings (#35445))
 	get_data_for_csv(include_indentation) {
 		const rows = this.datatable.bodyRenderer.visibleRows;
 		if (this.raw_data.add_total_row) {
