@@ -554,7 +554,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			// Numbers, dates, etc. - not translated, not quoted
-			return String(val);
+			return frappe.format(val, docfield || {});
 		}
 
 		async function describe_filter(filter) {
