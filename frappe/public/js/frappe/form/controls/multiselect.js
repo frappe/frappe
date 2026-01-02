@@ -35,16 +35,6 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		});
 	}
 
-	parse_options() {
-		let options = this.df.options;
-		if (typeof options === "string") {
-			options = options.split("\n").map((option) => {
-				return { label: __(option), value: option };
-			});
-		}
-		return options;
-	}
-
 	get_value() {
 		let data = super.get_value();
 		let options = this.parse_options();
@@ -80,6 +70,16 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 				.join(", ");
 		}
 		super.set_formatted_input(value);
+	}
+
+	parse_options() {
+		let options = this.df.options;
+		if (typeof options === "string") {
+			options = options.split("\n").map((option) => {
+				return { label: __(option), value: option };
+			});
+		}
+		return options;
 	}
 
 	get_values() {
