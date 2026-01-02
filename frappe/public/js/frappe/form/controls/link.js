@@ -512,7 +512,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				if (!Array.isArray(value)) {
 					value = ["=", value];
 				}
-				filter_array.push([fieldname, ...value]); // [fieldname, operator, value]
+				filter_array.push([doctype, fieldname, ...value]); // [doctype, fieldname, operator, value]
 			}
 		} else {
 			filter_array = filters.slice(); // clone
