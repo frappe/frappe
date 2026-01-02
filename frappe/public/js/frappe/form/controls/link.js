@@ -579,6 +579,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			switch (operator) {
 				case "=":
 					if (fieldtype === "Check") {
+						if (fieldname === "enabled") {
+							return value == 1
+								? __("is enabled") // ["enabled", "=", 1]
+								: __("is disabled"); // ["enabled", "=", 0]
+						}
+
+						if (fieldname === "disabled") {
+							return value == 1
+								? __("is disabled") // ["disabled", "=", 1]
+								: __("is enabled"); // ["disabled", "=", 0]
+						}
+
 						return value == 1
 							? __("{0} is enabled", [labelDisplay])
 							: __("{0} is disabled", [labelDisplay]);
@@ -586,6 +598,18 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					return __("{0} equals {1}", [labelDisplay, valueDisplay]);
 				case "!=":
 					if (fieldtype === "Check") {
+						if (fieldname === "enabled") {
+							return value == 1
+								? __("is disabled") // ["enabled", "!=", 1]
+								: __("is enabled"); // ["enabled", "!=", 0]
+						}
+
+						if (fieldname === "disabled") {
+							return value == 1
+								? __("is enabled") // ["disabled", "!=", 1]
+								: __("is disabled"); // ["disabled", "!=", 0]
+						}
+
 						return value == 1
 							? __("{0} is disabled", [labelDisplay])
 							: __("{0} is enabled", [labelDisplay]);
