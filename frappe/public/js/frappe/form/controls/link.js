@@ -573,6 +573,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			const labelDisplay = `<i>${String(__(label))}</i>`;
 			const valueDisplay = formatValueForDisplay(docfield, value);
+			const is_time_like = ["Date", "Datetime", "Time"].includes(fieldtype);
 
 			// Handle all operators with translation and interpolation in one call
 			switch (operator) {
@@ -599,22 +600,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				case "not like":
 					return __("{0} does not contain {1}", [labelDisplay, valueDisplay]);
 				case ">":
-					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
+					if (is_time_like) {
 						return __("{0} is after {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is greater than {1}", [labelDisplay, valueDisplay]);
 				case "<":
-					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
+					if (is_time_like) {
 						return __("{0} is before {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is less than {1}", [labelDisplay, valueDisplay]);
 				case ">=":
-					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
+					if (is_time_like) {
 						return __("{0} is on or after {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is greater than or equal to {1}", [labelDisplay, valueDisplay]);
 				case "<=":
-					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
+					if (is_time_like) {
 						return __("{0} is on or before {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is less than or equal to {1}", [labelDisplay, valueDisplay]);
