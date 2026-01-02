@@ -24,19 +24,7 @@
 						{
 							label: newEvent.isEditing ? 'Update' : 'Add',
 							variant: 'solid',
-							onClick: () => {
-								const event = getEvent(newEvent)
-								if (newEvent.isEditing) {
-									block?.updateEvent(event)
-									toast.success(`${newEvent.oldEvent} event updated successfully`)
-								} else {
-									if (newEvent.page) {
-										newEvent.page = store.getAppPageRoute(newEvent.page)
-									}
-									block?.addEvent(event)
-									showAddEventDialog = false
-								}
-							},
+							onClick: () => saveEvent(newEvent),
 						},
 					],
 				}"
@@ -104,6 +92,7 @@
 									:emitOnChange="true"
 									:modelValue="newEvent.on_success_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_success_script = val)"
+									@save="saveEvent(newEvent)"
 								/>
 							</div>
 
@@ -283,6 +272,7 @@ const actions: ActionConfigurations = {
 				"update:modelValue": (val: any) => {
 					newEvent.value.script = val
 				},
+				save: () => saveEvent(newEvent.value),
 			},
 		},
 	],
@@ -468,6 +458,10 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 		_event.url = event.url
 	}
 
+	if (event.oldEvent) {
+		_event.oldEvent = event.oldEvent
+	}
+
 	return _event
 }
 
@@ -492,7 +486,6 @@ function setEventCallbackFields(targetEvent: ComponentEvent, sourceEvent: Compon
 	}
 }
 
-// Event Menu
 const deleteEvent = async (event: ComponentEvent) => {
 	const confirmed = await confirm(
 		`Are you sure you want to delete the ${event.event} event on ${props.block?.componentName}?`,
@@ -515,6 +508,18 @@ const openEvent = (event: ComponentEvent) => {
 		params: getParamsArray(event.params),
 	}
 	showAddEventDialog.value = true
+}
+
+const saveEvent = (event: ComponentEvent) => {
+	const { isEditing } = event
+	event = getEvent(event)
+	if (isEditing) {
+		props.block?.updateEvent(event)
+		toast.success("Event updated successfully")
+	} else {
+		props.block?.addEvent(event)
+		showAddEventDialog.value = false
+	}
 }
 
 const getEventMenu = (event: ComponentEvent) => {

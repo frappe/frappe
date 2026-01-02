@@ -58,6 +58,7 @@
 							v-model="pageWatcher.script"
 							:emitOnChange="true"
 							:completions="getCompletions"
+							@save="editPageWatcher(pageWatcher)"
 						/>
 						<FormControl
 							type="checkbox"
@@ -71,15 +72,7 @@
 					<Button
 						variant="solid"
 						:label="pageWatcher.name ? 'Update' : 'Add'"
-						@click="
-							() => {
-								if (pageWatcher.name) {
-									editPageWatcher(pageWatcher)
-								} else {
-									addPageWatcher(pageWatcher)
-								}
-							}
-						"
+						@click="savePageWatcher(pageWatcher)"
 						class="w-full"
 					/>
 				</template>
@@ -183,6 +176,14 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			await studioPageWatchers.reload()
 			toast.success("Watcher updated successfully")
 		})
+}
+
+const savePageWatcher = (watcher: StudioPageWatcher) => {
+	if (watcher.name) {
+		editPageWatcher(watcher)
+	} else {
+		addPageWatcher(watcher)
+	}
 }
 
 const deletePageWatcher = async (watcher: StudioPageWatcher) => {

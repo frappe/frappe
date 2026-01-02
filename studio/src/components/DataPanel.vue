@@ -100,6 +100,7 @@
 								height="250px"
 								:showLineNumbers="true"
 								v-model="variableRef.initial_value"
+								@save="saveVariable(variableRef)"
 							/>
 							<FormControl
 								v-else-if="variableRef.variable_type === 'Number'"
@@ -120,17 +121,7 @@
 						<Button
 							variant="solid"
 							:label="variableRef.name ? 'Update' : 'Add'"
-							@click="
-								() => {
-									const validated = validateVariable(variableRef)
-									if (!validated) return
-									if (variableRef.name) {
-										editVariable(variableRef)
-									} else {
-										addVariable(variableRef)
-									}
-								}
-							"
+							@click="saveVariable(variableRef)"
 							class="w-full"
 						/>
 					</template>
@@ -409,5 +400,15 @@ const validateVariable = (variable: Variable) => {
 		}
 	}
 	return true
+}
+
+const saveVariable = (variable: Variable) => {
+	const validated = validateVariable(variable)
+	if (!validated) return
+	if (variable.name) {
+		editVariable(variable)
+	} else {
+		addVariable(variable)
+	}
 }
 </script>
