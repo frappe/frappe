@@ -43,9 +43,9 @@ def make_perm_log(doc, method=None):
 def insert_perm_log(
 	doc: Document,
 	doc_before_save: Document = None,
-	for_doctype: "str" | None = None,
-	for_document: "str" | None = None,
-	fields: "list | tuple" | None = None,
+	for_doctype: str | None = None,
+	for_document: str | None = None,
+	fields: list | tuple | None = None,
 ):
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		# no need to log changes when migrating or installing app/site

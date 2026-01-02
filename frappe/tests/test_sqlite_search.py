@@ -481,6 +481,70 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		disabled_search.build_index()  # Should not raise error but do nothing
 		self.assertFalse(disabled_search.index_exists())
 
+	def test_deduplication_on_reindex(self):
+		"""Test that re-indexing the same document does not create duplicates."""
+		self.search.build_index()
+
+		# Create a test document
+		test_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Deduplication Test Document",
+				"content": "This document tests deduplication functionality",
+			}
+		)
+		test_note.insert()
+
+		try:
+			# Index the document
+			self.search.index_doc("Note", test_note.name)
+
+			# Search for the document - should find exactly one result
+			results = self.search.search("Deduplication Test")
+			initial_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(initial_count, 1, "Should find exactly one instance of the document")
+
+			# Re-index the same document multiple times
+			self.search.index_doc("Note", test_note.name)
+			self.search.index_doc("Note", test_note.name)
+			self.search.index_doc("Note", test_note.name)
+
+			# Search again - should still find exactly one result
+			results = self.search.search("Deduplication Test")
+			final_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(final_count, 1, "Should still find exactly one instance after re-indexing")
+
+			# Update the document content and re-index
+			test_note.content = "Updated content for deduplication testing"
+			test_note.save()
+			self.search.index_doc("Note", test_note.name)
+
+			# Search with updated content - should find exactly one result with new content
+			results = self.search.search("Updated content deduplication")
+			updated_results = [r for r in results["results"] if r["name"] == test_note.name]
+			self.assertEqual(len(updated_results), 1, "Should find exactly one instance with updated content")
+			# Content may contain HTML markup from search highlighting, so check for words individually
+			self.assertIn("Updated", updated_results[0]["content"])
+			self.assertIn("content", updated_results[0]["content"])
+
+			# Rebuild entire index - should not create duplicates
+			self.search.build_index()
+			results = self.search.search("Deduplication Test")
+			rebuild_count = len([r for r in results["results"] if r["name"] == test_note.name])
+			self.assertEqual(rebuild_count, 1, "Should still find exactly one instance after full rebuild")
+
+			# Verify at database level - check raw count in FTS table
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{test_note.name}"
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			conn.close()
+			self.assertEqual(db_count, 1, "Database should contain exactly one entry for the document")
+
+		finally:
+			test_note.delete()
+
 	@patch("frappe.enqueue")
 	def test_background_operations(self, mock_enqueue):
 		"""Test background job integration and module-level functions."""

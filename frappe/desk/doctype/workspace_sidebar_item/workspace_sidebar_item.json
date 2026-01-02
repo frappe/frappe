@@ -14,6 +14,7 @@
   "type",
   "link_to",
   "child",
+  "navigate_to_tab",
   "url",
   "display_section",
   "collapsible_column",
@@ -155,13 +156,19 @@
    "fieldtype": "Code",
    "label": "Route Options",
    "options": "JSON"
+  },
+  {
+   "depends_on": "eval: doc.link_type == \"DocType\" && doc.link_to",
+   "fieldname": "navigate_to_tab",
+   "fieldtype": "Autocomplete",
+   "label": "Tab"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-26 18:14:11.682693",
+ "modified": "2025-12-29 17:11:16.069665",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar Item",

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-28 21:17\n"
+"PO-Revision-Date: 2025-12-29 21:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2263,7 +2263,7 @@ msgstr "انواع اسناد قابل اجرا"
 #. Label of the applicable_for (Link) field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Applicable For"
-msgstr ""
+msgstr "قابل استفاده برای"
 
 #. Label of the app_logo (Attach Image) field in DocType 'Navbar Settings'
 #. Label of the logo_section (Section Break) field in DocType 'Navbar Settings'
@@ -31272,11 +31272,11 @@ msgstr "این نباید بشکند"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:41
 msgid "to close"
-msgstr ""
+msgstr "برای بستن"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:41
 msgid "to navigate"
-msgstr ""
+msgstr "برای پیمایش"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:41
 msgid "to select"

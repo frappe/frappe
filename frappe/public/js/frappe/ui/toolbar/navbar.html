@@ -3,15 +3,8 @@
 	<header class="navbar navbar-expand" role="navigation">
 		<div class="container">
 			<a class="navbar-brand navbar-home">
-				<span class="app-logo">
-					<svg class="es-icon icon-md">
-						<use href="#es-line-align-justify"></use>
-					</svg>
-				</span>
+				<img class="app-logo" src="{{ frappe.boot.app_data[0].app_logo_url }}" alt="{{ __(" App Logo") }}">
 			</a>
-			{% if (frappe.is_mobile()) { %}
-				<ul class="nav d-sm-flex navbar-breadcrumbs mobile-no-divider ellipsis"></ul>
-			{% endif %}
 			<div class="collapse navbar-collapse justify-content-end">
 				{% if (frappe.boot.read_only) { %}
 					<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">

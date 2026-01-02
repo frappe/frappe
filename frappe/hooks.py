@@ -476,53 +476,6 @@ standard_navbar_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "Workspace Settings",
-		"item_type": "Action",
-		"action": "frappe.quick_edit('Workspace Settings')",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Session Defaults",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.setup_session_defaults()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Reload",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.clear_cache()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "View Website",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.view_website()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Apps",
-		"item_type": "Route",
-		"route": "/apps",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Full Width",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.toggle_full_width()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Theme",
-		"item_type": "Action",
-		"action": "new frappe.ui.ThemeSwitcher().show()",
-		"is_standard": 1,
-	},
-	{
-		"item_type": "Separator",
-		"is_standard": 1,
-		"item_label": "",
-	},
-	{
 		"item_label": "Log out",
 		"item_type": "Action",
 		"action": "frappe.app.logout()",

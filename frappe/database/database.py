@@ -644,7 +644,6 @@ class Database:
 					order_by=order_by,
 					distinct=distinct,
 					limit=limit,
-					validate_filters=True,
 					for_update=for_update,
 					skip_locked=skip_locked,
 					wait=True,
@@ -666,7 +665,6 @@ class Database:
 						fields=fieldname,
 						distinct=distinct,
 						limit=limit,
-						validate_filters=True,
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
@@ -994,7 +992,6 @@ class Database:
 			table=dt,
 			filters=dn,
 			update=True,
-			validate_filters=True,
 		)
 
 		if isinstance(dn, FilterValue):
@@ -1301,7 +1298,6 @@ class Database:
 			filters=filters,
 			fields=Count("*"),
 			distinct=distinct,
-			validate_filters=True,
 		).run(debug=debug)[0][0]
 
 		if not filters and cache:
@@ -1432,7 +1428,6 @@ class Database:
 			table=doctype,
 			filters=filters,
 			delete=True,
-			validate_filters=True,
 		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug

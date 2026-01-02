@@ -575,6 +575,7 @@ def get_sidebar_items():
 				"show_arrow": si.show_arrow,
 				"filters": si.filters,
 				"route_options": si.route_options,
+				"tab": si.navigate_to_tab,
 			}
 			if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
 				report_type, ref_doctype = frappe.db.get_value(

@@ -203,6 +203,10 @@ body {
 			min-width: max-content;
 			font-size: 12px;
 			padding: 4px 6px;
+			height: 28px;
+			display: flex;
+			align-items: center;
+			gap: 4px;
 		}
 
 		.chart-actions {
@@ -533,7 +537,7 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
-		padding: 10px;
+		padding: 10px 12px;
 		border: 1px solid var(--border-color);
 
 		&:hover {
@@ -567,7 +571,7 @@ body {
 			margin-right: 12px !important;
 		}
 
-		padding: 10px;
+		padding: 10px 12px;
 		border: 1px solid var(--border-color);
 
 		.link-item {
@@ -619,7 +623,7 @@ body {
 
 		.widget-head .widget-label .widget-title {
 			font-size: var(--text-base);
-			font-weight: var(--weight-bold);
+			font-weight: var(--weight-medium);
 		}
 
 		@include media-breakpoint-down(md) {
@@ -634,16 +638,13 @@ body {
 	&.number-widget-box {
 		cursor: pointer;
 		min-height: 84px;
-		padding: var(--number-card-padding);
+		padding: 12px;
 		border: 1px solid var(--border-color);
 
 		.widget-head {
 			.widget-title {
 				font-weight: var(--weight-medium);
-				color: var(--text-muted);
-				text-transform: uppercase;
-				font-size: var(--text-tiny);
-				margin-top: var(--margin-xs);
+				font-size: var(--text-sm);
 			}
 
 			.widget-control {
@@ -667,7 +668,7 @@ body {
 
 			.widget-content {
 				@include flex(flex, space-between, null, column);
-				padding-top: var(--padding-md);
+				padding-top: 12px;
 
 				.number {
 					@include get_textstyle("2xl", "semibold");

@@ -179,6 +179,20 @@ class DesktopPage {
 		this.setup_editing_mode();
 		this.handle_route_change();
 		this.setup_events();
+		this.setup_edit_button();
+	}
+	setup_edit_button() {
+		const me = this;
+		this.$desktop_edit_button = $(
+			"<button class='btn btn-reset desktop-edit'></button>"
+		).appendTo(document.body);
+		this.$desktop_edit_button.html(
+			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
+		);
+		this.$desktop_edit_button.on("click", () => {
+			me.start_editing_layout();
+			me.$desktop_edit_button.hide();
+		});
 	}
 	setup_editing_mode() {
 		const me = this;
@@ -287,7 +301,9 @@ class DesktopPage {
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
-			open_on_left: true,
+			// If it's RTL, we want it to open on the right (false);
+			// if it's LTR, we want it to open on the left (true).
+			open_on_left: !frappe.utils.is_rtl(),
 		});
 	}
 	setup_navbar() {
@@ -327,6 +343,7 @@ class DesktopPage {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
 				me.setup_navbar();
 			else {
+				me.$desktop_edit_button.remove();
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
 			}
@@ -617,7 +634,6 @@ class DesktopIconGrid {
 class DesktopIcon {
 	constructor(icon, in_folder) {
 		this.icon_data = icon;
-		this.icon_data.label = __(this.icon_data.label);
 		this.icon_title = this.icon_data.label;
 		this.icon_subtitle = "";
 		this.icon_type = this.icon_data.icon_type;
@@ -817,7 +833,7 @@ class DesktopModal {
 	}
 	make_modal(icon_title) {
 		if ($(".desktop-modal").length == 0) {
-			this.modal = new frappe.get_modal(icon_title, "");
+			this.modal = new frappe.get_modal(__(icon_title), "");
 			this.modal.find(".modal-header").addClass("desktop-modal-heading");
 			this.modal.addClass("desktop-modal");
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");

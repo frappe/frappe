@@ -111,7 +111,7 @@ context("Depends On", () => {
 		cy.fill_field("dependant_field", "Some Value");
 		//cy.fill_field('test_field', 'Some Other Value');
 		cy.get('.frappe-control[data-fieldname="child_test_depends_on_field"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
 		cy.get("@row1").find(".form-in-grid").as("row1-form_in_grid");

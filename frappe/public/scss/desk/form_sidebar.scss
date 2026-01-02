@@ -144,6 +144,9 @@ body[data-route^="Form"] {
 		.form-sidebar {
 			width: var(--form-sidebar-width);
 		}
+		@media (max-width: 991px) {
+			position: relative;
+		}
 	}
 }
 
@@ -306,6 +309,11 @@ body[data-route^="Form"] {
 		padding-left: 0px !important;
 		width: 100%;
 
+		&:active {
+			background-color: transparent !important;
+			box-shadow: none !important;
+		}
+
 		.attachment-file-label {
 			display: block;
 			margin-left: var(--margin-xs);
@@ -322,6 +330,7 @@ body[data-route^="Form"] {
 	margin-right: var(--margin-xs);
 	.data-pill {
 		background-color: var(--subtle-fg);
+		max-width: 150px;
 	}
 	display: inline-flex;
 }
@@ -336,7 +345,6 @@ body[data-route^="Form"] {
 	background-color: var(--bg-color);
 	text-align: start;
 	margin-top: var(--margin-sm);
-	margin-left: var(--margin-md);
 	margin-bottom: var(--margin-sm);
 	color: var(--text-light);
 }

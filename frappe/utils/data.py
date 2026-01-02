@@ -116,7 +116,7 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: "DateTimeLikeObject" | None = None, parse_day_first: bool = False
+	string_date: DateTimeLikeObject | None = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
 	Convert string date (yyyy-mm-dd) to datetime.date object.
@@ -148,7 +148,7 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: "DateTimeLikeObject" | None | tuple | list = None,
+	datetime_str: DateTimeLikeObject | None | tuple | list = None,
 ) -> datetime.datetime | None:
 	"""Return the below mentioned values based on the given `datetime_str`:
 
@@ -373,7 +373,7 @@ def now_datetime() -> datetime.datetime:
 	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
-def get_timestamp(date: "DateTimeLikeObject" | None = None) -> float:
+def get_timestamp(date: DateTimeLikeObject | None = None) -> float:
 	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
 	If `date` is None, the current timestamp is returned.
 	"""

@@ -63,8 +63,8 @@ export default class Section {
 	make_head() {
 		this.head = $(`
 			<div class="section-head">
-				<span class="collapse-indicator"></span>
-				${__(this.df.label, null, this.df.parent)}
+			${__(this.df.label, null, this.df.parent)}
+			<span class="collapse-indicator"></span>
 			</div>
 		`);
 
