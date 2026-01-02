@@ -534,7 +534,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				const arr = filtered.slice(0, 5).map((v) => {
 					// Strings in quotes, numbers/dates not quoted
 					if (typeof v === "string") {
-						return `"${String(__(v))}"`;
+						return `"${String(__(v, null, docfield?.options))}"`;
 					}
 					// Numbers, dates, etc. - not translated, not quoted
 					return String(v);
@@ -545,12 +545,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			// Null / empty
 			if (val == null || val === "") {
-				return __("empty");
+				return __("empty", null, "Comparison value is empty");
 			}
 
 			// Format based on type: strings in quotes, numbers/dates not quoted
 			if (typeof val === "string") {
-				return `"${String(__(val))}"`;
+				return `"${String(__(val, null, docfield?.options))}"`;
 			}
 
 			// Numbers, dates, etc. - not translated, not quoted
