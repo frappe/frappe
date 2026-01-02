@@ -1415,17 +1415,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	async print_report(print_settings) {
-		let custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == "Landscape";
 
-		if (print_settings.report) {
-			custom_format = await this.get_report_print_format(print_settings.report);
-		}
+		const custom_format = await this.get_custom_format(print_settings);
 
 		this.make_access_log("Print", "PDF");
+
 		frappe.render_grid({
-			template: print_settings.columns ? "print_grid" : custom_format,
+			template: print_settings.columns || !custom_format ? "print_grid" : custom_format,
 			title: __(this.report_name),
 			subtitle: print_settings?.include_filters ? filters_html : null,
 			print_settings: print_settings,
@@ -1444,14 +1442,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == "Landscape";
 
-		let custom_format = this.report_settings.html_format || null;
+		const custom_format = await this.get_custom_format(print_settings);
+
 		const columns = this.get_columns_for_print(print_settings, custom_format);
 		const data = this.get_data_for_print();
 		const applied_filters = this.get_filter_values();
-
-		if (print_settings.report) {
-			custom_format = await this.get_report_print_format(print_settings.report);
-		}
 
 		const filters_html = this.get_filters_html_for_print();
 		const template = print_settings.columns || !custom_format ? "print_grid" : custom_format;
@@ -1463,6 +1458,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			original_data: this.data,
 			columns: columns,
 			report: this,
+			print_settings: print_settings,
 		});
 
 		// Render Report in HTML
@@ -1493,6 +1489,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings.report_name = `${__(this.report_name)}.pdf`;
 		}
 		frappe.render_pdf(html, print_settings);
+	}
+
+	async get_custom_format(print_settings) {
+		let custom_format = this.report_settings.html_format || null;
+
+		if (print_settings.print_format) {
+			custom_format = await this.get_report_print_format(print_settings.print_format);
+		} else if (
+			!print_settings.columns?.length &&
+			typeof this.report_settings.get_pdf_format === "function"
+		) {
+			custom_format = await this.report_settings.get_pdf_format(this, custom_format);
+		}
+
+		return custom_format;
 	}
 
 	async get_report_print_format(report_name) {
@@ -1618,6 +1629,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.export_dialog.show();
 	}
 
+<<<<<<< HEAD
+=======
+	get_applied_filters(filters) {
+		// Return filters which are not hidden_due_to_dependency
+		// Filters with Label as key and Value as value
+		const applied_filters = {};
+
+		for (const [key, value] of Object.entries(filters)) {
+			const df = frappe.query_report.get_filter(key).df;
+			if (!df.hidden_due_to_dependency) {
+				applied_filters[df.label] =
+					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
+			}
+		}
+
+		return applied_filters;
+	}
+
+>>>>>>> 676d70dd76 (feat: override custom report print format from report settings (#35445))
 	get_data_for_csv(include_indentation) {
 		const rows = this.datatable.bodyRenderer.visibleRows;
 		if (this.raw_data.add_total_row) {
