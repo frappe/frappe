@@ -518,6 +518,8 @@ const saveEvent = (event: ComponentEvent) => {
 		toast.success("Event updated successfully")
 	} else {
 		props.block?.addEvent(event)
+	}
+	if (event.action !== "Run Script") {
 		showAddEventDialog.value = false
 	}
 }
