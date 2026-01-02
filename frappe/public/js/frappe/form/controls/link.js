@@ -599,22 +599,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				case "not like":
 					return __("{0} does not contain {1}", [labelDisplay, valueDisplay]);
 				case ">":
-					if (fieldtype === "Date" || fieldtype === "Datetime" || fieldtype === "Time") {
+					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
 						return __("{0} is after {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is greater than {1}", [labelDisplay, valueDisplay]);
 				case "<":
-					if (fieldtype === "Date" || fieldtype === "Datetime" || fieldtype === "Time") {
+					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
 						return __("{0} is before {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is less than {1}", [labelDisplay, valueDisplay]);
 				case ">=":
-					if (fieldtype === "Date" || fieldtype === "Datetime" || fieldtype === "Time") {
+					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
 						return __("{0} is on or after {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is greater than or equal to {1}", [labelDisplay, valueDisplay]);
 				case "<=":
-					if (fieldtype === "Date" || fieldtype === "Datetime" || fieldtype === "Time") {
+					if (["Date", "Datetime", "Time"].includes(fieldtype)) {
 						return __("{0} is on or before {1}", [labelDisplay, valueDisplay]);
 					}
 					return __("{0} is less than or equal to {1}", [labelDisplay, valueDisplay]);
