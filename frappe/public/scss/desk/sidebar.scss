@@ -309,17 +309,3 @@
 		font-weight: 420;
 	}
 }
-
-.body-sidebar-container {
-	.sidebar-child-item {
-		transition: margin-inline-start 0.2s ease;
-	}
-
-	&:not(.expanded) .sidebar-child-item {
-		margin-inline-start: 0px;
-	}
-
-	&.expanded .sidebar-child-item {
-		margin-inline-start: 16px;
-	}
-}
