@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:23\n"
+"PO-Revision-Date: 2026-01-02 22:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -7784,7 +7784,7 @@ msgstr "DocType ist eine Tabelle / ein Formular in der Anwendung."
 
 #: frappe/integrations/doctype/webhook/webhook.py:83
 msgid "DocType must be Submittable for the selected Doc Event"
-msgstr "DocType muss für das ausgewählte Doc-Ereignis übermittelt werden"
+msgstr "DocType muss für das ausgewählte Doc-Ereignis buchbar sein"
 
 #: frappe/client.py:406
 msgid "DocType must be a string"
@@ -8071,7 +8071,7 @@ msgstr "Der Dokumenttyp kann nicht importiert werden"
 
 #: frappe/permissions.py:148
 msgid "Document Type is not submittable"
-msgstr "Der Dokumenttyp kann nicht übermittelt werden"
+msgstr "Der Dokumenttyp kann nicht gebucht werden"
 
 #. Label of the document_type (Link) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
@@ -14022,7 +14022,7 @@ msgstr "Ist Standard"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:40
 msgid "Is Submittable"
-msgstr "Abschließbar"
+msgstr "Kann gebucht werden"
 
 #. Label of the is_system_generated (Check) field in DocType 'Custom Field'
 #. Label of the is_system_generated (Check) field in DocType 'Customize Form
@@ -18253,7 +18253,7 @@ msgstr "Onboarding abgeschlossen"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:43
 msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
-msgstr "Einmal eingereichte Dokumente können nicht mehr geändert werden. Sie können nur storniert oder berichtigt werden."
+msgstr "Einmal gebuchte Dokumente können nicht mehr geändert werden. Sie können nur storniert oder berichtigt werden."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
