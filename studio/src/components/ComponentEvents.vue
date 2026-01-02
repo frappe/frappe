@@ -5,23 +5,10 @@
 				<div
 					v-for="(event, name) in block?.componentEvents"
 					:key="name"
-					class="group/event flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
+					class="group/item flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-gray-300 px-2 py-2"
 				>
 					<div class="gap-1 self-center truncate text-base text-gray-700">{{ name }}</div>
-					<div
-						class="invisible ml-auto self-start text-gray-600 group-hover/event:visible has-[.active-item]:visible"
-					>
-						<Dropdown :options="getEventMenu(event)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions :menuOptions="getEventMenu(event)" @edit="openEvent(event)" />
 				</div>
 			</div>
 
@@ -37,21 +24,11 @@
 						{
 							label: newEvent.isEditing ? 'Update' : 'Add',
 							variant: 'solid',
-							onClick: () => {
-								const event = getEvent(newEvent)
-								if (newEvent.isEditing) {
-									block?.updateEvent(event)
-								} else {
-									if (newEvent.page) {
-										newEvent.page = store.getAppPageRoute(newEvent.page)
-									}
-									block?.addEvent(event)
-								}
-								showAddEventDialog = false
-							},
+							onClick: () => saveEvent(newEvent),
 						},
 					],
 				}"
+				:disableOutsideClickToClose="true"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
 				<template #body-content>
@@ -115,6 +92,7 @@
 									:emitOnChange="true"
 									:modelValue="newEvent.on_success_script?.toString()"
 									@update:modelValue="(val: string) => (newEvent.on_success_script = val)"
+									@save="saveEvent(newEvent)"
 								/>
 							</div>
 
@@ -171,6 +149,7 @@ import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
 import EmptyState from "@/components/EmptyState.vue"
+import ItemActions from "@/components/ItemActions.vue"
 
 import { isObjectEmpty, confirm, getParamsArray, getParamsObj } from "@/utils/helpers"
 
@@ -293,6 +272,7 @@ const actions: ActionConfigurations = {
 				"update:modelValue": (val: any) => {
 					newEvent.value.script = val
 				},
+				save: () => saveEvent(newEvent.value),
 			},
 		},
 	],
@@ -478,6 +458,10 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 		_event.url = event.url
 	}
 
+	if (event.oldEvent) {
+		_event.oldEvent = event.oldEvent
+	}
+
 	return _event
 }
 
@@ -502,7 +486,6 @@ function setEventCallbackFields(targetEvent: ComponentEvent, sourceEvent: Compon
 	}
 }
 
-// Event Menu
 const deleteEvent = async (event: ComponentEvent) => {
 	const confirmed = await confirm(
 		`Are you sure you want to delete the ${event.event} event on ${props.block?.componentName}?`,
@@ -517,24 +500,36 @@ const deleteEvent = async (event: ComponentEvent) => {
 	}
 }
 
+const openEvent = (event: ComponentEvent) => {
+	newEvent.value = {
+		...event,
+		isEditing: true,
+		oldEvent: event.event,
+		params: getParamsArray(event.params),
+	}
+	showAddEventDialog.value = true
+}
+
+const saveEvent = (event: ComponentEvent) => {
+	const { isEditing } = event
+	event = getEvent(event)
+	if (isEditing) {
+		props.block?.updateEvent(event)
+		toast.success("Event updated successfully")
+	} else {
+		props.block?.addEvent(event)
+	}
+	if (event.action !== "Run Script") {
+		showAddEventDialog.value = false
+	}
+}
+
 const getEventMenu = (event: ComponentEvent) => {
 	return [
 		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				newEvent.value = {
-					...event,
-					isEditing: true,
-					oldEvent: event.event,
-					params: getParamsArray(event.params),
-				}
-				showAddEventDialog.value = true
-			},
-		},
-		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deleteEvent(event),
 		},
 	]

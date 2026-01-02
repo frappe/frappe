@@ -149,6 +149,7 @@ function getComponentMenu(component: StudioComponent) {
 		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => componentEditorStore.deleteComponent(component),
 		},
 	]

@@ -5,23 +5,13 @@
 				<div
 					v-for="(resource, resource_name) in codeStore.resources"
 					:key="resource_name"
-					class="group/resource flex flex-row justify-between"
+					class="group/item flex flex-row justify-between"
 				>
 					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
-					<div
-						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/resource:visible has-[.active-item]:visible"
-					>
-						<Dropdown :options="getResourceMenu(resource, resource_name)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions
+						:menuOptions="getResourceMenu(resource, resource_name)"
+						@edit="openResource(resource)"
+					/>
 				</div>
 			</div>
 
@@ -44,7 +34,7 @@
 				<div
 					v-for="(value, variable_name) in codeStore.variables"
 					:key="variable_name"
-					class="group/variable flex flex-row justify-between"
+					class="group/item flex flex-row justify-between"
 				>
 					<ObjectBrowser
 						v-if="typeof value === 'object'"
@@ -59,20 +49,10 @@
 							<div class="text-violet-700">{{ value }}</div>
 						</template>
 					</div>
-					<div
-						class="invisible -mt-1 ml-auto self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
-					>
-						<Dropdown :options="getVariableMenu(variable_name, value)" trigger="click">
-							<template v-slot="{ open }">
-								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-									:class="open ? 'active-item' : ''"
-								>
-									<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-								</button>
-							</template>
-						</Dropdown>
-					</div>
+					<ItemActions
+						:menuOptions="getVariableMenu(variable_name, value)"
+						@edit="openVariable(variable_name)"
+					/>
 				</div>
 			</div>
 
@@ -120,6 +100,7 @@
 								height="250px"
 								:showLineNumbers="true"
 								v-model="variableRef.initial_value"
+								@save="saveVariable(variableRef)"
 							/>
 							<FormControl
 								v-else-if="variableRef.variable_type === 'Number'"
@@ -140,17 +121,7 @@
 						<Button
 							variant="solid"
 							:label="variableRef.name ? 'Update' : 'Add'"
-							@click="
-								() => {
-									const validated = validateVariable(variableRef)
-									if (!validated) return
-									if (variableRef.name) {
-										editVariable(variableRef)
-									} else {
-										addVariable(variableRef)
-									}
-								}
-							"
+							@click="saveVariable(variableRef)"
 							class="w-full"
 						/>
 					</template>
@@ -170,6 +141,7 @@ import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import Code from "@/components/Code.vue"
+import ItemActions from "@/components/ItemActions.vue"
 
 import { isObjectEmpty, getAutocompleteValues, getParamsObj, confirm, copyToClipboard } from "@/utils/helpers"
 import { studioPageResources } from "@/data/studioResources"
@@ -258,22 +230,19 @@ const getResourceValues = (resource: Resource) => {
 	}
 }
 
+const openResource = async (resource: Resource) => {
+	studioPageResources.filters = {
+		parent: store.activePage?.name,
+		name: resource.resource_id,
+	}
+	await studioPageResources.reload()
+
+	existingResource.value = studioPageResources.data[0]
+	showResourceDialog.value = true
+}
+
 const getResourceMenu = (resource: Resource, resource_name: string) => {
 	return [
-		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				studioPageResources.filters = {
-					parent: store.activePage?.name,
-					name: resource.resource_id,
-				}
-				await studioPageResources.reload()
-
-				existingResource.value = studioPageResources.data[0]
-				showResourceDialog.value = true
-			},
-		},
 		{
 			label: "Delete",
 			icon: "trash",
@@ -389,22 +358,22 @@ const deleteVariable = async (variable: Variable) => {
 	}
 }
 
-const getVariableMenu = (variable_name: string, value: any) => {
+const openVariable = async (variable_name: string) => {
 	const variableConfig = store.variableConfigs[variable_name]
+	variableRef.value = { ...variableConfig }
+	showVariableDialog.value = true
+}
+
+const getVariableMenu = (variable_name: string, value: any) => {
 	return [
-		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				variableRef.value = { ...variableConfig }
-				showVariableDialog.value = true
-			},
-		},
 		{
 			label: "Delete",
 			icon: "trash",
 			theme: "red",
-			onClick: () => deleteVariable(variableConfig),
+			onClick: () => {
+				const variableConfig = store.variableConfigs[variable_name]
+				deleteVariable(variableConfig)
+			},
 		},
 		{
 			label: "Copy Name",
@@ -431,5 +400,15 @@ const validateVariable = (variable: Variable) => {
 		}
 	}
 	return true
+}
+
+const saveVariable = (variable: Variable) => {
+	const validated = validateVariable(variable)
+	if (!validated) return
+	if (variable.name) {
+		editVariable(variable)
+	} else {
+		addVariable(variable)
+	}
 }
 </script>

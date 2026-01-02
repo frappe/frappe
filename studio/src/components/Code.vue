@@ -113,6 +113,7 @@ const emitEditorValue = () => {
 		if (!props.showSaveButton && !props.readonly) {
 			emit("update:modelValue", value)
 		}
+		return value
 	} catch (e: any) {
 		console.error("Error while parsing JSON for editor", e)
 		errorMessage.value = `Invalid object/JSON: ${e.message}`
@@ -248,6 +249,21 @@ const extensions = computed(() => {
 			},
 		]),
 	]
+	if (!props.readonly) {
+		baseExtensions.push(
+			keymap.of([
+				{
+					key: "Ctrl-s",
+					mac: "Cmd-s",
+					run: () => {
+						emit("save", emitEditorValue())
+						return true
+					},
+					stopPropagation: true,
+				},
+			]),
+		)
+	}
 	if (languageExtension.value) {
 		baseExtensions.unshift(languageExtension.value)
 	}

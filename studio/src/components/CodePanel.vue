@@ -5,25 +5,12 @@
 				v-if="studioPageWatchers.data?.length"
 				v-for="watcher in studioPageWatchers.data"
 				:key="watcher.name"
-				class="group/variable flex flex-row justify-between"
+				class="group/item flex flex-row justify-between"
 			>
 				<div class="flex flex-row justify-between">
 					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
 				</div>
-				<div
-					class="invisible -mt-1 self-start text-gray-600 group-hover/variable:visible has-[.active-item]:visible"
-				>
-					<Dropdown :options="getWatcherMenu(watcher)" trigger="click">
-						<template v-slot="{ open }">
-							<button
-								class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
-								:class="open ? 'active-item' : ''"
-							>
-								<FeatherIcon name="more-horizontal" class="h-3 w-3" />
-							</button>
-						</template>
-					</Dropdown>
-				</div>
+				<ItemActions :menuOptions="getWatcherMenu(watcher)" @edit="openWatcher(watcher)" />
 			</div>
 			<EmptyState v-else message="No watchers added" />
 		</div>
@@ -71,6 +58,7 @@
 							v-model="pageWatcher.script"
 							:emitOnChange="true"
 							:completions="getCompletions"
+							@save="editPageWatcher(pageWatcher)"
 						/>
 						<FormControl
 							type="checkbox"
@@ -84,15 +72,7 @@
 					<Button
 						variant="solid"
 						:label="pageWatcher.name ? 'Update' : 'Add'"
-						@click="
-							() => {
-								if (pageWatcher.name) {
-									editPageWatcher(pageWatcher)
-								} else {
-									addPageWatcher(pageWatcher)
-								}
-							}
-						"
+						@click="savePageWatcher(pageWatcher)"
 						class="w-full"
 					/>
 				</template>
@@ -114,6 +94,7 @@ import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import ItemActions from "@/components/ItemActions.vue"
 
 const props = defineProps<{
 	page: StudioPage
@@ -143,19 +124,17 @@ const pageWatcher = ref<StudioPageWatcher>({
 })
 const store = useStudioStore()
 
+const openWatcher = (watcher: StudioPageWatcher) => {
+	pageWatcher.value = { ...watcher }
+	showWatcherDialog.value = true
+}
+
 const getWatcherMenu = (watcher: StudioPageWatcher) => {
 	return [
 		{
-			label: "Edit",
-			icon: "edit",
-			onClick: async () => {
-				pageWatcher.value = { ...watcher }
-				showWatcherDialog.value = true
-			},
-		},
-		{
 			label: "Delete",
 			icon: "trash",
+			theme: "red",
 			onClick: () => deletePageWatcher(watcher),
 		},
 	]
@@ -195,8 +174,16 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 		.then(async () => {
 			// setValue didn't update the list, so reloading explicitly
 			await studioPageWatchers.reload()
-			showWatcherDialog.value = false
+			toast.success("Watcher updated successfully")
 		})
+}
+
+const savePageWatcher = (watcher: StudioPageWatcher) => {
+	if (watcher.name) {
+		editPageWatcher(watcher)
+	} else {
+		addPageWatcher(watcher)
+	}
 }
 
 const deletePageWatcher = async (watcher: StudioPageWatcher) => {
