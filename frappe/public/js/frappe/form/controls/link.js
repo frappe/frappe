@@ -534,7 +534,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				const arr = filtered.slice(0, 5).map((v) => {
 					// Strings in quotes, numbers/dates not quoted
 					if (typeof v === "string") {
-						return `"${String(__(v, null, docfield?.options))}"`;
+						return `"${String(__(v))}"`;
 					}
 					// Numbers, dates, etc. - not translated, not quoted
 					return String(v);
@@ -550,7 +550,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			// Format based on type: strings in quotes, numbers/dates not quoted
 			if (typeof val === "string") {
-				return `"${String(__(val, null, docfield?.options))}"`;
+				return `"${String(__(val))}"`;
 			}
 
 			// Numbers, dates, etc. - not translated, not quoted
@@ -571,7 +571,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 			const fieldtype = docfield ? docfield.fieldtype : null;
 
-			const labelDisplay = `<i>${String(__(label))}</i>`;
+			const labelDisplay = `<i>${String(__(label, null, _doctype))}</i>`;
 			const valueDisplay = formatValueForDisplay(docfield, value);
 			const is_time_like = ["Date", "Datetime", "Time"].includes(fieldtype);
 
