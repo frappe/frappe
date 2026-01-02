@@ -1564,35 +1564,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-<<<<<<< HEAD
-=======
-		if (this.report_settings.export_hidden_cols) {
-			const hidden_fields = new Set();
-
-			this.columns.forEach((column) => {
-				if (column.hidden) {
-					hidden_fields.add(column.label);
-				}
-			});
-
-			if (hidden_fields.size) {
-				extra_fields.push(
-					{
-						fieldname: "column_break_1",
-						fieldtype: "Column Break",
-					},
-					{
-						label: __("Include hidden columns"),
-						fieldname: "include_hidden_columns",
-						fieldtype: "Check",
-						description: __("Hidden columns include: <br> {0}", [
-							frappe.utils.comma_and(Array.from(hidden_fields)),
-						]),
-					}
-				);
-			}
-		}
->>>>>>> 68144462eb (refactor: Remove hidden column duplication in desc)
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
@@ -1657,23 +1628,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.export_dialog.show();
 	}
 
-<<<<<<< HEAD
-=======
-	get_applied_filters(filters) {
-		const applied_filters = {};
-
-		for (const [key, value] of Object.entries(filters)) {
-			const df = frappe.query_report.get_filter(key).df;
-			if (!df.hidden_due_to_dependency) {
-				applied_filters[df.label] =
-					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
-			}
-		}
-
-		return applied_filters;
-	}
-
->>>>>>> 27879ab4a0 (fix: add boolean labels for filter display in print/pdf)
 	get_data_for_csv(include_indentation) {
 		const rows = this.datatable.bodyRenderer.visibleRows;
 		if (this.raw_data.add_total_row) {
