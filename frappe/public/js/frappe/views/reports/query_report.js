@@ -1626,14 +1626,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_applied_filters(filters) {
-		const boolean_labels = { 1: __("Yes"), 0: __("No") };
+		// Return filters which are not hidden_due_to_dependency
+		// Filters with Label as key and Value as value
 		const applied_filters = {};
 
 		for (const [key, value] of Object.entries(filters)) {
 			const df = frappe.query_report.get_filter(key).df;
 			if (!df.hidden_due_to_dependency) {
 				applied_filters[df.label] =
-					df.fieldtype === "Check" ? boolean_labels[value] : value;
+					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
 			}
 		}
 
