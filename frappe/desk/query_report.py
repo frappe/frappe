@@ -482,6 +482,13 @@ def build_xlsx_data(
 			- header_index: Index of the header row in the result
 			- metadata: Metadata for the Excel sheet formatting (if build_metadata is True)
 	"""
+	metadata = None
+
+	if build_metadata:
+		from frappe.utils.xlsxutils import XLSXMetadata
+
+		metadata = XLSXMetadata()
+
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -509,15 +516,6 @@ def build_xlsx_data(
 	include_indentation = cint(include_indentation)
 	include_filters = cint(include_filters)
 
-	metadata = (
-		{
-			"columns": [],
-			"row_map": {},  # xlsx row index to report data row
-		}
-		if build_metadata
-		else None
-	)
-
 	if include_filters and data.filters:
 		filter_data = []
 		for filter_name, filter_value in data.filters.items():
@@ -541,7 +539,7 @@ def build_xlsx_data(
 			continue
 
 		if build_metadata:
-			metadata["columns"].append(column)
+			metadata.columns.append(column)
 
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -575,24 +573,21 @@ def build_xlsx_data(
 			row_data.append(cell_value)
 
 		if build_metadata:
-			metadata["row_map"][excel_row_idx] = row
+			metadata.row_map[excel_row_idx] = row
 			excel_row_idx += 1
 
 		result.append(row_data)
 
 	if build_metadata:
-		metadata.update(
-			{
-				"filters": data._filters or frappe._dict(),
-				"include_indentation": include_indentation,
-				"header_index": header_index,
-				"add_total_row": data.add_total_row,
-				"total_row_index": len(result) - 1 if data.add_total_row else None,
-				"include_filters": include_filters,
-				"include_hidden_columns": include_hidden_columns,
-				"ignore_visible_idx": ignore_visible_idx,
-			}
-		)
+		metadata.filters = data.filters or frappe._dict()
+
+		metadata.header_index = header_index
+		metadata.last_row_index = len(result) - 1
+
+		metadata.include_hidden_columns = include_hidden_columns
+		metadata.include_indentation = include_indentation
+		metadata.include_filters = include_filters
+		metadata.add_total_row = data.add_total_row
 
 	return result, column_widths, header_index, metadata
 
