@@ -37,7 +37,7 @@ frappe.ui.form.Share = class Share {
 		avatar_group.on("click", () => {
 			this.frm.share_doc();
 		});
-		// REDESIGN-TODO: handle "shared with everyone"
+
 		if (has_everyone) {
 			avatar_group.prepend(
 				frappe.avatar_group(["Everyone"], 1, { align: "left", overlap: true })

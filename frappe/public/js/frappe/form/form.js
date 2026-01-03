@@ -1250,6 +1250,8 @@ frappe.ui.form.Form = class FrappeForm {
 			.add_user_action(__(label), function () {})
 			.attr("href", path || this.doc.route)
 			.attr("target", "_blank");
+		// add web link icon
+		this.web_link.append(frappe.utils.icon("es-line-arrow-up-right"));
 	}
 
 	fetch_permissions() {
