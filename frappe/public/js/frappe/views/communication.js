@@ -108,13 +108,6 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Email Template",
 				fieldname: "email_template",
-				get_query: () => {
-					return {
-						filters: {
-							use_html: me.dialog.get_value("use_html"),
-						},
-					};
-				},
 			},
 			{
 				fieldtype: "HTML",
