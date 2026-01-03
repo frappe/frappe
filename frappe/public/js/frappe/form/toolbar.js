@@ -310,8 +310,15 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_menu();
 
 		if (frappe.boot.desk_settings.form_sidebar) {
+<<<<<<< HEAD
 			this.make_navigation();
+=======
+>>>>>>> ffa2a6bfa5 (fix(ui): add navigation buttons back)
 			this.make_menu_items();
+		}
+
+		if (frappe.boot.desk_settings.form_navigation_buttons) {
+			this.make_navigation();
 		}
 	}
 

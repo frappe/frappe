@@ -57,6 +57,7 @@
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
+  "form_navigation_buttons",
   "timeline",
   "dashboard",
   "change_password",
@@ -812,6 +813,34 @@
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "0",
+   "fieldname": "show_absolute_datetime_in_timeline",
+   "fieldtype": "Check",
+   "label": "Show Absolute Datetime in Timeline"
+  },
+  {
+   "fieldname": "sessions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sessions"
+  },
+  {
+   "depends_on": "eval:doc.name == frappe.session.user",
+   "fieldname": "active_sessions",
+   "fieldtype": "Table",
+   "is_virtual": 1,
+   "label": "Active Sessions",
+   "options": "User Session Display"
+  },
+  {
+   "default": "1",
+   "fieldname": "form_navigation_buttons",
+   "fieldtype": "Check",
+   "label": "Navigation Buttons"
+>>>>>>> ffa2a6bfa5 (fix(ui): add navigation buttons back)
   }
  ],
  "icon": "fa fa-user",
@@ -875,7 +904,11 @@
   }
  ],
  "make_attachments_public": 1,
+<<<<<<< HEAD
  "modified": "2025-05-21 14:57:24.333141",
+=======
+ "modified": "2026-01-02 16:00:51.406511",
+>>>>>>> ffa2a6bfa5 (fix(ui): add navigation buttons back)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
