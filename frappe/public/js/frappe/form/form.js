@@ -1423,6 +1423,7 @@ frappe.ui.form.Form = class FrappeForm {
 			"li > a.grey-link > span",
 			menu_item_label
 		);
+
 		if ($btn) {
 			let $linkBody = $btn.parent().parent();
 			if ($linkBody) {
