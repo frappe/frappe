@@ -88,14 +88,16 @@ frappe.ui.form.PrintView = class {
 			icon: "refresh",
 		});
 
-		this.page.add_action_icon(
-			"es-line-filetype",
-			() => {
-				this.go_to_form_view();
-			},
-			"",
-			__("Form")
-		);
+		if (frappe.is_mobile()) {
+			this.page.add_button(__("Form"), () => this.go_to_form_view(), { icon: "small-file" });
+		} else {
+			this.page.add_action_icon(
+				"es-line-filetype",
+				() => this.go_to_form_view(),
+				"",
+				__("Form")
+			);
+		}
 	}
 
 	setup_sidebar() {

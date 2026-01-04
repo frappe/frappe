@@ -47,6 +47,8 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		frappe.db.delete("Note")
+		frappe.db.delete("ToDo")
 		cls.search = TestSQLiteSearch()
 		# Clean up any existing test database
 		cls.search.drop_index()

@@ -89,7 +89,7 @@ class TestUtils(IntegrationTestCase):
 	)
 	def test_export_customizations_with_module_filter(self):
 		# create two customizations, one matching the module, one under a different module
-		with note_customizations() as (custom_field, property_setter):
+		with note_customizations() as (custom_field, property_setter, _doctype_link):
 			custom_field.db_set("module", "Custom")
 			property_setter.db_set("module", "Custom")
 

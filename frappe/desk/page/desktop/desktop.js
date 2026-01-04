@@ -43,20 +43,53 @@ function get_route(desktop_icon) {
 	if (desktop_icon.link_type == "External" && desktop_icon.link) {
 		route = window.location.origin + desktop_icon.link;
 	} else {
-		if (desktop_icon.link_type == "Workspace") {
-			item = {
-				type: desktop_icon.link_type,
-				link: frappe.router.slug(desktop_icon.link_to),
-			};
-		} else if (desktop_icon.link_type == "DocType" || desktop_icon.link_type == "list") {
-			item = {
-				type: desktop_icon.link_type,
-				name: desktop_icon.link_to,
-			};
-		}
-		route = frappe.utils.generate_route(item);
-	}
+		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+			let first_link = sidebar.items.find((i) => i.type == "Link");
+			if (first_link) {
+				if (first_link.link_type === "Report") {
+					let args = {
+						type: first_link.link_type,
+						name: first_link.link_to,
+					};
 
+					if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						args.is_query_report =
+							first_link.report.report_type === "Query Report" ||
+							first_link.report.report_type == "Script Report";
+						args.report_ref_doctype = first_link.report.ref_doctype;
+					}
+
+					route = frappe.utils.generate_route(args);
+				} else if (first_link.link_type == "Workspace") {
+					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+					if (workspaces.public) {
+						route = "/desk/" + frappe.router.slug(first_link.link_to);
+					} else {
+						route = "/desk/private/" + frappe.router.slug(workspaces.title);
+					}
+
+					if (first_link.route) {
+						route = first_link.route;
+					}
+				} else if (first_link.link_type === "URL") {
+					route = first_link.url;
+				} else if (first_link.link_type == "Page" && first_link.route_options) {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						route_options: JSON.parse(first_link.route_options),
+					});
+				} else {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						tab: first_link.tab,
+					});
+				}
+			}
+		}
+	}
 	return route;
 }
 
