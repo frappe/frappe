@@ -39,6 +39,7 @@ from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
+from frappe.www.login import sanitize_redirect
 
 desk_properties = (
 	"search_bar",
@@ -1115,7 +1116,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			user.add_roles(default_role)
 
 		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, redirect_to)
+			frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
 
 		if user.flags.email_sent:
 			return 1, _("Please check your email for verification")
@@ -1285,7 +1286,27 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
+	# Add fallback suggestion if nothing provided
+	if not (suggestions or warning):
+		suggestions = [_("Better add a few more letters or another word")]
+
+	message_parts = []
+
+	if warning:
+		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+
+	if suggestions:
+		suggestions_html = (
+			'<ul style="margin: 0; padding-left: 1em;">'
+			+ "".join(f"<li>{suggestion}</li>" for suggestion in suggestions)
+			+ "</ul>"
+		)
+		message_parts.append(suggestions_html)
+
+	frappe.throw(
+		msg="".join(message_parts),
+		title=_("Password requirements not met"),
+	)
 
 
 def update_gravatar(name):

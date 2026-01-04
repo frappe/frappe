@@ -6,7 +6,7 @@
 
 .btn {
 	border: none;
-	&:not(.btn-md):not(.btn-lg) {
+	&:not(.btn-md):not(.btn-lg):not(.btn-xs) {
 		padding: 4px 8px;
 	}
 	border-radius: var(--border-radius);

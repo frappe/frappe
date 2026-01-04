@@ -537,6 +537,7 @@ def get_sentry_dsn():
 
 
 def get_sidebar_items():
+	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
 	sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
@@ -560,7 +561,7 @@ def get_sidebar_items():
 		}
 		for si in w.items:
 			workspace_sidebar = {
-				"label": si.label,
+				"label": _(si.label),
 				"link_to": si.link_to,
 				"link_type": si.link_type,
 				"type": si.type,
@@ -574,6 +575,7 @@ def get_sidebar_items():
 				"show_arrow": si.show_arrow,
 				"filters": si.filters,
 				"route_options": si.route_options,
+				"tab": si.navigate_to_tab,
 			}
 			if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
 				report_type, ref_doctype = frappe.db.get_value(
@@ -626,6 +628,9 @@ def add_user_specific_sidebar(sidebar_items):
 		if f"-{frappe.session.user.lower()}" in sidebar:
 			sidebars_to_remove.append(sidebar)
 	for sidebar in sidebars_to_remove:
-		sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
-		sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
-		sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
+		try:
+			sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
+			sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
+			sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
+		except KeyError:
+			pass

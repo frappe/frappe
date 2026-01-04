@@ -58,8 +58,8 @@ jobs:
     uses: ./.github/workflows/_base-migration.yml
     with:
       db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
-      python-version: '3.10'
-      node-version: 22
+      python-version: '3.14'
+      node-version: 24
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
 
   coverage:

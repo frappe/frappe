@@ -56,21 +56,41 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 
 @frappe.whitelist()
 def export_customizations(
-	module: str, doctype: str, sync_on_migrate: bool = False, with_permissions: bool = False
+	module: str,
+	doctype: str,
+	sync_on_migrate: bool = False,
+	with_permissions: bool = False,
+	apply_module_export_filter: bool = False,
 ):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 	This will be synced with bench migrate"""
 
 	sync_on_migrate = cint(sync_on_migrate)
 	with_permissions = cint(with_permissions)
+	apply_module_export_filter = cint(apply_module_export_filter)
+
+	cf_filters = {"dt": doctype}
+	ps_filters = {"doc_type": doctype}
+
+	if apply_module_export_filter:
+		cf_filters["module"] = module
+		ps_filters["module"] = module
 
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
 	custom = {
-		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}, order_by="name"),
+		"custom_fields": frappe.get_all(
+			"Custom Field",
+			fields="*",
+			filters=cf_filters,
+			order_by="name",
+		),
 		"property_setters": frappe.get_all(
-			"Property Setter", fields="*", filters={"doc_type": doctype}, order_by="name"
+			"Property Setter",
+			fields="*",
+			filters=ps_filters,
+			order_by="name",
 		),
 		"custom_perms": [],
 		"links": frappe.get_all("DocType Link", fields="*", filters={"parent": doctype}, order_by="name"),
@@ -85,7 +105,9 @@ def export_customizations(
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
-		export_customizations(module, d.options, sync_on_migrate, with_permissions)
+		export_customizations(
+			module, d.options, sync_on_migrate, with_permissions, apply_module_export_filter
+		)
 
 	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
 		folder_path = os.path.join(get_module_path(module), "custom")
@@ -154,6 +176,24 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
+				case "DocType Link":
+					for d in data[key]:
+						link = frappe.db.get_value(
+							"DocType Link",
+							{
+								"parent": doc_type,
+								"link_doctype": d.get("link_doctype"),
+								"link_fieldname": d.get("link_fieldname"),
+							},
+						)
+						if not link:
+							d["owner"] = "Administrator"
+							_insert(d)
+						else:
+							doc_link = frappe.get_doc("DocType Link", link)
+							doc_link.flags.ignore_validate = True
+							doc_link.update(d)
+							doc_link.db_update()
 				case "Property Setter":
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
@@ -182,6 +222,9 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 	if data["custom_fields"]:
 		sync("custom_fields", "Custom Field", "dt")
 		update_schema = True
+
+	if data.get("links", False):
+		sync("links", "DocType Link", "parent")
 
 	if data["property_setters"]:
 		sync("property_setters", "Property Setter", "doc_type")
@@ -301,9 +344,7 @@ def get_app_publisher(module: str) -> str:
 	return frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
 
-def make_boilerplate(
-	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
-):
+def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict | "frappe._dict" = None):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
 	if template_name.endswith("._py"):

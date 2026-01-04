@@ -451,10 +451,9 @@ def start_worker_pool(
 	if sbool(os.environ.get("FRAPPE_BACKGROUND_WORKERS_NOFORK", False)):
 		worker_klass = FrappeWorkerNoFork
 	else:
-		if sys.version_info >= (3, 14):
-			import multiprocessing
+		import multiprocessing
 
-			multiprocessing.set_start_method("fork", force=True)
+		multiprocessing.set_start_method("fork", force=True)
 		worker_klass = FrappeWorker
 
 	pool = WorkerPool(

@@ -49,15 +49,6 @@ UNSET = object()
 PropertyType: TypeAlias = property | functools.cached_property
 
 
-if sys.version_info < (3, 11):
-
-	def exception():
-		_exc_type, exc_value, _exc_traceback = sys.exc_info()
-		return exc_value
-
-	sys.exception = exception
-
-
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
 	if not user:
@@ -925,7 +916,7 @@ def get_safe_filters(filters):
 	return filters
 
 
-def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
+def create_batch(iterable: Iterable, size: int) -> Generator[Iterable]:
 	"""Convert an iterable to multiple batches of constant size of batch_size.
 
 	Args:
@@ -1198,44 +1189,3 @@ def create_folder(path, with_init=False):
 
 
 cached_property = functools.cached_property
-if sys.version_info.minor < 12:
-	T = TypeVar("T")
-
-	class cached_property(functools.cached_property, Generic[T]):
-		"""
-		A simpler `functools.cached_property` implementation without locks.
-		This isn't needed in Python 3.12+, since lock was removed in newer versions.
-		Hence, in those versions, it returns the `functools.cached_property` object.
-
-		This does not prevent a possible race condition in multi-threaded usage.
-		The getter function could run more than once on the same instance,
-		with the latest run setting the cached value. If the cached property is
-		idempotent or otherwise not harmful to run more than once on an instance,
-		this is fine. If synchronization is needed, implement the necessary locking
-		inside the decorated getter function or around the cached property access.
-		"""
-
-		def __init__(self, func: Callable[[Any], T]):
-			self.func = func
-			self.attrname = None
-			self.__doc__ = func.__doc__
-			self.__module__ = func.__module__
-
-		def __set_name__(self, owner, name):
-			if self.attrname is None:
-				self.attrname = name
-
-			elif name != self.attrname:
-				raise TypeError(
-					"Cannot assign the same cached_property to two different names "
-					f"({self.attrname!r} and {name!r})."
-				)
-
-		def __get__(self, instance, owner=None) -> T:
-			if instance is None:
-				return self
-
-			value = self.func(instance)
-			instance.__dict__[self.attrname] = value
-			return value
-# end: custom cached_property implementation

@@ -130,6 +130,57 @@ class TestWorkflow(IntegrationTestCase):
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
+	def test_dynamic_update_value_expression(self):
+		"""Test dynamic expression evaluation in workflow update_value field"""
+		self.workflow.states[1].update_field = "assigned_by"
+		self.workflow.states[1].update_value = "frappe.session.user"
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.assigned_by, frappe.session.user)
+
+	def test_dynamic_update_value_with_doc_field(self):
+		"""Test dynamic expression using doc field value"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "doc.allocated_to or 'No assignee'"
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+		todo.allocated_to = "Administrator"
+		todo.save()
+
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.description, "Administrator")
+
+	def test_static_value_when_expression_disabled(self):
+		"""Test that value is not evaluated when evaluate_as_expression is disabled"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "frappe.session.user"
+		self.workflow.states[1].evaluate_as_expression = 0
+		self.workflow.save()
+
+		todo = create_new_todo()
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.description, "frappe.session.user")
+
+	def test_invalid_expression_raises_error(self):
+		"""Test that invalid expression raises proper error"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "invalid_syntax(("
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+
+		with self.assertRaises(frappe.ValidationError):
+			apply_workflow(todo, "Approve")
+
 	# app-defined workflow task tests start here
 	def test_sync_tasks(self, doc=None):
 		"""test workflow with workflow tasks (server scripts, webhooks and app-defined methods)"""

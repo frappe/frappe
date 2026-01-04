@@ -73,45 +73,7 @@ frappe.views.Workspace = class Workspace {
 	}
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
-		this.prepare_new_and_edit();
-	}
-
-	prepare_new_and_edit() {
-		this.$page = $(`
-		<div class="workspace-header" style="display: flex; gap: 7px; margin-top: var(--margin-sm);">
-			<div class="workspace-icon"></div>
-			<h4 class="workspace-title"></h4>
-		</div>
-		<div class="editor-js-container"></div>
-		<div class="workspace-footer">
-			<button data-label="New" class="btn btn-default ellipsis btn-new-workspace">
-				<svg class="es-icon es-line icon-xs" style="" aria-hidden="true">
-					<use class="" href="#es-line-add"></use>
-				</svg>
-				<span class="hidden-xs" data-label="New">${__("New")}</span>
-			</button>
-			<button class="btn btn-default btn-sm mr-2 btn-edit-workspace" data-label="Edit">
-				<svg class="es-icon es-line  icon-xs" style="" aria-hidden="true">
-					<use class="" href="#es-line-edit"></use>
-				</svg>
-				<span class="hidden-xs" data-label="Edit">${__("Edit")}</span>
-			</button>
-		</div>
-	`).appendTo(this.body);
-
-		this.body.find(".btn-new-workspace").on("click", () => {
-			this.initialize_new_page(true);
-		});
-
-		this.body.find(".btn-edit-workspace").on("click", async () => {
-			if (!this.editor || !this.editor.readOnly) return;
-			this.is_read_only = false;
-			await this.editor.readOnly.toggle();
-			this.editor.isReady.then(() => {
-				this.setup_customization_buttons(this._page);
-				this.make_blocks_sortable();
-			});
-		});
+		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
 	}
 
 	get_pages() {
@@ -216,17 +178,94 @@ frappe.views.Workspace = class Workspace {
 
 			let current_page = this.workspaces.find((p) => p.name == page.name);
 			this._page = current_page;
-			if (frappe.boot.app_name_style == "Title") {
+			const me = this;
+			let header_dropdown = `${__(this._page.name)}`;
+			let menu_items = [
+				{
+					label: "Edit",
+					icon: "edit",
+					onClick: async () => {
+						if (!this.editor || !this.editor.readOnly) return;
+						this.is_read_only = false;
+						await this.editor.readOnly.toggle();
+						this.editor.isReady.then(() => {
+							this.setup_customization_buttons(this._page);
+							this.make_blocks_sortable();
+						});
+					},
+					condition: () => {
+						return current_page.is_editable;
+					},
+				},
+				{
+					label: "New",
+					icon: "plus",
+					onClick: function () {
+						me.initialize_new_page(true);
+					},
+					condition: () => {
+						return me.has_create_access;
+					},
+				},
+			];
+			if (frappe.is_mobile()) {
 				frappe.breadcrumbs.add({
 					type: "Custom",
-					label: __(this._page.name),
+					label: header_dropdown + `${frappe.utils.icon("chevron-down")}`,
+					route: "#",
+					menu_items: menu_items,
 				});
-				this.wrapper.find(".workspace-header").hide();
-				this.wrapper
-					.find(".editor-js-container")
-					.get(0)
-					.style.setProperty("margin-top", "var(--margin-sm)");
+			} else {
+				frappe.breadcrumbs.add({
+					type: "Custom",
+					label: header_dropdown,
+					route: "#",
+				});
+				if (!this.add_workspace_controls) {
+					let workspace_actions_button = this.page.add_action_icon("ellipsis");
+					$(workspace_actions_button).removeClass("btn-default");
+					frappe.ui.create_menu({
+						parent: $(workspace_actions_button),
+						open_on_left: true,
+						size: "fit-content",
+						menu_items: [
+							{
+								label: "Edit",
+								icon: "edit",
+								onClick: async () => {
+									if (!this.editor || !this.editor.readOnly) return;
+									this.is_read_only = false;
+									await this.editor.readOnly.toggle();
+									this.editor.isReady.then(() => {
+										this.setup_customization_buttons(this._page);
+										this.make_blocks_sortable();
+									});
+								},
+								condition: () => {
+									return current_page.is_editable;
+								},
+							},
+							{
+								label: "New",
+								icon: "plus",
+								onClick: function () {
+									me.initialize_new_page(true);
+								},
+								condition: () => {
+									return me.has_create_access;
+								},
+							},
+						],
+					});
+					this.add_workspace_controls = true;
+				}
 			}
+
+			this.wrapper.find(".workspace-header").hide();
+			this.wrapper
+				.find(".editor-js-container")
+				.get(0)
+				.style.setProperty("margin-top", "var(--margin-sm)");
 
 			// set app
 			let app;
@@ -341,7 +380,6 @@ frappe.views.Workspace = class Workspace {
 
 		// switch headers
 		if (!this.body.hasClass("edit-mode")) {
-			this.wrapper.find(".page-head").addClass("hidden");
 			this.wrapper.find(".workspace-header").removeClass("hidden");
 		}
 	}

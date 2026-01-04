@@ -497,10 +497,9 @@ def build_xlsx_data(
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
 
-	if cint(include_filters):
+	if cint(include_filters) and data.filters:
 		filter_data = []
-		filters = data.filters
-		for filter_name, filter_value in filters.items():
+		for filter_name, filter_value in data.filters.items():
 			if not filter_value:
 				continue
 			filter_value = (

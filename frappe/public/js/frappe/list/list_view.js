@@ -2340,7 +2340,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 					frappe.meta.get_docfields(doctype).forEach((field_doc) => {
 						if (is_field_editable(field_doc)) {
-							field_mappings[field_doc.label] = Object.assign({}, field_doc);
+							const field_key = `${field_doc.label} (${doctype})`;
+							field_mappings[field_key] = Object.assign({}, field_doc, {
+								is_child_field: false,
+							});
+						}
+
+						// Add child table fields for Table fieldtype
+						if (field_doc.fieldtype === "Table" && field_doc.options) {
+							const child_doctype = field_doc.options;
+							const child_fields = frappe.meta.get_docfields(child_doctype);
+
+							child_fields.forEach((child_field) => {
+								if (is_field_editable(child_field)) {
+									const field_key = `${child_field.label} (${field_doc.label})`;
+									field_mappings[field_key] = Object.assign({}, child_field, {
+										is_child_field: true,
+										child_doctype: child_doctype,
+										parent_table_field: field_doc.fieldname,
+									});
+								}
+							});
 						}
 					});
 

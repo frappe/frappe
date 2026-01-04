@@ -74,8 +74,8 @@ class TokenCache(Document):
 	def get_expires_in(self):
 		system_timezone = ZoneInfo(get_system_timezone())
 		modified: datetime.datetime = get_datetime(self.modified).replace(tzinfo=system_timezone)
-		expiry_utc = modified.astimezone(datetime.timezone.utc) + datetime.timedelta(seconds=self.expires_in)
-		now_utc = datetime.datetime.now(datetime.timezone.utc)
+		expiry_utc = modified.astimezone(datetime.UTC) + datetime.timedelta(seconds=self.expires_in)
+		now_utc = datetime.datetime.now(datetime.UTC)
 		return cint((expiry_utc - now_utc).total_seconds())
 
 	def is_expired(self):

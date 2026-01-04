@@ -171,7 +171,7 @@ class CDPSocketClient:
 			event = event[1]
 		try:
 			self.loop.run_until_complete(asyncio.wait_for(event, timeout))
-		except asyncio.TimeoutError:
+		except TimeoutError:
 			frappe.log_error(title="Timeout waiting for event", message=f"{frappe.get_traceback()}")
 
 	def remove_listener(self, method, event):

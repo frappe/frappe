@@ -14,7 +14,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
-from frappe.model.db_query import DatabaseQuery
+from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
@@ -60,16 +60,14 @@ def get_count() -> int | None:
 		return frappe.call(controller.get_count, args=args, **args)
 
 	args.distinct = sbool(args.distinct)
-	distinct = "distinct " if args.distinct else ""
 	args.limit = cint(args.limit)
-	fieldname = f"{distinct}`tab{args.doctype}`.name"
-	args.pop("distinct")  # to avoid a double DISTINCT concat in db_query
+	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
 	# args.limit is specified to avoid getting accurate count.
 	if not args.limit:
 		args.fields = [fieldname]
-		partial_query = execute(**args, run=0)
+		partial_query = execute(**args, run=0).get_sql()
 		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
 
 	args.fields = [fieldname]
@@ -192,9 +190,8 @@ def setup_group_by(data):
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
-			data.fields.append(
-				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
-			)
+			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
+			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -797,6 +794,8 @@ def scrub_user_tags(tagcount):
 
 # used in building query in queries.py
 def get_match_cond(doctype, as_condition=True):
+	from frappe.model.db_query import DatabaseQuery
+
 	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
 	if not as_condition:
 		return cond
@@ -805,6 +804,8 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
+	from frappe.model.db_query import DatabaseQuery
+
 	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
@@ -840,6 +841,8 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
 					flt.append([doctype, f[0], "=", f[1]])
+
+		from frappe.model.db_query import DatabaseQuery
 
 		query = DatabaseQuery(doctype)
 		query.filters = flt

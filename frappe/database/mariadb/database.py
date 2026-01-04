@@ -570,5 +570,9 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		table = get_table_name(doctype)
 
-		count = self.sql("select table_rows from information_schema.tables where table_name = %s", table)
+		# Scope to current database to avoid cross-site estimates
+		count = self.sql(
+			"select table_rows from information_schema.tables where table_name = %s and table_schema = %s",
+			(table, frappe.db.cur_db_name),
+		)
 		return cint(count[0][0]) if count else 0

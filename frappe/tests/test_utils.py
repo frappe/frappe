@@ -5,7 +5,7 @@ import io
 import json
 import os
 import sys
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
@@ -961,9 +961,9 @@ class TestResponse(IntegrationTestCase):
 					minute=23,
 					second=23,
 					microsecond=23,
-					tzinfo=timezone.utc,
+					tzinfo=UTC,
 				),
-				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=timezone.utc),
+				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=UTC),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
 			"float": [

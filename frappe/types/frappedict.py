@@ -1,11 +1,11 @@
 from collections.abc import Iterable, Mapping
 from typing import (
 	TYPE_CHECKING,
+	Self,
 	TypeVar,
 	overload,
+	override,
 )
-
-from typing_extensions import Self, override
 
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")

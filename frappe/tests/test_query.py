@@ -2174,6 +2174,49 @@ class TestQuery(IntegrationTestCase):
 		).run()
 		self.assertEqual(len(result), 0, "Orphaned child row should be filtered out")
 
+	def test_child_table_of_single_doctype(self):
+		"""Test querying child tables whose parent is a Single doctype.
+
+		Single doctypes don't have physical tables, so we can't join to them.
+		This tests that the query works correctly without the join.
+		"""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=True)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# Log Settings is a Single doctype with child table "Logs To Clear"
+		# Query should work without trying to join the non-existent parent table
+		result = frappe.qb.get_query(
+			"Logs To Clear",
+			fields=["name", "ref_doctype", "days"],
+			parent_doctype="Log Settings",
+			ignore_permissions=False,
+		).run()
+
+		# Query should succeed (may return empty if no logs configured)
+		self.assertIsInstance(result, (list, tuple), "Query should return results without SQL error")
+
+	def test_child_table_of_single_doctype_without_permission(self):
+		"""Test that permission checks work for child tables of Single doctypes."""
+		test_user = "test2@example.com"
+		test_user_doc = frappe.get_doc("User", test_user)
+		self.ensure_system_manager(test_user_doc, should_have=False)
+		self.addCleanup(lambda: frappe.set_user("Administrator"))
+
+		frappe.set_user(test_user)
+
+		# User without System Manager role should not be able to access Log Settings children
+		with self.assertRaises(frappe.PermissionError):
+			frappe.qb.get_query(
+				"Logs To Clear",
+				fields=["name"],
+				parent_doctype="Log Settings",
+				ignore_permissions=False,
+			).run()
+
 	def test_combined_raw_criterion_precedence(self):
 		"""Test that CombinedRawCriterion properly groups OR conditions.
 

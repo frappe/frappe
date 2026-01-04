@@ -53,9 +53,22 @@ frappe.breadcrumbs = {
 
 		this.clear();
 		if (!breadcrumbs) return this.toggle(false);
-
 		if (breadcrumbs.type === "Custom") {
 			this.set_custom_breadcrumbs(breadcrumbs);
+			if (breadcrumbs.menu_items && breadcrumbs.menu_items.length) {
+				let breadcrumbs_container = $(".navbar-breadcrumbs");
+				breadcrumbs_container.each((index, container) => {
+					let last_element = $(container)
+						.find("li")
+						.get($(container).find("li").length - 1);
+					$(last_element).find("a").attr("href", "");
+					frappe.ui.create_menu({
+						parent: $(last_element),
+						menu_items: breadcrumbs.menu_items,
+						size: "fit-content",
+					});
+				});
+			}
 		} else {
 			// workspace
 			this.set_workspace_breadcrumb(breadcrumbs);
@@ -118,8 +131,13 @@ frappe.breadcrumbs = {
 
 		this.append_breadcrumb_element(
 			`/desk/${frappe.router.slug(breadcrumbs.workspace)}`,
-			__(breadcrumbs.workspace)
+			__(breadcrumbs.workspace),
+			"worksapce-breadcrumb"
 		);
+
+		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
+
+		worksapce_crumb.parent().addClass("ellipsis");
 	},
 
 	set_workspace(breadcrumbs) {
@@ -191,6 +209,9 @@ frappe.breadcrumbs = {
 			}
 			this.append_breadcrumb_element(`/desk/${route}`, __(doctype), "title-text");
 		}
+
+		let list_crumb = this.$breadcrumbs.find("li a.title-text");
+		list_crumb.parent().addClass("ellipsis");
 	},
 
 	set_form_breadcrumb(breadcrumbs, view) {
@@ -210,7 +231,10 @@ frappe.breadcrumbs = {
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
-			last_crumb.addClass("ellipsis");
+			if (frappe.is_mobile()) {
+				last_crumb.addClass("ellipsis");
+				last_crumb.find("a").addClass("ellipsis");
+			}
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();

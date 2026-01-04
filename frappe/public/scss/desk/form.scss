@@ -29,7 +29,7 @@
 
 .form-section,
 .form-dashboard-section {
-	padding: var(--padding-md);
+	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
 		margin: auto;
@@ -78,17 +78,6 @@
 		}
 	}
 }
-.section-head {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.section-head::after {
-	content: "";
-	flex: 1;
-	border-bottom: 1px solid var(--border-color);
-}
 .section-head,
 .section-body {
 	margin: auto !important;
@@ -125,10 +114,9 @@
 	display: none !important;
 	border: 0 !important;
 }
-
+.form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
-	padding: var(--padding-md) 0;
 }
 
 .form-section.card-section.hide-border {
@@ -138,6 +126,10 @@
 	&:not(:has(.section-head)) {
 		padding-top: 0;
 	}
+}
+
+.form-section > .section-body:first-child {
+	padding-top: 12px;
 }
 
 .form-dashboard-section {

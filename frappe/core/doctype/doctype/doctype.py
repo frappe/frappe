@@ -1140,10 +1140,10 @@ def validate_empty_name(dt, autoname):
 			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
 
 
-def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
+def validate_autoincrement_autoname(dt: DocType | "CustomizeForm") -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+	def get_autoname_before_save(dt: DocType | "CustomizeForm") -> str:
 		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
@@ -1278,9 +1278,20 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
+		RESERVED_DOCFIELD_NAMES = frozenset(("autoname",))
+
 		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
+					frappe.bold(docname),
+					frappe.bold(fieldname),
+				),
+				title=_("Invalid Fieldname"),
+			)
+
+		if fieldname in RESERVED_DOCFIELD_NAMES and docname != "DocType":
+			frappe.throw(
+				_("{0}: fieldname cannot be set to reserved field {1} in DocType").format(
 					frappe.bold(docname),
 					frappe.bold(fieldname),
 				),

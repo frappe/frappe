@@ -1212,6 +1212,42 @@ class TestSqlIterator(IntegrationTestCase):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unbuffered_cursor_postgres(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_dict=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_dict=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, pluck=True, as_iterator=True))
+			query_val = frappe.db.sql(query, pluck=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_list=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_list=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
 
 class ExtIntegrationTestCase(IntegrationTestCase):
 	def assertSqlException(self):

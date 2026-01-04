@@ -1,4 +1,5 @@
 import random
+from unittest.case import skipIf
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -207,7 +208,10 @@ class TestDBUpdate(IntegrationTestCase):
 
 
 class TestDBUpdateSanityChecks(IntegrationTestCase):
-	@run_only_if(db_type_is.MARIADB)
+	@skipIf(
+		(frappe.conf.db_type == "sqlite"),
+		"Not for SQLite for now",
+	)
 	def test_no_unnecessary_migrates(self):
 		doctypes = frappe.get_all("DocType", {"is_virtual": 0, "custom": 0}, pluck="name")
 

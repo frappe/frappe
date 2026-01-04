@@ -13,7 +13,7 @@ on:
       node-version:
         required: false
         type: number
-        default: 22
+        default: 24
       parallel-runs:
         required: false
         type: number

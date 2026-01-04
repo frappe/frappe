@@ -6,7 +6,7 @@
 
 	.page-form {
 		.form-group {
-			padding: 0px var(--padding-sm);
+			padding: 0px 16px 0px 0px;
 			margin: var(--margin-sm) 0px;
 		}
 	}
@@ -231,6 +231,7 @@
 			background: var(--card-bg);
 			border-radius: var(--border-radius-sm, 4px);
 			border: 1px solid var(--dark-border-color);
+			padding: 4px 6px;
 
 			&.green {
 				color: var(--green-500);
