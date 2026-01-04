@@ -427,6 +427,20 @@ const styleSectionProperties = [
 		},
 	},
 	{
+		component: ColorInput,
+		getProps: () => {
+			return {
+				label: "Text Color",
+				value: blockController.getStyle("color"),
+			}
+		},
+		events: {
+			change: (val: StyleValue) => blockController.setStyle("color", val),
+		},
+		allowDynamicValue: true,
+		searchKeyWords: "Text, Color, TextColor, Text Color",
+	},
+	{
 		component: InlineInput,
 		getProps: () => {
 			return {
@@ -504,6 +518,27 @@ const styleSectionProperties = [
 		component: InlineInput,
 		getProps: () => {
 			return {
+				label: "Z-Index",
+				modelValue: blockController.getStyle("zIndex"),
+			}
+		},
+		searchKeyWords: "Z, Index, ZIndex, Z Index",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("zIndex", val),
+		},
+		condition: () =>
+			!blockController.multipleBlocksSelected() &&
+			!blockController.isRoot() &&
+			blockController.getStyle("position") !== "static",
+		allowDynamicValue: true,
+		getValue: () => {
+			return blockController.getStyle("zIndex")
+		},
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
 				label: "Shadow",
 				type: "select",
 				options: [
@@ -533,27 +568,6 @@ const styleSectionProperties = [
 		searchKeyWords: "Shadow, BoxShadow, Box Shadow",
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("boxShadow", val),
-		},
-	},
-	{
-		component: InlineInput,
-		getProps: () => {
-			return {
-				label: "Z-Index",
-				modelValue: blockController.getStyle("zIndex"),
-			}
-		},
-		searchKeyWords: "Z, Index, ZIndex, Z Index",
-		events: {
-			"update:modelValue": (val: StyleValue) => blockController.setStyle("zIndex", val),
-		},
-		condition: () =>
-			!blockController.multipleBlocksSelected() &&
-			!blockController.isRoot() &&
-			blockController.getStyle("position") !== "static",
-		allowDynamicValue: true,
-		getValue: () => {
-			return blockController.getStyle("zIndex")
 		},
 	},
 ]
