@@ -12,7 +12,7 @@ _strip_html_tags = functools.lru_cache(maxsize=1024)(strip_html_tags)
 
 
 def msgprint(
-	msg: str | Sequence[str],
+	msg: str | Sequence[str] | Sequence[Sequence[str]],
 	title: str | None = None,
 	raise_exception: bool | type[Exception] | Exception = False,
 	as_table: bool = False,
@@ -69,14 +69,14 @@ def msgprint(
 
 	if sys.stdin and sys.stdin.isatty():
 		if out.as_list:
-			out.message = [_strip_html_tags(cell) for cell in msg]
+			msg = [_strip_html_tags(cell) for cell in msg]
 		elif out.as_table:
-			out.message = [[_strip_html_tags(cell) for cell in row] for row in msg]
+			msg = [[_strip_html_tags(cell) for cell in row] for row in msg]
 		else:
-			out.message = _strip_html_tags(msg)
+			msg = _strip_html_tags(msg)
 
 	if frappe.flags.print_messages and out.message:
-		print(f"Message: {out.message}")
+		print(f"Message: {msg}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 

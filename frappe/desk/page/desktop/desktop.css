@@ -113,7 +113,6 @@
 .icon-container img{
     width: var(--desktop-icon-dimension);
     height: var(--desktop-icon-dimension);
-    user-drag: none;
     -webkit-user-drag: none;
     user-select: none;
     -moz-user-select: none;
@@ -356,11 +355,6 @@
     }
 }
 
-                /* @media screen and (max-width: 320px) {
-                    .icons{
-                        grid-template-columns: repeat(2, 1fr) !important;
-                    }
-                } */
 @media screen and (max-width: 570px) {
   :root {
     --desktop-icon-dimension: 50px;
@@ -390,8 +384,13 @@
         > .desktop-icon {
           width: var(--desktop-icon-container);
           height: var(--desktop-icon-container);
+          .icon-container {
+                min-width: var(--desktop-icon-dimension);
+                min-height: var(--desktop-icon-dimension);
+          }
         }
       }
+
     }
   }
 
@@ -429,7 +428,27 @@
         > .icons {
             grid-template-columns: repeat(2, 1fr) !important;
             grid-template-rows: repeat(2, 1fr) !important;
+            > .desktop-icon {
+                .icon-container {
+                        min-width: unset;
+                        min-height: unset;
+                }
+            }
+            }
         }
-    }
+}
 
+.desktop-edit{
+    width: 36px;
+    height: 36px;
+    background-color: var(--surface-gray-7);
+    position: absolute;
+    bottom: 4%;
+    right: 4%;
+    z-index: 100;
+    opacity: 0.1;
+}
+.desktop-edit:hover{
+    opacity: 1;
+    transition: opacity 0.3s;
 }

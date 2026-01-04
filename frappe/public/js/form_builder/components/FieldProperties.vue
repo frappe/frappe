@@ -41,13 +41,27 @@ let docfield_df = computed(() => {
 			df.options = "";
 			args.value = {};
 
-			if (["Table", "Link"].includes(store.form.selected_field.fieldtype)) {
+			if (
+				["Table MultiSelect", "Table", "Link"].includes(
+					store.form.selected_field.fieldtype
+				)
+			) {
 				df.fieldtype = "Link";
 				df.options = "DocType";
 
 				if (store.form.selected_field.fieldtype === "Table") {
 					args.value.is_table_field = 1;
 				}
+			}
+			if (store.form.selected_field.fieldtype === "Data") {
+				df.fieldtype = "Select";
+				df.options = ["", "Email", "Name", "Phone", "URL", "Barcode", "IBAN"];
+			}
+
+			if (store.form.selected_field.fieldtype === "Select") {
+				df.description = __("Enter list of Options, each on a new line.");
+			} else {
+				df.description = "";
 			}
 		}
 

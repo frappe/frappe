@@ -31,12 +31,12 @@ Tip: use lucide.svg in /icons for all downloaded icons
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-right">
 		<path d="m9 18 6-6-6-6"/>
 	</symbol>
-	
+
 
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-left">
 		<path d="m15 18-6-6 6-6"/>
 	</symbol>
-	
+
 
 
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-google" stroke-width="1.5">
@@ -64,7 +64,7 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M2.10756 9.53547C1.93501 9.82126 1.93501 10.1787 2.10756 10.4645C3.75635 13.1955 6.60531 15 9.84351 15C13.0817 15 15.9307 13.1955 17.5795 10.4645C17.752 10.1787 17.752 9.82127 17.5795 9.53548C15.9307 6.80451 13.0817 5 9.84351 5C6.60531 5 3.75635 6.8045 2.10756 9.53547ZM10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13Z" fill="var(--icon-stroke)"/>
 		<circle cx="10" cy="10" r="1" fill="var(--icon-stroke)"/>
 	</symbol>
-	
+
 
 
 	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-hide">
@@ -139,9 +139,9 @@ Tip: use lucide.svg in /icons for all downloaded icons
 	</symbol>
 
 
-	
 
-	
+
+
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-close-alt">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M3.78033 2.71967C3.48744 2.42678 3.01257 2.42678 2.71967 2.71967C2.42678 3.01256 2.42678 3.48744 2.71967 3.78033L6.94054 8.00119L2.71967 12.2221C2.42678 12.515 2.42678 12.9898 2.71967 13.2827C3.01257 13.5756 3.48744 13.5756 3.78033 13.2827L8.0012 9.06185L12.222 13.2826C12.5149 13.5755 12.9897 13.5755 13.2826 13.2826C13.5755 12.9897 13.5755 12.5148 13.2826 12.222L9.06186 8.00119L13.2826 3.78044C13.5755 3.48755 13.5755 3.01267 13.2826 2.71978C12.9897 2.42688 12.5149 2.42689 12.222 2.71978L8.0012 6.94054L3.78033 2.71967Z" fill="var(--icon-stroke)"/>
 	</symbol>
@@ -331,8 +331,8 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<path d="M8.81836 6.45466L10.7943 4.47873C11.4212 3.85205 12.2714 3.5 13.1578 3.5C14.0443 3.5 14.8945 3.85205 15.5214 4.47873V4.47873C16.1481 5.10568 16.5001 5.95584 16.5001 6.84229C16.5001 7.72873 16.1481 8.5789 15.5214 9.20584L13.5455 11.1818" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M6.45466 8.81824L4.47873 10.7942C3.85205 11.4211 3.5 12.2713 3.5 13.1577C3.5 14.0442 3.85205 14.8943 4.47873 15.5213V15.5213C5.10568 16.148 5.95584 16.5 6.84229 16.5C7.72874 16.5 8.5789 16.148 9.20584 15.5213L11.1818 13.5453" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
-	
-	
+
+
 
 
 	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-website">
@@ -659,10 +659,11 @@ Tip: use lucide.svg in /icons for all downloaded icons
 		<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
 	</symbol>
 
-	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-chart">
-		<path d="M16 3H13.3333C12.7811 3 12.3333 3.44772 12.3333 4V17H16C16.5523 17 17 16.5523 17 16V4C17 3.44772 16.5523 3 16 3Z" stroke-miterlimit="10" stroke-linecap="square"/>
-		<path d="M11.3333 7H8.66666C8.11437 7 7.66666 7.44772 7.66666 8V17H12.3333V8C12.3333 7.44772 11.8856 7 11.3333 7Z" stroke-miterlimit="10" stroke-linecap="square"/>
-		<path d="M6.66667 11.167H4C3.44772 11.167 3 11.6147 3 12.167V16.0003C3 16.5526 3.44771 17.0003 4 17.0003H7.66667V12.167C7.66667 11.6147 7.21895 11.167 6.66667 11.167Z" stroke-miterlimit="10" stroke-linecap="square"/>
+	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-chart">
+		<path d="M3 3v16a2 2 0 0 0 2 2h16" />
+		<path d="M18 17V9" />
+		<path d="M13 17V5" />
+		<path d="M8 17v-3" />
 	</symbol>
 
 	<symbol viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" id="icon-shortcut">

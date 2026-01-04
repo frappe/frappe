@@ -8,13 +8,14 @@
  "icon_type": "Link",
  "idx": 0,
  "label": "Printing",
- "link_to": "Print Format",
- "link_type": "DocType",
- "modified": "2025-11-25 13:25:33.114392",
+ "link_to": "Printing",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.569646",
  "modified_by": "Administrator",
  "name": "Printing",
  "owner": "Administrator",
  "parent_icon": "Framework",
+ "restrict_removal": 0,
  "roles": [
   {
    "role": "System Manager"

@@ -176,6 +176,24 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
+				case "DocType Link":
+					for d in data[key]:
+						link = frappe.db.get_value(
+							"DocType Link",
+							{
+								"parent": doc_type,
+								"link_doctype": d.get("link_doctype"),
+								"link_fieldname": d.get("link_fieldname"),
+							},
+						)
+						if not link:
+							d["owner"] = "Administrator"
+							_insert(d)
+						else:
+							doc_link = frappe.get_doc("DocType Link", link)
+							doc_link.flags.ignore_validate = True
+							doc_link.update(d)
+							doc_link.db_update()
 				case "Property Setter":
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
@@ -204,6 +222,9 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 	if data["custom_fields"]:
 		sync("custom_fields", "Custom Field", "dt")
 		update_schema = True
+
+	if data.get("links", False):
+		sync("links", "DocType Link", "parent")
 
 	if data["property_setters"]:
 		sync("property_setters", "Property Setter", "doc_type")

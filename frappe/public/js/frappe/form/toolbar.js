@@ -203,10 +203,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 	setup_editable_title(element) {
 		let me = this;
 
-		$(element).tooltip({
-			delay: { show: 100, hide: 100 },
-			trigger: "hover",
-		});
+		if (me.is_title_editable()) {
+			$(element).tooltip({
+				delay: { show: 100, hide: 100 },
+				trigger: "hover",
+			});
+			$(element).addClass("pointer");
+		}
 
 		element.on("click", () => {
 			let fields = [];
@@ -315,7 +318,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_menu();
 
 		if (frappe.boot.desk_settings.form_sidebar) {
-			this.make_navigation();
+			// this.make_navigation();
 			this.make_menu_items();
 		}
 	}

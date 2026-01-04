@@ -17,6 +17,7 @@ class WorkflowDocumentState(Document):
 		allow_edit: DF.Link
 		avoid_status_override: DF.Check
 		doc_status: DF.Literal["0", "1", "2"]
+		evaluate_as_expression: DF.Check
 		is_optional_state: DF.Check
 		message: DF.Text | None
 		next_action_email_template: DF.Link | None

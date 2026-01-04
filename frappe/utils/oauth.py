@@ -213,7 +213,9 @@ def login_oauth_user(
 		frappe.respond_as_web_page(_("Invalid Request"), _("Token is missing"), http_status_code=417)
 		return
 
-	user = get_email(data)
+	# All user emails are stored as lowercase, but OAuth provider could have it in mixed case.
+	# We pass the email as-is to LoginManager, which could result in a session with an incorrect email.
+	user = get_email(data).lower()
 
 	if not user:
 		frappe.respond_as_web_page(

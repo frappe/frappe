@@ -318,7 +318,7 @@ frappe.get_data_pill = (
 		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">
 				${image ? image : ""}
-				<span class="pill-label">${label} </span>
+				<span class="pill-label ellipsis">${label} </span>
 			</div>
 		</button>
 	`);

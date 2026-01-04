@@ -431,7 +431,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			no_spinner: true,
 			cache: use_get,
 			args: args,
-			callback: (r) => {
+			callback: async (r) => {
 				if (!window.Cypress && !this.$input.is(":focus")) {
 					return;
 				}
@@ -441,7 +441,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				let filter_string = this.df.filter_description
 					? this.df.filter_description
 					: args.filters
-					? this.get_filter_description(args.filters)
+					? await this.get_filter_description(args.filters)
 					: null;
 				if (filter_string) {
 					r.message.push({
@@ -533,14 +533,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 
-	get_filter_description(filters) {
-		let doctype = this.get_options();
+	async get_filter_description(filters) {
+		const doctype = this.get_options();
 		let filter_array = [];
-		let meta = null;
-
-		frappe.model.with_doctype(doctype, () => {
-			meta = frappe.get_meta(doctype);
-		});
 
 		// convert object style to array
 		if (!Array.isArray(filters)) {
@@ -549,50 +544,175 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				if (!Array.isArray(value)) {
 					value = ["=", value];
 				}
-				filter_array.push([fieldname, ...value]); // fieldname, operator, value
+				filter_array.push([doctype, fieldname, ...value]); // [doctype, fieldname, operator, value]
 			}
 		} else {
-			filter_array = filters;
+			filter_array = filters.slice(); // clone
 		}
 
-		// add doctype if missing
-		filter_array = filter_array.map((filter) => {
-			if (filter.length === 3) {
-				return [doctype, ...filter]; // doctype, fieldname, operator, value
-			}
-			return filter;
-		});
+		// add doctype if missing: [doctype, fieldname, operator, value]
+		filter_array = filter_array.map((f) => (f.length === 3 ? [doctype, ...f] : f));
 
-		function get_filter_description(filter) {
-			let doctype = filter[0];
-			let fieldname = filter[1];
-			let docfield = frappe.meta.get_docfield(doctype, fieldname);
-			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
-
+		function formatValueForDisplay(docfield, val) {
+			// Check boolean fields -> show Yes/No (localized)
+			// Handles 0/1, true/false values
 			if (docfield && docfield.fieldtype === "Check") {
-				filter[3] = filter[3] ? __("Yes") : __("No");
+				return val == 1 || val === true ? __("Yes") : __("No");
 			}
 
-			if (filter[3] && Array.isArray(filter[3]) && filter[3].length > 5) {
-				filter[3] = filter[3].slice(0, 5);
-				filter[3].push("...");
+			// Array values -> truncate to first 5, append "..."
+			if (Array.isArray(val)) {
+				const filtered = val.filter((v) => v != null && v !== "");
+				const arr = filtered.slice(0, 5).map((v) => {
+					// Strings in quotes, numbers/dates not quoted
+					if (typeof v === "string") {
+						return `"${String(__(v))}"`;
+					}
+					// Numbers, dates, etc. - not translated, not quoted
+					return String(v);
+				});
+				if (filtered.length > 5) arr.push("...");
+				return arr.join(", ");
 			}
 
-			let value;
-			if (filter[3] && Array.isArray(filter[3])) {
-				value = filter[3].map((v) => String(__(v)).bold()).join(", ");
-			} else if (filter[3] == null || filter[3] === "") {
-				value = __("empty").bold();
-			} else {
-				value = String(__(filter[3])).bold();
+			// Null / empty
+			if (val == null || val === "") {
+				return __("empty", null, "Comparison value is empty");
 			}
 
-			return [__(label).bold(), __(filter[2]), value].join(" ");
+			// Format based on type: strings in quotes, numbers/dates not quoted
+			if (typeof val === "string") {
+				return `"${String(__(val))}"`;
+			}
+
+			// Numbers, dates, etc. - not translated, not quoted
+			return frappe.format(val, docfield || {});
 		}
 
-		let filter_string = filter_array.map(get_filter_description).join(", ");
+		async function describe_filter(filter) {
+			// expect [doctype, fieldname, operator, value]
+			const _doctype = filter[0];
+			const fieldname = filter[1];
+			const operator = filter[2];
+			let value = filter[3];
 
-		return __("Filters applied for {0}", [filter_string]);
+			// Ensure metadata is loaded for this doctype before accessing docfield
+			await frappe.model.with_doctype(_doctype, () => {});
+
+			const docfield = frappe.meta.get_docfield(_doctype, fieldname);
+			const label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
+			const fieldtype = docfield ? docfield.fieldtype : null;
+
+			const labelDisplay = `<i>${String(__(label, null, _doctype))}</i>`;
+			const valueDisplay = formatValueForDisplay(docfield, value);
+			const is_time_like = ["Date", "Datetime", "Time"].includes(fieldtype);
+
+			// Handle all operators with translation and interpolation in one call
+			switch (operator) {
+				case "=":
+					if (fieldtype === "Check") {
+						if (fieldname === "enabled") {
+							return value == 1
+								? __("is enabled") // ["enabled", "=", 1]
+								: __("is disabled"); // ["enabled", "=", 0]
+						}
+
+						if (fieldname === "disabled") {
+							return value == 1
+								? __("is disabled") // ["disabled", "=", 1]
+								: __("is enabled"); // ["disabled", "=", 0]
+						}
+
+						return value == 1
+							? __("{0} is enabled", [labelDisplay])
+							: __("{0} is disabled", [labelDisplay]);
+					}
+					return __("{0} equals {1}", [labelDisplay, valueDisplay]);
+				case "!=":
+					if (fieldtype === "Check") {
+						if (fieldname === "enabled") {
+							return value == 1
+								? __("is disabled") // ["enabled", "!=", 1]
+								: __("is enabled"); // ["enabled", "!=", 0]
+						}
+
+						if (fieldname === "disabled") {
+							return value == 1
+								? __("is enabled") // ["disabled", "!=", 1]
+								: __("is disabled"); // ["disabled", "!=", 0]
+						}
+
+						return value == 1
+							? __("{0} is disabled", [labelDisplay])
+							: __("{0} is enabled", [labelDisplay]);
+					}
+					return __("{0} is not equal to {1}", [labelDisplay, valueDisplay]);
+				case "in":
+					return __("{0} is one of {1}", [labelDisplay, valueDisplay]);
+				case "not in":
+					return __("{0} is not one of {1}", [labelDisplay, valueDisplay]);
+				case "like":
+					return __("{0} contains {1}", [labelDisplay, valueDisplay]);
+				case "not like":
+					return __("{0} does not contain {1}", [labelDisplay, valueDisplay]);
+				case ">":
+					if (is_time_like) {
+						return __("{0} is after {1}", [labelDisplay, valueDisplay]);
+					}
+					return __("{0} is greater than {1}", [labelDisplay, valueDisplay]);
+				case "<":
+					if (is_time_like) {
+						return __("{0} is before {1}", [labelDisplay, valueDisplay]);
+					}
+					return __("{0} is less than {1}", [labelDisplay, valueDisplay]);
+				case ">=":
+					if (is_time_like) {
+						return __("{0} is on or after {1}", [labelDisplay, valueDisplay]);
+					}
+					return __("{0} is greater than or equal to {1}", [labelDisplay, valueDisplay]);
+				case "<=":
+					if (is_time_like) {
+						return __("{0} is on or before {1}", [labelDisplay, valueDisplay]);
+					}
+					return __("{0} is less than or equal to {1}", [labelDisplay, valueDisplay]);
+				case "is":
+					if (value == "set") {
+						return __("{0} is set", [labelDisplay]);
+					}
+					if (value == "not set") {
+						return __("{0} is not set", [labelDisplay]);
+					}
+					return __("{0} is {1}", [labelDisplay, valueDisplay]);
+				case "between":
+					if (Array.isArray(value) && value.length === 2) {
+						return __("{0} is between {1} and {2}", [
+							labelDisplay,
+							formatValueForDisplay(docfield, value[0]),
+							formatValueForDisplay(docfield, value[1]),
+						]);
+					}
+					return __("{0} is between {1}", [labelDisplay, valueDisplay]);
+				case "descendants of":
+					return __("{0} is a descendant of {1}", [labelDisplay, valueDisplay]);
+				case "ancestors of":
+					return __("{0} is an ancestor of {1}", [labelDisplay, valueDisplay]);
+				case "not descendants of":
+					return __("{0} is not a descendant of {1}", [labelDisplay, valueDisplay]);
+				case "not ancestors of":
+					return __("{0} is not an ancestor of {1}", [labelDisplay, valueDisplay]);
+				case "timespan":
+					return __("{0} is within {1}", [labelDisplay, valueDisplay]);
+				default:
+					// Fallback for unknown operators (no translatable text here)
+					return [labelDisplay, operator, valueDisplay].join(" ");
+			}
+		}
+
+		const descriptions = await Promise.all(
+			filter_array.map((filter) => describe_filter(filter))
+		);
+		const filter_string = frappe.utils.comma_and(descriptions);
+		return __("Filtered by: {0}.", [filter_string]);
 	}
 
 	set_custom_query(args) {

@@ -42,12 +42,39 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			},
 		];
 		if (frappe.boot.desk_settings.notifications) {
-			this.dropdown_items.push({
-				name: "help",
-				label: "Help",
-				icon: "info",
-				items: this.get_help_siblings(),
-			});
+			let is_dark = frappe.ui.get_current_theme() === "dark";
+			this.dropdown_items.push(
+				{
+					name: "help",
+					label: "Help",
+					icon: "info",
+					items: this.get_help_siblings(),
+				},
+				{
+					label: "Session Defaults",
+					action: "frappe.ui.toolbar.setup_session_defaults()",
+					is_standard: 1,
+					icon: "sliders-horizontal",
+				},
+				{
+					label: "Reload",
+					action: "frappe.ui.toolbar.clear_cache()",
+					is_standard: 1,
+					icon: "rotate-ccw",
+				},
+				{
+					label: "Toggle Full Width",
+					action: "frappe.ui.toolbar.toggle_full_width()",
+					is_standard: 1,
+					icon: "maximize",
+				},
+				{
+					label: "Toggle Theme",
+					action: "new frappe.ui.ThemeSwitcher().show()",
+					is_standard: 1,
+					icon: is_dark ? "sun" : "moon",
+				}
+			);
 		}
 		this.make();
 		this.setup_app_switcher();
@@ -63,12 +90,19 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				let item = {
 					name: w.toLowerCase(),
 					label: w,
-					icon: "wallpaper",
 					url: frappe.utils.generate_route({
 						type: "Workspace",
 						route: frappe.router.slug(w),
 					}),
 				};
+				if (frappe.utils.get_desktop_icon(w, frappe.boot.desktop_icon_style)) {
+					item.icon_url = frappe.utils.get_desktop_icon(
+						w,
+						frappe.boot.desktop_icon_style
+					);
+				} else {
+					item.icon_html = frappe.utils.desktop_icon(w, "gray", "sm");
+				}
 				sibling_workspaces.push(item);
 			});
 			return sibling_workspaces;
@@ -147,11 +181,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.header_icon = `<img src=${this.header_icon}></img>`;
 		} else if (this.sidebar.sidebar_data) {
 			this.header_icon = this.sidebar.sidebar_data.header_icon;
-			this.header_icon = frappe.utils.desktop_icon(
-				this.sidebar.sidebar_title.charAt(0),
-				"gray",
-				"sm"
-			);
+			this.header_icon = frappe.utils.desktop_icon(this.sidebar.sidebar_title, "gray", "sm");
 		} else {
 			this.header_icon = this.get_default_icon();
 			this.header_icon = `<img src=${this.header_icon}></img>`;

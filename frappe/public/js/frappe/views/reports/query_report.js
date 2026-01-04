@@ -44,6 +44,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.setup_events,
 		].map((fn) => fn.bind(this));
 		this.init_promise = frappe.run_serially(tasks);
+		this.boolean_labels = { 1: __("Yes"), 0: __("No") };
 		return this.init_promise;
 	}
 
@@ -640,11 +641,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const me = this;
 		let filter_no = this.filter_row_length - 1;
 		if (this.filters[filter_no]) {
-			this.$collapse_button = $(`<div>${frappe.utils.icon("chevron-down", "md")}</div>`);
+			this.$collapse_button = $(`<div>${frappe.utils.icon("chevron-down")}</div>`);
 			$(this.filters[filter_no].wrapper).append(this.$collapse_button);
 			$(this.filters[filter_no].wrapper).css("display", "flex");
 			$(this.filters[filter_no].wrapper).css("align-items", "center");
-			$(this.filters[filter_no].wrapper).css("gap", "5px");
+			$(this.filters[filter_no].wrapper).css("gap", "16px");
+
+			this.$collapse_button.addClass("btn");
+			this.$collapse_button.addClass("btn-xs");
+			this.$collapse_button.addClass("btn-secondary");
 			this.$collapse_button.on("click", function () {
 				me.toggle_filter_visiblity();
 			});
@@ -1514,17 +1519,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	async print_report(print_settings) {
-		let custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == "Landscape";
 
-		if (print_settings.report) {
-			custom_format = await this.get_report_print_format(print_settings.report);
-		}
+		const custom_format = await this.get_custom_format(print_settings);
 
 		this.make_access_log("Print", "PDF");
+
 		frappe.render_grid({
-			template: print_settings.columns ? "print_grid" : custom_format,
+			template: print_settings.columns || !custom_format ? "print_grid" : custom_format,
 			title: __(this.report_name),
 			subtitle: print_settings?.include_filters ? filters_html : null,
 			print_settings: print_settings,
@@ -1543,14 +1546,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == "Landscape";
 
-		let custom_format = this.report_settings.html_format || null;
+		const custom_format = await this.get_custom_format(print_settings);
+
 		const columns = this.get_columns_for_print(print_settings, custom_format);
 		const data = this.get_data_for_print();
 		const applied_filters = this.get_filter_values();
-
-		if (print_settings.report) {
-			custom_format = await this.get_report_print_format(print_settings.report);
-		}
 
 		const filters_html = this.get_filters_html_for_print();
 		const template = print_settings.columns || !custom_format ? "print_grid" : custom_format;
@@ -1562,6 +1562,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			original_data: this.data,
 			columns: columns,
 			report: this,
+			print_settings: print_settings,
 		});
 
 		// Render Report in HTML
@@ -1594,6 +1595,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.render_pdf(html, print_settings);
 	}
 
+	async get_custom_format(print_settings) {
+		let custom_format = this.report_settings.html_format || null;
+
+		if (print_settings.print_format) {
+			custom_format = await this.get_report_print_format(print_settings.print_format);
+		} else if (
+			!print_settings.columns?.length &&
+			typeof this.report_settings.get_pdf_format === "function"
+		) {
+			custom_format = await this.report_settings.get_pdf_format(this, custom_format);
+		}
+
+		return custom_format;
+	}
+
 	async get_report_print_format(report_name) {
 		const filters = {
 			name: report_name,
@@ -1612,6 +1628,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
+
 		return Object.keys(applied_filters)
 			.map((fieldname) => {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
@@ -1621,8 +1638,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					return null;
 				}
 
+				let display_value = value;
+
+				if (docfield.fieldtype === "Check") {
+					display_value = this.boolean_labels[cint(value)];
+				} else {
+					display_value = frappe.format(value, docfield);
+				}
+
 				return `<div class="filter-row">
-					<b>${__(docfield.label, null, docfield.parent)}:</b> ${frappe.format(value, docfield)}
+					<strong>${__(docfield.label, null, docfield.parent)}:</strong> ${display_value}
 				</div>`;
 			})
 			.join("");
@@ -1649,13 +1674,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		if (this.report_settings.export_hidden_cols) {
-			const hidden_fields = [];
+			const hidden_fields = new Set();
+
 			this.columns.forEach((column) => {
 				if (column.hidden) {
-					hidden_fields.push(column.label);
+					hidden_fields.add(column.label);
 				}
 			});
-			if (hidden_fields.length) {
+
+			if (hidden_fields.size) {
 				extra_fields.push(
 					{
 						fieldname: "column_break_1",
@@ -1664,13 +1691,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					{
 						label: __("Include hidden columns"),
 						fieldname: "include_hidden_columns",
-						description: __("Hidden columns include: {0}", [hidden_fields.join(", ")]),
 						fieldtype: "Check",
+						description: __("Hidden columns include: <br> {0}", [
+							frappe.utils.comma_and(Array.from(hidden_fields)),
+						]),
 					}
 				);
 			}
 		}
-
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
@@ -1729,14 +1757,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_applied_filters(filters) {
-		const boolean_labels = { 1: __("Yes"), 0: __("No") };
+		// Return filters which are not hidden_due_to_dependency
+		// Filters with Label as key and Value as value
 		const applied_filters = {};
 
 		for (const [key, value] of Object.entries(filters)) {
 			const df = frappe.query_report.get_filter(key).df;
 			if (!df.hidden_due_to_dependency) {
 				applied_filters[df.label] =
-					df.fieldtype === "Check" ? boolean_labels[value] : value;
+					df.fieldtype === "Check" ? this.boolean_labels[cint(value)] : value;
 			}
 		}
 

@@ -43,20 +43,53 @@ function get_route(desktop_icon) {
 	if (desktop_icon.link_type == "External" && desktop_icon.link) {
 		route = window.location.origin + desktop_icon.link;
 	} else {
-		if (desktop_icon.link_type == "Workspace") {
-			item = {
-				type: desktop_icon.link_type,
-				link: frappe.router.slug(desktop_icon.link_to),
-			};
-		} else if (desktop_icon.link_type == "DocType" || desktop_icon.link_type == "list") {
-			item = {
-				type: desktop_icon.link_type,
-				name: desktop_icon.link_to,
-			};
-		}
-		route = frappe.utils.generate_route(item);
-	}
+		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+			let first_link = sidebar.items.find((i) => i.type == "Link");
+			if (first_link) {
+				if (first_link.link_type === "Report") {
+					let args = {
+						type: first_link.link_type,
+						name: first_link.link_to,
+					};
 
+					if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						args.is_query_report =
+							first_link.report.report_type === "Query Report" ||
+							first_link.report.report_type == "Script Report";
+						args.report_ref_doctype = first_link.report.ref_doctype;
+					}
+
+					route = frappe.utils.generate_route(args);
+				} else if (first_link.link_type == "Workspace") {
+					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+					if (workspaces.public) {
+						route = "/desk/" + frappe.router.slug(first_link.link_to);
+					} else {
+						route = "/desk/private/" + frappe.router.slug(workspaces.title);
+					}
+
+					if (first_link.route) {
+						route = first_link.route;
+					}
+				} else if (first_link.link_type === "URL") {
+					route = first_link.url;
+				} else if (first_link.link_type == "Page" && first_link.route_options) {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						route_options: JSON.parse(first_link.route_options),
+					});
+				} else {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						tab: first_link.tab,
+					});
+				}
+			}
+		}
+	}
 	return route;
 }
 
@@ -179,6 +212,20 @@ class DesktopPage {
 		this.setup_editing_mode();
 		this.handle_route_change();
 		this.setup_events();
+		this.setup_edit_button();
+	}
+	setup_edit_button() {
+		const me = this;
+		this.$desktop_edit_button = $(
+			"<button class='btn btn-reset desktop-edit'></button>"
+		).appendTo(document.body);
+		this.$desktop_edit_button.html(
+			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
+		);
+		this.$desktop_edit_button.on("click", () => {
+			me.start_editing_layout();
+			me.$desktop_edit_button.hide();
+		});
 	}
 	setup_editing_mode() {
 		const me = this;
@@ -287,7 +334,9 @@ class DesktopPage {
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
-			open_on_left: true,
+			// If it's RTL, we want it to open on the right (false);
+			// if it's LTR, we want it to open on the left (true).
+			open_on_left: !frappe.utils.is_rtl(),
 		});
 	}
 	setup_navbar() {
@@ -327,6 +376,7 @@ class DesktopPage {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
 				me.setup_navbar();
 			else {
+				me.$desktop_edit_button.remove();
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
 			}
@@ -617,7 +667,6 @@ class DesktopIconGrid {
 class DesktopIcon {
 	constructor(icon, in_folder) {
 		this.icon_data = icon;
-		this.icon_data.label = __(this.icon_data.label);
 		this.icon_title = this.icon_data.label;
 		this.icon_subtitle = "";
 		this.icon_type = this.icon_data.icon_type;
@@ -817,7 +866,7 @@ class DesktopModal {
 	}
 	make_modal(icon_title) {
 		if ($(".desktop-modal").length == 0) {
-			this.modal = new frappe.get_modal(icon_title, "");
+			this.modal = new frappe.get_modal(__(icon_title), "");
 			this.modal.find(".modal-header").addClass("desktop-modal-heading");
 			this.modal.addClass("desktop-modal");
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
