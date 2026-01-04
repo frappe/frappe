@@ -30,6 +30,7 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
+	__lastVisibilityCondition?: string | undefined
 	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
@@ -370,6 +371,20 @@ class Block implements BlockOptions {
 			this.setStyle("__last_display", this.getStyle("display"));
 			this.setStyle("display", "none");
 		}
+	}
+
+	toggleVisibilityCondition() {
+		if (this.visibilityCondition) {
+			this.__lastVisibilityCondition = this.visibilityCondition
+			this.visibilityCondition = undefined
+		} else if (this.__lastVisibilityCondition) {
+			this.visibilityCondition = this.__lastVisibilityCondition
+			this.__lastVisibilityCondition = undefined
+		}
+	}
+
+	hasVisibilityCondition() {
+		return this.visibilityCondition || this.__lastVisibilityCondition
 	}
 
 	isVisible() {

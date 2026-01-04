@@ -56,12 +56,22 @@
 							</span>
 
 							<!-- toggle visibility -->
-							<FeatherIcon
-								v-if="!element.isRoot()"
-								:name="element.isVisible() ? 'eye' : 'eye-off'"
-								class="ml-auto mr-2 hidden h-3 w-3 group-hover:block"
-								@click.stop="element.toggleVisibility()"
-							/>
+							<div class="ml-auto flex items-center gap-2">
+								<div
+									v-if="element.hasVisibilityCondition()"
+									title="Toggle visibility condition"
+									class="hidden cursor-pointer group-hover:block"
+									@click.stop="element.toggleVisibilityCondition()"
+								>
+									<FeatherIcon :name="element.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
+								</div>
+								<FeatherIcon
+									v-if="!element.isRoot()"
+									:name="element.isVisible() ? 'eye' : 'eye-off'"
+									class="mr-2 hidden h-3 w-3 cursor-pointer group-hover:block"
+									@click.stop="element.toggleVisibility()"
+								/>
+							</div>
 							<span v-if="element.isRoot()" class="ml-auto mr-2 text-sm capitalize text-gray-500">
 								{{ canvasStore.activeCanvas?.activeBreakpoint }}
 							</span>
