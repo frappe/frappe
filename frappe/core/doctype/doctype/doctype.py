@@ -1850,9 +1850,9 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 					"{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
 				).format(get_txt(d))
 			)
-		if d.amend and not d.write:
+		if d.amend and not d.create:
 			frappe.throw(
-				_("{0}: The 'Amend' permission cannot be granted without the 'Cancel' permission.").format(
+				_("{0}: The 'Amend' permission cannot be granted without the 'Create' permission.").format(
 					get_txt(d)
 				)
 			)
