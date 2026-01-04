@@ -10,6 +10,7 @@ const component = ref<HTMLElement | null>(null)
 const props = defineProps<HTMLProps>()
 
 const compiledTemplate = computed(() => {
+	if (!props.html) return null
 	try {
 		return compile(props.html)
 	} catch (e) {
