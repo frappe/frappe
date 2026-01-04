@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2026-01-01 22:27\n"
+"PO-Revision-Date: 2026-01-04 23:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5421,7 +5421,7 @@ msgstr "گزینه‌های تماس، مانند «پرسمان فروش، در
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Contacts"
-msgstr "مخاطب"
+msgstr "مخاطبین"
 
 #: frappe/utils/change_log.py:362
 msgid "Contains {0} security fix"
@@ -16366,7 +16366,7 @@ msgstr "موزیلا از :has() پشتیبانی نمی‌کند، بنابرا
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:43
 msgid "Mr"
-msgstr ""
+msgstr "آقا"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Mrs"
