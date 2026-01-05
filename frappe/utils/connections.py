@@ -6,17 +6,81 @@ from frappe import get_conf
 REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
 
 
+<<<<<<< HEAD
 def is_open(ip, port, timeout=10):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.settimeout(timeout)
 	try:
 		s.connect((ip, int(port)))
 		s.shutdown(socket.SHUT_RDWR)
+=======
+def can_connect(sock: socket.socket, address: tuple[str, int] | str, timeout: int | float) -> bool:
+	"""
+	Check whether we can connect to a socket address.
+
+	Args:
+		sock: The socket object to use for the connection.
+		address: The address to connect to (tuple for network, string for unix).
+		timeout: Connection timeout in seconds.
+
+	Returns:
+		True if connection was successful, False otherwise.
+	"""
+	sock.settimeout(timeout)
+	try:
+		sock.connect(address)
+		sock.shutdown(socket.SHUT_RDWR)
+>>>>>>> a64834b444 (fix(connections): try all available interfaces, not just ipv4)
 		return True
 	except OSError:
 		return False
 	finally:
-		s.close()
+		sock.close()
+
+
+def is_open(
+	scheme: str,
+	hostname: str | None,
+	port: int | str | None,
+	path: str | None,
+	timeout: int | float = 10,
+) -> bool:
+	"""
+	Check if a service is reachable via socket connection.
+
+	Args:
+		scheme: The URL scheme (redis, mariadb, etc.) or 'unix'.
+		hostname: The remote host to connect to.
+		port: The port number to connect to.
+		path: The path to the unix socket (if scheme is 'unix').
+		timeout: Connection timeout in seconds.
+
+	Returns:
+		True if the service is reachable, False otherwise.
+	"""
+	if scheme in ("redis", "rediss", "postgres", "mariadb"):
+		if not hostname or not port:
+			return False
+
+		try:
+			addresses = socket.getaddrinfo(hostname, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+		except (socket.gaierror, TypeError):
+			return False
+
+		# Try all addresses returned by getaddrinfo
+		for family, socket_type, proto, _, address in addresses:
+			s = socket.socket(family, socket_type, proto)
+			if can_connect(s, address, timeout):
+				return True
+		return False
+
+	if scheme == "unix":
+		if not path:
+			return False
+		s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		return can_connect(s, path, timeout)
+
+	raise UrlSchemeNotSupported(scheme)
 
 
 def check_database():
