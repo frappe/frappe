@@ -89,7 +89,7 @@ class TestUtils(IntegrationTestCase):
 	)
 	def test_export_customizations_with_module_filter(self):
 		# create two customizations, one matching the module, one under a different module
-		with note_customizations() as (custom_field, property_setter):
+		with note_customizations() as (custom_field, property_setter, _doctype_link):
 			custom_field.db_set("module", "Custom")
 			property_setter.db_set("module", "Custom")
 
@@ -135,7 +135,7 @@ class TestUtils(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_sync_customizations(self):
-		with note_customizations() as (custom_field, property_setter):
+		with note_customizations() as (custom_field, property_setter, doctype_link):
 			file_path = export_customizations(module="Custom", doctype="Note", sync_on_migrate=True)
 			custom_field.db_set("modified", now_datetime())
 			custom_field.reload()
@@ -152,6 +152,7 @@ class TestUtils(IntegrationTestCase):
 			sync_customizations(app="frappe")
 			self.assertTrue(property_setter.doctype, property_setter.name)
 			self.assertTrue(custom_prop_setter.doctype, custom_prop_setter.name)
+			self.assertTrue(doctype_link.doctype, doctype_link.name)
 
 			self.assertTrue(file_path.endswith("/custom/custom/note.json"))
 			self.assertTrue(os.path.exists(file_path))
@@ -232,9 +233,23 @@ def note_customizations():
 		property_setter = make_property_setter(
 			"Note", fieldname="content", property="bold", value="1", property_type="Check"
 		)
-		yield custom_field, property_setter
+
+		doctype_link = frappe.get_doc(
+			{
+				"doctype": "DocType Link",
+				"parent": "Note",
+				"parenttype": "DocType",
+				"parentfield": "links",
+				"link_doctype": "User",
+				"link_fieldname": "owner",
+				"group": "Test Group",
+			}
+		).insert()
+
+		yield custom_field, property_setter, doctype_link
 	finally:
 		custom_field.delete()
 		property_setter.delete()
+		doctype_link.delete()
 		trim_table("Note", dry_run=False)
 		delete_path(frappe.get_module_path("Desk", "Note"))

@@ -27,8 +27,8 @@ frappe.ui.get_print_settings = function (
 		},
 		{
 			fieldtype: "Link",
-			fieldname: "report",
-			label: __("Report"),
+			fieldname: "print_format",
+			label: __("Print Format"),
 			options: "Print Format",
 			get_query: () => ({
 				filters: {
@@ -68,6 +68,7 @@ frappe.ui.get_print_settings = function (
 				label: __("Pick Columns"),
 				fieldtype: "Check",
 				fieldname: "pick_columns",
+				depends_on: "eval: !doc.print_format",
 			},
 			{
 				label: __("Select Columns"),
@@ -86,15 +87,23 @@ frappe.ui.get_print_settings = function (
 
 	return frappe.prompt(
 		columns,
-		function (data) {
-			data = $.extend(print_settings, data);
-			if (!data.with_letter_head) {
-				data.letter_head = null;
+		function (settings) {
+			settings = $.extend(print_settings, settings);
+
+			if (!settings.with_letter_head) {
+				settings.letter_head = null;
 			}
-			if (data.letter_head) {
-				data.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+
+			if (settings.letter_head) {
+				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
 			}
-			callback(data);
+
+			if (settings.print_format) {
+				settings.pick_columns = 0;
+				settings.columns = [];
+			}
+
+			callback(settings);
 		},
 		__("Print Settings")
 	);

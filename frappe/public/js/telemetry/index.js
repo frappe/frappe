@@ -42,9 +42,6 @@ class TelemetryManager {
 	}
 
 	can_enable() {
-		if (cint(navigator.doNotTrack)) {
-			return false;
-		}
 		let posthog_available = Boolean(this.telemetry_host && this.project_id);
 		let sentry_available = Boolean(frappe.boot.sentry_dsn);
 		return posthog_available || sentry_available;

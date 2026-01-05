@@ -33,7 +33,7 @@
 
 	&.mobile-no-divider {
 		a:before {
-			content: "";
+			display: none;
 		}
 	}
 

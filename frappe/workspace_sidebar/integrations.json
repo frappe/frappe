@@ -113,7 +113,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "settings",
    "indent": 0,
@@ -125,7 +125,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "list",
    "indent": 0,
@@ -137,7 +137,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "list",
    "indent": 0,
@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-18 17:22:26.558605",
+ "modified": "2025-12-29 23:46:47.024937",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",

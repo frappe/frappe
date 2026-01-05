@@ -128,6 +128,10 @@
 	}
 }
 
+.form-section > .section-body:first-child {
+	padding-top: 12px;
+}
+
 .form-dashboard-section {
 	.section-body:first-child {
 		margin-top: 0;

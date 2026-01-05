@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-29 21:45\n"
+"PO-Revision-Date: 2026-01-01 22:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1017,7 +1017,7 @@ msgstr "اکتیو دایرکتوری"
 #. Label of the active_domains (Table) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
 msgid "Active Domains"
-msgstr "دامنه های فعال"
+msgstr "دامنه‌های فعال"
 
 #. Label of the active_sessions (Table) field in DocType 'User'
 #. Label of the active_sessions (Int) field in DocType 'System Health Report'
@@ -1660,7 +1660,7 @@ msgstr "تمامی فیلدها برای ارسال نظر ضروری است."
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
-msgstr "همه حالت های گردش کار ممکن و نقش‌های گردش کار. گزینه‌های Docstatus: 0 \"ذخیره شده\"، 1 \"ارسال شده\" و 2 \"لغو شده\" است."
+msgstr "تمام وضعیت‌ها و نقش‌های ممکن گردش کار. گزینه‌های وضعیت اسناد: ۰ به معنای «ذخیره شده»، ۱ به معنای «ارسال شده» و ۲ به معنای «لغو شده» است"
 
 #: frappe/utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -5026,7 +5026,7 @@ msgstr "گرد کردن تجاری"
 #. Label of the commit (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "Commit"
-msgstr "مرتکب شدن"
+msgstr "کامیت"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
@@ -5236,7 +5236,7 @@ msgstr "پیکربندی ستون‌ها"
 
 #: frappe/core/doctype/recorder/recorder_list.js:200
 msgid "Configure Recorder"
-msgstr "ضبط کننده را پیکربندی کنید"
+msgstr "پیکربندی ضبط کننده"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
@@ -5905,7 +5905,7 @@ msgstr ""
 #. Label of the current_job_id (Link) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Current Job ID"
-msgstr "شناسه شغلی فعلی"
+msgstr "شناسه کار فعلی"
 
 #. Label of the current_value (Int) field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -13988,17 +13988,17 @@ msgstr "شناسه کار"
 #. Label of the job_info_section (Section Break) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Info"
-msgstr "اطلاعات شغلی"
+msgstr "اطلاعات کار"
 
 #. Label of the job_name (Data) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Name"
-msgstr "نام شغل"
+msgstr "نام کار"
 
 #. Label of the job_status_section (Section Break) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Status"
-msgstr "وضعیت شغلی"
+msgstr "وضعیت کار"
 
 #: frappe/core/doctype/data_import/data_import.js:191
 #: frappe/core/doctype/rq_job/rq_job.js:24
@@ -18977,11 +18977,11 @@ msgstr "پچ"
 #. Name of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Patch Log"
-msgstr "ثبت وصله"
+msgstr "لاگ پچ"
 
 #: frappe/modules/patch_handler.py:136
 msgid "Patch type {} not found in patches.txt"
-msgstr "نوع وصله {} در patches.txt یافت نشد"
+msgstr "نوع پچ {} در patches.txt یافت نشد"
 
 #. Label of the path (Data) field in DocType 'API Request Log'
 #. Label of the path (Small Text) field in DocType 'Package Release'
@@ -20322,7 +20322,7 @@ msgstr "ویژگی"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Property Depends On"
-msgstr "اموال بستگی دارد"
+msgstr "ویژگی بستگی دارد به"
 
 #. Name of a DocType
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -20647,7 +20647,7 @@ msgstr "در صف ارسال می‌توانید پیشرفت را در {0} دن
 
 #: frappe/desk/page/backups/backups.py:96
 msgid "Queued for backup. You will receive an email with the download link"
-msgstr "در صف پشتیبان گیری یک ایمیل با لینک دانلود دریافت خواهید کرد"
+msgstr "در صف پشتیبان‌گیری قرار گرفت. ایمیلی حاوی لینک دانلود دریافت خواهید کرد"
 
 #. Label of the queues (Data) field in DocType 'System Health Report Workers'
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -20694,7 +20694,7 @@ msgstr "لاگ اطلاعات خام"
 #. Name of a DocType
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "RQ Job"
-msgstr "شغل RQ"
+msgstr "کار RQ"
 
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -23192,12 +23192,12 @@ msgstr "انتخاب محدوده تاریخ"
 #: frappe/public/js/frappe/doctype/index.js:178
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Select DocType"
-msgstr "DocType را انتخاب کنید"
+msgstr "انتخاب DocType"
 
 #. Label of the reference_doctype (Link) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Select Doctype"
-msgstr "Doctype را انتخاب کنید"
+msgstr "انتخاب DocType"
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:50
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:50
@@ -28366,7 +28366,7 @@ msgstr "از شناسه ایمیل متفاوت استفاده کنید"
 #. Description of the 'Detect CSV type' (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Use if the default settings don't seem to detect your data correctly"
-msgstr "استفاده کنید اگر تنظیمات پیش‌فرض به درستی داده‌های شما را شناسایی نمی‌کنند"
+msgstr "اگر تنظیمات پیش‌فرض به درستی داده‌های شما را شناسایی نمی‌کنند، از این گزینه استفاده کنید"
 
 #: frappe/model/db_query.py:509
 msgid "Use of sub-query or function is restricted"
@@ -30761,7 +30761,7 @@ msgstr "نظر داد"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "create"
-msgstr "ایجاد كردن"
+msgstr "ایجاد کردن"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
