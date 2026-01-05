@@ -202,6 +202,13 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 		csv_content = read_csv_file(path)
 
 		for item in csv_content:
+<<<<<<< HEAD
+=======
+			if len(item) in [2, 3]:
+				item[0] = item[0].replace("\\n", "\n")
+				item[1] = item[1].replace("\\n", "\n")
+
+>>>>>>> b5785972d1 (fix: check len(item) before replace "\\n" with "\n" (#35571))
 			if len(item) == 3 and item[2]:
 				key = item[0] + ":" + item[2]
 				translation_map[key] = strip(item[1])
