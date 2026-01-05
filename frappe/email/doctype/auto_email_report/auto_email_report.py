@@ -8,7 +8,7 @@ from email.utils import formataddr
 
 import frappe
 from frappe import _
-from frappe.desk.query_report import build_xlsx_data
+from frappe.desk.query_report import build_default_xlsx_styles, build_xlsx_data
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -184,7 +184,7 @@ class AutoEmailReport(Document):
 
 			if self.format == "XLSX":
 				report = frappe.get_doc("Report", self.report)
-				styles = report.get_xlsx_styles(metadata)
+				styles = report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
 
 				xlsx_file = make_xlsx(
 					xlsx_data,

@@ -15,7 +15,6 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
-from frappe.utils.xlsxutils import get_default_xlsx_styles
 
 
 class Report(Document):
@@ -210,21 +209,6 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
-	def get_xlsx_styles(self, data: dict) -> dict:
-		return self._get_styles(data) or get_default_xlsx_styles(data)
-
-	def _get_styles(self, data: dict) -> dict | None:
-		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
-			return
-
-		try:
-			method = self.get_module_method("get_xlsx_styles")
-		except AttributeError:
-			# Ignore if method is not defined
-			return
-
-		return method(data)
-
 	def get_data(
 		self,
 		filters=None,
@@ -415,6 +399,18 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
+
+	def get_xlsx_styles(self, data: dict) -> dict | None:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if method is not defined
+			return
+
+		return method(data)
 
 
 def is_prepared_report_enabled(report):

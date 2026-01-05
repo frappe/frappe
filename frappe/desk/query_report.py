@@ -4,6 +4,8 @@
 import datetime
 import json
 import os
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import timedelta
 from typing import Any
 
@@ -18,6 +20,56 @@ from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
 from frappe.utils.caching import request_cache
+
+
+@dataclass
+class XLSXMetadata:
+	columns: list[dict] = dataclass_field(default_factory=list)
+	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
+	filters: dict = dataclass_field(default_factory=dict)
+
+	header_index: int = 0
+	last_row_index: int = 0
+
+	include_filters: bool = False
+	include_indentation: bool = False
+	add_total_row: bool = False
+	include_hidden_columns: bool = False
+
+	def get_column(self, idx: int) -> dict | None:
+		if 0 <= idx < len(self.columns):
+			return self.columns[idx]
+
+	def get_fieldname(self, idx: int) -> str | None:
+		if column := self.get_column(idx):
+			return column.get("fieldname")
+
+	def get_row(self, row_idx: int) -> dict | list | None:
+		return self.row_map.get(row_idx)
+
+	def is_filter_row(self, row_idx: int) -> bool:
+		if not self.include_filters:
+			return False
+
+		return row_idx < self.header_index - 1
+
+	def is_header_row(self, row_idx: int) -> bool:
+		return row_idx == self.header_index
+
+	def to_dict(self) -> dict:
+		return frappe._dict(
+			{
+				"columns": self.columns,
+				"row_map": self.row_map,
+				"filters": self.filters,
+				"include_indentation": self.include_indentation,
+				"add_total_row": self.add_total_row,
+				"include_filters": self.include_filters,
+				"include_hidden_columns": self.include_hidden_columns,
+				"filter_row_range": self.filter_row_range,
+				"data_row_range": self.data_row_range,
+			}
+		)
 
 
 def get_report_doc(report_name):
@@ -406,7 +458,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		file_extension = "xlsx"
 
 		report = frappe.get_doc("Report", report_name)
-		styles = report.get_xlsx_styles(metadata)
+		styles = report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
 
 		content = make_xlsx(
 			xlsx_data,
@@ -485,8 +537,6 @@ def build_xlsx_data(
 	metadata = None
 
 	if build_metadata:
-		from frappe.utils.xlsxutils import XLSXMetadata
-
 		metadata = XLSXMetadata()
 
 	EXCEL_TYPES = (
@@ -1014,3 +1064,7 @@ def translate_report_data(data, total_row):
 			if isinstance(value, str):
 				d[field] = _(value)
 	return data
+
+
+def build_default_xlsx_styles(data: XLSXMetadata) -> dict | None:
+	pass

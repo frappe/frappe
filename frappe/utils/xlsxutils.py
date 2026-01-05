@@ -26,56 +26,6 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 
-@dataclass
-class XLSXMetadata:
-	columns: list[dict] = field(default_factory=list)
-	row_map: dict[int, dict | list] = field(default_factory=dict)
-	filters: dict = field(default_factory=dict)
-
-	header_index: int = 0
-	last_row_index: int = 0
-
-	include_filters: bool = False
-	include_indentation: bool = False
-	add_total_row: bool = False
-	include_hidden_columns: bool = False
-
-	def get_column(self, idx: int) -> dict | None:
-		if 0 <= idx < len(self.columns):
-			return self.columns[idx]
-
-	def get_fieldname(self, idx: int) -> str | None:
-		if column := self.get_column(idx):
-			return column.get("fieldname")
-
-	def get_row(self, row_idx: int) -> dict | list | None:
-		return self.row_map.get(row_idx)
-
-	def is_filter_row(self, row_idx: int) -> bool:
-		if not self.include_filters:
-			return False
-
-		return row_idx < self.header_index - 1
-
-	def is_header_row(self, row_idx: int) -> bool:
-		return row_idx == self.header_index
-
-	def to_dict(self) -> dict:
-		return frappe._dict(
-			{
-				"columns": self.columns,
-				"row_map": self.row_map,
-				"filters": self.filters,
-				"include_indentation": self.include_indentation,
-				"add_total_row": self.add_total_row,
-				"include_filters": self.include_filters,
-				"include_hidden_columns": self.include_hidden_columns,
-				"filter_row_range": self.filter_row_range,
-				"data_row_range": self.data_row_range,
-			}
-		)
-
-
 # TODO: add docs and examples for XLSXStyleBuilder
 # TODO: when registering make user friendly for Developers (common methods)
 # TODO: give default styles
