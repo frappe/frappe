@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2026-01-04 23:13\n"
+"PO-Revision-Date: 2026-01-05 23:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -6088,7 +6088,7 @@ msgstr "گزارش سفارشی"
 
 #: frappe/desk/desktop.py:525
 msgid "Custom Reports"
-msgstr "گزارش های سفارشی"
+msgstr "گزارش‌های سفارشی"
 
 #. Name of a DocType
 #: frappe/core/doctype/custom_role/custom_role.json
@@ -12026,7 +12026,7 @@ msgstr "پنهان کردن پاورقی"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide footer in auto email reports"
-msgstr "پاورقی را در گزارش های ایمیل خودکار مخفی کنید"
+msgstr "پاورقی را در گزارش‌های ایمیل خودکار مخفی کنید"
 
 #. Label of the hide_footer_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -18159,7 +18159,7 @@ msgstr "فقط یک {0} را می‌توان به عنوان اصلی تنظیم
 
 #: frappe/desk/reportview.py:360
 msgid "Only reports of type Report Builder can be deleted"
-msgstr "فقط گزارش هایی از نوع Report Builder قابل حذف هستند"
+msgstr "فقط گزارش‌هایی از نوع Report Builder قابل حذف هستند"
 
 #: frappe/desk/reportview.py:331
 msgid "Only reports of type Report Builder can be edited"
@@ -21780,11 +21780,11 @@ msgstr "گزارش:"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:591
 msgid "Reports"
-msgstr "گزارش ها"
+msgstr "گزارش‌ها"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "گزارش ها و مستندات"
+msgstr "گزارش‌ها و مستندات"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:940
 msgid "Reports already in Queue"
@@ -23079,7 +23079,7 @@ msgstr "مشاهده تمام فعالیت ها"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:866
 msgid "See all past reports."
-msgstr "مشاهده تمام گزارش های گذشته"
+msgstr "مشاهده تمام گزارش‌های گذشته"
 
 #: frappe/public/js/frappe/form/form.js:1247
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.js:4
@@ -24996,11 +24996,11 @@ msgstr "سبک چاپ استاندارد قابل تغییر نیست. لطفا 
 
 #: frappe/desk/reportview.py:357
 msgid "Standard Reports cannot be deleted"
-msgstr "گزارش های استاندارد را نمی‌توان حذف کرد"
+msgstr "گزارش‌های استاندارد را نمی‌توان حذف کرد"
 
 #: frappe/desk/reportview.py:328
 msgid "Standard Reports cannot be edited"
-msgstr "گزارش های استاندارد قابل ویرایش نیستند"
+msgstr "گزارش‌های استاندارد قابل ویرایش نیستند"
 
 #. Label of the standard_menu_items (Section Break) field in DocType 'Portal
 #. Settings'
@@ -31485,7 +31485,7 @@ msgstr "گزارش {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:967
 msgid "{0} Reports"
-msgstr "{0} گزارش ها"
+msgstr "{0} گزارش‌ها"
 
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:26
 msgid "{0} Settings"
