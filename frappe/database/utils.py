@@ -195,7 +195,6 @@ def drop_index_if_exists(table: str, index: str):
 	try:
 		if frappe.db.db_type == "postgres":
 			# Postgres drops indexes with DROP INDEX, not ALTER TABLE ... DROP INDEX
-			# Escape any embedded double-quotes defensively
 			safe_index = index.replace('"', '""')
 			frappe.db.sql_ddl(f'DROP INDEX IF EXISTS "{safe_index}"')
 		else:
@@ -206,4 +205,3 @@ def drop_index_if_exists(table: str, index: str):
 		return
 
 	click.echo(f"✓ dropped {index} index from {table}")
-
