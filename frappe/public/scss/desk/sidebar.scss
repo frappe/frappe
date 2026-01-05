@@ -173,6 +173,8 @@
 			&:hover {
 				@include hover-mixin();
 			}
+		}
+
 		.sidebar-header {
 			padding: 0px !important;
 		}
