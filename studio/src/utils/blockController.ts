@@ -138,6 +138,9 @@ const blockController = {
 			block.setAttributes(attributes)
 		})
 	},
+	isHTML: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isHTML();
+	},
 }
 
 export default blockController

@@ -2,14 +2,11 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
-import {
-	isCtrlOrCmd,
-	isTargetEditable,
-	setClipboardData,
-} from "@/utils/helpers"
+import { isCtrlOrCmd, isTargetEditable, setClipboardData, numberToPx, isHTML } from "@/utils/helpers"
 import { useSerializer } from "@/utils/useSerializer"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
+import { toast } from "vue-sonner"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -65,6 +62,11 @@ export function useStudioEvents() {
 		let text = e.clipboardData?.getData("text/plain") as string
 		if (!text) {
 			return
+		}
+
+		if (isHTML(text)) {
+			e.preventDefault()
+			pasteHTML(text)
 		}
 	})
 
@@ -163,5 +165,53 @@ const copySelectedBlocksToClipboard = (e: ClipboardEvent) => {
 
 		const dataToCopy = { blocks: blocksToCopy }
 		setClipboardData(dataToCopy, e, "studio-copied-blocks")
+	}
+}
+
+const pasteHTML = (text: string) => {
+	if (blockController.isHTML()) {
+		const selectedBlocks = blockController.getSelectedBlocks()
+		selectedBlocks[0].setProp("html", text)
+	} else {
+		let block = null as unknown as Block | BlockOptions
+		const { getComponentBlock } = useSerializer()
+		block = getComponentBlock("HTML")
+
+		if (text.startsWith("<svg")) {
+			if (text.includes("<image")) {
+				toast.warning("Warning", {
+					description: "SVG with inlined image in it is not supported.",
+				})
+				return
+			}
+			const dom = new DOMParser().parseFromString(text, "text/html")
+			const svg = dom.body.querySelector("svg") as SVGElement
+			const width = svg.getAttribute("width") || "100"
+			const height = svg.getAttribute("height") || "100"
+			if (width && block.baseStyles) {
+				block.baseStyles.width = numberToPx(parseInt(width))
+				svg.removeAttribute("width")
+			}
+			if (height && block.baseStyles) {
+				block.baseStyles.height = numberToPx(parseInt(height))
+				svg.removeAttribute("height")
+			}
+			text = svg.outerHTML
+		}
+
+		block.setProp("html", text)
+
+		const selectedBlocks = blockController.getSelectedBlocks()
+		let parentBlock = selectedBlocks.length ? selectedBlocks[0] : null
+
+		while (parentBlock && !parentBlock.canHaveChildren()) {
+			parentBlock = parentBlock.getParentBlock()
+		}
+
+		if (parentBlock) {
+			parentBlock.addChild(block)
+		} else {
+			canvasStore.pushBlocks([block])
+		}
 	}
 }

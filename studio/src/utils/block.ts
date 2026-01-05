@@ -391,6 +391,14 @@ class Block implements BlockOptions {
 		return this.getStyle("display") !== "none"
 	}
 
+	isHTML() {
+		return this.componentName === "HTML"
+	}
+
+	isSVG() {
+		return this.isHTML() && this.getProp("html")?.trim().startsWith("<svg")
+	}
+
 	isFlex() {
 		return this.getStyle("display") === "flex"
 	}
@@ -567,6 +575,10 @@ class Block implements BlockOptions {
 	}
 
 	// component props
+	getProp(propName: string) {
+		return this.componentProps[propName]
+	}
+
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
 	}
