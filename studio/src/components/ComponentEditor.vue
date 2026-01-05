@@ -71,7 +71,7 @@
 	>
 		<template #body-content>
 			<Code
-				:modelValue="block.getSlotContent(store.selectedSlot?.slotName) || ''"
+				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
 				language="html"
 				height="60vh"
 				:showSaveButton="true"
