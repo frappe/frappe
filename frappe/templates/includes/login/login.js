@@ -215,12 +215,10 @@ login.login_handlers = (function () {
 				}) || []).join('<br>') || default_message;
 			}
 
-			if (message === default_message) {
-				login.set_invalid(message);
-			} else {
+			login.set_invalid(default_message);
+			if (message !== default_message) {
 				login.reset_sections(false);
 			}
-
 		};
 	}
 
@@ -290,7 +288,8 @@ login.login_handlers = (function () {
 		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
 		404: get_error_handler({{ _("User does not exist.") | tojson }}),
-		500: get_error_handler({{ _("Something went wrong.") | tojson }})
+		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
+		500: get_error_handler({{ _("Something went wrong.") | tojson }}),
 	};
 
 	return login_handlers;
