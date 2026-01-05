@@ -399,6 +399,10 @@ class Block implements BlockOptions {
 		return this.isHTML() && this.getProp("html")?.trim().startsWith("<svg")
 	}
 
+	isIframe() {
+		return this.isHTML() && this.getProp("html")?.trim().startsWith("<iframe")
+	}
+
 	isFlex() {
 		return this.getStyle("display") === "flex"
 	}
