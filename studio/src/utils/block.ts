@@ -395,6 +395,16 @@ class Block implements BlockOptions {
 		return this.componentName === "HTML"
 	}
 
+	getHTML() {
+		return this.isHTML() ? this.getProp("html") : null
+	}
+
+	setHTML(html: string) {
+		if (this.isHTML()) {
+			this.setProp("html", html)
+		}
+	}
+
 	isSVG() {
 		return this.isHTML() && this.getProp("html")?.trim().startsWith("<svg")
 	}

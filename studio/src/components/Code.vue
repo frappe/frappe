@@ -1,8 +1,17 @@
 <template>
-	<div class="flex h-full w-full flex-col gap-1.5">
+	<div class="relative flex h-full w-full flex-col gap-1.5">
 		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 			{{ label }}
 		</InputLabel>
+		<div v-if="actionButton" class="absolute bottom-1.5 right-1.5 z-10 flex gap-1">
+			<Button
+				@click="actionButton?.handler"
+				variant="outline"
+				:icon="actionButton.icon"
+				:title="actionButton.label"
+				:disabled="readonly"
+			></Button>
+		</div>
 		<codemirror
 			v-model="code"
 			:extensions="extensions"
@@ -15,13 +24,16 @@
 			@blur="emitEditorValue"
 		/>
 
-		<Button v-if="showSaveButton" @click="emit('save', code)" class="mt-3 w-full text-base">Save</Button>
+		<Button v-if="showSaveButton" variant="solid" @click="emit('save', code)" class="mt-3 w-full text-base">
+			Save
+		</Button>
 		<ErrorMessage class="text-xs leading-4" v-if="errorMessage" :message="errorMessage" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from "vue"
+import { Button } from "frappe-ui"
 import { Codemirror } from "vue-codemirror"
 import {
 	autocompletion,
@@ -56,6 +68,11 @@ const props = withDefaults(
 		readonly?: boolean
 		borderless?: boolean
 		emitOnChange?: boolean
+		actionButton?: {
+			icon: string
+			label: string
+			handler: () => void
+		}
 	}>(),
 	{
 		language: "javascript",
