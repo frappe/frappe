@@ -6,7 +6,7 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	min-height: 150px;
+	min-height: 75px;
 	background-color: var(--subtle-accent);
 }
 
@@ -157,7 +157,7 @@
 }
 
 .grid-empty {
-	height: 110px;
+	height: 43px;
 	background-color: var(--subtle-accent);
 	display: flex;
 	vertical-align: middle;
@@ -242,6 +242,7 @@
 		min-width: 0;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 	}
 
 	.col {
@@ -811,6 +812,7 @@
 			position: sticky;
 			right: 0;
 			z-index: 1;
+			line-height: 1;
 		}
 		.grid-row > .row .col:nth-child(2),
 		.grid-row > .dialog-assignment-row .col:nth-child(2) {
