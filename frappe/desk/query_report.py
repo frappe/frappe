@@ -22,56 +22,6 @@ from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sboo
 from frappe.utils.caching import request_cache
 
 
-@dataclass
-class XLSXMetadata:
-	columns: list[dict] = dataclass_field(default_factory=list)
-	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
-	filters: dict = dataclass_field(default_factory=dict)
-
-	header_index: int = 0
-	last_row_index: int = 0
-
-	include_filters: bool = False
-	include_indentation: bool = False
-	add_total_row: bool = False
-	include_hidden_columns: bool = False
-
-	def get_column(self, idx: int) -> dict | None:
-		if 0 <= idx < len(self.columns):
-			return self.columns[idx]
-
-	def get_fieldname(self, idx: int) -> str | None:
-		if column := self.get_column(idx):
-			return column.get("fieldname")
-
-	def get_row(self, row_idx: int) -> dict | list | None:
-		return self.row_map.get(row_idx)
-
-	def is_filter_row(self, row_idx: int) -> bool:
-		if not self.include_filters:
-			return False
-
-		return row_idx < self.header_index - 1
-
-	def is_header_row(self, row_idx: int) -> bool:
-		return row_idx == self.header_index
-
-	def to_dict(self) -> dict:
-		return frappe._dict(
-			{
-				"columns": self.columns,
-				"row_map": self.row_map,
-				"filters": self.filters,
-				"include_indentation": self.include_indentation,
-				"add_total_row": self.add_total_row,
-				"include_filters": self.include_filters,
-				"include_hidden_columns": self.include_hidden_columns,
-				"filter_row_range": self.filter_row_range,
-				"data_row_range": self.data_row_range,
-			}
-		)
-
-
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
 	doc.custom_columns = []
@@ -599,6 +549,7 @@ def build_xlsx_data(
 	result.append(column_data)
 
 	excel_row_idx = header_index + 1
+	max_indent_level = 0
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -620,6 +571,9 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
+			if row_is_dict:
+				max_indent_level = max(max_indent_level, row.get("indent", 0))
+
 			row_data.append(cell_value)
 
 		if build_metadata:
@@ -633,6 +587,7 @@ def build_xlsx_data(
 
 		metadata.header_index = header_index
 		metadata.last_row_index = len(result) - 1
+		metadata.max_indent_level = max_indent_level
 
 		metadata.include_hidden_columns = include_hidden_columns
 		metadata.include_indentation = include_indentation
@@ -1066,5 +1021,57 @@ def translate_report_data(data, total_row):
 	return data
 
 
+### XLSX Formatter ###
+@dataclass
+class XLSXMetadata:
+	columns: list[dict] = dataclass_field(default_factory=list)
+	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
+	filters: dict = dataclass_field(default_factory=dict)
+
+	header_index: int = 0
+	last_row_index: int = 0
+	max_indent_level: int = 0
+
+	include_filters: bool = False
+	include_indentation: bool = False
+	add_total_row: bool = False
+	include_hidden_columns: bool = False
+
+	def get_column(self, idx: int) -> dict | None:
+		if 0 <= idx < len(self.columns):
+			return self.columns[idx]
+
+	def get_fieldname(self, idx: int) -> str | None:
+		if column := self.get_column(idx):
+			return column.get("fieldname")
+
+	def get_row(self, row_idx: int) -> dict | list | None:
+		return self.row_map.get(row_idx)
+
+	def is_filter_row(self, row_idx: int) -> bool:
+		if not self.include_filters:
+			return False
+
+		return row_idx < self.header_index - 1
+
+	def is_header_row(self, row_idx: int) -> bool:
+		return row_idx == self.header_index
+
+
 def build_default_xlsx_styles(data: XLSXMetadata) -> dict | None:
-	pass
+	from frappe.utils.xlsxutils import XLSXStyleBuilder
+
+	builder = XLSXStyleBuilder(max_indent_level=data.max_indent_level)
+
+	# filter labels
+	if data.include_filters:
+		builder.style_filter_labels(data.filter_row_range)
+
+	# header row
+	builder.style_header(data.header_index)
+
+	# indentation
+	if data.include_indentation:
+		builder.set_indentations(0, data.row_map)
+
+	return builder.build()

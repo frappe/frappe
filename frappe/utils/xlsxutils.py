@@ -32,18 +32,32 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 # TODO: User can update default styles
 # TODO: can give range of cells to style
 # TODO: Date and Time formats not working properly need to fix
+
+
 class XLSXStyleBuilder:
 	"""Utility class for building Excel styles and formatting."""
 
 	# Mapping of style property names to their openpyxl classes
-	_STYLE_CLASSES: ClassVar[dict] = {
+	STYLE_CLASSES: ClassVar[dict] = {
 		"font": Font,
 		"fill": PatternFill,
 		"alignment": Alignment,
 		"border": Border,
 	}
 
-	def __init__(self):
+	FIELDTYPE_STYLES: ClassVar[dict] = {
+		"Int": "int_format",
+		"Float": "float_format",
+		"Percent": "percent_format",
+		"Date": "date_format",
+		"Time": "time_format",
+		"Datetime": "datetime_format",
+		"Currency": "default_currency_format",
+	}
+
+	def __init__(self, **kwargs):
+		self.settings = kwargs or {}
+
 		self.styles = {}
 
 		self.config = {
@@ -60,9 +74,40 @@ class XLSXStyleBuilder:
 			"total_row": {
 				"font": {"bold": True},
 			},
+			"filter_label": {
+				"font": {"bold": True},
+			},
 		}
 
 		self._register_default_styles()
+
+	def _register_default_styles(self):
+		for name, style in self.default_styles.items():
+			self.register_style(name, **style)
+
+		self._register_indent_styles()
+		self._register_number_formats()
+
+	def _register_indent_styles(self):
+		max_indent = self.settings.get("max_indent_level") or 2
+		pt = self.settings.get("indent_pt") or 2
+
+		for indent in range(max_indent + 1):
+			self.register_style(self.indent_key(indent), **self.get_indent_style(indent, pt))
+
+	def _register_number_formats(self):
+		map = {
+			"int_format": self.get_number_format("Int"),
+			"float_format": self.get_number_format("Float"),
+			"percent_format": self.get_number_format("Percent"),
+			"date_format": self.get_date_format(),
+			"time_format": self.get_time_format(),
+			"datetime_format": self.get_datetime_format(),
+			"default_currency_format": self.get_number_format("Currency", self.settings.get("currency")),
+		}
+
+		for style_name, format in map.items():
+			self.register_style(style_name, number_format=format)
 
 	def register_style(self, name: str, **kwargs):
 		"""
@@ -83,66 +128,65 @@ class XLSXStyleBuilder:
 			style.number_format = number_format
 
 		# Handle style objects with automatic instantiation
-		for prop_name, style_class in self._STYLE_CLASSES.items():
+		for prop_name, style_class in self.STYLE_CLASSES.items():
 			if config := kwargs.get(prop_name):
 				style[prop_name] = style_class(**config) if isinstance(config, dict) else config
 
 		self.styles[name] = style
-		return self
 
-	def _register_default_styles(self):
-		self.register_style("header", **self.get_default_style("header"))
-		self.register_style("total_row", **self.get_default_style("total_row"))
+	def register_currency_format(self, currency: str, style_name: str | None = None) -> str:
+		style_name = style_name or f"{currency}_currency_format"
+		number_format = self.get_number_format("Currency", currency)
 
-		self._register_indent_styles()
-		self._register_number_formats()
+		self.register_style(style_name, number_format=number_format)
 
-	def _register_indent_styles(self, max_indent: int = 2, pt: int = 2):
-		for indent in range(max_indent + 1):
-			self.register_style(f"indent_{indent}", **self.get_indent_style(indent, pt=pt))
-
-	def _register_number_formats(self):
-		map = {
-			"int_format": self.get_number_format("Int"),
-			"float_format": self.get_number_format("Float"),
-			"percent_format": self.get_number_format("Percent"),
-			"date_format": self.get_date_format(),
-			"time_format": self.get_time_format(),
-			"datetime_format": self.get_datetime_format(),
-		}
-
-		for style_name, format in map.items():
-			self.register_style(style_name, number_format=format)
-
-	def _validate_style_exists(self, style_name: str):
-		if style_name not in self.styles:
-			frappe.throw(
-				_("Style '{0}' not registered. Register it first using register_style().").format(style_name),
-				title=_("Style Not Registered"),
-			)
+		return style_name
 
 	def style_column(self, col_idx: int, style_name: str):
-		self._validate_style_exists(style_name)
 		self.config["column_styles"][col_idx] = self.styles[style_name]
-		return self
 
 	def style_row(self, row_idx: int, style_name: str):
-		self._validate_style_exists(style_name)
 		self.config["row_styles"][row_idx] = self.styles[style_name]
-		return self
 
-	def style_cell(self, row_idx: int, col_idx: int, style_name: str):
-		self._validate_style_exists(style_name)
-		self.config["cell_styles"][(row_idx, col_idx)] = self.styles[style_name]
-		return self
+	def style_cell(
+		self,
+		row_idx: int,
+		col_idx: int,
+		*,
+		style_name: str | None = None,
+		indent: int | None = None,
+	):
+		cell_key = (row_idx, col_idx)
+
+		cell_style = self.config["cell_styles"].setdefault(cell_key, {})
+
+		# Apply named style
+		if style_name:
+			cell_style.update(self.styles[style_name])
+
+		# Apply indent style (overrides alignment from named style)
+		if indent is not None:
+			cell_style["alignment"] = self.styles[self.indent_key(indent)]["alignment"]
 
 	def add_conditional_style(self, condition: Callable[[int, int, Any], bool], style_name: str):
-		self._validate_style_exists(style_name)
 		self.config["conditional_styles"].append({"condition": condition, "style": self.styles[style_name]})
-		return self
 
-	def get_default_style(self, style_name: str) -> dict:
-		return self.default_styles.get(style_name, {})
+	def style_header(self, header_index: int):
+		self.style_row(header_index, "header")
+
+	def style_filter_labels(self, header_index: int):
+		for row_idx in range(header_index):
+			self.style_cell(row_idx, 0, style_name="filter_label")
+
+	def set_indentations(self, column: int, row_map: dict):
+		for idx, row in row_map.items():
+			if isinstance(row, dict) and "indent" in row:
+				self.style_cell(idx, column, indent=row["indent"])
+
+	def set_fieldtype_number_format(self, columns: list[dict]):
+		for idx, col in enumerate(columns):
+			if style_name := self.FIELDTYPE_STYLES.get(col.get("fieldtype")):
+				self.style_column(idx, style_name)
 
 	def build(self) -> frappe._dict:
 		return self.config
@@ -250,13 +294,9 @@ class XLSXStyleBuilder:
 			return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
 		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
 
-
-### Excel Formatting Utils ###
-# TODO: this should be in query reports utils
-def get_default_xlsx_styles(data) -> dict:
-	# add default styles here
-	# like indentation, bold headers, filters etc.
-	pass
+	@staticmethod
+	def indent_key(level: int) -> str:
+		return f"indent_{level}"
 
 
 ### Excel Creation Utils ###
