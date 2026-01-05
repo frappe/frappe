@@ -338,7 +338,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				]);
 				this.options.push({
 					label: formatted_value,
-					value: __("{0} = {1}", [txt, val]),
 					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), val]),
 					match: val,
 					index: 80,
