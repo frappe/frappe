@@ -1,7 +1,11 @@
 const jump_to_field = (field_label) => {
 	cy.get("body")
 		.type("{esc}") // lose focus if any
-		.type("{ctrl+j}") // jump to field
+		.type("{ctrl+j}"); // jump to field
+
+	cy.get(".modal input[type='text']").first().focus();
+
+	cy.get("body")
 		.type(field_label)
 		.wait(1000)
 		.type("{enter}")

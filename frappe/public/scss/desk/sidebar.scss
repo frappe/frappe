@@ -44,6 +44,7 @@
 
 	display: flex;
 	flex-direction: column;
+	gap: 14px;
 	height: 100vh;
 	z-index: 1030;
 	padding: 8px 8px 10px 8px;
@@ -64,9 +65,6 @@
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 		// transition: width 200ms;
 		.sidebar-items {
-			&:first-child {
-				margin-top: 14px;
-			}
 			width: 100%;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 		}
@@ -103,7 +101,8 @@
 		.sidebar-item-label {
 			@include truncate();
 			font-size: var(--text-sm);
-			display: flex;
+			display: block;
+			flex: 1 1 auto;
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
@@ -147,7 +146,6 @@
 		margin-left: -5px;
 	}
 	.standard-items-sections {
-		margin-top: 14px;
 		.dropdown-notifications {
 			.notifications-list {
 				left: 3.4%;
@@ -168,7 +166,7 @@
 		}
 
 		.nav-item {
-			margin-left: 0px;
+			margin-left: -5px;
 		}
 	}
 

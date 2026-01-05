@@ -48,6 +48,7 @@ desk_properties = (
 	"bulk_actions",
 	"view_switcher",
 	"form_sidebar",
+	"form_navigation_buttons",
 	"timeline",
 	"dashboard",
 )
@@ -96,6 +97,7 @@ class User(Document):
 		follow_created_documents: DF.Check
 		follow_liked_documents: DF.Check
 		follow_shared_documents: DF.Check
+		form_navigation_buttons: DF.Check
 		form_sidebar: DF.Check
 		full_name: DF.Data | None
 		gender: DF.Link | None

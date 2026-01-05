@@ -628,6 +628,9 @@ def add_user_specific_sidebar(sidebar_items):
 		if f"-{frappe.session.user.lower()}" in sidebar:
 			sidebars_to_remove.append(sidebar)
 	for sidebar in sidebars_to_remove:
-		sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
-		sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
-		sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
+		try:
+			sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
+			sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
+			sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
+		except KeyError:
+			pass

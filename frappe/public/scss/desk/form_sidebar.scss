@@ -144,6 +144,9 @@ body[data-route^="Form"] {
 		.form-sidebar {
 			width: var(--form-sidebar-width);
 		}
+		@media (max-width: 991px) {
+			position: relative;
+		}
 	}
 }
 
@@ -327,6 +330,7 @@ body[data-route^="Form"] {
 	margin-right: var(--margin-xs);
 	.data-pill {
 		background-color: var(--subtle-fg);
+		max-width: 150px;
 	}
 	display: inline-flex;
 }

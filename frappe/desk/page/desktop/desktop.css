@@ -446,9 +446,20 @@
     bottom: 4%;
     right: 4%;
     z-index: 100;
-    opacity: 0.1;
+    opacity: 0.5;
 }
+
 .desktop-edit:hover{
     opacity: 1;
     transition: opacity 0.3s;
+}
+
+[data-theme="dark"] .desktop-edit{
+	background-color: var(--surface-gray-3);
+	opacity: 1;
+}
+
+[data-theme="dark"] .desktop-edit:hover{
+	opacity: 0.8;
+	transition: opacity 0.3s;
 }

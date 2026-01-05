@@ -47,13 +47,15 @@
 }
 .header-title {
 	font-weight: 500;
-	line-height: 1;
+	line-height: 1.2;
 	@include truncate();
 	overflow: unset;
 }
 
 .header-subtitle {
 	color: var(--ink-gray-6);
+	line-height: 1.2;
 	font-size: var(--text-sm);
 	@include truncate();
+	margin-top: 3px;
 }

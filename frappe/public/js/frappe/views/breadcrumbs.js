@@ -224,17 +224,27 @@ frappe.breadcrumbs = {
 		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
 			docname_title = __("New {0}", [__(doctype)]);
 		} else {
-			docname_title = doc.name;
+			let title = frappe.model.get_doc_title(doc);
+			docname_title = title || doc.name;
 		}
 		this.append_breadcrumb_element(form_route, docname_title, "title-text-form");
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find("li").last();
 			last_crumb.addClass("disabled");
+			if (frappe.is_mobile()) {
+				last_crumb.addClass("ellipsis");
+				last_crumb.find("a").addClass("ellipsis");
+			}
 			last_crumb.css("cursor", "copy");
 			last_crumb.click((event) => {
 				event.stopImmediatePropagation();
-				frappe.utils.copy_to_clipboard(last_crumb.text());
+				frappe.utils.copy_to_clipboard(doc.name);
+			});
+			last_crumb.attr("title", __("Click to copy name"));
+			last_crumb.tooltip({
+				delay: { show: 100, hide: 100 },
+				trigger: "hover",
 			});
 		}
 	},

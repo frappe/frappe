@@ -59,6 +59,7 @@
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
+  "form_navigation_buttons",
   "timeline",
   "dashboard",
   "show_absolute_datetime_in_timeline",
@@ -850,6 +851,12 @@
    "is_virtual": 1,
    "label": "Active Sessions",
    "options": "User Session Display"
+  },
+  {
+   "default": "1",
+   "fieldname": "form_navigation_buttons",
+   "fieldtype": "Check",
+   "label": "Navigation Buttons"
   }
  ],
  "icon": "fa fa-user",
@@ -903,7 +910,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-12-13 12:53:46.486021",
+ "modified": "2026-01-02 16:00:51.406511",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -141,7 +141,7 @@ def is_ci(file):
 
 def is_frontend_code(file):
 	"""Check if the file is frontend code."""
-	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
+	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg"))
 
 
 def is_docs(file):

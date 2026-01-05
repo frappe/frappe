@@ -102,27 +102,8 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 	}
 
-	add_back_button() {
-		if (!frappe.is_mobile()) return;
-		this.navbar = $(".navbar-brand");
-		this.menu = this.navbar.html();
-		let doctype = frappe.get_route()[1];
-		let list_view_route = `/desk/${frappe.router.convert_from_standard_route([
-			"list",
-			doctype,
-		])}`;
-		this.navbar.attr("href", list_view_route);
-		this.navbar.html("");
-		this.navbar.html(frappe.utils.icon("arrow-left", "md"));
-	}
 	show_app_logo() {
-		let route = frappe.get_route();
-		if (route[0] == "Form") {
-			this.add_back_button();
-		} else {
-			this.navbar.html(this.menu);
-			this.bind_click();
-		}
+		this.navbar.html(this.menu);
 	}
 };
 

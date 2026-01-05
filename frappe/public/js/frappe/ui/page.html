@@ -2,10 +2,19 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
+				<button class="btn-reset sidebar-toggle-btn">
+					<svg class="es-icon icon-md sidebar-toggle-placeholder">
+						<use href="#es-line-align-justify"></use>
+					</svg>
+					<span class="sidebar-toggle-icon">
+						<svg class="es-icon icon-md">
+							<use href="#es-line-sidebar-collapse">
+							</use>
+						</svg>
+					</span>
+				</button>
 				<div class="flex fill-width title-area ellipsis">
-					{% if (!frappe.is_mobile()) { %}
-						<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis"></ul>
-					{% endif %}
+					<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis {{frappe.is_mobile() ? "mobile-no-divider" : ""}}  "></ul>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-dot-horizontal">
@@ -22,7 +31,7 @@
 				<div class="standard-actions flex">
 					<span class="page-icon-group hide hidden-xs hidden-sm"></span>
 					<div class="menu-btn-group hide">
-						<button type="button" class="btn btn-default icon-btn" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
+						<button type="button" class="btn btn-default icon-btn menu-more-button" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
 							<span>
 								<span class="menu-btn-group-label">
 									<svg class="icon icon-sm">
