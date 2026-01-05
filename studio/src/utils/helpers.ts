@@ -2,10 +2,13 @@ import { Ref } from "vue"
 import { createDocumentResource, createResource, confirmDialog } from "frappe-ui"
 import { toast } from "vue-sonner"
 
-import { FUNCTION_STRING_REGEX } from "@/utils/constants"
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+
+function isEditor() {
+	return window.location.pathname.startsWith("/studio/")
+}
 
 function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {
 	if (!obj || typeof obj !== "object") {
@@ -440,6 +443,7 @@ function scrub(txt: string | null | undefined) {
 }
 
 export {
+	isEditor,
 	deepCloneObject,
 	getBlockInfo,
 	getComponentRoot,

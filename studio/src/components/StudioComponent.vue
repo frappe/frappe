@@ -231,9 +231,6 @@ const isSelected = computed(() => canvasStore.activeCanvas?.selectedBlockIds?.ha
 
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null
-	if (props.block.componentName === "HTML") {
-		return (componentRef.value as InstanceType<typeof HTML>).component
-	}
 	return getComponentRoot(componentRef)
 })
 

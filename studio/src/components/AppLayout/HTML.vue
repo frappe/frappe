@@ -1,25 +1,23 @@
 <template>
-	<component ref="component" v-if="compiledTemplate" :is="compiledTemplate" v-bind="$attrs"></component>
-	<div ref="component" v-else v-html="props.html" v-bind="$attrs"></div>
+	<div class="!relative" ref="component" v-html="_html"></div>
 </template>
+
 <script setup lang="ts">
-import { computed, ref, compile } from "vue"
+import { ref, computed } from "vue"
 import type { HTMLProps } from "@/types/studio_components/HTML"
+import { isEditor } from "@/utils/helpers"
 
 const component = ref<HTMLElement | null>(null)
 const props = defineProps<HTMLProps>()
-defineOptions({
-	inheritAttrs: false,
-})
 
-const compiledTemplate = computed(() => {
-	if (!props.html) return null
-	try {
-		return compile(props.html, { hoistStatic: true })
-	} catch (e) {
-		console.log("Error compiling template:", e)
-		return null
+const _html = computed(() => {
+	if (isEditor()) {
+		return `
+			<div class="absolute top-0 bottom-0 right-0 left-0"></div>
+			${props.html}
+		`
 	}
+	return props.html
 })
 
 defineExpose({
