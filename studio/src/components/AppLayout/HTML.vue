@@ -15,7 +15,7 @@ defineOptions({
 const compiledTemplate = computed(() => {
 	if (!props.html) return null
 	try {
-		return compile(props.html)
+		return compile(props.html, { hoistStatic: true })
 	} catch (e) {
 		console.log("Error compiling template:", e)
 		return null
