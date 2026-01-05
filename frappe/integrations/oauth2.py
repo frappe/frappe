@@ -225,7 +225,7 @@ def get_openid_configuration():
 
 
 @frappe.whitelist(allow_guest=True)
-def introspect_token(token=None, token_type_hint=None):
+def introspect_token(token: str, token_type_hint=None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
