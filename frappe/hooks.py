@@ -152,6 +152,12 @@ standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 automation_rule_config = {"allowed_doctypes": ["ToDo"]}
 doc_events = {
 	"*": {
+		"before_save": [
+			"frappe.automation.doctype.automation_rule.automation_rule.apply_automations",
+		],
+		"after_insert": [
+			"frappe.automation.doctype.automation_rule.automation_rule.apply_automations",
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -184,9 +190,6 @@ doc_events = {
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 		],
 		"after_delete": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
-		"before_save": [
-			"frappe.automation.doctype.automation_rule.automation_rule.apply_automations",
-		],
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
