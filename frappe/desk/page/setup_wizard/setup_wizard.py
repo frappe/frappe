@@ -183,10 +183,25 @@ def update_user_name(args):
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
+<<<<<<< HEAD
 	if args.get("email"):
 		if frappe.db.exists("User", args.get("email")):
 			# running again
 			return
+=======
+	if user := frappe.db.get_value("User", email, ["first_name", "last_name"], as_dict=True):
+		if user.first_name != first_name or user.last_name != last_name:
+			User = frappe.qb.DocType("User")
+			(
+				frappe.qb.update(User)
+				.set(User.first_name, first_name)
+				.set(User.last_name, last_name)
+				.set(User.full_name, args.get("full_name"))
+				.where(User.name == email)
+			).run()
+	else:
+		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
+>>>>>>> d2ee74def3 (fix(setup_wizard): don't update all users (#35679))
 
 		args["name"] = args.get("email")
 
