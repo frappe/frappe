@@ -1,8 +1,17 @@
 <template>
-	<div class="flex h-full w-full flex-col gap-1.5">
+	<div class="relative flex h-full w-full flex-col gap-1.5">
 		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 			{{ label }}
 		</InputLabel>
+		<div v-if="actionButton" class="absolute bottom-1.5 right-1.5 z-10 flex gap-1">
+			<Button
+				@click="actionButton?.handler"
+				variant="outline"
+				:icon="actionButton.icon"
+				:title="actionButton.label"
+				:disabled="readonly"
+			></Button>
+		</div>
 		<codemirror
 			v-model="code"
 			:extensions="extensions"
@@ -11,17 +20,20 @@
 			:indent-with-tab="true"
 			:style="{ height: height, maxHeight: maxHeight }"
 			:disabled="readonly"
-			@ready="setEditorValue"
-			@blur="emitEditorValue"
+			@ready="onEditorReady"
+			@blur="syncToParent"
 		/>
 
-		<Button v-if="showSaveButton" @click="emit('save', code)" class="mt-3 w-full text-base">Save</Button>
+		<Button v-if="showSaveButton" variant="solid" @click="emit('save', code)" class="mt-3 w-full text-base">
+			Save
+		</Button>
 		<ErrorMessage class="text-xs leading-4" v-if="errorMessage" :message="errorMessage" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from "vue"
+import { ref, computed, watch } from "vue"
+import { Button } from "frappe-ui"
 import { Codemirror } from "vue-codemirror"
 import {
 	autocompletion,
@@ -29,7 +41,8 @@ import {
 	type CompletionContext,
 	type Completion,
 } from "@codemirror/autocomplete"
-import { LanguageSupport, indentService } from "@codemirror/language"
+import { Compartment, Extension } from "@codemirror/state"
+import { indentService, LRLanguage } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
@@ -43,7 +56,7 @@ import InputLabel from "@/components/InputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{
-		language?: "json" | "javascript" | "html" | "css" | "python"
+		language?: "json" | "javascript" | "html" | "css"
 		modelValue?: string | object | Array<string | object> | null
 		height?: string
 		maxHeight?: string
@@ -56,6 +69,11 @@ const props = withDefaults(
 		readonly?: boolean
 		borderless?: boolean
 		emitOnChange?: boolean
+		actionButton?: {
+			icon: string
+			label: string
+			handler: () => void
+		}
 	}>(),
 	{
 		language: "javascript",
@@ -69,10 +87,13 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
-const { jsonReplacer, jsToJson, jsonToJs, parseObjectString } = useSerializer()
+const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
-const setEditorValue = () => {
+const editorView = ref<EditorView | null>(null)
+
+// -- Syncing --
+const syncToEditor = () => {
 	let value = props.modelValue ?? ""
 	try {
 		if (props.language === "json" || typeof value === "object") {
@@ -86,19 +107,8 @@ const setEditorValue = () => {
 	}
 }
 
-const isValidObjectString = (text: string) => {
-	const objString = text.trim()
-	if (
-		(objString.startsWith("{") && objString.endsWith("}")) ||
-		(objString.startsWith("[") && objString.endsWith("]"))
-	) {
-		return true
-	}
-	return false
-}
-
 const errorMessage = ref("")
-const emitEditorValue = () => {
+const syncToParent = () => {
 	try {
 		errorMessage.value = ""
 		let value = code.value || ""
@@ -120,67 +130,138 @@ const emitEditorValue = () => {
 	}
 }
 
-const languageExtension = ref<LanguageSupport>()
-const autocompleteExtension = ref()
-const customCompletionsExtension = ref()
-
-async function setLanguageExtension() {
-	const importMap = {
-		json: () => import("@codemirror/lang-json"),
-		javascript: () => import("@codemirror/lang-javascript"),
-		html: () => import("@codemirror/lang-html"),
-		css: () => import("@codemirror/lang-css"),
-		python: () => import("@codemirror/lang-python"),
-	}
-
-	const languageImport = importMap[props.language]
-	if (!languageImport) return
-
-	const module = await languageImport()
-	languageExtension.value = (module as any)[props.language]()
-	const languageData = (module as any)[`${props.language}Language`]
-
-	if (props.completions) {
-		autocompleteExtension.value = languageData.data.of({
+// -- Language Extension --
+let languageConf = new Compartment()
+const loadLanguage = async (type: string): Promise<Extension> => {
+	const getJSCompletions = (language: LRLanguage) => {
+		if (!props.completions) return []
+		return language.data.of({
 			autocomplete: props.completions,
 		})
 	}
 
-	if (props.language === "javascript") {
-		const { scopeCompletionSource } = module as any
-		const windowCompletionSource = scopeCompletionSource(window)
-		customCompletionsExtension.value = languageData.data.of({
-			autocomplete: (context: CompletionContext) => {
-				const result = windowCompletionSource(context)
-				if (result && result.options) {
-					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
-				}
-				return result
-			},
-		})
+	switch (type) {
+		case "javascript": {
+			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
+				"@codemirror/lang-javascript"
+			)
+			const windowCompletionSource = scopeCompletionSource(window)
+			return [
+				javascript(),
+				getJSCompletions(javascriptLanguage),
+				javascriptLanguage.data.of({
+					autocomplete: async (context: CompletionContext) => {
+						const result = await windowCompletionSource(context)
+						if (result && result.options) {
+							result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+						}
+						return result
+					},
+				}),
+			]
+		}
+		case "html": {
+			const { html, htmlLanguage } = await import("@codemirror/lang-html")
+			return [html(), getJSCompletions(htmlLanguage)]
+		}
+		case "css": {
+			const { css } = await import("@codemirror/lang-css")
+			return css()
+		}
+		case "json": {
+			const { json } = await import("@codemirror/lang-json")
+			return json()
+		}
+		default:
+			return []
 	}
 }
 
-onMounted(async () => {
-	await setLanguageExtension()
-})
+async function updateLanguage() {
+	const languageExtension = await loadLanguage(props.language)
+	editorView.value?.dispatch({ effects: languageConf.reconfigure(languageExtension) })
+}
 
-watch(
-	() => props.language,
-	async () => {
-		await setLanguageExtension()
-	},
-	{ immediate: true },
-)
+// -- Editor Events --
+const onEditorReady = (view: { view: EditorView }) => {
+	editorView.value = view.view
+	syncToEditor()
+	updateLanguage()
+}
 
-watch(() => props.modelValue, setEditorValue)
-
-// Emit on change if emitOnChange prop is true
+watch(() => props.modelValue, syncToEditor)
+watch(() => props.language, updateLanguage)
 watch(code, () => {
 	if (props.emitOnChange && !props.readonly) {
-		emitEditorValue()
+		syncToParent()
 	}
 })
+
+// -- Extensions --
+const extensions = computed(() => {
+	const baseExtensions = [
+		languageConf.of([]),
+		closeBrackets(),
+		indentationMarkers(),
+		getAutocompletionOptions(),
+		props.showLineNumbers ? EditorView.lineWrapping : [],
+		isObjectLiteral.value ? customIndent : [],
+		tomorrow,
+		EditorView.theme({
+			"&": {
+				fontFamily: "monospace",
+				fontSize: "12px",
+			},
+			".cm-gutters": {
+				display: props.showLineNumbers ? "flex" : "none",
+			},
+			...(props.borderless && {
+				"&.cm-editor": {
+					border: "none !important",
+					borderRadius: "0 !important",
+				},
+			}),
+		}),
+		EditorView.domEventHandlers({
+			cut: (event, _view) => {
+				event.stopPropagation()
+			},
+			copy: (event, _view) => {
+				event.stopPropagation()
+			},
+			paste: (event, _view) => {
+				event.stopPropagation()
+			},
+		}),
+		keymap.of([{ key: "Tab", run: indentMore, shift: indentLess }]),
+	]
+	if (!props.readonly) {
+		baseExtensions.push(
+			keymap.of([
+				{
+					key: "Ctrl-s",
+					mac: "Cmd-s",
+					run: () => {
+						emit("save", syncToParent())
+						return true
+					},
+					stopPropagation: true,
+				},
+			]),
+		)
+	}
+	return baseExtensions
+})
+
+const getAutocompletionOptions = () => {
+	return autocompletion({
+		activateOnTyping: true,
+		maxRenderedOptions: 10,
+		closeOnBlur: false,
+		icons: false,
+		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
+	})
+}
 
 const customIndent = indentService.of((context: any, pos: number) => {
 	/* helper to indent correctly inside objects because codemirror fails to do it for a bare object literal */
@@ -209,90 +290,24 @@ const customIndent = indentService.of((context: any, pos: number) => {
 	return null
 })
 
-const extensions = computed(() => {
-	const baseExtensions = [
-		closeBrackets(),
-		indentationMarkers(),
-		props.showLineNumbers ? EditorView.lineWrapping : [],
-		tomorrow,
-		EditorView.theme({
-			"&": {
-				fontFamily: "monospace",
-				fontSize: "12px",
-			},
-			".cm-gutters": {
-				display: props.showLineNumbers ? "flex" : "none",
-			},
-			...(props.borderless && {
-				"&.cm-editor": {
-					border: "none !important",
-					borderRadius: "0 !important",
-				},
-			}),
-		}),
-		EditorView.domEventHandlers({
-			cut: (event, _view) => {
-				event.stopPropagation()
-			},
-			copy: (event, _view) => {
-				event.stopPropagation()
-			},
-			paste: (event, _view) => {
-				event.stopPropagation()
-			},
-		}),
-		keymap.of([
-			{
-				key: "Tab",
-				run: indentMore,
-				shift: indentLess,
-			},
-		]),
-	]
-	if (!props.readonly) {
-		baseExtensions.push(
-			keymap.of([
-				{
-					key: "Ctrl-s",
-					mac: "Cmd-s",
-					run: () => {
-						emit("save", emitEditorValue())
-						return true
-					},
-					stopPropagation: true,
-				},
-			]),
-		)
-	}
-	if (languageExtension.value) {
-		baseExtensions.push(languageExtension.value)
-	}
-	if (autocompleteExtension.value) {
-		baseExtensions.push(autocompleteExtension.value)
-	}
-	if (customCompletionsExtension.value) {
-		baseExtensions.push(customCompletionsExtension.value)
-	}
-	if (isObjectLiteral.value) {
-		baseExtensions.push(customIndent)
-	}
-	const autocompletionOptions = {
-		activateOnTyping: true,
-		maxRenderedOptions: 10,
-		closeOnBlur: false,
-		icons: false,
-		optionClass: () => "flex h-7 !px-2 items-center rounded !text-gray-600",
-	}
-	baseExtensions.push(autocompletion(autocompletionOptions))
-	return baseExtensions
-})
-
+// -- Helpers --
 const isObjectLiteral = computed(
 	() => props.language === "javascript" && typeof props.modelValue === "object",
 )
 
+const isValidObjectString = (text: string) => {
+	const objString = text.trim()
+	if (
+		(objString.startsWith("{") && objString.endsWith("}")) ||
+		(objString.startsWith("[") && objString.endsWith("]"))
+	) {
+		return true
+	}
+	return false
+}
+
 defineExpose({
 	errorMessage,
-	emitEditorValue,
+	emitEditorValue: syncToParent,
 })
 </script>

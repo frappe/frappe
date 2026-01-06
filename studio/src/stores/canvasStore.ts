@@ -1,10 +1,11 @@
 import { defineStore } from "pinia"
-import { ref, reactive, computed } from "vue"
+import { ref, reactive, computed, nextTick } from "vue"
 import type Block from "@/utils/block"
 import { useSerializer } from "@/utils/useSerializer"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@/types"
+import block from "@/utils/block"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -14,6 +15,22 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		x: 0,
 		y: 0,
 	})
+
+	// dialogs
+	const showHTMLDialog = ref(false)
+	const editableBlock = ref<Block | null>(null)
+
+	function editHTML(block: Block) {
+		editableBlock.value = block
+		nextTick(() => {
+			showHTMLDialog.value = true
+		})
+	}
+
+	function closeHTMLDialog() {
+		showHTMLDialog.value = false
+		editableBlock.value = null
+	}
 
 	// drag & drop
 	const isDragging = ref(false)
@@ -146,6 +163,11 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		// layout
 		activeCanvas,
 		guides,
+		// dialogs
+		showHTMLDialog,
+		editableBlock,
+		editHTML,
+		closeHTMLDialog,
 		// drag & drop
 		dropTarget,
 		isDragging,

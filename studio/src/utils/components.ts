@@ -76,7 +76,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
-				inputType: getPropInputType(propType),
+				inputType: getPropInputType(propType, propName),
 				required: isRequired,
 				condition: prop.condition,
 			}
@@ -105,7 +105,10 @@ function getPropType(propType: VuePropType | VuePropType[]) {
 	return propType?.name
 }
 
-function getPropInputType(propType: string) {
+function getPropInputType(propType: string, propName: string) {
+	if (propName.toLowerCase() === "html") {
+		return "html"
+	}
 	switch (propType) {
 		case "string":
 			return "text"

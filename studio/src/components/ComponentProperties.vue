@@ -54,12 +54,23 @@
 
 			<!-- Visibility Condition -->
 			<SectionContainer title="Visibility Condition">
+				<template #actions>
+					<Button
+						v-if="block?.hasVisibilityCondition()"
+						title="Toggle visibility condition"
+						variant="ghost"
+						@click.stop="block?.toggleVisibilityCondition()"
+					>
+						<FeatherIcon :name="block.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
+					</Button>
+				</template>
 				<Code
 					language="javascript"
 					height="60px"
 					:showLineNumbers="false"
 					:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
-					:modelValue="block?.visibilityCondition"
+					:modelValue="block?.visibilityCondition || block?.__lastVisibilityCondition"
+					:readonly="!!block.__lastVisibilityCondition"
 					@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 				/>
 			</SectionContainer>
@@ -93,6 +104,7 @@ import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import { Switch } from "@/json_types"
 
 const props = defineProps<{
 	block?: Block

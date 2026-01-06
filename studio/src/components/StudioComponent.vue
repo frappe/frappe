@@ -113,6 +113,7 @@ import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
+import type HTML from "@/components/AppLayout/HTML.vue"
 import useCodeStore from "@/stores/codeStore"
 
 const props = withDefaults(
@@ -134,7 +135,7 @@ const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
 const isComponentReady = ref(false)
-const editor = ref<InstanceType<typeof ComponentEditor> | null>(null)
+const editor = ref<InstanceType<typeof ComponentEditor> | InstanceType<typeof HTML> | null>(null)
 
 const classes = computed(() => {
 	return [attrs.class, "__studio_component__", "outline-none", "select-none", ...props.block.getClasses()]

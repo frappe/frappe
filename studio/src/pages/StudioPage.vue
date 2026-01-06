@@ -74,6 +74,36 @@
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
 			/>
 		</div>
+
+		<Dialog
+			v-model="canvasStore.showHTMLDialog"
+			class="overscroll-none"
+			:options="{
+				title: 'HTML',
+				size: '7xl',
+			}"
+		>
+			<template #body-content>
+				<Code
+					:modelValue="canvasStore.editableBlock?.getHTML()"
+					language="html"
+					label="Edit HTML"
+					:showLineNumbers="true"
+					:showSaveButton="true"
+					:completions="
+						(context: CompletionContext) =>
+							getCompletions(context, canvasStore.editableBlock?.getCompletions())
+					"
+					@save="
+						(val: string) => {
+							canvasStore.editableBlock?.setHTML(val)
+							canvasStore.closeHTMLDialog()
+						}
+					"
+					required
+				/>
+			</template>
+		</Dialog>
 	</div>
 </template>
 
@@ -81,13 +111,15 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta } from "frappe-ui"
+import { usePageMeta, Dialog } from "frappe-ui"
+import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import StudioToolbar from "@/components/StudioToolbar.vue"
 import StudioLeftPanel from "@/components/StudioLeftPanel.vue"
 import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
+import Code from "@/components/Code.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -95,12 +127,14 @@ import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { useSerializer } from "@/utils/useSerializer"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
+const getCompletions = useStudioCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents()
 

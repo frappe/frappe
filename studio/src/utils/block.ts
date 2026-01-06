@@ -30,6 +30,7 @@ class Block implements BlockOptions {
 	mobileStyles: BlockStyleMap
 	tabletStyles: BlockStyleMap
 	visibilityCondition?: string
+	__lastVisibilityCondition?: string | undefined
 	originalElement?: string
 	classes?: string[]
 	parentSlotName?: string
@@ -372,8 +373,44 @@ class Block implements BlockOptions {
 		}
 	}
 
+	toggleVisibilityCondition() {
+		if (this.visibilityCondition) {
+			this.__lastVisibilityCondition = this.visibilityCondition
+			this.visibilityCondition = undefined
+		} else if (this.__lastVisibilityCondition) {
+			this.visibilityCondition = this.__lastVisibilityCondition
+			this.__lastVisibilityCondition = undefined
+		}
+	}
+
+	hasVisibilityCondition() {
+		return this.visibilityCondition || this.__lastVisibilityCondition
+	}
+
 	isVisible() {
 		return this.getStyle("display") !== "none"
+	}
+
+	isHTML() {
+		return this.componentName === "HTML"
+	}
+
+	getHTML() {
+		return this.isHTML() ? this.getProp("html") : null
+	}
+
+	setHTML(html: string) {
+		if (this.isHTML()) {
+			this.setProp("html", html)
+		}
+	}
+
+	isSVG() {
+		return this.isHTML() && this.getProp("html")?.trim().startsWith("<svg")
+	}
+
+	isIframe() {
+		return this.isHTML() && this.getProp("html")?.trim().startsWith("<iframe")
 	}
 
 	isFlex() {
@@ -552,6 +589,10 @@ class Block implements BlockOptions {
 	}
 
 	// component props
+	getProp(propName: string) {
+		return this.componentProps[propName]
+	}
+
 	setProp(propName: string, value: any) {
 		this.componentProps[propName] = value
 	}

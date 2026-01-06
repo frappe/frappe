@@ -71,7 +71,7 @@
 	>
 		<template #body-content>
 			<Code
-				:modelValue="block.getSlotContent(store.selectedSlot?.slotName) || ''"
+				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
 				language="html"
 				height="60vh"
 				:showSaveButton="true"
@@ -134,7 +134,13 @@ const showMarginPaddingHandlers = computed(() => {
 })
 
 const showResizer = computed(() => {
-	return !props.block.isRoot() && isBlockSelected.value && !canvasStore.isDragging
+	return (
+		!props.block.isRoot() &&
+		isBlockSelected.value &&
+		!canvasStore.isDragging &&
+		!props.block.getParentBlock()?.isGrid() &&
+		!(props.block.isHTML() && !props.block.isSVG() && !props.block.isIframe())
+	)
 })
 
 const isBlockSelected = computed(() => {

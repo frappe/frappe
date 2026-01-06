@@ -44,6 +44,7 @@ export const STUDIO_COMPONENTS = [
 	"Container",
 	"FitContainer",
 	"Repeater",
+	"HTML",
 	"Header",
 	"Sidebar",
 	"SplitView",

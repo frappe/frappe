@@ -9,7 +9,7 @@
 				v-if="propName === 'modelValue'"
 				:block="block"
 				@update:modelValue="(value) => bindVariable(propName, value)"
-				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
 				:formatValuesAsTemplate="false"
 			>
 				<template #target="{ togglePopover }">
@@ -34,12 +34,32 @@
 			<DynamicValueSelector
 				v-else-if="!isTestingComponent"
 				:block="block"
-				:class="{ 'mt-1 self-start': config.inputType === 'code' }"
+				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
 				@update:modelValue="(value) => props.block?.setProp(propName, value)"
 			/>
 
 			<Code
-				v-if="config.inputType === 'code'"
+				v-if="config.inputType === 'html'"
+				:label="propName"
+				language="html"
+				:modelValue="config.modelValue"
+				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:required="config.required"
+				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+				:showLineNumbers="false"
+				height="250px"
+				class="overflow-hidden"
+				:actionButton="{
+					icon: 'maximize-2',
+					label: 'Expand',
+					handler: () => {
+						if (!props.block) return
+						canvasStore.editHTML(props.block)
+					},
+				}"
+			/>
+			<Code
+				v-else-if="config.inputType === 'code'"
 				:label="propName"
 				language="javascript"
 				:modelValue="config.modelValue"
@@ -88,6 +108,7 @@ import type { CompletionContext } from "@codemirror/autocomplete"
 import useComponentStore from "@/stores/componentStore"
 import { getComponentProps } from "@/utils/components"
 import { isDynamicValue } from "@/utils/code"
+import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
@@ -99,6 +120,7 @@ const props = defineProps<{
 }>()
 
 const getCompletions = useStudioCompletions()
+const canvasStore = useCanvasStore()
 
 const componentInstance = computed(() => {
 	if (!props.block?.componentName || props.block.isStudioComponent) return {}
@@ -173,6 +195,10 @@ function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentPr
 		}
 	})
 	return _props
+}
+
+const isCodeField = (inputType: string) => {
+	return ["code", "html"].includes(inputType)
 }
 
 // variable binding
