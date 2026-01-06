@@ -80,7 +80,13 @@ def get_list(
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
-	return frappe.db.count(doctype, get_safe_filters(filters), debug, cache)
+	from frappe.desk.reportview import get_count
+
+	frappe.form_dict.doctype = doctype
+	frappe.form_dict.filters = get_safe_filters(filters)
+	frappe.form_dict.debug = debug
+
+	return get_count()
 
 
 @frappe.whitelist()
