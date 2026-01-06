@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
-BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
+BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w\s\.\(\)\[\]'\"\,\:\-\#]+\})")
 
 
 # Types that can be using in naming series fields
@@ -593,7 +593,15 @@ def _format_autoname(autoname: str, doc):
 
 	def get_param_value_for_match(match):
 		param = match.group()
-		return parse_naming_series([param[1:-1]], doc=doc)
+		content = param[1:-1]
+
+		if any(char in content for char in ".()[]'\""):
+			try:
+				return str(frappe.safe_eval(content, None, {"doc": doc, **doc.as_dict()}))
+			except Exception:
+				pass
+
+		return parse_naming_series([content], doc=doc)
 
 	# Replace braced params with their parsed value
 	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
