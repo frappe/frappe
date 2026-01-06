@@ -18,7 +18,6 @@
 		"@codemirror/lang-html": "^6.4.9",
 		"@codemirror/lang-javascript": "^6.2.4",
 		"@codemirror/lang-json": "^6.0.1",
-		"@codemirror/lang-python": "^6.2.1",
 		"@replit/codemirror-indentation-markers": "^6.5.3",
 		"@vitejs/plugin-vue": "^5.2.0",
 		"@vueuse/components": "^10.11.1",
