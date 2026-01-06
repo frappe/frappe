@@ -1079,7 +1079,7 @@ def build_default_xlsx_styles(metadata: XLSXMetadata) -> dict | None:
 
 	# filter labels
 	if metadata.include_filters:
-		builder.style_filter_labels(metadata.filter_row_range)
+		builder.style_filter_labels(metadata.header_index)
 
 	# header row
 	builder.style_header(metadata.header_index)
