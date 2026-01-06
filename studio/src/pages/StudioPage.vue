@@ -86,12 +86,14 @@
 			<template #body-content>
 				<Code
 					:modelValue="canvasStore.editableBlock?.getHTML()"
-					ref="htmlEditor"
-					type="HTML"
-					height="68vh"
+					language="html"
 					label="Edit HTML"
 					:showLineNumbers="true"
 					:showSaveButton="true"
+					:completions="
+						(context: CompletionContext) =>
+							getCompletions(context, canvasStore.editableBlock?.getCompletions())
+					"
 					@save="
 						(val: string) => {
 							canvasStore.editableBlock?.setHTML(val)
@@ -110,6 +112,7 @@ import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } 
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta, Dialog } from "frappe-ui"
+import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import StudioToolbar from "@/components/StudioToolbar.vue"
@@ -124,12 +127,14 @@ import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { useSerializer } from "@/utils/useSerializer"
+import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
+const getCompletions = useStudioCompletions()
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents()
 
