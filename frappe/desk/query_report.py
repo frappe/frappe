@@ -388,13 +388,13 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	format_fields(data)
-	xlsx_data, column_widths, header_index, metadata = build_xlsx_data(
+	xlsx_data, column_widths, metadata = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
-		build_metadata=file_format_type == "Excel",
+		build_style_metadata=file_format_type == "Excel",
 	)
 
 	if file_format_type == "CSV":
@@ -410,14 +410,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 		report = frappe.get_doc("Report", report_name)
 		styles = report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
 
-		content = make_xlsx(
-			xlsx_data,
-			"Query Report",
-			column_widths=column_widths,
-			header_index=header_index,
-			has_filters=bool(include_filters),
-			styles=styles,
-		).getvalue()
+		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, styles=styles).getvalue()
+	else:
+		frappe.throw(_("Unsupported file format: {0}").format(file_format_type))
 
 	if include_filters:
 		for value in (data.filters or {}).values():
@@ -463,7 +458,7 @@ def build_xlsx_data(
 	include_filters: bool = False,
 	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-	build_metadata: bool = False,
+	build_style_metadata: bool = False,
 ) -> tuple[list[list[Any]], list[int], int, dict | None]:
 	"""
 	Build Excel data structure from report data with proper formatting.
@@ -475,18 +470,17 @@ def build_xlsx_data(
 		include_filters: Whether to include filter rows at the top of the Excel sheet
 		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
-		build_metadata: Whether to build metadata for the Excel sheet formatting
+		build_style_metadata: Whether to build metadata for the Excel sheet formatting
 
 	Returns:
 		tuple: A tuple containing:
 			- result: List of rows for the Excel sheet
 			- column_widths: List of column widths for the Excel sheet
-			- header_index: Index of the header row in the result
-			- metadata: Metadata for the Excel sheet formatting (if build_metadata is True)
+			- metadata: Metadata for the Excel sheet formatting (if build_style_metadata is True)
 	"""
 	metadata = None
 
-	if build_metadata:
+	if build_style_metadata:
 		metadata = XLSXMetadata()
 
 	EXCEL_TYPES = (
@@ -538,7 +532,7 @@ def build_xlsx_data(
 		if column.get("hidden") and not include_hidden_columns:
 			continue
 
-		if build_metadata:
+		if build_style_metadata:
 			metadata.columns.append(column)
 
 		column_data.append(_(column.get("label")))
@@ -576,13 +570,13 @@ def build_xlsx_data(
 
 			row_data.append(cell_value)
 
-		if build_metadata:
+		if build_style_metadata:
 			metadata.row_map[excel_row_idx] = row
 			excel_row_idx += 1
 
 		result.append(row_data)
 
-	if build_metadata:
+	if build_style_metadata:
 		metadata.filters = data.filters or frappe._dict()
 
 		metadata.header_index = header_index
@@ -594,7 +588,7 @@ def build_xlsx_data(
 		metadata.include_filters = include_filters
 		metadata.add_total_row = data.add_total_row
 
-	return result, column_widths, header_index, metadata
+	return result, column_widths, metadata
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):

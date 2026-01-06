@@ -305,8 +305,6 @@ def make_xlsx(
 	sheet_name: str,
 	wb: openpyxl.Workbook | None = None,
 	column_widths: list[int] | None = None,
-	header_index: int = 0,
-	has_filters: bool = False,
 	styles: dict | None = None,
 ) -> BytesIO:
 	"""
@@ -317,8 +315,6 @@ def make_xlsx(
 		sheet_name: Name of the Excel sheet
 		wb: Existing workbook to add sheet to. If None, creates new workbook
 		column_widths: List of column widths in Excel units. If None, auto-sized
-		header_index: Row index (0-based) that should be formatted as header making it bold
-		has_filters: If True, applies bold formatting to the first column of filter rows
 		styles: Configuration for cell/row/column styles
 			- Should contain: column_styles, row_styles, cell_styles, conditional_styles
 
