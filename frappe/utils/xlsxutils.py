@@ -174,6 +174,9 @@ class XLSXStyleBuilder:
 	def style_header(self, header_index: int):
 		self.style_row(header_index, "header")
 
+	def style_total_row(self, total_row_index: int):
+		self.style_row(total_row_index, "total_row")
+
 	def style_filter_labels(self, header_index: int):
 		for row_idx in range(header_index):
 			self.style_cell(row_idx, 0, style_name="filter_label")
@@ -183,7 +186,7 @@ class XLSXStyleBuilder:
 			if isinstance(row, dict) and "indent" in row:
 				self.style_cell(idx, column, indent=row["indent"])
 
-	def set_fieldtype_number_format(self, columns: list[dict]):
+	def set_fieldtype_format(self, columns: list[dict]):
 		for idx, col in enumerate(columns):
 			if style_name := self.FIELDTYPE_STYLES.get(col.get("fieldtype")):
 				self.style_column(idx, style_name)

@@ -1047,6 +1047,13 @@ class XLSXMetadata:
 	def get_row(self, row_idx: int) -> dict | list | None:
 		return self.row_map.get(row_idx)
 
+	def get_indent_level(self, row_idx: int) -> int:
+		if row := self.get_row(row_idx):
+			if isinstance(row, dict):
+				return row.get("indent", 0)
+
+		return 0
+
 	def is_filter_row(self, row_idx: int) -> bool:
 		if not self.include_filters:
 			return False
