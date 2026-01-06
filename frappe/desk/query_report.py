@@ -378,7 +378,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
-	data._filters = form_params.filters  # for excel metadata
+
+	# for excel metadata
+	data.report_name = report_name
+	data._filters = form_params.filters
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -407,8 +410,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
 
-		report = frappe.get_doc("Report", report_name)
-		styles = report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
+		styles = get_xlsx_styles(metadata)
 
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, styles=styles).getvalue()
 	else:
@@ -577,7 +579,8 @@ def build_xlsx_data(
 		result.append(row_data)
 
 	if build_style_metadata:
-		metadata.filters = data.filters or frappe._dict()
+		metadata.report_name = data.report_name
+		metadata.filters = data._filters or frappe._dict()
 
 		metadata.header_index = header_index
 		metadata.last_row_index = len(result) - 1
@@ -1018,6 +1021,8 @@ def translate_report_data(data, total_row):
 ### XLSX Formatter ###
 @dataclass
 class XLSXMetadata:
+	report_name: str = ""
+
 	columns: list[dict] = dataclass_field(default_factory=list)
 	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	filters: dict = dataclass_field(default_factory=dict)
@@ -1052,20 +1057,28 @@ class XLSXMetadata:
 		return row_idx == self.header_index
 
 
-def build_default_xlsx_styles(data: XLSXMetadata) -> dict | None:
+def get_xlsx_styles(metadata: XLSXMetadata) -> dict:
+	if metadata.report_name:
+		report = frappe.get_doc("Report", metadata.report_name)
+		return report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
+
+	return build_default_xlsx_styles(metadata)
+
+
+def build_default_xlsx_styles(metadata: XLSXMetadata) -> dict | None:
 	from frappe.utils.xlsxutils import XLSXStyleBuilder
 
-	builder = XLSXStyleBuilder(max_indent_level=data.max_indent_level)
+	builder = XLSXStyleBuilder(max_indent_level=metadata.max_indent_level)
 
 	# filter labels
-	if data.include_filters:
-		builder.style_filter_labels(data.filter_row_range)
+	if metadata.include_filters:
+		builder.style_filter_labels(metadata.filter_row_range)
 
 	# header row
-	builder.style_header(data.header_index)
+	builder.style_header(metadata.header_index)
 
 	# indentation
-	if data.include_indentation:
-		builder.set_indentations(0, data.row_map)
+	if metadata.include_indentation:
+		builder.set_indentations(0, metadata.row_map)
 
 	return builder.build()
