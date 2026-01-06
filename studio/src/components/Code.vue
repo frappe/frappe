@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from "vue"
+import { ref, computed, watch } from "vue"
 import { Button } from "frappe-ui"
 import { Codemirror } from "vue-codemirror"
 import {
@@ -41,7 +41,8 @@ import {
 	type CompletionContext,
 	type Completion,
 } from "@codemirror/autocomplete"
-import { LanguageSupport, indentService } from "@codemirror/language"
+import { Compartment, Extension } from "@codemirror/state"
+import { indentService } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
@@ -89,7 +90,7 @@ const emit = defineEmits(["update:modelValue", "save"])
 const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
-const setEditorValue = () => {
+const updateCodeValue = () => {
 	let value = props.modelValue ?? ""
 	try {
 		if (props.language === "json" || typeof value === "object") {
@@ -103,15 +104,10 @@ const setEditorValue = () => {
 	}
 }
 
-const isValidObjectString = (text: string) => {
-	const objString = text.trim()
-	if (
-		(objString.startsWith("{") && objString.endsWith("}")) ||
-		(objString.startsWith("[") && objString.endsWith("]"))
-	) {
-		return true
-	}
-	return false
+const setEditorValue = (view: { view: EditorView }) => {
+	editorView.value = view.view
+	updateCodeValue()
+	updateLanguageExtension()
 }
 
 const errorMessage = ref("")
@@ -137,60 +133,72 @@ const emitEditorValue = () => {
 	}
 }
 
-const languageExtension = ref<LanguageSupport>()
-const autocompleteExtension = ref()
-const customCompletionsExtension = ref()
+let language = new Compartment()
+const editorView = ref<EditorView | null>(null)
 
-async function setLanguageExtension() {
-	const importMap = {
-		json: () => import("@codemirror/lang-json"),
-		javascript: () => import("@codemirror/lang-javascript"),
-		html: () => import("@codemirror/lang-html"),
-		css: () => import("@codemirror/lang-css"),
-		python: () => import("@codemirror/lang-python"),
+const getLanguageExtension = async (type: string): Promise<Extension> => {
+	switch (type) {
+		case "javascript": {
+			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
+				"@codemirror/lang-javascript"
+			)
+			const windowCompletionSource = scopeCompletionSource(window)
+			return [
+				javascript(),
+				javascriptLanguage.data.of({
+					autocomplete: props.completions,
+				}),
+				javascriptLanguage.data.of({
+					autocomplete: async (context: CompletionContext) => {
+						const result = await windowCompletionSource(context)
+						if (result && result.options) {
+							result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+						}
+						return result
+					},
+				}),
+			]
+		}
+		case "html": {
+			const { html, htmlLanguage } = await import("@codemirror/lang-html")
+			return [
+				html(),
+				htmlLanguage.data.of({
+					autocomplete: props.completions,
+				}),
+			]
+		}
+		case "CSS": {
+			const { css } = await import("@codemirror/lang-css")
+			return css()
+		}
+		case "json": {
+			const { json } = await import("@codemirror/lang-json")
+			return json()
+		}
+		default:
+			return []
 	}
+}
 
-	const languageImport = importMap[props.language]
-	if (!languageImport) return
+async function updateLanguageExtension() {
+	const languageExtension = await getLanguageExtension(props.language)
 
-	const module = await languageImport()
-	languageExtension.value = (module as any)[props.language]()
-	const languageData = (module as any)[`${props.language}Language`]
-
-	if (props.completions) {
-		autocompleteExtension.value = languageData.data.of({
-			autocomplete: props.completions,
-		})
-	}
-
-	if (props.language === "javascript") {
-		const { scopeCompletionSource } = module as any
-		const windowCompletionSource = scopeCompletionSource(window)
-		customCompletionsExtension.value = languageData.data.of({
-			autocomplete: (context: CompletionContext) => {
-				const result = windowCompletionSource(context)
-				if (result && result.options) {
-					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
-				}
-				return result
-			},
+	if (editorView.value) {
+		editorView.value.dispatch({
+			effects: language.reconfigure(languageExtension),
 		})
 	}
 }
 
-onMounted(async () => {
-	await setLanguageExtension()
-})
-
 watch(
 	() => props.language,
 	async () => {
-		await setLanguageExtension()
+		await updateLanguageExtension()
 	},
-	{ immediate: true },
 )
 
-watch(() => props.modelValue, setEditorValue)
+watch(() => props.modelValue, updateCodeValue)
 
 // Emit on change if emitOnChange prop is true
 watch(code, () => {
@@ -228,6 +236,7 @@ const customIndent = indentService.of((context: any, pos: number) => {
 
 const extensions = computed(() => {
 	const baseExtensions = [
+		language.of([]),
 		closeBrackets(),
 		indentationMarkers(),
 		props.showLineNumbers ? EditorView.lineWrapping : [],
@@ -281,15 +290,6 @@ const extensions = computed(() => {
 			]),
 		)
 	}
-	if (languageExtension.value) {
-		baseExtensions.unshift(languageExtension.value)
-	}
-	if (autocompleteExtension.value) {
-		baseExtensions.push(autocompleteExtension.value)
-	}
-	if (customCompletionsExtension.value) {
-		baseExtensions.push(customCompletionsExtension.value)
-	}
 	if (isObjectLiteral.value) {
 		baseExtensions.push(customIndent)
 	}
@@ -307,6 +307,17 @@ const extensions = computed(() => {
 const isObjectLiteral = computed(
 	() => props.language === "javascript" && typeof props.modelValue === "object",
 )
+
+const isValidObjectString = (text: string) => {
+	const objString = text.trim()
+	if (
+		(objString.startsWith("{") && objString.endsWith("}")) ||
+		(objString.startsWith("[") && objString.endsWith("]"))
+	) {
+		return true
+	}
+	return false
+}
 
 defineExpose({
 	errorMessage,
