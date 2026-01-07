@@ -84,6 +84,9 @@ frappe.breadcrumbs = {
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_dashboard_breadcrumb(breadcrumbs);
+			} else if (view == "query-report") {
+				breadcrumbs.label = frappe.query_report.page_title;
+				this.append_breadcrumb_element("", breadcrumbs.label);
 			}
 		}
 
@@ -97,7 +100,9 @@ frappe.breadcrumbs = {
 	append_breadcrumb_element(route, label, css_classes) {
 		const el = document.createElement("li");
 		const a = document.createElement("a");
-		a.href = route;
+		if (route) {
+			a.href = route;
+		}
 		if (css_classes) {
 			a.classList.add(css_classes);
 		}
