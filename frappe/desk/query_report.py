@@ -390,19 +390,13 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 		return
 
-<<<<<<< HEAD
 	format_duration_fields(data)
-	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
-=======
-	format_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
-		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
 	)
->>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 
 	if file_format_type == "CSV":
 		content = get_csv_bytes(xlsx_data, csv_params)
@@ -428,18 +422,13 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
-<<<<<<< HEAD
-def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
-=======
 def build_xlsx_data(
 	data,
 	visible_idx,
 	include_indentation,
-	include_filters=False,
 	ignore_visible_idx=False,
 	include_hidden_columns=False,
 ):
->>>>>>> ba298488c5 (feat: include hidden columns in query report export file (#33333))
 	EXCEL_TYPES = (
 		str,
 		bool,
