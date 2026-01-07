@@ -5,10 +5,11 @@ import json
 import threading
 
 import frappe
-import frappe.desk.query_report
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
+from frappe.desk.query_report import XLSXMetadata
+from frappe.desk.query_report import run as run_report
 from frappe.desk.reportview import append_totals_row
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
@@ -234,7 +235,7 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
+		data = run_report(
 			self.name,
 			filters=filters,
 			user=user,
@@ -400,7 +401,7 @@ class Report(Document):
 
 		self.db_set("disabled", cint(disable))
 
-	def get_xlsx_styles(self, data: dict) -> dict | None:
+	def get_xlsx_styles(self, data: XLSXMetadata) -> dict | None:
 		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
 			return
 

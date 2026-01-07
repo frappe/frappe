@@ -461,7 +461,7 @@ def build_xlsx_data(
 	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
 	build_style_metadata: bool = False,
-) -> tuple[list[list[Any]], list[int], int, dict | None]:
+) -> tuple[list[list[Any]], list[int], XLSXMetadata | None]:
 	"""
 	Build Excel data structure from report data with proper formatting.
 
@@ -556,6 +556,13 @@ def build_xlsx_data(
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 
+		if row_is_dict and (indent := row.get("indent", 0)) and max_indent_level < indent:
+			max_indent_level = indent
+
+		if build_style_metadata:
+			metadata.rows_map[excel_row_idx] = row
+			excel_row_idx += 1
+
 		for col_idx, column in enumerate(data.columns):
 			if column.get("hidden") and not include_hidden_columns:
 				continue
@@ -567,14 +574,7 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
-			if row_is_dict:
-				max_indent_level = max(max_indent_level, row.get("indent", 0))
-
 			row_data.append(cell_value)
-
-		if build_style_metadata:
-			metadata.row_map[excel_row_idx] = row
-			excel_row_idx += 1
 
 		result.append(row_data)
 
@@ -1024,7 +1024,7 @@ class XLSXMetadata:
 	report_name: str = ""
 
 	columns: list[dict] = dataclass_field(default_factory=list)
-	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
+	rows_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	filters: dict = dataclass_field(default_factory=dict)
 
 	header_index: int = 0
@@ -1038,37 +1038,25 @@ class XLSXMetadata:
 
 	# Column index mappings (built on-demand)
 	_column_map: dict[str, int] = dataclass_field(default_factory=dict, init=False, repr=False)
-	_idx_to_fieldname: dict[int, str] = dataclass_field(default_factory=dict, init=False, repr=False)
 
 	def build_column_maps(self):
 		self._column_map.clear()
-		self._idx_to_fieldname.clear()
 
 		for idx, column in enumerate(self.columns):
 			if fieldname := column.get("fieldname"):
 				self._column_map[fieldname] = idx
-				self._idx_to_fieldname[idx] = fieldname
 
-	def get_column_from_fieldname(self, fieldname: str) -> dict | None:
+	def get_column(self, fieldname: str) -> dict | None:
 		if idx := self._column_map.get(fieldname):
 			return self.columns[idx]
 
 		return None
 
-	def get_column_from_index(self, col_idx: int) -> dict | None:
-		if 0 <= col_idx < len(self.columns):
-			return self.columns[col_idx]
-
-		return None
-
-	def get_fieldname(self, col_idx: int) -> str | None:
-		return self._idx_to_fieldname.get(col_idx)
-
 	def get_column_index(self, fieldname: str) -> int | None:
 		return self._column_map.get(fieldname)
 
 	def get_row(self, row_idx: int) -> dict | list | None:
-		return self.row_map.get(row_idx)
+		return self.rows_map.get(row_idx)
 
 	def get_indent_level(self, row_idx: int) -> int:
 		if row := self.get_row(row_idx):
@@ -1090,12 +1078,12 @@ class XLSXMetadata:
 def get_xlsx_styles(metadata: XLSXMetadata) -> dict:
 	if metadata.report_name:
 		report = frappe.get_doc("Report", metadata.report_name)
-		return report.get_xlsx_styles(metadata) or build_default_xlsx_styles(metadata)
+		return report.get_xlsx_styles(metadata) or _get_default_xlsx_styles(metadata)
 
-	return build_default_xlsx_styles(metadata)
+	return _get_default_xlsx_styles(metadata)
 
 
-def build_default_xlsx_styles(metadata: XLSXMetadata) -> dict | None:
+def _get_default_xlsx_styles(metadata: XLSXMetadata) -> dict | None:
 	from frappe.utils.xlsxutils import XLSXStyleBuilder
 
 	builder = XLSXStyleBuilder(max_indent_level=metadata.max_indent_level)
@@ -1109,6 +1097,6 @@ def build_default_xlsx_styles(metadata: XLSXMetadata) -> dict | None:
 
 	# indentation
 	if metadata.include_indentation:
-		builder.set_indentations(0, metadata.row_map)
+		builder.set_indentations(0, metadata.rows_map)
 
 	return builder.build()

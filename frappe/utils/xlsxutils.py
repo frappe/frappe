@@ -3,7 +3,6 @@
 import datetime
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from functools import lru_cache
 from io import BytesIO
 from typing import Any, ClassVar, Literal
@@ -26,17 +25,13 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 
-# TODO: add docs and examples for XLSXStyleBuilder
-# TODO: when registering make user friendly for Developers (common methods)
-# TODO: give default styles
-# TODO: User can update default styles
-# TODO: can give range of cells to style
 # TODO: Date and Time formats not working properly need to fix
+# TODO: add docs and examples for XLSXStyleBuilder
+# TODO: Handle Currency formatting
+# TODO: Check for border styles
 
 
 class XLSXStyleBuilder:
-	"""Utility class for building Excel styles and formatting."""
-
 	# Mapping of style property names to their openpyxl classes
 	STYLE_CLASSES: ClassVar[dict] = {
 		"font": Font,
@@ -134,7 +129,7 @@ class XLSXStyleBuilder:
 		self.styles[name] = style
 
 	def register_currency_format(self, currency: str, style_name: str | None = None) -> str:
-		style_name = style_name or f"{currency}_currency_format"
+		style_name = style_name or f"{currency.lower()}_currency_format"
 		number_format = self.get_number_format("Currency", currency)
 
 		self.register_style(style_name, number_format=number_format)
@@ -182,7 +177,7 @@ class XLSXStyleBuilder:
 			if isinstance(row, dict) and "indent" in row:
 				self.style_cell(idx, column, indent=row["indent"])
 
-	def set_fieldtype_format(self, columns: list[dict]):
+	def set_fieldtype_formats(self, columns: list[dict]):
 		for idx, col in enumerate(columns):
 			if style_name := self.FIELDTYPE_STYLES.get(col.get("fieldtype")):
 				self.style_column(idx, style_name)
@@ -202,12 +197,11 @@ class XLSXStyleBuilder:
 		return frappe.get_system_settings("time_format").upper()
 
 	@staticmethod
-	@lru_cache(maxsize=1)
 	def get_datetime_format() -> str:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
 
 	@staticmethod
-	@lru_cache(maxsize=128)
+	@lru_cache(maxsize=64)
 	def get_number_format(
 		fieldtype: Literal["Currency", "Int", "Float", "Percent"],
 		currency: str | None = None,
@@ -236,7 +230,7 @@ class XLSXStyleBuilder:
 		return "General"
 
 	@staticmethod
-	@lru_cache(maxsize=128)
+	@lru_cache(maxsize=64)
 	def hex_to_argb(color: str) -> str:
 		"""
 		Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
@@ -261,23 +255,23 @@ class XLSXStyleBuilder:
 			return h[6:8] + h[0:6]
 
 	@staticmethod
-	@lru_cache(maxsize=64)
 	def get_indent_style(indent_level: int, pt: int = 2) -> dict:
 		return {"alignment": {"indent": indent_level * pt, "horizontal": "left"}}
 
 	@staticmethod
 	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
-		"""Helper to build number format string."""
 		integer_part = "#,##0" if thousands_sep else "#0"
 		decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
+
 		return f"{integer_part}{decimal_part}"
 
 	@staticmethod
 	def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
-		"""Helper to get currency symbol and position."""
 		if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
 			return "", False
+
 		symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
+
 		return frappe._(symbol or currency), bool(on_right)
 
 	@staticmethod
@@ -286,11 +280,12 @@ class XLSXStyleBuilder:
 		currency_symbol: str | None = None,
 		symbol_on_right: bool = False,
 	) -> str:
-		"""Helper to apply currency symbol to format."""
 		if not currency_symbol:
 			return format_string
+
 		if symbol_on_right:
 			return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
+
 		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
 
 	@staticmethod
