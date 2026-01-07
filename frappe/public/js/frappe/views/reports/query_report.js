@@ -1487,28 +1487,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		let extra_fields = null;
+		let extra_fields = [];
 		if (this.tree_report) {
-<<<<<<< HEAD
-			extra_fields = [
-				{
-					label: __("Include indentation"),
-					fieldname: "include_indentation",
-					fieldtype: "Check",
-				},
-			];
-=======
 			extra_fields.push({
 				label: __("Include indentation"),
 				fieldname: "include_indentation",
-				fieldtype: "Check",
-			});
-		}
-
-		if (this.filters.length > 0) {
-			extra_fields.push({
-				label: __("Include filters"),
-				fieldname: "include_filters",
 				fieldtype: "Check",
 			});
 		}
@@ -1534,7 +1517,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				);
 			}
->>>>>>> 725659972e (fix: export query report hidden columns (#33350))
 		}
 
 		this.export_dialog = frappe.report_utils.get_export_dialog(
