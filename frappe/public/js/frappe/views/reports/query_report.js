@@ -1570,8 +1570,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		}
 
-<<<<<<< HEAD
-=======
 		if (this.report_settings.export_hidden_cols) {
 			const hidden_fields = [];
 			this.columns.forEach((column) => {
@@ -1595,7 +1593,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		}
 
->>>>>>> 725659972e (fix: export query report hidden columns (#33350))
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
