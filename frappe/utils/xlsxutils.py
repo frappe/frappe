@@ -64,7 +64,6 @@ class XLSXStyleBuilder:
 			"column_styles": {},
 			"row_styles": {},
 			"cell_styles": {},
-			"conditional_styles": [],
 		}
 
 		self.default_styles = {
@@ -167,9 +166,6 @@ class XLSXStyleBuilder:
 		# Apply indent style (overrides alignment from named style)
 		if indent is not None:
 			cell_style["alignment"] = self.styles[self.indent_key(indent)]["alignment"]
-
-	def add_conditional_style(self, condition: Callable[[int, int, Any], bool], style_name: str):
-		self.config["conditional_styles"].append({"condition": condition, "style": self.styles[style_name]})
 
 	def style_header(self, header_index: int):
 		self.style_row(header_index, "header")
@@ -319,7 +315,7 @@ def make_xlsx(
 		wb: Existing workbook to add sheet to. If None, creates new workbook
 		column_widths: List of column widths in Excel units. If None, auto-sized
 		styles: Configuration for cell/row/column styles
-			- Should contain: column_styles, row_styles, cell_styles, conditional_styles
+			- Should contain: column_styles, row_styles, cell_styles
 
 	Returns:
 			BytesIO: object containing the Excel file data
@@ -342,52 +338,37 @@ def make_xlsx(
 	column_styles = styles.get("column_styles", {})
 	row_styles = styles.get("row_styles", {})
 	cell_styles = styles.get("cell_styles", {})
-	conditional_styles = styles.get("conditional_styles", [])
 
 	for row_idx, row in enumerate(data):
 		clean_row = []
+		row_style = row_styles.get(row_idx)
 
 		for col_idx, item in enumerate(row):
+			# Handle HTML content
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
 				value = item
 
+			# Remove illegal characters
 			if isinstance(value, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
-				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			styles_to_merge = []
-
-			# 1. Column-wide style (lowest priority)
-			if col_style := column_styles.get(col_idx):
-				styles_to_merge.append(col_style)
-
-			# 2. Row-wide style
-			if row_style := row_styles.get(row_idx):
-				styles_to_merge.append(row_style)
-
-			# 3. Conditional styles
-			for cond_style in conditional_styles:
-				try:
-					if cond_style["condition"](row_idx, col_idx, value):
-						styles_to_merge.append(cond_style["style"])
-				except Exception:
-					# skip if condition function fails
-					pass
-
-			# 4. Specific cell style (highest priority)
-			if cell_style := cell_styles.get((row_idx, col_idx)):
-				styles_to_merge.append(cell_style)
-
+			# Merge styles with priority: column < row < cell
 			style = {}
 
-			for s in styles_to_merge:
-				style.update(s)
+			if col_style := column_styles.get(col_idx):
+				style.update(col_style)
 
-			# Apply the merged style to the cell
+			if row_style:
+				style.update(row_style)
+
+			if cell_style := cell_styles.get((row_idx, col_idx)):
+				style.update(cell_style)
+
+			# Apply style properties to cell
 			if style:
 				for prop in ("font", "fill", "number_format", "alignment", "border"):
 					if value := style.get(prop):

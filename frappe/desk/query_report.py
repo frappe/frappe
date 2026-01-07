@@ -1036,13 +1036,36 @@ class XLSXMetadata:
 	add_total_row: bool = False
 	include_hidden_columns: bool = False
 
-	def get_column(self, idx: int) -> dict | None:
-		if 0 <= idx < len(self.columns):
+	# Column index mappings (built on-demand)
+	_column_map: dict[str, int] = dataclass_field(default_factory=dict, init=False, repr=False)
+	_idx_to_fieldname: dict[int, str] = dataclass_field(default_factory=dict, init=False, repr=False)
+
+	def build_column_maps(self):
+		self._column_map.clear()
+		self._idx_to_fieldname.clear()
+
+		for idx, column in enumerate(self.columns):
+			if fieldname := column.get("fieldname"):
+				self._column_map[fieldname] = idx
+				self._idx_to_fieldname[idx] = fieldname
+
+	def get_column_from_fieldname(self, fieldname: str) -> dict | None:
+		if idx := self._column_map.get(fieldname):
 			return self.columns[idx]
 
-	def get_fieldname(self, idx: int) -> str | None:
-		if column := self.get_column(idx):
-			return column.get("fieldname")
+		return None
+
+	def get_column_from_index(self, col_idx: int) -> dict | None:
+		if 0 <= col_idx < len(self.columns):
+			return self.columns[col_idx]
+
+		return None
+
+	def get_fieldname(self, col_idx: int) -> str | None:
+		return self._idx_to_fieldname.get(col_idx)
+
+	def get_column_index(self, fieldname: str) -> int | None:
+		return self._column_map.get(fieldname)
 
 	def get_row(self, row_idx: int) -> dict | list | None:
 		return self.row_map.get(row_idx)
