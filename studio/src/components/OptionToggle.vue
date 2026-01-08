@@ -12,15 +12,15 @@
 </template>
 <script setup lang="ts">
 import InputLabel from "@/components/InputLabel.vue"
-import { TabButtons } from "frappe-ui"
-import { PropType } from "vue"
+import { TabButtons, ButtonProps } from "frappe-ui"
 
+type ButtonProps = typeof ButtonProps
 defineProps({
 	modelValue: {
 		type: [String, Number, Boolean],
 	},
 	options: {
-		type: Array as PropType<{ label: string; value?: string | number; icon?: string; hideLabel?: boolean }[]>,
+		type: Array<ButtonProps>,
 		default: () => [],
 	},
 	label: {

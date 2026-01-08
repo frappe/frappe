@@ -5,8 +5,8 @@
 			<OptionToggle
 				v-model="searchMode"
 				:options="[
-					{ label: 'Search', value: 'search', icon: 'search' },
-					{ label: 'Find & Replace', value: 'replace', icon: 'edit-3' },
+					{ label: 'Search', value: 'search', 'icon-left': 'search' },
+					{ label: 'Find & Replace', value: 'replace', 'icon-left': 'edit-3' },
 				]"
 			/>
 		</div>
