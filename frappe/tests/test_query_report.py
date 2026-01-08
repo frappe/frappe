@@ -47,8 +47,6 @@ class TestQueryReport(IntegrationTestCase):
 
 		# Create mock data
 		data = create_mock_data()
-		data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
-		data._filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
 
 		# Define the visible rows
 		visible_idx = [0, 2, 3]
@@ -70,6 +68,7 @@ class TestQueryReport(IntegrationTestCase):
 		"""Test excel export using rows with composite cell value"""
 
 		data = frappe._dict()
+
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
@@ -286,15 +285,22 @@ data = columns, result
 
 def create_mock_data():
 	data = frappe._dict()
+	data.report_name = "Mock Report"
+
 	data.columns = [
 		{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 		{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
 		{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
 	]
+
 	data.result = [
 		[1.0, 3.0, 600],
 		{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
 		{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
 		[3.0, 1.5, 333],
 	]
+
+	data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
+	data._filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
+
 	return data
