@@ -129,6 +129,103 @@ export function useCanvasUtils(
 		}
 	}
 
+	async function scrollIntoView(
+		blockToFocus: Block,
+		canvasProps: CanvasProps,
+		canvasContainer: Ref<HTMLElement>,
+		canvas: Ref<HTMLElement>,
+	) {
+		// wait for editor to render
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		if (!selectedBlockIds.value.has(blockToFocus.componentId)) {
+			blockToFocus.selectBlock();
+		}
+		await nextTick();
+		// single nextTick is not enough, adding this to ensure the DOM is updated after selection
+		await nextTick();
+
+		if (
+			!canvasContainer.value ||
+			!canvas.value ||
+			blockToFocus.isRoot() ||
+			!blockToFocus.isVisible() ||
+			blockToFocus.getParentBlock()?.isSVG()
+		) {
+			return;
+		}
+		const container = canvasContainer.value as HTMLElement;
+		const containerRect = container.getBoundingClientRect();
+		await nextTick();
+		const selectedBlock = canvasContainer.value.querySelector(
+			`.editor[data-component-id="${blockToFocus.componentId}"][selected=true]`,
+		) as HTMLElement;
+		if (!selectedBlock) {
+			return;
+		}
+		const blockRect = reactive(useElementBounding(selectedBlock));
+		// check if block is in view
+		if (
+			blockRect.top >= containerRect.top &&
+			blockRect.bottom <= containerRect.bottom &&
+			blockRect.left >= containerRect.left &&
+			blockRect.right <= containerRect.right
+		) {
+			return;
+		}
+
+		let padding = 80;
+		let paddingBottom = 200;
+		const blockWidth = blockRect.width + padding * 2;
+		const containerBound = container.getBoundingClientRect();
+		const blockHeight = blockRect.height + padding + paddingBottom;
+
+		const scaleX = containerBound.width / blockWidth;
+		const scaleY = containerBound.height / blockHeight;
+		const newScale = Math.min(scaleX, scaleY);
+
+		const scaleDiff = canvasProps.scale - canvasProps.scale * newScale;
+		if (scaleDiff > 0.2) {
+			return;
+		}
+
+		if (newScale < 1) {
+			canvasProps.scale = canvasProps.scale * newScale;
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			await nextTick();
+			blockRect.update();
+		}
+
+		padding = padding * canvasProps.scale;
+		paddingBottom = paddingBottom * canvasProps.scale;
+
+		// slide in block from the closest edge of the container
+		const diffTop = containerRect.top - blockRect.top + padding;
+		const diffBottom = blockRect.bottom - containerRect.bottom + paddingBottom;
+		const diffLeft = containerRect.left - blockRect.left + padding;
+		const diffRight = blockRect.right - containerRect.right + padding;
+
+		if (diffTop > 0) {
+			canvasProps.translateY += diffTop / canvasProps.scale;
+		} else if (diffBottom > 0) {
+			canvasProps.translateY -= diffBottom / canvasProps.scale;
+		}
+
+		if (diffLeft > 0) {
+			canvasProps.translateX += diffLeft / canvasProps.scale;
+		} else if (diffRight > 0) {
+			canvasProps.translateX -= diffRight / canvasProps.scale;
+		}
+	}
+
+	async function scrollBlockIntoView(blockToFocus: Block) {
+		return scrollIntoView(
+			blockToFocus,
+			canvasProps,
+			canvasContainer as unknown as Ref<HTMLElement>,
+			canvas as unknown as Ref<HTMLElement>,
+		);
+	}
+
 	return {
 		setScaleAndTranslate,
 		setupHistory,
@@ -137,5 +234,6 @@ export function useCanvasUtils(
 		findBlock,
 		removeBlock,
 		toggleMode,
+		scrollBlockIntoView,
 	};
 }

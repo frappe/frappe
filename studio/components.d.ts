@@ -77,6 +77,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScriptSection: typeof import('./src/components/ScriptSection.vue')['default']
+    SearchBlock: typeof import('./src/components/SearchBlock.vue')['default']
     SectionContainer: typeof import('./src/components/SectionContainer.vue')['default']
     SettingItem: typeof import('./src/components/SettingItem.vue')['default']
     Sidebar: typeof import('./src/components/AppLayout/Sidebar.vue')['default']
