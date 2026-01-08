@@ -52,6 +52,8 @@ class XLSXStyleBuilder:
 		"Currency": "default_currency_format",
 	}
 
+	_border_cache: ClassVar[dict] = {}
+
 	def __init__(self, **kwargs):
 		self.settings = kwargs or {}
 
@@ -133,7 +135,7 @@ class XLSXStyleBuilder:
 
 		# Handle border separately (needs Side object conversion)
 		if border_config := kwargs.get("border"):
-			style["border"] = self._create_border(border_config)
+			style.border = self._create_border(border_config)
 
 		self.styles[name] = style
 
@@ -194,21 +196,43 @@ class XLSXStyleBuilder:
 	def build(self) -> frappe._dict:
 		return self.config
 
-	@lru_cache(maxsize=128)
 	@staticmethod
 	def _create_border(config) -> Border:
 		if isinstance(config, Border):
 			return config
 
-		border_kwargs = {}
+		key = XLSXStyleBuilder._border_config_to_key(config)
 
-		for key, value in config.items():
-			if key in XLSXStyleBuilder.BORDER_SIDES:
-				border_kwargs[key] = Side(**value) if isinstance(value, dict) else value
+		if key in XLSXStyleBuilder._border_cache:
+			return XLSXStyleBuilder._border_cache[key]
+
+		border_kwargs = {k: (Side(**v) if isinstance(v, dict) else v) for k, v in config.items()}
+
+		border = Border(**border_kwargs)
+		XLSXStyleBuilder._border_cache[key] = border
+
+		return border
+
+	@staticmethod
+	def _border_config_to_key(config: dict) -> tuple:
+		get = config.get
+		items = []
+
+		# use deterministic ordering
+		for key in XLSXStyleBuilder.BORDER_SIDES:
+			value = get(key)
+			if value is None:
+				continue
+
+			if isinstance(value, dict):
+				items.append((key, tuple(value.items())))
+			elif isinstance(value, Side):
+				d = value.__dict__
+				items.append((key, (d.get("style"), d.get("color"), d.get("border_style"))))
 			else:
-				border_kwargs[key] = value
+				items.append((key, value))
 
-		return Border(**border_kwargs)
+		return tuple(items)
 
 	@staticmethod
 	@lru_cache(maxsize=1)
