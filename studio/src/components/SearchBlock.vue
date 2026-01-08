@@ -178,7 +178,8 @@ const propertyHandlers = [
 	{
 		key: "component",
 		name: "Component",
-		matches: (block: Block, term: string) => block.componentName?.toLowerCase().includes(term),
+		matches: (block: Block, term: string) =>
+			[block.componentName, block.blockName].some((name) => name?.toLowerCase().includes(term)),
 		replace: () => false,
 	},
 	// {
@@ -234,16 +235,13 @@ const propertyHandlers = [
 		},
 	},
 	{
-		key: "props",
-		name: "Properties",
+		key: "attributes",
+		name: "Attributes",
 		matches: (block: Block, term: string) => {
-			return Object.values(block.getPropsAndAttributes()).some((val) =>
-				String(val).toLowerCase().includes(term),
-			)
+			return Object.entries(block.getAttributes()).some((val) => String(val).toLowerCase().includes(term))
 		},
 		replace: (block: Block, searchTerm: string, replaceTerm: string) => {
 			let replaced = false
-			replaced = replaceInProperty(block.componentProps, searchTerm, replaceTerm) || replaced
 			replaced = replaceInProperty(block.attributes, searchTerm, replaceTerm) || replaced
 			return replaced
 		},
