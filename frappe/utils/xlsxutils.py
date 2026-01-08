@@ -316,6 +316,13 @@ def make_xlsx(
 			BytesIO: object containing the Excel file data
 	"""
 
+	def styling(obj, style: dict | None):
+		if not style:
+			return
+
+		for prop, value in style.items():
+			setattr(obj, prop, value)
+
 	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 	column_widths = column_widths or []
 	styles = styles or {}
@@ -334,40 +341,40 @@ def make_xlsx(
 	row_styles = styles.get("row_styles") or {}
 	cell_styles = styles.get("cell_styles") or {}
 
-	apply_styling = bool(column_styles or row_styles or cell_styles)
+	styling_enabled = bool(column_styles or row_styles or cell_styles)
+
+	if styling_enabled:
+		for row_idx, style in row_styles.items():
+			r = ws.row_dimensions[row_idx + 1]
+			styling(r, style)
+
+		for col_idx, style in column_styles.items():
+			c = ws.column_dimensions[get_column_letter(col_idx + 1)]
+			styling(c, style)
 
 	for row_idx, row in enumerate(data):
 		excel_row = []
-		row_style = row_styles.get(row_idx)
+
+		if styling_enabled:
+			row_style = row_styles.get(row_idx) or {}
 
 		for col_idx, value in enumerate(row):
-			is_str = isinstance(value, str)
+			if isinstance(value, str):
+				if handle_html_content:
+					value = handle_html(value)
 
-			if handle_html_content and is_str:
-				value = handle_html(value)
-
-			if is_str:
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			if apply_styling:
-				style = {}
+			if styling_enabled and (cell_style := cell_styles.get((row_idx, col_idx))):
+				col_style = column_styles.get(col_idx) or {}
 
-				# Merge styles with priority: column < row < cell
-				if col_style := column_styles.get(col_idx):
-					style.update(col_style)
+				# Merge styles: column_style < row_style < cell_style
+				style = {**col_style, **row_style, **cell_style}
 
-				if row_style:
-					style.update(row_style)
-
-				if cell_style := cell_styles.get((row_idx, col_idx)):
-					style.update(cell_style)
-
-				# Apply style properties to cell
-				if style:
-					for prop, v in style.items():
-						setattr(cell, prop, v)
+				for prop, v in style.items():
+					setattr(cell, prop, v)
 
 			excel_row.append(cell)
 
