@@ -118,7 +118,6 @@
 			<Button
 				size="sm"
 				variant="subtle"
-				:disabled="canvasStore.showFragmentCanvas"
 				@click="() => store.openPageInBrowser(store.activeApp!, store.activePage!, true)"
 			>
 				Preview

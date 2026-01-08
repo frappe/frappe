@@ -5,7 +5,6 @@ import { useSerializer } from "@/utils/useSerializer"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@/types"
-import block from "@/utils/block"
 
 const useCanvasStore = defineStore("canvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
