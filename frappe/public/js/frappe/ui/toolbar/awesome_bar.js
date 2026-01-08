@@ -28,7 +28,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		let search_modal_body = `<div class="align-baseline flex py-2 px-1 relative navbar-modal-wrapper">
-			<div class="modal-search-icon absolute pr-2 pl-3">${frappe.utils.icon("search")}</div>
+			<div class="modal-search-icon absolute pr-2 pl-2">${frappe.utils.icon("search")}</div>
 			<input
 				id="navbar-search"
 				type="text"
@@ -106,6 +106,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
+				}
+				if (d.type == "Desktop Icon") {
+					target = frappe.utils.get_route_for_icon(d.icon_data);
+					d.route = target;
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -189,7 +193,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
-				if (item.route[0].startsWith("https://")) {
+				if (item.route && item.route[0].startsWith("https://")) {
 					window.open(item.route[0], "_blank");
 					return;
 				}
@@ -278,7 +282,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctypes(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_workspaces(txt),
+				frappe.search.utils.get_desktop_icons(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt),
@@ -364,10 +368,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.options.push({
 			label: `
 				<span class="flex justify-between text-medium">
-					<span class="ellipsis">${
-						frappe.search.utils.make_icon("search") +
-						__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])
-					}</span>
+					<span class="ellipsis">${__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])}</span>
 					<kbd>↵</kbd>
 				</span>
 			`,
@@ -392,12 +393,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			this.options.push({
-				label:
-					frappe.search.utils.make_icon("search") +
-					__("Find {0} in {1}", [
-						frappe.utils.xss_sanitise(txt).bold(),
-						__(route[1]).bold(),
-					]),
+				label: __("Find {0} in {1}", [
+					frappe.utils.xss_sanitise(txt).bold(),
+					__(route[1]).bold(),
+				]),
 				value: __("Find {0} in {1}", [frappe.utils.xss_sanitise(txt), __(route[1])]),
 				route_options: options,
 				onclick: function () {
@@ -464,7 +463,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	make_random(txt) {
 		if (txt.toLowerCase().includes("random")) {
 			this.options.push({
-				label: frappe.search.utils.make_icon("key") + __("Generate Random Password"),
+				label: __("Generate Random Password"),
 				value: frappe.utils.get_random(16),
 				onclick: function () {
 					frappe.msgprint(frappe.utils.get_random(16), __("Result"));

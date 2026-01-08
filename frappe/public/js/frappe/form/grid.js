@@ -552,7 +552,7 @@ export default class Grid {
 				grid_row = new GridRow({
 					parent: $rows,
 					parent_df: this.df,
-					docfields: this.docfields,
+					docfields: JSON.parse(JSON.stringify(this.docfields)),
 					doc: d,
 					frm: this.frm,
 					grid: this,

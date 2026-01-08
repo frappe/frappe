@@ -417,6 +417,7 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 
 			let sidebars = this.get_correct_workspace_sidebars(entity_name);
+			this.preffered_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
@@ -425,6 +426,12 @@ frappe.ui.Sidebar = class Sidebar {
 
 			if (sidebars.length == 1) {
 				frappe.app.sidebar.setup(sidebars[0]);
+			} else if (sidebars.length > 1) {
+				if (sidebars.includes(this.sidebar_module_map[module])) {
+					frappe.app.sidebar.setup(this.sidebar_module_map[module]);
+				} else {
+					frappe.app.sidebar.setup(sidebars[0]);
+				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
 			}
@@ -435,13 +442,13 @@ frappe.ui.Sidebar = class Sidebar {
 		this.set_active_workspace_item();
 	}
 	show_sidebar_for_module(module) {
+		if (this.sidebar_fixes && this.sidebar_title != module) return;
 		let sidebars =
 			this.sidebar_module_map[module] &&
 			this.sidebar_module_map[module].sort((a, b) => {
 				return a.localeCompare(b);
 			});
 		if (sidebars && sidebars.length) {
-			if (this.sidebar_title) return;
 			frappe.app.sidebar.setup(sidebars[0]);
 		}
 	}

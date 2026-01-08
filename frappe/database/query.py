@@ -155,8 +155,10 @@ FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.
 #   - `tabTable Name`.`field` (spaces in table name)
 #   - `tabTable-Field`.`field` (hyphens in table name)
 #   - Any of above with aliases: ... as alias
+#   - Single-quoted aliases with colons (used by reportview child fields):
+#     - ... as 'Child:field'
 ALLOWED_FIELD_PATTERN = re.compile(
-	r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|\w+))?$",
+	r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|'[\w\s:-]+'|\w+))?$",
 	flags=re.ASCII | re.IGNORECASE,
 )
 
@@ -963,7 +965,7 @@ class Engine:
 			parts = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)
 			if len(parts) > 1:
 				field_part = parts[0].strip()
-				alias = parts[1].strip().strip('`"')  # Remove potential quotes from alias
+				alias = parts[1].strip().strip("`\"'")  # Remove potential quotes from alias
 
 		match = FIELD_PARSE_REGEX.match(field_part)
 
@@ -1707,7 +1709,7 @@ class DynamicTableField:
 				parts = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)
 				if len(parts) > 1:
 					field_part = parts[0].strip()
-					alias = parts[-1].strip().strip('`"')  # Get last part as alias
+					alias = parts[-1].strip().strip("`\"'")  # Get last part as alias
 					field = field_part  # Use the part before alias for further parsing
 
 			child_match = None
@@ -1833,13 +1835,11 @@ class LinkTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			clause = table.name == getattr(main_table, self.link_fieldname)
-
+			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
 			if engine and engine.apply_permissions:
 				if condition := engine.get_permission_conditions(self.doctype, table):
-					clause &= condition
+					query = query.where(condition)
 
-			query = query.left_join(table).on(clause)
 		return query
 
 

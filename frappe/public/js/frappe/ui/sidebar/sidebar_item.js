@@ -48,11 +48,18 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					route_options: JSON.parse(this.item.route_options),
 				});
 			} else {
-				path = frappe.utils.generate_route({
+				let args = {
 					type: this.item.link_type,
 					name: this.item.link_to,
 					tab: this.item.tab,
-				});
+				};
+				if (this.item.filters) {
+					let filters_json = frappe.utils.get_filter_as_json(
+						JSON.parse(this.item.filters)
+					);
+					args.filters = filters_json;
+				}
+				path = frappe.utils.generate_route(args);
 			}
 		}
 		if (path) {

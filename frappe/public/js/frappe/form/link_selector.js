@@ -156,6 +156,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						});
 				}
 
+				parent.append('<div style="margin-bottom: 15px;"></div>');
 				var more_btn = me.dialog.fields_dict.more.$wrapper;
 				if (results.length < me.page_length) {
 					more_btn.hide();

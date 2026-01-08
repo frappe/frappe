@@ -942,44 +942,21 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return (
-				frappe.search.utils.make_icon("table") +
-				(__(route[3]) || __(route[1])).bold() +
-				" " +
-				__("Report")
-			);
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
 		}
 		if (route[0] === "List") {
-			return frappe.search.utils.make_icon("list") + __(route[1]).bold() + " " + __("List");
+			return __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return (
-				frappe.search.utils.make_icon("component") +
-				__(route[1]).bold() +
-				" " +
-				__("Module")
-			);
+			return __(route[1]).bold() + " " + __("Module");
 		}
 		if (route[0] === "Workspaces") {
-			return (
-				frappe.search.utils.make_icon("wallpaper") +
-				__(route[1]).bold() +
-				" " +
-				__("Workspace")
-			);
+			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
-			return (
-				frappe.search.utils.make_icon("dashboard") +
-				__(route[1]).bold() +
-				" " +
-				__("Dashboard")
-			);
+			return __(route[1]).bold() + " " + __("Dashboard");
 		}
-		return (
-			frappe.search.utils.make_icon("file-text") +
-			__(frappe.utils.to_title_case(__(route[0]), true))
-		);
+		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -1276,6 +1253,64 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+	get_route_for_icon(desktop_icon) {
+		let route;
+		if (!desktop_icon) return;
+		let item = {};
+		if (desktop_icon.link_type == "External" && desktop_icon.link) {
+			route = window.location.origin + desktop_icon.link;
+		} else {
+			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+				let first_link = sidebar.items.find((i) => i.type == "Link");
+				if (first_link) {
+					if (first_link.link_type === "Report") {
+						let args = {
+							type: first_link.link_type,
+							name: first_link.link_to,
+						};
+
+						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+							args.is_query_report =
+								first_link.report.report_type === "Query Report" ||
+								first_link.report.report_type == "Script Report";
+							args.report_ref_doctype = first_link.report.ref_doctype;
+						}
+
+						route = frappe.utils.generate_route(args);
+					} else if (first_link.link_type == "Workspace") {
+						let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+						if (workspaces) {
+							if (workspaces.public) {
+								route = "/desk/" + frappe.router.slug(first_link.link_to);
+							} else {
+								route = "/desk/private/" + frappe.router.slug(workspaces.title);
+							}
+						}
+
+						if (first_link.route) {
+							route = first_link.route;
+						}
+					} else if (first_link.link_type === "URL") {
+						route = first_link.url;
+					} else if (first_link.link_type == "Page" && first_link.route_options) {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							route_options: JSON.parse(first_link.route_options),
+						});
+					} else {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							tab: first_link.tab,
+						});
+					}
+				}
+			}
+		}
+		return route;
+	},
 	desktop_icon(label, color, size) {
 		let letter = label.charAt(0).toUpperCase();
 		let icon_size = size ? size : "md";
@@ -1381,13 +1416,12 @@ Object.assign(frappe.utils, {
 	},
 	get_desktop_icon_by_label(title, filters) {
 		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
 		} else {
 			return frappe.boot.desktop_icons.find((f) => {
 				return (
 					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key]) &&
-					f.hidden != 1
+					Object.keys(filters).every((key) => f[key] === filters[key])
 				);
 			});
 		}

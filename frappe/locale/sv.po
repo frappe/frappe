@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-25 20:45\n"
+"PO-Revision-Date: 2026-01-06 23:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -1773,7 +1773,7 @@ msgstr "Justera"
 #. Label of the align_labels_right (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Align Labels to the Right"
-msgstr "Justera Etiketter till Höger"
+msgstr "Höger Justera Etiketter"
 
 #. Label of the right (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -15745,7 +15745,7 @@ msgstr "Marginal Nederst"
 #. Label of the margin_left (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Left"
-msgstr "Marginal Vänster"
+msgstr "Vänster Marginal"
 
 #. Label of the margin_right (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json

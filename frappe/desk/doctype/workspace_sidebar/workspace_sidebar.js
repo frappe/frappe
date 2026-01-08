@@ -27,10 +27,10 @@ frappe.ui.form.on("Workspace Sidebar Item", {
 		let row = locals[cdt][cdn];
 		let grid = frm.fields_dict.items.grid;
 		let link_to = row.link_to;
+		let row_obj = grid.get_grid_row(cdn);
 		if (link_to) {
 			frappe.model.with_doctype(link_to, function () {
 				let meta = frappe.get_meta(link_to);
-				let row_obj = grid.get_grid_row(cdn);
 				let field_obj = row_obj.get_field("navigate_to_tab");
 				let tab_fieldnames = meta.fields
 					.filter((field) => field.fieldtype === "Tab Break")
@@ -38,6 +38,37 @@ frappe.ui.form.on("Workspace Sidebar Item", {
 				field_obj.set_data(tab_fieldnames);
 				row_obj.refresh();
 			});
+		}
+	},
+});
+
+frappe.ui.form.on("Workspace Sidebar Item", {
+	form_render(frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		let grid = frm.fields_dict.items.grid;
+		let row_obj = grid.get_grid_row(cdn);
+		let link_to = row.link_to;
+		if (!row_obj) return;
+		grid.update_docfield_property("filters", "hidden", 1);
+		const field = row_obj.get_field("filter_area");
+		if (!field) return;
+		let filter_group = new frappe.ui.FilterGroup({
+			parent: $(field.wrapper),
+			doctype: link_to,
+			on_change: () => {
+				frm.dirty();
+				let fieldname = "filters";
+				let value = JSON.stringify(filter_group.get_filters());
+				frappe.model.set_value(cdt, cdn, fieldname, value);
+			},
+		});
+		$(field.wrapper).find(".filter-area").css("margin-bottom", "10px");
+		$(field.wrapper)
+			.find(".filter-area")
+			.prepend("<label class='control-label'>Filters</label>");
+
+		if (row.filters) {
+			filter_group.add_filters_to_filter_group(JSON.parse(row.filters));
 		}
 	},
 });

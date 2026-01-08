@@ -1,5 +1,5 @@
 import frappe
-from frappe.pulse.utils import get_app_version, get_frappe_version
+from frappe.utils import get_app_version, get_frappe_version
 
 from .client import capture, is_enabled
 

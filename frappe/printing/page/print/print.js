@@ -24,6 +24,8 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				? frappe.route_options.frm
 				: frappe.route_options.frm.frm;
 			frappe.route_options.frm = null;
+			let meta = print_view.frm.meta;
+			meta.module && frappe.app.sidebar.show_sidebar_for_module(meta.module);
 			print_view.show(print_view.frm);
 		}
 	});

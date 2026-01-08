@@ -557,7 +557,7 @@ class User(Document):
 		if custom_template:
 			from frappe.email.doctype.email_template.email_template import get_email_template
 
-			email_template = get_email_template(custom_template, args)
+			email_template = get_email_template(custom_template, args, sender=sender)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 

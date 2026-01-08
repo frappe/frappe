@@ -63,10 +63,12 @@ function get_route(desktop_icon) {
 					route = frappe.utils.generate_route(args);
 				} else if (first_link.link_type == "Workspace") {
 					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
-					if (workspaces.public) {
-						route = "/desk/" + frappe.router.slug(first_link.link_to);
-					} else {
-						route = "/desk/private/" + frappe.router.slug(workspaces.title);
+					if (workspaces) {
+						if (workspaces.public) {
+							route = "/desk/" + frappe.router.slug(first_link.link_to);
+						} else {
+							route = "/desk/private/" + frappe.router.slug(workspaces.title);
+						}
 					}
 
 					if (first_link.route) {
@@ -154,9 +156,7 @@ class DesktopPage {
 		this.apps_icons = [];
 
 		const icon_map = {};
-		frappe.desktop_icons =
-			JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`)) ||
-			frappe.boot.desktop_icons;
+		frappe.desktop_icons = this.get_saved_layout() || frappe.boot.desktop_icons;
 		let icons = this.edit_mode ? frappe.new_desktop_icons : frappe.desktop_icons;
 		const all_icons = icons.filter((icon) => {
 			if (icon.hidden != 1) {
@@ -175,6 +175,13 @@ class DesktopPage {
 				this.apps_icons.push(icon);
 			}
 		});
+	}
+	get_saved_layout() {
+		let keywords = ["null", "undefined"];
+		if (keywords.includes(localStorage.getItem(`${frappe.session.user}:desktop`))) {
+			return null;
+		}
+		return JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
 	}
 	setup_events() {
 		this.wrapper.find(".hide-button").on("click", function (event) {
@@ -223,6 +230,7 @@ class DesktopPage {
 			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
 		);
 		this.$desktop_edit_button.on("click", () => {
+			frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
 			me.start_editing_layout();
 			me.$desktop_edit_button.hide();
 		});
@@ -587,8 +595,13 @@ class DesktopIconGrid {
 			this.icons_html.push(icon_html);
 			grid.append(icon_html);
 		});
+		this.setup_tooltip();
 	}
-
+	setup_tooltip() {
+		$('[data-toggle="tooltip"]').tooltip({
+			placement: "bottom",
+		});
+	}
 	setup_reordering(grid) {
 		const me = this;
 		this.hoverTarget = null;
@@ -706,8 +719,10 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
+		if (this.icon_type == "Link" && !this.icon_route) {
+			return false;
+		}
 		return true;
-		// validate if folder has no child
 	}
 	get_child_icons_data() {
 		return this.icon_data.child_icons.sort((a, b) => a.idx - b.idx);

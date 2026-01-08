@@ -60,6 +60,7 @@ class EmailQueue(Document):
 		message: DF.Code | None
 		message_id: DF.SmallText | None
 		priority: DF.Int
+		raw_html: DF.Check
 		recipients: DF.Table[EmailQueueRecipient]
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None
@@ -518,6 +519,8 @@ class QueueBuilder:
 		email_read_tracker_url=None,
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
+		raw_html=False,
+		add_css=True,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -545,6 +548,8 @@ class QueueBuilder:
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+		:param raw_html: Whether to treat email template as a complete HTML file
+		:param add_css: Add default CSS from hooks/email_css to the email template (default True)
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -582,6 +587,8 @@ class QueueBuilder:
 		self.print_letterhead = print_letterhead
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
+		self.raw_html = raw_html
+		self.add_css = add_css
 
 	@property
 	def unsubscribe_method(self):
@@ -638,6 +645,8 @@ class QueueBuilder:
 			email_account=email_account,
 			unsubscribe_link=self.unsubscribe_message(),
 			with_container=self.with_container,
+			raw_html=self.raw_html,
+			add_css=self.add_css,
 		)
 
 	def should_include_unsubscribe_link(self):
@@ -843,6 +852,8 @@ class QueueBuilder:
 			"show_as_bcc": ",".join(self.final_bcc()),
 			"email_account": email_account_name or None,
 			"email_read_tracker_url": self.email_read_tracker_url,
+			"raw_html": self.raw_html,
+			"add_css": self.add_css,
 		}
 
 		if include_recipients:

@@ -6,12 +6,13 @@
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	min-height: 150px;
+	min-height: 75px;
 	background-color: var(--subtle-accent);
 }
 
 .form-grid.error {
 	border-color: var(--error-border);
+	overflow: hidden;
 }
 
 .grid-heading-row {
@@ -157,7 +158,7 @@
 }
 
 .grid-empty {
-	height: 110px;
+	height: 43px;
 	background-color: var(--subtle-accent);
 	display: flex;
 	vertical-align: middle;
@@ -242,6 +243,7 @@
 		min-width: 0;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 	}
 
 	.col {
@@ -517,11 +519,6 @@
 
 	body:not(.full-width) & {
 		max-width: var(--page-max-width);
-	}
-
-	// Adjust position when sidebar is expanded to avoid collision
-	.body-sidebar-container.expanded ~ .main-section & {
-		left: calc(50% + var(--sidebar-width, 220px) / 2);
 	}
 
 	.grid-form-body {
@@ -811,6 +808,7 @@
 			position: sticky;
 			right: 0;
 			z-index: 1;
+			line-height: 1;
 		}
 		.grid-row > .row .col:nth-child(2),
 		.grid-row > .dialog-assignment-row .col:nth-child(2) {

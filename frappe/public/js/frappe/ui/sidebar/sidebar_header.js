@@ -5,7 +5,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.drop_down_expanded = false;
 		this.title = this.sidebar.sidebar_title;
 		const me = this;
-		this.sibling_workspaces = this.fetch_sibling_workspaces();
+		this.sibling_workspaces = this.fetch_related_icons();
 		this.dropdown_items = [
 			{
 				name: "workspaces",
@@ -81,34 +81,92 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-	fetch_sibling_workspaces() {
+
+	fetch_related_icons() {
 		let sibling_workspaces = [];
 		if (frappe.current_app) {
-			let workspaces = [...frappe.current_app.workspaces];
-			workspaces.splice(workspaces.indexOf(this.title), 1);
-			workspaces.forEach((w) => {
+			let desktop_icons = [...frappe.boot.desktop_icons];
+			desktop_icons.splice(
+				desktop_icons.indexOf(frappe.utils.get_desktop_icon_by_label(this.title)),
+				1
+			);
+			let { folder_map, sibling_icons } = this.build_folder_map(desktop_icons);
+			sibling_icons.forEach((icon) => {
+				if (folder_map[icon.parent_icon]) return;
 				let item = {
-					name: w.toLowerCase(),
-					label: w,
-					url: frappe.utils.generate_route({
-						type: "Workspace",
-						route: frappe.router.slug(w),
-					}),
+					name: icon.label.toLowerCase(),
+					label: icon.label,
+					url: frappe.utils.get_route_for_icon(icon),
 				};
-				if (frappe.utils.get_desktop_icon(w, frappe.boot.desktop_icon_style)) {
+				if (icon.icon_type == "Folder") {
+					let nested_items = folder_map[item.label];
+					nested_items.forEach((item) => {
+						this.get_icon_for_menu_item(item, item);
+					});
+					item.items = nested_items;
+				}
+				if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
 					item.icon_url = frappe.utils.get_desktop_icon(
-						w,
+						icon.label,
 						frappe.boot.desktop_icon_style
 					);
 				} else {
-					item.icon_html = frappe.utils.desktop_icon(w, "gray", "sm");
+					item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
 				}
 				sibling_workspaces.push(item);
 			});
 			return sibling_workspaces;
 		}
 	}
+	get_icon_for_menu_item(icon, item) {
+		if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
+			item.icon_url = frappe.utils.get_desktop_icon(
+				icon.label,
+				frappe.boot.desktop_icon_style
+			);
+		} else {
+			item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
+		}
+	}
+	build_folder_map(desktop_icons) {
+		const folder_map = {};
+		const sibling_icons = [];
+		if (!frappe.current_app) return;
+		this.sort_icons(desktop_icons);
+		desktop_icons.forEach((icon) => {
+			if (
+				icon.link_type != "External" &&
+				icon.app == frappe.current_app.app_name &&
+				!icon.hidden
+			) {
+				if (icon.icon_type === "Folder" && !folder_map[icon.label]) {
+					folder_map[icon.label] = [];
+				}
 
+				if (icon.parent_icon) {
+					icon.url = frappe.utils.get_route_for_icon(icon);
+					if (folder_map[icon.parent_icon]) folder_map[icon.parent_icon].push(icon);
+				}
+				sibling_icons.push(icon);
+			}
+		});
+
+		return {
+			folder_map: folder_map,
+			sibling_icons: sibling_icons,
+		};
+	}
+	sort_icons(desktop_icons) {
+		let write = 0;
+		for (let i = 0; i < desktop_icons.length; i++) {
+			if (desktop_icons[i].icon_type === "Folder") {
+				const item = desktop_icons.splice(i, 1)[0];
+				desktop_icons.splice(write, 0, item);
+				write++;
+			}
+		}
+		return desktop_icons;
+	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
 		let help_dropdown_items = [];

@@ -381,29 +381,38 @@ def get_formatted_html(
 	unsubscribe_link: frappe._dict | None = None,
 	sender=None,
 	with_container=False,
+	raw_html=False,
+	add_css=True,
 ):
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
-	rendered_email = frappe.get_template("templates/emails/standard.html").render(
-		{
-			"brand_logo": get_brand_logo(email_account) if with_container or header else None,
-			"with_container": with_container,
-			"site_url": get_url(),
-			"header": get_header(header),
-			"content": message,
-			"footer": get_footer(email_account, footer),
-			"title": subject,
-			"print_html": print_html,
-			"subject": subject,
-		}
-	)
+	params = {
+		"site_url": get_url(),
+		"title": subject,
+		"print_html": print_html,
+		"subject": subject,
+	}
+
+	if raw_html:
+		rendered_email = frappe.render_template(message, params)
+	else:
+		params.update(
+			{
+				"brand_logo": get_brand_logo(email_account) if with_container or header else None,
+				"with_container": with_container,
+				"header": get_header(header),
+				"content": message,
+				"footer": get_footer(email_account, footer),
+			}
+		)
+		rendered_email = frappe.get_template("templates/emails/standard.html").render(params)
 
 	html = scrub_urls(rendered_email)
 
 	if unsubscribe_link:
 		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 
-	return inline_style_in_html(html)
+	return inline_style_in_html(html, add_css=add_css)
 
 
 @frappe.whitelist()
@@ -418,17 +427,20 @@ def get_email_html(template, args, subject, header=None, with_container=False):
 	return get_formatted_html(subject, email[0], header=header, with_container=with_container)
 
 
-def inline_style_in_html(html):
+def inline_style_in_html(html, add_css=True):
 	"""Convert email.css and html to inline-styled html."""
 	from premailer import Premailer
 
 	from frappe.utils.jinja_globals import bundled_asset
 
-	# get email css files from hooks
-	css_files = frappe.get_hooks("email_css")
-	css_files = [bundled_asset(path) for path in css_files]
-	css_files = [path.lstrip("/") for path in css_files]
-	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
+	if add_css:
+		# get email css files from hooks
+		css_files = frappe.get_hooks("email_css")
+		css_files = [bundled_asset(path) for path in css_files]
+		css_files = [path.lstrip("/") for path in css_files]
+		css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
+	else:
+		css_files = None
 
 	p = Premailer(
 		html=html, external_styles=css_files, strip_important=False, allow_loading_external_files=True

@@ -149,7 +149,7 @@ class Workspace(Document):
 		if self.public:
 			desktop_icon = frappe.get_all(
 				"Desktop Icon",
-				filters=[{"link_type": "Workspace"}, {"link_to": self.name}],
+				filters=[{"link_type": "Workspace Sidebar"}, {"link_to": self.name}],
 				limit=1,
 				pluck="name",
 			)

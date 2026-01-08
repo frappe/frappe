@@ -185,6 +185,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			frappe.route_options = df.get_route_options_for_new_doc(this);
 		} else {
 			frappe.route_options = {};
+			// Reuse set_custom_query to extract filters from link_filters, get_query, and df.filters
+			let args = {};
+			this.set_custom_query(args);
+			if (args.filters) {
+				Object.assign(frappe.route_options, args.filters);
+			}
 		}
 
 		// partially entered name field
