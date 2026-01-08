@@ -37,8 +37,10 @@ class XLSXStyleBuilder:
 		"font": Font,
 		"fill": PatternFill,
 		"alignment": Alignment,
-		"border": Border,
 	}
+
+	# Border sides that need Side object conversion
+	BORDER_SIDES: ClassVar[tuple] = ("left", "right", "top", "bottom", "diagonal")
 
 	FIELDTYPE_STYLES: ClassVar[dict] = {
 		"Int": "int_format",
@@ -114,6 +116,9 @@ class XLSXStyleBuilder:
 			number_format: Excel number format string
 			alignment: Alignment configuration (dict or Alignment object)
 			border: Border configuration (dict or Border object)
+				For dict config, sides (left, right, top, bottom, diagonal) can be:
+				- Side object directly
+				- dict with Side kwargs: {"border_style": "thin", "color": "000000"}
 		"""
 		style = frappe._dict()
 
@@ -125,6 +130,10 @@ class XLSXStyleBuilder:
 		for prop_name, style_class in self.STYLE_CLASSES.items():
 			if config := kwargs.get(prop_name):
 				style[prop_name] = style_class(**config) if isinstance(config, dict) else config
+
+		# Handle border separately (needs Side object conversion)
+		if border_config := kwargs.get("border"):
+			style["border"] = self._create_border(border_config)
 
 		self.styles[name] = style
 
@@ -184,6 +193,22 @@ class XLSXStyleBuilder:
 
 	def build(self) -> frappe._dict:
 		return self.config
+
+	@lru_cache(maxsize=128)
+	@staticmethod
+	def _create_border(config) -> Border:
+		if isinstance(config, Border):
+			return config
+
+		border_kwargs = {}
+
+		for key, value in config.items():
+			if key in XLSXStyleBuilder.BORDER_SIDES:
+				border_kwargs[key] = Side(**value) if isinstance(value, dict) else value
+			else:
+				border_kwargs[key] = value
+
+		return Border(**border_kwargs)
 
 	@staticmethod
 	@lru_cache(maxsize=1)
