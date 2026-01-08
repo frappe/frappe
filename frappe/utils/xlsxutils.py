@@ -189,12 +189,12 @@ class XLSXStyleBuilder:
 	@lru_cache(maxsize=1)
 	def get_date_format() -> str:
 		date_format = frappe.get_system_settings("date_format")
-		return date_format.replace("mm", "MM").upper()
+		return date_format.replace("mm", "MM")
 
 	@staticmethod
 	@lru_cache(maxsize=1)
 	def get_time_format() -> str:
-		return frappe.get_system_settings("time_format").upper()
+		return frappe.get_system_settings("time_format")
 
 	@staticmethod
 	def get_datetime_format() -> str:
