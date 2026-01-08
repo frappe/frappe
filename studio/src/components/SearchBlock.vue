@@ -20,6 +20,7 @@
 				v-model="query"
 				@input="setQuery"
 				@keydown.enter="handlePrimaryAction"
+				id="searchInput"
 			/>
 
 			<Popover class="relative inline-block text-left">
@@ -71,12 +72,13 @@
 
 		<div v-if="canvasStore.activeCanvas?.selectedBlocks?.length" class="mb-4">
 			<label class="flex cursor-pointer items-center text-sm text-ink-gray-7">
-				<Checkbox
+				<Input
+					type="checkbox"
 					v-model="searchInSelectedBlock"
 					@change="performSearch"
 					label="Search inside selected block only"
 					class="focus:ring-ink-gray-5 border-outline-gray-1 text-ink-gray-7"
-				></Checkbox>
+				></Input>
 			</label>
 		</div>
 
@@ -158,10 +160,10 @@
 import type Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { watchDebounced } from "@vueuse/core"
-import { FeatherIcon, Popover, Input, Button, Checkbox } from "frappe-ui"
+import { FeatherIcon, Popover, Input, Button } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
 import { toast } from "vue-sonner"
-import OptionToggle from "./OptionToggle.vue"
+import OptionToggle from "@/components/OptionToggle.vue"
 import { useSerializer } from "@/utils/useSerializer"
 
 const canvasStore = useCanvasStore()
@@ -436,9 +438,9 @@ const searchWithFilters = (searchTerm: string): Block[] => {
 
 onMounted(async () => {
 	await nextTick()
-	const input = searchInput.value?.querySelector?.("input") || searchInput.value
-	if (input && "focus" in input && typeof input.focus === "function") {
-		input.focus()
+	const searchElement = document.querySelector("#searchInput")
+	if (searchElement && "focus" in searchElement && typeof searchElement.focus === "function") {
+		searchElement.focus()
 	}
 })
 
