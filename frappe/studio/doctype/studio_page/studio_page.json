@@ -57,7 +57,7 @@
   },
   {
    "fieldname": "blocks",
-   "fieldtype": "JSON",
+   "fieldtype": "Long Text",
    "label": "Blocks"
   },
   {
@@ -70,7 +70,7 @@
   },
   {
    "fieldname": "draft_blocks",
-   "fieldtype": "JSON",
+   "fieldtype": "Long Text",
    "label": "Draft Blocks"
   },
   {
@@ -145,7 +145,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-28 19:29:04.647092",
+ "modified": "2026-01-08 17:26:13.130136",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

@@ -17,17 +17,14 @@ class StudioPage(Document):
 
 	if TYPE_CHECKING:
 		from frappe.types import DF
-
-		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import (
-			StudioPageClientScript,
-		)
+		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import StudioPageClientScript
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
-		blocks: DF.JSON | None
+		blocks: DF.LongText | None
 		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
-		draft_blocks: DF.JSON | None
+		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
 		page_name: DF.Data | None
