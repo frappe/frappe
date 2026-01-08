@@ -162,6 +162,7 @@ import { FeatherIcon, Popover, Input, Button, Checkbox } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
 import { toast } from "vue-sonner"
 import OptionToggle from "./OptionToggle.vue"
+import { useSerializer } from "@/utils/useSerializer"
 
 const canvasStore = useCanvasStore()
 
@@ -173,6 +174,8 @@ const searchMode = ref<"search" | "replace">("search")
 const replacedCount = ref(0)
 const results = ref([]) as Ref<Block[]>
 const searchInSelectedBlock = ref(false)
+
+const { jsToJson } = useSerializer()
 
 const propertyHandlers = [
 	{
@@ -186,7 +189,12 @@ const propertyHandlers = [
 		key: "componentProps",
 		name: "Props",
 		matches: (block: Block, term: string) => {
-			return Object.entries(block.componentProps).some((val) => String(val).toLowerCase().includes(term))
+			try {
+				const propsJson = jsToJson(block.componentProps)
+				return propsJson.toLowerCase().includes(term)
+			} catch {
+				return false
+			}
 		},
 		replace: (block: Block, searchTerm: string, replaceTerm: string) => {
 			let replaced = false
