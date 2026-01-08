@@ -182,55 +182,15 @@ const propertyHandlers = [
 			[block.componentName, block.blockName].some((name) => name?.toLowerCase().includes(term)),
 		replace: () => false,
 	},
-	// {
-	// 	// dynamicValues and dataKey
-	// 	key: "data",
-	// 	name: "Data",
-	// 	matches: (block: Block, term: string) => {
-	// 		if (block.dynamicValues) {
-	// 			block.dynamicValues.forEach((dv: BlockDataKey) => {
-	// 				if (dv.key?.toLowerCase().includes(term)) {
-	// 					return true;
-	// 				}
-	// 			});
-	// 		}
-	// 		if (block.dataKey) {
-	// 			if (block.dataKey.key?.toLowerCase().includes(term)) {
-	// 				return true;
-	// 			}
-	// 		}
-	// 		return false;
-	// 	},
-	// 	replace: (block: Block, searchTerm: string, replaceTerm: string) => {},
-	// },
-	// {
-	// 	key: "content",
-	// 	name: "Content",
-	// 	matches: (block: Block, term: string) => block.getInnerHTML()?.toLowerCase().includes(term),
-	// 	replace: (block: Block, searchTerm: string, replaceTerm: string) => {
-	// 		const innerHTML = block.getInnerHTML();
-	// 		if (innerHTML) {
-	// 			const regex = new RegExp(escapeRegExp(searchTerm), "gi");
-	// 			if (regex.test(innerHTML)) {
-	// 				block.setInnerHTML(innerHTML.replace(regex, replaceTerm));
-	// 				return true;
-	// 			}
-	// 		}
-	// 		return false;
-	// 	},
-	// },
 	{
-		key: "styles",
-		name: "Style",
+		key: "componentProps",
+		name: "Props",
 		matches: (block: Block, term: string) => {
-			const styles = { ...block.baseStyles, ...block.mobileStyles, ...block.tabletStyles }
-			return Object.values(styles).some((val) => String(val).toLowerCase().includes(term))
+			return Object.entries(block.componentProps).some((val) => String(val).toLowerCase().includes(term))
 		},
 		replace: (block: Block, searchTerm: string, replaceTerm: string) => {
 			let replaced = false
-			replaced = replaceInProperty(block.baseStyles, searchTerm, replaceTerm) || replaced
-			replaced = replaceInProperty(block.mobileStyles, searchTerm, replaceTerm) || replaced
-			replaced = replaceInProperty(block.tabletStyles, searchTerm, replaceTerm) || replaced
+			replaced = replaceInProperty(block.componentProps, searchTerm, replaceTerm) || replaced
 			return replaced
 		},
 	},
@@ -243,6 +203,21 @@ const propertyHandlers = [
 		replace: (block: Block, searchTerm: string, replaceTerm: string) => {
 			let replaced = false
 			replaced = replaceInProperty(block.attributes, searchTerm, replaceTerm) || replaced
+			return replaced
+		},
+	},
+	{
+		key: "styles",
+		name: "Style",
+		matches: (block: Block, term: string) => {
+			const styles = { ...block.baseStyles, ...block.mobileStyles, ...block.tabletStyles }
+			return Object.values(styles).some((val) => String(val).toLowerCase().includes(term))
+		},
+		replace: (block: Block, searchTerm: string, replaceTerm: string) => {
+			let replaced = false
+			replaced = replaceInProperty(block.baseStyles, searchTerm, replaceTerm) || replaced
+			replaced = replaceInProperty(block.mobileStyles, searchTerm, replaceTerm) || replaced
+			replaced = replaceInProperty(block.tabletStyles, searchTerm, replaceTerm) || replaced
 			return replaced
 		},
 	},
