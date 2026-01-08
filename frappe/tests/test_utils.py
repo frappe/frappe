@@ -1655,3 +1655,9 @@ class TestDataUtils(UnitTestCase):
 
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")
+	def test_cint_defaults(self):
+		from frappe.utils import cint
+		# Verify that cint returns 0 for None or invalid input
+		self.assertEqual(cint(None), 0)
+		self.assertEqual(cint("Invalid"), 0)
+		self.assertEqual(cint(10.5), 10)
