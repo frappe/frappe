@@ -591,6 +591,8 @@ def build_xlsx_data(
 		metadata.include_filters = include_filters
 		metadata.add_total_row = data.add_total_row
 
+		metadata.build_column_maps()
+
 	return result, column_widths, metadata
 
 

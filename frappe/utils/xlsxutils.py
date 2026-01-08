@@ -169,7 +169,7 @@ class XLSXStyleBuilder:
 		self.style_row(total_row_index, "total_row")
 
 	def style_filter_labels(self, header_index: int):
-		for row_idx in range(header_index):
+		for row_idx in range(header_index - 1):
 			self.style_cell(row_idx, 0, style_name="filter_label")
 
 	def set_indentations(self, column: int, row_map: dict):
@@ -315,65 +315,66 @@ def make_xlsx(
 	Returns:
 			BytesIO: object containing the Excel file data
 	"""
+
+	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 	column_widths = column_widths or []
 	styles = styles or {}
 
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
 
-	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
-	ws = wb.create_sheet(sheet_name_sanitized, 0)
+	ws = wb.create_sheet(INVALID_TITLE_REGEX.sub(" ", sheet_name), 0)
 
-	# TODO: it is also updating filters column width need to fix
-	for i, column_width in enumerate(column_widths):
-		if column_width:
-			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
+	for idx, width in enumerate(column_widths, start=1):
+		if width:
+			ws.column_dimensions[get_column_letter(idx)].width = width
 
 	# Get style configurations
-	column_styles = styles.get("column_styles", {})
-	row_styles = styles.get("row_styles", {})
-	cell_styles = styles.get("cell_styles", {})
+	column_styles = styles.get("column_styles") or {}
+	row_styles = styles.get("row_styles") or {}
+	cell_styles = styles.get("cell_styles") or {}
+
+	apply_styling = bool(column_styles or row_styles or cell_styles)
 
 	for row_idx, row in enumerate(data):
-		clean_row = []
+		excel_row = []
 		row_style = row_styles.get(row_idx)
 
-		for col_idx, item in enumerate(row):
-			# Handle HTML content
-			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
-				value = handle_html(item)
-			else:
-				value = item
+		for col_idx, value in enumerate(row):
+			is_str = isinstance(value, str)
 
-			# Remove illegal characters
-			if isinstance(value, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+			if handle_html_content and is_str:
+				value = handle_html(value)
+
+			if is_str:
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			# Merge styles with priority: column < row < cell
-			style = {}
+			if apply_styling:
+				style = {}
 
-			if col_style := column_styles.get(col_idx):
-				style.update(col_style)
+				# Merge styles with priority: column < row < cell
+				if col_style := column_styles.get(col_idx):
+					style.update(col_style)
 
-			if row_style:
-				style.update(row_style)
+				if row_style:
+					style.update(row_style)
 
-			if cell_style := cell_styles.get((row_idx, col_idx)):
-				style.update(cell_style)
+				if cell_style := cell_styles.get((row_idx, col_idx)):
+					style.update(cell_style)
 
-			# Apply style properties to cell
-			if style:
-				for prop in ("font", "fill", "number_format", "alignment", "border"):
-					if value := style.get(prop):
-						setattr(cell, prop, value)
+				# Apply style properties to cell
+				if style:
+					for prop, v in style.items():
+						setattr(cell, prop, v)
 
-			clean_row.append(cell)
+			excel_row.append(cell)
 
-		ws.append(clean_row)
+		ws.append(excel_row)
 
 	xlsx_file = BytesIO()
+
 	wb.save(xlsx_file)
 	return xlsx_file
 
