@@ -343,15 +343,6 @@ def make_xlsx(
 
 	styling_enabled = bool(column_styles or row_styles or cell_styles)
 
-	if styling_enabled:
-		for row_idx, style in row_styles.items():
-			r = ws.row_dimensions[row_idx + 1]
-			styling(r, style)
-
-		for col_idx, style in column_styles.items():
-			c = ws.column_dimensions[get_column_letter(col_idx + 1)]
-			styling(c, style)
-
 	for row_idx, row in enumerate(data):
 		excel_row = []
 
@@ -367,14 +358,35 @@ def make_xlsx(
 
 			cell = WriteOnlyCell(ws, value=value)
 
-			if styling_enabled and (cell_style := cell_styles.get((row_idx, col_idx))):
+			if styling_enabled:
+				cell_style = cell_styles.get((row_idx, col_idx)) or {}
 				col_style = column_styles.get(col_idx) or {}
 
-				# Merge styles: column_style < row_style < cell_style
-				style = {**col_style, **row_style, **cell_style}
+				if not (cell_style or col_style or row_style):
+					excel_row.append(cell)
+					continue
 
-				for prop, v in style.items():
-					setattr(cell, prop, v)
+				merged_style = {}
+
+				# Merge styles: column_style < row_style < cell_style
+				if col_style:
+					merged_style.update(col_style)
+				if row_style:
+					merged_style.update(row_style)
+				if cell_style:
+					merged_style.update(cell_style)
+
+				# Apply styles to cell
+				if font := merged_style.get("font"):
+					cell.font = font
+				if fill := merged_style.get("fill"):
+					cell.fill = fill
+				if alignment := merged_style.get("alignment"):
+					cell.alignment = alignment
+				if border := merged_style.get("border"):
+					cell.border = border
+				if number_format := merged_style.get("number_format"):
+					cell.number_format = number_format
 
 			excel_row.append(cell)
 
