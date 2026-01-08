@@ -40,6 +40,7 @@ const useStudioStore = defineStore("store", () => {
 
 	// dialogs
 	const showSlotEditorDialog = ref(false)
+	const showSearchBlock = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -350,6 +351,7 @@ const useStudioStore = defineStore("store", () => {
 		componentContextMenu,
 		// dialogs
 		showSlotEditorDialog,
+		showSearchBlock,
 		// studio app
 		activeApp,
 		setApp,

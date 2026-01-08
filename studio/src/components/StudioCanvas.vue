@@ -84,6 +84,19 @@
 				<FitScreenIcon />
 			</div>
 		</div>
+
+		<DraggablePopup
+			v-model="store.showSearchBlock"
+			:container="canvasContainer"
+			placement="top-right"
+			:placementOffset="20"
+			v-if="store.showSearchBlock"
+		>
+			<template #header>Search Block</template>
+			<template #content>
+				<SearchBlock></SearchBlock>
+			</template>
+		</DraggablePopup>
 	</div>
 </template>
 
@@ -92,6 +105,8 @@ import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
+import DraggablePopup from "@/components/DraggablePopup.vue"
+import SearchBlock from "@/components/SearchBlock.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -254,8 +269,16 @@ const activeSlotIds = computed(() => {
 	return slotIds
 })
 
-const { setScaleAndTranslate, setupHistory, getRootBlock, setRootBlock, findBlock, removeBlock, toggleMode } =
-	useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
+const {
+	setScaleAndTranslate,
+	setupHistory,
+	getRootBlock,
+	setRootBlock,
+	findBlock,
+	removeBlock,
+	toggleMode,
+	scrollBlockIntoView,
+} = useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
 
 watch(
 	() => activeSlotIds.value,
@@ -318,6 +341,7 @@ defineExpose({
 	selectedBlockIds,
 	selectedBlocks,
 	selectBlock,
+	scrollBlockIntoView,
 	selectBlockById,
 	clearSelection,
 	isRootSelected,

@@ -130,6 +130,12 @@ export function useStudioEvents() {
 			return
 		}
 
+		// search block
+		if (e.key === "f" && isCtrlOrCmd(e) && e.shiftKey) {
+			e.preventDefault();
+			store.showSearchBlock = true;
+		}
+
 		if (isCtrlOrCmd(e) || e.shiftKey) {
 			return
 		}
