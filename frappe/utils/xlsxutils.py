@@ -294,25 +294,32 @@ class XLSXStyleBuilder:
 
 	### Utility Methods ###
 	def apply_default_styles(self):
-		header_idx = self.metadata.header_index
-
-		self.style_row(header_idx, "header")
+		self.style_header()
 
 		if self.metadata.include_filters:
-			for row_idx in range(header_idx - 1):
-				self.style_cell(row_idx, 0, style_name="filter_label")
-
-		self.set_indentations(0)
+			self.style_filters()
 
 		if self.metadata.add_total_row:
-			self.style_row(self.metadata.last_row_index, "total_row")
+			self.style_total_row()
 
+		if self.metadata.include_indentation:
+			self.set_indentations(0)
 		return self
+
+	def style_header(self):
+		return self.style_row(self.metadata.header_index, "header")
+
+	def style_filters(self):
+		return self.style_column_range(0, 0, self.metadata.header_index - 1, "filter_label")
 
 	def set_indentations(self, column: int):
 		for idx, row in self.metadata.rows_map.items():
 			if isinstance(row, dict) and "indent" in row:
 				self.style_cell(idx, column, indent=row["indent"])
+		return self
+
+	def style_total_row(self):
+		return self.style_row(self.metadata.last_row_index, "total_row")
 
 	# TODO: Handle currency format separately default currency
 	def set_fieldtype_formats(self, currency_format: bool = False):
