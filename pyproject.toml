@@ -19,9 +19,16 @@ dependencies = [
     "PyJWT~=2.8.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
+<<<<<<< HEAD
     "PyMySQL==1.1.1",
     "pypdf==6.4.0",
     "PyPika==0.48.9",
+=======
+    "PyMySQL==1.1.2",
+    "pypdf==6.6.0",
+    "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
+    "mysqlclient==2.2.7",
+>>>>>>> fd715c3338 (build(deps): bump pypdf from 6.5.0 to 6.6.0)
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
