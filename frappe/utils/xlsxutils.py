@@ -364,14 +364,6 @@ def make_xlsx(
 	Returns:
 			BytesIO: object containing the Excel file data
 	"""
-
-	def styling(obj, style: dict | None):
-		if not style:
-			return
-
-		for prop, value in style.items():
-			setattr(obj, prop, value)
-
 	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 	column_widths = column_widths or []
 	styles = styles or {}
