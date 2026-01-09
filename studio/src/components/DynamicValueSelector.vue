@@ -8,15 +8,23 @@
 		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value, bindVariable)"
 	>
 		<template #target="{ togglePopover }">
-			<slot name="target" v-if="$slots.target" v-bind="{ togglePopover }"></slot>
-			<Tooltip v-else text="Click to set dynamic value" placement="bottom">
-				<FeatherIcon
-					ref="dropdownTrigger"
-					name="plus-circle"
-					class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
-					@click="togglePopover"
-				/>
-			</Tooltip>
+			<IconButton
+				v-if="bindVariable"
+				:icon="Link2"
+				label="Synced with variable. Click to change."
+				placement="bottom"
+				class="mr-1"
+				@click="togglePopover"
+			/>
+			<IconButton
+				v-else
+				icon="plus-circle"
+				label="Click to set dynamic value"
+				placement="bottom"
+				class="mr-1"
+				size="sm"
+				@click="togglePopover"
+			/>
 		</template>
 
 		<template #item-suffix="{ option }">
@@ -25,7 +33,7 @@
 		<template #footer>
 			<div class="p-1" @mousedown.prevent>
 				<Switch
-					modelValue="bindVariable"
+					v-model="bindVariable"
 					label="Sync with variable"
 					description="Changing the selected variable value will change the prop value and vice versa"
 				/>
@@ -35,8 +43,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { Autocomplete, Tooltip, Switch } from "frappe-ui"
+import { computed, ref, watch } from "vue"
+import { Autocomplete, Switch } from "frappe-ui"
+import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
@@ -45,14 +54,26 @@ import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
 import useCodeStore from "@/stores/codeStore"
+import Link2 from "~icons/lucide/link-2"
 
-const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
-	formatValuesAsTemplate: true,
-})
+const props = withDefaults(
+	defineProps<{ block?: Block; isVariableBound?: string | null; formatValuesAsTemplate?: boolean }>(),
+	{
+		formatValuesAsTemplate: true,
+	},
+)
 const emit = defineEmits<{
 	(event: "update:modelValue", value: string, bindVariable: boolean): void
 }>()
-const bindVariable = ref(false)
+const bindVariable = ref(!!props.isVariableBound)
+
+// Watch for external changes to isVariableBound prop
+watch(
+	() => props.isVariableBound,
+	(newValue) => {
+		bindVariable.value = !!newValue
+	},
+)
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

@@ -6,36 +6,12 @@
 	<div v-else class="mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
 			<DynamicValueSelector
-				v-if="propName === 'modelValue'"
+				v-if="!isTestingComponent"
 				:block="block"
-				@update:modelValue="(value) => bindVariable(propName, value)"
+				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
 				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
 				:formatValuesAsTemplate="false"
-			>
-				<template #target="{ togglePopover }">
-					<IconButton
-						:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
-						:label="isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'"
-						placement="bottom"
-						class="mr-1"
-						@click="
-							() => {
-								if (isVariableBound(config.modelValue)) {
-									unbindVariable(propName)
-								} else {
-									togglePopover()
-								}
-							}
-						"
-					/>
-				</template>
-			</DynamicValueSelector>
-
-			<DynamicValueSelector
-				v-else-if="!isTestingComponent"
-				:block="block"
-				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
-				@update:modelValue="(value) => props.block?.setProp(propName, value)"
+				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
 			<Code
@@ -99,9 +75,6 @@ import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
 import { isObjectEmpty } from "@/utils/helpers"
-import IconButton from "@/components/IconButton.vue"
-import Link2 from "~icons/lucide/link-2"
-import Link2Off from "~icons/lucide/link-2-off"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
@@ -201,6 +174,14 @@ const isCodeField = (inputType: string) => {
 	return ["code", "html"].includes(inputType)
 }
 
+function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
+	if (bindVariable) {
+		props.block?.setProp(propName, { $type: "variable", name: varName })
+	} else {
+		props.block?.setProp(propName, varName)
+	}
+}
+
 // variable binding
 const boundValue = computed({
 	get() {
@@ -217,13 +198,5 @@ const boundValue = computed({
 
 const isVariableBound = (value: any) => {
 	return value?.$type === "variable" ? value.name : null
-}
-
-const bindVariable = (propName: string, varName: string) => {
-	props.block?.setProp(propName, { $type: "variable", name: varName })
-}
-
-const unbindVariable = (propName: string) => {
-	props.block?.setProp(propName, "")
 }
 </script>
