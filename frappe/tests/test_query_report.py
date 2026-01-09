@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.utils
 from frappe.desk.query_report import build_xlsx_data, export_query, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import make_xlsx
@@ -52,11 +51,12 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, _column_widths, metadata = build_xlsx_data(
-			data, visible_idx, include_indentation=False, include_filters=True, build_style_metadata=True
+		xlsx_data, _column_widths, _ = build_xlsx_data(
+			data,
+			visible_idx,
+			include_indentation=False,
+			include_filters=True,
 		)
-
-		self.assertEqual(metadata.header_index, 3)  # 2 filter rows + 1 empty row
 
 		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)

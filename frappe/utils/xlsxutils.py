@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import datetime
 import re
-from collections.abc import Callable
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from functools import lru_cache
 from io import BytesIO
 from typing import Any, ClassVar, Literal
@@ -25,10 +25,27 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 
-# TODO: Date and Time formats not working properly need to fix
 # TODO: add docs and examples for XLSXStyleBuilder
 # TODO: Handle Currency formatting
-# TODO: Check for border styles
+
+
+### XLSX Formatter ###
+@dataclass
+class XLSXMetadata:
+	report_name: str = ""
+
+	columns: list[dict] = dataclass_field(default_factory=list)
+	rows_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
+	filters: dict = dataclass_field(default_factory=dict)
+
+	header_index: int = 0
+	last_row_index: int = 0
+	max_indent_level: int = 0
+
+	include_filters: bool = False
+	include_indentation: bool = False
+	add_total_row: bool = False
+	include_hidden_columns: bool = False
 
 
 class XLSXStyleBuilder:
@@ -41,31 +58,24 @@ class XLSXStyleBuilder:
 
 	# Border sides that need Side object conversion
 	BORDER_SIDES: ClassVar[tuple] = ("left", "right", "top", "bottom", "diagonal")
-
-	FIELDTYPE_STYLES: ClassVar[dict] = {
-		"Int": "int_format",
-		"Float": "float_format",
-		"Percent": "percent_format",
-		"Date": "date_format",
-		"Time": "time_format",
-		"Datetime": "datetime_format",
-		"Currency": "default_currency_format",
-	}
-
 	_border_cache: ClassVar[dict] = {}
 
-	def __init__(self, **kwargs):
-		self.settings = kwargs or {}
+	DEFAULT_MAX_INDENT: ClassVar[int] = 3
+
+	def __init__(self, metadata: XLSXMetadata):
+		self.metadata = metadata
 
 		self.styles = {}
 
-		self.config = {
-			"column_styles": {},
-			"row_styles": {},
-			"cell_styles": {},
+		self.default_fieldtype_styles = {
+			"Float": "float_format",
+			"Percent": "percent_format",
+			"Date": "date_format",
+			"Time": "time_format",
+			"Datetime": "datetime_format",
 		}
 
-		self.default_styles = {
+		self.standard_styles = {
 			"header": {
 				"font": {"bold": True, "size": 12},
 			},
@@ -77,35 +87,102 @@ class XLSXStyleBuilder:
 			},
 		}
 
-		self._register_default_styles()
+		self.config = {
+			"column_styles": {},
+			"row_styles": {},
+			"cell_styles": {},
+		}
 
-	def _register_default_styles(self):
-		for name, style in self.default_styles.items():
+		self.column_map: dict[str, int] = {}
+		self.build_column_maps()
+
+		self._register_standard_styles()
+		self._register_default_indent_styles()
+		self._register_default_fieldtype_formats()
+
+	### META DATA METHODS ###
+	def build_column_maps(self):
+		self.column_map.clear()
+
+		for idx, column in enumerate(self.metadata.columns):
+			if fieldname := column.get("fieldname"):
+				self.column_map[fieldname] = idx
+
+	def get_column(self, fieldname: str) -> dict | None:
+		if idx := self.column_map.get(fieldname):
+			return self.metadata.columns[idx]
+
+		return None
+
+	def get_column_index(self, fieldname: str) -> int | None:
+		return self.column_map.get(fieldname)
+
+	def get_row(self, row_idx: int) -> dict | list | None:
+		return self.metadata.rows_map.get(row_idx)
+
+	def get_indent_level(self, row_idx: int) -> int:
+		if row := self.get_row(row_idx):
+			if isinstance(row, dict):
+				return row.get("indent", 0)
+
+		return 0
+
+	def is_filter_row(self, row_idx: int) -> bool:
+		if not self.metadata.include_filters:
+			return False
+
+		return row_idx < self.metadata.header_index - 1
+
+	def is_header_row(self, row_idx: int) -> bool:
+		return row_idx == self.metadata.header_index
+
+	### STYLE REGISTRATION ###
+	def _register_standard_styles(self):
+		for name, style in self.standard_styles.items():
 			self.register_style(name, **style)
 
-		self._register_indent_styles()
-		self._register_number_formats()
-
-	def _register_indent_styles(self):
-		max_indent = self.settings.get("max_indent_level") or 2
-		pt = self.settings.get("indent_pt") or 2
+	def _register_default_indent_styles(self):
+		max_indent = (
+			self.metadata.max_indent_level
+			if self.metadata.max_indent_level is not None
+			else self.DEFAULT_MAX_INDENT
+		)
 
 		for indent in range(max_indent + 1):
-			self.register_style(self.indent_key(indent), **self.get_indent_style(indent, pt))
+			self.register_style(self.indent_key(indent), **self.get_indent_style(indent))
 
-	def _register_number_formats(self):
+	def _register_default_fieldtype_formats(self):
 		map = {
-			"int_format": self.get_number_format("Int"),
 			"float_format": self.get_number_format("Float"),
 			"percent_format": self.get_number_format("Percent"),
 			"date_format": self.get_date_format(),
 			"time_format": self.get_time_format(),
 			"datetime_format": self.get_datetime_format(),
-			"default_currency_format": self.get_number_format("Currency", self.settings.get("currency")),
 		}
 
 		for style_name, format in map.items():
 			self.register_style(style_name, number_format=format)
+
+	def register_currency_format(self, currency: str, style_name: str):
+		number_format = self.get_number_format("Currency", currency)
+		self.register_style(style_name, number_format=number_format)
+
+		return self
+
+	def register_new_fieldtype_format(
+		self,
+		fieldtype: str,
+		format: str,
+		name: str | None = None,
+	):
+		style_name = name or f"{fieldtype.lower()}_format"
+
+		if style_name:
+			self.register_style(style_name, number_format=format)
+
+			self.default_fieldtype_styles[fieldtype] = style_name
+
+		return self
 
 	def register_style(self, name: str, **kwargs):
 		"""
@@ -139,19 +216,23 @@ class XLSXStyleBuilder:
 
 		self.styles[name] = style
 
-	def register_currency_format(self, currency: str, style_name: str | None = None) -> str:
-		style_name = style_name or f"{currency.lower()}_currency_format"
-		number_format = self.get_number_format("Currency", currency)
+		return self
 
-		self.register_style(style_name, number_format=number_format)
-
-		return style_name
+	### STYLE APPLICATION ###
+	def get_style(self, style_name: str) -> dict | None:
+		return self.styles.get(style_name)
 
 	def style_column(self, col_idx: int, style_name: str):
-		self.config["column_styles"][col_idx] = self.styles[style_name]
+		if style := self.get_style(style_name):
+			self.config["column_styles"][col_idx] = style
+
+		return self
 
 	def style_row(self, row_idx: int, style_name: str):
-		self.config["row_styles"][row_idx] = self.styles[style_name]
+		if style := self.get_style(style_name):
+			self.config["row_styles"][row_idx] = style
+
+		return self
 
 	def style_cell(
 		self,
@@ -162,39 +243,50 @@ class XLSXStyleBuilder:
 		indent: int | None = None,
 	):
 		cell_key = (row_idx, col_idx)
-
 		cell_style = self.config["cell_styles"].setdefault(cell_key, {})
 
 		# Apply named style
-		if style_name:
-			cell_style.update(self.styles[style_name])
+		if style_name and (style := self.get_style(style_name)):
+			cell_style.update(style)
 
 		# Apply indent style (overrides alignment from named style)
-		if indent is not None:
-			cell_style["alignment"] = self.styles[self.indent_key(indent)]["alignment"]
+		if indent is not None and (style := self.get_style(self.indent_key(indent))):
+			cell_style["alignment"] = style["alignment"]
 
-	def style_header(self, header_index: int):
-		self.style_row(header_index, "header")
-
-	def style_total_row(self, total_row_index: int):
-		self.style_row(total_row_index, "total_row")
-
-	def style_filter_labels(self, header_index: int):
-		for row_idx in range(header_index - 1):
-			self.style_cell(row_idx, 0, style_name="filter_label")
-
-	def set_indentations(self, column: int, row_map: dict):
-		for idx, row in row_map.items():
-			if isinstance(row, dict) and "indent" in row:
-				self.style_cell(idx, column, indent=row["indent"])
-
-	def set_fieldtype_formats(self, columns: list[dict]):
-		for idx, col in enumerate(columns):
-			if style_name := self.FIELDTYPE_STYLES.get(col.get("fieldtype")):
-				self.style_column(idx, style_name)
+		return self
 
 	def build(self) -> frappe._dict:
 		return self.config
+
+	### Utility Methods ###
+	def apply_default_styles(self):
+		header_idx = self.metadata.header_index
+
+		self.style_row(header_idx, "header")
+
+		if self.metadata.include_filters:
+			for row_idx in range(header_idx - 1):
+				self.style_cell(row_idx, 0, style_name="filter_label")
+
+		self.set_indentations(0)
+
+		if self.metadata.add_total_row:
+			self.style_row(self.metadata.last_row_index, "total_row")
+
+		return self
+
+	def set_indentations(self, column: int):
+		for idx, row in self.metadata.rows_map.items():
+			if isinstance(row, dict) and "indent" in row:
+				self.style_cell(idx, column, indent=row["indent"])
+
+	# TODO: Handle currency format separately default currency
+	def set_fieldtype_formats(self, currency_format: bool = False):
+		for idx, col in enumerate(self.metadata.columns):
+			if style_name := self.default_fieldtype_styles.get(col.get("fieldtype")):
+				self.style_column(idx, style_name)
+
+		return self
 
 	@staticmethod
 	def _create_border(config) -> Border:
@@ -234,6 +326,7 @@ class XLSXStyleBuilder:
 
 		return tuple(items)
 
+	### Format Getters ###
 	@staticmethod
 	@lru_cache(maxsize=1)
 	def get_date_format() -> str:
@@ -252,20 +345,17 @@ class XLSXStyleBuilder:
 	@staticmethod
 	@lru_cache(maxsize=64)
 	def get_number_format(
-		fieldtype: Literal["Currency", "Int", "Float", "Percent"],
+		fieldtype: Literal["Currency", "Float", "Percent"],
 		currency: str | None = None,
 	) -> str:
-		from frappe.locale import get_number_format
+		from frappe.locale import get_number_format as _get_format
 
-		number_format = get_number_format()
+		number_format = _get_format()
 		thousands_sep = number_format.thousands_separator
 		decimal_sep = number_format.decimal_separator
 		precision = number_format.precision
 
-		if fieldtype == "Int":
-			return "#,##0" if thousands_sep else "#0"
-
-		elif fieldtype == "Currency":
+		if fieldtype == "Currency":
 			precision = cint(frappe.db.get_default("currency_precision")) or precision
 			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
 			currency_symbol, symbol_on_right = XLSXStyleBuilder._get_currency_symbol_info(currency)
@@ -277,35 +367,6 @@ class XLSXStyleBuilder:
 			return f'{format_str}"%" ' if fieldtype == "Percent" else format_str
 
 		return "General"
-
-	@staticmethod
-	@lru_cache(maxsize=64)
-	def hex_to_argb(color: str) -> str:
-		"""
-		Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
-
-		Accepted inputs:
-		- "#RGB"       -> expands to "FFRRGGBB"
-		- "#RRGGBB"    -> converts to "FFRRGGBB"
-		- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
-		"""
-		color = color.strip()
-		hex_part = color[1:]
-		n = len(hex_part)
-
-		if n == 3:
-			r, g, b = hex_part
-			rgb = (r + r + g + g + b + b).upper()
-			return "FF" + rgb
-		elif n == 6:
-			return "FF" + hex_part.upper()
-		elif n == 8:
-			h = hex_part.upper()
-			return h[6:8] + h[0:6]
-
-	@staticmethod
-	def get_indent_style(indent_level: int, pt: int = 2) -> dict:
-		return {"alignment": {"indent": indent_level * pt, "horizontal": "left"}}
 
 	@staticmethod
 	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
@@ -336,6 +397,37 @@ class XLSXStyleBuilder:
 			return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
 
 		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
+
+	#### Excel Color Utils ####
+	@staticmethod
+	@lru_cache(maxsize=64)
+	def hex_to_argb(color: str) -> str:
+		"""
+		Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
+
+		Accepted inputs:
+		- "#RGB"       -> expands to "FFRRGGBB"
+		- "#RRGGBB"    -> converts to "FFRRGGBB"
+		- "#RRGGBBAA"  -> converts RGBA to "AARRGGBB"
+		"""
+		color = color.strip()
+		hex_part = color[1:]
+		n = len(hex_part)
+
+		if n == 3:
+			r, g, b = hex_part
+			rgb = (r + r + g + g + b + b).upper()
+			return "FF" + rgb
+		elif n == 6:
+			return "FF" + hex_part.upper()
+		elif n == 8:
+			h = hex_part.upper()
+			return h[6:8] + h[0:6]
+
+	### Indent Style Utils ###
+	@staticmethod
+	def get_indent_style(indent_level: int, pt: int = 2) -> dict:
+		return {"alignment": {"indent": indent_level * pt, "horizontal": "left"}}
 
 	@staticmethod
 	def indent_key(level: int) -> str:

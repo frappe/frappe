@@ -8,14 +8,13 @@ import frappe
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
-from frappe.desk.query_report import XLSXMetadata
-from frappe.desk.query_report import run as run_report
 from frappe.desk.reportview import append_totals_row
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
@@ -234,8 +233,10 @@ class Report(Document):
 	def run_query_report(
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
+		from frappe.desk.query_report import run
+
 		columns, result = [], []
-		data = run_report(
+		data = run(
 			self.name,
 			filters=filters,
 			user=user,
@@ -401,8 +402,12 @@ class Report(Document):
 
 		self.db_set("disabled", cint(disable))
 
-	def get_xlsx_styles(self, data: XLSXMetadata) -> dict | None:
-		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+	# Xlsx Styles formatting
+	def get_xlsx_styles(self, metadata: XLSXMetadata) -> dict | None:
+		return self._get_styles(metadata) or XLSXStyleBuilder(metadata).apply_default_styles().build()
+
+	def _get_styles(self, metadata: XLSXMetadata) -> dict:
+		if self.is_standard != "Yes" or self.report_type not in (".Query Report", "Script Report"):
 			return
 
 		try:
@@ -411,7 +416,7 @@ class Report(Document):
 			# Ignore if method is not defined
 			return
 
-		return method(data)
+		return method(metadata)
 
 
 def is_prepared_report_enabled(report):
