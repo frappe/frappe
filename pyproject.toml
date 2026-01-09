@@ -23,11 +23,19 @@ dependencies = [
     "pypdf==6.4.0",
     "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
+<<<<<<< HEAD
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
     "WeasyPrint==59.0",
     "pydyf==0.10.0",
     "Werkzeug~=3.1.4",
+=======
+    "PyYAML~=6.0.3",
+    "RestrictedPython~=8.1",
+    "WeasyPrint==66.0",
+    "pydyf==0.12.1",
+    "Werkzeug==3.1.5",
+>>>>>>> 469c5fb2ec (build(deps): bump werkzeug from 3.1.4 to 3.1.5 (#35783))
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
