@@ -10,7 +10,6 @@
 				:block="block"
 				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
 				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
-				:formatValuesAsTemplate="isVariableBound(config.modelValue) ? false : true"
 				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
@@ -169,7 +168,7 @@ function setDynamicValue(propName: string, varName: string, bindVariable: boolea
 	if (bindVariable) {
 		props.block?.setProp(propName, { $type: "variable", name: varName })
 	} else {
-		props.block?.setProp(propName, varName)
+		props.block?.setProp(propName, `{{ ${varName} }}`)
 	}
 }
 

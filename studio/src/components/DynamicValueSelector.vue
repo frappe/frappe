@@ -56,12 +56,7 @@ import { isObjectEmpty } from "@/utils/helpers"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 
-const props = withDefaults(
-	defineProps<{ block?: Block; isVariableBound?: string | null; formatValuesAsTemplate?: boolean }>(),
-	{
-		formatValuesAsTemplate: true,
-	},
-)
+const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{
 	(event: "update:modelValue", value: string, bindVariable: boolean): void
 }>()
@@ -79,13 +74,6 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
-const formatValue = (value: string) => {
-	if (props.formatValuesAsTemplate) {
-		return `{{ ${value} }}`
-	}
-	return value
-}
-
 const dynamicValueOptions = computed(() => {
 	const groups = []
 
@@ -96,7 +84,7 @@ const dynamicValueOptions = computed(() => {
 			const componentContext: VariableOption[] = []
 			componentInputs.map?.((input: ComponentInput) => {
 				componentContext.push({
-					value: formatValue(`inputs.${input.input_name}`),
+					value: `inputs.${input.input_name}`,
 					label: `inputs.${input.input_name}`,
 					type: input.type,
 				})
@@ -111,10 +99,7 @@ const dynamicValueOptions = computed(() => {
 		if (store.variableOptions.length > 0) {
 			groups.push({
 				group: "Variables",
-				items: store.variableOptions.map((option) => ({
-					...option,
-					value: formatValue(option.value),
-				})),
+				items: store.variableOptions,
 			})
 		}
 		// Data Sources group
@@ -124,7 +109,7 @@ const dynamicValueOptions = computed(() => {
 					? `${resourceName}.doc`
 					: `${resourceName}.data`
 			return {
-				value: formatValue(completion),
+				value: completion,
 				label: resourceName,
 				type: "array",
 			}
@@ -141,7 +126,7 @@ const dynamicValueOptions = computed(() => {
 	const repeaterContext = props.block?.repeaterDataItem
 	if (!isObjectEmpty(repeaterContext)) {
 		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
-			value: formatValue(`dataItem.${key}`),
+			value: `dataItem.${key}`,
 			label: `dataItem.${key}`,
 			type: typeof repeaterContext![key],
 		}))
