@@ -532,9 +532,6 @@ frappe.views.Workspace = class Workspace {
 			primary_action: (values) => {
 				values.title = strip_html(values.title);
 				d.hide();
-				if (values.type === "Workspace") {
-					this.setup_customization_buttons({ is_editable: true });
-				}
 
 				let name = values.title + (values.is_public ? "" : "-" + frappe.session.user);
 				let blocks = [
@@ -562,6 +559,10 @@ frappe.views.Workspace = class Workspace {
 					link_to: values.link_to,
 					external_link: values.external_link,
 				};
+
+				if (values.type === "Workspace") {
+					this.setup_customization_buttons(new_page);
+				}
 
 				if (new_page.type !== "Workspace") {
 					this.create_page(new_page);
