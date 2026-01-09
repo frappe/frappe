@@ -10,7 +10,7 @@
 				:block="block"
 				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
 				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
-				:formatValuesAsTemplate="false"
+				:formatValuesAsTemplate="isVariableBound(config.modelValue) ? false : true"
 				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
@@ -18,8 +18,8 @@
 				v-if="config.inputType === 'html'"
 				:label="propName"
 				language="html"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
@@ -38,30 +38,21 @@
 				v-else-if="config.inputType === 'code'"
 				:label="propName"
 				language="javascript"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
 				class="overflow-hidden"
 			/>
 			<InlineInput
-				v-else-if="propName !== 'modelValue'"
+				v-else
 				:label="propName"
 				:type="config.inputType"
 				:options="config.options"
 				:required="config.required"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
-				class="flex-1"
-			/>
-			<InlineInput
-				v-else-if="propName === 'modelValue'"
-				:label="propName"
-				:type="config.inputType"
-				:options="config.options"
-				:required="config.required"
-				v-model="boundValue"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				class="flex-1"
 			/>
 		</div>
@@ -182,19 +173,17 @@ function setDynamicValue(propName: string, varName: string, bindVariable: boolea
 	}
 }
 
-// variable binding
-const boundValue = computed({
-	get() {
-		const modelValue = props.block?.componentProps.modelValue
-		if (modelValue?.$type === "variable") {
-			return `{{ ${modelValue.name} }}`
-		}
-		return modelValue
-	},
-	set(newValue) {
-		props.block?.setProp("modelValue", newValue)
-	},
-})
+const getFormattedValue = (propName: string) => {
+	const value = props.block?.componentProps[propName]
+	if (value?.$type === "variable") {
+		return `{{ ${value.name} }}`
+	}
+	return value
+}
+
+const handlePropUpdate = (propName: string, newValue: any) => {
+	props.block?.setProp(propName, newValue)
+}
 
 const isVariableBound = (value: any) => {
 	return value?.$type === "variable" ? value.name : null
