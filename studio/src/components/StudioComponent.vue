@@ -207,7 +207,7 @@ const boundValue = computed({
 	get() {
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
-			return codeStore.getValueFromVariable(modelValue.name)
+			return codeStore.getValueFromVariable(modelValue.name, evaluationContext.value)
 		} else if (isDynamicValue(modelValue)) {
 			return codeStore.getDynamicValue(modelValue, evaluationContext.value)
 		}
@@ -217,7 +217,7 @@ const boundValue = computed({
 		const modelValue = props.block.componentProps.modelValue
 		if (modelValue?.$type === "variable") {
 			// update the variable in the store
-			codeStore.setValueInVariable(modelValue.name, newValue)
+			codeStore.setValueInVariable(modelValue.name, newValue, evaluationContext.value)
 		} else {
 			// update the prop directly if not bound to a variable
 			props.block.setProp("modelValue", newValue)
