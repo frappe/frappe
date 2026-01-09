@@ -1812,10 +1812,21 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn(
-			self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
-			self.normalize_sql(sql),
-		)
+		if frappe.db.db_type == "mariadb":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
+		elif frappe.db.db_type == "postgres":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(STRPOS(`name`,'test'),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(INSTR(`name`,'test'),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
 
 		# Test multiple operators in fields
 		query = frappe.qb.get_query(
