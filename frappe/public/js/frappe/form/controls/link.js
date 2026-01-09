@@ -362,9 +362,25 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.$input.val("");
 			}
 		});
-	}
+		this.$input.on('focus', function() {
+    const update_position = () => {
+        const rect = me.$input[0].getBoundingClientRect();
+        if (me.awesomplete && me.awesomplete.ul) {
+            me.awesomplete.ul.style.top = (rect.bottom + window.scrollY) + 'px';
+            me.awesomplete.ul.style.left = (rect.left + window.scrollX) + 'px';
+        }
+    };
 
-	/**
+    update_position();
+    window.addEventListener('scroll', update_position, true);
+
+    me.$input.on('blur', function() {
+        window.removeEventListener('scroll', update_position, true);
+    });
+});
+
+	}
+    /**
 	 * Checks if the current input matches any property (label, value, or description)
 	 * of the provided autocomplete item (case-insensitive).
 	 *
