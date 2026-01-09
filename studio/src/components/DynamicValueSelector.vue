@@ -3,8 +3,9 @@
 		size="sm"
 		:options="dynamicValueOptions"
 		class="!w-auto"
+		placement="left-start"
 		modelValue=""
-		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value)"
+		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value, bindVariable)"
 	>
 		<template #target="{ togglePopover }">
 			<slot name="target" v-if="$slots.target" v-bind="{ togglePopover }"></slot>
@@ -21,12 +22,21 @@
 		<template #item-suffix="{ option }">
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
+		<template #footer>
+			<div class="p-1" @mousedown.prevent>
+				<Switch
+					modelValue="bindVariable"
+					label="Sync with variable"
+					description="Changing the selected variable value will change the prop value and vice versa"
+				/>
+			</div>
+		</template>
 	</Autocomplete>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { Autocomplete, Tooltip } from "frappe-ui"
+import { computed, ref } from "vue"
+import { Autocomplete, Tooltip, Switch } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
@@ -40,8 +50,10 @@ const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?:
 	formatValuesAsTemplate: true,
 })
 const emit = defineEmits<{
-	(event: "update:modelValue", value: string): void
+	(event: "update:modelValue", value: string, bindVariable: boolean): void
 }>()
+const bindVariable = ref(false)
+
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
