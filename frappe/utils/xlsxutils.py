@@ -255,6 +255,40 @@ class XLSXStyleBuilder:
 
 		return self
 
+	def style_cell_range(
+		self,
+		start_row: int,
+		end_row: int,
+		start_col: int,
+		end_col: int,
+		style_name: str,
+	):
+		if style := self.get_style(style_name):
+			cell_styles = self.config["cell_styles"]
+			for row_idx in range(start_row, end_row + 1):
+				for col_idx in range(start_col, end_col + 1):
+					cell_styles.setdefault((row_idx, col_idx), {}).update(style)
+
+		return self
+
+	def style_column_range(
+		self,
+		col_idx: int,
+		start_row: int,
+		end_row: int,
+		style_name: str,
+	):
+		return self.style_cell_range(start_row, end_row, col_idx, col_idx, style_name)
+
+	def style_row_range(
+		self,
+		row_idx: int,
+		start_col: int,
+		end_col: int,
+		style_name: str,
+	):
+		return self.style_cell_range(row_idx, row_idx, start_col, end_col, style_name)
+
 	def build(self) -> frappe._dict:
 		return self.config
 
