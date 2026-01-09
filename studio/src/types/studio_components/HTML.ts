@@ -1,3 +1,3 @@
 export interface HTMLProps {
-	html: string
+	html?: string
 }
