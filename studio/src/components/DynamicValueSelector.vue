@@ -31,12 +31,11 @@
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
 		<template #footer>
-			<div class="p-1" @mousedown.prevent>
-				<Switch
-					v-model="bindVariable"
-					label="Sync with variable"
-					description="Changing the selected variable value will change the prop value and vice versa"
-				/>
+			<div class="flex items-center p-2" @mousedown.prevent>
+				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
+					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
+				</Tooltip>
+				<Switch v-model="bindVariable" label="Sync with variable" class="w-full" />
 			</div>
 		</template>
 	</Autocomplete>
@@ -44,7 +43,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Autocomplete, Switch } from "frappe-ui"
+import { Autocomplete, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
