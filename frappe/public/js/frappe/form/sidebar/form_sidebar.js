@@ -190,15 +190,17 @@ frappe.ui.form.Sidebar = class {
 		});
 	}
 
-	add_user_action(label, click) {
-		return $("<a>")
-			.html(label)
-			.appendTo(
-				$('<div class="user-action-row"></div>').appendTo(
-					this.user_actions.removeClass("hidden")
-				)
-			)
-			.on("click", click);
+	add_user_action(label, click, icon) {
+		const $row = $('<div class="user-action-row"></div>').appendTo(
+			this.user_actions.removeClass("hidden")
+		);
+		const $link = $("<a>").html(label).appendTo($row).on("click", click);
+
+		if (icon) {
+			$link.append(frappe.utils.icon(icon, "sm", "", "", "m-1"));
+		}
+
+		return $link;
 	}
 
 	clear_user_actions() {

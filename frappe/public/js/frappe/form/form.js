@@ -1271,10 +1271,10 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	add_web_link(path, label) {
+	add_web_link(path, label, icon) {
 		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar
-			.add_user_action(__(label), function () {})
+			.add_user_action(__(label), function () {}, icon || "external-link")
 			.attr("href", path || this.doc.route)
 			.attr("target", "_blank");
 	}
