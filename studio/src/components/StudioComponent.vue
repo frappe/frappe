@@ -16,7 +16,7 @@
 		v-show="showComponent"
 		:is="componentName"
 		v-bind="componentProps"
-		v-model="boundValue"
+		v-on="vModelListeners"
 		:data-component-id="block.componentId"
 		:data-breakpoint="breakpoint"
 		:style="styles"
@@ -76,7 +76,7 @@
 		:is="block.componentName"
 		v-show="showComponent"
 		v-bind="componentProps"
-		v-model="boundValue"
+		v-on="vModelListeners"
 		:data-component-id="block.componentId"
 		:data-breakpoint="breakpoint"
 		:style="styles"
@@ -176,13 +176,34 @@ const getComponentProps = () => {
 	if (!props.block || props.block.isRoot()) return []
 
 	const propValues = props.block.getPropsAndAttributes()
-	delete propValues.modelValue
-
-	Object.entries(propValues).forEach(([propName, config]) => {
-		propValues[propName] = codeStore.evaluateDynamicValues(config, evaluationContext.value)
+	Object.entries(propValues).forEach(([propName, propValue]) => {
+		if (propValue?.$type === "variable") {
+			propValues[propName] = codeStore.getValueFromVariable(propValue.name, evaluationContext.value)
+		} else if (isDynamicValue(propValue)) {
+			propValues[propName] = codeStore.evaluateDynamicValues(propValue, evaluationContext.value)
+		}
+		return propValue
 	})
 	return propValues
 }
+
+// 2-way binding
+const vModelListeners = computed(() => {
+	if (!props.block || props.block.isRoot()) return {}
+
+	const listeners: Record<string, Function> = {}
+	const propValues = props.block.getPropsAndAttributes()
+
+	Object.entries(propValues).forEach(([propName, propValue]) => {
+		if (propValue?.$type === "variable") {
+			const eventName = `update:${propName}`
+			listeners[eventName] = (newValue: any) => {
+				codeStore.setValueInVariable(propValue.name, newValue, evaluationContext.value)
+			}
+		}
+	})
+	return listeners
+})
 
 const attrs = useAttrs()
 const componentProps = computed(() => {
@@ -200,29 +221,6 @@ const showComponent = computed(() => {
 		return codeStore.getDynamicValue(props.block.visibilityCondition, evaluationContext.value)
 	}
 	return true
-})
-
-// modelValue binding
-const boundValue = computed({
-	get() {
-		const modelValue = props.block.componentProps.modelValue
-		if (modelValue?.$type === "variable") {
-			return codeStore.getValueFromVariable(modelValue.name, evaluationContext.value)
-		} else if (isDynamicValue(modelValue)) {
-			return codeStore.getDynamicValue(modelValue, evaluationContext.value)
-		}
-		return modelValue
-	},
-	set(newValue) {
-		const modelValue = props.block.componentProps.modelValue
-		if (modelValue?.$type === "variable") {
-			// update the variable in the store
-			codeStore.setValueInVariable(modelValue.name, newValue, evaluationContext.value)
-		} else {
-			// update the prop directly if not bound to a variable
-			props.block.setProp("modelValue", newValue)
-		}
-	},
 })
 
 // block hovering and selection
