@@ -306,7 +306,11 @@ class BaseDocument:
 				# for which you don't want to set default value
 				and key not in self.dont_update_if_missing
 			):
-				self.set(key, value)
+				if (
+					self.get(key)
+					and not frappe.get_meta(self.doctype).get_field(key).ignore_update_if_missing
+				):
+					self.set(key, value)
 
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)

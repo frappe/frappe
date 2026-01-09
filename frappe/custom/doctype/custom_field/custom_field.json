@@ -42,6 +42,7 @@
   "is_virtual",
   "read_only",
   "ignore_user_permissions",
+  "ignore_update_if_missing",
   "hidden",
   "print_hide",
   "print_hide_if_no_value",
@@ -476,6 +477,12 @@
    "fieldtype": "Select",
    "label": "Button Color",
    "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+  },
+  {
+   "default": "0",
+   "fieldname": "ignore_update_if_missing",
+   "fieldtype": "Check",
+   "label": "Ignore Update If Missing"
   }
  ],
  "grid_page_length": 50,
@@ -483,7 +490,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-12 01:14:24.753774",
+ "modified": "2026-01-07 18:08:46.324612",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

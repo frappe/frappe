@@ -85,6 +85,7 @@ class CustomField(Document):
 		hide_border: DF.Check
 		hide_days: DF.Check
 		hide_seconds: DF.Check
+		ignore_update_if_missing: DF.Check
 		ignore_user_permissions: DF.Check
 		ignore_xss_filter: DF.Check
 		in_global_search: DF.Check

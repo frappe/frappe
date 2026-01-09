@@ -273,6 +273,7 @@ class CustomizeForm(Document):
 		# docfield
 		for df in self.get("fields"):
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
+
 			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
 
@@ -771,6 +772,7 @@ docfield_properties = {
 	"non_negative": "Check",
 	"reqd": "Check",
 	"unique": "Check",
+	"ignore_update_if_missing": "Check",
 	"ignore_user_permissions": "Check",
 	"in_list_view": "Check",
 	"in_standard_filter": "Check",
