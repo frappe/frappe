@@ -8,12 +8,27 @@ from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 import frappe
 from frappe.utils import cstr, get_site_name
+from frappe.utils.response import FORCE_DOWNLOAD_EXTENSIONS
 
 
 class StaticDataMiddleware(SharedDataMiddleware):
 	def __call__(self, environ, start_response):
 		self.environ = environ
-		return super().__call__(environ, start_response)
+
+		def patch_start_response(status, headers, exc_info=None):
+			if (
+				(path := environ.get("PATH_INFO", ""))
+				and path.startswith("/files/")
+				and path.lower().endswith(FORCE_DOWNLOAD_EXTENSIONS)
+			):
+				from urllib.parse import quote
+
+				filename = Path(path).name
+				headers.append(("Content-Disposition", f"attachment; filename*=UTF-8''{quote(filename)}"))
+
+			return start_response(status, headers, exc_info)
+
+		return super().__call__(environ, patch_start_response)
 
 	def get_directory_loader(self, directory):
 		def loader(path):
