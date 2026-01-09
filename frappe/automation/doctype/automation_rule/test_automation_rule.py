@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.communication.test_communication import create_email_account
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.tests import IntegrationTestCase
 
@@ -46,12 +47,12 @@ class IntegrationTestAutomationRule(IntegrationTestCase):
 	def setUp(self) -> None:
 		for email in emails:
 			create_user(email)
-		create_base_automation()
 
 	def test_base_automation_rule(self):
 		# todo1 with "Medium" priority should be assigned to email[0]
 		# todo2 with "High" priority should be assigned to email[1]
 		# else todo should be assigned to email[2]
+		create_base_automation()
 		todo1 = frappe.new_doc("ToDo", priority="Medium", status="Open", description="Test ToDo 1").insert(
 			ignore_if_duplicate=True
 		)
@@ -66,6 +67,50 @@ class IntegrationTestAutomationRule(IntegrationTestCase):
 			ignore_if_duplicate=True
 		)
 		self.assertEqual(todo3.allocated_to, emails[2])
+
+	def test_email_send_normal_automation(self):
+		# setup email action based automation rule
+		create_email_account()
+		frappe.sendmail(
+			recipients=["test_recipient@example.com"],
+			subject="Test Subject",
+			message="Test message",
+		)
+		queue = frappe.get_all("Email Queue")
+		self.assertTrue(len(queue), 1)
+		# email account setup needed
+		# create todo to trigger automation rule
+		# email queue entry should be present
+		pass
+
+	def test_automation_log_creation(self):
+		# create 1 day before trigger automation rule
+		#
+		pass
+		# todo1 = frappe.new_doc("ToDo", priority="Medium", status="Open", description="Test ToDo 1").insert(
+		# 	ignore_if_duplicate=True
+		# )
+		# log should be created in Automation Scheduled Job Log
+		# self.assertTrue(
+		# 	frappe.db.exists(
+		# 		"Automation Scheduled Job Log",
+		# 		{"reference_doctype": "ToDo", "reference_name": todo1.name, "automation_rule": AUTOMATION_NAME},
+		# 	)
+		# )
+
+	def test_time_based_automation(self):
+		# time based automation rule create
+		# todo create
+		# job schculed in log
+		# increase time by 5 minutes
+		# communication created?  + email queue is present or not + value set or not
+		pass
+
+	def test_automation_rule_update(self):
+		pass
+
+	def test_automation_rule_deletion(self):
+		pass
 
 	def tearDown(self) -> None:
 		if frappe.db.exists("Automation Rule", AUTOMATION_NAME):

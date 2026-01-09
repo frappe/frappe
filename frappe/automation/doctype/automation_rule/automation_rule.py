@@ -2,11 +2,13 @@
 # For license information, please see license.txt
 
 import json
+from dataclasses import fields
 from typing import TYPE_CHECKING, cast
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils.data import compare, validate_json_string
+from frappe.utils.background_jobs import enqueue
+from frappe.utils.data import add_to_date, compare, validate_json_string
 from frappe.utils.jinja import get_template
 
 if TYPE_CHECKING:
@@ -30,11 +32,15 @@ class AutomationRule(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		doctype_event: DF.Literal["On Creation", "On Update"]
+		doctype_event: DF.Literal[
+			"On Creation", "On Update", "Days Before", "Days After", "Minutes Before", "Minutes After"
+		]
 		dt: DF.Link
 		enabled: DF.Check
 		last_triggered_at: DF.Datetime | None
 		rule: DF.JSON
+		time_field: DF.Data | None
+		time_offset: DF.Int
 	# end: auto-generated types
 
 	def validate(self) -> None:
@@ -115,7 +121,6 @@ class AutomationRule(Document):
 		doc.set(field, value)
 
 	def send_email(self, doc, action: "EmailAction") -> None:
-		# {'type': 'email', 'to': 'sender', 'via': 'rich_text', 'template': '', 'message': '<p>Hello {{role}},<br><br>Regards,<br>Ritvik</p>', 'doctype': 'Email Template'}
 		recipient = action.get("to")
 		message = self.parse_message(action.get("message", ""), doc)
 		add_reference = action.get("create_communication", False)
@@ -218,7 +223,7 @@ def apply_automations(doc, method=None) -> None:
 	if event == "On Creation" and hook == "before_save" and not doc.is_new():
 		return
 
-	automations: list[str] = frappe.db.get_all(
+	automations: list[str] = frappe.get_list(
 		"Automation Rule",
 		{"enabled": 1, "doctype_event": event, "dt": doctype},
 		pluck="name",
@@ -226,3 +231,51 @@ def apply_automations(doc, method=None) -> None:
 	for a in automations:
 		automation_doc = frappe.get_doc("Automation Rule", a)
 		automation_doc.apply(doc, hook)
+
+	if method != "after_insert":
+		return
+
+	time_based_automations = frappe.get_list(
+		"Automation Rule",
+		filters={"enabled": 1, "doctype_event": ["not in", ["On Creation", "On Update"]], "dt": doctype},
+		fields=["name", "dt", "doctype_event", "rule", "time_field", "time_offset"],
+	)
+
+	if not time_based_automations:
+		return
+
+	for automation in time_based_automations:
+		# automation.name /.dt
+		# doc.name
+		# status = "Scheduled"
+		# execute at
+		field = doc.get(automation.get("time_field"))
+		execute_at = calculate_execute_at(
+			automation.get("doctype_event"), field, automation.get("time_offset")
+		)
+		frappe.new_doc(
+			"Automation Scheduled Job",
+			reference_doctype=doctype,
+			reference_name=doc.name,
+			automation_rule=automation.name,
+			execute_at=execute_at,
+		).insert(ignore_permissions=True)
+
+
+def calculate_execute_at(doctype_event, field_value, offset):
+	event_map = {
+		"Minutes Before": add_to_date(field_value, minutes=-offset),
+		"Minutes After": add_to_date(field_value, minutes=offset),
+		"Days Before": add_to_date(field_value, days=-offset),
+		"Days After": add_to_date(field_value, days=offset),
+	}
+
+	return event_map[doctype_event]
+
+
+def execute_automation_logs():
+	# find_jobs_to_run()
+	# enqueue the automations found in find_jobs_to_run
+	# onSuccess change the status of the log to "Completed"
+	# onError change the status of the log to "Failed"
+	pass

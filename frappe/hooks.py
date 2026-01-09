@@ -238,6 +238,7 @@ scheduler_events = {
 		"frappe.email.queue.retry_sending_emails",
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
+		"frappe.automation.doctype.automation_rule.automation_rule.execute_automation_logs",
 	],
 	"hourly": [],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
