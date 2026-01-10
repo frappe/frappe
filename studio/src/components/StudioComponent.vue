@@ -182,7 +182,6 @@ const getComponentProps = () => {
 		} else if (isDynamicValue(propValue)) {
 			propValues[propName] = codeStore.evaluateDynamicValues(propValue, evaluationContext.value)
 		}
-		return propValue
 	})
 	return propValues
 }
