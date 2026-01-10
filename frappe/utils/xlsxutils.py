@@ -176,7 +176,7 @@ class XLSXStyleBuilder:
 		format: str,
 		name: str | None = None,
 	):
-		style_name = name or f"{fieldtype.lower()}_format"
+		style_name = name or f"{fieldtype.lower().replace(' ', '_')}_format"
 
 		if style_name:
 			self.register_style(style_name, number_format=format)
