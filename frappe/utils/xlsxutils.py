@@ -326,7 +326,7 @@ class XLSXStyleBuilder:
 			self.style_total_row()
 
 		if self.metadata.include_indentation:
-			self.set_indentations(0)
+			self.apply_indentations(0)
 
 		return self
 
@@ -336,7 +336,7 @@ class XLSXStyleBuilder:
 	def style_filters(self):
 		return self.style_column_range(0, 0, self.metadata.header_index - 1, "filter_label")
 
-	def set_indentations(self, column: int):
+	def apply_indentations(self, column: int):
 		for idx, row in self.metadata.rows_map.items():
 			if isinstance(row, dict) and "indent" in row:
 				self.style_cell(idx, column, indent=row["indent"])
@@ -345,27 +345,27 @@ class XLSXStyleBuilder:
 	def style_total_row(self):
 		return self.style_row(self.metadata.last_row_index, "total_row")
 
-	def set_default_fieldtype_formats(
+	def apply_default_fieldtype_formats(
 		self,
 		currency_formatting: bool = False,
 		*,
-		currency_mapping: dict | None = None,
 		currency: str | None = None,
+		currency_mapping: dict | None = None,
 	):
 		for idx, col in enumerate(self.metadata.columns):
 			if style_name := self.default_fieldtype_styles.get(col.get("fieldtype")):
 				self.style_column(idx, style_name)
 
 		if currency_formatting:
-			self.set_currency_fieldtype_formats(currency=currency, currency_mapping=currency_mapping)
+			self.apply_currency_fieldtype_formats(currency=currency, currency_mapping=currency_mapping)
 
 		return self
 
-	def set_currency_fieldtype_formats(
+	def apply_currency_fieldtype_formats(
 		self,
 		*,
-		currency_mapping: dict | None = None,
 		currency: str | None = None,
+		currency_mapping: dict | None = None,
 	):
 		if not self.currency_field_exists:
 			return self
@@ -410,15 +410,15 @@ class XLSXStyleBuilder:
 		fieldname = df.get("fieldname")
 		options = df.get("options")
 
-		if not (options or fieldname or doc):
-			return None
+		if not (options and fieldname and doc):
+			return
 
 		if ":" in options:
 			parts = options.split(":")
 			if len(parts) == 3 and (docname := doc.get(parts[1])):
 				return XLSXStyleBuilder._get_currency(parts[0], docname, parts[2])
 			else:
-				return None
+				return
 		else:
 			return doc.get(options)
 
