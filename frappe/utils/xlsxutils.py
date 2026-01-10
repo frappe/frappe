@@ -42,6 +42,7 @@ class XLSXMetadata:
 	last_row_index: int = 0
 	max_indent_level: int = 0
 
+	ignore_visible_idx: bool = True
 	include_filters: bool = False
 	include_indentation: bool = False
 	add_total_row: bool = False
@@ -299,11 +300,12 @@ class XLSXStyleBuilder:
 		if self.metadata.include_filters:
 			self.style_filters()
 
-		if self.metadata.add_total_row:
+		if self.metadata.add_total_row and self.metadata.ignore_visible_idx:
 			self.style_total_row()
 
 		if self.metadata.include_indentation:
 			self.set_indentations(0)
+
 		return self
 
 	def style_header(self):

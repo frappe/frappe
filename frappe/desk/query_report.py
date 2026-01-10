@@ -596,6 +596,7 @@ def build_xlsx_data(
 		metadata.last_row_index = len(result) - 1
 		metadata.max_indent_level = max_indent_level
 
+		metadata.ignore_visible_idx = ignore_visible_idx
 		metadata.include_hidden_columns = include_hidden_columns
 		metadata.include_indentation = include_indentation
 		metadata.include_filters = include_filters
