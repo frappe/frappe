@@ -1,23 +1,26 @@
-const request = require("superagent");
+const { get_conf } = require("../node_utils");
+const conf = get_conf();
 
 function get_url(socket, path) {
-	if (!path) {
-		path = "";
+	if (!path) path = "";
+
+	// In dev, always talk to the local bench webserver over HTTP.
+	// This avoids Node TLS trust issues with Caddy's internal CA.
+	if (conf.developer_mode) {
+		return `http://127.0.0.1:${conf.webserver_port}` + path;
 	}
-	return socket.request.headers.origin + path;
+
+	// Non-dev fallback: use Origin first, then forwarded headers, then Host.
+	const request_headers  = socket.request.headers;
+	let base = request_headers.origin;
+
+	if (!base) {
+		const proto = request_headers["x-forwarded-proto"] || "http";
+		const host = request_headers["x-forwarded-host"] || request_headers.host;
+		if (host) base = `${proto}://${host}`;
+	}
+
+	return (base || "") + path;
 }
 
-// Authenticates a partial request created using superagent
-function frappe_request(path, socket) {
-	const partial_req = request.get(get_url(socket, path));
-	if (socket.authorization_header) {
-		return partial_req.set("Authorization", socket.authorization_header);
-	} else if (socket.sid) {
-		return partial_req.query({ sid: socket.sid });
-	}
-}
-
-module.exports = {
-	get_url,
-	frappe_request,
-};
+module.exports = { get_url };

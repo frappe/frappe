@@ -1,19 +1,26 @@
 const cookie = require("cookie");
-const request = require("superagent");
-const { get_url } = require("../utils");
-
 const { get_conf } = require("../../node_utils");
+const { get_url } = require("../utils");
 const conf = get_conf();
 
 function authenticate_with_frappe(socket, next) {
 	let namespace = socket.nsp.name;
-	namespace = namespace.slice(1, namespace.length); // remove leading `/`
+	namespace = namespace.slice(1, namespace.length);
 
 	if (namespace != get_site_name(socket)) {
 		next(new Error("Invalid namespace"));
 	}
+	const host = get_hostname(socket.request.headers.host);
+	const origin = get_hostname(socket.request.headers.origin);
 
-	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
+	if (origin && host != origin) {
+		console.error("[socketio headers]", {
+			host: socket.request.headers.host,
+			origin: socket.request.headers.origin,
+			x_forwarded_host: socket.request.headers["x-forwarded-host"],
+			x_forwarded_proto: socket.request.headers["x-forwarded-proto"],
+		});
+
 		next(new Error("Invalid origin"));
 		return;
 	}
@@ -34,21 +41,36 @@ function authenticate_with_frappe(socket, next) {
 		next(new Error("No authentication method used. Use cookie or authorization header."));
 		return;
 	}
+	socket.sid = cookies.sid;
+	socket.authorization_header = authorization_header;
 
-	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
-	if (authorization_header) {
-		auth_req = auth_req.set("Authorization", authorization_header);
-	} else if (cookies.sid) {
-		auth_req = auth_req.query({ sid: cookies.sid });
-	}
+	socket.frappe_request = (path, args = {}, opts = {}) => {
+		let query_args = new URLSearchParams(args);
+		if (query_args.toString()) {
+			path = path + "?" + query_args.toString();
+		}
 
-	auth_req
-		.type("form")
-		.then((res) => {
-			socket.user = res.body.message.user;
-			socket.user_type = res.body.message.user_type;
-			socket.sid = cookies.sid;
-			socket.authorization_header = authorization_header;
+		let headers = {};
+		if (socket.authorization_header) {
+			headers["Authorization"] = socket.authorization_header;
+		} else if (socket.sid) {
+			headers["Cookie"] = `sid=${socket.sid}`;
+		}
+		const full_url = get_url(socket, path);
+		console.error("[socketio frappe_request url]", full_url);
+		return fetch(full_url, {
+			...opts,
+			headers,
+		});
+	};
+
+	socket
+		.frappe_request("/api/method/frappe.realtime.get_user_info")
+		.then((res) => res.json())
+		.then(({ message }) => {
+			socket.user = message.user;
+			socket.user_type = message.user_type;
+			socket.installed_apps = message.installed_apps;
 			next();
 		})
 		.catch((e) => {
