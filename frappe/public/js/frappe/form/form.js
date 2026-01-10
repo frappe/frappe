@@ -163,15 +163,15 @@ frappe.ui.form.Form = class FrappeForm {
 			action: () => this.undo_manager.redo(),
 			page: this.page,
 			description: __("Redo last action"),
-		condition: () => !this.is_form_builder(),
-	});
+			condition: () => !this.is_form_builder(),
+		});
 		frappe.ui.keys.add_shortcut({
-		shortcut: "ctrl+p",
-		action: () => this.print_doc(),
-		page: this.page,
-		description: __("Print document"),
-		condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
-	});
+			shortcut: "ctrl+p",
+			action: () => this.print_doc(),
+			page: this.page,
+			description: __("Print document"),
+			condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
+		});
 
 		let grid_shortcut_keys = [
 			{
