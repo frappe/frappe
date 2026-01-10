@@ -61,7 +61,6 @@ const emit = defineEmits<{
 }>()
 const bindVariable = ref(!!props.isVariableBound)
 
-// Watch for external changes to isVariableBound prop
 watch(
 	() => props.isVariableBound,
 	(newValue) => {
