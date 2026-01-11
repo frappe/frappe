@@ -1161,22 +1161,17 @@ def flt(
 
 
 def cint(s: NumericType | str | None, default: int = 0) -> int:
-	"""Convert to integer.
+	def cint(value):
+		"""
+    Convert a value to integer safely.
 
-	:param s: Number in string or other numeric format.
-	:returns: Converted number in python integer type.
+    Returns 0 if conversion fails.
+    """
+    try:
+        return int(value)
+    except Exception:
+        return 0
 
-	Return default if input cannot be converted to integer.
-
-	Examples:
-	>>> cint("100")
-	100
-	>>> cint("a")
-	0
-	>>> cint(None)
-	0
-
-	"""
 	if s is None:
 		return default
 
