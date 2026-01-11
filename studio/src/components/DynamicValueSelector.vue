@@ -3,30 +3,48 @@
 		size="sm"
 		:options="dynamicValueOptions"
 		class="!w-auto"
+		placement="left-start"
 		modelValue=""
-		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value)"
+		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value, bindVariable)"
 	>
 		<template #target="{ togglePopover }">
-			<slot name="target" v-if="$slots.target" v-bind="{ togglePopover }"></slot>
-			<Tooltip v-else text="Click to set dynamic value" placement="bottom">
-				<FeatherIcon
-					ref="dropdownTrigger"
-					name="plus-circle"
-					class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
-					@click="togglePopover"
-				/>
-			</Tooltip>
+			<IconButton
+				v-if="bindVariable"
+				:icon="Link2"
+				label="Synced with variable. Click to change."
+				placement="bottom"
+				class="mr-1"
+				@click="togglePopover"
+			/>
+			<IconButton
+				v-else
+				icon="plus-circle"
+				label="Click to set dynamic value"
+				placement="bottom"
+				class="mr-1"
+				size="sm"
+				@click="togglePopover"
+			/>
 		</template>
 
 		<template #item-suffix="{ option }">
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
+		<template #footer>
+			<div class="flex items-center p-2" @mousedown.prevent>
+				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
+					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
+				</Tooltip>
+				<Switch v-model="bindVariable" label="Sync with variable" class="w-full" />
+			</div>
+		</template>
 	</Autocomplete>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { Autocomplete, Tooltip } from "frappe-ui"
+import { computed, ref, watch } from "vue"
+import { Autocomplete, Switch, Tooltip } from "frappe-ui"
+import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
@@ -35,23 +53,24 @@ import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
 import useCodeStore from "@/stores/codeStore"
+import Link2 from "~icons/lucide/link-2"
 
-const props = withDefaults(defineProps<{ block?: Block; formatValuesAsTemplate?: boolean }>(), {
-	formatValuesAsTemplate: true,
-})
+const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{
-	(event: "update:modelValue", value: string): void
+	(event: "update:modelValue", value: string, bindVariable: boolean): void
 }>()
+const bindVariable = ref(!!props.isVariableBound)
+
+watch(
+	() => props.isVariableBound,
+	(newValue) => {
+		bindVariable.value = !!newValue
+	},
+)
+
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
-
-const formatValue = (value: string) => {
-	if (props.formatValuesAsTemplate) {
-		return `{{ ${value} }}`
-	}
-	return value
-}
 
 const dynamicValueOptions = computed(() => {
 	const groups = []
@@ -63,7 +82,7 @@ const dynamicValueOptions = computed(() => {
 			const componentContext: VariableOption[] = []
 			componentInputs.map?.((input: ComponentInput) => {
 				componentContext.push({
-					value: formatValue(`inputs.${input.input_name}`),
+					value: `inputs.${input.input_name}`,
 					label: `inputs.${input.input_name}`,
 					type: input.type,
 				})
@@ -78,10 +97,7 @@ const dynamicValueOptions = computed(() => {
 		if (store.variableOptions.length > 0) {
 			groups.push({
 				group: "Variables",
-				items: store.variableOptions.map((option) => ({
-					...option,
-					value: formatValue(option.value),
-				})),
+				items: store.variableOptions,
 			})
 		}
 		// Data Sources group
@@ -91,7 +107,7 @@ const dynamicValueOptions = computed(() => {
 					? `${resourceName}.doc`
 					: `${resourceName}.data`
 			return {
-				value: formatValue(completion),
+				value: completion,
 				label: resourceName,
 				type: "array",
 			}
@@ -108,7 +124,7 @@ const dynamicValueOptions = computed(() => {
 	const repeaterContext = props.block?.repeaterDataItem
 	if (!isObjectEmpty(repeaterContext)) {
 		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
-			value: formatValue(`dataItem.${key}`),
+			value: `dataItem.${key}`,
 			label: `dataItem.${key}`,
 			type: typeof repeaterContext![key],
 		}))

@@ -62,11 +62,20 @@ const useCodeStore = defineStore("codeStore", () => {
 		})
 	}
 
-	function getValueFromVariable(variablePath: string) {
-		return getValueFromObject(variables.value, variablePath)
+	function getValueFromVariable(variablePath: string, localContext?: ExpressionEvaluationContext) {
+		const context = localContext ? { ...variables.value, ...localContext } : variables.value
+		return getValueFromObject(context, variablePath)
 	}
 
-	function setValueInVariable(variablePath: string, value: any) {
+	function setValueInVariable(variablePath: string, value: any, localContext?: ExpressionEvaluationContext) {
+		if (localContext) {
+			const pathParts = variablePath.split(".")
+			const rootKey = pathParts[0]
+			if (localContext[rootKey] !== undefined) {
+				setValueInObject(localContext, variablePath, value)
+				return
+			}
+		}
 		setValueInObject(variables.value, variablePath, value)
 	}
 

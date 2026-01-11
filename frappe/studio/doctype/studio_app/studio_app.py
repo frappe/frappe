@@ -139,13 +139,8 @@ class StudioApp(WebsiteGenerator):
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw("You do not have permission to generate the app build", frappe.PermissionError)
 
-		# check if build is required
-		draft_components = get_app_components(self.name, "draft_blocks")
-		components = get_app_components(self.name)
-		if not draft_components.symmetric_difference(components):
-			return
-
 		try:
+			components = get_app_components(self.name)
 			command = f"yarn build-studio-app {self.name} --components {','.join(list(components))}"
 			studio_app_path = frappe.get_app_source_path("studio")
 			popen(command, cwd=studio_app_path, raise_err=True)

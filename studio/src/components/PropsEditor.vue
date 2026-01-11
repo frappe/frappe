@@ -6,44 +6,19 @@
 	<div v-else class="mt-3 flex flex-col gap-3">
 		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
 			<DynamicValueSelector
-				v-if="propName === 'modelValue'"
+				v-if="!isTestingComponent"
 				:block="block"
-				@update:modelValue="(value) => bindVariable(propName, value)"
+				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
 				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
-				:formatValuesAsTemplate="false"
-			>
-				<template #target="{ togglePopover }">
-					<IconButton
-						:icon="isVariableBound(config.modelValue) ? Link2Off : Link2"
-						:label="isVariableBound(config.modelValue) ? 'Disable sync with variable' : 'Sync with variable'"
-						placement="bottom"
-						class="mr-1"
-						@click="
-							() => {
-								if (isVariableBound(config.modelValue)) {
-									unbindVariable(propName)
-								} else {
-									togglePopover()
-								}
-							}
-						"
-					/>
-				</template>
-			</DynamicValueSelector>
-
-			<DynamicValueSelector
-				v-else-if="!isTestingComponent"
-				:block="block"
-				:class="{ 'mt-1 self-start': isCodeField(config.inputType) }"
-				@update:modelValue="(value) => props.block?.setProp(propName, value)"
+				:isVariableBound="isVariableBound(config.modelValue)"
 			/>
 
 			<Code
 				v-if="config.inputType === 'html'"
 				:label="propName"
 				language="html"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
@@ -62,30 +37,21 @@
 				v-else-if="config.inputType === 'code'"
 				:label="propName"
 				language="javascript"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				:required="config.required"
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
 				class="overflow-hidden"
 			/>
 			<InlineInput
-				v-else-if="propName !== 'modelValue'"
+				v-else
 				:label="propName"
 				:type="config.inputType"
 				:options="config.options"
 				:required="config.required"
-				:modelValue="config.modelValue"
-				@update:modelValue="(newValue) => props.block?.setProp(propName, newValue)"
-				class="flex-1"
-			/>
-			<InlineInput
-				v-else-if="propName === 'modelValue'"
-				:label="propName"
-				:type="config.inputType"
-				:options="config.options"
-				:required="config.required"
-				v-model="boundValue"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				class="flex-1"
 			/>
 		</div>
@@ -99,9 +65,6 @@ import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
 import { isObjectEmpty } from "@/utils/helpers"
-import IconButton from "@/components/IconButton.vue"
-import Link2 from "~icons/lucide/link-2"
-import Link2Off from "~icons/lucide/link-2-off"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
@@ -201,29 +164,27 @@ const isCodeField = (inputType: string) => {
 	return ["code", "html"].includes(inputType)
 }
 
-// variable binding
-const boundValue = computed({
-	get() {
-		const modelValue = props.block?.componentProps.modelValue
-		if (modelValue?.$type === "variable") {
-			return `{{ ${modelValue.name} }}`
-		}
-		return modelValue
-	},
-	set(newValue) {
-		props.block?.setProp("modelValue", newValue)
-	},
-})
+function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
+	if (bindVariable) {
+		props.block?.setProp(propName, { $type: "variable", name: varName })
+	} else {
+		props.block?.setProp(propName, `{{ ${varName} }}`)
+	}
+}
+
+const getFormattedValue = (propName: string) => {
+	const value = props.block?.componentProps[propName]
+	if (value?.$type === "variable") {
+		return `{{ ${value.name} }}`
+	}
+	return value
+}
+
+const handlePropUpdate = (propName: string, newValue: any) => {
+	props.block?.setProp(propName, newValue)
+}
 
 const isVariableBound = (value: any) => {
 	return value?.$type === "variable" ? value.name : null
-}
-
-const bindVariable = (propName: string, varName: string) => {
-	props.block?.setProp(propName, { $type: "variable", name: varName })
-}
-
-const unbindVariable = (propName: string) => {
-	props.block?.setProp(propName, "")
 }
 </script>
