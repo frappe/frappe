@@ -11,8 +11,10 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const completionSources = computed(() => {
 		const sources: CompletionSource[] = []
 		Object.entries(codeStore.variables || {}).forEach(([variable, item]) => {
+			// When canEditValues is true, variables are refs (toRefs)
+			const wrappedItem = canEditValues ? { value: item } : item
 			sources.push({
-				item,
+				item: wrappedItem,
 				completion: {
 					label: variable,
 					type: "variable",
