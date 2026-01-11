@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import difflib
 import json
 
 import frappe
@@ -9,6 +10,33 @@ from frappe.model.document import Document
 from frappe.utils import cstr
 
 FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if fieldtype not in table_fields)
+
+
+def _generate_html_diff(old_value: str, new_value: str) -> str | None:
+	"""Generate HTML diff for multiline text values.
+
+	Returns HTML diff table if either value contains multiple lines, None otherwise.
+	"""
+	old_str = cstr(old_value) if old_value else ""
+	new_str = cstr(new_value) if new_value else ""
+
+	# Only generate diff if either value is multiline
+	if "\n" not in old_str and "\n" not in new_str and len(old_str) < 80 and len(new_str) < 80:
+		return None
+
+	old_lines = old_str.splitlines(keepends=True)
+	new_lines = new_str.splitlines(keepends=True)
+
+	differ = difflib.HtmlDiff(wrapcolumn=80)
+	html_diff = differ.make_table(
+		old_lines,
+		new_lines,
+		fromdesc=frappe._("Original"),
+		todesc=frappe._("New"),
+		context=True,
+		numlines=3,
+	)
+	return html_diff
 
 
 class Version(Document):
@@ -73,6 +101,27 @@ class Version(Document):
 
 	def get_data(self):
 		return json.loads(self.data)
+
+	def onload(self):
+		"""Generate HTML diffs for multiline changes on document load."""
+		if not self.data:
+			return
+
+		data = self.get_data()
+		changed = data.get("changed", [])
+		if not changed:
+			return
+
+		html_diffs = {}
+		for item in changed:
+			if len(item) >= 3:
+				fieldname, old_value, new_value = item[0], item[1], item[2]
+				html_diff = _generate_html_diff(old_value, new_value)
+				if html_diff:
+					html_diffs[fieldname] = html_diff
+
+		if html_diffs:
+			self.set_onload("html_diffs", html_diffs)
 
 
 def get_diff(old, new, for_child=False, compare_cancelled=False):
