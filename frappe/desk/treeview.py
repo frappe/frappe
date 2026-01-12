@@ -42,8 +42,10 @@ def get_children(doctype, parent="", include_disabled=False, **filters):
 
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
-	parent_field = "parent_" + frappe.scrub(doctype)
 	meta = frappe.get_meta(doctype)
+	parent_field = meta.get("nsm_parent_field")
+	if not parent_field:
+		parent_field = "parent_" + frappe.scrub(doctype)
 
 	qb = (
 		frappe.qb.from_(doctype)
