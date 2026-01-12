@@ -66,6 +66,7 @@ class WorkspaceSidebar(Document, DeskViews):
 		if is_workspace_manager():
 			if frappe.conf.developer_mode and self.app:
 				delete_file(self.app, self.title)
+			self.delete_desktop_icon()
 		else:
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
@@ -103,6 +104,16 @@ class WorkspaceSidebar(Document, DeskViews):
 		counts = Counter(all_modules_in_sidebars)
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
+
+	def delete_desktop_icon(self):
+		desktop_icon = frappe.get_all(
+			"Desktop Icon",
+			filters=[{"link_type": "Workspace Sidebar"}, {"link_to": self.name}],
+			limit=1,
+			pluck="name",
+		)
+		if desktop_icon:
+			frappe.delete_doc("Desktop Icon", desktop_icon[0])
 
 
 def delete_file(app, title):
