@@ -1,12 +1,18 @@
 <!-- Extracted from Builder -->
 <template>
 	<div class="relative w-full" :class="type === 'checkbox' ? 'flex items-center' : ''">
+		<Select
+			v-if="type === 'select'"
+			:modelValue="data"
+			@update:modelValue="(value: string) => (data = value as typeof data)"
+			v-bind="attrs"
+		/>
 		<FormControl
+			v-else
 			:class="classes"
 			:type="type"
 			:modelValue="data"
-			@change="triggerChange"
-			@update:modelValue="triggerUpdate"
+			@change="triggerUpdate"
 			@input="($event: Event) => emit('input', ($event.target as HTMLInputElement).value)"
 			autocomplete="off"
 			:autofocus="autofocus"
@@ -31,6 +37,7 @@
 	</div>
 </template>
 <script lang="ts" setup>
+import { FormControl, Select } from "frappe-ui"
 import CrossIcon from "@/components/Icons/Cross.vue"
 import { useDebounceFn, useVModel } from "@vueuse/core"
 import { computed, useAttrs } from "vue"
@@ -86,7 +93,6 @@ const classes = computed(() => {
 		)
 	} else if (props.type === "textarea") {
 		_classes.push([
-			"[&>div>textarea]:border-outline-gray-1",
 			"[&>label]:text-ink-gray-7",
 			"[&>div>textarea]:!bg-surface-gray-2",
 			"[&>div>textarea]:text-ink-gray-8",
@@ -121,15 +127,11 @@ const clearValue = () => {
 	data.value = ""
 }
 
-const triggerChange = useDebounceFn(($event: Event) => {
+const triggerUpdate = useDebounceFn(($event: Event) => {
 	if (props.type === "checkbox") {
 		emit("update:modelValue", ($event.target as HTMLInputElement).checked)
 	} else {
 		emit("update:modelValue", ($event.target as HTMLInputElement).value)
 	}
-}, 100)
-
-const triggerUpdate = useDebounceFn(($event: any) => {
-	emit("update:modelValue", $event)
 }, 100)
 </script>
