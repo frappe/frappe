@@ -80,8 +80,9 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
+   "icon": "settings",
+   "indent": 1,
+   "keep_closed": 1,
    "label": "Customization",
    "link_type": "DocType",
    "show_arrow": 0,
@@ -90,7 +91,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "workflow",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Workflow",
@@ -102,7 +103,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "code",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Server Script",
@@ -114,7 +115,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "code-xml",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Client Script",
@@ -157,7 +158,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-08 14:16:38.951231",
+ "modified": "2026-01-12 15:48:51.863039",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
