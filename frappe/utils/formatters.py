@@ -102,7 +102,12 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			temp = cstr(value).split(".")
 			if len(temp) == 1 or cint(temp[1]) == 0:
 				precision = 0
-		elif (has_explicit_precision or has_system_precision) and not df.options and value is not None and not currency:
+		elif (
+			(has_explicit_precision or has_system_precision)
+			and not df.options
+			and value is not None
+			and not currency
+		):
 			# Format as regular float with specified precision
 			return "%.*f" % (precision, flt(value))
 		return fmt_money(value, precision=precision, currency=currency)
