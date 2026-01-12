@@ -60,7 +60,7 @@ class XLSXStyleBuilder:
 	BORDER_SIDES: ClassVar[tuple] = ("left", "right", "top", "bottom", "diagonal")
 	_border_cache: ClassVar[dict] = {}
 
-	DEFAULT_MAX_INDENT: ClassVar[int] = 3
+	DEFAULT_MAX_INDENT: ClassVar[int] = 2
 
 	def __init__(self, metadata: XLSXMetadata, default_styling: bool = False):
 		self.metadata = metadata
@@ -112,7 +112,7 @@ class XLSXStyleBuilder:
 		if self.currency_field_exists:
 			for idx, col in enumerate(self.metadata.columns):
 				if col.get("fieldtype") == "Currency":
-					self.currency_fields[idx] = col.get("fieldname")
+					self.currency_fields[idx] = col
 
 	### META DATA METHODS ###
 	def build_column_maps(self):
@@ -134,22 +134,6 @@ class XLSXStyleBuilder:
 	def get_row(self, row_idx: int) -> dict | list | None:
 		return self.metadata.rows_map.get(row_idx)
 
-	def get_indent_level(self, row_idx: int) -> int:
-		if row := self.get_row(row_idx):
-			if isinstance(row, dict):
-				return row.get("indent", 0)
-
-		return 0
-
-	def is_filter_row(self, row_idx: int) -> bool:
-		if not self.metadata.include_filters:
-			return False
-
-		return row_idx < self.metadata.header_index - 1
-
-	def is_header_row(self, row_idx: int) -> bool:
-		return row_idx == self.metadata.header_index
-
 	### STYLE REGISTRATION ###
 	def _register_standard_styles(self):
 		for name, style in self.standard_styles.items():
@@ -163,7 +147,7 @@ class XLSXStyleBuilder:
 		)
 
 		for indent in range(max_indent + 1):
-			self.register_style(self.indent_style_name(indent), **self.get_indent_style(indent))
+			self.register_style(self.get_indent_style_name(indent), **self.get_indent_style(indent))
 
 	def _register_default_fieldtype_formats(self):
 		map = {
@@ -181,7 +165,7 @@ class XLSXStyleBuilder:
 		if not currency:
 			return self
 
-		style_name = self.currency_style_name(currency)
+		style_name = self.get_currency_style_name(currency)
 
 		# format registered already
 		if self.get_style(style_name):
@@ -273,7 +257,7 @@ class XLSXStyleBuilder:
 			cell_style.update(style)
 
 		# Apply indent style (overrides alignment from named style)
-		if indent is not None and (style := self.get_style(self.indent_style_name(indent))):
+		if indent is not None and (style := self.get_style(self.get_indent_style_name(indent))):
 			cell_style["alignment"] = style["alignment"]
 
 		return self
@@ -346,60 +330,49 @@ class XLSXStyleBuilder:
 		return self.style_row(self.metadata.last_row_index, "total_row")
 
 	def apply_default_fieldtype_formats(
-		self,
-		currency_formatting: bool = False,
-		*,
-		currency: str | None = None,
-		currency_mapping: dict | None = None,
+		self, *, currency_formatting: bool = False, currency: str | dict | None = None
 	):
 		for idx, col in enumerate(self.metadata.columns):
 			if style_name := self.default_fieldtype_styles.get(col.get("fieldtype")):
 				self.style_column(idx, style_name)
 
 		if currency_formatting:
-			self.apply_currency_fieldtype_formats(currency=currency, currency_mapping=currency_mapping)
+			self.apply_currency_fieldtype_formats(currency)
 
 		return self
 
-	def apply_currency_fieldtype_formats(
-		self,
-		*,
-		currency: str | None = None,
-		currency_mapping: dict | None = None,
-	):
+	def apply_currency_fieldtype_formats(self, currency: str | dict | None = None):
 		if not self.currency_field_exists:
 			return self
 
 		@lru_cache(maxsize=64)
 		def _register(currency: str) -> str:
-			return self.register_currency_format(currency).currency_style_name(currency)
+			return self.register_currency_format(currency).get_currency_style_name(currency)
 
-		# if currency is provided, use it for all currency fields
-		if currency:
+		# if single currency is provided, use it for all currency fields
+		if isinstance(currency, str):
 			style_name = _register(currency)
 
-			for idx, col in enumerate(self.metadata.columns):
-				if col.get("fieldtype") == "Currency":
-					self.style_column(idx, style_name)
+			for idx in self.currency_fields.keys():
+				self.style_column(idx, style_name)
 
 		# if currency mapping is provided, use it for respective fields
-		elif currency_mapping:
-			for fieldname, currency in currency_mapping.items():
-				if col_idx := self.get_column_index(fieldname):
-					self.style_column(col_idx, _register(currency))
+		elif isinstance(currency, dict):
+			for fieldname, code in currency.items():
+				if idx := self.get_column_index(fieldname):
+					self.style_column(idx, _register(code))
 
-		# use frappe.meta to set currency formats
+		# currency per row based on metadata
 		else:
-			# TODO: In total row, currency formatting is not applied
 			default_currency = frappe.db.get_default("currency")
 
 			for row_idx, row in self.metadata.rows_map.items():
 				if not isinstance(row, dict):
 					continue
 
-				for col_idx in self.currency_fields.keys():
-					col = self.metadata.columns[col_idx]
+				for col_idx, col in self.currency_fields.items():
 					currency = self.get_field_currency(col, row) or default_currency
+
 					style_name = _register(currency)
 					self.style_cell(row_idx, col_idx, style_name=style_name)
 
@@ -538,7 +511,7 @@ class XLSXStyleBuilder:
 		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
 
 	@staticmethod
-	def currency_style_name(currency: str) -> str:
+	def get_currency_style_name(currency: str) -> str:
 		return f"{currency.lower()}_currency_format"
 
 	#### Excel Color Utils ####
@@ -573,7 +546,7 @@ class XLSXStyleBuilder:
 		return {"alignment": {"indent": indent_level * pt, "horizontal": "left"}}
 
 	@staticmethod
-	def indent_style_name(level: int) -> str:
+	def get_indent_style_name(level: int) -> str:
 		return f"indent_{level}"
 
 
