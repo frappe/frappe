@@ -69,7 +69,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "customization",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Customize",
    "link_type": "DocType",
@@ -79,7 +80,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "code",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Website Script",
@@ -91,7 +92,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "palette",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Website Theme",
@@ -101,7 +102,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-08 14:16:38.631875",
+ "modified": "2026-01-12 16:01:47.263270",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
